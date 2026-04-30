@@ -13,7 +13,20 @@ interface PaintRowProps {
 export function PaintRow({ paint, onEdit, onDelete }: PaintRowProps) {
   return (
     <TableRow>
-      <TableCell className="font-medium">{paint.name}</TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          {paint.hex_color ? (
+            <span
+              className="inline-block h-4 w-4 rounded-full border border-border shrink-0"
+              style={{ backgroundColor: paint.hex_color }}
+              aria-hidden="true"
+            />
+          ) : (
+            <span className="inline-block h-4 w-4 rounded-full border border-border bg-muted shrink-0" aria-hidden="true" />
+          )}
+          <span className="font-medium">{paint.name}</span>
+        </div>
+      </TableCell>
       <TableCell className="text-muted-foreground">{paint.brand}</TableCell>
       <TableCell className="text-muted-foreground">{paint.paint_type}</TableCell>
       <TableCell>
