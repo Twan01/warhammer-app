@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in-progress
-stopped_at: "Completed 01-app-shell/01-02-PLAN.md"
-last_updated: "2026-04-30T10:36:00Z"
-last_activity: 2026-04-30 — SQLite plugin wired end-to-end
+status: executing
+stopped_at: "Checkpoint: 01-app-shell/01-03 Task 4 — awaiting human verification of production binary"
+last_updated: "2026-04-30T10:51:43.590Z"
+last_activity: 2026-04-30 — Completed 01-02 SQLite plugin wiring (tauri-plugin-sql end-to-end)
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 20
 ---
 
@@ -50,6 +50,7 @@ Progress: [██░░░░░░░░] 20%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01-app-shell P03 | 5 | 3 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,9 @@ Recent decisions affecting current work:
 - 01-02: @tauri-apps/plugin-sql 2.4.0 installed (plan requested ^2.3.2 — 2.4.0 is compatible and is current latest)
 - 01-02: cargo check blocked by missing MSVC Build Tools — pre-existing environment issue; code correct, compilation deferred to 01-03 pnpm tauri dev checkpoint
 - 01-02: smoke test NOT wired to main.tsx — window.__phase1Smoke global set within scripts/sql-smoke-test.ts itself; accessible from webview devtools during 01-03 checkpoint
+- [Phase 01-app-shell]: 01-03: Plain aside sidebar (not shadcn SidebarProvider) — avoids cookie-persistence override, simpler exact-pixel widths
+- [Phase 01-app-shell]: 01-03: router-devtools installed at 1.166.13 (plan specified 1.168.0 which does not exist in npm registry)
+- [Phase 01-app-shell]: 01-03: Manual TanStack Router route tree (no codegen) — minimal dependency footprint for Phase 1
 
 ### Pending Todos
 
@@ -82,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-30T10:36:00Z
-Stopped at: Completed 01-app-shell/01-02-PLAN.md
-Resume file: .planning/phases/01-app-shell/01-03-PLAN.md
+Last session: 2026-04-30T10:51:43.588Z
+Stopped at: Checkpoint: 01-app-shell/01-03 Task 4 — awaiting human verification of production binary
+Resume file: None

@@ -10,10 +10,10 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 ### Setup (App Shell)
 
 - [x] **SETUP-01**: Tauri 2.x + React 19 + TypeScript + Vite + Tailwind v4 + shadcn/ui CLI v4 project scaffolds and launches as a Windows desktop app
-- [ ] **SETUP-02**: Sidebar navigation with entries for Dashboard, Collection, Painting Projects, Recipes, Paints, Settings (Settings can be a placeholder)
-- [ ] **SETUP-03**: TanStack Router wires sidebar entries to placeholder routes; navigation works
+- [x] **SETUP-02**: Sidebar navigation with entries for Dashboard, Collection, Painting Projects, Recipes, Paints, Settings (Settings can be a placeholder)
+- [x] **SETUP-03**: TanStack Router wires sidebar entries to placeholder routes; navigation works
 - [x] **SETUP-04**: Dark-mode-first styling with no FOUC on cold start (inline `<script>document.documentElement.classList.add('dark')</script>` in `index.html` before stylesheet)
-- [ ] **SETUP-05**: TanStack Query client configured with desktop defaults (staleTime 5min, gcTime 10min, refetchOnWindowFocus false)
+- [x] **SETUP-05**: TanStack Query client configured with desktop defaults (staleTime 5min, gcTime 10min, refetchOnWindowFocus false)
 - [x] **SETUP-06**: Tauri capabilities grant `sql:allow-load`, `sql:allow-select`, `sql:allow-execute`, `sql:allow-close` in `src-tauri/capabilities/default.json`
 - [x] **SETUP-07**: Rust `setup()` calls `create_dir_all(app_data_dir())` before `tauri-plugin-sql` initializes
 - [x] **SETUP-08**: Folder structure matches ROADMAP section 9.2 (`src/app`, `src/components/{ui,common,forms}`, `src/features/*`, `src/db/{client,queries}`, `src/types`, `src/utils`, `src/styles`)
@@ -205,10 +205,10 @@ Which phases cover which requirements.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | SETUP-01 | Phase 1 | Complete |
-| SETUP-02 | Phase 1 | Pending |
-| SETUP-03 | Phase 1 | Pending |
+| SETUP-02 | Phase 1 | Complete |
+| SETUP-03 | Phase 1 | Complete |
 | SETUP-04 | Phase 1 | Complete |
-| SETUP-05 | Phase 1 | Pending |
+| SETUP-05 | Phase 1 | Complete |
 | SETUP-06 | Phase 1 | Complete |
 | SETUP-07 | Phase 1 | Complete |
 | SETUP-08 | Phase 1 | Complete |

@@ -12,7 +12,7 @@ HobbyForge v1 is built in five phases that follow the natural dependency chain o
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: App Shell** - Tauri + React desktop app launches with sidebar, routing, SQLite plumbing, dark mode, and all shadcn components installed
+- [x] **Phase 1: App Shell** - Tauri + React desktop app launches with sidebar, routing, SQLite plumbing, dark mode, and all shadcn components installed (completed 2026-04-30)
 - [ ] **Phase 2: Data Layer + Entity CRUD** - Full 10-table schema, FK enforcement, seed data, and CRUD for factions / units / paints (schema + queries + hooks + basic UI for all three)
 - [ ] **Phase 3: Collection Module** - Searchable, filterable unit table with detail drawer, inline status updates, progress bars, and full create/edit/delete UX including all cross-cutting polish patterns
 - [ ] **Phase 4: Painting Module** - Active painting projects Kanban (status columns, card actions, mark active) plus full recipe CRUD with paint linkage and owned/missing paint indicator
@@ -117,7 +117,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. App Shell | 1/3 | In Progress|  |
+| 1. App Shell | 3/3 | Complete   | 2026-04-30 |
 | 2. Data Layer + Entity CRUD | 0/4 | Not started | - |
 | 3. Collection Module | 0/4 | Not started | - |
 | 4. Painting Module | 0/4 | Not started | - |
