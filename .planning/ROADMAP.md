@@ -118,7 +118,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. App Shell | 3/3 | Complete   | 2026-04-30 |
-| 2. Data Layer + Entity CRUD | 1/4 | In Progress|  |
+| 2. Data Layer + Entity CRUD | 2/4 | In Progress|  |
 | 3. Collection Module | 0/4 | Not started | - |
 | 4. Painting Module | 0/4 | Not started | - |
 | 5. Dashboard | 0/3 | Not started | - |

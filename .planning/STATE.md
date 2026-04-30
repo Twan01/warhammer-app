@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready for Phase 2
-stopped_at: Completed 02-01-PLAN.md (core schema migration)
-last_updated: "2026-04-30T13:19:57.008Z"
+stopped_at: Completed 02-02-PLAN.md (seed migrations, entity types, query modules, hooks)
+last_updated: "2026-04-30T13:28:27.782Z"
 last_activity: 2026-04-30 — Completed 01-03 Phase 1 app shell (human-verify approved)
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 7
-  completed_plans: 4
+  completed_plans: 5
   percent: 100
 ---
 
@@ -53,6 +53,7 @@ Progress: [██████████] 100%
 | Phase 01-app-shell P03 | 5 | 3 tasks | 16 files |
 | Phase 01-app-shell P03 | 30 | 4 tasks | 16 files |
 | Phase 02-data-layer-entity-crud P01 | 4 | 3 tasks | 3 files |
+| Phase 02-data-layer-entity-crud P02 | 4 | 3 tasks | 19 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,9 @@ Recent decisions affecting current work:
 - [Phase 01-app-shell]: 01-03: router-devtools installed at 1.166.13 (plan specified 1.168.0 which does not exist in npm registry)
 - [Phase 01-app-shell]: 01-03: Manual TanStack Router route tree (no codegen) — minimal dependency footprint for Phase 1
 - [Phase 02-data-layer-entity-crud]: 02-01: All 10 v1 tables in single migration (001_core_schema.sql); model_instances absent (DATA-04); units.faction_id and recipe_paints.paint_id use RESTRICT, recipe_paints.recipe_id uses CASCADE
+- [Phase 02-data-layer-entity-crud]: 02-02: 0|1 literal types for all SQLite boolean columns (not boolean) — prevents runtime mismatch (Pitfall 1)
+- [Phase 02-data-layer-entity-crud]: 02-02: useUnits mutations invalidate ["dashboard-stats"] for DATA-09 forward compatibility — no-op until Phase 5
+- [Phase 02-data-layer-entity-crud]: 02-02: No updateRecipePaint — RecipePaint links are immutable; to change, remove + re-add
 
 ### Pending Todos
 
@@ -89,6 +93,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-30T13:19:57.003Z
-Stopped at: Completed 02-01-PLAN.md (core schema migration)
+Last session: 2026-04-30T13:28:27.780Z
+Stopped at: Completed 02-02-PLAN.md (seed migrations, entity types, query modules, hooks)
 Resume file: None

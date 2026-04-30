@@ -22,15 +22,15 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 
 ### Database (Schema, Plumbing, Migrations)
 
-- [ ] **DATA-01**: `src/db/client.ts` exports a `getDb()` singleton that calls `Database.load('sqlite:hobbyforge.db')` once
-- [ ] **DATA-02**: `getDb()` runs `PRAGMA foreign_keys = ON` immediately after first load — verified by deleting a faction with units and observing an error (not silent success)
+- [x] **DATA-01**: `src/db/client.ts` exports a `getDb()` singleton that calls `Database.load('sqlite:hobbyforge.db')` once
+- [x] **DATA-02**: `getDb()` runs `PRAGMA foreign_keys = ON` immediately after first load — verified by deleting a faction with units and observing an error (not silent success)
 - [x] **DATA-03**: All 10 tables created in a single first migration (`001_core_schema.sql`): factions, units, paints, painting_recipes, recipe_paints, army_lists, army_list_units, unit_strategy_notes, battle_logs, image_assets — even though only 5 get UI in v1
 - [x] **DATA-04**: `model_instances` table is NOT created (deferred indefinitely)
 - [x] **DATA-05**: Migrations are append-only, numbered, and managed by `tauri-plugin-sql`'s built-in `_sqlx_migrations` runner; SQL files live under `src-tauri/migrations/` and are loaded via `include_str!()`
-- [ ] **DATA-06**: TypeScript types for every entity live in `src/types/` and stay in sync with the SQL schema
-- [ ] **DATA-07**: Each entity has a query module under `src/db/queries/<entity>.ts` (factions, units, paints, recipes, recipePaints) — no DB calls anywhere outside this folder
-- [ ] **DATA-08**: Each entity has a TanStack Query hooks module under `src/hooks/use<Entity>.ts` — components only call hooks, never query functions directly
-- [ ] **DATA-09**: Mutations invalidate the right query keys (e.g., updating a unit invalidates units list AND any dashboard-stats query)
+- [x] **DATA-06**: TypeScript types for every entity live in `src/types/` and stay in sync with the SQL schema
+- [x] **DATA-07**: Each entity has a query module under `src/db/queries/<entity>.ts` (factions, units, paints, recipes, recipePaints) — no DB calls anywhere outside this folder
+- [x] **DATA-08**: Each entity has a TanStack Query hooks module under `src/hooks/use<Entity>.ts` — components only call hooks, never query functions directly
+- [x] **DATA-09**: Mutations invalidate the right query keys (e.g., updating a unit invalidates units list AND any dashboard-stats query)
 
 ### Factions
 
@@ -47,7 +47,7 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 - [ ] **UNIT-03**: Unit also stores: purchase_date, purchase_price, storage_location, main_image_path (string only — no upload UI in v1), notes
 - [ ] **UNIT-04**: User can edit any unit field
 - [ ] **UNIT-05**: User can delete a unit (with confirmation modal)
-- [ ] **UNIT-06**: A `PAINTING_STATUS_ORDER` constant defined in `src/types/` drives Kanban column ordering and progress mapping (not alphabetical)
+- [x] **UNIT-06**: A `PAINTING_STATUS_ORDER` constant defined in `src/types/` drives Kanban column ordering and progress mapping (not alphabetical)
 
 ### Collection Page (Phase 2 UI)
 
@@ -107,11 +107,11 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 
 ### Seed Data
 
-- [ ] **SEED-01**: Seed migration ships factions: Tau Empire, Ultramarines, Necrons, Tyranids (real GW names — personal/local use, README disclaimer)
-- [ ] **SEED-02**: Seed migration ships sample units: Tau Fire Warriors, Crisis Battlesuits, Commander in Battlesuit, Necron Warriors, Ultramarines Intercessors
-- [ ] **SEED-03**: Seed migration ships sample paints: Citadel Abaddon Black, Citadel White Scar, Citadel Nuln Oil, Citadel Leadbelcher, Citadel Macragge Blue, Citadel Retributor Armour
-- [ ] **SEED-04**: Seed migration ships sample recipes: Tau White Armor, Ultramarines Blue Armor, Necron Ancient Metal — with paint linkages
-- [ ] **SEED-05**: Seed uses `INSERT OR IGNORE` with stable IDs for idempotency
+- [x] **SEED-01**: Seed migration ships factions: Tau Empire, Ultramarines, Necrons, Tyranids (real GW names — personal/local use, README disclaimer)
+- [x] **SEED-02**: Seed migration ships sample units: Tau Fire Warriors, Crisis Battlesuits, Commander in Battlesuit, Necron Warriors, Ultramarines Intercessors
+- [x] **SEED-03**: Seed migration ships sample paints: Citadel Abaddon Black, Citadel White Scar, Citadel Nuln Oil, Citadel Leadbelcher, Citadel Macragge Blue, Citadel Retributor Armour
+- [x] **SEED-04**: Seed migration ships sample recipes: Tau White Armor, Ultramarines Blue Armor, Necron Ancient Metal — with paint linkages
+- [x] **SEED-05**: Seed uses `INSERT OR IGNORE` with stable IDs for idempotency
 - [x] **SEED-06**: README documents the personal-use, no-redistribution disclaimer for the GW-named seed data
 
 ### Cross-cutting Polish
@@ -215,15 +215,15 @@ Which phases cover which requirements.
 | SETUP-09 | Phase 1 | Complete |
 | SETUP-10 | Phase 1 | Complete |
 | POLISH-06 | Phase 1 | Complete |
-| DATA-01 | Phase 2 | Pending |
-| DATA-02 | Phase 2 | Pending |
+| DATA-01 | Phase 2 | Complete |
+| DATA-02 | Phase 2 | Complete |
 | DATA-03 | Phase 2 | Complete |
 | DATA-04 | Phase 2 | Complete |
 | DATA-05 | Phase 2 | Complete |
-| DATA-06 | Phase 2 | Pending |
-| DATA-07 | Phase 2 | Pending |
-| DATA-08 | Phase 2 | Pending |
-| DATA-09 | Phase 2 | Pending |
+| DATA-06 | Phase 2 | Complete |
+| DATA-07 | Phase 2 | Complete |
+| DATA-08 | Phase 2 | Complete |
+| DATA-09 | Phase 2 | Complete |
 | FACT-01 | Phase 2 | Pending |
 | FACT-02 | Phase 2 | Pending |
 | FACT-03 | Phase 2 | Pending |
@@ -234,14 +234,14 @@ Which phases cover which requirements.
 | UNIT-03 | Phase 2 | Pending |
 | UNIT-04 | Phase 2 | Pending |
 | UNIT-05 | Phase 2 | Pending |
-| UNIT-06 | Phase 2 | Pending |
+| UNIT-06 | Phase 2 | Complete |
 | PAINT-01 | Phase 2 | Pending |
 | PAINT-02 | Phase 2 | Pending |
-| SEED-01 | Phase 2 | Pending |
-| SEED-02 | Phase 2 | Pending |
-| SEED-03 | Phase 2 | Pending |
-| SEED-04 | Phase 2 | Pending |
-| SEED-05 | Phase 2 | Pending |
+| SEED-01 | Phase 2 | Complete |
+| SEED-02 | Phase 2 | Complete |
+| SEED-03 | Phase 2 | Complete |
+| SEED-04 | Phase 2 | Complete |
+| SEED-05 | Phase 2 | Complete |
 | SEED-06 | Phase 2 | Complete |
 | COLL-01 | Phase 3 | Pending |
 | COLL-02 | Phase 3 | Pending |
