@@ -1,10 +1,15 @@
 use tauri::Manager;
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Phase 2 will populate this with the 001_core_schema.sql migration.
-/// Phase 1 only proves the plugin is wired correctly with an empty migration list.
 fn get_migrations() -> Vec<Migration> {
-    vec![]
+    vec![
+        Migration {
+            version: 1,
+            description: "core_schema",
+            sql: include_str!("../migrations/001_core_schema.sql"),
+            kind: MigrationKind::Up,
+        },
+    ]
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
