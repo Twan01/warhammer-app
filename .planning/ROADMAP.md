@@ -30,12 +30,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A SQLite file appears in `%APPDATA%\HobbyForge\` after first launch of the production binary (not just `tauri dev`)
   4. All shadcn/ui components needed for v1 (Table, Dialog, Sheet, Drawer, Badge, Progress, Select, Form, Command, Sonner, Card, Tabs, Combobox) are installed and importable
   5. Inserting a test row via a DB call succeeds, confirming `sql:allow-execute` capability is wired
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: Tauri + React + TS scaffold, Tailwind v4, dark mode FOUC fix, folder structure
-- [ ] 01-02: Sidebar layout, TanStack Router routes, placeholder pages, QueryClient setup
-- [ ] 01-03: Tauri capabilities, SQLite plugin wiring, AppData dir creation, preload config, shadcn batch install
+- [ ] 01-01-PLAN.md — Tauri 2 + React 19 + TS + Vite scaffold, Tailwind v4, dark mode FOUC fix, SETUP-08 folder structure, shadcn batch install (POLISH-06)
+- [ ] 01-02-PLAN.md — Tauri SQL plugin wiring, capabilities (sql:allow-*), Rust setup() with create_dir_all(app_data_dir()), tauri.conf preload, getDb() singleton with FK pragma
+- [ ] 01-03-PLAN.md — TanStack Router 6-route tree, AppLayout + AppSidebar (collapse + localStorage persist), QueryClient (desktop defaults), 6 placeholder pages, human-verify checkpoint for SETUP-09
 
 ### Phase 2: Data Layer + Entity CRUD
 **Goal**: All 10 tables exist in a single migration, FK enforcement is verified, seed data is in place, and factions / units / paints are fully CRUD-able through a typed query + hook + UI stack
