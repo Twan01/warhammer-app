@@ -200,17 +200,99 @@ Explicitly excluded. Documented to prevent scope creep.
 
 ## Traceability
 
-Which phases cover which requirements. Filled by roadmap creation.
+Which phases cover which requirements.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated by gsd-roadmapper) | | |
+| SETUP-01 | Phase 1 | Pending |
+| SETUP-02 | Phase 1 | Pending |
+| SETUP-03 | Phase 1 | Pending |
+| SETUP-04 | Phase 1 | Pending |
+| SETUP-05 | Phase 1 | Pending |
+| SETUP-06 | Phase 1 | Pending |
+| SETUP-07 | Phase 1 | Pending |
+| SETUP-08 | Phase 1 | Pending |
+| SETUP-09 | Phase 1 | Pending |
+| SETUP-10 | Phase 1 | Pending |
+| POLISH-06 | Phase 1 | Pending |
+| DATA-01 | Phase 2 | Pending |
+| DATA-02 | Phase 2 | Pending |
+| DATA-03 | Phase 2 | Pending |
+| DATA-04 | Phase 2 | Pending |
+| DATA-05 | Phase 2 | Pending |
+| DATA-06 | Phase 2 | Pending |
+| DATA-07 | Phase 2 | Pending |
+| DATA-08 | Phase 2 | Pending |
+| DATA-09 | Phase 2 | Pending |
+| FACT-01 | Phase 2 | Pending |
+| FACT-02 | Phase 2 | Pending |
+| FACT-03 | Phase 2 | Pending |
+| FACT-04 | Phase 2 | Pending |
+| FACT-05 | Phase 2 | Pending |
+| UNIT-01 | Phase 2 | Pending |
+| UNIT-02 | Phase 2 | Pending |
+| UNIT-03 | Phase 2 | Pending |
+| UNIT-04 | Phase 2 | Pending |
+| UNIT-05 | Phase 2 | Pending |
+| UNIT-06 | Phase 2 | Pending |
+| PAINT-01 | Phase 2 | Pending |
+| PAINT-02 | Phase 2 | Pending |
+| SEED-01 | Phase 2 | Pending |
+| SEED-02 | Phase 2 | Pending |
+| SEED-03 | Phase 2 | Pending |
+| SEED-04 | Phase 2 | Pending |
+| SEED-05 | Phase 2 | Pending |
+| SEED-06 | Phase 2 | Pending |
+| COLL-01 | Phase 3 | Pending |
+| COLL-02 | Phase 3 | Pending |
+| COLL-03 | Phase 3 | Pending |
+| COLL-04 | Phase 3 | Pending |
+| COLL-05 | Phase 3 | Pending |
+| COLL-06 | Phase 3 | Pending |
+| COLL-07 | Phase 3 | Pending |
+| COLL-08 | Phase 3 | Pending |
+| COLL-09 | Phase 3 | Pending |
+| COLL-10 | Phase 3 | Pending |
+| COLL-11 | Phase 3 | Pending |
+| COLL-12 | Phase 3 | Pending |
+| COLL-13 | Phase 3 | Pending |
+| POLISH-01 | Phase 3 | Pending |
+| POLISH-02 | Phase 3 | Pending |
+| POLISH-03 | Phase 3 | Pending |
+| POLISH-04 | Phase 3 | Pending |
+| POLISH-05 | Phase 3 | Pending |
+| PROJ-01 | Phase 4 | Pending |
+| PROJ-02 | Phase 4 | Pending |
+| PROJ-03 | Phase 4 | Pending |
+| PROJ-04 | Phase 4 | Pending |
+| PROJ-05 | Phase 4 | Pending |
+| PROJ-06 | Phase 4 | Pending |
+| PROJ-07 | Phase 4 | Pending |
+| PROJ-08 | Phase 4 | Pending |
+| RECIPE-01 | Phase 4 | Pending |
+| RECIPE-02 | Phase 4 | Pending |
+| RECIPE-03 | Phase 4 | Pending |
+| RECIPE-04 | Phase 4 | Pending |
+| RECIPE-05 | Phase 4 | Pending |
+| RECIPE-06 | Phase 4 | Pending |
+| RECIPE-07 | Phase 4 | Pending |
+| RECIPE-08 | Phase 4 | Pending |
+| PAINT-03 | Phase 4 | Pending |
+| PAINT-04 | Phase 4 | Pending |
+| DASH-01 | Phase 5 | Pending |
+| DASH-02 | Phase 5 | Pending |
+| DASH-03 | Phase 5 | Pending |
+| DASH-04 | Phase 5 | Pending |
+| DASH-05 | Phase 5 | Pending |
+| DASH-06 | Phase 5 | Pending |
+| DASH-07 | Phase 5 | Pending |
+| DASH-08 | Phase 5 | Pending |
 
 **Coverage:**
-- v1 requirements: 64 total
-- Mapped to phases: 0 (will be set during roadmap creation)
-- Unmapped: 64 ⚠️ (expected pre-roadmap)
+- v1 requirements: 83 total (note: header originally said 64 — actual count from file is 83)
+- Mapped to phases: 83
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-30*
-*Last updated: 2026-04-30 after initial definition*
+*Last updated: 2026-04-30 — traceability populated by roadmap creation*
