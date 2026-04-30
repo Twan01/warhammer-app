@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 import { AppSidebar } from "./AppSidebar";
 
 export function AppLayout({ children }: { children: ReactNode }) {
@@ -9,6 +10,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <AppSidebar />
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
+      <Toaster richColors position="bottom-right" />
     </TooltipProvider>
   );
 }

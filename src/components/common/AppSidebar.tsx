@@ -8,6 +8,7 @@ import {
   Package,
   Palette,
   Settings as SettingsIcon,
+  Shield,
   Swords,
 } from "lucide-react";
 import { NavItem } from "./NavItem";
@@ -15,6 +16,7 @@ import { useSidebarCollapsed } from "./useSidebarCollapsed";
 
 const MAIN_NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/factions", label: "Factions", icon: Shield },
   { to: "/collection", label: "Collection", icon: Package },
   { to: "/painting-projects", label: "Painting Projects", icon: Palette },
   { to: "/recipes", label: "Recipes", icon: BookOpen },
