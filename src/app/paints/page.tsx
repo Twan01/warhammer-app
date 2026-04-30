@@ -1,5 +1,5 @@
-import { PlaceholderPage } from "@/components/common/PlaceholderPage";
+import { PaintsPage as PaintsPageContent } from "@/features/paints/PaintsPage";
 
 export function PaintsPage() {
-  return <PlaceholderPage title="Paints" phase={2} />;
+  return <PaintsPageContent />;
 }
