@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready for Phase 2
-stopped_at: Phase 2 context gathered
-last_updated: "2026-04-30T12:10:57.610Z"
+stopped_at: Completed 02-01-PLAN.md (core schema migration)
+last_updated: "2026-04-30T13:19:57.008Z"
 last_activity: 2026-04-30 — Completed 01-03 Phase 1 app shell (human-verify approved)
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 7
+  completed_plans: 4
   percent: 100
 ---
 
@@ -52,6 +52,7 @@ Progress: [██████████] 100%
 *Updated after each plan completion*
 | Phase 01-app-shell P03 | 5 | 3 tasks | 16 files |
 | Phase 01-app-shell P03 | 30 | 4 tasks | 16 files |
+| Phase 02-data-layer-entity-crud P01 | 4 | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,7 @@ Recent decisions affecting current work:
 - [Phase 01-app-shell]: 01-03: Plain aside sidebar (not shadcn SidebarProvider) — avoids cookie-persistence override, simpler exact-pixel widths
 - [Phase 01-app-shell]: 01-03: router-devtools installed at 1.166.13 (plan specified 1.168.0 which does not exist in npm registry)
 - [Phase 01-app-shell]: 01-03: Manual TanStack Router route tree (no codegen) — minimal dependency footprint for Phase 1
+- [Phase 02-data-layer-entity-crud]: 02-01: All 10 v1 tables in single migration (001_core_schema.sql); model_instances absent (DATA-04); units.faction_id and recipe_paints.paint_id use RESTRICT, recipe_paints.recipe_id uses CASCADE
 
 ### Pending Todos
 
@@ -87,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-30T12:10:57.608Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-data-layer-entity-crud/02-CONTEXT.md
+Last session: 2026-04-30T13:19:57.003Z
+Stopped at: Completed 02-01-PLAN.md (core schema migration)
+Resume file: None

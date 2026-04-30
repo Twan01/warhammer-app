@@ -24,9 +24,9 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 
 - [ ] **DATA-01**: `src/db/client.ts` exports a `getDb()` singleton that calls `Database.load('sqlite:hobbyforge.db')` once
 - [ ] **DATA-02**: `getDb()` runs `PRAGMA foreign_keys = ON` immediately after first load — verified by deleting a faction with units and observing an error (not silent success)
-- [ ] **DATA-03**: All 10 tables created in a single first migration (`001_core_schema.sql`): factions, units, paints, painting_recipes, recipe_paints, army_lists, army_list_units, unit_strategy_notes, battle_logs, image_assets — even though only 5 get UI in v1
-- [ ] **DATA-04**: `model_instances` table is NOT created (deferred indefinitely)
-- [ ] **DATA-05**: Migrations are append-only, numbered, and managed by `tauri-plugin-sql`'s built-in `_sqlx_migrations` runner; SQL files live under `src-tauri/migrations/` and are loaded via `include_str!()`
+- [x] **DATA-03**: All 10 tables created in a single first migration (`001_core_schema.sql`): factions, units, paints, painting_recipes, recipe_paints, army_lists, army_list_units, unit_strategy_notes, battle_logs, image_assets — even though only 5 get UI in v1
+- [x] **DATA-04**: `model_instances` table is NOT created (deferred indefinitely)
+- [x] **DATA-05**: Migrations are append-only, numbered, and managed by `tauri-plugin-sql`'s built-in `_sqlx_migrations` runner; SQL files live under `src-tauri/migrations/` and are loaded via `include_str!()`
 - [ ] **DATA-06**: TypeScript types for every entity live in `src/types/` and stay in sync with the SQL schema
 - [ ] **DATA-07**: Each entity has a query module under `src/db/queries/<entity>.ts` (factions, units, paints, recipes, recipePaints) — no DB calls anywhere outside this folder
 - [ ] **DATA-08**: Each entity has a TanStack Query hooks module under `src/hooks/use<Entity>.ts` — components only call hooks, never query functions directly
@@ -112,7 +112,7 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 - [ ] **SEED-03**: Seed migration ships sample paints: Citadel Abaddon Black, Citadel White Scar, Citadel Nuln Oil, Citadel Leadbelcher, Citadel Macragge Blue, Citadel Retributor Armour
 - [ ] **SEED-04**: Seed migration ships sample recipes: Tau White Armor, Ultramarines Blue Armor, Necron Ancient Metal — with paint linkages
 - [ ] **SEED-05**: Seed uses `INSERT OR IGNORE` with stable IDs for idempotency
-- [ ] **SEED-06**: README documents the personal-use, no-redistribution disclaimer for the GW-named seed data
+- [x] **SEED-06**: README documents the personal-use, no-redistribution disclaimer for the GW-named seed data
 
 ### Cross-cutting Polish
 
@@ -217,9 +217,9 @@ Which phases cover which requirements.
 | POLISH-06 | Phase 1 | Complete |
 | DATA-01 | Phase 2 | Pending |
 | DATA-02 | Phase 2 | Pending |
-| DATA-03 | Phase 2 | Pending |
-| DATA-04 | Phase 2 | Pending |
-| DATA-05 | Phase 2 | Pending |
+| DATA-03 | Phase 2 | Complete |
+| DATA-04 | Phase 2 | Complete |
+| DATA-05 | Phase 2 | Complete |
 | DATA-06 | Phase 2 | Pending |
 | DATA-07 | Phase 2 | Pending |
 | DATA-08 | Phase 2 | Pending |
@@ -242,7 +242,7 @@ Which phases cover which requirements.
 | SEED-03 | Phase 2 | Pending |
 | SEED-04 | Phase 2 | Pending |
 | SEED-05 | Phase 2 | Pending |
-| SEED-06 | Phase 2 | Pending |
+| SEED-06 | Phase 2 | Complete |
 | COLL-01 | Phase 3 | Pending |
 | COLL-02 | Phase 3 | Pending |
 | COLL-03 | Phase 3 | Pending |
