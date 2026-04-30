@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 1 plans verified and ready
+status: in-progress
+stopped_at: "Completed 01-app-shell/01-01-PLAN.md"
 last_updated: "2026-04-30T09:58:45.986Z"
 last_activity: 2026-04-30 — Roadmap created
 progress:
@@ -26,27 +26,27 @@ See: .planning/PROJECT.md (updated 2026-04-30)
 ## Current Position
 
 Phase: 1 of 5 (App Shell)
-Plan: 0 of 3 in current phase
-Status: Ready to plan
-Last activity: 2026-04-30 — Roadmap created
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-04-30 — Completed 01-01 app shell scaffold
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 10%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: — min
-- Total execution time: 0.0 hours
+- Total plans completed: 1
+- Average duration: 9 min
+- Total execution time: 0.2 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01-app-shell | 1 | 9 min | 9 min |
 
 **Recent Trend:**
-- Last 5 plans: —
+- Last 5 plans: 9 min
 - Trend: —
 
 *Updated after each plan completion*
@@ -64,6 +64,9 @@ Recent decisions affecting current work:
 - Pre-roadmap: Kanban uses @dnd-kit drag-and-drop (PROJ-04) — NOT button/dropdown deferral
 - Pre-roadmap: Dashboard is full (not placeholder) — placed in Phase 5 after all data sources exist
 - Pre-roadmap: POLISH-* reqs folded into phases where patterns first appear at scale (Phase 1 gets POLISH-06 shadcn batch install; Phase 3 gets POLISH-01 through POLISH-05)
+- 01-01: Rust + pnpm auto-installed (not pre-installed on machine); create-tauri-app temp-dir workaround used for non-empty project root
+- 01-01: @types/node added to devDependencies — required for path module in vite.config.ts
+- 01-01: shadcn CLI added label.tsx + use-mobile.ts automatically (sidebar transitive deps); no unexpected scope creep
 
 ### Pending Todos
 
@@ -75,6 +78,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-30T09:58:45.984Z
-Stopped at: Phase 1 plans verified and ready
-Resume file: .planning/phases/01-app-shell/01-01-PLAN.md
+Last session: 2026-04-30T10:09:59Z
+Stopped at: Completed 01-app-shell/01-01-PLAN.md
+Resume file: .planning/phases/01-app-shell/01-02-PLAN.md

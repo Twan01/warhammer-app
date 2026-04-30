@@ -9,14 +9,14 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 
 ### Setup (App Shell)
 
-- [ ] **SETUP-01**: Tauri 2.x + React 19 + TypeScript + Vite + Tailwind v4 + shadcn/ui CLI v4 project scaffolds and launches as a Windows desktop app
+- [x] **SETUP-01**: Tauri 2.x + React 19 + TypeScript + Vite + Tailwind v4 + shadcn/ui CLI v4 project scaffolds and launches as a Windows desktop app
 - [ ] **SETUP-02**: Sidebar navigation with entries for Dashboard, Collection, Painting Projects, Recipes, Paints, Settings (Settings can be a placeholder)
 - [ ] **SETUP-03**: TanStack Router wires sidebar entries to placeholder routes; navigation works
-- [ ] **SETUP-04**: Dark-mode-first styling with no FOUC on cold start (inline `<script>document.documentElement.classList.add('dark')</script>` in `index.html` before stylesheet)
+- [x] **SETUP-04**: Dark-mode-first styling with no FOUC on cold start (inline `<script>document.documentElement.classList.add('dark')</script>` in `index.html` before stylesheet)
 - [ ] **SETUP-05**: TanStack Query client configured with desktop defaults (staleTime 5min, gcTime 10min, refetchOnWindowFocus false)
 - [ ] **SETUP-06**: Tauri capabilities grant `sql:allow-load`, `sql:allow-select`, `sql:allow-execute`, `sql:allow-close` in `src-tauri/capabilities/default.json`
 - [ ] **SETUP-07**: Rust `setup()` calls `create_dir_all(app_data_dir())` before `tauri-plugin-sql` initializes
-- [ ] **SETUP-08**: Folder structure matches ROADMAP section 9.2 (`src/app`, `src/components/{ui,common,forms}`, `src/features/*`, `src/db/{client,queries}`, `src/types`, `src/utils`, `src/styles`)
+- [x] **SETUP-08**: Folder structure matches ROADMAP section 9.2 (`src/app`, `src/components/{ui,common,forms}`, `src/features/*`, `src/db/{client,queries}`, `src/types`, `src/utils`, `src/styles`)
 - [ ] **SETUP-09**: Production binary writes its SQLite file to `%APPDATA%\HobbyForge\` (verified by running the packaged build, not just `tauri dev`)
 - [ ] **SETUP-10**: `tauri.conf.json` has `plugins.sql.preload` entry so migrations complete before UI renders
 
@@ -121,7 +121,7 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 - [ ] **POLISH-03**: Error states surfaced via toast (shadcn sonner) when mutations fail
 - [ ] **POLISH-04**: Forms reset between edit sessions via `key={entity.id}` to prevent stale state
 - [ ] **POLISH-05**: Visible faction-color accent in cards/sidebar tied to `faction.color_theme`
-- [ ] **POLISH-06**: All shadcn components installed in one batch session in Phase 0 (Table, Dialog, Sheet, Drawer, Badge, Progress, Select, Form, Command, Sonner, Card, Tabs, Combobox)
+- [x] **POLISH-06**: All shadcn components installed in one batch session in Phase 0 (Table, Dialog, Sheet, Drawer, Badge, Progress, Select, Form, Command, Sonner, Card, Tabs, Combobox)
 
 ## v2 Requirements
 
@@ -204,17 +204,17 @@ Which phases cover which requirements.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SETUP-01 | Phase 1 | Pending |
+| SETUP-01 | Phase 1 | Complete |
 | SETUP-02 | Phase 1 | Pending |
 | SETUP-03 | Phase 1 | Pending |
-| SETUP-04 | Phase 1 | Pending |
+| SETUP-04 | Phase 1 | Complete |
 | SETUP-05 | Phase 1 | Pending |
 | SETUP-06 | Phase 1 | Pending |
 | SETUP-07 | Phase 1 | Pending |
-| SETUP-08 | Phase 1 | Pending |
+| SETUP-08 | Phase 1 | Complete |
 | SETUP-09 | Phase 1 | Pending |
 | SETUP-10 | Phase 1 | Pending |
-| POLISH-06 | Phase 1 | Pending |
+| POLISH-06 | Phase 1 | Complete |
 | DATA-01 | Phase 2 | Pending |
 | DATA-02 | Phase 2 | Pending |
 | DATA-03 | Phase 2 | Pending |
