@@ -14,11 +14,11 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 - [ ] **SETUP-03**: TanStack Router wires sidebar entries to placeholder routes; navigation works
 - [x] **SETUP-04**: Dark-mode-first styling with no FOUC on cold start (inline `<script>document.documentElement.classList.add('dark')</script>` in `index.html` before stylesheet)
 - [ ] **SETUP-05**: TanStack Query client configured with desktop defaults (staleTime 5min, gcTime 10min, refetchOnWindowFocus false)
-- [ ] **SETUP-06**: Tauri capabilities grant `sql:allow-load`, `sql:allow-select`, `sql:allow-execute`, `sql:allow-close` in `src-tauri/capabilities/default.json`
-- [ ] **SETUP-07**: Rust `setup()` calls `create_dir_all(app_data_dir())` before `tauri-plugin-sql` initializes
+- [x] **SETUP-06**: Tauri capabilities grant `sql:allow-load`, `sql:allow-select`, `sql:allow-execute`, `sql:allow-close` in `src-tauri/capabilities/default.json`
+- [x] **SETUP-07**: Rust `setup()` calls `create_dir_all(app_data_dir())` before `tauri-plugin-sql` initializes
 - [x] **SETUP-08**: Folder structure matches ROADMAP section 9.2 (`src/app`, `src/components/{ui,common,forms}`, `src/features/*`, `src/db/{client,queries}`, `src/types`, `src/utils`, `src/styles`)
-- [ ] **SETUP-09**: Production binary writes its SQLite file to `%APPDATA%\HobbyForge\` (verified by running the packaged build, not just `tauri dev`)
-- [ ] **SETUP-10**: `tauri.conf.json` has `plugins.sql.preload` entry so migrations complete before UI renders
+- [x] **SETUP-09**: Production binary writes its SQLite file to `%APPDATA%\HobbyForge\` (verified by running the packaged build, not just `tauri dev`)
+- [x] **SETUP-10**: `tauri.conf.json` has `plugins.sql.preload` entry so migrations complete before UI renders
 
 ### Database (Schema, Plumbing, Migrations)
 
@@ -209,11 +209,11 @@ Which phases cover which requirements.
 | SETUP-03 | Phase 1 | Pending |
 | SETUP-04 | Phase 1 | Complete |
 | SETUP-05 | Phase 1 | Pending |
-| SETUP-06 | Phase 1 | Pending |
-| SETUP-07 | Phase 1 | Pending |
+| SETUP-06 | Phase 1 | Complete |
+| SETUP-07 | Phase 1 | Complete |
 | SETUP-08 | Phase 1 | Complete |
-| SETUP-09 | Phase 1 | Pending |
-| SETUP-10 | Phase 1 | Pending |
+| SETUP-09 | Phase 1 | Complete |
+| SETUP-10 | Phase 1 | Complete |
 | POLISH-06 | Phase 1 | Complete |
 | DATA-01 | Phase 2 | Pending |
 | DATA-02 | Phase 2 | Pending |

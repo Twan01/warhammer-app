@@ -33,8 +33,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Tauri 2 + React 19 + TS + Vite scaffold, Tailwind v4, dark mode FOUC fix, SETUP-08 folder structure, shadcn batch install (POLISH-06)
-- [ ] 01-02-PLAN.md — Tauri SQL plugin wiring, capabilities (sql:allow-*), Rust setup() with create_dir_all(app_data_dir()), tauri.conf preload, getDb() singleton with FK pragma
+- [x] 01-01-PLAN.md — Tauri 2 + React 19 + TS + Vite scaffold, Tailwind v4, dark mode FOUC fix, SETUP-08 folder structure, shadcn batch install (POLISH-06)
+- [x] 01-02-PLAN.md — Tauri SQL plugin wiring, capabilities (sql:allow-*), Rust setup() with create_dir_all(app_data_dir()), tauri.conf preload, getDb() singleton with FK pragma
 - [ ] 01-03-PLAN.md — TanStack Router 6-route tree, AppLayout + AppSidebar (collapse + localStorage persist), QueryClient (desktop defaults), 6 placeholder pages, human-verify checkpoint for SETUP-09
 
 ### Phase 2: Data Layer + Entity CRUD
