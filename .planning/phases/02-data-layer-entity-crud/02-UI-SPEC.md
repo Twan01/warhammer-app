@@ -1,7 +1,8 @@
 ---
 phase: 2
 slug: data-layer-entity-crud
-status: draft
+status: approved
+reviewed_at: 2026-04-30
 shadcn_initialized: true
 preset: "new-york / zinc / css-variables"
 created: 2026-04-30
@@ -50,8 +51,9 @@ Standard 8-point scale. All Tailwind spacing classes map to these values.
 Exceptions:
 - Sidebar collapsed width: 48px (3xl token, justified by icon-only touch target)
 - Sidebar expanded width: 240px (fixed; not from scale — existing Phase 1 decision)
-- Nav item vertical padding: 6px (`py-1.5`) — existing NavItem.tsx pattern; preserve as-is
 - Faction color-theme left border strip: 4px — CONTEXT.md decision; not from scale
+
+> Implementation note: `NavItem.tsx` uses `py-1.5` (6px) — this is a code-level detail inherited from Phase 1, not a spacing token governed by this contract. Do not treat it as a declared spacing value.
 
 ---
 
@@ -59,10 +61,12 @@ Exceptions:
 
 All sizes use the system sans-serif stack (no custom font loaded in v1).
 
+2 weights only: 400 (regular) and 600 (semibold).
+
 | Role | Size | Weight | Line Height | Tailwind Class | Usage |
 |------|------|--------|-------------|----------------|-------|
 | Body | 14px | 400 (regular) | 1.5 | `text-sm` | Table cell content, form field values, description text |
-| Label | 14px | 500 (medium) | 1.4 | `text-sm font-medium` | Form labels, column headers, badge text |
+| Label | 14px | 600 (semibold) | 1.4 | `text-sm font-semibold` | Form labels, column headers, badge text |
 | Heading | 20px | 600 (semibold) | 1.2 | `text-xl font-semibold` | Page title (e.g. "Factions"), Sheet title |
 | Muted | 14px | 400 (regular) | 1.5 | `text-sm text-muted-foreground` | Helper text, placeholder copy, empty state body |
 
@@ -114,12 +118,14 @@ All values reference dark-mode tokens (`.dark` class active at all times in v1).
 | Sheet title (create) | New Faction |
 | Sheet title (edit) | Edit Faction |
 | Save button | Save Faction |
+| Sheet dismiss button | Discard changes |
 | Empty state heading | No factions yet |
 | Empty state body | Add your first faction to start organizing your collection. |
 | Empty state CTA | Add Faction |
 | Delete confirm title | Delete faction? |
 | Delete confirm body | This will permanently delete "{faction.name}". Units assigned to this faction must be reassigned first. |
 | Delete confirm button | Delete |
+| Delete confirm secondary button | Keep Faction |
 | FK error toast (faction has units) | Cannot delete faction — it still has units assigned. |
 
 ### Unit Form (Sheet — used from Factions page in Phase 2)
@@ -129,6 +135,7 @@ All values reference dark-mode tokens (`.dark` class active at all times in v1).
 | Sheet title (create) | New Unit |
 | Sheet title (edit) | Edit Unit |
 | Save button | Save Unit |
+| Sheet dismiss button | Discard changes |
 | Collapsible section label | More details |
 | Category combobox placeholder | Search or enter category... |
 | Faction dropdown placeholder | Select faction |
@@ -146,12 +153,14 @@ All values reference dark-mode tokens (`.dark` class active at all times in v1).
 | Sheet title (create) | New Paint |
 | Sheet title (edit) | Edit Paint |
 | Save button | Save Paint |
+| Sheet dismiss button | Discard changes |
 | Empty state heading | No paints yet |
 | Empty state body | Add paints to track your collection and link them to recipes. |
 | Empty state CTA | Add Paint |
 | Delete confirm title | Delete paint? |
 | Delete confirm body | This will permanently delete "{paint.brand} {paint.name}". |
 | Delete confirm button | Delete |
+| Delete confirm secondary button | Keep Paint |
 | FK error toast (paint in recipe) | Cannot delete paint — it's used in a recipe step. |
 
 ### Shared / Cross-cutting
@@ -159,10 +168,11 @@ All values reference dark-mode tokens (`.dark` class active at all times in v1).
 | Element | Copy |
 |---------|------|
 | Generic mutation error | Something went wrong. Please try again. |
-| Cancel button | Cancel |
 | Loading state (list) | (skeleton rows — no text) |
 | Owned badge (paints list) | Owned |
 | Not owned badge (paints list) | Not owned |
+
+> "Cancel" is not used anywhere in Phase 2. Sheet forms use "Discard changes" as the dismiss label. Delete confirm dialogs use "Keep [Entity]" as the secondary button. "Cancel" is on the blocked generic labels list.
 
 ---
 
@@ -181,7 +191,7 @@ All components are already installed (Phase 1 POLISH-06). No new installs needed
 | `Badge` | `components/ui/badge.tsx` | "Owned" / "Not owned" on paints list |
 | `Sonner` | `components/ui/sonner.tsx` | FK error toasts, mutation success/error toasts |
 | `Skeleton` | `components/ui/skeleton.tsx` | Loading state for all lists |
-| `Button` | `components/ui/button.tsx` | CTAs, cancel, delete confirm, Sheet submit |
+| `Button` | `components/ui/button.tsx` | CTAs, Sheet dismiss, delete confirm, Sheet submit |
 | `Card` | `components/ui/card.tsx` | Faction list rows (optional — table rows also acceptable) |
 | `Separator` | `components/ui/separator.tsx` | Sheet collapsible section divider |
 | `Progress` | `components/ui/progress.tsx` | Available; NOT used in Phase 2 (painting_percentage display is Phase 3) |
@@ -196,7 +206,7 @@ All components are already installed (Phase 1 POLISH-06). No new installs needed
 - Trigger: "Add [Entity]" button (page header) or row action "Edit" button
 - `key={unit.id}` / `key={faction.id}` / `key={paint.id}` on the form root — prevents stale state on re-open (POLISH-04)
 - Submit: calls mutation → on success: close sheet + show success toast; on error: show error toast, keep sheet open
-- Cancel: closes sheet immediately, no confirmation needed
+- Dismiss: "Discard changes" button closes sheet immediately, no confirmation needed
 
 ### Unit Form — Two-Step Layout (CONTEXT.md locked decision)
 
@@ -240,7 +250,7 @@ Field ordering within collapsible: status fields first (most commonly edited), t
 ### Delete Confirm Flow (POLISH-01)
 
 1. User clicks "Delete" row action button
-2. `Dialog` opens with title, body naming the entity, and two buttons: "Cancel" (ghost) + "Delete" (destructive)
+2. `Dialog` opens with title, body naming the entity, and two buttons: "Keep [Entity]" (ghost) + "Delete" (destructive)
 3. On confirm: mutation fires → Dialog closes → if FK error: Sonner toast with specific message; if success: Sonner toast "Deleted." (optional; keep silent if UX feels cleaner)
 4. The Dialog closes after the user clicks either button regardless of outcome; FK error surfaces as a toast, not by re-opening the dialog
 
@@ -292,7 +302,7 @@ Page container: flex flex-col gap-6 p-6
 ```
 flex flex-col items-center justify-center gap-4 py-16 text-center
   ├── Lucide icon (48px, text-muted-foreground) — e.g. PackageOpen for factions/units, Droplets for paints
-  ├── <p class="text-base font-medium"> [heading]
+  ├── <p class="text-base font-semibold"> [heading]
   ├── <p class="text-sm text-muted-foreground"> [body]
   └── <Button> [CTA]
 ```
