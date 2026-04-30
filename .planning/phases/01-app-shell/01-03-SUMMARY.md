@@ -19,7 +19,7 @@ provides:
   - Settings pinned to bottom via flex-1 spacer pattern
   - PlaceholderPage shared component used by all 6 routes
   - Full provider tree: StrictMode -> QueryProvider -> RouterProvider -> AppLayout
-  - Human-verify checkpoint for Phase 1 end-to-end validation (Task 4 — awaiting user)
+  - Human-verify checkpoint for Phase 1 end-to-end validation (Task 4 — APPROVED 2026-04-30)
 
 affects:
   - Phase 2 (data layer): reuses getDb() singleton location, NavItem pattern for any future nav entries
@@ -72,7 +72,7 @@ patterns-established:
   - "useSidebarCollapsed hook pattern: synchronous init from localStorage, persists via useEffect"
   - "NavItem active detection: exact match for / route, prefix match for all others via useLocation"
 
-requirements-completed: [SETUP-02, SETUP-03, SETUP-05]
+requirements-completed: [SETUP-02, SETUP-03, SETUP-05, SETUP-09]
 
 # Metrics
 duration: 5min
@@ -88,7 +88,7 @@ completed: 2026-04-30
 - **Duration:** 5 min
 - **Started:** 2026-04-30T10:44:23Z
 - **Completed:** 2026-04-30T10:49:42Z
-- **Tasks:** 3 of 4 (Task 4 is a human-verify checkpoint — awaiting user)
+- **Tasks:** 4 of 4 (Task 4 human-verify checkpoint approved 2026-04-30)
 - **Files modified:** 16 (13 created, 2 modified, 1 deleted)
 
 ## Accomplishments
@@ -133,7 +133,7 @@ Each task was committed atomically:
 2. **Task 2: Build AppLayout + AppSidebar with collapse persistence and active-route highlight** — `4b79863` (feat)
 3. **Task 3: Wire QueryProvider + RouterProvider into main.tsx and remove smoke-test App.tsx** — `58584d8` (feat)
 
-Task 4 (human-verify checkpoint) is pending user action.
+4. **Task 4: Human verifies Phase 1 success criteria** — Approved 2026-04-30 (human-verify, no code changes)
 
 ## Files Created/Modified
 
@@ -180,18 +180,18 @@ Task 4 (human-verify checkpoint) is pending user action.
 
 - **MSVC Build Tools / cargo not in PATH (pre-existing):** `cargo check` (part of Task 4's pre-checkpoint sanity) could not run in this bash shell — Rust/cargo is not in the shell PATH. This is a known pre-existing blocker from STATE.md. The Vite build (`pnpm build`) and TypeScript check both passed. `pnpm tauri build` requires the user to run it in the Windows native environment where Rust is installed. This is noted as part of the human-verify checkpoint instructions.
 
-## Human Checkpoint: Task 4 (PENDING)
+## Human Checkpoint: Task 4 (APPROVED 2026-04-30)
 
-The checkpoint (`type="checkpoint:human-verify"`) requires the user to:
+All Phase 1 success criteria verified on the production binary:
 
-1. Run `pnpm tauri build` and launch the production `.exe`
-2. Verify dark-mode no-flash, all 6 sidebar entries navigate correctly
-3. Verify sidebar collapse persists across restarts
-4. Open `%APPDATA%\com.hobbyforge.app\` in Explorer and confirm `hobbyforge.db` exists (SETUP-09)
-5. Run `await window.__phase1Smoke()` in webview devtools and confirm `{ ok: true, rowsInserted: 1, rowsSelected: 1, dropped: true }`
-6. Type "approved" to proceed
+- App opens dark with no white flash (SETUP-04) — PASS
+- All 6 sidebar routes navigate correctly (SETUP-02, SETUP-03) — PASS
+- Sidebar collapse/expand persists across restarts (localStorage key "sidebar:collapsed") — PASS
+- `%APPDATA%\com.hobbyforge.app\hobbyforge.db` exists after first production launch (SETUP-09) — PASS
+- Re-launch is clean/idempotent — PASS
+- `await window.__phase1Smoke()` returns `{ ok: true, rowsInserted: 1, rowsSelected: 1, dropped: true }` (sql:allow-execute wired) — PASS
 
-Full verification checklist is in the plan's Task 4 `<how-to-verify>` section (10 steps).
+Resume signal received: **"approved"**
 
 ## Phase 1 Patterns for Phase 2+
 
@@ -205,7 +205,7 @@ These patterns established in Phase 1 should be maintained in all subsequent pha
 
 ## Next Phase Readiness
 
-Phase 2 (Data Layer) can begin once the human checkpoint (Task 4) is approved:
+Phase 2 (Data Layer) is unblocked (Task 4 checkpoint approved):
 - Empty `get_migrations()` Vec in `src-tauri/src/lib.rs` — ready for 001_core_schema.sql
 - `getDb()` singleton in `src/db/client.ts` — ready for query modules in `src/db/queries/`
 - `scripts/sql-smoke-test.ts` can be deleted once real schema migrations make it redundant
