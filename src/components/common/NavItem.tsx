@@ -1,6 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
-import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import {
   Tooltip,
   TooltipContent,
@@ -22,16 +21,21 @@ export function NavItem({ to, label, icon: Icon, collapsed }: NavItemProps) {
       : location.pathname === to || location.pathname.startsWith(to + "/");
 
   const button = (
-    <SidebarMenuButton asChild isActive={isActive}>
-      <Link to={to} className="flex items-center gap-2">
-        <Icon className="h-4 w-4 shrink-0" />
-        <span className={collapsed ? "sr-only" : ""}>{label}</span>
-      </Link>
-    </SidebarMenuButton>
+    <Link
+      to={to}
+      className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground ${
+        isActive
+          ? "bg-accent font-medium text-accent-foreground"
+          : "text-muted-foreground"
+      } ${collapsed ? "justify-center" : ""}`}
+    >
+      <Icon className="h-4 w-4 shrink-0" />
+      <span className={collapsed ? "sr-only" : ""}>{label}</span>
+    </Link>
   );
 
   return (
-    <SidebarMenuItem>
+    <li>
       {collapsed ? (
         <Tooltip>
           <TooltipTrigger asChild>{button}</TooltipTrigger>
@@ -40,6 +44,6 @@ export function NavItem({ to, label, icon: Icon, collapsed }: NavItemProps) {
       ) : (
         button
       )}
-    </SidebarMenuItem>
+    </li>
   );
 }
