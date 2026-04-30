@@ -54,17 +54,19 @@ Source: Phase 2 established `p-6 / gap-6 / gap-4 / gap-2 / gap-1` — continued 
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px (text-sm) | 400 (normal) | 1.5 |
-| Label / column header | 12px (text-xs) | 500 (medium) | 1.4 |
+| Body variant / secondary text | 12px (text-xs) | 400 (normal) | 1.4 |
 | Page heading | 20px (text-xl) | 600 (semibold) | 1.2 |
-| Detail sheet field heading | 16px (text-base) | 600 (semibold) | 1.2 |
+| Detail sheet field heading / column header label | 12px (text-xs) | 600 (semibold) | 1.2 |
 
 Rules:
-- Table cell content: 14px / weight 400. Unit name within cell: 14px / weight 500 (font-medium).
-- Column header labels: 12px / weight 500 / uppercase / tracking-wide — matches existing pattern from FactionRow.tsx (`text-xs font-medium text-muted-foreground uppercase tracking-wide`).
+- Exactly 2 weights in use: 400 (normal) and 600 (semibold). Weight 500 / `font-medium` is NOT used anywhere in this phase.
+- Table cell content: 14px / weight 400.
+- Unit name within cell: 14px / weight 400 (same as body — no weight promotion in cell text).
+- Column header labels: 12px / weight 600 (`font-semibold`) / uppercase / tracking-wide — use `text-xs font-semibold text-muted-foreground uppercase tracking-wide`. All `font-medium` in column headers must be replaced with `font-semibold`.
 - Page title "Collection": 20px / semibold — matches `text-xl font-semibold` from FactionsPage.tsx.
-- SheetTitle: 16px / semibold — inherits shadcn Sheet defaults.
+- SheetTitle: 16px / semibold — inherits shadcn Sheet defaults. Counts as the "heading" weight tier.
 
-Source: Observed in `FactionsPage.tsx`, `FactionRow.tsx`, `UnitSheet.tsx` — continue same scale.
+Source: Observed in `FactionsPage.tsx`, `FactionRow.tsx`, `UnitSheet.tsx` — continue same scale with weight 500 collapsed into 600.
 
 ---
 
@@ -87,6 +89,12 @@ Accent reserved for:
 The accent is NOT used for: interactive hover states, sort icons, filter chips, progress bar fill, active project indicator, or any generic interactive element. Progress bar uses shadcn Progress default (primary foreground). Active project uses a lucide `Flame` or `Star` icon in `text-muted-foreground` (toggled to `text-primary` when active).
 
 Source: CONTEXT.md §Faction color accent; `FactionRow.tsx` for pattern reference; REQUIREMENTS.md POLISH-05.
+
+---
+
+## Visual Hierarchy
+
+Primary focal point: UnitTable is the primary visual focal point of the Collection page. The "Collection" page heading anchors the top-level hierarchy. The filter bar is secondary (above the table, visually subordinate). The detail Sheet is a tertiary layer (overlay, right-side panel).
 
 ---
 
@@ -123,11 +131,22 @@ Source: CONTEXT.md §Existing Code Insights; Phase 1 POLISH-06 install list.
 
 - Columns in order: Name, Faction, Category, Status, Progress, Points, Models, Active, Actions
 - Column widths: Name (flex-grow), Faction (120px), Category (120px), Status (140px), Progress (100px), Points (70px), Models (70px), Active (60px), Actions (80px)
-- Row click (anywhere except Action column buttons) opens the unit detail Sheet
+- Row click (anywhere except Action column buttons) opens the unit detail Sheet. The `<tr>` element receives `aria-label="View {unit.name}"` to communicate the row's purpose to assistive technology.
 - Sortable columns: Name, Faction, Status, Points, Models — click header to toggle ASC/DESC; default sort is Name ASC
 - Sort indicator: `ChevronUp` / `ChevronDown` lucide icon (h-3 w-3) inline with header text; unsorted column shows `ChevronsUpDown` (h-3 w-3) in `text-muted-foreground`
 - Pagination: 25 rows per page; controls at table footer — `< Prev [page N of M] Next >` using Button `variant="outline"` `size="sm"`
 - Row hover: `hover:bg-muted/50` — same pattern as FactionRow.tsx unit list items
+
+### Actions Column Accessibility
+
+The Actions column (80px) contains icon-only buttons. Each must carry an explicit `aria-label`:
+
+| Button | aria-label |
+|--------|------------|
+| Delete icon button | `aria-label="Delete {unit.name}"` |
+| Edit icon button (if separate from row click) | `aria-label="Edit {unit.name}"` |
+
+The clickable row itself (for opening the detail Sheet) is not an icon button but must have `aria-label="View {unit.name}"` on the `<tr>` or its wrapping interactive element.
 
 ### Status Badge / Popover (COLL-10)
 
@@ -202,6 +221,8 @@ Source: CONTEXT.md §Existing Code Insights; Phase 1 POLISH-06 install list.
 | Sheet title — edit | "Edit Unit" |
 | Sheet description — add | "Add a new unit to your collection." |
 | Sheet description — edit | "Update the details for this unit." |
+| UnitSheet submit button — add mode | "Add Unit" |
+| UnitSheet submit button — edit mode | "Save Changes" |
 | Sort state — ascending | "[Column name] (A–Z)" — aria-label only; icon handles visual |
 | Active-project toggle — active | "Active only" |
 | Active-project toggle — inactive | "Active only" (same label; button variant changes) |
