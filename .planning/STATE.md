@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready for Phase 2
-stopped_at: 02-03 Task 3 checkpoint — awaiting human-verify for Faction CRUD
-last_updated: "2026-04-30T13:37:24.467Z"
+stopped_at: Completed 02-03 Faction CRUD plan — human-verify approved, plan complete
+last_updated: "2026-04-30T13:53:01.198Z"
 last_activity: 2026-04-30 — Completed 01-03 Phase 1 app shell (human-verify approved)
 progress:
   total_phases: 5
@@ -54,6 +54,7 @@ Progress: [██████████] 100%
 | Phase 01-app-shell P03 | 30 | 4 tasks | 16 files |
 | Phase 02-data-layer-entity-crud P01 | 4 | 3 tasks | 3 files |
 | Phase 02-data-layer-entity-crud P02 | 4 | 3 tasks | 19 files |
+| Phase 02-data-layer-entity-crud P03 | 20 | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,8 @@ Recent decisions affecting current work:
 - [Phase 02-data-layer-entity-crud]: 02-02: No updateRecipePaint — RecipePaint links are immutable; to change, remove + re-add
 - [Phase 02-data-layer-entity-crud]: 02-03: Removed .default() from zod schema fields (game_system, color_theme) — zod v4 .default() makes input type optional causing Resolver mismatch with react-hook-form; form defaultValues handle defaults instead
 - [Phase 02-data-layer-entity-crud]: 02-03: Toaster placed in AppLayout (not main.tsx) — shares React context with all UI, avoids duplicate mounting
+- [Phase 02-data-layer-entity-crud]: 02-03: Removed .default() from zod schema fields — zod v4 makes fields optional causing Resolver type mismatch; form defaultValues handle defaults instead
+- [Phase 02-data-layer-entity-crud]: 02-03: Human-verify approved 2026-04-30 — all 8 Faction CRUD sign-off criteria passed; FK enforcement confirmed end-to-end
 
 ### Pending Todos
 
@@ -95,6 +98,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-30T13:37:08.145Z
-Stopped at: 02-03 Task 3 checkpoint — awaiting human-verify for Faction CRUD
+Last session: 2026-04-30T13:53:01.195Z
+Stopped at: Completed 02-03 Faction CRUD plan — human-verify approved, plan complete
 Resume file: None

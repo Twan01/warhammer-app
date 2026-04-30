@@ -34,11 +34,11 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 
 ### Factions
 
-- [ ] **FACT-01**: User can create a faction with name, game_system (default "Warhammer 40K"), description, color_theme (hex string), icon_path
-- [ ] **FACT-02**: User can edit any faction field
-- [ ] **FACT-03**: User can delete a faction; FK constraint blocks deletion if any unit still references it
-- [ ] **FACT-04**: User can list all factions
-- [ ] **FACT-05**: Faction `color_theme` is applied as a visible accent (sidebar badge, card border, or similar) for that faction's units and recipes
+- [x] **FACT-01**: User can create a faction with name, game_system (default "Warhammer 40K"), description, color_theme (hex string), icon_path
+- [x] **FACT-02**: User can edit any faction field
+- [x] **FACT-03**: User can delete a faction; FK constraint blocks deletion if any unit still references it
+- [x] **FACT-04**: User can list all factions
+- [x] **FACT-05**: Faction `color_theme` is applied as a visible accent (sidebar badge, card border, or similar) for that faction's units and recipes
 
 ### Units / Collection Schema
 
@@ -224,11 +224,11 @@ Which phases cover which requirements.
 | DATA-07 | Phase 2 | Complete |
 | DATA-08 | Phase 2 | Complete |
 | DATA-09 | Phase 2 | Complete |
-| FACT-01 | Phase 2 | Pending |
-| FACT-02 | Phase 2 | Pending |
-| FACT-03 | Phase 2 | Pending |
-| FACT-04 | Phase 2 | Pending |
-| FACT-05 | Phase 2 | Pending |
+| FACT-01 | Phase 2 | Complete |
+| FACT-02 | Phase 2 | Complete |
+| FACT-03 | Phase 2 | Complete |
+| FACT-04 | Phase 2 | Complete |
+| FACT-05 | Phase 2 | Complete |
 | UNIT-01 | Phase 2 | Pending |
 | UNIT-02 | Phase 2 | Pending |
 | UNIT-03 | Phase 2 | Pending |

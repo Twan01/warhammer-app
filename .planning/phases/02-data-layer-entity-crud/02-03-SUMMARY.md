@@ -68,10 +68,10 @@ completed: 2026-04-30
 
 ## Performance
 
-- **Duration:** ~6 min
+- **Duration:** ~6 min (Tasks 1+2); human-verify approved same day
 - **Started:** 2026-04-30T13:30:30Z
-- **Completed:** 2026-04-30T13:36:00Z
-- **Tasks:** 2 completed (Task 3 awaiting human-verify)
+- **Completed:** 2026-04-30T13:50:15Z
+- **Tasks:** 3 of 3 completed (Tasks 1+2 auto, Task 3 human-verify approved)
 - **Files modified:** 10 (7 created, 3 modified)
 
 ## Accomplishments
@@ -79,12 +79,13 @@ completed: 2026-04-30
 - Added Factions sidebar nav entry (Shield icon) between Dashboard and Collection
 - Added Toaster to AppLayout provider tree for sonner toast support across the entire app
 - Established CRUD pattern (thin route page + feature page + hooks) for replication in 02-04
+- Human-verify approved (2026-04-30): all 8 sign-off criteria passed including FK error toast on delete with units
 
 ## Task Commits
 
 1. **Task 1: Add /factions route, sidebar nav, Toaster** - `fc28cfd` (feat)
 2. **Task 2: Build Faction CRUD feature UI** - `2e82a67` (feat)
-3. **Task 3: Human-verify** - Pending approval
+3. **Task 3: Human-verify** - Approved 2026-04-30 (all 8 sign-off criteria passed)
 
 ## Files Created/Modified
 - `src/app/factions/page.tsx` - Thin route wrapper (imports FactionsPage from features)
@@ -127,15 +128,31 @@ None beyond the zod .default() type issue (auto-fixed above).
 None - no external service configuration required.
 
 ## Next Phase Readiness
-- Faction CRUD pattern established — 02-04 can replicate this for Unit and Paint entities
-- All FACT-01..05 requirements implemented and awaiting human-verify (Task 3)
-- Toaster is now in the provider tree — mutation error toasts work app-wide
-- Seeded factions (Tau Empire, Ultramarines, Necrons, Tyranids) accessible at /factions
+- Faction CRUD pattern established and human-verified — 02-04 can replicate this for Unit and Paint entities
+- All FACT-01..05 requirements complete and verified (human-verify approved 2026-04-30)
+- FK enforcement confirmed working end-to-end: FOREIGN KEY RESTRICT prevents deletion of factions with units
+- Toaster is in the provider tree — mutation error toasts work app-wide
+- Seeded factions (Tau Empire, Ultramarines, Necrons, Tyranids) persist correctly across app restarts
 - MSVC Build Tools still required for `pnpm tauri dev` (pre-existing blocker from STATE.md)
+
+## Human-Verify Sign-Off (Task 3)
+
+All 8 criteria approved on 2026-04-30:
+1. Sidebar "Factions" entry exists and routes to /factions
+2. 4 seeded factions visible with correct color-theme left borders
+3. Create flow works: new faction appears in list with chosen color
+4. Edit flow works: changes persist after save
+5. Form does not show stale data when switching between factions
+6. Delete on faction WITH units shows FK error toast and faction stays
+7. Delete on faction WITHOUT units removes the row with success toast
+8. Color picker preview swatch (24px circle) updates live as picker changes
+
+Phase 2 ROADMAP success criterion 1 confirmed:
+> "User can create, edit, and delete a faction — attempting to delete a faction that has units shows an error (FK enforcement confirmed, not silent success)"
 
 ---
 *Phase: 02-data-layer-entity-crud*
-*Completed: 2026-04-30 (Task 3 human-verify pending)*
+*Completed: 2026-04-30*
 
 ## Note on POLISH requirements
 POLISH-01 (delete confirm dialog) and POLISH-03 (mutation error toast) are exercised here as first-instance implementations. They officially belong to Phase 3 but the patterns are established in Phase 2 for the first CRUD surface.
