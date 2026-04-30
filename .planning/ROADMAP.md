@@ -13,7 +13,7 @@ HobbyForge v1 is built in five phases that follow the natural dependency chain o
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: App Shell** - Tauri + React desktop app launches with sidebar, routing, SQLite plumbing, dark mode, and all shadcn components installed (completed 2026-04-30)
-- [ ] **Phase 2: Data Layer + Entity CRUD** - Full 10-table schema, FK enforcement, seed data, and CRUD for factions / units / paints (schema + queries + hooks + basic UI for all three)
+- [x] **Phase 2: Data Layer + Entity CRUD** - Full 10-table schema, FK enforcement, seed data, and CRUD for factions / units / paints (schema + queries + hooks + basic UI for all three) (completed 2026-04-30)
 - [ ] **Phase 3: Collection Module** - Searchable, filterable unit table with detail drawer, inline status updates, progress bars, and full create/edit/delete UX including all cross-cutting polish patterns
 - [ ] **Phase 4: Painting Module** - Active painting projects Kanban (status columns, card actions, mark active) plus full recipe CRUD with paint linkage and owned/missing paint indicator
 - [ ] **Phase 5: Dashboard** - Full dashboard with global stat cards, faction summary cards, painting/assembly/basing percentages, active projects list, and recently updated units
@@ -35,7 +35,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 Plans:
 - [x] 01-01-PLAN.md — Tauri 2 + React 19 + TS + Vite scaffold, Tailwind v4, dark mode FOUC fix, SETUP-08 folder structure, shadcn batch install (POLISH-06)
 - [x] 01-02-PLAN.md — Tauri SQL plugin wiring, capabilities (sql:allow-*), Rust setup() with create_dir_all(app_data_dir()), tauri.conf preload, getDb() singleton with FK pragma
-- [ ] 01-03-PLAN.md — TanStack Router 6-route tree, AppLayout + AppSidebar (collapse + localStorage persist), QueryClient (desktop defaults), 6 placeholder pages, human-verify checkpoint for SETUP-09
+- [x] 01-03-PLAN.md — TanStack Router 6-route tree, AppLayout + AppSidebar (collapse + localStorage persist), QueryClient (desktop defaults), 6 placeholder pages, human-verify checkpoint for SETUP-09
 
 ### Phase 2: Data Layer + Entity CRUD
 **Goal**: All 10 tables exist in a single migration, FK enforcement is verified, seed data is in place, and factions / units / paints are fully CRUD-able through a typed query + hook + UI stack
@@ -50,10 +50,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — `001_core_schema.sql` (all 10 v1 tables with FK constraints, model_instances explicitly absent), Migration version 1 wired in lib.rs via include_str!(), README SEED-06 personal-use disclaimer
-- [ ] 02-02-PLAN.md — Seed migrations (002 factions, 003 units/paints/recipes/recipe_paints), TypeScript types in src/types/ (PAINTING_STATUS_ORDER constant included), query modules in src/db/queries/, TanStack Query hooks in src/hooks/ (units mutations invalidate ['dashboard-stats'] for Phase 5 forward-compat)
-- [ ] 02-03-PLAN.md — Faction CRUD UI: /factions route + sidebar entry, FactionsPage with 4px color-theme left border per row, FactionSheet with native color picker + 24px live preview swatch, FactionDeleteDialog with FK error toast, empty/loading states (autonomous: false — includes human-verify checkpoint)
-- [ ] 02-04-PLAN.md — Unit two-step Sheet form with CategoryCombobox (free-text + 10 suggestions) + collapsible 'More details' section, Unit delete dialog, FactionsPage updated to list units per faction, Paints minimal CRUD page replacing the placeholder (PAINT-01/02 with FK error toast) (autonomous: false — includes human-verify checkpoint)
+- [x] 02-01-PLAN.md — `001_core_schema.sql` (all 10 v1 tables with FK constraints, model_instances explicitly absent), Migration version 1 wired in lib.rs via include_str!(), README SEED-06 personal-use disclaimer
+- [x] 02-02-PLAN.md — Seed migrations (002 factions, 003 units/paints/recipes/recipe_paints), TypeScript types in src/types/ (PAINTING_STATUS_ORDER constant included), query modules in src/db/queries/, TanStack Query hooks in src/hooks/ (units mutations invalidate ['dashboard-stats'] for Phase 5 forward-compat)
+- [x] 02-03-PLAN.md — Faction CRUD UI: /factions route + sidebar entry, FactionsPage with 4px color-theme left border per row, FactionSheet with native color picker + 24px live preview swatch, FactionDeleteDialog with FK error toast, empty/loading states (autonomous: false — includes human-verify checkpoint)
+- [x] 02-04-PLAN.md — Unit two-step Sheet form with CategoryCombobox (free-text + 10 suggestions) + collapsible 'More details' section, Unit delete dialog, FactionsPage updated to list units per faction, Paints minimal CRUD page replacing the placeholder (PAINT-01/02 with FK error toast) (autonomous: false — includes human-verify checkpoint)
 
 ### Phase 3: Collection Module
 **Goal**: The collection page is the primary daily-use interface — users can see, search, filter, add, edit, delete, and quickly update any unit in their collection with polish-quality UX throughout
@@ -118,7 +118,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. App Shell | 3/3 | Complete   | 2026-04-30 |
-| 2. Data Layer + Entity CRUD | 3/4 | In Progress|  |
+| 2. Data Layer + Entity CRUD | 4/4 | Complete   | 2026-04-30 |
 | 3. Collection Module | 0/4 | Not started | - |
 | 4. Painting Module | 0/4 | Not started | - |
 | 5. Dashboard | 0/3 | Not started | - |

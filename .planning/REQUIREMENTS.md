@@ -42,11 +42,11 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 
 ### Units / Collection Schema
 
-- [ ] **UNIT-01**: User can create a unit with: faction (required), name, category (free-text VARCHAR with combobox suggestions: HQ/Leader, Battleline, Infantry, Elite, Vehicle, Monster, Transport, Character, Dedicated Transport, Other), unit_type, model_count, owned_count, points (manual)
-- [ ] **UNIT-02**: Unit status fields stored separately: status_assembly (boolean), status_painting (enum: Not Started, Built, Primed, Basecoated, Shaded, Layered, Highlighted, Details Done, Based, Varnished, Completed), painting_percentage (0-100), status_basing (boolean), status_varnished (boolean), is_active_project (boolean), priority (integer or enum), target_completion_date
-- [ ] **UNIT-03**: Unit also stores: purchase_date, purchase_price, storage_location, main_image_path (string only — no upload UI in v1), notes
-- [ ] **UNIT-04**: User can edit any unit field
-- [ ] **UNIT-05**: User can delete a unit (with confirmation modal)
+- [x] **UNIT-01**: User can create a unit with: faction (required), name, category (free-text VARCHAR with combobox suggestions: HQ/Leader, Battleline, Infantry, Elite, Vehicle, Monster, Transport, Character, Dedicated Transport, Other), unit_type, model_count, owned_count, points (manual)
+- [x] **UNIT-02**: Unit status fields stored separately: status_assembly (boolean), status_painting (enum: Not Started, Built, Primed, Basecoated, Shaded, Layered, Highlighted, Details Done, Based, Varnished, Completed), painting_percentage (0-100), status_basing (boolean), status_varnished (boolean), is_active_project (boolean), priority (integer or enum), target_completion_date
+- [x] **UNIT-03**: Unit also stores: purchase_date, purchase_price, storage_location, main_image_path (string only — no upload UI in v1), notes
+- [x] **UNIT-04**: User can edit any unit field
+- [x] **UNIT-05**: User can delete a unit (with confirmation modal)
 - [x] **UNIT-06**: A `PAINTING_STATUS_ORDER` constant defined in `src/types/` drives Kanban column ordering and progress mapping (not alphabetical)
 
 ### Collection Page (Phase 2 UI)
@@ -67,8 +67,8 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 
 ### Paints (Schema + CRUD; UI lives inside recipe builder)
 
-- [ ] **PAINT-01**: User can create a paint with: brand, name, paint_type (Primer, Base, Layer, Contrast, Shade, Technical, Dry, Air, Metallic, Ink, Oil, Enamel, Pigment, Other), color_family, hex_color (optional), owned (bool), quantity, running_low (bool), wishlist (bool), notes
-- [ ] **PAINT-02**: User can edit and delete paints; FK from `recipe_paints` blocks delete if paint is referenced by any recipe step
+- [x] **PAINT-01**: User can create a paint with: brand, name, paint_type (Primer, Base, Layer, Contrast, Shade, Technical, Dry, Air, Metallic, Ink, Oil, Enamel, Pigment, Other), color_family, hex_color (optional), owned (bool), quantity, running_low (bool), wishlist (bool), notes
+- [x] **PAINT-02**: User can edit and delete paints; FK from `recipe_paints` blocks delete if paint is referenced by any recipe step
 - [ ] **PAINT-03**: Paint create/edit happens inline inside the recipe builder (no standalone Paint Inventory page in v1 — that's Phase 4)
 - [ ] **PAINT-04**: Paint search/picker (combobox) used inside recipe builder filters by brand and name as you type
 
@@ -229,14 +229,14 @@ Which phases cover which requirements.
 | FACT-03 | Phase 2 | Complete |
 | FACT-04 | Phase 2 | Complete |
 | FACT-05 | Phase 2 | Complete |
-| UNIT-01 | Phase 2 | Pending |
-| UNIT-02 | Phase 2 | Pending |
-| UNIT-03 | Phase 2 | Pending |
-| UNIT-04 | Phase 2 | Pending |
-| UNIT-05 | Phase 2 | Pending |
+| UNIT-01 | Phase 2 | Complete |
+| UNIT-02 | Phase 2 | Complete |
+| UNIT-03 | Phase 2 | Complete |
+| UNIT-04 | Phase 2 | Complete |
+| UNIT-05 | Phase 2 | Complete |
 | UNIT-06 | Phase 2 | Complete |
-| PAINT-01 | Phase 2 | Pending |
-| PAINT-02 | Phase 2 | Pending |
+| PAINT-01 | Phase 2 | Complete |
+| PAINT-02 | Phase 2 | Complete |
 | SEED-01 | Phase 2 | Complete |
 | SEED-02 | Phase 2 | Complete |
 | SEED-03 | Phase 2 | Complete |

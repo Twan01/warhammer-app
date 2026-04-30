@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready for Phase 2
-stopped_at: Completed 02-03 Faction CRUD plan — human-verify approved, plan complete
-last_updated: "2026-04-30T13:53:01.198Z"
-last_activity: 2026-04-30 — Completed 01-03 Phase 1 app shell (human-verify approved)
+status: Phase 2 Complete — Ready for Phase 3
+stopped_at: Completed 02-04 Unit form and Paints CRUD — human-verify approved, Phase 2 done
+last_updated: "2026-04-30T14:10:00Z"
+last_activity: 2026-04-30 — Completed 02-04 Unit form and Paints CRUD (human-verify approved, all 5 Phase 2 criteria met)
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
   percent: 100
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-30)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** Phase 2 — Data Layer (Phase 1 complete)
+**Current focus:** Phase 3 — Collection (Phase 2 complete)
 
 ## Current Position
 
-Phase: 1 of 5 (App Shell) — COMPLETE
-Plan: 3 of 3 in current phase — all plans done, human-verify approved
-Status: Ready for Phase 2
-Last activity: 2026-04-30 — Completed 01-03 Phase 1 app shell (human-verify approved)
+Phase: 2 of 5 (Data Layer Entity CRUD) — COMPLETE
+Plan: 4 of 4 in current phase — all plans done, human-verify approved
+Status: Phase 2 Complete — Ready for Phase 3
+Last activity: 2026-04-30 — Completed 02-04 Unit form and Paints CRUD (human-verify approved)
 
-Progress: [██████████] 100%
+Progress: [████████░░] 80% (phases 1+2 of 5 complete)
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Progress: [██████████] 100%
 | Phase 02-data-layer-entity-crud P01 | 4 | 3 tasks | 3 files |
 | Phase 02-data-layer-entity-crud P02 | 4 | 3 tasks | 19 files |
 | Phase 02-data-layer-entity-crud P03 | 20 | 3 tasks | 10 files |
+| Phase 02-data-layer-entity-crud P04 | 45 | 3 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,10 @@ Recent decisions affecting current work:
 - [Phase 02-data-layer-entity-crud]: 02-03: Toaster placed in AppLayout (not main.tsx) — shares React context with all UI, avoids duplicate mounting
 - [Phase 02-data-layer-entity-crud]: 02-03: Removed .default() from zod schema fields — zod v4 makes fields optional causing Resolver type mismatch; form defaultValues handle defaults instead
 - [Phase 02-data-layer-entity-crud]: 02-03: Human-verify approved 2026-04-30 — all 8 Faction CRUD sign-off criteria passed; FK enforcement confirmed end-to-end
+- [Phase 02-data-layer-entity-crud]: 02-04: UnitSheet two-step layout: required fields always visible, More details toggle via useState (shadcn Collapsible not installed in repo)
+- [Phase 02-data-layer-entity-crud]: 02-04: CategoryCombobox uses Command+Popover with shouldFilter + Enter-to-commit free text + CommandEmpty click-to-commit fallback
+- [Phase 02-data-layer-entity-crud]: 02-04: FactionRow.tsx converted to FactionCard export; FactionsPage uses per-faction Card layout (not Table) to accommodate unit sub-lists
+- [Phase 02-data-layer-entity-crud]: 02-04: Human-verify approved 2026-04-30 — all 14 sign-off criteria passed; all 5 Phase 2 success criteria confirmed end-to-end
 
 ### Pending Todos
 
@@ -98,6 +103,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-30T13:53:01.195Z
-Stopped at: Completed 02-03 Faction CRUD plan — human-verify approved, plan complete
+Last session: 2026-04-30T14:10:00Z
+Stopped at: Completed 02-04 Unit form and Paints CRUD — human-verify approved, Phase 2 done
 Resume file: None
