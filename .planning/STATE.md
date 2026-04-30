@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready for Phase 2
-stopped_at: Completed 02-02-PLAN.md (seed migrations, entity types, query modules, hooks)
-last_updated: "2026-04-30T13:28:27.782Z"
+stopped_at: 02-03 Task 3 checkpoint — awaiting human-verify for Faction CRUD
+last_updated: "2026-04-30T13:37:24.467Z"
 last_activity: 2026-04-30 — Completed 01-03 Phase 1 app shell (human-verify approved)
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 7
-  completed_plans: 5
+  completed_plans: 6
   percent: 100
 ---
 
@@ -81,6 +81,8 @@ Recent decisions affecting current work:
 - [Phase 02-data-layer-entity-crud]: 02-02: 0|1 literal types for all SQLite boolean columns (not boolean) — prevents runtime mismatch (Pitfall 1)
 - [Phase 02-data-layer-entity-crud]: 02-02: useUnits mutations invalidate ["dashboard-stats"] for DATA-09 forward compatibility — no-op until Phase 5
 - [Phase 02-data-layer-entity-crud]: 02-02: No updateRecipePaint — RecipePaint links are immutable; to change, remove + re-add
+- [Phase 02-data-layer-entity-crud]: 02-03: Removed .default() from zod schema fields (game_system, color_theme) — zod v4 .default() makes input type optional causing Resolver mismatch with react-hook-form; form defaultValues handle defaults instead
+- [Phase 02-data-layer-entity-crud]: 02-03: Toaster placed in AppLayout (not main.tsx) — shares React context with all UI, avoids duplicate mounting
 
 ### Pending Todos
 
@@ -93,6 +95,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-30T13:28:27.780Z
-Stopped at: Completed 02-02-PLAN.md (seed migrations, entity types, query modules, hooks)
+Last session: 2026-04-30T13:37:08.145Z
+Stopped at: 02-03 Task 3 checkpoint — awaiting human-verify for Faction CRUD
 Resume file: None
