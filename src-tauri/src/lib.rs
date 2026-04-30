@@ -9,6 +9,18 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/001_core_schema.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 2,
+            description: "seed_factions",
+            sql: include_str!("../migrations/002_seed_factions.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 3,
+            description: "seed_data",
+            sql: include_str!("../migrations/003_seed_data.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
