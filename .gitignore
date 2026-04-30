@@ -1,0 +1,26 @@
+# Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Tauri build outputs
+src-tauri/target/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Editor directories and files
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.vscode/
+
+# pnpm
+.pnpm-debug.log*
