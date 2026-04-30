@@ -47,13 +47,13 @@ Plans:
   3. User can create and delete a paint; deleting a paint referenced by a recipe step is blocked with an error
   4. Seed data loads on first launch — four fictional factions appear in the factions list with no GW proper nouns in any shipped file
   5. The `model_instances` table does NOT exist in the schema; all other 10 tables do
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 02-01: `001_core_schema.sql` (all 10 tables, FK constraints, PAINTING_STATUS_ORDER constant), getDb() singleton with FK pragma
-- [ ] 02-02: Seed migrations (002/003), TypeScript types, query modules for factions/units/paints/recipes/recipePaints, TanStack Query hooks
-- [ ] 02-03: Faction CRUD UI (list, form, delete confirm, color theme accent), Faction page complete
-- [ ] 02-04: Unit CRUD UI (form with all fields, category combobox, all status fields), Paint schema + basic CRUD UI
+- [ ] 02-01-PLAN.md — `001_core_schema.sql` (all 10 v1 tables with FK constraints, model_instances explicitly absent), Migration version 1 wired in lib.rs via include_str!(), README SEED-06 personal-use disclaimer
+- [ ] 02-02-PLAN.md — Seed migrations (002 factions, 003 units/paints/recipes/recipe_paints), TypeScript types in src/types/ (PAINTING_STATUS_ORDER constant included), query modules in src/db/queries/, TanStack Query hooks in src/hooks/ (units mutations invalidate ['dashboard-stats'] for Phase 5 forward-compat)
+- [ ] 02-03-PLAN.md — Faction CRUD UI: /factions route + sidebar entry, FactionsPage with 4px color-theme left border per row, FactionSheet with native color picker + 24px live preview swatch, FactionDeleteDialog with FK error toast, empty/loading states (autonomous: false — includes human-verify checkpoint)
+- [ ] 02-04-PLAN.md — Unit two-step Sheet form with CategoryCombobox (free-text + 10 suggestions) + collapsible 'More details' section, Unit delete dialog, FactionsPage updated to list units per faction, Paints minimal CRUD page replacing the placeholder (PAINT-01/02 with FK error toast) (autonomous: false — includes human-verify checkpoint)
 
 ### Phase 3: Collection Module
 **Goal**: The collection page is the primary daily-use interface — users can see, search, filter, add, edit, delete, and quickly update any unit in their collection with polish-quality UX throughout
