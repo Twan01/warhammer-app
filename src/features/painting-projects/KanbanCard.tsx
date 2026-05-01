@@ -43,19 +43,13 @@ export function KanbanCard({ unit, faction, onRemoveFromBoard, onEditUnit }: Kan
     <Card
       ref={setNodeRef}
       style={style}
-      className="min-w-[280px] cursor-grab select-none rounded-lg bg-card p-3"
+      className="w-full cursor-grab select-none rounded-lg bg-card p-3"
       aria-label={unit.name}
       {...attributes}
+      {...listeners}
     >
       <div className="flex items-center gap-2">
-        <button
-          type="button"
-          {...listeners}
-          className="cursor-grab text-muted-foreground"
-          aria-label="Drag to reorder"
-        >
-          <GripVertical className="h-4 w-4" />
-        </button>
+        <GripVertical className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
         <span className="flex-1 truncate text-sm font-semibold">{unit.name}</span>
         <KanbanCardActions
           onRemoveFromBoard={() => onRemoveFromBoard(unit)}

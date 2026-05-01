@@ -44,40 +44,51 @@ export function RecipeStepRow({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 rounded-md border p-2"
+      className="flex gap-2 rounded-md border p-2"
     >
       <button
         type="button"
         {...attributes}
         {...listeners}
-        className="cursor-grab text-muted-foreground"
+        className="mt-1 cursor-grab self-start text-muted-foreground"
         aria-label="Drag to reorder step"
       >
         <GripVertical className="h-4 w-4" />
       </button>
-      <Input
-        className="w-40"
-        placeholder="e.g. Primer, Basecoat, Shade..."
-        list="recipe-step-suggestions"
-        value={step.step_name}
-        onChange={(e) => onChange({ ...step, step_name: e.target.value })}
-      />
-      <datalist id="recipe-step-suggestions">
-        {STEP_SUGGESTIONS.map((s) => (
-          <option key={s} value={s} />
-        ))}
-      </datalist>
-      <div className="flex-1">
-        <PaintCombobox
-          value={step.paint_id}
-          onChange={(paintId) => onChange({ ...step, paint_id: paintId })}
-          onCreateNew={onCreateNewPaint}
+      <div className="flex flex-1 flex-col gap-1.5">
+        <div className="flex items-center gap-2">
+          <Input
+            className="w-40"
+            placeholder="Primer, Basecoat, Shade…"
+            list="recipe-step-suggestions"
+            value={step.step_name}
+            onChange={(e) => onChange({ ...step, step_name: e.target.value })}
+          />
+          <datalist id="recipe-step-suggestions">
+            {STEP_SUGGESTIONS.map((s) => (
+              <option key={s} value={s} />
+            ))}
+          </datalist>
+          <div className="flex-1">
+            <PaintCombobox
+              value={step.paint_id}
+              onChange={(paintId) => onChange({ ...step, paint_id: paintId })}
+              onCreateNew={onCreateNewPaint}
+            />
+          </div>
+        </div>
+        <Input
+          className="text-xs"
+          placeholder="Notes, e.g. Basecoat black on the barrel…"
+          value={step.notes ?? ""}
+          onChange={(e) => onChange({ ...step, notes: e.target.value || null })}
         />
       </div>
       <Button
         type="button"
         variant="ghost"
         size="icon"
+        className="self-start"
         onClick={onRemove}
         aria-label="Remove step"
       >

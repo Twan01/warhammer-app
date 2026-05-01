@@ -19,7 +19,6 @@ import { useUnits, useUpdateUnit, UNITS_KEY } from "@/hooks/useUnits";
 import { useFactions } from "@/hooks/useFactions";
 import {
   applyActiveFilter,
-  getVisibleColumns,
   groupByStatus,
   sortKanbanCards,
 } from "./kanbanUtils";
@@ -45,12 +44,12 @@ export function KanbanBoard({ onEditUnit, onAddProject }: KanbanBoardProps) {
     return m;
   }, [factions]);
 
-  const { grouped, visibleColumns } = useMemo(() => {
+  const { grouped } = useMemo(() => {
     const active = applyActiveFilter(units);
     const g = groupByStatus(active);
     // Sort each bucket
     for (const s of PAINTING_STATUS_ORDER) g[s] = sortKanbanCards(g[s]);
-    return { grouped: g, visibleColumns: getVisibleColumns(g) };
+    return { grouped: g };
   }, [units]);
 
   const sensors = useSensors(
@@ -142,7 +141,7 @@ export function KanbanBoard({ onEditUnit, onAddProject }: KanbanBoardProps) {
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex gap-8 overflow-x-auto px-6 py-4">
-        {visibleColumns.map((status) => (
+        {PAINTING_STATUS_ORDER.map((status) => (
           <KanbanColumn
             key={status}
             status={status}
