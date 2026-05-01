@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,8 @@ import { useFactions } from "@/hooks/useFactions";
 import { useUnits } from "@/hooks/useUnits";
 import { getRecipePaintsByRecipe } from "@/db/queries/recipePaints";
 import type { PaintingRecipe } from "@/types/recipe";
+import { recipesRoute } from "@/app/router";
+import { useRecipeIdsByPaint } from "@/hooks/useRecipePaints";
 import { RecipeTable } from "./RecipeTable";
 import { RecipeDetailSheet } from "./RecipeDetailSheet";
 import { RecipeDeleteDialog } from "./RecipeDeleteDialog";
@@ -49,6 +51,20 @@ export function RecipesPage() {
   const [unitFilter, setUnitFilter] = useState<number | null>(null);
   const [areaFilter, setAreaFilter] = useState("");
 
+  const { paintId } = recipesRoute.useSearch();
+  const [paintFilter, setPaintFilter] = useState<number | null>(null);
+
+  // PINV-05: seed paintFilter from URL on first mount only.
+  // User can clear it like any other filter afterward — empty deps is intentional.
+  useEffect(() => {
+    if (paintId !== undefined) {
+      setPaintFilter(paintId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const { data: recipeIdsByPaint } = useRecipeIdsByPaint(paintFilter);
+
   // Sheet/dialog state
   const [selectedRecipe, setSelectedRecipe] = useState<PaintingRecipe | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -69,9 +85,14 @@ export function RecipesPage() {
       if (area.length > 0) {
         if (!r.area || !r.area.toLowerCase().includes(area)) return false;
       }
+      if (paintFilter !== null) {
+        // useRecipeIdsByPaint is disabled until data resolves; while loading, hide all recipes
+        // (matches "no recipes use this paint" empty state until data arrives — single render flash).
+        if (!recipeIdsByPaint || !recipeIdsByPaint.includes(r.id)) return false;
+      }
       return true;
     });
-  }, [recipes, factionFilter, unitFilter, areaFilter]);
+  }, [recipes, factionFilter, unitFilter, areaFilter, paintFilter, recipeIdsByPaint]);
 
   const openDetail = (recipe: PaintingRecipe) => {
     setSelectedRecipe(recipe);
@@ -130,7 +151,7 @@ export function RecipesPage() {
           onChange={(e) => setAreaFilter(e.target.value)}
           className="w-48"
         />
-        {(factionFilter.length > 0 || unitFilter !== null || areaFilter.length > 0) && (
+        {(factionFilter.length > 0 || unitFilter !== null || areaFilter.length > 0 || paintFilter !== null) && (
           <Button
             variant="ghost"
             size="sm"
@@ -138,6 +159,7 @@ export function RecipesPage() {
               setFactionFilter([]);
               setUnitFilter(null);
               setAreaFilter("");
+              setPaintFilter(null);
             }}
           >
             Clear filters
