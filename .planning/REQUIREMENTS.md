@@ -123,34 +123,49 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 - [x] **POLISH-05**: Visible faction-color accent in cards/sidebar tied to `faction.color_theme`
 - [x] **POLISH-06**: All shadcn components installed in one batch session in Phase 0 (Table, Dialog, Sheet, Drawer, Badge, Progress, Select, Form, Command, Sonner, Card, Tabs, Combobox)
 
-## v2 Requirements
+## v1.1 Requirements
 
-Deferred to next milestone. Tracked but not in current roadmap.
+Milestone v1.1 — Utility Layer. Paint Inventory UI + Army List Builder + Unit Playbook.
 
-### Paint Inventory (Phase 4)
+### Paint Inventory
 
-- **PINV-01**: Dedicated Paint Inventory page with filterable table (brand, type, color family)
-- **PINV-02**: Running-low view (filter `running_low = true`)
-- **PINV-03**: Wishlist view (filter `wishlist = true`)
-- **PINV-04**: "Used in recipes" back-link per paint
-- **PINV-05**: Pagination (50/page default)
+- [ ] **PINV-01**: User can view all paints in a dedicated filterable table at `/paint-inventory`
+- [ ] **PINV-02**: User can filter paints by brand, paint type, and color family (multi-select)
+- [ ] **PINV-03**: User can toggle a "Running Low" preset view (filters `running_low = true`)
+- [ ] **PINV-04**: User can toggle a "Wishlist" preset view (filters `wishlist = true`)
+- [ ] **PINV-05**: Each paint row shows a color swatch from `hex_color` and a recipe count badge ("used in N recipes") that links to Recipes page pre-filtered to that paint
+- [ ] **PINV-06**: User can toggle `owned` status inline from the inventory table without opening an edit form
 
-### Army List Builder (Phase 5)
+### Army List Builder
 
-- **ARMY-01**: Create/edit/delete army lists
-- **ARMY-02**: Add units from collection with manual points or override
-- **ARMY-03**: Auto-calculated total points, painted points, painted-readiness percentage
-- **ARMY-04**: List type tags (Casual, Learning, Narrative, Competitive, Test)
-- **ARMY-05**: Notes per list and per unit-in-list
-- **ARMY-06**: "Battle ready" status indicator
+- [ ] **ARMY-01**: User can create, rename, and delete army lists with: name, faction, list type tag (Casual, Learning, Narrative, Competitive, Test), notes
+- [ ] **ARMY-02**: User can add units from their collection to a list and remove them; each unit-in-list shows painting status badge and assembled status
+- [ ] **ARMY-03**: User can enter a per-unit points override; falls back to `unit.points` if blank; effective points computed in SQL as `COALESCE(points_override, unit.points, 0)`
+- [ ] **ARMY-04**: Army list detail auto-calculates: total points, painted points (units where `status_painting = 'Completed'`), and battle-ready % (painted / total × 100)
+- [ ] **ARMY-05**: Per-list notes and per-unit-in-list notes fields
+- [ ] **ARMY-06**: Unit delete flow warns the user (pre-delete check) if the unit belongs to any army list before confirming
+- [ ] **ARMY-07**: Empty state when no lists exist ("Create your first army list" CTA)
 
-### Strategy Notes (Phase 6)
+### Unit Playbook
 
-- **STRAT-01**: Per-unit strategy notes integrated into unit detail
-- **STRAT-02**: Fields: battlefield_role, strengths, weaknesses, best_targets, synergies, mistakes_to_avoid, rules_references, notes
-- **STRAT-03**: List-level strategy notes
+- [ ] **STRAT-01**: Unit Playbook is a second tab ("Playbook") in the existing unit detail Sheet, alongside the existing "Details" tab
+- [ ] **STRAT-02**: Stats block: Movement, Toughness, Save, Wounds, Leadership, OC — all integer fields (min 0), user-entered manually; displayed as a compact horizontal datasheet-style row, not a vertical form
+- [ ] **STRAT-03**: Free-text fields: Abilities (multi-line textarea), Keywords (free-text, comma-separated suggestions)
+- [ ] **STRAT-04**: Strategy note fields: Battlefield Role, Strengths, Weaknesses, Best Targets, Synergies, Mistakes to Avoid, Rules Page References, Personal Notes
+- [ ] **STRAT-05**: Playbook tab saves inline on button click (not on Sheet close); no separate edit/view mode toggle
+- [ ] **STRAT-06**: Schema migration `002_unit_playbook_stats.sql` adds 8 nullable columns to `unit_strategy_notes` via `ALTER TABLE ... ADD COLUMN` only (never edits `001_core_schema.sql`)
 
-### Battle Logs (Phase 7)
+## v1.2 Requirements
+
+Deferred to v1.2. Tracked but not in current roadmap.
+
+### Army Suggestion Engine
+
+- **SUGG-01**: User can generate a list draft by specifying faction (optional), points budget, unit-type slot composition (e.g. "2 HQ, 3 Battleline, 1 Elite"), and play-style keywords — app selects owned units matching those criteria using data from Unit Playbook battlefield role and keywords fields
+- **SUGG-02**: User can seed a list generation with specific must-have units; app fills remaining slots and points from the collection
+- **SUGG-03**: Generated list shows a gap view: unit types needed to complete the target composition that aren't in the user's collection (suggests what to buy)
+
+### Battle Logs
 
 - **BTL-01**: Create/edit/delete battle logs
 - **BTL-02**: Link battle log to army list
@@ -159,7 +174,7 @@ Deferred to next milestone. Tracked but not in current roadmap.
 - **BTL-05**: Lessons learned and changes-next-time fields
 - **BTL-06**: Basic analytics: win/loss/draw, most-used list, frequent MVPs
 
-### Images (Phase 8)
+### Images
 
 - **IMG-01**: Local image storage via `@tauri-apps/plugin-fs`
 - **IMG-02**: Image upload/selection for units and recipes
@@ -167,7 +182,7 @@ Deferred to next milestone. Tracked but not in current roadmap.
 - **IMG-04**: Captions and dates on images
 - **IMG-05**: Thumbnail generation
 
-### Backup / Settings (Phase 9)
+### Backup / Settings
 
 - **BAK-01**: JSON export of full database
 - **BAK-02**: JSON import (with conflict resolution)
@@ -287,12 +302,31 @@ Which phases cover which requirements.
 | DASH-06 | Phase 5 | Complete |
 | DASH-07 | Phase 5 | Complete |
 | DASH-08 | Phase 5 | Complete |
+| PINV-01 | Phase 6 (v1.1) | Pending |
+| PINV-02 | Phase 6 (v1.1) | Pending |
+| PINV-03 | Phase 6 (v1.1) | Pending |
+| PINV-04 | Phase 6 (v1.1) | Pending |
+| PINV-05 | Phase 6 (v1.1) | Pending |
+| PINV-06 | Phase 6 (v1.1) | Pending |
+| ARMY-01 | Phase 7 (v1.1) | Pending |
+| ARMY-02 | Phase 7 (v1.1) | Pending |
+| ARMY-03 | Phase 7 (v1.1) | Pending |
+| ARMY-04 | Phase 7 (v1.1) | Pending |
+| ARMY-05 | Phase 7 (v1.1) | Pending |
+| ARMY-06 | Phase 7 (v1.1) | Pending |
+| ARMY-07 | Phase 7 (v1.1) | Pending |
+| STRAT-01 | Phase 8 (v1.1) | Pending |
+| STRAT-02 | Phase 8 (v1.1) | Pending |
+| STRAT-03 | Phase 8 (v1.1) | Pending |
+| STRAT-04 | Phase 8 (v1.1) | Pending |
+| STRAT-05 | Phase 8 (v1.1) | Pending |
+| STRAT-06 | Phase 6 (v1.1) | Pending |
 
 **Coverage:**
-- v1 requirements: 83 total (note: header originally said 64 — actual count from file is 83)
-- Mapped to phases: 83
-- Unmapped: 0
+- v1.0 requirements: 83 total — all mapped, all complete
+- v1.1 requirements: 20 total — mapped to phases 6–8, pending
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-30*
-*Last updated: 2026-04-30 — traceability populated by roadmap creation*
+*Last updated: 2026-05-01 — v1.1 requirements added (PINV, ARMY, STRAT); SUGG/BTL/IMG/BAK deferred to v1.2+*
