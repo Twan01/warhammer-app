@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useUnits } from "@/hooks/useUnits";
+import { useUnits, useUpdateUnit, UNITS_KEY } from "@/hooks/useUnits";
 import { useFactions } from "@/hooks/useFactions";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import type { Unit } from "@/types/unit";
 import { useCollectionFilters } from "./collectionFilters";
 import { applyUnitFilters } from "./applyUnitFilters";
@@ -16,6 +18,8 @@ export function CollectionPage() {
   // Data
   const { data: units, isLoading: unitsLoading, isError: unitsError } = useUnits();
   const { data: factions } = useFactions();
+  const qc = useQueryClient();
+  const updateUnit = useUpdateUnit();
 
   // Filters (Zustand)
   const search = useCollectionFilters((s) => s.search);
@@ -74,6 +78,23 @@ export function CollectionPage() {
     setDeletingUnit(unit);
     setDeleteDialogOpen(true);
   };
+  function handleToggleActive(unit: Unit) {
+    const next = (unit.is_active_project === 1 ? 0 : 1) as 0 | 1;
+    const previous = qc.getQueryData<Unit[]>(UNITS_KEY);
+    qc.setQueryData<Unit[]>(UNITS_KEY, (old) =>
+      old?.map((u) => (u.id === unit.id ? { ...u, is_active_project: next } : u)) ?? [],
+    );
+    updateUnit.mutate(
+      { id: unit.id, is_active_project: next },
+      {
+        onError: () => {
+          qc.setQueryData(UNITS_KEY, previous);
+          toast.error("Failed to update project status. Changes were not saved.");
+        },
+      },
+    );
+  }
+
   const handleCloseDelete = () => {
     setDeleteDialogOpen(false);
     setDeletingUnit(null);
@@ -109,6 +130,7 @@ export function CollectionPage() {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onClearFilters={clearAll}
+          onToggleActive={handleToggleActive}
         />
       )}
 

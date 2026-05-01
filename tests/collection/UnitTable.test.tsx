@@ -22,6 +22,7 @@ function renderTable(props: Partial<Parameters<typeof UnitTable>[0]> = {}) {
     onEdit: vi.fn(),
     onDelete: vi.fn(),
     onClearFilters: vi.fn(),
+    onToggleActive: vi.fn(),
     ...props,
   };
   return render(

@@ -10,6 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 import type { Unit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
 import { StatusPopover } from "./StatusPopover";
@@ -45,6 +46,7 @@ export function buildColumns(
   factionMap: Map<number, Faction>,
   onDelete: (unit: Unit) => void,
   onEdit: (unit: Unit) => void,
+  onToggleActive: (unit: Unit) => void,
 ): ColumnDef<Unit>[] {
   return [
     {
@@ -132,10 +134,30 @@ export function buildColumns(
         </span>
       ),
       enableSorting: false,
-      cell: ({ row }) =>
-        row.original.is_active_project ? (
-          <Flame className="h-4 w-4 text-primary" aria-label="Active project" />
-        ) : null,
+      cell: ({ row }) => (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleActive(row.original);
+          }}
+          aria-label={
+            row.original.is_active_project
+              ? `Remove ${row.original.name} from active projects`
+              : `Mark ${row.original.name} as active project`
+          }
+        >
+          <Flame
+            className={cn(
+              "h-4 w-4",
+              row.original.is_active_project ? "text-primary" : "text-muted-foreground/40",
+            )}
+            aria-hidden="true"
+          />
+        </Button>
+      ),
     },
     {
       id: "actions",

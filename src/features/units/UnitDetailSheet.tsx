@@ -1,5 +1,8 @@
 import { useMemo } from "react";
 import { Flame, Check, Minus } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   Sheet,
   SheetContent,
@@ -13,6 +16,8 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useFactions } from "@/hooks/useFactions";
+import { useRecipes } from "@/hooks/useRecipes";
+import { useUpdateUnit, UNITS_KEY } from "@/hooks/useUnits";
 import type { Unit } from "@/types/unit";
 import { StatusPopover } from "./StatusPopover";
 
@@ -30,6 +35,33 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete }: UnitD
     () => (unit ? (factions ?? []).find((f) => f.id === unit.faction_id) ?? null : null),
     [factions, unit]
   );
+
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const updateUnit = useUpdateUnit();
+  const { data: recipes = [] } = useRecipes();
+  const linkedRecipes = useMemo(
+    () => (unit ? recipes.filter((r) => r.unit_id === unit.id) : []),
+    [recipes, unit],
+  );
+
+  function toggleActiveProject() {
+    if (!unit) return;
+    const next = (unit.is_active_project === 1 ? 0 : 1) as 0 | 1;
+    const previous = qc.getQueryData<Unit[]>(UNITS_KEY);
+    qc.setQueryData<Unit[]>(UNITS_KEY, (old) =>
+      old?.map((u) => (u.id === unit.id ? { ...u, is_active_project: next } : u)) ?? [],
+    );
+    updateUnit.mutate(
+      { id: unit.id, is_active_project: next },
+      {
+        onError: () => {
+          qc.setQueryData(UNITS_KEY, previous);
+          toast.error("Failed to update project status. Changes were not saved.");
+        },
+      },
+    );
+  }
 
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
@@ -79,13 +111,28 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete }: UnitD
               <Field label="Basing"><BoolIndicator on={!!unit.status_basing} /></Field>
               <Field label="Varnished"><BoolIndicator on={!!unit.status_varnished} /></Field>
               <Field label="Active Project">
-                {unit.is_active_project ? (
-                  <span className="inline-flex items-center gap-1 text-sm">
-                    <Flame className="h-4 w-4 text-primary" aria-hidden="true" /> Yes
-                  </span>
-                ) : (
-                  <span className="text-sm text-muted-foreground">No</span>
-                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleActiveProject}
+                  aria-label={
+                    unit.is_active_project
+                      ? `Remove ${unit.name} from active projects`
+                      : `Mark ${unit.name} as active project`
+                  }
+                >
+                  {unit.is_active_project ? (
+                    <>
+                      <Flame className="mr-2 h-4 w-4 text-primary" aria-hidden="true" />
+                      Active — click to remove
+                    </>
+                  ) : (
+                    <>
+                      <Flame className="mr-2 h-4 w-4" aria-hidden="true" />
+                      Mark as active project
+                    </>
+                  )}
+                </Button>
               </Field>
 
               <Separator />
@@ -108,6 +155,32 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete }: UnitD
               </Field>
               <Field label="Storage Location">
                 <span className="text-sm">{unit.storage_location ?? "—"}</span>
+              </Field>
+
+              <Separator />
+              <Field label="Linked Recipes">
+                {linkedRecipes.length === 0 ? (
+                  <span className="text-xs text-muted-foreground">
+                    No recipes linked to this unit.
+                  </span>
+                ) : (
+                  <div className="flex flex-col gap-1 items-start">
+                    {linkedRecipes.map((r) => (
+                      <Button
+                        key={r.id}
+                        variant="link"
+                        size="sm"
+                        className="h-auto p-0"
+                        onClick={() => {
+                          onClose();
+                          navigate({ to: "/recipes" });
+                        }}
+                      >
+                        {r.name}
+                      </Button>
+                    ))}
+                  </div>
+                )}
               </Field>
 
               {unit.notes && (

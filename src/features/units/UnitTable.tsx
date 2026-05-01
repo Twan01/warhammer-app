@@ -33,6 +33,7 @@ interface UnitTableProps {
   onEdit: (unit: Unit) => void;
   onDelete: (unit: Unit) => void;
   onClearFilters: () => void;
+  onToggleActive: (unit: Unit) => void;
 }
 
 export function UnitTable({
@@ -45,6 +46,7 @@ export function UnitTable({
   onEdit,
   onDelete,
   onClearFilters,
+  onToggleActive,
 }: UnitTableProps) {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "name", desc: false },
@@ -61,8 +63,8 @@ export function UnitTable({
   }, [factions]);
 
   const columns = useMemo(
-    () => buildColumns(factionMap, onDelete, onEdit),
-    [factionMap, onDelete, onEdit]
+    () => buildColumns(factionMap, onDelete, onEdit, onToggleActive),
+    [factionMap, onDelete, onEdit, onToggleActive]
   );
 
   const table = useReactTable({
