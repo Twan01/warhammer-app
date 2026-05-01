@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Phase 3 UI-SPEC approved
-last_updated: "2026-04-30T23:21:57.952Z"
+stopped_at: Completed 03-00-PLAN.md (test infra Wave 0)
+last_updated: "2026-05-01T07:19:32.274Z"
 last_activity: 2026-04-30 — Completed 02-04 Unit form and Paints CRUD (human-verify approved)
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 12
+  completed_plans: 8
   percent: 80
 ---
 
@@ -56,6 +56,7 @@ Progress: [████████░░] 80% (phases 1+2 of 5 complete)
 | Phase 02-data-layer-entity-crud P02 | 4 | 3 tasks | 19 files |
 | Phase 02-data-layer-entity-crud P03 | 20 | 3 tasks | 10 files |
 | Phase 02-data-layer-entity-crud P04 | 45 | 3 tasks | 13 files |
+| Phase 03-collection-module P00 | 4 | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,8 @@ Recent decisions affecting current work:
 - [Phase 02-data-layer-entity-crud]: 02-04: CategoryCombobox uses Command+Popover with shouldFilter + Enter-to-commit free text + CommandEmpty click-to-commit fallback
 - [Phase 02-data-layer-entity-crud]: 02-04: FactionRow.tsx converted to FactionCard export; FactionsPage uses per-faction Card layout (not Table) to accommodate unit sub-lists
 - [Phase 02-data-layer-entity-crud]: 02-04: Human-verify approved 2026-04-30 — all 14 sign-off criteria passed; all 5 Phase 2 success criteria confirmed end-to-end
+- [Phase 03-collection-module]: 03-00: vitest globals:true eliminates unused import lint errors in stub test files — satisfies noUnusedLocals constraint
+- [Phase 03-collection-module]: 03-00: Wave 0 stub pattern — it.skip() stubs with VALIDATION.md -t filter strings; Wave N+ fills bodies in-place without restructuring paths
 
 ### Pending Todos
 
@@ -103,6 +106,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-30T23:21:57.949Z
-Stopped at: Phase 3 UI-SPEC approved
-Resume file: .planning/phases/03-collection-module/03-UI-SPEC.md
+Last session: 2026-05-01T07:19:32.271Z
+Stopped at: Completed 03-00-PLAN.md (test infra Wave 0)
+Resume file: None
