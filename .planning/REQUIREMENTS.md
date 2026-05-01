@@ -96,14 +96,14 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 
 ### Dashboard (Full per ROADMAP section 3.1 / 6.2)
 
-- [ ] **DASH-01**: Top row stat cards: total models owned, fully-painted models, battle-ready points, active projects count
-- [ ] **DASH-02**: Faction summary cards — one per faction, showing points owned vs points painted, painted percentage, model count
-- [ ] **DASH-03**: Painting completion percentage (overall, across all units, by points)
-- [ ] **DASH-04**: Assembly completion percentage and basing completion percentage cards
-- [ ] **DASH-05**: Current active painting projects list (links to unit detail)
-- [ ] **DASH-06**: Recently updated units list (last 5-10 by `updated_at`)
+- [x] **DASH-01**: Top row stat cards: total models owned, fully-painted models, battle-ready points, active projects count
+- [x] **DASH-02**: Faction summary cards — one per faction, showing points owned vs points painted, painted percentage, model count
+- [x] **DASH-03**: Painting completion percentage (overall, across all units, by points)
+- [x] **DASH-04**: Assembly completion percentage and basing completion percentage cards
+- [x] **DASH-05**: Current active painting projects list (links to unit detail)
+- [x] **DASH-06**: Recently updated units list (last 5-10 by `updated_at`)
 - [ ] **DASH-07**: All dashboard data sources from existing queries (units, factions, recipes) — no new tables; cache via TanStack Query
-- [ ] **DASH-08**: Empty state when no factions/units exist (point to Collection page)
+- [x] **DASH-08**: Empty state when no factions/units exist (point to Collection page)
 
 ### Seed Data
 
@@ -279,14 +279,14 @@ Which phases cover which requirements.
 | RECIPE-08 | Phase 4 | Complete |
 | PAINT-03 | Phase 4 | Complete |
 | PAINT-04 | Phase 4 | Complete |
-| DASH-01 | Phase 5 | Pending |
-| DASH-02 | Phase 5 | Pending |
-| DASH-03 | Phase 5 | Pending |
-| DASH-04 | Phase 5 | Pending |
-| DASH-05 | Phase 5 | Pending |
-| DASH-06 | Phase 5 | Pending |
+| DASH-01 | Phase 5 | Complete |
+| DASH-02 | Phase 5 | Complete |
+| DASH-03 | Phase 5 | Complete |
+| DASH-04 | Phase 5 | Complete |
+| DASH-05 | Phase 5 | Complete |
+| DASH-06 | Phase 5 | Complete |
 | DASH-07 | Phase 5 | Pending |
-| DASH-08 | Phase 5 | Pending |
+| DASH-08 | Phase 5 | Complete |
 
 **Coverage:**
 - v1 requirements: 83 total (note: header originally said 64 — actual count from file is 83)

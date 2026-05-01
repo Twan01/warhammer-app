@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Phase 5 plans complete
-last_updated: "2026-05-01T08:52:30.256Z"
+stopped_at: Completed 05-00-PLAN.md
+last_updated: "2026-05-01T09:00:26.304Z"
 last_activity: 2026-05-01 — Completed 04-00 @dnd-kit install, kanbanUtils, recipeSteps, PaintCombobox, test stubs
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 20
-  completed_plans: 16
+  completed_plans: 17
   percent: 81
 ---
 
@@ -66,6 +66,7 @@ Progress: [████████░░] 81% (13/16 plans complete)
 | Phase 04-painting-module P01 | 15 | 2 tasks | 10 files |
 | Phase 04-painting-module P02 | 5 | 2 tasks | 9 files |
 | Phase 04-painting-module P03 | 5 | 3 tasks | 9 files |
+| Phase 05-dashboard P00 | 5 | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -123,6 +124,9 @@ Recent decisions affecting current work:
 - [Phase 04-painting-module]: 04-02: Add/Edit form Sheet deferred to plan 04-03 via console.warn no-ops in RecipesPage.onAddRecipe/onEditRecipe
 - [Phase 04-painting-module]: 04-03: onCreateNewPaint(stepLocalId) threading: RecipeStepList signature takes stepLocalId string so parent can identify which step row triggered inline paint creation
 - [Phase 04-painting-module]: 04-03: buildColumns 4th arg onToggleActive: breaking change requiring UnitTable and CollectionPage update; UnitTable.test.tsx baseProps updated with vi.fn() default
+- [Phase 05-dashboard]: 05-00: computeStats returns factionStats for all factions (even with zero units) to avoid NaN on divide-by-zero — guarded with fUnits.length > 0 check
+- [Phase 05-dashboard]: 05-00: SQLite datetime normalization in formatRelativeTime: replace space with T and append Z to force UTC parsing (Pitfall 5)
+- [Phase 05-dashboard]: 05-00: computeStats empty-path (units.length === 0) produces factionStats entries with paintedPct=0 even when factions exist
 
 ### Pending Todos
 
@@ -135,6 +139,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-01T08:52:30.253Z
-Stopped at: Phase 5 plans complete
-Resume file: .planning/phases/05-dashboard/05-00-PLAN.md
+Last session: 2026-05-01T09:00:26.301Z
+Stopped at: Completed 05-00-PLAN.md
+Resume file: None
