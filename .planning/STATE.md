@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
-status: in_progress
-stopped_at: Completed 06-04-PLAN.md — TanStack Query hooks (usePaints patch, useStrategyNote, useArmyLists)
-last_updated: "2026-05-01T21:17:52Z"
-last_activity: 2026-05-01 — 06-04 executed; usePaints double-invalidation + useStrategyNote + useArmyLists + 9 real tests
+status: completed
+stopped_at: Completed 06-04-PLAN.md — TanStack Query hooks (usePaints PAINTS_WITH_RECIPES_KEY, useStrategyNote, useArmyLists)
+last_updated: "2026-05-01T21:24:40.917Z"
+last_activity: 2026-05-01 — 06-04 executed; usePaints double-invalidation + useStrategyNote + useArmyLists; 142 tests green
 progress:
   total_phases: 4
-  completed_phases: 0
-  total_plans: 5
+  completed_phases: 1
+  total_plans: 10
   completed_plans: 5
   percent: 100
 ---
