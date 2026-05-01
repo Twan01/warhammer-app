@@ -26,7 +26,7 @@ Full details: `.planning/milestones/v1.1-ROADMAP.md`
 
 HobbyForge v2.0 adds three features that complete the "ready-to-play" workflow: a dedicated Paint Inventory page, an Army List Builder, and the Unit Playbook (personal stats block and strategy notes per unit). Phase 6 is a pure back-end foundation — schema migration, new TypeScript types, all query and hook modules for all three features, with no UI. Phases 7–9 build the UI on that verified data layer.
 
-- [ ] **Phase 6: Foundation** — Schema migration 002, TypeScript types for all v2.0 features, query modules (armyLists.ts, strategyNotes.ts), hook modules, and cross-invalidation patch to usePaints.ts
+- [x] **Phase 6: Foundation** — Schema migration 004, TypeScript types for all v2.0 features, query modules (armyLists.ts, strategyNotes.ts), hook modules, and cross-invalidation patch to usePaints.ts (completed 2026-05-01)
 - [ ] **Phase 7: Paint Inventory** — PaintInventoryPage with brand/type/color-family filters, running-low and wishlist preset views, color swatch, "used in N recipes" badge, inline owned toggle, sidebar nav and route
 - [ ] **Phase 8: Army List Builder** — ArmyListsPage, ArmyListDetailSheet, unit picker, COALESCE-in-SQL points calculation, battle-ready %, pre-delete unit check, sidebar nav and route
 - [ ] **Phase 9: Unit Playbook** — PlaybookTab (stats block grid + abilities/keywords + strategy notes + inline save), UnitDetailSheet wrapped in shadcn Tabs
@@ -50,7 +50,7 @@ Plans:
 - [ ] 06-01-PLAN.md — Migration 004 (8 ALTER TABLE ADD COLUMN, save = INTEGER), lib.rs version-4 registration, real migration004.test.ts assertions
 - [ ] 06-02-PLAN.md — TypeScript types: src/types/strategyNote.ts (StrategyNote, UpsertStrategyNoteInput), src/types/armyList.ts (full ArmyList family), src/types/paint.ts append PaintWithRecipeCount
 - [ ] 06-03-PLAN.md — Query functions: paints.ts append getPaintsWithRecipeCount, new strategyNotes.ts (select-then-upsert), new armyLists.ts (NULL-passthrough updateArmyListUnit, duplicate-allowed addUnitToList) + real query tests
-- [ ] 06-04-PLAN.md — Hooks: usePaints.ts patch (PAINTS_WITH_RECIPES_KEY + 3 double-invalidations), new useStrategyNote.ts, new useArmyLists.ts + real usePaints.test.ts assertions
+- [x] 06-04-PLAN.md — Hooks: usePaints.ts patch (PAINTS_WITH_RECIPES_KEY + 3 double-invalidations), new useStrategyNote.ts, new useArmyLists.ts + real usePaints.test.ts assertions
 
 ### Phase 7: Paint Inventory
 **Goal**: Users can browse and manage their paint collection from a dedicated inventory page — filtering by brand, type, and color family, jumping to running-low or wishlist views, seeing a color swatch and recipe usage count per paint, and toggling owned status inline
@@ -100,7 +100,7 @@ Plans:
 | 3. Collection Module | v1.1 | 5/5 | Complete | 2026-05-01 |
 | 4. Painting Module | v1.1 | 4/4 | Complete | 2026-05-01 |
 | 5. Dashboard | v1.1 | 4/4 | Complete | 2026-05-01 |
-| 6. Foundation | 4/5 | In Progress|  | — |
+| 6. Foundation | v2.0 | 5/5 | Complete | 2026-05-01 |
 | 7. Paint Inventory | v2.0 | 0/TBD | Not started | — |
 | 8. Army List Builder | v2.0 | 0/TBD | Not started | — |
 | 9. Unit Playbook | v2.0 | 0/TBD | Not started | — |
