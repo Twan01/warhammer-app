@@ -1,5 +1,5 @@
-import { PlaceholderPage } from "@/components/common/PlaceholderPage";
+import { DashboardPage as DashboardPageContent } from "@/features/dashboard/DashboardPage";
 
 export function DashboardPage() {
-  return <PlaceholderPage title="Dashboard" phase={5} />;
+  return <DashboardPageContent />;
 }
