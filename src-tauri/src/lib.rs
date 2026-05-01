@@ -21,6 +21,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/003_seed_data.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 4,
+            description: "unit_playbook_stats",
+            sql: include_str!("../migrations/004_unit_playbook_stats.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
