@@ -1,5 +1,5 @@
-import { PlaceholderPage } from "@/components/common/PlaceholderPage";
+import { CollectionPage as CollectionPageContent } from "@/features/units/CollectionPage";
 
 export function CollectionPage() {
-  return <PlaceholderPage title="Collection" phase={3} />;
+  return <CollectionPageContent />;
 }
