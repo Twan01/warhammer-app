@@ -4,6 +4,7 @@ import {
   createRouter,
   Outlet,
 } from "@tanstack/react-router";
+import { z } from "zod";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { AppLayout } from "@/components/common/AppLayout";
 import { DashboardPage } from "./dashboard/page";
@@ -47,9 +48,12 @@ const paintingProjectsRoute = createRoute({
   component: PaintingProjectsPage,
 });
 
-const recipesRoute = createRoute({
+export const recipesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/recipes",
+  validateSearch: z.object({
+    paintId: z.number().optional(),
+  }),
   component: RecipesPage,
 });
 
