@@ -1,695 +1,473 @@
 # Architecture Research
 
-**Domain:** Local-first Tauri + React + SQLite desktop application
-**Researched:** 2026-04-30
-**Confidence:** HIGH (core data flow verified against official Tauri v2 docs and multiple working implementations)
+**Domain:** HobbyForge v1.1 — Paint Inventory, Army List Builder, Unit Playbook integration into existing codebase
+**Researched:** 2026-05-01
+**Confidence:** HIGH — based on direct codebase audit of all relevant source files
 
 ## Standard Architecture
 
 ### System Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                      React Frontend (WebView)                    │
-│                                                                  │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────┐    │
-│  │  Page /  │  │  Feature │  │ shadcn/  │  │  react-hook- │    │
-│  │  Route   │  │ Component│  │ ui Forms │  │  form + zod  │    │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └──────┬───────┘    │
-│       │             │             │                │            │
-│  ┌────▼─────────────▼─────────────▼────────────────▼───────┐    │
-│  │               TanStack Query (useQuery / useMutation)    │    │
-│  └────────────────────────────┬────────────────────────────┘    │
-│                               │                                  │
-│  ┌────────────────────────────▼────────────────────────────┐    │
-│  │          src/db/queries/*.ts  (Query Functions)          │    │
-│  │  factions.ts │ units.ts │ paints.ts │ recipes.ts │ ...  │    │
-│  └────────────────────────────┬────────────────────────────┘    │
-└───────────────────────────────┼─────────────────────────────────┘
-                                │ @tauri-apps/plugin-sql
-                                │ Database.load() / db.select() / db.execute()
-┌───────────────────────────────▼─────────────────────────────────┐
-│                      Tauri IPC Bridge                            │
-├─────────────────────────────────────────────────────────────────┤
-│                    Rust (src-tauri/src/lib.rs)                   │
-│                                                                  │
-│  tauri-plugin-sql (sqlx under the hood)                         │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │  Migration runner (versioned, transactional, on startup) │   │
-│  └──────────────────────────────────────────────────────────┘   │
-├─────────────────────────────────────────────────────────────────┤
-│                SQLite file on disk                               │
-│        %APPDATA%/HobbyForge/hobbyforge.db                       │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                     React UI Layer                           │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
+│  │ PaintInv     │  │  ArmyLists   │  │ UnitDetail   │       │
+│  │ Page+Filters │  │  Page+Detail │  │ Sheet+Tabs   │       │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘       │
+├─────────┴──────────────────┴──────────────────┴─────────────┤
+│                   TanStack Query Hooks Layer                  │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
+│  │  usePaints   │  │ useArmyLists │  │useStrategyNote│      │
+│  │  (enhanced)  │  │  (new)       │  │  (new)        │      │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘       │
+├─────────┴──────────────────┴──────────────────┴─────────────┤
+│                   src/db/queries/* Layer                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
+│  │  paints.ts   │  │ armyLists.ts │  │strategyNotes │       │
+│  │  (+ join fn) │  │  (new file)  │  │  .ts (new)   │       │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘       │
+├─────────┴──────────────────┴──────────────────┴─────────────┤
+│                   SQLite (tauri-plugin-sql)                   │
+│  paints  recipe_paints  army_lists  army_list_units           │
+│  unit_strategy_notes (migration 002 adds 8 columns)           │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ### Component Responsibilities
 
-| Component | Responsibility | Talks To |
+| Component | Responsibility | Location |
 |-----------|----------------|----------|
-| Page/Route | Compose feature sections, handle URL params | Feature components |
-| Feature component | Feature-specific UI, local display state | TanStack Query hooks |
-| TanStack Query hook | Cache management, loading/error states, invalidation | Query functions in src/db/queries/ |
-| Query functions (src/db/queries/*.ts) | Typed SQL — the ONLY layer that calls the plugin-sql API | @tauri-apps/plugin-sql |
-| @tauri-apps/plugin-sql | IPC bridge — translates TypeScript calls to Rust sqlx | Tauri IPC |
-| tauri-plugin-sql (Rust) | Executes SQL via sqlx, runs migrations on startup | SQLite file |
-| SQLite file | Persistent local storage | — |
+| `PaintInventoryPage` | Filterable paint table with running-low/wishlist views and used-in-recipes back-links | `src/features/paints/PaintInventoryPage.tsx` (NEW) |
+| `PaintInventoryFilters` | Local filter controls — brand, type, owned, running-low, wishlist | `src/features/paints/PaintInventoryFilters.tsx` (NEW) |
+| `ArmyListsPage` | List index, create/delete army lists | `src/features/army-lists/ArmyListsPage.tsx` (NEW) |
+| `ArmyListDetailSheet` | Add/remove units, display point totals and painted % | `src/features/army-lists/ArmyListDetailSheet.tsx` (NEW) |
+| `PlaybookTab` | Stats block form + strategy notes inside UnitDetailSheet | `src/features/units/PlaybookTab.tsx` (NEW) |
+| `UnitDetailSheet` | Existing drawer — gains Tabs wrapper, adds Playbook tab | `src/features/units/UnitDetailSheet.tsx` (MODIFY) |
+| `PaintsPage` | Existing paint CRUD at `/paints` — unchanged | `src/features/paints/PaintsPage.tsx` (UNCHANGED) |
 
----
+## Schema Gap Analysis
 
-## Data Flow: Frontend to SQLite
+### unit_strategy_notes — Migration Required
 
-### The Recommended Approach: plugin-sql Directly from TypeScript
+The existing `001_core_schema.sql` (lines 127-140) creates `unit_strategy_notes` with:
+`battlefield_role`, `strengths`, `weaknesses`, `best_targets`, `synergies`, `mistakes_to_avoid`, `rules_references`, `notes`
 
-Use `@tauri-apps/plugin-sql` called from TypeScript query functions. Do NOT write custom Rust command handlers for CRUD operations. This is the pattern confirmed by the official Tauri v2 SQL plugin docs and multiple real implementations.
+**Missing for v1.1 Unit Playbook — 8 columns absent:**
 
-**Why not custom Rust commands?** Custom Tauri `#[tauri::command]` handlers for database work add a Rust layer that provides no benefit over the plugin-sql bridge for standard CRUD. You'd be writing the same SQL twice (once in TS, once in Rust). Reserve custom Rust commands for operations that genuinely need native OS access (file system paths, system tray, etc.).
+| Missing Column | Type | Purpose |
+|---------------|------|---------|
+| `move` | TEXT | M stat (e.g. "6") |
+| `toughness` | INTEGER | T stat |
+| `save` | TEXT | Sv stat (e.g. "3+") |
+| `wounds` | INTEGER | W stat |
+| `leadership` | TEXT | Ld stat (e.g. "6+") |
+| `objective_control` | INTEGER | OC stat |
+| `keywords` | TEXT | Comma-separated or free-text block |
+| `abilities` | TEXT | Free-text ability descriptions |
 
-**Why not Prisma?** prisma-client-rust was archived March 2025 and is unmaintained. Standard Prisma (Node.js) cannot run inside Tauri's sandboxed WebView. Drizzle with sqlite-proxy is a viable ORM path, but for a personal tool with a stable schema, raw typed query functions are simpler and have zero abstraction overhead. Recommend raw plugin-sql calls for v1; migrate to Drizzle if the schema grows complex.
-
-### Full Request Cycle (Read)
-
-```
-User lands on Collection page
-  ↓
-CollectionPage.tsx renders
-  ↓
-useUnits({ faction, status }) — custom hook wrapping useQuery
-  ↓
-queryKey: ['units', { faction, status }]
-queryFn: () => queries.units.getAll({ faction, status })
-  ↓
-src/db/queries/units.ts → getAll()
-  const db = await Database.load('sqlite:hobbyforge.db')
-  return db.select<Unit[]>('SELECT * FROM units WHERE ...', [faction, status])
-  ↓
-@tauri-apps/plugin-sql IPC bridge
-  ↓
-Rust sqlx executes SELECT against hobbyforge.db
-  ↓
-Row data returns up the chain
-  ↓
-TanStack Query caches result under ['units', { faction, status }]
-  ↓
-CollectionPage renders UnitTable with cached data
-```
-
-### Full Request Cycle (Write / Mutation)
-
-```
-User submits UnitForm
-  ↓
-react-hook-form calls handleSubmit(onSubmit)
-  ↓
-Zod schema validates — parse() throws on invalid data
-  ↓
-onSubmit() calls mutate(formData) from useMutation hook
-  ↓
-mutationFn: (data) => queries.units.create(data)
-  ↓
-src/db/queries/units.ts → create()
-  const db = await Database.load('sqlite:hobbyforge.db')
-  const result = await db.execute(
-    'INSERT INTO units (...) VALUES ($1, $2, ...)',
-    [data.name, data.faction_id, ...]
-  )
-  return result.lastInsertId
-  ↓
-onSuccess: queryClient.invalidateQueries({ queryKey: ['units'] })
-  ↓
-TanStack Query refetches → UI updates automatically
-```
-
----
-
-## Data Flow Decision: Where Does State Live?
-
-**Decision: TanStack Query as the single source of truth for all database-backed data. No Zustand, no Redux for DB data.**
-
-For a single-user local desktop app with SQLite as the backing store:
-
-- TanStack Query's cache IS the application state for DB data
-- No derived state needs to be synchronized between a global store and a query cache
-- `staleTime: 5 minutes`, `gcTime: 10 minutes`, `refetchOnWindowFocus: false` (desktop defaults)
-
-**What uses useState:**
-- Form field state (managed by react-hook-form internally)
-- UI-only state: drawer open/closed, active tab, selected filter values before submit
-- Kanban drag state (local to the Kanban component)
-
-**Nothing uses a global store (Zustand, Redux, Context for data).** The app is single-user, single-window, local-only. Global stores add synchronization complexity for zero benefit.
-
----
-
-## Migration Story
-
-### Where Migrations Live
-
-Migrations are defined in Rust in `src-tauri/src/lib.rs` using the `Migration` struct from `tauri-plugin-sql`. They are NOT SQL files on disk — they are Rust string literals compiled into the binary.
-
-```rust
-// src-tauri/src/lib.rs
-use tauri_plugin_sql::{Migration, MigrationKind};
-
-fn get_migrations() -> Vec<Migration> {
-    vec![
-        Migration {
-            version: 1,
-            description: "create_core_schema",
-            sql: include_str!("../migrations/001_core_schema.sql"),
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 2,
-            description: "seed_initial_factions",
-            sql: include_str!("../migrations/002_seed_factions.sql"),
-            kind: MigrationKind::Up,
-        },
-    ]
-}
-```
-
-Use `include_str!()` to load SQL from `src-tauri/migrations/*.sql` files at compile time. This keeps SQL readable in separate files without requiring runtime file I/O.
-
-### When Migrations Run
-
-Migrations run automatically when `Database.load('sqlite:hobbyforge.db')` is called — which happens on the first query. They also run if `plugins.sql.preload` is set in `tauri.conf.json`. Either approach works; preload is cleaner because it runs migrations before the UI renders.
-
-Recommend: add `"sqlite:hobbyforge.db"` to `plugins.sql.preload` in `tauri.conf.json` so migrations complete during app startup, not lazily on first query.
-
-### Migration Versioning Rules
-
-- Each migration gets a unique integer version number
-- Migrations run in version order
-- Already-applied migrations are tracked internally by tauri-plugin-sql (via a `_sqlx_migrations` table it creates)
-- Never modify an applied migration — add a new one
-- All migrations run in a transaction; if one fails, the whole batch rolls back
-
-### Folder Structure for Migrations
-
-```
-src-tauri/
-├── migrations/
-│   ├── 001_core_schema.sql       # CREATE TABLE statements for all entities
-│   ├── 002_seed_factions.sql     # INSERT OR IGNORE for 4 seed factions
-│   └── 003_seed_units_paints.sql # INSERT OR IGNORE for sample units/paints/recipes
-└── src/
-    └── lib.rs                    # registers migrations with tauri-plugin-sql
-```
-
----
-
-## Seed Data Story
-
-### How Seeds Run
-
-Seed data lives in a dedicated migration (version 2+). Use `INSERT OR IGNORE` with explicit IDs to make seeds idempotent — they can run multiple times without creating duplicates.
-
+**Migration 002 required** (`src-tauri/migrations/002_unit_playbook_stats.sql`):
 ```sql
--- 002_seed_factions.sql
-INSERT OR IGNORE INTO factions (id, name, game_system, color_theme) VALUES
-  (1, 'Tau Empire', '40k', '#00ADEF'),
-  (2, 'Ultramarines', '40k', '#0033AA'),
-  (3, 'Necrons', '40k', '#33AA44'),
-  (4, 'Tyranids', '40k', '#7B2D8B');
+-- 002_unit_playbook_stats.sql
+-- Adds stats block + abilities/keywords to unit_strategy_notes for v1.1 Unit Playbook
+ALTER TABLE unit_strategy_notes ADD COLUMN move TEXT;
+ALTER TABLE unit_strategy_notes ADD COLUMN toughness INTEGER;
+ALTER TABLE unit_strategy_notes ADD COLUMN save TEXT;
+ALTER TABLE unit_strategy_notes ADD COLUMN wounds INTEGER;
+ALTER TABLE unit_strategy_notes ADD COLUMN leadership TEXT;
+ALTER TABLE unit_strategy_notes ADD COLUMN objective_control INTEGER;
+ALTER TABLE unit_strategy_notes ADD COLUMN keywords TEXT;
+ALTER TABLE unit_strategy_notes ADD COLUMN abilities TEXT;
 ```
 
-Seeds fire on first launch (when `_sqlx_migrations` has no record of that version). They never re-fire on subsequent launches. This is the only seeding mechanism needed — no separate `seed.ts` script or runtime check.
+The migration must also be registered in `src-tauri/src/lib.rs` as version 2 in the `get_migrations()` vec.
 
-The `src/db/seed.ts` file referenced in ROADMAP.txt section 9.2 should be a TypeScript module that re-exports the migration SQL strings for documentation purposes only, or it can be removed in favor of the Rust migration approach described above.
+### army_lists + army_list_units — No Gap
 
----
+Both tables are complete for v1.1:
+- `army_lists`: `id, name, faction_id, points_limit, list_type, notes, created_at, updated_at` — covers all of ARMY-01, ARMY-04, ARMY-05
+- `army_list_units`: `id, list_id, unit_id, points_override, notes, created_at` — `points_override` satisfies ARMY-02 "manual points or override"
 
-## Form Wiring: react-hook-form + Zod + Mutation
+No schema changes needed for Army List Builder.
 
-The pattern for every Create/Edit form in the app:
+### paints — No Gap
 
-```typescript
-// src/features/factions/FactionForm.tsx
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { factionQueries } from '@/db/queries/factions'
-
-// 1. Zod schema — single source of type truth
-const factionSchema = z.object({
-  name: z.string().min(1, 'Name required').max(100),
-  game_system: z.string().default('40k'),
-  color_theme: z.string().regex(/^#[0-9A-F]{6}$/i).optional(),
-  description: z.string().optional(),
-})
-type FactionFormData = z.infer<typeof factionSchema>
-
-// 2. Component receives optional defaultValues for edit mode
-export function FactionForm({ faction, onSuccess }: Props) {
-  const queryClient = useQueryClient()
-
-  const form = useForm<FactionFormData>({
-    resolver: zodResolver(factionSchema),
-    defaultValues: faction ?? { game_system: '40k' },
-  })
-
-  // 3. Mutation wired to query function
-  const mutation = useMutation({
-    mutationFn: (data: FactionFormData) =>
-      faction
-        ? factionQueries.update(faction.id, data)
-        : factionQueries.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['factions'] })
-      onSuccess?.()
-    },
-  })
-
-  // 4. handleSubmit validates → passes to mutation
-  return (
-    <form onSubmit={form.handleSubmit((data) => mutation.mutate(data))}>
-      {/* shadcn/ui Form components here */}
-    </form>
-  )
-}
-```
-
-This pattern is identical for every CRUD form. The only things that change are the Zod schema, the query functions called in `mutationFn`, and the `queryKey` to invalidate.
-
----
+`paints` already has `running_low`, `wishlist`, `owned`, `brand`, `paint_type`, `color_family` — all filter dimensions needed by `PaintInventoryPage`. No schema changes needed for Paint Inventory.
 
 ## Recommended Project Structure
 
+### New Files to Create
+
 ```
+src-tauri/migrations/
+└── 002_unit_playbook_stats.sql          # NEW — 8 ADD COLUMN statements
+
 src/
 ├── app/
-│   ├── App.tsx                     # QueryClientProvider wraps everything here
-│   ├── routes.tsx                  # React Router route definitions
-│   └── layout/
-│       ├── AppLayout.tsx           # Sidebar + main content shell
-│       └── Sidebar.tsx             # Nav links
-│
-├── components/
-│   ├── ui/                         # shadcn/ui generated components (DO NOT EDIT)
-│   ├── common/                     # Shared: StatusBadge, ProgressBar, EmptyState, ConfirmDialog
-│   └── forms/                      # Shared form primitives: FormField wrappers
+│   ├── paint-inventory/
+│   │   └── page.tsx                     # NEW — thin re-export wrapper
+│   └── army-lists/
+│       └── page.tsx                     # NEW — thin re-export wrapper
 │
 ├── features/
-│   ├── dashboard/
-│   │   └── DashboardPage.tsx       # Phase 0: placeholder; Phase 3: real stats
-│   ├── factions/
-│   │   ├── FactionPage.tsx         # List + management
-│   │   ├── FactionForm.tsx         # Create/edit drawer
-│   │   ├── FactionCard.tsx         # Display card
-│   │   └── factions.types.ts       # Local types (extends from src/types/)
-│   ├── collection/
-│   │   ├── CollectionPage.tsx
-│   │   ├── UnitTable.tsx
-│   │   ├── UnitFilters.tsx
-│   │   ├── UnitDetail.tsx          # Drawer or full page
-│   │   ├── UnitForm.tsx
-│   │   └── collection.types.ts
-│   ├── painting/
-│   │   ├── PaintingPage.tsx        # Kanban board
-│   │   ├── KanbanBoard.tsx
-│   │   ├── KanbanCard.tsx
-│   │   └── painting.types.ts
 │   ├── paints/
-│   │   ├── PaintsPage.tsx          # Table view (Phase 1 CRUD only)
-│   │   ├── PaintForm.tsx
-│   │   └── paints.types.ts
-│   └── recipes/
-│       ├── RecipesPage.tsx
-│       ├── RecipeDetail.tsx
-│       ├── RecipeForm.tsx
-│       ├── RecipePaintLinker.tsx   # UI for linking paints to steps
-│       └── recipes.types.ts
+│   │   ├── PaintInventoryPage.tsx       # NEW — dedicated inventory page
+│   │   └── PaintInventoryFilters.tsx    # NEW — filter controls component
+│   └── army-lists/                      # NEW folder
+│       ├── ArmyListsPage.tsx
+│       ├── ArmyListsEmptyState.tsx
+│       ├── ArmyListSheet.tsx            # create/edit list metadata
+│       ├── ArmyListDeleteDialog.tsx
+│       ├── ArmyListDetailSheet.tsx      # unit picker + points summary
+│       └── ArmyListUnitRow.tsx
 │
-├── db/
-│   ├── client.ts                   # Database.load() singleton helper
-│   ├── schema.ts                   # TypeScript interfaces mirroring DB columns
-│   ├── migrations/                 # (TS re-exports or docs only — real migrations in src-tauri/migrations/)
-│   ├── queries/
-│   │   ├── factions.ts             # getAll, getById, create, update, delete
-│   │   ├── units.ts
-│   │   ├── paints.ts
-│   │   ├── recipes.ts
-│   │   └── recipePaints.ts        # Join table queries
-│   └── seed.ts                    # Documents seed migration content (optional)
+├── db/queries/
+│   ├── armyLists.ts                     # NEW — full CRUD + unit membership
+│   └── strategyNotes.ts                 # NEW — getByUnit + upsert
 │
 ├── hooks/
-│   ├── useFactions.ts             # useQuery wrappers per entity
-│   ├── useUnits.ts
-│   ├── usePaints.ts
-│   └── useRecipes.ts
+│   ├── useArmyLists.ts                  # NEW — TanStack Query wrappers
+│   └── useStrategyNote.ts               # NEW — TanStack Query wrappers
 │
-├── types/
-│   └── index.ts                   # Shared TypeScript types exported app-wide
-│
-├── utils/
-│   └── index.ts                   # Pure helpers: formatDate, statusLabel, etc.
-│
-└── styles/
-    └── globals.css                # Tailwind base + custom CSS vars
+└── types/
+    ├── armyList.ts                      # NEW — ArmyList, ArmyListUnit interfaces
+    └── strategyNote.ts                  # NEW — StrategyNote, UpsertStrategyNoteInput
 ```
 
+### Files to Modify
+
 ```
-src-tauri/
-├── migrations/
-│   ├── 001_core_schema.sql
-│   ├── 002_seed_factions.sql
-│   └── 003_seed_sample_data.sql
-└── src/
-    ├── lib.rs                     # Plugin registration + migration list
-    └── main.rs
+src-tauri/src/
+└── lib.rs                               # MODIFY — register migration version 2
+
+src/
+├── app/
+│   └── router.tsx                       # MODIFY — add /paint-inventory + /army-lists routes
+│
+├── components/common/
+│   └── AppSidebar.tsx                   # MODIFY — add "Paint Inventory" + "Army Lists" nav entries
+│
+├── db/queries/
+│   └── paints.ts                        # MODIFY — add getPaintsWithRecipeCount() function
+│
+├── hooks/
+│   └── usePaints.ts                     # MODIFY — add usePaintsWithRecipeCount() hook;
+│                                        #   also add invalidate ['paints-with-recipes'] to
+│                                        #   useCreatePaint/useUpdatePaint/useDeletePaint onSuccess
+│
+├── features/units/
+│   └── UnitDetailSheet.tsx              # MODIFY — wrap content in Tabs, add PlaybookTab
+│
+└── types/
+    └── paint.ts                         # MODIFY — add PaintWithRecipeCount type
 ```
 
----
+### New Feature Components (units folder)
+
+```
+src/features/units/
+└── PlaybookTab.tsx                      # NEW — stats block + strategy notes form
+```
 
 ## Architectural Patterns
 
-### Pattern 1: Database Client Singleton
+### Pattern 1: Route Strategy for Paint Inventory
 
-**What:** A single `Database.load()` call is memoized so every query function gets the same connection instance rather than reopening the connection on each call.
+The existing `/paints` route renders `PaintsPage` (paint CRUD). Do NOT replace it. Add `/paint-inventory` as a separate route.
 
-**When to use:** Always. The plugin supports connection pooling internally, but calling `load()` repeatedly is wasteful.
+**Rationale:** The recipe builder's "Add Paint" flow and the `PaintCombobox` in `src/features/recipes/` reference the paints domain as a management context. Replacing `/paints` would break that workflow's mental model. The two pages serve genuinely different purposes: `/paints` = manage your paint catalog (CRUD), `/paint-inventory` = browse and filter what you own.
 
-**Example:**
+**Router addition to `src/app/router.tsx`:**
 ```typescript
-// src/db/client.ts
-import Database from '@tauri-apps/plugin-sql'
+import { PaintInventoryPage } from "./paint-inventory/page";
+import { ArmyListsPage } from "./army-lists/page";
 
-let _db: Database | null = null
+const paintInventoryRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/paint-inventory",
+  component: PaintInventoryPage,
+});
 
-export async function getDb(): Promise<Database> {
-  if (!_db) {
-    _db = await Database.load('sqlite:hobbyforge.db')
-  }
-  return _db
+const armyListsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/army-lists",
+  component: ArmyListsPage,
+});
+
+// Add to routeTree.addChildren([..., paintInventoryRoute, armyListsRoute])
+```
+
+**Sidebar addition to `src/components/common/AppSidebar.tsx`:**
+Add two entries to `MAIN_NAV` using appropriate Lucide icons — `FlaskConical` for Paint Inventory, `Scroll` or `ListChecks` for Army Lists.
+
+### Pattern 2: Paint Inventory Filter Strategy
+
+Filters are applied client-side in `PaintInventoryPage`. Fetch the full list once via `usePaintsWithRecipeCount()`, filter in-memory with `useMemo`.
+
+**Rationale:** A personal paint collection is realistically 50-500 entries. Client-side filtering is instant at that scale and avoids parameterized DB queries for each filter change. This matches the existing `CollectionPage` pattern — `useUnits()` fetches all units, `UnitFilters` controls Zustand store state, and the collection renders a filtered subset.
+
+**Do NOT use Zustand for paint inventory filter state.** Unlike the Collection page where filter state must survive navigation back from a unit detail drawer, paint inventory filters reset naturally on navigation away. Local `useState` inside `PaintInventoryPage` is sufficient.
+
+### Pattern 3: "Used in Recipes" Join Query
+
+New query function added to `src/db/queries/paints.ts`:
+
+```typescript
+export interface PaintWithRecipeCount extends Paint {
+  recipe_count: number;
+}
+
+export async function getPaintsWithRecipeCount(): Promise<PaintWithRecipeCount[]> {
+  const db = await getDb();
+  return db.select<PaintWithRecipeCount[]>(`
+    SELECT p.*, COUNT(rp.id) AS recipe_count
+    FROM paints p
+    LEFT JOIN recipe_paints rp ON rp.paint_id = p.id
+    GROUP BY p.id
+    ORDER BY p.brand ASC, p.name ASC
+  `);
 }
 ```
 
-All query functions call `getDb()` instead of `Database.load()` directly.
+Existing `getPaints()` is untouched — recipe builder combobox and `PaintSheet` continue using it.
 
-### Pattern 2: Typed Query Functions (not repositories, not classes)
+### Pattern 4: Strategy Note Upsert
 
-**What:** Each entity gets a plain TypeScript module in `src/db/queries/` that exports named async functions. No classes, no dependency injection. Functions are the unit of composition.
+`unit_strategy_notes` has a logical 1:1 relationship with `units` (one strategy note record per unit) but the current schema has no `UNIQUE` constraint on `unit_id`. Use a conditional upsert pattern: select first, then insert or update.
 
-**When to use:** Always for this project. Classes/repository pattern adds ceremony without benefit for a single-developer tool with a stable schema.
-
-**Example:**
 ```typescript
-// src/db/queries/factions.ts
-import { getDb } from '../client'
-import type { Faction, CreateFactionInput } from '@/types'
-
-export const factionQueries = {
-  async getAll(): Promise<Faction[]> {
-    const db = await getDb()
-    return db.select<Faction[]>('SELECT * FROM factions ORDER BY name')
-  },
-
-  async getById(id: number): Promise<Faction | null> {
-    const db = await getDb()
-    const rows = await db.select<Faction[]>(
-      'SELECT * FROM factions WHERE id = $1', [id]
-    )
-    return rows[0] ?? null
-  },
-
-  async create(input: CreateFactionInput): Promise<number> {
-    const db = await getDb()
-    const result = await db.execute(
-      'INSERT INTO factions (name, game_system, color_theme, description) VALUES ($1, $2, $3, $4)',
-      [input.name, input.game_system, input.color_theme, input.description]
-    )
-    return result.lastInsertId!
-  },
-
-  async update(id: number, input: Partial<CreateFactionInput>): Promise<void> {
-    const db = await getDb()
+// src/db/queries/strategyNotes.ts
+export async function upsertStrategyNote(input: UpsertStrategyNoteInput): Promise<void> {
+  const db = await getDb();
+  const existing = await db.select<{id: number}[]>(
+    "SELECT id FROM unit_strategy_notes WHERE unit_id = $1",
+    [input.unit_id]
+  );
+  if (existing.length > 0) {
     await db.execute(
-      'UPDATE factions SET name = $1, color_theme = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
-      [input.name, input.color_theme, id]
-    )
-  },
-
-  async delete(id: number): Promise<void> {
-    const db = await getDb()
-    await db.execute('DELETE FROM factions WHERE id = $1', [id])
-  },
+      `UPDATE unit_strategy_notes SET
+        move=$2, toughness=$3, save=$4, wounds=$5, leadership=$6,
+        objective_control=$7, keywords=$8, abilities=$9,
+        battlefield_role=$10, strengths=$11, weaknesses=$12,
+        best_targets=$13, synergies=$14, mistakes_to_avoid=$15,
+        rules_references=$16, notes=$17, updated_at=datetime('now')
+       WHERE unit_id=$1`,
+      [input.unit_id, ...]
+    );
+  } else {
+    await db.execute(
+      `INSERT INTO unit_strategy_notes (unit_id, move, ...) VALUES ($1, $2, ...)`,
+      [input.unit_id, ...]
+    );
+  }
 }
 ```
 
-### Pattern 3: TanStack Query Hooks Per Entity
+**Why not ON CONFLICT:** `ON CONFLICT(unit_id)` requires a UNIQUE index. Adding that index in migration 002 is possible but the select-then-insert/update is safer for an existing production schema with no existing unique constraint.
 
-**What:** Thin custom hooks that wrap `useQuery` and `useMutation` with the right query keys and invalidation logic. Feature components import these hooks, never the query functions directly.
+### Pattern 5: UnitDetailSheet Tab Integration
 
-**When to use:** Every data-fetching component. This is the boundary between UI and data.
+`UnitDetailSheet` (`src/features/units/UnitDetailSheet.tsx`) is currently a flat scrollable panel with a single content block. The `Tabs` shadcn component is already installed.
 
-**Example:**
+**Modification approach:**
+1. Import `Tabs, TabsList, TabsTrigger, TabsContent` from `@/components/ui/tabs`
+2. Wrap the existing `<div className="flex flex-col gap-4 p-4">` block in `<TabsContent value="overview">`
+3. Add `<TabsContent value="playbook"><PlaybookTab unit={unit} /></TabsContent>`
+4. `PlaybookTab` owns its own `useStrategyNote(unit.id)` hook call — do NOT fetch strategy note data in `UnitDetailSheet` and pass it as props
+
+**Why PlaybookTab fetches its own data:** TanStack Query deduplicates in-flight requests and caches results. The strategy note query only fires when the Playbook tab is rendered. Passing data as props from UnitDetailSheet would force a DB call on every unit row click even when the user never opens the Playbook tab.
+
+### Pattern 6: Army List Points Calculation
+
+Points totals (total points, painted points, painted readiness %) are computed client-side from joined data. Do not store denormalized aggregates in `army_lists`.
+
 ```typescript
-// src/hooks/useFactions.ts
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { factionQueries } from '@/db/queries/factions'
-
-export const FACTION_KEYS = {
-  all: ['factions'] as const,
-  detail: (id: number) => ['factions', id] as const,
-}
-
-export function useFactions() {
-  return useQuery({
-    queryKey: FACTION_KEYS.all,
-    queryFn: factionQueries.getAll,
-    staleTime: 5 * 60 * 1000,
-  })
-}
-
-export function useCreateFaction() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: factionQueries.create,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: FACTION_KEYS.all })
-    },
-  })
-}
+// Computed in ArmyListDetailSheet from ArmyListWithUnits data
+const totalPoints = units.reduce((sum, row) =>
+  sum + (row.points_override ?? row.unit.points ?? 0), 0);
+const paintedPoints = units
+  .filter(row => row.unit.painting_percentage === 100)
+  .reduce((sum, row) => sum + (row.points_override ?? row.unit.points ?? 0), 0);
+const battleReadyPct = totalPoints > 0
+  ? Math.round((paintedPoints / totalPoints) * 100) : 0;
 ```
 
----
+**Why:** Stored aggregates go stale when a unit's `painting_percentage` changes elsewhere (Collection page, Kanban). Recomputing from the join is instant at any realistic army list size.
 
-## Component Boundaries: What Talks to What
+## Data Flow
 
-### Allowed Dependencies
+### Paint Inventory Filter Flow
 
 ```
-Page component
-  → Feature components (same feature folder)
-  → Custom hooks (src/hooks/)
-  → Common components (src/components/common/)
-
-Feature component
-  → Custom hooks (src/hooks/) — ONLY way to access data
-  → shadcn/ui components (src/components/ui/)
-  → Common components (src/components/common/)
-
-Custom hooks (src/hooks/)
-  → Query functions (src/db/queries/) — ONLY caller of query layer
-
-Query functions (src/db/queries/)
-  → Database client (src/db/client.ts) — ONLY caller of plugin-sql
+User changes filter control
+    ↓
+PaintInventoryFilters (calls onChange prop)
+    ↓
+PaintInventoryPage (local useState holds filter values)
+    ↓
+useMemo filters the usePaintsWithRecipeCount() cached data
+    ↓
+Table re-renders with filtered rows (no new DB call)
 ```
 
-### NEVER Allowed
+### Army List Mutation and Invalidation
 
-| From | To | Why |
-|------|----|-----|
-| Feature component | src/db/queries/* | Bypasses cache layer; causes stale UI |
-| Feature component | @tauri-apps/plugin-sql | Direct DB in UI — the anti-pattern ROADMAP.txt explicitly forbids |
-| Feature A components | Feature B components | Cross-feature coupling — share via hooks/types only |
-| Query functions | React hooks | Circular dependency |
-| UI components | Rust commands (invoke) | For DB work — use plugin-sql through query layer instead |
-
----
-
-## Suggested Build Order: Phase 0 → Phase 3
-
-### Phase 0: App Shell (Foundation)
-
-Build these in order; nothing else can start without them:
-
-1. Tauri + React + TypeScript project scaffold
-2. Tailwind + shadcn/ui installation and theme tokens (dark slate, CSS vars)
-3. `AppLayout.tsx` + `Sidebar.tsx` — persistent shell, all nav links wired
-4. React Router setup — one route per page, all render placeholder `<div>`
-5. `src/db/client.ts` — Database singleton
-6. Rust migration scaffolding in `lib.rs` — empty `get_migrations()` for now
-7. `tauri.conf.json` preload entry — confirms DB file is created on launch
-8. `QueryClientProvider` wrapping `App.tsx`
-9. Verify: app launches, sidebar navigates, SQLite file appears in AppData
-
-**Phase 0 delivers:** Desktop shell. No data, no forms. Just confirmed plumbing.
-
-### Phase 1: Database + Core CRUD (Data Layer First)
-
-Build in order — schema must precede queries, queries must precede hooks, hooks must precede UI:
-
-1. `src-tauri/migrations/001_core_schema.sql` — all CREATE TABLE statements (all entities including deferred ones like army_lists — schema is cheap, deferring tables causes migrations later)
-2. `src-tauri/migrations/002_seed_factions.sql` — INSERT OR IGNORE for 4 factions
-3. `src-tauri/migrations/003_seed_sample_data.sql` — sample units, paints, recipes
-4. Register all 3 migrations in `lib.rs`
-5. `src/types/index.ts` — TypeScript interfaces for all entities
-6. `src/db/queries/factions.ts` — getAll, getById, create, update, delete
-7. `src/hooks/useFactions.ts` — useQuery + useMutation wrappers
-8. `src/features/factions/FactionPage.tsx` — list + inline create form
-9. `src/features/factions/FactionForm.tsx` — react-hook-form + zod
-10. Repeat steps 6-9 for units, paints, recipes
-11. `src/db/queries/recipePaints.ts` — join table queries
-12. Verify: all CRUD works, data survives restart, seed data appears on first launch
-
-**Phase 1 delivers:** All data entities CRUD-able. Full data layer in place. UI is functional but not polished.
-
-### Phase 2: Collection Module (First Real Feature)
-
-Depends on: Phase 1 complete (factions + units data layer exists)
-
-1. `UnitTable.tsx` — shadcn/ui Table, columns: name, faction, category, status, points
-2. `UnitFilters.tsx` — faction select, status select, search input (controlled, useState)
-3. Wire filters: `useUnits({ faction, status, search })` hook with query params
-4. `UnitDetail.tsx` — drawer (shadcn/ui Sheet) showing all unit fields
-5. `UnitForm.tsx` — full create/edit form (all Unit fields, react-hook-form + zod)
-6. Quick status update — inline select or button group in UnitDetail, single `useMutation`
-7. Progress bar component — reusable, goes in `src/components/common/`
-8. `CollectionPage.tsx` — composes all of the above
-
-**Phase 2 delivers:** Collection page is genuinely usable. The core user journey (add unit → view collection → filter → update status) is complete.
-
-### Phase 3: Painting Module (Active Projects + Recipes)
-
-Depends on: Phase 2 (units exist, status field established)
-
-1. `KanbanBoard.tsx` — columns from painting status enum, drag is optional (sortable via priority initially)
-2. `KanbanCard.tsx` — unit card with faction color, percentage, target date
-3. Filter: only `is_active_project = true` — one query param change from Phase 2's useUnits
-4. Status update from Kanban — same `useMutation` pattern as Phase 2 quick update
-5. `RecipesPage.tsx` — list of recipes with faction/unit filter
-6. `RecipeDetail.tsx` — all recipe fields, linked paints list
-7. `RecipeForm.tsx` — recipe create/edit with step fields
-8. `RecipePaintLinker.tsx` — UI to add/remove paints from recipe steps (insert/delete on recipe_paints join table)
-9. Link recipes to units — add recipe_id reference to unit detail drawer
-
-**Phase 3 delivers:** Complete v1 MVP. Painting projects tracked, recipes documented, paints linked.
-
----
-
-## Anti-Patterns to Avoid
-
-### Anti-Pattern 1: Direct Plugin-SQL Calls in Components
-
-**What people do:** `import Database from '@tauri-apps/plugin-sql'` inside a React component, then call `db.select()` in a `useEffect`.
-
-**Why it's wrong:** No caching (every render triggers a DB round trip), no loading/error state management, impossible to test, data goes stale, violates the ROADMAP.txt rule explicitly.
-
-**Do this instead:** Query function in `src/db/queries/`, wrapped in a TanStack Query `useQuery` hook, called from the component.
-
-### Anti-Pattern 2: One Giant Migration
-
-**What people do:** Put all CREATE TABLE statements AND all seed data in migration version 1.
-
-**Why it's wrong:** Cannot re-seed without rolling back schema. Cannot add seed data later. Seeds that fail block schema creation.
-
-**Do this instead:** Separate migrations: version 1 = schema only, version 2+ = seed data. Seeds use `INSERT OR IGNORE` with stable IDs.
-
-### Anti-Pattern 3: Shared Query Client Config Omits Desktop Defaults
-
-**What people do:** Use TanStack Query defaults (staleTime: 0, refetchOnWindowFocus: true) copied from web tutorials.
-
-**Why it's wrong:** In a desktop app, refetching on window focus hits the local SQLite unnecessarily. staleTime: 0 means every navigation triggers a DB read.
-
-**Do this instead:**
-```typescript
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,       // 5 minutes
-      gcTime: 10 * 60 * 1000,          // 10 minutes
-      refetchOnWindowFocus: false,      // desktop: no server to sync with
-      retry: 1,
-    },
-  },
-})
+```
+ArmyListDetailSheet (user adds unit to list)
+    ↓
+useAddUnitToList() mutation fires
+    ↓
+onSuccess: invalidate ['army-lists', listId]   ← refreshes detail view
+onSuccess: invalidate ['army-lists']            ← refreshes index (total points badge)
+    ↓
+DO NOT invalidate ['units'] or ['dashboard-stats']
+    (army list membership does not affect unit painting state)
 ```
 
-### Anti-Pattern 4: Cross-Feature Imports Between Feature Folders
+**Note on FK constraint:** `army_list_units.unit_id` uses `RESTRICT`. Attempting to delete a unit that is in an army list throws a FK error. `useDeleteUnit` in `src/hooks/useUnits.ts` already has a comment acknowledging this and relies on component try/catch + toast. No change needed there.
 
-**What people do:** `import { UnitCard } from '../collection/UnitCard'` inside the `painting/` feature folder.
+### Strategy Note Save Flow
 
-**Why it's wrong:** Creates hidden coupling. Refactoring collection breaks painting. Features cannot be independently built or removed.
-
-**Do this instead:** Move shared components to `src/components/common/`. Share data via query hooks, not component imports.
-
-### Anti-Pattern 5: Forgetting Permissions in Tauri Capabilities
-
-**What people do:** Install the plugin, write the TypeScript, get a silent failure at runtime.
-
-**Why it's wrong:** Tauri 2.0's capability system blocks SQL write operations by default. `sql:allow-select` is in the default set but `sql:allow-execute` is not.
-
-**Do this instead:** Add to `src-tauri/capabilities/default.json` immediately in Phase 0:
-```json
-"sql:allow-load",
-"sql:allow-select",
-"sql:allow-execute",
-"sql:allow-close"
+```
+PlaybookTab form submit
+    ↓
+useUpsertStrategyNote(unit.id) mutation
+    ↓
+onSuccess: invalidate ['strategy-note', unit.id]
+    ↓
+NO invalidation of ['units'] or ['dashboard-stats']
+    (strategy notes are not surfaced in dashboard or collection table)
 ```
 
----
+## Query Key Conventions
+
+Following the pattern established in `src/hooks/useUnits.ts` and `src/hooks/usePaints.ts`:
+
+| Hook File | Exported Key | Shape |
+|-----------|-------------|-------|
+| `usePaints.ts` (existing) | `PAINTS_KEY` | `['paints']` |
+| `usePaints.ts` (add) | `PAINTS_WITH_RECIPES_KEY` | `['paints-with-recipes']` |
+| `useArmyLists.ts` (new) | `ARMY_LISTS_KEY` | `['army-lists']` |
+| `useArmyLists.ts` (new) | `ARMY_LIST_KEY(id)` | `['army-lists', id]` |
+| `useStrategyNote.ts` (new) | `STRATEGY_NOTE_KEY(unitId)` | `['strategy-note', unitId]` |
+
+**Critical cross-invalidation:** `useCreatePaint`, `useUpdatePaint`, and `useDeletePaint` in `src/hooks/usePaints.ts` currently only invalidate `['paints']`. When `PaintInventoryPage` uses `['paints-with-recipes']`, edits made on the `/paints` CRUD page will NOT refresh the inventory view. Add `qc.invalidateQueries({ queryKey: PAINTS_WITH_RECIPES_KEY })` to all three mutation `onSuccess` handlers.
+
+## Build Order
+
+Dependencies determine order. Schema first, then types, queries, hooks, components, routes.
+
+### Phase A: Schema + Types (no UI dependencies, build first)
+
+1. Write `src-tauri/migrations/002_unit_playbook_stats.sql` — 8 ADD COLUMN statements
+2. Register migration version 2 in `src-tauri/src/lib.rs`
+3. Write `src/types/strategyNote.ts` — `StrategyNote` interface matching updated table, `UpsertStrategyNoteInput`
+4. Write `src/types/armyList.ts` — `ArmyList`, `ArmyListUnit`, `ArmyListWithUnits`, `CreateArmyListInput`
+5. Modify `src/types/paint.ts` — add `PaintWithRecipeCount` extending `Paint`
+
+### Phase B: Query Modules (depends on types, no React)
+
+6. Add `getPaintsWithRecipeCount()` to `src/db/queries/paints.ts`
+7. Write `src/db/queries/strategyNotes.ts` — `getStrategyNote(unitId)`, `upsertStrategyNote(input)`
+8. Write `src/db/queries/armyLists.ts` — `getArmyLists()`, `getArmyListWithUnits(id)`, `createArmyList()`, `updateArmyList()`, `deleteArmyList()`, `addUnitToList()`, `removeUnitFromList()`
+
+### Phase C: Hook Modules (depends on queries)
+
+9. Add `usePaintsWithRecipeCount()` to `src/hooks/usePaints.ts`; add `PAINTS_WITH_RECIPES_KEY` invalidation to all three existing mutation `onSuccess` handlers
+10. Write `src/hooks/useStrategyNote.ts` — `useStrategyNote(unitId)`, `useUpsertStrategyNote()`
+11. Write `src/hooks/useArmyLists.ts` — `useArmyLists()`, `useArmyListDetail(id)`, `useCreateArmyList()`, `useUpdateArmyList()`, `useDeleteArmyList()`, `useAddUnitToList()`, `useRemoveUnitFromList()`
+
+### Phase D: Unit Playbook Tab (modifies existing component — isolated risk)
+
+12. Write `src/features/units/PlaybookTab.tsx` — stats block grid (6 fields) + text areas for keywords/abilities/strategy fields + save button wired to `useUpsertStrategyNote()`
+13. Modify `src/features/units/UnitDetailSheet.tsx` — add Tabs wrapper; "Overview" tab wraps existing content, "Playbook" tab renders `<PlaybookTab unit={unit} />`
+
+**Build PlaybookTab as standalone component first (step 12) before touching UnitDetailSheet (step 13).** This limits blast radius on an existing working component.
+
+### Phase E: Paint Inventory Page (independent of D and F)
+
+14. Write `src/features/paints/PaintInventoryFilters.tsx`
+15. Write `src/features/paints/PaintInventoryPage.tsx`
+16. Write `src/app/paint-inventory/page.tsx` — thin re-export wrapper following existing pattern
+
+### Phase F: Army List Builder (most new components, build last)
+
+17. Write `src/features/army-lists/ArmyListsEmptyState.tsx`
+18. Write `src/features/army-lists/ArmyListSheet.tsx` — create/edit list name, faction, points limit, list type, notes
+19. Write `src/features/army-lists/ArmyListDeleteDialog.tsx`
+20. Write `src/features/army-lists/ArmyListUnitRow.tsx` — displays unit name, points, painted %, remove button
+21. Write `src/features/army-lists/ArmyListDetailSheet.tsx` — unit picker (reuses `useUnits()` data), unit rows, computed totals
+22. Write `src/features/army-lists/ArmyListsPage.tsx`
+23. Write `src/app/army-lists/page.tsx` — thin re-export wrapper
+
+### Phase G: Router and Sidebar Wiring (build last — avoids broken imports during construction)
+
+24. Modify `src/app/router.tsx` — add `paintInventoryRoute` and `armyListsRoute`
+25. Modify `src/components/common/AppSidebar.tsx` — add nav entries for "Paint Inventory" and "Army Lists"
 
 ## Integration Points
 
 ### Internal Boundaries
 
-| Boundary | Communication Pattern | Notes |
-|---------|-----------------------|-------|
-| Feature ↔ Data | Custom hooks (useQuery/useMutation) | Only crossing point for data |
-| Feature ↔ Feature | Shared types only (src/types/) | Never import components cross-feature |
-| Recipe ↔ Paints | recipePaints query functions | Join table managed in its own query module |
-| Recipe ↔ Units | Optional FK (unit_id nullable on recipe) | Loaded as part of recipe detail query |
-| Painting ↔ Collection | Shared unit data via useUnits hook | Painting page is a filtered view of units |
-| Dashboard ↔ All | Aggregation queries in dashboard-specific hooks | Reads-only, never mutates |
+| Boundary | Communication | Notes |
+|----------|---------------|-------|
+| `PlaybookTab` inside `UnitDetailSheet` | Receives `unit: Unit` as prop; fetches own strategy note via `useStrategyNote(unit.id)` | Do not pass strategy note data from UnitDetailSheet — avoids unnecessary DB call when tab not visible |
+| `ArmyListDetailSheet` unit picker | Uses existing `useUnits()` hook (no new query) | Reuses `UNITS_KEY` cache already populated by Collection page visit |
+| Paint Inventory page vs Paint CRUD page | Separate routes, separate hook functions, shared invalidation | `usePaints.ts` mutations must invalidate both `['paints']` and `['paints-with-recipes']` |
+| `PlaybookTab` save vs `UnitDetailSheet` data | Strategy note upsert does NOT invalidate `['units']` | Stats block is separate from unit collection fields — no cross-invalidation needed |
 
-### Tauri Platform Integration
+### Cross-Feature Invalidation Summary
 
-| Need | Approach |
-|------|----------|
-| DB file path | tauri-plugin-sql resolves `sqlite:hobbyforge.db` to AppData automatically |
-| File system (future images) | `@tauri-apps/plugin-fs` — separate from DB layer |
-| App data directory | `app_data_dir()` via `@tauri-apps/api/path` for displaying path in settings |
+| Mutation | Currently Invalidates | Must Also Invalidate After v1.1 |
+|----------|----------------------|--------------------------------|
+| `useCreatePaint.onSuccess` | `['paints']` | `['paints-with-recipes']` |
+| `useUpdatePaint.onSuccess` | `['paints']`, `['paints', id]` | `['paints-with-recipes']` |
+| `useDeletePaint.onSuccess` | `['paints']` | `['paints-with-recipes']` |
+| All other existing mutations | No change | No change |
 
----
+## Anti-Patterns
 
-## Scaling Considerations
+### Anti-Pattern 1: Replacing `/paints` with `/paint-inventory`
 
-This is a personal single-user desktop app. Scaling to users is not a concern. The relevant scale axis is data volume:
+**What to avoid:** Redirecting `/paints` to `/paint-inventory` or merging both purposes into one page.
 
-| Scale | Architecture |
-|-------|--------------|
-| < 500 units | Current approach is fine — no indexes needed beyond PK |
-| 500-2000 units | Add compound indexes on (faction_id, status_painting) in migration |
-| > 2000 units | Paginate collection query; add LIMIT/OFFSET to useUnits hook |
+**Why:** The recipe builder `PaintCombobox` component and the `PaintSheet` add/edit flow both exist in the mental model of "managing the paint catalog." The inventory page serves a different workflow: browsing what you own. Merging them creates a page that does two jobs poorly.
 
-The SQLite file will stay under 10MB for a single hobbyist's lifetime of data. Performance is not a concern at any realistic data size.
+**Do instead:** Keep `/paints` as-is for CRUD. Add `/paint-inventory` for browsing. Sidebar can label `/paint-inventory` as the primary entry point, with `/paints` remaining accessible.
 
----
+### Anti-Pattern 2: Fetching strategy note in UnitDetailSheet
+
+**What to avoid:** Adding `useStrategyNote(unit?.id)` to `UnitDetailSheet` and passing the result as a prop to `PlaybookTab`.
+
+**Why:** Forces a strategy note DB call on every unit drawer open, even when the user never touches the Playbook tab. Also couples UnitDetailSheet to strategy note data it doesn't need.
+
+**Do instead:** Let `PlaybookTab` own its own `useStrategyNote(unit.id)` call. TanStack Query fetches only when the tab renders, caches the result for the session.
+
+### Anti-Pattern 3: Storing computed army list totals in the database
+
+**What to avoid:** Adding `total_points`, `painted_points`, `battle_ready_pct` columns to `army_lists` and updating them via triggers or additional mutation steps.
+
+**Why:** These values go stale the moment a unit's `painting_percentage` changes from the Collection page or Kanban board. Synchronizing derived state across two mutation paths is a reliability bug waiting to happen.
+
+**Do instead:** Compute totals in `ArmyListDetailSheet` from the joined `ArmyListWithUnits` data. A realistic army list has 10-30 units — computation is instantaneous.
+
+### Anti-Pattern 4: Forgetting cross-invalidation for PaintWithRecipeCount
+
+**What to avoid:** Adding `usePaintsWithRecipeCount()` with query key `['paints-with-recipes']` but not updating the existing paint mutation `onSuccess` handlers to also invalidate that key.
+
+**Why:** A user edits a paint on `/paints`, then navigates to `/paint-inventory` — they see stale recipe count data from the cache. The inventory feels broken.
+
+**Do instead:** Immediately add the `['paints-with-recipes']` invalidation to all three paint mutation hooks when adding `usePaintsWithRecipeCount`. This is a three-line change in `src/hooks/usePaints.ts`.
 
 ## Sources
 
-- [Tauri SQL Plugin — Official Docs v2](https://v2.tauri.app/plugin/sql/)
-- [Tauri SQL Plugin — JavaScript API Reference](https://v2.tauri.app/reference/javascript/sql/)
-- [Tauri 2.0 + SQLite + React — DEV Community walkthrough](https://dev.to/focuscookie/tauri-20-sqlite-db-react-2aem)
-- [Drizzle SQLite Migrations in Tauri 2.0](https://keypears.com/blog/2025-10-04-drizzle-sqlite-tauri)
-- [TanStack Query Integration in Tauri Template](https://deepwiki.com/dannysmith/tauri-template/5.4-tanstack-query-integration)
-- [react-hook-form + zod + shadcn/ui pattern](https://shadcnstudio.com/blog/react-hook-form-zod-shadcn-ui)
-- [prisma-client-rust archived March 2025](https://github.com/Brendonovich/prisma-client-rust/discussions/274)
-- [tauri-plugin-sql migrations issue thread](https://github.com/tauri-apps/tauri-plugin-sql/issues/127)
+- Direct audit: `src-tauri/migrations/001_core_schema.sql` — schema facts (HIGH confidence)
+- Direct audit: `src/db/queries/paints.ts` — existing query function signatures (HIGH confidence)
+- Direct audit: `src/hooks/usePaints.ts`, `src/hooks/useUnits.ts` — hook patterns and query keys (HIGH confidence)
+- Direct audit: `src/features/units/UnitDetailSheet.tsx` — component structure for tab integration (HIGH confidence)
+- Direct audit: `src/app/router.tsx` — route tree shape and import patterns (HIGH confidence)
+- Direct audit: `src/components/common/AppSidebar.tsx` — nav entry pattern (HIGH confidence)
 
 ---
-*Architecture research for: Tauri + React + SQLite local-first desktop (HobbyForge)*
-*Researched: 2026-04-30*
+*Architecture research for: HobbyForge v1.1 — Paint Inventory, Army List Builder, Unit Playbook*
+*Researched: 2026-05-01*

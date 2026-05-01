@@ -1,8 +1,8 @@
-# Project Research Summary
+# Project Research Summary — v1.1
 
-**Project:** HobbyForge
-**Domain:** Local-first Windows desktop CRUD app — Warhammer 40K hobby management
-**Researched:** 2026-04-30
+**Project:** HobbyForge v1.1 — Paint Inventory UI, Army List Builder, Unit Playbook
+**Domain:** Local-first Windows desktop hobby tracker (Tauri + React + SQLite)
+**Researched:** 2026-05-01
 **Confidence:** HIGH (stack + architecture verified against official sources; features surveyed against real competing tools; pitfalls cross-validated across GitHub issues, official docs, and legal sources)
 
 ---
