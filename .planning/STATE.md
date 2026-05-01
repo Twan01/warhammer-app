@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
 status: in_progress
-stopped_at: Completed 06-02-PLAN.md — StrategyNote, ArmyList, PaintWithRecipeCount types
-last_updated: "2026-05-01T21:04:24.201Z"
-last_activity: 2026-05-01 — 06-01 executed; migration 004 SQL + lib.rs v4 registration + 6 green file-content tests
+stopped_at: Completed 06-03-PLAN.md — Query layer (getPaintsWithRecipeCount, strategyNotes, armyLists CRUD)
+last_updated: "2026-05-01T23:15:00.000Z"
+last_activity: 2026-05-01 — 06-03 executed; 9 new query functions + 14 real test assertions (armyList + strategyNote)
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 5
-  completed_plans: 3
-  percent: 60
+  completed_plans: 4
+  percent: 80
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-01 after v1.1 milestone)
 ## Current Position
 
 Phase: 6 of 9 (v2.0 Foundation) — IN PROGRESS
-Plan: 3 of 5 complete in current phase
-Status: v1.1 fully shipped (Phases 1–5 complete). v2.0 underway — 06-01 (migration 004) + 06-02 (TypeScript types) complete.
-Last activity: 2026-05-01 — 06-02 executed; StrategyNote, ArmyList family, PaintWithRecipeCount types created
+Plan: 4 of 5 complete in current phase
+Status: v1.1 fully shipped (Phases 1–5 complete). v2.0 underway — 06-01 (migration 004) + 06-02 (types) + 06-03 (query layer) complete.
+Last activity: 2026-05-01 — 06-03 executed; 9 new query functions + 14 real test assertions; all foundation tests green
 
-Progress: [██████░░░░] 60% (v2.0 Phase 6: 3/5 plans complete)
+Progress: [████████░░] 80% (v2.0 Phase 6: 4/5 plans complete)
 
 ## v2.0 Scope
 
@@ -56,6 +56,10 @@ Key decisions made during execution:
 - 06-02: ArmyListUnit omits updated_at — army_list_units schema has no such column; including it causes runtime mismatch.
 - 06-02: PaintWithRecipeCount.recipe_count is SQL-computed (LEFT JOIN COUNT), never recalculated in JS.
 - 06-02: UpdateArmyListUnitInput uses non-optional nullable fields (full-replacement) to allow clearing points_override back to NULL.
+- 06-03: updateArmyListUnit uses full-replacement SET (no COALESCE) — points_override must be clearable to NULL.
+- 06-03: addUnitToList uses plain INSERT (no INSERT OR IGNORE) — duplicate (list_id, unit_id) pairs are intentionally allowed.
+- 06-03: upsertStrategyNote uses select-then-insert/update — no ON CONFLICT since no UNIQUE INDEX exists on unit_strategy_notes.unit_id.
+- 06-03: getArmyListWithUnits computes effective_points = COALESCE(alu.points_override, u.points, 0) in SQL (never in JS).
 
 Key decisions affecting v2.0 planning:
 - Phase 6 adds `002_unit_playbook_stats.sql` migration — `ALTER TABLE ADD COLUMN` only, no edits to 001
@@ -79,6 +83,6 @@ None (MSVC Build Tools resolved in Phase 1; all seeding questions resolved in Ph
 
 ## Session Continuity
 
-Last session: 2026-05-01T21:04:24.198Z
-Stopped at: Completed 06-02-PLAN.md — StrategyNote, ArmyList, PaintWithRecipeCount types
-Resume: Run `/gsd:execute-phase 6` to continue with 06-03 (query functions: getStrategyNote, upsertStrategyNote, army list CRUD, getPaintsWithRecipeCount)
+Last session: 2026-05-01T23:15:00.000Z
+Stopped at: Completed 06-03-PLAN.md — Query layer (getPaintsWithRecipeCount, strategyNotes, armyLists CRUD)
+Resume: Run `/gsd:execute-phase 6` to continue with 06-04 (TanStack Query hooks: usePaints with PAINTS_WITH_RECIPES_KEY, useArmyLists, useStrategyNote)
