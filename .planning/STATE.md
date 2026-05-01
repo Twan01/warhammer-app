@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 03-04-PLAN.md — Phase 3 Collection Module fully complete (human-verify approved)
-last_updated: "2026-05-01T08:01:36.361Z"
-last_activity: 2026-04-30 — Completed 02-04 Unit form and Paints CRUD (human-verify approved)
+stopped_at: Completed 04-00-PLAN.md — Phase 4 Wave-0 foundation (@dnd-kit, kanbanUtils, recipeSteps, PaintCombobox, test stubs)
+last_updated: "2026-05-01T10:12:30Z"
+last_activity: 2026-05-01 — Completed 04-00 Phase 4 Wave-0 foundation
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 16
-  completed_plans: 12
-  percent: 80
+  completed_plans: 13
+  percent: 81
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-30)
 
 ## Current Position
 
-Phase: 2 of 5 (Data Layer Entity CRUD) — COMPLETE
-Plan: 4 of 4 in current phase — all plans done, human-verify approved
-Status: Phase 2 Complete — Ready for Phase 3
-Last activity: 2026-04-30 — Completed 02-04 Unit form and Paints CRUD (human-verify approved)
+Phase: 4 of 5 (Painting Module) — IN PROGRESS
+Plan: 1 of 4 in current phase — plan 00 complete, plan 01 next
+Status: Phase 4 Wave-0 complete — plans 04-01 and 04-02 (Wave 1) ready to run
+Last activity: 2026-05-01 — Completed 04-00 @dnd-kit install, kanbanUtils, recipeSteps, PaintCombobox, test stubs
 
-Progress: [████████░░] 80% (phases 1+2 of 5 complete)
+Progress: [████████░░] 81% (13/16 plans complete)
 
 ## Performance Metrics
 
@@ -62,6 +62,7 @@ Progress: [████████░░] 80% (phases 1+2 of 5 complete)
 | Phase 03-collection-module P03 | 4 | 2 tasks | 4 files |
 | Phase 03-collection-module P04 | 12 | 2 tasks | 2 files |
 | Phase 03-collection-module P04 | 12 | 3 tasks | 2 files |
+| Phase 04-painting-module P00 | 12 | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -109,6 +110,9 @@ Recent decisions affecting current work:
 - [Phase 03-collection-module]: 03-03: ResizeObserver + scrollIntoView polyfills added to tests/setup.ts globally — cmdk requires both in jsdom; applies to all future Command-based component tests
 - [Phase 03-collection-module]: 03-04: CollectionPage owns all state (selectedUnitId, editingUnit, deletingUnit); selectedUnitId pattern avoids stale data after optimistic cache updates; Sheet/Dialog components mounted as siblings to prevent nested Radix portal issues
 - [Phase 03-collection-module]: 03-04: CollectionPage owns all state (selectedUnitId, editingUnit, deletingUnit); selectedUnitId pattern avoids stale data after optimistic cache updates; Sheet/Dialog components mounted as siblings to prevent nested Radix portal issues
+- [Phase 04-painting-module]: 04-00: @dnd-kit versions pinned at core@6.3.1, sortable@10.0.0, utilities@3.2.2 — sortable@10.x requires core@6.x; loose ranges risk runtime incompatibility (Pitfall 2)
+- [Phase 04-painting-module]: 04-00: PaintCombobox dot indicator tests use document.querySelector (not container.querySelector) — Popover renders in a Radix portal outside the component container
+- [Phase 04-painting-module]: 04-00: PaintCombobox CommandItem value uses lowercase brand+name concat so shouldFilter matches case-insensitively without manual filter logic
 
 ### Pending Todos
 
@@ -121,6 +125,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-01T07:55:59.545Z
-Stopped at: Completed 03-04-PLAN.md — Phase 3 Collection Module fully complete (human-verify approved)
+Last session: 2026-05-01T10:12:30Z
+Stopped at: Completed 04-00-PLAN.md — Phase 4 Wave-0 foundation (@dnd-kit, kanbanUtils, recipeSteps, PaintCombobox, test stubs)
 Resume file: None
