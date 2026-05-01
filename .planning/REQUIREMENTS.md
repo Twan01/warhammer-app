@@ -102,7 +102,7 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 - [x] **DASH-04**: Assembly completion percentage and basing completion percentage cards
 - [x] **DASH-05**: Current active painting projects list (links to unit detail)
 - [x] **DASH-06**: Recently updated units list (last 5-10 by `updated_at`)
-- [ ] **DASH-07**: All dashboard data sources from existing queries (units, factions, recipes) — no new tables; cache via TanStack Query
+- [x] **DASH-07**: All dashboard data sources from existing queries (units, factions, recipes) — no new tables; cache via TanStack Query
 - [x] **DASH-08**: Empty state when no factions/units exist (point to Collection page)
 
 ### Seed Data
@@ -285,7 +285,7 @@ Which phases cover which requirements.
 | DASH-04 | Phase 5 | Complete |
 | DASH-05 | Phase 5 | Complete |
 | DASH-06 | Phase 5 | Complete |
-| DASH-07 | Phase 5 | Pending |
+| DASH-07 | Phase 5 | Complete |
 | DASH-08 | Phase 5 | Complete |
 
 **Coverage:**

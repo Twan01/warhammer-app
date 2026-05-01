@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 05-00-PLAN.md
-last_updated: "2026-05-01T09:00:26.304Z"
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-05-01T09:04:50.430Z"
 last_activity: 2026-05-01 — Completed 04-00 @dnd-kit install, kanbanUtils, recipeSteps, PaintCombobox, test stubs
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 20
-  completed_plans: 17
+  completed_plans: 18
   percent: 81
 ---
 
@@ -67,6 +67,8 @@ Progress: [████████░░] 81% (13/16 plans complete)
 | Phase 04-painting-module P02 | 5 | 2 tasks | 9 files |
 | Phase 04-painting-module P03 | 5 | 3 tasks | 9 files |
 | Phase 05-dashboard P00 | 5 | 3 tasks | 6 files |
+| Phase 04-painting-module P03 | 90 | 4 tasks | 11 files |
+| Phase 05-dashboard P01 | 5 | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -127,6 +129,10 @@ Recent decisions affecting current work:
 - [Phase 05-dashboard]: 05-00: computeStats returns factionStats for all factions (even with zero units) to avoid NaN on divide-by-zero — guarded with fUnits.length > 0 check
 - [Phase 05-dashboard]: 05-00: SQLite datetime normalization in formatRelativeTime: replace space with T and append Z to force UTC parsing (Pitfall 5)
 - [Phase 05-dashboard]: 05-00: computeStats empty-path (units.length === 0) produces factionStats entries with paintedPct=0 even when factions exist
+- [Phase 04-painting-module]: 04-03: KanbanBoard always shows all 11 columns (fix 82dbc6f); PROJ-02 test updated to assert 11 headers and verify card placement rather than column hiding
+- [Phase 04-painting-module]: 04-03: onCreateNewPaint(stepLocalId) threading: RecipeStepList signature takes stepLocalId string so parent can identify which step row triggered inline paint creation
+- [Phase 05-dashboard]: 05-01: DASHBOARD_STATS_KEY wires to pre-existing useUnits invalidation without any changes to useUnits.ts (DATA-09 forward-compat decision 02-02 paid off)
+- [Phase 05-dashboard]: 05-01: getDashboardStats fetches raw rows only — no SQL aggregation; all math stays in computeStats (pure, testable)
 
 ### Pending Todos
 
@@ -139,6 +145,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-01T09:00:26.301Z
-Stopped at: Completed 05-00-PLAN.md
+Last session: 2026-05-01T09:04:50.426Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
