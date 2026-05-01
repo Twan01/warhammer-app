@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
-status: in_progress
-stopped_at: Completed 06-01-PLAN.md — migration 004 SQL + lib.rs registration + real test assertions
-last_updated: "2026-05-01T20:57:36Z"
-last_activity: "2026-05-01 — v1.1 milestone archived; v2.0 starts with `/gsd:discuss-phase 6`"
+status: completed
+stopped_at: Phase 7 UI-SPEC approved
+last_updated: "2026-05-01T21:01:31.969Z"
+last_activity: 2026-05-01 — 06-01 executed; migration 004 SQL + lib.rs v4 registration + 6 green file-content tests
 progress:
   total_phases: 4
   completed_phases: 0
@@ -76,6 +76,6 @@ None (MSVC Build Tools resolved in Phase 1; all seeding questions resolved in Ph
 
 ## Session Continuity
 
-Last session: 2026-05-01T20:57:36Z
-Stopped at: Completed 06-01-PLAN.md — migration 004 SQL + lib.rs registration + real test assertions
+Last session: 2026-05-01T21:01:31.966Z
+Stopped at: Phase 7 UI-SPEC approved
 Resume: Run `/gsd:execute-phase 6` to continue with 06-02 (getStrategyNote + upsertStrategyNote query functions)
