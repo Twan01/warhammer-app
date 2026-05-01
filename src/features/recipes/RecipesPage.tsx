@@ -20,6 +20,7 @@ import type { PaintingRecipe } from "@/types/recipe";
 import { RecipeTable } from "./RecipeTable";
 import { RecipeDetailSheet } from "./RecipeDetailSheet";
 import { RecipeDeleteDialog } from "./RecipeDeleteDialog";
+import { RecipeFormSheet } from "./RecipeFormSheet";
 
 // Aggregate step counts in one query so the table can render "{N} steps" per row
 function useAllStepCounts(recipes: PaintingRecipe[]) {
@@ -53,6 +54,8 @@ export function RecipesPage() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [deleting, setDeleting] = useState<PaintingRecipe | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<PaintingRecipe | null>(null);
 
   const filtered = useMemo(() => {
     return recipes.filter((r) => {
@@ -89,13 +92,19 @@ export function RecipesPage() {
     setDeleting(null);
   };
 
-  // Plan 04-03 wires Add/Edit form Sheet to these handlers.
-  // Until then, the Add/Edit buttons are no-ops with a console hint.
   const onAddRecipe = () => {
-    console.warn("Recipe create form will be wired in plan 04-03.");
+    setEditing(null);
+    setFormOpen(true);
   };
-  const onEditRecipe = (_recipe: PaintingRecipe) => {
-    console.warn("Recipe edit form will be wired in plan 04-03.");
+  const onEditRecipe = (recipe: PaintingRecipe) => {
+    setEditing(recipe);
+    setFormOpen(true);
+    // Close detail sheet if open
+    setDetailOpen(false);
+  };
+  const closeForm = () => {
+    setFormOpen(false);
+    setEditing(null);
   };
 
   return (
@@ -161,6 +170,13 @@ export function RecipesPage() {
         open={deleteOpen}
         recipe={deleting}
         onClose={closeDelete}
+      />
+
+      <RecipeFormSheet
+        key={editing?.id ?? "new"}
+        open={formOpen}
+        recipe={editing}
+        onClose={closeForm}
       />
     </div>
   );
