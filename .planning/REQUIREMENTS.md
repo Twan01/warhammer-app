@@ -59,7 +59,7 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 - [x] **COLL-06**: Filter "active project only" toggle
 - [x] **COLL-07**: Filter state lives in Zustand (ephemeral; not persisted to URL in v1)
 - [ ] **COLL-08**: "Add unit" button opens a form (sheet/dialog) with all required fields + faction dropdown
-- [ ] **COLL-09**: Clicking a unit row opens a detail drawer with full info, status fields, and quick-edit
+- [x] **COLL-09**: Clicking a unit row opens a detail drawer with full info, status fields, and quick-edit
 - [x] **COLL-10**: Quick status update from the table — inline dropdown changes painting_status in 1-2 clicks; mutation invalidates units + dashboard stats
 - [x] **COLL-11**: Per-unit progress bar visible in table (driven by painting_percentage)
 - [x] **COLL-12**: Empty state when no units exist ("Add your first unit" with CTA)
@@ -119,7 +119,7 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 - [ ] **POLISH-01**: Delete confirmations on all destructive actions (factions, units, paints, recipes)
 - [x] **POLISH-02**: Loading states (spinners or skeletons) on all data-fetching components
 - [x] **POLISH-03**: Error states surfaced via toast (shadcn sonner) when mutations fail
-- [ ] **POLISH-04**: Forms reset between edit sessions via `key={entity.id}` to prevent stale state
+- [x] **POLISH-04**: Forms reset between edit sessions via `key={entity.id}` to prevent stale state
 - [x] **POLISH-05**: Visible faction-color accent in cards/sidebar tied to `faction.color_theme`
 - [x] **POLISH-06**: All shadcn components installed in one batch session in Phase 0 (Table, Dialog, Sheet, Drawer, Badge, Progress, Select, Form, Command, Sonner, Card, Tabs, Combobox)
 
@@ -251,7 +251,7 @@ Which phases cover which requirements.
 | COLL-06 | Phase 3 | Complete |
 | COLL-07 | Phase 3 | Complete |
 | COLL-08 | Phase 3 | Pending |
-| COLL-09 | Phase 3 | Pending |
+| COLL-09 | Phase 3 | Complete |
 | COLL-10 | Phase 3 | Complete |
 | COLL-11 | Phase 3 | Complete |
 | COLL-12 | Phase 3 | Complete |
@@ -259,7 +259,7 @@ Which phases cover which requirements.
 | POLISH-01 | Phase 3 | Pending |
 | POLISH-02 | Phase 3 | Complete |
 | POLISH-03 | Phase 3 | Complete |
-| POLISH-04 | Phase 3 | Pending |
+| POLISH-04 | Phase 3 | Complete |
 | POLISH-05 | Phase 3 | Complete |
 | PROJ-01 | Phase 4 | Pending |
 | PROJ-02 | Phase 4 | Pending |
