@@ -1,155 +1,77 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: milestone
-status: executing
-stopped_at: "Completed 05-03-PLAN.md — Phase 5 (Dashboard) complete; Milestone v1.0 at 16/16; ready for /gsd:verify-work"
-last_updated: "2026-05-01T16:50:31.035Z"
-last_activity: 2026-05-01 — v1.1 ROADMAP-v1.1.md created covering Phases 6–9
+milestone: v2.0
+milestone_name: Utility Layer
+status: planning
+stopped_at: "v1.1 milestone completed 2026-05-01 — all 5 phases shipped, archived to milestones/"
+last_updated: "2026-05-01T00:00:00.000Z"
+last_activity: 2026-05-01 — v1.1 milestone archived; v2.0 ready to plan
 progress:
-  total_phases: 9
-  completed_phases: 5
-  total_plans: 20
-  completed_plans: 20
-  percent: 55
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-01)
+See: .planning/PROJECT.md (updated 2026-05-01 after v1.1 milestone)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v1.1 — Phase 6 (Foundation) ready to plan; v1.0 Phase 5 (Dashboard) may still need completion first
+**Current focus:** v2.0 — Phase 6 (Foundation) ready to plan
 
 ## Current Position
 
-Phase: 6 of 9 (v1.1 Foundation) — READY TO PLAN
-Plan: 0 of TBD in current phase — roadmap written, plans not yet created
-Status: v1.0 Phases 1–4 complete; Phase 5 (Dashboard) in progress (plans 05-00 and 05-01 done, 05-02 and 05-03 remain); v1.1 roadmap written and ready
-Last activity: 2026-05-01 — v1.1 ROADMAP-v1.1.md created covering Phases 6–9
+Phase: 6 of 9 (v2.0 Foundation) — READY TO PLAN
+Plan: 0 of TBD in current phase
+Status: v1.1 fully shipped (Phases 1–5 complete). v2.0 roadmap in ROADMAP.md (Phases 6–9). No plans created yet.
+Last activity: 2026-05-01 — v1.1 milestone archived; v2.0 starts with `/gsd:discuss-phase 6`
 
-Progress: [█████░░░░░] 55% (v1.0 complete phases 1–5 counted; v1.1 phases 6–9 pending)
+Progress: [░░░░] 0% (v2.0: 0/4 phases started)
 
-## Performance Metrics
+## v2.0 Scope
 
-**Velocity:**
-- Total plans completed: 2
-- Average duration: 15.5 min
-- Total execution time: 0.5 hours
+Phases 6–9 implement Paint Inventory, Army List Builder, and Unit Playbook. Phase 6 is a back-end-only foundation with no UI. Phases 7–9 add UI features sequentially.
 
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01-app-shell | 2 | 31 min | 15.5 min |
-
-**Recent Trend:**
-- Last 5 plans: 9 min, 22 min
-- Trend: —
-
-*Updated after each plan completion*
-| Phase 01-app-shell P03 | 5 | 3 tasks | 16 files |
-| Phase 01-app-shell P03 | 30 | 4 tasks | 16 files |
-| Phase 02-data-layer-entity-crud P01 | 4 | 3 tasks | 3 files |
-| Phase 02-data-layer-entity-crud P02 | 4 | 3 tasks | 19 files |
-| Phase 02-data-layer-entity-crud P03 | 20 | 3 tasks | 10 files |
-| Phase 02-data-layer-entity-crud P04 | 45 | 3 tasks | 13 files |
-| Phase 03-collection-module P00 | 4 | 3 tasks | 8 files |
-| Phase 03-collection-module P01 | 4 | 3 tasks | 8 files |
-| Phase 03-collection-module P02 | 3 | 2 tasks | 3 files |
-| Phase 03-collection-module P03 | 4 | 2 tasks | 4 files |
-| Phase 03-collection-module P04 | 12 | 2 tasks | 2 files |
-| Phase 03-collection-module P04 | 12 | 3 tasks | 2 files |
-| Phase 04-painting-module P00 | 12 | 3 tasks | 11 files |
-| Phase 04-painting-module P01 | 15 | 2 tasks | 10 files |
-| Phase 04-painting-module P02 | 5 | 2 tasks | 9 files |
-| Phase 04-painting-module P03 | 5 | 3 tasks | 9 files |
-| Phase 05-dashboard P00 | 5 | 3 tasks | 6 files |
-| Phase 04-painting-module P03 | 90 | 4 tasks | 11 files |
-| Phase 05-dashboard P01 | 5 | 1 tasks | 3 files |
-| Phase 05-dashboard P02 | 6 | 3 tasks | 7 files |
-| Phase 05-dashboard P03 | 0 | 3 tasks | 1 files |
+Key architecture context carried forward:
+- All queries via `tauri-plugin-sql` directly — no ORM
+- `0|1` integer discipline for SQLite booleans
+- All new query modules go to `src/db/queries/` — never import DB in UI
+- All new hook modules go to `src/hooks/` — components call hooks only
+- Sibling Sheet/Dialog portal pattern — never nest Radix portals
+- selectedUnitId pattern for any page that opens a detail Sheet
 
 ## Accumulated Context
 
-### Decisions
+### Active Decisions for v2.0
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
+Full decision log in PROJECT.md Key Decisions table.
 
-- Pre-roadmap: Raw typed query functions via tauri-plugin-sql (no Prisma, no Drizzle at runtime in v1)
-- Pre-roadmap: All 10 tables in one migration (001_core_schema.sql); model_instances NOT created
-- Pre-roadmap: Seed data uses real GW names (Tau Empire, etc.) — README disclaimer required (SEED-06)
-- Pre-roadmap: Kanban uses @dnd-kit drag-and-drop (PROJ-04) — NOT button/dropdown deferral
-- Pre-roadmap: Dashboard is full (not placeholder) — placed in Phase 5 after all data sources exist
-- Pre-roadmap: POLISH-* reqs folded into phases where patterns first appear at scale (Phase 1 gets POLISH-06 shadcn batch install; Phase 3 gets POLISH-01 through POLISH-05)
-- 01-01: Rust + pnpm auto-installed (not pre-installed on machine); create-tauri-app temp-dir workaround used for non-empty project root
-- 01-01: @types/node added to devDependencies — required for path module in vite.config.ts
-- 01-01: shadcn CLI added label.tsx + use-mobile.ts automatically (sidebar transitive deps); no unexpected scope creep
-- 01-02: @tauri-apps/plugin-sql 2.4.0 installed (plan requested ^2.3.2 — 2.4.0 is compatible and is current latest)
-- 01-02: cargo check blocked by missing MSVC Build Tools — pre-existing environment issue; code correct, compilation deferred to 01-03 pnpm tauri dev checkpoint
-- 01-02: smoke test NOT wired to main.tsx — window.__phase1Smoke global set within scripts/sql-smoke-test.ts itself; accessible from webview devtools during 01-03 checkpoint
-- [Phase 01-app-shell]: 01-03: Plain aside sidebar (not shadcn SidebarProvider) — avoids cookie-persistence override, simpler exact-pixel widths
-- [Phase 01-app-shell]: 01-03: router-devtools installed at 1.166.13 (plan specified 1.168.0 which does not exist in npm registry)
-- [Phase 01-app-shell]: 01-03: Manual TanStack Router route tree (no codegen) — minimal dependency footprint for Phase 1
-- [Phase 02-data-layer-entity-crud]: 02-01: All 10 v1 tables in single migration (001_core_schema.sql); model_instances absent (DATA-04); units.faction_id and recipe_paints.paint_id use RESTRICT, recipe_paints.recipe_id uses CASCADE
-- [Phase 02-data-layer-entity-crud]: 02-02: 0|1 literal types for all SQLite boolean columns (not boolean) — prevents runtime mismatch (Pitfall 1)
-- [Phase 02-data-layer-entity-crud]: 02-02: useUnits mutations invalidate ["dashboard-stats"] for DATA-09 forward compatibility — no-op until Phase 5
-- [Phase 02-data-layer-entity-crud]: 02-02: No updateRecipePaint — RecipePaint links are immutable; to change, remove + re-add
-- [Phase 02-data-layer-entity-crud]: 02-03: Removed .default() from zod schema fields (game_system, color_theme) — zod v4 .default() makes input type optional causing Resolver mismatch with react-hook-form; form defaultValues handle defaults instead
-- [Phase 02-data-layer-entity-crud]: 02-03: Toaster placed in AppLayout (not main.tsx) — shares React context with all UI, avoids duplicate mounting
-- [Phase 02-data-layer-entity-crud]: 02-03: Removed .default() from zod schema fields — zod v4 makes fields optional causing Resolver type mismatch; form defaultValues handle defaults instead
-- [Phase 02-data-layer-entity-crud]: 02-03: Human-verify approved 2026-04-30 — all 8 Faction CRUD sign-off criteria passed; FK enforcement confirmed end-to-end
-- [Phase 02-data-layer-entity-crud]: 02-04: UnitSheet two-step layout: required fields always visible, More details toggle via useState (shadcn Collapsible not installed in repo)
-- [Phase 02-data-layer-entity-crud]: 02-04: CategoryCombobox uses Command+Popover with shouldFilter + Enter-to-commit free text + CommandEmpty click-to-commit fallback
-- [Phase 02-data-layer-entity-crud]: 02-04: FactionRow.tsx converted to FactionCard export; FactionsPage uses per-faction Card layout (not Table) to accommodate unit sub-lists
-- [Phase 02-data-layer-entity-crud]: 02-04: Human-verify approved 2026-04-30 — all 14 sign-off criteria passed; all 5 Phase 2 success criteria confirmed end-to-end
-- [Phase 03-collection-module]: 03-00: vitest globals:true eliminates unused import lint errors in stub test files — satisfies noUnusedLocals constraint
-- [Phase 03-collection-module]: 03-00: Wave 0 stub pattern — it.skip() stubs with VALIDATION.md -t filter strings; Wave N+ fills bodies in-place without restructuring paths
-- [Phase 03-collection-module]: 03-01: UNITS_KEY passed directly to setQueryData (no cast needed — TanStack Query v5 accepts readonly string[] as QueryKey)
-- [Phase 03-collection-module]: 03-01: UnitTable is a pure rendering engine — pre-filtered data passed as prop; filter logic lives in plan 03-02
-- [Phase 03-collection-module]: 03-01: UnitTable.test.tsx (not .ts) — JSX required; old UnitTable.test.ts stub deleted to avoid duplicate suite runs
-- [Phase 03-collection-module]: 03-02: applyUnitFilters accepts UnitFiltersInput (not CollectionFiltersState) to stay decoupled from Zustand — enables pure unit testing
-- [Phase 03-collection-module]: 03-02: null category excluded when categories filter is non-empty (COLL-05 behavior contract)
-- [Phase 03-collection-module]: 03-02: categoryOptions derived from units prop on UnitFilters — page owns data fetch (cleaner separation)
-- [Phase 03-collection-module]: 03-03: UnitDetailSheet is purely presentational — parent owns selectedUnitId state and dialog open state (Pitfall 4: avoid nested Sheet/Dialog)
-- [Phase 03-collection-module]: 03-03: ResizeObserver + scrollIntoView polyfills added to tests/setup.ts globally — cmdk requires both in jsdom; applies to all future Command-based component tests
-- [Phase 03-collection-module]: 03-04: CollectionPage owns all state (selectedUnitId, editingUnit, deletingUnit); selectedUnitId pattern avoids stale data after optimistic cache updates; Sheet/Dialog components mounted as siblings to prevent nested Radix portal issues
-- [Phase 03-collection-module]: 03-04: CollectionPage owns all state (selectedUnitId, editingUnit, deletingUnit); selectedUnitId pattern avoids stale data after optimistic cache updates; Sheet/Dialog components mounted as siblings to prevent nested Radix portal issues
-- [Phase 04-painting-module]: 04-00: @dnd-kit versions pinned at core@6.3.1, sortable@10.0.0, utilities@3.2.2 — sortable@10.x requires core@6.x; loose ranges risk runtime incompatibility (Pitfall 2)
-- [Phase 04-painting-module]: 04-00: PaintCombobox dot indicator tests use document.querySelector (not container.querySelector) — Popover renders in a Radix portal outside the component container
-- [Phase 04-painting-module]: 04-00: PaintCombobox CommandItem value uses lowercase brand+name concat so shouldFilter matches case-insensitively without manual filter logic
-- [Phase 04-painting-module]: 04-01: KanbanCardActions uses Popover+Command (not shadcn DropdownMenu) — consistent with StatusPopover.tsx pattern already in repo
-- [Phase 04-painting-module]: 04-01: Column drop id = column-{PaintingStatus}, card drop id = unit-{id} — drag-end resolves target status from over.id prefix
-- [Phase 04-painting-module]: 04-02: recipeSchema uses .nullable() not .default() on all optional fields (Pitfall 3) — matches 02-03 factionSchema decision; form defaultValues in plan 04-03 handle initial state
-- [Phase 04-painting-module]: 04-02: useAllStepCounts per-recipe query strategy under ['recipe-paints', 'all-counts', ids] key — plan 04-03 must invalidate this key after create/edit mutations
-- [Phase 04-painting-module]: 04-02: Add/Edit form Sheet deferred to plan 04-03 via console.warn no-ops in RecipesPage.onAddRecipe/onEditRecipe
-- [Phase 04-painting-module]: 04-03: onCreateNewPaint(stepLocalId) threading: RecipeStepList signature takes stepLocalId string so parent can identify which step row triggered inline paint creation
-- [Phase 04-painting-module]: 04-03: buildColumns 4th arg onToggleActive: breaking change requiring UnitTable and CollectionPage update; UnitTable.test.tsx baseProps updated with vi.fn() default
-- [Phase 05-dashboard]: 05-00: computeStats returns factionStats for all factions (even with zero units) to avoid NaN on divide-by-zero — guarded with fUnits.length > 0 check
-- [Phase 05-dashboard]: 05-00: SQLite datetime normalization in formatRelativeTime: replace space with T and append Z to force UTC parsing (Pitfall 5)
-- [Phase 05-dashboard]: 05-00: computeStats empty-path (units.length === 0) produces factionStats entries with paintedPct=0 even when factions exist
-- [Phase 04-painting-module]: 04-03: KanbanBoard always shows all 11 columns (fix 82dbc6f); PROJ-02 test updated to assert 11 headers and verify card placement rather than column hiding
-- [Phase 04-painting-module]: 04-03: onCreateNewPaint(stepLocalId) threading: RecipeStepList signature takes stepLocalId string so parent can identify which step row triggered inline paint creation
-- [Phase 05-dashboard]: 05-01: DASHBOARD_STATS_KEY wires to pre-existing useUnits invalidation without any changes to useUnits.ts (DATA-09 forward-compat decision 02-02 paid off)
-- [Phase 05-dashboard]: 05-01: getDashboardStats fetches raw rows only — no SQL aggregation; all math stays in computeStats (pure, testable)
-- [Phase 05-dashboard]: 05-02: DashboardListRow test uses getAllByText for faction names — name appears in both FactionSummaryCard and list row Badge, causing getByText multiple-match error
-- [Phase 05-dashboard]: 05-03: Human-verify approved 2026-05-01 — all 25 sign-off criteria passed; all 5 Phase 5 success criteria confirmed end-to-end
+Key decisions affecting v2.0 planning:
+- Phase 6 adds `002_unit_playbook_stats.sql` migration — `ALTER TABLE ADD COLUMN` only, no edits to 001
+- `usePaints.ts` mutations need to invalidate `['paints-with-recipes']` in Phase 6 for Phase 7's PaintWithRecipeCount query
+- `getStrategyNote()` + `upsertStrategyNote()` in Phase 6 for Phase 9's Playbook tab
+- Army Lists use `COALESCE(points_override, unit.points, 0)` in SQL for effective points (ARMY-03)
+- Unit Playbook lives in a second Tabs panel inside the existing UnitDetailSheet — SheetFooter stays outside Tabs wrapper
+
+### Tech Debt from v1.1
+
+- PROJ-02: Update REQUIREMENTS.md text to remove "empty columns hidden" language (one-line fix)
+- PaintingProjectsPage empty-state CTA: replace `document.querySelector` with `useState` toggle
 
 ### Pending Todos
 
-None yet.
+None blocking v2.0 start.
 
-### Blockers/Concerns
+### Open Blockers
 
-- SEED-01/02/03/04: Requirements.md uses real GW names for seed data. SEED-06 requires a README disclaimer. Confirm this is intentional before writing seed SQL in Phase 2 — the research recommended fictional placeholders but the key decisions section overrides that with "real GW names + README disclaimer."
-- MSVC Build Tools not installed: cargo check and pnpm tauri dev will fail until user installs MSVC Build Tools (Desktop development with C++ workload from https://aka.ms/vs/17/release/vs_BuildTools.exe)
-- v1.0 Phase 5 (Dashboard): Plans 05-02 and 05-03 remain — complete Phase 5 before starting Phase 6
+None (MSVC Build Tools resolved in Phase 1; all seeding questions resolved in Phase 2)
 
 ## Session Continuity
 
-Last session: 2026-05-01T09:20:48.011Z
-Stopped at: Completed 05-03-PLAN.md — Phase 5 (Dashboard) complete; Milestone v1.0 at 16/16; ready for /gsd:verify-work
-Resume file: None
+Last session: 2026-05-01
+Stopped at: v1.1 milestone completed and archived
+Resume: Run `/gsd:discuss-phase 6` to begin v2.0
