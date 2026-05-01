@@ -56,20 +56,20 @@ Source: Established by prior phases (FactionsPage uses `p-6`, `gap-6`, `gap-4`; 
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px (text-sm) | 400 (regular) | 1.5 |
-| Label | 14px (text-sm) | 500 (medium) | 1.4 |
+| Label | 14px (text-sm) | 400 (regular) | 1.4 |
 | Section heading | 16px (text-base) | 600 (semibold) | 1.25 |
-| Stat display number | 28px (text-3xl) | 700 (bold) | 1.0 |
+| Page heading | 20px (text-xl) | 600 (semibold) | 1.2 |
+| Stat display number | 28px (text-3xl) | 600 (semibold) | 1.0 |
 
 Notes:
-- Stat display number (28px bold) is used only for the large number inside the 7 stat cards (4 top + 3 progress). No other element uses this size.
+- Stat display number (28px semibold) is used only for the large number inside the 7 stat cards (4 top + 3 progress). No other element uses this size. The 28px size alone provides sufficient visual differentiation; bold weight is not needed.
 - Section headings (16px semibold) match the `text-xl font-semibold` heading established in FactionsPage — use `text-base font-semibold` for subsection labels, `text-xl font-semibold` for page-level heading ("Dashboard").
 - Page-level heading "Dashboard": 20px (text-xl), weight 600 — consistent with `h1 className="text-xl font-semibold"` pattern in FactionsPage.
 - Stat card label underneath number: 14px, weight 400, color `text-muted-foreground`.
-- List row unit name: 14px, weight 500.
-- List row metadata (faction badge, status abbrev, relative time): 12px (text-xs), weight 400.
-- Faction card values (model count, painted %, points text): 14px, weight 400.
+- List row unit name: 14px, weight 600 (semibold).
+- Faction card name: 14px, weight 600 (semibold).
 
-Source: Existing components (KanbanCard uses `text-sm font-semibold` for unit name, `text-xs text-muted-foreground` for metadata; CollectionEmptyState uses `text-base font-semibold` for heading)
+Source: Existing components (KanbanCard uses `text-sm font-semibold` for unit name, `text-sm text-muted-foreground` for metadata; CollectionEmptyState uses `text-base font-semibold` for heading)
 
 ---
 
@@ -96,6 +96,8 @@ Source: `src/styles/globals.css` dark mode tokens + `src/features/painting-proje
 
 ## Layout Specification
 
+Primary focal point: the 4 top stat cards (specifically the 28px numbers) are the first element the eye reaches; all other sections read in descending visual weight.
+
 ### Page structure (vertical stack, top to bottom)
 
 ```
@@ -106,7 +108,7 @@ DashboardPage (flex flex-col gap-12 p-6)
 │   └── Grid: grid-cols-4 gap-6
 │       └── StatCard ×4: Total Models | Fully Painted | Battle-Ready Points | Active Projects
 ├── [Section] Progress Metrics (gap-8 top margin via section gap)
-│   ├── Section label: "Progress" (text-sm font-semibold text-muted-foreground uppercase tracking-wider)
+│   ├── Section label: "Progress" (text-sm font-semibold uppercase tracking-widest text-muted-foreground)
 │   └── Grid: grid-cols-3 gap-6
 │       └── StatCard ×3: Painting % | Assembly % | Basing %
 ├── [Section] Faction Summary
@@ -125,8 +127,8 @@ DashboardPage (flex flex-col gap-12 p-6)
 ```
 Card (py-6 px-6)
 └── CardContent (flex flex-col gap-1)
-    ├── number: text-3xl font-bold (28px)
-    └── label: text-sm text-muted-foreground (14px, regular)
+    ├── number: text-3xl font-semibold (28px, weight 600)
+    └── label: text-sm text-muted-foreground (14px, weight 400)
 ```
 
 No CardHeader, no CardTitle, no CardDescription — minimal card variant.
@@ -136,10 +138,10 @@ No CardHeader, no CardTitle, no CardDescription — minimal card variant.
 ```
 Card (min-w-[180px] border-l-4 border-l-[faction.color_theme] px-4 py-4 cursor-pointer hover:bg-muted/50)
 └── flex flex-col gap-2
-    ├── faction name: text-sm font-semibold (14px, 600)
-    ├── "N models" — text-xs text-muted-foreground
-    ├── "XX% painted" — text-xs text-muted-foreground
-    └── "NNN pts owned / NNN pts painted" — text-xs text-muted-foreground
+    ├── faction name: text-sm font-semibold (14px, weight 600)
+    ├── "N models" — text-sm text-muted-foreground
+    ├── "XX% painted" — text-sm text-muted-foreground
+    └── "NNN pts owned / NNN pts painted" — text-sm text-muted-foreground
 ```
 
 Clicking navigates to `/collection` after setting faction filter in Zustand collectionFilters store.
@@ -147,11 +149,11 @@ Clicking navigates to `/collection` after setting faction filter in Zustand coll
 ### ListRow anatomy (Active Projects + Recently Updated)
 
 ```
-div (flex items-center gap-3 py-3 px-4 min-h-[44px] cursor-pointer hover:bg-muted/50 rounded-md)
-├── unit name: text-sm font-medium (flex-1 truncate)
-├── Badge (style={{ backgroundColor: faction.color_theme }} className="text-xs text-white border-transparent")
-├── status abbreviation: text-xs text-muted-foreground (e.g. "Comp", "Primed", "WIP")
-└── [Recently Updated only] relative time: text-xs text-muted-foreground (e.g. "2h", "1d", "3w")
+div (flex items-center gap-2 py-2 px-4 min-h-[44px] cursor-pointer hover:bg-muted/50 rounded-md)
+├── unit name: text-sm font-semibold (14px, weight 600, flex-1 truncate)
+├── Badge (style={{ backgroundColor: faction.color_theme }} className="text-sm text-white border-transparent")
+├── status abbreviation: text-sm text-muted-foreground
+└── [Recently Updated only] relative time: text-sm text-muted-foreground
 ```
 
 Clicking opens UnitDetailSheet (same component as CollectionPage) via `selectedUnitId` state on DashboardPage.
@@ -182,7 +184,7 @@ Source: CONTEXT.md (Claude's Discretion — library choice or manual)
 
 ### Section dividers
 
-Section label style: `<p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">`. No horizontal rule. Vertical gap between sections: `gap-12` on the outer container (48px).
+Section label style: `<p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">`. No horizontal rule. Vertical gap between sections: `gap-12` on the outer container (48px).
 
 Source: CONTEXT.md (Claude's Discretion — section heading style)
 
@@ -267,8 +269,8 @@ Source: Established skeleton pattern from FactionsPage (`Skeleton className="h-2
 | Empty state body | "Add units to your collection to start tracking your hobby progress." |
 | Empty state CTA button | "Go to Collection" |
 | Error state | "Failed to load dashboard. Try refreshing the app." |
-| List empty (no active projects) | "No active projects yet" (text-xs text-muted-foreground, inside list container) |
-| List empty (no recently updated) | "No units yet" (text-xs text-muted-foreground, inside list container) |
+| List empty (no active projects) | "No active projects yet" (text-sm text-muted-foreground, inside list container) |
+| List empty (no recently updated) | "No units yet" (text-sm text-muted-foreground, inside list container) |
 
 No destructive actions in this phase. Dashboard is fully read-only.
 
