@@ -77,10 +77,10 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 - [ ] **RECIPE-01**: User can create a recipe with: name, faction (optional), unit (optional), area (free-text — armor, weapon, skin, cloth, lens, metal, base, etc.)
 - [ ] **RECIPE-02**: Recipe step fields: primer, basecoat, shade, layer, highlight, glaze/filter, weathering, technical, basing — all free-text per stage
 - [ ] **RECIPE-03**: Recipe stores notes, tutorial_link (URL — renders as clickable link)
-- [ ] **RECIPE-04**: User can edit and delete recipes
+- [x] **RECIPE-04**: User can edit and delete recipes
 - [x] **RECIPE-05**: User can attach paints to recipe steps via the `recipe_paints` join table — each link captures step_name, order_index, optional notes
 - [x] **RECIPE-06**: Recipe detail view shows owned/missing paints visually (e.g., red badge for unowned, green for owned)
-- [ ] **RECIPE-07**: User can list/filter recipes by faction or unit
+- [x] **RECIPE-07**: User can list/filter recipes by faction or unit
 - [x] **RECIPE-08**: Empty state for "no recipes yet" with CTA
 
 ### Painting Projects (Kanban — Phase 3)
@@ -272,10 +272,10 @@ Which phases cover which requirements.
 | RECIPE-01 | Phase 4 | Pending |
 | RECIPE-02 | Phase 4 | Pending |
 | RECIPE-03 | Phase 4 | Pending |
-| RECIPE-04 | Phase 4 | Pending |
+| RECIPE-04 | Phase 4 | Complete |
 | RECIPE-05 | Phase 4 | Complete |
 | RECIPE-06 | Phase 4 | Complete |
-| RECIPE-07 | Phase 4 | Pending |
+| RECIPE-07 | Phase 4 | Complete |
 | RECIPE-08 | Phase 4 | Complete |
 | PAINT-03 | Phase 4 | Pending |
 | PAINT-04 | Phase 4 | Complete |

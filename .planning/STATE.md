@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Phase 5 UI-SPEC approved
-last_updated: "2026-05-01T08:28:15.177Z"
+stopped_at: "Completed 04-02-PLAN.md — Recipes list surface: RecipeTable, RecipeDetailSheet, RecipeDeleteDialog, RecipeEmptyState, RecipesPage, recipeSchema"
+last_updated: "2026-05-01T08:31:55.517Z"
 last_activity: 2026-05-01 — Completed 04-00 @dnd-kit install, kanbanUtils, recipeSteps, PaintCombobox, test stubs
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 16
-  completed_plans: 14
+  completed_plans: 15
   percent: 81
 ---
 
@@ -64,6 +64,7 @@ Progress: [████████░░] 81% (13/16 plans complete)
 | Phase 03-collection-module P04 | 12 | 3 tasks | 2 files |
 | Phase 04-painting-module P00 | 12 | 3 tasks | 11 files |
 | Phase 04-painting-module P01 | 15 | 2 tasks | 10 files |
+| Phase 04-painting-module P02 | 5 | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,9 @@ Recent decisions affecting current work:
 - [Phase 04-painting-module]: 04-00: PaintCombobox CommandItem value uses lowercase brand+name concat so shouldFilter matches case-insensitively without manual filter logic
 - [Phase 04-painting-module]: 04-01: KanbanCardActions uses Popover+Command (not shadcn DropdownMenu) — consistent with StatusPopover.tsx pattern already in repo
 - [Phase 04-painting-module]: 04-01: Column drop id = column-{PaintingStatus}, card drop id = unit-{id} — drag-end resolves target status from over.id prefix
+- [Phase 04-painting-module]: 04-02: recipeSchema uses .nullable() not .default() on all optional fields (Pitfall 3) — matches 02-03 factionSchema decision; form defaultValues in plan 04-03 handle initial state
+- [Phase 04-painting-module]: 04-02: useAllStepCounts per-recipe query strategy under ['recipe-paints', 'all-counts', ids] key — plan 04-03 must invalidate this key after create/edit mutations
+- [Phase 04-painting-module]: 04-02: Add/Edit form Sheet deferred to plan 04-03 via console.warn no-ops in RecipesPage.onAddRecipe/onEditRecipe
 
 ### Pending Todos
 
@@ -128,6 +132,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-01T08:28:15.159Z
-Stopped at: Phase 5 UI-SPEC approved
-Resume file: .planning/phases/05-dashboard/05-UI-SPEC.md
+Last session: 2026-05-01T08:31:55.507Z
+Stopped at: Completed 04-02-PLAN.md — Recipes list surface: RecipeTable, RecipeDetailSheet, RecipeDeleteDialog, RecipeEmptyState, RecipesPage, recipeSchema
+Resume file: None
