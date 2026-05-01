@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: "Completed 04-02-PLAN.md — Recipes list surface: RecipeTable, RecipeDetailSheet, RecipeDeleteDialog, RecipeEmptyState, RecipesPage, recipeSchema"
-last_updated: "2026-05-01T08:31:55.517Z"
+stopped_at: "Checkpoint: 04-03 human-verify — 3 auto-tasks complete, awaiting user sign-off on all 6 Phase 4 ROADMAP criteria"
+last_updated: "2026-05-01T08:41:06.561Z"
 last_activity: 2026-05-01 — Completed 04-00 @dnd-kit install, kanbanUtils, recipeSteps, PaintCombobox, test stubs
 progress:
   total_phases: 5
-  completed_phases: 3
-  total_plans: 16
-  completed_plans: 15
+  completed_phases: 4
+  total_plans: 17
+  completed_plans: 16
   percent: 81
 ---
 
@@ -65,6 +65,7 @@ Progress: [████████░░] 81% (13/16 plans complete)
 | Phase 04-painting-module P00 | 12 | 3 tasks | 11 files |
 | Phase 04-painting-module P01 | 15 | 2 tasks | 10 files |
 | Phase 04-painting-module P02 | 5 | 2 tasks | 9 files |
+| Phase 04-painting-module P03 | 5 | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,8 @@ Recent decisions affecting current work:
 - [Phase 04-painting-module]: 04-02: recipeSchema uses .nullable() not .default() on all optional fields (Pitfall 3) — matches 02-03 factionSchema decision; form defaultValues in plan 04-03 handle initial state
 - [Phase 04-painting-module]: 04-02: useAllStepCounts per-recipe query strategy under ['recipe-paints', 'all-counts', ids] key — plan 04-03 must invalidate this key after create/edit mutations
 - [Phase 04-painting-module]: 04-02: Add/Edit form Sheet deferred to plan 04-03 via console.warn no-ops in RecipesPage.onAddRecipe/onEditRecipe
+- [Phase 04-painting-module]: 04-03: onCreateNewPaint(stepLocalId) threading: RecipeStepList signature takes stepLocalId string so parent can identify which step row triggered inline paint creation
+- [Phase 04-painting-module]: 04-03: buildColumns 4th arg onToggleActive: breaking change requiring UnitTable and CollectionPage update; UnitTable.test.tsx baseProps updated with vi.fn() default
 
 ### Pending Todos
 
@@ -132,6 +135,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-01T08:31:55.507Z
-Stopped at: Completed 04-02-PLAN.md — Recipes list surface: RecipeTable, RecipeDetailSheet, RecipeDeleteDialog, RecipeEmptyState, RecipesPage, recipeSchema
+Last session: 2026-05-01T08:41:06.558Z
+Stopped at: Checkpoint: 04-03 human-verify — 3 auto-tasks complete, awaiting user sign-off on all 6 Phase 4 ROADMAP criteria
 Resume file: None

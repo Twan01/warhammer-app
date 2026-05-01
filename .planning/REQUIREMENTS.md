@@ -69,14 +69,14 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 
 - [x] **PAINT-01**: User can create a paint with: brand, name, paint_type (Primer, Base, Layer, Contrast, Shade, Technical, Dry, Air, Metallic, Ink, Oil, Enamel, Pigment, Other), color_family, hex_color (optional), owned (bool), quantity, running_low (bool), wishlist (bool), notes
 - [x] **PAINT-02**: User can edit and delete paints; FK from `recipe_paints` blocks delete if paint is referenced by any recipe step
-- [ ] **PAINT-03**: Paint create/edit happens inline inside the recipe builder (no standalone Paint Inventory page in v1 — that's Phase 4)
+- [x] **PAINT-03**: Paint create/edit happens inline inside the recipe builder (no standalone Paint Inventory page in v1 — that's Phase 4)
 - [x] **PAINT-04**: Paint search/picker (combobox) used inside recipe builder filters by brand and name as you type
 
 ### Painting Recipes
 
-- [ ] **RECIPE-01**: User can create a recipe with: name, faction (optional), unit (optional), area (free-text — armor, weapon, skin, cloth, lens, metal, base, etc.)
-- [ ] **RECIPE-02**: Recipe step fields: primer, basecoat, shade, layer, highlight, glaze/filter, weathering, technical, basing — all free-text per stage
-- [ ] **RECIPE-03**: Recipe stores notes, tutorial_link (URL — renders as clickable link)
+- [x] **RECIPE-01**: User can create a recipe with: name, faction (optional), unit (optional), area (free-text — armor, weapon, skin, cloth, lens, metal, base, etc.)
+- [x] **RECIPE-02**: Recipe step fields: primer, basecoat, shade, layer, highlight, glaze/filter, weathering, technical, basing — all free-text per stage
+- [x] **RECIPE-03**: Recipe stores notes, tutorial_link (URL — renders as clickable link)
 - [x] **RECIPE-04**: User can edit and delete recipes
 - [x] **RECIPE-05**: User can attach paints to recipe steps via the `recipe_paints` join table — each link captures step_name, order_index, optional notes
 - [x] **RECIPE-06**: Recipe detail view shows owned/missing paints visually (e.g., red badge for unowned, green for owned)
@@ -269,15 +269,15 @@ Which phases cover which requirements.
 | PROJ-06 | Phase 4 | Complete |
 | PROJ-07 | Phase 4 | Complete |
 | PROJ-08 | Phase 4 | Complete |
-| RECIPE-01 | Phase 4 | Pending |
-| RECIPE-02 | Phase 4 | Pending |
-| RECIPE-03 | Phase 4 | Pending |
+| RECIPE-01 | Phase 4 | Complete |
+| RECIPE-02 | Phase 4 | Complete |
+| RECIPE-03 | Phase 4 | Complete |
 | RECIPE-04 | Phase 4 | Complete |
 | RECIPE-05 | Phase 4 | Complete |
 | RECIPE-06 | Phase 4 | Complete |
 | RECIPE-07 | Phase 4 | Complete |
 | RECIPE-08 | Phase 4 | Complete |
-| PAINT-03 | Phase 4 | Pending |
+| PAINT-03 | Phase 4 | Complete |
 | PAINT-04 | Phase 4 | Complete |
 | DASH-01 | Phase 5 | Pending |
 | DASH-02 | Phase 5 | Pending |
