@@ -110,12 +110,61 @@ Plans:
 - [ ] 05-00-PLAN.md — Wave 0: pure utilities (computeStats, formatRelativeTime, STATUS_ABBR) with full vitest coverage for DASH-01..06, DASH-08; Wave-0 stub test file for DashboardPage
 - [ ] 05-01-PLAN.md — Dashboard query (getDashboardStats: parallel SELECTs, no SQL aggregation) + useDashboardStats hook (DASHBOARD_STATS_KEY) + cache-key contract test (DASH-07)
 - [ ] 05-02-PLAN.md — Four atomic UI components (StatCard, DashboardListRow, FactionSummaryCard, DashboardEmptyState) + DashboardPage assembly + route swap; fills DashboardPage Wave-0 stubs (DASH-01..08)
-- [ ] 05-03-PLAN.md — DASH-07 invalidation verification, human-verify checkpoint covering all 5 Phase 5 ROADMAP success criteria, Phase 5 SUMMARY (autonomous: false — includes human-verify checkpoint)
+- [x] 05-03-PLAN.md — DASH-07 invalidation verification, human-verify checkpoint covering all 5 Phase 5 ROADMAP success criteria, Phase 5 SUMMARY (autonomous: false — includes human-verify checkpoint) (completed 2026-05-01)
+
+### Phase 6: Foundation
+**Goal**: All back-end plumbing for v1.1 is in place and verified — the schema is migrated, types are defined, query functions are implemented, and hooks are wired — so that Phases 7, 8, and 9 build on a verified data layer with zero migration risk
+**Depends on**: Phase 5
+**Requirements**: STRAT-06
+**Success Criteria** (what must be TRUE):
+  1. The app launches without error after migration 002 runs — `unit_strategy_notes` has 8 new nullable columns (move, toughness, save, wounds, leadership, objective_control, keywords, abilities) and all pre-existing rows remain intact
+  2. `002_unit_playbook_stats.sql` contains only `ALTER TABLE ... ADD COLUMN` statements — no DROP, no CREATE TABLE, no edit to `001_core_schema.sql`
+  3. TypeScript types for `ArmyList`, `ArmyListUnit`, `ArmyListWithUnits`, `StrategyNote`, and `PaintWithRecipeCount` exist in `src/types/` and compile without errors
+  4. Query functions `getArmyLists()`, `getArmyListWithUnits()`, `getPaintsWithRecipeCount()`, `getStrategyNote()`, and `upsertStrategyNote()` exist and return typed results against the live database
+  5. `useCreatePaint`, `useUpdatePaint`, and `useDeletePaint` in `usePaints.ts` each invalidate both `['paints']` and `['paints-with-recipes']` on success
+**Plans**: TBD
+
+### Phase 7: Paint Inventory
+**Goal**: Users can browse and manage their paint collection from a dedicated inventory page — filtering by brand, type, and color family, jumping to running-low or wishlist views, seeing a color swatch and recipe usage count per paint, and toggling owned status inline
+**Depends on**: Phase 6
+**Requirements**: PINV-01, PINV-02, PINV-03, PINV-04, PINV-05, PINV-06
+**Success Criteria** (what must be TRUE):
+  1. User can navigate to Paint Inventory from the sidebar and see all paints in a filterable table with a color swatch from `hex_color` and a "used in N recipes" badge per row
+  2. User can apply brand, paint type, and color-family filters in any combination and the table updates without a page reload — filters reset when navigating away
+  3. User can click "Running Low" and see only paints where `running_low = true`; "Wishlist" shows only `wishlist = true`
+  4. User can click the "used in N recipes" badge and be taken to the Recipes page pre-filtered to that paint
+  5. User can toggle a paint's `owned` status directly in the table row — updates immediately and persists
+**Plans**: TBD
+
+### Phase 8: Army List Builder
+**Goal**: Users can create and manage army lists drawn from their collection — adding and removing units, entering per-unit points overrides, and seeing auto-calculated totals (total points, painted points, battle-ready %) — and the unit delete flow warns before removing a unit that belongs to an active list
+**Depends on**: Phase 6
+**Requirements**: ARMY-01, ARMY-02, ARMY-03, ARMY-04, ARMY-05, ARMY-06, ARMY-07
+**Success Criteria** (what must be TRUE):
+  1. User can create an army list with name, faction, list type tag (Casual, Learning, Narrative, Competitive, Test), and notes
+  2. User can add units from their collection to a list and remove them — each unit shows painting status badge and assembled status
+  3. User can enter a per-unit points override; leaving it blank falls back to `unit.points`; total points, painted points, and battle-ready % computed from `COALESCE(points_override, unit.points, 0)` in SQL
+  4. User can enter per-list notes and per-unit-in-list notes without leaving the detail sheet
+  5. Unit delete warns by count when the unit belongs to active army lists before confirming
+  6. Empty state with CTA appears when no lists exist
+**Plans**: TBD
+
+### Phase 9: Unit Playbook
+**Goal**: Users can record personal stats (M/T/Sv/W/Ld/OC), abilities, keywords, and strategy notes for any unit in a dedicated Playbook tab inside the existing unit detail sheet — saving inline without closing the sheet or toggling edit mode
+**Depends on**: Phase 6
+**Requirements**: STRAT-01, STRAT-02, STRAT-03, STRAT-04, STRAT-05
+**Success Criteria** (what must be TRUE):
+  1. Clicking a unit in the Collection page opens the detail sheet with a "Playbook" tab visible alongside the existing "Details" tab — switching tabs works without closing and reopening the sheet
+  2. The Playbook tab shows a compact horizontal stats block with six integer fields (M, T, Sv, W, Ld, OC) — all accept 0, Sv stored as integer displayed with "+" suffix
+  3. User can enter multi-line abilities text and comma-separated keywords
+  4. User can fill in all eight strategy note fields and save by clicking the Save button — no separate edit/view mode toggle
+  5. SheetFooter Edit and Delete buttons remain visible and functional regardless of which tab is active
+**Plans**: TBD
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -123,4 +172,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Data Layer + Entity CRUD | 4/4 | Complete   | 2026-04-30 |
 | 3. Collection Module | 5/5 | Complete   | 2026-05-01 |
 | 4. Painting Module | 4/4 | Complete   | 2026-05-01 |
-| 5. Dashboard | 4/4 | Complete   | 2026-05-01 |
+| 5. Dashboard | 4/4 | Complete    | 2026-05-01 |
+| 6. Foundation | 0/TBD | Not started | - |
+| 7. Paint Inventory | 0/TBD | Not started | - |
+| 8. Army List Builder | 0/TBD | Not started | - |
+| 9. Unit Playbook | 0/TBD | Not started | - |
