@@ -1,7 +1,8 @@
 ---
 phase: 7
 slug: paint-inventory
-status: draft
+status: approved
+reviewed_at: 2026-05-01T00:00:00Z
 shadcn_initialized: true
 preset: "new-york / zinc / cssVariables"
 created: 2026-05-01
