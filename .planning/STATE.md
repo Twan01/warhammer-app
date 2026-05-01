@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
 status: in_progress
-stopped_at: Completed 06-00-PLAN.md — Wave-0 test scaffolds (4 stub files under tests/foundation/)
-last_updated: "2026-05-01T20:53:03.264Z"
+stopped_at: Completed 06-01-PLAN.md — migration 004 SQL + lib.rs registration + real test assertions
+last_updated: "2026-05-01T20:57:36Z"
 last_activity: "2026-05-01 — v1.1 milestone archived; v2.0 starts with `/gsd:discuss-phase 6`"
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 5
-  completed_plans: 1
-  percent: 20
+  completed_plans: 2
+  percent: 40
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-01 after v1.1 milestone)
 ## Current Position
 
 Phase: 6 of 9 (v2.0 Foundation) — IN PROGRESS
-Plan: 1 of 5 complete in current phase
-Status: v1.1 fully shipped (Phases 1–5 complete). v2.0 underway — 06-00 (Wave-0 test scaffolds) complete.
-Last activity: 2026-05-01 — 06-00 executed; 4 it.skip stub files created under tests/foundation/
+Plan: 2 of 5 complete in current phase
+Status: v1.1 fully shipped (Phases 1–5 complete). v2.0 underway — 06-01 (migration 004) complete.
+Last activity: 2026-05-01 — 06-01 executed; migration 004 SQL + lib.rs v4 registration + 6 green file-content tests
 
-Progress: [██░░░░░░░░] 20% (v2.0 Phase 6: 1/5 plans complete)
+Progress: [████░░░░░░] 40% (v2.0 Phase 6: 2/5 plans complete)
 
 ## v2.0 Scope
 
@@ -52,6 +52,7 @@ Full decision log in PROJECT.md Key Decisions table.
 
 Key decisions made during execution:
 - 06-00: Wave-0 stub pattern confirmed — describe blocks named per VALIDATION.md -t filter strings, it.skip() filled in-place by later plans, no imports (vitest globals:true)
+- 06-01: save = INTEGER (not TEXT); UI appends '+' suffix at display time. Migration comment wording must avoid the literal word "DROP" to pass regex assertions.
 
 Key decisions affecting v2.0 planning:
 - Phase 6 adds `002_unit_playbook_stats.sql` migration — `ALTER TABLE ADD COLUMN` only, no edits to 001
@@ -75,6 +76,6 @@ None (MSVC Build Tools resolved in Phase 1; all seeding questions resolved in Ph
 
 ## Session Continuity
 
-Last session: 2026-05-01T20:53:03.261Z
-Stopped at: Completed 06-00-PLAN.md — Wave-0 test scaffolds (4 stub files under tests/foundation/)
-Resume: Run `/gsd:execute-phase 6` to continue with 06-01 (migration 004 SQL + lib.rs registration)
+Last session: 2026-05-01T20:57:36Z
+Stopped at: Completed 06-01-PLAN.md — migration 004 SQL + lib.rs registration + real test assertions
+Resume: Run `/gsd:execute-phase 6` to continue with 06-02 (getStrategyNote + upsertStrategyNote query functions)
