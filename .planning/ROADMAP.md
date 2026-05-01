@@ -86,13 +86,13 @@ Plans:
   4. User can create a recipe with step fields, link it to a faction and optionally a unit, and add paints to individual recipe steps via a combobox search
   5. Recipe detail view shows a visual indicator distinguishing owned paints (green) from unowned paints (red) on each recipe step
   6. An empty state appears on the Kanban when no units are marked active ("Mark a unit as active project to see it here")
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 04-01: KanbanBoard + KanbanCard components, PAINTING_STATUS_ORDER column ordering, active-project filter, card menu (mark inactive, edit status)
-- [ ] 04-02: Drag-and-drop with @dnd-kit/core + @dnd-kit/sortable, optimistic mutation, rollback on error, invalidates units + dashboard-stats
-- [ ] 04-03: RecipesPage (list, faction/unit filter, empty state), RecipeForm (all step fields, tutorial_link, faction/unit dropdowns, key={recipe.id})
-- [ ] 04-04: RecipePaintLinker (paint combobox search by brand/name, add/remove paints per step, owned/missing visual indicator), PAINT-03/04 inline paint create inside recipe builder
+- [ ] 04-00-PLAN.md — Wave 0: install @dnd-kit + utilities, kanbanUtils + recipeSteps pure modules with TDD tests, PaintCombobox shared component (PAINT-04), Wave-0 stub test files
+- [ ] 04-01-PLAN.md — Painting Projects Kanban: KanbanBoard (DndContext, optimistic drag-end), KanbanCard, KanbanColumn, KanbanCardActions, AddProjectPicker, KanbanEmptyState, /painting-projects route swap (PROJ-01..PROJ-08)
+- [ ] 04-02-PLAN.md — Recipes list surface: recipeSchema, RecipeTable + columns + DetailSheet + DeleteDialog + EmptyState + RecipesPage (filters), /recipes route swap (RECIPE-04, RECIPE-06, RECIPE-07, RECIPE-08)
+- [ ] 04-03-PLAN.md — Recipe form Sheet (RecipeFormSheet + RecipeStepList + RecipeStepRow with @dnd-kit reorder + inline PaintSheet stack for PAINT-03), UnitDetailSheet Linked Recipes + active toggle, Collection table active toggle (PROJ-06), human-verify checkpoint covering all 6 ROADMAP success criteria
 
 ### Phase 5: Dashboard
 **Goal**: The dashboard answers "what do I own, what's painted, and what's ready to play" in a single view — all stat cards and faction summaries are live-computed from existing data with no new tables
