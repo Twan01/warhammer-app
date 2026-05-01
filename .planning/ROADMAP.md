@@ -108,6 +108,6 @@ Plans:
 | 4. Painting Module | v1.1 | 4/4 | Complete | 2026-05-01 |
 | 5. Dashboard | v1.1 | 4/4 | Complete | 2026-05-01 |
 | 6. Foundation | v2.0 | 5/5 | Complete | 2026-05-01 |
-| 7. Paint Inventory | 1/5 | In Progress|  | — |
+| 7. Paint Inventory | 2/5 | In Progress|  | — |
 | 8. Army List Builder | v2.0 | 0/TBD | Not started | — |
 | 9. Unit Playbook | v2.0 | 0/TBD | Not started | — |

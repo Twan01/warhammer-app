@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
 status: in_progress
-stopped_at: 07-01 complete — usePaintInventoryFilters store + applyPaintFilters helper; 154 tests green
-last_updated: "2026-05-01T21:35:00.000Z"
-last_activity: 2026-05-01 — 07-01 executed; Zustand filter store + pure filter helper; 12 new tests (154 total)
+stopped_at: Completed 07-02-PLAN.md — getRecipeIdsByPaintId query + useRecipeIdsByPaint hook; 157 tests green
+last_updated: "2026-05-01T21:40:49.365Z"
+last_activity: 2026-05-01 — 07-02 executed; getRecipeIdsByPaintId DB query + RECIPE_IDS_BY_PAINT_KEY/useRecipeIdsByPaint TanStack Query hook; 157 tests green
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 10
-  completed_plans: 6
-  percent: 60
+  completed_plans: 7
+  percent: 70
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-01 after v1.1 milestone)
 ## Current Position
 
 Phase: 7 of 9 (v2.0 Paint Inventory UI) — IN PROGRESS
-Plan: 1 of 5 complete in current phase
-Status: v1.1 fully shipped (Phases 1–5 complete). v2.0 underway — Phase 6 complete. Phase 7 started — 07-01 (filter state layer) complete.
-Last activity: 2026-05-01 — 07-01 executed; usePaintInventoryFilters Zustand store + applyPaintFilters pure helper; 154 tests green
+Plan: 2 of 5 complete in current phase
+Status: v1.1 fully shipped (Phases 1–5 complete). v2.0 underway — Phase 6 complete. Phase 7 in progress — 07-01 (filter state layer) and 07-02 (recipe-paint query + hook) complete.
+Last activity: 2026-05-01 — 07-02 executed; getRecipeIdsByPaintId DB query + RECIPE_IDS_BY_PAINT_KEY/useRecipeIdsByPaint TanStack Query hook; 157 tests green
 
-Progress: [██████░░░░] 60% (v2.0 Phase 7: 1/5 plans complete)
+Progress: [███████░░░] 70% (v2.0 Phase 7: 2/5 plans complete)
 
 ## v2.0 Scope
 
@@ -51,6 +51,8 @@ Key architecture context carried forward:
 Full decision log in PROJECT.md Key Decisions table.
 
 Key decisions made during execution:
+- 07-02: useRecipePaints.ts already existed from Phase 4 — appended RECIPE_IDS_BY_PAINT_KEY and useRecipeIdsByPaint additively, preserving the existing 3 exports.
+- 07-02: useRecipeIdsByPaint uses disabled fallback queryKey ['recipe-ids-by-paint', 'disabled'] when paintId is null/undefined — TanStack Query requires a defined queryKey even when enabled: false.
 - 07-01: usePaintInventoryFilters is a direct structural copy of useCollectionFilters — five fields (brands/types/colorFamilies as arrays, runningLow/wishlist as booleans), same idempotent toggle pattern.
 - 07-01: applyPaintFilters uses p.running_low !== 1 and p.wishlist !== 1 guards — never truthy checks — enforcing the codebase SQLite 0|1 integer discipline.
 - 06-00: Wave-0 stub pattern confirmed — describe blocks named per VALIDATION.md -t filter strings, it.skip() filled in-place by later plans, no imports (vitest globals:true)
@@ -89,6 +91,6 @@ None (MSVC Build Tools resolved in Phase 1; all seeding questions resolved in Ph
 
 ## Session Continuity
 
-Last session: 2026-05-01T21:35:00.000Z
-Stopped at: Completed 07-01-PLAN.md — filter state layer (store + pure helper + 12 tests)
-Resume: Run `/gsd:execute-phase 7` to continue Phase 7 with plan 07-02
+Last session: 2026-05-01T21:40:00.000Z
+Stopped at: Completed 07-02-PLAN.md — getRecipeIdsByPaintId query + useRecipeIdsByPaint hook; 157 tests green
+Resume: Run `/gsd:execute-phase 7` to continue Phase 7 with plan 07-03
