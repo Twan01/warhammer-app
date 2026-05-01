@@ -73,7 +73,7 @@ describe("KanbanBoard", () => {
     ).toBeInTheDocument();
   });
 
-  it("PROJ-02: renders columns in PAINTING_STATUS_ORDER, hiding empty columns", () => {
+  it("PROJ-02: renders all columns in PAINTING_STATUS_ORDER, cards appear in the correct columns", () => {
     const units = [
       makeUnit({ id: 1, name: "Alpha", status_painting: "Layered" }),
       makeUnit({ id: 2, name: "Beta", status_painting: "Built" }),
@@ -81,10 +81,12 @@ describe("KanbanBoard", () => {
     ];
     const { container } = renderBoard(units);
     const headers = container.querySelectorAll("h2");
-    // Only "Built" and "Layered" columns should render. PAINTING_STATUS_ORDER puts Built before Layered.
-    expect(headers).toHaveLength(2);
-    expect(headers[0].textContent).toBe("Built");
-    expect(headers[1].textContent).toBe("Layered");
+    // All 11 columns are always rendered (fix 82dbc6f: all columns visible for easy DnD targets).
+    expect(headers).toHaveLength(11);
+    // Verify the two occupied columns have their cards: "Built" (2 cards) and "Layered" (1 card).
+    expect(screen.getByText("Alpha")).toBeInTheDocument();
+    expect(screen.getByText("Beta")).toBeInTheDocument();
+    expect(screen.getByText("Gamma")).toBeInTheDocument();
   });
 
   it("PROJ-01: filters out units with is_active_project = 0", () => {
