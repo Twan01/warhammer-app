@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
-status: in_progress
-stopped_at: Completed 07-03-PLAN.md — recipesRoute validateSearch (paintId? zod) + RecipesPage paintFilter URL param consumption; 157 tests green
-last_updated: "2026-05-01T21:46:08.000Z"
-last_activity: 2026-05-01 — 07-03 executed; recipesRoute exports validateSearch with zod paintId schema; RecipesPage reads paintId from URL on mount and filters recipes via useRecipeIdsByPaint
+status: executing
+stopped_at: Completed 07-04-PLAN.md — PaintInventoryFilters + PaintRow upgrade + PaintsPage wire-up; 157 tests green
+last_updated: "2026-05-01T22:03:00.000Z"
+last_activity: 2026-05-01 — 07-04 executed; PaintInventoryFilters component created; PaintRow upgraded to PaintWithRecipeCount with clickable owned badge + recipe count badge + Color Family column; PaintsPage wired with filter store, optimistic toggle, cross-page navigation, unmount cleanup
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 10
-  completed_plans: 8
-  percent: 80
+  completed_plans: 9
+  percent: 90
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-01 after v1.1 milestone)
 ## Current Position
 
 Phase: 7 of 9 (v2.0 Paint Inventory UI) — IN PROGRESS
-Plan: 3 of 5 complete in current phase
-Status: v1.1 fully shipped (Phases 1–5 complete). v2.0 underway — Phase 6 complete. Phase 7 in progress — 07-01 (filter state layer), 07-02 (recipe-paint query + hook), and 07-03 (URL param + RecipesPage filter) complete.
-Last activity: 2026-05-01 — 07-03 executed; recipesRoute exports validateSearch with zod paintId schema; RecipesPage reads paintId from URL on mount and filters recipes via useRecipeIdsByPaint
+Plan: 4 of 5 complete in current phase
+Status: v1.1 fully shipped (Phases 1–5 complete). v2.0 underway — Phase 6 complete. Phase 7 in progress — 07-01 (filter state layer), 07-02 (recipe-paint query + hook), 07-03 (URL param + RecipesPage filter), and 07-04 (Paint Inventory page UI wire-up) complete.
+Last activity: 2026-05-01 — 07-04 executed; PaintInventoryFilters component created; PaintRow upgraded with 7-column layout; PaintsPage wired with usePaintsWithRecipeCount, filter store, optimistic owned toggle, cross-page navigation, and unmount cleanup; 157 tests green
 
-Progress: [███████░░░] 70% (v2.0 Phase 7: 2/5 plans complete)
+Progress: [█████████░] 90% (v2.0 Phase 7: 4/5 plans complete)
 
 ## v2.0 Scope
 
@@ -51,6 +51,8 @@ Key architecture context carried forward:
 Full decision log in PROJECT.md Key Decisions table.
 
 Key decisions made during execution:
+- 07-04: PaintsPage imports PaintInventoryFilters with explicit .tsx extension ("./PaintInventoryFilters.tsx") to resolve Windows case-insensitive FS casing conflict (TS1261) between PaintInventoryFilters.tsx and paintInventoryFilters.ts; allowImportingTsExtensions:true already in tsconfig.
+- 07-04: PaintSheet and PaintDeleteDialog accept Paint|null — no modification needed since PaintWithRecipeCount extends Paint (TypeScript structural subtyping handles the compatibility).
 - 07-03: recipesRoute exported as named export from router.tsx so RecipesPage can call recipesRoute.useSearch() — first use of validateSearch in codebase; no circular import issue encountered (ES module live-binding with Vite handles it).
 - 07-03: paintFilter seeded once on mount via useEffect([]) — intentional empty deps so user can clear the URL-seeded filter without the URL param re-applying on next render.
 - 07-03: while recipeIdsByPaint is loading, paintFilter guard hides all recipes (single-render flash) matching empty-state UX.
@@ -94,6 +96,6 @@ None (MSVC Build Tools resolved in Phase 1; all seeding questions resolved in Ph
 
 ## Session Continuity
 
-Last session: 2026-05-01T21:46:08.000Z
-Stopped at: Completed 07-03-PLAN.md — recipesRoute validateSearch (paintId? zod) + RecipesPage paintFilter URL param consumption; 157 tests green
-Resume: Run `/gsd:execute-phase 7` to continue Phase 7 with plan 07-04
+Last session: 2026-05-01T22:03:00.000Z
+Stopped at: Completed 07-04-PLAN.md — PaintInventoryFilters + PaintRow upgrade + PaintsPage wire-up; 157 tests green
+Resume: Run `/gsd:execute-phase 7` to continue Phase 7 with plan 07-05
