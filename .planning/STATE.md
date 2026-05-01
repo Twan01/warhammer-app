@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 03-01-PLAN.md (table engine + Zustand store)
-last_updated: "2026-05-01T07:26:48.324Z"
+stopped_at: Phase 4 UI-SPEC approved
+last_updated: "2026-05-01T07:33:03.132Z"
 last_activity: 2026-04-30 — Completed 02-04 Unit form and Paints CRUD (human-verify approved)
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 12
-  completed_plans: 9
+  completed_plans: 10
   percent: 80
 ---
 
@@ -58,6 +58,7 @@ Progress: [████████░░] 80% (phases 1+2 of 5 complete)
 | Phase 02-data-layer-entity-crud P04 | 45 | 3 tasks | 13 files |
 | Phase 03-collection-module P00 | 4 | 3 tasks | 8 files |
 | Phase 03-collection-module P01 | 4 | 3 tasks | 8 files |
+| Phase 03-collection-module P02 | 3 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,9 @@ Recent decisions affecting current work:
 - [Phase 03-collection-module]: 03-01: UNITS_KEY passed directly to setQueryData (no cast needed — TanStack Query v5 accepts readonly string[] as QueryKey)
 - [Phase 03-collection-module]: 03-01: UnitTable is a pure rendering engine — pre-filtered data passed as prop; filter logic lives in plan 03-02
 - [Phase 03-collection-module]: 03-01: UnitTable.test.tsx (not .ts) — JSX required; old UnitTable.test.ts stub deleted to avoid duplicate suite runs
+- [Phase 03-collection-module]: 03-02: applyUnitFilters accepts UnitFiltersInput (not CollectionFiltersState) to stay decoupled from Zustand — enables pure unit testing
+- [Phase 03-collection-module]: 03-02: null category excluded when categories filter is non-empty (COLL-05 behavior contract)
+- [Phase 03-collection-module]: 03-02: categoryOptions derived from units prop on UnitFilters — page owns data fetch (cleaner separation)
 
 ### Pending Todos
 
@@ -110,6 +114,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-01T07:26:48.321Z
-Stopped at: Completed 03-01-PLAN.md (table engine + Zustand store)
-Resume file: None
+Last session: 2026-05-01T07:33:03.129Z
+Stopped at: Phase 4 UI-SPEC approved
+Resume file: .planning/phases/04-painting-module/04-UI-SPEC.md

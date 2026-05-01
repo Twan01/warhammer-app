@@ -52,11 +52,11 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 ### Collection Page (Phase 2 UI)
 
 - [x] **COLL-01**: Collection page shows units in a sortable, paginated table OR card grid view
-- [ ] **COLL-02**: Search by unit name (live filter)
-- [ ] **COLL-03**: Filter by faction (multi-select)
-- [ ] **COLL-04**: Filter by painting status (multi-select)
-- [ ] **COLL-05**: Filter by category (multi-select)
-- [ ] **COLL-06**: Filter "active project only" toggle
+- [x] **COLL-02**: Search by unit name (live filter)
+- [x] **COLL-03**: Filter by faction (multi-select)
+- [x] **COLL-04**: Filter by painting status (multi-select)
+- [x] **COLL-05**: Filter by category (multi-select)
+- [x] **COLL-06**: Filter "active project only" toggle
 - [x] **COLL-07**: Filter state lives in Zustand (ephemeral; not persisted to URL in v1)
 - [ ] **COLL-08**: "Add unit" button opens a form (sheet/dialog) with all required fields + faction dropdown
 - [ ] **COLL-09**: Clicking a unit row opens a detail drawer with full info, status fields, and quick-edit
@@ -244,11 +244,11 @@ Which phases cover which requirements.
 | SEED-05 | Phase 2 | Complete |
 | SEED-06 | Phase 2 | Complete |
 | COLL-01 | Phase 3 | Complete |
-| COLL-02 | Phase 3 | Pending |
-| COLL-03 | Phase 3 | Pending |
-| COLL-04 | Phase 3 | Pending |
-| COLL-05 | Phase 3 | Pending |
-| COLL-06 | Phase 3 | Pending |
+| COLL-02 | Phase 3 | Complete |
+| COLL-03 | Phase 3 | Complete |
+| COLL-04 | Phase 3 | Complete |
+| COLL-05 | Phase 3 | Complete |
+| COLL-06 | Phase 3 | Complete |
 | COLL-07 | Phase 3 | Complete |
 | COLL-08 | Phase 3 | Pending |
 | COLL-09 | Phase 3 | Pending |
