@@ -51,18 +51,18 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 
 ### Collection Page (Phase 2 UI)
 
-- [ ] **COLL-01**: Collection page shows units in a sortable, paginated table OR card grid view
+- [x] **COLL-01**: Collection page shows units in a sortable, paginated table OR card grid view
 - [ ] **COLL-02**: Search by unit name (live filter)
 - [ ] **COLL-03**: Filter by faction (multi-select)
 - [ ] **COLL-04**: Filter by painting status (multi-select)
 - [ ] **COLL-05**: Filter by category (multi-select)
 - [ ] **COLL-06**: Filter "active project only" toggle
-- [ ] **COLL-07**: Filter state lives in Zustand (ephemeral; not persisted to URL in v1)
+- [x] **COLL-07**: Filter state lives in Zustand (ephemeral; not persisted to URL in v1)
 - [ ] **COLL-08**: "Add unit" button opens a form (sheet/dialog) with all required fields + faction dropdown
 - [ ] **COLL-09**: Clicking a unit row opens a detail drawer with full info, status fields, and quick-edit
-- [ ] **COLL-10**: Quick status update from the table — inline dropdown changes painting_status in 1-2 clicks; mutation invalidates units + dashboard stats
-- [ ] **COLL-11**: Per-unit progress bar visible in table (driven by painting_percentage)
-- [ ] **COLL-12**: Empty state when no units exist ("Add your first unit" with CTA)
+- [x] **COLL-10**: Quick status update from the table — inline dropdown changes painting_status in 1-2 clicks; mutation invalidates units + dashboard stats
+- [x] **COLL-11**: Per-unit progress bar visible in table (driven by painting_percentage)
+- [x] **COLL-12**: Empty state when no units exist ("Add your first unit" with CTA)
 - [ ] **COLL-13**: Delete unit confirms via a modal before destructive action
 
 ### Paints (Schema + CRUD; UI lives inside recipe builder)
@@ -117,10 +117,10 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 ### Cross-cutting Polish
 
 - [ ] **POLISH-01**: Delete confirmations on all destructive actions (factions, units, paints, recipes)
-- [ ] **POLISH-02**: Loading states (spinners or skeletons) on all data-fetching components
-- [ ] **POLISH-03**: Error states surfaced via toast (shadcn sonner) when mutations fail
+- [x] **POLISH-02**: Loading states (spinners or skeletons) on all data-fetching components
+- [x] **POLISH-03**: Error states surfaced via toast (shadcn sonner) when mutations fail
 - [ ] **POLISH-04**: Forms reset between edit sessions via `key={entity.id}` to prevent stale state
-- [ ] **POLISH-05**: Visible faction-color accent in cards/sidebar tied to `faction.color_theme`
+- [x] **POLISH-05**: Visible faction-color accent in cards/sidebar tied to `faction.color_theme`
 - [x] **POLISH-06**: All shadcn components installed in one batch session in Phase 0 (Table, Dialog, Sheet, Drawer, Badge, Progress, Select, Form, Command, Sonner, Card, Tabs, Combobox)
 
 ## v2 Requirements
@@ -243,24 +243,24 @@ Which phases cover which requirements.
 | SEED-04 | Phase 2 | Complete |
 | SEED-05 | Phase 2 | Complete |
 | SEED-06 | Phase 2 | Complete |
-| COLL-01 | Phase 3 | Pending |
+| COLL-01 | Phase 3 | Complete |
 | COLL-02 | Phase 3 | Pending |
 | COLL-03 | Phase 3 | Pending |
 | COLL-04 | Phase 3 | Pending |
 | COLL-05 | Phase 3 | Pending |
 | COLL-06 | Phase 3 | Pending |
-| COLL-07 | Phase 3 | Pending |
+| COLL-07 | Phase 3 | Complete |
 | COLL-08 | Phase 3 | Pending |
 | COLL-09 | Phase 3 | Pending |
-| COLL-10 | Phase 3 | Pending |
-| COLL-11 | Phase 3 | Pending |
-| COLL-12 | Phase 3 | Pending |
+| COLL-10 | Phase 3 | Complete |
+| COLL-11 | Phase 3 | Complete |
+| COLL-12 | Phase 3 | Complete |
 | COLL-13 | Phase 3 | Pending |
 | POLISH-01 | Phase 3 | Pending |
-| POLISH-02 | Phase 3 | Pending |
-| POLISH-03 | Phase 3 | Pending |
+| POLISH-02 | Phase 3 | Complete |
+| POLISH-03 | Phase 3 | Complete |
 | POLISH-04 | Phase 3 | Pending |
-| POLISH-05 | Phase 3 | Pending |
+| POLISH-05 | Phase 3 | Complete |
 | PROJ-01 | Phase 4 | Pending |
 | PROJ-02 | Phase 4 | Pending |
 | PROJ-03 | Phase 4 | Pending |

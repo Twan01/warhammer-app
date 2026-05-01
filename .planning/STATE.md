@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Phase 4 context gathered
-last_updated: "2026-05-01T07:25:36.952Z"
+stopped_at: Completed 03-01-PLAN.md (table engine + Zustand store)
+last_updated: "2026-05-01T07:26:48.324Z"
 last_activity: 2026-04-30 — Completed 02-04 Unit form and Paints CRUD (human-verify approved)
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 12
-  completed_plans: 8
+  completed_plans: 9
   percent: 80
 ---
 
@@ -57,6 +57,7 @@ Progress: [████████░░] 80% (phases 1+2 of 5 complete)
 | Phase 02-data-layer-entity-crud P03 | 20 | 3 tasks | 10 files |
 | Phase 02-data-layer-entity-crud P04 | 45 | 3 tasks | 13 files |
 | Phase 03-collection-module P00 | 4 | 3 tasks | 8 files |
+| Phase 03-collection-module P01 | 4 | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,9 @@ Recent decisions affecting current work:
 - [Phase 02-data-layer-entity-crud]: 02-04: Human-verify approved 2026-04-30 — all 14 sign-off criteria passed; all 5 Phase 2 success criteria confirmed end-to-end
 - [Phase 03-collection-module]: 03-00: vitest globals:true eliminates unused import lint errors in stub test files — satisfies noUnusedLocals constraint
 - [Phase 03-collection-module]: 03-00: Wave 0 stub pattern — it.skip() stubs with VALIDATION.md -t filter strings; Wave N+ fills bodies in-place without restructuring paths
+- [Phase 03-collection-module]: 03-01: UNITS_KEY passed directly to setQueryData (no cast needed — TanStack Query v5 accepts readonly string[] as QueryKey)
+- [Phase 03-collection-module]: 03-01: UnitTable is a pure rendering engine — pre-filtered data passed as prop; filter logic lives in plan 03-02
+- [Phase 03-collection-module]: 03-01: UnitTable.test.tsx (not .ts) — JSX required; old UnitTable.test.ts stub deleted to avoid duplicate suite runs
 
 ### Pending Todos
 
@@ -106,6 +110,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-01T07:25:36.939Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-painting-module/04-CONTEXT.md
+Last session: 2026-05-01T07:26:48.321Z
+Stopped at: Completed 03-01-PLAN.md (table engine + Zustand store)
+Resume file: None
