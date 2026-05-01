@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
-status: completed
-stopped_at: Phase 7 planned — 5 plans, 3 waves
-last_updated: "2026-05-01T21:26:21.120Z"
-last_activity: 2026-05-01 — 06-04 executed; usePaints double-invalidation + useStrategyNote + useArmyLists; 142 tests green
+status: in_progress
+stopped_at: 07-01 complete — usePaintInventoryFilters store + applyPaintFilters helper; 154 tests green
+last_updated: "2026-05-01T21:35:00.000Z"
+last_activity: 2026-05-01 — 07-01 executed; Zustand filter store + pure filter helper; 12 new tests (154 total)
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 10
-  completed_plans: 5
-  percent: 100
+  completed_plans: 6
+  percent: 60
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-01 after v1.1 milestone)
 
 ## Current Position
 
-Phase: 6 of 9 (v2.0 Foundation) — COMPLETE
-Plan: 5 of 5 complete in current phase
-Status: v1.1 fully shipped (Phases 1–5 complete). v2.0 underway — 06-01 (migration 004) + 06-02 (types) + 06-03 (query layer) + 06-04 (hooks) complete. Phase 6 back-end foundation fully done.
-Last activity: 2026-05-01 — 06-04 executed; usePaints double-invalidation + useStrategyNote + useArmyLists; 142 tests green
+Phase: 7 of 9 (v2.0 Paint Inventory UI) — IN PROGRESS
+Plan: 1 of 5 complete in current phase
+Status: v1.1 fully shipped (Phases 1–5 complete). v2.0 underway — Phase 6 complete. Phase 7 started — 07-01 (filter state layer) complete.
+Last activity: 2026-05-01 — 07-01 executed; usePaintInventoryFilters Zustand store + applyPaintFilters pure helper; 154 tests green
 
-Progress: [██████████] 100% (v2.0 Phase 6: 5/5 plans complete)
+Progress: [██████░░░░] 60% (v2.0 Phase 7: 1/5 plans complete)
 
 ## v2.0 Scope
 
@@ -51,6 +51,8 @@ Key architecture context carried forward:
 Full decision log in PROJECT.md Key Decisions table.
 
 Key decisions made during execution:
+- 07-01: usePaintInventoryFilters is a direct structural copy of useCollectionFilters — five fields (brands/types/colorFamilies as arrays, runningLow/wishlist as booleans), same idempotent toggle pattern.
+- 07-01: applyPaintFilters uses p.running_low !== 1 and p.wishlist !== 1 guards — never truthy checks — enforcing the codebase SQLite 0|1 integer discipline.
 - 06-00: Wave-0 stub pattern confirmed — describe blocks named per VALIDATION.md -t filter strings, it.skip() filled in-place by later plans, no imports (vitest globals:true)
 - 06-01: save = INTEGER (not TEXT); UI appends '+' suffix at display time. Migration comment wording must avoid the literal word "DROP" to pass regex assertions.
 - 06-02: ArmyListUnit omits updated_at — army_list_units schema has no such column; including it causes runtime mismatch.
@@ -87,6 +89,6 @@ None (MSVC Build Tools resolved in Phase 1; all seeding questions resolved in Ph
 
 ## Session Continuity
 
-Last session: 2026-05-01T21:26:21.117Z
-Stopped at: Phase 7 planned — 5 plans, 3 waves
-Resume: Run `/gsd:execute-phase 7` to start Phase 7 (Paint Inventory UI)
+Last session: 2026-05-01T21:35:00.000Z
+Stopped at: Completed 07-01-PLAN.md — filter state layer (store + pure helper + 12 tests)
+Resume: Run `/gsd:execute-phase 7` to continue Phase 7 with plan 07-02
