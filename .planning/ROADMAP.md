@@ -38,12 +38,19 @@ HobbyForge v2.0 adds three features that complete the "ready-to-play" workflow: 
 **Depends on**: Phase 5
 **Requirements**: STRAT-06
 **Success Criteria** (what must be TRUE):
-  1. The app launches without error after migration 002 runs — `unit_strategy_notes` has 8 new nullable columns and all pre-existing rows remain intact
-  2. `002_unit_playbook_stats.sql` contains only `ALTER TABLE ... ADD COLUMN` statements — no DROP, no CREATE TABLE, no edit to `001_core_schema.sql`
+  1. The app launches without error after migration 004 runs — `unit_strategy_notes` has 8 new nullable columns and all pre-existing rows remain intact
+  2. `004_unit_playbook_stats.sql` contains only `ALTER TABLE ... ADD COLUMN` statements — no DROP, no CREATE TABLE, no edit to `001_core_schema.sql`
   3. TypeScript types for `ArmyList`, `ArmyListUnit`, `ArmyListWithUnits`, `StrategyNote`, and `PaintWithRecipeCount` compile without errors
   4. Query functions `getArmyLists()`, `getArmyListWithUnits()`, `getPaintsWithRecipeCount()`, `getStrategyNote()`, `upsertStrategyNote()` return typed results against live DB
   5. `useCreatePaint`, `useUpdatePaint`, `useDeletePaint` each invalidate both `['paints']` and `['paints-with-recipes']` on success
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 06-00-PLAN.md — Wave 0: four stub test files under tests/foundation/ (migration004, armyListQueries, strategyNoteQueries, usePaints)
+- [ ] 06-01-PLAN.md — Migration 004 (8 ALTER TABLE ADD COLUMN, save = INTEGER), lib.rs version-4 registration, real migration004.test.ts assertions
+- [ ] 06-02-PLAN.md — TypeScript types: src/types/strategyNote.ts (StrategyNote, UpsertStrategyNoteInput), src/types/armyList.ts (full ArmyList family), src/types/paint.ts append PaintWithRecipeCount
+- [ ] 06-03-PLAN.md — Query functions: paints.ts append getPaintsWithRecipeCount, new strategyNotes.ts (select-then-upsert), new armyLists.ts (NULL-passthrough updateArmyListUnit, duplicate-allowed addUnitToList) + real query tests
+- [ ] 06-04-PLAN.md — Hooks: usePaints.ts patch (PAINTS_WITH_RECIPES_KEY + 3 double-invalidations), new useStrategyNote.ts, new useArmyLists.ts + real usePaints.test.ts assertions
 
 ### Phase 7: Paint Inventory
 **Goal**: Users can browse and manage their paint collection from a dedicated inventory page — filtering by brand, type, and color family, jumping to running-low or wishlist views, seeing a color swatch and recipe usage count per paint, and toggling owned status inline
@@ -93,7 +100,7 @@ HobbyForge v2.0 adds three features that complete the "ready-to-play" workflow: 
 | 3. Collection Module | v1.1 | 5/5 | Complete | 2026-05-01 |
 | 4. Painting Module | v1.1 | 4/4 | Complete | 2026-05-01 |
 | 5. Dashboard | v1.1 | 4/4 | Complete | 2026-05-01 |
-| 6. Foundation | v2.0 | 0/TBD | Not started | — |
+| 6. Foundation | v2.0 | 0/5 | Not started | — |
 | 7. Paint Inventory | v2.0 | 0/TBD | Not started | — |
 | 8. Army List Builder | v2.0 | 0/TBD | Not started | — |
 | 9. Unit Playbook | v2.0 | 0/TBD | Not started | — |
