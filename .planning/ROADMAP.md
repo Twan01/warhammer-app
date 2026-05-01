@@ -66,13 +66,14 @@ Plans:
   4. User can update a unit's painting status in 1-2 clicks from the collection table without opening the detail drawer
   5. User can delete a unit only after confirming a modal — the collection table updates immediately after deletion
   6. An empty state ("Add your first unit") appears with a CTA when no units match the current filter
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- [ ] 03-01: UnitTable with TanStack Table (columns: name, faction badge, category, status, painting_percentage progress bar, points), Zustand filter store
-- [ ] 03-02: UnitFilters (search input, faction multi-select, status multi-select, category multi-select, active-project toggle), filter wire-up to useUnits hook
-- [ ] 03-03: UnitDetail drawer (Sheet), full field display, quick status inline dropdown, COLL-10 mutation with dual invalidation
-- [ ] 03-04: UnitForm (react-hook-form + zod, key={unit.id}, all fields, faction dropdown, category combobox), add/edit flows, delete confirm modal, empty state, loading/error/toast polish
+- [ ] 03-00-PLAN.md — Wave 0: install vitest + @testing-library, vitest.config.ts + tests/setup.ts, four stub describe-block test files for COLL-02..07, COLL-10, COLL-12, POLISH-02, POLISH-05
+- [ ] 03-01-PLAN.md — Install @tanstack/react-table + zustand, Zustand collectionFilters store (COLL-07), StatusPopover (COLL-10 optimistic + rollback), UnitTableColumns + UnitTable + CollectionEmptyState (COLL-01, COLL-11, COLL-12, POLISH-02, POLISH-05)
+- [ ] 03-02-PLAN.md — Pure applyUnitFilters function with full unit-test coverage (COLL-02..06), UnitFilters component (search Input, 3 multi-select Popovers, Active-only toggle, Clear filters button)
+- [ ] 03-03-PLAN.md — UnitDetailSheet read-only viewer (COLL-09, POLISH-04), real StatusPopover.test.tsx covering optimistic + rollback + error toast paths (COLL-10)
+- [ ] 03-04-PLAN.md — CollectionPage container assembly (state, filter pipeline, all sub-components as siblings), route swap, human-verify checkpoint covering all 6 ROADMAP success criteria + 5 polish requirements (COLL-01, COLL-08, COLL-09, COLL-12, COLL-13, POLISH-01, POLISH-03, POLISH-04)
 
 ### Phase 4: Painting Module
 **Goal**: The painting workflow is complete — active projects are visible on a status-grouped Kanban board, recipes document paint schemes with step-level paint linkage, and owned/missing paints are visually distinguished
@@ -119,6 +120,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. App Shell | 3/3 | Complete   | 2026-04-30 |
 | 2. Data Layer + Entity CRUD | 4/4 | Complete   | 2026-04-30 |
-| 3. Collection Module | 0/4 | Not started | - |
+| 3. Collection Module | 0/5 | Not started | - |
 | 4. Painting Module | 0/4 | Not started | - |
 | 5. Dashboard | 0/3 | Not started | - |
