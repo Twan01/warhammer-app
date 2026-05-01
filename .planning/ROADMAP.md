@@ -62,7 +62,14 @@ Plans:
   3. User can click "Running Low" and see only paints where `running_low = true`; "Wishlist" shows only `wishlist = true`
   4. User can click the "used in N recipes" badge and be taken to the Recipes page pre-filtered to that paint
   5. User can toggle a paint's `owned` status directly in the table row — updates immediately and persists
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — Zustand filter store + applyPaintFilters helper + 12 unit tests
+- [ ] 07-02-PLAN.md — getRecipeIdsByPaintId query + useRecipeIdsByPaint hook + 3 unit tests
+- [ ] 07-03-PLAN.md — Router validateSearch + RecipesPage paintId consumption
+- [ ] 07-04-PLAN.md — PaintInventoryFilters component + PaintRow extension + PaintsPage integration
+- [ ] 07-05-PLAN.md — Manual smoke-test checkpoint (PINV-01..06)
 
 ### Phase 8: Army List Builder
 **Goal**: Users can create and manage army lists drawn from their collection — adding and removing units, entering per-unit points overrides, and seeing auto-calculated totals (total points, painted points, battle-ready %) — and the unit delete flow warns before removing a unit that belongs to an active list
@@ -101,6 +108,6 @@ Plans:
 | 4. Painting Module | v1.1 | 4/4 | Complete | 2026-05-01 |
 | 5. Dashboard | v1.1 | 4/4 | Complete | 2026-05-01 |
 | 6. Foundation | v2.0 | 5/5 | Complete | 2026-05-01 |
-| 7. Paint Inventory | v2.0 | 0/TBD | Not started | — |
+| 7. Paint Inventory | v2.0 | 0/5 | Not started | — |
 | 8. Army List Builder | v2.0 | 0/TBD | Not started | — |
 | 9. Unit Playbook | v2.0 | 0/TBD | Not started | — |
