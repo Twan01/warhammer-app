@@ -52,19 +52,24 @@ Source: existing `PaintsPage.tsx` and `CollectionPage.tsx` patterns; 8-point sca
 
 ## Typography
 
-| Role | Size | Weight | Line Height |
-|------|------|--------|-------------|
-| Body | 14px (text-sm) | 400 (regular) | 1.5 |
-| Label | 14px (text-sm) | 500 (medium) | 1.4 |
-| Heading (page title) | 20px (text-xl) | 600 (semibold) | 1.2 |
-| Table header | 12px (text-xs) | 500 (medium) | 1.4 |
+Exactly 2 weights are declared. Size differences (text-xs vs text-sm) create visual hierarchy between table headers and body text without requiring a third weight.
 
-Source: `PaintsPage.tsx` uses `text-xl font-semibold` for the page heading; `PaintRow.tsx` uses `font-medium` for paint name. shadcn Table component uses `text-xs` for headers. Body text is `text-sm` throughout the app.
+| Role | Size | Weight | Line Height | Notes |
+|------|------|--------|-------------|-------|
+| Body | 14px (text-sm) | 400 (regular) | 1.5 | Default prose, muted column text, filter button labels |
+| Label | 14px (text-sm) | 400 (regular) | 1.4 | Table headers use text-xs at weight 400; paint name uses text-sm at weight 400 |
+| Heading (page title) | 20px (text-xl) | 600 (semibold) | 1.2 | Only role using weight 600 |
+
+Weight mapping:
+- **400 regular** — Body, Label, table headers (text-xs), recipe count badge text, filter button labels, muted secondary text (brand, type, color-family columns)
+- **600 semibold** — Page heading ("Paints") only
 
 Notes:
-- Recipe count badge text: `text-xs` / weight 500 (matches shadcn Badge default)
-- Filter button labels: `text-sm` / weight 400
-- Muted secondary text (brand, type, color-family columns): `text-sm text-muted-foreground`
+- Paint name in `PaintRow.tsx` previously used `font-medium` (weight 500) — change to `font-normal` (weight 400); size at text-sm is sufficient to distinguish it from muted secondary columns
+- Recipe count badge text: `text-xs` / weight 400
+- Muted secondary text (brand, type, color-family columns): `text-sm text-muted-foreground` at weight 400
+
+Source: `PaintsPage.tsx` uses `text-xl font-semibold` for the page heading. shadcn Table component uses `text-xs` for headers. Body text is `text-sm` throughout the app. Weight collapsed from 3 → 2 per checker requirement.
 
 ---
 
@@ -111,6 +116,10 @@ Existing components used unchanged:
 ---
 
 ## Interaction Contracts
+
+### Visual Hierarchy
+
+The filter bar + "Add Paint" CTA row is the primary interactive anchor for the page. Table rows are the secondary content area. Users orient to the filter bar first (action and narrowing), then scan the table (content). This ordering is reinforced by vertical stacking: filter bar above, table below, with `lg` (24px) gap between them.
 
 ### Filter Bar
 
@@ -206,11 +215,11 @@ The `/recipes` route requires `validateSearch` added to support `paintId` naviga
 | Delete confirmation title | "Delete paint?" |
 | Delete confirmation body | `This will permanently delete "{brand} {name}".` |
 | Delete: keep action | "Keep Paint" |
-| Delete: confirm action | "Delete" (`variant="destructive"`) |
+| Delete: confirm action | "Delete Paint" (`variant="destructive"`) |
 | FK block error toast | "Cannot delete paint — it's used in a recipe step." |
 | Generic mutation error toast | "Something went wrong. Please try again." |
 
-Source: existing `PaintsEmptyState.tsx` and `PaintDeleteDialog.tsx` for retained copy; new states derived from CONTEXT.md and `UnitFilters.tsx` patterns.
+Source: existing `PaintsEmptyState.tsx` and `PaintDeleteDialog.tsx` for retained copy; new states derived from CONTEXT.md and `UnitFilters.tsx` patterns. Delete confirm action updated from "Delete" to "Delete Paint" (verb + noun) per checker recommendation.
 
 ---
 
@@ -273,6 +282,16 @@ No third-party registries declared for this phase.
 | No pagination in Phase 7 | CONTEXT.md §Claude's Discretion + seed data count |
 | Design system tokens | `globals.css` + `components.json` |
 | Copywriting (existing states) | `PaintsEmptyState.tsx`, `PaintDeleteDialog.tsx` |
+
+---
+
+## Revision Log
+
+| Date | Change | Reason |
+|------|--------|--------|
+| 2026-05-01 | Typography: collapsed 3 weights (400/500/600) to 2 weights (400/600); paint name changed from font-medium to font-normal | Checker Dimension 4 — maximum 2 weights allowed |
+| 2026-05-01 | Copywriting: Delete confirm action changed from "Delete" to "Delete Paint" | Checker Dimension 1 recommendation — verb + noun pattern |
+| 2026-05-01 | Interaction Contracts: added Visual Hierarchy note | Checker Dimension 2 recommendation — primary focal point declaration |
 
 ---
 
