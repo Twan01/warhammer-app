@@ -1,36 +1,36 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: completed
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-05-01T09:13:02.678Z"
-last_activity: 2026-05-01 — Completed 04-00 @dnd-kit install, kanbanUtils, recipeSteps, PaintCombobox, test stubs
+milestone: v1.1
+milestone_name: Utility Layer
+status: ready_to_plan
+stopped_at: v1.1 roadmap created — Phase 6 ready to plan
+last_updated: "2026-05-01T00:00:00.000Z"
+last_activity: 2026-05-01 — v1.1 ROADMAP-v1.1.md created; Phase 5 (Dashboard) still in progress on v1.0 side
 progress:
-  total_phases: 5
-  completed_phases: 4
+  total_phases: 9
+  completed_phases: 5
   total_plans: 20
   completed_plans: 19
-  percent: 81
+  percent: 55
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-30)
+See: .planning/PROJECT.md (updated 2026-05-01)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** Phase 3 — Collection (Phase 2 complete)
+**Current focus:** v1.1 — Phase 6 (Foundation) ready to plan; v1.0 Phase 5 (Dashboard) may still need completion first
 
 ## Current Position
 
-Phase: 4 of 5 (Painting Module) — IN PROGRESS
-Plan: 1 of 4 in current phase — plan 00 complete, plan 01 next
-Status: Phase 4 Wave-0 complete — plans 04-01 and 04-02 (Wave 1) ready to run
-Last activity: 2026-05-01 — Completed 04-00 @dnd-kit install, kanbanUtils, recipeSteps, PaintCombobox, test stubs
+Phase: 6 of 9 (v1.1 Foundation) — READY TO PLAN
+Plan: 0 of TBD in current phase — roadmap written, plans not yet created
+Status: v1.0 Phases 1–4 complete; Phase 5 (Dashboard) in progress (plans 05-00 and 05-01 done, 05-02 and 05-03 remain); v1.1 roadmap written and ready
+Last activity: 2026-05-01 — v1.1 ROADMAP-v1.1.md created covering Phases 6–9
 
-Progress: [████████░░] 81% (13/16 plans complete)
+Progress: [█████░░░░░] 55% (v1.0 complete phases 1–5 counted; v1.1 phases 6–9 pending)
 
 ## Performance Metrics
 
@@ -144,9 +144,10 @@ None yet.
 
 - SEED-01/02/03/04: Requirements.md uses real GW names for seed data. SEED-06 requires a README disclaimer. Confirm this is intentional before writing seed SQL in Phase 2 — the research recommended fictional placeholders but the key decisions section overrides that with "real GW names + README disclaimer."
 - MSVC Build Tools not installed: cargo check and pnpm tauri dev will fail until user installs MSVC Build Tools (Desktop development with C++ workload from https://aka.ms/vs/17/release/vs_BuildTools.exe)
+- v1.0 Phase 5 (Dashboard): Plans 05-02 and 05-03 remain — complete Phase 5 before starting Phase 6
 
 ## Session Continuity
 
-Last session: 2026-05-01T09:13:02.675Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-05-01T00:00:00.000Z
+Stopped at: v1.1 ROADMAP-v1.1.md created — Phase 6 ready to plan once Phase 5 is complete
 Resume file: None
