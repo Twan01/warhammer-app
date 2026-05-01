@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-05-01T09:10:53.878Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-05-01T09:13:02.678Z"
 last_activity: 2026-05-01 — Completed 04-00 @dnd-kit install, kanbanUtils, recipeSteps, PaintCombobox, test stubs
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 20
-  completed_plans: 18
+  completed_plans: 19
   percent: 81
 ---
 
@@ -69,6 +69,7 @@ Progress: [████████░░] 81% (13/16 plans complete)
 | Phase 05-dashboard P00 | 5 | 3 tasks | 6 files |
 | Phase 04-painting-module P03 | 90 | 4 tasks | 11 files |
 | Phase 05-dashboard P01 | 5 | 1 tasks | 3 files |
+| Phase 05-dashboard P02 | 6 | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -133,6 +134,7 @@ Recent decisions affecting current work:
 - [Phase 04-painting-module]: 04-03: onCreateNewPaint(stepLocalId) threading: RecipeStepList signature takes stepLocalId string so parent can identify which step row triggered inline paint creation
 - [Phase 05-dashboard]: 05-01: DASHBOARD_STATS_KEY wires to pre-existing useUnits invalidation without any changes to useUnits.ts (DATA-09 forward-compat decision 02-02 paid off)
 - [Phase 05-dashboard]: 05-01: getDashboardStats fetches raw rows only — no SQL aggregation; all math stays in computeStats (pure, testable)
+- [Phase 05-dashboard]: 05-02: DashboardListRow test uses getAllByText for faction names — name appears in both FactionSummaryCard and list row Badge, causing getByText multiple-match error
 
 ### Pending Todos
 
@@ -145,6 +147,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-01T09:04:50.426Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-05-01T09:13:02.675Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
