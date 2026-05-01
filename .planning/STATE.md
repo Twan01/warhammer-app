@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
-status: planning
-stopped_at: "v1.1 milestone completed 2026-05-01 — all 5 phases shipped, archived to milestones/"
-last_updated: "2026-05-01T00:00:00.000Z"
-last_activity: 2026-05-01 — v1.1 milestone archived; v2.0 ready to plan
+status: completed
+stopped_at: Phase 7 context gathered
+last_updated: "2026-05-01T20:52:41.206Z"
+last_activity: "2026-05-01 — v1.1 milestone archived; v2.0 starts with `/gsd:discuss-phase 6`"
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 5
+  completed_plans: 1
   percent: 0
 ---
 
@@ -72,6 +72,6 @@ None (MSVC Build Tools resolved in Phase 1; all seeding questions resolved in Ph
 
 ## Session Continuity
 
-Last session: 2026-05-01
-Stopped at: v1.1 milestone completed and archived
+Last session: 2026-05-01T20:52:41.203Z
+Stopped at: Phase 7 context gathered
 Resume: Run `/gsd:discuss-phase 6` to begin v2.0
