@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Utility Layer
-status: defining_requirements
-stopped_at: "Milestone v1.1 started — defining requirements"
-last_updated: "2026-05-01T00:00:00.000Z"
-last_activity: 2026-05-01 — Milestone v1.1 initialized (Paint Inventory + Army Lists + Unit Playbook)
+milestone: v1.0
+milestone_name: milestone
+status: completed
+stopped_at: Phase 5 plans complete
+last_updated: "2026-05-01T08:52:30.256Z"
+last_activity: 2026-05-01 — Completed 04-00 @dnd-kit install, kanbanUtils, recipeSteps, PaintCombobox, test stubs
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 17
+  total_plans: 20
   completed_plans: 16
   percent: 81
 ---
@@ -135,6 +135,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-01T08:41:06.558Z
-Stopped at: Checkpoint: 04-03 human-verify — 3 auto-tasks complete, awaiting user sign-off on all 6 Phase 4 ROADMAP criteria
-Resume file: None
+Last session: 2026-05-01T08:52:30.253Z
+Stopped at: Phase 5 plans complete
+Resume file: .planning/phases/05-dashboard/05-00-PLAN.md
