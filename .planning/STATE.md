@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
-status: completed
-stopped_at: Phase 7 UI-SPEC approved
-last_updated: "2026-05-01T21:01:31.969Z"
+status: in_progress
+stopped_at: Completed 06-02-PLAN.md — StrategyNote, ArmyList, PaintWithRecipeCount types
+last_updated: "2026-05-01T21:04:24.201Z"
 last_activity: 2026-05-01 — 06-01 executed; migration 004 SQL + lib.rs v4 registration + 6 green file-content tests
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 5
-  completed_plans: 2
-  percent: 40
+  completed_plans: 3
+  percent: 60
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-01 after v1.1 milestone)
 ## Current Position
 
 Phase: 6 of 9 (v2.0 Foundation) — IN PROGRESS
-Plan: 2 of 5 complete in current phase
-Status: v1.1 fully shipped (Phases 1–5 complete). v2.0 underway — 06-01 (migration 004) complete.
-Last activity: 2026-05-01 — 06-01 executed; migration 004 SQL + lib.rs v4 registration + 6 green file-content tests
+Plan: 3 of 5 complete in current phase
+Status: v1.1 fully shipped (Phases 1–5 complete). v2.0 underway — 06-01 (migration 004) + 06-02 (TypeScript types) complete.
+Last activity: 2026-05-01 — 06-02 executed; StrategyNote, ArmyList family, PaintWithRecipeCount types created
 
-Progress: [████░░░░░░] 40% (v2.0 Phase 6: 2/5 plans complete)
+Progress: [██████░░░░] 60% (v2.0 Phase 6: 3/5 plans complete)
 
 ## v2.0 Scope
 
@@ -53,6 +53,9 @@ Full decision log in PROJECT.md Key Decisions table.
 Key decisions made during execution:
 - 06-00: Wave-0 stub pattern confirmed — describe blocks named per VALIDATION.md -t filter strings, it.skip() filled in-place by later plans, no imports (vitest globals:true)
 - 06-01: save = INTEGER (not TEXT); UI appends '+' suffix at display time. Migration comment wording must avoid the literal word "DROP" to pass regex assertions.
+- 06-02: ArmyListUnit omits updated_at — army_list_units schema has no such column; including it causes runtime mismatch.
+- 06-02: PaintWithRecipeCount.recipe_count is SQL-computed (LEFT JOIN COUNT), never recalculated in JS.
+- 06-02: UpdateArmyListUnitInput uses non-optional nullable fields (full-replacement) to allow clearing points_override back to NULL.
 
 Key decisions affecting v2.0 planning:
 - Phase 6 adds `002_unit_playbook_stats.sql` migration — `ALTER TABLE ADD COLUMN` only, no edits to 001
@@ -76,6 +79,6 @@ None (MSVC Build Tools resolved in Phase 1; all seeding questions resolved in Ph
 
 ## Session Continuity
 
-Last session: 2026-05-01T21:01:31.966Z
-Stopped at: Phase 7 UI-SPEC approved
-Resume: Run `/gsd:execute-phase 6` to continue with 06-02 (getStrategyNote + upsertStrategyNote query functions)
+Last session: 2026-05-01T21:04:24.198Z
+Stopped at: Completed 06-02-PLAN.md — StrategyNote, ArmyList, PaintWithRecipeCount types
+Resume: Run `/gsd:execute-phase 6` to continue with 06-03 (query functions: getStrategyNote, upsertStrategyNote, army list CRUD, getPaintsWithRecipeCount)
