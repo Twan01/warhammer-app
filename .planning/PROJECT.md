@@ -1,5 +1,14 @@
 # HobbyForge
 
+## Current Milestone: v1.1 — Utility Layer
+
+**Goal:** Bring paint inventory, army list building, and unit knowledge (personal rules + strategy notes) to a usable first version — completing the "ready to play" workflow.
+
+**Target features:**
+- Paint Inventory page — dedicated UI with filters, running-low/wishlist views, and "used in recipes" back-links
+- Army List Builder — create lists from collection, auto-calculate total/painted points and battle-ready %
+- Unit Playbook — personal stats block (M/T/Sv/W/Ld/OC), abilities/keywords (manually entered), and strategy notes per unit
+
 ## What This Is
 
 HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, painting recipes, paint inventory, and simple manually-built army lists — designed to take one hobbyist from "collector/painter" to "ready-to-play".
@@ -14,38 +23,35 @@ A single personal command center that always answers "what do I own, what's pain
 
 (None yet — ship to validate)
 
+### Validated
+
+<!-- v1.0: shipped Phases 1-3 and wrapping up Phase 4-5 -->
+
+- ✓ App shell (Tauri + React + TS + SQLite, dark mode, sidebar) — Phase 1
+- ✓ Full 10-table schema, FK enforcement, seed data — Phase 2
+- ✓ Faction / Unit / Paint CRUD — Phase 2
+- ✓ Painting recipe CRUD with step-level paint linkage — Phase 4
+- ✓ Collection page: searchable, filterable table, unit detail drawer — Phase 3
+- ✓ Painting Projects Kanban with dnd-kit drag-and-drop — Phase 4
+- ✓ Dashboard stat cards, faction summaries, active projects list — Phase 5 (in progress)
+
 ### Active
 
-<!-- Minimal MVP cut: Phases 0-3 from ROADMAP.txt. Strategy notes, battle logs, images, backup, full army lists deferred to later milestones. -->
+<!-- v1.1: Paint Inventory UI + Army List Builder + Unit Playbook (stats + strategy notes) -->
 
-- [ ] App shell: Tauri + React + TypeScript desktop app launches on Windows with sidebar navigation and placeholder pages
-- [ ] Local SQLite database with schema for factions, units, paints, painting_recipes, recipe_paints
-- [ ] Faction CRUD: create / edit / delete / list factions
-- [ ] Unit CRUD: create / edit / delete / list units with all collection fields (faction, category, model count, status fields, points, purchase info, notes)
-- [ ] Paint CRUD: create / edit / delete / list paints with brand, type, color family, owned/running-low/wishlist flags
-- [ ] Painting recipe CRUD: create / edit / delete / list recipes with steps and faction/unit linkage
-- [ ] Recipe-paint linkage via join table (paints used per recipe step)
-- [ ] Collection page: searchable, filterable table/grid of units (faction, category, painting status, active project)
-- [ ] Unit detail view with status progress and quick status update
-- [ ] Painting Projects page: Kanban view by painting status, showing only active projects
-- [ ] Painting status updates (move units between stages)
-- [ ] Manual painting percentage and active-project flag per unit
-- [ ] Seed data: Tau Empire / Ultramarines / Necrons / Tyranids factions plus sample units, paints, recipes
-- [ ] Data persists across app restarts
-- [ ] Dark-mode-first UI consistent with "personal command center" feel (cards, tags, status indicators, progress bars)
+- [ ] Dedicated Paint Inventory page with filters, running-low/wishlist views, used-in-recipes back-links
+- [ ] Army List Builder: create lists from collection, auto-calculated points + painted readiness %
+- [ ] Unit Playbook: personal stats block (M/T/Sv/W/Ld/OC) + abilities/keywords text + strategy notes per unit
 
 ### Out of Scope
 
-<!-- Cut from v1 to keep MVP focused. Listed in ROADMAP.txt phases 4-9 and beyond. -->
+<!-- Deferred beyond v1.1 -->
 
-- Paint Inventory page (deferred to next milestone — Phase 4 in ROADMAP) — paint CRUD exists but no dedicated inventory UI
-- Army List Builder (deferred to next milestone — Phase 5 in ROADMAP) — schema may be present but UI deferred
-- Strategy / unit tactical notes UI (Phase 6) — deferred
-- Battle logs (Phase 7) — deferred
-- Image upload, photo timelines, image gallery (Phase 8) — deferred; no image storage in v1
-- Backup / export / import (Phase 9) — deferred
-- Settings page (Phase 9) — deferred
-- Multi-game-system support (AoS, Horus Heresy, etc.) — 40K 10th edition only in v1
+- Battle Logs — deferred to v1.2 or later
+- Image upload, photo timelines, image gallery — deferred; no image storage in v1.1
+- Backup / export / import — deferred
+- Settings page — deferred
+- Multi-game-system support (AoS, Horus Heresy, etc.) — 40K 10th edition only
 - macOS / Linux builds — Windows-only
 - Mobile companion app — desktop only
 - AI features (recipe generator, battle summarizer, recommendations) — V3 territory, deferred
@@ -84,4 +90,4 @@ A single personal command center that always answers "what do I own, what's pain
 | Dark-mode-first UI | "Serious hobby command center" feel from source roadmap | — Pending |
 
 ---
-*Last updated: 2026-04-30 after initialization*
+*Last updated: 2026-05-01 after v1.1 milestone initialization*

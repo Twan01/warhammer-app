@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: completed
-stopped_at: "Checkpoint: 04-03 human-verify — 3 auto-tasks complete, awaiting user sign-off on all 6 Phase 4 ROADMAP criteria"
-last_updated: "2026-05-01T08:41:06.561Z"
-last_activity: 2026-05-01 — Completed 04-00 @dnd-kit install, kanbanUtils, recipeSteps, PaintCombobox, test stubs
+milestone: v1.1
+milestone_name: Utility Layer
+status: defining_requirements
+stopped_at: "Milestone v1.1 started — defining requirements"
+last_updated: "2026-05-01T00:00:00.000Z"
+last_activity: 2026-05-01 — Milestone v1.1 initialized (Paint Inventory + Army Lists + Unit Playbook)
 progress:
   total_phases: 5
   completed_phases: 4
