@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Phase 5 context gathered
-last_updated: "2026-05-01T08:15:54.935Z"
+stopped_at: Completed 04-01-PLAN.md — Full Kanban board surface with drag-and-drop, KanbanCard, KanbanBoard, AddProjectPicker, PaintingProjectsPage
+last_updated: "2026-05-01T08:23:35.884Z"
 last_activity: 2026-05-01 — Completed 04-00 @dnd-kit install, kanbanUtils, recipeSteps, PaintCombobox, test stubs
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 16
-  completed_plans: 13
+  completed_plans: 14
   percent: 81
 ---
 
@@ -63,6 +63,7 @@ Progress: [████████░░] 81% (13/16 plans complete)
 | Phase 03-collection-module P04 | 12 | 2 tasks | 2 files |
 | Phase 03-collection-module P04 | 12 | 3 tasks | 2 files |
 | Phase 04-painting-module P00 | 12 | 3 tasks | 11 files |
+| Phase 04-painting-module P01 | 15 | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,8 @@ Recent decisions affecting current work:
 - [Phase 04-painting-module]: 04-00: @dnd-kit versions pinned at core@6.3.1, sortable@10.0.0, utilities@3.2.2 — sortable@10.x requires core@6.x; loose ranges risk runtime incompatibility (Pitfall 2)
 - [Phase 04-painting-module]: 04-00: PaintCombobox dot indicator tests use document.querySelector (not container.querySelector) — Popover renders in a Radix portal outside the component container
 - [Phase 04-painting-module]: 04-00: PaintCombobox CommandItem value uses lowercase brand+name concat so shouldFilter matches case-insensitively without manual filter logic
+- [Phase 04-painting-module]: 04-01: KanbanCardActions uses Popover+Command (not shadcn DropdownMenu) — consistent with StatusPopover.tsx pattern already in repo
+- [Phase 04-painting-module]: 04-01: Column drop id = column-{PaintingStatus}, card drop id = unit-{id} — drag-end resolves target status from over.id prefix
 
 ### Pending Todos
 
@@ -125,6 +128,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-01T08:15:54.926Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-dashboard/05-CONTEXT.md
+Last session: 2026-05-01T08:23:35.882Z
+Stopped at: Completed 04-01-PLAN.md — Full Kanban board surface with drag-and-drop, KanbanCard, KanbanBoard, AddProjectPicker, PaintingProjectsPage
+Resume file: None

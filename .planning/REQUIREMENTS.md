@@ -88,9 +88,9 @@ Requirements for the Minimal MVP (Phases 0-3 from ROADMAP.txt + Full Dashboard).
 - [x] **PROJ-01**: Painting Projects page shows ONLY units where `is_active_project = true`
 - [x] **PROJ-02**: Cards grouped into columns by `status_painting`, ordered by `PAINTING_STATUS_ORDER` constant
 - [x] **PROJ-03**: Each Kanban card shows unit name, faction (with color accent), painting_percentage progress bar, priority, target_completion_date if set
-- [ ] **PROJ-04**: User can drag a card between columns to update `status_painting`; uses @dnd-kit/core + @dnd-kit/sortable; reference pattern: Georgegriff/react-dnd-kit-tailwind-shadcn-ui
-- [ ] **PROJ-05**: Drag-drop mutation is optimistic (UI updates immediately; rollback on DB error) and invalidates units + dashboard stats
-- [ ] **PROJ-06**: User can mark/unmark a unit as active project from anywhere (Kanban card menu, unit detail drawer, collection table)
+- [x] **PROJ-04**: User can drag a card between columns to update `status_painting`; uses @dnd-kit/core + @dnd-kit/sortable; reference pattern: Georgegriff/react-dnd-kit-tailwind-shadcn-ui
+- [x] **PROJ-05**: Drag-drop mutation is optimistic (UI updates immediately; rollback on DB error) and invalidates units + dashboard stats
+- [x] **PROJ-06**: User can mark/unmark a unit as active project from anywhere (Kanban card menu, unit detail drawer, collection table)
 - [x] **PROJ-07**: Sortable cards within a column by priority then target_completion_date
 - [x] **PROJ-08**: Empty state when no active projects ("Mark a unit as active project to see it here")
 
@@ -264,9 +264,9 @@ Which phases cover which requirements.
 | PROJ-01 | Phase 4 | Complete |
 | PROJ-02 | Phase 4 | Complete |
 | PROJ-03 | Phase 4 | Complete |
-| PROJ-04 | Phase 4 | Pending |
-| PROJ-05 | Phase 4 | Pending |
-| PROJ-06 | Phase 4 | Pending |
+| PROJ-04 | Phase 4 | Complete |
+| PROJ-05 | Phase 4 | Complete |
+| PROJ-06 | Phase 4 | Complete |
 | PROJ-07 | Phase 4 | Complete |
 | PROJ-08 | Phase 4 | Complete |
 | RECIPE-01 | Phase 4 | Pending |
