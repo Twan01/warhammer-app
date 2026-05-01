@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: App Shell** - Tauri + React desktop app launches with sidebar, routing, SQLite plumbing, dark mode, and all shadcn components installed (completed 2026-04-30)
 - [x] **Phase 2: Data Layer + Entity CRUD** - Full 10-table schema, FK enforcement, seed data, and CRUD for factions / units / paints (schema + queries + hooks + basic UI for all three) (completed 2026-04-30)
 - [x] **Phase 3: Collection Module** - Searchable, filterable unit table with detail drawer, inline status updates, progress bars, and full create/edit/delete UX including all cross-cutting polish patterns (completed 2026-05-01)
-- [x] **Phase 4: Painting Module** - Active painting projects Kanban (status columns, card actions, mark active) plus full recipe CRUD with paint linkage and owned/missing paint indicator (completed 2026-05-01)
+- [ ] **Phase 4: Painting Module** - Active painting projects Kanban (status columns, card actions, mark active) plus full recipe CRUD with paint linkage and owned/missing paint indicator
 - [ ] **Phase 5: Dashboard** - Full dashboard with global stat cards, faction summary cards, painting/assembly/basing percentages, active projects list, and recently updated units
 
 ## Phase Details
@@ -104,12 +104,13 @@ Plans:
   3. Painting completion percentage, assembly completion percentage, and basing completion percentage are each visible and correctly calculated across all units
   4. The "Current active projects" list links to unit detail and the "Recently updated" list shows the correct last 5-10 units by updated_at
   5. An empty state (pointing to Collection) appears when no factions or units have been added yet
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 05-01: Dashboard stat queries (aggregation SQL in src/db/queries/dashboard.ts), useDashboardStats hook with dashboard-stats query key
-- [ ] 05-02: DashboardPage layout — top stat cards (DASH-01), painting/assembly/basing percentage cards (DASH-03, DASH-04), active projects list (DASH-05), recently updated list (DASH-06)
-- [ ] 05-03: Faction summary cards (DASH-02), empty state (DASH-08), verify all invalidations from Phase 3+4 mutations reach dashboard-stats key
+- [ ] 05-00-PLAN.md — Wave 0: pure utilities (computeStats, formatRelativeTime, STATUS_ABBR) with full vitest coverage for DASH-01..06, DASH-08; Wave-0 stub test file for DashboardPage
+- [ ] 05-01-PLAN.md — Dashboard query (getDashboardStats: parallel SELECTs, no SQL aggregation) + useDashboardStats hook (DASHBOARD_STATS_KEY) + cache-key contract test (DASH-07)
+- [ ] 05-02-PLAN.md — Four atomic UI components (StatCard, DashboardListRow, FactionSummaryCard, DashboardEmptyState) + DashboardPage assembly + route swap; fills DashboardPage Wave-0 stubs (DASH-01..08)
+- [ ] 05-03-PLAN.md — DASH-07 invalidation verification, human-verify checkpoint covering all 5 Phase 5 ROADMAP success criteria, Phase 5 SUMMARY (autonomous: false — includes human-verify checkpoint)
 
 ## Progress
 
@@ -122,4 +123,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Data Layer + Entity CRUD | 4/4 | Complete   | 2026-04-30 |
 | 3. Collection Module | 5/5 | Complete   | 2026-05-01 |
 | 4. Painting Module | 4/4 | Complete   | 2026-05-01 |
-| 5. Dashboard | 0/3 | Not started | - |
+| 5. Dashboard | 0/4 | Not started | - |
