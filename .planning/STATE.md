@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-01-PLAN.md — Full Kanban board surface with drag-and-drop, KanbanCard, KanbanBoard, AddProjectPicker, PaintingProjectsPage
-last_updated: "2026-05-01T08:23:35.884Z"
+stopped_at: Phase 5 UI-SPEC approved
+last_updated: "2026-05-01T08:28:15.177Z"
 last_activity: 2026-05-01 — Completed 04-00 @dnd-kit install, kanbanUtils, recipeSteps, PaintCombobox, test stubs
 progress:
   total_phases: 5
@@ -128,6 +128,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-01T08:23:35.882Z
-Stopped at: Completed 04-01-PLAN.md — Full Kanban board surface with drag-and-drop, KanbanCard, KanbanBoard, AddProjectPicker, PaintingProjectsPage
-Resume file: None
+Last session: 2026-05-01T08:28:15.159Z
+Stopped at: Phase 5 UI-SPEC approved
+Resume file: .planning/phases/05-dashboard/05-UI-SPEC.md
