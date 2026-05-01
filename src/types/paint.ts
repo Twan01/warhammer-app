@@ -27,3 +27,16 @@ export interface Paint {
 
 export type CreatePaintInput = Omit<Paint, "id" | "created_at" | "updated_at">;
 export type UpdatePaintInput = Partial<CreatePaintInput> & { id: number };
+
+/**
+ * PaintWithRecipeCount — Paint augmented with the number of recipe steps it
+ * appears in (PINV-05). Returned by getPaintsWithRecipeCount() in
+ * src/db/queries/paints.ts (added in plan 06-03). Used by the Phase 7
+ * Paint Inventory page to render the "used in N recipes" badge per row.
+ *
+ * recipe_count comes from a LEFT JOIN + COUNT(rp.id) in SQL — never computed
+ * in JS by re-querying recipe_paints from the page.
+ */
+export interface PaintWithRecipeCount extends Paint {
+  recipe_count: number;
+}
