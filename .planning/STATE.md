@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
 status: in_progress
-stopped_at: Completed 07-02-PLAN.md — getRecipeIdsByPaintId query + useRecipeIdsByPaint hook; 157 tests green
-last_updated: "2026-05-01T21:40:49.365Z"
-last_activity: 2026-05-01 — 07-02 executed; getRecipeIdsByPaintId DB query + RECIPE_IDS_BY_PAINT_KEY/useRecipeIdsByPaint TanStack Query hook; 157 tests green
+stopped_at: Completed 07-03-PLAN.md — recipesRoute validateSearch (paintId? zod) + RecipesPage paintFilter URL param consumption; 157 tests green
+last_updated: "2026-05-01T21:46:08.000Z"
+last_activity: 2026-05-01 — 07-03 executed; recipesRoute exports validateSearch with zod paintId schema; RecipesPage reads paintId from URL on mount and filters recipes via useRecipeIdsByPaint
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 10
-  completed_plans: 7
-  percent: 70
+  completed_plans: 8
+  percent: 80
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-05-01 after v1.1 milestone)
 ## Current Position
 
 Phase: 7 of 9 (v2.0 Paint Inventory UI) — IN PROGRESS
-Plan: 2 of 5 complete in current phase
-Status: v1.1 fully shipped (Phases 1–5 complete). v2.0 underway — Phase 6 complete. Phase 7 in progress — 07-01 (filter state layer) and 07-02 (recipe-paint query + hook) complete.
-Last activity: 2026-05-01 — 07-02 executed; getRecipeIdsByPaintId DB query + RECIPE_IDS_BY_PAINT_KEY/useRecipeIdsByPaint TanStack Query hook; 157 tests green
+Plan: 3 of 5 complete in current phase
+Status: v1.1 fully shipped (Phases 1–5 complete). v2.0 underway — Phase 6 complete. Phase 7 in progress — 07-01 (filter state layer), 07-02 (recipe-paint query + hook), and 07-03 (URL param + RecipesPage filter) complete.
+Last activity: 2026-05-01 — 07-03 executed; recipesRoute exports validateSearch with zod paintId schema; RecipesPage reads paintId from URL on mount and filters recipes via useRecipeIdsByPaint
 
 Progress: [███████░░░] 70% (v2.0 Phase 7: 2/5 plans complete)
 
@@ -51,6 +51,9 @@ Key architecture context carried forward:
 Full decision log in PROJECT.md Key Decisions table.
 
 Key decisions made during execution:
+- 07-03: recipesRoute exported as named export from router.tsx so RecipesPage can call recipesRoute.useSearch() — first use of validateSearch in codebase; no circular import issue encountered (ES module live-binding with Vite handles it).
+- 07-03: paintFilter seeded once on mount via useEffect([]) — intentional empty deps so user can clear the URL-seeded filter without the URL param re-applying on next render.
+- 07-03: while recipeIdsByPaint is loading, paintFilter guard hides all recipes (single-render flash) matching empty-state UX.
 - 07-02: useRecipePaints.ts already existed from Phase 4 — appended RECIPE_IDS_BY_PAINT_KEY and useRecipeIdsByPaint additively, preserving the existing 3 exports.
 - 07-02: useRecipeIdsByPaint uses disabled fallback queryKey ['recipe-ids-by-paint', 'disabled'] when paintId is null/undefined — TanStack Query requires a defined queryKey even when enabled: false.
 - 07-01: usePaintInventoryFilters is a direct structural copy of useCollectionFilters — five fields (brands/types/colorFamilies as arrays, runningLow/wishlist as booleans), same idempotent toggle pattern.
@@ -91,6 +94,6 @@ None (MSVC Build Tools resolved in Phase 1; all seeding questions resolved in Ph
 
 ## Session Continuity
 
-Last session: 2026-05-01T21:40:00.000Z
-Stopped at: Completed 07-02-PLAN.md — getRecipeIdsByPaintId query + useRecipeIdsByPaint hook; 157 tests green
-Resume: Run `/gsd:execute-phase 7` to continue Phase 7 with plan 07-03
+Last session: 2026-05-01T21:46:08.000Z
+Stopped at: Completed 07-03-PLAN.md — recipesRoute validateSearch (paintId? zod) + RecipesPage paintFilter URL param consumption; 157 tests green
+Resume: Run `/gsd:execute-phase 7` to continue Phase 7 with plan 07-04
