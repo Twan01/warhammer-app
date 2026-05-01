@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
 status: completed
-stopped_at: Completed 06-04-PLAN.md — TanStack Query hooks (usePaints PAINTS_WITH_RECIPES_KEY, useStrategyNote, useArmyLists)
-last_updated: "2026-05-01T21:24:40.917Z"
+stopped_at: Phase 7 planned — 5 plans, 3 waves
+last_updated: "2026-05-01T21:26:21.120Z"
 last_activity: 2026-05-01 — 06-04 executed; usePaints double-invalidation + useStrategyNote + useArmyLists; 142 tests green
 progress:
   total_phases: 4
@@ -87,6 +87,6 @@ None (MSVC Build Tools resolved in Phase 1; all seeding questions resolved in Ph
 
 ## Session Continuity
 
-Last session: 2026-05-01T21:17:52Z
-Stopped at: Completed 06-04-PLAN.md — TanStack Query hooks (usePaints PAINTS_WITH_RECIPES_KEY, useStrategyNote, useArmyLists)
+Last session: 2026-05-01T21:26:21.117Z
+Stopped at: Phase 7 planned — 5 plans, 3 waves
 Resume: Run `/gsd:execute-phase 7` to start Phase 7 (Paint Inventory UI)
