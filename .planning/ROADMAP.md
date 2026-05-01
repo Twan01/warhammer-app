@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: App Shell** - Tauri + React desktop app launches with sidebar, routing, SQLite plumbing, dark mode, and all shadcn components installed (completed 2026-04-30)
 - [x] **Phase 2: Data Layer + Entity CRUD** - Full 10-table schema, FK enforcement, seed data, and CRUD for factions / units / paints (schema + queries + hooks + basic UI for all three) (completed 2026-04-30)
-- [ ] **Phase 3: Collection Module** - Searchable, filterable unit table with detail drawer, inline status updates, progress bars, and full create/edit/delete UX including all cross-cutting polish patterns
+- [x] **Phase 3: Collection Module** - Searchable, filterable unit table with detail drawer, inline status updates, progress bars, and full create/edit/delete UX including all cross-cutting polish patterns (completed 2026-05-01)
 - [ ] **Phase 4: Painting Module** - Active painting projects Kanban (status columns, card actions, mark active) plus full recipe CRUD with paint linkage and owned/missing paint indicator
 - [ ] **Phase 5: Dashboard** - Full dashboard with global stat cards, faction summary cards, painting/assembly/basing percentages, active projects list, and recently updated units
 
@@ -120,6 +120,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. App Shell | 3/3 | Complete   | 2026-04-30 |
 | 2. Data Layer + Entity CRUD | 4/4 | Complete   | 2026-04-30 |
-| 3. Collection Module | 4/5 | In Progress|  |
+| 3. Collection Module | 5/5 | Complete   | 2026-05-01 |
 | 4. Painting Module | 0/4 | Not started | - |
 | 5. Dashboard | 0/3 | Not started | - |
