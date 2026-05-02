@@ -34,7 +34,7 @@ Declared values (multiples of 4 only):
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| xs | 4px | Icon gaps (`gap-1`), inline icon-to-label padding |
+| xs | 4px | Icon gaps (`gap-1`), inline icon-to-label padding, stat cell internal gap |
 | sm | 8px | Compact element spacing, gap between stat cells |
 | md | 16px | Default section padding (`p-4`), gap between form fields (`gap-4`) |
 | lg | 24px | Section breaks within the Playbook tab scroll area |
@@ -63,7 +63,7 @@ Notes:
 - Body is consistent with `UnitDetailSheet.tsx` existing `text-sm` usage
 - Field labels follow the existing `Field` component pattern: `text-xs font-semibold text-muted-foreground uppercase tracking-wide`
 - Stat value text uses semibold so the display-mode cells read like a real datasheet header strip
-- Tab trigger text: `text-sm font-medium` (inherited from `TabsTrigger` in `src/components/ui/tabs.tsx`)
+- Tab trigger: 500 medium — inherited from shadcn `TabsTrigger` in `src/components/ui/tabs.tsx` as a system default, not a custom token. Corresponds to Tailwind `font-medium`.
 
 Source: existing `UnitDetailSheet.tsx` `Field` component, `tabs.tsx` trigger styles, CONTEXT.md
 
@@ -129,7 +129,7 @@ Source: CONTEXT.md (Tabs integration decisions), `tabs.tsx`
 ### 2. Stats Block — Display Mode
 
 - Six cells in a single `flex flex-row` container spanning the full width of the sheet content
-- Each cell: `flex-1 flex flex-col items-center justify-center min-h-[44px] border border-border rounded-sm bg-card gap-0.5 px-1 py-2`
+- Each cell: `flex-1 flex flex-col items-center justify-center min-h-[44px] border border-border rounded-sm bg-card gap-1 px-1 py-2`
 - Top line: stat abbreviation — `text-[10px] font-semibold text-muted-foreground uppercase` — exactly: M, T, Sv, W, Ld, OC
 - Bottom line: value with suffix — `text-base font-semibold text-foreground`
 - Suffix logic (display only, never stored):
@@ -192,7 +192,7 @@ Source: CONTEXT.md (strategy notes layout decision), REQUIREMENTS.md STRAT-04
 - Disabled when: no field has changed since last load or last save (`isDirty` flag tracked in component state)
 - Enabled as soon as any input is changed
 - On success: `toast.success("Playbook saved")` via sonner — sheet remains open
-- On error: `toast.error("Failed to save playbook")` — sheet remains open, button re-enables
+- On error: `toast.error("Failed to save playbook — try again")` — sheet remains open, button re-enables (re-enabled button is the retry path)
 - No separate edit/view mode toggle for strategy notes — textareas are always editable
 
 Source: CONTEXT.md (Save button placement decision, toast copy)
@@ -220,7 +220,7 @@ Source: CONTEXT.md (data loading decision), `UnitDetailSheet.tsx` key pattern
 | Empty stat value | "—" (em dash, `text-muted-foreground`) |
 | Edit stats trigger tooltip/aria-label | "Edit stats" |
 | Save Playbook — success toast | "Playbook saved" |
-| Save Playbook — error toast | "Failed to save playbook" |
+| Save Playbook — error toast | "Failed to save playbook — try again" (button re-enables as the retry path) |
 | Save button disabled state | Button rendered disabled — no additional label change |
 | Playbook tab empty prompt (no copy shown) | No empty-state heading needed — fields are always visible, just empty |
 
