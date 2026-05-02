@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
 status: executing
-stopped_at: Completed 07-04-PLAN.md — PaintInventoryFilters + PaintRow upgrade + PaintsPage wire-up; 157 tests green
-last_updated: "2026-05-01T22:03:00.000Z"
-last_activity: 2026-05-01 — 07-04 executed; PaintInventoryFilters component created; PaintRow upgraded to PaintWithRecipeCount with clickable owned badge + recipe count badge + Color Family column; PaintsPage wired with filter store, optimistic toggle, cross-page navigation, unmount cleanup
+stopped_at: Completed 07-05-PLAN.md — Manual smoke test approved; all PINV-01..06 requirements verified; Phase 7 complete
+last_updated: "2026-05-02T06:36:20.296Z"
+last_activity: 2026-05-01 — 07-05 manual smoke test approved; all PINV-01..06 requirements verified end-to-end in live Tauri app; Phase 7 complete
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 10
-  completed_plans: 9
-  percent: 90
+  completed_plans: 10
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-01 after v1.1 milestone)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.0 — Phase 6 (Foundation) ready to plan
+**Current focus:** v2.0 — Phase 7 (Paint Inventory UI) complete; Phase 8 (Army List Builder) ready to plan
 
 ## Current Position
 
-Phase: 7 of 9 (v2.0 Paint Inventory UI) — IN PROGRESS
-Plan: 4 of 5 complete in current phase
-Status: v1.1 fully shipped (Phases 1–5 complete). v2.0 underway — Phase 6 complete. Phase 7 in progress — 07-01 (filter state layer), 07-02 (recipe-paint query + hook), 07-03 (URL param + RecipesPage filter), and 07-04 (Paint Inventory page UI wire-up) complete.
-Last activity: 2026-05-01 — 07-04 executed; PaintInventoryFilters component created; PaintRow upgraded with 7-column layout; PaintsPage wired with usePaintsWithRecipeCount, filter store, optimistic owned toggle, cross-page navigation, and unmount cleanup; 157 tests green
+Phase: 7 of 9 (v2.0 Paint Inventory UI) — COMPLETE
+Plan: 5 of 5 complete in current phase
+Status: v1.1 fully shipped (Phases 1–5 complete). v2.0 underway — Phase 6 complete. Phase 7 complete — all 5 plans executed and all PINV-01..06 requirements verified via manual smoke test. Phase 8 (Army List Builder) is next.
+Last activity: 2026-05-01 — 07-05 manual smoke test approved; all PINV-01..06 requirements verified end-to-end in live Tauri app; Phase 7 complete
 
-Progress: [█████████░] 90% (v2.0 Phase 7: 4/5 plans complete)
+Progress: [██████████] 100% (v2.0 Phase 7: 5/5 plans complete)
 
 ## v2.0 Scope
 
@@ -96,6 +96,6 @@ None (MSVC Build Tools resolved in Phase 1; all seeding questions resolved in Ph
 
 ## Session Continuity
 
-Last session: 2026-05-01T22:03:00.000Z
-Stopped at: Completed 07-04-PLAN.md — PaintInventoryFilters + PaintRow upgrade + PaintsPage wire-up; 157 tests green
-Resume: Run `/gsd:execute-phase 7` to continue Phase 7 with plan 07-05
+Last session: 2026-05-02T06:36:20.293Z
+Stopped at: Completed 07-05-PLAN.md — Manual smoke test approved; all PINV-01..06 requirements verified; Phase 7 complete
+Resume: Run `/gsd:plan-phase 8` to plan Phase 8 (Army List Builder), or `/gsd:verify-work` to verify Phase 7

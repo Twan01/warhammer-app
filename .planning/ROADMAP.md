@@ -27,7 +27,7 @@ Full details: `.planning/milestones/v1.1-ROADMAP.md`
 HobbyForge v2.0 adds three features that complete the "ready-to-play" workflow: a dedicated Paint Inventory page, an Army List Builder, and the Unit Playbook (personal stats block and strategy notes per unit). Phase 6 is a pure back-end foundation — schema migration, new TypeScript types, all query and hook modules for all three features, with no UI. Phases 7–9 build the UI on that verified data layer.
 
 - [x] **Phase 6: Foundation** — Schema migration 004, TypeScript types for all v2.0 features, query modules (armyLists.ts, strategyNotes.ts), hook modules, and cross-invalidation patch to usePaints.ts (completed 2026-05-01)
-- [ ] **Phase 7: Paint Inventory** — PaintInventoryPage with brand/type/color-family filters, running-low and wishlist preset views, color swatch, "used in N recipes" badge, inline owned toggle, sidebar nav and route
+- [x] **Phase 7: Paint Inventory** — PaintInventoryPage with brand/type/color-family filters, running-low and wishlist preset views, color swatch, "used in N recipes" badge, inline owned toggle, sidebar nav and route (completed 2026-05-02)
 - [ ] **Phase 8: Army List Builder** — ArmyListsPage, ArmyListDetailSheet, unit picker, COALESCE-in-SQL points calculation, battle-ready %, pre-delete unit check, sidebar nav and route
 - [ ] **Phase 9: Unit Playbook** — PlaybookTab (stats block grid + abilities/keywords + strategy notes + inline save), UnitDetailSheet wrapped in shadcn Tabs
 
@@ -108,6 +108,6 @@ Plans:
 | 4. Painting Module | v1.1 | 4/4 | Complete | 2026-05-01 |
 | 5. Dashboard | v1.1 | 4/4 | Complete | 2026-05-01 |
 | 6. Foundation | v2.0 | 5/5 | Complete | 2026-05-01 |
-| 7. Paint Inventory | 4/5 | In Progress|  | — |
+| 7. Paint Inventory | 5/5 | Complete   | 2026-05-02 | — |
 | 8. Army List Builder | v2.0 | 0/TBD | Not started | — |
 | 9. Unit Playbook | v2.0 | 0/TBD | Not started | — |
