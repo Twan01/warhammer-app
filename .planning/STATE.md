@@ -68,6 +68,10 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 - Sibling Sheet/Dialog portal pattern — never nest Radix portals
 - selectedUnitId pattern for any page that opens a detail Sheet
 
+### Roadmap Evolution
+
+- Phase 15 added: Warhammer 40K datasheet and rules integration — auto-populate Playbook tab stats/abilities/keywords from community data sources, bundle local SQLite rules database, surface rulebook references in-app (stratagems, detachment rules, core rules)
+
 ### Tech Debt
 
 - PROJ-02: REQUIREMENTS.md text still says "empty columns hidden" — KanbanBoard ships all 11 columns (approved UX)

@@ -32,6 +32,16 @@ HobbyForge v2.0 adds three features that complete the "ready-to-play" workflow: 
 - [ ] **Phase 8: Army List Builder** — ArmyListsPage, ArmyListDetailSheet, unit picker, COALESCE-in-SQL points calculation, battle-ready %, pre-delete unit check, sidebar nav and route
 - [x] **Phase 9: Unit Playbook** — PlaybookTab (stats block grid + abilities/keywords + strategy notes + inline save), UnitDetailSheet wrapped in shadcn Tabs (completed 2026-05-02)
 
+### Phase 15: Warhammer 40K datasheet and rules integration
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 14
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 15 to break down)
+
 ---
 
 ### 📋 v2.1 Visual Command (Phases 10–14) — Planned
