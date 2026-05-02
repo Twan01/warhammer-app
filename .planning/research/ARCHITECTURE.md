@@ -1,98 +1,534 @@
 # Architecture Research
 
-**Domain:** HobbyForge v1.1 — Paint Inventory, Army List Builder, Unit Playbook integration into existing codebase
-**Researched:** 2026-05-01
-**Confidence:** HIGH — based on direct codebase audit of all relevant source files
+**Domain:** HobbyForge v2.1 — Visual Command (Faction Theming, Dashboard Redesign, Collapsible Sidebar, Gallery View, Hobby Journal, Spending Tracker)
+**Researched:** 2026-05-02
+**Confidence:** HIGH — based on direct codebase audit + Tailwind v4 and Tauri 2 documentation
+
+---
 
 ## Standard Architecture
 
 ### System Overview
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     React UI Layer                           │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
-│  │ PaintInv     │  │  ArmyLists   │  │ UnitDetail   │       │
-│  │ Page+Filters │  │  Page+Detail │  │ Sheet+Tabs   │       │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘       │
-├─────────┴──────────────────┴──────────────────┴─────────────┤
-│                   TanStack Query Hooks Layer                  │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
-│  │  usePaints   │  │ useArmyLists │  │useStrategyNote│      │
-│  │  (enhanced)  │  │  (new)       │  │  (new)        │      │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘       │
-├─────────┴──────────────────┴──────────────────┴─────────────┤
-│                   src/db/queries/* Layer                      │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
-│  │  paints.ts   │  │ armyLists.ts │  │strategyNotes │       │
-│  │  (+ join fn) │  │  (new file)  │  │  .ts (new)   │       │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘       │
-├─────────┴──────────────────┴──────────────────┴─────────────┤
-│                   SQLite (tauri-plugin-sql)                   │
-│  paints  recipe_paints  army_lists  army_list_units           │
-│  unit_strategy_notes (migration 002 adds 8 columns)           │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                        React UI Layer                            │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐        │
+│  │Dashboard │  │Collection│  │HobbyJnl  │  │Spending  │        │
+│  │Command   │  │Gallery   │  │PhotoView │  │Tracker   │        │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘        │
+├───────┴─────────────┴─────────────┴──────────────┴─────────────┤
+│                    Zustand Store Layer                            │
+│  ┌──────────────────┐   ┌───────────────┐   ┌──────────────┐    │
+│  │ useFactionTheme  │   │ useSidebarCol │   │ filter stores│    │
+│  │ (persist to LS)  │   │ (persist to LS│   │ (ephemeral)  │    │
+│  └────────┬─────────┘   └───────┬───────┘   └──────────────┘    │
+│           │ effect: setProperty │                                 │
+├───────────┴─────────────────────┴───────────────────────────────┤
+│                  TanStack Query Hooks Layer                       │
+│  ┌──────────┐  ┌──────────┐  ┌─────────────┐  ┌─────────────┐   │
+│  │useFaction│  │useUnits  │  │useHobbyJrnl │  │useSpending  │   │
+│  │Stats     │  │(gallery) │  │(new)        │  │(new)        │   │
+│  └────┬─────┘  └────┬─────┘  └──────┬──────┘  └──────┬──────┘   │
+├───────┴─────────────┴──────────────┴───────────────────┴────────┤
+│                   src/db/queries/* Layer                          │
+│  ┌──────────┐  ┌───────────────┐  ┌──────────────────────────┐   │
+│  │dashboard │  │hobbyJournal   │  │spending.ts               │   │
+│  │.ts       │  │.ts (new)      │  │(new)                     │   │
+│  └────┬─────┘  └───────┬───────┘  └───────────┬──────────────┘   │
+├───────┴─────────────────┴────────────────────────┴──────────────┤
+│                   SQLite (tauri-plugin-sql)                       │
+│  hobby_sessions  unit_photos  unit_purchases  paint_purchases     │
+│  (4 new tables via migration 005)                                 │
+├─────────────────────────────────────────────────────────────────┤
+│              Tauri fs Plugin (NEW — photo storage only)           │
+│  BaseDirectory.AppData → %APPDATA%\com.hobbyforge.app\           │
+│  photos/{unit_id}/{uuid}.webp                                     │
+│  photos/{unit_id}/thumbs/{uuid}_thumb.webp                       │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ### Component Responsibilities
 
-| Component | Responsibility | Location |
-|-----------|----------------|----------|
-| `PaintInventoryPage` | Filterable paint table with running-low/wishlist views and used-in-recipes back-links | `src/features/paints/PaintInventoryPage.tsx` (NEW) |
-| `PaintInventoryFilters` | Local filter controls — brand, type, owned, running-low, wishlist | `src/features/paints/PaintInventoryFilters.tsx` (NEW) |
-| `ArmyListsPage` | List index, create/delete army lists | `src/features/army-lists/ArmyListsPage.tsx` (NEW) |
-| `ArmyListDetailSheet` | Add/remove units, display point totals and painted % | `src/features/army-lists/ArmyListDetailSheet.tsx` (NEW) |
-| `PlaybookTab` | Stats block form + strategy notes inside UnitDetailSheet | `src/features/units/PlaybookTab.tsx` (NEW) |
-| `UnitDetailSheet` | Existing drawer — gains Tabs wrapper, adds Playbook tab | `src/features/units/UnitDetailSheet.tsx` (MODIFY) |
-| `PaintsPage` | Existing paint CRUD at `/paints` — unchanged | `src/features/paints/PaintsPage.tsx` (UNCHANGED) |
+| Component | Responsibility | Location | Status |
+|-----------|----------------|----------|--------|
+| `useFactionThemeStore` | Holds `activeFactionId`, persists to localStorage, fires `setProperty` effect on change | `src/stores/useFactionThemeStore.ts` | NEW |
+| `useSidebarCollapsed` | Already exists, already persists to localStorage | `src/components/common/useSidebarCollapsed.ts` | EXISTS — no change needed |
+| `FactionThemeProvider` | Thin wrapper component at app root that subscribes to theme store and calls effect | `src/components/common/FactionThemeProvider.tsx` | NEW |
+| `AppSidebar` | Gains tooltip labels in collapsed state | `src/components/common/AppSidebar.tsx` | MODIFY |
+| `DashboardPage` | Full visual redesign — hero band, animated counters, faction banners | `src/features/dashboard/DashboardPage.tsx` | MODIFY (major) |
+| `CollectionPage` | Gains `viewMode` toggle between table and gallery | `src/features/units/CollectionPage.tsx` | MODIFY |
+| `UnitGalleryView` | New card-grid component with SVG painting-status ring | `src/features/units/UnitGalleryView.tsx` | NEW |
+| `UnitGalleryCard` | Single card in gallery — painting ring, unit name, faction badge | `src/features/units/UnitGalleryCard.tsx` | NEW |
+| `HobbyJournalPage` | Photo timeline per unit + session log with time tracking | `src/features/hobby-journal/HobbyJournalPage.tsx` | NEW |
+| `SpendingTrackerPage` | Cost per unit + paint, per-faction and total views | `src/features/spending/SpendingTrackerPage.tsx` | NEW |
 
-## Schema Gap Analysis
+---
 
-### unit_strategy_notes — Migration Required
+## Feature 1: Faction Dynamic Theming
 
-The existing `001_core_schema.sql` (lines 127-140) creates `unit_strategy_notes` with:
-`battlefield_role`, `strengths`, `weaknesses`, `best_targets`, `synergies`, `mistakes_to_avoid`, `rules_references`, `notes`
+### Where Theme State Lives
 
-**Missing for v1.1 Unit Playbook — 8 columns absent:**
+**Recommendation: Zustand store with `persist` middleware writing to localStorage.**
 
-| Missing Column | Type | Purpose |
-|---------------|------|---------|
-| `move` | TEXT | M stat (e.g. "6") |
-| `toughness` | INTEGER | T stat |
-| `save` | TEXT | Sv stat (e.g. "3+") |
-| `wounds` | INTEGER | W stat |
-| `leadership` | TEXT | Ld stat (e.g. "6+") |
-| `objective_control` | INTEGER | OC stat |
-| `keywords` | TEXT | Comma-separated or free-text block |
-| `abilities` | TEXT | Free-text ability descriptions |
+Rationale:
+- The sidebar collapse state already uses a raw `useSidebarCollapsed` hook writing to localStorage directly. Faction theme is analogous — persistent across app restarts, no server needed.
+- Zustand `persist` middleware provides synchronous read on first render (avoids flash) when using `localStorage` as the storage engine.
+- Using a Zustand store (rather than React Context) avoids re-rendering the full component tree on theme changes — only the components that subscribe to the store re-render. The CSS property swap itself is a side effect, not a state value consumed by JSX.
+- React Context is the wrong tool here: theme state is not "a value components render from" — it's a global side effect (property mutation on `document.documentElement`). Context would cause cascading re-renders unnecessarily.
 
-**Migration 002 required** (`src-tauri/migrations/002_unit_playbook_stats.sql`):
-```sql
--- 002_unit_playbook_stats.sql
--- Adds stats block + abilities/keywords to unit_strategy_notes for v1.1 Unit Playbook
-ALTER TABLE unit_strategy_notes ADD COLUMN move TEXT;
-ALTER TABLE unit_strategy_notes ADD COLUMN toughness INTEGER;
-ALTER TABLE unit_strategy_notes ADD COLUMN save TEXT;
-ALTER TABLE unit_strategy_notes ADD COLUMN wounds INTEGER;
-ALTER TABLE unit_strategy_notes ADD COLUMN leadership TEXT;
-ALTER TABLE unit_strategy_notes ADD COLUMN objective_control INTEGER;
-ALTER TABLE unit_strategy_notes ADD COLUMN keywords TEXT;
-ALTER TABLE unit_strategy_notes ADD COLUMN abilities TEXT;
+**Do NOT use `next-themes`** even though it is installed. `next-themes` manages light/dark toggle, which the app has already solved with a `.dark` class on the root. Faction theming is an independent accent color system.
+
+### How CSS Custom Properties Are Swapped in Tailwind v4
+
+Tailwind v4 uses a CSS-first approach. The `@theme inline` block in `src/styles/globals.css` maps `--color-accent` → `hsl(var(--accent))`. This means:
+
+1. Define faction accent tokens as CSS custom properties on `:root`:
+```css
+/* src/styles/globals.css — add to .dark block */
+:root {
+  --faction-accent: 210 70% 55%;       /* default: neutral blue */
+  --faction-accent-fg: 0 0% 98%;
+  --faction-glow: 210 70% 55%;
+}
 ```
 
-The migration must also be registered in `src-tauri/src/lib.rs` as version 2 in the `get_migrations()` vec.
+2. Register them in the `@theme inline` block so Tailwind utility classes reference them:
+```css
+@theme inline {
+  /* existing tokens ... */
+  --color-faction-accent: hsl(var(--faction-accent));
+  --color-faction-accent-fg: hsl(var(--faction-accent-fg));
+  --color-faction-glow: hsl(var(--faction-glow));
+}
+```
 
-### army_lists + army_list_units — No Gap
+3. At runtime, swap via `document.documentElement.style.setProperty()`:
+```typescript
+// Inside useFactionThemeStore or FactionThemeProvider effect
+document.documentElement.style.setProperty('--faction-accent', '14 80% 45%'); // Space Marines
+document.documentElement.style.setProperty('--faction-accent-fg', '0 0% 98%');
+document.documentElement.style.setProperty('--faction-glow', '14 80% 45%');
+```
 
-Both tables are complete for v1.1:
-- `army_lists`: `id, name, faction_id, points_limit, list_type, notes, created_at, updated_at` — covers all of ARMY-01, ARMY-04, ARMY-05
-- `army_list_units`: `id, list_id, unit_id, points_override, notes, created_at` — `points_override` satisfies ARMY-02 "manual points or override"
+4. In JSX, use utility classes: `bg-faction-accent`, `text-faction-accent-fg`, `ring-faction-accent`, `border-faction-accent`. These reference the live custom property — Tailwind generates them at build time, the browser resolves the value at runtime.
 
-No schema changes needed for Army List Builder.
+**Why this avoids class purging:** Tailwind v4 scans source files and generates classes from utility names in JSX/TSX. As long as `bg-faction-accent`, `text-faction-accent`, etc. appear literally in source files, they will be included in the build. The runtime value is a CSS property — Tailwind never sees or cares about it. No purging risk.
 
-### paints — No Gap
+**What would cause purging problems (avoid):** Dynamically constructing class names like `` `bg-${factionColor}-500` `` — Tailwind cannot statically analyze string interpolation and will not generate those classes.
 
-`paints` already has `running_low`, `wishlist`, `owned`, `brand`, `paint_type`, `color_family` — all filter dimensions needed by `PaintInventoryPage`. No schema changes needed for Paint Inventory.
+### Faction Color Map
+
+The `factions` table already has `color_theme TEXT NOT NULL DEFAULT '#4A90D9'`. Store HSL channel values in the table or derive them from the stored hex at theme application time.
+
+**Recommended approach:** Add a `color_theme_hsl TEXT` column to `factions` via migration (or compute HSL from hex at query time using a utility function). HSL is required because the CSS custom property pattern uses `hsl(var(--faction-accent))` so only the HSL channel tuple should be stored (`"14 80% 45%"` not `"hsl(14, 80%, 45%)"`).
+
+**Faction color table (seed values):**
+
+| Faction | Hex | HSL channels |
+|---------|-----|--------------|
+| Space Marines | `#8B3A2F` (bolt-red) | `14 52% 37%` |
+| Chaos | `#4A1A8C` (chaos purple) | `265 68% 33%` |
+| Necrons | `#1A6B3C` (necron green) | `150 60% 26%` |
+| Tyranids | `#8B1A4A` (hive-magenta) | `335 68% 33%` |
+
+These are suggestions — the user should customize per faction via the Factions CRUD page (existing `FactionSheet`). Add a color picker or hex input to `FactionSheet`.
+
+### Theme Application Architecture
+
+```
+App cold start
+    ↓
+useFactionThemeStore (Zustand persist) reads localStorage
+    ↓
+FactionThemeProvider mounts, effect fires immediately:
+  document.documentElement.style.setProperty(--faction-accent, ...)
+    ↓
+All bg-faction-accent / text-faction-accent utilities resolve correctly
+
+User selects faction on Dashboard or Factions page
+    ↓
+setActiveFaction(id) called on store
+    ↓
+useFaction(id) query returns faction.color_theme_hsl
+    ↓
+effect re-fires: setProperty updates all three tokens
+    ↓
+UI re-renders only components subscribed to store (the faction badge/indicator)
+    CSS cascade handles everything else
+```
+
+### New Store File
+
+**`src/stores/useFactionThemeStore.ts`** (NEW)
+
+```typescript
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+interface FactionThemeState {
+  activeFactionId: number | null;
+  setActiveFaction: (id: number | null) => void;
+}
+
+export const useFactionThemeStore = create<FactionThemeState>()(
+  persist(
+    (set) => ({
+      activeFactionId: null,
+      setActiveFaction: (id) => set({ activeFactionId: id }),
+    }),
+    { name: 'faction-theme' }
+  )
+);
+```
+
+**`src/components/common/FactionThemeProvider.tsx`** (NEW) — mounts at app root in `AppLayout`, queries the active faction, applies CSS properties on change.
+
+**`src/app/router.tsx`** — no change needed for theming. `AppLayout` wraps `Outlet`, so wrapping `FactionThemeProvider` inside `AppLayout` covers the entire app.
+
+---
+
+## Feature 2: Dashboard as Command Center
+
+### What Changes
+
+`src/features/dashboard/DashboardPage.tsx` receives a major visual overhaul. The data queries and hooks (`useDashboardStats`) do not change — only the rendering layer.
+
+**New sub-components to create in `src/features/dashboard/`:**
+
+| Component | Purpose |
+|-----------|---------|
+| `HeroBand.tsx` | Full-width faction banner — faction name, animated stat counters, faction-accent gradient |
+| `AnimatedCounter.tsx` | Single animated number — uses CSS `counter` animation or requestAnimationFrame ramp |
+| `FactionBanner.tsx` | Per-faction summary card (replaces `FactionSummaryCard`) with accent ring color |
+| `WarRoomGrid.tsx` | Redesigned stat grid with larger cards, icons, faction-accent borders |
+
+**Components to retire:** `StatCard.tsx` is replaced by `WarRoomGrid.tsx` children. `FactionSummaryCard.tsx` is replaced by `FactionBanner.tsx`. Both old files can be deleted once new components are proven.
+
+**`DashboardListRow.tsx` and `DashboardEmptyState.tsx`** — kept, minor style updates only.
+
+### Dashboard Faction Selection Integration
+
+The Dashboard is the natural place for the user to select the "active faction" for theming. A faction selector (dropdown or clickable cards) on the Dashboard calls `useFactionThemeStore().setActiveFaction(id)`. The selected faction persists across app restarts via the Zustand persist middleware.
+
+---
+
+## Feature 3: Collapsible Icon Sidebar
+
+### Current State
+
+`useSidebarCollapsed` already exists at `src/components/common/useSidebarCollapsed.ts` and already persists to localStorage. `AppSidebar` already toggles between `width: 48` (collapsed) and `width: 240` (expanded).
+
+**The core sidebar collapse feature is already shipped.** v2.1 work is cosmetic polish only:
+
+1. Add Tooltip wrappers to `NavItem` so collapsed icon buttons show label tooltips on hover. `TooltipProvider` is already in `AppLayout`. Import `Tooltip, TooltipTrigger, TooltipContent` from `@/components/ui/tooltip` inside `NavItem`.
+2. Ensure icon alignment is pixel-perfect at `width: 48` (icons centered, no text overflow).
+3. Add nav entries for new v2.1 routes (Hobby Journal, Spending Tracker) to `MAIN_NAV` in `AppSidebar`.
+
+**Files modified:** `src/components/common/NavItem.tsx` (tooltip), `src/components/common/AppSidebar.tsx` (new nav entries).
+
+---
+
+## Feature 4: Collection Gallery View
+
+### View Mode Toggle
+
+`CollectionPage` (`src/features/units/CollectionPage.tsx`) gains a `viewMode` local state: `'table' | 'gallery'`. A toggle button (likely `LayoutGrid` / `LayoutList` Lucide icons) in the page header switches modes.
+
+**`viewMode` should NOT be persisted** — it resets on navigation, consistent with the existing ephemeral filter state pattern. Local `useState` inside `CollectionPage` is correct.
+
+### Gallery Components
+
+**`UnitGalleryView.tsx`** (NEW in `src/features/units/`) — receives the filtered `Unit[]` array. Renders a `grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4` of `UnitGalleryCard` components.
+
+**`UnitGalleryCard.tsx`** (NEW in `src/features/units/`) — single card:
+- Unit name, faction badge (colored dot or text)
+- SVG circular ring showing `painting_percentage` (a `<circle>` with `stroke-dashoffset` computed from percentage)
+- Status badges: assembled, based, varnished
+- Click → same `handleRowClick` callback as the table rows (opens `UnitDetailSheet`)
+
+**SVG painting ring:** Pure SVG, no library needed. Pattern:
+```tsx
+const circumference = 2 * Math.PI * 18; // radius=18
+const offset = circumference - (pct / 100) * circumference;
+<circle r={18} cx={20} cy={20}
+  stroke="hsl(var(--faction-accent))"
+  strokeDasharray={circumference}
+  strokeDashoffset={offset}
+  strokeLinecap="round"
+  transform="rotate(-90 20 20)"
+/>
+```
+
+**No new data fetching needed.** `CollectionPage` already calls `useUnits()` which returns all units. Gallery view uses the same data, just renders differently.
+
+---
+
+## Feature 5: Hobby Journal
+
+### New DB Tables (Migration 005)
+
+Two new tables. Use `ON DELETE CASCADE` on `unit_id` so deleting a unit removes all its journal data.
+
+**`hobby_sessions`** — painting session log per unit
+
+```sql
+CREATE TABLE IF NOT EXISTS hobby_sessions (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    unit_id      INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+    session_date TEXT    NOT NULL DEFAULT (date('now')),
+    duration_min INTEGER,                    -- session length in minutes
+    notes        TEXT,                       -- what was done
+    created_at   TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at   TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+```
+
+**`unit_photos`** — photo timeline per unit, references a file path on disk
+
+```sql
+CREATE TABLE IF NOT EXISTS unit_photos (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    unit_id     INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+    session_id  INTEGER REFERENCES hobby_sessions(id) ON DELETE SET NULL,
+    file_path   TEXT    NOT NULL,        -- relative path under appDataDir
+    thumb_path  TEXT,                   -- relative path to thumbnail, nullable
+    caption     TEXT,
+    taken_at    TEXT,                   -- user-specified date, nullable
+    sort_order  INTEGER NOT NULL DEFAULT 0,
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+```
+
+**Note on `image_assets`:** Migration 001 already defines an `image_assets` table (polymorphic store). For Hobby Journal, use the dedicated `unit_photos` table instead. Reasons: (1) `image_assets` lacks `session_id` linkage; (2) `image_assets` lacks `thumb_path`; (3) separation of concerns — hobby journal photos are a distinct domain from hypothetical future unit/army thumbnails. The `image_assets` table can be left unused or repurposed later.
+
+### Tauri fs Plugin — File Storage
+
+**Capability setup** (`src-tauri/capabilities/default.json`) — add fs permissions:
+```json
+"fs:default",
+"fs:allow-read-data-files",
+"fs:allow-write-data-files",
+"fs:allow-mkdir"
+```
+
+**Cargo.toml** — add dependency:
+```toml
+tauri-plugin-fs = "2"
+```
+
+**`lib.rs`** — register plugin:
+```rust
+.plugin(tauri_plugin_fs::init())
+```
+
+**JavaScript API pattern:**
+
+```typescript
+import { writeFile, readFile, mkdir, BaseDirectory } from '@tauri-apps/plugin-fs';
+
+// Write photo (Uint8Array from file input or canvas)
+await mkdir(`photos/${unitId}`, { baseDir: BaseDirectory.AppData, recursive: true });
+await writeFile(
+  `photos/${unitId}/${uuid}.webp`,
+  imageBytes,
+  { baseDir: BaseDirectory.AppData }
+);
+
+// Write thumbnail
+await mkdir(`photos/${unitId}/thumbs`, { baseDir: BaseDirectory.AppData, recursive: true });
+await writeFile(
+  `photos/${unitId}/thumbs/${uuid}_thumb.webp`,
+  thumbBytes,
+  { baseDir: BaseDirectory.AppData }
+);
+
+// Resolve to absolute path for DB storage and <img> src
+// %APPDATA%\com.hobbyforge.app\photos\{unitId}\{uuid}.webp
+```
+
+**File path convention:**
+- Store relative paths in DB: `photos/{unit_id}/{uuid}.webp` and `photos/{unit_id}/thumbs/{uuid}_thumb.webp`
+- `appDataDir` resolves to `%APPDATA%\com.hobbyforge.app\` on Windows (already confirmed in `lib.rs` setup comment)
+- To display in `<img>`, resolve to absolute path using `@tauri-apps/api/path`:
+```typescript
+import { appDataDir, join } from '@tauri-apps/api/path';
+const base = await appDataDir();
+const absolutePath = await join(base, relativePath);
+// Use as: <img src={`asset://localhost/${absolutePath.replace(/\\/g, '/')}`} />
+```
+
+**Important:** Tauri's WebView uses the `asset://` protocol to serve local files. The path must be URL-encoded and use forward slashes. Alternatively, convert the bytes to a base64 data URL for display — simpler for small thumbnails.
+
+### Thumbnail Strategy: Generate at Write Time
+
+**Recommendation: Generate thumbnail at write time (not lazily).**
+
+Rationale:
+- Gallery view will display thumbnails for all units with photos — lazy generation would cause a waterfall of file reads and canvas operations on first render
+- The canvas resize operation is O(1) and takes <50ms on modern hardware for a 256px thumbnail
+- `BaseDirectory.AppData` writes are synchronous from the user's perspective (they just picked a file)
+
+**Thumbnail generation pattern (browser-side canvas):**
+
+```typescript
+async function generateThumbnail(file: File, maxDim = 256): Promise<Uint8Array> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(maxDim / bitmap.width, maxDim / bitmap.height, 1);
+  const canvas = new OffscreenCanvas(
+    Math.round(bitmap.width * scale),
+    Math.round(bitmap.height * scale)
+  );
+  const ctx = canvas.getContext('2d')!;
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  const blob = await canvas.convertToBlob({ type: 'image/webp', quality: 0.8 });
+  return new Uint8Array(await blob.arrayBuffer());
+}
+```
+
+`OffscreenCanvas` is available in the Chromium WebView that Tauri uses. No library dependency needed.
+
+### Hobby Journal Feature Location
+
+**`src/features/hobby-journal/`** (NEW folder):
+- `HobbyJournalPage.tsx` — unit selector + photo timeline + session list
+- `PhotoUploadButton.tsx` — file input trigger + thumbnail generation + write flow
+- `PhotoTimeline.tsx` — chronological photo grid
+- `SessionLogEntry.tsx` — single session row with duration + notes
+- `AddSessionSheet.tsx` — date, duration, notes form
+
+**Route:** `/journal` — add to router and sidebar nav (Lucide `BookImage` icon).
+
+### New Hooks and Queries
+
+**`src/db/queries/hobbyJournal.ts`** (NEW):
+- `getPhotosByUnit(unitId)` → `UnitPhoto[]`
+- `getSessionsByUnit(unitId)` → `HobbySession[]`
+- `createSession(input)` → `number` (id)
+- `updateSession(input)` → `void`
+- `deleteSession(id)` → `void`
+- `createPhoto(input)` → `number` (id)
+- `deletePhoto(id)` → `void` (caller also deletes files from disk)
+
+**`src/hooks/useHobbyJournal.ts`** (NEW) — TanStack Query wrappers following existing pattern.
+
+---
+
+## Feature 6: Spending Tracker
+
+### New DB Tables (Migration 005, continued)
+
+**`unit_purchases`** — one row per purchase event for a unit
+
+```sql
+CREATE TABLE IF NOT EXISTS unit_purchases (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    unit_id       INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+    purchase_date TEXT,
+    price_paid    REAL    NOT NULL DEFAULT 0,
+    currency      TEXT    NOT NULL DEFAULT 'EUR',
+    vendor        TEXT,
+    notes         TEXT,
+    created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+```
+
+**Note on `units.purchase_price`:** The existing `units` table already has `purchase_price REAL` and `purchase_date TEXT`. The new `unit_purchases` table enables multiple purchase events per unit (e.g., bought half the squad, then the other half). The old `units.purchase_price` field can remain as a convenience field for the unit sheet, but the Spending Tracker queries from `unit_purchases`.
+
+**`paint_purchases`** — one row per paint purchase event
+
+```sql
+CREATE TABLE IF NOT EXISTS paint_purchases (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    paint_id      INTEGER NOT NULL REFERENCES paints(id) ON DELETE CASCADE,
+    purchase_date TEXT,
+    price_paid    REAL    NOT NULL DEFAULT 0,
+    currency      TEXT    NOT NULL DEFAULT 'EUR',
+    vendor        TEXT,
+    notes         TEXT,
+    created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+```
+
+### Spending Tracker Feature Location
+
+**`src/features/spending/`** (NEW folder):
+- `SpendingTrackerPage.tsx` — total spend overview + per-faction breakdown + per-category tabs
+- `SpendingSummaryCard.tsx` — total / units / paints summary figures
+- `PurchaseLogSheet.tsx` — add/edit purchase entry (shared for unit and paint purchases)
+- `FactionSpendRow.tsx` — one row in the per-faction breakdown table
+
+**Route:** `/spending` — add to router and sidebar nav (Lucide `Wallet` icon).
+
+**New Queries `src/db/queries/spending.ts`** (NEW):
+- `getUnitPurchases(unitId?)` → `UnitPurchase[]` (optional filter by unit)
+- `getTotalUnitSpend()` → `number`
+- `getTotalPaintSpend()` → `number`
+- `getSpendByFaction()` → `{ faction_id, faction_name, total_spend }[]`
+- `createUnitPurchase(input)` → `number`
+- `createPaintPurchase(input)` → `number`
+- `deletePurchase(table, id)` — or split into two functions
+
+---
+
+## DB Migration 005 — Full Schema
+
+**File:** `src-tauri/migrations/005_v21_journal_spending.sql`
+
+```sql
+-- 005_v21_journal_spending.sql — HobbyForge v2.1 new tables
+-- hobby_sessions: per-unit painting session log
+CREATE TABLE IF NOT EXISTS hobby_sessions (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    unit_id      INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+    session_date TEXT    NOT NULL DEFAULT (date('now')),
+    duration_min INTEGER,
+    notes        TEXT,
+    created_at   TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at   TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+-- unit_photos: per-unit photo timeline (files on disk, paths stored here)
+CREATE TABLE IF NOT EXISTS unit_photos (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    unit_id     INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+    session_id  INTEGER REFERENCES hobby_sessions(id) ON DELETE SET NULL,
+    file_path   TEXT    NOT NULL,
+    thumb_path  TEXT,
+    caption     TEXT,
+    taken_at    TEXT,
+    sort_order  INTEGER NOT NULL DEFAULT 0,
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+-- unit_purchases: spending log for unit purchases (multiple events per unit)
+CREATE TABLE IF NOT EXISTS unit_purchases (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    unit_id       INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+    purchase_date TEXT,
+    price_paid    REAL    NOT NULL DEFAULT 0,
+    currency      TEXT    NOT NULL DEFAULT 'EUR',
+    vendor        TEXT,
+    notes         TEXT,
+    created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+-- paint_purchases: spending log for paint purchases
+CREATE TABLE IF NOT EXISTS paint_purchases (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    paint_id      INTEGER NOT NULL REFERENCES paints(id) ON DELETE CASCADE,
+    purchase_date TEXT,
+    price_paid    REAL    NOT NULL DEFAULT 0,
+    currency      TEXT    NOT NULL DEFAULT 'EUR',
+    vendor        TEXT,
+    notes         TEXT,
+    created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+```
+
+Register as version 5 in `src-tauri/src/lib.rs` `get_migrations()` vec.
+
+---
 
 ## Recommended Project Structure
 
@@ -100,310 +536,250 @@ No schema changes needed for Army List Builder.
 
 ```
 src-tauri/migrations/
-└── 002_unit_playbook_stats.sql          # NEW — 8 ADD COLUMN statements
+└── 005_v21_journal_spending.sql          # NEW — 4 new tables
 
 src/
-├── app/
-│   ├── paint-inventory/
-│   │   └── page.tsx                     # NEW — thin re-export wrapper
-│   └── army-lists/
-│       └── page.tsx                     # NEW — thin re-export wrapper
-│
+├── stores/
+│   └── useFactionThemeStore.ts           # NEW — Zustand persist store for active faction
+
+├── components/common/
+│   └── FactionThemeProvider.tsx          # NEW — effect-only component, mounts at AppLayout root
+
 ├── features/
-│   ├── paints/
-│   │   ├── PaintInventoryPage.tsx       # NEW — dedicated inventory page
-│   │   └── PaintInventoryFilters.tsx    # NEW — filter controls component
-│   └── army-lists/                      # NEW folder
-│       ├── ArmyListsPage.tsx
-│       ├── ArmyListsEmptyState.tsx
-│       ├── ArmyListSheet.tsx            # create/edit list metadata
-│       ├── ArmyListDeleteDialog.tsx
-│       ├── ArmyListDetailSheet.tsx      # unit picker + points summary
-│       └── ArmyListUnitRow.tsx
-│
+│   ├── dashboard/
+│   │   ├── HeroBand.tsx                  # NEW — full-width faction header
+│   │   ├── AnimatedCounter.tsx           # NEW — ramp animation for stat numbers
+│   │   ├── FactionBanner.tsx             # NEW — per-faction summary card (replaces FactionSummaryCard)
+│   │   └── WarRoomGrid.tsx               # NEW — redesigned stat card grid
+│   │
+│   ├── units/
+│   │   ├── UnitGalleryView.tsx           # NEW — grid layout wrapper
+│   │   └── UnitGalleryCard.tsx           # NEW — single gallery card with SVG ring
+│   │
+│   ├── hobby-journal/                    # NEW folder
+│   │   ├── HobbyJournalPage.tsx
+│   │   ├── PhotoUploadButton.tsx
+│   │   ├── PhotoTimeline.tsx
+│   │   ├── SessionLogEntry.tsx
+│   │   └── AddSessionSheet.tsx
+│   │
+│   └── spending/                         # NEW folder
+│       ├── SpendingTrackerPage.tsx
+│       ├── SpendingSummaryCard.tsx
+│       ├── PurchaseLogSheet.tsx
+│       └── FactionSpendRow.tsx
+
 ├── db/queries/
-│   ├── armyLists.ts                     # NEW — full CRUD + unit membership
-│   └── strategyNotes.ts                 # NEW — getByUnit + upsert
-│
+│   ├── hobbyJournal.ts                   # NEW — photos + sessions CRUD
+│   └── spending.ts                       # NEW — purchase CRUD + aggregates
+
 ├── hooks/
-│   ├── useArmyLists.ts                  # NEW — TanStack Query wrappers
-│   └── useStrategyNote.ts               # NEW — TanStack Query wrappers
-│
+│   ├── useHobbyJournal.ts                # NEW — TanStack Query wrappers
+│   └── useSpending.ts                    # NEW — TanStack Query wrappers
+
 └── types/
-    ├── armyList.ts                      # NEW — ArmyList, ArmyListUnit interfaces
-    └── strategyNote.ts                  # NEW — StrategyNote, UpsertStrategyNoteInput
+    ├── hobbyJournal.ts                   # NEW — HobbySession, UnitPhoto interfaces
+    └── spending.ts                       # NEW — UnitPurchase, PaintPurchase interfaces
 ```
 
 ### Files to Modify
 
 ```
-src-tauri/src/
-└── lib.rs                               # MODIFY — register migration version 2
+src-tauri/
+├── Cargo.toml                            # MODIFY — add tauri-plugin-fs = "2"
+├── src/lib.rs                            # MODIFY — register fs plugin + migration 005
+└── capabilities/default.json            # MODIFY — add fs:default + fs read/write/mkdir permissions
+
+src/styles/globals.css                    # MODIFY — add --faction-accent tokens + @theme inline entries
 
 src/
-├── app/
-│   └── router.tsx                       # MODIFY — add /paint-inventory + /army-lists routes
+├── app/router.tsx                        # MODIFY — add /journal + /spending routes
 │
 ├── components/common/
-│   └── AppSidebar.tsx                   # MODIFY — add "Paint Inventory" + "Army Lists" nav entries
+│   ├── AppLayout.tsx                     # MODIFY — wrap children with <FactionThemeProvider>
+│   ├── AppSidebar.tsx                    # MODIFY — add Journal + Spending to MAIN_NAV
+│   └── NavItem.tsx                       # MODIFY — add Tooltip wrapper for collapsed state
 │
-├── db/queries/
-│   └── paints.ts                        # MODIFY — add getPaintsWithRecipeCount() function
-│
-├── hooks/
-│   └── usePaints.ts                     # MODIFY — add usePaintsWithRecipeCount() hook;
-│                                        #   also add invalidate ['paints-with-recipes'] to
-│                                        #   useCreatePaint/useUpdatePaint/useDeletePaint onSuccess
-│
-├── features/units/
-│   └── UnitDetailSheet.tsx              # MODIFY — wrap content in Tabs, add PlaybookTab
-│
-└── types/
-    └── paint.ts                         # MODIFY — add PaintWithRecipeCount type
+└── features/
+    ├── dashboard/
+    │   └── DashboardPage.tsx             # MODIFY (major) — visual overhaul using new sub-components
+    └── units/
+        └── CollectionPage.tsx            # MODIFY — add viewMode toggle + conditional render
 ```
 
-### New Feature Components (units folder)
+---
 
-```
-src/features/units/
-└── PlaybookTab.tsx                      # NEW — stats block + strategy notes form
-```
+## Build Order for v2.1 Phases
+
+Dependencies determine order. The theming foundation must land first because Dashboard redesign and gallery view both reference `bg-faction-accent` utilities. New DB features (Journal, Spending) are independent and can be built after UI features.
+
+### Phase A: Theming Foundation (build first — all other UI depends on it)
+
+1. Add `--faction-accent` / `--faction-accent-fg` / `--faction-glow` tokens to `src/styles/globals.css` `:root` and `@theme inline` block
+2. Write `src/stores/useFactionThemeStore.ts` — Zustand persist store
+3. Write `src/components/common/FactionThemeProvider.tsx` — effect-only, calls `setProperty`
+4. Modify `src/components/common/AppLayout.tsx` — mount `<FactionThemeProvider />` inside the layout wrapper
+5. Verify: run the app, check that `--faction-accent` exists on `:root` via DevTools, change it manually and confirm `bg-faction-accent` elements repaint
+
+**Why first:** Dashboard redesign and gallery cards use `bg-faction-accent` / `border-faction-accent`. These utilities must exist in the Tailwind build before any component can reference them. Building theming first also de-risks the CSS setup before writing any feature components.
+
+### Phase B: Dashboard Command Center (depends on Phase A CSS tokens)
+
+6. Write `AnimatedCounter.tsx`
+7. Write `HeroBand.tsx` (uses `bg-faction-accent`, `text-faction-accent-fg`)
+8. Write `FactionBanner.tsx` (replaces `FactionSummaryCard`)
+9. Write `WarRoomGrid.tsx` (replaces `StatCard` grid)
+10. Rewrite `DashboardPage.tsx` to use new sub-components; add faction selector that calls `useFactionThemeStore().setActiveFaction(id)`
+11. Delete retired `StatCard.tsx` and `FactionSummaryCard.tsx` once `DashboardPage` no longer imports them
+
+**Why before gallery:** Dashboard is the landing page — it validates the faction theme visually before gallery or sidebar polish work begins.
+
+### Phase C: Sidebar and Gallery Polish (light modification, low risk)
+
+12. Modify `NavItem.tsx` — add Tooltip wrapper for collapsed icon labels
+13. Write `UnitGalleryCard.tsx` (SVG ring, faction badge, unit name)
+14. Write `UnitGalleryView.tsx` (grid layout, receives filtered units)
+15. Modify `CollectionPage.tsx` — add `viewMode` state, toggle button, conditional render of table vs gallery
+
+**Why after Dashboard:** C is low-risk UI polish. Doing it after Dashboard means the faction accent color is proven to work before being referenced in gallery cards.
+
+### Phase D: DB Migration + Hobby Journal (independent of A/B/C)
+
+16. Write `src-tauri/migrations/005_v21_journal_spending.sql` — all 4 tables
+17. Register migration 005 in `lib.rs`
+18. Add `tauri-plugin-fs` to `Cargo.toml` and `lib.rs`
+19. Add fs permissions to `capabilities/default.json`
+20. Write `src/types/hobbyJournal.ts` and `src/types/spending.ts`
+21. Write `src/db/queries/hobbyJournal.ts`
+22. Write `src/hooks/useHobbyJournal.ts`
+23. Write `PhotoUploadButton.tsx` — file input + canvas thumbnail generation + `writeFile` calls
+24. Write `PhotoTimeline.tsx`, `SessionLogEntry.tsx`, `AddSessionSheet.tsx`
+25. Write `HobbyJournalPage.tsx`
+26. Add `/journal` route and sidebar nav entry
+
+**Why after C:** DB schema and file system work are independent of theming/UI changes. But doing UI first (A, B, C) means the app looks polished before adding complex features. Also, if migration 005 has issues, the rest of the app is already in good shape.
+
+### Phase E: Spending Tracker (depends on migration 005 from Phase D)
+
+27. Write `src/db/queries/spending.ts`
+28. Write `src/hooks/useSpending.ts`
+29. Write `SpendingSummaryCard.tsx`, `FactionSpendRow.tsx`, `PurchaseLogSheet.tsx`
+30. Write `SpendingTrackerPage.tsx`
+31. Add `/spending` route and sidebar nav entry
+
+**Why last:** Spending Tracker shares the migration with Hobby Journal (step 16). Phase E can begin as soon as migration 005 is registered (step 17) — it does not need the fs plugin. It is the most straightforward data feature and is safest to build last.
+
+---
 
 ## Architectural Patterns
 
-### Pattern 1: Route Strategy for Paint Inventory
+### Pattern 1: CSS Custom Property Faction Theming
 
-The existing `/paints` route renders `PaintsPage` (paint CRUD). Do NOT replace it. Add `/paint-inventory` as a separate route.
+**What:** Tailwind `@theme inline` tokens reference CSS custom properties (`--faction-accent`). At runtime, a Zustand store effect calls `document.documentElement.style.setProperty('--faction-accent', hslChannels)`. All components using `bg-faction-accent` update via browser CSS cascade.
 
-**Rationale:** The recipe builder's "Add Paint" flow and the `PaintCombobox` in `src/features/recipes/` reference the paints domain as a management context. Replacing `/paints` would break that workflow's mental model. The two pages serve genuinely different purposes: `/paints` = manage your paint catalog (CRUD), `/paint-inventory` = browse and filter what you own.
+**When to use:** Any UI element that should change color based on faction — stat rings, hero bands, border accents, glow effects.
 
-**Router addition to `src/app/router.tsx`:**
-```typescript
-import { PaintInventoryPage } from "./paint-inventory/page";
-import { ArmyListsPage } from "./army-lists/page";
+**Trade-offs:**
+- Pro: Zero re-renders for most UI elements — the browser handles cascade
+- Pro: No class purging risk — class names are static, only values change
+- Con: Requires discipline to use `bg-faction-accent` not hardcoded faction colors in new components
+- Con: HSL channel format (`"14 80% 45%"`) must be stored in DB, not hex; requires data migration or conversion utility
 
-const paintInventoryRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/paint-inventory",
-  component: PaintInventoryPage,
-});
+### Pattern 2: Write-Time Thumbnail Generation
 
-const armyListsRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/army-lists",
-  component: ArmyListsPage,
-});
+**What:** When a user uploads a photo, the browser-side canvas generates a 256px WebP thumbnail synchronously before writing either file via `tauri-plugin-fs`. Both full-size and thumbnail are written together. DB row is inserted after both writes succeed.
 
-// Add to routeTree.addChildren([..., paintInventoryRoute, armyListsRoute])
-```
+**When to use:** Any feature involving user-uploaded images. This app has no server to do server-side processing.
 
-**Sidebar addition to `src/components/common/AppSidebar.tsx`:**
-Add two entries to `MAIN_NAV` using appropriate Lucide icons — `FlaskConical` for Paint Inventory, `Scroll` or `ListChecks` for Army Lists.
+**Trade-offs:**
+- Pro: Thumbnails are always available, no lazy generation waterfall
+- Pro: `OffscreenCanvas.convertToBlob()` is non-blocking (returns a Promise)
+- Con: Slightly longer user-perceived wait on upload (negligible — <100ms for a 4MP phone photo)
+- Con: If the app crashes between writing the file and inserting the DB row, you get an orphaned file. Acceptable for a personal tool; add a startup cleanup routine only if this becomes a real problem.
 
-### Pattern 2: Paint Inventory Filter Strategy
+### Pattern 3: Relative Path Storage for Photos
 
-Filters are applied client-side in `PaintInventoryPage`. Fetch the full list once via `usePaintsWithRecipeCount()`, filter in-memory with `useMemo`.
+**What:** DB stores `photos/{unit_id}/{uuid}.webp` (relative). Absolute path is resolved at read time by prepending `appDataDir()` and converting to `asset://` protocol URL.
 
-**Rationale:** A personal paint collection is realistically 50-500 entries. Client-side filtering is instant at that scale and avoids parameterized DB queries for each filter change. This matches the existing `CollectionPage` pattern — `useUnits()` fetches all units, `UnitFilters` controls Zustand store state, and the collection renders a filtered subset.
+**When to use:** All file path storage in this app.
 
-**Do NOT use Zustand for paint inventory filter state.** Unlike the Collection page where filter state must survive navigation back from a unit detail drawer, paint inventory filters reset naturally on navigation away. Local `useState` inside `PaintInventoryPage` is sufficient.
+**Trade-offs:**
+- Pro: Portable — if Tauri changes appDataDir location across versions, relative paths still work
+- Pro: DB can be inspected without knowing the machine's username or AppData location
+- Con: Every image display requires an async `appDataDir()` call (or cache the resolved base path once on app start)
 
-### Pattern 3: "Used in Recipes" Join Query
+**Recommendation:** Cache `appDataDir()` result once in a module-level variable (similar to how `getDb()` caches the DB connection). Export `getAppDataDir()` from a new `src/lib/paths.ts` file.
 
-New query function added to `src/db/queries/paints.ts`:
+### Pattern 4: viewMode as Local State (Not Persisted)
 
-```typescript
-export interface PaintWithRecipeCount extends Paint {
-  recipe_count: number;
-}
+**What:** `CollectionPage` holds `const [viewMode, setViewMode] = useState<'table' | 'gallery'>('table')`. Navigating away and back resets to table.
 
-export async function getPaintsWithRecipeCount(): Promise<PaintWithRecipeCount[]> {
-  const db = await getDb();
-  return db.select<PaintWithRecipeCount[]>(`
-    SELECT p.*, COUNT(rp.id) AS recipe_count
-    FROM paints p
-    LEFT JOIN recipe_paints rp ON rp.paint_id = p.id
-    GROUP BY p.id
-    ORDER BY p.brand ASC, p.name ASC
-  `);
-}
-```
+**When to use:** UI state that is "how you're looking at data right now" not "a preference the user has set."
 
-Existing `getPaints()` is untouched — recipe builder combobox and `PaintSheet` continue using it.
+**Trade-offs:**
+- Pro: Consistent with filter state — ephemeral, simple
+- Pro: Table is the safe default; most interactions (status popover, detail sheet) are designed for table context
+- Con: Power users who prefer gallery must toggle every session (acceptable for v2.1; can persist later)
 
-### Pattern 4: Strategy Note Upsert
-
-`unit_strategy_notes` has a logical 1:1 relationship with `units` (one strategy note record per unit) but the current schema has no `UNIQUE` constraint on `unit_id`. Use a conditional upsert pattern: select first, then insert or update.
-
-```typescript
-// src/db/queries/strategyNotes.ts
-export async function upsertStrategyNote(input: UpsertStrategyNoteInput): Promise<void> {
-  const db = await getDb();
-  const existing = await db.select<{id: number}[]>(
-    "SELECT id FROM unit_strategy_notes WHERE unit_id = $1",
-    [input.unit_id]
-  );
-  if (existing.length > 0) {
-    await db.execute(
-      `UPDATE unit_strategy_notes SET
-        move=$2, toughness=$3, save=$4, wounds=$5, leadership=$6,
-        objective_control=$7, keywords=$8, abilities=$9,
-        battlefield_role=$10, strengths=$11, weaknesses=$12,
-        best_targets=$13, synergies=$14, mistakes_to_avoid=$15,
-        rules_references=$16, notes=$17, updated_at=datetime('now')
-       WHERE unit_id=$1`,
-      [input.unit_id, ...]
-    );
-  } else {
-    await db.execute(
-      `INSERT INTO unit_strategy_notes (unit_id, move, ...) VALUES ($1, $2, ...)`,
-      [input.unit_id, ...]
-    );
-  }
-}
-```
-
-**Why not ON CONFLICT:** `ON CONFLICT(unit_id)` requires a UNIQUE index. Adding that index in migration 002 is possible but the select-then-insert/update is safer for an existing production schema with no existing unique constraint.
-
-### Pattern 5: UnitDetailSheet Tab Integration
-
-`UnitDetailSheet` (`src/features/units/UnitDetailSheet.tsx`) is currently a flat scrollable panel with a single content block. The `Tabs` shadcn component is already installed.
-
-**Modification approach:**
-1. Import `Tabs, TabsList, TabsTrigger, TabsContent` from `@/components/ui/tabs`
-2. Wrap the existing `<div className="flex flex-col gap-4 p-4">` block in `<TabsContent value="overview">`
-3. Add `<TabsContent value="playbook"><PlaybookTab unit={unit} /></TabsContent>`
-4. `PlaybookTab` owns its own `useStrategyNote(unit.id)` hook call — do NOT fetch strategy note data in `UnitDetailSheet` and pass it as props
-
-**Why PlaybookTab fetches its own data:** TanStack Query deduplicates in-flight requests and caches results. The strategy note query only fires when the Playbook tab is rendered. Passing data as props from UnitDetailSheet would force a DB call on every unit row click even when the user never opens the Playbook tab.
-
-### Pattern 6: Army List Points Calculation
-
-Points totals (total points, painted points, painted readiness %) are computed client-side from joined data. Do not store denormalized aggregates in `army_lists`.
-
-```typescript
-// Computed in ArmyListDetailSheet from ArmyListWithUnits data
-const totalPoints = units.reduce((sum, row) =>
-  sum + (row.points_override ?? row.unit.points ?? 0), 0);
-const paintedPoints = units
-  .filter(row => row.unit.painting_percentage === 100)
-  .reduce((sum, row) => sum + (row.points_override ?? row.unit.points ?? 0), 0);
-const battleReadyPct = totalPoints > 0
-  ? Math.round((paintedPoints / totalPoints) * 100) : 0;
-```
-
-**Why:** Stored aggregates go stale when a unit's `painting_percentage` changes elsewhere (Collection page, Kanban). Recomputing from the join is instant at any realistic army list size.
+---
 
 ## Data Flow
 
-### Paint Inventory Filter Flow
+### Faction Theme Application Flow
 
 ```
-User changes filter control
+App start
     ↓
-PaintInventoryFilters (calls onChange prop)
+useFactionThemeStore hydrates from localStorage (synchronous — no flash)
     ↓
-PaintInventoryPage (local useState holds filter values)
+FactionThemeProvider effect fires (activeFactionId from store)
     ↓
-useMemo filters the usePaintsWithRecipeCount() cached data
+if activeFactionId !== null: useQuery fetches faction.color_theme_hsl
     ↓
-Table re-renders with filtered rows (no new DB call)
+document.documentElement.style.setProperty('--faction-accent', hsl)
+    ↓
+CSS cascade propagates to all bg-faction-accent / text-faction-accent elements
 ```
 
-### Army List Mutation and Invalidation
+### Photo Write Flow
 
 ```
-ArmyListDetailSheet (user adds unit to list)
+User picks file via <input type="file">
     ↓
-useAddUnitToList() mutation fires
+PhotoUploadButton reads File as ArrayBuffer
     ↓
-onSuccess: invalidate ['army-lists', listId]   ← refreshes detail view
-onSuccess: invalidate ['army-lists']            ← refreshes index (total points badge)
+generateThumbnail(file, 256) → Uint8Array (OffscreenCanvas + convertToBlob)
     ↓
-DO NOT invalidate ['units'] or ['dashboard-stats']
-    (army list membership does not affect unit painting state)
+mkdir photos/{unitId}/ + photos/{unitId}/thumbs/ (recursive, idempotent)
+    ↓
+writeFile(full-size) → writeFile(thumbnail) [both BaseDirectory.AppData]
+    ↓
+createPhoto({ unit_id, file_path, thumb_path, ... }) → DB insert
+    ↓
+invalidate ['hobby-journal', unitId, 'photos']
+    ↓
+PhotoTimeline re-renders with new photo
 ```
 
-**Note on FK constraint:** `army_list_units.unit_id` uses `RESTRICT`. Attempting to delete a unit that is in an army list throws a FK error. `useDeleteUnit` in `src/hooks/useUnits.ts` already has a comment acknowledging this and relies on component try/catch + toast. No change needed there.
-
-### Strategy Note Save Flow
+### Spending Aggregation Flow
 
 ```
-PlaybookTab form submit
+SpendingTrackerPage mounts
     ↓
-useUpsertStrategyNote(unit.id) mutation
+useSpendingByFaction() → SQL GROUP BY faction_id JOIN unit_purchases JOIN units JOIN factions
     ↓
-onSuccess: invalidate ['strategy-note', unit.id]
+FactionSpendRow[] rendered
     ↓
-NO invalidation of ['units'] or ['dashboard-stats']
-    (strategy notes are not surfaced in dashboard or collection table)
+User adds purchase via PurchaseLogSheet
+    ↓
+useCreateUnitPurchase() mutation
+    ↓
+onSuccess: invalidate ['spending'] (all spending queries)
+    ↓
+SpendingTrackerPage re-renders with updated totals
 ```
 
-## Query Key Conventions
-
-Following the pattern established in `src/hooks/useUnits.ts` and `src/hooks/usePaints.ts`:
-
-| Hook File | Exported Key | Shape |
-|-----------|-------------|-------|
-| `usePaints.ts` (existing) | `PAINTS_KEY` | `['paints']` |
-| `usePaints.ts` (add) | `PAINTS_WITH_RECIPES_KEY` | `['paints-with-recipes']` |
-| `useArmyLists.ts` (new) | `ARMY_LISTS_KEY` | `['army-lists']` |
-| `useArmyLists.ts` (new) | `ARMY_LIST_KEY(id)` | `['army-lists', id]` |
-| `useStrategyNote.ts` (new) | `STRATEGY_NOTE_KEY(unitId)` | `['strategy-note', unitId]` |
-
-**Critical cross-invalidation:** `useCreatePaint`, `useUpdatePaint`, and `useDeletePaint` in `src/hooks/usePaints.ts` currently only invalidate `['paints']`. When `PaintInventoryPage` uses `['paints-with-recipes']`, edits made on the `/paints` CRUD page will NOT refresh the inventory view. Add `qc.invalidateQueries({ queryKey: PAINTS_WITH_RECIPES_KEY })` to all three mutation `onSuccess` handlers.
-
-## Build Order
-
-Dependencies determine order. Schema first, then types, queries, hooks, components, routes.
-
-### Phase A: Schema + Types (no UI dependencies, build first)
-
-1. Write `src-tauri/migrations/002_unit_playbook_stats.sql` — 8 ADD COLUMN statements
-2. Register migration version 2 in `src-tauri/src/lib.rs`
-3. Write `src/types/strategyNote.ts` — `StrategyNote` interface matching updated table, `UpsertStrategyNoteInput`
-4. Write `src/types/armyList.ts` — `ArmyList`, `ArmyListUnit`, `ArmyListWithUnits`, `CreateArmyListInput`
-5. Modify `src/types/paint.ts` — add `PaintWithRecipeCount` extending `Paint`
-
-### Phase B: Query Modules (depends on types, no React)
-
-6. Add `getPaintsWithRecipeCount()` to `src/db/queries/paints.ts`
-7. Write `src/db/queries/strategyNotes.ts` — `getStrategyNote(unitId)`, `upsertStrategyNote(input)`
-8. Write `src/db/queries/armyLists.ts` — `getArmyLists()`, `getArmyListWithUnits(id)`, `createArmyList()`, `updateArmyList()`, `deleteArmyList()`, `addUnitToList()`, `removeUnitFromList()`
-
-### Phase C: Hook Modules (depends on queries)
-
-9. Add `usePaintsWithRecipeCount()` to `src/hooks/usePaints.ts`; add `PAINTS_WITH_RECIPES_KEY` invalidation to all three existing mutation `onSuccess` handlers
-10. Write `src/hooks/useStrategyNote.ts` — `useStrategyNote(unitId)`, `useUpsertStrategyNote()`
-11. Write `src/hooks/useArmyLists.ts` — `useArmyLists()`, `useArmyListDetail(id)`, `useCreateArmyList()`, `useUpdateArmyList()`, `useDeleteArmyList()`, `useAddUnitToList()`, `useRemoveUnitFromList()`
-
-### Phase D: Unit Playbook Tab (modifies existing component — isolated risk)
-
-12. Write `src/features/units/PlaybookTab.tsx` — stats block grid (6 fields) + text areas for keywords/abilities/strategy fields + save button wired to `useUpsertStrategyNote()`
-13. Modify `src/features/units/UnitDetailSheet.tsx` — add Tabs wrapper; "Overview" tab wraps existing content, "Playbook" tab renders `<PlaybookTab unit={unit} />`
-
-**Build PlaybookTab as standalone component first (step 12) before touching UnitDetailSheet (step 13).** This limits blast radius on an existing working component.
-
-### Phase E: Paint Inventory Page (independent of D and F)
-
-14. Write `src/features/paints/PaintInventoryFilters.tsx`
-15. Write `src/features/paints/PaintInventoryPage.tsx`
-16. Write `src/app/paint-inventory/page.tsx` — thin re-export wrapper following existing pattern
-
-### Phase F: Army List Builder (most new components, build last)
-
-17. Write `src/features/army-lists/ArmyListsEmptyState.tsx`
-18. Write `src/features/army-lists/ArmyListSheet.tsx` — create/edit list name, faction, points limit, list type, notes
-19. Write `src/features/army-lists/ArmyListDeleteDialog.tsx`
-20. Write `src/features/army-lists/ArmyListUnitRow.tsx` — displays unit name, points, painted %, remove button
-21. Write `src/features/army-lists/ArmyListDetailSheet.tsx` — unit picker (reuses `useUnits()` data), unit rows, computed totals
-22. Write `src/features/army-lists/ArmyListsPage.tsx`
-23. Write `src/app/army-lists/page.tsx` — thin re-export wrapper
-
-### Phase G: Router and Sidebar Wiring (build last — avoids broken imports during construction)
-
-24. Modify `src/app/router.tsx` — add `paintInventoryRoute` and `armyListsRoute`
-25. Modify `src/components/common/AppSidebar.tsx` — add nav entries for "Paint Inventory" and "Army Lists"
+---
 
 ## Integration Points
 
@@ -411,63 +787,85 @@ Dependencies determine order. Schema first, then types, queries, hooks, componen
 
 | Boundary | Communication | Notes |
 |----------|---------------|-------|
-| `PlaybookTab` inside `UnitDetailSheet` | Receives `unit: Unit` as prop; fetches own strategy note via `useStrategyNote(unit.id)` | Do not pass strategy note data from UnitDetailSheet — avoids unnecessary DB call when tab not visible |
-| `ArmyListDetailSheet` unit picker | Uses existing `useUnits()` hook (no new query) | Reuses `UNITS_KEY` cache already populated by Collection page visit |
-| Paint Inventory page vs Paint CRUD page | Separate routes, separate hook functions, shared invalidation | `usePaints.ts` mutations must invalidate both `['paints']` and `['paints-with-recipes']` |
-| `PlaybookTab` save vs `UnitDetailSheet` data | Strategy note upsert does NOT invalidate `['units']` | Stats block is separate from unit collection fields — no cross-invalidation needed |
+| `FactionThemeProvider` ↔ Zustand store | Store subscription → `setProperty` effect | Provider does NOT render any JSX children — it is effect-only, mounts inside AppLayout |
+| `DashboardPage` ↔ `useFactionThemeStore` | Dashboard calls `setActiveFaction(id)` on faction card/selector click | This is the primary way the user sets the active faction |
+| `CollectionPage` ↔ `UnitGalleryView` | Props: filtered `Unit[]`, `onUnitClick` callback | Gallery uses the same callback as table rows — opens `UnitDetailSheet` |
+| `HobbyJournalPage` ↔ Tauri fs | Via `PhotoUploadButton` — all fs calls isolated in one component | Never call fs APIs directly from page-level components |
+| `hobbyJournal.ts` queries ↔ file system | Queries only store/read paths, not bytes | File read/write is in the React layer (`PhotoUploadButton`, photo display) |
 
-### Cross-Feature Invalidation Summary
+### Cross-Feature Invalidation
 
-| Mutation | Currently Invalidates | Must Also Invalidate After v1.1 |
-|----------|----------------------|--------------------------------|
-| `useCreatePaint.onSuccess` | `['paints']` | `['paints-with-recipes']` |
-| `useUpdatePaint.onSuccess` | `['paints']`, `['paints', id]` | `['paints-with-recipes']` |
-| `useDeletePaint.onSuccess` | `['paints']` | `['paints-with-recipes']` |
-| All other existing mutations | No change | No change |
+| Mutation | Invalidates | Reason |
+|----------|-------------|--------|
+| `useCreateUnitPurchase.onSuccess` | `['spending']` | All spending views refresh |
+| `useCreatePaintPurchase.onSuccess` | `['spending']` | All spending views refresh |
+| `useDeleteUnit.onSuccess` (existing) | `['units']`, `['dashboard-stats']` | Cascade in DB deletes photos/sessions/purchases — no additional invalidation needed |
+| `useDeletePaint.onSuccess` (existing) | `['paints']` | Cascade deletes paint_purchases |
+| `useCreatePhoto.onSuccess` | `['hobby-journal', unitId, 'photos']` | Photo timeline refreshes for that unit |
+| `useCreateSession.onSuccess` | `['hobby-journal', unitId, 'sessions']` | Session list refreshes |
+| `useUpdateFaction.onSuccess` (existing) | `['factions']`, `['factions', id]` | If `color_theme_hsl` added to factions table, also invalidate and re-apply theme |
+
+---
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Replacing `/paints` with `/paint-inventory`
+### Anti-Pattern 1: Storing Faction Accent Color as Hex in the Theme Store
 
-**What to avoid:** Redirecting `/paints` to `/paint-inventory` or merging both purposes into one page.
+**What people do:** Store `activeFactionColor: '#8B3A2F'` in Zustand and build inline styles with it.
 
-**Why:** The recipe builder `PaintCombobox` component and the `PaintSheet` add/edit flow both exist in the mental model of "managing the paint catalog." The inventory page serves a different workflow: browsing what you own. Merging them creates a page that does two jobs poorly.
+**Why it's wrong:** `setProperty('--faction-accent', '#8B3A2F')` works for direct color usage, but the CSS pattern `hsl(var(--faction-accent))` (which Tailwind v4 uses via `@theme inline`) expects channel-only values (`"14 52% 37%"`), not full `hsl()` or hex. Mixing formats causes the token to resolve to `hsl(#8B3A2F)` which is invalid CSS.
 
-**Do instead:** Keep `/paints` as-is for CRUD. Add `/paint-inventory` for browsing. Sidebar can label `/paint-inventory` as the primary entry point, with `/paints` remaining accessible.
+**Do this instead:** Store HSL channel values (`"14 52% 37%"`) in the `factions.color_theme_hsl` column and in the Zustand store. Add a hex → HSL converter utility if the Faction CRUD sheet uses a hex color picker.
 
-### Anti-Pattern 2: Fetching strategy note in UnitDetailSheet
+### Anti-Pattern 2: Dynamically Constructing Tailwind Class Names
 
-**What to avoid:** Adding `useStrategyNote(unit?.id)` to `UnitDetailSheet` and passing the result as a prop to `PlaybookTab`.
+**What people do:** `` className={`bg-${factionSlug}-500 text-${factionSlug}-50`} `` or similar runtime class name construction.
 
-**Why:** Forces a strategy note DB call on every unit drawer open, even when the user never touches the Playbook tab. Also couples UnitDetailSheet to strategy note data it doesn't need.
+**Why it's wrong:** Tailwind v4 statically scans source files. String interpolations are invisible to the scanner — the generated utility classes will be absent from the production CSS bundle. Components silently lose styling.
 
-**Do instead:** Let `PlaybookTab` own its own `useStrategyNote(unit.id)` call. TanStack Query fetches only when the tab renders, caches the result for the session.
+**Do this instead:** Always use `bg-faction-accent`, `border-faction-accent`, etc. (the CSS property-backed utilities). The static class name is always present; the runtime value changes via `setProperty`.
 
-### Anti-Pattern 3: Storing computed army list totals in the database
+### Anti-Pattern 3: Storing Absolute File Paths in unit_photos
 
-**What to avoid:** Adding `total_points`, `painted_points`, `battle_ready_pct` columns to `army_lists` and updating them via triggers or additional mutation steps.
+**What people do:** `file_path = 'C:\\Users\\Antoine\\AppData\\Roaming\\com.hobbyforge.app\\photos\\5\\abc.webp'`
 
-**Why:** These values go stale the moment a unit's `painting_percentage` changes from the Collection page or Kanban board. Synchronizing derived state across two mutation paths is a reliability bug waiting to happen.
+**Why it's wrong:** The absolute path embeds the Windows username and AppData location. If the user ever moves the app data dir, renames their Windows account, or the path structure changes, all photo links break silently.
 
-**Do instead:** Compute totals in `ArmyListDetailSheet` from the joined `ArmyListWithUnits` data. A realistic army list has 10-30 units — computation is instantaneous.
+**Do this instead:** Store relative paths (`photos/5/abc.webp`). Resolve to absolute via `appDataDir()` at display time. Cache the base dir once via `getAppDataDir()` in `src/lib/paths.ts`.
 
-### Anti-Pattern 4: Forgetting cross-invalidation for PaintWithRecipeCount
+### Anti-Pattern 4: Generating Thumbnails Lazily on Gallery First Render
 
-**What to avoid:** Adding `usePaintsWithRecipeCount()` with query key `['paints-with-recipes']` but not updating the existing paint mutation `onSuccess` handlers to also invalidate that key.
+**What people do:** Skip thumbnail generation at upload time, generate from the full-size image in a `useEffect` when the gallery view renders.
 
-**Why:** A user edits a paint on `/paints`, then navigates to `/paint-inventory` — they see stale recipe count data from the cache. The inventory feels broken.
+**Why it's wrong:** If a unit has 20 photos and the user opens the gallery, 20 simultaneous canvas operations fire. The gallery render stalls, the UI jitters, and the thumbnail write calls collide. The user sees a broken gallery on first visit.
 
-**Do instead:** Immediately add the `['paints-with-recipes']` invalidation to all three paint mutation hooks when adding `usePaintsWithRecipeCount`. This is a three-line change in `src/hooks/usePaints.ts`.
+**Do this instead:** Generate and write the thumbnail immediately at upload time before inserting the DB row. By the time the gallery renders, all thumbnails already exist on disk.
+
+### Anti-Pattern 5: Mounting FactionThemeProvider Below QueryProvider
+
+**What people do:** Nest `FactionThemeProvider` inside a page component or feature folder.
+
+**Why it's wrong:** The theme effect must survive navigation between pages. If the provider unmounts on route change, the CSS properties reset on every navigation.
+
+**Do this instead:** Mount `FactionThemeProvider` inside `AppLayout`, which is the root component wrapper for the entire `<Outlet />` tree (see `router.tsx` line 20). This ensures the provider is always mounted for the app lifetime.
+
+---
 
 ## Sources
 
-- Direct audit: `src-tauri/migrations/001_core_schema.sql` — schema facts (HIGH confidence)
-- Direct audit: `src/db/queries/paints.ts` — existing query function signatures (HIGH confidence)
-- Direct audit: `src/hooks/usePaints.ts`, `src/hooks/useUnits.ts` — hook patterns and query keys (HIGH confidence)
-- Direct audit: `src/features/units/UnitDetailSheet.tsx` — component structure for tab integration (HIGH confidence)
-- Direct audit: `src/app/router.tsx` — route tree shape and import patterns (HIGH confidence)
-- Direct audit: `src/components/common/AppSidebar.tsx` — nav entry pattern (HIGH confidence)
+- Direct audit: `src/styles/globals.css` — existing `@theme inline` pattern and dark mode token structure (HIGH confidence)
+- Direct audit: `src/components/common/useSidebarCollapsed.ts` — confirms localStorage-first pattern for persistent UI state (HIGH confidence)
+- Direct audit: `src-tauri/migrations/001_core_schema.sql` — existing table structures, confirms `image_assets` exists but is unpopulated (HIGH confidence)
+- Direct audit: `src-tauri/src/lib.rs` — confirms app_data_dir setup, migration version numbering (HIGH confidence)
+- Direct audit: `src-tauri/capabilities/default.json` — current permissions, confirms fs plugin not yet registered (HIGH confidence)
+- Direct audit: `src/main.tsx` and `src/app/router.tsx` — confirms app root structure, `QueryProvider` wraps `RouterProvider` (HIGH confidence)
+- Tailwind v4 theme docs: `tailwindcss.com/docs/theme` — `@theme inline` behavior, CSS variable generation (MEDIUM confidence — via WebSearch summary)
+- Tailwind v4 GitHub Discussion #18560: `@theme vs @theme inline` — confirms inline variables are not globally emitted, must be referenced via the token name (MEDIUM confidence)
+- Tauri v2 fs plugin docs: `v2.tauri.app/plugin/file-system/` — `BaseDirectory.AppData`, `writeFile`, `mkdir`, permission names (MEDIUM confidence — via WebSearch summary)
+- Tauri v2 GitHub Discussion #9306: `writeFile` API in v2 — `Uint8Array` + `baseDir` pattern (MEDIUM confidence)
+- MDN `OffscreenCanvas.convertToBlob()` — thumbnail generation approach (HIGH confidence — standard web API)
+- Zustand `persist` docs: `zustand.docs.pmnd.rs/reference/integrations/persisting-store-data` — synchronous localStorage hydration behavior (HIGH confidence)
 
 ---
-*Architecture research for: HobbyForge v1.1 — Paint Inventory, Army List Builder, Unit Playbook*
-*Researched: 2026-05-01*
+*Architecture research for: HobbyForge v2.1 — Visual Command*
+*Researched: 2026-05-02*
