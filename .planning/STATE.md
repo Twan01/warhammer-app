@@ -1,34 +1,34 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Utility Layer
-status: verifying
-stopped_at: Completed 07-05-PLAN.md — Manual smoke test approved; all PINV-01..06 requirements verified; Phase 7 complete
-last_updated: "2026-05-02T06:42:35.514Z"
-last_activity: 2026-05-01 — 07-05 manual smoke test approved; all PINV-01..06 requirements verified end-to-end in live Tauri app; Phase 7 complete
+milestone: v2.1
+milestone_name: Visual Command
+status: defining requirements
+stopped_at: Milestone v2.1 started — defining requirements
+last_updated: "2026-05-02T00:00:00.000Z"
+last_activity: 2026-05-02 — Milestone v2.1 started
 progress:
-  total_phases: 4
-  completed_phases: 2
-  total_plans: 10
-  completed_plans: 10
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-01 after v1.1 milestone)
+See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.0 — Phase 7 (Paint Inventory UI) complete; Phase 8 (Army List Builder) ready to plan
+**Current focus:** v2.1 — Defining requirements (Visual Command)
 
 ## Current Position
 
-Phase: 7 of 9 (v2.0 Paint Inventory UI) — COMPLETE
-Plan: 5 of 5 complete in current phase
-Status: v1.1 fully shipped (Phases 1–5 complete). v2.0 underway — Phase 6 complete. Phase 7 complete — all 5 plans executed and all PINV-01..06 requirements verified via manual smoke test. Phase 8 (Army List Builder) is next.
-Last activity: 2026-05-01 — 07-05 manual smoke test approved; all PINV-01..06 requirements verified end-to-end in live Tauri app; Phase 7 complete
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements for v2.1 Visual Command. Note: v2.0 Phases 8 (Army List Builder) and 9 (Unit Playbook) remain active in ROADMAP.md and must be executed before or alongside v2.1.
+Last activity: 2026-05-02 — Milestone v2.1 started
 
 Progress: [██████████] 100% (v2.0 Phase 7: 5/5 plans complete)
 
