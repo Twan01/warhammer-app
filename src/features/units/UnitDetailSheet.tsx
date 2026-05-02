@@ -11,6 +11,7 @@ import {
   SheetDescription,
   SheetFooter,
 } from "@/components/ui/sheet";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import { useRecipes } from "@/hooks/useRecipes";
 import { useUpdateUnit, UNITS_KEY } from "@/hooks/useUnits";
 import type { Unit } from "@/types/unit";
 import { StatusPopover } from "./StatusPopover";
+import { PlaybookTab } from "./PlaybookTab";
 
 interface UnitDetailSheetProps {
   open: boolean;
@@ -89,109 +91,122 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete }: UnitD
               </SheetDescription>
             </SheetHeader>
 
-            <div className="flex flex-col gap-4 p-4">
-              <Field label="Category">
-                <span className="text-sm">{unit.category ?? "—"}</span>
-              </Field>
+            <Tabs defaultValue="details" className="px-4">
+              <TabsList className="mt-2">
+                <TabsTrigger value="details">Details</TabsTrigger>
+                <TabsTrigger value="playbook">Playbook</TabsTrigger>
+              </TabsList>
 
-              <Field label="Painting Status">
-                <StatusPopover unit={unit} />
-              </Field>
+              <TabsContent value="details">
+                <div className="flex flex-col gap-4 p-4">
+                  <Field label="Category">
+                    <span className="text-sm">{unit.category ?? "—"}</span>
+                  </Field>
 
-              <Field label="Painting Progress">
-                <div className="flex items-center gap-2">
-                  <Progress value={unit.painting_percentage} className="h-2 w-32" />
-                  <span className="text-sm text-muted-foreground">{unit.painting_percentage}%</span>
-                </div>
-              </Field>
+                  <Field label="Painting Status">
+                    <StatusPopover unit={unit} />
+                  </Field>
 
-              <Separator />
+                  <Field label="Painting Progress">
+                    <div className="flex items-center gap-2">
+                      <Progress value={unit.painting_percentage} className="h-2 w-32" />
+                      <span className="text-sm text-muted-foreground">{unit.painting_percentage}%</span>
+                    </div>
+                  </Field>
 
-              <Field label="Assembly"><BoolIndicator on={!!unit.status_assembly} /></Field>
-              <Field label="Basing"><BoolIndicator on={!!unit.status_basing} /></Field>
-              <Field label="Varnished"><BoolIndicator on={!!unit.status_varnished} /></Field>
-              <Field label="Active Project">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={toggleActiveProject}
-                  aria-label={
-                    unit.is_active_project
-                      ? `Remove ${unit.name} from active projects`
-                      : `Mark ${unit.name} as active project`
-                  }
-                >
-                  {unit.is_active_project ? (
+                  <Separator />
+
+                  <Field label="Assembly"><BoolIndicator on={!!unit.status_assembly} /></Field>
+                  <Field label="Basing"><BoolIndicator on={!!unit.status_basing} /></Field>
+                  <Field label="Varnished"><BoolIndicator on={!!unit.status_varnished} /></Field>
+                  <Field label="Active Project">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={toggleActiveProject}
+                      aria-label={
+                        unit.is_active_project
+                          ? `Remove ${unit.name} from active projects`
+                          : `Mark ${unit.name} as active project`
+                      }
+                    >
+                      {unit.is_active_project ? (
+                        <>
+                          <Flame className="mr-2 h-4 w-4 text-primary" aria-hidden="true" />
+                          Active — click to remove
+                        </>
+                      ) : (
+                        <>
+                          <Flame className="mr-2 h-4 w-4" aria-hidden="true" />
+                          Mark as active project
+                        </>
+                      )}
+                    </Button>
+                  </Field>
+
+                  <Separator />
+
+                  <Field label="Points"><span className="text-sm">{unit.points ?? "—"}</span></Field>
+                  <Field label="Model Count"><span className="text-sm">{unit.model_count ?? "—"}</span></Field>
+                  <Field label="Owned Count"><span className="text-sm">{unit.owned_count ?? "—"}</span></Field>
+                  <Field label="Priority"><span className="text-sm">{unit.priority ?? "—"}</span></Field>
+                  <Field label="Target Date">
+                    <span className="text-sm">{unit.target_completion_date ?? "—"}</span>
+                  </Field>
+
+                  <Separator />
+
+                  <Field label="Purchase Date">
+                    <span className="text-sm">{unit.purchase_date ?? "—"}</span>
+                  </Field>
+                  <Field label="Purchase Price">
+                    <span className="text-sm">{unit.purchase_price ?? "—"}</span>
+                  </Field>
+                  <Field label="Storage Location">
+                    <span className="text-sm">{unit.storage_location ?? "—"}</span>
+                  </Field>
+
+                  <Separator />
+                  <Field label="Linked Recipes">
+                    {linkedRecipes.length === 0 ? (
+                      <span className="text-xs text-muted-foreground">
+                        No recipes linked to this unit.
+                      </span>
+                    ) : (
+                      <div className="flex flex-col gap-1 items-start">
+                        {linkedRecipes.map((r) => (
+                          <Button
+                            key={r.id}
+                            variant="link"
+                            size="sm"
+                            className="h-auto p-0"
+                            onClick={() => {
+                              onClose();
+                              navigate({ to: "/recipes" });
+                            }}
+                          >
+                            {r.name}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
+                  </Field>
+
+                  {unit.notes && (
                     <>
-                      <Flame className="mr-2 h-4 w-4 text-primary" aria-hidden="true" />
-                      Active — click to remove
-                    </>
-                  ) : (
-                    <>
-                      <Flame className="mr-2 h-4 w-4" aria-hidden="true" />
-                      Mark as active project
+                      <Separator />
+                      <Field label="Notes">
+                        <p className="text-sm whitespace-pre-wrap">{unit.notes}</p>
+                      </Field>
                     </>
                   )}
-                </Button>
-              </Field>
+                </div>
+              </TabsContent>
 
-              <Separator />
-
-              <Field label="Points"><span className="text-sm">{unit.points ?? "—"}</span></Field>
-              <Field label="Model Count"><span className="text-sm">{unit.model_count ?? "—"}</span></Field>
-              <Field label="Owned Count"><span className="text-sm">{unit.owned_count ?? "—"}</span></Field>
-              <Field label="Priority"><span className="text-sm">{unit.priority ?? "—"}</span></Field>
-              <Field label="Target Date">
-                <span className="text-sm">{unit.target_completion_date ?? "—"}</span>
-              </Field>
-
-              <Separator />
-
-              <Field label="Purchase Date">
-                <span className="text-sm">{unit.purchase_date ?? "—"}</span>
-              </Field>
-              <Field label="Purchase Price">
-                <span className="text-sm">{unit.purchase_price ?? "—"}</span>
-              </Field>
-              <Field label="Storage Location">
-                <span className="text-sm">{unit.storage_location ?? "—"}</span>
-              </Field>
-
-              <Separator />
-              <Field label="Linked Recipes">
-                {linkedRecipes.length === 0 ? (
-                  <span className="text-xs text-muted-foreground">
-                    No recipes linked to this unit.
-                  </span>
-                ) : (
-                  <div className="flex flex-col gap-1 items-start">
-                    {linkedRecipes.map((r) => (
-                      <Button
-                        key={r.id}
-                        variant="link"
-                        size="sm"
-                        className="h-auto p-0"
-                        onClick={() => {
-                          onClose();
-                          navigate({ to: "/recipes" });
-                        }}
-                      >
-                        {r.name}
-                      </Button>
-                    ))}
-                  </div>
-                )}
-              </Field>
-
-              {unit.notes && (
-                <>
-                  <Separator />
-                  <Field label="Notes">
-                    <p className="text-sm whitespace-pre-wrap">{unit.notes}</p>
-                  </Field>
-                </>
-              )}
-            </div>
+              <TabsContent value="playbook">
+                <PlaybookTab unitId={unit.id} />
+              </TabsContent>
+            </Tabs>
 
             <SheetFooter className="mt-6 gap-2 sm:gap-2">
               <Button

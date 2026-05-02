@@ -6,9 +6,10 @@
  * jsdom; this is a content-shape test, not a behavior test.
  */
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const repoRoot = resolve(__dirname, "..", "..");
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const migrationPath = resolve(repoRoot, "src-tauri/migrations/004_unit_playbook_stats.sql");
 const libRsPath = resolve(repoRoot, "src-tauri/src/lib.rs");
 
