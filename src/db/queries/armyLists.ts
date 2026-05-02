@@ -120,3 +120,28 @@ export async function updateArmyListUnit(input: UpdateArmyListUnitInput): Promis
     [input.id, input.points_override, input.notes]
   );
 }
+
+/**
+ * ARMY-05 — Returns the army lists that contain a given unit.
+ * Used by the enhanced UnitDeleteDialog to warn before deleting a unit that
+ * belongs to one or more active army lists. Returns an empty array when the
+ * unit is not in any list.
+ *
+ * Note: a single unit_id can appear multiple times in the same list (the
+ * army_list_units table has no UNIQUE constraint per CONTEXT.md). This SQL
+ * does NOT de-duplicate — if "Intercessors" appears in "List A" twice, the
+ * caller will see "List A" twice. Plan 04 should de-dup by id at the call
+ * site if needed for display.
+ */
+export async function getArmyListsByUnitId(
+  unitId: number,
+): Promise<{ id: number; name: string }[]> {
+  const db = await getDb();
+  return db.select<{ id: number; name: string }[]>(
+    `SELECT al.id, al.name
+     FROM army_list_units alu
+     JOIN army_lists al ON al.id = alu.list_id
+     WHERE alu.unit_id = $1`,
+    [unitId],
+  );
+}
