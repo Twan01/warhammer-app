@@ -80,14 +80,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UI-01 | Phase 10 | Pending |
 | UI-02 | Phase 10 | Pending |
 | UI-03 | Phase 10 | Pending |
-| UI-04 | Phase 11 | Pending |
-| UI-05 | Phase 11 | Pending |
-| UI-06 | Phase 11 | Pending |
 | UI-07 | Phase 11 | Pending |
 | UI-08 | Phase 11 | Pending |
-| JOUR-01 | Phase 12 | Pending |
-| JOUR-02 | Phase 12 | Pending |
-| JOUR-03 | Phase 12 | Pending |
+| UI-04 | Phase 12 | Pending |
+| UI-05 | Phase 12 | Pending |
+| UI-06 | Phase 12 | Pending |
+| JOUR-01 | Phase 13 | Pending |
+| JOUR-02 | Phase 13 | Pending |
+| JOUR-03 | Phase 13 | Pending |
 | JOUR-04 | Phase 13 | Pending |
 | JOUR-05 | Phase 13 | Pending |
 | JOUR-06 | Phase 13 | Pending |
@@ -104,4 +104,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-05-02*
-*Last updated: 2026-05-02 after initial v2.1 definition*
+*Last updated: 2026-05-02 — traceability corrected to match ROADMAP.md phase assignments (Phase 10: THEME+UI-01..03, Phase 11: UI-07..08, Phase 12: UI-04..06, Phase 13: JOUR-01..06, Phase 14: SPEND-01..05)*

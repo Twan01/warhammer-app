@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Utility Layer
-status: "Defining requirements for v2.1 Visual Command. Note: v2.0 Phases 8 (Army List Builder) and 9 (Unit Playbook) remain active in ROADMAP.md and must be executed before or alongside v2.1."
-stopped_at: Phase 8 UI-SPEC approved
-last_updated: "2026-05-02T07:13:41.034Z"
-last_activity: 2026-05-02 — Milestone v2.1 started
+milestone: v2.1
+milestone_name: Visual Command
+status: "Roadmap created. v2.0 Phases 8–9 pending. v2.1 Phases 10–14 planned and ready for phase planning."
+stopped_at: v2.1 roadmap written — 22 requirements mapped across Phases 10–14
+last_updated: "2026-05-02"
+last_activity: 2026-05-02 — v2.1 roadmap created (Phases 10–14)
 progress:
-  total_phases: 4
-  completed_phases: 2
+  total_phases: 9
+  completed_phases: 7
   total_plans: 10
   completed_plans: 10
-  percent: 100
+  percent: 78
 ---
 
 # Project State
@@ -21,22 +21,39 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.1 — Defining requirements (Visual Command)
+**Current focus:** v2.1 — Visual Command (Phases 10–14 planned; v2.0 Phases 8–9 still pending)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 8 of 14 (next to execute: Phase 8 Army List Builder)
 Plan: —
-Status: Defining requirements for v2.1 Visual Command. Note: v2.0 Phases 8 (Army List Builder) and 9 (Unit Playbook) remain active in ROADMAP.md and must be executed before or alongside v2.1.
-Last activity: 2026-05-02 — Milestone v2.1 started
+Status: Ready to plan. v2.0 Phases 8 and 9 must execute before v2.1 phases begin.
+Last activity: 2026-05-02 — v2.1 roadmap written, Phases 10–14 defined
 
-Progress: [██████████] 100% (v2.0 Phase 7: 5/5 plans complete)
+Progress: [████████░░░░░░] ~57% (7/9 phases with defined plans complete; Phases 8–14 pending)
 
-## v2.0 Scope
+## v2.1 Phase Map
 
-Phases 6–9 implement Paint Inventory, Army List Builder, and Unit Playbook. Phase 6 is a back-end-only foundation with no UI. Phases 7–9 add UI features sequentially.
+| Phase | Goal | Requirements |
+|-------|------|--------------|
+| 10. Theming Foundation | Faction accent colors + collapsible sidebar | THEME-01..03, UI-01..03 |
+| 11. Dashboard Command Center | Animated counters + faction-accented cards | UI-07, UI-08 |
+| 12. Collection Gallery View | Card grid alternate view + filter preservation | UI-04..06 |
+| 13. Hobby Journal | Session log (SQL) + photo timeline (tauri-plugin-fs) | JOUR-01..06 |
+| 14. Spending Tracker | Cost logging per unit/paint + Spending page | SPEND-01..05 |
 
-Key architecture context carried forward:
+Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-faction-accent` CSS utilities must exist before any themed UI is built.
+
+## Accumulated Context
+
+### Key Decisions for v2.1
+
+- Phase 10 uses CSS `@theme` layer to define `bg-faction-accent` utilities — all accent color usage in later phases references these utilities, never hardcoded hex values
+- Phase 13 photo storage requires `tauri-plugin-fs` — the one new Tauri plugin introduced in v2.1; verify capability grants before building photo attach UI
+- Phase 14 stores all spend values as integer pence in SQLite — display formatting happens in UI layer only, never stored as float
+
+### Decisions Carried from v2.0
+
 - All queries via `tauri-plugin-sql` directly — no ORM
 - `0|1` integer discipline for SQLite booleans
 - All new query modules go to `src/db/queries/` — never import DB in UI
@@ -44,58 +61,21 @@ Key architecture context carried forward:
 - Sibling Sheet/Dialog portal pattern — never nest Radix portals
 - selectedUnitId pattern for any page that opens a detail Sheet
 
-## Accumulated Context
+### Tech Debt
 
-### Active Decisions for v2.0
-
-Full decision log in PROJECT.md Key Decisions table.
-
-Key decisions made during execution:
-- 07-04: PaintsPage imports PaintInventoryFilters with explicit .tsx extension ("./PaintInventoryFilters.tsx") to resolve Windows case-insensitive FS casing conflict (TS1261) between PaintInventoryFilters.tsx and paintInventoryFilters.ts; allowImportingTsExtensions:true already in tsconfig.
-- 07-04: PaintSheet and PaintDeleteDialog accept Paint|null — no modification needed since PaintWithRecipeCount extends Paint (TypeScript structural subtyping handles the compatibility).
-- 07-03: recipesRoute exported as named export from router.tsx so RecipesPage can call recipesRoute.useSearch() — first use of validateSearch in codebase; no circular import issue encountered (ES module live-binding with Vite handles it).
-- 07-03: paintFilter seeded once on mount via useEffect([]) — intentional empty deps so user can clear the URL-seeded filter without the URL param re-applying on next render.
-- 07-03: while recipeIdsByPaint is loading, paintFilter guard hides all recipes (single-render flash) matching empty-state UX.
-- 07-02: useRecipePaints.ts already existed from Phase 4 — appended RECIPE_IDS_BY_PAINT_KEY and useRecipeIdsByPaint additively, preserving the existing 3 exports.
-- 07-02: useRecipeIdsByPaint uses disabled fallback queryKey ['recipe-ids-by-paint', 'disabled'] when paintId is null/undefined — TanStack Query requires a defined queryKey even when enabled: false.
-- 07-01: usePaintInventoryFilters is a direct structural copy of useCollectionFilters — five fields (brands/types/colorFamilies as arrays, runningLow/wishlist as booleans), same idempotent toggle pattern.
-- 07-01: applyPaintFilters uses p.running_low !== 1 and p.wishlist !== 1 guards — never truthy checks — enforcing the codebase SQLite 0|1 integer discipline.
-- 06-00: Wave-0 stub pattern confirmed — describe blocks named per VALIDATION.md -t filter strings, it.skip() filled in-place by later plans, no imports (vitest globals:true)
-- 06-01: save = INTEGER (not TEXT); UI appends '+' suffix at display time. Migration comment wording must avoid the literal word "DROP" to pass regex assertions.
-- 06-02: ArmyListUnit omits updated_at — army_list_units schema has no such column; including it causes runtime mismatch.
-- 06-02: PaintWithRecipeCount.recipe_count is SQL-computed (LEFT JOIN COUNT), never recalculated in JS.
-- 06-02: UpdateArmyListUnitInput uses non-optional nullable fields (full-replacement) to allow clearing points_override back to NULL.
-- 06-03: updateArmyListUnit uses full-replacement SET (no COALESCE) — points_override must be clearable to NULL.
-- 06-03: addUnitToList uses plain INSERT (no INSERT OR IGNORE) — duplicate (list_id, unit_id) pairs are intentionally allowed.
-- 06-03: upsertStrategyNote uses select-then-insert/update — no ON CONFLICT since no UNIQUE INDEX exists on unit_strategy_notes.unit_id.
-- 06-03: getArmyListWithUnits computes effective_points = COALESCE(alu.points_override, u.points, 0) in SQL (never in JS).
-- 06-04: useUpsertStrategyNote.onSuccess invalidates ONLY STRATEGY_NOTE_KEY(unit_id) — no ['units'] or ['dashboard-stats'] since strategy notes don't surface in collection or dashboard.
-- 06-04: useArmyLists mutations all invalidate ['dashboard-stats'] per DATA-09 forward-compat, even though v1 dashboard doesn't show army list data yet.
-- 06-04: ARMY_LIST_UNITS_KEY(id) = ['army-lists', id, 'units'] as third key shape for unit-membership cache invalidation.
-- 06-04: RemoveUnitFromListInput and UpdateArmyListUnitVariables carry list_id for targeted onSuccess invalidation in useArmyLists.
-
-Key decisions affecting v2.0 planning:
-- Phase 6 adds `002_unit_playbook_stats.sql` migration — `ALTER TABLE ADD COLUMN` only, no edits to 001
-- `usePaints.ts` mutations need to invalidate `['paints-with-recipes']` in Phase 6 for Phase 7's PaintWithRecipeCount query
-- `getStrategyNote()` + `upsertStrategyNote()` in Phase 6 for Phase 9's Playbook tab
-- Army Lists use `COALESCE(points_override, unit.points, 0)` in SQL for effective points (ARMY-03)
-- Unit Playbook lives in a second Tabs panel inside the existing UnitDetailSheet — SheetFooter stays outside Tabs wrapper
-
-### Tech Debt from v1.1
-
-- PROJ-02: Update REQUIREMENTS.md text to remove "empty columns hidden" language (one-line fix)
-- PaintingProjectsPage empty-state CTA: replace `document.querySelector` with `useState` toggle
+- PROJ-02: REQUIREMENTS.md text still says "empty columns hidden" — KanbanBoard ships all 11 columns (approved UX)
+- PaintingProjectsPage empty-state CTA uses fragile DOM query — replace with useState pattern
 
 ### Pending Todos
 
-None blocking v2.0 start.
+None blocking.
 
 ### Open Blockers
 
-None (MSVC Build Tools resolved in Phase 1; all seeding questions resolved in Phase 2)
+None.
 
 ## Session Continuity
 
-Last session: 2026-05-02T07:13:41.031Z
-Stopped at: Phase 8 UI-SPEC approved
-Resume: Run `/gsd:plan-phase 8` to plan Phase 8 (Army List Builder), or `/gsd:verify-work` to verify Phase 7
+Last session: 2026-05-02
+Stopped at: v2.1 roadmap created — Phases 10–14 written to ROADMAP.md, REQUIREMENTS.md traceability confirmed, STATE.md updated
+Resume: Run `/gsd:plan-phase 8` to plan Phase 8 (Army List Builder) next
