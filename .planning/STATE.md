@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
 status: executing
-stopped_at: Completed 08-army-list-builder-00-PLAN.md
-last_updated: "2026-05-02T08:00:00.000Z"
-last_activity: 2026-05-02 — Phase 8 Plan 00 executed (Wave 0 data layer + stub tests)
+stopped_at: Completed 09-unit-playbook-02-PLAN.md
+last_updated: "2026-05-02T08:02:33Z"
+last_activity: 2026-05-02 — Phase 9 Plan 02 executed (UnitDetailSheet tabs integration, STRAT-01 closed)
 progress:
   total_phases: 9
   completed_phases: 2
   total_plans: 20
-  completed_plans: 13
-  percent: 65
+  completed_plans: 14
+  percent: 70
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 
 ## Current Position
 
-Phase: 8 of 14 (executing: Phase 8 Army List Builder)
-Plan: 08-00 complete — Wave 0 data layer + stub tests done; next: Plan 08-01 (Army list CRUD hooks)
-Status: In progress. Phase 8 Plan 00 complete. Plans 08-01..04 remaining.
-Last activity: 2026-05-02 — Phase 8 Plan 00 executed (getArmyListsByUnitId query + Wave 0 stub tests)
+Phase: 9 of 14 (executing: Phase 9 Unit Playbook)
+Plan: 09-02 complete — UnitDetailSheet tabs integration done (STRAT-01 closed); next: Plan 09-03 (Tauri smoke test checkpoint)
+Status: In progress. Phase 9 Plans 00–02 complete. Plan 09-03 remaining.
+Last activity: 2026-05-02 — Phase 9 Plan 02 executed (UnitDetailSheet tabs integration, STRAT-01 closed)
 
-Progress: [███████░░░] 65% (13/20 plans complete)
+Progress: [███████░░░] 70% (14/20 plans complete)
 
 ## v2.1 Phase Map
 
@@ -50,7 +50,9 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 
 - Phase 8 Plan 00: getArmyListsByUnitId SQL does not de-duplicate — if a unit appears in List A twice, caller sees List A twice; plan 04 call site de-dups by id if needed for display
 - Phase 9 Plan 01: Raw `<textarea>` with PaintSheet className verbatim used for PlaybookTab (no shadcn Textarea exists); `initialRef` snapshot pattern for dirty detection without React Hook Form
-- Phase 9 Plan 01: STRAT-01 verified via standalone Tabs harness in tests; full UnitDetailSheet integration deferred to Plan 09-02
+- Phase 9 Plan 02: SheetHeader/SheetFooter stay outside Tabs so unit name, faction badge, and Edit/Delete buttons persist across tab switches
+- Phase 9 Plan 02: No overflow-hidden added to Tabs/TabsContent — SheetContent overflow-y-auto retained for correct scrolling (Pitfall 5)
+- Phase 9 Plan 02: key={unit?.id} on SheetContent resets PlaybookTab state on unit switch for free — no extra reset logic needed
 - Phase 10 uses CSS `@theme` layer to define `bg-faction-accent` utilities — all accent color usage in later phases references these utilities, never hardcoded hex values
 - Phase 13 photo storage requires `tauri-plugin-fs` — the one new Tauri plugin introduced in v2.1; verify capability grants before building photo attach UI
 - Phase 14 stores all spend values as integer pence in SQLite — display formatting happens in UI layer only, never stored as float
@@ -79,6 +81,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-02T08:00:00.000Z
-Stopped at: Completed 08-army-list-builder-00-PLAN.md
-Resume: Run `/gsd:execute-phase 8 01` to execute Phase 8 Plan 01 (Army list CRUD hooks)
+Last session: 2026-05-02T08:02:33Z
+Stopped at: Completed 09-unit-playbook-02-PLAN.md
+Resume: Run `/gsd:execute-phase 9 03` to execute Phase 9 Plan 03 (Tauri smoke test checkpoint)
