@@ -1,0 +1,107 @@
+# Requirements: HobbyForge v2.1 Visual Command
+
+**Defined:** 2026-05-02
+**Core Value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
+
+## v2.1 Requirements
+
+### Faction Dynamic Theming
+
+- [ ] **THEME-01**: User can select an active faction and the UI accent color (buttons, badges, status rings, highlights) shifts to that faction's theme color across the entire app immediately
+- [ ] **THEME-02**: Active faction selection persists after closing and reopening the app
+- [ ] **THEME-03**: User can set the active faction from the Dashboard
+
+### Visual / UX
+
+- [ ] **UI-01**: User can collapse the sidebar to icon-only mode via a toggle control
+- [ ] **UI-02**: Sidebar collapsed/expanded state persists across app restarts
+- [ ] **UI-03**: Icons in collapsed sidebar show a tooltip with the nav label on hover
+- [ ] **UI-04**: User can switch the Collection page between table view and gallery view using a view toggle
+- [ ] **UI-05**: Gallery view displays unit cards with unit name, faction badge, painting-status ring, and painted percentage
+- [ ] **UI-06**: Switching between table and gallery view preserves all active filters (no filter reset on toggle)
+- [ ] **UI-07**: Dashboard hero section shows animated stat counters for total units, painted count, and battle-ready percentage
+- [ ] **UI-08**: Dashboard faction summary section displays cards with faction-accent color accents driven by the active theme
+
+### Hobby Journal
+
+- [ ] **JOUR-01**: User can log a painting session per unit with date, duration in minutes, and optional notes
+- [ ] **JOUR-02**: User can view all painting sessions for a unit in the unit detail sheet, sorted newest first
+- [ ] **JOUR-03**: User can delete a painting session entry
+- [ ] **JOUR-04**: User can attach a photo to a unit with a stage label (e.g. "Primed", "Base coat", "Finished") and optional caption
+- [ ] **JOUR-05**: User can view the photo timeline for a unit as a chronological gallery of thumbnails with stage labels
+- [ ] **JOUR-06**: Deleting a unit removes its associated photo files from disk alongside the DB rows
+
+### Spending Tracker
+
+- [ ] **SPEND-01**: User can log a purchase price and purchase date per unit in the unit detail sheet
+- [ ] **SPEND-02**: User can log a purchase price per paint pot in the paint detail sheet
+- [ ] **SPEND-03**: User can view a Spending page showing total hobby spend (units + paints combined)
+- [ ] **SPEND-04**: Spending page breaks down total spend by faction
+- [ ] **SPEND-05**: Spending values are stored as integer pence in SQLite and displayed as formatted currency throughout the UI
+
+## Future Requirements (v2.2+)
+
+### Hobby Journal (deferred)
+
+- **JOUR-07**: Export unit journal (sessions + photos) as a printable PDF or image
+- **JOUR-08**: Photo before/after comparison slider for a unit
+
+### Spending (deferred)
+
+- **SPEND-06**: Spending trend chart over time (monthly/quarterly)
+- **SPEND-07**: Import purchase history from CSV
+
+### Theming (deferred)
+
+- **THEME-04**: Custom faction color picker (override default hex per faction)
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Live stopwatch timer in session log | Manual duration entry after the session is the right desktop UX — timer adds complexity for minimal value |
+| Multi-currency / FX conversion | Single-currency personal tool; locale formatting handles display |
+| Receipt scanning / OCR | No camera/scanner integration; manual entry only |
+| Budget alerts or spending limits | Passive tracking only; no notification system |
+| Barcode scanning for purchases | No hardware integration |
+| AI-powered features (recipe generator, spend analysis) | Deferred per PROJECT.md |
+| Social sharing / export of journal to community | Local-first by design |
+| Cloud backup of photos | Local filesystem only; no cloud |
+
+## Traceability
+
+Which phases cover which requirements. Updated during roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| THEME-01 | Phase 10 | Pending |
+| THEME-02 | Phase 10 | Pending |
+| THEME-03 | Phase 10 | Pending |
+| UI-01 | Phase 10 | Pending |
+| UI-02 | Phase 10 | Pending |
+| UI-03 | Phase 10 | Pending |
+| UI-04 | Phase 11 | Pending |
+| UI-05 | Phase 11 | Pending |
+| UI-06 | Phase 11 | Pending |
+| UI-07 | Phase 11 | Pending |
+| UI-08 | Phase 11 | Pending |
+| JOUR-01 | Phase 12 | Pending |
+| JOUR-02 | Phase 12 | Pending |
+| JOUR-03 | Phase 12 | Pending |
+| JOUR-04 | Phase 13 | Pending |
+| JOUR-05 | Phase 13 | Pending |
+| JOUR-06 | Phase 13 | Pending |
+| SPEND-01 | Phase 14 | Pending |
+| SPEND-02 | Phase 14 | Pending |
+| SPEND-03 | Phase 14 | Pending |
+| SPEND-04 | Phase 14 | Pending |
+| SPEND-05 | Phase 14 | Pending |
+
+**Coverage:**
+- v2.1 requirements: 22 total
+- Mapped to phases: 22
+- Unmapped: 0 ✓
+
+---
+*Requirements defined: 2026-05-02*
+*Last updated: 2026-05-02 after initial v2.1 definition*
