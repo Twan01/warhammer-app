@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
 status: executing
-stopped_at: Completed 09-unit-playbook-03-PLAN.md — Phase 9 Unit Playbook fully complete (all 9 STRAT smoke-test steps PASSED)
-last_updated: "2026-05-02T08:15:39.616Z"
+stopped_at: Completed 08-army-list-builder plan 08-02 — ArmyListSummaryBar, ArmyListUnitRow, UnitPickerDialog leaf components
+last_updated: "2026-05-02T08:21:53.932Z"
 last_activity: 2026-05-02 — Phase 9 Plan 03 approved by user (all 9 smoke-test steps PASSED, STRAT-01..05 verified)
 progress:
   total_phases: 9
   completed_phases: 3
   total_plans: 20
-  completed_plans: 17
+  completed_plans: 18
   percent: 85
 ---
 
