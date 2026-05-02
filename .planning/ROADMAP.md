@@ -95,7 +95,15 @@ Plans:
   4. Per-list notes and per-unit-in-list notes fields both save without leaving the detail sheet
   5. Unit delete warns by count when the unit belongs to active army lists before confirming
   6. Empty state with CTA appears when no lists exist
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+- [ ] 08-00-PLAN.md — Wave 0: getArmyListsByUnitId query + 3 stub test files (1 real + 2 skipped)
+- [ ] 08-01-PLAN.md — armyListSchema + ArmyListSheet (create/edit form) + ArmyListDeleteDialog
+- [ ] 08-02-PLAN.md — Leaf components: ArmyListSummaryBar, ArmyListUnitRow, UnitPickerDialog
+- [ ] 08-03-PLAN.md — Composite components: ArmyListDetailSheet + ArmyListCard
+- [ ] 08-04-PLAN.md — Page wire-up: ArmyListsPage + ArmyListsEmptyState + route + sidebar nav + UnitDeleteDialog enhancement (ARMY-05)
+- [ ] 08-05-PLAN.md — Manual smoke-test checkpoint (ARMY-01..07)
 
 ### Phase 9: Unit Playbook
 **Goal**: Users can record personal stats (M/T/Sv/W/Ld/OC), abilities, keywords, and strategy notes for any unit in a dedicated Playbook tab inside the existing unit detail sheet — saving inline without closing the sheet or toggling edit mode
@@ -183,7 +191,7 @@ Plans:
 | 5. Dashboard | v1.1 | 4/4 | Complete | 2026-05-01 |
 | 6. Foundation | v2.0 | 5/5 | Complete | 2026-05-01 |
 | 7. Paint Inventory | v2.0 | 5/5 | Complete | 2026-05-02 |
-| 8. Army List Builder | v2.0 | 0/TBD | Not started | — |
+| 8. Army List Builder | v2.0 | 0/6 | Planned | — |
 | 9. Unit Playbook | 1/4 | In Progress|  | — |
 | 10. Theming Foundation | v2.1 | 0/TBD | Not started | — |
 | 11. Dashboard Command Center | v2.1 | 0/TBD | Not started | — |
