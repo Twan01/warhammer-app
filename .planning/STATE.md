@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
-status: executing
-stopped_at: Completed 08-army-list-builder plan 08-03 — ArmyListDetailSheet, ArmyListCard composite components
-last_updated: "2026-05-02T08:26:00Z"
-last_activity: 2026-05-02 — Phase 8 Plan 03 complete — ArmyListDetailSheet + ArmyListCard composite components built
+status: completed
+stopped_at: Completed 08-army-list-builder plan 08-04 — ArmyListsPage wire-up, UnitDeleteDialog enhancement (ARMY-05/06/07)
+last_updated: "2026-05-02T08:31:48Z"
+last_activity: 2026-05-02 — Phase 8 Plan 04 complete — ArmyListsPage assembled with sibling portal architecture, route/nav added, UnitDeleteDialog enhanced
 progress:
-  total_phases: 9
+  total_phases: 10
   completed_phases: 3
   total_plans: 20
-  completed_plans: 18
-  percent: 90
+  completed_plans: 19
+  percent: 95
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 ## Current Position
 
 Phase: 8 of 14 (IN PROGRESS: Phase 8 Army List Builder)
-Plan: 08-03 complete — ArmyListDetailSheet + ArmyListCard composite components built
-Status: Phase 8 plans 00-03 done, plans 04-05 still pending (ArmyListsPage wire-up, smoke test). Phase 9 complete.
-Last activity: 2026-05-02 — Phase 8 Plan 03 complete — composite components (ArmyListDetailSheet, ArmyListCard) built
+Plan: 08-04 complete — ArmyListsPage wire-up, UnitDeleteDialog enhancement (ARMY-05/06/07 closed)
+Status: Phase 8 plans 00-04 done, plan 05 still pending (smoke test). Phase 9 complete.
+Last activity: 2026-05-02 — Phase 8 Plan 04 complete — ArmyListsPage assembled, route/nav added, UnitDeleteDialog enhanced with army-list membership pre-check
 
-Progress: [█████████░] 90% (18/20 plans complete)
+Progress: [██████████] 95% (19/20 plans complete)
 
 ## v2.1 Phase Map
 
@@ -51,6 +51,7 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 - Phase 8 Plan 00: getArmyListsByUnitId SQL does not de-duplicate — if a unit appears in List A twice, caller sees List A twice; plan 04 call site de-dups by id if needed for display
 - Phase 8 Plan 02: status_painting === 'Completed' is canonical (not 'Complete' — RESEARCH.md typo corrected; PAINTING_STATUS_ORDER in unit.ts confirms); Pitfall 2 full-replacement UPDATE means every useUpdateArmyListUnit call passes BOTH points_override AND notes; UnitPickerDialog stays open after each add for multi-add UX
 - Phase 8 Plan 03: ArmyListDetailSheet does NOT own UnitPickerDialog state — onAddUnit prop delegates to parent page (sibling portal); ArmyListCard duplicates stat logic from ArmyListSummaryBar intentionally (card must show totals before detail sheet is opened); Pitfall 5 (notes: notesDraft ?? "") and Pitfall 6 (key={list?.id ?? "none-detail"}) both applied
+- Phase 8 Plan 04: Loading skeleton test required async waitFor wrapper because RouterProvider renders asynchronously — synchronous querySelectorAll returned 0 elements; UnitDeleteDialog warning body uses double-quoted unit name + pluralized list count per UI-SPEC §Copywriting Contract
 - Phase 9 Plan 01: Raw `<textarea>` with PaintSheet className verbatim used for PlaybookTab (no shadcn Textarea exists); `initialRef` snapshot pattern for dirty detection without React Hook Form
 - Phase 9 Plan 02: SheetHeader/SheetFooter stay outside Tabs so unit name, faction badge, and Edit/Delete buttons persist across tab switches
 - Phase 9 Plan 02: No overflow-hidden added to Tabs/TabsContent — SheetContent overflow-y-auto retained for correct scrolling (Pitfall 5)
@@ -87,6 +88,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-02T08:26:00Z
-Stopped at: Completed 08-army-list-builder plan 08-03 — ArmyListDetailSheet, ArmyListCard composite components
-Resume: Phase 8 Army List Builder plans 04-05 still pending (ArmyListsPage wire-up, smoke test). Run `/gsd:execute-phase` to continue Phase 8 with plan 04.
+Last session: 2026-05-02T08:31:48Z
+Stopped at: Completed 08-army-list-builder plan 08-04 — ArmyListsPage wire-up, UnitDeleteDialog enhancement (ARMY-05/06/07)
+Resume: Phase 8 Army List Builder plan 05 still pending (smoke test). Run `/gsd:execute-phase` to continue Phase 8 with plan 05.
