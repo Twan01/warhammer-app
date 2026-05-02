@@ -184,7 +184,7 @@ Plans:
 | 6. Foundation | v2.0 | 5/5 | Complete | 2026-05-01 |
 | 7. Paint Inventory | v2.0 | 5/5 | Complete | 2026-05-02 |
 | 8. Army List Builder | v2.0 | 0/TBD | Not started | — |
-| 9. Unit Playbook | v2.0 | 0/4 | Not started | — |
+| 9. Unit Playbook | 1/4 | In Progress|  | — |
 | 10. Theming Foundation | v2.1 | 0/TBD | Not started | — |
 | 11. Dashboard Command Center | v2.1 | 0/TBD | Not started | — |
 | 12. Collection Gallery View | v2.1 | 0/TBD | Not started | — |

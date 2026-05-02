@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.1
-milestone_name: Visual Command
-status: "Roadmap created. v2.0 Phases 8–9 pending. v2.1 Phases 10–14 planned and ready for phase planning."
-stopped_at: v2.1 roadmap written — 22 requirements mapped across Phases 10–14
-last_updated: "2026-05-02"
-last_activity: 2026-05-02 — v2.1 roadmap created (Phases 10–14)
+milestone: v2.0
+milestone_name: Utility Layer
+status: planning
+stopped_at: Completed 09-unit-playbook-00-PLAN.md
+last_updated: "2026-05-02T07:34:55.359Z"
+last_activity: 2026-05-02 — v2.1 roadmap written, Phases 10–14 defined
 progress:
   total_phases: 9
-  completed_phases: 7
-  total_plans: 10
-  completed_plans: 10
-  percent: 78
+  completed_phases: 2
+  total_plans: 18
+  completed_plans: 11
+  percent: 57
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 
 ## Current Position
 
-Phase: 8 of 14 (next to execute: Phase 8 Army List Builder)
-Plan: —
-Status: Ready to plan. v2.0 Phases 8 and 9 must execute before v2.1 phases begin.
-Last activity: 2026-05-02 — v2.1 roadmap written, Phases 10–14 defined
+Phase: 9 of 14 (executing: Phase 9 Unit Playbook)
+Plan: 09-00 complete — Wave 0 stub scaffold done; next: Plan 09-01 (PlaybookTab component + real tests)
+Status: In progress. Phase 9 Plan 00 complete. Plans 09-01..03 remaining.
+Last activity: 2026-05-02 — Phase 9 Plan 00 executed (Wave 0 test scaffold)
 
-Progress: [████████░░░░░░] ~57% (7/9 phases with defined plans complete; Phases 8–14 pending)
+Progress: [██████░░░░] 61% (11/18 plans complete)
 
 ## v2.1 Phase Map
 
@@ -76,6 +76,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-02
-Stopped at: v2.1 roadmap created — Phases 10–14 written to ROADMAP.md, REQUIREMENTS.md traceability confirmed, STATE.md updated
-Resume: Run `/gsd:plan-phase 8` to plan Phase 8 (Army List Builder) next
+Last session: 2026-05-02T07:34:55.355Z
+Stopped at: Completed 09-unit-playbook-00-PLAN.md
+Resume: Run `/gsd:execute-phase 9 01` to execute Phase 9 Plan 01 (PlaybookTab component + real tests)
