@@ -45,7 +45,7 @@ Declared values (must be multiples of 4):
 Exceptions:
 - Page wrapper uses `p-6` (24px) — established pattern from CollectionPage and PaintsPage
 - Card grid gap: `gap-6` (24px) — consistent with existing page section gaps
-- Summary bar between sheet header and unit table: `py-3 px-4` (12px / 16px) — compact, always-visible band
+- Summary bar between sheet header and unit table: `py-2 px-4` (8px vertical / 16px horizontal) — compact, always-visible band; `py-2` chosen over `py-4` to preserve a tighter visual band that separates header from scrollable unit table without consuming excess vertical space
 - Touch targets for interactive row controls: minimum 32px height, matching existing table row density
 
 Source: established from `CollectionPage.tsx` (`p-6`, `gap-6`), `FactionSummaryCard.tsx` (`px-4 py-4`), `CollectionEmptyState.tsx` (`py-16`, `gap-4`)
@@ -117,6 +117,7 @@ All components below are already installed (confirmed via `npx shadcn info`). No
 
 ### ArmyListsPage
 
+- Primary visual anchor: army list card grid — the main content surface; all other elements (page heading, "New List" CTA) are chrome around it
 - Page wrapper: `flex flex-col gap-6 p-6` — identical to CollectionPage and PaintsPage
 - Page heading row: `flex items-center justify-between` — `<h1 className="text-xl font-semibold">Army Lists</h1>` + "New List" button with `<Plus>` icon (lucide)
 - Card grid: `grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3` — responsive, 1→2→3 columns
@@ -128,13 +129,14 @@ All components below are already installed (confirmed via `npx shadcn info`). No
 
 - Sheet width: `sm:max-w-[600px]` — wider than default to accommodate the unit table
 - Sheet header: list name (SheetTitle) + faction name (SheetDescription)
-- Summary bar (always visible, pinned below header, above unit table scroll area): `flex items-center gap-6 px-4 py-3 bg-muted/30 border-b` showing three stats:
+- Summary bar (always visible, pinned below header, above unit table scroll area): `flex items-center gap-6 px-4 py-2 bg-muted/30 border-b` showing three stats:
   - Total Points: `{total} pts`
   - Painted Points: `{painted} pts`
   - Battle-Ready: `{pct}%`
 - Unit table: `<Table>` with columns — Unit Name | Status badge | Points (inline input) | Notes (expand icon) | Remove
 - Points column: `<Input type="number" className="w-20 h-7 text-sm" placeholder="—">` saves on blur and Enter; empty value displays inherited `unit.points` as placeholder text
-- Per-unit notes: collapsed by default; expand icon (ChevronDown/lucide) in the row reveals a one-line textarea inline below the row; keeps the default table density compact
+- Per-unit notes: collapsed by default; expand icon uses `<ChevronDown>` (lucide) with `aria-label="Expand notes"` (or `aria-label="Collapse notes"` when open) — reveals a one-line textarea inline below the row; keeps the default table density compact
+- Remove button: icon-only `<Button variant="ghost" size="icon">` using `<Trash2>` (lucide) with `aria-label="Remove unit from list"`
 - List-level notes: below the unit table, above SheetFooter — `<Textarea>` with a "Save notes" button alongside it; label "List notes"
 - SheetFooter: "Edit List" (outline) + "Delete List" (destructive) — always visible at bottom
 
@@ -173,7 +175,7 @@ All components below are already installed (confirmed via `npx shadcn info`). No
 | Empty state CTA | "New List" (Button, calls same handler as page-level CTA) |
 | Error state (page load failure) | "Failed to load army lists. Try refreshing the app." (text-sm text-destructive — matches existing error pattern) |
 | Error state (mutation failure) | "Something went wrong. Please try again." (sonner toast.error — matches existing pattern) |
-| Destructive confirmation — delete list | Dialog title: "Delete army list?" / Body: `This will permanently delete "{list name}" and remove all units from it.` / Buttons: "Keep List" (outline) + "Delete" (destructive) |
+| Destructive confirmation — delete list | Dialog title: "Delete army list?" / Body: `This will permanently delete "{list name}" and remove all units from it.` / Buttons: "Keep List" (outline) + "Delete List" (destructive) |
 | Destructive confirmation — delete unit (no lists) | Unchanged: "Delete unit?" / `This will permanently delete "{unit.name}".` / "Keep Unit" + "Delete" |
 | Destructive confirmation — delete unit (in lists) | Title: "This unit is in active army lists" / Body: `"{unit.name}" is in {N} army list(s): {list names}. Deleting it will also remove it from those lists.` / "Cancel" + "Delete Anyway" |
 | Points override placeholder | `—` (em-dash) when blank; tooltip or placeholder text: "Inherits {unit.points} pts" |
