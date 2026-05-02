@@ -1,7 +1,8 @@
 ---
 phase: 8
 slug: army-list-builder
-status: draft
+status: approved
+reviewed_at: 2026-05-02
 shadcn_initialized: true
 preset: "new-york / zinc / tailwind-v4 / radix"
 created: 2026-05-02
@@ -144,7 +145,7 @@ All components below are already installed (confirmed via `npx shadcn info`). No
 
 - Standard Sheet form pattern — matches UnitSheet / PaintSheet
 - Fields: Name (required), Faction (Select), List Type (Select: Casual / Learning / Narrative / Competitive / Test), Points Limit (number Input, optional), Notes (Textarea, optional)
-- SheetFooter: "Cancel" (ghost) + "Save List" (default) / "Update List" (edit mode)
+- SheetFooter: "Discard Changes" (ghost) + "Save List" (default) / "Update List" (edit mode)
 
 ### Unit Picker (Command palette)
 
@@ -227,11 +228,11 @@ No third-party registries declared for this phase.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-05-02
