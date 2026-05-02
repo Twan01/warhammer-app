@@ -191,7 +191,7 @@ Plans:
 | 5. Dashboard | v1.1 | 4/4 | Complete | 2026-05-01 |
 | 6. Foundation | v2.0 | 5/5 | Complete | 2026-05-01 |
 | 7. Paint Inventory | v2.0 | 5/5 | Complete | 2026-05-02 |
-| 8. Army List Builder | 2/6 | In Progress|  | — |
+| 8. Army List Builder | 3/6 | In Progress|  | — |
 | 9. Unit Playbook | 4/4 | Complete   | 2026-05-02 | — |
 | 10. Theming Foundation | v2.1 | 0/TBD | Not started | — |
 | 11. Dashboard Command Center | v2.1 | 0/TBD | Not started | — |
