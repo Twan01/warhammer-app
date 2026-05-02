@@ -14,6 +14,7 @@ import { RecipesPage } from "./recipes/page";
 import { PaintsPage } from "./paints/page";
 import { SettingsPage } from "./settings/page";
 import { FactionsPage } from "./factions/page";
+import { ArmyListsPage } from "./army-lists/page";
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -63,6 +64,12 @@ const paintsRoute = createRoute({
   component: PaintsPage,
 });
 
+const armyListsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/army-lists",
+  component: ArmyListsPage,
+});
+
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/settings",
@@ -76,6 +83,7 @@ const routeTree = rootRoute.addChildren([
   paintingProjectsRoute,
   recipesRoute,
   paintsRoute,
+  armyListsRoute,
   settingsRoute,
 ]);
 

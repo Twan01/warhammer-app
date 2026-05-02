@@ -3,6 +3,7 @@ import {
   BookOpen,
   ChevronsLeft,
   ChevronsRight,
+  ClipboardList,
   Droplets,
   LayoutDashboard,
   Package,
@@ -21,6 +22,7 @@ const MAIN_NAV = [
   { to: "/painting-projects", label: "Painting Projects", icon: Palette },
   { to: "/recipes", label: "Recipes", icon: BookOpen },
   { to: "/paints", label: "Paints", icon: Droplets },
+  { to: "/army-lists", label: "Army Lists", icon: ClipboardList },
 ] as const;
 
 export function AppSidebar() {
