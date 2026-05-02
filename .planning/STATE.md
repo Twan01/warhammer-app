@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
 status: executing
-stopped_at: Completed 09-unit-playbook-02-PLAN.md
-last_updated: "2026-05-02T08:02:33Z"
-last_activity: 2026-05-02 — Phase 9 Plan 02 executed (UnitDetailSheet tabs integration, STRAT-01 closed)
+stopped_at: Checkpoint 09-unit-playbook-03-PLAN.md — manual smoke test awaiting user signal
+last_updated: "2026-05-02T08:08:23.869Z"
+last_activity: 2026-05-02 — Phase 9 Plan 03 checkpoint reached (manual Tauri smoke test of all STRAT requirements)
 progress:
   total_phases: 9
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 20
-  completed_plans: 14
-  percent: 70
+  completed_plans: 16
+  percent: 75
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 ## Current Position
 
 Phase: 9 of 14 (executing: Phase 9 Unit Playbook)
-Plan: 09-02 complete — UnitDetailSheet tabs integration done (STRAT-01 closed); next: Plan 09-03 (Tauri smoke test checkpoint)
-Status: In progress. Phase 9 Plans 00–02 complete. Plan 09-03 remaining.
-Last activity: 2026-05-02 — Phase 9 Plan 02 executed (UnitDetailSheet tabs integration, STRAT-01 closed)
+Plan: 09-03 checkpoint reached — manual Tauri smoke test (user verification of STRAT-01..05 required)
+Status: In progress. Phase 9 Plans 00–02 complete. Plan 09-03 is a manual checkpoint awaiting user signal.
+Last activity: 2026-05-02 — Phase 9 Plan 03 checkpoint reached (manual Tauri smoke test of all STRAT requirements)
 
-Progress: [███████░░░] 70% (14/20 plans complete)
+Progress: [███████░░░] 75% (15/20 plans complete)
 
 ## v2.1 Phase Map
 
@@ -81,6 +81,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-02T08:02:33Z
-Stopped at: Completed 09-unit-playbook-02-PLAN.md
-Resume: Run `/gsd:execute-phase 9 03` to execute Phase 9 Plan 03 (Tauri smoke test checkpoint)
+Last session: 2026-05-02T08:08:23.866Z
+Stopped at: Checkpoint 09-unit-playbook-03-PLAN.md — manual smoke test awaiting user signal
+Resume: Run `pnpm tauri dev`, complete Steps 1–9, then signal "approved" or report per-step failures to trigger `/gsd:plan-phase --gaps`

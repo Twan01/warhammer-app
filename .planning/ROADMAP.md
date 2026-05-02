@@ -30,7 +30,7 @@ HobbyForge v2.0 adds three features that complete the "ready-to-play" workflow: 
 - [x] **Phase 6: Foundation** — Schema migration 004, TypeScript types for all v2.0 features, query modules (armyLists.ts, strategyNotes.ts), hook modules, and cross-invalidation patch to usePaints.ts (completed 2026-05-01)
 - [x] **Phase 7: Paint Inventory** — PaintInventoryPage with brand/type/color-family filters, running-low and wishlist preset views, color swatch, "used in N recipes" badge, inline owned toggle, sidebar nav and route (completed 2026-05-02)
 - [ ] **Phase 8: Army List Builder** — ArmyListsPage, ArmyListDetailSheet, unit picker, COALESCE-in-SQL points calculation, battle-ready %, pre-delete unit check, sidebar nav and route
-- [ ] **Phase 9: Unit Playbook** — PlaybookTab (stats block grid + abilities/keywords + strategy notes + inline save), UnitDetailSheet wrapped in shadcn Tabs
+- [x] **Phase 9: Unit Playbook** — PlaybookTab (stats block grid + abilities/keywords + strategy notes + inline save), UnitDetailSheet wrapped in shadcn Tabs (completed 2026-05-02)
 
 ---
 
@@ -191,8 +191,8 @@ Plans:
 | 5. Dashboard | v1.1 | 4/4 | Complete | 2026-05-01 |
 | 6. Foundation | v2.0 | 5/5 | Complete | 2026-05-01 |
 | 7. Paint Inventory | v2.0 | 5/5 | Complete | 2026-05-02 |
-| 8. Army List Builder | 1/6 | In Progress|  | — |
-| 9. Unit Playbook | 3/4 | In Progress|  | — |
+| 8. Army List Builder | 2/6 | In Progress|  | — |
+| 9. Unit Playbook | 4/4 | Complete   | 2026-05-02 | — |
 | 10. Theming Foundation | v2.1 | 0/TBD | Not started | — |
 | 11. Dashboard Command Center | v2.1 | 0/TBD | Not started | — |
 | 12. Collection Gallery View | v2.1 | 0/TBD | Not started | — |
