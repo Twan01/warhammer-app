@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
 status: "Defining requirements for v2.1 Visual Command. Note: v2.0 Phases 8 (Army List Builder) and 9 (Unit Playbook) remain active in ROADMAP.md and must be executed before or alongside v2.1."
-stopped_at: Phase 9 UI-SPEC approved
-last_updated: "2026-05-02T07:06:48.417Z"
+stopped_at: Phase 8 UI-SPEC approved
+last_updated: "2026-05-02T07:13:41.034Z"
 last_activity: 2026-05-02 — Milestone v2.1 started
 progress:
   total_phases: 4
@@ -96,6 +96,6 @@ None (MSVC Build Tools resolved in Phase 1; all seeding questions resolved in Ph
 
 ## Session Continuity
 
-Last session: 2026-05-02T07:06:48.414Z
-Stopped at: Phase 9 UI-SPEC approved
+Last session: 2026-05-02T07:13:41.031Z
+Stopped at: Phase 8 UI-SPEC approved
 Resume: Run `/gsd:plan-phase 8` to plan Phase 8 (Army List Builder), or `/gsd:verify-work` to verify Phase 7
