@@ -159,7 +159,7 @@ All components below are already installed (confirmed via `npx shadcn info`). No
 
 - Normal state (unit in 0 lists): unchanged — existing dialog copy and single-step confirm
 - Warning state (unit in ≥1 lists): two-step flow
-  - Step 1 — Warning view: heading "This unit is in active army lists", body lists the list names, "Cancel" (outline) + "Delete Anyway" (destructive variant, labeled exactly "Delete Anyway")
+  - Step 1 — Warning view: heading "This unit is in active army lists", body lists the list names, "Keep Unit" (outline) + "Delete Anyway" (destructive variant, labeled exactly "Delete Anyway")
   - Step 2 — fires delete on "Delete Anyway" click; DB cascade handles `army_list_units` cleanup
 
 ---
@@ -177,7 +177,7 @@ All components below are already installed (confirmed via `npx shadcn info`). No
 | Error state (mutation failure) | "Something went wrong. Please try again." (sonner toast.error — matches existing pattern) |
 | Destructive confirmation — delete list | Dialog title: "Delete army list?" / Body: `This will permanently delete "{list name}" and remove all units from it.` / Buttons: "Keep List" (outline) + "Delete List" (destructive) |
 | Destructive confirmation — delete unit (no lists) | Unchanged: "Delete unit?" / `This will permanently delete "{unit.name}".` / "Keep Unit" + "Delete" |
-| Destructive confirmation — delete unit (in lists) | Title: "This unit is in active army lists" / Body: `"{unit.name}" is in {N} army list(s): {list names}. Deleting it will also remove it from those lists.` / "Cancel" + "Delete Anyway" |
+| Destructive confirmation — delete unit (in lists) | Title: "This unit is in active army lists" / Body: `"{unit.name}" is in {N} army list(s): {list names}. Deleting it will also remove it from those lists.` / "Keep Unit" + "Delete Anyway" |
 | Points override placeholder | `—` (em-dash) when blank; tooltip or placeholder text: "Inherits {unit.points} pts" |
 | Summary bar labels | "Total: {N} pts" · "Painted: {N} pts" · "Battle-ready: {N}%" |
 | List type badge labels | "Casual" / "Learning" / "Narrative" / "Competitive" / "Test" |
