@@ -1,0 +1,214 @@
+import { useEffect, useMemo, useState } from "react";
+import { Plus } from "lucide-react";
+import { toast } from "sonner";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
+import {
+  Table, TableHeader, TableRow, TableHead, TableBody,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import {
+  useArmyListWithUnits,
+  useRemoveUnitFromList,
+  useUpdateArmyList,
+} from "@/hooks/useArmyLists";
+import { useFactions } from "@/hooks/useFactions";
+import type { ArmyList } from "@/types/armyList";
+import { ArmyListSummaryBar } from "./ArmyListSummaryBar";
+import { ArmyListUnitRow } from "./ArmyListUnitRow";
+
+interface ArmyListDetailSheetProps {
+  open: boolean;
+  list: ArmyList | null;
+  onClose: () => void;
+  onEdit: (list: ArmyList) => void;
+  onDelete: (list: ArmyList) => void;
+  /**
+   * Triggered when the user clicks "Add Unit" inside the sheet.
+   * The parent (ArmyListsPage) opens a sibling-portal UnitPickerDialog
+   * — this Sheet does NOT own the dialog state (Pitfall 1).
+   */
+  onAddUnit: () => void;
+}
+
+export function ArmyListDetailSheet({
+  open, list, onClose, onEdit, onDelete, onAddUnit,
+}: ArmyListDetailSheetProps) {
+  const { data: units, isLoading } = useArmyListWithUnits(list?.id);
+  const { data: factions } = useFactions();
+  const removeUnitFromList = useRemoveUnitFromList();
+  const updateArmyList = useUpdateArmyList();
+
+  const faction = useMemo(
+    () => (list?.faction_id ? (factions ?? []).find((f) => f.id === list.faction_id) ?? null : null),
+    [factions, list?.faction_id],
+  );
+
+  // Local draft for the list-level notes textarea.
+  const [notesDraft, setNotesDraft] = useState(list?.notes ?? "");
+
+  // Reset draft when the list prop changes (Pitfall 6 — even with key prop forcing
+  // remount, this useEffect documents the intent and protects against future code
+  // that might omit the key).
+  useEffect(() => {
+    setNotesDraft(list?.notes ?? "");
+  }, [list?.id, list?.notes]);
+
+  function handleRemoveUnit(armyListUnitId: number) {
+    if (!list) return;
+    removeUnitFromList.mutate(
+      { army_list_unit_id: armyListUnitId, list_id: list.id },
+      {
+        onSuccess: () => toast.success("Unit removed."),
+        onError: () => toast.error("Failed to remove unit. Please try again."),
+      },
+    );
+  }
+
+  function handleSaveListNotes() {
+    if (!list) return;
+    if (notesDraft === (list.notes ?? "")) {
+      toast.success("Notes saved.");  // No-op save — give user feedback regardless
+      return;
+    }
+    updateArmyList.mutate(
+      {
+        id: list.id,
+        // Pitfall 5: updateArmyList uses COALESCE($6, notes) — pass "" to clear,
+        // never null (null preserves the old value).
+        notes: notesDraft ?? "",
+      },
+      {
+        onSuccess: () => toast.success("Notes saved."),
+        onError: () => toast.error("Failed to save notes. Please try again."),
+      },
+    );
+  }
+
+  return (
+    <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <SheetContent
+        side="right"
+        // Pitfall 6 — fresh mount when switching lists
+        key={list?.id ?? "none-detail"}
+        className="overflow-y-auto sm:max-w-[600px]"
+      >
+        {list && (
+          <>
+            <SheetHeader>
+              <SheetTitle>{list.name}</SheetTitle>
+              <SheetDescription>
+                {faction ? (
+                  <Badge
+                    style={faction.color_theme ? { backgroundColor: faction.color_theme } : undefined}
+                    className={faction.color_theme ? "border-transparent text-white" : ""}
+                  >
+                    {faction.name}
+                  </Badge>
+                ) : (
+                  <span className="text-muted-foreground">No faction</span>
+                )}
+              </SheetDescription>
+            </SheetHeader>
+
+            <ArmyListSummaryBar units={units ?? []} />
+
+            <div className="flex items-center justify-between px-4 py-2">
+              <span className="text-sm font-semibold">Units</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onAddUnit}
+              >
+                <Plus className="mr-2 h-4 w-4" /> Add Unit
+              </Button>
+            </div>
+
+            {isLoading && (
+              <div className="flex flex-col gap-2 px-4">
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+              </div>
+            )}
+
+            {!isLoading && (units?.length ?? 0) === 0 && (
+              <p className="px-4 py-6 text-center text-sm text-muted-foreground">
+                No units yet — add some.
+              </p>
+            )}
+
+            {!isLoading && (units?.length ?? 0) > 0 && (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Unit Name</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Points</TableHead>
+                    <TableHead>Notes</TableHead>
+                    <TableHead className="text-right">Remove</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(units ?? []).map((alu) => (
+                    <ArmyListUnitRow
+                      key={alu.id}
+                      unit={alu}
+                      onRemove={() => handleRemoveUnit(alu.id)}
+                    />
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+
+            <Separator className="my-4" />
+
+            <div className="flex flex-col gap-2 px-4">
+              <label className="text-sm font-semibold" htmlFor="list-notes">List notes</label>
+              <textarea
+                id="list-notes"
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                placeholder="Notes for this army list..."
+                value={notesDraft}
+                onChange={(e) => setNotesDraft(e.target.value)}
+              />
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleSaveListNotes}
+                  disabled={updateArmyList.isPending}
+                >
+                  Save notes
+                </Button>
+              </div>
+            </div>
+
+            <SheetFooter className="mt-6 gap-2 sm:gap-2">
+              <Button
+                variant="ghost"
+                className="text-destructive hover:text-destructive"
+                onClick={() => onDelete(list)}
+              >
+                Delete List
+              </Button>
+              <Button variant="outline" onClick={() => onEdit(list)}>
+                Edit List
+              </Button>
+            </SheetFooter>
+          </>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}
