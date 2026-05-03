@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: "Phase 13 plans verified — ready for /gsd:execute-phase 13"
-last_updated: "2026-05-03T12:03:55.902Z"
+stopped_at: Completed 12-01-PLAN.md
+last_updated: "2026-05-03T12:07:12.318Z"
 last_activity: 2026-05-03 — Phase 12 Plan 00 — Wave 0 stubs created (219 passing + 9 skipped, 0 failed)
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 20
-  completed_plans: 9
-  percent: 47
+  total_plans: 21
+  completed_plans: 10
+  percent: 48
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 ## Current Position
 
 Phase: 12 of 14 (IN PROGRESS: Phase 12 Collection Gallery View)
-Plan: 12-00 complete — Wave 0 stub tests created (PaintingRing.test.tsx + UnitGallery.test.tsx); ready for Plan 12-01
-Status: Phase 12 in progress — Plan 12-00 done. Next: Plan 12-01 (PaintingRing component + view toggle hook)
-Last activity: 2026-05-03 — Phase 12 Plan 00 — Wave 0 stubs created (219 passing + 9 skipped, 0 failed)
+Plan: 12-01 complete — useCollectionViewMode hook + PaintingRing component + 3 passing unit tests; ready for Plan 12-02
+Status: Phase 12 in progress — Plans 12-00, 12-01 done. Next: Plan 12-02 (UnitGallery + CollectionPage wiring)
+Last activity: 2026-05-03 — Phase 12 Plan 01 — useCollectionViewMode + PaintingRing built (222 passing + 6 skipped, 0 failed)
 
-Progress: [█████░░░░░] 47% (9/19 plans complete)
+Progress: [█████░░░░░] 48% (10/21 plans complete)
 
 ## v2.1 Phase Map
 
@@ -74,6 +74,9 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 - Phase 12 Plan 00: Wave 0 stub files use .tsx extension up-front — avoids .ts->tsx rename Phase 10-00 had to perform in 10-01
 - Phase 12 Plan 00: No matchMedia polyfill in UnitGallery.test.tsx — gallery has no animation dependency; Pitfall 6 from 12-RESEARCH.md
 - Phase 12 Plan 00: Explicit `import { describe, it } from 'vitest'` in both stub files for tsc strict-mode compatibility
+- Phase 12 Plan 01: useCollectionViewMode parse guard accepts only literal 'gallery' — null/unknown/other values default to 'table'; no standalone hook unit test (end-to-end coverage from UnitGallery toggle tests in Plan 12-02)
+- Phase 12 Plan 01: PaintingRing stroke color uses stroke='currentColor' + className='text-primary' NOT stroke-primary utility (Tailwind v4 stroke-* utilities don't apply directly to SVG stroke — Pitfall 1)
+- Phase 12 Plan 01: PaintingRing text fill uses fill='currentColor' attribute alongside className for resilient color inheritance (Open Question 2 pattern)
 - Phase 13 photo storage requires `tauri-plugin-fs` — the one new Tauri plugin introduced in v2.1; verify capability grants before building photo attach UI
 - Phase 14 stores all spend values as integer pence in SQLite — display formatting happens in UI layer only, never stored as float
 
@@ -112,6 +115,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-03T12:03:55.899Z
-Stopped at: Phase 13 plans verified — ready for /gsd:execute-phase 13
-Resume: Run `/gsd:execute-phase 12` to continue with Plan 12-01 (PaintingRing component + view toggle hook).
+Last session: 2026-05-03T12:07:12.315Z
+Stopped at: Completed 12-01-PLAN.md
+Resume: Run `/gsd:execute-phase 12` to continue with Plan 12-02 (UnitGallery + CollectionPage wiring).
