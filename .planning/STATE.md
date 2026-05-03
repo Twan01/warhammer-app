@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
 status: completed
-stopped_at: Completed 10-theming-foundation plan 10-00 — Wave 0 stub files created, 18 it.skip stubs, full suite green
-last_updated: "2026-05-03T08:37:19Z"
-last_activity: 2026-05-03 — Phase 10 Plan 00 complete — Wave 0 test stubs created for theming foundation
+stopped_at: Completed 10-theming-foundation plan 10-01 — ActiveFactionContext + CSS tokens + 6 useActiveFaction tests green
+last_updated: "2026-05-03T08:46:54.056Z"
+last_activity: 2026-05-03 — Phase 10 Plan 01 complete — ActiveFactionContext.tsx created, --faction-accent token + bg-faction-accent utility, 6 stubs -> passing
 progress:
   total_phases: 10
   completed_phases: 4
   total_plans: 24
-  completed_plans: 21
-  percent: 88
+  completed_plans: 22
+  percent: 92
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 ## Current Position
 
 Phase: 10 of 14 (IN PROGRESS: Phase 10 Theming Foundation)
-Plan: 10-00 complete — Wave 0 stub test files created for all 4 theming test targets
-Status: Phase 10 Plan 00 complete. Next: Plan 10-01 (ActiveFactionContext + useActiveFaction hook).
-Last activity: 2026-05-03 — Phase 10 Plan 00 complete — 4 Wave 0 stub files in tests/theming/, 18 it.skip stubs, full suite green
+Plan: 10-01 complete — ActiveFactionContext.tsx + CSS tokens + 6 useActiveFaction tests passing
+Status: Phase 10 Plan 01 complete. Next: Plan 10-02 (FactionSummaryCard + NavItem components consuming useActiveFaction).
+Last activity: 2026-05-03 — Phase 10 Plan 01 complete — --faction-accent CSS var, bg-faction-accent utility, ActiveFactionContext, 6 tests green
 
-Progress: [█████████░] 88% (21/24 plans complete)
+Progress: [█████████░] 92% (22/24 plans complete)
 
 ## v2.1 Phase Map
 
@@ -60,6 +60,8 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 - Phase 10 uses CSS `@theme` layer to define `bg-faction-accent` utilities — all accent color usage in later phases references these utilities, never hardcoded hex values
 - Phase 10 Plan 00: Wave 0 stub files use no SUT imports — source-under-test doesn't exist yet; imports land in plans 10-01/02/03 alongside replacing .skip bodies
 - Phase 10 Plan 00: Explicit `import { describe, it } from 'vitest'` in every stub file for tsc strict-mode compatibility (mirrors UnitDeleteDialog pattern)
+- Phase 10 Plan 01: Test file renamed .ts -> .tsx — JSX in wrapper requires tsx extension; esbuild rejects JSX in .ts files (auto-fixed Rule 1)
+- Phase 10 Plan 01: No useMemo on context value — mirrors useSidebarCollapsed.ts pattern; ActiveFactionContext itself not exported (only Provider + hook are public API)
 - Phase 13 photo storage requires `tauri-plugin-fs` — the one new Tauri plugin introduced in v2.1; verify capability grants before building photo attach UI
 - Phase 14 stores all spend values as integer pence in SQLite — display formatting happens in UI layer only, never stored as float
 
@@ -91,6 +93,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-03T08:37:19Z
-Stopped at: Completed 10-theming-foundation plan 10-00 — Wave 0 stub files created, 18 it.skip stubs, full suite green
-Resume: Phase 10 Plan 00 complete. Next: Plan 10-01 (create ActiveFactionContext.tsx + useActiveFaction hook, replace useActiveFaction stubs with real assertions). Run `/gsd:execute-phase` to continue.
+Last session: 2026-05-03T08:47:54Z
+Stopped at: Completed 10-theming-foundation plan 10-01 — ActiveFactionContext + CSS tokens + 6 useActiveFaction tests green
+Resume: Phase 10 Plan 01 complete. Next: Plan 10-02 (FactionSummaryCard + NavItem components consuming useActiveFaction + bg-faction-accent). Run `/gsd:execute-phase` to continue.
