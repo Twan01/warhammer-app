@@ -102,7 +102,15 @@ Plans:
   3. User can attach a photo to a unit by selecting a file, assigning a stage label (e.g. "Primed", "Base coat", "Finished"), and optionally entering a caption — the photo is saved to disk and the thumbnail appears in the unit's photo timeline
   4. User can view the photo timeline for any unit as a chronological gallery of thumbnails with stage labels and captions
   5. Deleting a unit also removes its associated photo files from disk — no orphaned files remain after unit deletion
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+- [ ] 13-00-PLAN.md — Wave 0: 5 stub test files for JOUR-01..06 (paintingSessionQueries, useJournalSessions, unitPhotoQueries, JournalTab, migration005) — 12 it.skip stubs total
+- [ ] 13-01-PLAN.md — Tauri infrastructure: install tauri-plugin-fs + tauri-plugin-dialog (Cargo + npm), register in lib.rs, grant capabilities, enable assetProtocol, write migration 005 SQL, create paintingSession + unitPhoto types
+- [ ] 13-02-PLAN.md — Query modules (paintingSessions.ts, unitPhotos.ts) + TanStack Query hooks (useJournalSessions, useUnitPhotos with appDataDir caching) + flip 11 stub tests to active
+- [ ] 13-03-PLAN.md — JournalTab.tsx component (Sessions log form + list, Photos attach form + 3-col thumbnail grid, hover delete, click → onPhotoClick callback) + flip JournalTab render tests
+- [ ] 13-04-PLAN.md — Wire Journal tab into UnitDetailSheet, mount sibling lightbox Dialog in CollectionPage (NOT nested), add JOUR-06 silent disk cleanup to UnitDeleteDialog.handleConfirm
+- [ ] 13-05-PLAN.md — Manual smoke-test checkpoint (10 steps in live Tauri app: JOUR-01..06 verified including asset protocol + on-disk file remove)
 
 ### Phase 14: Spending Tracker
 **Goal**: Users can record what they spent on units and paints and see a consolidated Spending page showing total hobby spend broken down by faction
@@ -152,7 +160,7 @@ Plans:
 | 10. Theming Foundation | 3/4 | In Progress|  | — |
 | 11. Dashboard Command Center | v2.1 | Complete    | 2026-05-03 | 2026-05-03 |
 | 12. Collection Gallery View | v2.1 | 0/4 | Planned | — |
-| 13. Hobby Journal | v2.1 | 0/TBD | Not started | — |
+| 13. Hobby Journal | v2.1 | 0/6 | Planned | — |
 | 14. Spending Tracker | v2.1 | 0/TBD | Not started | — |
 | 15. 40K Datasheet Integration | v2.1 | 0/TBD | Not started | — |
 | 16. Design Overhaul | v2.1 | 0/TBD | Not started | — |
