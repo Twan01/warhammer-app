@@ -43,6 +43,16 @@ Full details: `.planning/milestones/v2.0-ROADMAP.md`
 Plans:
 - [ ] TBD (run /gsd:plan-phase 15 to break down)
 
+### Phase 16: I would like to significantly improve the design of the app that is still very basic
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 15
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 16 to break down)
+
 ---
 
 ### 📋 v2.1 Visual Command (Phases 10–14) — Planned
@@ -50,7 +60,7 @@ Plans:
 HobbyForge v2.1 transforms the visual identity with faction-aware dynamic theming, a redesigned command-center dashboard, collapsible sidebar, and collection gallery view — plus two new personal tracking features: a per-unit Hobby Journal (photo timeline and session log) and a Spending Tracker.
 
 - [ ] **Phase 10: Theming Foundation** — CSS `@theme` faction-accent utilities, Zustand faction store, FactionThemeProvider, collapsible sidebar with icon-only mode and tooltip polish
-- [ ] **Phase 11: Dashboard Command Center** — Animated stat counters, faction-accented faction summary cards, hero section redesign
+- [x] **Phase 11: Dashboard Command Center** — Animated stat counters, faction-accented faction summary cards, hero section redesign (completed 2026-05-03)
 - [ ] **Phase 12: Collection Gallery View** — Card grid alternate view with painting-status ring, view toggle, filter preservation
 - [ ] **Phase 13: Hobby Journal** — Painting session log (SQL CRUD) and photo timeline (tauri-plugin-fs) per unit
 - [ ] **Phase 14: Spending Tracker** — Cost logging per unit and paint, Spending page with total and per-faction breakdown
@@ -79,10 +89,10 @@ HobbyForge v2.1 transforms the visual identity with faction-aware dynamic themin
 **Plans**: 4 plans
 
 Plans:
-- [ ] 11-00-PLAN.md — Wave 0: tests/dashboard/useCountUp.test.ts stub (3 it.skip blocks for UI-07 hook unit tests)
-- [ ] 11-01-PLAN.md — useCountUp hook (rAF cubic ease-out, 600ms, integer-only, prefers-reduced-motion gate) + flip 3 stubs to passing tests
-- [ ] 11-02-PLAN.md — StatCard animate prop + AnimatedNumber sub-component, wire 4 hero StatCards in DashboardPage, add UI-07 component test + UI-08 ring class test
-- [ ] 11-03-PLAN.md — Manual smoke-test checkpoint (UI-07 visual animation + UI-08 faction ring color in live Tauri app)
+- [x] 11-00-PLAN.md — Wave 0: tests/dashboard/useCountUp.test.ts stub (3 it.skip blocks for UI-07 hook unit tests)
+- [x] 11-01-PLAN.md — useCountUp hook (rAF cubic ease-out, 600ms, integer-only, prefers-reduced-motion gate) + flip 3 stubs to passing tests
+- [x] 11-02-PLAN.md — StatCard animate prop + AnimatedNumber sub-component, wire 4 hero StatCards in DashboardPage, add UI-07 component test + UI-08 ring class test
+- [x] 11-03-PLAN.md — Manual smoke-test checkpoint (UI-07 visual animation + UI-08 faction ring color in live Tauri app)
 
 ### Phase 12: Collection Gallery View
 **Goal**: Users can view their collection as a visual card grid — showing painting-status rings and faction badges per unit — and toggle back to the existing table view without losing any active filters
@@ -134,7 +144,7 @@ Plans:
 | 8. Army List Builder | v2.0 | 6/6 | Complete | 2026-05-03 |
 | 9. Unit Playbook | v2.0 | 4/4 | Complete | 2026-05-02 |
 | 10. Theming Foundation | 3/4 | In Progress|  | — |
-| 11. Dashboard Command Center | 3/4 | In Progress|  | — |
+| 11. Dashboard Command Center | v2.1 | 4/4 | Complete | 2026-05-03 |
 | 12. Collection Gallery View | v2.1 | 0/TBD | Not started | — |
 | 13. Hobby Journal | v2.1 | 0/TBD | Not started | — |
 | 14. Spending Tracker | v2.1 | 0/TBD | Not started | — |

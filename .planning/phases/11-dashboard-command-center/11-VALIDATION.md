@@ -1,10 +1,11 @@
 ---
 phase: 11
 slug: dashboard-command-center
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-03
+completed: 2026-05-03
 ---
 
 # Phase 11 — Validation Strategy
@@ -59,20 +60,20 @@ created: 2026-05-03
 
 ## Manual-Only Verifications
 
-| Behavior | Requirement | Why Manual | Test Instructions |
-|----------|-------------|------------|-------------------|
-| Counter animation visually animates from 0 → target at 600ms in live Tauri app | UI-07 | jsdom doesn't render visual frames; animation timing is visual | `pnpm tauri dev` → navigate to Dashboard → observe hero cards count up over ~600ms |
-| Active FactionSummaryCard ring color matches selected faction accent | UI-08 | CSS custom property rendering requires real browser | `pnpm tauri dev` → click a faction card star → confirm ring color matches faction color |
+| Behavior | Requirement | Why Manual | Test Instructions | Status |
+|----------|-------------|------------|-------------------|--------|
+| Counter animation visually animates from 0 → target at 600ms in live Tauri app | UI-07 | jsdom doesn't render visual frames; animation timing is visual | `pnpm tauri dev` → navigate to Dashboard → observe hero cards count up over ~600ms | ✅ PASS (2026-05-03) |
+| Active FactionSummaryCard ring color matches selected faction accent | UI-08 | CSS custom property rendering requires real browser | `pnpm tauri dev` → click a faction card star → confirm ring color matches faction color | ✅ PASS (2026-05-03) |
 
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** SIGNED OFF 2026-05-03 — all 6 manual smoke-test steps PASS; 219 automated tests green
