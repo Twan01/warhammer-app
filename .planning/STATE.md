@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
-status: completed
-stopped_at: Completed 10-theming-foundation plan 10-02 — button/NavItem/FactionSummaryCard call sites + 8 real tests (201 passing)
-last_updated: "2026-05-02T10:54:00.000Z"
-last_activity: 2026-05-02 — Phase 10 Plan 02 complete — button/NavItem/FactionSummaryCard using bg-faction-accent, Wave 0 stubs replaced with 8 real tests
+status: checkpoint
+stopped_at: 10-03 automated tasks done (Tasks 1-3); awaiting manual smoke test (Task 4 — 7 Tauri app verification steps)
+last_updated: "2026-05-03T09:05:00.000Z"
+last_activity: 2026-05-03 — Phase 10 Plan 03 — ActiveFactionProvider wired in router; DashboardPage toggle logic; AppSidebar tests real (212 passing)
 progress:
   total_phases: 10
   completed_phases: 4
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 ## Current Position
 
 Phase: 10 of 14 (IN PROGRESS: Phase 10 Theming Foundation)
-Plan: 10-02 complete — button/NavItem/FactionSummaryCard migrated to bg-faction-accent, Wave 0 stubs replaced with 8 real tests (201 passing)
-Status: Phase 10 Plan 02 complete. Next: Plan 10-03 (DashboardPage wiring, AppSidebar collapse, AppSidebar tests).
-Last activity: 2026-05-02 — Phase 10 Plan 02 complete — 3 call sites using bg-faction-accent, 8 Wave 0 stubs replaced, 201 tests passing
+Plan: 10-03 in progress — Tasks 1-3 complete (provider wired, DashboardPage toggle, AppSidebar tests); Task 4 awaiting manual smoke test
+Status: CHECKPOINT — manual smoke test required in live Tauri app. Run `pnpm tauri dev` and verify 7 steps.
+Last activity: 2026-05-03 — Phase 10 Plan 03 — 3 automated tasks done, 212 tests passing, awaiting Task 4 manual verification
 
 Progress: [██████████] 96% (23/24 plans complete)
 
@@ -96,6 +96,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-02T10:54:00Z
-Stopped at: Completed 10-theming-foundation plan 10-02 — button/NavItem/FactionSummaryCard call sites + 8 real tests (201 passing)
-Resume: Phase 10 Plan 02 complete. Next: Plan 10-03 (DashboardPage wiring activeFactionId, AppSidebar collapse, AppSidebar tests). Run `/gsd:execute-phase` to continue.
+Last session: 2026-05-03T09:05:00Z
+Stopped at: 10-03 Task 4 checkpoint — manual smoke test in Tauri app required
+Resume: After approving smoke test, run `/gsd:execute-phase` to finalize plan 10-03 and advance STATE.
