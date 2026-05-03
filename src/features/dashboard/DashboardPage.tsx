@@ -181,10 +181,10 @@ export function DashboardPage() {
 
         {/* Top stat row (DASH-01) */}
         <div className="grid grid-cols-4 gap-6">
-          <StatCard value={stats.totalModels} label="Total Models" />
-          <StatCard value={stats.fullyPainted} label="Fully Painted" />
-          <StatCard value={stats.battleReadyPoints} label="Battle-Ready Points" />
-          <StatCard value={stats.activeProjectsCount} label="Active Projects" />
+          <StatCard value={stats.totalModels} label="Total Models" animate={true} />
+          <StatCard value={stats.fullyPainted} label="Fully Painted" animate={true} />
+          <StatCard value={stats.battleReadyPoints} label="Battle-Ready Points" animate={true} />
+          <StatCard value={stats.activeProjectsCount} label="Active Projects" animate={true} />
         </div>
 
         {/* Progress section (DASH-03, DASH-04) */}

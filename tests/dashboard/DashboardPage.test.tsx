@@ -37,6 +37,25 @@ vi.mock("@/db/queries/factions", () => ({
   deleteFaction: vi.fn(),
 }));
 
+// jsdom does not define window.matchMedia — install it via Object.defineProperty so
+// useCountUp (called by AnimatedNumber inside the hero StatCards) has a working
+// implementation. Tests can override per-test via vi.spyOn. vi.restoreAllMocks() in
+// beforeEach restores the spy back to this base implementation between tests.
+Object.defineProperty(window, "matchMedia", {
+  writable: true,
+  configurable: true,
+  value: vi.fn().mockReturnValue({
+    matches: false,
+    media: "(prefers-reduced-motion: reduce)",
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  } as MediaQueryList),
+});
+
 function f(over: Partial<Faction> = {}): Faction {
   return {
     id: 1,
@@ -116,6 +135,7 @@ function renderWithProviders(ui: React.ReactNode) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.restoreAllMocks();
 });
 
 describe("DashboardPage", () => {
@@ -192,5 +212,72 @@ describe("DashboardPage", () => {
     expect(
       await screen.findByText("Failed to load dashboard. Try refreshing the app.")
     ).toBeInTheDocument();
+  });
+
+  it("animates hero stat values to their final integers after data loads (UI-07)", async () => {
+    // Force useCountUp to short-circuit to target by faking prefers-reduced-motion=true.
+    // This makes the test deterministic — no fake-timer plumbing needed; useCountUp returns
+    // target immediately (Pitfall 5 short-circuit). The visual animation behavior is
+    // covered by the unit tests in tests/dashboard/useCountUp.test.ts.
+    vi.spyOn(window, "matchMedia").mockReturnValue({
+      matches: true,
+      media: "(prefers-reduced-motion: reduce)",
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    } as MediaQueryList);
+
+    const tau = f({ id: 1, name: "Tau" });
+    vi.mocked(getDashboardStats).mockResolvedValue({
+      units: [
+        u({ id: 1, faction_id: 1, name: "Fire Warrior", points: 100, status_painting: "Completed" }),
+        u({ id: 2, faction_id: 1, name: "Crisis Suit", points: 150, status_painting: "Completed" }),
+      ],
+      factions: [tau],
+    });
+
+    renderWithProviders(<DashboardPage />);
+
+    // Wait for data to load — labels appear once stats compute.
+    expect(await screen.findByText("Total Models")).toBeInTheDocument();
+
+    // The 4 hero values: totalModels=2, fullyPainted=2, battleReadyPoints=250 (both painted),
+    // activeProjectsCount=2 (both have is_active_project=1 in the u() factory default).
+    // Because reduced-motion is true, useCountUp returns target immediately — the final
+    // integer is in the DOM by the time the labels render.
+    // Use getAllByText because "2" appears multiple times (Total Models, Fully Painted, Active Projects).
+    expect(screen.getAllByText("2").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("250")).toBeInTheDocument();
+  });
+
+  it("active FactionSummaryCard has ring-2 ring-faction-accent class when faction is active (UI-08)", async () => {
+    // Pre-set the active faction in localStorage BEFORE render so ActiveFactionProvider's
+    // synchronous useState initializer picks it up — no flash of inactive state.
+    window.localStorage.setItem("active-faction-id", "1");
+
+    const tau = f({ id: 1, name: "Tau" });
+    vi.mocked(getDashboardStats).mockResolvedValue({
+      units: [
+        u({ id: 1, faction_id: 1, name: "Fire Warrior", points: 100, status_painting: "Completed" }),
+      ],
+      factions: [tau],
+    });
+
+    renderWithProviders(<DashboardPage />);
+
+    // Wait for data to load
+    expect(await screen.findByText("Total Models")).toBeInTheDocument();
+
+    // FactionSummaryCard renders as role="button" with aria-label={faction.name}.
+    // When isActive=true, its className includes "ring-2 ring-faction-accent".
+    const factionCard = screen.getByRole("button", { name: "Tau" });
+    expect(factionCard.className).toContain("ring-2");
+    expect(factionCard.className).toContain("ring-faction-accent");
+
+    // Cleanup — leave localStorage clean for downstream tests
+    window.localStorage.removeItem("active-faction-id");
   });
 });
