@@ -84,7 +84,13 @@ Plans:
   1. Collection page shows a view toggle (table / gallery) — clicking Gallery switches the list to a card grid without navigating away
   2. Each gallery card displays the unit name, faction badge, a circular painting-status ring showing painted percentage, and the numeric painted percentage
   3. Switching between gallery and table view preserves all active filters (search text, faction, status, category) — no filter resets on toggle
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 12-00-PLAN.md — Wave 0: tests/collection/PaintingRing.test.tsx (3 stubs) + tests/collection/UnitGallery.test.tsx (6 stubs) for UI-04/UI-05/UI-06
+- [ ] 12-01-PLAN.md — useCollectionViewMode localStorage hook + PaintingRing SVG component + flip 3 PaintingRing test stubs (UI-04 hook foundation, UI-05 ring component)
+- [ ] 12-02-PLAN.md — UnitGallery card grid component + CollectionPage view-toggle and conditional render wiring + flip 6 UnitGallery test stubs (UI-04, UI-05, UI-06)
+- [ ] 12-03-PLAN.md — Manual smoke-test checkpoint (UI-04 toggle + persistence, UI-05 cards + responsive grid + keyboard, UI-06 filter preservation in live Tauri app)
 
 ### Phase 13: Hobby Journal
 **Goal**: Users can log painting sessions with time and notes per unit, and attach progress photos with stage labels — building a chronological record of each unit's hobby journey
@@ -145,7 +151,7 @@ Plans:
 | 9. Unit Playbook | v2.0 | 4/4 | Complete | 2026-05-02 |
 | 10. Theming Foundation | 3/4 | In Progress|  | — |
 | 11. Dashboard Command Center | v2.1 | Complete    | 2026-05-03 | 2026-05-03 |
-| 12. Collection Gallery View | v2.1 | 0/TBD | Not started | — |
+| 12. Collection Gallery View | v2.1 | 0/4 | Planned | — |
 | 13. Hobby Journal | v2.1 | 0/TBD | Not started | — |
 | 14. Spending Tracker | v2.1 | 0/TBD | Not started | — |
 | 15. 40K Datasheet Integration | v2.1 | 0/TBD | Not started | — |
