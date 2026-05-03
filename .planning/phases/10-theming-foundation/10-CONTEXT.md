@@ -14,9 +14,9 @@ Deliver faction-aware dynamic accent theming: a CSS custom property system that 
 ## Implementation Decisions
 
 ### Accent Color Architecture
-- CSS custom property `--color-faction-accent` defined in Tailwind v4 `@theme` block in index.css with zinc neutral default
-- Runtime updates via `document.documentElement.style.setProperty('--color-faction-accent', hex)` — zero re-render cost
-- Tailwind utilities `bg-faction-accent`, `text-faction-accent`, `border-faction-accent` defined against the custom property
+- Two-variable pattern: `--faction-accent: #71717a` defined in `:root` (the mutable primitive); `--color-faction-accent: var(--faction-accent)` defined inside the existing `@theme inline {}` block — creates `bg-faction-accent`, `text-faction-accent`, `border-faction-accent`, `ring-faction-accent` utilities
+- Runtime updates via `document.documentElement.style.setProperty('--faction-accent', hex)` — targets the `:root` primitive, NOT `--color-faction-accent` (which is a Tailwind alias inside `@theme inline` and cannot be overridden at runtime via setProperty)
+- Zero re-render cost — CSS cascade propagates the change to all `bg-faction-accent` consumers in the same paint cycle
 - A React context (`ActiveFactionContext`) holds the active faction id + hex, calls the DOM update on change
 
 ### Active Faction Storage
