@@ -47,7 +47,6 @@ Declared values (multiples of 4 only):
 
 Exceptions:
 - Spend fields in UnitSheet/PaintSheet are placed inside the existing `gap-4` collapsible section — no new spacing token needed
-- Touch targets for form inputs: minimum 36px height (matches shadcn Input component default)
 
 ---
 
@@ -58,7 +57,7 @@ Inherit from project-wide type system (globals.css, shadcn new-york). All values
 | Role | Size | Weight | Line Height | Usage in Phase 14 |
 |------|------|--------|-------------|-------------------|
 | Body | 14px (`text-sm`) | 400 (`font-normal`) | 1.5 | Table cell text, form labels (matches existing sheets) |
-| Label | 14px (`text-sm`) | 500 (`font-medium`) | 1.5 | Section headings ("Breakdown"), FormLabel, muted descriptors |
+| Label | 14px (`text-sm`) | 600 (`font-semibold`) | 1.5 | Section headings ("Breakdown"), FormLabel, muted descriptors |
 | Heading | 20px (`text-xl`) | 600 (`font-semibold`) | 1.2 | Spending page section title ("Breakdown") |
 | Display | 28px (`text-3xl`) | 600 (`font-semibold`) | 1.1 | Total Hobby Spend hero figure — matches StatCard pattern from Phase 11 |
 
