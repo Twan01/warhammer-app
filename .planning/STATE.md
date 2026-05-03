@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
-status: verifying
-stopped_at: Phase 14 UI-SPEC approved
-last_updated: "2026-05-03T11:41:57.256Z"
-last_activity: 2026-05-03 — Phase 11 Plan 03 — all 6 smoke-test steps PASS; FactionSummaryCard star button refactored (219 tests, 0 skipped)
+status: in-progress
+stopped_at: "12-00-PLAN.md complete — Wave 0 stubs created; ready for Plan 12-01"
+last_updated: "2026-05-03T13:59:30Z"
+last_activity: 2026-05-03 — Phase 12 Plan 00 — Wave 0 stub tests created (PaintingRing + UnitGallery, 219+9 skipped, 0 failed)
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_plans: 19
+  completed_plans: 9
+  percent: 47
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 
 ## Current Position
 
-Phase: 11 of 14 (COMPLETE: Phase 11 Dashboard Command Center)
-Plan: 11-03 complete — Manual smoke-test PASS; UI-07 + UI-08 confirmed in live Tauri app; Phase 11 complete
-Status: PHASE 11 COMPLETE — ready for /gsd:verify-work. Next: Phase 12 (Collection Gallery View).
-Last activity: 2026-05-03 — Phase 11 Plan 03 — all 6 smoke-test steps PASS; FactionSummaryCard star button refactored (219 tests, 0 skipped)
+Phase: 12 of 14 (IN PROGRESS: Phase 12 Collection Gallery View)
+Plan: 12-00 complete — Wave 0 stub tests created (PaintingRing.test.tsx + UnitGallery.test.tsx); ready for Plan 12-01
+Status: Phase 12 in progress — Plan 12-00 done. Next: Plan 12-01 (PaintingRing component + view toggle hook)
+Last activity: 2026-05-03 — Phase 12 Plan 00 — Wave 0 stubs created (219 passing + 9 skipped, 0 failed)
 
-Progress: [██████████] 100% (8/8 plans complete)
+Progress: [█████░░░░░] 47% (9/19 plans complete)
 
 ## v2.1 Phase Map
 
@@ -71,6 +71,9 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 - Phase 11 Plan 02: AnimatedNumber sub-component is module-local (not exported) — it is an implementation detail of StatCard, not a public API; typeof value === 'number' guard in animate branch prevents passing string values like '72%' to useCountUp (Pitfall 2)
 - Phase 11 Plan 02: Object.defineProperty matchMedia global installed at module level in DashboardPage.test.tsx — all data-loaded tests need it once animate={true} wires AnimatedNumber into hero StatCards; vi.restoreAllMocks() added to beforeEach alongside vi.clearAllMocks() to restore the UI-07 spy before UI-08 runs
 - Phase 11 Plan 03: FactionSummaryCard star button extracted with stopPropagation — activating a faction no longer navigates to /collection; card click and star click are now independent interactions; Active badge replaced by filled Star icon (fill-faction-accent text-faction-accent); aria-labels added for screen reader accessibility
+- Phase 12 Plan 00: Wave 0 stub files use .tsx extension up-front — avoids .ts->tsx rename Phase 10-00 had to perform in 10-01
+- Phase 12 Plan 00: No matchMedia polyfill in UnitGallery.test.tsx — gallery has no animation dependency; Pitfall 6 from 12-RESEARCH.md
+- Phase 12 Plan 00: Explicit `import { describe, it } from 'vitest'` in both stub files for tsc strict-mode compatibility
 - Phase 13 photo storage requires `tauri-plugin-fs` — the one new Tauri plugin introduced in v2.1; verify capability grants before building photo attach UI
 - Phase 14 stores all spend values as integer pence in SQLite — display formatting happens in UI layer only, never stored as float
 
@@ -109,6 +112,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-03T11:41:57.254Z
-Stopped at: Phase 14 UI-SPEC approved
-Resume: Run `/gsd:verify-work` to verify Phase 11 completion. Then run `/gsd:plan-phase 12` to plan Phase 12 (Collection Gallery View).
+Last session: 2026-05-03T13:59:30Z
+Stopped at: Completed 12-00-PLAN.md
+Resume: Run `/gsd:execute-phase 12` to continue with Plan 12-01 (PaintingRing component + view toggle hook).
