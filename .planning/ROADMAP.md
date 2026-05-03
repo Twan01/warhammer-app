@@ -4,7 +4,7 @@
 
 - ✅ **v1.1 HobbyForge MVP** — Phases 1–5 (shipped 2026-05-01)
 - ✅ **v2.0 Utility Layer** — Phases 6–9 (shipped 2026-05-03)
-- 📋 **v2.1 Visual Command** — Phases 10–14 (planned)
+- 📋 **v2.1 Visual Command** — Phases 10–16 (planned)
 
 ## Phases
 
@@ -33,29 +33,9 @@ Full details: `.planning/milestones/v2.0-ROADMAP.md`
 
 </details>
 
-### Phase 15: Warhammer 40K datasheet and rules integration
-
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 14
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (run /gsd:plan-phase 15 to break down)
-
-### Phase 16: I would like to significantly improve the design of the app that is still very basic
-
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 15
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (run /gsd:plan-phase 16 to break down)
-
 ---
 
-### 📋 v2.1 Visual Command (Phases 10–14) — Planned
+### 📋 v2.1 Visual Command (Phases 10–16) — Planned
 
 HobbyForge v2.1 transforms the visual identity with faction-aware dynamic theming, a redesigned command-center dashboard, collapsible sidebar, and collection gallery view — plus two new personal tracking features: a per-unit Hobby Journal (photo timeline and session log) and a Spending Tracker.
 
@@ -64,6 +44,8 @@ HobbyForge v2.1 transforms the visual identity with faction-aware dynamic themin
 - [ ] **Phase 12: Collection Gallery View** — Card grid alternate view with painting-status ring, view toggle, filter preservation
 - [ ] **Phase 13: Hobby Journal** — Painting session log (SQL CRUD) and photo timeline (tauri-plugin-fs) per unit
 - [ ] **Phase 14: Spending Tracker** — Cost logging per unit and paint, Spending page with total and per-faction breakdown
+- [ ] **Phase 15: Warhammer 40K Datasheet Integration** — Auto-populate Playbook tab stats/abilities/keywords from community data, bundle local SQLite rules database, surface rulebook references in-app
+- [ ] **Phase 16: Design Overhaul** — Significantly improve visual design across all pages — typography, spacing, layouts, empty states, and overall UI polish
 
 ## Phase Details
 
@@ -128,9 +110,27 @@ Plans:
   5. All spend values round-trip correctly as integer pence in SQLite and are always displayed in formatted currency throughout the UI — no floating-point display errors
 **Plans**: TBD
 
+### Phase 15: Warhammer 40K Datasheet Integration
+**Goal**: [To be planned]
+**Depends on**: Phase 14
+**Requirements**: TBD
+**Plans**: TBD
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 15 to break down)
+
+### Phase 16: Design Overhaul
+**Goal**: [To be planned]
+**Depends on**: Phase 15
+**Requirements**: TBD
+**Plans**: TBD
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 16 to break down)
+
 ## Progress
 
-**Execution Order:** 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14
+**Execution Order:** 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -144,7 +144,9 @@ Plans:
 | 8. Army List Builder | v2.0 | 6/6 | Complete | 2026-05-03 |
 | 9. Unit Playbook | v2.0 | 4/4 | Complete | 2026-05-02 |
 | 10. Theming Foundation | 3/4 | In Progress|  | — |
-| 11. Dashboard Command Center | v2.1 | 4/4 | Complete | 2026-05-03 |
+| 11. Dashboard Command Center | v2.1 | Complete    | 2026-05-03 | 2026-05-03 |
 | 12. Collection Gallery View | v2.1 | 0/TBD | Not started | — |
 | 13. Hobby Journal | v2.1 | 0/TBD | Not started | — |
 | 14. Spending Tracker | v2.1 | 0/TBD | Not started | — |
+| 15. 40K Datasheet Integration | v2.1 | 0/TBD | Not started | — |
+| 16. Design Overhaul | v2.1 | 0/TBD | Not started | — |

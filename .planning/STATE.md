@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
-status: executing
-stopped_at: Completed Phase 11 Plan 03 — manual smoke-test PASS (UI-07 + UI-08 confirmed in live Tauri app); Phase 11 complete — ready for /gsd:verify-work
-last_updated: "2026-05-03T11:26:00Z"
-last_activity: 2026-05-03 — Phase 11 Plan 03 — all 6 smoke-test steps approved; FactionSummaryCard star button refactored; Phase 11 complete (219 tests, 0 skipped)
+status: verifying
+stopped_at: Completed Phase 11 Plan 03 — manual smoke-test PASS (UI-07 + UI-08 confirmed); Phase 11 complete
+last_updated: "2026-05-03T11:18:41.185Z"
+last_activity: 2026-05-03 — Phase 11 Plan 03 — all 6 smoke-test steps PASS; FactionSummaryCard star button refactored (219 tests, 0 skipped)
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 2
   total_plans: 8
   completed_plans: 8
@@ -85,8 +85,8 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 
 ### Roadmap Evolution
 
-- Phase 15 added: Warhammer 40K datasheet and rules integration — auto-populate Playbook tab stats/abilities/keywords from community data sources, bundle local SQLite rules database, surface rulebook references in-app (stratagems, detachment rules, core rules)
-- Phase 16 added: Significantly improve the design of the app that is still very basic
+- Phase 15 added: 40K Datasheet Integration — auto-populate Playbook tab stats/abilities/keywords from community data, bundle local SQLite rules database (v2.1, depends on Phase 14)
+- Phase 16 added: Design Overhaul — significantly improve visual design across all pages (v2.1, depends on Phase 14)
 
 ### Tech Debt
 
