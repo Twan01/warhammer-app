@@ -134,7 +134,7 @@ Plans:
 | 8. Army List Builder | v2.0 | 6/6 | Complete | 2026-05-03 |
 | 9. Unit Playbook | v2.0 | 4/4 | Complete | 2026-05-02 |
 | 10. Theming Foundation | 3/4 | In Progress|  | — |
-| 11. Dashboard Command Center | 2/4 | In Progress|  | — |
+| 11. Dashboard Command Center | 3/4 | In Progress|  | — |
 | 12. Collection Gallery View | v2.1 | 0/TBD | Not started | — |
 | 13. Hobby Journal | v2.1 | 0/TBD | Not started | — |
 | 14. Spending Tracker | v2.1 | 0/TBD | Not started | — |

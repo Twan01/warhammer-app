@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Completed Phase 11 Plan 01 — useCountUp hook created + 3 tests passing
-last_updated: "2026-05-03T10:42:13.017Z"
-last_activity: 2026-05-03 — Phase 11 Plan 01 — useCountUp hook created + 3 unit tests passing (217 total, 0 skipped)
+stopped_at: Completed Phase 11 Plan 02 — StatCard animate prop + DashboardPage hero wiring + 2 new tests (219 total, 0 skipped)
+last_updated: "2026-05-03T10:47:30Z"
+last_activity: 2026-05-03 — Phase 11 Plan 02 — animate prop wired to 4 hero StatCards, UI-07 + UI-08 tests passing (219 total, 0 skipped)
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 8
-  completed_plans: 6
-  percent: 75
+  completed_plans: 7
+  percent: 88
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 ## Current Position
 
 Phase: 11 of 14 (IN PROGRESS: Phase 11 Dashboard Command Center)
-Plan: 11-01 complete — useCountUp hook + 3 passing unit tests; ready for Plan 11-02
-Status: EXECUTING — Plan 11-01 complete. Next: Plan 11-02 (wire useCountUp into StatCard + DashboardPage).
-Last activity: 2026-05-03 — Phase 11 Plan 01 — useCountUp hook created + 3 unit tests passing (217 total, 0 skipped)
+Plan: 11-02 complete — StatCard animate prop + AnimatedNumber sub-component + DashboardPage hero wiring + 2 new tests; ready for Plan 11-03
+Status: EXECUTING — Plan 11-02 complete. Next: Plan 11-03 (manual visual smoke test — count-up timing + faction ring in live Tauri app).
+Last activity: 2026-05-03 — Phase 11 Plan 02 — animate prop wired to 4 hero StatCards, UI-07 + UI-08 tests passing (219 total, 0 skipped)
 
-Progress: [████████░░] 75% (6/8 plans complete)
+Progress: [█████████░] 88% (7/8 plans complete)
 
 ## v2.1 Phase Map
 
@@ -68,6 +68,8 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 - Phase 11 Plan 00: Wave 0 stub tests/dashboard/useCountUp.test.ts stays .ts (no JSX wrapper needed for plain number-target hook); explicit vitest imports for tsc strict-mode; no SUT import until Plan 11-01 creates src/hooks/useCountUp.ts
 - Phase 11 Plan 01: Object.defineProperty used to install window.matchMedia in jsdom — vi.spyOn fails with "Received undefined" because jsdom does not define matchMedia; defineProperty makes it writable/configurable so tests can override per-call
 - Phase 11 Plan 01: vitest 4.1.5 fake timers correctly stub requestAnimationFrame; vi.advanceTimersByTime(600) advances the rAF loop — no vi.stubGlobal('requestAnimationFrame') fallback needed
+- Phase 11 Plan 02: AnimatedNumber sub-component is module-local (not exported) — it is an implementation detail of StatCard, not a public API; typeof value === 'number' guard in animate branch prevents passing string values like '72%' to useCountUp (Pitfall 2)
+- Phase 11 Plan 02: Object.defineProperty matchMedia global installed at module level in DashboardPage.test.tsx — all data-loaded tests need it once animate={true} wires AnimatedNumber into hero StatCards; vi.restoreAllMocks() added to beforeEach alongside vi.clearAllMocks() to restore the UI-07 spy before UI-08 runs
 - Phase 13 photo storage requires `tauri-plugin-fs` — the one new Tauri plugin introduced in v2.1; verify capability grants before building photo attach UI
 - Phase 14 stores all spend values as integer pence in SQLite — display formatting happens in UI layer only, never stored as float
 
@@ -105,6 +107,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-03T10:42:13.015Z
-Stopped at: Completed Phase 11 Plan 01 — useCountUp hook created + 3 tests passing
-Resume: Run `/gsd:execute-phase` to execute Plan 11-02 (wire useCountUp into StatCard via AnimatedNumber sub-component + DashboardPage hero cards).
+Last session: 2026-05-03T10:47:30Z
+Stopped at: Completed Phase 11 Plan 02 — StatCard animate prop + DashboardPage hero wiring + 2 new tests (219 total, 0 skipped)
+Resume: Run `/gsd:execute-phase` to execute Plan 11-03 (manual visual smoke test — verify count-up timing and faction ring color in live Tauri app).
