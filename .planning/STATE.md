@@ -103,7 +103,7 @@ None.
 
 | # | Description | Date | Commit | Status | Directory |
 |---|-------------|------|--------|--------|-----------|
-| 260503-g7p | Add one-click launcher scripts and desktop shortcut for HobbyForge | 2026-05-03 | 2cd7bea | Needs Review | [260503-g7p-i-would-like-to-get-something-to-launch-](./quick/260503-g7p-i-would-like-to-get-something-to-launch-/) |
+| 260503-g7p | Add one-click launcher scripts and desktop shortcut for HobbyForge | 2026-05-03 | 974bcfe | Verified | [260503-g7p-i-would-like-to-get-something-to-launch-](./quick/260503-g7p-i-would-like-to-get-something-to-launch-/) |
 
 ## Session Continuity
 
