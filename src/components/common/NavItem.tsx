@@ -25,7 +25,7 @@ export function NavItem({ to, label, icon: Icon, collapsed }: NavItemProps) {
       to={to}
       className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground ${
         isActive
-          ? "bg-accent font-medium text-accent-foreground"
+          ? "bg-faction-accent font-medium text-white"
           : "text-muted-foreground"
       } ${collapsed ? "justify-center" : ""}`}
     >
