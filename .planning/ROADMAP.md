@@ -166,7 +166,7 @@ Plans:
 | 9. Unit Playbook | v2.0 | 4/4 | Complete | 2026-05-02 |
 | 10. Theming Foundation | 3/4 | In Progress|  | — |
 | 11. Dashboard Command Center | v2.1 | Complete    | 2026-05-03 | 2026-05-03 |
-| 12. Collection Gallery View | 2/4 | In Progress|  | — |
+| 12. Collection Gallery View | 3/4 | In Progress|  | — |
 | 13. Hobby Journal | v2.1 | 0/6 | Planned | — |
 | 14. Spending Tracker | v2.1 | 0/5 | Planned | — |
 | 15. 40K Datasheet Integration | v2.1 | 0/TBD | Not started | — |
