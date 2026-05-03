@@ -203,7 +203,7 @@ Plans:
 | 7. Paint Inventory | v2.0 | 5/5 | Complete | 2026-05-02 |
 | 8. Army List Builder | 6/6 | Complete    | 2026-05-03 | — |
 | 9. Unit Playbook | 4/4 | Complete   | 2026-05-02 | — |
-| 10. Theming Foundation | 2/4 | In Progress|  | — |
+| 10. Theming Foundation | 3/4 | In Progress|  | — |
 | 11. Dashboard Command Center | v2.1 | 0/TBD | Not started | — |
 | 12. Collection Gallery View | v2.1 | 0/TBD | Not started | — |
 | 13. Hobby Journal | v2.1 | 0/TBD | Not started | — |

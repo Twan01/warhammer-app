@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
 status: completed
-stopped_at: Completed 10-theming-foundation plan 10-01 — ActiveFactionContext + CSS tokens + 6 useActiveFaction tests green
-last_updated: "2026-05-03T08:46:54.056Z"
-last_activity: 2026-05-03 — Phase 10 Plan 01 complete — ActiveFactionContext.tsx created, --faction-accent token + bg-faction-accent utility, 6 stubs -> passing
+stopped_at: Completed 10-theming-foundation plan 10-02 — button/NavItem/FactionSummaryCard call sites + 8 real tests (201 passing)
+last_updated: "2026-05-02T10:54:00.000Z"
+last_activity: 2026-05-02 — Phase 10 Plan 02 complete — button/NavItem/FactionSummaryCard using bg-faction-accent, Wave 0 stubs replaced with 8 real tests
 progress:
   total_phases: 10
   completed_phases: 4
   total_plans: 24
-  completed_plans: 22
-  percent: 92
+  completed_plans: 23
+  percent: 96
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 ## Current Position
 
 Phase: 10 of 14 (IN PROGRESS: Phase 10 Theming Foundation)
-Plan: 10-01 complete — ActiveFactionContext.tsx + CSS tokens + 6 useActiveFaction tests passing
-Status: Phase 10 Plan 01 complete. Next: Plan 10-02 (FactionSummaryCard + NavItem components consuming useActiveFaction).
-Last activity: 2026-05-03 — Phase 10 Plan 01 complete — --faction-accent CSS var, bg-faction-accent utility, ActiveFactionContext, 6 tests green
+Plan: 10-02 complete — button/NavItem/FactionSummaryCard migrated to bg-faction-accent, Wave 0 stubs replaced with 8 real tests (201 passing)
+Status: Phase 10 Plan 02 complete. Next: Plan 10-03 (DashboardPage wiring, AppSidebar collapse, AppSidebar tests).
+Last activity: 2026-05-02 — Phase 10 Plan 02 complete — 3 call sites using bg-faction-accent, 8 Wave 0 stubs replaced, 201 tests passing
 
-Progress: [█████████░] 92% (22/24 plans complete)
+Progress: [██████████] 96% (23/24 plans complete)
 
 ## v2.1 Phase Map
 
@@ -62,6 +62,9 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 - Phase 10 Plan 00: Explicit `import { describe, it } from 'vitest'` in every stub file for tsc strict-mode compatibility (mirrors UnitDeleteDialog pattern)
 - Phase 10 Plan 01: Test file renamed .ts -> .tsx — JSX in wrapper requires tsx extension; esbuild rejects JSX in .ts files (auto-fixed Rule 1)
 - Phase 10 Plan 01: No useMemo on context value — mirrors useSidebarCollapsed.ts pattern; ActiveFactionContext itself not exported (only Provider + hook are public API)
+- Phase 10 Plan 02: FactionSummaryCard isActive/onActivate props are optional with defaults so DashboardPage compiles before Plan 10-03 wires them
+- Phase 10 Plan 02: NavItem uses bg-faction-accent via CSS cascade only — no useActiveFaction context import needed in NavItem itself
+- Phase 10 Plan 02: FactionStat test mock uses complete Faction type (icon_path, created_at, updated_at) — plan mock was missing fields; auto-corrected (Rule 1)
 - Phase 13 photo storage requires `tauri-plugin-fs` — the one new Tauri plugin introduced in v2.1; verify capability grants before building photo attach UI
 - Phase 14 stores all spend values as integer pence in SQLite — display formatting happens in UI layer only, never stored as float
 
@@ -93,6 +96,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-03T08:47:54Z
-Stopped at: Completed 10-theming-foundation plan 10-01 — ActiveFactionContext + CSS tokens + 6 useActiveFaction tests green
-Resume: Phase 10 Plan 01 complete. Next: Plan 10-02 (FactionSummaryCard + NavItem components consuming useActiveFaction + bg-faction-accent). Run `/gsd:execute-phase` to continue.
+Last session: 2026-05-02T10:54:00Z
+Stopped at: Completed 10-theming-foundation plan 10-02 — button/NavItem/FactionSummaryCard call sites + 8 real tests (201 passing)
+Resume: Phase 10 Plan 02 complete. Next: Plan 10-03 (DashboardPage wiring activeFactionId, AppSidebar collapse, AppSidebar tests). Run `/gsd:execute-phase` to continue.
