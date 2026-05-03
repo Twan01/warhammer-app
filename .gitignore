@@ -24,3 +24,7 @@ Thumbs.db
 
 # pnpm
 .pnpm-debug.log*
+
+# User-local launcher overrides (optional - uncomment to ignore)
+# launch-local.bat
+# launch-dev-local.bat
