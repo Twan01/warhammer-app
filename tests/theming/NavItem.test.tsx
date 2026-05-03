@@ -1,49 +1,46 @@
-/**
- * Phase 10 — NavItem tooltip-when-collapsed tests (Wave 0 stubs).
- *
- * UI-03 is already shipped (10-RESEARCH.md §Phase Requirements); this file adds
- * explicit regression coverage that Plans 10-02 and 10-03 will fill in. NavItem
- * is also being lightly modified in Plan 10-02 to swap bg-accent → bg-faction-accent
- * for the active link state — this test file covers both the tooltip behavior
- * (UI-03 regression) and the active-class behavior (THEME-01 nav consumer).
- *
- * STATUS: skipped. Plans 10-02 + 10-03 will:
- *   1. Replace `describe.skip` below with `describe`.
- *   2. Add real render + tooltip assertions matching inline TODOs.
- */
-import { describe, it } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { NavItem } from "@/components/common/NavItem";
+import { LayoutDashboard } from "lucide-react";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
-describe.skip("NavItem — UI-03 (collapsed tooltip)", () => {
-  it("when collapsed=true, the nav link is wrapped in a Radix Tooltip with TooltipContent label", () => {
-    // Plan 10-03 will:
-    //   - render <NavItem to="/collection" label="Collection" icon={Package} collapsed={true} />
-    //     wrapped in <TooltipProvider> + MemoryRouter
-    //   - hover the link or assert tooltip-trigger data attribute presence
-    //   - assert getByRole("tooltip") or screen.getByText("Collection") inside a portal
+vi.mock("@tanstack/react-router", () => ({
+  useLocation: () => ({ pathname: "/" }),
+  Link: ({ children, className, to }: { children: React.ReactNode; className?: string; to: string }) => (
+    <a href={to} className={className}>{children}</a>
+  ),
+}));
+
+function renderNavItem(collapsed: boolean, to = "/") {
+  return render(
+    <TooltipProvider>
+      <ul>
+        <NavItem to={to} label="Dashboard" icon={LayoutDashboard} collapsed={collapsed} />
+      </ul>
+    </TooltipProvider>
+  );
+}
+
+describe("NavItem", () => {
+  describe("when expanded (collapsed=false)", () => {
+    it("renders label text visibly", () => {
+      renderNavItem(false);
+      const span = screen.getByText("Dashboard");
+      expect(span.className).not.toContain("sr-only");
+    });
+
+    it("applies bg-faction-accent class on active route", () => {
+      const { container } = renderNavItem(false, "/");
+      const link = container.querySelector("a");
+      expect(link?.className).toContain("bg-faction-accent");
+    });
   });
 
-  it("when collapsed=false, the nav link is NOT wrapped in a Tooltip (label rendered inline)", () => {
-    // Plan 10-03 will:
-    //   - render <NavItem to="/collection" label="Collection" icon={Package} collapsed={false} />
-    //   - assert screen.getByText("Collection") visible (not sr-only)
-    //   - assert no [data-state] tooltip-trigger attribute on the link
-  });
-});
-
-describe.skip("NavItem — THEME-01 (active link uses faction accent class)", () => {
-  it("when the route is active, the link element has class \"bg-faction-accent\" and \"text-white\"", () => {
-    // Plan 10-02 will:
-    //   - render <NavItem to="/" label="Dashboard" icon={LayoutDashboard} collapsed={false} />
-    //     inside MemoryRouter with initialEntries=["/"]
-    //   - find the <a> element by role link
-    //   - assert anchor.className contains "bg-faction-accent" AND "text-white"
-    //   - assert anchor.className does NOT contain "bg-accent" (old class) for the active state
-  });
-
-  it("when the route is NOT active, the link does NOT have bg-faction-accent (uses muted-foreground)", () => {
-    // Plan 10-02 will:
-    //   - render <NavItem to="/collection" ...> inside MemoryRouter with initialEntries=["/"]
-    //   - assert anchor.className does NOT contain "bg-faction-accent"
-    //   - assert anchor.className contains "text-muted-foreground"
+  describe("when collapsed (collapsed=true)", () => {
+    it("renders label as sr-only", () => {
+      renderNavItem(true);
+      const span = screen.getByText("Dashboard");
+      expect(span.className).toContain("sr-only");
+    });
   });
 });

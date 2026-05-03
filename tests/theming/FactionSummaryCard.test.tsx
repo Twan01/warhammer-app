@@ -1,54 +1,75 @@
-/**
- * Phase 10 — FactionSummaryCard active-state tests (Wave 0 stubs).
- *
- * STATUS: skipped. Plan 10-02 will:
- *   1. Add `isActive: boolean` and `onActivate: () => void` props to
- *      src/features/dashboard/FactionSummaryCard.tsx.
- *   2. Add ring + "Active" badge when isActive === true.
- *   3. Replace `describe.skip` below with `describe`.
- *   4. Add real render + userEvent assertions matching the inline TODOs.
- *
- * The stub exists in Wave 0 so Plan 10-02 has a concrete failing target.
- */
-import { describe, it } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { FactionSummaryCard } from "@/features/dashboard/FactionSummaryCard";
+import type { FactionStat } from "@/features/dashboard/computeStats";
 
-describe.skip("FactionSummaryCard — THEME-03 (active selection UI)", () => {
-  it("when isActive=true, renders the 'Active' badge and ring-faction-accent class", () => {
-    // Plan 10-02 will:
-    //   - render <FactionSummaryCard stat={mockStat} isActive={true} onActivate={vi.fn()} />
-    //     wrapped in QueryClientProvider + RouterProvider (mirror tests/dashboard/DashboardPage.test.tsx pattern)
-    //   - assert screen.getByText("Active") is in document
-    //   - assert the Card root element has class "ring-2" AND "ring-faction-accent"
+const mockNavigate = vi.fn();
+vi.mock("@tanstack/react-router", () => ({
+  useNavigate: () => mockNavigate,
+}));
+vi.mock("@/features/units/collectionFilters", () => ({
+  useCollectionFilters: { setState: vi.fn() },
+}));
+
+const mockStat: FactionStat = {
+  faction: {
+    id: 1,
+    name: "Space Marines",
+    color_theme: "#0047AB",
+    game_system: "40k",
+    description: null,
+    icon_path: null,
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+  },
+  modelCount: 10,
+  paintedPct: 80,
+  pointsOwned: 500,
+  pointsPainted: 400,
+};
+
+describe("FactionSummaryCard", () => {
+  beforeEach(() => {
+    mockNavigate.mockClear();
   });
 
-  it("when isActive=false, does NOT render the 'Active' badge or ring class", () => {
-    // Plan 10-02 will:
-    //   - render <FactionSummaryCard stat={mockStat} isActive={false} onActivate={vi.fn()} />
-    //   - assert screen.queryByText("Active") is null
-    //   - assert the Card root does NOT have class "ring-2"
+  describe("when isActive is false (default)", () => {
+    it("renders faction name without Active badge", () => {
+      render(<FactionSummaryCard stat={mockStat} isActive={false} onActivate={vi.fn()} />);
+      expect(screen.getByText("Space Marines")).toBeDefined();
+      expect(screen.queryByText("Active")).toBeNull();
+    });
+
+    it("calls onActivate and navigates to /collection when clicked", () => {
+      const onActivate = vi.fn();
+      render(<FactionSummaryCard stat={mockStat} isActive={false} onActivate={onActivate} />);
+      fireEvent.click(screen.getByRole("button"));
+      expect(onActivate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith({ to: "/collection" });
+    });
   });
 
-  it("clicking the card calls onActivate exactly once", async () => {
-    // Plan 10-02 will:
-    //   - const onActivate = vi.fn();
-    //   - render <FactionSummaryCard stat={mockStat} isActive={false} onActivate={onActivate} />
-    //   - await userEvent.click(screen.getByRole("button", { name: /Tau/i }))
-    //   - assert onActivate called exactly 1 time
+  describe("when isActive is true", () => {
+    it("renders Active badge", () => {
+      render(<FactionSummaryCard stat={mockStat} isActive={true} onActivate={vi.fn()} />);
+      expect(screen.getByText("Active")).toBeDefined();
+    });
+
+    it("calls onActivate and does NOT navigate when clicked", () => {
+      const onActivate = vi.fn();
+      render(<FactionSummaryCard stat={mockStat} isActive={true} onActivate={onActivate} />);
+      fireEvent.click(screen.getByRole("button"));
+      expect(onActivate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
   });
 
-  it("pressing Enter on the focused card calls onActivate exactly once", async () => {
-    // Plan 10-02 will:
-    //   - const onActivate = vi.fn();
-    //   - render the card, focus the role=button element
-    //   - await userEvent.keyboard("{Enter}")
-    //   - assert onActivate called exactly 1 time
-  });
-
-  it("pressing Space on the focused card calls onActivate exactly once", async () => {
-    // Plan 10-02 will:
-    //   - const onActivate = vi.fn();
-    //   - render the card, focus the role=button element
-    //   - await userEvent.keyboard(" ")
-    //   - assert onActivate called exactly 1 time
+  describe("keyboard activation", () => {
+    it("calls onActivate on Enter key when inactive", () => {
+      const onActivate = vi.fn();
+      render(<FactionSummaryCard stat={mockStat} isActive={false} onActivate={onActivate} />);
+      fireEvent.keyDown(screen.getByRole("button"), { key: "Enter" });
+      expect(onActivate).toHaveBeenCalled();
+    });
   });
 });
