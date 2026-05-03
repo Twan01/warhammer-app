@@ -1,17 +1,5 @@
-/**
- * DASH-02 — One per faction, in a wrapping flex row.
- *
- * Click-through pattern: useCollectionFilters.setState replaces the factions slice
- * and clears other filters so Collection shows exactly that faction's units.
- *
- * Left border accent (POLISH-05 / DASH-02): border-l-4 + inline borderLeftColor.
- * Active state (THEME-03): ring-2 ring-faction-accent + Active badge when isActive=true.
- * Toggle: clicking active card deselects only (no navigate); clicking inactive activates + navigates.
- *
- * isActive and onActivate are optional with defaults so DashboardPage compiles
- * before Plan 10-03 wires them.
- */
 import { useNavigate } from "@tanstack/react-router";
+import { Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useCollectionFilters } from "@/features/units/collectionFilters";
 import type { FactionStat } from "./computeStats";
@@ -29,12 +17,7 @@ export function FactionSummaryCard({
 }: FactionSummaryCardProps) {
   const navigate = useNavigate();
 
-  const handleClick = () => {
-    if (isActive) {
-      onActivate();
-      return;
-    }
-    onActivate();
+  const handleCardClick = () => {
     useCollectionFilters.setState({
       factions: [stat.faction.id],
       search: "",
@@ -45,26 +28,43 @@ export function FactionSummaryCard({
     navigate({ to: "/collection" });
   };
 
+  const handleActivate = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation();
+    onActivate();
+  };
+
   return (
     <Card
-      onClick={handleClick}
+      onClick={handleCardClick}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          handleClick();
+          handleCardClick();
         }
       }}
+      aria-label={stat.faction.name}
       style={{ borderLeftColor: stat.faction.color_theme }}
-      className={`min-w-[180px] cursor-pointer border-l-4 px-4 py-4 hover:bg-muted/50${isActive ? " ring-2 ring-faction-accent" : ""}`}
+      className={`relative min-w-[180px] cursor-pointer border-l-4 px-4 py-4 hover:bg-muted/50${isActive ? " ring-2 ring-faction-accent" : ""}`}
     >
+      <button
+        onClick={handleActivate}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleActivate(e);
+          }
+        }}
+        aria-label={isActive ? "Deactivate faction theme" : "Set as active faction theme"}
+        className="absolute right-2 top-2 rounded p-1 text-muted-foreground hover:text-foreground"
+      >
+        <Star
+          size={14}
+          className={isActive ? "fill-faction-accent text-faction-accent" : ""}
+        />
+      </button>
       <div className="flex flex-col gap-2">
-        {isActive && (
-          <span className="self-start rounded-sm bg-faction-accent px-1.5 py-0.5 text-xs font-medium text-white">
-            Active
-          </span>
-        )}
         <span className="text-sm font-semibold">{stat.faction.name}</span>
         <span className="text-sm text-muted-foreground">{stat.modelCount} models</span>
         <span className="text-sm text-muted-foreground">{stat.paintedPct}% painted</span>

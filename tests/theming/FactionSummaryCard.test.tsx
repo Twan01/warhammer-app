@@ -33,43 +33,52 @@ describe("FactionSummaryCard", () => {
     mockNavigate.mockClear();
   });
 
-  describe("when isActive is false (default)", () => {
-    it("renders faction name without Active badge", () => {
+  describe("card click (always navigates)", () => {
+    it("navigates to /collection when clicking the card (inactive)", () => {
       render(<FactionSummaryCard stat={mockStat} isActive={false} onActivate={vi.fn()} />);
-      expect(screen.getByText("Space Marines")).toBeDefined();
-      expect(screen.queryByText("Active")).toBeNull();
+      fireEvent.click(screen.getByRole("button", { name: "Space Marines" }));
+      expect(mockNavigate).toHaveBeenCalledWith({ to: "/collection" });
     });
 
-    it("calls onActivate and navigates to /collection when clicked", () => {
-      const onActivate = vi.fn();
-      render(<FactionSummaryCard stat={mockStat} isActive={false} onActivate={onActivate} />);
-      fireEvent.click(screen.getByRole("button"));
-      expect(onActivate).toHaveBeenCalledTimes(1);
+    it("navigates to /collection when clicking the card (active)", () => {
+      render(<FactionSummaryCard stat={mockStat} isActive={true} onActivate={vi.fn()} />);
+      fireEvent.click(screen.getByRole("button", { name: "Space Marines" }));
       expect(mockNavigate).toHaveBeenCalledWith({ to: "/collection" });
     });
   });
 
-  describe("when isActive is true", () => {
-    it("renders Active badge", () => {
-      render(<FactionSummaryCard stat={mockStat} isActive={true} onActivate={vi.fn()} />);
-      expect(screen.getByText("Active")).toBeDefined();
+  describe("star button (toggles active, no navigation)", () => {
+    it("calls onActivate without navigating when star is clicked (inactive)", () => {
+      const onActivate = vi.fn();
+      render(<FactionSummaryCard stat={mockStat} isActive={false} onActivate={onActivate} />);
+      fireEvent.click(screen.getByRole("button", { name: /set as active/i }));
+      expect(onActivate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it("calls onActivate and does NOT navigate when clicked", () => {
+    it("calls onActivate without navigating when star is clicked (active)", () => {
       const onActivate = vi.fn();
       render(<FactionSummaryCard stat={mockStat} isActive={true} onActivate={onActivate} />);
-      fireEvent.click(screen.getByRole("button"));
+      fireEvent.click(screen.getByRole("button", { name: /deactivate/i }));
       expect(onActivate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
-  describe("keyboard activation", () => {
-    it("calls onActivate on Enter key when inactive", () => {
-      const onActivate = vi.fn();
-      render(<FactionSummaryCard stat={mockStat} isActive={false} onActivate={onActivate} />);
-      fireEvent.keyDown(screen.getByRole("button"), { key: "Enter" });
-      expect(onActivate).toHaveBeenCalled();
+  describe("active state visuals", () => {
+    it("renders faction name", () => {
+      render(<FactionSummaryCard stat={mockStat} isActive={false} onActivate={vi.fn()} />);
+      expect(screen.getByText("Space Marines")).toBeDefined();
+    });
+
+    it("star button aria-label reflects inactive state", () => {
+      render(<FactionSummaryCard stat={mockStat} isActive={false} onActivate={vi.fn()} />);
+      expect(screen.getByRole("button", { name: /set as active/i })).toBeDefined();
+    });
+
+    it("star button aria-label reflects active state", () => {
+      render(<FactionSummaryCard stat={mockStat} isActive={true} onActivate={vi.fn()} />);
+      expect(screen.getByRole("button", { name: /deactivate/i })).toBeDefined();
     });
   });
 });
