@@ -43,6 +43,7 @@ export async function getArmyListWithUnits(listId: number): Promise<ArmyListUnit
        u.name AS unit_name,
        u.points AS unit_points,
        u.faction_id,
+       u.status_assembly,
        u.status_painting,
        u.painting_percentage,
        COALESCE(alu.points_override, u.points, 0) AS effective_points

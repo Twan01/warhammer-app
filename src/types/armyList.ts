@@ -43,6 +43,7 @@ export interface ArmyListUnitRow extends ArmyListUnit {
   unit_points: number | null;
   effective_points: number;
   faction_id: number;
+  status_assembly: number;
   status_painting: string;
   painting_percentage: number;
 }

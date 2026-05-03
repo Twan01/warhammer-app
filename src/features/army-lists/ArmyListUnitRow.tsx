@@ -78,8 +78,11 @@ export function ArmyListUnitRow({ unit, onRemove }: ArmyListUnitRowProps) {
       <TableRow>
         <TableCell className="font-medium">{unit.unit_name}</TableCell>
 
-        <TableCell>
+        <TableCell className="space-x-1">
           <Badge variant="secondary">{unit.status_painting}</Badge>
+          {unit.status_assembly === 1 && (
+            <Badge variant="outline">Assembled</Badge>
+          )}
         </TableCell>
 
         <TableCell>
