@@ -58,13 +58,13 @@ Source: CONTEXT.md §Gallery Card Layout, CollectionPage.tsx (`gap-6 p-6`), Coll
 | Body | 14px (text-sm) | 400 (regular) | 1.5 |
 | Label | 14px (text-sm) | 600 (semibold) | 1.25 |
 | Heading | 20px (text-xl) | 600 (semibold) | 1.2 |
-| Ring percentage | 16px (text-base) | 700 (bold) | 1 (centered SVG text, line-height irrelevant) |
+| Ring percentage | 16px (text-base) | 600 (semibold) | 1 (centered SVG text, line-height irrelevant) |
 
 Notes:
 - "Body" covers card metadata rows: faction badge label, status text label, model count, points — all `text-sm text-muted-foreground`, weight 400
 - "Label" covers unit name on gallery card — `text-sm font-semibold`, weight 600
 - "Heading" covers page title "Collection" — `text-xl font-semibold`, matches existing CollectionPage.tsx `h1`
-- Ring percentage text: `text-base font-bold` rendered as SVG `<text>` element, centered in the ring
+- Ring percentage text: `text-base font-semibold` rendered as SVG `<text>` element, centered in the ring
 
 Source: CollectionPage.tsx (`text-xl font-semibold`), UnitTableColumns.tsx (`text-sm`), CONTEXT.md §Card confirmed layout
 
@@ -132,7 +132,7 @@ SVG implementation contract for `src/components/common/PaintingRing.tsx`:
 | Rotation | `transform="rotate(-90 48 48)"` to start arc at 12 o'clock |
 | `stroke-dasharray` | `2 * Math.PI * 38` ≈ `238.76` |
 | `stroke-dashoffset` | `238.76 * (1 - percentage / 100)` |
-| Percentage text | SVG `<text x="48" y="48" dominantBaseline="middle" textAnchor="middle"` — `text-base font-bold fill-foreground` |
+| Percentage text | SVG `<text x="48" y="48" dominantBaseline="middle" textAnchor="middle"` — `text-base font-semibold fill-foreground` |
 | Text content | `{percentage}%` |
 | `aria-label` | `{percentage}% painted` |
 | `role` | `img` |
