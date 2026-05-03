@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Utility Layer
-status: verifying
-stopped_at: Phase 11 UI-SPEC approved
-last_updated: "2026-05-03T09:43:17.358Z"
-last_activity: 2026-05-03 - Completed quick task 260503-g7p: Add one-click launcher scripts and desktop shortcut for HobbyForge
+milestone: v2.1
+milestone_name: Visual Command
+status: in_progress
+stopped_at: Phase 10 Plan 03 — awaiting Task 4 manual smoke test
+last_updated: "2026-05-03T00:00:00.000Z"
+last_activity: 2026-05-03 — v2.0 milestone archived (git tag v2.0); Phase 10 Plan 03 Tasks 1-3 complete, 212 tests passing, awaiting Task 4 manual verification
 progress:
-  total_phases: 10
-  completed_phases: 5
-  total_plans: 24
-  completed_plans: 24
-  percent: 96
+  total_phases: 5
+  completed_phases: 1
+  total_plans: 4
+  completed_plans: 3
+  percent: 60
 ---
 
 # Project State
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.1 — Visual Command (Phases 10–14 planned; v2.0 Phases 8–9 still pending)
+**Current focus:** v2.1 — Visual Command (Phases 10–14; v2.0 fully shipped 2026-05-03)
 
 ## Current Position
 

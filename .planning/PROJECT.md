@@ -12,7 +12,7 @@
 - Hobby Journal — photo timeline per unit + painting session log with time tracking
 - Spending Tracker — log cost per unit and paint, see per-faction and total spend
 
-*Note: v2.0 Phases 8 (Army List Builder) and 9 (Unit Playbook) remain active in the roadmap and will be executed before or in parallel with v2.1.*
+*v2.0 shipped 2026-05-03 — all 4 phases (Foundation, Paint Inventory, Army List Builder, Unit Playbook) complete.*
 
 ---
 
@@ -40,14 +40,16 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ Painting recipe CRUD with step-level paint linkage and owned/missing indicator — Phase 4 — v1.1
 - ✓ Dashboard stat cards, faction summaries, active projects list, recently updated — Phase 5 — v1.1
 
+*All v2.0 requirements verified and shipped 2026-05-03*
+
+- ✓ Schema migration 004 — 8 nullable columns on unit_strategy_notes; typed query/hook modules for army lists, strategy notes, and paint recipes — Phase 6 — v2.0
+- ✓ Paint Inventory page at /paints: brand/type/color-family filters, running-low/wishlist presets, recipe badge navigation, inline owned toggle — Phase 7 — v2.0
+- ✓ Army List Builder: create/edit/delete lists, add/remove units, COALESCE-in-SQL points, battle-ready %, per-unit notes, army-list membership pre-check on unit delete — Phase 8 — v2.0
+- ✓ Unit Playbook tab: stats block (M/T/Sv/W/Ld/OC), abilities, keywords, 8 strategy notes, dirty-state Save with toasts — Phase 9 — v2.0
+
 ### Active
 
-*v2.0 remaining (Phases 8–9)*
-
-- [ ] Army List Builder: create lists from collection, auto-calculated points + painted readiness %
-- [ ] Unit Playbook: personal stats block (M/T/Sv/W/Ld/OC) + abilities/keywords text + strategy notes per unit
-
-*v2.1 target features*
+*v2.1 target features (Phases 10–14)*
 
 - [ ] Faction Dynamic Theming — UI accent colors shift per selected faction across the entire app
 - [ ] Dashboard as Command Center — hero stats, animated counters, faction banners
@@ -72,7 +74,7 @@ A single personal command center that always answers "what do I own, what's pain
 
 ## Context
 
-- **Current state:** v1.1 shipped. ~9,400 TypeScript source lines. 113 tests passing. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). All 10 DB tables live. Dashboard is the live entrypoint.
+- **Current state:** v2.0 shipped. ~14,000+ TypeScript source lines. 212 tests passing. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). All 10 DB tables live + 8 additional strategy-note columns. Paint Inventory, Army Lists, and Unit Playbook all live. Phase 10 Theming Foundation in progress.
 - **Personal tool** — single user (the owner), local-first, no accounts or sync
 - **Domain:** Warhammer 40K 10th edition, hobby management (collecting → painting → playing)
 - **User journey priority:** painter/collector → ready-to-play, *not* competitive optimization
@@ -103,8 +105,12 @@ A single personal command center that always answers "what do I own, what's pain
 | TDD Wave 0 pattern (pure functions + tests before UI) | Provides automated verification signal throughout execution | ✓ Good — computeStats/relativeTime/kanbanUtils bugs caught before UI existed |
 | selectedUnitId pattern (store ID, derive unit from cache) | Prevents stale data after optimistic cache updates | ✓ Good — correctly handles post-mutation refresh without extra re-fetches |
 | Sibling Sheet/Dialog portal pattern | Nested Radix portals cause z-index and context issues | ✓ Good — consistent pattern across all 3 pages using Sheets/Dialogs |
-| Windows-only for v2.0 | Matches dev environment; avoids cross-platform packaging overhead | — Pending |
-| 40K 10th edition only | Simpler scope; multi-system via game_system field later if needed | — Pending |
+| Windows-only for v2.0 | Matches dev environment; avoids cross-platform packaging overhead | ✓ Good — no issues in Phases 6–9 |
+| 40K 10th edition only | Simpler scope; multi-system via game_system field later if needed | ✓ Good — no scope pressure yet |
+| COALESCE in SQL for effective_points | DB-side computation prevents N-place reimplementation | ✓ Excellent — ArmyListSummaryBar just sums; zero JS math |
+| Full-replacement UPDATE for army_list_units | NULL must be clearable (points_override back to inherited) | ✓ Good — confirmed correct via smoke test Pitfall 2 check |
+| Zustand for paint inventory filters (same as collection) | Consistent ephemeral UX; filters reset on navigation | ✓ Good — identical pattern to Phase 3 collection filters |
+| PlaybookTab SheetHeader/Footer outside Tabs | Edit/Delete must work from any tab without closing sheet | ✓ Good — Pitfall 5 avoidance; confirmed in Phase 9 smoke test |
 
 ---
 *Last updated: 2026-05-02 after v2.1 milestone start*

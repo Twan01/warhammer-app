@@ -54,6 +54,53 @@
 
 ---
 
+## Milestone: v2.0 — Utility Layer
+
+**Shipped:** 2026-05-03
+**Phases:** 4 (6–9) | **Plans:** 20 | **Timeline:** 3 days (2026-05-01 → 2026-05-03)
+
+### What Was Built
+
+- Phase 6 back-end foundation: migration 004 (8 `ALTER TABLE ADD COLUMN` on `unit_strategy_notes`), TypeScript types for all three v2.0 features, query modules (`armyLists.ts`, `strategyNotes.ts`), hook modules with DATA-09 forward-compat dashboard invalidation, 38 automated tests
+- Phase 7 Paint Inventory: PaintsPage at `/paints` with Zustand-backed brand/type/color-family multi-select filters, running-low/wishlist preset views, color swatch, recipe-count badge with cross-page navigation (`/recipes?paintId=X`), inline owned toggle with optimistic update
+- Phase 8 Army List Builder: ArmyListsPage, CRUD sheets, multi-add UnitPickerDialog, ArmyListDetailSheet with pinned summary bar (COALESCE effective_points computed in SQL), per-unit notes expandable rows, full-replacement UPDATE for NULL-clearable points_override, UnitDeleteDialog with army-list membership pre-check
+- Phase 9 Unit Playbook: PlaybookTab inside shadcn Tabs with 6-field stats block (suffix display, pencil edit mode, Escape-to-cancel), abilities/keywords inputs, 8 fixed-order strategy note fields, dirty-state Save gating with sonner toasts, SQLite persistence round-tripped in live app
+- 1 audit gap closed: ARMY-02 assembled-status badge absent from SQL join, TypeScript type, and render — found and fixed in one session (commit 259f3fc)
+
+### What Worked
+
+- **Phase 6 pure back-end foundation:** Separating migration + types + queries + hooks into their own phase (with full test coverage) before touching any UI meant Phases 7–9 had zero data-layer surprises. All three UI phases built on a verified foundation.
+- **COALESCE in SQL (never JS):** Computing `effective_points = COALESCE(alu.points_override, u.points, 0)` in `getArmyListWithUnits` SQL meant `ArmyListSummaryBar` could just sum a flat array — no conditional logic, no unit-level JS math. One canonical computation point.
+- **Sibling portal pattern held at scale:** Phase 8 had the most complex portal geometry (List Sheet + Delete Dialog + Unit Picker Dialog, all potentially open), and the established sibling pattern handled it perfectly. Zero z-index or context issues.
+- **Wave 0 TDD on pure functions:** `applyPaintFilters` (Phase 7) and `getArmyListsByUnitId` pre-check (Phase 8) both had pure-function tests before any UI existed. The Phase 8 smoke test passed 14/14 steps on the first run — no regressions.
+- **Nyquist VALIDATION.md retrofit:** Retroactively auditing all v2.0 phases for Nyquist compliance surfaced the ARMY-02 gap that the audit later confirmed. Validation docs are load-bearing.
+
+### What Was Inefficient
+
+- **VALIDATION.md compliance flags not set during execution:** As with v1.1, all four VALIDATION.md files were created with `nyquist_compliant: false` (or draft status) during phase execution and had to be retrofitted after the milestone. The fix is to update the flag inline when the last test passes, not in a retrospective batch.
+- **Progress table formatting drift:** ROADMAP.md Phase 8 and 9 rows had misaligned column counts (the milestone column was missing). Caught and fixed at archive time. Progress tables should be spot-checked when plans complete.
+- **ARMY-02 gap missed until audit:** The `status_assembly` column was in the schema and the `ArmyListUnitRow` type (after fix), but the SQL join never selected it. The gap was missed because the smoke test doesn't assert on every column — it asserts on behaviors. Automated tests for the SQL join (checking selected columns) would have caught this inline.
+
+### Patterns Established
+
+- **Back-end foundation phase pattern:** When adding multiple new features that share a data layer, isolate the schema + types + queries + hooks into a Wave-0 phase. UI phases then build on a verified foundation. Applied in v2.0 Phase 6; worth repeating for future feature clusters.
+- **Full-replacement UPDATE for nullable overrides:** When a field must be clearable to NULL (not just set), use a `SET field=$2` pattern, not `COALESCE($2, field)`. Document as a pitfall in the plan. Confirmed via smoke test.
+- **Cross-page navigation via router validateSearch:** `/recipes?paintId=X` pattern (Phase 7) is the canonical cross-page filter navigation — clean URL params, typed by TanStack Router's `validateSearch`, consumed by the target page's `useSearch`.
+
+### Key Lessons
+
+1. **SQL join gaps are audit-only if not tested.** ARMY-02 (`status_assembly` not in SELECT) was caught by the integration checker, not by unit tests. A test that asserts on the shape of `getArmyListWithUnits` rows would have caught it inline. For SQL queries with important multi-column joins, add a shape assertion test.
+2. **Set `nyquist_compliant: true` when the last test goes green, not at audit time.** Retrofitting compliance flags is extra work; the flag is most useful as a real-time signal during execution, not a post-hoc label.
+3. **Pure foundation phases pay for themselves in UI phases.** Phase 6 took 3 days of work but Phases 7–9 had zero data-layer debugging time. The investment is front-loaded but the return is reliable.
+
+### Cost Observations
+
+- Model: Claude Sonnet 4.6 throughout
+- Sessions: 2 (context compression mid-milestone)
+- Notable: 4 phases in 3 calendar days — Wave 0 TDD + parallel execution of Phases 7/8/9 (all depend on Phase 6 only) were the main velocity drivers
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -61,15 +108,19 @@
 | Milestone | Phases | Plans | Key Change |
 |-----------|--------|-------|------------|
 | v1.1 | 5 | 20 | First milestone — baseline established |
+| v2.0 | 4 | 20 | Back-end foundation phase pattern; Nyquist VALIDATION.md retrofit introduced |
 
 ### Cumulative Quality
 
 | Milestone | Tests | Status |
 |-----------|-------|--------|
 | v1.1 | 113 | All passing |
+| v2.0 | 212 | All passing (isolated; FactionSummaryCard ordering issue pre-existing) |
 
 ### Top Lessons (Verified Across Milestones)
 
-1. Pre-wire cross-phase cache invalidation when dependencies are known early
+1. Pre-wire cross-phase cache invalidation when dependencies are known early (v1.1 DATA-09 → v2.0 dashboard-stats forward-compat)
 2. Pure function + TDD Wave 0 dramatically reduces UI debugging time
 3. Sibling portal pattern prevents Radix z-index/context issues in Sheet-heavy UIs
+4. SQL join shape tests catch column-omission gaps that smoke tests miss (learned from ARMY-02)
+5. Foundation phases with full test coverage before UI work pay for themselves in zero data-layer debugging time
