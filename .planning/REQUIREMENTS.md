@@ -7,15 +7,15 @@
 
 ### Faction Dynamic Theming
 
-- [ ] **THEME-01**: User can select an active faction and the UI accent color (buttons, badges, status rings, highlights) shifts to that faction's theme color across the entire app immediately
-- [ ] **THEME-02**: Active faction selection persists after closing and reopening the app
-- [ ] **THEME-03**: User can set the active faction from the Dashboard
+- [x] **THEME-01**: User can select an active faction and the UI accent color (buttons, badges, status rings, highlights) shifts to that faction's theme color across the entire app immediately
+- [x] **THEME-02**: Active faction selection persists after closing and reopening the app
+- [x] **THEME-03**: User can set the active faction from the Dashboard
 
 ### Visual / UX
 
-- [ ] **UI-01**: User can collapse the sidebar to icon-only mode via a toggle control
-- [ ] **UI-02**: Sidebar collapsed/expanded state persists across app restarts
-- [ ] **UI-03**: Icons in collapsed sidebar show a tooltip with the nav label on hover
+- [x] **UI-01**: User can collapse the sidebar to icon-only mode via a toggle control
+- [x] **UI-02**: Sidebar collapsed/expanded state persists across app restarts
+- [x] **UI-03**: Icons in collapsed sidebar show a tooltip with the nav label on hover
 - [ ] **UI-04**: User can switch the Collection page between table view and gallery view using a view toggle
 - [ ] **UI-05**: Gallery view displays unit cards with unit name, faction badge, painting-status ring, and painted percentage
 - [ ] **UI-06**: Switching between table and gallery view preserves all active filters (no filter reset on toggle)
@@ -74,12 +74,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| THEME-01 | Phase 10 | Pending |
-| THEME-02 | Phase 10 | Pending |
-| THEME-03 | Phase 10 | Pending |
-| UI-01 | Phase 10 | Pending |
-| UI-02 | Phase 10 | Pending |
-| UI-03 | Phase 10 | Pending |
+| THEME-01 | Phase 10 | Complete |
+| THEME-02 | Phase 10 | Complete |
+| THEME-03 | Phase 10 | Complete |
+| UI-01 | Phase 10 | Complete |
+| UI-02 | Phase 10 | Complete |
+| UI-03 | Phase 10 | Complete |
 | UI-07 | Phase 11 | Pending |
 | UI-08 | Phase 11 | Pending |
 | UI-04 | Phase 12 | Pending |

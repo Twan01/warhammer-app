@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Utility Layer
 status: completed
-stopped_at: Completed 08-army-list-builder plan 08-05 — Manual smoke test approved, all ARMY-01..07 requirements verified
-last_updated: "2026-05-03T07:42:10.364Z"
-last_activity: 2026-05-03 — Phase 8 Plan 05 complete — Manual smoke test approved, Army List Builder verified end-to-end
+stopped_at: Completed 10-theming-foundation plan 10-00 — Wave 0 stub files created, 18 it.skip stubs, full suite green
+last_updated: "2026-05-03T08:37:19Z"
+last_activity: 2026-05-03 — Phase 10 Plan 00 complete — Wave 0 test stubs created for theming foundation
 progress:
   total_phases: 10
   completed_phases: 4
   total_plans: 24
-  completed_plans: 20
-  percent: 83
+  completed_plans: 21
+  percent: 88
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 
 ## Current Position
 
-Phase: 8 of 14 (COMPLETE: Phase 8 Army List Builder)
-Plan: 08-05 complete — Manual smoke test approved, all ARMY-01..07 requirements verified in live Tauri app
-Status: Phase 8 all 6 plans complete. Phase 9 complete. Phase 10 planned, ready to execute.
-Last activity: 2026-05-03 — Phase 8 Plan 05 complete — Manual smoke test approved, Army List Builder verified end-to-end
+Phase: 10 of 14 (IN PROGRESS: Phase 10 Theming Foundation)
+Plan: 10-00 complete — Wave 0 stub test files created for all 4 theming test targets
+Status: Phase 10 Plan 00 complete. Next: Plan 10-01 (ActiveFactionContext + useActiveFaction hook).
+Last activity: 2026-05-03 — Phase 10 Plan 00 complete — 4 Wave 0 stub files in tests/theming/, 18 it.skip stubs, full suite green
 
-Progress: [████████░░] 83% (20/24 plans complete)
+Progress: [█████████░] 88% (21/24 plans complete)
 
 ## v2.1 Phase Map
 
@@ -58,6 +58,8 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 - Phase 9 Plan 02: No overflow-hidden added to Tabs/TabsContent — SheetContent overflow-y-auto retained for correct scrolling (Pitfall 5)
 - Phase 9 Plan 02: key={unit?.id} on SheetContent resets PlaybookTab state on unit switch for free — no extra reset logic needed
 - Phase 10 uses CSS `@theme` layer to define `bg-faction-accent` utilities — all accent color usage in later phases references these utilities, never hardcoded hex values
+- Phase 10 Plan 00: Wave 0 stub files use no SUT imports — source-under-test doesn't exist yet; imports land in plans 10-01/02/03 alongside replacing .skip bodies
+- Phase 10 Plan 00: Explicit `import { describe, it } from 'vitest'` in every stub file for tsc strict-mode compatibility (mirrors UnitDeleteDialog pattern)
 - Phase 13 photo storage requires `tauri-plugin-fs` — the one new Tauri plugin introduced in v2.1; verify capability grants before building photo attach UI
 - Phase 14 stores all spend values as integer pence in SQLite — display formatting happens in UI layer only, never stored as float
 
@@ -89,6 +91,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-03T07:35:30.171Z
-Stopped at: Completed 08-army-list-builder plan 08-05 — Manual smoke test approved, all ARMY-01..07 requirements verified
-Resume: Phase 8 complete. Phase 9 complete. Next: Phase 10 Theming Foundation — plans 10-00 through 10-03 already drafted. Run `/gsd:execute-phase` to continue.
+Last session: 2026-05-03T08:37:19Z
+Stopped at: Completed 10-theming-foundation plan 10-00 — Wave 0 stub files created, 18 it.skip stubs, full suite green
+Resume: Phase 10 Plan 00 complete. Next: Plan 10-01 (create ActiveFactionContext.tsx + useActiveFaction hook, replace useActiveFaction stubs with real assertions). Run `/gsd:execute-phase` to continue.
