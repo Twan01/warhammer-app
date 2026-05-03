@@ -122,7 +122,14 @@ Plans:
   3. User can navigate to the Spending page and see a total hobby spend figure combining unit and paint purchases
   4. Spending page breaks total spend into a per-faction table or card list — each faction shows its own subtotal
   5. All spend values round-trip correctly as integer pence in SQLite and are always displayed in formatted currency throughout the UI — no floating-point display errors
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 14-00-PLAN.md — Wave 0: 7 stub test files (formatCurrency, computeSpendingStats, migration005, useSpendingStats, SpendingPage, unitSchema, paintSchema) — 32 it.skip stubs total covering all 5 SPEND requirements
+- [ ] 14-01-PLAN.md — Migration 005 (purchase_price_pence INTEGER on units + paints) + lib.rs version 5 + formatCurrency utility + Unit/Paint type updates + units.ts/paints.ts query updates with Pitfall 1 unconditional UPDATE assignment + flip 9 test stubs
+- [ ] 14-02-PLAN.md — unitSchema/paintSchema purchase_price_pence field + UnitSheet/PaintSheet form fields + UnitDetailSheet read-only formatCurrency display + 6 mutation hooks invalidate ['spending-stats'] (Pitfall 2) + flip 10 schema test stubs
+- [ ] 14-03-PLAN.md — spending.ts query + computeSpendingStats pure function + useSpendingStats hook (with SPENDING_STATS_KEY contract) + SpendingPage component + /spending route + Wallet sidebar nav entry + extend AppSidebar test + flip 13 stubs
+- [ ] 14-04-PLAN.md — Manual smoke-test checkpoint (7 steps: migration applies, unit price round-trip, Pitfall 1 clear-to-NULL, paint price round-trip, Spending page + nav + cache invalidation, owned-only Paints filter, Skeleton loading state)
 
 ### Phase 15: Warhammer 40K Datasheet Integration
 **Goal**: [To be planned]
@@ -161,6 +168,6 @@ Plans:
 | 11. Dashboard Command Center | v2.1 | Complete    | 2026-05-03 | 2026-05-03 |
 | 12. Collection Gallery View | 2/4 | In Progress|  | — |
 | 13. Hobby Journal | v2.1 | 0/6 | Planned | — |
-| 14. Spending Tracker | v2.1 | 0/TBD | Not started | — |
+| 14. Spending Tracker | v2.1 | 0/5 | Planned | — |
 | 15. 40K Datasheet Integration | v2.1 | 0/TBD | Not started | — |
 | 16. Design Overhaul | v2.1 | 0/TBD | Not started | — |
