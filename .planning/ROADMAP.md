@@ -76,7 +76,13 @@ HobbyForge v2.1 transforms the visual identity with faction-aware dynamic themin
   1. Dashboard hero section displays animated stat counters for total units, painted count, and battle-ready percentage — counters animate from zero on first render
   2. Faction summary cards on the Dashboard display with accent color borders or badges drawn from the active faction theme — the color matches the faction selected in Phase 10
   3. Dashboard loads without layout shift or visible flicker when navigating from another page
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 11-00-PLAN.md — Wave 0: tests/dashboard/useCountUp.test.ts stub (3 it.skip blocks for UI-07 hook unit tests)
+- [ ] 11-01-PLAN.md — useCountUp hook (rAF cubic ease-out, 600ms, integer-only, prefers-reduced-motion gate) + flip 3 stubs to passing tests
+- [ ] 11-02-PLAN.md — StatCard animate prop + AnimatedNumber sub-component, wire 4 hero StatCards in DashboardPage, add UI-07 component test + UI-08 ring class test
+- [ ] 11-03-PLAN.md — Manual smoke-test checkpoint (UI-07 visual animation + UI-08 faction ring color in live Tauri app)
 
 ### Phase 12: Collection Gallery View
 **Goal**: Users can view their collection as a visual card grid — showing painting-status rings and faction badges per unit — and toggle back to the existing table view without losing any active filters
@@ -128,7 +134,7 @@ HobbyForge v2.1 transforms the visual identity with faction-aware dynamic themin
 | 8. Army List Builder | v2.0 | 6/6 | Complete | 2026-05-03 |
 | 9. Unit Playbook | v2.0 | 4/4 | Complete | 2026-05-02 |
 | 10. Theming Foundation | 3/4 | In Progress|  | — |
-| 11. Dashboard Command Center | v2.1 | 0/TBD | Not started | — |
+| 11. Dashboard Command Center | v2.1 | 0/4 | Planned | — |
 | 12. Collection Gallery View | v2.1 | 0/TBD | Not started | — |
 | 13. Hobby Journal | v2.1 | 0/TBD | Not started | — |
 | 14. Spending Tracker | v2.1 | 0/TBD | Not started | — |
