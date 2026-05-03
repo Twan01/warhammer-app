@@ -17,6 +17,7 @@ import {
   Outlet,
 } from "@tanstack/react-router";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
+import { ActiveFactionProvider } from "@/context/ActiveFactionContext";
 import type { Unit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
 
@@ -26,6 +27,15 @@ vi.mock("@/db/queries/dashboard", () => ({
   getDashboardStats: vi.fn(),
 }));
 import { getDashboardStats } from "@/db/queries/dashboard";
+
+// Mock factions query so ActiveFactionProvider doesn't hit SQLite in tests.
+vi.mock("@/db/queries/factions", () => ({
+  getFactions: vi.fn().mockResolvedValue([]),
+  getFactionById: vi.fn(),
+  createFaction: vi.fn(),
+  updateFaction: vi.fn(),
+  deleteFaction: vi.fn(),
+}));
 
 function f(over: Partial<Faction> = {}): Faction {
   return {
@@ -75,7 +85,14 @@ function renderWithProviders(ui: React.ReactNode) {
     defaultOptions: { queries: { retry: false } },
   });
   // Minimal router so useNavigate from FactionSummaryCard / DashboardEmptyState doesn't crash.
-  const root = createRootRoute({ component: () => <Outlet /> });
+  // ActiveFactionProvider is inside the root component (mirrors router.tsx pattern).
+  const root = createRootRoute({
+    component: () => (
+      <ActiveFactionProvider>
+        <Outlet />
+      </ActiveFactionProvider>
+    ),
+  });
   const dashboardR = createRoute({
     getParentRoute: () => root,
     path: "/",

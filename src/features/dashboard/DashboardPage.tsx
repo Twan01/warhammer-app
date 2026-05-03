@@ -17,6 +17,7 @@ import { UnitDetailSheet } from "@/features/units/UnitDetailSheet";
 import { UnitSheet } from "@/features/units/UnitSheet";
 import { UnitDeleteDialog } from "@/features/units/UnitDeleteDialog";
 import type { Unit } from "@/types/unit";
+import { useActiveFaction } from "@/context/ActiveFactionContext";
 import { StatCard } from "./StatCard";
 import { DashboardListRow } from "./DashboardListRow";
 import { FactionSummaryCard } from "./FactionSummaryCard";
@@ -24,6 +25,7 @@ import { DashboardEmptyState } from "./DashboardEmptyState";
 
 export function DashboardPage() {
   const { data: stats, isLoading, isError } = useDashboardStats();
+  const { activeFactionId, setActiveFaction } = useActiveFaction();
 
   // Sheet/dialog state — Pitfall 6: keep ID, derive unit from the displayed lists
   const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
@@ -204,7 +206,18 @@ export function DashboardPage() {
           </p>
           <div className="flex flex-wrap gap-4">
             {stats.factionStats.map((s) => (
-              <FactionSummaryCard key={s.faction.id} stat={s} />
+              <FactionSummaryCard
+                key={s.faction.id}
+                stat={s}
+                isActive={activeFactionId === s.faction.id}
+                onActivate={() => {
+                  if (activeFactionId === s.faction.id) {
+                    setActiveFaction(null);
+                  } else {
+                    setActiveFaction(s.faction);
+                  }
+                }}
+              />
             ))}
           </div>
         </section>
