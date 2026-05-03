@@ -1,54 +1,103 @@
 /**
- * Phase 11 — useCountUp hook tests (Wave 0 stubs).
+ * Phase 11 — useCountUp hook tests (Plan 11-01 fills in stubs).
  *
- * STATUS: skipped. Plan 11-01 will:
- *   1. Create src/hooks/useCountUp.ts exporting `useCountUp(target, duration?, delay?)` per
- *      11-RESEARCH.md §Architecture Patterns Pattern 1 (rAF elapsed-time loop with cubic
- *      ease-out and prefers-reduced-motion short-circuit).
- *   2. Replace `describe.skip` below with `describe`.
- *   3. Add real assertions matching 11-VALIDATION.md §Per-Task Verification Map rows
- *      11-01-01, 11-01-02, 11-01-03 (UI-07 hook contract).
+ * Uses vitest fake timers (vi.useFakeTimers) — vitest 4.x fake timers stub
+ * requestAnimationFrame alongside setTimeout/setInterval, so vi.advanceTimersByTime()
+ * advances the rAF loop. If a test fails because the counter never advances,
+ * the documented Pitfall 3 fallback is to add `vi.stubGlobal('requestAnimationFrame',
+ * (cb) => { cb(performance.now()); return 0; })` — but try fake timers first.
  *
- * The stub exists in Wave 0 so Plan 11-01 has a concrete failing target to flip green
- * (Nyquist sampling rate per 11-VALIDATION.md).
- *
- * Note: stays a .ts file (no JSX in this hook test — useFactions analog uses .tsx because of
- * a wrapper element, but useCountUp tests via renderHook() pass `target` as a plain number).
+ * Each test mocks window.matchMedia explicitly per Pitfall 5 (reduced-motion gate).
+ * jsdom does not define window.matchMedia, so we use Object.defineProperty to install
+ * it as a configurable function before vi.spyOn can override the return value per test.
  */
-import { describe, it } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+} from "vitest";
+import { renderHook, act } from "@testing-library/react";
+import { useCountUp } from "@/hooks/useCountUp";
 
-describe.skip("useCountUp — UI-07 (count-up animation)", () => {
+function mockMatchMedia(matches: boolean) {
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    configurable: true,
+    value: vi.fn().mockReturnValue({
+      matches,
+      media: "(prefers-reduced-motion: reduce)",
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    } as MediaQueryList),
+  });
+}
+
+beforeEach(() => {
+  vi.useFakeTimers();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+});
+
+describe("useCountUp — UI-07 (count-up animation)", () => {
   it("returns target immediately when window.matchMedia('(prefers-reduced-motion: reduce)') matches", () => {
-    // Plan 11-01 will:
-    //   - vi.spyOn(window, "matchMedia").mockReturnValue({ matches: true } as MediaQueryList)
-    //   - const { result } = renderHook(() => useCountUp(42))
-    //   - expect(result.current).toBe(42)  // no animation; immediate snap to target
-    //   - assert NO setTimeout/rAF was scheduled (optional — spy on requestAnimationFrame)
+    mockMatchMedia(true);
+
+    const { result } = renderHook(() => useCountUp(42));
+
+    // Effect runs synchronously after render under @testing-library/react.
+    // The reduced-motion branch calls setValue(target) once and returns — no rAF scheduled.
+    expect(result.current).toBe(42);
   });
 
   it("starts at 0 and reaches target after duration when reduced-motion is OFF", () => {
-    // Plan 11-01 will:
-    //   - vi.spyOn(window, "matchMedia").mockReturnValue({ matches: false } as MediaQueryList)
-    //   - vi.useFakeTimers() in beforeEach (vitest 4.x fake timers stub rAF too)
-    //   - const { result } = renderHook(() => useCountUp(100, 600))
-    //   - expect(result.current).toBe(0)            // initial render value before rAF tick
-    //   - act(() => { vi.advanceTimersByTime(600); })
-    //   - expect(result.current).toBe(100)          // exact target after duration completes
+    mockMatchMedia(false);
+
+    const { result } = renderHook(() => useCountUp(100, 600));
+
+    // Initial render: useState(0) returns 0 before the rAF fires.
+    expect(result.current).toBe(0);
+
+    act(() => {
+      vi.advanceTimersByTime(600);
+    });
+
+    // Snap-to-exact at progress >= 1: setValue(target) is called explicitly.
+    expect(result.current).toBe(100);
   });
 
   it("re-animates from 0 when target changes (re-trigger on data refetch)", () => {
-    // Plan 11-01 will:
-    //   - vi.spyOn(window, "matchMedia").mockReturnValue({ matches: false } as MediaQueryList)
-    //   - vi.useFakeTimers()
-    //   - const { result, rerender } = renderHook(({ target }) => useCountUp(target, 600), {
-    //       initialProps: { target: 50 }
-    //     })
-    //   - act(() => { vi.advanceTimersByTime(600); })
-    //   - expect(result.current).toBe(50)
-    //   - rerender({ target: 75 })
-    //   - act(() => { vi.advanceTimersByTime(0); })  // flush effect re-run
-    //   - expect(result.current).toBe(0)             // resets to 0 on new target
-    //   - act(() => { vi.advanceTimersByTime(600); })
-    //   - expect(result.current).toBe(75)            // animates to new target
+    mockMatchMedia(false);
+
+    const { result, rerender } = renderHook(
+      ({ target }: { target: number }) => useCountUp(target, 600),
+      { initialProps: { target: 50 } },
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(600);
+    });
+    expect(result.current).toBe(50);
+
+    rerender({ target: 75 });
+    // Effect re-runs with new target — first thing it does is setValue(0)
+    act(() => {
+      vi.advanceTimersByTime(0);
+    });
+    expect(result.current).toBe(0);
+
+    act(() => {
+      vi.advanceTimersByTime(600);
+    });
+    expect(result.current).toBe(75);
   });
 });
