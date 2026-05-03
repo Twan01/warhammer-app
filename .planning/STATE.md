@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
-status: in_progress
-stopped_at: Phase 10 Plan 03 — awaiting Task 4 manual smoke test
-last_updated: "2026-05-03T00:00:00.000Z"
-last_activity: 2026-05-03 — v2.0 milestone archived (git tag v2.0); Phase 10 Plan 03 Tasks 1-3 complete, 212 tests passing, awaiting Task 4 manual verification
+status: verifying
+stopped_at: "Completed Phase 11 Plan 00 — Wave 0 stub tests/dashboard/useCountUp.test.ts created"
+last_updated: "2026-05-03T12:34:16Z"
+last_activity: 2026-05-03 — Phase 11 Plan 00 — Wave 0 stub created (1 task, 217 tests passing, 3 skipped)
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 3
-  percent: 60
+  total_plans: 8
+  completed_plans: 5
+  percent: 63
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 
 ## Current Position
 
-Phase: 10 of 14 (IN PROGRESS: Phase 10 Theming Foundation)
-Plan: 10-03 in progress — Tasks 1-3 complete (provider wired, DashboardPage toggle, AppSidebar tests); Task 4 awaiting manual smoke test
-Status: CHECKPOINT — manual smoke test required in live Tauri app. Run `pnpm tauri dev` and verify 7 steps.
-Last activity: 2026-05-03 — Phase 10 Plan 03 — 3 automated tasks done, 212 tests passing, awaiting Task 4 manual verification
+Phase: 11 of 14 (IN PROGRESS: Phase 11 Dashboard Command Center)
+Plan: 11-00 complete — Wave 0 stub tests/dashboard/useCountUp.test.ts created; ready for Plan 11-01
+Status: EXECUTING — Plan 11-00 complete. Next: Plan 11-01 (create src/hooks/useCountUp.ts + flip describe.skip).
+Last activity: 2026-05-03 — Phase 11 Plan 00 — Wave 0 stub created (1 task, 217 tests passing, 3 skipped)
 
-Progress: [██████████] 96% (23/24 plans complete)
+Progress: [██████░░░░] 63% (5/8 plans complete)
 
 ## v2.1 Phase Map
 
@@ -65,6 +65,7 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 - Phase 10 Plan 02: FactionSummaryCard isActive/onActivate props are optional with defaults so DashboardPage compiles before Plan 10-03 wires them
 - Phase 10 Plan 02: NavItem uses bg-faction-accent via CSS cascade only — no useActiveFaction context import needed in NavItem itself
 - Phase 10 Plan 02: FactionStat test mock uses complete Faction type (icon_path, created_at, updated_at) — plan mock was missing fields; auto-corrected (Rule 1)
+- Phase 11 Plan 00: Wave 0 stub tests/dashboard/useCountUp.test.ts stays .ts (no JSX wrapper needed for plain number-target hook); explicit vitest imports for tsc strict-mode; no SUT import until Plan 11-01 creates src/hooks/useCountUp.ts
 - Phase 13 photo storage requires `tauri-plugin-fs` — the one new Tauri plugin introduced in v2.1; verify capability grants before building photo attach UI
 - Phase 14 stores all spend values as integer pence in SQLite — display formatting happens in UI layer only, never stored as float
 
@@ -102,6 +103,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-03T09:43:17.355Z
-Stopped at: Phase 11 UI-SPEC approved
-Resume: After approving smoke test, run `/gsd:execute-phase` to finalize plan 10-03 and advance STATE.
+Last session: 2026-05-03T12:34:16Z
+Stopped at: Completed Phase 11 Plan 00 — Wave 0 stub tests/dashboard/useCountUp.test.ts created
+Resume: Run `/gsd:execute-phase` to execute Plan 11-01 (create src/hooks/useCountUp.ts + flip describe.skip → describe + add real assertions).

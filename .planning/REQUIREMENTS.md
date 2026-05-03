@@ -19,7 +19,7 @@
 - [ ] **UI-04**: User can switch the Collection page between table view and gallery view using a view toggle
 - [ ] **UI-05**: Gallery view displays unit cards with unit name, faction badge, painting-status ring, and painted percentage
 - [ ] **UI-06**: Switching between table and gallery view preserves all active filters (no filter reset on toggle)
-- [ ] **UI-07**: Dashboard hero section shows animated stat counters for total units, painted count, and battle-ready percentage
+- [x] **UI-07**: Dashboard hero section shows animated stat counters for total units, painted count, and battle-ready percentage
 - [ ] **UI-08**: Dashboard faction summary section displays cards with faction-accent color accents driven by the active theme
 
 ### Hobby Journal
@@ -80,7 +80,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UI-01 | Phase 10 | Complete |
 | UI-02 | Phase 10 | Complete |
 | UI-03 | Phase 10 | Complete |
-| UI-07 | Phase 11 | Pending |
+| UI-07 | Phase 11 | Complete |
 | UI-08 | Phase 11 | Pending |
 | UI-04 | Phase 12 | Pending |
 | UI-05 | Phase 12 | Pending |
