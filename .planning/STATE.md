@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
-status: verifying
-stopped_at: "Completed Phase 11 Plan 00 — Wave 0 stub tests/dashboard/useCountUp.test.ts created"
-last_updated: "2026-05-03T12:34:16Z"
-last_activity: 2026-05-03 — Phase 11 Plan 00 — Wave 0 stub created (1 task, 217 tests passing, 3 skipped)
+status: executing
+stopped_at: Completed Phase 11 Plan 01 — useCountUp hook created + 3 tests passing
+last_updated: "2026-05-03T10:42:13.017Z"
+last_activity: 2026-05-03 — Phase 11 Plan 01 — useCountUp hook created + 3 unit tests passing (217 total, 0 skipped)
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 8
-  completed_plans: 5
-  percent: 63
+  completed_plans: 6
+  percent: 75
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 ## Current Position
 
 Phase: 11 of 14 (IN PROGRESS: Phase 11 Dashboard Command Center)
-Plan: 11-00 complete — Wave 0 stub tests/dashboard/useCountUp.test.ts created; ready for Plan 11-01
-Status: EXECUTING — Plan 11-00 complete. Next: Plan 11-01 (create src/hooks/useCountUp.ts + flip describe.skip).
-Last activity: 2026-05-03 — Phase 11 Plan 00 — Wave 0 stub created (1 task, 217 tests passing, 3 skipped)
+Plan: 11-01 complete — useCountUp hook + 3 passing unit tests; ready for Plan 11-02
+Status: EXECUTING — Plan 11-01 complete. Next: Plan 11-02 (wire useCountUp into StatCard + DashboardPage).
+Last activity: 2026-05-03 — Phase 11 Plan 01 — useCountUp hook created + 3 unit tests passing (217 total, 0 skipped)
 
-Progress: [██████░░░░] 63% (5/8 plans complete)
+Progress: [████████░░] 75% (6/8 plans complete)
 
 ## v2.1 Phase Map
 
@@ -66,6 +66,8 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 - Phase 10 Plan 02: NavItem uses bg-faction-accent via CSS cascade only — no useActiveFaction context import needed in NavItem itself
 - Phase 10 Plan 02: FactionStat test mock uses complete Faction type (icon_path, created_at, updated_at) — plan mock was missing fields; auto-corrected (Rule 1)
 - Phase 11 Plan 00: Wave 0 stub tests/dashboard/useCountUp.test.ts stays .ts (no JSX wrapper needed for plain number-target hook); explicit vitest imports for tsc strict-mode; no SUT import until Plan 11-01 creates src/hooks/useCountUp.ts
+- Phase 11 Plan 01: Object.defineProperty used to install window.matchMedia in jsdom — vi.spyOn fails with "Received undefined" because jsdom does not define matchMedia; defineProperty makes it writable/configurable so tests can override per-call
+- Phase 11 Plan 01: vitest 4.1.5 fake timers correctly stub requestAnimationFrame; vi.advanceTimersByTime(600) advances the rAF loop — no vi.stubGlobal('requestAnimationFrame') fallback needed
 - Phase 13 photo storage requires `tauri-plugin-fs` — the one new Tauri plugin introduced in v2.1; verify capability grants before building photo attach UI
 - Phase 14 stores all spend values as integer pence in SQLite — display formatting happens in UI layer only, never stored as float
 
@@ -103,6 +105,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-03T12:34:16Z
-Stopped at: Completed Phase 11 Plan 00 — Wave 0 stub tests/dashboard/useCountUp.test.ts created
-Resume: Run `/gsd:execute-phase` to execute Plan 11-01 (create src/hooks/useCountUp.ts + flip describe.skip → describe + add real assertions).
+Last session: 2026-05-03T10:42:13.015Z
+Stopped at: Completed Phase 11 Plan 01 — useCountUp hook created + 3 tests passing
+Resume: Run `/gsd:execute-phase` to execute Plan 11-02 (wire useCountUp into StatCard via AnimatedNumber sub-component + DashboardPage hero cards).
