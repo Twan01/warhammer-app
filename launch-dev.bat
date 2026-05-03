@@ -9,6 +9,15 @@ if errorlevel 1 (
     if exist "%LOCALAPPDATA%\pnpm\pnpm.cmd" set "PNPM_CMD=%LOCALAPPDATA%\pnpm\pnpm.cmd"
 )
 
-echo Starting HobbyForge dev server (Ctrl+C to stop)...
+echo ============================================
+echo  HobbyForge Dev Launcher
+echo ============================================
+echo.
+echo Starting... this takes about 30-60 seconds
+echo for the first compile. Window stays open.
+echo Press Ctrl+C to stop the app.
+echo.
 "%PNPM_CMD%" tauri dev
+echo.
+echo Dev server stopped.
 pause
