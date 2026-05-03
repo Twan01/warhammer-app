@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, LayoutList, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUnits, useUpdateUnit, UNITS_KEY } from "@/hooks/useUnits";
 import { useFactions } from "@/hooks/useFactions";
@@ -13,6 +13,8 @@ import { UnitFilters } from "./UnitFilters";
 import { UnitDetailSheet } from "./UnitDetailSheet";
 import { UnitSheet } from "./UnitSheet";
 import { UnitDeleteDialog } from "./UnitDeleteDialog";
+import { useCollectionViewMode } from "@/hooks/useCollectionViewMode";
+import { UnitGallery } from "./UnitGallery";
 
 export function CollectionPage() {
   // Data
@@ -56,6 +58,8 @@ export function CollectionPage() {
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingUnit, setDeletingUnit] = useState<Unit | null>(null);
+
+  const [viewMode, setViewMode] = useCollectionViewMode();
 
   // Handlers
   const handleRowClick = (unit: Unit) => setSelectedUnitId(unit.id);
@@ -108,6 +112,26 @@ export function CollectionPage() {
     <div className="flex flex-col gap-6 p-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Collection</h1>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Table view"
+            className={viewMode === "table" ? "bg-muted" : ""}
+            onClick={() => setViewMode("table")}
+          >
+            <LayoutList className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Gallery view"
+            className={viewMode === "gallery" ? "bg-muted" : ""}
+            onClick={() => setViewMode("gallery")}
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </Button>
+        </div>
         <Button onClick={handleAdd}>
           <Plus className="mr-2 h-4 w-4" /> Add Unit
         </Button>
@@ -119,6 +143,16 @@ export function CollectionPage() {
         <p className="text-sm text-destructive">
           Failed to load your collection. Try refreshing the app.
         </p>
+      ) : viewMode === "gallery" ? (
+        <UnitGallery
+          data={filteredUnits}
+          factions={factions ?? []}
+          isLoading={unitsLoading}
+          hasActiveFilters={hasActiveFilters}
+          onRowClick={handleRowClick}
+          onAdd={handleAdd}
+          onClearFilters={clearAll}
+        />
       ) : (
         <UnitTable
           data={filteredUnits}
