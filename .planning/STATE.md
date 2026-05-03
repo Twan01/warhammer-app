@@ -4,14 +4,14 @@ milestone: v2.0
 milestone_name: Utility Layer
 status: completed
 stopped_at: Completed 08-army-list-builder plan 08-05 — Manual smoke test approved, all ARMY-01..07 requirements verified
-last_updated: "2026-05-03T07:35:30.174Z"
-last_activity: 2026-05-03 — Phase 8 Plan 05 complete — Manual smoke test approved, all ARMY-01..07 verified; Phase 8 Army List Builder done
+last_updated: "2026-05-03T07:42:10.364Z"
+last_activity: 2026-05-03 — Phase 8 Plan 05 complete — Manual smoke test approved, Army List Builder verified end-to-end
 progress:
   total_phases: 10
   completed_phases: 4
   total_plans: 24
   completed_plans: 20
-  percent: 95
+  percent: 83
 ---
 
 # Project State
