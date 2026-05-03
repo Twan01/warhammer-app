@@ -1,15 +1,17 @@
 ---
 phase: 2
 slug: data-layer-entity-crud
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: compliant
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-30
+audited: 2026-05-03
 ---
 
 # Phase 2 — Validation Strategy
 
-> Per-phase validation contract for feedback sampling during execution.
+> Retroactive Nyquist audit (State A — prior VALIDATION.md existed but predated test framework).
+> Phase shipped 2026-04-30. Test framework established in later phases. Gap closure added 2026-05-03.
 
 ---
 
@@ -17,75 +19,92 @@ created: 2026-04-30
 
 | Property | Value |
 |----------|-------|
-| **Framework** | None — no test config files or test directories detected |
-| **Config file** | None — Tauri IPC bridge prevents unit testing of DB queries outside running app |
-| **Quick run command** | Manual: launch app (`cargo tauri dev`), smoke-test affected feature |
-| **Full suite command** | Manual: verify all 5 Phase 2 success criteria from ROADMAP |
-| **Estimated runtime** | ~5 minutes manual checklist |
-
-**Justification:** All DB behavior requires the Tauri IPC bridge which only exists in the running app. There is no practical way to unit-test `db.execute()` / `db.select()` calls in a Node.js/Vitest environment without mocking the entire Tauri plugin. Manual human-verify is the correct quality gate for this phase.
+| **Framework** | Vitest + @testing-library/react |
+| **Config file** | `vitest.config.ts` (root) |
+| **Quick run command** | `npx vitest run --reporter=verbose` |
+| **Gap closure command** | `npx vitest run tests/foundation/useUnits.test.ts --reporter=verbose` |
+| **Estimated runtime** | ~23 seconds (full suite: 210 tests) |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Manual smoke test — launch app, verify the affected feature works (create/edit/delete the relevant entity)
-- **After every plan wave:** Full success criteria checklist from ROADMAP Phase 2 goals
-- **Before `/gsd:verify-work`:** All 5 success criteria must be TRUE
-- **Max feedback latency:** One app restart cycle per task
+Phase 2 is complete and shipped. Retroactive validation — sampling is one-time.
+
+- **Gap closure test added:** `tests/foundation/useUnits.test.ts` (DATA-09)
+- **Full suite must remain green after gap closure:** ✅ 210/210 green
 
 ---
 
-## Per-Task Verification Map
+## Per-Requirement Coverage Map
 
-| Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 02-01-01 | 01 | 1 | DATA-03, DATA-04, DATA-05 | manual | Launch app — no panic on start | ❌ W0 | ⬜ pending |
-| 02-01-02 | 01 | 1 | DATA-02 | manual | Create faction + unit → delete faction → FK toast | ❌ W0 | ⬜ pending |
-| 02-02-01 | 02 | 1 | SEED-01..06 | manual | First launch — 4 factions appear in list | ❌ W0 | ⬜ pending |
-| 02-02-02 | 02 | 1 | DATA-06 | manual | TypeScript compiles without errors (`tsc --noEmit`) | ❌ W0 | ⬜ pending |
-| 02-02-03 | 02 | 1 | DATA-07, DATA-08, DATA-09 | manual | Mutations update list without page reload | ❌ W0 | ⬜ pending |
-| 02-03-01 | 03 | 2 | FACT-01, FACT-04 | manual | Create faction → appears in list | ❌ W0 | ⬜ pending |
-| 02-03-02 | 03 | 2 | FACT-02 | manual | Edit faction → changes persist after restart | ❌ W0 | ⬜ pending |
-| 02-03-03 | 03 | 2 | FACT-03 | manual | Delete faction with units → FK toast; delete empty faction → removed | ❌ W0 | ⬜ pending |
-| 02-03-04 | 03 | 2 | FACT-05 | manual | Faction list rows show 4px color-theme left border | ❌ W0 | ⬜ pending |
-| 02-04-01 | 04 | 3 | UNIT-01..06 | manual | Create unit with all fields → persists after restart | ❌ W0 | ⬜ pending |
-| 02-04-02 | 04 | 3 | PAINT-01, PAINT-02 | manual | Create/edit/delete paint; FK blocks delete if in recipe | ❌ W0 | ⬜ pending |
+| Req | Description | Classification | Test / Evidence |
+|-----|-------------|---------------|-----------------|
+| DATA-03 | 10-table schema (no model_instances) | MANUAL-ONLY | Schema grep + manual smoke — `001_core_schema.sql` presence verified in 02-01 acceptance criteria |
+| DATA-04 | `model_instances` table absent | MANUAL-ONLY | `grep model_instances src-tauri/migrations/001_core_schema.sql` exits 1 — acceptance criteria |
+| DATA-05 | Migrations run once, idempotent | MANUAL-ONLY | Requires Tauri IPC; `lib.rs` `get_migrations()` source-verified in 02-01; live verified in 02-04 checkpoint |
+| DATA-06 | TypeScript types compile (Unit, Faction, Paint, Recipe, RecipePaint) | MANUAL-ONLY | `pnpm exec tsc --noEmit` exits 0 — verified at end of every plan |
+| DATA-07 | Query functions (getFactions, getUnits, etc.) return typed results | MANUAL-ONLY | Require Tauri SQLite IPC — not testable in jsdom; mocked by 9 downstream test files |
+| DATA-08 | TanStack Query hooks (useFactions, useUnits, usePaints, etc.) | MANUAL-ONLY | Hook structure verified by build + downstream tests; direct DB calls require IPC |
+| DATA-09 | `useCreateUnit`, `useUpdateUnit`, `useDeleteUnit` each invalidate `["dashboard-stats"]` | **COVERED** | `tests/foundation/useUnits.test.ts` (6 targeted tests + 3 key-constant tests, 9 total green) |
+| UNIT-06 | `PAINTING_STATUS_ORDER` exported from `src/types/unit.ts` (11-step enum) | **COVERED** | `tests/painting/kanbanUtils.test.ts` uses `PAINTING_STATUS_ORDER` for column ordering; `tests/painting/KanbanBoard.test.tsx` drives Kanban with it |
+| SEED-01 | 4 factions seeded with stable IDs | MANUAL-ONLY | Requires Tauri app launch; verified in 02-04 checkpoint Step 13 |
+| SEED-02 | 5 units seeded with stable IDs | MANUAL-ONLY | Same — verified in 02-04 checkpoint |
+| SEED-03 | 6 paints seeded with stable IDs | MANUAL-ONLY | Same |
+| SEED-04 | 3 recipes + 11 recipe_paints seeded | MANUAL-ONLY | Same |
+| SEED-05 | All seed inserts use `INSERT OR IGNORE` (idempotent) | MANUAL-ONLY | SQL source-verified; live idempotency confirmed in 02-04 checkpoint |
+| SEED-06 | Personal-use disclaimer in README.md | MANUAL-ONLY | File presence — verified in 02-01 |
+| FACT-01..05 | Faction CRUD (create, edit, delete, nav, color border) | MANUAL-ONLY | UI interaction; Tauri IPC; all 8 sign-off criteria passed in 02-03 checkpoint |
+| UNIT-01..05 | Unit CRUD (category combobox, create, edit, status, delete) | MANUAL-ONLY | UI interaction; Tauri IPC; all 14 sign-off criteria passed in 02-04 checkpoint |
+| PAINT-01..02 | Paint CRUD (create/edit, FK-blocked delete) | MANUAL-ONLY | UI interaction + FK enforcement; all 14 sign-off criteria passed in 02-04 checkpoint |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
-
----
-
-## Wave 0 Requirements
-
-- [ ] `src-tauri/migrations/` directory — must be created in Plan 02-01 (no test stubs needed, directory is the artifact)
-- [ ] TypeScript compile check (`tsc --noEmit`) — verifiable via CLI, confirms DATA-06 type correctness
-
-*No test framework installation needed — manual verification is the documented approach for this Tauri phase.*
+*Status: ✅ covered · MANUAL-ONLY (justified — Tauri IPC, FK enforcement, seed data, CRUD UI)*
 
 ---
 
-## Manual-Only Verifications
+## Gap Closure (Retroactive)
 
-| Behavior | Requirement | Why Manual | Test Instructions |
-|----------|-------------|------------|-------------------|
-| All 10 tables exist in schema | DATA-03 | Requires running SQLite in Tauri WebView | App startup → DevTools console → `SELECT name FROM sqlite_master WHERE type='table'` |
-| `model_instances` table absent | DATA-04 | Same — requires running SQLite | Verify table list does NOT contain `model_instances` |
-| Migrations run once, idempotent | DATA-05 | Requires app restart cycle | Delete DB file → restart app twice → no errors either time |
-| FK blocks faction delete | FACT-03, DATA-02 | Requires Tauri IPC + running DB | Create faction + unit → attempt delete faction → observe "Cannot delete faction" toast |
-| FK blocks paint delete | PAINT-02 | Same | Create paint + link to recipe → attempt delete paint → observe FK toast |
-| Seed data loads on first launch | SEED-01..06 | Requires fresh DB | Wipe DB file → restart → 4 factions appear, sample units and paints present |
-| `PAINTING_STATUS_ORDER` drives select | UNIT-06 | UI interaction | Open unit sheet → `painting_status` dropdown shows statuses in PAINTING_STATUS_ORDER order |
+One requirement had no automated test prior to this audit:
+
+| Gap | New Test File | Tests Added |
+|-----|---------------|-------------|
+| DATA-09 (`useUnits` → `["dashboard-stats"]` invalidation) | `tests/foundation/useUnits.test.ts` | 9 — UNITS_KEY constant, UNIT_KEY(id), useCreateUnit (×2), useUpdateUnit (×3), useDeleteUnit (×2) |
+
+Test passes green with `npx vitest run tests/foundation/useUnits.test.ts` (9/9, ~2s).
+
+---
+
+## Manual-Only Justifications
+
+All MANUAL-ONLY classifications are permanent for this phase:
+
+- **DATA-03/04/05, SEED-01..06**: Require a running Tauri app + SQLite IPC bridge — jsdom cannot execute SQLite migration files
+- **DATA-06**: TypeScript compilation — verified by `tsc --noEmit` at CLI level, not a unit test
+- **DATA-07/08**: Query and hook functions call `getDb()` which calls `Database.load("sqlite:hobbyforge.db")` — tauri-plugin-sql returns a rejected promise outside the Tauri WebView; all downstream tests correctly mock these layers
+- **FACT-01..05, UNIT-01..05, PAINT-01..02**: CRUD UI flows require live user interaction with the running app; FK enforcement requires live SQLite with FK pragma active
+
+---
+
+## Validation Audit 2026-05-03
+
+| Metric | Count |
+|--------|-------|
+| Requirements audited | 18 |
+| Gaps found | 1 (DATA-09) |
+| Resolved by gap closure | 1 |
+| Escalated to manual-only | 0 |
+| Already manual-only (justified) | 16 |
+| Already covered (UNIT-06) | 1 |
 
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have manual verify instructions documented above
-- [ ] Sampling continuity: manual smoke test after every task commit
-- [ ] Wave 0 covers directory creation (`src-tauri/migrations/`) and TypeScript compile check
-- [ ] No watch-mode flags
-- [ ] Feedback latency: one app restart cycle (< 2 minutes)
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All testable requirements have automated coverage
+- [x] Manual-only classifications are justified (Tauri IPC, SQLite, FK enforcement, CRUD UI)
+- [x] Gap closure test passes: 9/9 green
+- [x] Full suite green after gap closure: 210 passed, 3 skipped (Phase 10 stubs)
+- [x] No watch-mode flags
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** compliant 2026-05-03
