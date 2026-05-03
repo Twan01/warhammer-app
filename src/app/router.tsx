@@ -7,6 +7,7 @@ import {
 import { z } from "zod";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { AppLayout } from "@/components/common/AppLayout";
+import { ActiveFactionProvider } from "@/context/ActiveFactionContext";
 import { DashboardPage } from "./dashboard/page";
 import { CollectionPage } from "./collection/page";
 import { PaintingProjectsPage } from "./painting-projects/page";
@@ -19,7 +20,9 @@ import { ArmyListsPage } from "./army-lists/page";
 const rootRoute = createRootRoute({
   component: () => (
     <AppLayout>
-      <Outlet />
+      <ActiveFactionProvider>
+        <Outlet />
+      </ActiveFactionProvider>
       {import.meta.env.DEV && <TanStackRouterDevtools position="bottom-right" />}
     </AppLayout>
   ),
