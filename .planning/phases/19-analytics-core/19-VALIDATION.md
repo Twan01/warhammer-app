@@ -1,10 +1,11 @@
 ---
 phase: 19
 slug: analytics-core
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-04
+approved: 2026-05-04
 ---
 
 # Phase 19 — Validation Strategy
@@ -38,14 +39,14 @@ created: 2026-05-04
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 19-00-stubs | 00 | 0 | ANLY-04/05/06 | unit stubs | `pnpm test -- tests/analytics/computeHobbyAnalytics.test.ts` | ❌ Wave 0 | ⬜ pending |
-| 19-00-stubs | 00 | 0 | ANLY-07 | unit stubs | `pnpm test -- tests/analytics/analyticsQueries.test.ts` | ❌ Wave 0 | ⬜ pending |
-| 19-00-stubs | 00 | 0 | ANLY-04/05 | unit stubs | `pnpm test -- tests/analytics/useHobbyAnalytics.test.ts` | ❌ Wave 0 | ⬜ pending |
-| 19-analytics-ts | 01 | 1 | ANLY-04/05/06 | unit | `pnpm test -- tests/analytics/computeHobbyAnalytics.test.ts` | ❌ Wave 0 | ⬜ pending |
-| 19-analytics-ts | 01 | 1 | ANLY-07 | unit | `pnpm test -- tests/analytics/analyticsQueries.test.ts` | ❌ Wave 0 | ⬜ pending |
-| 19-hook | 01 | 1 | ANLY-04/05 | unit | `pnpm test -- tests/analytics/useHobbyAnalytics.test.ts` | ❌ Wave 0 | ⬜ pending |
-| 19-dashboard | 02 | 2 | ANLY-04/05 | manual smoke | Live Tauri app — HOBBY HEALTH section visible with correct values | N/A | ⬜ pending |
-| 19-spending-chart | 02 | 2 | ANLY-06/07 | manual smoke | Live Tauri app — Monthly Trend chart visible between hero and breakdown | N/A | ⬜ pending |
+| 19-00-stubs | 00 | 0 | ANLY-04/05/06 | unit stubs | `pnpm test -- tests/analytics/computeHobbyAnalytics.test.ts` | ✅ | ✅ green |
+| 19-00-stubs | 00 | 0 | ANLY-07 | unit stubs | `pnpm test -- tests/analytics/analyticsQueries.test.ts` | ✅ | ✅ green |
+| 19-00-stubs | 00 | 0 | ANLY-04/05 | unit stubs | `pnpm test -- tests/analytics/useHobbyAnalytics.test.ts` | ✅ | ✅ green |
+| 19-analytics-ts | 01 | 1 | ANLY-04/05/06 | unit | `pnpm test -- tests/analytics/computeHobbyAnalytics.test.ts` | ✅ | ✅ green |
+| 19-analytics-ts | 01 | 1 | ANLY-07 | unit | `pnpm test -- tests/analytics/analyticsQueries.test.ts` | ✅ | ✅ green |
+| 19-hook | 01 | 1 | ANLY-04/05 | unit | `pnpm test -- tests/analytics/useHobbyAnalytics.test.ts` | ✅ | ✅ green |
+| 19-dashboard | 02 | 2 | ANLY-04/05 | manual smoke | Live Tauri app — HOBBY HEALTH section visible with correct values | N/A | ✅ green |
+| 19-spending-chart | 02 | 2 | ANLY-06/07 | manual smoke | Live Tauri app — Monthly Trend chart visible between hero and breakdown | N/A | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -53,9 +54,9 @@ created: 2026-05-04
 
 ## Wave 0 Requirements
 
-- [ ] `tests/analytics/computeHobbyAnalytics.test.ts` — stubs for ANLY-04 (velocity: 0 sessions, single day, multi-month), ANLY-05 (streak: 0, active, gap), ANLY-06 (monthlyData: 12 entries, gaps filled, labels)
-- [ ] `tests/analytics/analyticsQueries.test.ts` — stubs for ANLY-07 (mock verifying NULL purchase_date exclusion in SQL, HOBBY_ANALYTICS_KEY === `["hobby-analytics"]`)
-- [ ] `tests/analytics/useHobbyAnalytics.test.ts` — cache key contract stub (mirrors `tests/spending/useSpendingStats.test.ts` pattern)
+- [x] `tests/analytics/computeHobbyAnalytics.test.ts` — stubs for ANLY-04 (velocity: 0 sessions, single day, multi-month), ANLY-05 (streak: 0, active, gap), ANLY-06 (monthlyData: 12 entries, gaps filled, labels)
+- [x] `tests/analytics/analyticsQueries.test.ts` — stubs for ANLY-07 (mock verifying NULL purchase_date exclusion in SQL, HOBBY_ANALYTICS_KEY === `["hobby-analytics"]`)
+- [x] `tests/analytics/useHobbyAnalytics.test.ts` — cache key contract stub (mirrors `tests/spending/useSpendingStats.test.ts` pattern)
 
 ---
 
@@ -69,15 +70,34 @@ created: 2026-05-04
 | NULL purchase_date entries excluded from chart (not shown as Jan 1970) | ANLY-07 | Requires live DB with mix of NULL and non-NULL purchase_dates | Add unit with no purchase_date → check chart shows no "1970" bar |
 | X-axis labels disambiguate years when window crosses calendar year | ANLY-06 | Visual label inspection only | If app has data spanning 2 years, confirm older months show year suffix (e.g. "Jan '25") |
 
+All manual verifications completed 2026-05-04 during 12-step smoke test — approved by user.
+
+---
+
+## Gap Analysis (post-execution audit)
+
+| Requirement | Test File | Coverage | Status |
+|-------------|-----------|----------|--------|
+| ANLY-04 velocity (pure fn) | `computeHobbyAnalytics.test.ts` | 6 cases: empty, single-day floor, multi-month, decimal, Infinity guard, distinct unit_ids | ✅ COVERED |
+| ANLY-04 velocity (SQL) | `analyticsQueries.test.ts` | sessions query: `SELECT DISTINCT unit_id, session_date FROM painting_sessions ORDER BY session_date ASC` | ✅ COVERED |
+| ANLY-05 streak (pure fn) | `computeHobbyAnalytics.test.ts` | 6 cases: empty, 1 day, 3 consecutive, yesterday breaks, gap breaks, 30-day timezone safety | ✅ COVERED |
+| ANLY-06 monthly chart (pure fn) | `computeHobbyAnalytics.test.ts` | 6 cases: always 12 entries, all-zero fill, SQL row merge, 3-char labels, year-suffix, oldest-first | ✅ COVERED |
+| ANLY-06 SQL window | `analyticsQueries.test.ts` | `WHERE month >= strftime('%Y-%m', date('now', '-11 months'))`, `GROUP BY month`, `ORDER BY month ASC` | ✅ COVERED |
+| ANLY-07 NULL exclusion | `analyticsQueries.test.ts` | `FROM units WHERE purchase_date IS NOT NULL`, `FROM paints WHERE purchase_date IS NOT NULL`, both filter `purchase_price_pence IS NOT NULL` | ✅ COVERED |
+| Cache key contract | `useHobbyAnalytics.test.ts` | `HOBBY_ANALYTICS_KEY === ["hobby-analytics"]`, length 1 | ✅ COVERED |
+| Manual smokes (all 5) | VERIFICATION.md 12-step approval | ANLY-04..07 end-to-end in live Tauri app | ✅ COVERED |
+
+No gaps found. Zero missing requirements.
+
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-05-04 — zero gaps, 388 tests passing, all manual smokes verified in live Tauri app
