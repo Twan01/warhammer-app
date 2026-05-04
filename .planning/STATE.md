@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: completed
-stopped_at: Phase 20 context gathered
-last_updated: "2026-05-04T14:35:52.002Z"
+stopped_at: Completed 20-01-PLAN.md
+last_updated: "2026-05-04T16:46:51.934Z"
 last_activity: "2026-05-04 - Completed quick task 260504-lhf: Rebuild release exe to fix desktop shortcut (migration version mismatch crash)"
 progress:
   total_phases: 15
   completed_phases: 10
-  total_plans: 47
-  completed_plans: 47
+  total_plans: 50
+  completed_plans: 48
   percent: 100
 ---
 
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.2 milestone start)
 
 ## Current Position
 
-Phase: 20 of 21 (Wishlist — next phase)
-Plan: 20-00 (next plan)
-Status: Phase 19 complete — ready for Phase 20
-Last activity: 2026-05-04 - Completed quick task 260504-lhf: Rebuild release exe to fix desktop shortcut (migration version mismatch crash)
+Phase: 20 of 21 (v2.1 polish gap closure — in progress)
+Plan: 20-02 (next plan)
+Status: 20-01 complete — FactionsEmptyState icon-pill + upsertSyncMeta removed
+Last activity: 2026-05-04 - Completed 20-01: FactionsEmptyState icon-pill pattern + dead upsertSyncMeta export removal
 
-Progress: [██████████] 100% (47/47 plans complete)
+Progress: [█████████░] 96% (48/50 plans complete)
 
 ## v2.2 Phase Map
 
@@ -51,6 +51,12 @@ Architecture constraints:
 - All analytics queries go in new `src/db/queries/analytics.ts` with key `["hobby-analytics"]`
 
 ## Accumulated Context
+
+### Phase 20 Decisions
+
+- Shield chosen as Factions empty-state icon (domain-appropriate: faction heraldry) replacing generic PackageOpen — aligns FactionsEmptyState with ArmyListsEmptyState / KanbanEmptyState icon-pill pattern
+- upsertSyncMeta removed from datasheets.ts without replacement — Rust bulk_sync_rules in src-tauri/src/lib.rs is the sole sync-meta write path (zero JS callers confirmed by grep)
+- getRulesDb import preserved in datasheets.ts after removal — still used by 4 remaining query functions (getDatasheetsByFaction, getFullDatasheet, getRulesSyncMeta, resolveWahapediaFactionIdByName)
 
 ### Phase 19 Decisions
 
@@ -160,6 +166,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T14:35:51.999Z
-Stopped at: Phase 20 context gathered
+Last session: 2026-05-04T16:46:51.930Z
+Stopped at: Completed 20-01-PLAN.md
 Resume: Phase 19 complete — Phase 20 Wishlist is next. Run `/gsd:progress` to see current status
