@@ -19,9 +19,14 @@ export function PaintingProjectsPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Painting Projects</h1>
-        <AddProjectPicker />
+      <div className="flex items-center justify-between pb-6 border-b border-border/40">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Painting Projects</h1>
+          <p className="text-sm text-muted-foreground mt-1">Active units being worked on right now</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <AddProjectPicker />
+        </div>
       </div>
       <KanbanBoard
         onEditUnit={openEdit}
