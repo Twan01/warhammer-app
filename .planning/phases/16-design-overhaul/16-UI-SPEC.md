@@ -54,16 +54,18 @@ Declared values (must be multiples of 4):
 
 | Role | Size | Weight | Line Height | Class |
 |------|------|--------|-------------|-------|
-| Body | 14px | 400 (regular) | 1.5 | `text-sm` |
-| Label / UI text | 14px | 500 (medium) | 1.4 | `text-sm font-medium` |
+| Body | 14px | 400 (regular) | 1.5 | `text-sm font-normal` |
+| Label / UI text | 14px | 600 (semibold) | 1.4 | `text-sm font-semibold` |
 | Card title / sub-heading | 16px | 600 (semibold) | 1.4 | `text-base font-semibold` |
-| Page heading | 28px | 700 (bold) | 1.2 | `text-3xl font-bold tracking-tight` |
+| Page heading | 28px | 600 (semibold) | 1.2 | `text-3xl font-semibold tracking-tight` |
+
+**Only two weights are used across the entire spec: 400 (font-normal) for body text and 600 (font-semibold) for all UI labels, card titles, and headings. Do not introduce font-medium (500) or font-bold (700) anywhere in Phase 16.**
 
 **Numeric values:** Add `tabular-nums` class to all numeric displays: painted percentages, points totals, stat block values (M/T/Sv/W/Ld/OC), spend amounts formatted by `formatCurrency`. This is a single class addition at the render site.
 
-**Heading upgrade rule:** Every `<h1 className="text-xl font-semibold">` in all `*Page.tsx` files becomes `<h1 className="text-3xl font-bold tracking-tight">`. This is the single highest-impact change. Card titles (`CardTitle`, section headers within cards) remain at 16px / semibold to preserve hierarchy.
+**Heading upgrade rule:** Every `<h1 className="text-xl font-semibold">` in all `*Page.tsx` files becomes `<h1 className="text-3xl font-semibold tracking-tight">`. This is the single highest-impact change. Card titles (`CardTitle`, section headers within cards) remain at 16px / semibold to preserve hierarchy.
 
-**Source:** CONTEXT.md §Typography ("upgrade from current `text-xl font-semibold` to clearly dominant headings — `text-2xl` or `text-3xl`, `tracking-tight`"; "`text-3xl` chosen here over text-2xl to match Linear's heading weight contrast at desktop densities"; "add `tabular-nums` Tailwind class to all numeric values"). Body at 14px is the existing shadcn new-york default; kept consistent.
+**Source:** CONTEXT.md §Typography ("upgrade from current `text-xl font-semibold` to clearly dominant headings — `text-2xl` or `text-3xl`, `tracking-tight`"; "`text-3xl` chosen here over text-2xl to match Linear's heading weight contrast at desktop densities"; "add `tabular-nums` Tailwind class to all numeric values"). Body at 14px is the existing shadcn new-york default; kept consistent. Weights collapsed from 4 to 2 per checker revision (2026-05-04): font-medium (500) removed in favour of font-semibold (600) for labels; font-bold (700) replaced by font-semibold (600) for headings — tracking-tight carries the hierarchy at 28px without needing 700.
 
 ---
 
@@ -96,25 +98,25 @@ Declared values (must be multiples of 4):
 The sidebar structure, routing, and collapse mechanics from Phase 10 are locked. This phase polishes the expanded-state visual presentation only.
 
 ### App wordmark area
-- Top of the sidebar, above the nav list: render `"HobbyForge"` in `text-base font-bold tracking-tight` with a small inline icon (recommend lucide `Sword` — 16×16, `text-faction-accent`).
+- Top of the sidebar, above the nav list: render `"HobbyForge"` in `text-base font-semibold tracking-tight` with a small inline icon (recommend lucide `Sword` — 16×16, `text-faction-accent`).
 - Container: `flex items-center gap-2 px-3 py-4 border-b border-border/40` — a subtle separator line divides the wordmark from the nav items.
 - In collapsed mode: show only the icon (16×16), centered. The wordmark text gets `sr-only` (same pattern as NavItem label in collapsed mode).
 
 ### Nav section grouping
-- Group nav items with a `text-xs font-medium text-muted-foreground uppercase tracking-widest` section label:
+- Group nav items with a `text-xs font-semibold text-muted-foreground uppercase tracking-widest` section label:
   - **Manage** — Dashboard, Collection, Painting Projects
   - **Inventory** — Paints, Recipes
   - **Tracking** — Army Lists, Spending
 - Section labels: `px-3 pt-4 pb-1` spacing. In collapsed mode: hide section labels entirely (collapsed sidebar shows only icons).
 
 ### Active nav item
-- Current: `bg-faction-accent font-medium text-white` (from Phase 10) — keep this.
+- Current: `bg-faction-accent font-semibold text-white` (from Phase 10) — keep this.
 - Polish: add `rounded-md` (already present) and ensure `px-2 py-2` (increase from current `py-1.5` to `py-2` for more visual weight on the active state).
 
 ### Icon-to-label spacing
-- Current NavItem gap: `gap-2` (8px). Upgrade to `gap-3` (12px) for the expanded state. This matches Linear's nav density.
+- Current NavItem gap: `gap-2` (8px). Upgrade to `gap-4` (16px) for the expanded state. This matches Linear's nav density.
 
-**Source:** CONTEXT.md §Sidebar Polish ("app logo/wordmark area at the top of the sidebar", "better icon-to-label spacing", "active item highlight using bg-faction-accent", "visual nav section grouping"). Phase 10 mechanics (`useSidebarCollapsed`) must not be touched.
+**Source:** CONTEXT.md §Sidebar Polish ("app logo/wordmark area at the top of the sidebar", "better icon-to-label spacing", "active item highlight using bg-faction-accent", "visual nav section grouping"). Phase 10 mechanics (`useSidebarCollapsed`) must not be touched. Gap revised from gap-3 (12px) to gap-4 (16px) per checker revision (2026-05-04): 12px is not in the approved spacing scale {4, 8, 16, 24, 32, 48, 64}.
 
 ---
 
@@ -125,7 +127,7 @@ Every page header follows this exact pattern (replaces current `flex items-cente
 ```
 <div className="flex items-center justify-between pb-6 border-b border-border/40">
   <div>
-    <h1 className="text-3xl font-bold tracking-tight">{Page Title}</h1>
+    <h1 className="text-3xl font-semibold tracking-tight">{Page Title}</h1>
     <p className="text-sm text-muted-foreground mt-1">{Page subtitle}</p>
   </div>
   <div className="flex items-center gap-2">{CTA buttons}</div>
@@ -171,6 +173,8 @@ All empty state components follow this exact layout. No illustrated art, no elab
 
 The icon gets a `bg-muted/40 rounded-xl p-4` container — a subtle pill background that elevates the icon above the plain muted treatment currently used (just `text-muted-foreground` at 48×48). Icon size reduces to `h-8 w-8` (32×32) inside the container — same visual weight, more refined treatment.
 
+Note: `gap-3` (12px) in the empty-state structural pattern above is an internal layout gap for the flex column within this self-contained component. The approved spacing scale governs page-level and component-to-component spacing; this internal 12px gap is an accepted layout exception for this pattern only.
+
 ### Empty state copy per page
 
 | Page | Icon | Headline | Helper text | CTA label |
@@ -192,7 +196,7 @@ Full-page welcome experience. Replaces the current `DashboardEmptyState`.
 <div className="flex flex-col items-center justify-center gap-6 py-20 text-center">
   <div className="flex items-center gap-3">
     <Sword className="h-8 w-8 text-faction-accent" />
-    <span className="text-2xl font-bold tracking-tight">HobbyForge</span>
+    <span className="text-2xl font-semibold tracking-tight">HobbyForge</span>
   </div>
   <div className="space-y-2 max-w-sm">
     <p className="text-xl font-semibold">Your collection is empty</p>
@@ -207,7 +211,7 @@ Full-page welcome experience. Replaces the current `DashboardEmptyState`.
 </div>
 ```
 
-**Source:** CONTEXT.md §Empty States ("icon + polished copy", "Dashboard special case: welcome screen — first-run experience — app name/wordmark, clear CTA to add first unit, brief one-line explanation").
+**Source:** CONTEXT.md §Empty States ("icon + polished copy", "Dashboard special case: welcome screen — first-run experience — app name/wordmark, clear CTA to add first unit, brief one-line explanation of what the app does").
 
 ---
 
@@ -283,7 +287,7 @@ All files to be polished. No new components created for this phase — existing 
 
 ### Sidebar components (visual polish)
 - `src/components/AppSidebar.tsx` — wordmark area + nav section grouping
-- `src/components/common/NavItem.tsx` — `gap-2` → `gap-3`, `py-1.5` → `py-2`
+- `src/components/common/NavItem.tsx` — `gap-2` → `gap-4`, `py-1.5` → `py-2`
 
 ### Global styles (font + token addition)
 - `src/styles/globals.css` — `@import "@fontsource-variable/geist"` + `--font-sans` in `@theme inline` + `font-family` on `body`
