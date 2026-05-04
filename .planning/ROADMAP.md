@@ -45,7 +45,7 @@ HobbyForge v2.1 transforms the visual identity with faction-aware dynamic themin
 - [x] **Phase 12: Collection Gallery View** — Card grid alternate view with painting-status ring, view toggle, filter preservation (completed 2026-05-04)
 - [x] **Phase 13: Hobby Journal** — Painting session log (SQL CRUD) and photo timeline (tauri-plugin-fs) per unit (completed 2026-05-04)
 - [ ] **Phase 14: Spending Tracker** — Cost logging per unit and paint, Spending page with total and per-faction breakdown
-- [ ] **Phase 15: Warhammer 40K Datasheet Integration** — Auto-populate Playbook tab stats/abilities/keywords from community data, bundle local SQLite rules database, surface rulebook references in-app
+- [x] **Phase 15: Warhammer 40K Datasheet Integration** — Auto-populate Playbook tab stats/abilities/keywords from community data, bundle local SQLite rules database, surface rulebook references in-app (completed 2026-05-04)
 - [x] **Phase 16: Design Overhaul** — Significantly improve visual design across all pages — typography, spacing, layouts, empty states, and overall UI polish (completed 2026-05-04)
 
 ### 📋 v2.2 Full Circle (Phases 17–22) — Planned
@@ -156,7 +156,7 @@ Plans:
 - [ ] 15-03-PLAN.md — Wave 2: rules-client.ts singleton + datasheets.ts query module (6 fns spanning rules.db + hobbyforge.db link write) + useDatasheet.ts hooks (3 read hooks with staleTime: Infinity) + flip 7 stubs
 - [ ] 15-04-PLAN.md — Wave 3: useRulesSync mutation hook (7-CSV parallel fetch + transactional bulk insert + invalidation broadcast) + DatasheetPicker.tsx (faction-pre-filtered Dialog with autoFocus search) + DatasheetImportDialog.tsx (per-field Keep/Use toggle, default "use") + flip last 4 stubs
 - [ ] 15-05-PLAN.md — Wave 4: PlaybookTab integration (sync banner, Last-synced label, Import/Re-import button, Datasheet Abilities collapsible with Core/Faction/Unit sub-groups, Sources list, Personal Ability Notes label rename, multi-profile note, auto-picker on first mount) + CollectionPage sibling-portal mount of DatasheetImportDialog + UnitDetailSheet conflict-prop wiring + 6 new PlaybookTab tests
-- [ ] 15-06-PLAN.md — Manual smoke-test checkpoint (13 steps in live Tauri app: DS-01..DS-12 verified including live network sync to wahapedia.ru + asset persistence across restart)
+- [x] 15-06-PLAN.md — Manual smoke-test checkpoint (13 steps in live Tauri app: DS-01..DS-12 verified including live network sync to wahapedia.ru + asset persistence across restart)
 
 ### Phase 16: Design Overhaul
 **Goal**: Significantly improve the visual design across all 7 pages and shared components — Linear-inspired polished tooling aesthetic via Geist Variable font, upgraded text-3xl page headings with subtitles + hairline border, sidebar wordmark + section grouping (Manage / Inventory / Tracking), refined empty states with page-specific lucide icons in muted-pill containers, tabular-nums on every numeric display, subtle card elevation (shadow-sm + border-border/60), and a Dashboard first-run welcome screen
@@ -281,7 +281,7 @@ Plans:
 | 12. Collection Gallery View | v2.1 | 4/4 | Complete | 2026-05-04 |
 | 13. Hobby Journal | v2.1 | 6/6 | Complete | 2026-05-04 |
 | 14. Spending Tracker | v2.1 | 4/5 | In Progress | — |
-| 15. 40K Datasheet Integration | 6/7 | In Progress|  | — |
+| 15. 40K Datasheet Integration | v2.1 | 7/7 | Complete | 2026-05-04 |
 | 16. Design Overhaul | 8/8 | Complete    | 2026-05-04 | — |
 | 17. Schema Foundation + Enrichment | 1/1 | Complete    | 2026-05-04 | — |
 | 18. Battle Log | 4/4 | Complete    | 2026-05-04 | — |
