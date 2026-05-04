@@ -14,15 +14,17 @@ const getDatasheetIdForUnitMock = vi.fn();
 const getFullDatasheetMock = vi.fn();
 const getDatasheetsByFactionMock = vi.fn();
 const getRulesSyncMetaMock = vi.fn();
+const resolveWahapediaFactionIdByNameMock = vi.fn();
 
 vi.mock("@/db/queries/datasheets", () => ({
   getDatasheetIdForUnit: (...args: unknown[]) => getDatasheetIdForUnitMock(...args),
   getFullDatasheet: (...args: unknown[]) => getFullDatasheetMock(...args),
   getDatasheetsByFaction: (...args: unknown[]) => getDatasheetsByFactionMock(...args),
   getRulesSyncMeta: (...args: unknown[]) => getRulesSyncMetaMock(...args),
+  resolveWahapediaFactionIdByName: (...args: unknown[]) => resolveWahapediaFactionIdByNameMock(...args),
 }));
 
-import { useDatasheet } from "@/hooks/useDatasheet";
+import { useDatasheet, useWahapediaFactionId } from "@/hooks/useDatasheet";
 
 function makeWrapper() {
   const qc = new QueryClient({
@@ -38,6 +40,7 @@ beforeEach(() => {
   getFullDatasheetMock.mockReset();
   getDatasheetsByFactionMock.mockReset();
   getRulesSyncMetaMock.mockReset();
+  resolveWahapediaFactionIdByNameMock.mockReset();
 });
 
 describe("useDatasheet", () => {
@@ -77,5 +80,21 @@ describe("useDatasheet", () => {
     await waitFor(() => expect(result.current.data).toBeDefined());
     expect(result.current.data).toBeNull();
     expect(getFullDatasheetMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("useWahapediaFactionId", () => {
+  it("G-3: returns { fetchStatus: 'idle' } and never calls resolveWahapediaFactionIdByName when localFactionName is undefined", async () => {
+    const { result } = renderHook(() => useWahapediaFactionId(undefined), { wrapper: makeWrapper() });
+    expect(result.current.fetchStatus).toBe("idle");
+    expect(resolveWahapediaFactionIdByNameMock).not.toHaveBeenCalled();
+  });
+
+  it("G-3: calls resolveWahapediaFactionIdByName with the provided name and resolves to the returned id string", async () => {
+    resolveWahapediaFactionIdByNameMock.mockResolvedValueOnce("SM");
+    const { result } = renderHook(() => useWahapediaFactionId("Space Marines"), { wrapper: makeWrapper() });
+    await waitFor(() => expect(result.current.data).toBeDefined());
+    expect(resolveWahapediaFactionIdByNameMock).toHaveBeenCalledWith("Space Marines");
+    expect(result.current.data).toBe("SM");
   });
 });

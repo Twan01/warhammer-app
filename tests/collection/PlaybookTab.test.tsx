@@ -384,6 +384,7 @@ describe("PlaybookTab — DS-12 multi-profile note", () => {
         { datasheet_id: "001", line: 2, name: "X (Body)", M: "6\"", T: 4, Sv: "3+", inv_sv: null, W: 2, Ld: "7+", OC: 2 },
       ],
       abilities: [], keywords: [], source: null,
+      wargear: [],
     };
     (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: fakeDatasheet });
     renderInsideTabs(42);
@@ -395,9 +396,52 @@ describe("PlaybookTab — DS-12 multi-profile note", () => {
       ds: { id: "001", name: "X", faction_id: "SM", source_id: null, role: null, damaged_w: null, damaged_description: null },
       models: [{ datasheet_id: "001", line: 1, name: "X", M: "6\"", T: 4, Sv: "3+", inv_sv: null, W: 2, Ld: "6+", OC: 2 }],
       abilities: [], keywords: [], source: null,
+      wargear: [],
     };
     (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: fakeDatasheet });
     renderInsideTabs(42);
     expect(screen.queryByText("Additional model profiles available — see Datasheet Abilities for details.")).toBeNull();
+  });
+});
+
+describe("PlaybookTab — Weapons section (Phase 15 wargear)", () => {
+  const boltRifle = {
+    datasheet_id: "001", line: 1, line_in_wargear: 1,
+    name: "Bolt Rifle", range: "24", type: "Ranged", A: "2", BS_WS: "3",
+    S: "4", AP: "-1", D: "1", dice: null, description: null,
+  };
+
+  function makeWargearDatasheet(wargear: typeof boltRifle[]) {
+    return {
+      ds: { id: "001", name: "Intercessors", faction_id: "SM", source_id: null, role: "Battleline", damaged_w: null, damaged_description: null },
+      models: [{ datasheet_id: "001", line: 1, name: "Intercessor", M: "6\"", T: 4, Sv: "3+", inv_sv: null, W: 2, Ld: "6+", OC: 2 }],
+      abilities: [], keywords: [], source: null,
+      wargear,
+    };
+  }
+
+  it("G-5: renders 'Weapons' heading when wargear array is non-empty", async () => {
+    (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: makeWargearDatasheet([boltRifle]) });
+    renderInsideTabs(42);
+    expect(await screen.findByText("Weapons")).toBeInTheDocument();
+  });
+
+  it("G-5: renders weapon name 'Bolt Rifle' and its stat values in the weapons table", async () => {
+    (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: makeWargearDatasheet([boltRifle]) });
+    renderInsideTabs(42);
+    await screen.findByText("Weapons");
+    expect(screen.getByText("Bolt Rifle")).toBeInTheDocument();
+    // range: "24" → displayed as 24"
+    expect(screen.getByText('24"')).toBeInTheDocument();
+    // A: "2", BS_WS: "3" → displayed as "3+", AP: "-1", D: "1", S: "4"
+    expect(screen.getByText("3+")).toBeInTheDocument();
+  });
+
+  it("G-5: does NOT render 'Weapons' heading when wargear is an empty array", async () => {
+    (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: makeWargearDatasheet([]) });
+    renderInsideTabs(42);
+    // Wait for the component to settle
+    await screen.findByRole("button", { name: /Save Playbook/ });
+    expect(screen.queryByText("Weapons")).toBeNull();
   });
 });

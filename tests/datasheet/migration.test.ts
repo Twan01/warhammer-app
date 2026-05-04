@@ -13,6 +13,7 @@ import { fileURLToPath } from "node:url";
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const rulesSchemaPath = resolve(repoRoot, "src-tauri/migrations/rules_001_schema.sql");
 const datasheetLinkPath = resolve(repoRoot, "src-tauri/migrations/007_datasheet_link.sql");
+const wargearAbilitiesPath = resolve(repoRoot, "src-tauri/migrations/rules_002_wargear_abilities.sql");
 const libRsPath = resolve(repoRoot, "src-tauri/src/lib.rs");
 const tauriConfPath = resolve(repoRoot, "src-tauri/tauri.conf.json");
 
@@ -49,9 +50,28 @@ describe("rules_001_schema.sql + migration 007", () => {
     expect(libRs).toMatch(/description:\s*"rules_schema"/);
     expect(libRs).toMatch(/rules_001_schema\.sql/);
     expect(libRs).toMatch(/\.add_migrations\("sqlite:rules\.db",\s*get_rules_migrations\(\)\)/);
+    // G-4b: lib.rs must also reference the wargear/abilities migration
+    expect(libRs).toMatch(/rules_002_wargear_abilities\.sql|rules_wargear_abilities/);
 
     const conf = JSON.parse(readFileSync(tauriConfPath, "utf-8"));
     expect(conf.plugins.sql.preload).toContain("sqlite:hobbyforge.db");
     expect(conf.plugins.sql.preload).toContain("sqlite:rules.db");
+  });
+});
+
+describe("rules_002_wargear_abilities.sql", () => {
+  it("G-4b: creates all 5 new tables using CREATE TABLE IF NOT EXISTS (additive-only)", () => {
+    const sql = readFileSync(wargearAbilitiesPath, "utf-8");
+    expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS rw_datasheets_wargear/);
+    expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS rw_abilities/);
+    expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS rw_stratagems/);
+    expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS rw_detachments/);
+    expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS rw_detachment_abilities/);
+  });
+
+  it("G-4b: does NOT contain DROP or DELETE FROM statements", () => {
+    const sql = readFileSync(wargearAbilitiesPath, "utf-8");
+    expect(sql).not.toMatch(/\bDROP\b/i);
+    expect(sql).not.toMatch(/\bDELETE FROM\b/i);
   });
 });

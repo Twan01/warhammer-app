@@ -26,6 +26,8 @@ import {
   getFullDatasheet,
   getRulesSyncMeta,
   upsertDatasheetLink,
+  resolveWahapediaFactionIdByName,
+  searchAllDatasheets,
 } from "@/db/queries/datasheets";
 
 beforeEach(() => {
@@ -125,5 +127,82 @@ describe("datasheets queries", () => {
 
     // Verify it wrote to hobbyforge.db (NOT rules.db)
     expect(rulesExecuteMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("resolveWahapediaFactionIdByName", () => {
+  it("G-1: issues 3-branch LOWER SQL (exact, user-name LIKE faction, faction LIKE user-name) and returns faction id string on match", async () => {
+    rulesSelectMock.mockResolvedValueOnce([{ id: "SM" }]);
+    const result = await resolveWahapediaFactionIdByName("Space Marines");
+    expect(result).toBe("SM");
+    expect(rulesSelectMock).toHaveBeenCalledTimes(1);
+    const sql: string = rulesSelectMock.mock.calls[0][0];
+    // Exact equality branch
+    expect(sql).toMatch(/LOWER\(name\)\s*=\s*LOWER\(\$1\)/);
+    // user-name LIKE faction branch
+    expect(sql).toMatch(/LOWER\(\$1\)\s+LIKE\s+'%'\s*\|\|\s*LOWER\(name\)\s*\|\|\s*'%'/);
+    // faction LIKE user-name branch
+    expect(sql).toMatch(/LOWER\(name\)\s+LIKE\s+'%'\s*\|\|\s*LOWER\(\$1\)\s*\|\|\s*'%'/);
+    expect(rulesSelectMock.mock.calls[0][1]).toEqual(["Space Marines"]);
+  });
+
+  it("G-1: returns null when no faction row matches", async () => {
+    rulesSelectMock.mockResolvedValueOnce([]);
+    const result = await resolveWahapediaFactionIdByName("Unknown Faction");
+    expect(result).toBeNull();
+  });
+});
+
+describe("searchAllDatasheets", () => {
+  it("G-2: returns [] immediately for empty string without calling rules.db", async () => {
+    const result = await searchAllDatasheets("");
+    expect(result).toEqual([]);
+    expect(rulesSelectMock).not.toHaveBeenCalled();
+  });
+
+  it("G-2: returns [] immediately for single-character input without calling rules.db", async () => {
+    const result = await searchAllDatasheets("A");
+    expect(result).toEqual([]);
+    expect(rulesSelectMock).not.toHaveBeenCalled();
+  });
+
+  it("G-2: issues LOWER(name) LIKE '%' || LOWER($1) || '%' with LIMIT 100 for 2+ char queries", async () => {
+    rulesSelectMock.mockResolvedValueOnce([
+      { id: "001", name: "Intercessors", role: "Battleline" },
+    ]);
+    const result = await searchAllDatasheets("In");
+    expect(rulesSelectMock).toHaveBeenCalledTimes(1);
+    const sql: string = rulesSelectMock.mock.calls[0][0];
+    expect(sql).toMatch(/LOWER\(name\)\s+LIKE\s+'%'\s*\|\|\s*LOWER\(\$1\)\s*\|\|\s*'%'/);
+    expect(sql).toMatch(/LIMIT\s+100/);
+    expect(rulesSelectMock.mock.calls[0][1]).toEqual(["In"]);
+    expect(result.length).toBe(1);
+    expect(result[0].name).toBe("Intercessors");
+  });
+});
+
+describe("getFullDatasheet — wargear field (G-4a)", () => {
+  it("G-4a: result.wargear is an array containing the wargear row returned by rw_datasheets_wargear query", async () => {
+    // source_id is null → source sub-query is skipped → 5 select calls total:
+    // ds, models, abilities, keywords, wargear
+    rulesSelectMock
+      .mockResolvedValueOnce([{
+        id: "001", name: "Intercessors", faction_id: "SM",
+        source_id: null, role: "Battleline", damaged_w: null, damaged_description: null,
+      }]) // ds
+      .mockResolvedValueOnce([]) // models
+      .mockResolvedValueOnce([]) // abilities
+      .mockResolvedValueOnce([]) // keywords
+      .mockResolvedValueOnce([{  // wargear (source skipped — no source_id)
+        datasheet_id: "001", line: 1, line_in_wargear: 1,
+        dice: null, name: "Bolt Rifle", description: null,
+        range: "24", type: "Ranged", A: "2", BS_WS: "3", S: "4", AP: "-1", D: "1",
+      }]);
+
+    const result = await getFullDatasheet("001");
+    expect(result).not.toBeNull();
+    expect(Array.isArray(result!.wargear)).toBe(true);
+    expect(result!.wargear.length).toBe(1);
+    expect(result!.wargear[0].name).toBe("Bolt Rifle");
   });
 });
