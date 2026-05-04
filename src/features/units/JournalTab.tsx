@@ -32,6 +32,7 @@ import {
   useDeleteUnitPhoto,
   type UnitPhotoWithUrl,
 } from "@/hooks/useUnitPhotos";
+import { todayISO } from "@/lib/dates";
 
 interface JournalTabProps {
   unitId: number;
@@ -53,10 +54,6 @@ const STAGE_PRESETS = [
   "Finished",
 ] as const;
 const OTHER_STAGE = "Other";
-
-function todayISO(): string {
-  return new Date().toISOString().split("T")[0];
-}
 
 export function JournalTab({ unitId, onPhotoClick }: JournalTabProps) {
   // ───────────── Sessions ─────────────
