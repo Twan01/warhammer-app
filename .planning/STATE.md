@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Completed 14-03-PLAN.md — SpendingPage, /spending route, Wallet nav entry, 13 Wave-0 stubs flipped; 279 passing
-last_updated: "2026-05-04T07:32:05Z"
+stopped_at: Phase 15 UI-SPEC approved
+last_updated: "2026-05-04T07:41:28.550Z"
 last_activity: 2026-05-04 — Phase 14 Plan 03 — SpendingPage end-to-end (query, pure fn, hook, component, route, sidebar nav); 279 passing, 0 skipped
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 23
+  total_plans: 24
   completed_plans: 22
   percent: 96
 ---
@@ -135,6 +135,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T07:32:05Z
-Stopped at: Completed 14-03-PLAN.md — SpendingPage end-to-end shipped; 279 passing, 0 skipped
+Last session: 2026-05-04T07:41:28.546Z
+Stopped at: Phase 15 UI-SPEC approved
 Resume: Run `/gsd:execute-phase 14` to continue with Plan 14-04 (manual smoke-test — the final gate before Phase 14 ships).
