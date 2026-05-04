@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Full Circle
 status: executing
-stopped_at: Completed 26-02-PLAN.md
-last_updated: "2026-05-04T20:48:00.471Z"
+stopped_at: Completed 26-03-PLAN.md
+last_updated: "2026-05-04T20:57:58.443Z"
 progress:
   total_phases: 12
   completed_phases: 4
   total_plans: 16
-  completed_plans: 14
+  completed_plans: 15
   percent: 88
 ---
 
@@ -24,11 +24,11 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.3 milestone start)
 
 ## Current Position
 
-Phase: 26 — Dashboard Redesign (plan 02 complete)
-Plan: 26-02 complete — Wave 2 UI components (CurrentFocusCard, HobbyPipeline, RecentActivityFeed, LogSessionSheet, logSessionSchema); Wave 3 DashboardPage rework unblocked
-Status: In progress — 3/5 plans complete for Phase 26
+Phase: 26 — Dashboard Redesign (plan 03 complete)
+Plan: 26-03 complete — Wave 3 DashboardPage rework (Hobby Command Center layout, FactionSummaryCard upgrade, dead code deletion); Wave 4 manual smoke test ready
+Status: In progress — 4/5 plans complete for Phase 26
 
-Progress: [█████████░] 88% (14/16 plans complete)
+Progress: [█████████░] 94% (15/16 plans complete)
 
 ## v2.3 Phase Map
 
@@ -57,6 +57,9 @@ Progress: [█████████░] 88% (14/16 plans complete)
 - HobbyPipeline derives stage counts from full units[] prop — never from sliced activeProjects/recentlyUpdated (Pitfall 6: those cap at 5 items)
 - RecentActivityFeed onUnitClick wiring limited to unit_added/unit_updated — session_logged and battle_logged are non-interactive in Phase 26
 - TIER_BUBBLE_CLASS 'done' tier uses bg-battle-gold/30 in HobbyPipeline — consistent with Phase 25 CSS custom property for "done" state
+- allDisplayedUnits memo replaced with `stats?.units ?? []` (full array, Pitfall 3) — selectedUnit can find any unit not just those in sliced activeProjects/recentlyUpdated
+- handleRowClick removed from DashboardPage (unused after DashboardListRow replaced by RecentActivityFeed); handleUnitIdClick retained for RecentActivityFeed onUnitClick prop
+- DashboardListRow.tsx + statusAbbr.ts were already deleted from HEAD in commit d0e3f17 (Phase 25 Nyquist session); Task 3 confirmed zero references in src/ and tests/
 
 ### Phase 25 Decisions
 
@@ -186,6 +189,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T20:43:21Z
-Stopped at: Completed 26-02-PLAN.md
+Last session: 2026-05-04T20:57:58.439Z
+Stopped at: Completed 26-03-PLAN.md
 Resume: Phase 26 Plan 03 is next (Wave 3: DashboardPage rework — wire all Wave 2 components). Run `/gsd:execute-phase 26-03` to continue.
