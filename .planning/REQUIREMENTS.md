@@ -1,72 +1,82 @@
-# Requirements: HobbyForge v2.1 Visual Command
+# Requirements: HobbyForge v2.2 Full Circle
 
-**Defined:** 2026-05-02
+**Defined:** 2026-05-04
 **Core Value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
 
-## v2.1 Requirements
+## v2.2 Requirements
 
-### Faction Dynamic Theming
+### Battle Log
 
-- [x] **THEME-01**: User can select an active faction and the UI accent color (buttons, badges, status rings, highlights) shifts to that faction's theme color across the entire app immediately
-- [x] **THEME-02**: Active faction selection persists after closing and reopening the app
-- [x] **THEME-03**: User can set the active faction from the Dashboard
+- [ ] **BATTLE-01**: User can log a game with opponent faction, mission name, result (Win/Loss/Draw), and date
+- [ ] **BATTLE-02**: User can select which of their army lists was used when logging a game
+- [ ] **BATTLE-03**: User can add optional notes to a game log entry (MVP unit, lessons learned)
+- [ ] **BATTLE-04**: User can view all logged games in a chronological list
+- [ ] **BATTLE-05**: User can delete a game log entry
 
-### Visual / UX
+### Wishlist
 
-- [x] **UI-01**: User can collapse the sidebar to icon-only mode via a toggle control
-- [x] **UI-02**: Sidebar collapsed/expanded state persists across app restarts
-- [x] **UI-03**: Icons in collapsed sidebar show a tooltip with the nav label on hover
-- [x] **UI-04**: User can switch the Collection page between table view and gallery view using a view toggle
-- [x] **UI-05**: Gallery view displays unit cards with unit name, faction badge, painting-status ring, and painted percentage
-- [x] **UI-06**: Switching between table and gallery view preserves all active filters (no filter reset on toggle)
-- [x] **UI-07**: Dashboard hero section shows animated stat counters for total units, painted count, and battle-ready percentage
-- [x] **UI-08**: Dashboard faction summary section displays cards with faction-accent color accents driven by the active theme
+- [ ] **WISH-01**: User can add a wishlist item with a name, faction, and optional estimated cost in pence
+- [ ] **WISH-02**: User can view all wishlist items on a dedicated page
+- [ ] **WISH-03**: User can delete a wishlist item
+- [ ] **WISH-04**: User can add optional notes to a wishlist item (e.g. "wait for sale", "for Crusade roster")
 
-### Hobby Journal
+### Analytics
 
-- [x] **JOUR-01**: User can log a painting session per unit with date, duration in minutes, and optional notes
-- [x] **JOUR-02**: User can view all painting sessions for a unit in the unit detail sheet, sorted newest first
-- [x] **JOUR-03**: User can delete a painting session entry
-- [x] **JOUR-04**: User can attach a photo to a unit with a stage label (e.g. "Primed", "Base coat", "Finished") and optional caption
-- [x] **JOUR-05**: User can view the photo timeline for a unit as a chronological gallery of thumbnails with stage labels
-- [x] **JOUR-06**: Deleting a unit removes its associated photo files from disk alongside the DB rows
+- [ ] **ANLY-01**: User can create a painting goal with a target unit count and timeframe (this month / this quarter)
+- [ ] **ANLY-02**: Goal progress is calculated by counting distinct units with at least one painting session during the goal period
+- [ ] **ANLY-03**: User can view all active and completed goals with a progress bar
+- [ ] **ANLY-04**: Dashboard shows hobby velocity — average units worked on per month from journal session history
+- [ ] **ANLY-05**: Dashboard shows current painting streak — consecutive calendar days with at least one journal session
+- [ ] **ANLY-06**: Spending page shows a monthly spend trend chart combining unit and paint purchases
+- [ ] **ANLY-07**: Spend trend chart uses purchase_date for both units and paints (new purchase_date column on paints)
 
-### Spending Tracker
+### Display
 
-- [ ] **SPEND-01**: User can log a purchase price and purchase date per unit in the unit detail sheet
-- [ ] **SPEND-02**: User can log a purchase price per paint pot in the paint detail sheet
-- [ ] **SPEND-03**: User can view a Spending page showing total hobby spend (units + paints combined)
-- [ ] **SPEND-04**: Spending page breaks down total spend by faction
-- [ ] **SPEND-05**: Spending values are stored as integer pence in SQLite and displayed as formatted currency throughout the UI
+- [ ] **DISP-01**: Collection page has a "Battle Ready" quick-filter showing only fully-painted and assembled units
+- [ ] **DISP-02**: User can enter Showcase Mode to view all painted units in a full-screen gallery with app chrome hidden
+- [ ] **DISP-03**: User can exit Showcase Mode to return to the normal app view
 
-## Future Requirements (v2.2+)
+### Enrichment
 
-### Hobby Journal (deferred)
+- [ ] **ENRCH-01**: User can write custom lore notes for a faction (chapter backstory, homeworld, custom name)
+- [ ] **ENRCH-02**: User can write custom lore notes for an individual unit (character history, battle honours)
+- [ ] **ENRCH-03**: User can record the primer/undercoat used on a unit (free-text, e.g. "Chaos Black", "Wraithbone")
+- [ ] **ENRCH-04**: Undercoat and lore notes fields are visible and editable in the unit detail sheet
 
-- **JOUR-07**: Export unit journal (sessions + photos) as a printable PDF or image
-- **JOUR-08**: Photo before/after comparison slider for a unit
+## Future Requirements (v3.0)
 
-### Spending (deferred)
+### Advanced Play
 
-- **SPEND-06**: Spending trend chart over time (monthly/quarterly)
-- **SPEND-07**: Import purchase history from CSV
+- **CRUS-01**: User can track a Crusade campaign — missions, results, Crusade points, unit veterancy, battle honours
+- **CRUS-02**: User can log unit scars and upgrade abilities earned during a Crusade campaign
+- **CRUS-03**: Crusade roster shows unit experience and current battle tally
 
-### Theming (deferred)
+### Collection Planning
 
-- **THEME-04**: Custom faction color picker (override default hex per faction)
+- **SPRUE-01**: User can log unbuilt kits (sprues) with box name, faction, and number of minis in the box
+- **SPRUE-02**: Pile of shame view shows unbuilt + partially built units combined
+
+### Smart Features
+
+- **SMART-01**: Points Budget Planner — set a points limit and see the strongest battle-ready list from owned units
+- **SMART-02**: "What to paint next" suggestion — cross-reference goals, army lists, and painting status to suggest the highest-value unit to paint
+- **SMART-03**: Export army list as a printable PDF or plain-text format for the games table
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Live stopwatch timer in session log | Manual duration entry after the session is the right desktop UX — timer adds complexity for minimal value |
-| Multi-currency / FX conversion | Single-currency personal tool; locale formatting handles display |
-| Receipt scanning / OCR | No camera/scanner integration; manual entry only |
-| Budget alerts or spending limits | Passive tracking only; no notification system |
-| Barcode scanning for purchases | No hardware integration |
-| AI-powered features (recipe generator, spend analysis) | Deferred per PROJECT.md |
-| Social sharing / export of journal to community | Local-first by design |
-| Cloud backup of photos | Local filesystem only; no cloud |
+| Live stopwatch timer in session log | Manual duration entry after the session is the right desktop UX |
+| Multi-currency / FX conversion | Single-currency personal tool |
+| Receipt scanning / OCR | No camera/scanner integration |
+| Budget alerts or spending limits | Passive tracking only |
+| Barcode scanning | No hardware integration |
+| AI features (recipe generator, spend analysis) | Deferred per PROJECT.md |
+| Social sharing / export of journal | Local-first by design |
+| Cloud backup of photos | Local filesystem only |
+| Real-time multiplayer / cloud sync | Local-first by design |
+| macOS / Linux builds | Windows-only |
+| Official GW rules / datasheets / points | Legal/copyright constraint — never in scope |
 
 ## Traceability
 
@@ -74,34 +84,35 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| THEME-01 | Phase 10 | Complete |
-| THEME-02 | Phase 10 | Complete |
-| THEME-03 | Phase 10 | Complete |
-| UI-01 | Phase 10 | Complete |
-| UI-02 | Phase 10 | Complete |
-| UI-03 | Phase 10 | Complete |
-| UI-07 | Phase 11 | Complete |
-| UI-08 | Phase 11 | Complete |
-| UI-04 | Phase 12 | Complete |
-| UI-05 | Phase 12 | Complete |
-| UI-06 | Phase 12 | Complete |
-| JOUR-01 | Phase 13 | Complete |
-| JOUR-02 | Phase 13 | Complete |
-| JOUR-03 | Phase 13 | Complete |
-| JOUR-04 | Phase 13 | Complete |
-| JOUR-05 | Phase 13 | Complete |
-| JOUR-06 | Phase 13 | Complete |
-| SPEND-01 | Phase 14 | Pending |
-| SPEND-02 | Phase 14 | Pending |
-| SPEND-03 | Phase 14 | Pending |
-| SPEND-04 | Phase 14 | Pending |
-| SPEND-05 | Phase 14 | Pending |
+| ENRCH-01 | Phase 17 | Pending |
+| ENRCH-02 | Phase 17 | Pending |
+| ENRCH-03 | Phase 17 | Pending |
+| ENRCH-04 | Phase 17 | Pending |
+| BATTLE-01 | Phase 18 | Pending |
+| BATTLE-02 | Phase 18 | Pending |
+| BATTLE-03 | Phase 18 | Pending |
+| BATTLE-04 | Phase 18 | Pending |
+| BATTLE-05 | Phase 18 | Pending |
+| ANLY-04 | Phase 19 | Pending |
+| ANLY-05 | Phase 19 | Pending |
+| ANLY-06 | Phase 19 | Pending |
+| ANLY-07 | Phase 19 | Pending |
+| WISH-01 | Phase 20 | Pending |
+| WISH-02 | Phase 20 | Pending |
+| WISH-03 | Phase 20 | Pending |
+| WISH-04 | Phase 20 | Pending |
+| ANLY-01 | Phase 21 | Pending |
+| ANLY-02 | Phase 21 | Pending |
+| ANLY-03 | Phase 21 | Pending |
+| DISP-01 | Phase 22 | Pending |
+| DISP-02 | Phase 22 | Pending |
+| DISP-03 | Phase 22 | Pending |
 
 **Coverage:**
-- v2.1 requirements: 22 total
-- Mapped to phases: 22
+- v2.2 requirements: 23 total
+- Mapped to phases: 23
 - Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2026-05-02*
-*Last updated: 2026-05-02 — traceability corrected to match ROADMAP.md phase assignments (Phase 10: THEME+UI-01..03, Phase 11: UI-07..08, Phase 12: UI-04..06, Phase 13: JOUR-01..06, Phase 14: SPEND-01..05)*
+*Requirements defined: 2026-05-04*
+*Last updated: 2026-05-04 after initial definition*
