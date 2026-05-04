@@ -47,6 +47,7 @@ export function useCreateBattleLog() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: BATTLE_LOGS_KEY });
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      qc.invalidateQueries({ queryKey: ["recent-activity"] });
     },
   });
 }
@@ -58,6 +59,7 @@ export function useUpdateBattleLog() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: BATTLE_LOGS_KEY });
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      qc.invalidateQueries({ queryKey: ["recent-activity"] });
     },
   });
 }
@@ -69,6 +71,7 @@ export function useDeleteBattleLog() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: BATTLE_LOGS_KEY });
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      qc.invalidateQueries({ queryKey: ["recent-activity"] });
     },
   });
 }

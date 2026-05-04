@@ -24,3 +24,38 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   ]);
   return { units, factions };
 }
+
+/**
+ * DASH-06 — Cross-unit query for the Dashboard's Recent Activity feed.
+ * Two parallel SELECTs: painting_sessions JOIN units (newest first, capped at 20)
+ * and battle_logs (newest first, capped at 20). Pure function
+ * computeRecentActivity() merges these with the units array (already in
+ * useDashboardStats cache) into the final ActivityEvent[] feed.
+ */
+export interface RecentActivityResult {
+  sessions: Array<{
+    session_date: string;
+    id: number;
+    unit_name: string;
+    unit_id: number;
+  }>;
+  battles: Array<{
+    created_at: string;
+    id: number;
+    opponent_faction: string;
+    result: string;
+  }>;
+}
+
+export async function getRecentActivity(): Promise<RecentActivityResult> {
+  const db = await getDb();
+  const [sessions, battles] = await Promise.all([
+    db.select<RecentActivityResult["sessions"]>(
+      "SELECT ps.session_date, ps.id, u.name AS unit_name, ps.unit_id FROM painting_sessions ps JOIN units u ON u.id = ps.unit_id ORDER BY ps.session_date DESC, ps.id DESC LIMIT 20"
+    ),
+    db.select<RecentActivityResult["battles"]>(
+      "SELECT id, created_at, opponent_faction, result FROM battle_logs ORDER BY created_at DESC LIMIT 20"
+    ),
+  ]);
+  return { sessions, battles };
+}
