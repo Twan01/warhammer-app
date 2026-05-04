@@ -62,11 +62,16 @@ export function ArmyListsPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Army Lists</h1>
-        <Button onClick={openCreate}>
-          <Plus className="mr-2 h-4 w-4" /> New List
-        </Button>
+      <div className="flex items-center justify-between pb-6 border-b border-border/40">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Army Lists</h1>
+          <p className="text-sm text-muted-foreground mt-1">Points-tracked lists for the tabletop</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button onClick={openCreate}>
+            <Plus className="mr-2 h-4 w-4" /> New List
+          </Button>
+        </div>
       </div>
 
       {isLoading && (

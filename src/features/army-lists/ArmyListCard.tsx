@@ -44,7 +44,7 @@ export function ArmyListCard({ list, faction, units, onClick }: ArmyListCardProp
 
   return (
     <Card
-      className="cursor-pointer border hover:bg-muted/50 transition-colors"
+      className="cursor-pointer bg-card border border-border/60 shadow-sm hover:shadow-md transition-shadow duration-150"
       onClick={onClick}
       role="button"
       tabIndex={0}
@@ -68,13 +68,13 @@ export function ArmyListCard({ list, faction, units, onClick }: ArmyListCardProp
         </span>
         <span>
           <span className="text-muted-foreground">Total: </span>
-          <span className="font-semibold">
+          <span className="font-semibold tabular-nums">
             {totalPoints} / {list.points_limit ?? "—"} pts
           </span>
         </span>
         <span>
           <span className="text-muted-foreground">Battle-ready: </span>
-          <span className="font-semibold">{battleReadyPct}%</span>
+          <span className="font-semibold tabular-nums">{battleReadyPct}%</span>
         </span>
       </CardContent>
     </Card>
