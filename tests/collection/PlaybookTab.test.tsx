@@ -20,7 +20,34 @@ vi.mock("@/db/queries/strategyNotes", async () => ({
   upsertStrategyNote: vi.fn(async () => undefined),
 }));
 
+vi.mock("@/hooks/useDatasheet", () => ({
+  useDatasheet: vi.fn(() => ({ data: null })),
+  useRulesSyncMeta: vi.fn(() => ({ data: null })),
+  useWahapediaFactionId: vi.fn(() => ({ data: null })),
+  DATASHEET_KEY: (id: number) => ["datasheet", id] as const,
+}));
+vi.mock("@/hooks/useRulesSync", () => ({
+  useRulesSync: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+}));
+vi.mock("@/hooks/useFactions", () => ({
+  useFactions: vi.fn(() => ({ data: [{ id: 1, name: "Space Marines", color_theme: "#000", icon_path: null, game_system: "40k", description: null, created_at: "", updated_at: "" }] })),
+}));
+vi.mock("@/hooks/useUnits", () => ({
+  useUnits: vi.fn(() => ({ data: [{ id: 42, name: "Test Unit", faction_id: 1, category: null, painting_percentage: 0, status_painting: "Unpainted", status_assembly: 0, status_basing: 0, status_varnished: 0, is_active_project: 0, model_count: null, owned_count: null, points: null, priority: null, target_completion_date: null, purchase_date: null, purchase_price_pence: null, storage_location: null, notes: null, created_at: "", updated_at: "" }] })),
+  useUpdateUnit: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+  UNITS_KEY: ["units"],
+}));
+vi.mock("@/db/queries/datasheets", () => ({
+  upsertDatasheetLink: vi.fn(async () => undefined),
+  getFullDatasheet: vi.fn(async () => null),
+  resolveWahapediaFactionIdByName: vi.fn(async () => null),
+}));
+vi.mock("@/features/units/DatasheetPicker", () => ({
+  DatasheetPicker: () => null, // render nothing — picker is tested separately
+}));
+
 import * as queries from "@/db/queries/strategyNotes";
+import * as datasheetHooks from "@/hooks/useDatasheet";
 import { PlaybookTab } from "@/features/units/PlaybookTab";
 import type { StrategyNote } from "@/types/strategyNote";
 
@@ -172,7 +199,7 @@ describe("STRAT-03 — Abilities and Keywords fields render", () => {
     const user = userEvent.setup();
     renderInsideTabs();
     await screen.findByRole("button", { name: /Save Playbook/ });
-    const abilitiesTa = screen.getByLabelText(/Abilities/) as HTMLTextAreaElement;
+    const abilitiesTa = screen.getByLabelText(/Personal Ability Notes/) as HTMLTextAreaElement;
     expect(abilitiesTa.tagName).toBe("TEXTAREA");
     expect(abilitiesTa.rows).toBe(3);
     await user.type(abilitiesTa, "Deep Strike");
@@ -243,7 +270,7 @@ describe("STRAT-05 — Save button dirty-state and inline save", () => {
     renderInsideTabs();
     const saveBtn = await screen.findByRole("button", { name: /Save Playbook/ });
     expect(saveBtn).toBeDisabled();
-    const abilitiesTa = screen.getByLabelText(/Abilities/);
+    const abilitiesTa = screen.getByLabelText(/Personal Ability Notes/);
     await user.type(abilitiesTa, "Deep Strike");
     expect(saveBtn).not.toBeDisabled();
   });
@@ -253,7 +280,7 @@ describe("STRAT-05 — Save button dirty-state and inline save", () => {
     const successSpy = vi.spyOn(toast, "success");
     renderInsideTabs();
     const saveBtn = await screen.findByRole("button", { name: /Save Playbook/ });
-    await user.type(screen.getByLabelText(/Abilities/), "Deep Strike");
+    await user.type(screen.getByLabelText(/Personal Ability Notes/), "Deep Strike");
     await user.type(screen.getByLabelText(/Keywords/), "Infantry");
     await user.click(saveBtn);
     await vi.waitFor(() => {
@@ -277,7 +304,7 @@ describe("STRAT-05 — Save button dirty-state and inline save", () => {
     const errorSpy = vi.spyOn(toast, "error");
     renderInsideTabs();
     const saveBtn = await screen.findByRole("button", { name: /Save Playbook/ });
-    await user.type(screen.getByLabelText(/Abilities/), "Deep Strike");
+    await user.type(screen.getByLabelText(/Personal Ability Notes/), "Deep Strike");
     await user.click(saveBtn);
     await vi.waitFor(() => {
       expect(errorSpy).toHaveBeenCalledWith("Failed to save playbook — try again");
@@ -285,5 +312,92 @@ describe("STRAT-05 — Save button dirty-state and inline save", () => {
     // Save button re-enabled because isDirty stays true (no snapshot update on failure)
     expect(saveBtn).not.toBeDisabled();
     errorSpy.mockRestore();
+  });
+});
+
+describe("PlaybookTab — DS-09 Datasheet Abilities collapsible", () => {
+  it("DS-09: renders Core/Faction/Unit sub-groups when useDatasheet returns abilities of all 3 types", async () => {
+    const fakeDatasheet = {
+      ds: { id: "001", name: "Intercessors", faction_id: "SM", source_id: "src1", role: "Battleline", damaged_w: null, damaged_description: null },
+      models: [{ datasheet_id: "001", line: 1, name: "Intercessor", M: "6\"", T: 4, Sv: "3+", inv_sv: null, W: 2, Ld: "6+", OC: 2 }],
+      abilities: [
+        { datasheet_id: "001", line: 1, ability_id: "a1", name: "Oath of Moment", description: "Re-roll hits", type: "Faction", parameter: null },
+        { datasheet_id: "001", line: 2, ability_id: "a2", name: "Bolter Discipline", description: "Sustained Hits 1", type: "Datasheet", parameter: null },
+        { datasheet_id: "001", line: 3, ability_id: "a3", name: "Tactical Battle Brothers", description: "Core thing", type: "Core", parameter: null },
+      ],
+      keywords: [],
+      source: { id: "src1", name: "Codex: Space Marines", type: "Codex", edition: 10, version: "1.0", errata_date: null },
+    };
+    (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: fakeDatasheet });
+    renderInsideTabs(42);
+    await screen.findByText("Datasheet Abilities");
+    expect(screen.getByText("Core Abilities")).toBeInTheDocument();
+    expect(screen.getByText("Faction Abilities")).toBeInTheDocument();
+    expect(screen.getByText("Unit Abilities")).toBeInTheDocument();
+    expect(screen.getByText("Tactical Battle Brothers")).toBeInTheDocument();
+    expect(screen.getByText("Oath of Moment")).toBeInTheDocument();
+    expect(screen.getByText("Bolter Discipline")).toBeInTheDocument();
+  });
+
+  it("DS-09: hides the entire Datasheet Abilities collapsible when datasheet has zero abilities", async () => {
+    const fakeDatasheet = {
+      ds: { id: "001", name: "X", faction_id: "SM", source_id: null, role: null, damaged_w: null, damaged_description: null },
+      models: [], abilities: [], keywords: [], source: null,
+    };
+    (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: fakeDatasheet });
+    renderInsideTabs(42);
+    expect(screen.queryByText("Datasheet Abilities")).toBeNull();
+  });
+});
+
+describe("PlaybookTab — DS-10 Sources list", () => {
+  it("DS-10: renders Sources section with the source publication name when datasheet has a source", async () => {
+    const fakeDatasheet = {
+      ds: { id: "001", name: "Intercessors", faction_id: "SM", source_id: "src1", role: "Battleline", damaged_w: null, damaged_description: null },
+      models: [{ datasheet_id: "001", line: 1, name: "Intercessor", M: "6\"", T: 4, Sv: "3+", inv_sv: null, W: 2, Ld: "6+", OC: 2 }],
+      abilities: [], keywords: [],
+      source: { id: "src1", name: "Codex: Space Marines 10th Ed.", type: "Codex", edition: 10, version: "1.0", errata_date: null },
+    };
+    (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: fakeDatasheet });
+    renderInsideTabs(42);
+    await screen.findByText("Sources");
+    expect(screen.getByText("Codex: Space Marines 10th Ed.")).toBeInTheDocument();
+  });
+});
+
+describe("PlaybookTab — DS-11 Personal Ability Notes textarea label rename", () => {
+  it("DS-11: textarea labeled 'Personal Ability Notes' (not 'Abilities') for the personal notes field with id='playbook-abilities'", () => {
+    renderInsideTabs(42);
+    expect(screen.getByLabelText("Personal Ability Notes")).toBeInTheDocument();
+    // Ensure no element renders the old 'Abilities' label as a standalone label/div for the textarea
+    const oldLabel = screen.queryAllByText((content) => content === "Abilities");
+    expect(oldLabel.length).toBe(0);
+  });
+});
+
+describe("PlaybookTab — DS-12 multi-profile note", () => {
+  it("DS-12: renders 'Additional model profiles available' note when datasheet.models has more than one row", async () => {
+    const fakeDatasheet = {
+      ds: { id: "001", name: "X", faction_id: "SM", source_id: null, role: null, damaged_w: null, damaged_description: null },
+      models: [
+        { datasheet_id: "001", line: 1, name: "X (Sergeant)", M: "6\"", T: 4, Sv: "3+", inv_sv: null, W: 2, Ld: "6+", OC: 2 },
+        { datasheet_id: "001", line: 2, name: "X (Body)", M: "6\"", T: 4, Sv: "3+", inv_sv: null, W: 2, Ld: "7+", OC: 2 },
+      ],
+      abilities: [], keywords: [], source: null,
+    };
+    (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: fakeDatasheet });
+    renderInsideTabs(42);
+    expect(await screen.findByText("Additional model profiles available — see Datasheet Abilities for details.")).toBeInTheDocument();
+  });
+
+  it("DS-12: does NOT render the multi-profile note when datasheet.models has exactly one row", async () => {
+    const fakeDatasheet = {
+      ds: { id: "001", name: "X", faction_id: "SM", source_id: null, role: null, damaged_w: null, damaged_description: null },
+      models: [{ datasheet_id: "001", line: 1, name: "X", M: "6\"", T: 4, Sv: "3+", inv_sv: null, W: 2, Ld: "6+", OC: 2 }],
+      abilities: [], keywords: [], source: null,
+    };
+    (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: fakeDatasheet });
+    renderInsideTabs(42);
+    expect(screen.queryByText("Additional model profiles available — see Datasheet Abilities for details.")).toBeNull();
   });
 });
