@@ -70,7 +70,7 @@ Full details: `.planning/milestones/v2.1-ROADMAP.md`
 
 **Milestone Goal:** Transform HobbyForge from a functional tracking dashboard into a premium, hobby-native command center — with a unified design system, an action-oriented dashboard, global Quick Add, and visual upgrades across every page.
 
-- [ ] **Phase 25: Design Foundation** — Design tokens (Forge Black, Gunmetal, Panel Elevated, Battle Gold) as CSS variables, shared PageHeader component, enriched MetricCard, StatusBadge component
+- [x] **Phase 25: Design Foundation** — Design tokens (Forge Black, Gunmetal, Panel Elevated, Battle Gold) as CSS variables, shared PageHeader component, enriched MetricCard, StatusBadge component (completed 2026-05-04)
 - [ ] **Phase 26: Dashboard Redesign** — "Hobby Command Center" header with Quick Add + Log Session, CurrentFocusCard, HobbyPipeline strip, upgraded FactionArmyCards, Recent Activity feed
 - [ ] **Phase 27: Navigation & Quick Add** — Hobby-native sidebar group names (Command/Workshop/Play/Management), Quick Add dropdown with 8 actions, Sheet-overlay flows from any page
 - [ ] **Phase 28: Collection + Projects** — Gallery card photo thumbnails, unified StatusBadge in table and gallery, enriched kanban cards (last updated, recipe link, photo count, next-action hint, Log Session shortcut)
@@ -261,7 +261,7 @@ Plans:
 | 21. Wishlist | v2.2 | 0/TBD | Not started | — |
 | 22. Hobby Goals | v2.2 | 0/TBD | Not started | — |
 | 23. Display Features | v2.2 | 0/TBD | Not started | — |
-| 25. Design Foundation | 1/2 | In Progress|  | — |
+| 25. Design Foundation | 2/2 | Complete   | 2026-05-04 | — |
 | 26. Dashboard Redesign | 1/5 | In Progress|  | — |
 | 27. Navigation & Quick Add | v2.3 | 0/TBD | Not started | — |
 | 28. Collection + Projects | v2.3 | 0/TBD | Not started | — |
