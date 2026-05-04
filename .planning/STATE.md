@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Completed 19-01-PLAN.md
-last_updated: "2026-05-04T13:25:25.332Z"
-last_activity: "2026-05-04 — Phase 19 Plan 00 complete: Wave 0 stubs for Analytics Core (29 it.skip stubs across 3 files, ANLY-04..07 contracts established)"
+stopped_at: Completed 19-02-PLAN.md
+last_updated: "2026-05-04T13:36:10.921Z"
+last_activity: "2026-05-04 — Phase 19 Plan 01 complete: Analytics data layer — recharts installed, analytics.ts + computeHobbyAnalytics.ts + useHobbyAnalytics.ts created, all 29 Wave-0 stubs flipped and passing"
 progress:
   total_phases: 13
   completed_phases: 9
   total_plans: 47
-  completed_plans: 45
-  percent: 94
+  completed_plans: 46
+  percent: 96
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.2 milestone start)
 
 ## Current Position
 
-Phase: 19 of 22 (Analytics Core — 2/? plans complete)
-Plan: 19-02 (next plan)
+Phase: 19 of 22 (Analytics Core — 2/2 plans complete)
+Plan: 19-03 (next plan — manual smoke test)
 Status: In progress
-Last activity: 2026-05-04 — Phase 19 Plan 01 complete: Analytics data layer — recharts installed, analytics.ts + computeHobbyAnalytics.ts + useHobbyAnalytics.ts created, all 29 Wave-0 stubs flipped and passing
+Last activity: 2026-05-04 — Phase 19 Plan 02 complete: Analytics UI layer — SpendTrendChart created, HOBBY HEALTH on Dashboard, Monthly Trend on SpendingPage, 8 mutations invalidate hobby-analytics, build GREEN
 
-Progress: [██████████] 96% (45/47 plans complete)
+Progress: [██████████] 98% (46/47 plans complete)
 
 ## v2.2 Phase Map
 
@@ -59,6 +59,10 @@ Architecture constraints:
 - recharts 3.8.0 installed via shadcn chart (newer than research estimate 2.15.x — same ChartContainer API surface, no migration needed)
 - computeHobbyAnalytics placed in src/features/dashboard/ to mirror computeStats.ts (resolved RESEARCH open question 1)
 - HOBBY_ANALYTICS_KEY = ['hobby-analytics'] as const — Plan 02 must invalidate this key in useJournalSessions, useUnits, usePaints mutations
+- SpendTrendChart uses hsl(var(--chart-1)) via chartConfig — stable across faction theme changes (anti-pattern: faction-accent on chart bars)
+- Monthly Trend skeleton is independent of hero card — analyticsLoading gates only the chart slot (Pitfall 7 pattern)
+- 8 mutations now invalidate hobby-analytics using literal ['hobby-analytics'] array — matches existing project pattern (no HOBBY_ANALYTICS_KEY import)
+- HOBBY HEALTH section uses grid-cols-2 (distinct from Progress grid-cols-3); animate={false} on both StatCards
 
 ### Phase 18 Decisions
 
@@ -146,6 +150,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T13:25:25.328Z
-Stopped at: Completed 19-01-PLAN.md
+Last session: 2026-05-04T13:36:10.917Z
+Stopped at: Completed 19-02-PLAN.md
 Resume: Phase 14 complete — run `/gsd:progress` to see current status
