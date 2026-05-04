@@ -1,61 +1,129 @@
 /**
- * Phase 15 — datasheets query module tests (Wave 0 stubs).
+ * Phase 15 — datasheets query module tests.
  *
- * STATUS: skipped. Plan 15-03 will:
- *   1. Create src/db/queries/datasheets.ts exporting getDatasheetsByFaction, getFullDatasheet,
- *      getRulesSyncMeta, upsertDatasheetLink (writes to hobbyforge.db unit_strategy_notes).
- *   2. Create src/db/rules-client.ts exporting getRulesDb singleton.
- *   3. Create src/types/datasheet.ts exporting RwFaction, RwDatasheet, RwDatasheetModel,
- *      RwDatasheetAbility, RwDatasheetKeyword, RwSource, RulesSyncMeta, FullDatasheet,
- *      DatasheetSummary types.
- *   4. Replace each `it.skip` below with `it`.
- *   5. Add real assertions matching 15-VALIDATION.md row 15-02-01.
- *
- * Mirrors tests/foundation/strategyNoteQueries.test.ts vi.mock("@/db/client") pattern,
- * plus a parallel vi.mock("@/db/rules-client") for the second DB connection.
+ * Mocks BOTH @/db/client (hobbyforge.db) AND @/db/rules-client (rules.db) because
+ * the query module spans both connections. Mirrors tests/foundation/strategyNoteQueries.test.ts
+ * pattern with two mock pairs.
  */
-import { describe, it } from "vitest";
+import { vi, describe, it, expect, beforeEach } from "vitest";
 
-describe("datasheets queries — Wave 0 stubs", () => {
-  it.skip("DS-04: getDatasheetsByFaction issues SELECT id, name, role FROM rw_datasheets WHERE faction_id = $1 ORDER BY name ASC against rules.db", () => {
-    // Plan 15-03 will:
-    //   - vi.mock("@/db/rules-client") with selectMock/executeMock
-    //   - selectMock.mockResolvedValueOnce([{ id: "001", name: "Intercessors", role: "Battleline" }])
-    //   - import { getDatasheetsByFaction } from "@/db/queries/datasheets"
-    //   - const rows = await getDatasheetsByFaction("SM")
-    //   - assert selectMock called with /SELECT id, name, role FROM rw_datasheets WHERE faction_id = \$1 ORDER BY name ASC/
-    //   - assert second arg equals ["SM"]
-    //   - assert rows.length === 1 && rows[0].name === "Intercessors"
+const hobbyforgeSelectMock = vi.fn();
+const hobbyforgeExecuteMock = vi.fn();
+const rulesSelectMock = vi.fn();
+const rulesExecuteMock = vi.fn();
+
+vi.mock("@/db/client", () => ({
+  getDb: async () => ({ select: hobbyforgeSelectMock, execute: hobbyforgeExecuteMock }),
+}));
+
+vi.mock("@/db/rules-client", () => ({
+  getRulesDb: async () => ({ select: rulesSelectMock, execute: rulesExecuteMock }),
+}));
+
+// Import AFTER vi.mock so the mocked clients are used.
+import {
+  getDatasheetsByFaction,
+  getFullDatasheet,
+  getRulesSyncMeta,
+  upsertDatasheetLink,
+} from "@/db/queries/datasheets";
+
+beforeEach(() => {
+  hobbyforgeSelectMock.mockReset();
+  hobbyforgeExecuteMock.mockReset();
+  rulesSelectMock.mockReset();
+  rulesExecuteMock.mockReset();
+});
+
+describe("datasheets queries", () => {
+  it("DS-04: getDatasheetsByFaction issues SELECT id, name, role FROM rw_datasheets WHERE faction_id = $1 ORDER BY name ASC against rules.db", async () => {
+    rulesSelectMock.mockResolvedValueOnce([
+      { id: "001", name: "Intercessors", role: "Battleline" },
+    ]);
+    const rows = await getDatasheetsByFaction("SM");
+    expect(rulesSelectMock).toHaveBeenCalledWith(
+      "SELECT id, name, role FROM rw_datasheets WHERE faction_id = $1 ORDER BY name ASC",
+      ["SM"]
+    );
+    expect(rows.length).toBe(1);
+    expect(rows[0].name).toBe("Intercessors");
   });
 
-  it.skip("DS-07: getFullDatasheet returns null when datasheet ID does not exist; otherwise returns ds + models + abilities + keywords + source", () => {
-    // Plan 15-03 will:
-    //   - selectMock.mockResolvedValueOnce([])  // ds query returns no rows
-    //   - import { getFullDatasheet } from "@/db/queries/datasheets"
-    //   - assert (await getFullDatasheet("missing")) === null
-    //   - reset; selectMock returns rows for ds, models, abilities, keywords, source in 5 sequential calls
-    //   - assert returned object has shape { ds, models, abilities, keywords, source }
-    //   - assert abilities query SQL excludes Wargear types: /type NOT IN \('Wargear', 'Wargear profile', 'Fortification \(.+\)'\)/
+  it("DS-07: getFullDatasheet returns null when datasheet ID does not exist; otherwise returns ds + models + abilities + keywords + source (with HTML stripped)", async () => {
+    // Case 1: not found
+    rulesSelectMock.mockResolvedValueOnce([]); // ds query returns no rows
+    expect(await getFullDatasheet("missing")).toBeNull();
+
+    // Case 2: full payload (5 sequential select calls: ds, models, abilities, keywords, source)
+    rulesSelectMock
+      .mockResolvedValueOnce([{
+        id: "001", name: "Intercessors", faction_id: "SM",
+        source_id: "src1", role: "Battleline", damaged_w: null, damaged_description: null,
+      }])
+      .mockResolvedValueOnce([{ datasheet_id: "001", line: 1, name: "Intercessor", M: "6\"", T: 4, Sv: "3+", inv_sv: null, W: 2, Ld: "6+", OC: 2 }])
+      .mockResolvedValueOnce([{ datasheet_id: "001", line: 1, ability_id: "a1", name: "Bolter Discipline", description: "<b>Sustained Hits 1</b>", type: "Datasheet", parameter: null }])
+      .mockResolvedValueOnce([{ datasheet_id: "001", keyword: "Infantry", is_faction_keyword: 0 }])
+      .mockResolvedValueOnce([{ id: "src1", name: "Codex: Space Marines", type: "Codex", edition: 10, version: "1.0", errata_date: null }]);
+
+    const result = await getFullDatasheet("001");
+    expect(result).not.toBeNull();
+    expect(result!.ds.name).toBe("Intercessors");
+    expect(result!.models.length).toBe(1);
+    expect(result!.abilities.length).toBe(1);
+    // stripHtml applied to description
+    expect(result!.abilities[0].description).toBe("Sustained Hits 1");
+    expect(result!.keywords.length).toBe(1);
+    expect(result!.source?.name).toBe("Codex: Space Marines");
+
+    // Verify the abilities query SQL excludes Wargear/Wargear profile/Fortification rows
+    const abilityCall = rulesSelectMock.mock.calls.find((call) =>
+      typeof call[0] === "string" && call[0].includes("rw_datasheet_abilities")
+    );
+    expect(abilityCall).toBeDefined();
+    expect(abilityCall![0]).toMatch(/type NOT IN \('Wargear', 'Wargear profile', 'Fortification \(.+\)'\)/);
   });
 
-  it.skip("DS-02 + DS-03: getRulesSyncMeta returns null when rules.db is empty/uninitialized; otherwise returns the single rw_sync_meta row", () => {
-    // Plan 15-03 will:
-    //   - selectMock.mockRejectedValueOnce(new Error("no such table: rw_sync_meta"))
-    //   - import { getRulesSyncMeta } from "@/db/queries/datasheets"
-    //   - assert (await getRulesSyncMeta()) === null  (try/catch returns null on schema-missing error)
-    //   - reset; selectMock.mockResolvedValueOnce([{ id: 1, last_sync_at: "2026-05-04T12:00:00Z", wahapedia_version: "2026-04-27 20:55:42" }])
-    //   - const meta = await getRulesSyncMeta()
-    //   - assert meta?.last_sync_at === "2026-05-04T12:00:00Z"
+  it("DS-02 + DS-03: getRulesSyncMeta returns null when rules.db throws (empty/uninitialized); otherwise returns the single rw_sync_meta row", async () => {
+    // Case 1: schema not yet present → throws → catch returns null
+    rulesSelectMock.mockRejectedValueOnce(new Error("no such table: rw_sync_meta"));
+    expect(await getRulesSyncMeta()).toBeNull();
+
+    // Case 2: row present
+    rulesSelectMock.mockResolvedValueOnce([
+      { id: 1, last_sync_at: "2026-05-04T12:00:00Z", wahapedia_version: "2026-04-27 20:55:42" },
+    ]);
+    const meta = await getRulesSyncMeta();
+    expect(meta?.last_sync_at).toBe("2026-05-04T12:00:00Z");
+    expect(meta?.wahapedia_version).toBe("2026-04-27 20:55:42");
+
+    // Case 3: query succeeded but rw_sync_meta is empty
+    rulesSelectMock.mockResolvedValueOnce([]);
+    expect(await getRulesSyncMeta()).toBeNull();
   });
 
-  it.skip("DS-06: upsertDatasheetLink writes datasheet_id to unit_strategy_notes in hobbyforge.db (NOT rules.db); creates row if no strategy note exists yet", () => {
-    // Plan 15-03 will:
-    //   - vi.mock("@/db/client") (hobbyforge.db, NOT rules-client)
-    //   - selectMock.mockResolvedValueOnce([])  // no existing strategy_notes row for unit
-    //   - import { upsertDatasheetLink } from "@/db/queries/datasheets"
-    //   - await upsertDatasheetLink({ unit_id: 7, datasheet_id: "000000882" })
-    //   - assert executeMock called with INSERT INTO unit_strategy_notes (unit_id, datasheet_id) VALUES ($1, $2)
-    //   - reset; selectMock.mockResolvedValueOnce([{ id: 1 }])  // existing row
-    //   - assert executeMock called with UPDATE unit_strategy_notes SET datasheet_id=$2 WHERE unit_id=$1
+  it("DS-06: upsertDatasheetLink writes datasheet_id to unit_strategy_notes in hobbyforge.db (NOT rules.db); creates row when no strategy note exists, updates row when one exists", async () => {
+    // Case 1: no existing strategy_notes row → INSERT
+    hobbyforgeSelectMock.mockResolvedValueOnce([]);
+    await upsertDatasheetLink({ unit_id: 7, datasheet_id: "000000882" });
+    expect(hobbyforgeSelectMock).toHaveBeenCalledWith(
+      "SELECT id FROM unit_strategy_notes WHERE unit_id = $1",
+      [7]
+    );
+    expect(hobbyforgeExecuteMock).toHaveBeenCalledWith(
+      "INSERT INTO unit_strategy_notes (unit_id, datasheet_id) VALUES ($1, $2)",
+      [7, "000000882"]
+    );
+
+    // Case 2: existing row → UPDATE
+    hobbyforgeSelectMock.mockReset();
+    hobbyforgeExecuteMock.mockReset();
+    hobbyforgeSelectMock.mockResolvedValueOnce([{ id: 1 }]);
+    await upsertDatasheetLink({ unit_id: 7, datasheet_id: "000000999" });
+    const updateCall = hobbyforgeExecuteMock.mock.calls[0];
+    expect(updateCall[0]).toMatch(/UPDATE unit_strategy_notes SET datasheet_id = \$2, updated_at = datetime\('now'\) WHERE unit_id = \$1/);
+    expect(updateCall[1]).toEqual([7, "000000999"]);
+
+    // Verify it wrote to hobbyforge.db (NOT rules.db)
+    expect(rulesExecuteMock).not.toHaveBeenCalled();
   });
 });
