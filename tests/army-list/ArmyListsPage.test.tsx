@@ -89,13 +89,13 @@ beforeEach(() => {
 });
 
 describe("ArmyListsPage — ARMY-06", () => {
-  it("empty state: when useArmyLists returns [], renders 'Build your first army list' heading and a 'New List' CTA button", async () => {
+  it("empty state: when useArmyLists returns [], renders 'No army lists yet' heading and a 'New list' CTA button", async () => {
     vi.mocked(getArmyLists).mockResolvedValue([]);
     renderWithProviders(<ArmyListsPage />);
 
-    expect(await screen.findByText("Build your first army list")).toBeInTheDocument();
-    // Multiple "New List" buttons exist (page CTA + empty state CTA) — at least one must render
-    expect(screen.getAllByRole("button", { name: "New List" }).length).toBeGreaterThanOrEqual(1);
+    expect(await screen.findByText("No army lists yet")).toBeInTheDocument();
+    // Multiple "New list" buttons exist (page CTA + empty state CTA) — at least one must render
+    expect(screen.getAllByRole("button", { name: "New list" }).length).toBeGreaterThanOrEqual(1);
   });
 
   it("loading state: while useArmyLists is pending, renders skeleton elements (animate-pulse)", async () => {

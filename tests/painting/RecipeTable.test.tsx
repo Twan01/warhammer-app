@@ -24,6 +24,7 @@ function makeFaction(over: Partial<Faction> = {}): Faction {
   return {
     id: 1, name: "Tau Empire", game_system: "Warhammer 40K",
     description: null, color_theme: "#33aaff", icon_path: null,
+    lore_notes: null,
     created_at: "2026-01-01", updated_at: "2026-01-01",
     ...over,
   };
@@ -51,10 +52,10 @@ function renderTable(props: Partial<Parameters<typeof RecipeTable>[0]> = {}) {
 }
 
 describe("RecipeTable", () => {
-  it("RECIPE-08: renders empty state with Add Recipe CTA when recipes is empty", () => {
+  it("RECIPE-08: renders empty state with New recipe CTA when recipes is empty", () => {
     renderTable({ data: [] });
     expect(screen.getByText("No recipes yet")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Add Recipe" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "New recipe" })).toBeInTheDocument();
   });
 
   it("RECIPE-07: renders recipe rows with name, faction badge, area, and step count", () => {
