@@ -282,9 +282,9 @@ Plans:
 | 13. Hobby Journal | v2.1 | 6/6 | Complete | 2026-05-04 |
 | 14. Spending Tracker | v2.1 | 4/5 | In Progress | — |
 | 15. 40K Datasheet Integration | 6/7 | In Progress|  | — |
-| 16. Design Overhaul | 6/8 | In Progress|  | — |
+| 16. Design Overhaul | 7/8 | In Progress|  | — |
 | 17. Schema Foundation + Enrichment | v2.2 | 0/TBD | Not started | — |
-| 18. Battle Log | v2.2 | 0/4 | Not started | — |
+| 18. Battle Log | 1/4 | In Progress|  | — |
 | 19. Analytics Core | v2.2 | 0/TBD | Not started | — |
 | 20. Wishlist | v2.2 | 0/TBD | Not started | — |
 | 21. Hobby Goals | v2.2 | 0/TBD | Not started | — |

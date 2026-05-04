@@ -7,11 +7,11 @@
 
 ### Battle Log
 
-- [ ] **BATTLE-01**: User can log a game with opponent faction, mission name, result (Win/Loss/Draw), and date
-- [ ] **BATTLE-02**: User can select which of their army lists was used when logging a game
-- [ ] **BATTLE-03**: User can add optional notes to a game log entry (MVP unit, lessons learned)
-- [ ] **BATTLE-04**: User can view all logged games in a chronological list
-- [ ] **BATTLE-05**: User can delete a game log entry
+- [x] **BATTLE-01**: User can log a game with opponent faction, mission name, result (Win/Loss/Draw), and date
+- [x] **BATTLE-02**: User can select which of their army lists was used when logging a game
+- [x] **BATTLE-03**: User can add optional notes to a game log entry (MVP unit, lessons learned)
+- [x] **BATTLE-04**: User can view all logged games in a chronological list
+- [x] **BATTLE-05**: User can delete a game log entry
 
 ### Wishlist
 
@@ -88,11 +88,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ENRCH-02 | Phase 17 | Pending |
 | ENRCH-03 | Phase 17 | Pending |
 | ENRCH-04 | Phase 17 | Pending |
-| BATTLE-01 | Phase 18 | Pending |
-| BATTLE-02 | Phase 18 | Pending |
-| BATTLE-03 | Phase 18 | Pending |
-| BATTLE-04 | Phase 18 | Pending |
-| BATTLE-05 | Phase 18 | Pending |
+| BATTLE-01 | Phase 18 | Complete |
+| BATTLE-02 | Phase 18 | Complete |
+| BATTLE-03 | Phase 18 | Complete |
+| BATTLE-04 | Phase 18 | Complete |
+| BATTLE-05 | Phase 18 | Complete |
 | ANLY-04 | Phase 19 | Pending |
 | ANLY-05 | Phase 19 | Pending |
 | ANLY-06 | Phase 19 | Pending |

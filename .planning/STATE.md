@@ -3,31 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Completed 15-05-PLAN.md — PlaybookTab datasheet integration (DS-02/03/05-12 wired)
-last_updated: "2026-05-04T09:16:17.033Z"
-last_activity: "2026-05-04 — Phase 16 Plan 06 complete: DashboardEmptyState welcome screen, CollectionEmptyState two-mode, KanbanEmptyState + PaintsEmptyState icon-in-container"
+stopped_at: Completed 18-00-PLAN.md
+last_updated: "2026-05-04T09:19:00.000Z"
+last_activity: "2026-05-04 — Phase 18 Plan 00 complete: Wave 0 stub tests for Battle Log (14 it.skip stubs)"
 progress:
   total_phases: 13
   completed_phases: 4
   total_plans: 43
-  completed_plans: 34
-  percent: 79
----
-
----
-gsd_state_version: 1.0
-milestone: v2.1
-milestone_name: Visual Command
-status: executing
-stopped_at: Phase 18 plans created and verified
-last_updated: "2026-05-04T09:09:14.630Z"
-last_activity: "2026-05-04 — Phase 16 Plan 06 complete: DashboardEmptyState welcome screen, CollectionEmptyState two-mode, KanbanEmptyState + PaintsEmptyState icon-in-container"
-progress:
-  [████████░░] 79%
-  completed_phases: 4
-  total_plans: 43
-  completed_plans: 33
-  percent: 80
+  completed_plans: 36
+  percent: 84
 ---
 
 # Project State
@@ -41,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.2 milestone start)
 
 ## Current Position
 
-Phase: 16 of 22 (Design Overhaul — 6/8 plans complete)
-Plan: 16-07 (next plan)
+Phase: 18 of 22 (Battle Log — 1/4 plans complete)
+Plan: 18-01 (next plan)
 Status: In progress
-Last activity: 2026-05-04 — Phase 16 Plan 06 complete: DashboardEmptyState welcome screen, CollectionEmptyState two-mode, KanbanEmptyState + PaintsEmptyState icon-in-container
+Last activity: 2026-05-04 — Phase 18 Plan 00 complete: Wave 0 stub tests for Battle Log (14 it.skip stubs, BATTLE-01..05 named)
 
-Progress: [████████░░] 80% (32/40 plans complete)
+Progress: [████████░░] 84% (36/43 plans complete)
 
 ## v2.2 Phase Map
 
@@ -67,6 +51,11 @@ Architecture constraints:
 - All analytics queries go in new `src/db/queries/analytics.ts` with key `["hobby-analytics"]`
 
 ## Accumulated Context
+
+### Phase 18 Decisions
+
+- Wave 0 stubs omit top-level imports entirely (modules don't exist yet) — TODO comment blocks used so Plan 01 knows exact imports to restore when activating; pattern mirrors Phase 15 datasheet stubs
+- Battle Log stubs cover full-replacement UPDATE pitfall (Pitfall 5): BATTLE-02 stub names it explicitly so Plan 01 knows to avoid COALESCE for army_list_id, mvp_unit_id, underperforming_unit_id
 
 ### Key Decisions for v2.2
 
@@ -139,6 +128,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T09:16:17.027Z
-Stopped at: Completed 15-05-PLAN.md — PlaybookTab datasheet integration (DS-02/03/05-12 wired)
-Resume: Run `/gsd:execute-phase 16` to execute Plan 16-06
+Last session: 2026-05-04T09:19:00.000Z
+Stopped at: Completed 18-00-PLAN.md
+Resume: Run `/gsd:execute-phase 18` to execute Plan 18-01
