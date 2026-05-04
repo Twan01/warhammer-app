@@ -20,13 +20,13 @@ export async function createUnit(input: CreateUnitInput): Promise<number> {
        status_assembly, status_painting, painting_percentage,
        status_basing, status_varnished, is_active_project,
        priority, target_completion_date, purchase_date, purchase_price_pence,
-       storage_location, main_image_path, notes
+       storage_location, main_image_path, notes, lore_notes, undercoat
      ) VALUES (
        $1, $2, $3, $4, $5, $6, $7,
        $8, $9, $10,
        $11, $12, $13,
        $14, $15, $16, $17,
-       $18, $19, $20
+       $18, $19, $20, $21, $22
      )`,
     [
       input.faction_id, input.name, input.category ?? null, input.unit_type ?? null,
@@ -36,6 +36,7 @@ export async function createUnit(input: CreateUnitInput): Promise<number> {
       input.priority ?? null, input.target_completion_date ?? null,
       input.purchase_date ?? null, input.purchase_price_pence ?? null,
       input.storage_location ?? null, input.main_image_path ?? null, input.notes ?? null,
+      input.lore_notes ?? null, input.undercoat ?? null,
     ]
   );
   return result.lastInsertId ?? 0;
@@ -65,6 +66,8 @@ export async function updateUnit(input: UpdateUnitInput): Promise<void> {
             storage_location        = COALESCE($19, storage_location),
             main_image_path         = COALESCE($20, main_image_path),
             notes                   = COALESCE($21, notes),
+            lore_notes              = $22,
+            undercoat               = $23,
             updated_at              = datetime('now')
       WHERE id = $1`,
     [
@@ -77,6 +80,7 @@ export async function updateUnit(input: UpdateUnitInput): Promise<void> {
       input.priority ?? null, input.target_completion_date ?? null,
       input.purchase_date ?? null, input.purchase_price_pence ?? null,
       input.storage_location ?? null, input.main_image_path ?? null, input.notes ?? null,
+      input.lore_notes ?? null, input.undercoat ?? null,
     ]
   );
 }
