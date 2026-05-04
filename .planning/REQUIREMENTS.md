@@ -25,10 +25,10 @@
 - [ ] **ANLY-01**: User can create a painting goal with a target unit count and timeframe (this month / this quarter)
 - [ ] **ANLY-02**: Goal progress is calculated by counting distinct units with at least one painting session during the goal period
 - [ ] **ANLY-03**: User can view all active and completed goals with a progress bar
-- [ ] **ANLY-04**: Dashboard shows hobby velocity — average units worked on per month from journal session history
-- [ ] **ANLY-05**: Dashboard shows current painting streak — consecutive calendar days with at least one journal session
-- [ ] **ANLY-06**: Spending page shows a monthly spend trend chart combining unit and paint purchases
-- [ ] **ANLY-07**: Spend trend chart uses purchase_date for both units and paints (new purchase_date column on paints)
+- [x] **ANLY-04**: Dashboard shows hobby velocity — average units worked on per month from journal session history
+- [x] **ANLY-05**: Dashboard shows current painting streak — consecutive calendar days with at least one journal session
+- [x] **ANLY-06**: Spending page shows a monthly spend trend chart combining unit and paint purchases
+- [x] **ANLY-07**: Spend trend chart uses purchase_date for both units and paints (new purchase_date column on paints)
 
 ### Display
 
@@ -93,10 +93,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BATTLE-03 | Phase 18 | Complete |
 | BATTLE-04 | Phase 18 | Complete |
 | BATTLE-05 | Phase 18 | Complete |
-| ANLY-04 | Phase 19 | Pending |
-| ANLY-05 | Phase 19 | Pending |
-| ANLY-06 | Phase 19 | Pending |
-| ANLY-07 | Phase 19 | Pending |
+| ANLY-04 | Phase 19 | Complete |
+| ANLY-05 | Phase 19 | Complete |
+| ANLY-06 | Phase 19 | Complete |
+| ANLY-07 | Phase 19 | Complete |
 | WISH-01 | Phase 20 | Pending |
 | WISH-02 | Phase 20 | Pending |
 | WISH-03 | Phase 20 | Pending |
