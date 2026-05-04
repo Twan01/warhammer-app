@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Hobby Command Center
 status: in_progress
-stopped_at: v2.3 milestone started — requirements defined, roadmap pending
-last_updated: "2026-05-04T19:00:00.000Z"
-last_activity: "2026-05-04 - v2.3 milestone started — 22 requirements defined across 7 categories"
+stopped_at: v2.3 roadmap created — 5 phases defined (25–29), ready to plan Phase 25
+last_updated: "2026-05-04T19:30:00.000Z"
+last_activity: "2026-05-04 - v2.3 roadmap created — 22 requirements mapped across 5 phases (25–29)"
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -25,16 +25,22 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.3 milestone start)
 
 ## Current Position
 
-Phase: Not started (defining roadmap)
+Phase: 25 — Design Foundation (not started)
 Plan: —
-Status: Requirements confirmed — roadmapper spawning
-Last activity: 2026-05-04 — Milestone v2.3 started
+Status: Roadmap created — ready to plan Phase 25
+Last activity: 2026-05-04 — v2.3 roadmap created, 22 requirements mapped to 5 phases
 
-Progress: [░░░░░░░░░░] 0% (0/TBD v2.3 phases complete)
+Progress: [░░░░░░░░░░] 0% (0/5 v2.3 phases complete)
 
 ## v2.3 Phase Map
 
-*(To be filled by roadmapper — phases start at 25)*
+| Phase | Name | Requirements | Status |
+|-------|------|--------------|--------|
+| 25 | Design Foundation | DSFD-01, DSFD-02, DSFD-03, DSFD-04 | Not started |
+| 26 | Dashboard Redesign | DASH-01, DASH-02, DASH-03, DASH-04, DASH-05, DASH-06 | Not started |
+| 27 | Navigation & Quick Add | NAV-01, NAV-02, NAV-03 | Not started |
+| 28 | Collection + Projects | COLL-01, COLL-02, PROJ-01, PROJ-02, PROJ-03 | Not started |
+| 29 | Workshop + Play | WKSP-01, WKSP-02, PLAY-01, PLAY-02 | Not started |
 
 ## Accumulated Context
 
@@ -133,11 +139,11 @@ Progress: [░░░░░░░░░░] 0% (0/TBD v2.3 phases complete)
 ### Roadmap Evolution
 
 - Phase 24 added: Collection unit point calculator with wargear selection and swap delta preview
+- Phases 25–29 added: v2.3 Hobby Command Center roadmap created 2026-05-04
 
 ### Tech Debt
 
 - PROJ-02: REQUIREMENTS.md text still says "empty columns hidden" — KanbanBoard ships all 11 columns (approved UX)
-- ~~PaintingProjectsPage empty-state CTA uses fragile DOM query — replace with useState pattern~~ (resolved in 20-02)
 
 ### Pending Todos
 
@@ -155,6 +161,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T16:58:34.175Z
-Stopped at: Completed 20-03-PLAN.md
-Resume: Phase 19 complete — Phase 20 Wishlist is next. Run `/gsd:progress` to see current status
+Last session: 2026-05-04T19:30:00.000Z
+Stopped at: v2.3 roadmap created — 5 phases (25–29) mapped to 22 requirements
+Resume: Phase 25 Design Foundation is next. Run `/gsd:plan-phase 25` to break down Phase 25.

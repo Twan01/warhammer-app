@@ -6,6 +6,7 @@
 - ✅ **v2.0 Utility Layer** — Phases 6–9 (shipped 2024-05-03)
 - ✅ **v2.1 Visual Command** — Phases 10–16 + 20 (shipped 2026-05-04)
 - 🚧 **v2.2 Full Circle** — Phases 17–19 + 21–23 (in progress)
+- 🆕 **v2.3 Hobby Command Center** — Phases 25–29 (planned)
 
 ## Phases
 
@@ -63,6 +64,18 @@ Full details: `.planning/milestones/v2.1-ROADMAP.md`
 - [ ] **Phase 22: Hobby Goals** — New hobby_goals table (migration 009), goal CRUD with target unit count and timeframe, progress derived from painting session history
 - [ ] **Phase 23: Display Features** — Battle Ready quick-filter on Collection page, Showcase Mode full-screen gallery using Tauri window API
 
+---
+
+### 🆕 v2.3 Hobby Command Center (Phases 25–29) — Planned
+
+**Milestone Goal:** Transform HobbyForge from a functional tracking dashboard into a premium, hobby-native command center — with a unified design system, an action-oriented dashboard, global Quick Add, and visual upgrades across every page.
+
+- [ ] **Phase 25: Design Foundation** — Design tokens (Forge Black, Gunmetal, Panel Elevated, Battle Gold) as CSS variables, shared PageHeader component, enriched MetricCard, StatusBadge component
+- [ ] **Phase 26: Dashboard Redesign** — "Hobby Command Center" header with Quick Add + Log Session, CurrentFocusCard, HobbyPipeline strip, upgraded FactionArmyCards, Recent Activity feed
+- [ ] **Phase 27: Navigation & Quick Add** — Hobby-native sidebar group names (Command/Workshop/Play/Management), Quick Add dropdown with 8 actions, Sheet-overlay flows from any page
+- [ ] **Phase 28: Collection + Projects** — Gallery card photo thumbnails, unified StatusBadge in table and gallery, enriched kanban cards (last updated, recipe link, photo count, next-action hint, Log Session shortcut)
+- [ ] **Phase 29: Workshop + Play** — Paint color swatches, recipe paint swatch strip, Army List readiness panel, Battle Log army context display
+
 ## Phase Details
 
 ### Phase 17: Schema Foundation + Enrichment
@@ -112,7 +125,7 @@ Plans:
 - [x] 19-00-PLAN.md — Wave 0: 3 stub test files (computeHobbyAnalytics + analyticsQueries + useHobbyAnalytics) — 29 it.skip stubs covering ANLY-04..07 + Pitfalls 2/5/6
 - [x] 19-01-PLAN.md — Wave 1: shadcn add chart + react-is ^19 pnpm override + analytics.ts query module (UNION units+paints with NULL purchase_date excluded for ANLY-07) + computeHobbyAnalytics pure function (Pitfall 2 floor + Pitfall 5 dates.ts + Pitfall 6 year-suffix labels) + useHobbyAnalytics hook with HOBBY_ANALYTICS_KEY + flip 29 stubs
 - [x] 19-02-PLAN.md — Wave 2: SpendTrendChart component (Recharts BarChart in shadcn ChartContainer) + DashboardPage HOBBY HEALTH section + SpendingPage Monthly Trend section + 8 mutation invalidation patches
-- [x] 19-03-PLAN.md — Wave 3: Manual smoke-test checkpoint (12 steps: HOBBY HEALTH section, velocity/streak fallbacks, session-log reactivity, chart rendering, NULL purchase_date exclusion, year-boundary labels)
+- [x] 19-03-PLAN.md — Wave 3: Manual smoke-test checkpoint (12 steps: HOBBY HEALTH section, velocity/streak fallbacks, chart rendering, NULL purchase_date exclusion, year-boundary labels)
 
 ### Phase 21: Wishlist
 **Goal**: Users can maintain a running list of models they want to buy — with name, faction, optional estimated cost, and notes — on a dedicated Wishlist page before the items exist in their collection
@@ -155,9 +168,66 @@ Plans:
 Plans:
 - [ ] TBD (run /gsd:plan-phase 24 to break down)
 
+### Phase 25: Design Foundation
+**Goal**: The app gains a consistent visual language — defined design tokens, a reusable PageHeader, enriched MetricCards, and a unified StatusBadge — that every subsequent v2.3 phase builds on
+**Depends on**: Phase 24
+**Requirements**: DSFD-01, DSFD-02, DSFD-03, DSFD-04
+**Success Criteria** (what must be TRUE):
+  1. User sees consistent surface colors (Forge Black headers, Gunmetal panels, Panel Elevated cards, Battle Gold accents) across all pages — no remaining off-token grays or hardcoded hex values
+  2. User sees a consistent page header with title, subtitle, and action button slot on every main page — all pages use the shared PageHeader component
+  3. User sees enriched MetricCards on the Dashboard showing an icon, numeric value, label, and optional progress bar — not a plain number-on-card
+  4. User sees painting status represented by a colored StatusBadge (e.g. teal "Base Coated", gold "Battle Ready") in every location status is displayed — collection table, gallery cards, kanban cards, army lists
+**Plans**: TBD
+
+### Phase 26: Dashboard Redesign
+**Goal**: The Dashboard becomes a true command center — the header names the space, action buttons are immediately available, the CurrentFocusCard surfaces the active project, HobbyPipeline visualizes the full painting funnel, and a Recent Activity feed closes the loop on what happened recently
+**Depends on**: Phase 25
+**Requirements**: DASH-01, DASH-02, DASH-03, DASH-04, DASH-05, DASH-06
+**Success Criteria** (what must be TRUE):
+  1. Dashboard header reads "Hobby Command Center" with a dynamic subtitle showing active project count, tracked model count, and battle-ready points — the subtitle updates as data changes
+  2. User can click Quick Add or Log Session buttons in the dashboard header and the corresponding Sheet opens as an overlay — no navigation away from the dashboard
+  3. Dashboard shows a CurrentFocusCard as the prominent primary panel — it displays the most recently active project's name, painting stages, progress, and a next-action suggestion
+  4. Dashboard shows a HobbyPipeline strip with unit counts at each stage from Owned through to Battle Ready — replacing the isolated percentage stat cards with a single visual funnel
+  5. Faction summary cards show painting progress percentage and battle-ready point count alongside unit count — all three values visible on each faction card
+  6. Dashboard shows a Recent Activity feed listing the last N events (units added/updated, sessions logged, battles recorded) derived from existing table data — no new database tables required
+**Plans**: TBD
+
+### Phase 27: Navigation & Quick Add
+**Goal**: The sidebar navigation uses hobby-native group labels, and a Quick Add button lets the user create any entity type without leaving their current page
+**Depends on**: Phase 25
+**Requirements**: NAV-01, NAV-02, NAV-03
+**Success Criteria** (what must be TRUE):
+  1. Sidebar navigation groups are labeled Command, Workshop, Play, and Management — no generic labels like "Tracking" or "Inventory" remain
+  2. A Quick Add button appears in the sidebar and opens a dropdown menu with 8 labeled creation actions: Add Unit, Add Faction, Add Paint, Add Recipe, Create Project, Log Session, Add Purchase, Log Battle
+  3. Clicking any Quick Add action opens the corresponding create Sheet as an overlay on the current page — the user's current route does not change and no navigation occurs
+**Plans**: TBD
+
+### Phase 28: Collection + Projects
+**Goal**: Gallery cards show real photo thumbnails for painted units, painting status uses the unified StatusBadge everywhere, and kanban cards are enriched with the context needed to take action without opening a detail sheet
+**Depends on**: Phase 25
+**Requirements**: COLL-01, COLL-02, PROJ-01, PROJ-02, PROJ-03
+**Success Criteria** (what must be TRUE):
+  1. Collection gallery cards show the unit's most recent journal photo as a thumbnail when one exists — units with no photos show a faction-colored placeholder instead of a blank area
+  2. Painting status in the collection table rows and gallery cards is displayed using the unified StatusBadge — consistent color and format everywhere
+  3. Kanban cards show last-updated date, linked recipe name (if set), and journal photo count for the unit — all three are visible on the card face without opening a detail sheet
+  4. Each kanban card shows a next-action hint derived from the unit's current painting stage (e.g. "Ready to prime", "Start base coating") — the hint is visually distinct from the card title
+  5. User can click a Log Session shortcut on any kanban card and the Log Session Sheet opens for that unit — no navigation to the unit's detail sheet required
+**Plans**: TBD
+
+### Phase 29: Workshop + Play
+**Goal**: Paint and recipe cards become visually informative with color swatches, and the Play layer gains data-driven readiness panels that answer "what's actually battle-ready?" at a glance
+**Depends on**: Phase 25
+**Requirements**: WKSP-01, WKSP-02, PLAY-01, PLAY-02
+**Success Criteria** (what must be TRUE):
+  1. Paint list entries display a color swatch square using the paint's stored color value — every paint entry has a consistent swatch regardless of whether a hex code or named color is stored
+  2. Recipe cards show a compact horizontal swatch strip of all linked paints — each paint in the recipe is represented by a swatch, making the palette visible at a glance
+  3. Army List detail sheet shows a readiness panel with battle-ready points, total points, readiness percentage, and a list of which units are not yet battle-ready — the panel updates immediately when unit painting status changes
+  4. Battle Log entries display the linked army list's name and its current battle-ready point count — the point count shown is the live value computed from painting status, not a snapshot
+**Plans**: TBD
+
 ## Progress
 
-**Execution Order:** 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23
+**Execution Order:** 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 25 → 26 → 27 → 28 → 29
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -184,3 +254,8 @@ Plans:
 | 21. Wishlist | v2.2 | 0/TBD | Not started | — |
 | 22. Hobby Goals | v2.2 | 0/TBD | Not started | — |
 | 23. Display Features | v2.2 | 0/TBD | Not started | — |
+| 25. Design Foundation | v2.3 | 0/TBD | Not started | — |
+| 26. Dashboard Redesign | v2.3 | 0/TBD | Not started | — |
+| 27. Navigation & Quick Add | v2.3 | 0/TBD | Not started | — |
+| 28. Collection + Projects | v2.3 | 0/TBD | Not started | — |
+| 29. Workshop + Play | v2.3 | 0/TBD | Not started | — |

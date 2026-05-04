@@ -114,34 +114,34 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DSFD-01 | TBD | Pending |
-| DSFD-02 | TBD | Pending |
-| DSFD-03 | TBD | Pending |
-| DSFD-04 | TBD | Pending |
-| DASH-01 | TBD | Pending |
-| DASH-02 | TBD | Pending |
-| DASH-03 | TBD | Pending |
-| DASH-04 | TBD | Pending |
-| DASH-05 | TBD | Pending |
-| DASH-06 | TBD | Pending |
-| NAV-01 | TBD | Pending |
-| NAV-02 | TBD | Pending |
-| NAV-03 | TBD | Pending |
-| COLL-01 | TBD | Pending |
-| COLL-02 | TBD | Pending |
-| PROJ-01 | TBD | Pending |
-| PROJ-02 | TBD | Pending |
-| PROJ-03 | TBD | Pending |
-| WKSP-01 | TBD | Pending |
-| WKSP-02 | TBD | Pending |
-| PLAY-01 | TBD | Pending |
-| PLAY-02 | TBD | Pending |
+| DSFD-01 | Phase 25 | Pending |
+| DSFD-02 | Phase 25 | Pending |
+| DSFD-03 | Phase 25 | Pending |
+| DSFD-04 | Phase 25 | Pending |
+| DASH-01 | Phase 26 | Pending |
+| DASH-02 | Phase 26 | Pending |
+| DASH-03 | Phase 26 | Pending |
+| DASH-04 | Phase 26 | Pending |
+| DASH-05 | Phase 26 | Pending |
+| DASH-06 | Phase 26 | Pending |
+| NAV-01 | Phase 27 | Pending |
+| NAV-02 | Phase 27 | Pending |
+| NAV-03 | Phase 27 | Pending |
+| COLL-01 | Phase 28 | Pending |
+| COLL-02 | Phase 28 | Pending |
+| PROJ-01 | Phase 28 | Pending |
+| PROJ-02 | Phase 28 | Pending |
+| PROJ-03 | Phase 28 | Pending |
+| WKSP-01 | Phase 29 | Pending |
+| WKSP-02 | Phase 29 | Pending |
+| PLAY-01 | Phase 29 | Pending |
+| PLAY-02 | Phase 29 | Pending |
 
 **Coverage:**
 - v2.3 requirements: 22 total
-- Mapped to phases: TBD (roadmapper will fill)
-- Unmapped: 22 ⚠️
+- Mapped to phases: 22
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-04*
-*Last updated: 2026-05-04 after initial definition*
+*Last updated: 2026-05-04 — traceability filled after roadmap creation (phases 25–29)*
