@@ -130,11 +130,16 @@ export function RecipesPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Recipes</h1>
-        <Button onClick={onAddRecipe}>
-          <Plus className="mr-2 h-4 w-4" /> Add Recipe
-        </Button>
+      <div className="flex items-center justify-between pb-6 border-b border-border/40">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Recipes</h1>
+          <p className="text-sm text-muted-foreground mt-1">Documented paint schemes for your models</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button onClick={onAddRecipe}>
+            <Plus className="mr-2 h-4 w-4" /> Add Recipe
+          </Button>
+        </div>
       </div>
 
       {/* Filter bar */}
