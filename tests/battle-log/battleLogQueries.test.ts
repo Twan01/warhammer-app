@@ -92,7 +92,7 @@ describe("battleLogs queries — createBattleLog (BATTLE-01, BATTLE-02, BATTLE-0
       notes: undefined,
     };
     // Cast to any to test undefined handling
-    await createBattleLog(input as Parameters<typeof createBattleLog>[0]);
+    await createBattleLog(input as unknown as Parameters<typeof createBattleLog>[0]);
     const [, params] = executeMock.mock.calls[0];
     // Index 0: army_list_id, 2: opponent, 5: points_played, 7: my_score,
     // 8: opponent_score, 9: mvp_unit_id, 10: underperforming_unit_id,
