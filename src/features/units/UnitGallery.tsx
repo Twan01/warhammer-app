@@ -20,7 +20,7 @@ export interface UnitGalleryProps {
 
 const GRID_CLASSES = "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4";
 const CARD_CLASSES =
-  "flex flex-col items-center px-4 pt-4 pb-4 gap-2 cursor-pointer hover:bg-muted/50";
+  "flex flex-col items-center px-4 pt-4 pb-4 gap-2 cursor-pointer bg-card border border-border/60 shadow-sm hover:shadow-md transition-shadow duration-150";
 
 export function UnitGallery({
   data,
@@ -91,6 +91,9 @@ export function UnitGallery({
             className={CARD_CLASSES}
           >
             <PaintingRing percentage={unit.painting_percentage ?? 0} />
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {unit.painting_percentage ?? 0}%
+            </span>
             <span className="text-sm font-semibold">{unit.name}</span>
             {faction && (
               <Badge
@@ -104,7 +107,7 @@ export function UnitGallery({
             <span className="text-sm text-muted-foreground">
               {unit.status_painting}
             </span>
-            <span className="text-sm text-muted-foreground">
+            <span className="text-sm text-muted-foreground tabular-nums">
               {unit.model_count ?? "—"} models · {unit.points ?? "—"} pts
             </span>
             {unit.is_active_project === 1 && (

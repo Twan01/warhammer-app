@@ -122,9 +122,12 @@ export function CollectionPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Collection</h1>
-        <div className="flex items-center gap-1">
+      <div className="flex items-center justify-between pb-6 border-b border-border/40">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Collection</h1>
+          <p className="text-sm text-muted-foreground mt-1">All units you own, tracked and filterable</p>
+        </div>
+        <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="icon"
@@ -143,10 +146,10 @@ export function CollectionPage() {
           >
             <LayoutGrid className="h-4 w-4" />
           </Button>
+          <Button onClick={handleAdd}>
+            <Plus className="mr-2 h-4 w-4" /> Add Unit
+          </Button>
         </div>
-        <Button onClick={handleAdd}>
-          <Plus className="mr-2 h-4 w-4" /> Add Unit
-        </Button>
       </div>
 
       <UnitFilters units={units ?? []} />
