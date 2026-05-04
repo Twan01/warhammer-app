@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Completed 13-05-PLAN.md — Phase 13 manual smoke-test passed; JOUR-01..06 verified live
-last_updated: "2026-05-04T07:23:08.365Z"
+stopped_at: Phase 16 UI-SPEC approved
+last_updated: "2026-05-04T07:28:22.263Z"
 last_activity: 2026-05-04 — Phase 14 Plan 02 — UnitSheet/PaintSheet purchase_price_pence fields + formatCurrency display + 6-hook spending-stats invalidation; 264 passing, 13 skipped
 progress:
   total_phases: 7
@@ -134,6 +134,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T07:23:08.359Z
-Stopped at: Completed 13-05-PLAN.md — Phase 13 manual smoke-test passed; JOUR-01..06 verified live
+Last session: 2026-05-04T07:28:22.258Z
+Stopped at: Phase 16 UI-SPEC approved
 Resume: Run `/gsd:execute-phase 14` to continue with Plan 14-02 (form integration) and Plan 14-03 (SpendingPage) — both unblocked and can run in parallel.
