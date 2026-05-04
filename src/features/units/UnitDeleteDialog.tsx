@@ -11,6 +11,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { useDeleteUnit } from "@/hooks/useUnits";
 import { getArmyListsByUnitId } from "@/db/queries/armyLists";
+import {
+  getPhotoFilenamesByUnit,
+  getPhotosByUnit,
+  deleteUnitPhoto,
+} from "@/db/queries/unitPhotos";
+import { remove, BaseDirectory } from "@tauri-apps/plugin-fs";
 import type { Unit } from "@/types/unit";
 
 interface UnitDeleteDialogProps {
@@ -45,7 +51,46 @@ export function UnitDeleteDialog({ open, unit, onClose }: UnitDeleteDialogProps)
   async function handleConfirm() {
     if (!unit) return;
     try {
+      // JOUR-06 step 1: capture photo filenames BEFORE deleting the unit, so we
+      // can clean up disk after the SQL DELETE succeeds. image_assets is polymorphic
+      // (entity_type/entity_id) with no FK to units — SQL CASCADE does NOT fire,
+      // so DB rows AND files must be removed explicitly. See 13-RESEARCH.md §Pitfall 4.
+      const photoFilenames = await getPhotoFilenamesByUnit(unit.id).catch(() => [] as string[]);
+
+      // JOUR-06 step 2: capture photo IDs for explicit DB row cleanup.
+      // image_assets has no FK to units, so no cascade — rows must be deleted explicitly.
+      let photoIds: number[] = [];
+      try {
+        const rows = await getPhotosByUnit(unit.id);
+        photoIds = rows.map((r) => r.id);
+      } catch {
+        // If photos query fails, continue — we'll still delete the unit and
+        // any leftover image_assets rows are orphaned but harmless (no FK to enforce).
+      }
+
+      // JOUR-06 step 3: SQL delete for the unit (other tables CASCADE per their own FKs;
+      // image_assets does NOT cascade — we delete those rows explicitly next).
       await deleteUnit.mutateAsync(unit.id);
+
+      // JOUR-06 step 4: explicit DELETE for orphaned image_assets rows (no FK = no CASCADE).
+      for (const id of photoIds) {
+        try {
+          await deleteUnitPhoto(id);
+        } catch {
+          // Silent — orphaned DB rows acceptable; blocking unit delete is not.
+        }
+      }
+
+      // JOUR-06 step 5: silently remove each photo file from disk.
+      // Failures are swallowed — orphaned files are preferable to blocking the success path.
+      for (const filename of photoFilenames) {
+        try {
+          await remove(filename, { baseDir: BaseDirectory.AppData });
+        } catch {
+          // Silent — file may already be missing or locked.
+        }
+      }
+
       toast.success("Unit deleted.");
       onClose();
     } catch {
