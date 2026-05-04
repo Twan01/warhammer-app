@@ -101,6 +101,8 @@ Architecture constraints:
 - DashboardEmptyState is a full welcome-screen replacement (Pitfall 3): Sword + HobbyForge wordmark side-by-side, gap-6, text-faction-accent — NOT the standard icon-pill pattern used by all other empty states
 - KanbanEmptyState keeps onAddProject prop wiring (fragile DOM query from PaintingProjectsPage) — only button text changed to 'Go to Collection' per UI-SPEC; tech-debt fix deferred
 - CollectionEmptyState prop interface preserved byte-for-byte: onAdd (not onAddUnit) + onClearFilters — callers require no changes
+- Swords (plural, crossed-blades) used for ArmyListsEmptyState — distinct from Sword (singular) used in sidebar wordmark and DashboardEmptyState
+- British 'colour' spelling preserved in RecipeEmptyState helper text per UI-SPEC §Copywriting Contract (user is Belgian/European)
 
 ### Decisions Carried from v2.1
 
