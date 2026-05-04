@@ -5,13 +5,13 @@ milestone_name: Visual Command
 status: executing
 stopped_at: Completed 13-02-PLAN.md
 last_updated: "2026-05-04T06:50:30.398Z"
-last_activity: 2026-05-03 — Phase 13 Plan 01 — Tauri infra + migration 005 + type contracts (232 passing, 11 skipped)
+last_activity: 2026-05-04 — Phase 13 Plan 02 — Data-access layer: query modules + hooks (243 passing, 2 skipped)
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 23
   completed_plans: 15
-  percent: 61
+  percent: 65
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 ## Current Position
 
 Phase: 13 of 14 (IN PROGRESS: Phase 13 Hobby Journal)
-Plan: 13-01 complete — migration 005 schema, tauri-plugin-fs + tauri-plugin-dialog installed, TypeScript types published; ready for Plan 13-02 (painting session query module)
-Status: Phase 13 in progress — Plans 13-00 and 13-01 done. Next: Plan 13-02 (painting session queries + hooks)
-Last activity: 2026-05-03 — Phase 13 Plan 01 — Tauri infra + migration 005 + type contracts (232 passing, 11 skipped)
+Plan: 13-02 complete — query modules (paintingSessions.ts, unitPhotos.ts) + hooks (useJournalSessions.ts, useUnitPhotos.ts) implemented; 11 stub tests activated (243 passing, 2 skipped); ready for Plan 13-03 (JournalTab UI)
+Status: Phase 13 in progress — Plans 13-00, 13-01, and 13-02 done. Next: Plan 13-03 (JournalTab UI component)
+Last activity: 2026-05-04 — Phase 13 Plan 02 — Data-access layer: 2 query modules + 2 hook modules, 11 tests activated (243 passing, 2 skipped)
 
-Progress: [██████░░░░] 61% (14/23 plans complete)
+Progress: [███████░░░] 65% (15/23 plans complete)
 
 ## v2.1 Phase Map
 
@@ -84,6 +84,7 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 - Phase 13 photo storage requires `tauri-plugin-fs` — the one new Tauri plugin introduced in v2.1; verify capability grants before building photo attach UI
 - Phase 13 Plan 00: Wave 0 stub files use .tsx for JournalTab (JSX component test) and .ts for all others — avoids .ts->tsx rename seen in Phase 10-01; no SUT imports in any stub until plans 13-01/02/03 create source files; explicit `import { describe, it } from 'vitest'` for tsc strict-mode (mirrors Phase 10/11/12 pattern)
 - Phase 13 Plan 01: tauri feature flag "protocol-asset" must be added to Cargo.toml tauri dependency when assetProtocol.enable = true in tauri.conf.json — build fails without it; plugin registration order: opener -> fs -> dialog -> sql; UnitPhoto.file_path stores UUID filename only (not absolute path)
+- Phase 13 Plan 02: useJournalSessions test file uses .tsx extension (JSX QueryClientProvider wrapper requires tsx — esbuild rejects JSX in .ts); appDataDir() resolved once per hook via useState/useEffect pattern (not per row); PAINTING_SESSIONS_KEY and UNIT_PHOTOS_KEY factories stable for Plan 13-03 UI
 - Phase 14 stores all spend values as integer pence in SQLite — display formatting happens in UI layer only, never stored as float
 
 ### Decisions Carried from v2.0
