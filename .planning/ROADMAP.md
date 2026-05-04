@@ -329,7 +329,7 @@ Plans:
 | 17. Schema Foundation + Enrichment | 1/1 | Complete    | 2024-05-04 | — |
 | 18. Battle Log | 4/4 | Complete    | 2024-05-04 | — |
 | 19. Analytics Core | v2.2 | 4/4 | Complete | 2024-05-04 |
-| 20. v2.1 Polish & Gap Closure | 3/3 | Complete   | 2026-05-04 | — |
+| 20. v2.1 Polish & Gap Closure | 3/3 | Complete    | 2026-05-04 | — |
 | 21. Wishlist | v2.2 | 0/TBD | Not started | — |
 | 22. Hobby Goals | v2.2 | 0/TBD | Not started | — |
 | 23. Display Features | v2.2 | 0/TBD | Not started | — |
