@@ -3,15 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Full Circle
 status: executing
-stopped_at: Completed 26-01-PLAN.md
-last_updated: "2026-05-04T20:34:53.603Z"
-last_activity: "2026-05-04 — Phase 26 Plan 01 executed (dashboard data layer: computeRecentActivity, getNextActionHint, getRecentActivity SQL, useRecentActivity hook, all 21 Wave 0 stubs green)"
+stopped_at: Completed 26-02-PLAN.md
+last_updated: "2026-05-04T20:43:21.000Z"
 progress:
   total_phases: 12
   completed_phases: 4
   total_plans: 16
-  completed_plans: 13
-  percent: 81
+  completed_plans: 14
+  percent: 88
 ---
 
 # Project State
@@ -25,11 +24,11 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.3 milestone start)
 
 ## Current Position
 
-Phase: 26 — Dashboard Redesign (plan 01 complete)
-Plan: 26-01 complete — dashboard data layer; 21 Wave 0 stubs green; Wave 2 UI components unblocked
-Status: In progress — 2/5 plans complete for Phase 26
+Phase: 26 — Dashboard Redesign (plan 02 complete)
+Plan: 26-02 complete — Wave 2 UI components (CurrentFocusCard, HobbyPipeline, RecentActivityFeed, LogSessionSheet, logSessionSchema); Wave 3 DashboardPage rework unblocked
+Status: In progress — 3/5 plans complete for Phase 26
 
-Progress: [████████░░] 81% (13/16 plans complete)
+Progress: [█████████░] 88% (14/16 plans complete)
 
 ## v2.3 Phase Map
 
@@ -54,6 +53,10 @@ Progress: [████████░░] 81% (13/16 plans complete)
 - `enabled: units !== undefined` (not `!units`) — empty array is valid and must not suppress the useRecentActivity query
 - Invalidation wired only to useCreatePaintingSession (not useDeletePaintingSession) — dashboard unit event refresh flows through dashboard-stats invalidation on unit mutations
 - ActivityEvent id prefix pattern: 'unit-added-{id}', 'unit-updated-{id}', 'session-logged-{id}', 'battle-logged-{id}' — stable React keys across all 4 event types
+- LogSessionSheet uses buildDefaultValues() not zod .default() — Pitfall 8 pattern consistent with battleLogSchema/armyListSchema (react-hook-form zodResolver type inference breaks with zod v4 .default())
+- HobbyPipeline derives stage counts from full units[] prop — never from sliced activeProjects/recentlyUpdated (Pitfall 6: those cap at 5 items)
+- RecentActivityFeed onUnitClick wiring limited to unit_added/unit_updated — session_logged and battle_logged are non-interactive in Phase 26
+- TIER_BUBBLE_CLASS 'done' tier uses bg-battle-gold/30 in HobbyPipeline — consistent with Phase 25 CSS custom property for "done" state
 
 ### Phase 25 Decisions
 
@@ -183,6 +186,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T20:34:53Z
-Stopped at: Completed 26-01-PLAN.md
-Resume: Phase 26 Plan 02 is next (Wave 2: Dashboard UI components). Run `/gsd:execute-phase 26-02` to continue.
+Last session: 2026-05-04T20:43:21Z
+Stopped at: Completed 26-02-PLAN.md
+Resume: Phase 26 Plan 03 is next (Wave 3: DashboardPage rework — wire all Wave 2 components). Run `/gsd:execute-phase 26-03` to continue.
