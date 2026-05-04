@@ -13,6 +13,14 @@ import { UnitFilters } from "./UnitFilters";
 import { UnitDetailSheet } from "./UnitDetailSheet";
 import { UnitSheet } from "./UnitSheet";
 import { UnitDeleteDialog } from "./UnitDeleteDialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import type { UnitPhotoWithUrl } from "@/hooks/useUnitPhotos";
 import { useCollectionViewMode } from "@/hooks/useCollectionViewMode";
 import { UnitGallery } from "./UnitGallery";
 
@@ -58,6 +66,10 @@ export function CollectionPage() {
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingUnit, setDeletingUnit] = useState<Unit | null>(null);
+
+  // JOUR-05 sibling lightbox — owned at CollectionPage level so the Dialog is a
+  // sibling of UnitDetailSheet's Sheet portal (never nested — see Phase 8 STATE.md).
+  const [lightboxPhoto, setLightboxPhoto] = useState<UnitPhotoWithUrl | null>(null);
 
   const [viewMode, setViewMode] = useCollectionViewMode();
 
@@ -176,6 +188,7 @@ export function CollectionPage() {
         onClose={handleCloseDetail}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onPhotoClick={(photo) => setLightboxPhoto(photo)}
       />
 
       <UnitSheet
@@ -191,6 +204,24 @@ export function CollectionPage() {
         unit={deletingUnit}
         onClose={handleCloseDelete}
       />
+
+      {/* JOUR-05 sibling photo lightbox — mounted at page level, NOT nested in UnitDetailSheet.
+          See Phase 8 STATE.md: "Sibling Sheet/Dialog portal pattern — never nest Radix portals". */}
+      <Dialog open={!!lightboxPhoto} onOpenChange={(o) => { if (!o) setLightboxPhoto(null); }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{lightboxPhoto?.stage_label ?? ""}</DialogTitle>
+            <DialogDescription>{lightboxPhoto?.caption ?? ""}</DialogDescription>
+          </DialogHeader>
+          {lightboxPhoto && (
+            <img
+              src={lightboxPhoto.assetUrl}
+              alt={lightboxPhoto.stage_label ?? "Unit photo"}
+              className="max-h-[70vh] w-auto mx-auto object-contain"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

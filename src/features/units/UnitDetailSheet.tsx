@@ -22,6 +22,8 @@ import { useUpdateUnit, UNITS_KEY } from "@/hooks/useUnits";
 import type { Unit } from "@/types/unit";
 import { StatusPopover } from "./StatusPopover";
 import { PlaybookTab } from "./PlaybookTab";
+import { JournalTab } from "./JournalTab";
+import type { UnitPhotoWithUrl } from "@/hooks/useUnitPhotos";
 
 interface UnitDetailSheetProps {
   open: boolean;
@@ -29,9 +31,10 @@ interface UnitDetailSheetProps {
   onClose: () => void;
   onEdit: (unit: Unit) => void;
   onDelete: (unit: Unit) => void;
+  onPhotoClick: (photo: UnitPhotoWithUrl) => void;
 }
 
-export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete }: UnitDetailSheetProps) {
+export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhotoClick }: UnitDetailSheetProps) {
   const { data: factions } = useFactions();
   const faction = useMemo(
     () => (unit ? (factions ?? []).find((f) => f.id === unit.faction_id) ?? null : null),
@@ -95,6 +98,7 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete }: UnitD
               <TabsList className="mt-2">
                 <TabsTrigger value="details">Details</TabsTrigger>
                 <TabsTrigger value="playbook">Playbook</TabsTrigger>
+                <TabsTrigger value="journal">Journal</TabsTrigger>
               </TabsList>
 
               <TabsContent value="details">
@@ -205,6 +209,10 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete }: UnitD
 
               <TabsContent value="playbook">
                 <PlaybookTab unitId={unit.id} />
+              </TabsContent>
+
+              <TabsContent value="journal">
+                <JournalTab unitId={unit.id} onPhotoClick={onPhotoClick} />
               </TabsContent>
             </Tabs>
 

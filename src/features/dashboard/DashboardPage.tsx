@@ -16,6 +16,14 @@ import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { UnitDetailSheet } from "@/features/units/UnitDetailSheet";
 import { UnitSheet } from "@/features/units/UnitSheet";
 import { UnitDeleteDialog } from "@/features/units/UnitDeleteDialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import type { UnitPhotoWithUrl } from "@/hooks/useUnitPhotos";
 import type { Unit } from "@/types/unit";
 import { useActiveFaction } from "@/context/ActiveFactionContext";
 import { StatCard } from "./StatCard";
@@ -33,6 +41,9 @@ export function DashboardPage() {
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [deletingUnit, setDeletingUnit] = useState<Unit | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // JOUR-05 sibling lightbox — owned at DashboardPage level (mirrors CollectionPage pattern).
+  const [lightboxPhoto, setLightboxPhoto] = useState<UnitPhotoWithUrl | null>(null);
 
   // Union of the two displayed lists so selectedUnit derivation covers both
   const allDisplayedUnits = useMemo(() => {
@@ -163,6 +174,7 @@ export function DashboardPage() {
           onClose={handleCloseDetail}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onPhotoClick={(photo) => setLightboxPhoto(photo)}
         />
         <UnitSheet key="new-edit" open={false} unit={null} onClose={handleCloseEdit} />
         <UnitDeleteDialog key="none-delete" open={false} unit={null} onClose={handleCloseDelete} />
@@ -267,6 +279,7 @@ export function DashboardPage() {
         onClose={handleCloseDetail}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onPhotoClick={(photo) => setLightboxPhoto(photo)}
       />
 
       <UnitSheet
@@ -282,6 +295,24 @@ export function DashboardPage() {
         unit={deletingUnit}
         onClose={handleCloseDelete}
       />
+
+      {/* JOUR-05 sibling photo lightbox — mounted at page level, NOT nested in UnitDetailSheet.
+          See Phase 8 STATE.md: "Sibling Sheet/Dialog portal pattern — never nest Radix portals". */}
+      <Dialog open={!!lightboxPhoto} onOpenChange={(o) => { if (!o) setLightboxPhoto(null); }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{lightboxPhoto?.stage_label ?? ""}</DialogTitle>
+            <DialogDescription>{lightboxPhoto?.caption ?? ""}</DialogDescription>
+          </DialogHeader>
+          {lightboxPhoto && (
+            <img
+              src={lightboxPhoto.assetUrl}
+              alt={lightboxPhoto.stage_label ?? "Unit photo"}
+              className="max-h-[70vh] w-auto mx-auto object-contain"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
