@@ -17,6 +17,8 @@ import { useHobbyAnalytics } from "@/hooks/useHobbyAnalytics";
 import { UnitDetailSheet } from "@/features/units/UnitDetailSheet";
 import { UnitSheet } from "@/features/units/UnitSheet";
 import { UnitDeleteDialog } from "@/features/units/UnitDeleteDialog";
+import { DatasheetImportDialog } from "@/features/units/DatasheetImportDialog";
+import type { DatasheetImportPayload, DatasheetImportResolution } from "@/types/datasheet";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +48,14 @@ export function DashboardPage() {
 
   // JOUR-05 sibling lightbox — owned at DashboardPage level (mirrors CollectionPage pattern).
   const [lightboxPhoto, setLightboxPhoto] = useState<UnitPhotoWithUrl | null>(null);
+
+  // DS-08 — conflict-resolution dialog state. Owned by DashboardPage so the
+  // Dialog is a sibling of UnitDetailSheet's Sheet portal (not nested).
+  const [conflictPayload, setConflictPayload] = useState<DatasheetImportPayload | null>(null);
+  const [pendingResolution, setPendingResolution] = useState<{
+    resolution: DatasheetImportResolution;
+    payload: DatasheetImportPayload;
+  } | null>(null);
 
   // Union of the two displayed lists so selectedUnit derivation covers both
   const allDisplayedUnits = useMemo(() => {
@@ -345,6 +355,9 @@ export function DashboardPage() {
         onEdit={handleEdit}
         onDelete={handleDelete}
         onPhotoClick={(photo) => setLightboxPhoto(photo)}
+        onDatasheetConflict={(payload) => setConflictPayload(payload)}
+        pendingImportResolution={pendingResolution}
+        onClearImportResolution={() => setPendingResolution(null)}
       />
 
       <UnitSheet
@@ -378,6 +391,21 @@ export function DashboardPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* DS-08 — conflict-resolution dialog. Sibling to Sheet portal — NEVER nested.
+          PlaybookTab raises onDatasheetConflict via UnitDetailSheet → setConflictPayload.
+          When the user confirms, we drop the payload back into pendingResolution and
+          PlaybookTab subscribes via useEffect, applies the resolution, then calls
+          onClearImportResolution to reset state. */}
+      <DatasheetImportDialog
+        open={conflictPayload !== null}
+        conflicts={conflictPayload?.conflicts ?? []}
+        onConfirm={(resolution) => {
+          if (conflictPayload) setPendingResolution({ resolution, payload: conflictPayload });
+          setConflictPayload(null);
+        }}
+        onClose={() => setConflictPayload(null)}
+      />
     </>
   );
 }
