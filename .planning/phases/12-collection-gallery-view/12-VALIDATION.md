@@ -1,10 +1,11 @@
 ---
 phase: 12
 slug: collection-gallery-view
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-03
+audited: 2026-05-04
 ---
 
 # Phase 12 — Validation Strategy
@@ -38,12 +39,12 @@ created: 2026-05-03
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 12-00-01 | 00 | 0 | UI-05 | unit | `npm test -- --run tests/collection/PaintingRing.test.tsx` | ❌ W0 | ⬜ pending |
-| 12-00-02 | 00 | 0 | UI-04, UI-05, UI-06 | unit | `npm test -- --run tests/collection/UnitGallery.test.tsx` | ❌ W0 | ⬜ pending |
-| 12-01-01 | 01 | 1 | UI-05 | unit | `npm test -- --run tests/collection/PaintingRing.test.tsx` | ✅ W0 | ⬜ pending |
-| 12-01-02 | 01 | 1 | UI-04 | unit | `npm test -- --run tests/collection/UnitGallery.test.tsx` | ✅ W0 | ⬜ pending |
-| 12-02-01 | 02 | 2 | UI-04, UI-05, UI-06 | unit | `npm test -- --run tests/collection/UnitGallery.test.tsx` | ✅ W0 | ⬜ pending |
-| 12-03-01 | 03 | 3 | UI-04..06 | manual | Visual smoke test in live Tauri app | N/A | ⬜ pending |
+| 12-00-01 | 00 | 0 | UI-05 | unit | `npm test -- --run tests/collection/PaintingRing.test.tsx` | ✅ | ✅ green |
+| 12-00-02 | 00 | 0 | UI-04, UI-05, UI-06 | unit | `npm test -- --run tests/collection/UnitGallery.test.tsx` | ✅ | ✅ green |
+| 12-01-01 | 01 | 1 | UI-05 | unit | `npm test -- --run tests/collection/PaintingRing.test.tsx` | ✅ | ✅ green |
+| 12-01-02 | 01 | 1 | UI-04 | unit | `npm test -- --run tests/collection/UnitGallery.test.tsx` | ✅ | ✅ green |
+| 12-02-01 | 02 | 2 | UI-04, UI-05, UI-06 | unit | `npm test -- --run tests/collection/UnitGallery.test.tsx` | ✅ | ✅ green |
+| 12-03-01 | 03 | 3 | UI-04..06 | manual | Visual smoke test in live Tauri app | N/A | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -51,8 +52,8 @@ created: 2026-05-03
 
 ## Wave 0 Requirements
 
-- [ ] `tests/collection/PaintingRing.test.tsx` — stubs for UI-05 ring rendering (percentage text, aria-label, role=img)
-- [ ] `tests/collection/UnitGallery.test.tsx` — stubs for UI-04 (toggle renders, switching, active state), UI-05 (card content), UI-06 (filter independence)
+- [x] `tests/collection/PaintingRing.test.tsx` — stubs for UI-05 ring rendering (percentage text, aria-label, role=img)
+- [x] `tests/collection/UnitGallery.test.tsx` — stubs for UI-04 (toggle renders, switching, active state), UI-05 (card content), UI-06 (filter independence)
 
 *No new test infrastructure needed — vitest, RTL, jsdom, and setup.ts are all installed and configured.*
 
@@ -71,11 +72,24 @@ created: 2026-05-03
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** 2026-05-04
+
+---
+
+## Validation Audit 2026-05-04
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+| Tasks covered (automated) | 5/6 |
+| Tasks covered (manual) | 1/6 |
+| Total passing tests | 9 (3 PaintingRing + 6 UnitGallery) |
