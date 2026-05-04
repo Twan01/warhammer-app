@@ -165,7 +165,7 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhoto
                     <span className="text-sm">{unit.purchase_date ?? "—"}</span>
                   </Field>
                   <Field label="Purchase Price">
-                    <span className="text-sm">{formatCurrency(unit.purchase_price_pence)}</span>
+                    <span className="text-sm tabular-nums">{formatCurrency(unit.purchase_price_pence)}</span>
                   </Field>
                   <Field label="Storage Location">
                     <span className="text-sm">{unit.storage_location ?? "—"}</span>
