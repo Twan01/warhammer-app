@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Phase 16 UI-SPEC approved
-last_updated: "2026-05-04T07:28:45.756Z"
-last_activity: 2026-05-04 — Phase 14 Plan 02 — UnitSheet/PaintSheet purchase_price_pence fields + formatCurrency display + 6-hook spending-stats invalidation; 264 passing, 13 skipped
+stopped_at: Completed 14-03-PLAN.md — SpendingPage, /spending route, Wallet nav entry, 13 Wave-0 stubs flipped; 279 passing
+last_updated: "2026-05-04T07:32:05Z"
+last_activity: 2026-05-04 — Phase 14 Plan 03 — SpendingPage end-to-end (query, pure fn, hook, component, route, sidebar nav); 279 passing, 0 skipped
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 23
-  completed_plans: 21
-  percent: 87
+  completed_plans: 22
+  percent: 96
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 ## Current Position
 
 Phase: 14 of 14 (IN PROGRESS: Phase 14 Spending Tracker)
-Plan: 14-02 complete — UnitSheet/PaintSheet purchase_price_pence form fields + UnitDetailSheet formatCurrency display + 6-hook spending-stats invalidation + 10 test stubs flipped; 264 passing, 13 skipped
-Status: Phase 14 in progress — Plans 14-00, 14-01, and 14-02 done. Next: Plan 14-03 (SpendingPage).
-Last activity: 2026-05-04 — Phase 14 Plan 02 — UnitSheet/PaintSheet purchase_price_pence fields + formatCurrency display + 6-hook spending-stats invalidation; 264 passing, 13 skipped
+Plan: 14-03 complete — SpendingPage end-to-end (SQL query module, pure computeSpendingStats, useSpendingStats hook + SPENDING_STATS_KEY contract, SpendingPage component, /spending route, Wallet sidebar nav entry); 13 Wave-0 stubs flipped; 279 passing, 0 skipped
+Status: Phase 14 in progress — Plans 14-00, 14-01, 14-02, and 14-03 done. Next: Plan 14-04 (manual smoke-test gate).
+Last activity: 2026-05-04 — Phase 14 Plan 03 — SpendingPage end-to-end (query, pure fn, hook, component, route, sidebar nav); 279 passing, 0 skipped
 
-Progress: [█████████░] 87% (20/23 plans complete)
+Progress: [██████████] 96% (22/23 plans complete)
 
 ## v2.1 Phase Map
 
@@ -96,6 +96,7 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 - Phase 14 Plan 02: UnitDetailSheet had inline pence math `(/ 100).toFixed(2)` — replaced with formatCurrency() to respect the single-division-site constraint; UnitDetailSheet now shows £ locale-formatted currency
 - Phase 14 Plan 02: ['spending-stats'] literal used in useUnits.ts/usePaints.ts mutation hooks (not a constant); SPENDING_STATS_KEY constant arrives in Plan 14-03 alongside the hook that reads it
 - Phase 14 Plan 02: SPEND-01 and SPEND-02 closed; 264 passing, 13 skipped (Plan 14-03 stubs remain)
+- Phase 14 Plan 03: SPENDING_STATS_KEY = ['spending-stats'] as const installed in useSpendingStats.ts — exact match for 6-hook mutation invalidations from Plan 14-02; COALESCE(SUM(...), 0) guards against NULL on empty paints table (Pitfall 5); AppSidebar test EXTENDED (not replaced) with new 'Spending nav entry' describe block; SPEND-03 and SPEND-04 closed; 279 passing, 0 skipped
 - Phase 13 Plan 05: All 10 manual smoke-test steps PASS in live Tauri app; asset:// protocol resolves correctly, JOUR-06 disk cleanup verified; Phase 13 complete and ready for /gsd:verify-work
 - Phase 13 Plan 05: purchase_price_pence rename propagated across all 13-series call sites as Rule 1 auto-fix during smoke test — UnitDetailSheet, UnitSheet, PaintSheet, CollectionPage, DashboardPage all updated
 
@@ -134,6 +135,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T07:28:22.258Z
-Stopped at: Phase 16 UI-SPEC approved
-Resume: Run `/gsd:execute-phase 14` to continue with Plan 14-02 (form integration) and Plan 14-03 (SpendingPage) — both unblocked and can run in parallel.
+Last session: 2026-05-04T07:32:05Z
+Stopped at: Completed 14-03-PLAN.md — SpendingPage end-to-end shipped; 279 passing, 0 skipped
+Resume: Run `/gsd:execute-phase 14` to continue with Plan 14-04 (manual smoke-test — the final gate before Phase 14 ships).
