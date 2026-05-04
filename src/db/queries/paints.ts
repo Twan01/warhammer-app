@@ -15,8 +15,8 @@ export async function getPaintById(id: number): Promise<Paint | null> {
 export async function createPaint(input: CreatePaintInput): Promise<number> {
   const db = await getDb();
   const result = await db.execute(
-    `INSERT INTO paints (brand, name, paint_type, color_family, hex_color, owned, quantity, running_low, wishlist, notes, purchase_price_pence)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+    `INSERT INTO paints (brand, name, paint_type, color_family, hex_color, owned, quantity, running_low, wishlist, notes, purchase_price_pence, purchase_date)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
     [
       input.brand, input.name, input.paint_type,
       input.color_family ?? null, input.hex_color ?? null,
@@ -24,6 +24,7 @@ export async function createPaint(input: CreatePaintInput): Promise<number> {
       input.running_low, input.wishlist,
       input.notes ?? null,
       input.purchase_price_pence ?? null,
+      input.purchase_date ?? null,
     ]
   );
   return result.lastInsertId ?? 0;
@@ -44,6 +45,7 @@ export async function updatePaint(input: UpdatePaintInput): Promise<void> {
             wishlist     = COALESCE($10, wishlist),
             notes        = COALESCE($11, notes),
             purchase_price_pence = $12,
+            purchase_date        = $13,
             updated_at   = datetime('now')
       WHERE id = $1`,
     [
@@ -54,6 +56,7 @@ export async function updatePaint(input: UpdatePaintInput): Promise<void> {
       input.running_low ?? null, input.wishlist ?? null,
       input.notes ?? null,
       input.purchase_price_pence ?? null,
+      input.purchase_date ?? null,
     ]
   );
 }
