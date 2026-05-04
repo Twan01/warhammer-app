@@ -66,10 +66,30 @@ export function FactionSummaryCard({
       </button>
       <div className="flex flex-col gap-2">
         <span className="text-sm font-semibold">{stat.faction.name}</span>
-        <span className="text-sm text-muted-foreground">{stat.modelCount} models</span>
-        <span className="text-sm text-muted-foreground">{stat.paintedPct}% painted</span>
         <span className="text-sm text-muted-foreground">
-          {stat.pointsOwned} pts owned / {stat.pointsPainted} pts painted
+          <span className="tabular-nums">{stat.modelCount}</span> models
+        </span>
+
+        {/* DASH-05 — painting progress bar (mirrors StatCard progress pattern) */}
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-muted-foreground">
+            <span className="tabular-nums">{stat.paintedPct}%</span> painted
+          </span>
+          <div className="h-0.5 w-full rounded-full bg-border/40">
+            <div
+              className="h-0.5 rounded-full bg-faction-accent transition-all duration-500"
+              style={{ width: `${stat.paintedPct}%` }}
+            />
+          </div>
+        </div>
+
+        {/* DASH-05 — battle-ready points (primary) + owned points (de-emphasized) */}
+        <span className="text-sm text-foreground">
+          <span className="tabular-nums font-semibold">{stat.pointsPainted}</span>
+          <span className="text-muted-foreground"> pts battle-ready</span>
+        </span>
+        <span className="text-xs text-muted-foreground">
+          <span className="tabular-nums">{stat.pointsOwned}</span> pts owned
         </span>
       </div>
     </Card>

@@ -164,31 +164,26 @@ describe("DashboardPage", () => {
     });
     renderWithProviders(<DashboardPage />);
 
-    // DASH-01 stat labels
+    // DASH-01 — stat labels (top row)
     expect(await screen.findByText("Total Models")).toBeInTheDocument();
     expect(screen.getByText("Fully Painted")).toBeInTheDocument();
     expect(screen.getByText("Battle-Ready Points")).toBeInTheDocument();
-    // "Active Projects" appears as both a stat card label and a list heading — both are correct
     expect(screen.getAllByText("Active Projects").length).toBeGreaterThanOrEqual(1);
 
-    // DASH-03/04 progress section
-    expect(screen.getByText("Progress")).toBeInTheDocument();
-    expect(screen.getByText("Painting Progress")).toBeInTheDocument();
-    expect(screen.getByText("Assembly Progress")).toBeInTheDocument();
-    expect(screen.getByText("Basing Progress")).toBeInTheDocument();
+    // DASH-01 — page title is now "Hobby Command Center" (Wave 3 rework)
+    expect(screen.getByRole("heading", { level: 1, name: "Hobby Command Center" })).toBeInTheDocument();
 
-    // DASH-02 faction section
+    // DASH-05 — By Faction section
     expect(screen.getByText("By Faction")).toBeInTheDocument();
-    // Faction names appear in FactionSummaryCard AND in list row Badges — use getAllByText
     expect(screen.getAllByText("Tau").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("Ultra").length).toBeGreaterThanOrEqual(1);
 
-    // DASH-05/06 list headings
-    expect(screen.getAllByText("Active Projects").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("Recently Updated")).toBeInTheDocument();
+    // DASH-04 — HobbyPipeline replaces the old Progress section (no "Progress" heading)
+    expect(screen.queryByText("Progress")).not.toBeInTheDocument();
+    expect(screen.queryByText("Painting Progress")).not.toBeInTheDocument();
 
-    // Page heading
-    expect(screen.getByRole("heading", { level: 1, name: "Dashboard" })).toBeInTheDocument();
+    // DASH-06 — old two-column list headings are replaced by RecentActivityFeed
+    expect(screen.queryByText("Recently Updated")).not.toBeInTheDocument();
   });
 
   it("renders empty state when no units exist (DASH-08)", async () => {
@@ -255,7 +250,9 @@ describe("DashboardPage", () => {
     // integer is in the DOM by the time the labels render.
     // Use getAllByText because "2" appears multiple times (Total Models, Fully Painted, Active Projects).
     expect(screen.getAllByText("2").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("250")).toBeInTheDocument();
+    // "250" now appears in both the Battle-Ready Points StatCard and the FactionSummaryCard
+    // pts line — use getAllByText to assert at least one match exists.
+    expect(screen.getAllByText("250").length).toBeGreaterThanOrEqual(1);
   });
 
   it("active FactionSummaryCard has ring-2 ring-faction-accent class when faction is active (UI-08)", async () => {
