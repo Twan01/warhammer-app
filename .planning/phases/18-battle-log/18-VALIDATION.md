@@ -1,10 +1,11 @@
 ---
 phase: 18
 slug: battle-log
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-04
+reviewed_at: 2026-05-04
 ---
 
 # Phase 18 — Validation Strategy
@@ -38,11 +39,11 @@ created: 2026-05-04
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 18-00-01 | 00 | 0 | BATTLE-01,02,03,05 | unit | `pnpm vitest run tests/battle-log/battleLogQueries.test.ts` | ❌ W0 | ⬜ pending |
-| 18-00-02 | 00 | 0 | BATTLE-04 | unit | `pnpm vitest run tests/battle-log/computeBattleLogSummary.test.ts` | ❌ W0 | ⬜ pending |
-| 18-01-01 | 01 | 1 | BATTLE-01,02,03,04,05 | unit | `pnpm vitest run tests/battle-log/battleLogQueries.test.ts` | ✅ W0 | ⬜ pending |
-| 18-01-02 | 01 | 1 | BATTLE-04 | unit | `pnpm vitest run tests/battle-log/computeBattleLogSummary.test.ts` | ✅ W0 | ⬜ pending |
-| 18-02-01 | 02 | 2 | BATTLE-01..05 | manual | Open Battle Log page, verify layout, nav, empty state | n/a | ⬜ pending |
+| 18-00-01 | 00 | 0 | BATTLE-01,02,03,05 | unit | `pnpm vitest run tests/battle-log/battleLogQueries.test.ts` | ✅ | ✅ green |
+| 18-00-02 | 00 | 0 | BATTLE-04 | unit | `pnpm vitest run tests/battle-log/computeBattleLogSummary.test.ts` | ✅ | ✅ green |
+| 18-01-01 | 01 | 1 | BATTLE-01,02,03,04,05 | unit | `pnpm vitest run tests/battle-log/battleLogQueries.test.ts` | ✅ | ✅ green |
+| 18-01-02 | 01 | 1 | BATTLE-04 | unit | `pnpm vitest run tests/battle-log/computeBattleLogSummary.test.ts` | ✅ | ✅ green |
+| 18-02-01 | 02 | 2 | BATTLE-01..05 | manual | Open Battle Log page, verify layout, nav, empty state | n/a | ✅ approved |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -50,8 +51,8 @@ created: 2026-05-04
 
 ## Wave 0 Requirements
 
-- [ ] `tests/battle-log/battleLogQueries.test.ts` — stubs for BATTLE-01, BATTLE-02, BATTLE-03, BATTLE-05 (mocks `getDb()`, verifies SQL strings + param arrays; follows `tests/foundation/armyListQueries.test.ts`)
-- [ ] `tests/battle-log/computeBattleLogSummary.test.ts` — stubs for BATTLE-04 (pure function, no mocks needed; follows `tests/spending/computeSpendingStats.test.ts`)
+- [x] `tests/battle-log/battleLogQueries.test.ts` — 8 active tests covering BATTLE-01, BATTLE-02, BATTLE-03, BATTLE-05 (mocks `getDb()`, verifies SQL strings + param arrays)
+- [x] `tests/battle-log/computeBattleLogSummary.test.ts` — 6 active tests covering BATTLE-04 (pure function, no mocks needed)
 
 ---
 
@@ -69,11 +70,23 @@ created: 2026-05-04
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-05-04
+
+---
+
+## Validation Audit 2026-05-04
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+| Total tests | 14 |
+| Tests green | 14 |
