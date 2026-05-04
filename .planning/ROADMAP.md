@@ -52,7 +52,7 @@ HobbyForge v2.1 transforms the visual identity with faction-aware dynamic themin
 
 HobbyForge v2.2 closes the full hobby loop — schema enrichment (lore notes, undercoat, purchase dates), a complete Battle Log, analytics layer (velocity, streak, spend chart), Wishlist, Hobby Goals, and Display features (Battle Ready filter, Showcase Mode).
 
-- [ ] **Phase 17: Schema Foundation + Enrichment** — Migration 007 (lore_notes + undercoat on units, lore_notes on factions, purchase_date on paints), dates.ts UTC utility, and lore/undercoat fields visible in unit detail sheet
+- [x] **Phase 17: Schema Foundation + Enrichment** — Migration 007 (lore_notes + undercoat on units, lore_notes on factions, purchase_date on paints), dates.ts UTC utility, and lore/undercoat fields visible in unit detail sheet (completed 2026-05-04)
 - [ ] **Phase 18: Battle Log** — Battle log CRUD page (battle_logs table already exists in migration 001) with opponent faction, mission, result, army list linkage, notes, and chronological list
 - [ ] **Phase 19: Analytics Core** — Recharts/shadcn chart install, hobby velocity and painting streak stats on Dashboard, monthly spend trend chart on Spending page
 - [ ] **Phase 20: Wishlist** — New wishlist_items table (migration 008), full CRUD Wishlist page with name/faction/estimated cost/notes
@@ -283,8 +283,8 @@ Plans:
 | 14. Spending Tracker | v2.1 | 4/5 | In Progress | — |
 | 15. 40K Datasheet Integration | 6/7 | In Progress|  | — |
 | 16. Design Overhaul | 7/8 | In Progress|  | — |
-| 17. Schema Foundation + Enrichment | v2.2 | 0/TBD | Not started | — |
-| 18. Battle Log | 1/4 | In Progress|  | — |
+| 17. Schema Foundation + Enrichment | 1/1 | Complete   | 2026-05-04 | — |
+| 18. Battle Log | 2/4 | In Progress|  | — |
 | 19. Analytics Core | v2.2 | 0/TBD | Not started | — |
 | 20. Wishlist | v2.2 | 0/TBD | Not started | — |
 | 21. Hobby Goals | v2.2 | 0/TBD | Not started | — |

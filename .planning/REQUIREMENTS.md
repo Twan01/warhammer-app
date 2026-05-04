@@ -38,10 +38,10 @@
 
 ### Enrichment
 
-- [ ] **ENRCH-01**: User can write custom lore notes for a faction (chapter backstory, homeworld, custom name)
-- [ ] **ENRCH-02**: User can write custom lore notes for an individual unit (character history, battle honours)
-- [ ] **ENRCH-03**: User can record the primer/undercoat used on a unit (free-text, e.g. "Chaos Black", "Wraithbone")
-- [ ] **ENRCH-04**: Undercoat and lore notes fields are visible and editable in the unit detail sheet
+- [x] **ENRCH-01**: User can write custom lore notes for a faction (chapter backstory, homeworld, custom name)
+- [x] **ENRCH-02**: User can write custom lore notes for an individual unit (character history, battle honours)
+- [x] **ENRCH-03**: User can record the primer/undercoat used on a unit (free-text, e.g. "Chaos Black", "Wraithbone")
+- [x] **ENRCH-04**: Undercoat and lore notes fields are visible and editable in the unit detail sheet
 
 ## Future Requirements (v3.0)
 
@@ -84,10 +84,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ENRCH-01 | Phase 17 | Pending |
-| ENRCH-02 | Phase 17 | Pending |
-| ENRCH-03 | Phase 17 | Pending |
-| ENRCH-04 | Phase 17 | Pending |
+| ENRCH-01 | Phase 17 | Complete |
+| ENRCH-02 | Phase 17 | Complete |
+| ENRCH-03 | Phase 17 | Complete |
+| ENRCH-04 | Phase 17 | Complete |
 | BATTLE-01 | Phase 18 | Complete |
 | BATTLE-02 | Phase 18 | Complete |
 | BATTLE-03 | Phase 18 | Complete |

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Completed 18-00-PLAN.md
-last_updated: "2026-05-04T09:19:00.000Z"
-last_activity: "2026-05-04 — Phase 18 Plan 00 complete: Wave 0 stub tests for Battle Log (14 it.skip stubs)"
+stopped_at: "Completed 18-01-PLAN.md"
+last_updated: "2026-05-04T12:01:47.202Z"
+last_activity: "2026-05-04 — Phase 18 Plan 01 complete: Battle Log data layer (types, queries, computeBattleLogSummary, useBattleLogs hooks, battleLogSchema — 14/14 tests GREEN)"
 progress:
   total_phases: 13
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 43
-  completed_plans: 36
-  percent: 84
+  completed_plans: 38
+  percent: 88
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.2 milestone start)
 
 ## Current Position
 
-Phase: 18 of 22 (Battle Log — 1/4 plans complete)
-Plan: 18-01 (next plan)
+Phase: 18 of 22 (Battle Log — 2/4 plans complete)
+Plan: 18-02 (next plan)
 Status: In progress
-Last activity: 2026-05-04 — Phase 18 Plan 00 complete: Wave 0 stub tests for Battle Log (14 it.skip stubs, BATTLE-01..05 named)
+Last activity: 2026-05-04 — Phase 18 Plan 01 complete: Battle Log data layer (types, queries, computeBattleLogSummary, useBattleLogs hooks, battleLogSchema — 14/14 tests GREEN)
 
-Progress: [████████░░] 84% (36/43 plans complete)
+Progress: [█████████░] 88% (38/43 plans complete)
 
 ## v2.2 Phase Map
 
@@ -56,6 +56,10 @@ Architecture constraints:
 
 - Wave 0 stubs omit top-level imports entirely (modules don't exist yet) — TODO comment blocks used so Plan 01 knows exact imports to restore when activating; pattern mirrors Phase 15 datasheet stubs
 - Battle Log stubs cover full-replacement UPDATE pitfall (Pitfall 5): BATTLE-02 stub names it explicitly so Plan 01 knows to avoid COALESCE for army_list_id, mvp_unit_id, underperforming_unit_id
+- Full-replacement UPDATE in updateBattleLog (NOT COALESCE) for army_list_id/mvp_unit_id/underperforming_unit_id — enables clearing nullable FKs back to NULL (Pitfall 5); verified by test
+- Cache keys: ['battle-logs'] for index, ['battle-logs', 'summary'] for aggregated summary — matches useArmyLists convention
+- All mutations invalidate ['dashboard-stats'] for forward-compat with future dashboard win/loss totals
+- battleLogSchema avoids zod .default() — same as armyListSchema; react-hook-form zodResolver type inference breaks with zod v4 .default()
 
 ### Key Decisions for v2.2
 
@@ -130,6 +134,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T09:19:00.000Z
-Stopped at: Completed 18-00-PLAN.md
-Resume: Run `/gsd:execute-phase 18` to execute Plan 18-01
+Last session: 2026-05-04T12:01:47.199Z
+Stopped at: Completed 17-00-PLAN.md (Tasks 1-15; Task 16 checkpoint:human-verify awaiting smoke test)
+Resume: Run `/gsd:execute-phase 18` to execute Plan 18-02
