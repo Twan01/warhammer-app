@@ -5,13 +5,13 @@ milestone_name: Visual Command
 status: executing
 stopped_at: Phase 17 UI-SPEC approved
 last_updated: "2026-05-04T08:33:50.582Z"
-last_activity: "2026-05-04 — Phase 16 Plan 01 complete: Geist font foundation installed"
+last_activity: "2026-05-04 — Phase 16 Plan 02 complete: sidebar polish (Sword wordmark + nav grouping + NavItem density)"
 progress:
   total_phases: 13
   completed_phases: 4
   total_plans: 38
-  completed_plans: 24
-  percent: 63
+  completed_plans: 25
+  percent: 66
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.2 milestone start)
 
 ## Current Position
 
-Phase: 16 of 22 (Design Overhaul — 1/8 plans complete)
-Plan: 16-02 (Sidebar polish — next plan)
+Phase: 16 of 22 (Design Overhaul — 2/8 plans complete)
+Plan: 16-03 (next plan)
 Status: In progress
-Last activity: 2026-05-04 — Phase 16 Plan 01 complete: Geist font foundation installed
+Last activity: 2026-05-04 — Phase 16 Plan 02 complete: sidebar polish (Sword wordmark + nav grouping + NavItem density)
 
-Progress: [██████░░░░] 63% (24/38 plans complete)
+Progress: [██████░░░░] 66% (25/38 plans complete)
 
 ## v2.2 Phase Map
 
@@ -64,6 +64,9 @@ Architecture constraints:
 - pnpm is the package manager for this project — npm fails with workspace: protocol errors from pnpm symlinks; always use `pnpm add` / `pnpm install`
 - Tailwind v4 CSS-first font integration: @import in globals.css + --font-sans in @theme inline {} block + body font-family var() — no tailwind.config.js
 - Geist Variable font installed as @fontsource-variable/geist@5.2.8; font-family name in CSS must be 'Geist Variable' (not 'Geist Sans' or 'Geist')
+- Sword (singular) replaces Swords (plural) in AppSidebar — different lucide-react icons; singular matches UI-SPEC §Sidebar Polish Contract
+- Nav groups: Factions belongs in MANAGE_NAV (per RESEARCH §Open Question 3); INVENTORY_NAV has Paints + Recipes; TRACKING_NAV has Army Lists + Spending
+- NavItem active state: bg-faction-accent font-semibold text-white — font-medium eliminated per Phase 16 weight scale
 
 ### Decisions Carried from v2.1
 
@@ -91,6 +94,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T08:33:50.578Z
-Stopped at: Completed 16-01-PLAN.md — Geist Variable font foundation installed
-Resume: Run `/gsd:execute-phase 16` to execute Plan 16-02 (sidebar polish)
+Last session: 2026-05-04T10:47:00.000Z
+Stopped at: Completed 16-02-PLAN.md — sidebar polish (Sword wordmark, nav grouping, NavItem density)
+Resume: Run `/gsd:execute-phase 16` to execute Plan 16-03
