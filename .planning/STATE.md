@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Completed 19-00-PLAN.md
-last_updated: "2026-05-04T13:15:25.579Z"
-last_activity: "2026-05-04 — Phase 14 Plan 04 complete: Manual smoke-test checkpoint approved — all 7 steps verified SPEND-01..05 in live Tauri + SQLite app; Phase 14 complete"
+stopped_at: Completed 19-01-PLAN.md
+last_updated: "2026-05-04T13:25:25.332Z"
+last_activity: "2026-05-04 — Phase 19 Plan 00 complete: Wave 0 stubs for Analytics Core (29 it.skip stubs across 3 files, ANLY-04..07 contracts established)"
 progress:
   total_phases: 13
   completed_phases: 9
   total_plans: 47
-  completed_plans: 44
-  percent: 100
+  completed_plans: 45
+  percent: 94
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.2 milestone start)
 
 ## Current Position
 
-Phase: 19 of 22 (Analytics Core — 1/? plans complete)
-Plan: 19-01 (next plan)
+Phase: 19 of 22 (Analytics Core — 2/? plans complete)
+Plan: 19-02 (next plan)
 Status: In progress
-Last activity: 2026-05-04 — Phase 19 Plan 00 complete: Wave 0 stubs for Analytics Core (29 it.skip stubs across 3 files, ANLY-04..07 contracts established)
+Last activity: 2026-05-04 — Phase 19 Plan 01 complete: Analytics data layer — recharts installed, analytics.ts + computeHobbyAnalytics.ts + useHobbyAnalytics.ts created, all 29 Wave-0 stubs flipped and passing
 
-Progress: [█████████░] 94% (44/47 plans complete)
+Progress: [██████████] 96% (45/47 plans complete)
 
 ## v2.2 Phase Map
 
@@ -56,6 +56,9 @@ Architecture constraints:
 
 - Wave 0 stubs omit top-level imports of not-yet-existing modules — TODO comment blocks used so Plan 01 knows exact imports to restore when activating (mirrors Phase 18 pattern)
 - Plan 01 activation order: computeHobbyAnalytics (pure fn, no mocks) → analyticsQueries (vi.mock) → useHobbyAnalytics (single import + equality)
+- recharts 3.8.0 installed via shadcn chart (newer than research estimate 2.15.x — same ChartContainer API surface, no migration needed)
+- computeHobbyAnalytics placed in src/features/dashboard/ to mirror computeStats.ts (resolved RESEARCH open question 1)
+- HOBBY_ANALYTICS_KEY = ['hobby-analytics'] as const — Plan 02 must invalidate this key in useJournalSessions, useUnits, usePaints mutations
 
 ### Phase 18 Decisions
 
@@ -143,6 +146,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T13:15:25.575Z
-Stopped at: Completed 19-00-PLAN.md
+Last session: 2026-05-04T13:25:25.328Z
+Stopped at: Completed 19-01-PLAN.md
 Resume: Phase 14 complete — run `/gsd:progress` to see current status
