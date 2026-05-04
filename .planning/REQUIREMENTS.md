@@ -97,16 +97,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ANLY-05 | Phase 19 | Complete |
 | ANLY-06 | Phase 19 | Complete |
 | ANLY-07 | Phase 19 | Complete |
-| WISH-01 | Phase 20 | Pending |
-| WISH-02 | Phase 20 | Pending |
-| WISH-03 | Phase 20 | Pending |
-| WISH-04 | Phase 20 | Pending |
-| ANLY-01 | Phase 21 | Pending |
-| ANLY-02 | Phase 21 | Pending |
-| ANLY-03 | Phase 21 | Pending |
-| DISP-01 | Phase 22 | Pending |
-| DISP-02 | Phase 22 | Pending |
-| DISP-03 | Phase 22 | Pending |
+| WISH-01 | Phase 21 | Pending |
+| WISH-02 | Phase 21 | Pending |
+| WISH-03 | Phase 21 | Pending |
+| WISH-04 | Phase 21 | Pending |
+| ANLY-01 | Phase 22 | Pending |
+| ANLY-02 | Phase 22 | Pending |
+| ANLY-03 | Phase 22 | Pending |
+| DISP-01 | Phase 23 | Pending |
+| DISP-02 | Phase 23 | Pending |
+| DISP-03 | Phase 23 | Pending |
 
 **Coverage:**
 - v2.2 requirements: 23 total

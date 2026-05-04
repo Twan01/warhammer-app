@@ -4,8 +4,8 @@
 
 - ✅ **v1.1 HobbyForge MVP** — Phases 1–5 (shipped 2026-05-01)
 - ✅ **v2.0 Utility Layer** — Phases 6–9 (shipped 2026-05-03)
-- 📋 **v2.1 Visual Command** — Phases 10–16 (planned)
-- 📋 **v2.2 Full Circle** — Phases 17–22 (planned)
+- 📋 **v2.1 Visual Command** — Phases 10–16 + 20 (planned)
+- 📋 **v2.2 Full Circle** — Phases 17–19 + 21–23 (planned)
 
 ## Phases
 
@@ -36,7 +36,7 @@ Full details: `.planning/milestones/v2.0-ROADMAP.md`
 
 ---
 
-### 📋 v2.1 Visual Command (Phases 10–16) — Planned
+### 📋 v2.1 Visual Command (Phases 10–16 + 20) — Planned
 
 HobbyForge v2.1 transforms the visual identity with faction-aware dynamic theming, a redesigned command-center dashboard, collapsible sidebar, and collection gallery view — plus two new personal tracking features: a per-unit Hobby Journal (photo timeline and session log) and a Spending Tracker.
 
@@ -49,8 +49,9 @@ HobbyForge v2.1 transforms the visual identity with faction-aware dynamic themin
 - [x] **Phase 15: Warhammer 40K Datasheet Integration** — Auto-populate Playbook tab stats/abilities/keywords from community data, bundle local SQLite rules database, surface rulebook references in-app (completed 2026-05-04)
 - [x] **Phase 16: Design Overhaul** — Significantly improve visual design across all pages — typography, spacing, layouts, empty states, and overall UI polish
  (completed 2026-05-04)
+- [ ] **Phase 20: v2.1 Polish & Gap Closure** — Close DS-08 secondary path (DashboardPage conflict dialog), FactionsEmptyState icon pattern, upsertSyncMeta dead export, PaintingProjectsPage DOM query
 
-### 📋 v2.2 Full Circle (Phases 17–22) — Planned
+### 📋 v2.2 Full Circle (Phases 17–19 + 21–23) — Planned
 
 HobbyForge v2.2 closes the full hobby loop — schema enrichment (lore notes, undercoat, purchase dates), a complete Battle Log, analytics layer (velocity, streak, spend chart), Wishlist, Hobby Goals, and Display features (Battle Ready filter, Showcase Mode).
 
@@ -58,10 +59,11 @@ HobbyForge v2.2 closes the full hobby loop — schema enrichment (lore notes, un
  (completed 2026-05-04)
 - [x] **Phase 18: Battle Log** — Battle log CRUD page (battle_logs table already exists in migration 001) with opponent faction, mission, result, army list linkage, notes, and chronological list
  (completed 2026-05-04)
-- [x] **Phase 19: Analytics Core** — Recharts/shadcn chart install, hobby velocity and painting streak stats on Dashboard, monthly spend trend chart on Spending page (completed 2026-05-04)
-- [ ] **Phase 20: Wishlist** — New wishlist_items table (migration 008), full CRUD Wishlist page with name/faction/estimated cost/notes
-- [ ] **Phase 21: Hobby Goals** — New hobby_goals table (migration 009), goal CRUD with target unit count and timeframe, progress derived from painting session history
-- [ ] **Phase 22: Display Features** — Battle Ready quick-filter on Collection page, Showcase Mode full-screen gallery using Tauri window API
+- [x] **Phase 19: Analytics Core** — Recharts/shadcn chart install, hobby velocity and painting streak stats on Dashboard, monthly spend trend chart on Spending page
+ (completed 2026-05-04)
+- [ ] **Phase 21: Wishlist** — New wishlist_items table (migration 008), full CRUD Wishlist page with name/faction/estimated cost/notes
+- [ ] **Phase 22: Hobby Goals** — New hobby_goals table (migration 009), goal CRUD with target unit count and timeframe, progress derived from painting session history
+- [ ] **Phase 23: Display Features** — Battle Ready quick-filter on Collection page, Showcase Mode full-screen gallery using Tauri window API
 
 ## Phase Details
 
@@ -180,7 +182,7 @@ Plans:
 
 ---
 
-### 📋 v2.2 Full Circle (Phases 17–22) — Planned
+### 📋 v2.2 Full Circle (Phases 17–19 + 21–23) — Planned
 
 **Milestone Goal:** Close the full hobby loop — from owning and painting to playing and logging — with analytics, personal showcase, and narrative enrichment features that make HobbyForge the definitive single-player hobby OS.
 
@@ -188,10 +190,11 @@ Plans:
  (completed 2026-05-04)
 - [x] **Phase 18: Battle Log** — Battle log CRUD page (battle_logs table already exists in migration 001) with opponent faction, mission, result, army list linkage, notes, and chronological list
  (completed 2026-05-04)
-- [x] **Phase 19: Analytics Core** — Recharts/shadcn chart install, hobby velocity and painting streak stats on Dashboard, monthly spend trend chart on Spending page (completed 2026-05-04)
-- [ ] **Phase 20: Wishlist** — New wishlist_items table (migration 008), full CRUD Wishlist page with name/faction/estimated cost/notes
-- [ ] **Phase 21: Hobby Goals** — New hobby_goals table (migration 009), goal CRUD with target unit count and timeframe, progress derived from painting session history
-- [ ] **Phase 22: Display Features** — Battle Ready quick-filter on Collection page, Showcase Mode full-screen gallery using Tauri window API
+- [x] **Phase 19: Analytics Core** — Recharts/shadcn chart install, hobby velocity and painting streak stats on Dashboard, monthly spend trend chart on Spending page
+ (completed 2026-05-04)
+- [ ] **Phase 21: Wishlist** — New wishlist_items table (migration 008), full CRUD Wishlist page with name/faction/estimated cost/notes
+- [ ] **Phase 22: Hobby Goals** — New hobby_goals table (migration 009), goal CRUD with target unit count and timeframe, progress derived from painting session history
+- [ ] **Phase 23: Display Features** — Battle Ready quick-filter on Collection page, Showcase Mode full-screen gallery using Tauri window API
 
 ### Phase 17: Schema Foundation + Enrichment
 **Goal**: The database gains the columns needed by all of v2.2 — lore notes and undercoat on units, lore notes on factions, purchase_date on paints — and a UTC-safe date utility resolves the existing timezone bug in JournalTab, with lore and undercoat fields immediately visible and editable in the unit detail sheet
@@ -242,7 +245,20 @@ Plans:
 - [ ] 19-02-PLAN.md - Wave 2: SpendTrendChart component (Recharts BarChart in shadcn ChartContainer, formatCurrency Y-axis + tooltip, var(--color-pence) bar fill, zero-state muted note) + DashboardPage HOBBY HEALTH section between PROGRESS and BY FACTION + SpendingPage Monthly Trend section between hero card and Breakdown + invalidation patches on useJournalSessions/useUnits/usePaints (8 mutations now invalidate hobby-analytics)
 - [ ] 19-03-PLAN.md - Wave 3: Manual smoke-test checkpoint (12 steps: HOBBY HEALTH section, velocity/streak fallbacks, session-log reactivity, chart rendering, faction-color stability, NULL purchase_date exclusion for both units AND paints, year-boundary labels, chart-skeleton independence)
 
-### Phase 20: Wishlist
+### Phase 20: v2.1 Polish & Gap Closure
+**Goal**: Close the one integration gap found in the v2.1 milestone audit (DS-08 secondary path) and eliminate accumulated tech debt — DashboardPage conflict dialog wiring, FactionsEmptyState icon pattern, dead upsertSyncMeta export, PaintingProjectsPage DOM query CTA
+**Depends on**: Phase 19
+**Milestone**: v2.1 (gap closure)
+**Requirements**: DS-08 (secondary path), no new formal requirements
+**Gap Closure**: Closes DS-08-dashboard from v2.1-MILESTONE-AUDIT.md
+**Success Criteria** (what must be TRUE):
+  1. Opening any unit from the Dashboard's active-projects or recently-updated lists and triggering a Re-import with stat conflicts shows the DatasheetImportDialog (same UX as from CollectionPage)
+  2. FactionsEmptyState uses the icon-pill pattern (rounded-xl bg-muted/40 p-4) matching all other empty states
+  3. PaintingProjectsPage empty-state CTA works without a fragile DOM querySelector — uses useState instead
+  4. upsertSyncMeta dead export removed from datasheets.ts; Rust command remains the sole sync-meta write path
+**Plans**: TBD
+
+### Phase 21: Wishlist
 **Goal**: Users can maintain a running list of models they want to buy — with name, faction, optional estimated cost, and notes — on a dedicated Wishlist page before the items exist in their collection
 **Depends on**: Phase 17
 **Requirements**: WISH-01, WISH-02, WISH-03, WISH-04
@@ -253,7 +269,7 @@ Plans:
   4. User can delete a wishlist item and it is removed from the list immediately
 **Plans**: TBD
 
-### Phase 21: Hobby Goals
+### Phase 22: Hobby Goals
 **Goal**: Users can set monthly or quarterly painting targets — a unit count to complete by end of the period — and see live progress toward each goal calculated automatically from their journal session history
 **Depends on**: Phase 17
 **Requirements**: ANLY-01, ANLY-02, ANLY-03
@@ -263,7 +279,7 @@ Plans:
   3. User can view all active and completed goals on the Goals page — completed goals (progress >= target) are visually distinguished from active ones
 **Plans**: TBD
 
-### Phase 22: Display Features
+### Phase 23: Display Features
 **Goal**: The Collection page gains a one-click Battle Ready filter showing only painted and assembled units, and users can enter Showcase Mode — a full-screen chromeless gallery of painted units — ideal for displaying the collection at club nights
 **Depends on**: Phase 17
 **Requirements**: DISP-01, DISP-02, DISP-03
@@ -275,7 +291,7 @@ Plans:
 
 ## Progress
 
-**Execution Order:** 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22
+**Execution Order:** 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -297,7 +313,8 @@ Plans:
 | 16. Design Overhaul | 8/8 | Complete    | 2026-05-04 | — |
 | 17. Schema Foundation + Enrichment | 1/1 | Complete    | 2026-05-04 | — |
 | 18. Battle Log | 4/4 | Complete    | 2026-05-04 | — |
-| 19. Analytics Core | 4/4 | Complete    | 2026-05-04 | — |
-| 20. Wishlist | v2.2 | 0/TBD | Not started | — |
-| 21. Hobby Goals | v2.2 | 0/TBD | Not started | — |
-| 22. Display Features | v2.2 | 0/TBD | Not started | — |
+| 19. Analytics Core | v2.2 | 4/4 | Complete | 2026-05-04 |
+| 20. v2.1 Polish & Gap Closure | v2.1 | 0/TBD | Not started | — |
+| 21. Wishlist | v2.2 | 0/TBD | Not started | — |
+| 22. Hobby Goals | v2.2 | 0/TBD | Not started | — |
+| 23. Display Features | v2.2 | 0/TBD | Not started | — |
