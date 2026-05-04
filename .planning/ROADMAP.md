@@ -44,16 +44,20 @@ HobbyForge v2.1 transforms the visual identity with faction-aware dynamic themin
 - [x] **Phase 11: Dashboard Command Center** — Animated stat counters, faction-accented faction summary cards, hero section redesign (completed 2026-05-03)
 - [x] **Phase 12: Collection Gallery View** — Card grid alternate view with painting-status ring, view toggle, filter preservation (completed 2026-05-04)
 - [x] **Phase 13: Hobby Journal** — Painting session log (SQL CRUD) and photo timeline (tauri-plugin-fs) per unit (completed 2026-05-04)
-- [x] **Phase 14: Spending Tracker** — Cost logging per unit and paint, Spending page with total and per-faction breakdown (completed 2026-05-04)
+- [x] **Phase 14: Spending Tracker** — Cost logging per unit and paint, Spending page with total and per-faction breakdown
+ (completed 2026-05-04)
 - [x] **Phase 15: Warhammer 40K Datasheet Integration** — Auto-populate Playbook tab stats/abilities/keywords from community data, bundle local SQLite rules database, surface rulebook references in-app (completed 2026-05-04)
-- [x] **Phase 16: Design Overhaul** — Significantly improve visual design across all pages — typography, spacing, layouts, empty states, and overall UI polish (completed 2026-05-04)
+- [x] **Phase 16: Design Overhaul** — Significantly improve visual design across all pages — typography, spacing, layouts, empty states, and overall UI polish
+ (completed 2026-05-04)
 
 ### 📋 v2.2 Full Circle (Phases 17–22) — Planned
 
 HobbyForge v2.2 closes the full hobby loop — schema enrichment (lore notes, undercoat, purchase dates), a complete Battle Log, analytics layer (velocity, streak, spend chart), Wishlist, Hobby Goals, and Display features (Battle Ready filter, Showcase Mode).
 
-- [x] **Phase 17: Schema Foundation + Enrichment** — Migration 007 (lore_notes + undercoat on units, lore_notes on factions, purchase_date on paints), dates.ts UTC utility, and lore/undercoat fields visible in unit detail sheet (completed 2026-05-04)
-- [x] **Phase 18: Battle Log** — Battle log CRUD page (battle_logs table already exists in migration 001) with opponent faction, mission, result, army list linkage, notes, and chronological list (completed 2026-05-04)
+- [x] **Phase 17: Schema Foundation + Enrichment** — Migration 007 (lore_notes + undercoat on units, lore_notes on factions, purchase_date on paints), dates.ts UTC utility, and lore/undercoat fields visible in unit detail sheet
+ (completed 2026-05-04)
+- [x] **Phase 18: Battle Log** — Battle log CRUD page (battle_logs table already exists in migration 001) with opponent faction, mission, result, army list linkage, notes, and chronological list
+ (completed 2026-05-04)
 - [ ] **Phase 19: Analytics Core** — Recharts/shadcn chart install, hobby velocity and painting streak stats on Dashboard, monthly spend trend chart on Spending page
 - [ ] **Phase 20: Wishlist** — New wishlist_items table (migration 008), full CRUD Wishlist page with name/faction/estimated cost/notes
 - [ ] **Phase 21: Hobby Goals** — New hobby_goals table (migration 009), goal CRUD with target unit count and timeframe, progress derived from painting session history
@@ -180,8 +184,10 @@ Plans:
 
 **Milestone Goal:** Close the full hobby loop — from owning and painting to playing and logging — with analytics, personal showcase, and narrative enrichment features that make HobbyForge the definitive single-player hobby OS.
 
-- [x] **Phase 17: Schema Foundation + Enrichment** — Migration 007 (lore_notes + undercoat on units, lore_notes on factions, purchase_date on paints), dates.ts UTC utility, and lore/undercoat fields visible in unit detail sheet (completed 2026-05-04)
-- [x] **Phase 18: Battle Log** — Battle log CRUD page (battle_logs table already exists in migration 001) with opponent faction, mission, result, army list linkage, notes, and chronological list (completed 2026-05-04)
+- [x] **Phase 17: Schema Foundation + Enrichment** — Migration 007 (lore_notes + undercoat on units, lore_notes on factions, purchase_date on paints), dates.ts UTC utility, and lore/undercoat fields visible in unit detail sheet
+ (completed 2026-05-04)
+- [x] **Phase 18: Battle Log** — Battle log CRUD page (battle_logs table already exists in migration 001) with opponent faction, mission, result, army list linkage, notes, and chronological list
+ (completed 2026-05-04)
 - [ ] **Phase 19: Analytics Core** — Recharts/shadcn chart install, hobby velocity and painting streak stats on Dashboard, monthly spend trend chart on Spending page
 - [ ] **Phase 20: Wishlist** — New wishlist_items table (migration 008), full CRUD Wishlist page with name/faction/estimated cost/notes
 - [ ] **Phase 21: Hobby Goals** — New hobby_goals table (migration 009), goal CRUD with target unit count and timeframe, progress derived from painting session history
@@ -228,7 +234,13 @@ Plans:
   2. Dashboard shows a "Painting Streak" stat — the current count of consecutive calendar days with at least one journal session — and it increments when a session is logged today
   3. Spending page shows a bar or line chart of monthly spend combining unit and paint purchases — each bar represents one calendar month's total spend
   4. The spend trend chart uses purchase_date (from Phase 17's migration) for both units and paints — entries without a purchase_date are excluded from the chart (not bucketed to epoch)
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 19-00-PLAN.md - Wave 0: 3 stub test files (computeHobbyAnalytics + analyticsQueries + useHobbyAnalytics) - 29 it.skip stubs covering ANLY-04..07 + Pitfalls 2/5/6
+- [ ] 19-01-PLAN.md - Wave 1: shadcn add chart + react-is ^19 pnpm override + analytics.ts query module (UNION units+paints with NULL purchase_date excluded for ANLY-07) + computeHobbyAnalytics pure function (Pitfall 2 floor + Pitfall 5 dates.ts + Pitfall 6 year-suffix labels) + useHobbyAnalytics hook with HOBBY_ANALYTICS_KEY = ['hobby-analytics'] + flip 29 stubs
+- [ ] 19-02-PLAN.md - Wave 2: SpendTrendChart component (Recharts BarChart in shadcn ChartContainer, formatCurrency Y-axis + tooltip, var(--color-pence) bar fill, zero-state muted note) + DashboardPage HOBBY HEALTH section between PROGRESS and BY FACTION + SpendingPage Monthly Trend section between hero card and Breakdown + invalidation patches on useJournalSessions/useUnits/usePaints (8 mutations now invalidate hobby-analytics)
+- [ ] 19-03-PLAN.md - Wave 3: Manual smoke-test checkpoint (12 steps: HOBBY HEALTH section, velocity/streak fallbacks, session-log reactivity, chart rendering, faction-color stability, NULL purchase_date exclusion for both units AND paints, year-boundary labels, chart-skeleton independence)
 
 ### Phase 20: Wishlist
 **Goal**: Users can maintain a running list of models they want to buy — with name, faction, optional estimated cost, and notes — on a dedicated Wishlist page before the items exist in their collection
