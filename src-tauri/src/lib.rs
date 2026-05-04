@@ -45,6 +45,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/007_datasheet_link.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 8,
+            description: "enrichment",
+            sql: include_str!("../migrations/008_enrichment.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
