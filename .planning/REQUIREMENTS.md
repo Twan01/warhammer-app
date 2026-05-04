@@ -24,12 +24,12 @@
 
 ### Hobby Journal
 
-- [ ] **JOUR-01**: User can log a painting session per unit with date, duration in minutes, and optional notes
-- [ ] **JOUR-02**: User can view all painting sessions for a unit in the unit detail sheet, sorted newest first
-- [ ] **JOUR-03**: User can delete a painting session entry
-- [ ] **JOUR-04**: User can attach a photo to a unit with a stage label (e.g. "Primed", "Base coat", "Finished") and optional caption
-- [ ] **JOUR-05**: User can view the photo timeline for a unit as a chronological gallery of thumbnails with stage labels
-- [ ] **JOUR-06**: Deleting a unit removes its associated photo files from disk alongside the DB rows
+- [x] **JOUR-01**: User can log a painting session per unit with date, duration in minutes, and optional notes
+- [x] **JOUR-02**: User can view all painting sessions for a unit in the unit detail sheet, sorted newest first
+- [x] **JOUR-03**: User can delete a painting session entry
+- [x] **JOUR-04**: User can attach a photo to a unit with a stage label (e.g. "Primed", "Base coat", "Finished") and optional caption
+- [x] **JOUR-05**: User can view the photo timeline for a unit as a chronological gallery of thumbnails with stage labels
+- [x] **JOUR-06**: Deleting a unit removes its associated photo files from disk alongside the DB rows
 
 ### Spending Tracker
 
@@ -85,12 +85,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UI-04 | Phase 12 | Complete |
 | UI-05 | Phase 12 | Complete |
 | UI-06 | Phase 12 | Complete |
-| JOUR-01 | Phase 13 | Pending |
-| JOUR-02 | Phase 13 | Pending |
-| JOUR-03 | Phase 13 | Pending |
-| JOUR-04 | Phase 13 | Pending |
-| JOUR-05 | Phase 13 | Pending |
-| JOUR-06 | Phase 13 | Pending |
+| JOUR-01 | Phase 13 | Complete |
+| JOUR-02 | Phase 13 | Complete |
+| JOUR-03 | Phase 13 | Complete |
+| JOUR-04 | Phase 13 | Complete |
+| JOUR-05 | Phase 13 | Complete |
+| JOUR-06 | Phase 13 | Complete |
 | SPEND-01 | Phase 14 | Pending |
 | SPEND-02 | Phase 14 | Pending |
 | SPEND-03 | Phase 14 | Pending |
