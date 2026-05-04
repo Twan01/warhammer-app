@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Full Circle
 status: executing
-stopped_at: Completed 25-02-PLAN.md
-last_updated: "2026-05-04T20:24:11.370Z"
-last_activity: "2026-05-04 — Phase 25 Plan 02 complete (PageHeader wired into all 9 pages; human smoke test approved; Phase 25 Design Foundation done)"
+stopped_at: Completed 26-01-PLAN.md
+last_updated: "2026-05-04T20:34:53.603Z"
+last_activity: "2026-05-04 — Phase 26 Plan 01 executed (dashboard data layer: computeRecentActivity, getNextActionHint, getRecentActivity SQL, useRecentActivity hook, all 21 Wave 0 stubs green)"
 progress:
   total_phases: 12
   completed_phases: 4
   total_plans: 16
-  completed_plans: 12
-  percent: 75
+  completed_plans: 13
+  percent: 81
 ---
 
 # Project State
@@ -25,19 +25,18 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.3 milestone start)
 
 ## Current Position
 
-Phase: 26 — Dashboard Redesign (plan 00 complete)
-Plan: 26-00 complete — 21 Wave 0 test stubs created for DASH-04 and DASH-06
-Status: In progress — 1/5 plans complete for Phase 26
-Last activity: 2026-05-04 — Phase 26 Plan 00 executed (Wave 0 stubs: computeRecentActivity 13 stubs, recentActivityQuery 5 stubs, computeStats units field 3 stubs)
+Phase: 26 — Dashboard Redesign (plan 01 complete)
+Plan: 26-01 complete — dashboard data layer; 21 Wave 0 stubs green; Wave 2 UI components unblocked
+Status: In progress — 2/5 plans complete for Phase 26
 
-Progress: [████████░░] 75% (12/16 plans complete)
+Progress: [████████░░] 81% (13/16 plans complete)
 
 ## v2.3 Phase Map
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
 | 25 | Design Foundation | DSFD-01, DSFD-02, DSFD-03, DSFD-04 | Complete |
-| 26 | Dashboard Redesign | DASH-01, DASH-02, DASH-03, DASH-04, DASH-05, DASH-06 | Not started |
+| 26 | Dashboard Redesign | DASH-01, DASH-02, DASH-03, DASH-04, DASH-05, DASH-06 | In progress (2/5) |
 | 27 | Navigation & Quick Add | NAV-01, NAV-02, NAV-03 | Not started |
 | 28 | Collection + Projects | COLL-01, COLL-02, PROJ-01, PROJ-02, PROJ-03 | Not started |
 | 29 | Workshop + Play | WKSP-01, WKSP-02, PLAY-01, PLAY-02 | Not started |
@@ -50,6 +49,11 @@ Progress: [████████░░] 75% (12/16 plans complete)
 - TODO Wave 1 import comments carry exact module paths and named exports so Wave 1 knows exactly what to uncomment with no ambiguity
 - Pitfall 4 (session_date YYYY-MM-DD normalize to 23:59:59) and Pitfall 5 (no battle_logs.updated_at) documented as file-level JSDoc in computeRecentActivity.test.ts — Wave 1 cannot miss them
 - `u()` builder helper cloned verbatim from computeStats.test.ts into computeRecentActivity.test.ts — consistent fixture pattern across dashboard tests
+- units field on ComputedDashboardStats passes same array reference (no copy/sort) — Wave 2 can use it directly as ActivityEvent source without extra memoization
+- session_date normalized to `${session_date} 23:59:59` end-of-day: sessions appear after same-day battles in DESC sort, consistent with treating a session as an end-of-day activity
+- `enabled: units !== undefined` (not `!units`) — empty array is valid and must not suppress the useRecentActivity query
+- Invalidation wired only to useCreatePaintingSession (not useDeletePaintingSession) — dashboard unit event refresh flows through dashboard-stats invalidation on unit mutations
+- ActivityEvent id prefix pattern: 'unit-added-{id}', 'unit-updated-{id}', 'session-logged-{id}', 'battle-logged-{id}' — stable React keys across all 4 event types
 
 ### Phase 25 Decisions
 
@@ -179,6 +183,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T20:24:11.365Z
-Stopped at: Completed 25-02-PLAN.md
-Resume: Phase 25 Design Foundation is next. Run `/gsd:plan-phase 25` to break down Phase 25.
+Last session: 2026-05-04T20:34:53Z
+Stopped at: Completed 26-01-PLAN.md
+Resume: Phase 26 Plan 02 is next (Wave 2: Dashboard UI components). Run `/gsd:execute-phase 26-02` to continue.

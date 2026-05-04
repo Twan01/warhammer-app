@@ -262,7 +262,7 @@ Plans:
 | 22. Hobby Goals | v2.2 | 0/TBD | Not started | — |
 | 23. Display Features | v2.2 | 0/TBD | Not started | — |
 | 25. Design Foundation | 2/2 | Complete   | 2026-05-04 | — |
-| 26. Dashboard Redesign | 1/5 | In Progress|  | — |
+| 26. Dashboard Redesign | 2/5 | In Progress|  | — |
 | 27. Navigation & Quick Add | v2.3 | 0/TBD | Not started | — |
 | 28. Collection + Projects | v2.3 | 0/TBD | Not started | — |
 | 29. Workshop + Play | v2.3 | 0/TBD | Not started | — |
