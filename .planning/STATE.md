@@ -1,36 +1,36 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.1
-milestone_name: Visual Command
-status: executing
-stopped_at: Phase 15 UI-SPEC approved
-last_updated: "2026-05-04T07:41:28.550Z"
-last_activity: 2026-05-04 — Phase 14 Plan 03 — SpendingPage end-to-end (query, pure fn, hook, component, route, sidebar nav); 279 passing, 0 skipped
+milestone: v2.2
+milestone_name: Full Circle
+status: defining_requirements
+stopped_at: Requirements defined — roadmap pending
+last_updated: "2026-05-04T00:00:00.000Z"
+last_activity: 2026-05-04 — Milestone v2.2 Full Circle started — defining requirements
 progress:
-  total_phases: 7
-  completed_phases: 4
-  total_plans: 24
-  completed_plans: 22
-  percent: 96
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
+See: .planning/PROJECT.md (updated 2026-05-04 after v2.2 milestone start)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.1 — Visual Command (Phases 10–14; v2.0 fully shipped 2026-05-03)
+**Current focus:** v2.2 — Full Circle (Phases 17+; v2.1 finishing up)
 
 ## Current Position
 
-Phase: 14 of 14 (IN PROGRESS: Phase 14 Spending Tracker)
-Plan: 14-03 complete — SpendingPage end-to-end (SQL query module, pure computeSpendingStats, useSpendingStats hook + SPENDING_STATS_KEY contract, SpendingPage component, /spending route, Wallet sidebar nav entry); 13 Wave-0 stubs flipped; 279 passing, 0 skipped
-Status: Phase 14 in progress — Plans 14-00, 14-01, 14-02, and 14-03 done. Next: Plan 14-04 (manual smoke-test gate).
-Last activity: 2026-05-04 — Phase 14 Plan 03 — SpendingPage end-to-end (query, pure fn, hook, component, route, sidebar nav); 279 passing, 0 skipped
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements for v2.2 Full Circle
+Last activity: 2026-05-04 — Milestone v2.2 started
 
-Progress: [██████████] 96% (22/23 plans complete)
+Progress: [░░░░░░░░░░] 0% (0/0 plans complete)
 
 ## v2.1 Phase Map
 

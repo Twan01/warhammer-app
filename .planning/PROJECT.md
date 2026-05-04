@@ -1,18 +1,22 @@
 # HobbyForge
 
-## Current Milestone: v2.1 — Visual Command
+## Current Milestone: v2.2 — Full Circle
 
-**Goal:** Transform HobbyForge's visual identity with faction-aware dynamic theming, a redesigned command-center dashboard, collapsible sidebar, and collection gallery view — plus two new personal tracking features: a per-unit Hobby Journal (photo timeline + session log) and a Spending Tracker.
+**Goal:** Close the full hobby loop — from owning and painting to playing and logging — while layering in analytics, personal showcase, and narrative features that make HobbyForge the definitive single-player hobby OS.
 
 **Target features:**
-- Faction Dynamic Theming — accent colors shift per selected faction across the entire UI
-- Dashboard as Command Center — hero stats, animated counters, faction banners, war-room redesign
-- Collapsible Icon Sidebar — collapse to icons for more content space
-- Collection Gallery View — card grid with painting-status ring alongside existing table view
-- Hobby Journal — photo timeline per unit + painting session log with time tracking
-- Spending Tracker — log cost per unit and paint, see per-faction and total spend
+- Battle Log — record games played with opponent faction, mission, outcome, and army used
+- Wishlist / To-Buy — track models to acquire before they're in the collection
+- Hobby Goals — set monthly/quarterly painting targets and track progress
+- Hobby Velocity Tracker — auto-calculated painting pace and projected pile-of-shame completion
+- Spend Over Time chart — monthly/quarterly spend trend from existing pence data
+- Painting Streak — daily hobby streak counter driven by journal sessions
+- Ready-to-Play Quick View — filter owned units by battle-ready status and points limit
+- Showcase Mode — full-screen painted-units gallery for displaying at club nights
+- Custom Lore notes — free-text lore per faction and per unit
+- Undercoat Log — track primer/undercoat used per unit
 
-*v2.0 shipped 2026-05-03 — all 4 phases (Foundation, Paint Inventory, Army List Builder, Unit Playbook) complete.*
+*v2.1 shipped 2026-05-04 — all 7 phases (Theming Foundation, Dashboard Command Center, Collection Gallery View, Hobby Journal, Spending Tracker, 40K Datasheet Integration, Design Overhaul) complete.*
 
 ---
 
@@ -47,20 +51,35 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ Army List Builder: create/edit/delete lists, add/remove units, COALESCE-in-SQL points, battle-ready %, per-unit notes, army-list membership pre-check on unit delete — Phase 8 — v2.0
 - ✓ Unit Playbook tab: stats block (M/T/Sv/W/Ld/OC), abilities, keywords, 8 strategy notes, dirty-state Save with toasts — Phase 9 — v2.0
 
+*All v2.1 requirements verified and shipped 2026-05-04*
+
+- ✓ Faction Dynamic Theming — UI accent colors shift per selected faction across the entire app — Phase 10 — v2.1
+- ✓ Collapsible Icon Sidebar — icon-only mode with tooltip polish, persisted state — Phase 10 — v2.1
+- ✓ Dashboard Command Center — animated stat counters, faction-accented summary cards — Phase 11 — v2.1
+- ✓ Collection Gallery View — card grid with painting-status ring as alternate to table — Phase 12 — v2.1
+- ✓ Hobby Journal — per-unit photo timeline + painting session log with time tracking — Phase 13 — v2.1
+- ✓ Spending Tracker — cost per unit and paint, per-faction and total spend views — Phase 14 — v2.1
+- ✓ 40K Datasheet Integration — auto-populate unit stats/abilities/keywords from community data — Phase 15 — v2.1
+- ✓ Design Overhaul — typography, spacing, layouts, empty states, and overall UI polish — Phase 16 — v2.1
+
 ### Active
 
-*v2.1 target features (Phases 10–14)*
+*v2.2 target features — Full Circle (Phases 17+)*
 
-- [ ] Faction Dynamic Theming — UI accent colors shift per selected faction across the entire app
-- [ ] Dashboard as Command Center — hero stats, animated counters, faction banners
-- [ ] Collapsible Icon Sidebar — icon-only mode for more content space
-- [ ] Collection Gallery View — card grid with painting-status ring as alternate to table
-- [ ] Hobby Journal — per-unit photo timeline + painting session log with time tracking
-- [ ] Spending Tracker — cost per unit and paint, per-faction and total spend views
+- [ ] Battle Log — record games played with opponent faction, mission, outcome, and army used
+- [ ] Wishlist / To-Buy — track models to acquire before they're in the collection
+- [ ] Hobby Goals — set monthly/quarterly painting targets and track progress
+- [ ] Hobby Velocity Tracker — auto-calculated painting pace from journal sessions
+- [ ] Spend Over Time chart — monthly/quarterly spend trend from existing pence data
+- [ ] Painting Streak — daily hobby streak counter driven by journal sessions
+- [ ] Ready-to-Play Quick View — filter owned units by battle-ready status and points limit
+- [ ] Showcase Mode — full-screen painted-units gallery for displaying at club nights
+- [ ] Custom Lore notes — free-text lore per faction and per unit
+- [ ] Undercoat Log — track primer/undercoat used per unit
 
 ### Out of Scope
 
-- Battle Logs — deferred to v2.1 or later
+- Battle Logs — in scope for v2.2
 - Image upload, photo timelines, image gallery — deferred in v2.0; now in scope for v2.1 Hobby Journal
 - Backup / export / import — deferred
 - Settings page — deferred
@@ -113,4 +132,4 @@ A single personal command center that always answers "what do I own, what's pain
 | PlaybookTab SheetHeader/Footer outside Tabs | Edit/Delete must work from any tab without closing sheet | ✓ Good — Pitfall 5 avoidance; confirmed in Phase 9 smoke test |
 
 ---
-*Last updated: 2026-05-02 after v2.1 milestone start*
+*Last updated: 2026-05-04 after v2.2 milestone start*
