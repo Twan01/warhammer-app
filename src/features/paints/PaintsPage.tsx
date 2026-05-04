@@ -21,6 +21,7 @@ import { PaintsEmptyState } from "./PaintsEmptyState";
 import { PaintInventoryFilters } from "./PaintInventoryFilters.tsx";
 import { usePaintInventoryFilters } from "./paintInventoryFilters";
 import { applyPaintFilters } from "./applyPaintFilters";
+import { PageHeader } from "@/components/common/PageHeader";
 
 export function PaintsPage() {
   const { data: paints, isLoading, isError } = usePaintsWithRecipeCount();
@@ -94,17 +95,15 @@ export function PaintsPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center justify-between pb-6 border-b border-border/40">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Paints</h1>
-          <p className="text-sm text-muted-foreground mt-1">Your paint collection, linked to recipes</p>
-        </div>
-        <div className="flex items-center gap-2">
+      <PageHeader
+        title="Paints"
+        subtitle="Your paint collection, linked to recipes"
+        actions={
           <Button onClick={openCreate}>
             <Plus className="mr-2 h-4 w-4" /> Add Paint
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       <PaintInventoryFilters paints={paints ?? []} />
 

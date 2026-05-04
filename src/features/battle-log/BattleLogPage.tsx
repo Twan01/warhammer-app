@@ -11,6 +11,7 @@ import { BattleLogSheet } from "./BattleLogSheet";
 import { BattleLogDeleteDialog } from "./BattleLogDeleteDialog";
 import { BattleLogSummaryBar } from "./BattleLogSummaryBar";
 import { BattleLogEmptyState } from "./BattleLogEmptyState";
+import { PageHeader } from "@/components/common/PageHeader";
 
 /**
  * BATTLE-01..05 root page. Owns ALL portal state (sibling-portal architecture
@@ -57,18 +58,15 @@ export function BattleLogPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      {/* Page header — Phase 16 contract */}
-      <div className="flex items-center justify-between pb-6 border-b border-border/40">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Battle Log</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Every game you've played, win or lose.
-          </p>
-        </div>
-        <Button onClick={openCreate}>
-          <Swords className="mr-2 h-4 w-4" /> Log Game
-        </Button>
-      </div>
+      <PageHeader
+        title="Battle Log"
+        subtitle="Every game you've played, win or lose."
+        actions={
+          <Button onClick={openCreate}>
+            <Swords className="mr-2 h-4 w-4" /> Log Game
+          </Button>
+        }
+      />
 
       {isLoading && (
         <div className="flex flex-col gap-4">

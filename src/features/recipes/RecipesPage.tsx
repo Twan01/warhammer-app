@@ -23,6 +23,7 @@ import { RecipeTable } from "./RecipeTable";
 import { RecipeDetailSheet } from "./RecipeDetailSheet";
 import { RecipeDeleteDialog } from "./RecipeDeleteDialog";
 import { RecipeFormSheet } from "./RecipeFormSheet";
+import { PageHeader } from "@/components/common/PageHeader";
 
 // Aggregate step counts in one query so the table can render "{N} steps" per row
 function useAllStepCounts(recipes: PaintingRecipe[]) {
@@ -130,17 +131,15 @@ export function RecipesPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center justify-between pb-6 border-b border-border/40">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Recipes</h1>
-          <p className="text-sm text-muted-foreground mt-1">Documented paint schemes for your models</p>
-        </div>
-        <div className="flex items-center gap-2">
+      <PageHeader
+        title="Recipes"
+        subtitle="Documented paint schemes for your models"
+        actions={
           <Button onClick={onAddRecipe}>
             <Plus className="mr-2 h-4 w-4" /> Add Recipe
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-2">

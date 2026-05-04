@@ -25,6 +25,7 @@ import { useCollectionViewMode } from "@/hooks/useCollectionViewMode";
 import { UnitGallery } from "./UnitGallery";
 import { DatasheetImportDialog } from "./DatasheetImportDialog";
 import type { DatasheetImportPayload, DatasheetImportResolution } from "@/types/datasheet";
+import { PageHeader } from "@/components/common/PageHeader";
 
 export function CollectionPage() {
   // Data
@@ -132,35 +133,35 @@ export function CollectionPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center justify-between pb-6 border-b border-border/40">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Collection</h1>
-          <p className="text-sm text-muted-foreground mt-1">All units you own, tracked and filterable</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Table view"
-            className={viewMode === "table" ? "bg-muted" : ""}
-            onClick={() => setViewMode("table")}
-          >
-            <LayoutList className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Gallery view"
-            className={viewMode === "gallery" ? "bg-muted" : ""}
-            onClick={() => setViewMode("gallery")}
-          >
-            <LayoutGrid className="h-4 w-4" />
-          </Button>
-          <Button onClick={handleAdd}>
-            <Plus className="mr-2 h-4 w-4" /> Add Unit
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Collection"
+        subtitle="All units you own, tracked and filterable"
+        actions={
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Table view"
+              className={viewMode === "table" ? "bg-muted" : ""}
+              onClick={() => setViewMode("table")}
+            >
+              <LayoutList className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Gallery view"
+              className={viewMode === "gallery" ? "bg-muted" : ""}
+              onClick={() => setViewMode("gallery")}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button onClick={handleAdd}>
+              <Plus className="mr-2 h-4 w-4" /> Add Unit
+            </Button>
+          </>
+        }
+      />
 
       <UnitFilters units={units ?? []} />
 

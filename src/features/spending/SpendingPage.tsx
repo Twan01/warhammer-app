@@ -25,6 +25,7 @@ import { useSpendingStats } from "@/hooks/useSpendingStats";
 import { useHobbyAnalytics } from "@/hooks/useHobbyAnalytics";
 import { SpendTrendChart } from "./SpendTrendChart";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { PageHeader } from "@/components/common/PageHeader";
 
 export function SpendingPage() {
   const { data, isLoading, isError } = useSpendingStats();
@@ -59,12 +60,10 @@ export function SpendingPage() {
 
   return (
     <div className="max-w-3xl mx-auto p-8 flex flex-col gap-12">
-      <div className="flex items-center justify-between pb-6 border-b border-border/40">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Spending</h1>
-          <p className="text-sm text-muted-foreground mt-1">Total hobby spend tracked to the penny</p>
-        </div>
-      </div>
+      <PageHeader
+        title="Spending"
+        subtitle="Total hobby spend tracked to the penny"
+      />
 
       {isEmpty ? (
         <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
