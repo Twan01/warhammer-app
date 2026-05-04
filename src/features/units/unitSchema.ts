@@ -43,6 +43,10 @@ export const unitSchema = z.object({
   storage_location: z.string().max(120).optional().nullable(),
   main_image_path: z.string().max(255).optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
+
+  // Enrichment (migration 008 — Phase 17 ENRCH-02, ENRCH-03)
+  lore_notes: z.string().optional().nullable(),
+  undercoat: z.string().max(120, "Undercoat must be 120 characters or fewer").optional().nullable(),
 });
 
 export type UnitFormValues = z.infer<typeof unitSchema>;
