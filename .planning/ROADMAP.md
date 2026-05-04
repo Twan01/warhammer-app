@@ -272,7 +272,7 @@ Plans:
 | 12. Collection Gallery View | v2.1 | 4/4 | Complete | 2026-05-04 |
 | 13. Hobby Journal | v2.1 | 6/6 | Complete | 2026-05-04 |
 | 14. Spending Tracker | v2.1 | 4/5 | In Progress | — |
-| 15. 40K Datasheet Integration | v2.1 | 0/7 | Not started | — |
+| 15. 40K Datasheet Integration | 1/7 | In Progress|  | — |
 | 16. Design Overhaul | v2.1 | 0/8 | Not started | — |
 | 17. Schema Foundation + Enrichment | v2.2 | 0/TBD | Not started | — |
 | 18. Battle Log | v2.2 | 0/TBD | Not started | — |

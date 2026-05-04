@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.2
-milestone_name: Full Circle
-status: Roadmap created — v2.1 still in progress (Phases 14–16)
-stopped_at: v2.2 roadmap written (Phases 17–22); v2.1 continuing with Phase 14 plan 14-04
-last_updated: "2026-05-04T00:00:00.000Z"
-last_activity: 2026-05-04 — v2.2 roadmap created (Phases 17–22, 23 requirements mapped)
+milestone: v2.1
+milestone_name: Visual Command
+status: executing
+stopped_at: Phase 17 UI-SPEC approved
+last_updated: "2026-05-04T08:33:50.582Z"
+last_activity: "2026-05-04 — Phase 16 Plan 01 complete: Geist font foundation installed"
 progress:
   total_phases: 13
-  completed_phases: 9
-  total_plans: 35
-  completed_plans: 22
-  percent: 0
+  completed_phases: 4
+  total_plans: 38
+  completed_plans: 24
+  percent: 63
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.2 milestone start)
 
 ## Current Position
 
-Phase: 14 of 22 (Spending Tracker — 4/5 plans complete)
-Plan: 14-04 (Manual smoke-test — final gate before Phase 14 ships)
+Phase: 16 of 22 (Design Overhaul — 1/8 plans complete)
+Plan: 16-02 (Sidebar polish — next plan)
 Status: In progress
-Last activity: 2026-05-04 — v2.2 roadmap created; resume Phase 14-04 smoke-test
+Last activity: 2026-05-04 — Phase 16 Plan 01 complete: Geist font foundation installed
 
-Progress: [████████░░░░░░░░░░░░░░] ~40% (22/35+ plans complete across v1.1+v2.0+v2.1)
+Progress: [██████░░░░] 63% (24/38 plans complete)
 
 ## v2.2 Phase Map
 
@@ -85,6 +85,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04
-Stopped at: v2.2 roadmap written; Phase 14-04 smoke-test is next action in v2.1
+Last session: 2026-05-04T08:33:50.578Z
+Stopped at: Phase 17 UI-SPEC approved
 Resume: Run `/gsd:execute-phase 14` to run Plan 14-04 (manual smoke-test for Spending Tracker)
