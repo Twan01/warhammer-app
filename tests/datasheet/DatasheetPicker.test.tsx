@@ -1,34 +1,79 @@
 /**
- * Phase 15 — DatasheetPicker component tests (Wave 0 stubs).
- *
- * STATUS: skipped. Plan 15-04 will:
- *   1. Create src/features/units/DatasheetPicker.tsx — Dialog with autoFocus search input,
- *      faction-pre-filtered list (~200 datasheets), client-side substring filter.
- *   2. Replace each `it.skip` below with `it`.
- *   3. Add real assertions matching 15-VALIDATION.md row 15-03-01.
+ * Phase 15 — DatasheetPicker component tests.
  */
-import { describe, it } from "vitest";
+import { vi, describe, it, expect, beforeEach } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
 
-describe("DatasheetPicker — Wave 0 stubs", () => {
-  it.skip("DS-04: renders Dialog with the unit's faction name in DialogDescription and one button per pre-filtered datasheet row", () => {
-    // Plan 15-04 will:
-    //   - vi.mock("@/hooks/useDatasheet") — useDatasheetsByFaction returns
-    //     [{ id: "001", name: "Intercessors", role: "Battleline" }, { id: "002", name: "Hellblasters", role: "Battleline" }]
-    //   - render <DatasheetPicker open={true} factionId="SM" factionName="Space Marines" onSelect={vi.fn()} onSkip={vi.fn()} />
-    //   - assert screen.getByText(/Searching Space Marines datasheets/) is in document
-    //   - assert screen.getByText("Intercessors") is in document
-    //   - assert screen.getByText("Hellblasters") is in document
-    //   - assert screen.getByRole("button", { name: "Skip" }) is in document
+const useDatasheetsByFactionMock = vi.fn();
+
+vi.mock("@/hooks/useDatasheet", () => ({
+  useDatasheetsByFaction: (factionId?: string) => useDatasheetsByFactionMock(factionId),
+}));
+
+import { DatasheetPicker } from "@/features/units/DatasheetPicker";
+
+beforeEach(() => {
+  useDatasheetsByFactionMock.mockReset();
+});
+
+describe("DatasheetPicker", () => {
+  it("DS-04: renders Dialog with the unit's faction name in DialogDescription and one button per pre-filtered datasheet row", () => {
+    useDatasheetsByFactionMock.mockReturnValue({
+      data: [
+        { id: "001", name: "Intercessors", role: "Battleline" },
+        { id: "002", name: "Hellblasters", role: "Battleline" },
+      ],
+      isLoading: false,
+    });
+    render(
+      <DatasheetPicker
+        open={true}
+        factionId="SM"
+        factionName="Space Marines"
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+    expect(screen.getByText(/Searching Space Marines datasheets/)).toBeInTheDocument();
+    expect(screen.getByText("Intercessors")).toBeInTheDocument();
+    expect(screen.getByText("Hellblasters")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Skip" })).toBeInTheDocument();
+    expect(useDatasheetsByFactionMock).toHaveBeenCalledWith("SM");
   });
 
-  it.skip("DS-04: search input filters list by case-insensitive substring match on the name field", () => {
-    // Plan 15-04 will:
-    //   - render with 3 datasheets (Intercessors, Terminators, Hellblasters)
-    //   - fireEvent.change(searchInput, { target: { value: "term" } })
-    //   - assert screen.queryByText("Intercessors") is null
-    //   - assert screen.getByText("Terminators") is in document
-    //   - clear input
-    //   - assert screen.queryByText("Intercessors") is in document again
-    //   - empty-state branch: type "zzz" → assert screen.getByText(/No datasheets found/) appears
+  it("DS-04: search input filters list by case-insensitive substring match on name; empty match shows 'No datasheets found.' empty state", () => {
+    useDatasheetsByFactionMock.mockReturnValue({
+      data: [
+        { id: "001", name: "Intercessors", role: "Battleline" },
+        { id: "002", name: "Terminators", role: "Elite" },
+        { id: "003", name: "Hellblasters", role: "Battleline" },
+      ],
+      isLoading: false,
+    });
+    render(
+      <DatasheetPicker
+        open={true}
+        factionId="SM"
+        factionName="Space Marines"
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+    const searchInput = screen.getByLabelText("Search datasheets");
+
+    // Filter to only Terminators
+    fireEvent.change(searchInput, { target: { value: "term" } });
+    expect(screen.queryByText("Intercessors")).toBeNull();
+    expect(screen.getByText("Terminators")).toBeInTheDocument();
+
+    // Clear → all 3 visible again
+    fireEvent.change(searchInput, { target: { value: "" } });
+    expect(screen.getByText("Intercessors")).toBeInTheDocument();
+    expect(screen.getByText("Terminators")).toBeInTheDocument();
+    expect(screen.getByText("Hellblasters")).toBeInTheDocument();
+
+    // No match → empty state copy
+    fireEvent.change(searchInput, { target: { value: "zzz" } });
+    expect(screen.getByText("No datasheets found. Try a different search term.")).toBeInTheDocument();
   });
 });
