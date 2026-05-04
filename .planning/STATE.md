@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Completed 16-04-PLAN.md — Painting workflow page headers + PlaybookTab tabular-nums
-last_updated: "2026-05-04T08:55:00.403Z"
-last_activity: "2026-05-04 — Phase 16 Plan 04 complete: Painting workflow page headers + PlaybookTab tabular-nums"
+stopped_at: Completed 16-05-PLAN.md — Army Lists + Spending cluster headers, ArmyListCard elevation, tabular-nums, Spending empty state
+last_updated: "2026-05-04T11:05:00.000Z"
+last_activity: "2026-05-04 — Phase 16 Plan 05 complete: Army Lists + Spending page headers, ArmyListCard elevation + tabular-nums, SpendingPage empty state"
 progress:
   total_phases: 13
   completed_phases: 4
-  total_plans: 38
-  completed_plans: 30
-  percent: 76
+  total_plans: 40
+  completed_plans: 32
+  percent: 80
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.2 milestone start)
 
 ## Current Position
 
-Phase: 16 of 22 (Design Overhaul — 4/8 plans complete)
-Plan: 16-05 (next plan)
+Phase: 16 of 22 (Design Overhaul — 5/8 plans complete)
+Plan: 16-06 (next plan)
 Status: In progress
-Last activity: 2026-05-04 — Phase 16 Plan 04 complete: Painting workflow page headers + PlaybookTab tabular-nums
+Last activity: 2026-05-04 — Phase 16 Plan 05 complete: Army Lists + Spending page headers, ArmyListCard elevation + tabular-nums, SpendingPage empty state
 
-Progress: [████████░░] 76% (29/38 plans complete)
+Progress: [████████░░] 80% (32/40 plans complete)
 
 ## v2.2 Phase Map
 
@@ -85,6 +85,10 @@ Architecture constraints:
 - hover:bg-muted/50 removed from UnitGallery CARD_CLASSES, replaced with hover:shadow-md transition-shadow duration-150
 - Page header contract (text-3xl font-semibold tracking-tight + subtitle + pb-6 border-b border-border/40) applied to all Dashboard render branches and CollectionPage
 - PlaybookTab tabular-nums applied via Pattern B (single span inside STAT_KEYS.map) — one edit covers all six stat values (M/T/Sv/W/Ld/OC)
+- SpendingPage header inserted INSIDE max-w-3xl wrapper (Pitfall 1) — border-b spans only narrow content column, not full window
+- Spending Breakdown h2 downgraded from text-xl (20px) to text-base (16px) per Phase 16 size scale (only 14/16/28px allowed)
+- SpendingPage isEmpty guard checks all three spend sources before rendering empty state vs data view
+- ArmyListCard interactive card pattern: bg-card border border-border/60 shadow-sm hover:shadow-md transition-shadow duration-150 (replaces hover:bg-muted/50)
 
 ### Decisions Carried from v2.1
 
@@ -112,6 +116,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T10:54:00Z
-Stopped at: Completed 15-03-PLAN.md — rules-client singleton + datasheets query module + useDatasheet hooks (7 stubs flipped)
-Resume: Run `/gsd:execute-phase 15` to execute Plan 15-04
+Last session: 2026-05-04T11:05:00Z
+Stopped at: Completed 16-05-PLAN.md — Army Lists + Spending cluster headers, ArmyListCard elevation, tabular-nums, Spending empty state
+Resume: Run `/gsd:execute-phase 16` to execute Plan 16-06

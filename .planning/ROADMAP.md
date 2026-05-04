@@ -196,7 +196,10 @@ Plans:
   2. User can open any faction's edit form and see a "Lore Notes" text area — typing in it and saving persists the content across app restarts
   3. User can open any unit's detail sheet and see an "Undercoat" field — entering the primer used (e.g. "Chaos Black") saves and displays on subsequent opens
   4. Journal session dates display the correct calendar date regardless of the user's local timezone — no off-by-one dates caused by UTC/local conversion
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 17-00-PLAN.md — Migration 008 (4 ALTER TABLE columns) + lib.rs version 8 + types/queries/forms extensions + UnitDetailSheet display rows + src/lib/dates.ts utility + JournalTab UTC bug fix + manual smoke-test checkpoint (16 tasks across 5 waves)
 
 ### Phase 18: Battle Log
 **Goal**: Users can record every game they play — opponent faction, mission, result, army list used, and optional notes — and view their complete game history in a chronological list
@@ -273,7 +276,7 @@ Plans:
 | 13. Hobby Journal | v2.1 | 6/6 | Complete | 2026-05-04 |
 | 14. Spending Tracker | v2.1 | 4/5 | In Progress | — |
 | 15. 40K Datasheet Integration | 4/7 | In Progress|  | — |
-| 16. Design Overhaul | 4/8 | In Progress|  | — |
+| 16. Design Overhaul | 5/8 | In Progress|  | — |
 | 17. Schema Foundation + Enrichment | v2.2 | 0/TBD | Not started | — |
 | 18. Battle Log | v2.2 | 0/TBD | Not started | — |
 | 19. Analytics Core | v2.2 | 0/TBD | Not started | — |
