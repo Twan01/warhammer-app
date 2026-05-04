@@ -1,14 +1,34 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Pencil } from "lucide-react";
+import { ChevronDown, Loader2, Pencil, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useStrategyNote, useUpsertStrategyNote } from "@/hooks/useStrategyNote";
+import { useDatasheet, useRulesSyncMeta, useWahapediaFactionId, DATASHEET_KEY } from "@/hooks/useDatasheet";
+import { useRulesSync } from "@/hooks/useRulesSync";
+import { useFactions } from "@/hooks/useFactions";
+import { useUnits } from "@/hooks/useUnits";
+import { useQueryClient } from "@tanstack/react-query";
+import { upsertDatasheetLink } from "@/db/queries/datasheets";
+import type { DatasheetConflict, DatasheetImportPayload, FullDatasheet, RwDatasheetAbility } from "@/types/datasheet";
 import type { StrategyNote, UpsertStrategyNoteInput } from "@/types/strategyNote";
+import { DatasheetPicker } from "@/features/units/DatasheetPicker";
 
 interface PlaybookTabProps {
   unitId: number;
+  /** Called when an import produces field-level conflicts. CollectionPage opens the
+   *  DatasheetImportDialog (sibling portal) and routes user-confirmed resolutions back
+   *  via onApplyImportResolution. Optional so tests / Phase 9 callers don't break. */
+  onDatasheetConflict?: (payload: DatasheetImportPayload) => void;
+  /** Subscribed to from CollectionPage — when the dialog confirms, this object
+   *  contains { resolution, payload }. PlaybookTab applies the resolved values to
+   *  local state. Optional for the same reason. */
+  pendingImportResolution?: { resolution: import("@/types/datasheet").DatasheetImportResolution; payload: DatasheetImportPayload } | null;
+  /** Called by PlaybookTab to acknowledge that pendingImportResolution has been
+   *  applied — CollectionPage clears its state. */
+  onClearImportResolution?: () => void;
 }
 
 type StatKey = "M" | "T" | "Sv" | "W" | "Ld" | "OC";
@@ -59,7 +79,12 @@ function parseNumberInput(raw: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-export function PlaybookTab({ unitId }: PlaybookTabProps) {
+export function PlaybookTab({
+  unitId,
+  onDatasheetConflict,
+  pendingImportResolution,
+  onClearImportResolution,
+}: PlaybookTabProps) {
   const { data, isLoading } = useStrategyNote(unitId);
   const upsert = useUpsertStrategyNote();
 
@@ -218,6 +243,187 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
     }
   }
 
+  // Datasheet integration hooks (DS-01..DS-12)
+  const qc = useQueryClient();
+  const { data: factions } = useFactions();
+  const { data: units } = useUnits();
+  const unit = useMemo(() => units?.find((u) => u.id === unitId) ?? null, [units, unitId]);
+  const localFaction = useMemo(
+    () => (unit && factions ? factions.find((f) => f.id === unit.faction_id) ?? null : null),
+    [unit, factions]
+  );
+  const { data: wahapediaFactionId } = useWahapediaFactionId(localFaction?.name);
+  const { data: syncMeta } = useRulesSyncMeta();
+  const { data: datasheet } = useDatasheet(unitId);
+  const rulesSync = useRulesSync();
+
+  // Picker open state — local to PlaybookTab so the auto-open trigger is a one-shot effect.
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  // Track whether the auto-open trigger has already fired for this mount, so the picker
+  // doesn't reopen on every re-render after the user dismisses it.
+  const autoOpenedRef = useRef(false);
+
+  const hasDatasheetLink = datasheet !== null && datasheet !== undefined;
+
+  // DS-04 auto-open: on first PlaybookTab mount where (a) NO datasheet link AND (b) ALL 6 stats null AND (c) rules.db populated → open picker once.
+  useEffect(() => {
+    if (autoOpenedRef.current) return;
+    if (initialRef.current === undefined) return; // wait until strategy_note loaded
+    const allStatsNull =
+      move === null && toughness === null && saveStat === null &&
+      wounds === null && leadership === null && objectiveControl === null;
+    if (!hasDatasheetLink && allStatsNull && syncMeta) {
+      setPickerOpen(true);
+      autoOpenedRef.current = true;
+    }
+  }, [hasDatasheetLink, syncMeta, move, toughness, saveStat, wounds, leadership, objectiveControl]);
+
+  // Stat-suffix coercion: rules.db stores "6\"" / "3+" / "6+" (TEXT) but unit_strategy_notes
+  // is INTEGER. Strip non-digit chars and Number() the leading digits.
+  function coerceStatToNumber(raw: string | null | undefined): number | null {
+    if (raw === null || raw === undefined || raw === "") return null;
+    const digits = raw.replace(/[^0-9]/g, "");
+    if (digits === "") return null;
+    return Number(digits);
+  }
+
+  /**
+   * DS-06 + DS-07 + DS-08: process the picker's selection.
+   * 1. Persist the link to hobbyforge.db.
+   * 2. Refetch the FullDatasheet (invalidate to force fresh data).
+   * 3. Derive incoming values + conflicts.
+   * 4. If no conflicts: load incoming directly. If conflicts: dispatch payload up.
+   */
+  async function handlePickerSelect(datasheetId: string) {
+    setPickerOpen(false);
+    try {
+      await upsertDatasheetLink({ unit_id: unitId, datasheet_id: datasheetId });
+      qc.invalidateQueries({ queryKey: DATASHEET_KEY(unitId) });
+      const linkedId = datasheetId; // we just upserted it
+      const { getFullDatasheet } = await import("@/db/queries/datasheets");
+      const fresh = await getFullDatasheet(linkedId);
+      if (!fresh) {
+        toast.error("Datasheet not found in rules database — try re-syncing.");
+        return;
+      }
+      applyIncomingOrRouteConflicts(fresh);
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to link datasheet — try again.");
+    }
+  }
+
+  /** DS-08 conflict derivation. */
+  function applyIncomingOrRouteConflicts(fresh: FullDatasheet) {
+    const m0 = fresh.models[0] ?? null;
+    const incomingM = m0 ? coerceStatToNumber(m0.M) : null;
+    const incomingT = m0 ? m0.T : null;
+    const incomingSv = m0 ? coerceStatToNumber(m0.Sv) : null;
+    const incomingW = m0 ? m0.W : null;
+    const incomingLd = m0 ? coerceStatToNumber(m0.Ld) : null;
+    const incomingOC = m0 ? m0.OC : null;
+    const incomingAbilities = formatDatasheetAbilitiesAsText(fresh.abilities);
+    const incomingKeywords = fresh.keywords.map((k) => k.keyword).join(", ");
+
+    // Build conflict list — only fields where BOTH current and incoming are non-empty AND differ.
+    const conflicts: DatasheetConflict[] = [];
+    function addStatConflict(
+      key: DatasheetConflict["key"],
+      label: string,
+      current: number | null,
+      incoming: number | null
+    ) {
+      if (current !== null && incoming !== null && current !== incoming) {
+        conflicts.push({ key, label, currentValue: String(current), incomingValue: String(incoming), choice: "use" });
+      }
+    }
+    addStatConflict("M", "M", move, incomingM);
+    addStatConflict("T", "T", toughness, incomingT);
+    addStatConflict("Sv", "Sv", saveStat, incomingSv);
+    addStatConflict("W", "W", wounds, incomingW);
+    addStatConflict("Ld", "Ld", leadership, incomingLd);
+    addStatConflict("OC", "OC", objectiveControl, incomingOC);
+    if (abilities.trim() !== "" && incomingAbilities.trim() !== "" && abilities.trim() !== incomingAbilities.trim()) {
+      conflicts.push({ key: "abilities", label: "Personal Ability Notes", currentValue: abilities, incomingValue: incomingAbilities, choice: "use" });
+    }
+    if (keywords.trim() !== "" && incomingKeywords.trim() !== "" && keywords.trim() !== incomingKeywords.trim()) {
+      conflicts.push({ key: "keywords", label: "Keywords", currentValue: keywords, incomingValue: incomingKeywords, choice: "use" });
+    }
+
+    if (conflicts.length === 0) {
+      // No conflicts: load fields directly (only fields where incoming is non-null and current is empty).
+      if (incomingM !== null && move === null) setMove(incomingM);
+      if (incomingT !== null && toughness === null) setToughness(incomingT);
+      if (incomingSv !== null && saveStat === null) setSaveStat(incomingSv);
+      if (incomingW !== null && wounds === null) setWounds(incomingW);
+      if (incomingLd !== null && leadership === null) setLeadership(incomingLd);
+      if (incomingOC !== null && objectiveControl === null) setObjectiveControl(incomingOC);
+      if (abilities.trim() === "" && incomingAbilities.trim() !== "") setAbilities(incomingAbilities);
+      if (keywords.trim() === "" && incomingKeywords.trim() !== "") setKeywords(incomingKeywords);
+      return;
+    }
+
+    // Conflicts: dispatch up to CollectionPage. Pass the FRESH datasheet so the dialog has full context.
+    const payload: DatasheetImportPayload = { unitId, datasheet: fresh, conflicts };
+    onDatasheetConflict?.(payload);
+  }
+
+  /** Format datasheet abilities as a single readable text block for the Personal Ability Notes
+   *  textarea (which is plain text, not structured). Used only for conflict-detection comparison
+   *  and direct-load no-conflict path; the rendered Datasheet Abilities section uses the
+   *  structured RwDatasheetAbility[] directly. */
+  function formatDatasheetAbilitiesAsText(list: RwDatasheetAbility[]): string {
+    return list
+      .map((a) => `${a.name}${a.description ? ": " + a.description : ""}`)
+      .join("\n");
+  }
+
+  // Subscribe to import resolutions dispatched from CollectionPage's DatasheetImportDialog.
+  useEffect(() => {
+    if (!pendingImportResolution) return;
+    const { resolution, payload } = pendingImportResolution;
+    const m0 = payload.datasheet.models[0] ?? null;
+    const incomingAbilitiesText = formatDatasheetAbilitiesAsText(payload.datasheet.abilities);
+    const incomingKeywordsText = payload.datasheet.keywords.map((k) => k.keyword).join(", ");
+    if (resolution.M === "use" && m0) setMove(coerceStatToNumber(m0.M));
+    if (resolution.T === "use" && m0) setToughness(m0.T);
+    if (resolution.Sv === "use" && m0) setSaveStat(coerceStatToNumber(m0.Sv));
+    if (resolution.W === "use" && m0) setWounds(m0.W);
+    if (resolution.Ld === "use" && m0) setLeadership(coerceStatToNumber(m0.Ld));
+    if (resolution.OC === "use" && m0) setObjectiveControl(m0.OC);
+    if (resolution.abilities === "use") setAbilities(incomingAbilitiesText);
+    if (resolution.keywords === "use") setKeywords(incomingKeywordsText);
+    onClearImportResolution?.();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingImportResolution]);
+
+  function handleSyncClick() {
+    rulesSync.mutate(undefined, {
+      onSuccess: () => toast.success("Datasheets synced"),
+      onError: () => toast.error("Sync failed — check your connection and try again"),
+    });
+  }
+
+  // Group datasheet abilities into Core / Faction / Unit sub-groups for the collapsible.
+  const coreAbilities = (datasheet?.abilities ?? []).filter((a) => a.type === "Core");
+  const factionAbilities = (datasheet?.abilities ?? []).filter((a) => a.type === "Faction");
+  const unitAbilities = (datasheet?.abilities ?? []).filter((a) =>
+    a.type !== "Core" && a.type !== "Faction"
+  );
+  const hasAnyDatasheetAbility = coreAbilities.length > 0 || factionAbilities.length > 0 || unitAbilities.length > 0;
+  const hasMultipleProfiles = (datasheet?.models?.length ?? 0) > 1;
+  const sources = datasheet?.source ? [datasheet.source] : [];
+
+  function formatSyncDate(iso: string | null): string {
+    if (!iso) return "—";
+    try {
+      return new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+    } catch {
+      return iso;
+    }
+  }
+
   return (
     <div
       className={`flex flex-col gap-6 p-4 ${isLoading ? "opacity-50 pointer-events-none" : ""}`}
@@ -227,17 +433,66 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <span className={SECTION_LABEL_CLASS}>Stats</span>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6"
-            aria-label="Edit stats"
-            onClick={() => setStatsEditMode((v) => !v)}
-          >
-            <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {syncMeta && (
+              <span className="text-xs text-muted-foreground">
+                Last synced: {formatSyncDate(syncMeta.last_sync_at)}
+              </span>
+            )}
+            {syncMeta && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setPickerOpen(true)}
+                disabled={!wahapediaFactionId}
+              >
+                {hasDatasheetLink ? "Re-import" : "Import stats"}
+              </Button>
+            )}
+            {syncMeta && hasDatasheetLink && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label="Re-sync datasheets"
+                onClick={handleSyncClick}
+                disabled={rulesSync.isPending}
+              >
+                {rulesSync.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                )}
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              aria-label="Edit stats"
+              onClick={() => setStatsEditMode((v) => !v)}
+            >
+              <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+            </Button>
+          </div>
         </div>
+
+        {/* Empty-rules-db banner — shown when no syncMeta */}
+        {!syncMeta && (
+          <div className="rounded-md border border-border bg-card px-3 py-2 text-sm text-muted-foreground">
+            Sync datasheets to auto-fill stats.{" "}
+            <button
+              type="button"
+              className="underline underline-offset-2 hover:text-foreground"
+              onClick={handleSyncClick}
+              disabled={rulesSync.isPending}
+            >
+              {rulesSync.isPending ? "Syncing…" : "Sync now"}
+            </button>
+          </div>
+        )}
 
         <div className="flex flex-row gap-1">
           {STAT_KEYS.map((key) => (
@@ -267,26 +522,95 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
             </div>
           ))}
         </div>
+
+        {/* DS-12 multi-profile note */}
+        {hasMultipleProfiles && (
+          <p className="text-xs text-muted-foreground mt-1">
+            Additional model profiles available — see Datasheet Abilities for details.
+          </p>
+        )}
       </div>
 
       <Separator />
 
-      {/* Abilities */}
+      {/* DS-09 Datasheet Abilities collapsible */}
+      {hasAnyDatasheetAbility && (
+        <Collapsible defaultOpen={true}>
+          <CollapsibleTrigger asChild>
+            <button
+              type="button"
+              className="flex items-center justify-between w-full py-2 text-left"
+            >
+              <span className="text-base font-semibold">Datasheet Abilities</span>
+              <ChevronDown
+                className="h-4 w-4 text-muted-foreground transition-transform data-[state=open]:rotate-180"
+                aria-hidden="true"
+              />
+            </button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="flex flex-col gap-4">
+              {coreAbilities.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  <span className={SECTION_LABEL_CLASS}>Core Abilities</span>
+                  {coreAbilities.map((a, idx) => (
+                    <AbilityEntry key={`${a.datasheet_id}-${a.line}-${idx}`} ability={a} />
+                  ))}
+                </div>
+              )}
+              {factionAbilities.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  <span className={SECTION_LABEL_CLASS}>Faction Abilities</span>
+                  {factionAbilities.map((a, idx) => (
+                    <AbilityEntry key={`${a.datasheet_id}-${a.line}-${idx}`} ability={a} />
+                  ))}
+                </div>
+              )}
+              {unitAbilities.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  <span className={SECTION_LABEL_CLASS}>Unit Abilities</span>
+                  {unitAbilities.map((a, idx) => (
+                    <AbilityEntry key={`${a.datasheet_id}-${a.line}-${idx}`} ability={a} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+
+      {/* DS-10 Sources list */}
+      {sources.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <span className={SECTION_LABEL_CLASS}>Sources</span>
+          <ul className="flex flex-col gap-1 pl-2">
+            {sources.map((s) => (
+              <li key={s.id} className="text-sm text-muted-foreground">
+                {s.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {(hasAnyDatasheetAbility || sources.length > 0) && <Separator />}
+
+      {/* DS-11 Personal Ability Notes (renamed from "Abilities") */}
       <div className="flex flex-col gap-1">
         <label htmlFor="playbook-abilities" className={SECTION_LABEL_CLASS}>
-          Abilities
+          Personal Ability Notes
         </label>
         <textarea
           id="playbook-abilities"
           className={TEXTAREA_CLASS}
           rows={3}
-          placeholder="Enter unit abilities…"
+          placeholder="Personal notes on how to use this unit's abilities…"
           value={abilities}
           onChange={(e) => setAbilities(e.target.value)}
         />
       </div>
 
-      {/* Keywords (single-line Input per UI-SPEC §4) */}
+      {/* Keywords (single-line Input — unchanged) */}
       <div className="flex flex-col gap-1">
         <label htmlFor="playbook-keywords" className={SECTION_LABEL_CLASS}>
           Keywords
@@ -302,7 +626,7 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
 
       <Separator />
 
-      {/* 8 strategy note fields in fixed order */}
+      {/* 8 strategy note fields (unchanged from Phase 9) */}
       <div className="flex flex-col gap-4">
         {STRATEGY_NOTE_FIELDS.map((field) => {
           const value = (() => {
@@ -348,7 +672,7 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
         })}
       </div>
 
-      {/* Save button at the bottom of the Playbook tab scroll area (NOT in SheetFooter) */}
+      {/* Save button (unchanged from Phase 9) */}
       <Button
         type="button"
         variant="default"
@@ -358,6 +682,32 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
       >
         Save Playbook
       </Button>
+
+      {/* DS-04 picker — mounted inside PlaybookTab.
+          The picker Dialog uses its own portal which detaches from the tab DOM tree,
+          so there is no Radix portal nesting issue. The conflict dialog MUST be hoisted
+          to CollectionPage (Task 3) since it can open right after the picker closes. */}
+      <DatasheetPicker
+        open={pickerOpen}
+        factionId={wahapediaFactionId ?? undefined}
+        factionName={localFaction?.name ?? "this faction"}
+        onSelect={(datasheetId) => { void handlePickerSelect(datasheetId); }}
+        onClose={() => setPickerOpen(false)}
+      />
+    </div>
+  );
+}
+
+// AbilityEntry sub-component — module-local, NOT exported.
+function AbilityEntry({ ability }: { ability: import("@/types/datasheet").RwDatasheetAbility }) {
+  return (
+    <div className="flex flex-col gap-1 pl-2 border-l border-border">
+      <span className="text-sm font-semibold text-foreground">{ability.name}</span>
+      {ability.description && (
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          {ability.description}
+        </p>
+      )}
     </div>
   );
 }
