@@ -67,6 +67,8 @@ function buildDefaultValues(unit: Unit | null, defaultFactionId?: number): UnitF
       storage_location: unit.storage_location ?? null,
       main_image_path: unit.main_image_path ?? null,
       notes: unit.notes ?? null,
+      lore_notes: unit.lore_notes ?? null,
+      undercoat: unit.undercoat ?? null,
     };
   }
   return {
@@ -90,6 +92,8 @@ function buildDefaultValues(unit: Unit | null, defaultFactionId?: number): UnitF
     storage_location: null,
     main_image_path: null,
     notes: null,
+    lore_notes: null,
+    undercoat: null,
   };
 }
 
@@ -135,8 +139,8 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
         storage_location: values.storage_location || null,
         main_image_path: values.main_image_path || null,
         notes: values.notes || null,
-        lore_notes: null, // placeholder — wired in Task 10
-        undercoat: null,  // placeholder — wired in Task 10
+        lore_notes: values.lore_notes || null,
+        undercoat: values.undercoat || null,
       };
 
       if (isEdit && unit) {
@@ -600,6 +604,50 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
                         <textarea
                           className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                           placeholder="Optional notes..."
+                          {...field}
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(e.target.value || null)
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  name="undercoat"
+                  control={form.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Undercoat</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. Chaos Black, Wraithbone"
+                          {...field}
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(e.target.value || null)
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  name="lore_notes"
+                  control={form.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Lore Notes</FormLabel>
+                      <FormControl>
+                        <textarea
+                          className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          placeholder="Character history, battle honours, personal backstory…"
+                          rows={4}
                           {...field}
                           value={field.value ?? ""}
                           onChange={(e) =>
