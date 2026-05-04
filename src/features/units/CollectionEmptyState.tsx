@@ -1,4 +1,4 @@
-import { PackageSearch } from "lucide-react";
+import { ShieldOff, FilterX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface CollectionEmptyStateProps {
@@ -14,28 +14,32 @@ export function CollectionEmptyState({
 }: CollectionEmptyStateProps) {
   if (mode === "filtered") {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-        <PackageSearch className="h-12 w-12 text-muted-foreground" />
-        <p className="text-base font-semibold">No units found</p>
-        <p className="text-sm text-muted-foreground">
-          No units match your current filters. Try clearing a filter to see more.
-        </p>
-        {onClearFilters && (
-          <Button variant="outline" onClick={onClearFilters}>
-            Clear filters
-          </Button>
-        )}
+      <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+        <div className="rounded-xl bg-muted/40 p-4">
+          <FilterX className="h-8 w-8 text-muted-foreground" />
+        </div>
+        <div className="space-y-1">
+          <p className="text-base font-semibold">No units match</p>
+          <p className="text-sm text-muted-foreground max-w-xs">
+            Your current filters returned nothing. Clear a filter to see more units.
+          </p>
+        </div>
+        <Button className="mt-2" onClick={onClearFilters}>Clear filters</Button>
       </div>
     );
   }
   return (
-    <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-      <PackageSearch className="h-12 w-12 text-muted-foreground" />
-      <p className="text-base font-semibold">Add your first unit</p>
-      <p className="text-sm text-muted-foreground">
-        Your collection is empty. Add a unit to start tracking your hobby progress.
-      </p>
-      {onAdd && <Button onClick={onAdd}>Add Unit</Button>}
+    <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+      <div className="rounded-xl bg-muted/40 p-4">
+        <ShieldOff className="h-8 w-8 text-muted-foreground" />
+      </div>
+      <div className="space-y-1">
+        <p className="text-base font-semibold">No units yet</p>
+        <p className="text-sm text-muted-foreground max-w-xs">
+          Add your first unit to start tracking what you own and how far along it is.
+        </p>
+      </div>
+      <Button className="mt-2" onClick={onAdd}>Add unit</Button>
     </div>
   );
 }

@@ -85,11 +85,11 @@ describe("UnitTable", () => {
   describe("empty", () => {
     it("COLL-12: renders CollectionEmptyState when no units exist", () => {
       renderTable({ data: [], hasActiveFilters: false });
-      expect(screen.getByText("Add your first unit")).toBeInTheDocument();
+      expect(screen.getByText("No units yet")).toBeInTheDocument();
     });
     it("COLL-12: renders filtered empty state when filters yield zero units", () => {
       renderTable({ data: [], hasActiveFilters: true });
-      expect(screen.getByText("No units found")).toBeInTheDocument();
+      expect(screen.getByText("No units match")).toBeInTheDocument();
     });
   });
   describe("faction badge", () => {
