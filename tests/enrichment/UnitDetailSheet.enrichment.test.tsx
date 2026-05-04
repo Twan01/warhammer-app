@@ -11,7 +11,7 @@
  * - Render UnitDetailSheet with open={true} and a mock unit prop
  * - The Details tab is the defaultValue tab — renders immediately
  */
-import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
+import { vi, describe, it, expect, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Unit } from "@/types/unit";

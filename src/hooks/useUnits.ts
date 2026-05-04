@@ -33,6 +33,7 @@ export function useCreateUnit() {
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
       // SPEND-03/04 (Pitfall 2): invalidate spending-stats so Spending page stays fresh
       qc.invalidateQueries({ queryKey: ["spending-stats"] });
+      qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
     },
   });
 }
@@ -48,6 +49,7 @@ export function useUpdateUnit() {
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
       // SPEND-03/04 (Pitfall 2): invalidate spending-stats so Spending page stays fresh
       qc.invalidateQueries({ queryKey: ["spending-stats"] });
+      qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
     },
   });
 }
@@ -62,6 +64,7 @@ export function useDeleteUnit() {
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
       // SPEND-03/04 (Pitfall 2): invalidate spending-stats so Spending page stays fresh
       qc.invalidateQueries({ queryKey: ["spending-stats"] });
+      qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
     },
     // FK errors (unit in army_list_units) reject — handled by component try/catch with toast
   });

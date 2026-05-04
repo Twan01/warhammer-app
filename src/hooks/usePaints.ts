@@ -47,6 +47,7 @@ export function useCreatePaint() {
       qc.invalidateQueries({ queryKey: PAINTS_WITH_RECIPES_KEY });
       // SPEND-03/04 (Pitfall 2): invalidate spending-stats so Spending page stays fresh
       qc.invalidateQueries({ queryKey: ["spending-stats"] });
+      qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
     },
   });
 }
@@ -61,6 +62,7 @@ export function useUpdatePaint() {
       qc.invalidateQueries({ queryKey: PAINTS_WITH_RECIPES_KEY });
       // SPEND-03/04 (Pitfall 2): invalidate spending-stats so Spending page stays fresh
       qc.invalidateQueries({ queryKey: ["spending-stats"] });
+      qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
     },
   });
 }
@@ -74,6 +76,7 @@ export function useDeletePaint() {
       qc.invalidateQueries({ queryKey: PAINTS_WITH_RECIPES_KEY });
       // SPEND-03/04 (Pitfall 2): invalidate spending-stats so Spending page stays fresh
       qc.invalidateQueries({ queryKey: ["spending-stats"] });
+      qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
     },
     // FK errors (paint referenced in recipe_paints) reject — handled by component try/catch with toast
   });

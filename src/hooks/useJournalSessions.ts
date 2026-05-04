@@ -38,6 +38,7 @@ export function useCreatePaintingSession() {
     mutationFn: createSession,
     onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: PAINTING_SESSIONS_KEY(variables.unit_id) });
+      qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
     },
   });
 }
@@ -72,6 +73,7 @@ export function useDeletePaintingSession(unitId: number) {
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: PAINTING_SESSIONS_KEY(unitId) });
+      qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
     },
   });
 }
