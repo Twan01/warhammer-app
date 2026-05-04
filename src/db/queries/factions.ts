@@ -15,9 +15,9 @@ export async function getFactionById(id: number): Promise<Faction | null> {
 export async function createFaction(input: CreateFactionInput): Promise<number> {
   const db = await getDb();
   const result = await db.execute(
-    `INSERT INTO factions (name, game_system, description, color_theme, icon_path)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [input.name, input.game_system, input.description, input.color_theme, input.icon_path]
+    `INSERT INTO factions (name, game_system, description, color_theme, icon_path, lore_notes)
+     VALUES ($1, $2, $3, $4, $5, $6)`,
+    [input.name, input.game_system, input.description, input.color_theme, input.icon_path, input.lore_notes ?? null]
   );
   return result.lastInsertId ?? 0;
 }
@@ -31,9 +31,10 @@ export async function updateFaction(input: UpdateFactionInput): Promise<void> {
             description = COALESCE($4, description),
             color_theme = COALESCE($5, color_theme),
             icon_path = COALESCE($6, icon_path),
+            lore_notes  = $7,
             updated_at = datetime('now')
       WHERE id = $1`,
-    [input.id, input.name ?? null, input.game_system ?? null, input.description ?? null, input.color_theme ?? null, input.icon_path ?? null]
+    [input.id, input.name ?? null, input.game_system ?? null, input.description ?? null, input.color_theme ?? null, input.icon_path ?? null, input.lore_notes ?? null]
   );
 }
 
