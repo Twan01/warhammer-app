@@ -335,6 +335,35 @@ export function PaintSheet({ open, paint, onClose }: PaintSheetProps) {
               )}
             />
 
+            <FormField
+              name="purchase_price_pence"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Purchase Price</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={0}
+                      step={1}
+                      placeholder="e.g. 350 for £3.50"
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === "" ? null : e.target.valueAsNumber
+                        )
+                      }
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    Enter amount in pence (100 = £1.00)
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <SheetFooter className="mt-6 gap-2 sm:gap-2">
               <Button type="button" variant="outline" onClick={onClose}>
                 Discard changes
