@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: completed
-stopped_at: Completed 19-03-PLAN.md (Phase 19 Analytics Core complete)
-last_updated: "2026-05-04T13:46:45.024Z"
-last_activity: "2026-05-04 — Phase 19 Plan 03 complete: Manual smoke-test — all 12 steps approved, ANLY-04..07 verified end-to-end in live Tauri app, Phase 19 Analytics Core declared shippable"
+stopped_at: Phase 20 context gathered
+last_updated: "2026-05-04T14:35:52.002Z"
+last_activity: "2026-05-04 - Completed quick task 260504-lhf: Rebuild release exe to fix desktop shortcut (migration version mismatch crash)"
 progress:
-  total_phases: 13
+  total_phases: 15
   completed_phases: 10
   total_plans: 47
   completed_plans: 47
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.2 milestone start)
 
 ## Current Position
 
-Phase: 20 of 22 (Wishlist — next phase)
+Phase: 20 of 21 (Wishlist — next phase)
 Plan: 20-00 (next plan)
 Status: Phase 19 complete — ready for Phase 20
 Last activity: 2026-05-04 - Completed quick task 260504-lhf: Rebuild release exe to fix desktop shortcut (migration version mismatch crash)
@@ -135,6 +135,10 @@ Architecture constraints:
 - Migrations are append-only and immutable — new columns always via ALTER TABLE in a new numbered file
 - Integer pence discipline (formatCurrency is the only /100 site)
 
+### Roadmap Evolution
+
+- Phase 24 added: Collection unit point calculator with wargear selection and swap delta preview
+
 ### Tech Debt
 
 - PROJ-02: REQUIREMENTS.md text still says "empty columns hidden" — KanbanBoard ships all 11 columns (approved UX)
@@ -156,6 +160,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T13:43:05.347Z
-Stopped at: Completed 19-03-PLAN.md (Phase 19 Analytics Core complete)
+Last session: 2026-05-04T14:35:51.999Z
+Stopped at: Phase 20 context gathered
 Resume: Phase 19 complete — Phase 20 Wishlist is next. Run `/gsd:progress` to see current status
