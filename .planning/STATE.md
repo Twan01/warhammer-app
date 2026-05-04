@@ -59,6 +59,12 @@ Architecture constraints:
 - ANLY-02 goal progress: COUNT(DISTINCT unit_id) from painting_sessions WHERE session_date falls within goal timeframe
 - ANLY-05 streak: consecutive calendar days with at least one painting session — use dates.ts to avoid UTC edge case
 
+### Phase 16 Decisions
+
+- pnpm is the package manager for this project — npm fails with workspace: protocol errors from pnpm symlinks; always use `pnpm add` / `pnpm install`
+- Tailwind v4 CSS-first font integration: @import in globals.css + --font-sans in @theme inline {} block + body font-family var() — no tailwind.config.js
+- Geist Variable font installed as @fontsource-variable/geist@5.2.8; font-family name in CSS must be 'Geist Variable' (not 'Geist Sans' or 'Geist')
+
 ### Decisions Carried from v2.1
 
 - All queries via `tauri-plugin-sql` directly — no ORM
@@ -86,5 +92,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-04T08:33:50.578Z
-Stopped at: Phase 17 UI-SPEC approved
-Resume: Run `/gsd:execute-phase 14` to run Plan 14-04 (manual smoke-test for Spending Tracker)
+Stopped at: Completed 16-01-PLAN.md — Geist Variable font foundation installed
+Resume: Run `/gsd:execute-phase 16` to execute Plan 16-02 (sidebar polish)
