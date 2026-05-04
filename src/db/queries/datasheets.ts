@@ -169,3 +169,28 @@ export async function upsertSyncMeta(input: {
     [input.last_sync_at, input.wahapedia_version]
   );
 }
+
+/**
+ * DS-04 cross-DB faction lookup.
+ *
+ * HobbyForge factions store full names ("Space Marines", "Necrons") while Wahapedia
+ * uses faction codes (SM, NEC). The DatasheetPicker pre-filter requires a Wahapedia
+ * faction id, so we look up rw_factions.name (case-insensitive equality) against
+ * the user's HobbyForge faction name. Returns null when no match — the picker
+ * then either falls back to "all factions" or surfaces a friendly empty state
+ * (PlaybookTab handles the null branch).
+ *
+ * Per Pitfall 5: this is the simplest correct strategy without forcing the user
+ * to maintain an explicit mapping table. If the user has unconventional faction
+ * names, the no-match branch keeps the app usable.
+ */
+export async function resolveWahapediaFactionIdByName(
+  name: string
+): Promise<string | null> {
+  const db = await getRulesDb();
+  const rows = await db.select<{ id: string }[]>(
+    "SELECT id FROM rw_factions WHERE LOWER(name) = LOWER($1) LIMIT 1",
+    [name]
+  );
+  return rows[0]?.id ?? null;
+}

@@ -19,6 +19,7 @@ import {
   getDatasheetsByFaction,
   getFullDatasheet,
   getRulesSyncMeta,
+  resolveWahapediaFactionIdByName,
 } from "@/db/queries/datasheets";
 
 export const DATASHEET_KEY = (unitId: number) => ["datasheet", unitId] as const;
@@ -70,6 +71,29 @@ export function useRulesSyncMeta() {
   return useQuery({
     queryKey: RULES_SYNC_META_KEY,
     queryFn: getRulesSyncMeta,
+    staleTime: Infinity,
+  });
+}
+
+export const WAHAPEDIA_FACTION_KEY = (name: string) =>
+  ["wahapedia-faction-id", name] as const;
+
+/**
+ * DS-04 cross-DB lookup wrapped as a TanStack Query so the result is cached
+ * per HobbyForge faction name. Result lives forever (Wahapedia faction IDs
+ * never change without a re-sync, which invalidates RULES_SYNC_META_KEY anyway).
+ */
+export function useWahapediaFactionId(localFactionName: string | undefined) {
+  return useQuery({
+    queryKey:
+      localFactionName !== undefined
+        ? WAHAPEDIA_FACTION_KEY(localFactionName)
+        : (["wahapedia-faction-id"] as const),
+    queryFn: () =>
+      localFactionName !== undefined
+        ? resolveWahapediaFactionIdByName(localFactionName)
+        : Promise.resolve(null),
+    enabled: localFactionName !== undefined,
     staleTime: Infinity,
   });
 }
