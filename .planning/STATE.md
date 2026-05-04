@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Full Circle
 status: executing
-stopped_at: Completed 25-01-PLAN.md
-last_updated: "2026-05-04T19:52:36.726Z"
-last_activity: 2026-05-04 — Phase 25 Plan 01 executed (design tokens, PageHeader, StatusBadge, enriched StatCard)
+stopped_at: Checkpoint 25-02-PLAN.md Task 4 (human-verify)
+last_updated: "2026-05-04T20:10:00.000Z"
+last_activity: 2026-05-04 — Phase 25 Plan 02 Tasks 1-3 executed (PageHeader wired into all 9 pages); awaiting Task 4 human smoke test
 progress:
   total_phases: 12
   completed_phases: 3
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.3 milestone start)
 
 ## Current Position
 
-Phase: 25 — Design Foundation (plan 01 complete)
-Plan: 25-01 complete — ready for 25-02
-Status: In progress — 1/2 plans complete for Phase 25
-Last activity: 2026-05-04 — Phase 25 Plan 01 executed (design tokens, PageHeader, StatusBadge, enriched StatCard)
+Phase: 25 — Design Foundation (plan 02 checkpoint)
+Plan: 25-02 Tasks 1-3 complete — awaiting Task 4 human-verify checkpoint
+Status: In progress — 1.5/2 plans complete for Phase 25 (plan 02 at checkpoint)
+Last activity: 2026-05-04 — Phase 25 Plan 02 Tasks 1-3 executed (PageHeader wired into all 9 pages)
 
 Progress: [█████████░] 91% (10/11 plans complete)
 
@@ -51,6 +51,9 @@ Progress: [█████████░] 91% (10/11 plans complete)
 - StatCard `progress !== undefined` guard — ensures `progress={0}` renders a 0%-wide bar (truthy check would omit it)
 - StatCard `icon: Icon` destructure rename — JSX requires capitalized identifier to render a component element
 - PageHeader outer className locked: `flex items-center justify-between pb-6 border-b border-border/40` — Plan 25-02 uses this verbatim for all 9 page rewrites
+- Dashboard actions slot empty in Phase 25 — Phase 26 DASH-02 will add Quick Add + Log Session buttons
+- FactionsPage title upgraded from text-xl (20px) to text-3xl (28px) in Plan 25-02 — intentional design system alignment
+- SpendingPage PageHeader kept inside max-w-3xl wrapper per Phase 16 Pitfall 1 — border-b spans narrow column only
 
 ### Phase 20 Decisions
 
