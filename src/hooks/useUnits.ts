@@ -31,6 +31,8 @@ export function useCreateUnit() {
       qc.invalidateQueries({ queryKey: UNITS_KEY });
       // DATA-09: forward-compatibility — invalidate dashboard-stats when unit data changes
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      // SPEND-03/04 (Pitfall 2): invalidate spending-stats so Spending page stays fresh
+      qc.invalidateQueries({ queryKey: ["spending-stats"] });
     },
   });
 }
@@ -44,6 +46,8 @@ export function useUpdateUnit() {
       qc.invalidateQueries({ queryKey: UNIT_KEY(variables.id) });
       // DATA-09: forward-compatibility — invalidate dashboard-stats when unit data changes
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      // SPEND-03/04 (Pitfall 2): invalidate spending-stats so Spending page stays fresh
+      qc.invalidateQueries({ queryKey: ["spending-stats"] });
     },
   });
 }
@@ -56,6 +60,8 @@ export function useDeleteUnit() {
       qc.invalidateQueries({ queryKey: UNITS_KEY });
       // DATA-09: forward-compatibility — invalidate dashboard-stats when unit data changes
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      // SPEND-03/04 (Pitfall 2): invalidate spending-stats so Spending page stays fresh
+      qc.invalidateQueries({ queryKey: ["spending-stats"] });
     },
     // FK errors (unit in army_list_units) reject — handled by component try/catch with toast
   });
