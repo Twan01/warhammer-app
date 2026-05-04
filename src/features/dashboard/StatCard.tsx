@@ -41,9 +41,9 @@ export function StatCard({ value, label, animate = false }: StatCardProps) {
     );
 
   return (
-    <Card className="px-6">
+    <Card className="px-6 bg-card border border-border/60 shadow-sm">
       <CardContent className="flex flex-col gap-1 px-0">
-        <span className="text-3xl font-semibold">{displayValue}</span>
+        <span className="text-3xl font-semibold tabular-nums">{displayValue}</span>
         <span className="text-sm text-muted-foreground">{label}</span>
       </CardContent>
     </Card>
