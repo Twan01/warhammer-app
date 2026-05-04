@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Completed 16-05-PLAN.md — Army Lists + Spending cluster headers, ArmyListCard elevation, tabular-nums, Spending empty state
-last_updated: "2026-05-04T11:05:00.000Z"
+stopped_at: Completed 15-04-PLAN.md — useRulesSync hook + DatasheetPicker + DatasheetImportDialog (19/19 Wave 0 stubs flipped)
+last_updated: "2026-05-04T09:02:22.371Z"
 last_activity: "2026-05-04 — Phase 16 Plan 05 complete: Army Lists + Spending page headers, ArmyListCard elevation + tabular-nums, SpendingPage empty state"
 progress:
   total_phases: 13
   completed_phases: 4
-  total_plans: 40
+  total_plans: 41
   completed_plans: 32
   percent: 80
 ---
@@ -71,6 +71,10 @@ Architecture constraints:
 - Cross-DB query module: datasheets.ts spans rules.db (rw_* reads/writes) AND hobbyforge.db (unit_strategy_notes link write) — keeps datasheet feature cohesive at cost of two DB clients
 - upsertDatasheetLink uses select-then-insert/update pattern (mirrors strategyNotes.ts) — unit_strategy_notes has no UNIQUE INDEX on unit_id so ON CONFLICT unavailable
 - getRulesSyncMeta try/catch swallows "no such table: rw_sync_meta" — tolerates empty rules.db before first sync (Pitfall 3)
+- INSERT OR IGNORE on rw_datasheet_models and rw_datasheet_abilities handles Wahapedia duplicate (datasheet_id, line) PKs — keeps first occurrence, avoids transaction crash
+- Promise.all fetches all 7 CSVs in parallel before opening transaction — no partial-write risk since all data is ready before BEGIN
+- DatasheetImportResolution hardcoded default { M:'use', T:'use', ... } in handleConfirm covers all 8 keys even when conflicts array is a subset
+- onClose (not onSkip) on DatasheetPicker — consistent naming with DatasheetImportDialog and Dialog onOpenChange delegation pattern
 
 ### Phase 16 Decisions
 
@@ -116,6 +120,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T11:05:00Z
-Stopped at: Completed 16-05-PLAN.md — Army Lists + Spending cluster headers, ArmyListCard elevation, tabular-nums, Spending empty state
+Last session: 2026-05-04T09:02:22.367Z
+Stopped at: Completed 15-04-PLAN.md — useRulesSync hook + DatasheetPicker + DatasheetImportDialog (19/19 Wave 0 stubs flipped)
 Resume: Run `/gsd:execute-phase 16` to execute Plan 16-06
