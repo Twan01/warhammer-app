@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Full Circle
 status: executing
-stopped_at: Checkpoint 25-02-PLAN.md Task 4 (human-verify)
-last_updated: "2026-05-04T20:10:00.000Z"
-last_activity: 2026-05-04 — Phase 25 Plan 02 Tasks 1-3 executed (PageHeader wired into all 9 pages); awaiting Task 4 human smoke test
+stopped_at: Completed 26-00-PLAN.md
+last_updated: "2026-05-04T20:21:27.998Z"
+last_activity: 2026-05-04 — Phase 25 Plan 02 Tasks 1-3 executed (PageHeader wired into all 9 pages)
 progress:
   total_phases: 12
-  completed_phases: 3
-  total_plans: 11
-  completed_plans: 10
+  completed_phases: 4
+  total_plans: 16
+  completed_plans: 12
   percent: 91
 ---
 
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.3 milestone start)
 
 ## Current Position
 
-Phase: 25 — Design Foundation (plan 02 checkpoint)
-Plan: 25-02 Tasks 1-3 complete — awaiting Task 4 human-verify checkpoint
-Status: In progress — 1.5/2 plans complete for Phase 25 (plan 02 at checkpoint)
-Last activity: 2026-05-04 — Phase 25 Plan 02 Tasks 1-3 executed (PageHeader wired into all 9 pages)
+Phase: 26 — Dashboard Redesign (plan 00 complete)
+Plan: 26-00 complete — 21 Wave 0 test stubs created for DASH-04 and DASH-06
+Status: In progress — 1/5 plans complete for Phase 26
+Last activity: 2026-05-04 — Phase 26 Plan 00 executed (Wave 0 stubs: computeRecentActivity 13 stubs, recentActivityQuery 5 stubs, computeStats units field 3 stubs)
 
-Progress: [█████████░] 91% (10/11 plans complete)
+Progress: [████████░░] 75% (12/16 plans complete)
 
 ## v2.3 Phase Map
 
@@ -43,6 +43,13 @@ Progress: [█████████░] 91% (10/11 plans complete)
 | 29 | Workshop + Play | WKSP-01, WKSP-02, PLAY-01, PLAY-02 | Not started |
 
 ## Accumulated Context
+
+### Phase 26 Decisions
+
+- Wave 0 stubs use `it.skip` (not `xit`/`xtest`) — Wave 1 greps `it.skip` to find activation candidates; consistent with existing Phase 19 Wave 0 pattern
+- TODO Wave 1 import comments carry exact module paths and named exports so Wave 1 knows exactly what to uncomment with no ambiguity
+- Pitfall 4 (session_date YYYY-MM-DD normalize to 23:59:59) and Pitfall 5 (no battle_logs.updated_at) documented as file-level JSDoc in computeRecentActivity.test.ts — Wave 1 cannot miss them
+- `u()` builder helper cloned verbatim from computeStats.test.ts into computeRecentActivity.test.ts — consistent fixture pattern across dashboard tests
 
 ### Phase 25 Decisions
 
@@ -172,6 +179,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T19:52:36.722Z
-Stopped at: Completed 25-01-PLAN.md
+Last session: 2026-05-04T20:21:12.085Z
+Stopped at: Completed 26-00-PLAN.md
 Resume: Phase 25 Design Foundation is next. Run `/gsd:plan-phase 25` to break down Phase 25.
