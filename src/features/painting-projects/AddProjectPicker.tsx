@@ -15,8 +15,16 @@ import {
 import { useUnits, useUpdateUnit, UNITS_KEY } from "@/hooks/useUnits";
 import type { Unit } from "@/types/unit";
 
-export function AddProjectPicker() {
-  const [open, setOpen] = useState(false);
+export function AddProjectPicker({
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+}: {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+} = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = controlledOnOpenChange ?? setInternalOpen;
   const { data: units = [] } = useUnits();
   const qc = useQueryClient();
   const updateUnit = useUpdateUnit();
