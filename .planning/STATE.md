@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Phase 14 plans verified — ready to execute
-last_updated: "2026-05-04T06:41:25.046Z"
-last_activity: 2026-05-03 — Phase 13 Plan 01 — Tauri infra + migration 005 + type contracts (232 passing, 11 skipped)
+stopped_at: Completed 12-03-PLAN.md (Phase 12 smoke-test approved — all 9 steps PASS)
+last_updated: "2026-05-03T00:00:00.000Z"
+last_activity: 2026-05-03 — Phase 12 Plan 03 — manual smoke test approved; UI-04/05/06 confirmed end-to-end; 232 passing, 0 failed
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 23
   completed_plans: 14
-  percent: 57
+  percent: 61
 ---
 
 # Project State
@@ -30,7 +30,7 @@ Plan: 13-01 complete — migration 005 schema, tauri-plugin-fs + tauri-plugin-di
 Status: Phase 13 in progress — Plans 13-00 and 13-01 done. Next: Plan 13-02 (painting session queries + hooks)
 Last activity: 2026-05-03 — Phase 13 Plan 01 — Tauri infra + migration 005 + type contracts (232 passing, 11 skipped)
 
-Progress: [██████░░░░] 57% (13/23 plans complete)
+Progress: [██████░░░░] 61% (14/23 plans complete)
 
 ## v2.1 Phase Map
 
@@ -80,6 +80,7 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 - Phase 12 Plan 02: Pitfall 3 (Card defaults gap-6/py-6) — cn() + tailwind-merge correctly overrides with gap-2/pt-4/pb-4; plain div fallback NOT needed
 - Phase 12 Plan 02: mockFaction in test required game_system + description fields (plan template was missing these); auto-corrected (Rule 1)
 - Phase 12 Plan 02: useRouter warning in CollectionPage tests is benign — UnitDetailSheet only calls useRouter when open; tests never open the sheet
+- Phase 12 Plan 03: All 9 manual smoke-test steps PASS in live Tauri app — no Pitfall interventions needed; stroke='currentColor' + className='text-primary' arc renders correctly (Pitfall 1), cn() override works without plain-div fallback (Pitfall 3), Space preventDefault holds (Pitfall 4); Phase 12 complete
 - Phase 13 photo storage requires `tauri-plugin-fs` — the one new Tauri plugin introduced in v2.1; verify capability grants before building photo attach UI
 - Phase 13 Plan 00: Wave 0 stub files use .tsx for JournalTab (JSX component test) and .ts for all others — avoids .ts->tsx rename seen in Phase 10-01; no SUT imports in any stub until plans 13-01/02/03 create source files; explicit `import { describe, it } from 'vitest'` for tsc strict-mode (mirrors Phase 10/11/12 pattern)
 - Phase 13 Plan 01: tauri feature flag "protocol-asset" must be added to Cargo.toml tauri dependency when assetProtocol.enable = true in tauri.conf.json — build fails without it; plugin registration order: opener -> fs -> dialog -> sql; UnitPhoto.file_path stores UUID filename only (not absolute path)
@@ -120,6 +121,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T06:41:25.042Z
-Stopped at: Phase 14 plans verified — ready to execute
+Last session: 2026-05-03T00:00:00.000Z
+Stopped at: Completed 12-03-PLAN.md (Phase 12 full sign-off — UI-04/05/06 PASS; 232 tests passing)
 Resume: Run `/gsd:execute-phase 13` to continue with Plan 13-02 (painting session queries + hooks).

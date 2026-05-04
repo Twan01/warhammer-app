@@ -41,7 +41,7 @@ HobbyForge v2.1 transforms the visual identity with faction-aware dynamic themin
 
 - [ ] **Phase 10: Theming Foundation** — CSS `@theme` faction-accent utilities, Zustand faction store, FactionThemeProvider, collapsible sidebar with icon-only mode and tooltip polish
 - [x] **Phase 11: Dashboard Command Center** — Animated stat counters, faction-accented faction summary cards, hero section redesign (completed 2026-05-03)
-- [ ] **Phase 12: Collection Gallery View** — Card grid alternate view with painting-status ring, view toggle, filter preservation
+- [x] **Phase 12: Collection Gallery View** — Card grid alternate view with painting-status ring, view toggle, filter preservation (completed 2026-05-04)
 - [ ] **Phase 13: Hobby Journal** — Painting session log (SQL CRUD) and photo timeline (tauri-plugin-fs) per unit
 - [ ] **Phase 14: Spending Tracker** — Cost logging per unit and paint, Spending page with total and per-faction breakdown
 - [ ] **Phase 15: Warhammer 40K Datasheet Integration** — Auto-populate Playbook tab stats/abilities/keywords from community data, bundle local SQLite rules database, surface rulebook references in-app
@@ -166,7 +166,7 @@ Plans:
 | 9. Unit Playbook | v2.0 | 4/4 | Complete | 2026-05-02 |
 | 10. Theming Foundation | 3/4 | In Progress|  | — |
 | 11. Dashboard Command Center | v2.1 | Complete    | 2026-05-03 | 2026-05-03 |
-| 12. Collection Gallery View | 3/4 | In Progress|  | — |
+| 12. Collection Gallery View | 4/4 | Complete   | 2026-05-04 | — |
 | 13. Hobby Journal | 2/6 | In Progress|  | — |
 | 14. Spending Tracker | v2.1 | 0/5 | Planned | — |
 | 15. 40K Datasheet Integration | v2.1 | 0/TBD | Not started | — |
