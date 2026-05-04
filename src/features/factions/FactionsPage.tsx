@@ -12,6 +12,7 @@ import { FactionDeleteDialog } from "./FactionDeleteDialog";
 import { FactionsEmptyState } from "./FactionsEmptyState";
 import { UnitSheet } from "@/features/units/UnitSheet";
 import { UnitDeleteDialog } from "@/features/units/UnitDeleteDialog";
+import { PageHeader } from "@/components/common/PageHeader";
 
 export function FactionsPage() {
   const { data: factions, isLoading: factionsLoading, isError: factionsError } = useFactions();
@@ -69,12 +70,14 @@ export function FactionsPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Factions</h1>
-        <Button onClick={openCreate}>
-          <Plus className="mr-2 h-4 w-4" /> Add Faction
-        </Button>
-      </div>
+      <PageHeader
+        title="Factions"
+        actions={
+          <Button onClick={openCreate}>
+            <Plus className="mr-2 h-4 w-4" /> Add Faction
+          </Button>
+        }
+      />
 
       {factionsLoading && (
         <div className="flex flex-col gap-2">
