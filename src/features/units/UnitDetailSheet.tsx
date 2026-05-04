@@ -176,6 +176,24 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhoto
                   </Field>
 
                   <Separator />
+
+                  <Field label="Undercoat">
+                    {unit.undercoat
+                      ? <span className="text-sm">{unit.undercoat}</span>
+                      : <span className="text-sm text-muted-foreground">—</span>
+                    }
+                  </Field>
+
+                  {unit.lore_notes && (
+                    <>
+                      <Separator />
+                      <Field label="Lore Notes">
+                        <p className="text-sm whitespace-pre-wrap">{unit.lore_notes}</p>
+                      </Field>
+                    </>
+                  )}
+
+                  <Separator />
                   <Field label="Linked Recipes">
                     {linkedRecipes.length === 0 ? (
                       <span className="text-xs text-muted-foreground">
