@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Completed 14-02-PLAN.md
-last_updated: "2026-05-04T07:22:46.242Z"
+stopped_at: Completed 13-05-PLAN.md — Phase 13 manual smoke-test passed; JOUR-01..06 verified live
+last_updated: "2026-05-04T07:23:08.365Z"
 last_activity: 2026-05-04 — Phase 14 Plan 02 — UnitSheet/PaintSheet purchase_price_pence fields + formatCurrency display + 6-hook spending-stats invalidation; 264 passing, 13 skipped
 progress:
   total_phases: 7
@@ -96,6 +96,8 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 - Phase 14 Plan 02: UnitDetailSheet had inline pence math `(/ 100).toFixed(2)` — replaced with formatCurrency() to respect the single-division-site constraint; UnitDetailSheet now shows £ locale-formatted currency
 - Phase 14 Plan 02: ['spending-stats'] literal used in useUnits.ts/usePaints.ts mutation hooks (not a constant); SPENDING_STATS_KEY constant arrives in Plan 14-03 alongside the hook that reads it
 - Phase 14 Plan 02: SPEND-01 and SPEND-02 closed; 264 passing, 13 skipped (Plan 14-03 stubs remain)
+- Phase 13 Plan 05: All 10 manual smoke-test steps PASS in live Tauri app; asset:// protocol resolves correctly, JOUR-06 disk cleanup verified; Phase 13 complete and ready for /gsd:verify-work
+- Phase 13 Plan 05: purchase_price_pence rename propagated across all 13-series call sites as Rule 1 auto-fix during smoke test — UnitDetailSheet, UnitSheet, PaintSheet, CollectionPage, DashboardPage all updated
 
 ### Decisions Carried from v2.0
 
@@ -132,6 +134,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T07:21:43.521Z
-Stopped at: Completed 14-02-PLAN.md
+Last session: 2026-05-04T07:23:08.359Z
+Stopped at: Completed 13-05-PLAN.md — Phase 13 manual smoke-test passed; JOUR-01..06 verified live
 Resume: Run `/gsd:execute-phase 14` to continue with Plan 14-02 (form integration) and Plan 14-03 (SpendingPage) — both unblocked and can run in parallel.
