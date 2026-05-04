@@ -46,7 +46,7 @@ HobbyForge v2.1 transforms the visual identity with faction-aware dynamic themin
 - [x] **Phase 13: Hobby Journal** — Painting session log (SQL CRUD) and photo timeline (tauri-plugin-fs) per unit (completed 2026-05-04)
 - [ ] **Phase 14: Spending Tracker** — Cost logging per unit and paint, Spending page with total and per-faction breakdown
 - [ ] **Phase 15: Warhammer 40K Datasheet Integration** — Auto-populate Playbook tab stats/abilities/keywords from community data, bundle local SQLite rules database, surface rulebook references in-app
-- [ ] **Phase 16: Design Overhaul** — Significantly improve visual design across all pages — typography, spacing, layouts, empty states, and overall UI polish
+- [x] **Phase 16: Design Overhaul** — Significantly improve visual design across all pages — typography, spacing, layouts, empty states, and overall UI polish (completed 2026-05-04)
 
 ### 📋 v2.2 Full Circle (Phases 17–22) — Planned
 
@@ -282,7 +282,7 @@ Plans:
 | 13. Hobby Journal | v2.1 | 6/6 | Complete | 2026-05-04 |
 | 14. Spending Tracker | v2.1 | 4/5 | In Progress | — |
 | 15. 40K Datasheet Integration | 6/7 | In Progress|  | — |
-| 16. Design Overhaul | 7/8 | In Progress|  | — |
+| 16. Design Overhaul | 8/8 | Complete   | 2026-05-04 | — |
 | 17. Schema Foundation + Enrichment | 1/1 | Complete   | 2026-05-04 | — |
 | 18. Battle Log | 2/4 | In Progress|  | — |
 | 19. Analytics Core | v2.2 | 0/TBD | Not started | — |
