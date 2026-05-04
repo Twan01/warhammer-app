@@ -69,7 +69,7 @@ describe("KanbanBoard", () => {
     renderBoard([makeUnit({ is_active_project: 0 })]);
     expect(screen.getByText("No active projects")).toBeInTheDocument();
     expect(
-      screen.getByText("Mark a unit as active project to see it here."),
+      screen.getByText("Mark a unit as an active project from Collection to see it here."),
     ).toBeInTheDocument();
   });
 
