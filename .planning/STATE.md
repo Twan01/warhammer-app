@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Completed 13-03-PLAN.md
-last_updated: "2026-05-04T06:59:07.643Z"
+stopped_at: Completed 14-00-PLAN.md (Phase 14 Wave 0 stubs — 7 test stub files, 32 it.skip placeholders)
+last_updated: "2026-05-04T06:59:34.647Z"
 last_activity: 2026-05-03 — Phase 13 Plan 03 — JournalTab component delivered; 2 JOUR-05 render tests activated; 17/17 Phase 13 tests passing
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 23
   completed_plans: 17
-  percent: 70
+  percent: 74
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 
 ## Current Position
 
-Phase: 13 of 14 (IN PROGRESS: Phase 13 Hobby Journal)
-Plan: 13-03 complete — JournalTab component with session log form + sessions list + photo attach form + 3-col thumbnail grid; all 17 Phase 13 tests active (245 passing, 22 skipped); ready for Plan 13-04 (UnitDetailSheet integration + lightbox)
-Status: Phase 13 in progress — Plans 13-00, 13-01, 13-02, and 13-03 done. Next: Plan 13-04 (UnitDetailSheet wiring + sibling lightbox + JOUR-06 cleanup)
-Last activity: 2026-05-03 — Phase 13 Plan 03 — JournalTab component delivered; 2 JOUR-05 render tests activated; 17/17 Phase 13 tests passing
+Phase: 14 of 14 (IN PROGRESS: Phase 14 Spending Tracker)
+Plan: 14-00 complete — Wave 0 stub files: 7 test stubs under tests/spending/ with 32 it.skip placeholders; pnpm test exits 0; tsc --noEmit clean; ready for Plan 14-01 (formatCurrency utility + migration 005 SQL)
+Status: Phase 14 in progress — Plan 14-00 done. Next: Plan 14-01 (formatCurrency.ts + 005_spend_pence.sql migration + lib.rs registration)
+Last activity: 2026-05-04 — Phase 14 Plan 00 — 7 Wave 0 stub files created; 32 it.skip placeholders; 245 passing, 32 skipped
 
-Progress: [███████░░░] 70% (16/23 plans complete)
+Progress: [███████░░░] 74% (17/23 plans complete)
 
 ## v2.1 Phase Map
 
@@ -123,6 +123,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-03T09:04:30.000Z
-Stopped at: Completed 13-03-PLAN.md
-Resume: Run `/gsd:execute-phase 13` to continue with Plan 13-04 (UnitDetailSheet wiring + sibling lightbox + JOUR-06 cleanup).
+Last session: 2026-05-04T06:59:34.643Z
+Stopped at: Completed 14-00-PLAN.md (Phase 14 Wave 0 stubs — 7 test stub files, 32 it.skip placeholders)
+Resume: Run `/gsd:execute-phase 14` to continue with Plan 14-01 (formatCurrency utility + 005_spend_pence.sql migration).
