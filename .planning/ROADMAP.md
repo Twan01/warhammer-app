@@ -254,7 +254,7 @@ Plans:
 | 21. Wishlist | v2.2 | 0/TBD | Not started | — |
 | 22. Hobby Goals | v2.2 | 0/TBD | Not started | — |
 | 23. Display Features | v2.2 | 0/TBD | Not started | — |
-| 25. Design Foundation | v2.3 | 0/TBD | Not started | — |
+| 25. Design Foundation | 1/2 | In Progress|  | — |
 | 26. Dashboard Redesign | v2.3 | 0/TBD | Not started | — |
 | 27. Navigation & Quick Add | v2.3 | 0/TBD | Not started | — |
 | 28. Collection + Projects | v2.3 | 0/TBD | Not started | — |

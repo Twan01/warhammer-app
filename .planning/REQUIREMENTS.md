@@ -7,10 +7,10 @@
 
 ### Design Foundation
 
-- [ ] **DSFD-01**: User sees consistent visual surfaces using defined design tokens (Forge Black, Gunmetal, Panel Elevated, Battle Gold) as CSS variables across all pages
+- [x] **DSFD-01**: User sees consistent visual surfaces using defined design tokens (Forge Black, Gunmetal, Panel Elevated, Battle Gold) as CSS variables across all pages
 - [ ] **DSFD-02**: User sees a consistent page header on every main page via a shared `PageHeader` component (title, subtitle, action buttons row)
-- [ ] **DSFD-03**: User sees enriched MetricCards that show an icon, value, label, and optional progress bar or trend indicator — not just a number on a plain card
-- [ ] **DSFD-04**: User sees painting status represented by a consistent colored `StatusBadge` component throughout the app (collection, gallery, kanban, army lists)
+- [x] **DSFD-03**: User sees enriched MetricCards that show an icon, value, label, and optional progress bar or trend indicator — not just a number on a plain card
+- [x] **DSFD-04**: User sees painting status represented by a consistent colored `StatusBadge` component throughout the app (collection, gallery, kanban, army lists)
 
 ### Dashboard Redesign
 
@@ -114,10 +114,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DSFD-01 | Phase 25 | Pending |
+| DSFD-01 | Phase 25 | Complete |
 | DSFD-02 | Phase 25 | Pending |
-| DSFD-03 | Phase 25 | Pending |
-| DSFD-04 | Phase 25 | Pending |
+| DSFD-03 | Phase 25 | Complete |
+| DSFD-04 | Phase 25 | Complete |
 | DASH-01 | Phase 26 | Pending |
 | DASH-02 | Phase 26 | Pending |
 | DASH-03 | Phase 26 | Pending |

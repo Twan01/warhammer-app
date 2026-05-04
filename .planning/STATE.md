@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Full Circle
-status: planning
-stopped_at: Phase 26 context gathered
-last_updated: "2026-05-04T19:49:47.320Z"
-last_activity: 2026-05-04 — v2.3 roadmap created, 22 requirements mapped to 5 phases
+status: executing
+stopped_at: Completed 25-01-PLAN.md
+last_updated: "2026-05-04T19:52:36.726Z"
+last_activity: 2026-05-04 — Phase 25 Plan 01 executed (design tokens, PageHeader, StatusBadge, enriched StatCard)
 progress:
   total_phases: 12
   completed_phases: 3
   total_plans: 11
-  completed_plans: 9
-  percent: 0
+  completed_plans: 10
+  percent: 91
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.3 milestone start)
 
 ## Current Position
 
-Phase: 25 — Design Foundation (not started)
-Plan: —
-Status: Roadmap created — ready to plan Phase 25
-Last activity: 2026-05-04 — v2.3 roadmap created, 22 requirements mapped to 5 phases
+Phase: 25 — Design Foundation (plan 01 complete)
+Plan: 25-01 complete — ready for 25-02
+Status: In progress — 1/2 plans complete for Phase 25
+Last activity: 2026-05-04 — Phase 25 Plan 01 executed (design tokens, PageHeader, StatusBadge, enriched StatCard)
 
-Progress: [░░░░░░░░░░] 0% (0/5 v2.3 phases complete)
+Progress: [█████████░] 91% (10/11 plans complete)
 
 ## v2.3 Phase Map
 
@@ -43,6 +43,14 @@ Progress: [░░░░░░░░░░] 0% (0/5 v2.3 phases complete)
 | 29 | Workshop + Play | WKSP-01, WKSP-02, PLAY-01, PLAY-02 | Not started |
 
 ## Accumulated Context
+
+### Phase 25 Decisions
+
+- PAINTING_STATUS_TIER co-located in status-badge.tsx (not types/unit.ts) — visual tier logic is a UI concern; Phase 28 (COLL-02) imports from `@/components/ui/status-badge`
+- Battle Gold value: `oklch(0.78 0.17 85)` — confirmed. Defined in `.dark` block but NOT applied in Phase 25; Phase 26+ owns application per UI-SPEC §Phase Boundary Constraints
+- StatCard `progress !== undefined` guard — ensures `progress={0}` renders a 0%-wide bar (truthy check would omit it)
+- StatCard `icon: Icon` destructure rename — JSX requires capitalized identifier to render a component element
+- PageHeader outer className locked: `flex items-center justify-between pb-6 border-b border-border/40` — Plan 25-02 uses this verbatim for all 9 page rewrites
 
 ### Phase 20 Decisions
 
@@ -161,6 +169,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T19:49:47.316Z
-Stopped at: Phase 26 context gathered
+Last session: 2026-05-04T19:52:36.722Z
+Stopped at: Completed 25-01-PLAN.md
 Resume: Phase 25 Design Foundation is next. Run `/gsd:plan-phase 25` to break down Phase 25.
