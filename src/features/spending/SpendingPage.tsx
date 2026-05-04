@@ -8,6 +8,7 @@
  * UI-SPEC: hero card has ring-2 ring-faction-accent — the ONLY faction-themed element
  * on the page. Breakdown table is read-only (no hover, no row click).
  */
+import { Receipt } from "lucide-react";
 import {
   Card,
 } from "@/components/ui/card";
@@ -51,38 +52,63 @@ export function SpendingPage() {
     );
   }
 
+  const isEmpty = data.totalPence === 0 && data.factionBreakdown.length === 0 && data.paintsPence === 0;
+
   return (
     <div className="max-w-3xl mx-auto p-8 flex flex-col gap-12">
-      <Card className="ring-2 ring-faction-accent rounded-lg px-6 py-6 flex flex-col gap-2">
-        <span className="text-sm text-muted-foreground">Total Hobby Spend</span>
-        <span className="text-3xl font-semibold">
-          {formatCurrency(data.totalPence)}
-        </span>
-      </Card>
+      <div className="flex items-center justify-between pb-6 border-b border-border/40">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Spending</h1>
+          <p className="text-sm text-muted-foreground mt-1">Total hobby spend tracked to the penny</p>
+        </div>
+      </div>
 
-      <section className="flex flex-col gap-4">
-        <h2 className="text-xl font-semibold">Breakdown</h2>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Faction</TableHead>
-              <TableHead>Spend</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.factionBreakdown.map((row) => (
-              <TableRow key={row.faction.id}>
-                <TableCell>{row.faction.name}</TableCell>
-                <TableCell>{formatCurrency(row.pence)}</TableCell>
-              </TableRow>
-            ))}
-            <TableRow className="border-t-2">
-              <TableCell>Paints</TableCell>
-              <TableCell>{formatCurrency(data.paintsPence)}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </section>
+      {isEmpty ? (
+        <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+          <div className="rounded-xl bg-muted/40 p-4">
+            <Receipt className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-base font-semibold">No spend logged yet</p>
+            <p className="text-sm text-muted-foreground max-w-xs">
+              Add purchase prices to units and paints from their detail sheets to track your spend here.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <>
+          <Card className="ring-2 ring-faction-accent rounded-lg px-6 py-6 flex flex-col gap-2">
+            <span className="text-sm text-muted-foreground">Total Hobby Spend</span>
+            <span className="text-3xl font-semibold tabular-nums">
+              {formatCurrency(data.totalPence)}
+            </span>
+          </Card>
+
+          <section className="flex flex-col gap-4">
+            <h2 className="text-base font-semibold">Breakdown</h2>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Faction</TableHead>
+                  <TableHead>Spend</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.factionBreakdown.map((row) => (
+                  <TableRow key={row.faction.id}>
+                    <TableCell>{row.faction.name}</TableCell>
+                    <TableCell className="tabular-nums">{formatCurrency(row.pence)}</TableCell>
+                  </TableRow>
+                ))}
+                <TableRow className="border-t-2">
+                  <TableCell>Paints</TableCell>
+                  <TableCell className="tabular-nums">{formatCurrency(data.paintsPence)}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </section>
+        </>
+      )}
     </div>
   );
 }
