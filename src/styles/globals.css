@@ -67,6 +67,13 @@
   --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
   --sidebar-border: hsl(240 3.7% 15.9%);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
+
+  /* Phase 25 (DSFD-01) — semantic surface aliases. Alias-only — values match existing tokens. */
+  --forge-black: hsl(var(--background));
+  --panel-elevated: hsl(var(--card));
+  --panel-surface: hsl(var(--secondary));
+  /* Phase 25 (DSFD-01) — Battle Gold. Defined now, applied in Phases 26+ only. */
+  --battle-gold: oklch(0.78 0.17 85);
 }
 
 @theme inline {
@@ -104,6 +111,13 @@
 
   /* Phase 10 — Tailwind utility token: bg-faction-accent / text-faction-accent / ring-faction-accent etc. */
   --color-faction-accent: var(--faction-accent);
+
+  /* Phase 25 (DSFD-01) — Tailwind utility tokens for the new semantic surfaces.
+     Enables: bg-forge-black, bg-panel-elevated, bg-panel-surface, bg-battle-gold, text-battle-gold. */
+  --color-forge-black: var(--forge-black);
+  --color-panel-elevated: var(--panel-elevated);
+  --color-panel-surface: var(--panel-surface);
+  --color-battle-gold: var(--battle-gold);
 
   /* Phase 16 — Custom font token */
   --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
