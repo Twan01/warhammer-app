@@ -13,6 +13,7 @@
 import { useMemo, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { useHobbyAnalytics } from "@/hooks/useHobbyAnalytics";
 import { UnitDetailSheet } from "@/features/units/UnitDetailSheet";
 import { UnitSheet } from "@/features/units/UnitSheet";
 import { UnitDeleteDialog } from "@/features/units/UnitDeleteDialog";
@@ -33,6 +34,7 @@ import { DashboardEmptyState } from "./DashboardEmptyState";
 
 export function DashboardPage() {
   const { data: stats, isLoading, isError } = useDashboardStats();
+  const { data: analytics, isLoading: analyticsLoading } = useHobbyAnalytics();
   const { activeFactionId, setActiveFaction } = useActiveFaction();
 
   // Sheet/dialog state — Pitfall 6: keep ID, derive unit from the displayed lists
@@ -138,6 +140,17 @@ export function DashboardPage() {
           </div>
         </section>
 
+        {/* HOBBY HEALTH skeleton (Phase 19 ANLY-04/05) */}
+        <section className="flex flex-col gap-4">
+          <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+            Hobby Health
+          </p>
+          <div className="grid grid-cols-2 gap-6">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </div>
+        </section>
+
         {/* Faction row — 3 skeletons (representative count) */}
         <section className="flex flex-col gap-4">
           <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
@@ -232,6 +245,34 @@ export function DashboardPage() {
             <StatCard value={`${stats.paintingPct}%`} label="Painting Progress" />
             <StatCard value={`${stats.assemblyPct}%`} label="Assembly Progress" />
             <StatCard value={`${stats.basingPct}%`} label="Basing Progress" />
+          </div>
+        </section>
+
+        {/* HOBBY HEALTH section (Phase 19 ANLY-04/05) */}
+        <section className="flex flex-col gap-4">
+          <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+            Hobby Health
+          </p>
+          <div className="grid grid-cols-2 gap-6">
+            {analyticsLoading ? (
+              <>
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full" />
+              </>
+            ) : (
+              <>
+                <StatCard
+                  value={analytics?.velocityString ?? "0.0"}
+                  label="Hobby Velocity · units/month"
+                  animate={false}
+                />
+                <StatCard
+                  value={analytics?.streakString ?? "0 days"}
+                  label="Painting Streak"
+                  animate={false}
+                />
+              </>
+            )}
           </div>
         </section>
 
