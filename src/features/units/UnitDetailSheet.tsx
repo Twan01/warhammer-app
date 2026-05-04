@@ -33,9 +33,13 @@ interface UnitDetailSheetProps {
   onEdit: (unit: Unit) => void;
   onDelete: (unit: Unit) => void;
   onPhotoClick: (photo: UnitPhotoWithUrl) => void;
+  /** DS-08 — forwarded to PlaybookTab; CollectionPage owns the dialog mount. */
+  onDatasheetConflict?: (payload: import("@/types/datasheet").DatasheetImportPayload) => void;
+  pendingImportResolution?: { resolution: import("@/types/datasheet").DatasheetImportResolution; payload: import("@/types/datasheet").DatasheetImportPayload } | null;
+  onClearImportResolution?: () => void;
 }
 
-export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhotoClick }: UnitDetailSheetProps) {
+export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhotoClick, onDatasheetConflict, pendingImportResolution, onClearImportResolution }: UnitDetailSheetProps) {
   const { data: factions } = useFactions();
   const faction = useMemo(
     () => (unit ? (factions ?? []).find((f) => f.id === unit.faction_id) ?? null : null),
@@ -209,7 +213,12 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhoto
               </TabsContent>
 
               <TabsContent value="playbook">
-                <PlaybookTab unitId={unit.id} />
+                <PlaybookTab
+                  unitId={unit.id}
+                  onDatasheetConflict={onDatasheetConflict}
+                  pendingImportResolution={pendingImportResolution}
+                  onClearImportResolution={onClearImportResolution}
+                />
               </TabsContent>
 
               <TabsContent value="journal">
