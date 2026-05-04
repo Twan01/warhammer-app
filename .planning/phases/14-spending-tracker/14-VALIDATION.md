@@ -1,10 +1,11 @@
 ---
 phase: 14
 slug: spending-tracker
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-03
+audited: 2026-05-04
 ---
 
 # Phase 14 — Validation Strategy
@@ -38,17 +39,17 @@ created: 2026-05-03
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 14-00-01 | 00 | 0 | SPEND-05 | unit | `npm test -- tests/spending/formatCurrency.test.ts` | ❌ W0 | ⬜ pending |
-| 14-00-02 | 00 | 0 | SPEND-04 | unit | `npm test -- tests/spending/computeSpendingStats.test.ts` | ❌ W0 | ⬜ pending |
-| 14-00-03 | 00 | 0 | SPEND-05 | content | `npm test -- tests/spending/migration005.test.ts` | ❌ W0 | ⬜ pending |
-| 14-00-04 | 00 | 0 | SPEND-03/04 | unit | `npm test -- tests/spending/useSpendingStats.test.ts` | ❌ W0 | ⬜ pending |
-| 14-00-05 | 00 | 0 | SPEND-03/04 | component | `npm test -- tests/spending/SpendingPage.test.tsx` | ❌ W0 | ⬜ pending |
-| 14-00-06 | 00 | 0 | SPEND-01 | unit | `npm test -- tests/spending/unitSchema.test.ts` | ❌ W0 | ⬜ pending |
-| 14-00-07 | 00 | 0 | SPEND-02 | unit | `npm test -- tests/spending/paintSchema.test.ts` | ❌ W0 | ⬜ pending |
-| 14-01-xx | 01 | 1 | SPEND-05 | unit | `npm test -- tests/spending/` | ✅ exists | ⬜ pending |
-| 14-02-xx | 02 | 1 | SPEND-01/02 | unit | `npm test -- tests/spending/` | ✅ exists | ⬜ pending |
-| 14-03-xx | 03 | 2 | SPEND-03/04 | component | `npm test -- tests/spending/` | ✅ exists | ⬜ pending |
-| (sidebar) | 03 | 2 | SPEND-03 | component | `npm test -- tests/theming/AppSidebar.test.tsx` | ✅ exists | ⬜ pending |
+| 14-00-01 | 00 | 0 | SPEND-05 | unit | `npm test -- tests/spending/formatCurrency.test.ts` | ✅ exists | ✅ green |
+| 14-00-02 | 00 | 0 | SPEND-04 | unit | `npm test -- tests/spending/computeSpendingStats.test.ts` | ✅ exists | ✅ green |
+| 14-00-03 | 00 | 0 | SPEND-05 | content | `npm test -- tests/spending/migration005.test.ts` | ✅ exists | ✅ green |
+| 14-00-04 | 00 | 0 | SPEND-03/04 | unit | `npm test -- tests/spending/useSpendingStats.test.ts` | ✅ exists | ✅ green |
+| 14-00-05 | 00 | 0 | SPEND-03/04 | component | `npm test -- tests/spending/SpendingPage.test.tsx` | ✅ exists | ✅ green |
+| 14-00-06 | 00 | 0 | SPEND-01 | unit | `npm test -- tests/spending/unitSchema.test.ts` | ✅ exists | ✅ green |
+| 14-00-07 | 00 | 0 | SPEND-02 | unit | `npm test -- tests/spending/paintSchema.test.ts` | ✅ exists | ✅ green |
+| 14-01-xx | 01 | 1 | SPEND-05 | unit | `npm test -- tests/spending/` | ✅ exists | ✅ green |
+| 14-02-xx | 02 | 1 | SPEND-01/02 | unit | `npm test -- tests/spending/` | ✅ exists | ✅ green |
+| 14-03-xx | 03 | 2 | SPEND-03/04 | component | `npm test -- tests/spending/` | ✅ exists | ✅ green |
+| (sidebar) | 03 | 2 | SPEND-03 | component | `npm test -- tests/theming/AppSidebar.test.tsx` | ✅ exists | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -56,13 +57,13 @@ created: 2026-05-03
 
 ## Wave 0 Requirements
 
-- [ ] `tests/spending/formatCurrency.test.ts` — stubs for SPEND-05 (utility: null, zero, positive pence → £ string)
-- [ ] `tests/spending/computeSpendingStats.test.ts` — stubs for SPEND-04 (pure function: faction breakdown + Paints row)
-- [ ] `tests/spending/migration005.test.ts` — stubs for SPEND-05 storage contract (pattern from `tests/foundation/migration004.test.ts`)
-- [ ] `tests/spending/useSpendingStats.test.ts` — stubs for SPEND-03/04 (SPENDING_STATS_KEY contract)
-- [ ] `tests/spending/SpendingPage.test.tsx` — stubs for SPEND-03/04 (hero total renders, faction rows render)
-- [ ] `tests/spending/unitSchema.test.ts` — stubs for SPEND-01 (purchase_price_pence: integer, non-negative, nullable)
-- [ ] `tests/spending/paintSchema.test.ts` — stubs for SPEND-02 (purchase_price_pence: integer, non-negative, nullable)
+- [x] `tests/spending/formatCurrency.test.ts` — SPEND-05 utility (null, zero, positive pence → £ string)
+- [x] `tests/spending/computeSpendingStats.test.ts` — SPEND-04 pure aggregation (faction breakdown + Paints row)
+- [x] `tests/spending/migration005.test.ts` — SPEND-05 migration content (006_spend_pence.sql assertions)
+- [x] `tests/spending/useSpendingStats.test.ts` — SPEND-03/04 (SPENDING_STATS_KEY contract)
+- [x] `tests/spending/SpendingPage.test.tsx` — SPEND-03/04 (hero total renders, faction rows render)
+- [x] `tests/spending/unitSchema.test.ts` — SPEND-01 (purchase_price_pence: integer, non-negative, nullable)
+- [x] `tests/spending/paintSchema.test.ts` — SPEND-02 (purchase_price_pence: integer, non-negative, nullable)
 
 ---
 
@@ -80,11 +81,23 @@ created: 2026-05-03
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** ✅ 2026-05-04
+
+---
+
+## Validation Audit 2026-05-04
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated to manual | 5 (live Tauri IPC — untestable in jsdom) |
+
+All 11 tasks have green automated tests. 279 tests passing, 0 failures.
