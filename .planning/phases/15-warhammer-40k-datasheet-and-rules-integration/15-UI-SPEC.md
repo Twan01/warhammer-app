@@ -84,14 +84,13 @@ All tokens reference existing CSS variables from globals.css. No new color token
 |------|-------|-------------------|-------|
 | Dominant (60%) | `--background` | `hsl(240 10% 3.9%)` | PlaybookTab background, dialog background, picker background |
 | Secondary (30%) | `--card` | `hsl(240 10% 5.9%)` | Collapsible content area, conflict review dialog card, Sources list background |
-| Accent (10%) | `--faction-accent` | `#71717a` (default zinc-500, runtime-mutable) | Import/Re-sync button (primary variant) ONLY — see reserved list |
+| Accent (10%) | `--faction-accent` | `#71717a` (default zinc-500, runtime-mutable) | Save Playbook button (primary variant) ONLY |
 | Destructive | `--destructive` | `hsl(0 72.2% 50.6%)` | Not used in Phase 15 — no destructive actions |
 | Muted text | `--muted-foreground` | `hsl(240 5% 64.9%)` | Sync date ("Last synced: …"), empty sync banner body, ability descriptions, sub-group labels, Sources publication names |
 | Border | `--border` | `hsl(240 3.7% 15.9%)` | Collapsible section border, sub-group dividers, conflict dialog field rows |
 
 Accent reserved for:
-1. The "Import stats" button in the PlaybookTab stats header (Button `variant="default"` — primary fill, which is `--primary` / `bg-faction-accent` ring) — specifically the primary Save button. The "Import stats" action is a secondary trigger; use `variant="outline"` for it, not faction-accent fill.
-2. The "Save Playbook" button at the bottom of PlaybookTab (Button `variant="default"` — unchanged from Phase 9)
+1. The "Save Playbook" button at the bottom of PlaybookTab (Button `variant="default"` — unchanged from Phase 9)
 
 Note on Import stats button: Use `variant="outline"` for "Import stats" / "Re-sync" controls — these are secondary actions alongside the primary Save flow. Do NOT use `variant="default"` (faction-accent fill) for import/sync controls; that would visually compete with the Save button.
 
@@ -345,8 +344,8 @@ Mounted as a sibling to UnitDetailSheet in CollectionPage.tsx (same portal patte
       ))}
     </div>
     <DialogFooter>
-      <Button variant="ghost" onClick={onClose}>Cancel</Button>
-      <Button variant="default" onClick={handleConfirm}>Apply</Button>
+      <Button variant="ghost" onClick={onClose}>Discard changes</Button>
+      <Button variant="default" onClick={handleConfirm}>Apply import</Button>
     </DialogFooter>
   </DialogContent>
 </Dialog>
@@ -354,7 +353,7 @@ Mounted as a sibling to UnitDetailSheet in CollectionPage.tsx (same portal patte
 
 Default choice for each field: "use" (datasheet value wins unless user actively selects "Keep"). This is the expected happy-path — the point of importing is to use the datasheet data.
 
-"Apply" loads selected values into the PlaybookTab form. Existing Save Playbook button commits to DB. This is consistent with Phase 9 manual edit behavior.
+"Apply import" loads selected values into the PlaybookTab form. Existing Save Playbook button commits to DB. This is consistent with Phase 9 manual edit behavior.
 
 ### Sync Trigger Location
 
@@ -394,8 +393,8 @@ During sync: show a loading state on the Re-sync/Sync button (`disabled + Loader
 | Conflict dialog description | "Some fields already have values. Choose which to keep for each field." |
 | Conflict dialog keep button | "Keep" |
 | Conflict dialog use button | "Use datasheet" |
-| Conflict dialog cancel | "Cancel" |
-| Conflict dialog confirm | "Apply" |
+| Conflict dialog cancel | "Discard changes" |
+| Conflict dialog confirm | "Apply import" |
 | Multi-profile note | "Additional model profiles available — see Datasheet Abilities for details." |
 | Sync success toast | "Datasheets synced" |
 | Sync error toast | "Sync failed — check your connection and try again" |
@@ -446,9 +445,9 @@ If any condition fails: picker only opens on "Import stats" button click.
 1. `DatasheetImportDialog` receives the list of conflicting fields (only fields where both current and incoming values are non-empty).
 2. All fields default to `choice: "use"` (datasheet value).
 3. User reviews, optionally toggles individual fields to "Keep".
-4. "Apply": selected values load into PlaybookTab local state (same `setMove`, `setToughness`, etc. calls as manual edit). Dialog closes.
-5. "Cancel": dialog closes, nothing changes.
-6. After Apply: `isDirty` becomes true. User must click "Save Playbook" to persist.
+4. "Apply import": selected values load into PlaybookTab local state (same `setMove`, `setToughness`, etc. calls as manual edit). Dialog closes.
+5. "Discard changes": dialog closes, nothing changes.
+6. After Apply import: `isDirty` becomes true. User must click "Save Playbook" to persist.
 
 Non-conflicting fields (where current value is null/empty): always loaded from datasheet without appearing in dialog.
 
