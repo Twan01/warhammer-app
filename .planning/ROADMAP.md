@@ -167,7 +167,7 @@ Plans:
 | 10. Theming Foundation | 3/4 | In Progress|  | — |
 | 11. Dashboard Command Center | v2.1 | Complete    | 2026-05-03 | 2026-05-03 |
 | 12. Collection Gallery View | 4/4 | Complete    | 2026-05-04 | — |
-| 13. Hobby Journal | 4/6 | In Progress|  | — |
+| 13. Hobby Journal | 5/6 | In Progress|  | — |
 | 14. Spending Tracker | 1/5 | In Progress|  | — |
 | 15. 40K Datasheet Integration | v2.1 | 0/TBD | Not started | — |
 | 16. Design Overhaul | v2.1 | 0/TBD | Not started | — |

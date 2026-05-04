@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Completed 14-00-PLAN.md (Phase 14 Wave 0 stubs — 7 test stub files, 32 it.skip placeholders)
-last_updated: "2026-05-04T06:59:34.647Z"
-last_activity: 2026-05-03 — Phase 13 Plan 03 — JournalTab component delivered; 2 JOUR-05 render tests activated; 17/17 Phase 13 tests passing
+stopped_at: Completed 13-04-PLAN.md (Phase 13 integration wiring — Journal tab + lightbox Dialog + JOUR-06 disk cleanup)
+last_updated: "2026-05-04T07:07:01.974Z"
+last_activity: 2026-05-04 — Phase 14 Plan 00 — 7 Wave 0 stub files created; 32 it.skip placeholders; 245 passing, 32 skipped
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 23
-  completed_plans: 17
-  percent: 74
+  completed_plans: 18
+  percent: 78
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 
 ## Current Position
 
-Phase: 14 of 14 (IN PROGRESS: Phase 14 Spending Tracker)
-Plan: 14-00 complete — Wave 0 stub files: 7 test stubs under tests/spending/ with 32 it.skip placeholders; pnpm test exits 0; tsc --noEmit clean; ready for Plan 14-01 (formatCurrency utility + migration 005 SQL)
-Status: Phase 14 in progress — Plan 14-00 done. Next: Plan 14-01 (formatCurrency.ts + 005_spend_pence.sql migration + lib.rs registration)
-Last activity: 2026-05-04 — Phase 14 Plan 00 — 7 Wave 0 stub files created; 32 it.skip placeholders; 245 passing, 32 skipped
+Phase: 13 of 14 (Phase 13 functionally complete; Plan 13-05 manual smoke test gates phase exit)
+Plan: 13-04 complete — Journal tab wired to UnitDetailSheet; sibling lightbox Dialog in CollectionPage + DashboardPage (JOUR-05); JOUR-06 silent disk cleanup in UnitDeleteDialog; 250 tests passing
+Status: Phase 13 Plans 00–04 complete; Plan 13-05 (manual smoke test) is next. Phase 14 Wave 0 stubs also exist (14-00 done).
+Last activity: 2026-05-04 — Phase 13 Plan 04 — Journal tab + lightbox + JOUR-06 disk cleanup; 250 passing, 27 skipped
 
-Progress: [███████░░░] 74% (17/23 plans complete)
+Progress: [████████░░] 78% (18/23 plans complete)
 
 ## v2.1 Phase Map
 
@@ -86,6 +86,7 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 - Phase 13 Plan 01: tauri feature flag "protocol-asset" must be added to Cargo.toml tauri dependency when assetProtocol.enable = true in tauri.conf.json — build fails without it; plugin registration order: opener -> fs -> dialog -> sql; UnitPhoto.file_path stores UUID filename only (not absolute path)
 - Phase 13 Plan 02: useJournalSessions test file uses .tsx extension (JSX QueryClientProvider wrapper requires tsx — esbuild rejects JSX in .ts); appDataDir() resolved once per hook via useState/useEffect pattern (not per row); PAINTING_SESSIONS_KEY and UNIT_PHOTOS_KEY factories stable for Plan 13-03 UI
 - Phase 13 Plan 03: JournalTab does NOT mount its own lightbox Dialog — onPhotoClick prop delegates to CollectionPage sibling portal (Plan 13-04); photo delete uses no confirmation modal (optimistic rollback via hook); Stage Select 'Other' reveals free-text input that becomes the stage_label
+- Phase 13 Plan 04: DashboardPage also calls UnitDetailSheet and required onPhotoClick wiring + sibling lightbox Dialog — applied same CollectionPage pattern (Rule 3 fix); UnitDeleteDialog uses static imports for getPhotosByUnit + getPhotoFilenamesByUnit to satisfy both DB cleanup (explicit image_assets DELETE) and disk cleanup (fs.remove from AppData); @tauri-apps/plugin-fs module-level import does not break UnitDeleteDialog.test.tsx render-only tests
 - Phase 14 stores all spend values as integer pence in SQLite — display formatting happens in UI layer only, never stored as float
 
 ### Decisions Carried from v2.0
@@ -123,6 +124,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T06:59:34.643Z
-Stopped at: Completed 14-00-PLAN.md (Phase 14 Wave 0 stubs — 7 test stub files, 32 it.skip placeholders)
+Last session: 2026-05-04T07:07:01.971Z
+Stopped at: Completed 13-04-PLAN.md (Phase 13 integration wiring — Journal tab + lightbox Dialog + JOUR-06 disk cleanup)
 Resume: Run `/gsd:execute-phase 14` to continue with Plan 14-01 (formatCurrency utility + 005_spend_pence.sql migration).
