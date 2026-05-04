@@ -1,22 +1,19 @@
 # HobbyForge
 
-## Current Milestone: v2.2 — Full Circle
+## Current Milestone: v2.3 — Hobby Command Center
 
-**Goal:** Close the full hobby loop — from owning and painting to playing and logging — while layering in analytics, personal showcase, and narrative features that make HobbyForge the definitive single-player hobby OS.
+**Goal:** Transform HobbyForge from a functional tracking dashboard into a premium, hobby-native command center — with a unified design system, an action-oriented dashboard, global Quick Add, and visual upgrades across every page.
 
 **Target features:**
-- Battle Log — record games played with opponent faction, mission, outcome, and army used
-- Wishlist / To-Buy — track models to acquire before they're in the collection
-- Hobby Goals — set monthly/quarterly painting targets and track progress
-- Hobby Velocity Tracker — auto-calculated painting pace and projected pile-of-shame completion
-- Spend Over Time chart — monthly/quarterly spend trend from existing pence data
-- Painting Streak — daily hobby streak counter driven by journal sessions
-- Ready-to-Play Quick View — filter owned units by battle-ready status and points limit
-- Showcase Mode — full-screen painted-units gallery for displaying at club nights
-- Custom Lore notes — free-text lore per faction and per unit
-- Undercoat Log — track primer/undercoat used per unit
+- Design Foundation — unified design tokens (Forge Black, Gunmetal, Battle Gold), shared PageHeader, enriched MetricCard, StatusBadge
+- Dashboard Redesign — "Hobby Command Center" header, CurrentFocusCard, HobbyPipeline, upgraded FactionArmyCards, Recent Activity feed
+- Navigation & Quick Add — hobby-native sidebar group names (Command/Workshop/Play), Quick Add dropdown with 8 actions, Sheet-overlay flows
+- Collection — photo thumbnails on gallery cards, unified StatusBadge across table and gallery
+- Projects — enriched kanban cards (last updated, recipe link, photo count, next-action hint), Log Session shortcut
+- Workshop — color swatches on paint cards, paint swatch strip on recipe cards
+- Play Layer — Army List readiness panel, Battle Log army context
 
-*v2.1 shipped 2026-05-04 — all 7 phases (Theming Foundation, Dashboard Command Center, Collection Gallery View, Hobby Journal, Spending Tracker, 40K Datasheet Integration, Design Overhaul) complete.*
+*v2.2 shipped phases 17–19 (Schema + Enrichment, Battle Log, Analytics Core). Phases 21–23 (Wishlist, Hobby Goals, Display Features) deferred to a future milestone.*
 
 ---
 
@@ -62,24 +59,27 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ 40K Datasheet Integration — auto-populate unit stats/abilities/keywords from community data — Phase 15 — v2.1
 - ✓ Design Overhaul — typography, spacing, layouts, empty states, and overall UI polish — Phase 16 — v2.1
 
+*v2.2 partial ship 2026-05-04 — Phases 17–19 complete; Phases 21–23 deferred*
+
+- ✓ Schema Foundation + Enrichment — lore_notes and undercoat on units, lore_notes on factions, purchase_date on paints, dates.ts UTC utility — Phase 17 — v2.2
+- ✓ Battle Log — CRUD page with opponent faction, mission, result, army list linkage, notes, chronological list — Phase 18 — v2.2
+- ✓ Analytics Core — hobby velocity, painting streak on Dashboard, monthly spend trend chart — Phase 19 — v2.2
+
 ### Active
 
-*v2.2 target features — Full Circle (Phases 17+)*
+*v2.3 target features — Hobby Command Center (Phases 25+)*
 
-- [ ] Battle Log — record games played with opponent faction, mission, outcome, and army used
-- [ ] Wishlist / To-Buy — track models to acquire before they're in the collection
-- [ ] Hobby Goals — set monthly/quarterly painting targets and track progress
-- [ ] Hobby Velocity Tracker — auto-calculated painting pace from journal sessions
-- [ ] Spend Over Time chart — monthly/quarterly spend trend from existing pence data
-- [ ] Painting Streak — daily hobby streak counter driven by journal sessions
-- [ ] Ready-to-Play Quick View — filter owned units by battle-ready status and points limit
-- [ ] Showcase Mode — full-screen painted-units gallery for displaying at club nights
-- [ ] Custom Lore notes — free-text lore per faction and per unit
-- [ ] Undercoat Log — track primer/undercoat used per unit
+- [ ] Design Foundation — unified design tokens (Forge Black, Gunmetal, Panel Elevated, Battle Gold), shared PageHeader component, enriched MetricCard, StatusBadge
+- [ ] Dashboard Redesign — "Hobby Command Center" header with Quick Add + Log Session, CurrentFocusCard, HobbyPipeline, upgraded FactionArmyCards, Recent Activity feed
+- [ ] Navigation & Quick Add — hobby-native sidebar group names (Command/Workshop/Play/Management), Quick Add dropdown with 8 actions, Sheet-overlay flows
+- [ ] Collection visual upgrade — photo thumbnails on gallery cards, unified StatusBadge across table and gallery views
+- [ ] Projects enrichment — last-updated date, recipe link, photo count, next-action hint per kanban card; Log Session shortcut on cards
+- [ ] Workshop improvements — color swatches on paint cards, paint swatch strip on recipe cards
+- [ ] Play Layer improvements — Army List readiness panel, Battle Log army context display
 
 ### Out of Scope
 
-- Battle Logs — in scope for v2.2
+- Wishlist / Hobby Goals / Display Features (Battle Ready filter, Showcase Mode) — deferred from v2.2; planned for future milestone
 - Image upload, photo timelines, image gallery — deferred in v2.0; now in scope for v2.1 Hobby Journal
 - Backup / export / import — deferred
 - Settings page — deferred
@@ -132,4 +132,4 @@ A single personal command center that always answers "what do I own, what's pain
 | PlaybookTab SheetHeader/Footer outside Tabs | Edit/Delete must work from any tab without closing sheet | ✓ Good — Pitfall 5 avoidance; confirmed in Phase 9 smoke test |
 
 ---
-*Last updated: 2026-05-04 after v2.2 milestone start*
+*Last updated: 2026-05-04 after v2.3 milestone start*

@@ -1,54 +1,40 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.2
-milestone_name: Full Circle
+milestone: v2.3
+milestone_name: Hobby Command Center
 status: in_progress
-stopped_at: v2.1 milestone archived — ready for v2.2 Phase 21 (Wishlist)
+stopped_at: v2.3 milestone started — requirements defined, roadmap pending
 last_updated: "2026-05-04T19:00:00.000Z"
-last_activity: "2026-05-04 - v2.1 milestone archived — 35/35 reqs, 48/48 wiring, 6/6 flows, zero tech debt"
+last_activity: "2026-05-04 - v2.3 milestone started — 22 requirements defined across 7 categories"
 progress:
-  total_phases: 6
-  completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
-  percent: 50
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-04 after v2.2 milestone start)
+See: .planning/PROJECT.md (updated 2026-05-04 after v2.3 milestone start)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.2 Full Circle — Wishlist (Phase 21), Hobby Goals (Phase 22), Display Features (Phase 23)
+**Current focus:** v2.3 Hobby Command Center — Design Foundation, Dashboard Redesign, Quick Add, page-level UX upgrades
 
 ## Current Position
 
-Phase: Phases 17–19 complete (3/6 v2.2 phases done)
-Plan: Ready to begin Phase 21 (Wishlist)
-Status: v2.1 milestone archived and tagged — v2.2 in progress
-Last activity: 2026-05-04 - v2.1 milestone complete
+Phase: Not started (defining roadmap)
+Plan: —
+Status: Requirements confirmed — roadmapper spawning
+Last activity: 2026-05-04 — Milestone v2.3 started
 
-Progress: [█████░░░░░] 50% (3/6 v2.2 phases complete)
+Progress: [░░░░░░░░░░] 0% (0/TBD v2.3 phases complete)
 
-## v2.2 Phase Map
+## v2.3 Phase Map
 
-| Phase | Goal | Requirements |
-|-------|------|--------------|
-| 17. Schema Foundation + Enrichment | Migration 007 + dates.ts utility + lore/undercoat UI | ENRCH-01..04 |
-| 18. Battle Log | Battle log CRUD page (schema already in migration 001) | BATTLE-01..05 |
-| 19. Analytics Core | Velocity + streak on Dashboard + spend chart on Spending page | ANLY-04..07 |
-| 20. Wishlist | New wishlist_items table + CRUD page | WISH-01..04 |
-| 21. Hobby Goals | New hobby_goals table + progress from session history | ANLY-01..03 |
-| 22. Display Features | Battle Ready filter + Showcase Mode fullscreen | DISP-01..03 |
-
-Architecture constraints:
-- Phase 17 is prerequisite for ALL v2.2 analytics (dates.ts utility needed by Phases 19 + 21)
-- Phase 18 is UI-only — battle_logs table already exists in 001_core_schema.sql; NO migration needed
-- Phase 19 requires `npx shadcn@latest add chart` + package.json `react-is ^19.0.0` override
-- Phase 22 Showcase Mode uses `getCurrentWindow().setFullscreen(true)` from @tauri-apps/api (already installed)
-- All analytics queries go in new `src/db/queries/analytics.ts` with key `["hobby-analytics"]`
+*(To be filled by roadmapper — phases start at 25)*
 
 ## Accumulated Context
 
