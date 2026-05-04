@@ -1,533 +1,634 @@
 # Pitfalls Research
 
-**Domain:** HobbyForge v2.1 — Faction Dynamic Theming, Dashboard Redesign, Collapsible Sidebar, Collection Gallery, Hobby Journal (file system), Spending Tracker — added to existing Tauri 2 + React 19 + Tailwind v4 + shadcn/ui + SQLite app
-**Researched:** 2026-05-02
-**Confidence:** HIGH — derived from codebase audit (globals.css, tauri.conf.json, 001_core_schema.sql), confirmed Tailwind v4 GitHub issues, Tauri bug tracker, SQLite official documentation. Confidence levels noted per finding.
+**Domain:** HobbyForge v2.2 — Full Circle: Battle Log, Wishlist, Hobby Goals, Hobby Velocity Tracker, Spend Over Time chart, Painting Streak, Ready-to-Play Quick View, Showcase Mode, Custom Lore Notes, Undercoat Log — added to existing Tauri 2 + React 19 + Tailwind v4 + shadcn/ui + SQLite (tauri-plugin-sql, no ORM) app.
+**Researched:** 2026-05-04
+**Confidence:** HIGH — derived from direct codebase audit of all 6 migrations, all 11 query modules, all type definitions, all test files, and confirmed codebase pitfall history. Confidence levels noted per finding.
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Tailwind v4 `@theme inline` Breaks Runtime CSS Variable Overrides
+### Pitfall 1: Streak Calculation Off-By-One When "Today" Has No Session
 
 **What goes wrong:**
-The current `globals.css` uses `@theme inline { --color-accent: hsl(var(--accent)); ... }`. With `@theme inline`, Tailwind bakes the value directly into each generated utility class at build time — no intermediate CSS variable is emitted. This means that when you do `document.documentElement.style.setProperty('--accent', '...')` at runtime to swap faction colors, the Tailwind utilities like `bg-accent` and `text-accent` do NOT update. The `inline` keyword tells Tailwind "resolve this to a static value now," so there is no live CSS variable chain to override.
+Painting Streak counts consecutive hobby days. The most common mistake is including today in the streak even when no session has been logged today. The result: a streak that claims "7 days" when the last session was yesterday — but breaks overnight when the calendar rolls to a new day and the app hasn't been opened yet. This creates a "phantom streak" that never breaks even if the user hasn't painted in days.
+
+The inverse error is equally bad: requiring a session today to count the streak at all means a user who painted 6 days in a row sees "0 current streak" at 9am because they haven't painted yet today.
 
 **Why it happens:**
-`@theme inline` is the shadcn/ui default setup — it makes dark mode theming work by resolving tokens at build time. Faction dynamic theming requires the opposite approach: tokens must stay as live CSS variables that can be overridden at runtime. The two requirements are in fundamental tension in Tailwind v4's architecture.
+The streak definition is ambiguous at the boundary. "Consecutive days" must answer: does the count include today (if no session exists today), or does it count the run of past days ending at yesterday? Both are defensible interpretations, but only one matches the correct behaviour.
 
 **How to avoid:**
-Use `@theme` (without `inline`) for any token that must be swappable at runtime. The current globals.css already uses `@theme inline` for the full design system. For faction-specific accent tokens, do NOT put them in `@theme inline`. Instead:
+Use this exact definition consistently throughout:
 
-1. Define faction accent tokens as plain CSS custom properties in `:root` (not inside `@theme`):
-   ```css
-   :root {
-     --faction-accent: #4A90D9;         /* default / Space Marines blue */
-     --faction-accent-foreground: #ffffff;
-   }
-   [data-faction="chaos"] {
-     --faction-accent: #8B0000;
-     --faction-accent-foreground: #ffffff;
-   }
-   [data-faction="necrons"] {
-     --faction-accent: #00FF41;
-     --faction-accent-foreground: #000000;
-   }
-   ```
-2. Register these as Tailwind utilities via `@theme` (not `@theme inline`):
-   ```css
-   @theme {
-     --color-faction-accent: var(--faction-accent);
-     --color-faction-accent-foreground: var(--faction-accent-foreground);
-   }
-   ```
-3. Apply `data-faction="..."` to the `<html>` or root wrapper in React when faction selection changes.
+> Current streak = the count of consecutive calendar days ending at **today or yesterday** on which at least one session was logged.
 
-Do NOT use JavaScript's `setProperty` to override tokens defined in `@theme inline` — it will not work because those tokens have no live CSS variable at runtime.
+The calculation algorithm:
 
-**Warning signs:**
-- `document.documentElement.style.setProperty('--accent', newColor)` is called but `bg-accent` does not update
-- Faction color changes work in DevTools' Elements panel variable override but not via JavaScript
-- `@theme inline` wraps the faction accent tokens
-
-**Phase to address:** Faction Dynamic Theming phase — CSS architecture decision before any theming code is written. The `globals.css` refactor (splitting `@theme inline` tokens from runtime-swappable `@theme` tokens) must be the first deliverable of this phase.
-
----
-
-### Pitfall 2: Tailwind v4 Dynamic Faction Utility Classes Get Purged at Build Time
-
-**What goes wrong:**
-If faction-conditional classes are constructed dynamically in JSX — e.g., `` className={`bg-${faction.slug}-accent`} `` or `` className={`border-${factionColor}`} `` — Tailwind v4's scanner cannot detect them at build time. Those classes will not be emitted in the production CSS bundle. The app works in dev (Vite/Tailwind scans on demand) but the production build silently drops the faction utility classes, breaking theming in the packaged Tauri app.
-
-**Why it happens:**
-Tailwind v4 (like all Tailwind versions) scans source files for complete class strings. Partial string construction at runtime (template literals, array joins) defeats the scanner. The JIT engine cannot predict what the runtime values will be.
-
-**How to avoid:**
-Never construct Tailwind class names by concatenating partial strings. Two safe patterns:
-
-**Pattern A — data attribute + CSS (preferred):**
-Put faction color logic entirely in CSS using `[data-faction="x"]` selectors (see Pitfall 1). The JSX only sets `data-faction={factionSlug}` on the root element — no dynamic class names.
-
-**Pattern B — Lookup table:**
-If faction-specific Tailwind classes are needed in JSX, use a complete static lookup table:
 ```typescript
-const FACTION_CLASSES: Record<string, string> = {
-  space_marines: "bg-blue-700 border-blue-500 text-blue-100",
-  chaos: "bg-red-900 border-red-700 text-red-100",
-  necrons: "bg-green-400 border-green-300 text-black",
-};
-// Safe: Tailwind scanner sees all complete strings in this file
-className={FACTION_CLASSES[faction.slug]}
-```
+// painting_sessions.session_date is stored as 'YYYY-MM-DD' TEXT
+export function computeStreak(sessionDates: string[]): number {
+  if (sessionDates.length === 0) return 0;
 
-Do NOT use: `` className={`bg-${faction.slug}-accent`} ``
+  // Deduplicate — multiple sessions on same day count as one
+  const unique = [...new Set(sessionDates)].sort().reverse(); // newest first
 
-**Warning signs:**
-- Faction theming works in `pnpm dev` but breaks in `pnpm build` + Tauri production
-- Tailwind utilities with faction-derived suffixes appear in dev DevTools but not in the production CSS file
-- `grep -r "bg-\${faction" src/` finds template literal class construction
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
 
-**Phase to address:** Faction Dynamic Theming phase — this pattern must be established before any faction-conditional JSX styling is written.
+  const toDate = (iso: string) => new Date(iso + 'T00:00:00');
 
----
+  // Streak must start at today or yesterday (else it's already broken)
+  const mostRecent = toDate(unique[0]);
+  if (mostRecent < yesterday) return 0; // streak broken — last session is 2+ days ago
 
-### Pitfall 3: shadcn Sidebar's `group-data-[collapsible=icon]` Classes Must Exist as Literal Strings
+  let streak = 0;
+  let expected = mostRecent < today ? yesterday : today; // anchor to most recent
 
-**What goes wrong:**
-The shadcn/ui sidebar component uses classes like `group-data-[collapsible=icon]:hidden` and `group-data-[collapsible=icon]:w-[--sidebar-width-icon]` extensively. These are data-attribute variant selectors. In Tailwind v4, these are detected by the scanner IF AND ONLY IF they appear as complete literal strings somewhere in the scanned source files. If the sidebar component is copy-pasted from shadcn but the class strings are split across template expressions or refactored into variables, the scanner misses them.
-
-A known bug was reported (shadcn-ui/ui #8975, December 2025): `SidebarMenuButton size="lg"` does not collapse properly to icon-only mode with Tailwind v4 — specifically the `size="lg"` variant lacks the `group-data-[collapsible=icon]` overrides needed to shrink correctly.
-
-**Why it happens:**
-The shadcn sidebar component was written for Tailwind v3's JIT. In v4, the scanning works the same way for content detection, but the `@source` directive and automatic content detection may not pick up all the sidebar component's internal paths if the component lives outside the default scan boundary.
-
-**How to avoid:**
-- Copy the full shadcn sidebar component verbatim via `npx shadcn@latest add sidebar` — do not hand-write the component.
-- After adding, verify the sidebar component file is within Tailwind's automatic scan boundary (Tailwind v4 scans all files in the project by default, but confirm with a test build).
-- If collapsing to icon mode is broken, do NOT use `size="lg"` on `SidebarMenuButton`. Use the default size until the upstream bug is resolved.
-- For the collapsible icon sidebar feature, prefer `collapsible="icon"` mode (Tauri desktop doesn't need "offcanvas" for mobile).
-- Add a Tailwind `@source` safelist for the sidebar data-attribute variants if scanning misses them:
-  ```css
-  /* globals.css — force-include sidebar collapse classes */
-  @source inline("group-data-[collapsible=icon]:hidden group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:w-8");
-  ```
-
-**Warning signs:**
-- Sidebar collapses but nav item labels don't hide (text overflows the icon-width sidebar)
-- Sidebar width doesn't change on collapse (the width utility was purged)
-- Sidebar tooltips don't appear in icon mode
-- Size="lg" buttons don't shrink when sidebar is collapsed
-
-**Phase to address:** Collapsible Icon Sidebar phase — verify icon collapse mode works end-to-end in a production build before integrating faction theming on top of it.
-
----
-
-### Pitfall 4: `convertFileSrc` Returns 400 on Windows When Path Contains Backslashes
-
-**What goes wrong:**
-In the Hobby Journal feature, photos are stored on disk and their paths saved in SQLite. To display a photo in the Tauri WebView, you call `convertFileSrc(absolutePath)` to get an `asset://` URL. On Windows, native paths use backslashes (`C:\Users\antoi\AppData\Local\HobbyForge\photos\unit_42\photo.jpg`). The Tauri `convertFileSrc` function does NOT auto-convert backslashes to forward slashes — it returns a 400 Bad Request when the path contains backslashes (confirmed Tauri bug #7970, #8244).
-
-**Why it happens:**
-`convertFileSrc` encodes the path into a URL, but Windows backslashes (`\`) are percent-encoded incorrectly or not handled by the asset protocol's path resolution. The Tauri Rust backend expects URL-style forward-slash paths even on Windows.
-
-**How to avoid:**
-Always normalize the path to forward slashes before calling `convertFileSrc`:
-```typescript
-function toAssetUrl(windowsPath: string): string {
-  const normalized = windowsPath.replace(/\\/g, '/');
-  return convertFileSrc(normalized);
-}
-```
-
-Use this wrapper everywhere — never call `convertFileSrc` directly in component code. Apply it at the point of reading the path from SQLite before rendering `<img src={...} />`.
-
-Also configure the asset protocol scope in `tauri.conf.json` to allow the photos directory:
-```json
-"app": {
-  "security": {
-    "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost",
-    "assetProtocol": {
-      "enable": true,
-      "scope": { "allow": ["$APPLOCALDATA/**"] }
+  for (const iso of unique) {
+    const d = toDate(iso);
+    // Allow the first entry to be today or yesterday
+    const diff = Math.round((expected.getTime() - d.getTime()) / 86400000);
+    if (diff === 0) {
+      streak++;
+      expected = new Date(expected);
+      expected.setDate(expected.getDate() - 1);
+    } else {
+      break; // gap found — streak ends
     }
   }
+  return streak;
 }
 ```
 
-Without the asset protocol scope, even correct forward-slash paths return 403 Forbidden.
-
 **Warning signs:**
-- `<img src={convertFileSrc(path)} />` renders a broken image icon on Windows
-- Network tab in Tauri DevTools shows 400 for asset:// URLs
-- Photos display in dev but not in the production Tauri bundle
+- `computeStreak` uses `new Date()` inside the loop without fixing a single "today" reference — causes inconsistency if midnight crosses during computation
+- Streak does not reset the morning after a missed day
+- Streak includes today even when the session list has no entry for today's ISO date
+- No deduplication of multiple sessions on the same day before streak calculation
 
-**Phase to address:** Hobby Journal phase — establish the `toAssetUrl()` wrapper and asset protocol config before writing any photo display component. This is a Windows-only app (per PROJECT.md), making this a guaranteed issue, not an edge case.
+**Phase to address:** Hobby Velocity / Streak phase — pure function + TDD Wave 0 tests must explicitly cover: (a) empty sessions, (b) last session today, (c) last session yesterday, (d) last session 2 days ago (streak = 0), (e) gap in the middle.
 
 ---
 
-### Pitfall 5: Photos Stored as Absolute Paths in SQLite Break on App Reinstall
+### Pitfall 2: SQLite Date Arithmetic Using JS `new Date()` Timezone Shifts
 
 **What goes wrong:**
-The existing `image_assets` table stores `file_path TEXT NOT NULL` (see `001_core_schema.sql` line 171). If photo paths are stored as absolute Windows paths — e.g., `C:\Users\antoi\AppData\Local\HobbyForge\photos\unit_42\photo.jpg` — they will break if:
-- The user uninstalls and reinstalls the app (Tauri clears `AppLocalData` on uninstall depending on the Windows installer settings)
-- The user moves the data directory
-- The username or drive letter changes (e.g., new PC migration)
-- The app's identifier (`com.hobbyforge.app`) changes in a future version
+`session_date` is stored as `'YYYY-MM-DD'` TEXT (confirmed in `painting_sessions` migration and `PaintingSession` type). When JavaScript parses a bare date string with `new Date('2026-05-03')`, it interprets it as **UTC midnight**, not local midnight. On a machine in UTC+1 or UTC+2 (CET/CEST — which applies to the user in Belgium), this shifts the date backward by 1 or 2 hours.
 
-All stored paths become dangling references pointing to non-existent files. The app shows broken images with no actionable error.
+Consequence: `new Date('2026-05-03')` parsed at 11pm local time on May 3rd in UTC+2 resolves to May 2nd UTC. Streak calculations break: a session logged at 11pm local time gets treated as the previous day. Monthly spend charts attribute purchases to the wrong month.
 
 **Why it happens:**
-Storing absolute paths is the path of least resistance — `appLocalDataDir()` returns a full path, and saving that full path to SQLite "just works" until the base directory changes.
+ECMAScript spec: date-only strings (`YYYY-MM-DD`) are parsed as UTC. Date-time strings with `T` separator but no timezone (`YYYY-MM-DDTHH:MM:SS`) are parsed as local time. This is the single most common JS date parsing bug.
 
 **How to avoid:**
-Store **relative paths** anchored to the `appLocalDataDir`. The SQLite row saves `photos/unit_42/2026-05-02_photo.jpg`. At display time, prepend `appLocalDataDir()` dynamically:
+Always parse stored ISO date strings by appending a local time indicator, or by manually splitting the string:
+
 ```typescript
-async function resolvePhotoPath(relativePath: string): Promise<string> {
-  const base = await appLocalDataDir();
-  const full = await join(base, relativePath);
-  return toAssetUrl(full); // applies backslash normalization
+// WRONG — interprets as UTC midnight, wrong date in UTC+ zones
+const d = new Date('2026-05-03');
+
+// CORRECT — append T00:00:00 to force local midnight interpretation
+const d = new Date('2026-05-03T00:00:00');
+
+// ALSO CORRECT — parse manually, never rely on Date constructor for date-only strings
+function parseLocalDate(iso: string): Date {
+  const [year, month, day] = iso.split('-').map(Number);
+  return new Date(year, month - 1, day); // local midnight
 }
 ```
 
-On load, if a relative path produces a non-existent file (check with `exists()` from `tauri-plugin-fs`), display a "photo missing" placeholder rather than a broken image tag.
+For the streak calculator, use `parseLocalDate` for all session_date parsing. For the "today" anchor, use:
 
-Also: create a dedicated photos subdirectory per unit — `photos/unit_{id}/` — so photos are grouped and can be cleaned up per unit. Do NOT dump all photos into a flat `photos/` directory.
-
-**Warning signs:**
-- `image_assets.file_path` starts with `C:\` or contains the username in the path
-- Photo display breaks after any app data migration
-- No "photo missing" fallback UI exists
-
-**Phase to address:** Hobby Journal phase — path storage strategy must be decided before the first photo upload is implemented. Retrofitting relative paths after data exists requires a data migration.
-
----
-
-### Pitfall 6: `image_assets` Orphan Rows When Parent Unit Is Deleted (Polymorphic FK Gap)
-
-**What goes wrong:**
-The `image_assets` table uses a polymorphic pattern: `entity_type TEXT, entity_id INTEGER`. There is no foreign key constraint from `image_assets` to any specific parent table (FK constraints cannot reference a polymorphic entity_id across multiple tables). When a unit is deleted (via `ON DELETE CASCADE` or `ON DELETE RESTRICT` depending on the relationship), the corresponding `image_assets` rows where `entity_type = 'unit'` are NOT automatically deleted — SQLite has no mechanism to enforce polymorphic FK cascades. This leaves orphan rows in `image_assets` pointing to deleted units, and more importantly, the physical photo files on disk remain forever.
-
-**Why it happens:**
-The polymorphic table design (entity_type + entity_id) is flexible but sacrifices referential integrity. SQLite cannot define `REFERENCES units(id)` when entity_type might also be `'recipe'` or `'project'` in future use.
-
-**How to avoid:**
-Two-part solution:
-
-1. **Application-level cascade:** In the `deleteUnit` query function (`src/db/queries/units.ts`), before calling the DELETE on `units`, delete associated `image_assets` rows AND delete the physical files:
-   ```typescript
-   // 1. Fetch all file paths for this unit's images
-   const photos = await db.select<{file_path: string}[]>(
-     "SELECT file_path FROM image_assets WHERE entity_type = 'unit' AND entity_id = $1",
-     [unitId]
-   );
-   // 2. Delete each physical file
-   for (const { file_path } of photos) {
-     const full = await join(await appLocalDataDir(), file_path);
-     await remove(full);
-   }
-   // 3. Delete the image_assets rows
-   await db.execute(
-     "DELETE FROM image_assets WHERE entity_type = 'unit' AND entity_id = $1",
-     [unitId]
-   );
-   // 4. Now delete the unit (FK RESTRICT on army_list_units is still checked)
-   await db.execute("DELETE FROM units WHERE id = $1", [unitId]);
-   ```
-
-2. **Periodic orphan sweep (future safety net):** On app startup, scan for `image_assets` rows whose files don't exist and delete them. This catches any gaps from crashes during deletion.
-
-**Warning signs:**
-- Deleting a unit does not decrease disk usage (photo files remain)
-- `SELECT COUNT(*) FROM image_assets` grows unboundedly over time even as units are deleted
-- No file deletion logic exists in `deleteUnit` query function
-
-**Phase to address:** Hobby Journal phase — the photo deletion flow must be built into the unit deletion path before any photos can be added. Add a migration for a new cleanup helper if needed.
-
----
-
-### Pitfall 7: SQLite `REAL` for Purchase Price Already in Schema — Must Not Be Used for Spending Tracker Totals
-
-**What goes wrong:**
-The `units` table already has `purchase_price REAL` (see `001_core_schema.sql` line 38). SQLite's REAL type is IEEE 754 double-precision floating-point. Storing `£12.99` as `REAL` introduces a classic binary floating-point representation error: `12.99` cannot be represented exactly in binary. Summing hundreds of REAL purchase prices accumulates floating-point drift. For example, summing 100 prices of `£0.99` gives `98.99999999999999` rather than `99.00`.
-
-For the Spending Tracker, if totals are computed with `SUM(purchase_price)` on REAL columns, the per-faction spend and total spend figures will have penny-level errors that display as `£1,247.9999999997` instead of `£1,248.00`.
-
-**Why it happens:**
-`purchase_price REAL` was the path of least resistance in the v1 schema — it's the natural SQL type for a decimal number. The error is not visible for single values displayed in the units table (rounding hides it) but becomes visible in aggregation.
-
-**How to avoid:**
-For the Spending Tracker's new tables (unit costs, paint costs), store all monetary values as **INTEGER pence** (or cents for non-GBP):
-```sql
-CREATE TABLE spending_entries (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  unit_id INTEGER REFERENCES units(id) ON DELETE CASCADE,
-  amount_pence INTEGER NOT NULL,  -- £12.99 stored as 1299
-  currency TEXT NOT NULL DEFAULT 'GBP',
-  ...
-);
+```typescript
+function todayISO(): string {
+  const d = new Date();
+  // Use local year/month/day — NOT toISOString() which returns UTC
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
 ```
 
-At display time, divide by 100 with `toFixed(2)` formatting. Never use `parseFloat` on currency strings.
-
-For the existing `purchase_price REAL` on `units`: add a migration that adds `purchase_price_pence INTEGER` and backfills it via `ROUND(purchase_price * 100)` for existing rows. The Spending Tracker should read from `purchase_price_pence`, not `purchase_price`. Do not drop the old REAL column (additive migration rule).
+The existing `todayISO()` in `JournalTab.tsx` uses `new Date().toISOString().split('T')[0]` — this is UTC and is technically wrong for UTC+ timezones. Flag for correction.
 
 **Warning signs:**
-- `SUM(purchase_price)` used directly in SQL for spending totals without rounding
-- Currency amounts stored as `REAL` in any new Spending Tracker table
-- `toFixed(2)` applied to a number that was previously a SQLite REAL (rounding hides the error but doesn't eliminate it)
-- Per-faction spend shows `£1,247.9999999998` in any display
+- `new Date(session.session_date)` without the `T00:00:00` suffix
+- `new Date().toISOString().split('T')[0]` used as "today's date" when timezone offset matters
+- Streak breaks mysteriously in the evening or around midnight
+- Monthly chart buckets miscount sessions logged after ~10pm local time
 
-**Phase to address:** Spending Tracker phase — schema design is the first deliverable. Also add `purchase_price_pence INTEGER` to the units table migration at this phase.
+**Phase to address:** Hobby Velocity / Streak phase and Spend Over Time chart phase — define a `parseLocalDate()` and a local `todayISO()` utility in `src/lib/dates.ts` before any date arithmetic is written. Test in the TDD Wave 0 with explicit timezone-edge test cases.
+
+---
+
+### Pitfall 3: SQLite `GROUP BY strftime('%Y-%m', ...)` Is Timezone-Unaware
+
+**What goes wrong:**
+For the Spend Over Time chart and Hobby Velocity Tracker, the natural SQL is:
+
+```sql
+SELECT strftime('%Y-%m', purchase_date) AS month, SUM(purchase_price_pence) AS total
+FROM units
+WHERE purchase_date IS NOT NULL
+GROUP BY month
+ORDER BY month ASC;
+```
+
+SQLite's `strftime()` operates on the stored TEXT value as-is. Since `purchase_date` is stored as `'YYYY-MM-DD'` (local date entered by the user), this SQL works correctly for grouping by month — the stored date string already represents the user's local date, not UTC. There is no timezone shift in the SQL itself.
+
+The pitfall arises if any query or migration ever stores a **datetime with timezone** (e.g., `datetime('now')` stores UTC). If `purchase_date` is ever populated programmatically using `datetime('now')` instead of the user-supplied `YYYY-MM-DD` string, SQLite stores UTC midnight, and the month group will be wrong for UTC+ users.
+
+**Why it happens:**
+SQLite's `datetime('now')` returns UTC. If a developer "helpfully" adds a default to the purchase_date column (`DEFAULT (date('now'))`), all auto-filled dates are UTC dates — subtly wrong for UTC+1/+2 users at end-of-month boundaries.
+
+**How to avoid:**
+Never add `DEFAULT (date('now'))` or `DEFAULT (datetime('now'))` to `purchase_date` or `battle_date` columns. These are user-entered dates that must be supplied from the frontend using the local-date string from the date input element (already `YYYY-MM-DD` local). The existing `units.purchase_date` column has no default — preserve this pattern for all new date columns.
+
+For `created_at`/`updated_at` audit columns, `datetime('now')` is fine — they are not used for user-visible grouping.
+
+**Warning signs:**
+- A migration adds `DEFAULT (date('now'))` or `DEFAULT (datetime('now'))` to a user-visible date column
+- Spend chart shows a purchase in the "wrong month" when entered near end-of-month in the evening
+- `battle_date`, `goal_target_date`, or `purchase_date` columns have SQLite defaults based on `datetime('now')`
+
+**Phase to address:** Schema migration phase for any feature with user-visible date columns — Battle Log (`battle_date`), Hobby Goals (`target_date`, `start_date`), Wishlist. Flag in migration comments.
+
+---
+
+### Pitfall 4: Charting Library Not in Stack — New Dependency Required and Must Work in Tauri's Sandboxed WebView
+
+**What goes wrong:**
+No charting library is installed (confirmed: `package.json` has no recharts, D3, nivo, Victory, or similar). The Spend Over Time chart and Hobby Velocity Tracker require time-series charts. Adding a charting library to a Tauri app has two specific risks:
+
+1. **Canvas-based charting libraries may fail in Tauri's WebView** if they rely on `window.devicePixelRatio` or specific Canvas 2D APIs that behave differently in WebView2 on Windows. Libraries with SVG rendering are safer.
+
+2. **Heavy charting bundles increase Tauri binary size** — the current app is intentionally small. D3 is 500KB+, nivo brings React Spring as a peer dep, Victory brings React Native dependencies.
+
+The recommended choice for this stack is **Recharts** (SVG-based, React-native, ~200KB gzipped, works in Tauri WebView2 on Windows — no Canvas dependency). shadcn/ui ships chart components built on top of Recharts (`npx shadcn@latest add chart`) — this is the correct integration path for this codebase's shadcn style system.
+
+**Why it happens:**
+Developers reach for D3 (most powerful, most familiar from web) without checking Tauri compatibility. D3 itself works, but D3-based wrappers that use Canvas APIs may not.
+
+**How to avoid:**
+Use the shadcn chart component (`npx shadcn@latest add chart`) which wraps Recharts. This gives:
+- SVG rendering (no Canvas) — safe in WebView2
+- Already matches the zinc/dark theme from the rest of the app
+- `recharts` as the only new peer dependency (~210KB gzipped)
+- No React Native, React Spring, or D3 sub-dependencies
+
+Install:
+```bash
+npm install recharts
+npx shadcn@latest add chart
+```
+
+Do NOT use: D3 direct, nivo (React Spring), Victory (React Native peer deps), Chart.js (Canvas-based, flaky in WebView2).
+
+**Warning signs:**
+- Chart renders blank or crashes in the production Tauri binary but works in `npm run dev`
+- Chart uses `canvas.getContext('2d')` — Canvas APIs in WebView2 can behave differently
+- `package.json` adds `d3`, `nivo`, or `victory` without prior Tauri WebView2 validation
+
+**Phase to address:** Spend Over Time chart phase and Hobby Velocity Tracker phase — install and validate the charting library in the first task of whichever feature phase introduces charting. Do not assume it works in Tauri without testing in a production build.
+
+---
+
+### Pitfall 5: `ALTER TABLE` Order Must Match Migration Version Numbers in `lib.rs`
+
+**What goes wrong:**
+v2.2 adds multiple new schema elements: battle_logs table activation (already in 001_core_schema.sql), new columns on `units` (undercoat, lore notes), new tables (wishlist, hobby_goals). If multiple `ALTER TABLE` statements are split across different migration files but the migration numbers in `lib.rs`'s `get_migrations()` are out of order or have gaps, `tauri-plugin-sql` silently skips migrations that are out of sequence.
+
+The existing pattern (verified): migrations must be registered in `get_migrations()` as a contiguous `vec!` with sequential version numbers (1, 2, 3, 4, 5, 6 — no gaps). The next migration is version 7.
+
+The `battle_logs` table already exists in `001_core_schema.sql` (it was schema-forward designed). Any attempt to re-create it in a v2.2 migration will fail with "table already exists." Use `CREATE TABLE IF NOT EXISTS` only if the table truly did not exist before; do not add `IF NOT EXISTS` to ALTER TABLE statements.
+
+**Why it happens:**
+Developers forget that `battle_logs` was pre-created and try to run a "create battle_logs" migration — it fails or is a no-op. Separately, developers unfamiliar with the additive migration rule try to modify `001_core_schema.sql` directly, which has no effect on users who have already run it.
+
+**How to avoid:**
+- **Never modify** `001_core_schema.sql` through `006_spend_pence.sql`. They have already run on the existing DB.
+- New migration = new numbered file (007, 008, ...) registered in `lib.rs` at the correct version.
+- For `battle_logs`: no CREATE TABLE needed — it already exists. Only add to `battle_logs` with `ALTER TABLE IF NEEDED` or populate via INSERT.
+- For `units` undercoat/lore columns: use `ALTER TABLE units ADD COLUMN undercoat_product TEXT;` — pattern from 004/005/006.
+- For wishlist/goals: new `CREATE TABLE IF NOT EXISTS` in the new migration.
+- Consolidate all v2.2 schema changes into the fewest possible migrations (ideally one migration per coherent feature group, not one per column).
+
+**Warning signs:**
+- App boots but columns don't exist — INSERT statements throw "no such column"
+- `get_migrations()` vec skips a version number (e.g., version 7 is missing, version 8 exists)
+- A developer edits an existing migration file instead of creating a new one
+- `CREATE TABLE battle_logs` in a new migration (it already exists from 001)
+
+**Phase to address:** Schema migration task — first deliverable of any v2.2 phase that touches the DB. Include a test (pattern from `tests/spending/migration005.test.ts`) that asserts the migration SQL text contains the expected column/table names and does NOT contain `CREATE TABLE battle_logs` without `IF NOT EXISTS`.
+
+---
+
+### Pitfall 6: Hobby Goals "Derived Progress" Computed in JS Can Diverge from DB State
+
+**What goes wrong:**
+Hobby Goals track progress toward painting targets (e.g., "paint 10 units by June 30"). Progress is derived from existing data: count of units with `status_painting = 'Completed'` (or another terminal status) that were updated within the goal's time window. If this count is computed in JS by filtering the full units array in memory, two problems occur:
+
+1. **Stale cache:** If a unit's painting status is updated in a different part of the app (Collection page, Kanban), the Hobby Goals hook may show stale progress until TanStack Query refetches.
+
+2. **Wrong window:** The goal has `start_date` and `target_date`. Progress should only count units that reached the target status **within that date range**. But `units.updated_at` is a datetime that changes on ANY field update — not just status changes. A unit that had its notes updated today but was painted last year gets counted incorrectly.
+
+**Why it happens:**
+`updated_at` is a general-purpose audit column, not a "painting completed at" timestamp. The schema has no `status_changed_at` or `painting_completed_at` field.
+
+**How to avoid:**
+Two approaches, in order of preference:
+
+**Option A (recommended — no schema change):** Count progress by querying `painting_sessions` for sessions that occurred within the goal's date range, joined to units that are in a target-or-better painting status. This uses the session log as the temporal anchor:
+
+```sql
+SELECT COUNT(DISTINCT ps.unit_id) AS progress
+FROM painting_sessions ps
+JOIN units u ON u.id = ps.unit_id
+WHERE u.status_painting IN ('Completed', 'Varnished')
+  AND ps.session_date >= :start_date
+  AND ps.session_date <= :target_date;
+```
+
+This counts units that both (a) have reached target status AND (b) have a session in the goal window — a reasonable proxy for "painted during this period."
+
+**Option B (simpler, less precise):** Track goal progress as a pure snapshot — count all currently-completed units, regardless of when. Suitable for "how far am I overall" rather than "what did I paint this quarter." Clearly label this in the UI as "current total" not "painted this period."
+
+Do NOT use `updated_at` for goal progress date filtering.
+
+**Warning signs:**
+- Goal progress query filters by `WHERE updated_at >= goal_start_date` — will double-count units whose notes were edited
+- Goal progress is computed in JS by filtering the full `useUnits()` result without invalidating on status changes
+- No cache invalidation of `["hobby-goals"]` query when a unit's painting status changes
+
+**Phase to address:** Hobby Goals phase — query design decision before schema migration. Document the chosen approach in the phase CONTEXT.md before implementation.
+
+---
+
+### Pitfall 7: Spend Over Time Chart Buckets Break When `purchase_date` Is NULL
+
+**What goes wrong:**
+The Spend Over Time chart groups units by `purchase_date` month. A significant portion of units have `purchase_date = NULL` (the field is optional — confirmed in `001_core_schema.sql` and `Unit` type). A naive `GROUP BY strftime('%Y-%m', purchase_date)` silently includes a bucket for `NULL` — SQLite groups all NULL dates together as a single `NULL` key. This NULL bucket appears in the result set and the chart tries to render a data point with `month: null`, either throwing or rendering as "1970-01" or an empty label.
+
+**Why it happens:**
+SQLite includes NULL in GROUP BY results as a distinct group. This is correct SQL behavior but unexpected when building a time-axis chart.
+
+**How to avoid:**
+Always filter out NULL dates in the spending query:
+
+```sql
+SELECT strftime('%Y-%m', purchase_date) AS month,
+       COALESCE(SUM(purchase_price_pence), 0) AS total_pence
+FROM units
+WHERE purchase_date IS NOT NULL
+  AND purchase_price_pence IS NOT NULL
+GROUP BY month
+ORDER BY month ASC;
+```
+
+In the JS aggregation layer (`computeSpendOverTime`), additionally filter any result where `month` is null or empty before passing to the chart.
+
+Also: if `purchase_price_pence IS NULL`, `SUM` returns NULL for that group — wrap with `COALESCE`. The existing `getSpendingStats` already does this for the paint total; apply the same pattern here.
+
+**Warning signs:**
+- Chart receives a data point with `month: null` or `month: ""`
+- Recharts renders an extra unlabelled bar/point at the left of the time axis
+- SQL query lacks `WHERE purchase_date IS NOT NULL`
+- `COALESCE` is missing from the SUM in the spending query
+
+**Phase to address:** Spend Over Time chart phase — validate the SQL in the Wave 0 test by checking that the query string contains both `IS NOT NULL` filters.
 
 ---
 
 ## High-Severity Pitfalls
 
-### Pitfall 8: Gallery and Table Views Have Diverging Filter State (Dual-View State Sync)
+### Pitfall 8: Showcase Mode Fullscreen CSS Conflicts With Tauri's Fixed Window Chrome
 
 **What goes wrong:**
-The Collection Gallery View adds a second way to browse units alongside the existing table. If both views have their own filter/sort state (e.g., the table shows units filtered by "Chaos" faction and sorted by status, but switching to gallery view resets to "all factions, no sort"), the user experiences context loss on every view switch. Conversely, if filter state is stored in component-local state, the state is destroyed when the component unmounts during view toggling.
+Showcase Mode is a full-screen gallery for displaying at club nights. The natural implementation uses CSS `position: fixed; inset: 0; z-index: 9999` to cover the entire screen. However, Tauri on Windows renders the app inside a WebView2 frame with the OS window chrome (title bar, borders). "Full screen" in the WebView context means full WebView — not the full monitor.
 
-A subtler version: the table uses TanStack Table's internal column filter state while the gallery reads from Zustand. These stay in sync initially but diverge when one is updated without updating the other.
+To go truly full-screen (hiding the OS title bar), the Tauri window must be set to `fullscreen: true` via `window.setFullscreen(true)` from `@tauri-apps/api/window`. This changes the OS window state and removes the title bar, which requires the user to have a way to exit (ESC key or a visible close button).
+
+If the implementation only uses CSS `position: fixed` without calling the Tauri window API, Showcase Mode fills the WebView but does NOT hide the OS title bar — it looks unpolished at a club night presentation.
 
 **Why it happens:**
-The natural implementation puts each view in a separate component, each managing its own filtering. The refactor to share state across two views is non-trivial and is frequently deferred until after both views are "working" — at which point the coupling is painful to add.
+Web developers naturally reach for CSS fullscreen without considering the OS window layer. The Fullscreen API (`document.documentElement.requestFullscreen()`) works in browsers but is blocked in Tauri's WebView2 by default.
 
 **How to avoid:**
-Design the filter state as a single shared source before building either view:
+Use Tauri's window API, not the browser Fullscreen API:
 
-1. The existing `collectionFilters.ts` Zustand store (`src/features/units/collectionFilters.ts`) already holds faction filter, search query, status filter, and sort state for the table view. **Extend this store** to serve both views — do not create a second store for the gallery.
-2. Add a `viewMode: 'table' | 'gallery'` field to the existing `collectionFilters` store so view selection persists across navigation.
-3. Both the table component and the gallery component read from the same Zustand store. The Zustand store is the single source of truth for which units are visible and in what order.
-4. The `viewMode` toggle button lives at the page level (not inside either view component), reading and writing `collectionFilters.viewMode`.
-
-Do NOT use TanStack Table's internal column filter state for the shared faction/status filters — keep those in Zustand. TanStack Table's internal state is fine for column ordering and column visibility (gallery doesn't have those concepts).
-
-**Warning signs:**
-- Switching from table to gallery resets the faction filter to "all"
-- The gallery has its own filter bar that duplicates the table's filter bar
-- `collectionFilters.ts` has a separate `galleryFilters.ts` sibling store
-- Sort order applied in the table doesn't apply in the gallery
-
-**Phase to address:** Collection Gallery View phase — the shared filter store extension must be planned before any gallery component is written.
-
----
-
-### Pitfall 9: Painting Status Ring in Gallery View Not Defined as Reusable at the Right Abstraction Level
-
-**What goes wrong:**
-The gallery view's signature visual element is a "painting status ring" (circular progress / colored ring around the unit card image). If this component is built as a one-off inside the gallery card, the Collection table's status column, the Dashboard faction summaries, and any future Army List Builder references cannot reuse it. The ring gets reimplemented 3 times with slight inconsistencies.
-
-**Why it happens:**
-The gallery card is built first in isolation. The status ring is a detail that "belongs" to the card. The reusability need only becomes apparent later.
-
-**How to avoid:**
-Build `PaintingStatusRing` as a standalone component in `src/components/common/` from the start, accepting `paintingPercentage: number` and `status: PaintingStatus` as props. The gallery card uses it; the table's status cell can optionally use a compact variant; the Dashboard can use a larger variant. Define the size and color scale once in the shared component.
-
-**Warning signs:**
-- The status ring SVG or CSS is defined inside `GalleryCard.tsx` and is not importable elsewhere
-- The dashboard faction progress bar uses different color thresholds than the gallery ring
-- The table status column and gallery status ring show different colors for the same painting_percentage value
-
-**Phase to address:** Collection Gallery View phase — define the shared component first, then build GalleryCard using it.
-
----
-
-### Pitfall 10: `appLocalDataDir` vs `appDataDir` Are Different Directories on Windows
-
-**What goes wrong:**
-Windows has two "AppData" directories:
-- `%APPDATA%` = `C:\Users\{user}\AppData\Roaming` — syncs to domain networks, roaming profiles
-- `%LOCALAPPDATA%` = `C:\Users\{user}\AppData\Local` — stays on local machine
-
-Tauri's `appDataDir()` returns the **Roaming** AppData path. Tauri's `appLocalDataDir()` returns the **Local** AppData path.
-
-For a single-user local-first app like HobbyForge, photos should be stored in `appLocalDataDir()` (Local). If code accidentally uses `appDataDir()` (Roaming), photos are stored in the Roaming directory. In enterprise environments or domain-joined PCs, Roaming AppData can fill up the network share quota or be redirected, causing I/O failures. For the developer's personal machine (non-domain), both paths appear to work — making the bug invisible in development.
-
-The existing `tauri-plugin-sql` configuration stores the SQLite DB at `sqlite:hobbyforge.db` without a path prefix, which Tauri resolves to `appLocalDataDir()` by default for plugin-sql. Photos stored in `appDataDir()` would be in a **different directory** than the DB, creating a split between metadata and files.
-
-**How to avoid:**
-Always use `appLocalDataDir()` for HobbyForge's file storage. Explicitly document this choice in the query file. Never use `appDataDir()` for photos or any user-generated content. Create the photos directory on first use:
 ```typescript
-import { appLocalDataDir, join } from '@tauri-apps/api/path';
-import { mkdir } from '@tauri-apps/plugin-fs';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 
-export async function ensurePhotosDir(unitId: number): Promise<string> {
-  const base = await appLocalDataDir();
-  const dir = await join(base, 'photos', `unit_${unitId}`);
-  await mkdir(dir, { recursive: true });
-  return dir;
+async function enterShowcaseMode() {
+  await getCurrentWindow().setFullscreen(true);
+}
+
+async function exitShowcaseMode() {
+  await getCurrentWindow().setFullscreen(false);
 }
 ```
 
-**Warning signs:**
-- Code uses `appDataDir()` for photo storage
-- Photos directory is under `AppData\Roaming\HobbyForge` instead of `AppData\Local\HobbyForge`
-- Photo file writes fail silently on domain-joined machines
+Also provide an ESC key handler and a visible "Exit Showcase" button overlaid on the gallery, because the OS title bar (with its close/minimize controls) is hidden in fullscreen.
 
-**Phase to address:** Hobby Journal phase — establish the path utility functions before any file write occurs.
+Add `window:allow-set-fullscreen` to the capabilities file:
+```json
+"core:window:allow-set-fullscreen"
+```
+
+**Warning signs:**
+- Showcase Mode uses only `position: fixed; inset: 0` without calling `getCurrentWindow().setFullscreen()`
+- No ESC key handler to exit fullscreen
+- `document.requestFullscreen()` used — blocked by WebView2
+- No capability for `core:window:allow-set-fullscreen`
+
+**Phase to address:** Showcase Mode phase — capability declaration and Tauri window API usage must be the first task, before any gallery layout is built.
 
 ---
 
-### Pitfall 11: Tauri `plugin-fs` Requires Explicit Capability Declaration in v2
+### Pitfall 9: Wishlist as Separate Entity vs. a Status Flag on Units — Schema Decision With Long-Term Consequences
 
 **What goes wrong:**
-Tauri v2 uses a capabilities-based permission system. `@tauri-apps/plugin-fs` operations (read, write, mkdir, remove) require capabilities declared in `src-tauri/capabilities/*.json`. Without the correct capability declarations, every `fs` call silently fails or returns a permission error at runtime. The current `tauri.conf.json` has `"security": { "csp": null }` which disables the web-side CSP but does NOT grant file system capabilities.
+Wishlist items are "models to acquire before they're in the collection." There are two possible implementations:
+- **Status flag on units:** Add `is_wishlist INTEGER DEFAULT 0` to the `units` table — wishlist items are just units with a flag set
+- **Separate table:** `wishlist_items` as a distinct entity
+
+The status flag approach seems simpler but creates a false conceptual merge: units are things the user owns; wishlist items are things they want. Mixing them means `owned_count`, `status_assembly`, `status_painting`, etc. are all meaningless for wishlist items but must accept null or placeholder values. Every query that pulls "owned units" must add `WHERE is_wishlist = 0 OR is_wishlist IS NULL`, which is a global change to all 11 existing query modules. Miss one and the Collection page shows wishlist items as owned units; the Dashboard stat "total units owned" inflates; the Spending Tracker includes wish-priced items in real totals.
 
 **Why it happens:**
-The app currently uses `tauri-plugin-sql` which has its own capability model (the preload config in tauri.conf.json). Adding `plugin-fs` requires a separate capability file. Developers who have only used plugin-sql are not aware of this requirement.
+The flag approach avoids a new table and new query module — it "fits" the existing schema. The contamination of every downstream query is not visible until the feature is 80% built.
 
 **How to avoid:**
-Create `src-tauri/capabilities/fs.json` before writing any file system code:
-```json
-{
-  "$schema": "../gen/schemas/desktop-schema.json",
-  "identifier": "hobbyforge-fs",
-  "description": "File system access for Hobby Journal photos",
-  "windows": ["main"],
-  "permissions": [
-    "fs:allow-read-text-file",
-    "fs:allow-write-text-file",
-    "fs:allow-read-file",
-    "fs:allow-write-file",
-    "fs:allow-mkdir",
-    "fs:allow-remove",
-    "fs:allow-exists",
-    "fs:read-dirs",
-    "core:path:default"
-  ]
+Use a **separate `wishlist_items` table** — a distinct entity with its own query module, hook, and UI. No shared type with `Unit`. No alteration to existing unit queries. Schema:
+
+```sql
+CREATE TABLE IF NOT EXISTS wishlist_items (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    faction_id      INTEGER REFERENCES factions(id) ON DELETE SET NULL,
+    name            TEXT    NOT NULL,
+    category        TEXT,
+    unit_type       TEXT,
+    model_count     INTEGER,
+    estimated_price_pence INTEGER,
+    priority        INTEGER,
+    notes           TEXT,
+    created_at      TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at      TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+```
+
+When the user "buys" a wishlist item, it becomes a new unit entry via a manual conversion flow — not an automatic flag flip.
+
+**Warning signs:**
+- `ALTER TABLE units ADD COLUMN is_wishlist INTEGER DEFAULT 0` in the migration
+- `getUnits()` query gets `WHERE is_wishlist = 0` appended
+- Dashboard stats start using `WHERE is_wishlist = 0 OR is_wishlist IS NULL`
+- Wishlist items appear in the Collection page or spending totals
+
+**Phase to address:** Wishlist phase — schema decision (separate table) must be locked in the CONTEXT.md before any migration is written.
+
+---
+
+### Pitfall 10: Ready-to-Play Quick View Cross-Filter Requires a JOIN That Returns Unexpected Null Behaviour
+
+**What goes wrong:**
+Ready-to-Play Quick View filters units by battle-ready status (e.g., `status_painting IN ('Completed', 'Varnished')`) AND checks if they appear in army lists within a points limit. The natural SQL involves a JOIN to `army_list_units`:
+
+```sql
+SELECT u.*
+FROM units u
+JOIN army_list_units alu ON alu.unit_id = u.id
+JOIN army_lists al ON al.id = alu.list_id
+WHERE u.status_painting IN ('Completed', 'Varnished')
+  AND al.points_limit <= :limit;
+```
+
+This query returns only units that are in at least one army list — units not in any list are excluded entirely, even if they are fully painted. For a personal collection with many painted units not yet placed in lists, this produces an empty or near-empty result that looks like a bug.
+
+Additionally, `army_lists.points_limit` is nullable (`points_limit INTEGER` — confirmed in `001_core_schema.sql`). A list with `points_limit = NULL` is silently excluded by `al.points_limit <= :limit` (NULL comparisons return NULL, which is falsy).
+
+**Why it happens:**
+The JOIN removes non-matching rows. The developer sees "all painted units" as the desired output and doesn't realize the JOIN is excluding units with no list membership.
+
+**How to avoid:**
+Use a LEFT JOIN and include units with no list:
+
+```sql
+SELECT DISTINCT u.*,
+       COALESCE(MAX(al.points_limit), 0) AS max_list_points
+FROM units u
+LEFT JOIN army_list_units alu ON alu.unit_id = u.id
+LEFT JOIN army_lists al ON al.id = alu.list_id
+WHERE u.status_painting IN ('Completed', 'Varnished')
+GROUP BY u.id
+HAVING max_list_points <= :limit OR :limit IS NULL OR max_list_points = 0;
+```
+
+Alternatively: compute this entirely in JS as a filter on the existing `useUnits()` result combined with the army lists cache — no new SQL JOIN needed. This is simpler and avoids the NULL-propagation problems:
+
+```typescript
+function getReadyToPlayUnits(units: Unit[], armyListUnits: ArmyListUnit[], limit?: number): Unit[] {
+  const readyStatuses: PaintingStatus[] = ['Completed', 'Varnished', 'Based'];
+  const unitIdsInLists = new Set(armyListUnits.map(alu => alu.unit_id));
+  return units.filter(u =>
+    readyStatuses.includes(u.status_painting) &&
+    (limit == null || unitIdsInLists.has(u.id))
+  );
 }
 ```
 
-Also add `"tauri-plugin-fs"` to `Cargo.toml` and register the plugin in `src-tauri/src/lib.rs` with `.plugin(tauri_plugin_fs::init())`.
+**Warning signs:**
+- Ready-to-Play returns 0 results when the user has painted units but no army lists built yet
+- INNER JOIN to army_list_units in the query
+- `points_limit` comparison without NULL guard
+
+**Phase to address:** Ready-to-Play Quick View phase — query strategy decision before implementation. Prefer JS filtering over SQL JOIN for this feature.
+
+---
+
+### Pitfall 11: Custom Lore Notes `ALTER TABLE` on Large Existing Tables Requires Careful NULL Handling
+
+**What goes wrong:**
+Custom Lore requires adding free-text columns to existing tables — at minimum `lore_notes TEXT` to `units` (for per-unit lore) and possibly to `factions`. The `units` table already has data (the user's collection). `ALTER TABLE units ADD COLUMN lore_notes TEXT` is additive and safe in SQLite, and all existing rows get `lore_notes = NULL`.
+
+The risk is in the TypeScript type update. If `Unit` is updated to `lore_notes: string` (non-nullable) instead of `lore_notes: string | null`, every existing unit read from the DB has `lore_notes = null` but TypeScript expects a string. Code that does `unit.lore_notes.trim()` or `unit.lore_notes.length` throws at runtime on every existing row.
+
+**Why it happens:**
+Developers add the column to the type as `string` because "it will always have a value when the user fills it in." They forget every existing row returns null.
+
+**How to avoid:**
+Always type new optional text columns as `string | null`. Every render site must guard: `unit.lore_notes ?? ''` or `unit.lore_notes?.trim()`. The Zod schema for the edit form uses `.optional().nullable()` (the established pattern — confirmed in `unitSchema.ts` comments).
+
+For factions: faction lore is likely more structured (e.g., `lore_notes TEXT` nullable). Same pattern.
 
 **Warning signs:**
-- `writeFile()` from `@tauri-apps/plugin-fs` throws "plugin not registered" or silent permission error
-- Photos upload succeeds in UI but no file appears on disk
-- No `capabilities/*.json` file references `fs:allow-write-file`
+- `lore_notes: string` (non-nullable) in the `Unit` type after migration
+- `unit.lore_notes.length` or `unit.lore_notes.trim()` without null guard in component code
+- TypeScript errors hidden by `!` non-null assertions on the lore field
 
-**Phase to address:** Hobby Journal phase — this must be the first step before any file system code is written. A failed capability registration produces a confusing runtime error, not a build-time error.
+**Phase to address:** Custom Lore Notes phase — type definition is the first deliverable; null safety enforced by TypeScript strict mode and reviewed in code review.
+
+---
+
+### Pitfall 12: Undercoat Log as New Enum vs. Free-Text Field — Type Safety Trap
+
+**What goes wrong:**
+Undercoat Log tracks "primer/undercoat used per unit." The temptation is to create a TypeScript union type for known undercoat values (`'Chaos Black' | 'Wraithbone' | 'Grey Seer' | ...`). This breaks immediately when the user uses a non-GW primer. The alternative — storing as unconstrained `TEXT` — is correct for the DB, but if the TypeScript type is a union the form validation rejects valid user input.
+
+The secondary issue: if the column is added as `undercoat TEXT` (nullable), existing rows have `undercoat = NULL`. If the UI renders `unit.undercoat` directly in a Badge component that expects a non-empty string, it renders "null" or crashes.
+
+**How to avoid:**
+Store as `TEXT NULL` in the DB — no enum constraint. Use a free-text input with optional preset suggestions (datalist or combobox). TypeScript type: `undercoat: string | null`. Zod: `.optional().nullable()`. UI guard: `{unit.undercoat && <Badge>{unit.undercoat}</Badge>}`.
+
+Do NOT use a TypeScript `as const` union for undercoat values unless the feature spec explicitly requires a fixed list with no user input. The Warhammer undercoat market has dozens of products.
+
+**Warning signs:**
+- `undercoat: 'Chaos Black' | 'Wraithbone' | 'Grey Seer' | null` in the Unit type
+- Zod schema uses `z.enum([...undercoats])` — users can't enter custom values
+- Badge renders `{unit.undercoat}` without null guard
+
+**Phase to address:** Undercoat Log phase — type decision (free text, not enum) locked in CONTEXT.md before schema migration.
+
+---
+
+### Pitfall 13: Battle Log Optional FK to `army_lists` — `SET NULL` Cascade Is Already Correct but Must Be Verified After Army List Deletion
+
+**What goes wrong:**
+`battle_logs.army_list_id` uses `ON DELETE SET NULL` (confirmed in `001_core_schema.sql`). This is correct — deleting an army list should not delete the battle history. But the Battle Log UI must handle the case where `army_list_id` is not null in the DB row but the army list no longer exists. If the UI does a JOIN to `army_lists` without a LEFT JOIN, that battle log row disappears from the list silently.
+
+Additionally: the `battle_logs` table is in the DB but has never had application code written for it. The `getDb().select<BattleLog[]>()` type must be defined fresh. `BattleLog` as a TypeScript type does not exist yet — it must be created following the `PaintingSession` pattern in `src/types/paintingSession.ts`.
+
+**Why it happens:**
+The table was pre-created in migration 001 but no query module, type, or hook exists. A developer starting from scratch might miss that the table already exists and try to create it in a new migration.
+
+**How to avoid:**
+- Check `001_core_schema.sql` for the existing `battle_logs` schema before writing any migration
+- Create `src/types/battleLog.ts` (not auto-derived from schema — must be handwritten)
+- Create `src/db/queries/battleLogs.ts` following `paintingSessions.ts` pattern
+- All queries to `battle_logs` that reference `army_list_id` must use LEFT JOIN or handle null in JS
+- After army list deletion, verify battle log rows still appear with `army_list_id = NULL` and the UI shows "No list" placeholder instead of breaking
+
+**Warning signs:**
+- A new migration contains `CREATE TABLE battle_logs` — this table already exists
+- `BattleLog` TypeScript type doesn't exist; developer uses `any` or `Record<string, unknown>`
+- Battle log query uses INNER JOIN to army_lists — log disappears after army list deletion
+
+**Phase to address:** Battle Log phase — read `001_core_schema.sql` battle_logs definition as the first step; create the type before writing any query.
 
 ---
 
 ## Moderate Pitfalls
 
-### Pitfall 12: Faction Theming via `data-faction` on `<html>` Conflicts With `dark` Class on `<html>`
+### Pitfall 14: Hobby Velocity Tracker — "Sessions Per Week" Divided By Zero When No Sessions Exist
 
 **What goes wrong:**
-The current dark mode implementation adds a `dark` class to the `<html>` element (per `@custom-variant dark (&:is(.dark *))` in globals.css). Faction theming via `data-faction` also targets the `<html>` element. Both must coexist. If the faction theming code writes to `document.documentElement.setAttribute('data-faction', slug)` but also reads `className` for dark mode, there is a risk of accidentally stripping the `dark` class. This is especially easy in a `useEffect` that sets `className` directly.
+Hobby Velocity computes painting pace from session data. The metric "sessions per week" involves dividing the session count by the number of weeks between the first session and today. If there are no sessions at all, this division is `0 / 0 = NaN`. `NaN` propagates through further computations (e.g., "projected completion in X weeks") and renders as `"NaN weeks"` in the UI.
 
 **How to avoid:**
-Use `setAttribute('data-faction', slug)` — never set `className` in the theming effect. The `dark` class is managed by its own effect (or by the initial HTML server rendering). These are separate attributes and must be managed independently. A safe React pattern:
+All velocity computations must be pure functions with explicit zero-guards:
+
 ```typescript
-useEffect(() => {
-  document.documentElement.setAttribute('data-faction', faction?.slug ?? 'default');
-}, [faction?.slug]);
-// Dark mode effect in a separate useEffect that only touches classList
-```
-
-**Warning signs:**
-- Dark mode stops working after faction selection
-- `document.documentElement.className = "dark faction-chaos"` — class string manipulation instead of attribute manipulation
-
-**Phase to address:** Faction Dynamic Theming phase — theming effect design.
-
----
-
-### Pitfall 13: Animated Dashboard Counters Re-Animate on Every TanStack Query Background Refetch
-
-**What goes wrong:**
-The Dashboard Command Center will feature animated counters (numbers counting up to their value on load). TanStack Query performs background refetches on window focus and stale interval. Each background refetch updates the query data, which re-triggers the animation because the component detects a "new" value. The result is counters that randomly re-animate whenever the window regains focus — a jarring experience.
-
-**Why it happens:**
-The animation is tied to the data value changing, but TanStack Query updates the data reference even when the underlying value has not changed (if the refetch returns the same data, a new object reference is still created).
-
-**How to avoid:**
-Two options:
-1. Set `staleTime: Infinity` on the dashboard stats query and refetch only on explicit user action (e.g., a refresh button) — appropriate for a single-user local app where data only changes due to user actions within the same session.
-2. Animate only on first mount using a ref: `const hasAnimated = useRef(false)`. Set it to true after the first animation; subsequent data updates skip the animation. Re-arm on page navigation.
-
-Option 1 is simpler and correct for HobbyForge's single-user, local-only model.
-
-**Warning signs:**
-- Dashboard numbers re-animate when switching app windows
-- Counter animation fires 3-4 times per minute when the app is left open
-
-**Phase to address:** Dashboard as Command Center phase — animation strategy decision before building any counter component.
-
----
-
-### Pitfall 14: Collapsible Sidebar Width Transition Breaks Layout if Flex Children Use Fixed Widths
-
-**What goes wrong:**
-The sidebar collapse animation (transitioning from expanded width to icon width, e.g., 240px → 48px) works via CSS `transition: width`. If the main content area uses `margin-left: 240px` (fixed) instead of flex layout, the content does not reflow during the collapse — it stays at the expanded position, creating a white gap. Alternatively, if `width: calc(100vw - 240px)` is hardcoded in the main content, it won't adjust either.
-
-Also: animating `width` triggers browser layout (reflow) on every frame, which can cause jank. `transform: translateX` would be more performant but requires a different approach (overlay sidebar vs. side-by-side layout).
-
-**Why it happens:**
-The current sidebar uses shadcn's built-in `SidebarProvider` which manages the width via CSS variables (`--sidebar-width` and `--sidebar-width-icon`). If the main content layout is not structured to respond to these variables, the collapse doesn't work.
-
-**How to avoid:**
-Use shadcn's `SidebarProvider` + `SidebarInset` pattern exactly as documented — `SidebarInset` automatically responds to the sidebar's CSS variable width. Do not hardcode sidebar-dependent widths anywhere in the main content area. The current `AppSidebar.tsx` likely already uses this pattern; verify before adding collapse logic.
-
-For a desktop-only app (no mobile), use `collapsible="icon"` mode (not "offcanvas") — icon mode keeps the sidebar in the document flow (no overlay), which is the correct behavior for a side-by-side desktop layout.
-
-**Warning signs:**
-- Main content area has `margin-left: 240px` hardcoded in CSS
-- Sidebar collapse animation leaves a gap between sidebar and content
-- Collapse is instant (no transition) because width is not being transitioned
-
-**Phase to address:** Collapsible Icon Sidebar phase — layout structure review before adding the collapse toggle.
-
----
-
-### Pitfall 15: Spending Tracker Currency Formatting Diverges Between Display Sites
-
-**What goes wrong:**
-The Spending Tracker will display monetary amounts in multiple places: the unit detail sheet (purchase price), the per-faction spend summary, and the total spend view. If each site formats currency independently using different logic (some using `toFixed(2)`, some using `Intl.NumberFormat`, some rounding differently), the same value (e.g., 1299 pence) displays as "12.99", "£12.99", "£12.990", or "12.9" in different places.
-
-**How to avoid:**
-Create a single `formatCurrency(pence: number, currency?: string): string` utility function in `src/utils/currency.ts` before writing any Spending Tracker UI:
-```typescript
-export function formatCurrency(pence: number, currency = 'GBP'): string {
-  return new Intl.NumberFormat('en-GB', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-  }).format(pence / 100);
+export function computeVelocity(sessions: PaintingSession[]): HobbyVelocity {
+  if (sessions.length === 0) return { sessionsPerWeek: 0, minutesPerWeek: 0, projectedWeeks: null };
+  const firstDate = parseLocalDate(sessions[sessions.length - 1].session_date);
+  const today = new Date();
+  const weeksElapsed = Math.max(1, (today.getTime() - firstDate.getTime()) / (7 * 86400000));
+  return {
+    sessionsPerWeek: sessions.length / weeksElapsed,
+    minutesPerWeek: sessions.reduce((s, x) => s + x.duration_minutes, 0) / weeksElapsed,
+    projectedWeeks: null, // requires target unit count from Hobby Goals
+  };
 }
 ```
 
-All display sites import and use this function. All SQLite-to-display conversions go through this function. Never use `(amount / 100).toFixed(2)` directly in JSX.
+`Math.max(1, ...)` prevents division by zero when `weeksElapsed < 1` (first session today).
 
 **Warning signs:**
-- Currency amounts formatted differently on the unit card vs. the spending summary
-- `toFixed(2)` called directly in JSX template literals
-- `£` symbol hardcoded in multiple component files
+- Velocity renders "NaN weeks" or "Infinity sessions/week" in the UI
+- No early-return guard for empty sessions array
+- `sessions.length / weeksElapsed` without `Math.max(1, ...)` denominator guard
 
-**Phase to address:** Spending Tracker phase — create `currency.ts` utility as step 0 of the schema/types layer.
+**Phase to address:** Hobby Velocity Tracker phase — TDD Wave 0 must have an explicit test for zero-sessions input returning `{ sessionsPerWeek: 0, minutesPerWeek: 0 }`.
 
 ---
 
-### Pitfall 16: Hobby Journal Session Log Time Tracking Has No Clock — Duration Must Be User-Entered
+### Pitfall 15: Battle Log Score Fields — INTEGER vs TEXT for Structured Results
 
 **What goes wrong:**
-The Hobby Journal spec includes "painting session log with time tracking." If this is interpreted as automatic time tracking (start/stop timer within the app), it requires app-level timer state that persists across navigation and potentially across app restarts. This is significantly more complex than it sounds: the timer must survive route changes (user navigates away while timing), Tauri window close/reopen events, and concurrent sessions.
+`battle_logs.result` is `TEXT` in the schema (e.g., "Win", "Loss", "Draw"). `my_score` and `opponent_score` are `INTEGER`. If the UI uses a free-text input for `result` instead of a controlled select/enum, users enter inconsistent values: "Win", "win", "W", "Victory", "won". Any win-rate computation becomes unreliable.
 
 **Why it happens:**
-"Time tracking" is commonly assumed to mean "click start, click stop, duration recorded." The hidden complexity is that the timer state must be application-global, persisted to disk (to survive app restarts), and handle edge cases (user closes the app mid-session).
+The column is TEXT in the schema, and TEXT inputs are the default. No validation layer is designed upfront.
 
 **How to avoid:**
-For v2.1, implement **manual duration entry only**: the user types how many minutes they spent. No start/stop timer. Display the total time per unit as a sum of session durations. The schema for `hobby_sessions` should store `duration_minutes INTEGER NOT NULL` entered by the user, not `start_time` / `end_time` timestamps computed by the app.
+Enforce a controlled vocabulary at the application layer even though the DB column is TEXT:
 
-If a timer is desired in a future version, it is a separate feature requiring Tauri's `app::App` global state or a persisted Zustand store with file-system backup.
+```typescript
+export const BATTLE_RESULTS = ['Win', 'Loss', 'Draw'] as const;
+export type BattleResult = typeof BATTLE_RESULTS[number];
+```
+
+Use a Select (not an Input) for the result field. Zod: `z.enum(BATTLE_RESULTS)`. This prevents free-text entry. The DB column stays TEXT — no schema constraint needed.
 
 **Warning signs:**
-- `hobby_sessions` table has `start_time TEXT` and `end_time TEXT` columns intended for auto-timer
-- Timer state stored in React `useState` that resets on navigation
-- "Session in progress" state not persisted across app restarts
+- `result` field is an `<Input type="text">` in the battle log form
+- Win rate calculated by `sessions.filter(s => s.result === 'Win').length` without normalizing case
+- Multiple casing variants of "Win"/"Loss" appear in the DB
 
-**Phase to address:** Hobby Journal phase — scope definition before schema design.
+**Phase to address:** Battle Log phase — define `BATTLE_RESULTS` const in `src/types/battleLog.ts` alongside the BattleLog type.
+
+---
+
+### Pitfall 16: New Query Cache Keys Must Be Invalidated by Existing Mutation Hooks
+
+**What goes wrong:**
+v2.2 introduces multiple new TanStack Query cache keys: `["battle-logs"]`, `["wishlist"]`, `["hobby-goals"]`, `["hobby-velocity"]`, `["spend-over-time"]`, `["painting-streak"]`. When a user updates a unit's painting status (via the Collection page or Kanban), the `["hobby-velocity"]`, `["painting-streak"]`, and `["hobby-goals"]` caches may be stale but won't refetch until the page reloads.
+
+This is the same pitfall as v2.1's spending-stats invalidation (Pitfall 2 in the previous research). It is documented in `14-RESEARCH.md` and confirmed as a real issue.
+
+**Why it happens:**
+Existing mutation hooks (`useUpdateUnit`, `useCreatePaintingSession`, `useDeletePaintingSession`) pre-date the new query keys. The new keys must be manually added to the `onSuccess` invalidation calls in those hooks.
+
+**How to avoid:**
+At the start of v2.2, audit all existing mutation hooks for which new cache keys they should invalidate:
+
+| Mutation | New keys to invalidate |
+|----------|----------------------|
+| `useCreatePaintingSession` | `["painting-streak"]`, `["hobby-velocity"]`, `["hobby-goals"]` |
+| `useDeletePaintingSession` | `["painting-streak"]`, `["hobby-velocity"]`, `["hobby-goals"]` |
+| `useUpdateUnit` (status change) | `["hobby-goals"]`, `["hobby-velocity"]` |
+| `useCreateUnit` / `useDeleteUnit` | `["wishlist"]` if conversion flow exists; `["spending-stats"]` (already wired) |
+| `useCreateBattleLog` | `["battle-logs"]` |
+
+Define all new query key constants in their respective hook files (`STREAK_KEY`, `VELOCITY_KEY`, etc.) before implementing any hook that consumes them.
+
+**Warning signs:**
+- Painting Streak shows stale count after logging a new session until page reload
+- Hobby Goals progress doesn't update after marking a unit complete
+- No `invalidateQueries` call for `["painting-streak"]` in `useCreatePaintingSession`
+
+**Phase to address:** Each feature phase — include cache invalidation in the query module design. Add to the Wave 0 test checklist: "does the mutation hook invalidate the correct keys?"
+
+---
+
+### Pitfall 17: Showcase Mode Gallery Image Loading — `convertFileSrc` Must Be Called Per Image
+
+**What goes wrong:**
+Showcase Mode displays a full-screen gallery of unit photos. Photos are stored as relative paths in `image_assets` (established in v2.1 Hobby Journal — see existing PITFALLS.md Pitfall 5). Each photo requires a call to `convertFileSrc(absolutePath)` to get the `asset://` URL for the `<img>` src.
+
+If Showcase Mode fetches all images for all units at once and calls `convertFileSrc` for each in a loop before rendering, the gallery blocks on path resolution for collections with 50+ units and 200+ photos. Additionally, if the gallery uses a CSS grid that loads all `<img>` elements simultaneously, 200+ concurrent file reads will cause WebView2 to stutter on first load.
+
+**How to avoid:**
+- Lazy-load images: only resolve `convertFileSrc` for images in or near the viewport. Use `IntersectionObserver` or the `loading="lazy"` attribute on `<img>` elements.
+- In Showcase Mode specifically (full-screen, one-at-a-time display), pre-fetch only the current image and the next image — not all images.
+- Use the `useUnitPhotos` hook pattern already established in Phase 13 — it already handles the `assetUrl` conversion per unit. In Showcase Mode, filter to units with `status_painting = 'Completed'` or similar, then load photos lazily per card.
+
+**Warning signs:**
+- Gallery loads all 200+ photos before rendering anything
+- `convertFileSrc` called in a synchronous loop outside React rendering
+- First paint of Showcase Mode takes 3+ seconds with a moderate-sized collection
+
+**Phase to address:** Showcase Mode phase — establish lazy-loading strategy before building the gallery grid.
 
 ---
 
@@ -535,13 +636,14 @@ If a timer is desired in a future version, it is a separate feature requiring Ta
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Store photo paths as absolute Windows paths | Simpler code | All paths break on reinstall, PC migration, or username change | Never — always store relative to appLocalDataDir |
-| Use `REAL` for spending amounts in new tables | Natural SQL type | Penny-level floating-point drift in aggregations; `£1,247.9999999997` | Never for new tables — use INTEGER pence |
-| Build gallery filter state separate from table filter state | Faster initial development | Filter context lost on view switch; two filter bars visible at once | Never — extend existing Zustand store |
-| Construct Tailwind class names via template literals | Convenient for dynamic faction colors | Classes purged in production build; theming works in dev, breaks in prod | Never — use data-attribute CSS or complete static lookup table |
-| Use `appDataDir()` instead of `appLocalDataDir()` for photos | One fewer API call to remember | Photos in Roaming AppData; fails on domain PCs; inconsistent with DB location | Never — always Local AppData |
-| Auto-timer for hobby session tracking | More impressive feature | Complex global state surviving navigation + app restarts | Not in v2.1 — manual entry only |
-| `@theme inline` for faction accent tokens | Simpler CSS | Runtime JS calls to `setProperty` have no effect; faction colors can't switch | Never for runtime-swappable tokens |
+| Wishlist as `is_wishlist` flag on `units` | No new table | All 11 unit queries need `WHERE is_wishlist = 0` guards; Dashboard inflates owned count; Spending Tracker includes wish prices in real totals | Never |
+| Using `updated_at` for Hobby Goals date range filter | No schema change | Goals count units edited (not painted) within the window; wrong progress values forever | Never |
+| `new Date(session_date)` without `T00:00:00` | Fewer characters | Date shifts backward by 1-2 hours in UTC+ timezones; streak breaks at 10pm; charts show wrong month | Never — always append `T00:00:00` |
+| Computing streak in SQL with `strftime` window functions | All logic in DB | SQLite window functions poorly supported in older versions; JS pure function is testable and correct | Never — use JS pure function |
+| Undercoat as TypeScript enum | Type-safe input | Rejects valid user input (non-GW primers); requires migration to add new values | Never — use free text with preset suggestions |
+| INNER JOIN for Ready-to-Play query | Simpler SQL | Units not in any army list disappear from Ready-to-Play even when fully painted | Never — use LEFT JOIN or JS filtering |
+| Charting with Canvas-based library | More powerful charts | May fail silently in WebView2 production build; blank chart | Never — use SVG-based Recharts via shadcn chart |
+| Adding streak/velocity logic to existing hooks | Fewer files | Business logic entangled with data fetching; untestable without IPC mocks | Never — keep pure compute functions separate |
 
 ---
 
@@ -549,14 +651,14 @@ If a timer is desired in a future version, it is a separate feature requiring Ta
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| `convertFileSrc` + Windows paths | Pass Windows backslash path directly | Normalize: `path.replace(/\\/g, '/')` before calling `convertFileSrc` |
-| Tailwind v4 `@theme inline` + runtime theming | Override `--color-accent` via JS setProperty | Use `@theme` (not inline) for swappable tokens; set `data-faction` attribute instead |
-| `plugin-fs` + Tauri v2 capabilities | Skip capability declaration, rely on CSP null | Create `capabilities/fs.json` with explicit fs permissions before any file write |
-| Gallery + Table dual view | Two separate filter stores | Single Zustand store with `viewMode` field; both views read same filter state |
-| `image_assets` + unit deletion | Only delete DB row, not physical file | Delete file first, then DB row; wrap in application-level cascade in `deleteUnit` |
-| SQLite REAL + spending totals | `SUM(purchase_price)` directly | Store as INTEGER pence; sum integers; format at display time only |
-| shadcn Sidebar + collapsible icon mode | Use `size="lg"` on SidebarMenuButton | Use default size until upstream bug #8975 is resolved |
-| `appLocalDataDir` + `appDataDir` | Use `appDataDir()` for user files | Always use `appLocalDataDir()` for any user-generated content |
+| Recharts + shadcn chart + Tauri dark mode | Default Recharts colors don't match zinc dark theme | Use `<ChartContainer>` from `components/ui/chart.tsx` which reads CSS variables; don't hardcode colors |
+| `getCurrentWindow().setFullscreen()` + Showcase Mode | Use CSS `position: fixed` only | Call Tauri window API for true fullscreen; add `core:window:allow-set-fullscreen` capability |
+| `battle_logs` table + new migration | Try to `CREATE TABLE battle_logs` in migration 007 | Table already exists from 001_core_schema.sql — only `ALTER TABLE` or INSERT needed |
+| Hobby Goals progress + `updated_at` | `WHERE updated_at BETWEEN start AND end` | Use `painting_sessions.session_date` as temporal anchor; `updated_at` is a general audit column |
+| Streak calculation + `new Date(isoString)` | Parse bare `YYYY-MM-DD` strings with `new Date()` | Append `T00:00:00` or use `parseLocalDate()` — bare date strings are parsed as UTC |
+| `SUM()` on nullable pence column | `SUM(purchase_price_pence)` returns NULL for no rows | Always `COALESCE(SUM(...), 0)` — established pattern from spending tracker |
+| New query keys + existing mutations | Forget to invalidate `["painting-streak"]` in `useCreatePaintingSession` | Audit all existing mutation hooks at start of v2.2; add new cache key invalidation |
+| Spend Over Time chart + NULL purchase_date | `GROUP BY strftime('%Y-%m', purchase_date)` includes NULL group | Add `WHERE purchase_date IS NOT NULL` before grouping |
 
 ---
 
@@ -564,21 +666,11 @@ If a timer is desired in a future version, it is a separate feature requiring Ta
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Dashboard animated counters on every TQ refetch | Counters re-animate on window focus | Set `staleTime: Infinity` on dashboard-stats query | On first background refetch (immediate) |
-| Gallery renders all unit cards without virtualization | Gallery scroll stutters at 50+ units | Use React virtualization (e.g., `@tanstack/react-virtual`) if >50 cards; for personal collection (<200 units), standard rendering is acceptable | ~100+ units in gallery |
-| CSS `width` transition on sidebar collapse | Layout reflow on every animation frame | Use shadcn SidebarProvider CSS variable approach; avoid manual width animation | Any animated collapse implementation |
-| `resolvePhotoPath` called synchronously per gallery card | Gallery initial render blocks on 20+ async path resolutions | Resolve all photo URLs in a single `useEffect` before rendering, or lazy-load images with `IntersectionObserver` | 20+ photos in gallery simultaneously |
-| Gallery re-fetches units on every view switch | Visible loading flash switching between table and gallery | Both views use the same `useUnits()` hook; TanStack Query cache serves both | Immediate — if cache key differs |
-
----
-
-## Security Mistakes
-
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| Asset protocol scope `"allow": ["**/*"]` (all files) | Any file on the user's machine is servable via `asset://` | Scope to `"$APPLOCALDATA/HobbyForge/**"` specifically |
-| Storing user photo paths in URL query params | Path exposed in Tauri's IPC logs | Use DB row IDs in URLs; resolve paths server-side in queries |
-| No file type validation on photo upload | User could store any file in the photos directory | Validate MIME type (accept `image/*` only) before calling `writeFile` |
+| Showcase Mode loads all photos upfront | 3+ second blank screen before gallery renders | Lazy-load via `IntersectionObserver` or `loading="lazy"`; only pre-fetch current+next in slideshow mode | ~50+ photos |
+| Streak/velocity computed on full session history every render | Noticeable lag on Collection page for active painters | Memoize with `useMemo`; query sessions once; keep pure function fast (O(n) max) | ~500+ sessions over 2 years |
+| Spend Over Time chart re-renders on every route visit | Chart animates on every navigation to the page | Set `staleTime` on spend-over-time query; avoid animation on re-render | Immediate if staleTime = 0 |
+| Hobby Goals progress recomputed on every unit in list | Slow goal list when collection is large | Precompute progress in the query layer; don't filter full unit array per goal per render | ~50+ goals (unlikely but possible) |
+| Ready-to-Play cross-filter fetches all army_list_units | Extra IPC call on every Ready-to-Play view | Reuse existing `useArmyLists()` cache; filter in JS from existing cached data | Immediate — avoid extra query |
 
 ---
 
@@ -586,30 +678,34 @@ If a timer is desired in a future version, it is a separate feature requiring Ta
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Faction theme changes are global but the user doesn't realize | Switching faction changes accent colors across ALL pages, confusing if the user is viewing a different faction's units | Show a persistent faction indicator in the sidebar header; make the theme-change affordance explicit ("theme: Chaos") |
-| Gallery view has no empty state | Empty gallery shows a blank white box | Show a "No units match your filters" card with a clear-filters action, same as table's empty state |
-| Sidebar icon mode has no tooltips | User forgets which icon is which after a week | Shadcn sidebar built-in tooltip support activates automatically in icon mode — verify it works and don't disable it |
-| Photo upload with no progress indicator | Large photo uploads appear frozen | Show a loading spinner on the photo slot during upload; file writes via plugin-fs are fast (<100ms for typical images) but should still have feedback |
-| Spending total displays as `£0.00` before any data is entered | Looks like a bug | Show a "No spending logged yet" empty state instead of a zero total |
+| Hobby Goals shows "0% complete" for a goal with no sessions in the period | Looks like a bug or broken feature | Show "No sessions logged yet in this period" instead of 0% progress bar |
+| Painting Streak shows "0 days" after midnight when user hasn't painted yet today | User feels discouraged — streak appears broken | Only break streak at 48h since last session (allow "paint today or yesterday" window per the streak definition) |
+| Battle Log win/loss stats with only 1-2 games | "33% win rate" from 1 win out of 3 games is misleading | Show raw "W/L/D: 1/2/0" counts alongside the percentage; add a disclaimer for low sample sizes |
+| Showcase Mode has no navigation affordance | User at a club night can't advance to next unit photo without keyboard | Show subtle left/right arrow buttons overlaid on the gallery; support keyboard arrow keys |
+| Wishlist "convert to owned" button is in a confusing location | User can't figure out how to move a wishlist item to collection | Place the conversion action prominently in the wishlist item detail view, not in a context menu |
+| Undercoat Log shows "—" for units with no undercoat recorded | Looks like missing data / error | Show a neutral "Not recorded" label or hide the field entirely for units without an undercoat entry |
+| Spend Over Time chart shows a flat line for January-April if all purchases are recent | Chart looks broken (no data in most buckets) | Show only the months with data; use a reasonable X-axis range (e.g., last 12 months) |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Faction theming:** Changing faction in the UI actually updates `bg-faction-accent` utilities — verify in a production build, not just dev mode
-- [ ] **Faction theming:** `dark` class is still present on `<html>` after faction change — dark mode still works
-- [ ] **Gallery/Table sync:** Setting a faction filter in table view, switching to gallery, switching back — faction filter is preserved in all transitions
-- [ ] **Gallery/Table sync:** Sort order from the table view applies to the gallery card order
-- [ ] **Sidebar collapse:** Labels hide correctly in icon mode; no text overflow; sidebar takes icon width, not full width
-- [ ] **Sidebar collapse:** Tooltips appear on hover in icon mode for all nav items
-- [ ] **Photo upload:** Photo appears immediately after upload (optimistic or refetch after write)
-- [ ] **Photo paths:** After app reinstall (simulate by deleting and recreating AppData/Local/HobbyForge), stored photos still resolve correctly (relative paths survived)
-- [ ] **Photo deletion:** Deleting a unit with photos removes the physical files from disk; disk usage decreases
-- [ ] **convertFileSrc:** Photo `<img>` elements render correctly in the production Tauri bundle (not just `pnpm dev`)
-- [ ] **Spending totals:** Sum of 100 × £0.99 = £99.00 exactly (not £98.999...)
-- [ ] **Spending totals:** Per-faction total and grand total agree when manually summed
-- [ ] **Dashboard counters:** Numbers do NOT re-animate when switching windows or after a background refetch
-- [ ] **Tauri capabilities:** `plugin-fs` operations work in the production build with the capabilities file in place
+- [ ] **Painting Streak:** Streak shows 0 after midnight when user hasn't painted today (but painted yesterday) — this is correct
+- [ ] **Painting Streak:** Logging a session today increments the streak counter immediately (TanStack Query invalidation works)
+- [ ] **Painting Streak:** Streak with gap in the middle (Day 1, Day 2, Day 4) counts as 1 (only the most recent run)
+- [ ] **Spend Over Time:** Units with `purchase_date = NULL` do not appear in any chart bucket (not as a phantom "Unknown month" bar)
+- [ ] **Spend Over Time:** Chart renders correctly in production Tauri binary (Recharts SVG works in WebView2)
+- [ ] **Battle Log:** Deleting an army list doesn't delete battle logs — they remain with `army_list_id = NULL`
+- [ ] **Battle Log:** Battle logs page renders when some rows have `army_list_id = NULL`
+- [ ] **Wishlist:** Wishlist items do NOT appear in the Collection page unit count or spending totals
+- [ ] **Hobby Goals:** Goal progress updates when a unit's painting status is changed anywhere in the app
+- [ ] **Showcase Mode:** Pressing ESC exits fullscreen (Tauri window restores to normal)
+- [ ] **Showcase Mode:** App closes cleanly after being in fullscreen (no window state corruption)
+- [ ] **Custom Lore:** Existing units with `lore_notes = NULL` render without errors
+- [ ] **Undercoat Log:** Existing units with `undercoat = NULL` render without errors
+- [ ] **All new migrations:** `lib.rs` `get_migrations()` vec has no version gaps; next version is 7
+- [ ] **Velocity:** Zero sessions input returns `{ sessionsPerWeek: 0 }` (not NaN, not Infinity)
+- [ ] **Date parsing:** All ISO date strings in streak/chart computation use `T00:00:00` suffix (not bare YYYY-MM-DD)
 
 ---
 
@@ -617,13 +713,13 @@ If a timer is desired in a future version, it is a separate feature requiring Ta
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| `@theme inline` faction tokens (runtime swap broken) | MEDIUM | Refactor globals.css to split inline vs. runtime tokens; no data loss; requires CSS rewrite and faction style audit |
-| Dynamic class names purged in production | LOW-MEDIUM | Replace template literal class construction with static lookup table; CSS-first approach with data-faction is lower risk |
-| Absolute photo paths in SQLite | HIGH | Write a one-time migration script that strips the appLocalDataDir prefix from all file_path values; requires knowing the exact base path used at time of storage |
-| Orphan photo files after unit deletion | MEDIUM | Write a cleanup script: scan `image_assets` for `entity_type='unit'`, check if `entity_id` exists in `units`; delete files and rows for orphans |
-| REAL purchase prices in spending totals | LOW | Add `purchase_price_pence INTEGER` column via migration; backfill with `ROUND(purchase_price * 100)`; update all queries to use the new column |
-| Missing fs capability declaration | LOW | Create `capabilities/fs.json`; rebuild Tauri binary; no data loss |
-| Gallery and table filter state diverged | MEDIUM | Consolidate into existing Zustand store; add `viewMode` field; re-test all filter combinations |
+| Wishlist implemented as `is_wishlist` flag on units | HIGH | Add new `wishlist_items` table via migration; write data migration to move flagged units; remove flag from unit queries; rewrite UI |
+| `updated_at` used for Hobby Goals date filter | MEDIUM | Switch to `painting_sessions.session_date` join; no data loss but query rewrite required |
+| Streak broken by UTC timezone parsing | LOW | Fix `parseLocalDate()` utility; add `T00:00:00`; retest streak computation; no DB changes needed |
+| Charting library incompatible with WebView2 | MEDIUM | Replace with Recharts + shadcn chart; chart components rewrite required |
+| Battle log table re-created in migration (conflicts with 001) | LOW | Remove the CREATE TABLE from the new migration; `IF NOT EXISTS` prevents failure but wastes a migration version |
+| `["painting-streak"]` not invalidated in session mutations | LOW | Add `invalidateQueries` calls to `useCreatePaintingSession` and `useDeletePaintingSession`; no data loss |
+| Showcase Mode exits fullscreen incorrectly on app close | MEDIUM | Add `beforeunload` handler (Tauri's `onCloseRequested`) to call `setFullscreen(false)` |
 
 ---
 
@@ -631,39 +727,42 @@ If a timer is desired in a future version, it is a separate feature requiring Ta
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| `@theme inline` blocks runtime faction swap | Faction Dynamic Theming — CSS architecture step 0 | Runtime JS: change `data-faction` attribute; confirm `bg-faction-accent` updates in production build |
-| Dynamic Tailwind class purge | Faction Dynamic Theming — before any faction-conditional JSX | Grep: `bg-\${` must not appear in src/; production build CSS contains all faction color utilities |
-| `group-data-[collapsible=icon]` missing in prod | Collapsible Icon Sidebar — post-build verification | Production binary: collapse sidebar; confirm icon widths and text hiding work |
-| `convertFileSrc` backslash 400 on Windows | Hobby Journal — `toAssetUrl` wrapper (step 0) | Unit test `toAssetUrl` with a backslash path; end-to-end: photo renders in prod Tauri binary |
-| Absolute photo paths break on reinstall | Hobby Journal — path storage strategy (step 0) | After storing a photo, verify DB stores a relative path; simulate reinstall by moving AppData folder |
-| `image_assets` orphan rows and files | Hobby Journal — unit deletion integration | Delete a unit with photos; verify `image_assets` row count decreases and file is gone from disk |
-| REAL money precision in spending | Spending Tracker — schema design (step 0) | Sum 100 × 99 pence; result must be 9900 exactly; display as `£99.00` |
-| Gallery/table filter state divergence | Collection Gallery View — Zustand store extension | Set faction filter; toggle view mode 3 times; faction filter unchanged throughout |
-| Animated counter re-animation on refetch | Dashboard Command Center — staleTime config | Leave dashboard open for 60 seconds; confirm counters animate exactly once |
-| `plugin-fs` capability missing | Hobby Journal — capabilities file (step 0) | Run production build; verify `writeFile` succeeds without permission errors |
-| `appDataDir` vs `appLocalDataDir` confusion | Hobby Journal — path utility functions | Check physical path of first saved photo; must be under `AppData\Local\`, not `AppData\Roaming\` |
-| Spending currency formatting inconsistency | Spending Tracker — `currency.ts` utility (step 0) | Global grep: no `toFixed(2)` on currency values outside `currency.ts` |
+| Streak off-by-one (today/yesterday boundary) | Hobby Velocity / Streak phase — TDD Wave 0 | Unit test: 5 sessions ending yesterday → streak = 5; 5 sessions ending 2 days ago → streak = 0 |
+| UTC timezone shift in date parsing | Hobby Velocity / Streak phase and Spend Over Time phase — `src/lib/dates.ts` utility | Unit test: `parseLocalDate('2026-05-03')` equals local midnight May 3, not UTC midnight |
+| SQLite strftime timezone on user-entered dates | Schema migration phase — migration comment | Grep: no `DEFAULT (date('now'))` or `DEFAULT (datetime('now'))` on user-visible date columns |
+| Charting library + Tauri WebView2 | Spend Over Time chart phase — library selection task 0 | Production build: chart renders with data, not blank |
+| Migration version gaps + lib.rs | Every schema migration phase | Test: grep migration 007 SQL for expected table/column names; verify lib.rs version sequence has no gaps |
+| Hobby Goals using `updated_at` for progress | Hobby Goals phase — query design in CONTEXT.md | Query review: no `updated_at` in the progress filter; uses `painting_sessions.session_date` |
+| NULL `purchase_date` in chart grouping | Spend Over Time chart phase | Test: unit with `purchase_date = NULL` does not produce a chart bucket; SQL contains `IS NOT NULL` |
+| Showcase Mode CSS-only fullscreen | Showcase Mode phase — capability + window API task 0 | Manual: Showcase Mode hides OS title bar in production build |
+| Wishlist as flag on units | Wishlist phase — CONTEXT.md locked decision | Grep: no `is_wishlist` column in `units` table; no `WHERE is_wishlist = 0` in unit queries |
+| Ready-to-Play INNER JOIN drops unlisted units | Ready-to-Play phase — query strategy review | Manual: painted unit not in any army list appears in Ready-to-Play output |
+| `lore_notes` / `undercoat` non-nullable type | Custom Lore / Undercoat phases — type definition | TypeScript: field typed as `string \| null`; grep: no `unit.lore_notes.` without null guard |
+| Battle log re-created in migration | Battle Log phase — read 001_core_schema.sql first | Migration SQL does not contain `CREATE TABLE battle_logs` without `IF NOT EXISTS` |
+| Missing cache invalidation for new query keys | Every v2.2 feature phase | Per-hook test: mutation → query key invalidated → dependent view updates without page reload |
+| NaN in velocity computation | Hobby Velocity Tracker phase — TDD Wave 0 | Unit test: `computeVelocity([])` returns `{ sessionsPerWeek: 0 }` |
+| Battle result free-text inconsistency | Battle Log phase — type definition | TypeScript: `BATTLE_RESULTS` const defined; result field uses Select not Input |
 
 ---
 
 ## Sources
 
-- `src/styles/globals.css` — confirmed `@theme inline` usage for all current design tokens (HIGH confidence — direct audit)
-- `src-tauri/migrations/001_core_schema.sql` — confirmed `purchase_price REAL` on `units`; `image_assets` polymorphic pattern; no FK from `image_assets` to `units` (HIGH confidence — direct audit)
-- `src-tauri/tauri.conf.json` — confirmed no asset protocol config, no `plugin-fs` in plugins (HIGH confidence — direct audit)
-- `.planning/PROJECT.md` — Windows-only platform constraint; local-first architecture (HIGH confidence)
-- Tailwind v4 official blog: tailwindcss.com/blog/tailwindcss-v4 — `@theme` vs `@theme inline` behavior (HIGH confidence)
-- GitHub tailwindlabs/tailwindcss Discussion #15600 — multiple themes via CSS variables in v4 (MEDIUM confidence)
-- GitHub tailwindlabs/tailwindcss Issue #15874 — CSS variables in @theme not inherited from inline styles (MEDIUM confidence)
-- GitHub tailwindlabs/tailwindcss Discussion #18560 — `@theme` vs `@theme inline` tradeoffs (MEDIUM confidence)
-- GitHub tauri-apps/tauri Issue #7970 — `convertFileSrc` 400 on Windows with backslashes (HIGH confidence — confirmed bug)
-- GitHub tauri-apps/tauri Issue #8244 — `convertFileSrc` cannot load local files on Windows (HIGH confidence — confirmed bug)
-- GitHub tauri-apps/tauri Discussion #11498 — displaying images via asset protocol in v2 (MEDIUM confidence)
-- GitHub shadcn-ui/ui Issue #8975 — SidebarMenuButton size="lg" doesn't collapse in icon mode with Tailwind v4 (MEDIUM confidence)
-- SQLite official docs: sqlite.org/floatingpoint.html — floating-point precision issues with REAL type (HIGH confidence)
-- SQLite forum — INTEGER pence storage recommendation for currency (HIGH confidence)
-- Tauri v2 docs: v2.tauri.app/plugin/file-system — capabilities and permissions for plugin-fs (HIGH confidence)
+- `src-tauri/migrations/001_core_schema.sql` — `battle_logs` pre-existing table definition; `units` nullable columns; `image_assets` polymorphic pattern (HIGH confidence — direct audit)
+- `src-tauri/migrations/005_hobby_journal.sql` — `painting_sessions` table; `session_date TEXT NOT NULL` (HIGH confidence)
+- `src-tauri/migrations/006_spend_pence.sql` — `purchase_price_pence INTEGER` pattern; COALESCE migration approach (HIGH confidence)
+- `src-tauri/src/lib.rs` — migration registration pattern; current max version = 6 (HIGH confidence — direct audit)
+- `src/types/paintingSession.ts` — session_date as `ISO 'YYYY-MM-DD'` documented (HIGH confidence)
+- `src/types/unit.ts` — `purchase_date: string | null`, `purchase_price_pence: number | null` (HIGH confidence)
+- `src/db/queries/spending.ts` — COALESCE(SUM(...), 0) pattern; `WHERE owned = 1` pattern (HIGH confidence)
+- `src/db/queries/units.ts` — `purchase_price_pence = $18` unconditional assignment (not COALESCE) pattern (HIGH confidence)
+- `src/features/units/JournalTab.tsx` — `todayISO()` uses `toISOString().split('T')[0]` — UTC-based, flagged for correction (HIGH confidence)
+- `package.json` — no charting library present; recharts/d3/nivo all absent (HIGH confidence)
+- MDN ECMAScript spec: date-only string `YYYY-MM-DD` parsed as UTC — confirmed behavior (HIGH confidence)
+- Tauri v2 docs: `getCurrentWindow().setFullscreen()` — core:window:allow-set-fullscreen capability required (HIGH confidence)
+- SQLite official docs: `GROUP BY` includes NULL as distinct group; `SUM()` of 0 rows returns NULL (HIGH confidence)
+- `.planning/research/PITFALLS.md` (v2.1) — existing pitfalls context; v2.2 pitfalls do not duplicate those already resolved (HIGH confidence)
+- `.planning/phases/14-spending-tracker/14-RESEARCH.md` — cache invalidation pitfall documented and resolved in v2.1 (HIGH confidence)
 
 ---
-*Pitfalls research for: HobbyForge v2.1 — Faction Dynamic Theming, Dashboard Command Center, Collapsible Sidebar, Collection Gallery, Hobby Journal, Spending Tracker*
-*Researched: 2026-05-02*
+*Pitfalls research for: HobbyForge v2.2 — Full Circle (Battle Log, Wishlist, Hobby Goals, Hobby Velocity, Spend Over Time, Painting Streak, Ready-to-Play, Showcase Mode, Lore Notes, Undercoat Log)*
+*Researched: 2026-05-04*

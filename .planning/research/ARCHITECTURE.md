@@ -1,871 +1,741 @@
-# Architecture Research
+# Architecture Patterns
 
-**Domain:** HobbyForge v2.1 — Visual Command (Faction Theming, Dashboard Redesign, Collapsible Sidebar, Gallery View, Hobby Journal, Spending Tracker)
-**Researched:** 2026-05-02
-**Confidence:** HIGH — based on direct codebase audit + Tailwind v4 and Tauri 2 documentation
-
----
-
-## Standard Architecture
-
-### System Overview
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        React UI Layer                            │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐        │
-│  │Dashboard │  │Collection│  │HobbyJnl  │  │Spending  │        │
-│  │Command   │  │Gallery   │  │PhotoView │  │Tracker   │        │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘        │
-├───────┴─────────────┴─────────────┴──────────────┴─────────────┤
-│                    Zustand Store Layer                            │
-│  ┌──────────────────┐   ┌───────────────┐   ┌──────────────┐    │
-│  │ useFactionTheme  │   │ useSidebarCol │   │ filter stores│    │
-│  │ (persist to LS)  │   │ (persist to LS│   │ (ephemeral)  │    │
-│  └────────┬─────────┘   └───────┬───────┘   └──────────────┘    │
-│           │ effect: setProperty │                                 │
-├───────────┴─────────────────────┴───────────────────────────────┤
-│                  TanStack Query Hooks Layer                       │
-│  ┌──────────┐  ┌──────────┐  ┌─────────────┐  ┌─────────────┐   │
-│  │useFaction│  │useUnits  │  │useHobbyJrnl │  │useSpending  │   │
-│  │Stats     │  │(gallery) │  │(new)        │  │(new)        │   │
-│  └────┬─────┘  └────┬─────┘  └──────┬──────┘  └──────┬──────┘   │
-├───────┴─────────────┴──────────────┴───────────────────┴────────┤
-│                   src/db/queries/* Layer                          │
-│  ┌──────────┐  ┌───────────────┐  ┌──────────────────────────┐   │
-│  │dashboard │  │hobbyJournal   │  │spending.ts               │   │
-│  │.ts       │  │.ts (new)      │  │(new)                     │   │
-│  └────┬─────┘  └───────┬───────┘  └───────────┬──────────────┘   │
-├───────┴─────────────────┴────────────────────────┴──────────────┤
-│                   SQLite (tauri-plugin-sql)                       │
-│  hobby_sessions  unit_photos  unit_purchases  paint_purchases     │
-│  (4 new tables via migration 005)                                 │
-├─────────────────────────────────────────────────────────────────┤
-│              Tauri fs Plugin (NEW — photo storage only)           │
-│  BaseDirectory.AppData → %APPDATA%\com.hobbyforge.app\           │
-│  photos/{unit_id}/{uuid}.webp                                     │
-│  photos/{unit_id}/thumbs/{uuid}_thumb.webp                       │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Component Responsibilities
-
-| Component | Responsibility | Location | Status |
-|-----------|----------------|----------|--------|
-| `useFactionThemeStore` | Holds `activeFactionId`, persists to localStorage, fires `setProperty` effect on change | `src/stores/useFactionThemeStore.ts` | NEW |
-| `useSidebarCollapsed` | Already exists, already persists to localStorage | `src/components/common/useSidebarCollapsed.ts` | EXISTS — no change needed |
-| `FactionThemeProvider` | Thin wrapper component at app root that subscribes to theme store and calls effect | `src/components/common/FactionThemeProvider.tsx` | NEW |
-| `AppSidebar` | Gains tooltip labels in collapsed state | `src/components/common/AppSidebar.tsx` | MODIFY |
-| `DashboardPage` | Full visual redesign — hero band, animated counters, faction banners | `src/features/dashboard/DashboardPage.tsx` | MODIFY (major) |
-| `CollectionPage` | Gains `viewMode` toggle between table and gallery | `src/features/units/CollectionPage.tsx` | MODIFY |
-| `UnitGalleryView` | New card-grid component with SVG painting-status ring | `src/features/units/UnitGalleryView.tsx` | NEW |
-| `UnitGalleryCard` | Single card in gallery — painting ring, unit name, faction badge | `src/features/units/UnitGalleryCard.tsx` | NEW |
-| `HobbyJournalPage` | Photo timeline per unit + session log with time tracking | `src/features/hobby-journal/HobbyJournalPage.tsx` | NEW |
-| `SpendingTrackerPage` | Cost per unit + paint, per-faction and total views | `src/features/spending/SpendingTrackerPage.tsx` | NEW |
+**Domain:** HobbyForge v2.2 — Full Circle (10 new features)
+**Researched:** 2026-05-04
+**Confidence:** HIGH — based on direct codebase audit of all existing query/hook/migration/type files
 
 ---
 
-## Feature 1: Faction Dynamic Theming
+## System Overview
 
-### Where Theme State Lives
-
-**Recommendation: Zustand store with `persist` middleware writing to localStorage.**
-
-Rationale:
-- The sidebar collapse state already uses a raw `useSidebarCollapsed` hook writing to localStorage directly. Faction theme is analogous — persistent across app restarts, no server needed.
-- Zustand `persist` middleware provides synchronous read on first render (avoids flash) when using `localStorage` as the storage engine.
-- Using a Zustand store (rather than React Context) avoids re-rendering the full component tree on theme changes — only the components that subscribe to the store re-render. The CSS property swap itself is a side effect, not a state value consumed by JSX.
-- React Context is the wrong tool here: theme state is not "a value components render from" — it's a global side effect (property mutation on `document.documentElement`). Context would cause cascading re-renders unnecessarily.
-
-**Do NOT use `next-themes`** even though it is installed. `next-themes` manages light/dark toggle, which the app has already solved with a `.dark` class on the root. Faction theming is an independent accent color system.
-
-### How CSS Custom Properties Are Swapped in Tailwind v4
-
-Tailwind v4 uses a CSS-first approach. The `@theme inline` block in `src/styles/globals.css` maps `--color-accent` → `hsl(var(--accent))`. This means:
-
-1. Define faction accent tokens as CSS custom properties on `:root`:
-```css
-/* src/styles/globals.css — add to .dark block */
-:root {
-  --faction-accent: 210 70% 55%;       /* default: neutral blue */
-  --faction-accent-fg: 0 0% 98%;
-  --faction-glow: 210 70% 55%;
-}
-```
-
-2. Register them in the `@theme inline` block so Tailwind utility classes reference them:
-```css
-@theme inline {
-  /* existing tokens ... */
-  --color-faction-accent: hsl(var(--faction-accent));
-  --color-faction-accent-fg: hsl(var(--faction-accent-fg));
-  --color-faction-glow: hsl(var(--faction-glow));
-}
-```
-
-3. At runtime, swap via `document.documentElement.style.setProperty()`:
-```typescript
-// Inside useFactionThemeStore or FactionThemeProvider effect
-document.documentElement.style.setProperty('--faction-accent', '14 80% 45%'); // Space Marines
-document.documentElement.style.setProperty('--faction-accent-fg', '0 0% 98%');
-document.documentElement.style.setProperty('--faction-glow', '14 80% 45%');
-```
-
-4. In JSX, use utility classes: `bg-faction-accent`, `text-faction-accent-fg`, `ring-faction-accent`, `border-faction-accent`. These reference the live custom property — Tailwind generates them at build time, the browser resolves the value at runtime.
-
-**Why this avoids class purging:** Tailwind v4 scans source files and generates classes from utility names in JSX/TSX. As long as `bg-faction-accent`, `text-faction-accent`, etc. appear literally in source files, they will be included in the build. The runtime value is a CSS property — Tailwind never sees or cares about it. No purging risk.
-
-**What would cause purging problems (avoid):** Dynamically constructing class names like `` `bg-${factionColor}-500` `` — Tailwind cannot statically analyze string interpolation and will not generate those classes.
-
-### Faction Color Map
-
-The `factions` table already has `color_theme TEXT NOT NULL DEFAULT '#4A90D9'`. Store HSL channel values in the table or derive them from the stored hex at theme application time.
-
-**Recommended approach:** Add a `color_theme_hsl TEXT` column to `factions` via migration (or compute HSL from hex at query time using a utility function). HSL is required because the CSS custom property pattern uses `hsl(var(--faction-accent))` so only the HSL channel tuple should be stored (`"14 80% 45%"` not `"hsl(14, 80%, 45%)"`).
-
-**Faction color table (seed values):**
-
-| Faction | Hex | HSL channels |
-|---------|-----|--------------|
-| Space Marines | `#8B3A2F` (bolt-red) | `14 52% 37%` |
-| Chaos | `#4A1A8C` (chaos purple) | `265 68% 33%` |
-| Necrons | `#1A6B3C` (necron green) | `150 60% 26%` |
-| Tyranids | `#8B1A4A` (hive-magenta) | `335 68% 33%` |
-
-These are suggestions — the user should customize per faction via the Factions CRUD page (existing `FactionSheet`). Add a color picker or hex input to `FactionSheet`.
-
-### Theme Application Architecture
+Architecture is fully established and non-negotiable. All new features plug into the same stack:
 
 ```
-App cold start
-    ↓
-useFactionThemeStore (Zustand persist) reads localStorage
-    ↓
-FactionThemeProvider mounts, effect fires immediately:
-  document.documentElement.style.setProperty(--faction-accent, ...)
-    ↓
-All bg-faction-accent / text-faction-accent utilities resolve correctly
-
-User selects faction on Dashboard or Factions page
-    ↓
-setActiveFaction(id) called on store
-    ↓
-useFaction(id) query returns faction.color_theme_hsl
-    ↓
-effect re-fires: setProperty updates all three tokens
-    ↓
-UI re-renders only components subscribed to store (the faction badge/indicator)
-    CSS cascade handles everything else
+Components → hooks (useQuery/useMutation) → db/queries/*.ts → SQLite via tauri-plugin-sql
+Ephemeral UI state → Zustand stores
+Persistent UI state → localStorage via Zustand persist
+Cache invalidation → queryClient.invalidateQueries on mutation onSuccess
 ```
-
-### New Store File
-
-**`src/stores/useFactionThemeStore.ts`** (NEW)
-
-```typescript
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-
-interface FactionThemeState {
-  activeFactionId: number | null;
-  setActiveFaction: (id: number | null) => void;
-}
-
-export const useFactionThemeStore = create<FactionThemeState>()(
-  persist(
-    (set) => ({
-      activeFactionId: null,
-      setActiveFaction: (id) => set({ activeFactionId: id }),
-    }),
-    { name: 'faction-theme' }
-  )
-);
-```
-
-**`src/components/common/FactionThemeProvider.tsx`** (NEW) — mounts at app root in `AppLayout`, queries the active faction, applies CSS properties on change.
-
-**`src/app/router.tsx`** — no change needed for theming. `AppLayout` wraps `Outlet`, so wrapping `FactionThemeProvider` inside `AppLayout` covers the entire app.
 
 ---
 
-## Feature 2: Dashboard as Command Center
+## Feature Classification: New Tables vs. Derived Queries
 
-### What Changes
-
-`src/features/dashboard/DashboardPage.tsx` receives a major visual overhaul. The data queries and hooks (`useDashboardStats`) do not change — only the rendering layer.
-
-**New sub-components to create in `src/features/dashboard/`:**
-
-| Component | Purpose |
-|-----------|---------|
-| `HeroBand.tsx` | Full-width faction banner — faction name, animated stat counters, faction-accent gradient |
-| `AnimatedCounter.tsx` | Single animated number — uses CSS `counter` animation or requestAnimationFrame ramp |
-| `FactionBanner.tsx` | Per-faction summary card (replaces `FactionSummaryCard`) with accent ring color |
-| `WarRoomGrid.tsx` | Redesigned stat grid with larger cards, icons, faction-accent borders |
-
-**Components to retire:** `StatCard.tsx` is replaced by `WarRoomGrid.tsx` children. `FactionSummaryCard.tsx` is replaced by `FactionBanner.tsx`. Both old files can be deleted once new components are proven.
-
-**`DashboardListRow.tsx` and `DashboardEmptyState.tsx`** — kept, minor style updates only.
-
-### Dashboard Faction Selection Integration
-
-The Dashboard is the natural place for the user to select the "active faction" for theming. A faction selector (dropdown or clickable cards) on the Dashboard calls `useFactionThemeStore().setActiveFaction(id)`. The selected faction persists across app restarts via the Zustand persist middleware.
+| Feature | Schema Change | New Query Module | New Hook | New Page/Component |
+|---------|--------------|-----------------|----------|-------------------|
+| Battle Log | NEW TABLE `battle_logs` (already in schema 001, zero-row) | NEW `src/db/queries/battleLogs.ts` | NEW `useBattleLogs.ts` | NEW `BattleLogPage` |
+| Wishlist / To-Buy | NEW TABLE `wishlist_items` | NEW `src/db/queries/wishlist.ts` | NEW `useWishlist.ts` | NEW `WishlistPage` |
+| Hobby Goals | NEW TABLE `hobby_goals` | NEW `src/db/queries/hobbyGoals.ts` | NEW `useHobbyGoals.ts` | NEW section on Dashboard or dedicated page |
+| Hobby Velocity Tracker | No new tables — derives from `painting_sessions` | EXTEND `src/db/queries/spending.ts` or NEW `src/db/queries/analytics.ts` | NEW `useHobbyAnalytics.ts` | NEW section/widget |
+| Spend Over Time chart | No new tables — derives from `units.purchase_price_pence` + `units.purchase_date` | EXTEND `src/db/queries/spending.ts` | EXTEND `useSpendingStats.ts` or NEW export | NEW `SpendOverTimeChart` component |
+| Painting Streak | No new tables — derives from `painting_sessions.session_date` | Same analytics query module | Same analytics hook | NEW `PaintingStreakWidget` |
+| Ready-to-Play Quick View | No new tables — filter on `units` + `army_lists` | Reuse `getUnits` + filter in JS, or new `getReadyToPlayUnits` query | Reuse `useUnits` with derived filter, or NEW `useReadyToPlay.ts` | NEW `ReadyToPlayPage` or tab on Collection |
+| Showcase Mode | No new tables — filter `units` where `status_painting = 'Completed'` | Reuse existing | Reuse `useUnits` | NEW `ShowcasePage` or `ShowcaseMode` view mode on Collection |
+| Custom Lore notes | ALTER TABLE `factions` ADD `lore_notes TEXT` + ALTER TABLE `units` ADD `lore_notes TEXT` | Extend existing `getUnitById` / `getFactionById` queries — no new module | Extend existing `useUnit` / `useFactions` type interface | Extend `UnitDetailSheet` + `FactionSheet` |
+| Undercoat Log | ALTER TABLE `units` ADD `undercoat TEXT` (nullable enum: "None", "White", "Black", "Grey", "Contrast", "Other") | Extend existing `units.ts` query — new column in SELECT/INSERT/UPDATE | Extend existing `useUnits` type interface | Extend `UnitSheet` (create/edit form) + `UnitDetailSheet` |
 
 ---
 
-## Feature 3: Collapsible Icon Sidebar
+## Migration 007
 
-### Current State
+Next migration number is 007 (006 was `006_spend_pence.sql`).
 
-`useSidebarCollapsed` already exists at `src/components/common/useSidebarCollapsed.ts` and already persists to localStorage. `AppSidebar` already toggles between `width: 48` (collapsed) and `width: 240` (expanded).
+**File:** `src-tauri/migrations/007_full_circle.sql`
 
-**The core sidebar collapse feature is already shipped.** v2.1 work is cosmetic polish only:
-
-1. Add Tooltip wrappers to `NavItem` so collapsed icon buttons show label tooltips on hover. `TooltipProvider` is already in `AppLayout`. Import `Tooltip, TooltipTrigger, TooltipContent` from `@/components/ui/tooltip` inside `NavItem`.
-2. Ensure icon alignment is pixel-perfect at `width: 48` (icons centered, no text overflow).
-3. Add nav entries for new v2.1 routes (Hobby Journal, Spending Tracker) to `MAIN_NAV` in `AppSidebar`.
-
-**Files modified:** `src/components/common/NavItem.tsx` (tooltip), `src/components/common/AppSidebar.tsx` (new nav entries).
-
----
-
-## Feature 4: Collection Gallery View
-
-### View Mode Toggle
-
-`CollectionPage` (`src/features/units/CollectionPage.tsx`) gains a `viewMode` local state: `'table' | 'gallery'`. A toggle button (likely `LayoutGrid` / `LayoutList` Lucide icons) in the page header switches modes.
-
-**`viewMode` should NOT be persisted** — it resets on navigation, consistent with the existing ephemeral filter state pattern. Local `useState` inside `CollectionPage` is correct.
-
-### Gallery Components
-
-**`UnitGalleryView.tsx`** (NEW in `src/features/units/`) — receives the filtered `Unit[]` array. Renders a `grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4` of `UnitGalleryCard` components.
-
-**`UnitGalleryCard.tsx`** (NEW in `src/features/units/`) — single card:
-- Unit name, faction badge (colored dot or text)
-- SVG circular ring showing `painting_percentage` (a `<circle>` with `stroke-dashoffset` computed from percentage)
-- Status badges: assembled, based, varnished
-- Click → same `handleRowClick` callback as the table rows (opens `UnitDetailSheet`)
-
-**SVG painting ring:** Pure SVG, no library needed. Pattern:
-```tsx
-const circumference = 2 * Math.PI * 18; // radius=18
-const offset = circumference - (pct / 100) * circumference;
-<circle r={18} cx={20} cy={20}
-  stroke="hsl(var(--faction-accent))"
-  strokeDasharray={circumference}
-  strokeDashoffset={offset}
-  strokeLinecap="round"
-  transform="rotate(-90 20 20)"
-/>
-```
-
-**No new data fetching needed.** `CollectionPage` already calls `useUnits()` which returns all units. Gallery view uses the same data, just renders differently.
-
----
-
-## Feature 5: Hobby Journal
-
-### New DB Tables (Migration 005)
-
-Two new tables. Use `ON DELETE CASCADE` on `unit_id` so deleting a unit removes all its journal data.
-
-**`hobby_sessions`** — painting session log per unit
+### New Tables
 
 ```sql
-CREATE TABLE IF NOT EXISTS hobby_sessions (
+-- 007_full_circle.sql — HobbyForge v2.2 Full Circle
+-- Additive only. No destructive statements.
+
+-- battle_logs already exists in 001_core_schema.sql (zero rows).
+-- No CREATE needed. Confirm row count = 0 before phase begins.
+
+-- wishlist_items: models the user wants to buy before they are in the collection
+CREATE TABLE IF NOT EXISTS wishlist_items (
+    id                   INTEGER PRIMARY KEY AUTOINCREMENT,
+    faction_id           INTEGER REFERENCES factions(id) ON DELETE SET NULL,
+    name                 TEXT    NOT NULL,
+    unit_type            TEXT,                        -- e.g. "Infantry", "Vehicle"
+    priority             INTEGER NOT NULL DEFAULT 2,  -- 1=High, 2=Medium, 3=Low
+    estimated_cost_pence INTEGER,                     -- integer pence, nullable
+    notes                TEXT,
+    created_at           TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at           TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+-- hobby_goals: user-defined painting / session targets with a timeframe
+CREATE TABLE IF NOT EXISTS hobby_goals (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    unit_id      INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,
-    session_date TEXT    NOT NULL DEFAULT (date('now')),
-    duration_min INTEGER,                    -- session length in minutes
-    notes        TEXT,                       -- what was done
-    created_at   TEXT    NOT NULL DEFAULT (datetime('now')),
-    updated_at   TEXT    NOT NULL DEFAULT (datetime('now'))
-);
-```
-
-**`unit_photos`** — photo timeline per unit, references a file path on disk
-
-```sql
-CREATE TABLE IF NOT EXISTS unit_photos (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    unit_id     INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,
-    session_id  INTEGER REFERENCES hobby_sessions(id) ON DELETE SET NULL,
-    file_path   TEXT    NOT NULL,        -- relative path under appDataDir
-    thumb_path  TEXT,                   -- relative path to thumbnail, nullable
-    caption     TEXT,
-    taken_at    TEXT,                   -- user-specified date, nullable
-    sort_order  INTEGER NOT NULL DEFAULT 0,
-    created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
-);
-```
-
-**Note on `image_assets`:** Migration 001 already defines an `image_assets` table (polymorphic store). For Hobby Journal, use the dedicated `unit_photos` table instead. Reasons: (1) `image_assets` lacks `session_id` linkage; (2) `image_assets` lacks `thumb_path`; (3) separation of concerns — hobby journal photos are a distinct domain from hypothetical future unit/army thumbnails. The `image_assets` table can be left unused or repurposed later.
-
-### Tauri fs Plugin — File Storage
-
-**Capability setup** (`src-tauri/capabilities/default.json`) — add fs permissions:
-```json
-"fs:default",
-"fs:allow-read-data-files",
-"fs:allow-write-data-files",
-"fs:allow-mkdir"
-```
-
-**Cargo.toml** — add dependency:
-```toml
-tauri-plugin-fs = "2"
-```
-
-**`lib.rs`** — register plugin:
-```rust
-.plugin(tauri_plugin_fs::init())
-```
-
-**JavaScript API pattern:**
-
-```typescript
-import { writeFile, readFile, mkdir, BaseDirectory } from '@tauri-apps/plugin-fs';
-
-// Write photo (Uint8Array from file input or canvas)
-await mkdir(`photos/${unitId}`, { baseDir: BaseDirectory.AppData, recursive: true });
-await writeFile(
-  `photos/${unitId}/${uuid}.webp`,
-  imageBytes,
-  { baseDir: BaseDirectory.AppData }
-);
-
-// Write thumbnail
-await mkdir(`photos/${unitId}/thumbs`, { baseDir: BaseDirectory.AppData, recursive: true });
-await writeFile(
-  `photos/${unitId}/thumbs/${uuid}_thumb.webp`,
-  thumbBytes,
-  { baseDir: BaseDirectory.AppData }
-);
-
-// Resolve to absolute path for DB storage and <img> src
-// %APPDATA%\com.hobbyforge.app\photos\{unitId}\{uuid}.webp
-```
-
-**File path convention:**
-- Store relative paths in DB: `photos/{unit_id}/{uuid}.webp` and `photos/{unit_id}/thumbs/{uuid}_thumb.webp`
-- `appDataDir` resolves to `%APPDATA%\com.hobbyforge.app\` on Windows (already confirmed in `lib.rs` setup comment)
-- To display in `<img>`, resolve to absolute path using `@tauri-apps/api/path`:
-```typescript
-import { appDataDir, join } from '@tauri-apps/api/path';
-const base = await appDataDir();
-const absolutePath = await join(base, relativePath);
-// Use as: <img src={`asset://localhost/${absolutePath.replace(/\\/g, '/')}`} />
-```
-
-**Important:** Tauri's WebView uses the `asset://` protocol to serve local files. The path must be URL-encoded and use forward slashes. Alternatively, convert the bytes to a base64 data URL for display — simpler for small thumbnails.
-
-### Thumbnail Strategy: Generate at Write Time
-
-**Recommendation: Generate thumbnail at write time (not lazily).**
-
-Rationale:
-- Gallery view will display thumbnails for all units with photos — lazy generation would cause a waterfall of file reads and canvas operations on first render
-- The canvas resize operation is O(1) and takes <50ms on modern hardware for a 256px thumbnail
-- `BaseDirectory.AppData` writes are synchronous from the user's perspective (they just picked a file)
-
-**Thumbnail generation pattern (browser-side canvas):**
-
-```typescript
-async function generateThumbnail(file: File, maxDim = 256): Promise<Uint8Array> {
-  const bitmap = await createImageBitmap(file);
-  const scale = Math.min(maxDim / bitmap.width, maxDim / bitmap.height, 1);
-  const canvas = new OffscreenCanvas(
-    Math.round(bitmap.width * scale),
-    Math.round(bitmap.height * scale)
-  );
-  const ctx = canvas.getContext('2d')!;
-  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  const blob = await canvas.convertToBlob({ type: 'image/webp', quality: 0.8 });
-  return new Uint8Array(await blob.arrayBuffer());
-}
-```
-
-`OffscreenCanvas` is available in the Chromium WebView that Tauri uses. No library dependency needed.
-
-### Hobby Journal Feature Location
-
-**`src/features/hobby-journal/`** (NEW folder):
-- `HobbyJournalPage.tsx` — unit selector + photo timeline + session list
-- `PhotoUploadButton.tsx` — file input trigger + thumbnail generation + write flow
-- `PhotoTimeline.tsx` — chronological photo grid
-- `SessionLogEntry.tsx` — single session row with duration + notes
-- `AddSessionSheet.tsx` — date, duration, notes form
-
-**Route:** `/journal` — add to router and sidebar nav (Lucide `BookImage` icon).
-
-### New Hooks and Queries
-
-**`src/db/queries/hobbyJournal.ts`** (NEW):
-- `getPhotosByUnit(unitId)` → `UnitPhoto[]`
-- `getSessionsByUnit(unitId)` → `HobbySession[]`
-- `createSession(input)` → `number` (id)
-- `updateSession(input)` → `void`
-- `deleteSession(id)` → `void`
-- `createPhoto(input)` → `number` (id)
-- `deletePhoto(id)` → `void` (caller also deletes files from disk)
-
-**`src/hooks/useHobbyJournal.ts`** (NEW) — TanStack Query wrappers following existing pattern.
-
----
-
-## Feature 6: Spending Tracker
-
-### New DB Tables (Migration 005, continued)
-
-**`unit_purchases`** — one row per purchase event for a unit
-
-```sql
-CREATE TABLE IF NOT EXISTS unit_purchases (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    unit_id       INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,
-    purchase_date TEXT,
-    price_paid    REAL    NOT NULL DEFAULT 0,
-    currency      TEXT    NOT NULL DEFAULT 'EUR',
-    vendor        TEXT,
-    notes         TEXT,
-    created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
-);
-```
-
-**Note on `units.purchase_price`:** The existing `units` table already has `purchase_price REAL` and `purchase_date TEXT`. The new `unit_purchases` table enables multiple purchase events per unit (e.g., bought half the squad, then the other half). The old `units.purchase_price` field can remain as a convenience field for the unit sheet, but the Spending Tracker queries from `unit_purchases`.
-
-**`paint_purchases`** — one row per paint purchase event
-
-```sql
-CREATE TABLE IF NOT EXISTS paint_purchases (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    paint_id      INTEGER NOT NULL REFERENCES paints(id) ON DELETE CASCADE,
-    purchase_date TEXT,
-    price_paid    REAL    NOT NULL DEFAULT 0,
-    currency      TEXT    NOT NULL DEFAULT 'EUR',
-    vendor        TEXT,
-    notes         TEXT,
-    created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
-);
-```
-
-### Spending Tracker Feature Location
-
-**`src/features/spending/`** (NEW folder):
-- `SpendingTrackerPage.tsx` — total spend overview + per-faction breakdown + per-category tabs
-- `SpendingSummaryCard.tsx` — total / units / paints summary figures
-- `PurchaseLogSheet.tsx` — add/edit purchase entry (shared for unit and paint purchases)
-- `FactionSpendRow.tsx` — one row in the per-faction breakdown table
-
-**Route:** `/spending` — add to router and sidebar nav (Lucide `Wallet` icon).
-
-**New Queries `src/db/queries/spending.ts`** (NEW):
-- `getUnitPurchases(unitId?)` → `UnitPurchase[]` (optional filter by unit)
-- `getTotalUnitSpend()` → `number`
-- `getTotalPaintSpend()` → `number`
-- `getSpendByFaction()` → `{ faction_id, faction_name, total_spend }[]`
-- `createUnitPurchase(input)` → `number`
-- `createPaintPurchase(input)` → `number`
-- `deletePurchase(table, id)` — or split into two functions
-
----
-
-## DB Migration 005 — Full Schema
-
-**File:** `src-tauri/migrations/005_v21_journal_spending.sql`
-
-```sql
--- 005_v21_journal_spending.sql — HobbyForge v2.1 new tables
--- hobby_sessions: per-unit painting session log
-CREATE TABLE IF NOT EXISTS hobby_sessions (
-    id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    unit_id      INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,
-    session_date TEXT    NOT NULL DEFAULT (date('now')),
-    duration_min INTEGER,
+    title        TEXT    NOT NULL,
+    category     TEXT    NOT NULL DEFAULT 'units',    -- 'units' | 'sessions'
+    target_count INTEGER NOT NULL,
+    timeframe    TEXT    NOT NULL,                    -- 'monthly' | 'quarterly' | 'yearly' | custom ISO date
+    start_date   TEXT    NOT NULL DEFAULT (date('now')),
+    end_date     TEXT,                                -- nullable; derived from timeframe on creation
     notes        TEXT,
     created_at   TEXT    NOT NULL DEFAULT (datetime('now')),
     updated_at   TEXT    NOT NULL DEFAULT (datetime('now'))
 );
-
--- unit_photos: per-unit photo timeline (files on disk, paths stored here)
-CREATE TABLE IF NOT EXISTS unit_photos (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    unit_id     INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,
-    session_id  INTEGER REFERENCES hobby_sessions(id) ON DELETE SET NULL,
-    file_path   TEXT    NOT NULL,
-    thumb_path  TEXT,
-    caption     TEXT,
-    taken_at    TEXT,
-    sort_order  INTEGER NOT NULL DEFAULT 0,
-    created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
-);
-
--- unit_purchases: spending log for unit purchases (multiple events per unit)
-CREATE TABLE IF NOT EXISTS unit_purchases (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    unit_id       INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,
-    purchase_date TEXT,
-    price_paid    REAL    NOT NULL DEFAULT 0,
-    currency      TEXT    NOT NULL DEFAULT 'EUR',
-    vendor        TEXT,
-    notes         TEXT,
-    created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
-);
-
--- paint_purchases: spending log for paint purchases
-CREATE TABLE IF NOT EXISTS paint_purchases (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    paint_id      INTEGER NOT NULL REFERENCES paints(id) ON DELETE CASCADE,
-    purchase_date TEXT,
-    price_paid    REAL    NOT NULL DEFAULT 0,
-    currency      TEXT    NOT NULL DEFAULT 'EUR',
-    vendor        TEXT,
-    notes         TEXT,
-    created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
-);
 ```
 
-Register as version 5 in `src-tauri/src/lib.rs` `get_migrations()` vec.
+### ALTER TABLE Additions (units)
+
+```sql
+-- Undercoat Log: primer/undercoat type used per unit
+ALTER TABLE units ADD COLUMN undercoat TEXT;
+
+-- Custom Lore notes per unit
+ALTER TABLE units ADD COLUMN lore_notes TEXT;
+```
+
+### ALTER TABLE Additions (factions)
+
+```sql
+-- Custom Lore notes per faction
+ALTER TABLE factions ADD COLUMN lore_notes TEXT;
+```
+
+### battle_logs status
+
+`battle_logs` was defined in `001_core_schema.sql` and has never been written to. It already has the correct schema (army_list_id FK, battle_date, opponent, opponent_faction, mission, points_played, result, my_score, opponent_score, mvp_unit_id, underperforming_unit_id, lessons_learned, changes_next_time, notes). No migration work needed — just build the query module and hook.
 
 ---
 
-## Recommended Project Structure
+## Feature-by-Feature Integration Details
 
-### New Files to Create
+### 1. Battle Log
+
+**Schema:** Uses existing `battle_logs` table from `001_core_schema.sql`. Zero additional migration.
+
+**New file: `src/db/queries/battleLogs.ts`**
+```typescript
+getBattleLogs(): Promise<BattleLog[]>          // SELECT * ORDER BY battle_date DESC
+getBattleLogById(id): Promise<BattleLog | null>
+createBattleLog(input): Promise<number>
+updateBattleLog(input): Promise<void>
+deleteBattleLog(id): Promise<void>
+// Stat aggregates for dashboard widget:
+getBattleStats(): Promise<{ wins: number; losses: number; draws: number; total: number }>
+```
+
+**New file: `src/hooks/useBattleLogs.ts`**
+- `BATTLE_LOGS_KEY = ["battle-logs"]`
+- `useBattleLogs()` — useQuery
+- `useBattleStats()` — useQuery for win/loss/draw stat card
+- `useCreateBattleLog()` — useMutation, invalidates `["battle-logs"]` and `["battle-stats"]`
+- `useUpdateBattleLog()` — useMutation, invalidates same
+- `useDeleteBattleLog()` — useMutation, invalidates same
+
+**New files in `src/features/battle-log/`:**
+- `BattleLogPage.tsx` — list of games with stat summary (W/L/D)
+- `BattleLogSheet.tsx` — create/edit form (sibling portal pattern)
+- `BattleLogDeleteDialog.tsx` — confirm delete
+- `BattleLogRow.tsx` — single game row (date, opponent faction, mission, result, score)
+- `BattleStatsSummary.tsx` — W/L/D counter cards at top of page
+- `battleLogSchema.ts` — Zod validation schema for the form
+
+**Route:** `/battle-log` — add to `router.tsx` and `AppSidebar.tsx` (Lucide `Swords` icon is already imported, use `Trophy` for battle log instead to avoid conflict).
+
+**Type: `src/types/battleLog.ts`** — mirrors `battle_logs` table columns.
+
+**invalidation contract:** `useDeleteUnit.onSuccess` already cascades via FK `ON DELETE SET NULL` — no new invalidations needed on unit delete. `useDeleteArmyList.onSuccess` similarly uses `ON DELETE SET NULL` — battle logs survive list deletion.
+
+---
+
+### 2. Wishlist / To-Buy
+
+**Schema:** New `wishlist_items` table via migration 007.
+
+**New file: `src/db/queries/wishlist.ts`**
+```typescript
+getWishlistItems(): Promise<WishlistItem[]>
+createWishlistItem(input): Promise<number>
+updateWishlistItem(input): Promise<void>
+deleteWishlistItem(id): Promise<void>
+```
+
+**New file: `src/hooks/useWishlist.ts`**
+- `WISHLIST_KEY = ["wishlist"]`
+- `useWishlistItems()` — useQuery
+- `useCreateWishlistItem()`, `useUpdateWishlistItem()`, `useDeleteWishlistItem()` — invalidate `["wishlist"]`
+
+**New files in `src/features/wishlist/`:**
+- `WishlistPage.tsx` — sortable table of wishlist items
+- `WishlistSheet.tsx` — create/edit form (faction picker, name, unit_type, priority, estimated_cost_pence, notes)
+- `WishlistDeleteDialog.tsx`
+- `WishlistRow.tsx` — single row with priority badge, faction badge, estimated cost display
+- `wishlistFilters.ts` — Zustand ephemeral filter state (priority filter, faction filter)
+- `wishlistSchema.ts` — Zod schema
+
+**Route:** `/wishlist` — add to router and sidebar nav (Lucide `ShoppingCart` icon).
+
+**Type: `src/types/wishlistItem.ts`** — mirrors table columns. `estimated_cost_pence: number | null` (pence, never float).
+
+**Display:** Format estimated costs as currency (reuse existing `formatPence` utility if one exists, otherwise create `src/lib/formatCurrency.ts`).
+
+---
+
+### 3. Hobby Goals
+
+**Schema:** New `hobby_goals` table via migration 007.
+
+**New file: `src/db/queries/hobbyGoals.ts`**
+```typescript
+getHobbyGoals(): Promise<HobbyGoal[]>
+createHobbyGoal(input): Promise<number>
+updateHobbyGoal(input): Promise<void>
+deleteHobbyGoal(id): Promise<void>
+```
+
+**Progress is always derived — never stored.** For `category = 'units'`, progress = count of units with `status_painting = 'Completed'` whose `updated_at` falls within `[start_date, end_date]`. For `category = 'sessions'`, progress = count of `painting_sessions` whose `session_date` falls within the goal's timeframe. Both computations run in JS (pure function pattern matching `computeStats`/`computeSpendingStats`).
+
+**New file: `src/hooks/useHobbyGoals.ts`**
+- `HOBBY_GOALS_KEY = ["hobby-goals"]`
+- `useHobbyGoals()` — useQuery
+- mutations invalidate `["hobby-goals"]`
+- Goals page also needs `useUnits()` and a cross-query for sessions to compute progress
+
+**New compute function: `src/features/hobby-goals/computeGoalProgress.ts`** (pure function, testable)
+```typescript
+computeGoalProgress(goal: HobbyGoal, units: Unit[], sessions: PaintingSession[]): {
+  current: number;
+  target: number;
+  pct: number;
+  onTrack: boolean;
+}
+```
+
+**New files in `src/features/hobby-goals/`:**
+- `HobbyGoalsPage.tsx` — list of goals with progress bars
+- `GoalSheet.tsx` — create/edit form (title, category, target_count, timeframe, start_date)
+- `GoalCard.tsx` — single goal with progress bar + on-track indicator
+- `hobbyGoalSchema.ts` — Zod schema
+
+**Route:** `/goals` — add to router and sidebar nav (Lucide `Target` icon).
+
+**Cross-query dependency:** Goals page needs painting sessions across ALL units (not per-unit like `useJournalSessions` which is scoped per unitId). This requires a new global sessions query.
+
+**New function in `src/db/queries/paintingSessions.ts`:**
+```typescript
+getAllSessions(): Promise<PaintingSession[]>
+// SELECT * FROM painting_sessions ORDER BY session_date DESC
+```
+
+**New hook export from `src/hooks/useJournalSessions.ts`:**
+```typescript
+export const ALL_SESSIONS_KEY = ["painting-sessions"] as const;
+export function useAllSessions(): ...
+```
+
+---
+
+### 4. Hobby Velocity Tracker
+
+**Schema:** No new tables. Derives from `painting_sessions`.
+
+**Pattern:** Same as `computeSpendingStats` — raw data from DB, computation in a pure function.
+
+**New file: `src/db/queries/analytics.ts`**
+```typescript
+getAnalyticsData(): Promise<{
+  sessions: PaintingSession[];   // all sessions for velocity/streak
+  units: Unit[];                 // for pile-of-shame count
+}>
+// Uses Promise.all like dashboard.ts / spending.ts
+```
+
+**New compute function: `src/features/analytics/computeVelocity.ts`**
+```typescript
+computeVelocity(sessions: PaintingSession[], units: Unit[]): {
+  unitsPerMonth: number;       // sessions in last 30 days / avg duration → painted units rate
+  pileOfShameCount: number;    // units with status_painting !== 'Completed'
+  projectedCompletionDays: number | null;  // pile / velocity, null if velocity=0
+  sessionsLast30Days: number;
+  avgSessionMinutes: number;
+}
+```
+
+**New hook: `src/hooks/useHobbyAnalytics.ts`**
+- `HOBBY_ANALYTICS_KEY = ["hobby-analytics"]`
+- `useHobbyVelocity()` — calls `getAnalyticsData()`, runs through `computeVelocity()`
+- `usePaintingStreak()` — calls same raw data, runs through `computeStreak()` (see feature 6)
+- Invalidated by: `useCreatePaintingSession().onSuccess`, `useDeletePaintingSession().onSuccess`, `useUpdateUnit().onSuccess`
+
+**Placement:** Velocity widget renders on the Dashboard as a stat card group, or on a dedicated `/analytics` page shared with Spend Over Time and Painting Streak.
+
+---
+
+### 5. Spend Over Time Chart
+
+**Schema:** No new tables. Derives from `units.purchase_price_pence` and `units.purchase_date`, plus `paints.purchase_price_pence` and `paints.purchase_date` (if that column exists — check migration 006; it adds `purchase_price_pence` to paints but the `purchase_date` column may not exist on paints).
+
+**Check:** `001_core_schema.sql` has `purchase_date TEXT` on `units` only. Paints have no `purchase_date`. For the chart, units-by-month data is reliable; paints may show as a single aggregate if no date is stored. Scope to units-only for v2.2 to avoid gaps.
+
+**New compute function: `src/features/spending/computeSpendOverTime.ts`**
+```typescript
+export interface MonthlySpend {
+  month: string;      // "2026-01" ISO format
+  pence: number;
+}
+computeSpendOverTime(units: Unit[]): MonthlySpend[]
+// Groups purchase_price_pence by month(purchase_date), sorted oldest-first
+// Units with null purchase_date are excluded from the chart (not from total)
+```
+
+**Extend `src/db/queries/spending.ts`:**
+```typescript
+// Already returns Unit[] with purchase_price_pence. No new query needed.
+// computeSpendOverTime takes the existing units array.
+```
+
+**New component: `src/features/spending/SpendOverTimeChart.tsx`**
+- Receives `MonthlySpend[]`
+- Renders a bar chart using shadcn/ui's Recharts-based chart components (already in project as `src/components/ui/chart.tsx` if added, or plain `recharts` if installed)
+- Falls back to a simple table if Recharts not available
+
+**Chart library check:** shadcn/ui new-york ships a `chart` component wrapping Recharts. Verify `src/components/ui/chart.tsx` exists before assuming. If not present, add it via shadcn CLI (`npx shadcn@latest add chart`) — Recharts is a peer dependency. Alternatively, render a pure CSS bar chart for v2.2 to avoid adding a dependency.
+
+**Placement:** New section on `SpendingPage` below the existing faction breakdown, or a separate tab within the spending page.
+
+**Invalidation:** `useSpendingStats` already invalidated by `useCreateUnit`/`useUpdateUnit`/`useDeleteUnit`. The chart component can reuse the same data from `useSpendingStats` extended to include the time-series array.
+
+---
+
+### 6. Painting Streak
+
+**Schema:** No new tables. Derives from `painting_sessions.session_date`.
+
+**New compute function: `src/features/analytics/computeStreak.ts`**
+```typescript
+computeStreak(sessions: PaintingSession[]): {
+  currentStreak: number;    // consecutive days with at least 1 session up to today
+  longestStreak: number;    // all-time longest
+  lastSessionDate: string | null;
+}
+// Input: all sessions (not per-unit). Algorithm: deduplicate by date, sort desc, count consecutive days
+```
+
+**Hook:** Reuse `useHobbyAnalytics.ts` — `usePaintingStreak()` calls `getAnalyticsData()` and runs `computeStreak()`.
+
+**New component: `src/features/analytics/PaintingStreakWidget.tsx`**
+- Shows current streak count + flame icon
+- Renders on Dashboard (as a stat card) or on the analytics page
+
+**Invalidation:** Same as velocity — `useCreatePaintingSession().onSuccess` must invalidate `["hobby-analytics"]`. Add this to the existing mutation's `onSuccess` in `useJournalSessions.ts`.
+
+---
+
+### 7. Ready-to-Play Quick View
+
+**Schema:** No new tables. Filters existing `units` data.
+
+**Definition:** A unit is "ready to play" when `status_painting = 'Completed'` AND `status_assembly = 1` AND `status_basing = 1`. Optionally filter by `points <= N` for a points budget.
+
+**Approach:** New page that calls `useUnits()` (already cached) and filters client-side.
+
+**New compute function: `src/features/units/applyReadyToPlayFilter.ts`**
+```typescript
+applyReadyToPlayFilter(units: Unit[], maxPoints: number | null): Unit[]
+// Filter: status_painting === 'Completed' && status_assembly === 1 && status_basing === 1
+// Optional: && (points ?? 0) <= maxPoints
+```
+
+**New page: `src/features/units/ReadyToPlayPage.tsx`**
+- Reuses `useUnits()` — no new data fetch
+- Points limit input (Zustand ephemeral store)
+- Renders the existing `UnitTable` or `UnitGallery` with ready-to-play filtered results
+- Summary: total points available for play, count of units
+
+**Zustand store: `src/features/units/readyToPlayFilters.ts`**
+- `maxPoints: number | null`
+- `factionId: number | null`
+
+**Route:** `/ready-to-play` — add to router and sidebar nav (Lucide `CheckSquare` icon).
+
+**This page does NOT need a new query module.** It reuses the `["units"]` cache.
+
+---
+
+### 8. Showcase Mode
+
+**Schema:** No new tables. Filters `units` where `status_painting = 'Completed'` and shows main_image_path / unit photos.
+
+**Two implementation options:**
+
+Option A: Separate route `/showcase` with a full-screen gallery (recommended for v2.2).
+Option B: A toggle on the Collection page's gallery view.
+
+**Recommendation:** Separate route. Showcase is a distinct UX context (club night display, dark background, large images, minimal chrome) — not a filter state on Collection.
+
+**New files in `src/features/showcase/`:**
+- `ShowcasePage.tsx` — full-screen dark gallery of painted units
+- `ShowcaseCard.tsx` — large unit card: main_image_path, unit name, faction badge
+- `ShowcaseEmptyState.tsx`
+
+**Data:** Reuses `useUnits()` (already cached). Filters client-side to `status_painting = 'Completed'`. For images, reuses existing `main_image_path` column on units. Does NOT need `useUnitPhotos`.
+
+**Route:** `/showcase` — add to router. May NOT need a sidebar nav entry (it's a display mode, not a management page). Can be triggered from Collection page header as a button: "Open Showcase" → navigates to `/showcase`.
+
+**UX note:** Showcase should suppress the sidebar (full-screen mode). Implement by checking the current route in `AppLayout` and conditionally hiding the sidebar when on `/showcase`. This is a layout concern, not a data concern.
+
+---
+
+### 9. Custom Lore Notes
+
+**Schema:** ALTER TABLE `units` ADD COLUMN `lore_notes TEXT` + ALTER TABLE `factions` ADD COLUMN `lore_notes TEXT` (migration 007).
+
+**No new query modules.** Extend existing queries:
+
+**`src/db/queries/units.ts`:** Add `lore_notes` to:
+- `getUnits()` SELECT (already `SELECT *` — no change needed)
+- `getUnitById()` SELECT (already `SELECT *` — no change needed)
+- `createUnit()` INSERT columns list and values
+- `updateUnit()` SET clause (use raw assignment, NOT COALESCE — lore_notes must be clearable to NULL)
+
+**`src/db/queries/factions.ts`:** Same extension pattern.
+
+**`src/types/unit.ts`:** Add `lore_notes: string | null` to `Unit` interface and `CreateUnitInput` / `UpdateUnitInput`.
+
+**`src/types/faction.ts`:** Add `lore_notes: string | null` to `Faction` interface and input types.
+
+**UI changes:**
+- `UnitDetailSheet.tsx` — add a "Lore" tab (alongside existing tabs) with a `<Textarea>` for lore_notes. Save via `useUpdateUnit()`.
+- `FactionSheet.tsx` — add a lore_notes `<Textarea>` field to the faction form. Save via `useUpdateFaction()`.
+
+**No new hooks needed.** Existing `useUnit`, `useUpdateUnit`, `useFactions`, `useUpdateFaction` automatically pick up the new column once types are updated.
+
+---
+
+### 10. Undercoat Log
+
+**Schema:** ALTER TABLE `units` ADD COLUMN `undercoat TEXT` (migration 007). Nullable. Enum values in TypeScript, free text in DB (do not use CHECK constraints — SQLite CHECK is not enforced before 3.25 and this avoids migration brittleness).
+
+**TypeScript enum:**
+```typescript
+// src/types/unit.ts
+export const UNDERCOAT_OPTIONS = [
+  "None",
+  "White",
+  "Black",
+  "Grey",
+  "Contrast",
+  "Other",
+] as const;
+export type Undercoat = typeof UNDERCOAT_OPTIONS[number];
+```
+
+**No new query modules.** Same extension pattern as lore_notes:
+- Add `undercoat` to `Unit` interface as `undercoat: Undercoat | null`
+- `createUnit()` and `updateUnit()` in `units.ts` get `undercoat` column (use raw assignment, NOT COALESCE — must be clearable)
+
+**UI changes:**
+- `UnitSheet.tsx` (create/edit form) — add `undercoat` select dropdown using `UNDERCOAT_OPTIONS`
+- `UnitDetailSheet.tsx` — display undercoat in the unit details section (read-only badge or editable inline)
+- `CollectionPage.tsx` / `UnitTableColumns.tsx` — optionally add undercoat column to table (can defer to polish)
+
+**No new hooks needed.**
+
+---
+
+## New File Inventory
+
+### New DB Migration
 
 ```
 src-tauri/migrations/
-└── 005_v21_journal_spending.sql          # NEW — 4 new tables
-
-src/
-├── stores/
-│   └── useFactionThemeStore.ts           # NEW — Zustand persist store for active faction
-
-├── components/common/
-│   └── FactionThemeProvider.tsx          # NEW — effect-only component, mounts at AppLayout root
-
-├── features/
-│   ├── dashboard/
-│   │   ├── HeroBand.tsx                  # NEW — full-width faction header
-│   │   ├── AnimatedCounter.tsx           # NEW — ramp animation for stat numbers
-│   │   ├── FactionBanner.tsx             # NEW — per-faction summary card (replaces FactionSummaryCard)
-│   │   └── WarRoomGrid.tsx               # NEW — redesigned stat card grid
-│   │
-│   ├── units/
-│   │   ├── UnitGalleryView.tsx           # NEW — grid layout wrapper
-│   │   └── UnitGalleryCard.tsx           # NEW — single gallery card with SVG ring
-│   │
-│   ├── hobby-journal/                    # NEW folder
-│   │   ├── HobbyJournalPage.tsx
-│   │   ├── PhotoUploadButton.tsx
-│   │   ├── PhotoTimeline.tsx
-│   │   ├── SessionLogEntry.tsx
-│   │   └── AddSessionSheet.tsx
-│   │
-│   └── spending/                         # NEW folder
-│       ├── SpendingTrackerPage.tsx
-│       ├── SpendingSummaryCard.tsx
-│       ├── PurchaseLogSheet.tsx
-│       └── FactionSpendRow.tsx
-
-├── db/queries/
-│   ├── hobbyJournal.ts                   # NEW — photos + sessions CRUD
-│   └── spending.ts                       # NEW — purchase CRUD + aggregates
-
-├── hooks/
-│   ├── useHobbyJournal.ts                # NEW — TanStack Query wrappers
-│   └── useSpending.ts                    # NEW — TanStack Query wrappers
-
-└── types/
-    ├── hobbyJournal.ts                   # NEW — HobbySession, UnitPhoto interfaces
-    └── spending.ts                       # NEW — UnitPurchase, PaintPurchase interfaces
+└── 007_full_circle.sql     NEW — wishlist_items, hobby_goals tables; ALTER TABLE units/factions
 ```
 
-### Files to Modify
+### New Query Modules
 
 ```
-src-tauri/
-├── Cargo.toml                            # MODIFY — add tauri-plugin-fs = "2"
-├── src/lib.rs                            # MODIFY — register fs plugin + migration 005
-└── capabilities/default.json            # MODIFY — add fs:default + fs read/write/mkdir permissions
-
-src/styles/globals.css                    # MODIFY — add --faction-accent tokens + @theme inline entries
-
-src/
-├── app/router.tsx                        # MODIFY — add /journal + /spending routes
-│
-├── components/common/
-│   ├── AppLayout.tsx                     # MODIFY — wrap children with <FactionThemeProvider>
-│   ├── AppSidebar.tsx                    # MODIFY — add Journal + Spending to MAIN_NAV
-│   └── NavItem.tsx                       # MODIFY — add Tooltip wrapper for collapsed state
-│
-└── features/
-    ├── dashboard/
-    │   └── DashboardPage.tsx             # MODIFY (major) — visual overhaul using new sub-components
-    └── units/
-        └── CollectionPage.tsx            # MODIFY — add viewMode toggle + conditional render
+src/db/queries/
+├── battleLogs.ts           NEW — CRUD + stat aggregate for battle_logs table
+├── wishlist.ts             NEW — CRUD for wishlist_items table
+├── hobbyGoals.ts           NEW — CRUD for hobby_goals table
+└── analytics.ts            NEW — getAnalyticsData() fetching sessions + units for velocity/streak
 ```
 
----
+Note: `paintingSessions.ts` gains `getAllSessions()` export. `spending.ts` remains unchanged (chart uses existing data).
 
-## Build Order for v2.1 Phases
-
-Dependencies determine order. The theming foundation must land first because Dashboard redesign and gallery view both reference `bg-faction-accent` utilities. New DB features (Journal, Spending) are independent and can be built after UI features.
-
-### Phase A: Theming Foundation (build first — all other UI depends on it)
-
-1. Add `--faction-accent` / `--faction-accent-fg` / `--faction-glow` tokens to `src/styles/globals.css` `:root` and `@theme inline` block
-2. Write `src/stores/useFactionThemeStore.ts` — Zustand persist store
-3. Write `src/components/common/FactionThemeProvider.tsx` — effect-only, calls `setProperty`
-4. Modify `src/components/common/AppLayout.tsx` — mount `<FactionThemeProvider />` inside the layout wrapper
-5. Verify: run the app, check that `--faction-accent` exists on `:root` via DevTools, change it manually and confirm `bg-faction-accent` elements repaint
-
-**Why first:** Dashboard redesign and gallery cards use `bg-faction-accent` / `border-faction-accent`. These utilities must exist in the Tailwind build before any component can reference them. Building theming first also de-risks the CSS setup before writing any feature components.
-
-### Phase B: Dashboard Command Center (depends on Phase A CSS tokens)
-
-6. Write `AnimatedCounter.tsx`
-7. Write `HeroBand.tsx` (uses `bg-faction-accent`, `text-faction-accent-fg`)
-8. Write `FactionBanner.tsx` (replaces `FactionSummaryCard`)
-9. Write `WarRoomGrid.tsx` (replaces `StatCard` grid)
-10. Rewrite `DashboardPage.tsx` to use new sub-components; add faction selector that calls `useFactionThemeStore().setActiveFaction(id)`
-11. Delete retired `StatCard.tsx` and `FactionSummaryCard.tsx` once `DashboardPage` no longer imports them
-
-**Why before gallery:** Dashboard is the landing page — it validates the faction theme visually before gallery or sidebar polish work begins.
-
-### Phase C: Sidebar and Gallery Polish (light modification, low risk)
-
-12. Modify `NavItem.tsx` — add Tooltip wrapper for collapsed icon labels
-13. Write `UnitGalleryCard.tsx` (SVG ring, faction badge, unit name)
-14. Write `UnitGalleryView.tsx` (grid layout, receives filtered units)
-15. Modify `CollectionPage.tsx` — add `viewMode` state, toggle button, conditional render of table vs gallery
-
-**Why after Dashboard:** C is low-risk UI polish. Doing it after Dashboard means the faction accent color is proven to work before being referenced in gallery cards.
-
-### Phase D: DB Migration + Hobby Journal (independent of A/B/C)
-
-16. Write `src-tauri/migrations/005_v21_journal_spending.sql` — all 4 tables
-17. Register migration 005 in `lib.rs`
-18. Add `tauri-plugin-fs` to `Cargo.toml` and `lib.rs`
-19. Add fs permissions to `capabilities/default.json`
-20. Write `src/types/hobbyJournal.ts` and `src/types/spending.ts`
-21. Write `src/db/queries/hobbyJournal.ts`
-22. Write `src/hooks/useHobbyJournal.ts`
-23. Write `PhotoUploadButton.tsx` — file input + canvas thumbnail generation + `writeFile` calls
-24. Write `PhotoTimeline.tsx`, `SessionLogEntry.tsx`, `AddSessionSheet.tsx`
-25. Write `HobbyJournalPage.tsx`
-26. Add `/journal` route and sidebar nav entry
-
-**Why after C:** DB schema and file system work are independent of theming/UI changes. But doing UI first (A, B, C) means the app looks polished before adding complex features. Also, if migration 005 has issues, the rest of the app is already in good shape.
-
-### Phase E: Spending Tracker (depends on migration 005 from Phase D)
-
-27. Write `src/db/queries/spending.ts`
-28. Write `src/hooks/useSpending.ts`
-29. Write `SpendingSummaryCard.tsx`, `FactionSpendRow.tsx`, `PurchaseLogSheet.tsx`
-30. Write `SpendingTrackerPage.tsx`
-31. Add `/spending` route and sidebar nav entry
-
-**Why last:** Spending Tracker shares the migration with Hobby Journal (step 16). Phase E can begin as soon as migration 005 is registered (step 17) — it does not need the fs plugin. It is the most straightforward data feature and is safest to build last.
-
----
-
-## Architectural Patterns
-
-### Pattern 1: CSS Custom Property Faction Theming
-
-**What:** Tailwind `@theme inline` tokens reference CSS custom properties (`--faction-accent`). At runtime, a Zustand store effect calls `document.documentElement.style.setProperty('--faction-accent', hslChannels)`. All components using `bg-faction-accent` update via browser CSS cascade.
-
-**When to use:** Any UI element that should change color based on faction — stat rings, hero bands, border accents, glow effects.
-
-**Trade-offs:**
-- Pro: Zero re-renders for most UI elements — the browser handles cascade
-- Pro: No class purging risk — class names are static, only values change
-- Con: Requires discipline to use `bg-faction-accent` not hardcoded faction colors in new components
-- Con: HSL channel format (`"14 80% 45%"`) must be stored in DB, not hex; requires data migration or conversion utility
-
-### Pattern 2: Write-Time Thumbnail Generation
-
-**What:** When a user uploads a photo, the browser-side canvas generates a 256px WebP thumbnail synchronously before writing either file via `tauri-plugin-fs`. Both full-size and thumbnail are written together. DB row is inserted after both writes succeed.
-
-**When to use:** Any feature involving user-uploaded images. This app has no server to do server-side processing.
-
-**Trade-offs:**
-- Pro: Thumbnails are always available, no lazy generation waterfall
-- Pro: `OffscreenCanvas.convertToBlob()` is non-blocking (returns a Promise)
-- Con: Slightly longer user-perceived wait on upload (negligible — <100ms for a 4MP phone photo)
-- Con: If the app crashes between writing the file and inserting the DB row, you get an orphaned file. Acceptable for a personal tool; add a startup cleanup routine only if this becomes a real problem.
-
-### Pattern 3: Relative Path Storage for Photos
-
-**What:** DB stores `photos/{unit_id}/{uuid}.webp` (relative). Absolute path is resolved at read time by prepending `appDataDir()` and converting to `asset://` protocol URL.
-
-**When to use:** All file path storage in this app.
-
-**Trade-offs:**
-- Pro: Portable — if Tauri changes appDataDir location across versions, relative paths still work
-- Pro: DB can be inspected without knowing the machine's username or AppData location
-- Con: Every image display requires an async `appDataDir()` call (or cache the resolved base path once on app start)
-
-**Recommendation:** Cache `appDataDir()` result once in a module-level variable (similar to how `getDb()` caches the DB connection). Export `getAppDataDir()` from a new `src/lib/paths.ts` file.
-
-### Pattern 4: viewMode as Local State (Not Persisted)
-
-**What:** `CollectionPage` holds `const [viewMode, setViewMode] = useState<'table' | 'gallery'>('table')`. Navigating away and back resets to table.
-
-**When to use:** UI state that is "how you're looking at data right now" not "a preference the user has set."
-
-**Trade-offs:**
-- Pro: Consistent with filter state — ephemeral, simple
-- Pro: Table is the safe default; most interactions (status popover, detail sheet) are designed for table context
-- Con: Power users who prefer gallery must toggle every session (acceptable for v2.1; can persist later)
-
----
-
-## Data Flow
-
-### Faction Theme Application Flow
+### New Hooks
 
 ```
-App start
-    ↓
-useFactionThemeStore hydrates from localStorage (synchronous — no flash)
-    ↓
-FactionThemeProvider effect fires (activeFactionId from store)
-    ↓
-if activeFactionId !== null: useQuery fetches faction.color_theme_hsl
-    ↓
-document.documentElement.style.setProperty('--faction-accent', hsl)
-    ↓
-CSS cascade propagates to all bg-faction-accent / text-faction-accent elements
+src/hooks/
+├── useBattleLogs.ts        NEW — useBattleLogs, useBattleStats, useCreate/Update/DeleteBattleLog
+├── useWishlist.ts          NEW — useWishlistItems, useCreate/Update/DeleteWishlistItem
+├── useHobbyGoals.ts        NEW — useHobbyGoals, useCreate/Update/DeleteHobbyGoal
+└── useHobbyAnalytics.ts    NEW — useHobbyVelocity, usePaintingStreak (both call analytics query)
 ```
 
-### Photo Write Flow
+Note: `useJournalSessions.ts` gains `useAllSessions()` export for goals + streak.
+
+### Modified Hooks (invalidation additions)
 
 ```
-User picks file via <input type="file">
-    ↓
-PhotoUploadButton reads File as ArrayBuffer
-    ↓
-generateThumbnail(file, 256) → Uint8Array (OffscreenCanvas + convertToBlob)
-    ↓
-mkdir photos/{unitId}/ + photos/{unitId}/thumbs/ (recursive, idempotent)
-    ↓
-writeFile(full-size) → writeFile(thumbnail) [both BaseDirectory.AppData]
-    ↓
-createPhoto({ unit_id, file_path, thumb_path, ... }) → DB insert
-    ↓
-invalidate ['hobby-journal', unitId, 'photos']
-    ↓
-PhotoTimeline re-renders with new photo
+src/hooks/
+├── useJournalSessions.ts   MODIFY — useCreatePaintingSession/useDeletePaintingSession.onSuccess must
+│                                    also invalidate ["hobby-analytics"] and ["hobby-goals"]
+└── useUnits.ts             MODIFY — useUpdateUnit.onSuccess must also invalidate ["hobby-analytics"]
 ```
 
-### Spending Aggregation Flow
+### New Type Files
 
 ```
-SpendingTrackerPage mounts
-    ↓
-useSpendingByFaction() → SQL GROUP BY faction_id JOIN unit_purchases JOIN units JOIN factions
-    ↓
-FactionSpendRow[] rendered
-    ↓
-User adds purchase via PurchaseLogSheet
-    ↓
-useCreateUnitPurchase() mutation
-    ↓
-onSuccess: invalidate ['spending'] (all spending queries)
-    ↓
-SpendingTrackerPage re-renders with updated totals
+src/types/
+├── battleLog.ts            NEW — BattleLog, CreateBattleLogInput, UpdateBattleLogInput
+├── wishlistItem.ts         NEW — WishlistItem, CreateWishlistItemInput, UpdateWishlistItemInput
+└── hobbyGoal.ts            NEW — HobbyGoal, CreateHobbyGoalInput, UpdateHobbyGoalInput
+```
+
+### Modified Type Files
+
+```
+src/types/
+├── unit.ts                 MODIFY — add lore_notes, undercoat fields + UNDERCOAT_OPTIONS const
+└── faction.ts              MODIFY — add lore_notes field
+```
+
+### New Feature Folders
+
+```
+src/features/
+├── battle-log/             NEW — BattleLogPage, BattleLogSheet, BattleLogRow, BattleStatsSummary
+├── wishlist/               NEW — WishlistPage, WishlistSheet, WishlistRow, wishlistFilters store
+├── hobby-goals/            NEW — HobbyGoalsPage, GoalSheet, GoalCard, computeGoalProgress.ts
+├── analytics/              NEW — computeVelocity.ts, computeStreak.ts, PaintingStreakWidget, VelocityWidget
+└── showcase/               NEW — ShowcasePage, ShowcaseCard, ShowcaseEmptyState
+```
+
+### Modified Feature Files
+
+```
+src/features/
+├── spending/
+│   └── computeSpendOverTime.ts         NEW pure function
+│   └── SpendOverTimeChart.tsx          NEW chart component, added to SpendingPage
+├── units/
+│   ├── applyReadyToPlayFilter.ts       NEW pure function
+│   ├── ReadyToPlayPage.tsx             NEW page
+│   ├── UnitSheet.tsx                   MODIFY — add undercoat field
+│   └── UnitDetailSheet.tsx             MODIFY — add lore_notes tab, undercoat display
+└── factions/
+    └── FactionSheet.tsx                MODIFY — add lore_notes textarea
+```
+
+### Router and Sidebar
+
+```
+src/app/router.tsx          MODIFY — add routes: /battle-log, /wishlist, /goals, /ready-to-play, /showcase, /analytics
+src/components/common/AppSidebar.tsx  MODIFY — add nav entries for new pages (omit /showcase from nav)
 ```
 
 ---
 
-## Integration Points
+## Component Boundaries
 
-### Internal Boundaries
+| Component | Responsibility | Communicates With |
+|-----------|---------------|-------------------|
+| `BattleLogPage` | List + stat summary for all games | `useBattleLogs`, `useBattleStats`, sibling `BattleLogSheet` |
+| `BattleLogSheet` | Create/edit a game entry | `useCreateBattleLog`, `useUpdateBattleLog`; needs `useArmyLists` for army picker |
+| `WishlistPage` | Wishlist item list with filters | `useWishlistItems`, `useFactions`, sibling `WishlistSheet` |
+| `HobbyGoalsPage` | Goals with live progress bars | `useHobbyGoals`, `useUnits`, `useAllSessions`, `computeGoalProgress` |
+| `ReadyToPlayPage` | Battle-ready unit filter view | `useUnits` (cached), `applyReadyToPlayFilter`, existing `UnitTable`/`UnitGallery` |
+| `ShowcasePage` | Full-screen painted unit gallery | `useUnits` (cached, filter client-side), hides sidebar |
+| `SpendOverTimeChart` | Monthly spend bar chart | Receives `MonthlySpend[]` as prop from `SpendingPage` |
+| `PaintingStreakWidget` | Current streak display | `usePaintingStreak` |
+| `VelocityWidget` | Pace + pile projection | `useHobbyVelocity` |
+| `GoalCard` | Single goal progress bar | Receives `HobbyGoal + progress` as props from `HobbyGoalsPage` |
 
-| Boundary | Communication | Notes |
-|----------|---------------|-------|
-| `FactionThemeProvider` ↔ Zustand store | Store subscription → `setProperty` effect | Provider does NOT render any JSX children — it is effect-only, mounts inside AppLayout |
-| `DashboardPage` ↔ `useFactionThemeStore` | Dashboard calls `setActiveFaction(id)` on faction card/selector click | This is the primary way the user sets the active faction |
-| `CollectionPage` ↔ `UnitGalleryView` | Props: filtered `Unit[]`, `onUnitClick` callback | Gallery uses the same callback as table rows — opens `UnitDetailSheet` |
-| `HobbyJournalPage` ↔ Tauri fs | Via `PhotoUploadButton` — all fs calls isolated in one component | Never call fs APIs directly from page-level components |
-| `hobbyJournal.ts` queries ↔ file system | Queries only store/read paths, not bytes | File read/write is in the React layer (`PhotoUploadButton`, photo display) |
+---
 
-### Cross-Feature Invalidation
+## Patterns to Follow
+
+### Pattern 1: Pure Compute Functions (established — mandatory)
+
+All aggregation lives in a testable pure function, never in hooks or components.
+
+```
+getAnalyticsData() → raw { sessions, units }
+                ↓
+useHobbyAnalytics() → calls queryFn → passes to computeVelocity() / computeStreak()
+                ↓
+Widget receives typed result as prop
+```
+
+New compute files: `computeVelocity.ts`, `computeStreak.ts`, `computeSpendOverTime.ts`, `computeGoalProgress.ts`.
+
+### Pattern 2: Sibling Portal Pattern for Sheets/Dialogs (mandatory)
+
+All new Sheets and Dialogs must follow the established sibling portal pattern. Never nest a Sheet inside another Sheet. All new pages follow the `selectedItemId` pattern: store the selected ID in local state, derive the full item from the query cache.
+
+### Pattern 3: Shared Analytics Query Module
+
+`useHobbyVelocity` and `usePaintingStreak` both need all painting sessions + all units. Both must read from the SAME `["hobby-analytics"]` query key to share the TanStack Query cache. Both hooks call `getAnalyticsData()` with the same cache key — TanStack Query deduplicates concurrent calls. Do NOT create separate query keys for velocity vs. streak — they share data.
+
+### Pattern 4: Clearable Columns Use Raw Assignment (not COALESCE)
+
+The existing `updateUnit` uses `COALESCE($N, column)` for most columns — this prevents nullifying a field when only updating some fields. However, for new text fields (`lore_notes`, `undercoat`, `notes`), users must be able to clear them back to NULL. Use raw assignment for these:
+
+```sql
+lore_notes = $N,   -- NOT COALESCE($N, lore_notes)
+undercoat  = $N,   -- NOT COALESCE($N, undercoat)
+```
+
+This is consistent with how `purchase_price_pence = $18` is already implemented (raw, not COALESCE — because it must be clearable to NULL).
+
+### Pattern 5: 0|1 Integer Booleans (established — mandatory)
+
+No new boolean columns are added in v2.2. All new tables use INTEGER priority (1/2/3) and TEXT enums — no boolean pitfall risk for the new tables.
+
+---
+
+## Anti-Patterns to Avoid
+
+### Anti-Pattern 1: Per-Unit Session Hook for Cross-Cutting Analytics
+
+`useJournalSessions(unitId)` is scoped per unit and is the right hook for the Journal tab on a unit sheet. For analytics (streak, velocity, goals), you need ALL sessions across all units. Do NOT call `useJournalSessions` in a loop over all units — this creates N parallel queries and N cache entries.
+
+**Instead:** Add `getAllSessions()` to `paintingSessions.ts` and `useAllSessions()` to `useJournalSessions.ts`. Use a single `["painting-sessions"]` (no unitId) cache key for the global view.
+
+### Anti-Pattern 2: Battle Stats in a Separate DB Round-Trip
+
+Win/loss/draw counts for the battle stats widget are trivially derivable from the full `battle_logs` array. Do NOT write a separate `getBattleStats()` aggregate SQL query.
+
+**Instead:** Compute stats as a pure function from the existing `useBattleLogs()` data. Only add a `getBattleStats()` SQL aggregate if the battle log grows to hundreds of rows (unlikely for a personal tool).
+
+### Anti-Pattern 3: Storing Goal Progress in the DB
+
+Goal progress changes whenever a unit's painting status changes or a new session is logged. Storing it would require invalidation on every painting mutation.
+
+**Instead:** Derive progress at read time via `computeGoalProgress(goal, units, sessions)`. Pure function, no storage.
+
+### Anti-Pattern 4: Showcase Page Embedded in Collection Page
+
+The Gallery view toggle on Collection is for navigation-style browsing. Showcase Mode is a distinct UX context (full-screen, club night display, no sidebar). Mixing them adds conditional complexity to `CollectionPage`.
+
+**Instead:** Separate `/showcase` route. Link to it from Collection header ("Open Showcase" button). `CollectionPage` stays clean.
+
+### Anti-Pattern 5: Recharts Installed Without Checking shadcn chart Component
+
+HobbyForge already uses shadcn/ui new-york. The shadcn `chart` component wraps Recharts with consistent theming. Adding Recharts directly (bypassing shadcn's wrapper) produces inconsistent dark-mode styling.
+
+**Instead:** Run `npx shadcn@latest add chart` if `src/components/ui/chart.tsx` does not yet exist. Use the shadcn `ChartContainer` / `ChartTooltip` wrappers for `SpendOverTimeChart`. If chart component is unavailable, a plain CSS bar chart is preferable to a raw Recharts install.
+
+---
+
+## Suggested Build Order (Phase Groupings)
+
+Dependencies and risk profile drive order.
+
+### Phase 17: Schema + Simple Column Extensions (migration foundation)
+
+Build first — all other features depend on the DB being ready.
+
+1. Write `007_full_circle.sql` — new tables + ALTER TABLE columns
+2. Register migration 007 in `lib.rs`
+3. Add `lore_notes` and `undercoat` to `src/types/unit.ts` + extend `units.ts` queries + `UnitSheet.tsx` / `UnitDetailSheet.tsx`
+4. Add `lore_notes` to `src/types/faction.ts` + extend `factions.ts` queries + `FactionSheet.tsx`
+5. Tests for the type extensions (ensure `Unit` and `Faction` interfaces are complete)
+
+**Rationale:** Migration + lore/undercoat are low-risk, high-leverage. Running the migration first unblocks every other feature. Lore notes and undercoat are pure extensions to existing CRUD forms — lowest complexity in the milestone.
+
+### Phase 18: Battle Log (independent entity, fullest CRUD feature)
+
+1. `src/types/battleLog.ts`
+2. `src/db/queries/battleLogs.ts`
+3. `src/hooks/useBattleLogs.ts`
+4. `src/features/battle-log/` — full page + sheet + delete dialog
+5. Route `/battle-log` + sidebar nav entry
+
+**Rationale:** Battle Log uses the pre-existing `battle_logs` table (zero new schema). It is the largest new CRUD feature. Building it second validates the full query → hook → page pattern for a new entity before building wishlist and goals.
+
+### Phase 19: Wishlist (simpler CRUD, new table)
+
+1. `src/types/wishlistItem.ts`
+2. `src/db/queries/wishlist.ts`
+3. `src/hooks/useWishlist.ts`
+4. `src/features/wishlist/` — page + sheet + delete dialog + filters
+5. Route `/wishlist` + sidebar nav entry
+
+**Rationale:** Wishlist is structurally identical to Battle Log (CRUD entity, independent table). After Phase 18 has validated the pattern, Phase 19 is faster to build.
+
+### Phase 20: Analytics (Velocity + Streak + Spend Chart)
+
+Group velocity, streak, and spend chart together — they share the analytics query module and the compute-function-then-widget architecture.
+
+1. `getAllSessions()` in `paintingSessions.ts` + `useAllSessions()` in `useJournalSessions.ts`
+2. `src/db/queries/analytics.ts` — `getAnalyticsData()`
+3. `src/hooks/useHobbyAnalytics.ts` — `useHobbyVelocity`, `usePaintingStreak`
+4. `computeVelocity.ts`, `computeStreak.ts` — pure functions + tests
+5. `VelocityWidget.tsx`, `PaintingStreakWidget.tsx`
+6. `computeSpendOverTime.ts` — pure function + tests
+7. `SpendOverTimeChart.tsx` — extend `SpendingPage.tsx` to include chart section
+8. Add analytics invalidations to `useJournalSessions.ts` and `useUnits.ts` mutations
+9. Route `/analytics` (if analytics warrants its own page) or embed on Dashboard
+
+**Rationale:** All three features pull from existing tables with no new schema. Grouping them minimizes context-switching and allows the analytics query module to be written once and reused.
+
+### Phase 21: Hobby Goals (cross-cutting, depends on analytics infrastructure)
+
+1. `src/types/hobbyGoal.ts`
+2. `src/db/queries/hobbyGoals.ts`
+3. `src/hooks/useHobbyGoals.ts`
+4. `computeGoalProgress.ts` — pure function (uses `useAllSessions` from Phase 20)
+5. `src/features/hobby-goals/` — page + goal cards + sheet
+6. Route `/goals` + sidebar nav entry
+
+**Rationale:** Goals depend on `useAllSessions` built in Phase 20. Building goals after analytics avoids building the same infrastructure twice.
+
+### Phase 22: Ready-to-Play + Showcase (view-only, no new queries)
+
+1. `applyReadyToPlayFilter.ts` — pure function + tests
+2. `ReadyToPlayPage.tsx` — reuses `useUnits`, applies filter
+3. Route `/ready-to-play` + sidebar nav entry
+4. `ShowcasePage.tsx` — reuses `useUnits`, filters to Completed, full-screen layout
+5. Route `/showcase` (no sidebar entry — triggered from Collection header)
+6. Sidebar hide logic for `/showcase` route in `AppLayout.tsx`
+
+**Rationale:** Both features are view-only, zero new DB work, zero new query modules. Lightest possible phase. Placed last because they depend on the collection data being stable (which it is from v2.1) and add polish without risk.
+
+---
+
+## Cache Invalidation Contract (complete for v2.2)
 
 | Mutation | Invalidates | Reason |
 |----------|-------------|--------|
-| `useCreateUnitPurchase.onSuccess` | `['spending']` | All spending views refresh |
-| `useCreatePaintPurchase.onSuccess` | `['spending']` | All spending views refresh |
-| `useDeleteUnit.onSuccess` (existing) | `['units']`, `['dashboard-stats']` | Cascade in DB deletes photos/sessions/purchases — no additional invalidation needed |
-| `useDeletePaint.onSuccess` (existing) | `['paints']` | Cascade deletes paint_purchases |
-| `useCreatePhoto.onSuccess` | `['hobby-journal', unitId, 'photos']` | Photo timeline refreshes for that unit |
-| `useCreateSession.onSuccess` | `['hobby-journal', unitId, 'sessions']` | Session list refreshes |
-| `useUpdateFaction.onSuccess` (existing) | `['factions']`, `['factions', id]` | If `color_theme_hsl` added to factions table, also invalidate and re-apply theme |
-
----
-
-## Anti-Patterns
-
-### Anti-Pattern 1: Storing Faction Accent Color as Hex in the Theme Store
-
-**What people do:** Store `activeFactionColor: '#8B3A2F'` in Zustand and build inline styles with it.
-
-**Why it's wrong:** `setProperty('--faction-accent', '#8B3A2F')` works for direct color usage, but the CSS pattern `hsl(var(--faction-accent))` (which Tailwind v4 uses via `@theme inline`) expects channel-only values (`"14 52% 37%"`), not full `hsl()` or hex. Mixing formats causes the token to resolve to `hsl(#8B3A2F)` which is invalid CSS.
-
-**Do this instead:** Store HSL channel values (`"14 52% 37%"`) in the `factions.color_theme_hsl` column and in the Zustand store. Add a hex → HSL converter utility if the Faction CRUD sheet uses a hex color picker.
-
-### Anti-Pattern 2: Dynamically Constructing Tailwind Class Names
-
-**What people do:** `` className={`bg-${factionSlug}-500 text-${factionSlug}-50`} `` or similar runtime class name construction.
-
-**Why it's wrong:** Tailwind v4 statically scans source files. String interpolations are invisible to the scanner — the generated utility classes will be absent from the production CSS bundle. Components silently lose styling.
-
-**Do this instead:** Always use `bg-faction-accent`, `border-faction-accent`, etc. (the CSS property-backed utilities). The static class name is always present; the runtime value changes via `setProperty`.
-
-### Anti-Pattern 3: Storing Absolute File Paths in unit_photos
-
-**What people do:** `file_path = 'C:\\Users\\Antoine\\AppData\\Roaming\\com.hobbyforge.app\\photos\\5\\abc.webp'`
-
-**Why it's wrong:** The absolute path embeds the Windows username and AppData location. If the user ever moves the app data dir, renames their Windows account, or the path structure changes, all photo links break silently.
-
-**Do this instead:** Store relative paths (`photos/5/abc.webp`). Resolve to absolute via `appDataDir()` at display time. Cache the base dir once via `getAppDataDir()` in `src/lib/paths.ts`.
-
-### Anti-Pattern 4: Generating Thumbnails Lazily on Gallery First Render
-
-**What people do:** Skip thumbnail generation at upload time, generate from the full-size image in a `useEffect` when the gallery view renders.
-
-**Why it's wrong:** If a unit has 20 photos and the user opens the gallery, 20 simultaneous canvas operations fire. The gallery render stalls, the UI jitters, and the thumbnail write calls collide. The user sees a broken gallery on first visit.
-
-**Do this instead:** Generate and write the thumbnail immediately at upload time before inserting the DB row. By the time the gallery renders, all thumbnails already exist on disk.
-
-### Anti-Pattern 5: Mounting FactionThemeProvider Below QueryProvider
-
-**What people do:** Nest `FactionThemeProvider` inside a page component or feature folder.
-
-**Why it's wrong:** The theme effect must survive navigation between pages. If the provider unmounts on route change, the CSS properties reset on every navigation.
-
-**Do this instead:** Mount `FactionThemeProvider` inside `AppLayout`, which is the root component wrapper for the entire `<Outlet />` tree (see `router.tsx` line 20). This ensures the provider is always mounted for the app lifetime.
+| `useCreateBattleLog.onSuccess` | `["battle-logs"]` | Battle log list and stats refresh |
+| `useUpdateBattleLog.onSuccess` | `["battle-logs"]`, `["battle-logs", id]` | Same |
+| `useDeleteBattleLog.onSuccess` | `["battle-logs"]` | Same |
+| `useCreateWishlistItem.onSuccess` | `["wishlist"]` | Wishlist list refresh |
+| `useUpdateWishlistItem.onSuccess` | `["wishlist"]`, `["wishlist", id]` | Same |
+| `useDeleteWishlistItem.onSuccess` | `["wishlist"]` | Same |
+| `useCreateHobbyGoal.onSuccess` | `["hobby-goals"]` | Goal list refresh |
+| `useUpdateHobbyGoal.onSuccess` | `["hobby-goals"]`, `["hobby-goals", id]` | Same |
+| `useDeleteHobbyGoal.onSuccess` | `["hobby-goals"]` | Same |
+| `useCreatePaintingSession.onSuccess` (EXTEND) | `["painting-sessions", unitId]` + `["hobby-analytics"]` + `["hobby-goals"]` | Streak/velocity/goals depend on session data |
+| `useDeletePaintingSession.onSuccess` (EXTEND) | same as above | Same |
+| `useUpdateUnit.onSuccess` (EXTEND) | existing + `["hobby-analytics"]` | Velocity uses pile-of-shame count from units |
 
 ---
 
 ## Sources
 
-- Direct audit: `src/styles/globals.css` — existing `@theme inline` pattern and dark mode token structure (HIGH confidence)
-- Direct audit: `src/components/common/useSidebarCollapsed.ts` — confirms localStorage-first pattern for persistent UI state (HIGH confidence)
-- Direct audit: `src-tauri/migrations/001_core_schema.sql` — existing table structures, confirms `image_assets` exists but is unpopulated (HIGH confidence)
-- Direct audit: `src-tauri/src/lib.rs` — confirms app_data_dir setup, migration version numbering (HIGH confidence)
-- Direct audit: `src-tauri/capabilities/default.json` — current permissions, confirms fs plugin not yet registered (HIGH confidence)
-- Direct audit: `src/main.tsx` and `src/app/router.tsx` — confirms app root structure, `QueryProvider` wraps `RouterProvider` (HIGH confidence)
-- Tailwind v4 theme docs: `tailwindcss.com/docs/theme` — `@theme inline` behavior, CSS variable generation (MEDIUM confidence — via WebSearch summary)
-- Tailwind v4 GitHub Discussion #18560: `@theme vs @theme inline` — confirms inline variables are not globally emitted, must be referenced via the token name (MEDIUM confidence)
-- Tauri v2 fs plugin docs: `v2.tauri.app/plugin/file-system/` — `BaseDirectory.AppData`, `writeFile`, `mkdir`, permission names (MEDIUM confidence — via WebSearch summary)
-- Tauri v2 GitHub Discussion #9306: `writeFile` API in v2 — `Uint8Array` + `baseDir` pattern (MEDIUM confidence)
-- MDN `OffscreenCanvas.convertToBlob()` — thumbnail generation approach (HIGH confidence — standard web API)
-- Zustand `persist` docs: `zustand.docs.pmnd.rs/reference/integrations/persisting-store-data` — synchronous localStorage hydration behavior (HIGH confidence)
+- Direct audit: `src-tauri/migrations/001_core_schema.sql` — `battle_logs` table already defined, zero rows (HIGH confidence)
+- Direct audit: `src-tauri/migrations/005_hobby_journal.sql` — `painting_sessions` table structure, confirms `session_date TEXT` (HIGH confidence)
+- Direct audit: `src-tauri/migrations/006_spend_pence.sql` — confirms `purchase_price_pence INTEGER` on units + paints; paints have no `purchase_date` column (HIGH confidence)
+- Direct audit: `src/db/queries/paintingSessions.ts` — confirms per-unit scoping of existing session queries (HIGH confidence)
+- Direct audit: `src/db/queries/spending.ts` — confirms dashboard/compute-function pattern; `Promise.all` parallel selects (HIGH confidence)
+- Direct audit: `src/db/queries/dashboard.ts` — confirms `Promise.all` pattern for multi-table fetches (HIGH confidence)
+- Direct audit: `src/hooks/useUnits.ts` — confirms cross-query invalidation pattern (DATA-09, SPEND-03/04 contract) (HIGH confidence)
+- Direct audit: `src/hooks/useSpendingStats.ts` — confirms query key naming convention and invalidation contract (HIGH confidence)
+- Direct audit: `src/hooks/useJournalSessions.ts` — confirms per-unit key pattern; identifies gap for global `useAllSessions` (HIGH confidence)
+- Direct audit: `src/features/spending/computeSpendingStats.ts` — confirms pure compute function pattern (HIGH confidence)
+- Direct audit: `src/types/unit.ts` — confirms `0|1` boolean pattern, `PAINTING_STATUS_ORDER` const (HIGH confidence)
+- Direct audit: `src/app/router.tsx` — confirms TanStack Router pattern for new routes (HIGH confidence)
+- Direct audit: `src/components/common/AppSidebar.tsx` — confirms MAIN_NAV structure, existing icon imports (HIGH confidence)
 
 ---
-*Architecture research for: HobbyForge v2.1 — Visual Command*
-*Researched: 2026-05-02*
+*Architecture research for: HobbyForge v2.2 — Full Circle*
+*Researched: 2026-05-04*
