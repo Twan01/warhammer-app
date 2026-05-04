@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.2 milestone start)
 Phase: 20 of 22 (Wishlist — next phase)
 Plan: 20-00 (next plan)
 Status: Phase 19 complete — ready for Phase 20
-Last activity: 2026-05-04 — Phase 19 Plan 03 complete: Manual smoke-test — all 12 steps approved, ANLY-04..07 verified end-to-end in live Tauri app, Phase 19 Analytics Core declared shippable
+Last activity: 2026-05-04 - Completed quick task 260504-lhf: Rebuild release exe to fix desktop shortcut (migration version mismatch crash)
 
 Progress: [██████████] 100% (47/47 plans complete)
 
@@ -147,6 +147,12 @@ None blocking.
 ### Open Blockers
 
 None.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260504-lhf | Rebuild release exe to fix desktop shortcut (migration version mismatch crash) | 2026-05-04 | 382aced | [260504-lhf-the-shortcut-isn-t-working-anymore](./quick/260504-lhf-the-shortcut-isn-t-working-anymore/) |
 
 ## Session Continuity
 

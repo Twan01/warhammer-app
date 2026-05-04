@@ -12,7 +12,8 @@ decisions:
 metrics:
   duration: "~7 minutes (1m 45s Rust compile, rest frontend + bundle)"
   completed: "2026-05-04T15:55:25"
-  tasks_completed: 1
+  verified: "2026-05-04"
+  tasks_completed: 2
   tasks_total: 2
   files_changed: 1
 ---
@@ -22,8 +23,6 @@ metrics:
 **One-liner:** Rebuilt release exe (migration list 1-8) to fix PluginInitialization panic caused by stale 10:04 AM binary conflicting with migrations 7-8 applied by dev server at 15:39.
 
 ## What Was Done
-
-Task 1 only (Task 2 is a human-verify checkpoint — awaiting user confirmation).
 
 ### Task 1: Rebuild the release executable — COMPLETE
 
@@ -61,12 +60,11 @@ No source files were modified by this plan. Pre-existing working-tree modificati
 
 A `hobbyforge-scaffold` process (PID 32572) was running at build time. It was the **debug** build (`target/debug/`) from `pnpm tauri dev` at 15:39 — not the release exe. The release exe was not locked, so the build proceeded without interruption.
 
-## Task 2 — Pending Human Verification
+## Task 2 — Human Verification — COMPLETE
 
-The user needs to:
-1. Double-click `C:\Users\antoi\OneDrive\Bureau\HobbyForge.lnk`
-2. Confirm the app opens without the PluginInitialization panic
-3. Confirm the Dashboard renders
+User confirmed via shortcut (`C:\Users\antoi\OneDrive\Bureau\HobbyForge.lnk`):
+- App opened without the PluginInitialization panic
+- Dashboard rendered successfully
 
 ## Deviations from Plan
 
