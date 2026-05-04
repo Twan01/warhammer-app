@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.2 milestone start)
 
 ## Current Position
 
-Phase: 18 of 22 (Battle Log — 2/4 plans complete)
-Plan: 18-02 (next plan)
+Phase: 18 of 22 (Battle Log — 3/4 plans complete)
+Plan: 18-03 (next plan)
 Status: In progress
-Last activity: 2026-05-04 — Phase 18 Plan 01 complete: Battle Log data layer (types, queries, computeBattleLogSummary, useBattleLogs hooks, battleLogSchema — 14/14 tests GREEN)
+Last activity: 2026-05-04 — Phase 18 Plan 02 complete: Battle Log UI layer (BattleLogPage, BattleLogRow, BattleLogSheet, BattleLogDeleteDialog, BattleLogSummaryBar, BattleLogEmptyState, resultBadge, /battle-log route, sidebar entry — 329/329 tests GREEN)
 
-Progress: [█████████░] 88% (38/43 plans complete)
+Progress: [█████████░] 93% (40/43 plans complete)
 
 ## v2.2 Phase Map
 
@@ -60,6 +60,10 @@ Architecture constraints:
 - Cache keys: ['battle-logs'] for index, ['battle-logs', 'summary'] for aggregated summary — matches useArmyLists convention
 - All mutations invalidate ['dashboard-stats'] for forward-compat with future dashboard win/loss totals
 - battleLogSchema avoids zod .default() — same as armyListSchema; react-hook-form zodResolver type inference breaks with zod v4 .default()
+- Dialog (not AlertDialog) used for BattleLogDeleteDialog — alert-dialog not installed; fallback to existing dialog with destructive Button per UI-SPEC §alternative
+- armyListNameById and unitNameById built as Map<number,string> in useMemo — O(1) lookup for name resolution in BattleLogRow props
+- battleLogRoute slots between spendingRoute and settingsRoute in routeTree addChildren array
+- TRACKING_NAV is now 3 entries: Army Lists → Battle Log (Swords plural icon) → Spending
 
 ### Key Decisions for v2.2
 
