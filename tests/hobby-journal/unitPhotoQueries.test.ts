@@ -1,43 +1,95 @@
 /**
- * Phase 13 — unitPhotos queries tests (Wave 0 stubs).
- *
- * STATUS: skipped. Plan 13-02 will:
- *   1. Create src/db/queries/unitPhotos.ts with createUnitPhoto, getPhotosByUnit, deleteUnitPhoto.
- *   2. Create src/types/unitPhoto.ts exporting UnitPhoto + CreateUnitPhotoInput.
- *   3. Replace each `it.skip` below with `it`.
- *   4. Add real assertions matching 13-VALIDATION.md rows JOUR-04, JOUR-06.
- *
- * The stub exists in Wave 0 so Plan 13-02 has a concrete failing-or-skipped vitest target.
+ * JOUR-04, JOUR-06 — unitPhotos query function tests.
+ * Mocks getDb(); verifies SQL strings + parameter arrays for image_assets
+ * polymorphic-table operations scoped to entity_type='unit'.
  */
-import { describe, it } from "vitest";
+import { vi, describe, it, expect, beforeEach } from "vitest";
 
-describe("unitPhotos queries — Wave 0 stubs", () => {
-  it.skip("JOUR-04: createUnitPhoto runs INSERT INTO image_assets with (entity_type='unit', entity_id, file_path, caption, stage_label, taken_at) and 6 positional params", () => {
-    // Plan 13-02 will:
-    //   - selectMock + executeMock setup
-    //   - import { createUnitPhoto } from "@/db/queries/unitPhotos"
-    //   - call createUnitPhoto({ unit_id: 7, file_path: "abc-123.jpg", caption: "Looking sharp", stage_label: "Finished", taken_at: "2026-05-03" })
-    //   - assert executeMock SQL matches /INSERT INTO image_assets \(entity_type, entity_id, file_path, caption, stage_label, taken_at\)/
-    //   - assert SQL matches /VALUES \(\$1, \$2, \$3, \$4, \$5, \$6\)/
-    //   - assert params equal ["unit", 7, "abc-123.jpg", "Looking sharp", "Finished", "2026-05-03"]
+const selectMock = vi.fn();
+const executeMock = vi.fn();
+
+vi.mock("@/db/client", () => ({
+  getDb: async () => ({ select: selectMock, execute: executeMock }),
+}));
+
+import {
+  getPhotosByUnit,
+  getPhotoFilenamesByUnit,
+  createUnitPhoto,
+  deleteUnitPhoto,
+} from "@/db/queries/unitPhotos";
+
+beforeEach(() => {
+  selectMock.mockReset();
+  executeMock.mockReset();
+});
+
+describe("unitPhotos queries", () => {
+  it("JOUR-04: createUnitPhoto runs INSERT INTO image_assets with (entity_type, entity_id, file_path, caption, stage_label, taken_at) and 6 positional params", async () => {
+    executeMock.mockResolvedValueOnce(undefined);
+
+    await createUnitPhoto({
+      unit_id: 7,
+      file_path: "abc-123.jpg",
+      caption: "Looking sharp",
+      stage_label: "Finished",
+      taken_at: "2026-05-03",
+    });
+
+    expect(executeMock).toHaveBeenCalledTimes(1);
+    const [sql, params] = executeMock.mock.calls[0];
+    expect(sql).toMatch(/INSERT INTO image_assets \(entity_type, entity_id, file_path, caption, stage_label, taken_at\)/);
+    expect(sql).toMatch(/VALUES \(\$1, \$2, \$3, \$4, \$5, \$6\)/);
+    expect(params).toEqual(["unit", 7, "abc-123.jpg", "Looking sharp", "Finished", "2026-05-03"]);
   });
 
-  it.skip("JOUR-04 + JOUR-06: getPhotosByUnit runs SELECT * WHERE entity_type='unit' AND entity_id=$1 ORDER BY taken_at DESC, id DESC", () => {
-    // Plan 13-02 will:
-    //   - selectMock.mockResolvedValueOnce([{ id: 5, ... }, { id: 3, ... }])
-    //   - import { getPhotosByUnit } from "@/db/queries/unitPhotos"
-    //   - const rows = await getPhotosByUnit(7)
-    //   - assert selectMock called with EXACTLY:
-    //     "SELECT * FROM image_assets WHERE entity_type = 'unit' AND entity_id = $1 ORDER BY taken_at DESC, id DESC"
-    //     and [7]
-    //   - assert rows length === 2
+  it("JOUR-04: createUnitPhoto coerces optional caption/stage_label/taken_at to null when omitted", async () => {
+    executeMock.mockResolvedValueOnce(undefined);
+
+    await createUnitPhoto({ unit_id: 7, file_path: "abc-123.jpg" });
+
+    const params = executeMock.mock.calls[0][1] as unknown[];
+    expect(params).toEqual(["unit", 7, "abc-123.jpg", null, null, null]);
   });
 
-  it.skip("JOUR-06: deleteUnitPhoto runs DELETE FROM image_assets WHERE id=$1 with single param", () => {
-    // Plan 13-02 will:
-    //   - executeMock.mockResolvedValueOnce(undefined)
-    //   - import { deleteUnitPhoto } from "@/db/queries/unitPhotos"
-    //   - await deleteUnitPhoto(42)
-    //   - assert executeMock called with "DELETE FROM image_assets WHERE id = $1" and [42]
+  it("JOUR-04 + JOUR-06: getPhotosByUnit runs SELECT * WHERE entity_type='unit' AND entity_id=$1 ORDER BY taken_at DESC, id DESC", async () => {
+    selectMock.mockResolvedValueOnce([
+      { id: 5, entity_type: "unit", entity_id: 7, file_path: "z.jpg", caption: null, stage_label: "Finished", taken_at: "2026-05-03", created_at: "2026-05-03" },
+      { id: 3, entity_type: "unit", entity_id: 7, file_path: "a.jpg", caption: null, stage_label: "Primed", taken_at: "2026-05-02", created_at: "2026-05-02" },
+    ]);
+
+    const rows = await getPhotosByUnit(7);
+
+    expect(selectMock).toHaveBeenCalledWith(
+      "SELECT * FROM image_assets WHERE entity_type = 'unit' AND entity_id = $1 ORDER BY taken_at DESC, id DESC",
+      [7]
+    );
+    expect(rows).toHaveLength(2);
+  });
+
+  it("JOUR-06: getPhotoFilenamesByUnit returns flat string[] of file_path values for disk cleanup", async () => {
+    selectMock.mockResolvedValueOnce([
+      { file_path: "abc-1.jpg" },
+      { file_path: "def-2.png" },
+    ]);
+
+    const filenames = await getPhotoFilenamesByUnit(7);
+
+    expect(selectMock).toHaveBeenCalledWith(
+      "SELECT file_path FROM image_assets WHERE entity_type = 'unit' AND entity_id = $1",
+      [7]
+    );
+    expect(filenames).toEqual(["abc-1.jpg", "def-2.png"]);
+  });
+
+  it("JOUR-06: deleteUnitPhoto runs DELETE FROM image_assets WHERE id=$1 with single param", async () => {
+    executeMock.mockResolvedValueOnce(undefined);
+
+    await deleteUnitPhoto(42);
+
+    expect(executeMock).toHaveBeenCalledWith(
+      "DELETE FROM image_assets WHERE id = $1",
+      [42]
+    );
   });
 });

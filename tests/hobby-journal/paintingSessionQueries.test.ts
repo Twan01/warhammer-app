@@ -1,49 +1,82 @@
 /**
- * Phase 13 — paintingSessions queries tests (Wave 0 stubs).
- *
- * STATUS: skipped. Plan 13-02 will:
- *   1. Create src/db/queries/paintingSessions.ts with createSession, getSessionsByUnit, deleteSession.
- *   2. Create src/types/paintingSession.ts exporting PaintingSession + CreateSessionInput.
- *   3. Replace each `it.skip` below with `it`.
- *   4. Add real assertions matching 13-VALIDATION.md §Per-Task Verification Map rows for JOUR-01, JOUR-02, JOUR-03.
- *
- * The stub exists in Wave 0 so Plan 13-02 has a concrete failing-or-skipped vitest target.
+ * JOUR-01..03 — paintingSessions query function tests.
+ * Mocks getDb() because tauri-plugin-sql IPC cannot run in jsdom.
+ * Verifies SQL strings + parameter arrays.
  */
-import { describe, it } from "vitest";
+import { vi, describe, it, expect, beforeEach } from "vitest";
 
-describe("paintingSessions queries — Wave 0 stubs", () => {
-  it.skip("JOUR-01: createSession runs INSERT INTO painting_sessions with (unit_id, session_date, duration_minutes, notes) and 4 positional params", () => {
-    // Plan 13-02 will:
-    //   - selectMock + executeMock setup like tests/foundation/strategyNoteQueries.test.ts
-    //   - import { createSession } from "@/db/queries/paintingSessions"
-    //   - call createSession({ unit_id: 7, session_date: "2026-05-03", duration_minutes: 45, notes: "Layered shoulder pads" })
-    //   - assert executeMock called with SQL matching /INSERT INTO painting_sessions \(unit_id, session_date, duration_minutes, notes\)/
-    //   - assert SQL matches /VALUES \(\$1, \$2, \$3, \$4\)/
-    //   - assert params equal [7, "2026-05-03", 45, "Layered shoulder pads"]
+const selectMock = vi.fn();
+const executeMock = vi.fn();
+
+vi.mock("@/db/client", () => ({
+  getDb: async () => ({ select: selectMock, execute: executeMock }),
+}));
+
+import {
+  getSessionsByUnit,
+  createSession,
+  deleteSession,
+} from "@/db/queries/paintingSessions";
+
+beforeEach(() => {
+  selectMock.mockReset();
+  executeMock.mockReset();
+});
+
+describe("paintingSessions queries", () => {
+  it("JOUR-01: createSession runs INSERT INTO painting_sessions with (unit_id, session_date, duration_minutes, notes) and 4 positional params", async () => {
+    executeMock.mockResolvedValueOnce(undefined);
+
+    await createSession({
+      unit_id: 7,
+      session_date: "2026-05-03",
+      duration_minutes: 45,
+      notes: "Layered shoulder pads",
+    });
+
+    expect(executeMock).toHaveBeenCalledTimes(1);
+    const [sql, params] = executeMock.mock.calls[0];
+    expect(sql).toMatch(/INSERT INTO painting_sessions \(unit_id, session_date, duration_minutes, notes\)/);
+    expect(sql).toMatch(/VALUES \(\$1, \$2, \$3, \$4\)/);
+    expect(params).toEqual([7, "2026-05-03", 45, "Layered shoulder pads"]);
   });
 
-  it.skip("JOUR-01: createSession passes null when notes field omitted (input.notes ?? null)", () => {
-    // Plan 13-02 will:
-    //   - call createSession({ unit_id: 7, session_date: "2026-05-03", duration_minutes: 30 })
-    //   - assert params[3] === null (not undefined)
+  it("JOUR-01: createSession passes null when notes field omitted (input.notes ?? null)", async () => {
+    executeMock.mockResolvedValueOnce(undefined);
+
+    await createSession({
+      unit_id: 7,
+      session_date: "2026-05-03",
+      duration_minutes: 30,
+    });
+
+    const params = executeMock.mock.calls[0][1] as unknown[];
+    expect(params[3]).toBeNull();
   });
 
-  it.skip("JOUR-02: getSessionsByUnit issues SELECT * WHERE unit_id=$1 ORDER BY session_date DESC, id DESC", () => {
-    // Plan 13-02 will:
-    //   - selectMock.mockResolvedValueOnce([{ id: 2, session_date: "2026-05-03", ... }, { id: 1, ... }])
-    //   - import { getSessionsByUnit } from "@/db/queries/paintingSessions"
-    //   - const rows = await getSessionsByUnit(7)
-    //   - assert selectMock called with EXACTLY:
-    //     "SELECT * FROM painting_sessions WHERE unit_id = $1 ORDER BY session_date DESC, id DESC"
-    //     and [7]
-    //   - assert rows length === 2 (returned in order from mock — query module does not re-sort)
+  it("JOUR-02: getSessionsByUnit issues SELECT * WHERE unit_id=$1 ORDER BY session_date DESC, id DESC", async () => {
+    selectMock.mockResolvedValueOnce([
+      { id: 2, unit_id: 7, session_date: "2026-05-03", duration_minutes: 45, notes: null, created_at: "2026-05-03" },
+      { id: 1, unit_id: 7, session_date: "2026-05-02", duration_minutes: 30, notes: null, created_at: "2026-05-02" },
+    ]);
+
+    const rows = await getSessionsByUnit(7);
+
+    expect(selectMock).toHaveBeenCalledWith(
+      "SELECT * FROM painting_sessions WHERE unit_id = $1 ORDER BY session_date DESC, id DESC",
+      [7]
+    );
+    expect(rows).toHaveLength(2);
   });
 
-  it.skip("JOUR-03: deleteSession issues DELETE FROM painting_sessions WHERE id=$1 with single param", () => {
-    // Plan 13-02 will:
-    //   - executeMock.mockResolvedValueOnce(undefined)
-    //   - import { deleteSession } from "@/db/queries/paintingSessions"
-    //   - await deleteSession(42)
-    //   - assert executeMock called with "DELETE FROM painting_sessions WHERE id = $1" and [42]
+  it("JOUR-03: deleteSession issues DELETE FROM painting_sessions WHERE id=$1 with single param", async () => {
+    executeMock.mockResolvedValueOnce(undefined);
+
+    await deleteSession(42);
+
+    expect(executeMock).toHaveBeenCalledWith(
+      "DELETE FROM painting_sessions WHERE id = $1",
+      [42]
+    );
   });
 });
