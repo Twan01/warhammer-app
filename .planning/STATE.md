@@ -66,6 +66,8 @@ Architecture constraints:
 - HTTP capability requires BOTH string "http:default" AND scoped object { identifier: "http:default", allow: [{ url: "https://wahapedia.ru/*" }] } in capabilities/default.json
 - shadcn collapsible (2025) imports from unified `radix-ui` package, not `@radix-ui/react-collapsible` — new registry format
 - tauri_plugin_http::init() must appear BEFORE SQL plugin in lib.rs builder chain
+- parseWahapediaCsv: raw.trim().split('\n') + Object.fromEntries handles trailing-pipe rows via empty-string key (no special case needed)
+- stripHtml: 6 chained .replace() in strict order (tags → named entities → numeric entities → trim) avoids jsdom dependency per RESEARCH §Pitfall 4
 
 ### Phase 16 Decisions
 
@@ -106,6 +108,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T10:45:00Z
-Stopped at: Completed 16-03-PLAN.md — Dashboard + Collection cluster visual upgrade (page headers, tabular-nums, card elevation)
-Resume: Run `/gsd:execute-phase 16` to execute Plan 16-04
+Last session: 2026-05-04T10:47:22Z
+Stopped at: Completed 15-02-PLAN.md — pure utility functions (parseWahapediaCsv + stripHtml)
+Resume: Run `/gsd:execute-phase 15` to execute Plan 15-03
