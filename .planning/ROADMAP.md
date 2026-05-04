@@ -190,7 +190,14 @@ Plans:
   4. Dashboard shows a HobbyPipeline strip with unit counts at each stage from Owned through to Battle Ready — replacing the isolated percentage stat cards with a single visual funnel
   5. Faction summary cards show painting progress percentage and battle-ready point count alongside unit count — all three values visible on each faction card
   6. Dashboard shows a Recent Activity feed listing the last N events (units added/updated, sessions logged, battles recorded) derived from existing table data — no new database tables required
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 26-00-PLAN.md — Wave 0: 3 test stub files (computeRecentActivity + recentActivityQuery + computeStats units field) — 21 it.skip stubs covering DASH-04 + DASH-06
+- [ ] 26-01-PLAN.md — Wave 1: Data layer — add units field to ComputedDashboardStats + computeRecentActivity pure fn + getNextActionHint + getRecentActivity SQL + useRecentActivity hook + invalidation wiring on 4 mutations + flip 21 stubs
+- [ ] 26-02-PLAN.md — Wave 2: New components — CurrentFocusCard + HobbyPipeline + RecentActivityFeed + LogSessionSheet (with Zod schema, no .default() per Pitfall 8)
+- [ ] 26-03-PLAN.md — Wave 3: DashboardPage rewrite (PageHeader actions, CurrentFocusCard, HobbyPipeline, RecentActivityFeed, sibling LogSessionSheet/Quick Add UnitSheet) + FactionSummaryCard upgrade for DASH-05 + delete dead DashboardListRow + statusAbbr
+- [ ] 26-04-PLAN.md — Wave 4: Manual smoke-test checkpoint (12 steps verifying DASH-01..06 in live Tauri app including Pitfalls 1, 2, 3, 6, 7)
 
 ### Phase 27: Navigation & Quick Add
 **Goal**: The sidebar navigation uses hobby-native group labels, and a Quick Add button lets the user create any entity type without leaving their current page
@@ -255,7 +262,7 @@ Plans:
 | 22. Hobby Goals | v2.2 | 0/TBD | Not started | — |
 | 23. Display Features | v2.2 | 0/TBD | Not started | — |
 | 25. Design Foundation | 1/2 | In Progress|  | — |
-| 26. Dashboard Redesign | v2.3 | 0/TBD | Not started | — |
+| 26. Dashboard Redesign | v2.3 | 0/5 | Not started | — |
 | 27. Navigation & Quick Add | v2.3 | 0/TBD | Not started | — |
 | 28. Collection + Projects | v2.3 | 0/TBD | Not started | — |
 | 29. Workshop + Play | v2.3 | 0/TBD | Not started | — |
