@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Completed 13-00-PLAN.md
-last_updated: "2026-05-04T06:30:25.466Z"
-last_activity: 2026-05-03 — Phase 12 Plan 02 — UnitGallery + CollectionPage wiring built (228 passing, 0 skipped, 0 failed)
+stopped_at: Completed 13-01-PLAN.md
+last_updated: "2026-05-04T06:40:53.240Z"
+last_activity: 2026-05-03 — Phase 13 Plan 01 — Tauri infra + migration 005 + type contracts (232 passing, 11 skipped)
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 23
-  completed_plans: 12
-  percent: 48
+  completed_plans: 14
+  percent: 57
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 ## Current Position
 
 Phase: 13 of 14 (IN PROGRESS: Phase 13 Hobby Journal)
-Plan: 13-00 complete — 5 Wave 0 stub test files (12 it.skip stubs for JOUR-01..06); ready for Plan 13-01 (migration 005 SQL)
-Status: Phase 13 in progress — Plan 13-00 done. Next: Plan 13-01 (create 005_hobby_journal.sql + flip migration stub)
-Last activity: 2026-05-03 — Phase 13 Plan 00 — 5 Wave 0 stubs created (12 skipped, 0 failed)
+Plan: 13-01 complete — migration 005 schema, tauri-plugin-fs + tauri-plugin-dialog installed, TypeScript types published; ready for Plan 13-02 (painting session query module)
+Status: Phase 13 in progress — Plans 13-00 and 13-01 done. Next: Plan 13-02 (painting session queries + hooks)
+Last activity: 2026-05-03 — Phase 13 Plan 01 — Tauri infra + migration 005 + type contracts (232 passing, 11 skipped)
 
-Progress: [█████░░░░░] 52% (12/23 plans complete)
+Progress: [██████░░░░] 57% (13/23 plans complete)
 
 ## v2.1 Phase Map
 
@@ -82,6 +82,7 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 - Phase 12 Plan 02: useRouter warning in CollectionPage tests is benign — UnitDetailSheet only calls useRouter when open; tests never open the sheet
 - Phase 13 photo storage requires `tauri-plugin-fs` — the one new Tauri plugin introduced in v2.1; verify capability grants before building photo attach UI
 - Phase 13 Plan 00: Wave 0 stub files use .tsx for JournalTab (JSX component test) and .ts for all others — avoids .ts->tsx rename seen in Phase 10-01; no SUT imports in any stub until plans 13-01/02/03 create source files; explicit `import { describe, it } from 'vitest'` for tsc strict-mode (mirrors Phase 10/11/12 pattern)
+- Phase 13 Plan 01: tauri feature flag "protocol-asset" must be added to Cargo.toml tauri dependency when assetProtocol.enable = true in tauri.conf.json — build fails without it; plugin registration order: opener -> fs -> dialog -> sql; UnitPhoto.file_path stores UUID filename only (not absolute path)
 - Phase 14 stores all spend values as integer pence in SQLite — display formatting happens in UI layer only, never stored as float
 
 ### Decisions Carried from v2.0
@@ -119,6 +120,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T06:30:25.462Z
-Stopped at: Completed 13-00-PLAN.md
-Resume: Run `/gsd:execute-phase 12` to continue with Plan 12-03 (manual smoke-test checkpoint for gallery view).
+Last session: 2026-05-04T06:40:02.840Z
+Stopped at: Completed 13-01-PLAN.md
+Resume: Run `/gsd:execute-phase 13` to continue with Plan 13-02 (painting session queries + hooks).
