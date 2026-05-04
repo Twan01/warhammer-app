@@ -1,10 +1,11 @@
 ---
 phase: 16
 slug: design-overhaul
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-04
+audited: 2026-05-04
 ---
 
 # Phase 16 — Validation Strategy
@@ -28,7 +29,7 @@ created: 2026-05-04
 ## Sampling Rate
 
 - **After every task commit:** Run `npx vitest run` (full suite ~20s — no subset needed)
-- **After every plan wave:** Run `npx vitest run` — baseline must remain 279 passing
+- **After every plan wave:** Run `npx vitest run` — baseline must remain 279 passing (actual post-execution: 342 passing)
 - **Before `/gsd:verify-work`:** Full suite green + manual visual review of all 7 pages
 
 ---
@@ -39,13 +40,13 @@ Phase 16 has no formal requirement IDs — the goal is "significantly improved v
 
 | Behavior | Test Type | Automated Command | File Exists | Status |
 |----------|-----------|-------------------|-------------|--------|
-| NavItem active state uses `bg-faction-accent` | unit | `npx vitest run tests/theming/NavItem.test.tsx` | ✅ | ⬜ pending |
-| AppSidebar collapse toggle works | unit | `npx vitest run tests/theming/AppSidebar.test.tsx` | ✅ | ⬜ pending |
-| AppSidebar Spending nav entry renders | unit | `npx vitest run tests/app-shell/AppSidebar.test.tsx` | ✅ | ⬜ pending |
-| DashboardPage renders without error | integration | `npx vitest run tests/dashboard/DashboardPage.test.tsx` | ✅ | ⬜ pending |
-| UnitGallery renders card grid | unit | `npx vitest run tests/collection/UnitGallery.test.tsx` | ✅ | ⬜ pending |
-| SpendingPage renders with stats | unit | `npx vitest run tests/spending/SpendingPage.test.tsx` | ✅ | ⬜ pending |
-| Full regression suite baseline | integration | `npx vitest run` | ✅ | ⬜ pending |
+| NavItem active state uses `bg-faction-accent` | unit | `npx vitest run tests/theming/NavItem.test.tsx` | ✅ | ✅ green |
+| AppSidebar collapse toggle works | unit | `npx vitest run tests/theming/AppSidebar.test.tsx` | ✅ | ✅ green |
+| AppSidebar Spending nav entry renders | unit | `npx vitest run tests/app-shell/AppSidebar.test.tsx` | ✅ | ✅ green |
+| DashboardPage renders without error | integration | `npx vitest run tests/dashboard/DashboardPage.test.tsx` | ✅ | ✅ green |
+| UnitGallery renders card grid | unit | `npx vitest run tests/collection/UnitGallery.test.tsx` | ✅ | ✅ green |
+| SpendingPage renders with stats | unit | `npx vitest run tests/spending/SpendingPage.test.tsx` | ✅ | ✅ green |
+| Full regression suite baseline | integration | `npx vitest run` | ✅ | ✅ green (342 passed) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -77,11 +78,23 @@ No new test stubs required. Phase 16 is purely visual — no new logic, hooks, o
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify (regression suite) or documented manual check
-- [ ] Sampling continuity: full suite run after every plan wave
-- [ ] Wave 0 note: no stubs needed — existing infrastructure sufficient
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 20s (full suite)
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify (regression suite) or documented manual check
+- [x] Sampling continuity: full suite run after every plan wave
+- [x] Wave 0 note: no stubs needed — existing infrastructure sufficient
+- [x] No watch-mode flags
+- [x] Feedback latency < 20s (full suite)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** ✓ 2026-05-04 — 342 passed, 2 skipped, 0 failing
+
+---
+
+## Validation Audit 2026-05-04
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+| All behaviors | COVERED (regression suite) or MANUAL-ONLY (visual) |
+| Final suite result | 342 passed, 2 skipped, 0 failing |
