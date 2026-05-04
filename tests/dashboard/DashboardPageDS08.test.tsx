@@ -90,18 +90,6 @@ vi.mock("@/features/units/DatasheetImportDialog", () => ({
   ),
 }));
 
-// ─── Stub DashboardListRow (renders unit rows) ────────────────────────────────
-vi.mock("@/features/dashboard/DashboardListRow", () => ({
-  DashboardListRow: (props: { unit: { name: string }; onClick: (u: unknown) => void }) => (
-    <button
-      data-testid={`row-${props.unit.name}`}
-      onClick={() => props.onClick(props.unit)}
-    >
-      {props.unit.name}
-    </button>
-  ),
-}));
-
 // matchMedia polyfill for AnimatedNumber inside StatCard
 Object.defineProperty(window, "matchMedia", {
   writable: true,
