@@ -39,7 +39,7 @@ export const unitSchema = z.object({
 
   // Purchase + storage
   purchase_date: z.string().optional().nullable(),
-  purchase_price: z.number().min(0).optional().nullable(),
+  purchase_price_pence: z.number().int().min(0).optional().nullable(),
   storage_location: z.string().max(120).optional().nullable(),
   main_image_path: z.string().max(255).optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),

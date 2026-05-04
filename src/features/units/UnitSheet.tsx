@@ -63,7 +63,7 @@ function buildDefaultValues(unit: Unit | null, defaultFactionId?: number): UnitF
       priority: unit.priority ?? null,
       target_completion_date: unit.target_completion_date ?? null,
       purchase_date: unit.purchase_date ?? null,
-      purchase_price: unit.purchase_price ?? null,
+      purchase_price_pence: unit.purchase_price_pence ?? null,
       storage_location: unit.storage_location ?? null,
       main_image_path: unit.main_image_path ?? null,
       notes: unit.notes ?? null,
@@ -86,7 +86,7 @@ function buildDefaultValues(unit: Unit | null, defaultFactionId?: number): UnitF
     priority: null,
     target_completion_date: null,
     purchase_date: null,
-    purchase_price: null,
+    purchase_price_pence: null,
     storage_location: null,
     main_image_path: null,
     notes: null,
@@ -131,7 +131,7 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
         priority: values.priority ?? null,
         target_completion_date: values.target_completion_date || null,
         purchase_date: values.purchase_date || null,
-        purchase_price: values.purchase_price ?? null,
+        purchase_price_pence: values.purchase_price_pence ?? null,
         storage_location: values.storage_location || null,
         main_image_path: values.main_image_path || null,
         notes: values.notes || null,
@@ -518,7 +518,7 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
                 />
 
                 <FormField
-                  name="purchase_price"
+                  name="purchase_price_pence"
                   control={form.control}
                   render={({ field }) => (
                     <FormItem>

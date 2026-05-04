@@ -58,6 +58,7 @@ describe("usePaints — useCreatePaint onSuccess invalidations", () => {
         brand: "Citadel", name: "Test", paint_type: "Layer",
         color_family: null, hex_color: null,
         owned: 1, quantity: null, running_low: 0, wishlist: 0, notes: null,
+        purchase_price_pence: null,
       });
     });
     await waitFor(() => expect(spy).toHaveBeenCalled());
@@ -75,6 +76,7 @@ describe("usePaints — useCreatePaint onSuccess invalidations", () => {
         brand: "Citadel", name: "Test2", paint_type: "Layer",
         color_family: null, hex_color: null,
         owned: 1, quantity: null, running_low: 0, wishlist: 0, notes: null,
+        purchase_price_pence: null,
       });
     });
     await waitFor(() => expect(spy).toHaveBeenCalled());

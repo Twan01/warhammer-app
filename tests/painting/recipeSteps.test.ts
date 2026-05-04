@@ -37,7 +37,7 @@ describe("RECIPE-06 isPaintMissing", () => {
     return {
       id: 1, brand: "Citadel", name: "Abaddon Black", paint_type: "Base",
       color_family: null, hex_color: null, owned: 1, quantity: null,
-      running_low: 0, wishlist: 0, notes: null,
+      running_low: 0, wishlist: 0, notes: null, purchase_price_pence: null,
       created_at: "2026-01-01", updated_at: "2026-01-01",
       ...over,
     };

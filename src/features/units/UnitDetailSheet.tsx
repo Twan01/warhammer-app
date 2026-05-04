@@ -164,7 +164,7 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhoto
                     <span className="text-sm">{unit.purchase_date ?? "—"}</span>
                   </Field>
                   <Field label="Purchase Price">
-                    <span className="text-sm">{unit.purchase_price ?? "—"}</span>
+                    <span className="text-sm">{unit.purchase_price_pence != null ? `${(unit.purchase_price_pence / 100).toFixed(2)}` : "—"}</span>
                   </Field>
                   <Field label="Storage Location">
                     <span className="text-sm">{unit.storage_location ?? "—"}</span>

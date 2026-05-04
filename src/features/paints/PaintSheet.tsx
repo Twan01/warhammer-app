@@ -49,6 +49,7 @@ const DEFAULT_VALUES: PaintFormValues = {
   running_low: false,
   wishlist: false,
   notes: "",
+  purchase_price_pence: null,
 };
 
 function buildDefaultValues(paint: Paint | null): PaintFormValues {
@@ -65,6 +66,7 @@ function buildDefaultValues(paint: Paint | null): PaintFormValues {
       running_low: !!paint.running_low,
       wishlist: !!paint.wishlist,
       notes: paint.notes ?? "",
+      purchase_price_pence: paint.purchase_price_pence ?? null,
     };
   }
   return DEFAULT_VALUES;
@@ -99,6 +101,7 @@ export function PaintSheet({ open, paint, onClose }: PaintSheetProps) {
         running_low: values.running_low ? 1 : 0 as 0 | 1,
         wishlist: values.wishlist ? 1 : 0 as 0 | 1,
         notes: values.notes || null,
+        purchase_price_pence: values.purchase_price_pence ?? null,
       };
 
       if (isEdit && paint) {

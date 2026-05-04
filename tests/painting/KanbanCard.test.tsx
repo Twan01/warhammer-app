@@ -28,7 +28,7 @@ function makeUnit(over: Partial<Unit> = {}): Unit {
     priority: 1,
     target_completion_date: "2099-12-31",
     purchase_date: null,
-    purchase_price: null,
+    purchase_price_pence: null,
     storage_location: null,
     main_image_path: null,
     notes: null,

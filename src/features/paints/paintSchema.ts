@@ -26,6 +26,7 @@ export const paintSchema = z.object({
   running_low: z.boolean(),
   wishlist: z.boolean(),
   notes: z.string().max(500).optional().nullable(),
+  purchase_price_pence: z.number().int().min(0).optional().nullable(),
 });
 
 export type PaintFormValues = z.infer<typeof paintSchema>;

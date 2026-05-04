@@ -20,6 +20,7 @@ function paint(overrides: Partial<PaintWithRecipeCount> = {}): PaintWithRecipeCo
     running_low: 0,
     wishlist: 0,
     notes: null,
+    purchase_price_pence: null,
     created_at: "2026-04-30",
     updated_at: "2026-04-30",
     recipe_count: 0,
