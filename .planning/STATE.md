@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Completed 12-02-PLAN.md
-last_updated: "2026-05-03T12:14:07.013Z"
-last_activity: 2026-05-03 — Phase 12 Plan 01 — useCollectionViewMode + PaintingRing built (222 passing + 6 skipped, 0 failed)
+stopped_at: Completed 13-00-PLAN.md
+last_updated: "2026-05-04T06:30:25.466Z"
+last_activity: 2026-05-03 — Phase 12 Plan 02 — UnitGallery + CollectionPage wiring built (228 passing, 0 skipped, 0 failed)
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 23
-  completed_plans: 11
+  completed_plans: 12
   percent: 48
 ---
 
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 
 ## Current Position
 
-Phase: 12 of 14 (IN PROGRESS: Phase 12 Collection Gallery View)
-Plan: 12-02 complete — UnitGallery component + CollectionPage view toggle + 6 passing tests (UI-04/05/06); ready for Plan 12-03 (manual smoke-test checkpoint)
-Status: Phase 12 in progress — Plans 12-00, 12-01, 12-02 done. Next: Plan 12-03 (manual smoke-test)
-Last activity: 2026-05-03 — Phase 12 Plan 02 — UnitGallery + CollectionPage wiring built (228 passing, 0 skipped, 0 failed)
+Phase: 13 of 14 (IN PROGRESS: Phase 13 Hobby Journal)
+Plan: 13-00 complete — 5 Wave 0 stub test files (12 it.skip stubs for JOUR-01..06); ready for Plan 13-01 (migration 005 SQL)
+Status: Phase 13 in progress — Plan 13-00 done. Next: Plan 13-01 (create 005_hobby_journal.sql + flip migration stub)
+Last activity: 2026-05-03 — Phase 13 Plan 00 — 5 Wave 0 stubs created (12 skipped, 0 failed)
 
-Progress: [█████░░░░░] 48% (11/23 plans complete)
+Progress: [█████░░░░░] 52% (12/23 plans complete)
 
 ## v2.1 Phase Map
 
@@ -81,6 +81,7 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 - Phase 12 Plan 02: mockFaction in test required game_system + description fields (plan template was missing these); auto-corrected (Rule 1)
 - Phase 12 Plan 02: useRouter warning in CollectionPage tests is benign — UnitDetailSheet only calls useRouter when open; tests never open the sheet
 - Phase 13 photo storage requires `tauri-plugin-fs` — the one new Tauri plugin introduced in v2.1; verify capability grants before building photo attach UI
+- Phase 13 Plan 00: Wave 0 stub files use .tsx for JournalTab (JSX component test) and .ts for all others — avoids .ts->tsx rename seen in Phase 10-01; no SUT imports in any stub until plans 13-01/02/03 create source files; explicit `import { describe, it } from 'vitest'` for tsc strict-mode (mirrors Phase 10/11/12 pattern)
 - Phase 14 stores all spend values as integer pence in SQLite — display formatting happens in UI layer only, never stored as float
 
 ### Decisions Carried from v2.0
@@ -118,6 +119,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-03T12:14:07.010Z
-Stopped at: Completed 12-02-PLAN.md
+Last session: 2026-05-04T06:30:25.462Z
+Stopped at: Completed 13-00-PLAN.md
 Resume: Run `/gsd:execute-phase 12` to continue with Plan 12-03 (manual smoke-test checkpoint for gallery view).
