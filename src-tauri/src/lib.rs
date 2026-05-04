@@ -45,6 +45,7 @@ fn get_migrations() -> Vec<Migration> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_http::init())
         .setup(|app| {
             // SETUP-07 + Pitfall 3: ensure %APPDATA%\com.hobbyforge.app\ exists
             // before tauri-plugin-sql tries to open hobbyforge.db inside it.
@@ -52,8 +53,7 @@ pub fn run() {
                 .path()
                 .app_data_dir()
                 .expect("failed to resolve app_data_dir");
-            std::fs::create_dir_all(&app_data_dir)
-                .expect("failed to create app_data_dir");
+            std::fs::create_dir_all(&app_data_dir).expect("failed to create app_data_dir");
             println!("[hobbyforge] app_data_dir = {}", app_data_dir.display());
             Ok(())
         })
