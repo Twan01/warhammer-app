@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Completed 15-04-PLAN.md — useRulesSync hook + DatasheetPicker + DatasheetImportDialog (19/19 Wave 0 stubs flipped)
-last_updated: "2026-05-04T09:02:22.371Z"
+stopped_at: Completed 16-06-PLAN.md — DashboardEmptyState welcome screen, CollectionEmptyState two-mode, KanbanEmptyState + PaintsEmptyState icon-in-container
+last_updated: "2026-05-04T09:07:32.405Z"
 last_activity: "2026-05-04 — Phase 16 Plan 05 complete: Army Lists + Spending page headers, ArmyListCard elevation + tabular-nums, SpendingPage empty state"
 progress:
   total_phases: 13
   completed_phases: 4
-  total_plans: 41
-  completed_plans: 32
+  total_plans: 43
+  completed_plans: 33
   percent: 80
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.2 milestone start)
 
 ## Current Position
 
-Phase: 16 of 22 (Design Overhaul — 5/8 plans complete)
-Plan: 16-06 (next plan)
+Phase: 16 of 22 (Design Overhaul — 6/8 plans complete)
+Plan: 16-07 (next plan)
 Status: In progress
-Last activity: 2026-05-04 — Phase 16 Plan 05 complete: Army Lists + Spending page headers, ArmyListCard elevation + tabular-nums, SpendingPage empty state
+Last activity: 2026-05-04 — Phase 16 Plan 06 complete: DashboardEmptyState welcome screen, CollectionEmptyState two-mode, KanbanEmptyState + PaintsEmptyState icon-in-container
 
 Progress: [████████░░] 80% (32/40 plans complete)
 
@@ -93,6 +93,9 @@ Architecture constraints:
 - Spending Breakdown h2 downgraded from text-xl (20px) to text-base (16px) per Phase 16 size scale (only 14/16/28px allowed)
 - SpendingPage isEmpty guard checks all three spend sources before rendering empty state vs data view
 - ArmyListCard interactive card pattern: bg-card border border-border/60 shadow-sm hover:shadow-md transition-shadow duration-150 (replaces hover:bg-muted/50)
+- DashboardEmptyState is a full welcome-screen replacement (Pitfall 3): Sword + HobbyForge wordmark side-by-side, gap-6, text-faction-accent — NOT the standard icon-pill pattern used by all other empty states
+- KanbanEmptyState keeps onAddProject prop wiring (fragile DOM query from PaintingProjectsPage) — only button text changed to 'Go to Collection' per UI-SPEC; tech-debt fix deferred
+- CollectionEmptyState prop interface preserved byte-for-byte: onAdd (not onAddUnit) + onClearFilters — callers require no changes
 
 ### Decisions Carried from v2.1
 
@@ -120,6 +123,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T09:02:22.367Z
-Stopped at: Completed 15-04-PLAN.md — useRulesSync hook + DatasheetPicker + DatasheetImportDialog (19/19 Wave 0 stubs flipped)
+Last session: 2026-05-04T09:07:32.402Z
+Stopped at: Completed 16-06-PLAN.md — DashboardEmptyState welcome screen, CollectionEmptyState two-mode, KanbanEmptyState + PaintsEmptyState icon-in-container
 Resume: Run `/gsd:execute-phase 16` to execute Plan 16-06

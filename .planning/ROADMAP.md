@@ -211,7 +211,13 @@ Plans:
   3. User can add optional notes to a game log entry (MVP unit, lessons learned) and the notes are visible on the saved entry
   4. User can view all logged games in a chronological list sorted newest first — each entry shows opponent, mission, result, date, army used, and notes
   5. User can delete a game log entry and it is removed from the list immediately
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 18-00-PLAN.md — Wave 0: 2 stub test files (battleLogQueries.test.ts + computeBattleLogSummary.test.ts) — 14 it.skip stubs covering BATTLE-01..05
+- [ ] 18-01-PLAN.md — Wave 1: types/battleLog.ts + db/queries/battleLogs.ts (full-replacement UPDATE for FK clearing — Pitfall 5) + computeBattleLogSummary pure function + useBattleLogs hooks + battleLogSchema (zod) + flip 14 stubs
+- [ ] 18-02-PLAN.md — Wave 2: BattleLogPage (sibling-portal) + Row (compact 2-line + Collapsible expand + group-hover Edit/Delete) + Sheet (4 grouped sections) + DeleteDialog + SummaryBar + EmptyState + resultBadge map + /battle-log route + Battle Log sidebar entry (Swords icon in TRACKING_NAV)
+- [ ] 18-03-PLAN.md — Wave 3: Manual smoke-test checkpoint (11 steps verifying BATTLE-01..05 in live Tauri app including Pitfall 5 FK clear + deleted-army-list fallback + persistence across restart)
 
 ### Phase 19: Analytics Core
 **Goal**: The Dashboard gains two auto-calculated hobby health metrics (velocity and painting streak) and the Spending page gains a monthly spend trend chart — all driven by existing journal session and purchase data
@@ -276,9 +282,9 @@ Plans:
 | 13. Hobby Journal | v2.1 | 6/6 | Complete | 2026-05-04 |
 | 14. Spending Tracker | v2.1 | 4/5 | In Progress | — |
 | 15. 40K Datasheet Integration | 5/7 | In Progress|  | — |
-| 16. Design Overhaul | 5/8 | In Progress|  | — |
+| 16. Design Overhaul | 6/8 | In Progress|  | — |
 | 17. Schema Foundation + Enrichment | v2.2 | 0/TBD | Not started | — |
-| 18. Battle Log | v2.2 | 0/TBD | Not started | — |
+| 18. Battle Log | v2.2 | 0/4 | Not started | — |
 | 19. Analytics Core | v2.2 | 0/TBD | Not started | — |
 | 20. Wishlist | v2.2 | 0/TBD | Not started | — |
 | 21. Hobby Goals | v2.2 | 0/TBD | Not started | — |
