@@ -283,8 +283,8 @@ Plans:
 | 14. Spending Tracker | v2.1 | 4/5 | In Progress | — |
 | 15. 40K Datasheet Integration | 6/7 | In Progress|  | — |
 | 16. Design Overhaul | 8/8 | Complete    | 2026-05-04 | — |
-| 17. Schema Foundation + Enrichment | 1/1 | Complete   | 2026-05-04 | — |
-| 18. Battle Log | 2/4 | In Progress|  | — |
+| 17. Schema Foundation + Enrichment | 1/1 | Complete    | 2026-05-04 | — |
+| 18. Battle Log | 3/4 | In Progress|  | — |
 | 19. Analytics Core | v2.2 | 0/TBD | Not started | — |
 | 20. Wishlist | v2.2 | 0/TBD | Not started | — |
 | 21. Hobby Goals | v2.2 | 0/TBD | Not started | — |
