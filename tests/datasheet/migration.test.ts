@@ -1,60 +1,57 @@
 /**
- * Phase 15 — Migration content tests (Wave 0 stubs).
+ * Phase 15 — Migration content tests.
  *
- * STATUS: skipped. Plan 15-01 will:
- *   1. Create src-tauri/migrations/rules_001_schema.sql with the rw_factions, rw_datasheets,
- *      rw_datasheet_models, rw_datasheet_abilities, rw_datasheet_keywords, rw_sources, rw_sync_meta tables.
- *   2. Create src-tauri/migrations/007_datasheet_link.sql adding `datasheet_id TEXT` to unit_strategy_notes
- *      (no FK because cross-database FKs are not supported — see Pitfall 1).
- *   3. Add get_rules_migrations() function to src-tauri/src/lib.rs and chain
- *      .add_migrations("sqlite:rules.db", get_rules_migrations()) onto the SQL plugin.
- *   4. Add version: 7, description: "datasheet_link", include_str!("../migrations/007_datasheet_link.sql")
- *      to get_migrations().
- *   5. Replace each `it.skip` below with `it`.
- *   6. Add real readFileSync assertions matching 15-VALIDATION.md row 15-01-03.
- *
- * Mirrors tests/hobby-journal/migration005.test.ts pattern. Content-shape test only —
- * tauri-plugin-sql IPC cannot run in jsdom.
+ * Reads the migration SQL files and lib.rs registration as raw strings and verifies
+ * the additive-only contract. tauri-plugin-sql IPC cannot run in jsdom; this is a
+ * content-shape test, not a behavior test. Mirrors tests/hobby-journal/migration005.test.ts.
  */
-import { describe, it } from "vitest";
+import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
-describe("rules_001_schema.sql + migration 007 — Wave 0 stubs", () => {
-  it.skip("DS-01: rules_001_schema.sql contains all 7 rw_* tables (rw_factions, rw_datasheets, rw_datasheet_models, rw_datasheet_abilities, rw_datasheet_keywords, rw_sources, rw_sync_meta)", () => {
-    // Plan 15-01 will:
-    //   - readFileSync("src-tauri/migrations/rules_001_schema.sql", "utf-8")
-    //   - assert sql matches /CREATE TABLE IF NOT EXISTS rw_factions/
-    //   - assert sql matches /CREATE TABLE IF NOT EXISTS rw_datasheets/
-    //   - assert sql matches /CREATE TABLE IF NOT EXISTS rw_datasheet_models/
-    //   - assert sql matches /CREATE TABLE IF NOT EXISTS rw_datasheet_abilities/
-    //   - assert sql matches /CREATE TABLE IF NOT EXISTS rw_datasheet_keywords/
-    //   - assert sql matches /CREATE TABLE IF NOT EXISTS rw_sources/
-    //   - assert sql matches /CREATE TABLE IF NOT EXISTS rw_sync_meta/
-    //   - assert sql matches /id\s+INTEGER PRIMARY KEY CHECK \(id = 1\)/   // rw_sync_meta single row
-    //   - assert sql matches /datasheet_id\s+TEXT.+REFERENCES rw_datasheets\(id\)\s+ON DELETE CASCADE/
-    //   - assert sql does NOT match /\bDROP\b/i  (additive only)
-    //   - assert sql does NOT match /\bDELETE FROM\b/i
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const rulesSchemaPath = resolve(repoRoot, "src-tauri/migrations/rules_001_schema.sql");
+const datasheetLinkPath = resolve(repoRoot, "src-tauri/migrations/007_datasheet_link.sql");
+const libRsPath = resolve(repoRoot, "src-tauri/src/lib.rs");
+const tauriConfPath = resolve(repoRoot, "src-tauri/tauri.conf.json");
+
+describe("rules_001_schema.sql + migration 007", () => {
+  it("DS-01: rules_001_schema.sql contains all 7 rw_* tables and the rw_sync_meta single-row check", () => {
+    const sql = readFileSync(rulesSchemaPath, "utf-8");
+    expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS rw_factions/);
+    expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS rw_datasheets/);
+    expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS rw_datasheet_models/);
+    expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS rw_datasheet_abilities/);
+    expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS rw_datasheet_keywords/);
+    expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS rw_sources/);
+    expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS rw_sync_meta/);
+    expect(sql).toMatch(/id\s+INTEGER PRIMARY KEY CHECK \(id = 1\)/);
+    expect(sql).toMatch(/datasheet_id\s+TEXT NOT NULL REFERENCES rw_datasheets\(id\) ON DELETE CASCADE/);
+    expect(sql).not.toMatch(/\bDROP\b/i);
+    expect(sql).not.toMatch(/\bDELETE FROM\b/i);
   });
 
-  it.skip("DS-06: 007_datasheet_link.sql adds datasheet_id TEXT column to unit_strategy_notes (NO REFERENCES — cross-DB FK not supported)", () => {
-    // Plan 15-01 will:
-    //   - readFileSync("src-tauri/migrations/007_datasheet_link.sql", "utf-8")
-    //   - assert sql matches /ALTER TABLE unit_strategy_notes ADD COLUMN datasheet_id TEXT/
-    //   - assert sql does NOT match /REFERENCES rw_datasheets/  (Pitfall 1: SQLite cannot FK across DB files)
-    //   - assert sql does NOT match /\bDROP\b/i
-    //   - assert sql does NOT match /\bDELETE FROM\b/i
+  it("DS-06: 007_datasheet_link.sql adds datasheet_id TEXT column to unit_strategy_notes (NO REFERENCES — cross-DB FK not supported)", () => {
+    const sql = readFileSync(datasheetLinkPath, "utf-8");
+    expect(sql).toMatch(/ALTER TABLE unit_strategy_notes ADD COLUMN datasheet_id TEXT/);
+    expect(sql).not.toMatch(/REFERENCES rw_datasheets/);
+    expect(sql).not.toMatch(/\bDROP\b/i);
+    expect(sql).not.toMatch(/\bDELETE FROM\b/i);
   });
 
-  it.skip("DS-01 + DS-06: src-tauri/src/lib.rs registers BOTH databases — version: 7 entry for hobbyforge.db AND get_rules_migrations() chained for sqlite:rules.db", () => {
-    // Plan 15-01 will:
-    //   - readFileSync("src-tauri/src/lib.rs", "utf-8")
-    //   - assert libRs matches /version:\s*7\s*,/
-    //   - assert libRs matches /description:\s*"datasheet_link"/
-    //   - assert libRs matches /007_datasheet_link\.sql/
-    //   - assert libRs matches /fn get_rules_migrations\(\)/
-    //   - assert libRs matches /version:\s*1\s*,[\s\S]*description:\s*"rules_schema"/   // first rules.db migration
-    //   - assert libRs matches /rules_001_schema\.sql/
-    //   - assert libRs matches /\.add_migrations\("sqlite:rules\.db",\s*get_rules_migrations\(\)\)/
-    //   - readFileSync("src-tauri/tauri.conf.json", "utf-8")
-    //   - parsed JSON: assert plugins.sql.preload includes "sqlite:rules.db"
+  it("DS-01 + DS-06: src-tauri/src/lib.rs registers BOTH databases — version: 7 entry for hobbyforge.db AND get_rules_migrations() chained for sqlite:rules.db; tauri.conf.json preloads both", () => {
+    const libRs = readFileSync(libRsPath, "utf-8");
+    expect(libRs).toMatch(/version:\s*7\s*,/);
+    expect(libRs).toMatch(/description:\s*"datasheet_link"/);
+    expect(libRs).toMatch(/007_datasheet_link\.sql/);
+    expect(libRs).toMatch(/fn get_rules_migrations\(\)/);
+    expect(libRs).toMatch(/description:\s*"rules_schema"/);
+    expect(libRs).toMatch(/rules_001_schema\.sql/);
+    expect(libRs).toMatch(/\.add_migrations\("sqlite:rules\.db",\s*get_rules_migrations\(\)\)/);
+
+    const conf = JSON.parse(readFileSync(tauriConfPath, "utf-8"));
+    expect(conf.plugins.sql.preload).toContain("sqlite:hobbyforge.db");
+    expect(conf.plugins.sql.preload).toContain("sqlite:rules.db");
   });
 });
