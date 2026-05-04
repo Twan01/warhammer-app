@@ -30,6 +30,7 @@ export interface ComputedDashboardStats {
   recentlyUpdated: Unit[];
   hasUnits: boolean;
   factions: Faction[];
+  units: Unit[];
 }
 
 export function computeStats(units: Unit[], factions: Faction[]): ComputedDashboardStats {
@@ -53,6 +54,7 @@ export function computeStats(units: Unit[], factions: Faction[]): ComputedDashbo
       recentlyUpdated: [],
       hasUnits: false,
       factions,
+      units: [],
     };
   }
 
@@ -112,5 +114,6 @@ export function computeStats(units: Unit[], factions: Faction[]): ComputedDashbo
     recentlyUpdated,
     hasUnits: true,
     factions,
+    units,
   };
 }

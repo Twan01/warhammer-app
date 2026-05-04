@@ -278,25 +278,25 @@ describe("DASH-02 factionStats", () => {
 });
 
 describe("DASH-04 units field on ComputedDashboardStats (Wave 1 adds this field)", () => {
-  it.skip("exposes the full units array on the stats result for HobbyPipeline consumption", () => {
-    // const units = [
-    //   u({ id: 1, status_painting: "Built" }),
-    //   u({ id: 2, status_painting: "Layered" }),
-    //   u({ id: 3, status_painting: "Completed" }),
-    // ];
-    // const result = computeStats(units, []);
-    // expect(result.units).toBeDefined();
-    // expect(result.units).toHaveLength(3);
+  it("exposes the full units array on the stats result for HobbyPipeline consumption", () => {
+    const units = [
+      u({ id: 1, status_painting: "Built" }),
+      u({ id: 2, status_painting: "Layered" }),
+      u({ id: 3, status_painting: "Completed" }),
+    ];
+    const result = computeStats(units, []);
+    expect(result.units).toBeDefined();
+    expect(result.units).toHaveLength(3);
   });
 
-  it.skip("units array is the same reference passed in (no copy/sort applied)", () => {
-    // const units = [u({ id: 1 }), u({ id: 2 })];
-    // const result = computeStats(units, []);
-    // expect(result.units).toBe(units);
+  it("units array is the same reference passed in (no copy/sort applied)", () => {
+    const units = [u({ id: 1 }), u({ id: 2 })];
+    const result = computeStats(units, []);
+    expect(result.units).toBe(units);
   });
 
-  it.skip("empty input returns empty units array (DASH-08 path)", () => {
-    // const result = computeStats([], []);
-    // expect(result.units).toEqual([]);
+  it("empty input returns empty units array (DASH-08 path)", () => {
+    const result = computeStats([], []);
+    expect(result.units).toEqual([]);
   });
 });
