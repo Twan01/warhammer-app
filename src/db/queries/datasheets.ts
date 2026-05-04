@@ -11,7 +11,6 @@
  * Writes:
  *   - upsertDatasheetLink → hobbyforge.db (sets unit_strategy_notes.datasheet_id;
  *     creates the strategy_notes row if missing, mirrors strategyNotes.ts pattern)
- *   - upsertSyncMeta → rules.db (rw_sync_meta single-row update)
  *
  * Bulk insert (BEGIN/COMMIT transaction for ~5000 rows during sync) lives in
  * Plan 15-04's useRulesSync hook, not here — that's a sync-only path that
@@ -28,6 +27,7 @@ import type {
   RwDatasheetAbility,
   RwDatasheetKeyword,
   RwDatasheetModel,
+  RwDatasheetWargear,
   RwSource,
 } from "@/types/datasheet";
 
@@ -90,7 +90,11 @@ export async function getFullDatasheet(
   const sourceRows = ds.source_id
     ? await db.select<RwSource[]>("SELECT * FROM rw_sources WHERE id = $1", [ds.source_id])
     : [];
-  return { ds, models, abilities, keywords, source: sourceRows[0] ?? null };
+  const wargear = await db.select<RwDatasheetWargear[]>(
+    "SELECT * FROM rw_datasheets_wargear WHERE datasheet_id = $1 ORDER BY line, line_in_wargear",
+    [datasheetId]
+  );
+  return { ds, models, abilities, keywords, source: sourceRows[0] ?? null, wargear };
 }
 
 /**
@@ -155,22 +159,6 @@ export async function upsertDatasheetLink(input: {
 }
 
 /**
- * DS-01: writes the rw_sync_meta single row after a successful sync.
- * Uses INSERT OR REPLACE because the table has CHECK (id = 1) — only one row
- * ever exists, the (id) primary key plus the CHECK constraint guarantee that.
- */
-export async function upsertSyncMeta(input: {
-  last_sync_at: string;
-  wahapedia_version: string;
-}): Promise<void> {
-  const db = await getRulesDb();
-  await db.execute(
-    "INSERT OR REPLACE INTO rw_sync_meta (id, last_sync_at, wahapedia_version) VALUES (1, $1, $2)",
-    [input.last_sync_at, input.wahapedia_version]
-  );
-}
-
-/**
  * DS-04 cross-DB faction lookup.
  *
  * HobbyForge factions store full names ("Space Marines", "Necrons") while Wahapedia
@@ -188,9 +176,31 @@ export async function resolveWahapediaFactionIdByName(
   name: string
 ): Promise<string | null> {
   const db = await getRulesDb();
+  // Try exact match first, then contains match (e.g. "Ultramarines" → no
+  // direct Wahapedia faction, but "Space Marines" contains neither — caller
+  // falls back to searchAllDatasheets when this returns null).
   const rows = await db.select<{ id: string }[]>(
-    "SELECT id FROM rw_factions WHERE LOWER(name) = LOWER($1) LIMIT 1",
+    `SELECT id FROM rw_factions
+     WHERE LOWER(name) = LOWER($1)
+        OR LOWER($1) LIKE '%' || LOWER(name) || '%'
+        OR LOWER(name) LIKE '%' || LOWER($1) || '%'
+     LIMIT 1`,
     [name]
   );
   return rows[0]?.id ?? null;
+}
+
+/**
+ * DS-04 fallback: search datasheets by name substring when no faction match.
+ * Requires at least 2 characters to avoid returning the full 2500-row table.
+ */
+export async function searchAllDatasheets(
+  query: string
+): Promise<DatasheetSummary[]> {
+  if (query.trim().length < 2) return [];
+  const db = await getRulesDb();
+  return db.select<DatasheetSummary[]>(
+    "SELECT id, name, role FROM rw_datasheets WHERE LOWER(name) LIKE '%' || LOWER($1) || '%' ORDER BY name ASC LIMIT 100",
+    [query.trim()]
+  );
 }
