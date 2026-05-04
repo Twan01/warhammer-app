@@ -192,13 +192,15 @@ describe("DashboardPage", () => {
     vi.mocked(getDashboardStats).mockResolvedValue({ units: [], factions: [] });
     renderWithProviders(<DashboardPage />);
 
-    expect(await screen.findByText("Your collection is empty")).toBeInTheDocument();
+    expect(await screen.findByText("HobbyForge")).toBeInTheDocument();
+    expect(screen.getByText("Your collection is empty")).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Add units to your collection to start tracking your hobby progress."
+        "HobbyForge tracks what you own, what's painted, and what's ready to play. Add your first unit to get started.",
+        { normalizer: (text) => text.replace(/\s+/g, " ").trim() }
       )
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Go to Collection" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add your first unit" })).toBeInTheDocument();
 
     // None of the section labels should render in empty state
     expect(screen.queryByText("Progress")).not.toBeInTheDocument();
