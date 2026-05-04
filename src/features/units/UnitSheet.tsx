@@ -527,8 +527,8 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
                         <Input
                           type="number"
                           min={0}
-                          step="0.01"
-                          placeholder="Optional"
+                          step={1}
+                          placeholder="e.g. 1250 for £12.50"
                           {...field}
                           value={field.value ?? ""}
                           onChange={(e) =>
@@ -538,6 +538,9 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
                           }
                         />
                       </FormControl>
+                      <p className="text-xs text-muted-foreground">
+                        Enter amount in pence (100 = £1.00)
+                      </p>
                       <FormMessage />
                     </FormItem>
                   )}
