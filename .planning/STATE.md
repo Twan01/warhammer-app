@@ -3,11 +3,27 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Completed 16-06-PLAN.md — DashboardEmptyState welcome screen, CollectionEmptyState two-mode, KanbanEmptyState + PaintsEmptyState icon-in-container
-last_updated: "2026-05-04T09:07:32.405Z"
-last_activity: "2026-05-04 — Phase 16 Plan 05 complete: Army Lists + Spending page headers, ArmyListCard elevation + tabular-nums, SpendingPage empty state"
+stopped_at: Completed 15-05-PLAN.md — PlaybookTab datasheet integration (DS-02/03/05-12 wired)
+last_updated: "2026-05-04T09:16:17.033Z"
+last_activity: "2026-05-04 — Phase 16 Plan 06 complete: DashboardEmptyState welcome screen, CollectionEmptyState two-mode, KanbanEmptyState + PaintsEmptyState icon-in-container"
 progress:
   total_phases: 13
+  completed_phases: 4
+  total_plans: 43
+  completed_plans: 34
+  percent: 79
+---
+
+---
+gsd_state_version: 1.0
+milestone: v2.1
+milestone_name: Visual Command
+status: executing
+stopped_at: Phase 18 plans created and verified
+last_updated: "2026-05-04T09:09:14.630Z"
+last_activity: "2026-05-04 — Phase 16 Plan 06 complete: DashboardEmptyState welcome screen, CollectionEmptyState two-mode, KanbanEmptyState + PaintsEmptyState icon-in-container"
+progress:
+  [████████░░] 79%
   completed_phases: 4
   total_plans: 43
   completed_plans: 33
@@ -123,6 +139,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T09:07:32.402Z
-Stopped at: Completed 16-06-PLAN.md — DashboardEmptyState welcome screen, CollectionEmptyState two-mode, KanbanEmptyState + PaintsEmptyState icon-in-container
+Last session: 2026-05-04T09:16:17.027Z
+Stopped at: Completed 15-05-PLAN.md — PlaybookTab datasheet integration (DS-02/03/05-12 wired)
 Resume: Run `/gsd:execute-phase 16` to execute Plan 16-06
