@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: completed
-stopped_at: Completed 20-01-PLAN.md
-last_updated: "2026-05-04T16:46:51.934Z"
-last_activity: "2026-05-04 - Completed quick task 260504-lhf: Rebuild release exe to fix desktop shortcut (migration version mismatch crash)"
+stopped_at: Completed 20-02-PLAN.md
+last_updated: "2026-05-04T16:52:31.454Z"
+last_activity: "2026-05-04 - Completed 20-01: FactionsEmptyState icon-pill pattern + dead upsertSyncMeta export removal"
 progress:
   total_phases: 15
   completed_phases: 10
   total_plans: 50
-  completed_plans: 48
-  percent: 100
+  completed_plans: 49
+  percent: 96
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.2 milestone start)
 ## Current Position
 
 Phase: 20 of 21 (v2.1 polish gap closure — in progress)
-Plan: 20-02 (next plan)
-Status: 20-01 complete — FactionsEmptyState icon-pill + upsertSyncMeta removed
-Last activity: 2026-05-04 - Completed 20-01: FactionsEmptyState icon-pill pattern + dead upsertSyncMeta export removal
+Plan: 20-03 (next plan, if any — or phase complete)
+Status: 20-02 complete — AddProjectPicker controlled-props, pickerOpen lifted to PaintingProjectsPage, querySelector removed, KanbanEmptyState CTA text updated
+Last activity: 2026-05-04 - Completed 20-02: DOM-query tech-debt resolved via React state lift pattern
 
-Progress: [█████████░] 96% (48/50 plans complete)
+Progress: [██████████] 98% (49/50 plans complete)
 
 ## v2.2 Phase Map
 
@@ -57,6 +57,8 @@ Architecture constraints:
 - Shield chosen as Factions empty-state icon (domain-appropriate: faction heraldry) replacing generic PackageOpen — aligns FactionsEmptyState with ArmyListsEmptyState / KanbanEmptyState icon-pill pattern
 - upsertSyncMeta removed from datasheets.ts without replacement — Rust bulk_sync_rules in src-tauri/src/lib.rs is the sole sync-meta write path (zero JS callers confirmed by grep)
 - getRulesDb import preserved in datasheets.ts after removal — still used by 4 remaining query functions (getDatasheetsByFaction, getFullDatasheet, getRulesSyncMeta, resolveWahapediaFactionIdByName)
+- AddProjectPicker controlled-props with internal fallback: destructure rename (open: controlledOpen) avoids shadowing; = {} default enables uncontrolled call sites; ?? operator selects controlled vs internal state
+- KanbanEmptyState CTA "Add Project" replaces "Go to Collection" — matches action that fires (picker opens, no navigation occurs); tech-debt:PaintingProjectsPage-DOM-query resolved
 
 ### Phase 19 Decisions
 
@@ -148,7 +150,7 @@ Architecture constraints:
 ### Tech Debt
 
 - PROJ-02: REQUIREMENTS.md text still says "empty columns hidden" — KanbanBoard ships all 11 columns (approved UX)
-- PaintingProjectsPage empty-state CTA uses fragile DOM query — replace with useState pattern
+- ~~PaintingProjectsPage empty-state CTA uses fragile DOM query — replace with useState pattern~~ (resolved in 20-02)
 
 ### Pending Todos
 
@@ -166,6 +168,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T16:46:51.930Z
-Stopped at: Completed 20-01-PLAN.md
+Last session: 2026-05-04T16:52:31.450Z
+Stopped at: Completed 20-02-PLAN.md
 Resume: Phase 19 complete — Phase 20 Wishlist is next. Run `/gsd:progress` to see current status
