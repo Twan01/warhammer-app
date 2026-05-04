@@ -1,10 +1,11 @@
 ---
 phase: 25
 slug: design-foundation
-status: draft
+status: approved
 shadcn_initialized: true
 preset: new-york / zinc / css-variables
 created: 2026-05-04
+reviewed_at: 2026-05-04T00:00:00Z
 ---
 
 # Phase 25 — UI Design Contract
