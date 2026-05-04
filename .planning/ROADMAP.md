@@ -132,22 +132,35 @@ Plans:
 - [ ] 14-04-PLAN.md — Manual smoke-test checkpoint (7 steps: migration applies, unit price round-trip, Pitfall 1 clear-to-NULL, paint price round-trip, Spending page + nav + cache invalidation, owned-only Paints filter, Skeleton loading state)
 
 ### Phase 15: Warhammer 40K Datasheet Integration
-**Goal**: [To be planned]
+**Goal**: Auto-populate the Playbook tab (M/T/Sv/W/Ld/OC stats + abilities + keywords) from community-maintained Wahapedia 40K datasheets bundled as a user-synced local SQLite rules database, with a single review dialog for field-level conflicts and a structured Datasheet Abilities collapsible (Core / Faction / Unit sub-groups) plus a Sources publication list inside PlaybookTab
 **Depends on**: Phase 14
-**Requirements**: TBD
-**Plans**: TBD
+**Requirements**: DS-01, DS-02, DS-03, DS-04, DS-05, DS-06, DS-07, DS-08, DS-09, DS-10, DS-11, DS-12 (12 derived requirements — see CONTEXT.md decisions)
+**Plans**: 7 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 15 to break down)
+- [ ] 15-00-PLAN.md — Wave 0: 7 stub test files (csvParse, stripHtml, migration, datasheetQueries, useDatasheet, DatasheetPicker, DatasheetImportDialog) — 19 it.skip stubs total covering DS-01..DS-09
+- [ ] 15-01-PLAN.md — Wave 1: Tauri infrastructure (tauri-plugin-http install + register, capability scope to wahapedia.ru, rules_001_schema.sql with 7 rw_* tables, hobbyforge migration 007 datasheet_link, lib.rs dual-DB chaining, tauri.conf.json preload, shadcn collapsible install, src/types/datasheet.ts contracts) + flip migration test stub
+- [ ] 15-02-PLAN.md — Wave 1: Pure utilities (src/lib/parseWahapediaCsv.ts pipe-delim parser + src/lib/stripHtml.ts tag/entity decoder) + flip 6 stubs
+- [ ] 15-03-PLAN.md — Wave 2: rules-client.ts singleton + datasheets.ts query module (6 fns spanning rules.db + hobbyforge.db link write) + useDatasheet.ts hooks (3 read hooks with staleTime: Infinity) + flip 7 stubs
+- [ ] 15-04-PLAN.md — Wave 3: useRulesSync mutation hook (7-CSV parallel fetch + transactional bulk insert + invalidation broadcast) + DatasheetPicker.tsx (faction-pre-filtered Dialog with autoFocus search) + DatasheetImportDialog.tsx (per-field Keep/Use toggle, default "use") + flip last 4 stubs
+- [ ] 15-05-PLAN.md — Wave 4: PlaybookTab integration (sync banner, Last-synced label, Import/Re-import button, Datasheet Abilities collapsible with Core/Faction/Unit sub-groups, Sources list, Personal Ability Notes label rename, multi-profile note, auto-picker on first mount) + CollectionPage sibling-portal mount of DatasheetImportDialog + UnitDetailSheet conflict-prop wiring + 6 new PlaybookTab tests
+- [ ] 15-06-PLAN.md — Manual smoke-test checkpoint (13 steps in live Tauri app: DS-01..DS-12 verified including live network sync to wahapedia.ru + asset persistence across restart)
 
 ### Phase 16: Design Overhaul
-**Goal**: [To be planned]
-**Depends on**: Phase 15
-**Requirements**: TBD
-**Plans**: TBD
+**Goal**: Significantly improve the visual design across all 7 pages and shared components — Linear-inspired polished tooling aesthetic via Geist Variable font, upgraded text-3xl page headings with subtitles + hairline border, sidebar wordmark + section grouping (Manage / Inventory / Tracking), refined empty states with page-specific lucide icons in muted-pill containers, tabular-nums on every numeric display, subtle card elevation (shadow-sm + border-border/60), and a Dashboard first-run welcome screen
+**Depends on**: Phase 14 (per STATE.md "Phase 16 added: Design Overhaul ... depends on Phase 14"; Phase 15 is parallel and not a blocker for the visual overhaul)
+**Requirements**: No formal requirement IDs — completion criterion is "every page reviewed and polished systematically; done when all pages pass a visual review" per CONTEXT.md
+**Plans**: 8 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 16 to break down)
+- [ ] 16-01-PLAN.md — Wave 1: install @fontsource-variable/geist + integrate --font-sans into globals.css @theme inline + body font-family
+- [ ] 16-02-PLAN.md — Wave 2: AppSidebar wordmark (Sword icon + HobbyForge text-base) + three section groups (Manage / Inventory / Tracking) + NavItem gap-2→gap-4, py-1.5→py-2, font-medium→font-semibold
+- [ ] 16-03-PLAN.md — Wave 2: Dashboard + Collection cluster — page headers, StatCard tabular-nums + shadow-sm (no hover), UnitGallery card hover:shadow-md elevation + tabular-nums, UnitDetailSheet currency tabular-nums
+- [ ] 16-04-PLAN.md — Wave 2: Painting Projects + Paints + Recipes page headers + PlaybookTab stat block tabular-nums (M/T/Sv/W/Ld/OC)
+- [ ] 16-05-PLAN.md — Wave 2: Army Lists + Spending — page headers, ArmyListCard hover-shadow elevation + tabular-nums, SpendingPage h1 inserted INSIDE max-w-3xl wrapper (Pitfall 1), Breakdown h2 downgraded to text-base, currency tabular-nums, inline Spending empty state with Receipt icon
+- [ ] 16-06-PLAN.md — Wave 2: Empty states A — DashboardEmptyState welcome-screen full replacement (Sword + HobbyForge wordmark + CTA), CollectionEmptyState two modes (ShieldOff no-data + FilterX filtered), KanbanEmptyState (Layers), PaintsEmptyState (Palette)
+- [ ] 16-07-PLAN.md — Wave 2: Empty states B — ArmyListsEmptyState (Swords plural), RecipeEmptyState (BookOpen + British "colour" helper text)
+- [ ] 16-08-PLAN.md — Wave 3: Manual visual review checkpoint (24 steps across all 7 pages + shared components in live Tauri app) + final SUMMARY
 
 ## Progress
 
@@ -169,5 +182,5 @@ Plans:
 | 12. Collection Gallery View | 4/4 | Complete    | 2026-05-04 | — |
 | 13. Hobby Journal | 6/6 | Complete    | 2026-05-04 | — |
 | 14. Spending Tracker | 4/5 | In Progress|  | — |
-| 15. 40K Datasheet Integration | v2.1 | 0/TBD | Not started | — |
-| 16. Design Overhaul | v2.1 | 0/TBD | Not started | — |
+| 15. 40K Datasheet Integration | v2.1 | 0/7 | Not started | — |
+| 16. Design Overhaul | v2.1 | 0/8 | Not started | — |
