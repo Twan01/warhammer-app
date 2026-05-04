@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Phase 18 context gathered
-last_updated: "2026-05-04T08:40:45.259Z"
+stopped_at: Phase 17 context gathered
+last_updated: "2026-05-04T08:42:53.073Z"
 last_activity: "2026-05-04 — Phase 16 Plan 02 complete: sidebar polish (Sword wordmark + nav grouping + NavItem density)"
 progress:
   total_phases: 13
   completed_phases: 4
   total_plans: 38
-  completed_plans: 25
-  percent: 66
+  completed_plans: 26
+  percent: 68
 ---
 
 # Project State
@@ -30,7 +30,7 @@ Plan: 16-03 (next plan)
 Status: In progress
 Last activity: 2026-05-04 — Phase 16 Plan 02 complete: sidebar polish (Sword wordmark + nav grouping + NavItem density)
 
-Progress: [██████░░░░] 66% (25/38 plans complete)
+Progress: [███████░░░] 68% (26/38 plans complete)
 
 ## v2.2 Phase Map
 
@@ -58,6 +58,14 @@ Architecture constraints:
 - wishlist_items table = migration 008; hobby_goals table = migration 009 (append-only discipline)
 - ANLY-02 goal progress: COUNT(DISTINCT unit_id) from painting_sessions WHERE session_date falls within goal timeframe
 - ANLY-05 streak: consecutive calendar days with at least one painting session — use dates.ts to avoid UTC edge case
+
+### Phase 15 Decisions
+
+- Dual-DB migration chaining: add_migrations() can be chained per connection string; version sequences are independent per tauri-plugin-sql (rules.db v1 does not conflict with hobbyforge.db v7)
+- No REFERENCES clause in 007_datasheet_link.sql — SQLite cannot enforce FK constraints across database files; cross-DB links enforced at application level only
+- HTTP capability requires BOTH string "http:default" AND scoped object { identifier: "http:default", allow: [{ url: "https://wahapedia.ru/*" }] } in capabilities/default.json
+- shadcn collapsible (2025) imports from unified `radix-ui` package, not `@radix-ui/react-collapsible` — new registry format
+- tauri_plugin_http::init() must appear BEFORE SQL plugin in lib.rs builder chain
 
 ### Phase 16 Decisions
 
@@ -94,6 +102,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T08:40:45.256Z
-Stopped at: Phase 18 context gathered
-Resume: Run `/gsd:execute-phase 16` to execute Plan 16-03
+Last session: 2026-05-04T08:41:35Z
+Stopped at: Completed 15-01-PLAN.md — Tauri dual-DB infrastructure + types foundation installed
+Resume: Run `/gsd:execute-phase 15` to execute Plan 15-02 (pure utilities: CSV parser + stripHtml)
