@@ -188,7 +188,7 @@ Plans:
  (completed 2026-05-04)
 - [x] **Phase 18: Battle Log** — Battle log CRUD page (battle_logs table already exists in migration 001) with opponent faction, mission, result, army list linkage, notes, and chronological list
  (completed 2026-05-04)
-- [ ] **Phase 19: Analytics Core** — Recharts/shadcn chart install, hobby velocity and painting streak stats on Dashboard, monthly spend trend chart on Spending page
+- [x] **Phase 19: Analytics Core** — Recharts/shadcn chart install, hobby velocity and painting streak stats on Dashboard, monthly spend trend chart on Spending page (completed 2026-05-04)
 - [ ] **Phase 20: Wishlist** — New wishlist_items table (migration 008), full CRUD Wishlist page with name/faction/estimated cost/notes
 - [ ] **Phase 21: Hobby Goals** — New hobby_goals table (migration 009), goal CRUD with target unit count and timeframe, progress derived from painting session history
 - [ ] **Phase 22: Display Features** — Battle Ready quick-filter on Collection page, Showcase Mode full-screen gallery using Tauri window API
@@ -297,7 +297,7 @@ Plans:
 | 16. Design Overhaul | 8/8 | Complete    | 2026-05-04 | — |
 | 17. Schema Foundation + Enrichment | 1/1 | Complete    | 2026-05-04 | — |
 | 18. Battle Log | 4/4 | Complete    | 2026-05-04 | — |
-| 19. Analytics Core | 4/4 | Complete   | 2026-05-04 | — |
+| 19. Analytics Core | 4/4 | Complete    | 2026-05-04 | — |
 | 20. Wishlist | v2.2 | 0/TBD | Not started | — |
 | 21. Hobby Goals | v2.2 | 0/TBD | Not started | — |
 | 22. Display Features | v2.2 | 0/TBD | Not started | — |
