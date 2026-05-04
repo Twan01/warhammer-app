@@ -4,13 +4,13 @@ milestone: v2.1
 milestone_name: Visual Command
 status: executing
 stopped_at: Completed 16-04-PLAN.md — Painting workflow page headers + PlaybookTab tabular-nums
-last_updated: "2026-05-04T08:52:21.879Z"
+last_updated: "2026-05-04T08:55:00.403Z"
 last_activity: "2026-05-04 — Phase 16 Plan 04 complete: Painting workflow page headers + PlaybookTab tabular-nums"
 progress:
   total_phases: 13
   completed_phases: 4
   total_plans: 38
-  completed_plans: 29
+  completed_plans: 30
   percent: 76
 ---
 
@@ -68,6 +68,9 @@ Architecture constraints:
 - tauri_plugin_http::init() must appear BEFORE SQL plugin in lib.rs builder chain
 - parseWahapediaCsv: raw.trim().split('\n') + Object.fromEntries handles trailing-pipe rows via empty-string key (no special case needed)
 - stripHtml: 6 chained .replace() in strict order (tags → named entities → numeric entities → trim) avoids jsdom dependency per RESEARCH §Pitfall 4
+- Cross-DB query module: datasheets.ts spans rules.db (rw_* reads/writes) AND hobbyforge.db (unit_strategy_notes link write) — keeps datasheet feature cohesive at cost of two DB clients
+- upsertDatasheetLink uses select-then-insert/update pattern (mirrors strategyNotes.ts) — unit_strategy_notes has no UNIQUE INDEX on unit_id so ON CONFLICT unavailable
+- getRulesSyncMeta try/catch swallows "no such table: rw_sync_meta" — tolerates empty rules.db before first sync (Pitfall 3)
 
 ### Phase 16 Decisions
 
@@ -109,6 +112,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T08:52:21.876Z
-Stopped at: Completed 16-04-PLAN.md — Painting workflow page headers + PlaybookTab tabular-nums
-Resume: Run `/gsd:execute-phase 16` to execute Plan 16-05
+Last session: 2026-05-04T10:54:00Z
+Stopped at: Completed 15-03-PLAN.md — rules-client singleton + datasheets query module + useDatasheet hooks (7 stubs flipped)
+Resume: Run `/gsd:execute-phase 15` to execute Plan 15-04
