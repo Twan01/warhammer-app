@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Phase 17 context gathered
-last_updated: "2026-05-04T08:42:53.073Z"
-last_activity: "2026-05-04 — Phase 16 Plan 02 complete: sidebar polish (Sword wordmark + nav grouping + NavItem density)"
+stopped_at: Completed 16-03-PLAN.md — Dashboard + Collection cluster visual upgrade (page headers, tabular-nums, card elevation)
+last_updated: "2026-05-04T08:48:06.405Z"
+last_activity: "2026-05-04 — Phase 16 Plan 03 complete: Dashboard + Collection cluster visual upgrade (page headers, tabular-nums, card elevation)"
 progress:
   total_phases: 13
   completed_phases: 4
   total_plans: 38
-  completed_plans: 26
-  percent: 68
+  completed_plans: 28
+  percent: 71
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.2 milestone start)
 
 ## Current Position
 
-Phase: 16 of 22 (Design Overhaul — 2/8 plans complete)
-Plan: 16-03 (next plan)
+Phase: 16 of 22 (Design Overhaul — 3/8 plans complete)
+Plan: 16-04 (next plan)
 Status: In progress
-Last activity: 2026-05-04 — Phase 16 Plan 02 complete: sidebar polish (Sword wordmark + nav grouping + NavItem density)
+Last activity: 2026-05-04 — Phase 16 Plan 03 complete: Dashboard + Collection cluster visual upgrade (page headers, tabular-nums, card elevation)
 
-Progress: [███████░░░] 68% (26/38 plans complete)
+Progress: [███████░░░] 71% (28/38 plans complete)
 
 ## v2.2 Phase Map
 
@@ -75,6 +75,10 @@ Architecture constraints:
 - Sword (singular) replaces Swords (plural) in AppSidebar — different lucide-react icons; singular matches UI-SPEC §Sidebar Polish Contract
 - Nav groups: Factions belongs in MANAGE_NAV (per RESEARCH §Open Question 3); INVENTORY_NAV has Paints + Recipes; TRACKING_NAV has Army Lists + Spending
 - NavItem active state: bg-faction-accent font-semibold text-white — font-medium eliminated per Phase 16 weight scale
+- StatCard is static display card — shadow-sm with NO hover:shadow-md (Pattern 5 anti-pattern enforced)
+- UnitGallery painting percentage text span added below PaintingRing with tabular-nums (was not previously rendered as plain text)
+- hover:bg-muted/50 removed from UnitGallery CARD_CLASSES, replaced with hover:shadow-md transition-shadow duration-150
+- Page header contract (text-3xl font-semibold tracking-tight + subtitle + pb-6 border-b border-border/40) applied to all Dashboard render branches and CollectionPage
 
 ### Decisions Carried from v2.1
 
@@ -102,6 +106,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T08:41:35Z
-Stopped at: Completed 15-01-PLAN.md — Tauri dual-DB infrastructure + types foundation installed
-Resume: Run `/gsd:execute-phase 15` to execute Plan 15-02 (pure utilities: CSV parser + stripHtml)
+Last session: 2026-05-04T10:45:00Z
+Stopped at: Completed 16-03-PLAN.md — Dashboard + Collection cluster visual upgrade (page headers, tabular-nums, card elevation)
+Resume: Run `/gsd:execute-phase 16` to execute Plan 16-04
