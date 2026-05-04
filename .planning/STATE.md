@@ -4,7 +4,7 @@ milestone: v2.1
 milestone_name: Visual Command
 status: executing
 stopped_at: Phase 16 UI-SPEC approved
-last_updated: "2026-05-04T07:28:22.263Z"
+last_updated: "2026-05-04T07:28:45.756Z"
 last_activity: 2026-05-04 — Phase 14 Plan 02 — UnitSheet/PaintSheet purchase_price_pence fields + formatCurrency display + 6-hook spending-stats invalidation; 264 passing, 13 skipped
 progress:
   total_phases: 7
