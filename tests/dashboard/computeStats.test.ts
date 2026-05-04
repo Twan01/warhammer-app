@@ -20,7 +20,7 @@ function u(over: Partial<Unit>): Unit {
     painting_percentage: 0,
     status_basing: 0, status_varnished: 0, is_active_project: 0,
     priority: null, target_completion_date: null,
-    purchase_date: null, purchase_price: null,
+    purchase_date: null, purchase_price_pence: null,
     storage_location: null, main_image_path: null, notes: null,
     created_at: "2026-01-01 00:00:00", updated_at: "2026-01-01 00:00:00",
     ...over,

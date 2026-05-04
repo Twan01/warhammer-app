@@ -19,7 +19,7 @@ export async function createUnit(input: CreateUnitInput): Promise<number> {
        faction_id, name, category, unit_type, model_count, owned_count, points,
        status_assembly, status_painting, painting_percentage,
        status_basing, status_varnished, is_active_project,
-       priority, target_completion_date, purchase_date, purchase_price,
+       priority, target_completion_date, purchase_date, purchase_price_pence,
        storage_location, main_image_path, notes
      ) VALUES (
        $1, $2, $3, $4, $5, $6, $7,
@@ -34,7 +34,7 @@ export async function createUnit(input: CreateUnitInput): Promise<number> {
       input.status_assembly, input.status_painting, input.painting_percentage,
       input.status_basing, input.status_varnished, input.is_active_project,
       input.priority ?? null, input.target_completion_date ?? null,
-      input.purchase_date ?? null, input.purchase_price ?? null,
+      input.purchase_date ?? null, input.purchase_price_pence ?? null,
       input.storage_location ?? null, input.main_image_path ?? null, input.notes ?? null,
     ]
   );
@@ -61,7 +61,7 @@ export async function updateUnit(input: UpdateUnitInput): Promise<void> {
             priority                = COALESCE($15, priority),
             target_completion_date  = COALESCE($16, target_completion_date),
             purchase_date           = COALESCE($17, purchase_date),
-            purchase_price          = COALESCE($18, purchase_price),
+            purchase_price_pence    = $18,
             storage_location        = COALESCE($19, storage_location),
             main_image_path         = COALESCE($20, main_image_path),
             notes                   = COALESCE($21, notes),
@@ -75,7 +75,7 @@ export async function updateUnit(input: UpdateUnitInput): Promise<void> {
       input.status_assembly ?? null, input.status_painting ?? null, input.painting_percentage ?? null,
       input.status_basing ?? null, input.status_varnished ?? null, input.is_active_project ?? null,
       input.priority ?? null, input.target_completion_date ?? null,
-      input.purchase_date ?? null, input.purchase_price ?? null,
+      input.purchase_date ?? null, input.purchase_price_pence ?? null,
       input.storage_location ?? null, input.main_image_path ?? null, input.notes ?? null,
     ]
   );

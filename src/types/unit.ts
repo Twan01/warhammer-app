@@ -40,7 +40,7 @@ export interface Unit {
   priority: number | null;
   target_completion_date: string | null;
   purchase_date: string | null;
-  purchase_price: number | null;
+  purchase_price_pence: number | null;
   storage_location: string | null;
   main_image_path: string | null;
   notes: string | null;

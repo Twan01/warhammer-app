@@ -21,6 +21,7 @@ export interface Paint {
   running_low: 0 | 1;
   wishlist: 0 | 1;
   notes: string | null;
+  purchase_price_pence: number | null;
   created_at: string;
   updated_at: string;
 }
