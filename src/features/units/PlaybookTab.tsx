@@ -260,7 +260,7 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
                   aria-label={`${key} value`}
                 />
               ) : (
-                <span className="text-base font-semibold text-foreground">
+                <span className="text-base font-semibold text-foreground tabular-nums">
                   {formatStatValue(key, statValue(key))}
                 </span>
               )}
