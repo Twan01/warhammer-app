@@ -135,6 +135,8 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
         storage_location: values.storage_location || null,
         main_image_path: values.main_image_path || null,
         notes: values.notes || null,
+        lore_notes: null, // placeholder — wired in Task 10
+        undercoat: null,  // placeholder — wired in Task 10
       };
 
       if (isEdit && unit) {

@@ -49,6 +49,8 @@ const MIN_CREATE_INPUT = {
   storage_location: null,
   main_image_path: null,
   notes: null,
+  lore_notes: null,
+  undercoat: null,
 };
 
 function makeWrapper() {

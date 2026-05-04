@@ -81,6 +81,7 @@ export function FactionSheet({ open, faction, onClose }: FactionSheetProps) {
           description: values.description || null,
           color_theme: values.color_theme,
           icon_path: values.icon_path || null,
+          lore_notes: null, // placeholder — full lore_notes form field added in Task 12
         });
         toast.success("Faction updated.");
       } else {
@@ -90,6 +91,7 @@ export function FactionSheet({ open, faction, onClose }: FactionSheetProps) {
           description: values.description || null,
           color_theme: values.color_theme,
           icon_path: values.icon_path || null,
+          lore_notes: null, // placeholder — full lore_notes form field added in Task 12
         });
         toast.success("Faction created.");
       }

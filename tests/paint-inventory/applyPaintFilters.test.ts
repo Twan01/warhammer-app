@@ -21,6 +21,7 @@ function paint(overrides: Partial<PaintWithRecipeCount> = {}): PaintWithRecipeCo
     wishlist: 0,
     notes: null,
     purchase_price_pence: null,
+    purchase_date: null,
     created_at: "2026-04-30",
     updated_at: "2026-04-30",
     recipe_count: 0,

@@ -22,6 +22,7 @@ export interface Paint {
   wishlist: 0 | 1;
   notes: string | null;
   purchase_price_pence: number | null;
+  purchase_date: string | null; // migration 008 — Phase 17 (Phase 19 ANLY-07)
   created_at: string;
   updated_at: string;
 }

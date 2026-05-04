@@ -35,6 +35,7 @@ const mockFaction: Faction = {
   description: null,
   color_theme: "#1e40af",
   icon_path: null,
+  lore_notes: null,
   created_at: "2026-05-03T00:00:00Z",
   updated_at: "2026-05-03T00:00:00Z",
 };
@@ -61,6 +62,8 @@ const mockUnit: Unit = {
   storage_location: null,
   main_image_path: null,
   notes: null,
+  lore_notes: null,
+  undercoat: null,
   created_at: "2026-05-03T00:00:00Z",
   updated_at: "2026-05-03T00:00:00Z",
 };

@@ -17,6 +17,7 @@ function u(over: Partial<Unit>): Unit {
     priority: null, target_completion_date: null,
     purchase_date: null, purchase_price_pence: null,
     storage_location: null, main_image_path: null, notes: null,
+    lore_notes: null, undercoat: null,
     created_at: "2026-01-01", updated_at: "2026-01-01",
     ...over,
   };

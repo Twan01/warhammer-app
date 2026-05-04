@@ -44,6 +44,8 @@ export interface Unit {
   storage_location: string | null;
   main_image_path: string | null;
   notes: string | null;
+  lore_notes: string | null;    // migration 008 — Phase 17 ENRCH-02
+  undercoat: string | null;     // migration 008 — Phase 17 ENRCH-03
   created_at: string;
   updated_at: string;
 }

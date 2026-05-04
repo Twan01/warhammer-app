@@ -102,6 +102,7 @@ export function PaintSheet({ open, paint, onClose }: PaintSheetProps) {
         wishlist: values.wishlist ? 1 : 0 as 0 | 1,
         notes: values.notes || null,
         purchase_price_pence: values.purchase_price_pence ?? null,
+        purchase_date: null, // purchase_date added in migration 008; not yet surfaced in this form
       };
 
       if (isEdit && paint) {

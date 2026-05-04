@@ -31,6 +31,7 @@ function makeFaction(over: Partial<Faction> = {}): Faction {
     description: null,
     color_theme: "#3a4f96",
     icon_path: null,
+    lore_notes: null,
     created_at: "2026-01-01 00:00:00",
     updated_at: "2026-01-01 00:00:00",
     ...over,

@@ -9,6 +9,7 @@ export interface Faction {
   description: string | null;
   color_theme: string;
   icon_path: string | null;
+  lore_notes: string | null;    // migration 008 — Phase 17 ENRCH-01
   created_at: string;
   updated_at: string;
 }
