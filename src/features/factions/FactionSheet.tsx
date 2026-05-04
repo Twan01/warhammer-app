@@ -36,6 +36,7 @@ const DEFAULT_VALUES: FactionFormValues = {
   description: "",
   color_theme: "#4A90D9",
   icon_path: "",
+  lore_notes: "",
 };
 
 export function FactionSheet({ open, faction, onClose }: FactionSheetProps) {
@@ -52,6 +53,7 @@ export function FactionSheet({ open, faction, onClose }: FactionSheetProps) {
           description: faction.description ?? "",
           color_theme: faction.color_theme,
           icon_path: faction.icon_path ?? "",
+          lore_notes: faction.lore_notes ?? "",
         }
       : DEFAULT_VALUES,
   });
@@ -66,6 +68,7 @@ export function FactionSheet({ open, faction, onClose }: FactionSheetProps) {
             description: faction.description ?? "",
             color_theme: faction.color_theme,
             icon_path: faction.icon_path ?? "",
+            lore_notes: faction.lore_notes ?? "",
           }
         : DEFAULT_VALUES
     );
@@ -81,7 +84,7 @@ export function FactionSheet({ open, faction, onClose }: FactionSheetProps) {
           description: values.description || null,
           color_theme: values.color_theme,
           icon_path: values.icon_path || null,
-          lore_notes: null, // placeholder — full lore_notes form field added in Task 12
+          lore_notes: values.lore_notes || null,
         });
         toast.success("Faction updated.");
       } else {
@@ -91,7 +94,7 @@ export function FactionSheet({ open, faction, onClose }: FactionSheetProps) {
           description: values.description || null,
           color_theme: values.color_theme,
           icon_path: values.icon_path || null,
-          lore_notes: null, // placeholder — full lore_notes form field added in Task 12
+          lore_notes: values.lore_notes || null,
         });
         toast.success("Faction created.");
       }
@@ -153,6 +156,26 @@ export function FactionSheet({ open, faction, onClose }: FactionSheetProps) {
                   <FormControl>
                     <Input
                       placeholder="Optional"
+                      {...field}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              name="lore_notes"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Lore Notes</FormLabel>
+                  <FormControl>
+                    <textarea
+                      className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      placeholder="Chapter backstory, homeworld, custom lore, campaign history…"
+                      rows={4}
                       {...field}
                       value={field.value ?? ""}
                     />
