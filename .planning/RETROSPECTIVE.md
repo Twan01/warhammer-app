@@ -101,6 +101,57 @@
 
 ---
 
+## Milestone: v2.1 — Visual Command
+
+**Shipped:** 2026-05-04
+**Phases:** 8 (10–16 + 20) | **Plans:** 41 | **Timeline:** 2 days (2026-05-03 → 2026-05-04)
+
+### What Was Built
+
+- Phase 10: CSS `@theme` faction-accent system, `ActiveFactionContext`, collapsible sidebar with `useSidebarCollapsed` + Radix Tooltip labels + localStorage persistence
+- Phase 11: `useCountUp` rAF cubic ease-out animation hook (600ms, prefers-reduced-motion gate), 4 hero `StatCard animate={true}`, `FactionSummaryCard` `ring-faction-accent` ring on active faction
+- Phase 12: `PaintingRing` SVG (96px, stroke-dashoffset), `UnitGallery` card grid, `useCollectionViewMode` localStorage toggle — Zustand filters preserved across view switch
+- Phase 13: `painting_sessions` table (migration 005), `tauri-plugin-fs/dialog`, `JournalTab` with session log + 3-col photo timeline, lightbox sibling Dialog in both CollectionPage and DashboardPage, JOUR-06 5-step disk cleanup on unit delete
+- Phase 14: integer-pence discipline, `formatCurrency` as sole /100 site, `SpendingPage` with per-faction breakdown, 6 unit/paint mutations cross-invalidate `["spending-stats"]`
+- Phase 15: dual-DB architecture (hobbyforge.db + rules.db), `bulk_sync_rules` Rust command, `useRulesSync` 7-CSV parallel fetch → transactional bulk insert, `DatasheetPicker`, `DatasheetImportDialog` per-field Keep/Use, full PlaybookTab (DS-01..12) — 7 plans across 4 waves
+- Phase 16: Geist Variable font (@fontsource-variable), text-3xl page headers + `pb-6 border-b border-border/40`, sidebar wordmark + 3 nav groups, icon-pill empty states across all 7 pages, tabular-nums on all numerics, shadow-sm/hover:shadow-md card elevation, DashboardEmptyState welcome screen
+- Phase 20 (gap closure): DS-08 DashboardPage conflict dialog wired, FactionsEmptyState Shield icon-pill, PaintingProjectsPage controlled-props CTA, upsertSyncMeta dead export removed
+
+### What Worked
+
+- **Dual-DB architecture isolation:** rules.db stays physically separate and migration versioning is independent of hobbyforge.db. No schema conflicts across 15 migrations total. Clean pattern that could extend to additional specialized DBs.
+- **Wave 0 stubs for complex phases (Phase 15):** Writing 19 `it.skip` stubs before implementing a 7-plan phase gave a concrete execution map and caught Pitfall 3 (tolerating empty rules.db before first sync) before any UI existed.
+- **Sibling portal pattern at scale:** Phase 15 added `DatasheetImportDialog` as a sibling of the lightbox Dialog which is already a sibling of `UnitDetailSheet`. Nested portals never tempted — the established pattern handled triple-portal geometry cleanly.
+- **Nyquist VALIDATION.md inline (first time):** Unlike v1.1/v2.0, most VALIDATION.md files were created with `nyquist_compliant: true` during execution rather than retrofitted at audit time. Phase 20 generated the remaining 2 test files in a single nyquist audit session — zero retrofit debt.
+- **Phase 20 gap closure pattern:** Rather than treating the DS-08 secondary path as a permanent known limitation, routing it through a dedicated gap-closure phase preserved the clean audit trail. The final milestone score went from `tech_debt` to `passed` in one session.
+
+### What Was Inefficient
+
+- **ROADMAP.md Phase Details section accumulated duplicate entries:** The v2.2 section appeared twice in ROADMAP.md (first as an in-progress summary, then again as detailed Phase Details). Arose because Phase 20 was inserted into the v2.1 scope after v2.2 planning had begun. Fixed at archive time.
+- **Progress table column drift:** Several rows in the ROADMAP.md progress table had misaligned columns (Milestone column missing or in wrong position). Fixed at archive time. Should be spot-checked when plans complete.
+- **DS-08 secondary path discovered at audit, not at execution:** The DashboardPage conflict-dialog wiring was missed by Phase 15 planning and only caught by the milestone audit. A review of "which pages mount this feature?" during Phase 15 planning would have caught it inline.
+- **Phase 20 was unplanned at Phase 15 time:** Gap-closure phase required running the full discuss → plan → execute → validate → audit loop a second time. This overhead is low for 4 tech debt items but signals that end-of-milestone gap analysis should be a GSD workflow step, not a surprise.
+
+### Patterns Established
+
+- **Gap-closure phases:** When a milestone audit reveals tech debt or partial requirements, a gap-closure phase (Phase 20 pattern) preserves clean per-phase traceability. Better than amending previous phase summaries.
+- **Controlled-props with internal useState fallback:** AddProjectPicker pattern (`open: controlledOpen` destructure rename, `internalOpen` fallback, `const open = controlledOpen ?? internalOpen`) — portable pattern for any popover that needs both controlled and uncontrolled modes.
+- **Wave 0 stubs with TODO import comments:** When Phases 18 and 19 couldn't import not-yet-existing modules, TODO comments pointing to exact import lines to restore at activation time preserved the stubs' executability without polluting the file with broken imports.
+
+### Key Lessons
+
+1. **Review mounting points for new features during planning, not audit.** DS-08 was planned for CollectionPage only but DashboardPage also mounts UnitDetailSheet. A "which pages use this Sheet?" check during Phase 15 planning would have caught it. Add this to plan checklist for Sheet-mounted features.
+2. **Milestone audits should be structured workflow steps.** Running `/gsd:audit-milestone` surfaced DS-08, 3 tech debt items, and a stale progress table. The workflow is now the standard end-of-milestone step — not optional.
+3. **Duplicate ROADMAP.md sections grow from inserted phases.** When a phase is inserted into a milestone scope after planning has begun (Phase 20 inserted into v2.1 after v2.2 planning started), the ROADMAP ends up with overlapping section headers. Fix: update the milestone's phase list in one place only.
+
+### Cost Observations
+
+- Model: Claude Sonnet 4.6 throughout
+- Sessions: 3 (context compression mid-milestone; Phase 20 in a new session)
+- Notable: 8 phases with 41 plans in 2 calendar days — parallel wave execution (Phase 12/13/14 all depend on Phase 10 only) and autonomous single-wave plans (Phase 20's 3 plans) drove velocity
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -109,6 +160,7 @@
 |-----------|--------|-------|------------|
 | v1.1 | 5 | 20 | First milestone — baseline established |
 | v2.0 | 4 | 20 | Back-end foundation phase pattern; Nyquist VALIDATION.md retrofit introduced |
+| v2.1 | 8 | 41 | Dual-DB architecture; gap-closure phase pattern; inline Nyquist compliance (no retrofit) |
 
 ### Cumulative Quality
 
@@ -116,6 +168,7 @@
 |-----------|-------|--------|
 | v1.1 | 113 | All passing |
 | v2.0 | 212 | All passing (isolated; FactionSummaryCard ordering issue pre-existing) |
+| v2.1 | 395 | All passing post-Phase 20 |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -123,4 +176,5 @@
 2. Pure function + TDD Wave 0 dramatically reduces UI debugging time
 3. Sibling portal pattern prevents Radix z-index/context issues in Sheet-heavy UIs
 4. SQL join shape tests catch column-omission gaps that smoke tests miss (learned from ARMY-02)
+5. Review mounting points for Sheet-mounted features during planning — not at audit (learned from DS-08 secondary path)
 5. Foundation phases with full test coverage before UI work pay for themselves in zero data-layer debugging time

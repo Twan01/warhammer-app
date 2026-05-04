@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.1
-milestone_name: Visual Command
-status: completed
-stopped_at: Completed 20-03-PLAN.md
-last_updated: "2026-05-04T17:03:17.293Z"
-last_activity: "2026-05-04 - Completed 20-03: DashboardPage conflict dialog wired"
+milestone: v2.2
+milestone_name: Full Circle
+status: in_progress
+stopped_at: v2.1 milestone archived — ready for v2.2 Phase 21 (Wishlist)
+last_updated: "2026-05-04T19:00:00.000Z"
+last_activity: "2026-05-04 - v2.1 milestone archived — 35/35 reqs, 48/48 wiring, 6/6 flows, zero tech debt"
 progress:
-  total_phases: 15
-  completed_phases: 11
-  total_plans: 50
-  completed_plans: 50
-  percent: 100
+  total_phases: 6
+  completed_phases: 3
+  total_plans: 9
+  completed_plans: 9
+  percent: 50
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-04 after v2.2 milestone start)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.1 finishing (Phases 14–16) then v2.2 Full Circle (Phases 17–22)
+**Current focus:** v2.2 Full Circle — Wishlist (Phase 21), Hobby Goals (Phase 22), Display Features (Phase 23)
 
 ## Current Position
 
-Phase: 20 of 21 (v2.1 polish gap closure — in progress)
-Plan: Phase 20 complete (all 3 plans done)
-Status: 20-03 complete — DS-08 secondary path closed: DashboardPage DatasheetImportDialog wired, conflict-resolution now works from Dashboard same as CollectionPage
-Last activity: 2026-05-04 - Completed 20-03: DashboardPage conflict dialog wired
+Phase: Phases 17–19 complete (3/6 v2.2 phases done)
+Plan: Ready to begin Phase 21 (Wishlist)
+Status: v2.1 milestone archived and tagged — v2.2 in progress
+Last activity: 2026-05-04 - v2.1 milestone complete
 
-Progress: [██████████] 100% (50/50 plans complete)
+Progress: [█████░░░░░] 50% (3/6 v2.2 phases complete)
 
 ## v2.2 Phase Map
 

@@ -1,5 +1,28 @@
 # Milestones
 
+## v2.1 Visual Command (Shipped: 2026-05-04)
+
+**Phases completed:** 8 phases (10–16 + 20), 41 plans
+**Timeline:** 2026-05-03 → 2026-05-04 (2 days)
+**Stats:** 395 automated tests passing post-Phase 20
+
+**Key accomplishments:**
+- CSS `@theme` faction-accent system (`ActiveFactionContext`, `--faction-accent`) — every accent shifts per selected faction with localStorage persistence; collapsible sidebar with `useSidebarCollapsed` icon-only mode and Radix Tooltip labels
+- Animated stat counters (`useCountUp` rAF cubic ease-out, 600ms, prefers-reduced-motion gate) on Dashboard hero; faction-accented `FactionSummaryCard` with `ring-faction-accent` ring on active faction
+- Card gallery view (`UnitGallery` + `PaintingRing` SVG, 96px) with `useCollectionViewMode` localStorage toggle — Zustand filters preserved on view switch
+- Per-unit Hobby Journal: `painting_sessions` table (migration 005), `tauri-plugin-fs/dialog`, session log (newest-first) + 3-col photo timeline with stage labels, lightbox sibling Dialog in CollectionPage + DashboardPage, JOUR-06 disk cleanup on unit delete
+- Spending Tracker: integer-pence discipline, `formatCurrency` as sole /100 site, `SpendingPage` with per-faction breakdown, 6 mutations invalidate `["spending-stats"]`
+- Dual-DB Wahapedia integration: `bulk_sync_rules` Rust command, `useRulesSync` 7-CSV parallel fetch + transactional insert, `DatasheetPicker`, `DatasheetImportDialog`, full PlaybookTab (stats/abilities/keywords/sources/lore notes) — DS-01..12 all satisfied
+- Geist Variable font via @fontsource-variable, text-3xl page headers + border-b hairline, icon-pill empty states across all 7 pages, tabular-nums everywhere, card elevation system (shadow-sm + hover:shadow-md)
+- v2.1 gap closure (Phase 20): DS-08 secondary path (DashboardPage conflict dialog), FactionsEmptyState Shield icon-pill, PaintingProjectsPage controlled-props CTA lift, upsertSyncMeta dead export removed
+
+**Archived:**
+- Roadmap: `.planning/milestones/v2.1-ROADMAP.md`
+- Requirements: `.planning/milestones/v2.1-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v2.1-MILESTONE-AUDIT.md`
+
+---
+
 ## v1.1 HobbyForge MVP (Shipped: 2026-05-01)
 
 **Phases completed:** 5 phases (1–5), 20 plans
