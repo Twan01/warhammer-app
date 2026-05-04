@@ -17,7 +17,12 @@
  *
  * String values (e.g. "72%") never animate — the typeof guard prevents passing a string to
  * useCountUp (Pitfall 2, 11-RESEARCH.md).
+ *
+ * Phase 25 (DSFD-03): Optional `icon`, `trend`, `progress` props enrich the card while
+ * preserving backward compatibility — all existing DashboardPage call sites continue
+ * working unchanged (no required prop additions, no DOM regression when optionals absent).
  */
+import type { ComponentType } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCountUp } from "@/hooks/useCountUp";
 
@@ -30,9 +35,22 @@ export interface StatCardProps {
   value: number | string;
   label: string;
   animate?: boolean;
+  /** Phase 25 — Lucide icon component rendered above the value at size 16. */
+  icon?: ComponentType<{ size?: number; className?: string }>;
+  /** Phase 25 — optional trend line rendered below the label. */
+  trend?: { value: number; label: string };
+  /** Phase 25 — 0–100; renders a 2px faction-accent progress bar at card bottom. */
+  progress?: number;
 }
 
-export function StatCard({ value, label, animate = false }: StatCardProps) {
+export function StatCard({
+  value,
+  label,
+  animate = false,
+  icon: Icon,
+  trend,
+  progress,
+}: StatCardProps) {
   const displayValue =
     animate && typeof value === "number" ? (
       <AnimatedNumber value={value} />
@@ -43,8 +61,22 @@ export function StatCard({ value, label, animate = false }: StatCardProps) {
   return (
     <Card className="px-6 bg-card border border-border/60 shadow-sm">
       <CardContent className="flex flex-col gap-1 px-0">
+        {Icon && <Icon size={16} className="text-muted-foreground mb-1" />}
         <span className="text-3xl font-semibold tabular-nums">{displayValue}</span>
         <span className="text-sm text-muted-foreground">{label}</span>
+        {trend && (
+          <span className="text-xs text-muted-foreground tabular-nums">{trend.label}</span>
+        )}
+        {progress !== undefined && (
+          <div className="mt-3">
+            <div className="h-0.5 w-full rounded-full bg-border/40">
+              <div
+                className="h-0.5 rounded-full bg-faction-accent transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
