@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "@fontsource-variable/geist";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -103,10 +104,13 @@
 
   /* Phase 10 — Tailwind utility token: bg-faction-accent / text-faction-accent / ring-faction-accent etc. */
   --color-faction-accent: var(--faction-accent);
+
+  /* Phase 16 — Custom font token */
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
 }
