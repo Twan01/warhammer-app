@@ -11,6 +11,7 @@ import {
   Settings as SettingsIcon,
   Shield,
   Sword,
+  Swords,
   Wallet,
 } from "lucide-react";
 import { NavItem } from "./NavItem";
@@ -30,6 +31,7 @@ const INVENTORY_NAV = [
 
 const TRACKING_NAV = [
   { to: "/army-lists", label: "Army Lists", icon: ClipboardList },
+  { to: "/battle-log", label: "Battle Log", icon: Swords },
   { to: "/spending", label: "Spending", icon: Wallet },
 ] as const;
 

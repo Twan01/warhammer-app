@@ -17,6 +17,7 @@ import { SettingsPage } from "./settings/page";
 import { FactionsPage } from "./factions/page";
 import { ArmyListsPage } from "./army-lists/page";
 import { SpendingPage } from "./spending/page";
+import { BattleLogPage } from "./battle-log/page";
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -80,6 +81,12 @@ const spendingRoute = createRoute({
   component: SpendingPage,
 });
 
+const battleLogRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/battle-log",
+  component: BattleLogPage,
+});
+
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/settings",
@@ -95,6 +102,7 @@ const routeTree = rootRoute.addChildren([
   paintsRoute,
   armyListsRoute,
   spendingRoute,
+  battleLogRoute,
   settingsRoute,
 ]);
 
