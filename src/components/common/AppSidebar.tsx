@@ -11,6 +11,7 @@ import {
   Settings as SettingsIcon,
   Shield,
   Swords,
+  Wallet,
 } from "lucide-react";
 import { NavItem } from "./NavItem";
 import { useSidebarCollapsed } from "./useSidebarCollapsed";
@@ -22,6 +23,7 @@ const MAIN_NAV = [
   { to: "/painting-projects", label: "Painting Projects", icon: Palette },
   { to: "/recipes", label: "Recipes", icon: BookOpen },
   { to: "/paints", label: "Paints", icon: Droplets },
+  { to: "/spending", label: "Spending", icon: Wallet },
   { to: "/army-lists", label: "Army Lists", icon: ClipboardList },
 ] as const;
 

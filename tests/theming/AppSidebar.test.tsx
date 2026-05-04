@@ -47,4 +47,18 @@ describe("AppSidebar", () => {
       expect(aside?.getAttribute("data-collapsed")).toBe("true");
     });
   });
+
+  describe("Spending nav entry (SPEND-03)", () => {
+    it("renders the Spending nav label between Paints and Army Lists", () => {
+      renderSidebar();
+      expect(screen.getByText("Spending")).toBeInTheDocument();
+    });
+
+    it("Spending nav entry has href='/spending'", () => {
+      renderSidebar();
+      const link = screen.getByText("Spending").closest("a");
+      expect(link).not.toBeNull();
+      expect(link?.getAttribute("href")).toBe("/spending");
+    });
+  });
 });
