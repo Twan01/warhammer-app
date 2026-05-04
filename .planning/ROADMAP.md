@@ -2,33 +2,33 @@
 
 ## Milestones
 
-- ✅ **v1.1 HobbyForge MVP** — Phases 1–5 (shipped 2026-05-01)
-- ✅ **v2.0 Utility Layer** — Phases 6–9 (shipped 2026-05-03)
+- ✅ **v1.1 HobbyForge MVP** — Phases 1–5 (shipped 2024-05-01)
+- ✅ **v2.0 Utility Layer** — Phases 6–9 (shipped 2024-05-03)
 - 📋 **v2.1 Visual Command** — Phases 10–16 + 20 (planned)
 - 📋 **v2.2 Full Circle** — Phases 17–19 + 21–23 (planned)
 
 ## Phases
 
 <details>
-<summary>✅ v1.1 HobbyForge MVP (Phases 1–5) — SHIPPED 2026-05-01</summary>
+<summary>✅ v1.1 HobbyForge MVP (Phases 1–5) — SHIPPED 2024-05-01</summary>
 
-- [x] Phase 1: App Shell — Tauri + React desktop app launches with sidebar, routing, SQLite plumbing, dark mode, and all shadcn components installed (completed 2026-04-30)
-- [x] Phase 2: Data Layer + Entity CRUD — Full 10-table schema, FK enforcement, seed data, and CRUD for factions / units / paints (completed 2026-04-30)
-- [x] Phase 3: Collection Module — Searchable, filterable unit table with detail drawer, inline status updates, progress bars, and full create/edit/delete UX including all cross-cutting polish patterns (completed 2026-05-01)
-- [x] Phase 4: Painting Module — Active painting projects Kanban (status columns, card actions, mark active) plus full recipe CRUD with paint linkage and owned/missing paint indicator (completed 2026-05-01)
-- [x] Phase 5: Dashboard — Full dashboard with global stat cards, faction summary cards, painting/assembly/basing percentages, active projects list, and recently updated units (completed 2026-05-01)
+- [x] Phase 1: App Shell — Tauri + React desktop app launches with sidebar, routing, SQLite plumbing, dark mode, and all shadcn components installed (completed 2024-04-30)
+- [x] Phase 2: Data Layer + Entity CRUD — Full 10-table schema, FK enforcement, seed data, and CRUD for factions / units / paints (completed 2024-04-30)
+- [x] Phase 3: Collection Module — Searchable, filterable unit table with detail drawer, inline status updates, progress bars, and full create/edit/delete UX including all cross-cutting polish patterns (completed 2024-05-01)
+- [x] Phase 4: Painting Module — Active painting projects Kanban (status columns, card actions, mark active) plus full recipe CRUD with paint linkage and owned/missing paint indicator (completed 2024-05-01)
+- [x] Phase 5: Dashboard — Full dashboard with global stat cards, faction summary cards, painting/assembly/basing percentages, active projects list, and recently updated units (completed 2024-05-01)
 
 Full details: `.planning/milestones/v1.1-ROADMAP.md`
 
 </details>
 
 <details>
-<summary>✅ v2.0 Utility Layer (Phases 6–9) — SHIPPED 2026-05-03</summary>
+<summary>✅ v2.0 Utility Layer (Phases 6–9) — SHIPPED 2024-05-03</summary>
 
-- [x] **Phase 6: Foundation** — Schema migration 004, TypeScript types for all v2.0 features, query modules (armyLists.ts, strategyNotes.ts), hook modules, and cross-invalidation patch to usePaints.ts (completed 2026-05-01)
-- [x] **Phase 7: Paint Inventory** — PaintInventoryPage with brand/type/color-family filters, running-low and wishlist preset views, color swatch, "used in N recipes" badge, inline owned toggle, sidebar nav and route (completed 2026-05-02)
-- [x] **Phase 8: Army List Builder** — ArmyListsPage, ArmyListDetailSheet, unit picker, COALESCE-in-SQL points calculation, battle-ready %, pre-delete unit check, sidebar nav and route (completed 2026-05-03)
-- [x] **Phase 9: Unit Playbook** — PlaybookTab (stats block grid + abilities/keywords + strategy notes + inline save), UnitDetailSheet wrapped in shadcn Tabs (completed 2026-05-02)
+- [x] **Phase 6: Foundation** — Schema migration 004, TypeScript types for all v2.0 features, query modules (armyLists.ts, strategyNotes.ts), hook modules, and cross-invalidation patch to usePaints.ts (completed 2024-05-01)
+- [x] **Phase 7: Paint Inventory** — PaintInventoryPage with brand/type/color-family filters, running-low and wishlist preset views, color swatch, "used in N recipes" badge, inline owned toggle, sidebar nav and route (completed 2024-05-02)
+- [x] **Phase 8: Army List Builder** — ArmyListsPage, ArmyListDetailSheet, unit picker, COALESCE-in-SQL points calculation, battle-ready %, pre-delete unit check, sidebar nav and route (completed 2024-05-03)
+- [x] **Phase 9: Unit Playbook** — PlaybookTab (stats block grid + abilities/keywords + strategy notes + inline save), UnitDetailSheet wrapped in shadcn Tabs (completed 2024-05-02)
 
 Full details: `.planning/milestones/v2.0-ROADMAP.md`
 
@@ -41,14 +41,14 @@ Full details: `.planning/milestones/v2.0-ROADMAP.md`
 HobbyForge v2.1 transforms the visual identity with faction-aware dynamic theming, a redesigned command-center dashboard, collapsible sidebar, and collection gallery view — plus two new personal tracking features: a per-unit Hobby Journal (photo timeline and session log) and a Spending Tracker.
 
 - [ ] **Phase 10: Theming Foundation** — CSS `@theme` faction-accent utilities, Zustand faction store, FactionThemeProvider, collapsible sidebar with icon-only mode and tooltip polish
-- [x] **Phase 11: Dashboard Command Center** — Animated stat counters, faction-accented faction summary cards, hero section redesign (completed 2026-05-03)
-- [x] **Phase 12: Collection Gallery View** — Card grid alternate view with painting-status ring, view toggle, filter preservation (completed 2026-05-04)
-- [x] **Phase 13: Hobby Journal** — Painting session log (SQL CRUD) and photo timeline (tauri-plugin-fs) per unit (completed 2026-05-04)
+- [x] **Phase 11: Dashboard Command Center** — Animated stat counters, faction-accented faction summary cards, hero section redesign (completed 2024-05-03)
+- [x] **Phase 12: Collection Gallery View** — Card grid alternate view with painting-status ring, view toggle, filter preservation (completed 2024-05-04)
+- [x] **Phase 13: Hobby Journal** — Painting session log (SQL CRUD) and photo timeline (tauri-plugin-fs) per unit (completed 2024-05-04)
 - [x] **Phase 14: Spending Tracker** — Cost logging per unit and paint, Spending page with total and per-faction breakdown
- (completed 2026-05-04)
-- [x] **Phase 15: Warhammer 40K Datasheet Integration** — Auto-populate Playbook tab stats/abilities/keywords from community data, bundle local SQLite rules database, surface rulebook references in-app (completed 2026-05-04)
+ (completed 2024-05-04)
+- [x] **Phase 15: Warhammer 40K Datasheet Integration** — Auto-populate Playbook tab stats/abilities/keywords from community data, bundle local SQLite rules database, surface rulebook references in-app (completed 2024-05-04)
 - [x] **Phase 16: Design Overhaul** — Significantly improve visual design across all pages — typography, spacing, layouts, empty states, and overall UI polish
- (completed 2026-05-04)
+ (completed 2024-05-04)
 - [ ] **Phase 20: v2.1 Polish & Gap Closure** — Close DS-08 secondary path (DashboardPage conflict dialog), FactionsEmptyState icon pattern, upsertSyncMeta dead export, PaintingProjectsPage DOM query
 
 ### 📋 v2.2 Full Circle (Phases 17–19 + 21–23) — Planned
@@ -56,11 +56,11 @@ HobbyForge v2.1 transforms the visual identity with faction-aware dynamic themin
 HobbyForge v2.2 closes the full hobby loop — schema enrichment (lore notes, undercoat, purchase dates), a complete Battle Log, analytics layer (velocity, streak, spend chart), Wishlist, Hobby Goals, and Display features (Battle Ready filter, Showcase Mode).
 
 - [x] **Phase 17: Schema Foundation + Enrichment** — Migration 007 (lore_notes + undercoat on units, lore_notes on factions, purchase_date on paints), dates.ts UTC utility, and lore/undercoat fields visible in unit detail sheet
- (completed 2026-05-04)
+ (completed 2024-05-04)
 - [x] **Phase 18: Battle Log** — Battle log CRUD page (battle_logs table already exists in migration 001) with opponent faction, mission, result, army list linkage, notes, and chronological list
- (completed 2026-05-04)
+ (completed 2024-05-04)
 - [x] **Phase 19: Analytics Core** — Recharts/shadcn chart install, hobby velocity and painting streak stats on Dashboard, monthly spend trend chart on Spending page
- (completed 2026-05-04)
+ (completed 2024-05-04)
 - [ ] **Phase 21: Wishlist** — New wishlist_items table (migration 008), full CRUD Wishlist page with name/faction/estimated cost/notes
 - [ ] **Phase 22: Hobby Goals** — New hobby_goals table (migration 009), goal CRUD with target unit count and timeframe, progress derived from painting session history
 - [ ] **Phase 23: Display Features** — Battle Ready quick-filter on Collection page, Showcase Mode full-screen gallery using Tauri window API
@@ -180,6 +180,16 @@ Plans:
 - [ ] 16-07-PLAN.md — Wave 2: Empty states B — ArmyListsEmptyState (Swords plural), RecipeEmptyState (BookOpen + British "colour" helper text)
 - [ ] 16-08-PLAN.md — Wave 3: Manual visual review checkpoint (24 steps across all 7 pages + shared components in live Tauri app) + final SUMMARY
 
+### Phase 24: Collection unit point calculator with wargear selection and swap delta preview
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 24
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 25 to break down)
+
 ---
 
 ### 📋 v2.2 Full Circle (Phases 17–19 + 21–23) — Planned
@@ -187,11 +197,11 @@ Plans:
 **Milestone Goal:** Close the full hobby loop — from owning and painting to playing and logging — with analytics, personal showcase, and narrative enrichment features that make HobbyForge the definitive single-player hobby OS.
 
 - [x] **Phase 17: Schema Foundation + Enrichment** — Migration 007 (lore_notes + undercoat on units, lore_notes on factions, purchase_date on paints), dates.ts UTC utility, and lore/undercoat fields visible in unit detail sheet
- (completed 2026-05-04)
+ (completed 2024-05-04)
 - [x] **Phase 18: Battle Log** — Battle log CRUD page (battle_logs table already exists in migration 001) with opponent faction, mission, result, army list linkage, notes, and chronological list
- (completed 2026-05-04)
+ (completed 2024-05-04)
 - [x] **Phase 19: Analytics Core** — Recharts/shadcn chart install, hobby velocity and painting streak stats on Dashboard, monthly spend trend chart on Spending page
- (completed 2026-05-04)
+ (completed 2024-05-04)
 - [ ] **Phase 21: Wishlist** — New wishlist_items table (migration 008), full CRUD Wishlist page with name/faction/estimated cost/notes
 - [ ] **Phase 22: Hobby Goals** — New hobby_goals table (migration 009), goal CRUD with target unit count and timeframe, progress derived from painting session history
 - [ ] **Phase 23: Display Features** — Battle Ready quick-filter on Collection page, Showcase Mode full-screen gallery using Tauri window API
@@ -256,7 +266,12 @@ Plans:
   2. FactionsEmptyState uses the icon-pill pattern (rounded-xl bg-muted/40 p-4) matching all other empty states
   3. PaintingProjectsPage empty-state CTA works without a fragile DOM querySelector — uses useState instead
   4. upsertSyncMeta dead export removed from datasheets.ts; Rust command remains the sole sync-meta write path
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 20-01-PLAN.md — Wave 1: FactionsEmptyState icon-pill (Shield) + remove upsertSyncMeta dead export from datasheets.ts (2 tasks, autonomous)
+- [ ] 20-02-PLAN.md — Wave 1: AddProjectPicker controlled-props with internal fallback + PaintingProjectsPage pickerOpen state (querySelector removed) + KanbanEmptyState button text "Add Project" (2 tasks, autonomous)
+- [ ] 20-03-PLAN.md — Wave 1: DS-08 secondary path — DashboardPage conflict state + 3 props on populated UnitDetailSheet (line 340 only) + DatasheetImportDialog sibling mount (1 task, autonomous)
 
 ### Phase 21: Wishlist
 **Goal**: Users can maintain a running list of models they want to buy — with name, faction, optional estimated cost, and notes — on a dedicated Wishlist page before the items exist in their collection
@@ -295,25 +310,25 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. App Shell | v1.1 | 3/3 | Complete | 2026-04-30 |
-| 2. Data Layer + Entity CRUD | v1.1 | 4/4 | Complete | 2026-04-30 |
-| 3. Collection Module | v1.1 | 5/5 | Complete | 2026-05-01 |
-| 4. Painting Module | v1.1 | 4/4 | Complete | 2026-05-01 |
-| 5. Dashboard | v1.1 | 4/4 | Complete | 2026-05-01 |
-| 6. Foundation | v2.0 | 5/5 | Complete | 2026-05-01 |
-| 7. Paint Inventory | v2.0 | 5/5 | Complete | 2026-05-02 |
-| 8. Army List Builder | v2.0 | 6/6 | Complete | 2026-05-03 |
-| 9. Unit Playbook | v2.0 | 4/4 | Complete | 2026-05-02 |
+| 1. App Shell | v1.1 | 3/3 | Complete | 2024-04-30 |
+| 2. Data Layer + Entity CRUD | v1.1 | 4/4 | Complete | 2024-04-30 |
+| 3. Collection Module | v1.1 | 5/5 | Complete | 2024-05-01 |
+| 4. Painting Module | v1.1 | 4/4 | Complete | 2024-05-01 |
+| 5. Dashboard | v1.1 | 4/4 | Complete | 2024-05-01 |
+| 6. Foundation | v2.0 | 5/5 | Complete | 2024-05-01 |
+| 7. Paint Inventory | v2.0 | 5/5 | Complete | 2024-05-02 |
+| 8. Army List Builder | v2.0 | 6/6 | Complete | 2024-05-03 |
+| 9. Unit Playbook | v2.0 | 4/4 | Complete | 2024-05-02 |
 | 10. Theming Foundation | v2.1 | 3/4 | In Progress | — |
-| 11. Dashboard Command Center | v2.1 | 4/4 | Complete | 2026-05-03 |
-| 12. Collection Gallery View | v2.1 | 4/4 | Complete | 2026-05-04 |
-| 13. Hobby Journal | v2.1 | 6/6 | Complete | 2026-05-04 |
-| 14. Spending Tracker | 5/5 | Complete    | 2026-05-04 | — |
-| 15. 40K Datasheet Integration | v2.1 | Complete    | 2026-05-04 | 2026-05-04 |
-| 16. Design Overhaul | 8/8 | Complete    | 2026-05-04 | — |
-| 17. Schema Foundation + Enrichment | 1/1 | Complete    | 2026-05-04 | — |
-| 18. Battle Log | 4/4 | Complete    | 2026-05-04 | — |
-| 19. Analytics Core | v2.2 | 4/4 | Complete | 2026-05-04 |
+| 11. Dashboard Command Center | v2.1 | 4/4 | Complete | 2024-05-03 |
+| 12. Collection Gallery View | v2.1 | 4/4 | Complete | 2024-05-04 |
+| 13. Hobby Journal | v2.1 | 6/6 | Complete | 2024-05-04 |
+| 14. Spending Tracker | 5/5 | Complete    | 2024-05-04 | — |
+| 15. 40K Datasheet Integration | v2.1 | Complete    | 2024-05-04 | 2024-05-04 |
+| 16. Design Overhaul | 8/8 | Complete    | 2024-05-04 | — |
+| 17. Schema Foundation + Enrichment | 1/1 | Complete    | 2024-05-04 | — |
+| 18. Battle Log | 4/4 | Complete    | 2024-05-04 | — |
+| 19. Analytics Core | v2.2 | 4/4 | Complete | 2024-05-04 |
 | 20. v2.1 Polish & Gap Closure | v2.1 | 0/TBD | Not started | — |
 | 21. Wishlist | v2.2 | 0/TBD | Not started | — |
 | 22. Hobby Goals | v2.2 | 0/TBD | Not started | — |
