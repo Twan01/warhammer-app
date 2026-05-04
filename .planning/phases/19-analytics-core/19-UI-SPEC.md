@@ -1,7 +1,8 @@
 ---
 phase: 19
 slug: analytics-core
-status: draft
+status: approved
+reviewed_at: 2026-05-04
 shadcn_initialized: true
 preset: "new-york / zinc / css-variables"
 created: 2026-05-04
@@ -40,7 +41,7 @@ Declared values (must be multiples of 4):
 | sm | 8px | Compact element spacing, chart bar gap |
 | md | 16px | Default element spacing, card content padding |
 | lg | 24px | Section padding, card px-6 |
-| xl | 32px | Layout gaps between sections (gap-12 = 48px used for page-level) |
+| xl | 32px | Sub-level layout gaps (gap-8 = 32px) |
 | 2xl | 48px | Page-level gap between Dashboard sections (gap-12) |
 | 3xl | 64px | Not used in this phase |
 
@@ -294,11 +295,11 @@ Integer pence discipline: spend data travels as integer pence through the entire
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS (xl note corrected — gap-12=48px maps to 2xl token)
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-05-04
