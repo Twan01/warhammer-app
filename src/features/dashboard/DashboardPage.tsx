@@ -33,6 +33,7 @@ import { StatCard } from "./StatCard";
 import { DashboardListRow } from "./DashboardListRow";
 import { FactionSummaryCard } from "./FactionSummaryCard";
 import { DashboardEmptyState } from "./DashboardEmptyState";
+import { PageHeader } from "@/components/common/PageHeader";
 
 export function DashboardPage() {
   const { data: stats, isLoading, isError } = useDashboardStats();
@@ -105,13 +106,10 @@ export function DashboardPage() {
   if (isError) {
     return (
       <div className="flex flex-col gap-12 p-6">
-        <div className="flex items-center justify-between pb-6 border-b border-border/40">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-            <p className="text-sm text-muted-foreground mt-1">Your hobby command center at a glance</p>
-          </div>
-          <div className="flex items-center gap-2" />
-        </div>
+        <PageHeader
+          title="Dashboard"
+          subtitle="Your hobby command center at a glance"
+        />
         <p className="text-sm text-destructive">
           Failed to load dashboard. Try refreshing the app.
         </p>
@@ -123,13 +121,10 @@ export function DashboardPage() {
   if (isLoading || !stats) {
     return (
       <div className="flex flex-col gap-12 p-6">
-        <div className="flex items-center justify-between pb-6 border-b border-border/40">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-            <p className="text-sm text-muted-foreground mt-1">Your hobby command center at a glance</p>
-          </div>
-          <div className="flex items-center gap-2" />
-        </div>
+        <PageHeader
+          title="Dashboard"
+          subtitle="Your hobby command center at a glance"
+        />
 
         {/* Top stat row — 4 skeletons */}
         <div className="grid grid-cols-4 gap-6">
@@ -197,13 +192,10 @@ export function DashboardPage() {
     return (
       <>
         <div className="flex flex-col gap-12 p-6">
-          <div className="flex items-center justify-between pb-6 border-b border-border/40">
-            <div>
-              <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-              <p className="text-sm text-muted-foreground mt-1">Your hobby command center at a glance</p>
-            </div>
-            <div className="flex items-center gap-2" />
-          </div>
+          <PageHeader
+            title="Dashboard"
+            subtitle="Your hobby command center at a glance"
+          />
           <DashboardEmptyState />
         </div>
 
@@ -230,13 +222,10 @@ export function DashboardPage() {
   return (
     <>
       <div className="flex flex-col gap-12 p-6">
-        <div className="flex items-center justify-between pb-6 border-b border-border/40">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-            <p className="text-sm text-muted-foreground mt-1">Your hobby command center at a glance</p>
-          </div>
-          <div className="flex items-center gap-2" />
-        </div>
+        <PageHeader
+          title="Dashboard"
+          subtitle="Your hobby command center at a glance"
+        />
 
         {/* Top stat row (DASH-01) */}
         <div className="grid grid-cols-4 gap-6">
