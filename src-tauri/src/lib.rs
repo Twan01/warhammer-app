@@ -39,6 +39,23 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/006_spend_pence.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 7,
+            description: "datasheet_link",
+            sql: include_str!("../migrations/007_datasheet_link.sql"),
+            kind: MigrationKind::Up,
+        },
+    ]
+}
+
+fn get_rules_migrations() -> Vec<Migration> {
+    vec![
+        Migration {
+            version: 1,
+            description: "rules_schema",
+            sql: include_str!("../migrations/rules_001_schema.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
@@ -63,6 +80,7 @@ pub fn run() {
         .plugin(
             tauri_plugin_sql::Builder::default()
                 .add_migrations("sqlite:hobbyforge.db", get_migrations())
+                .add_migrations("sqlite:rules.db", get_rules_migrations())
                 .build(),
         )
         .invoke_handler(tauri::generate_handler![])

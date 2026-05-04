@@ -17,6 +17,12 @@
     "fs:allow-appdata-write-recursive",
     "dialog:default",
     "dialog:allow-open",
-    "http:default"
+    "http:default",
+    {
+      "identifier": "http:default",
+      "allow": [
+        { "url": "https://wahapedia.ru/*" }
+      ]
+    }
   ]
 }

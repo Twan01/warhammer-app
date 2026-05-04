@@ -41,7 +41,7 @@
   },
   "plugins": {
     "sql": {
-      "preload": ["sqlite:hobbyforge.db"]
+      "preload": ["sqlite:hobbyforge.db", "sqlite:rules.db"]
     }
   }
 }
