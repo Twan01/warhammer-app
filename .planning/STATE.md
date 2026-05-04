@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.1
-milestone_name: Visual Command
-status: Defining requirements for v2.2 Full Circle
-stopped_at: Phase 16 plans ready — 8 plans verified
-last_updated: "2026-05-04T08:04:04.402Z"
-last_activity: 2026-05-04 — Milestone v2.2 started
+milestone: v2.2
+milestone_name: Full Circle
+status: Roadmap created — v2.1 still in progress (Phases 14–16)
+stopped_at: v2.2 roadmap written (Phases 17–22); v2.1 continuing with Phase 14 plan 14-04
+last_updated: "2026-05-04T00:00:00.000Z"
+last_activity: 2026-05-04 — v2.2 roadmap created (Phases 17–22, 23 requirements mapped)
 progress:
-  total_phases: 7
-  completed_phases: 4
+  total_phases: 13
+  completed_phases: 9
   total_plans: 35
   completed_plans: 22
   percent: 0
@@ -21,86 +21,45 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-04 after v2.2 milestone start)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.2 — Full Circle (Phases 17+; v2.1 finishing up)
+**Current focus:** v2.1 finishing (Phases 14–16) then v2.2 Full Circle (Phases 17–22)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements for v2.2 Full Circle
-Last activity: 2026-05-04 — Milestone v2.2 started
+Phase: 14 of 22 (Spending Tracker — 4/5 plans complete)
+Plan: 14-04 (Manual smoke-test — final gate before Phase 14 ships)
+Status: In progress
+Last activity: 2026-05-04 — v2.2 roadmap created; resume Phase 14-04 smoke-test
 
-Progress: [░░░░░░░░░░] 0% (0/0 plans complete)
+Progress: [████████░░░░░░░░░░░░░░] ~40% (22/35+ plans complete across v1.1+v2.0+v2.1)
 
-## v2.1 Phase Map
+## v2.2 Phase Map
 
 | Phase | Goal | Requirements |
 |-------|------|--------------|
-| 10. Theming Foundation | Faction accent colors + collapsible sidebar | THEME-01..03, UI-01..03 |
-| 11. Dashboard Command Center | Animated counters + faction-accented cards | UI-07, UI-08 |
-| 12. Collection Gallery View | Card grid alternate view + filter preservation | UI-04..06 |
-| 13. Hobby Journal | Session log (SQL) + photo timeline (tauri-plugin-fs) | JOUR-01..06 |
-| 14. Spending Tracker | Cost logging per unit/paint + Spending page | SPEND-01..05 |
+| 17. Schema Foundation + Enrichment | Migration 007 + dates.ts utility + lore/undercoat UI | ENRCH-01..04 |
+| 18. Battle Log | Battle log CRUD page (schema already in migration 001) | BATTLE-01..05 |
+| 19. Analytics Core | Velocity + streak on Dashboard + spend chart on Spending page | ANLY-04..07 |
+| 20. Wishlist | New wishlist_items table + CRUD page | WISH-01..04 |
+| 21. Hobby Goals | New hobby_goals table + progress from session history | ANLY-01..03 |
+| 22. Display Features | Battle Ready filter + Showcase Mode fullscreen | DISP-01..03 |
 
-Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-faction-accent` CSS utilities must exist before any themed UI is built.
+Architecture constraints:
+- Phase 17 is prerequisite for ALL v2.2 analytics (dates.ts utility needed by Phases 19 + 21)
+- Phase 18 is UI-only — battle_logs table already exists in 001_core_schema.sql; NO migration needed
+- Phase 19 requires `npx shadcn@latest add chart` + package.json `react-is ^19.0.0` override
+- Phase 22 Showcase Mode uses `getCurrentWindow().setFullscreen(true)` from @tauri-apps/api (already installed)
+- All analytics queries go in new `src/db/queries/analytics.ts` with key `["hobby-analytics"]`
 
 ## Accumulated Context
 
-### Key Decisions for v2.1
+### Key Decisions for v2.2
 
-- Phase 8 Plan 00: getArmyListsByUnitId SQL does not de-duplicate — if a unit appears in List A twice, caller sees List A twice; plan 04 call site de-dups by id if needed for display
-- Phase 8 Plan 02: status_painting === 'Completed' is canonical (not 'Complete' — RESEARCH.md typo corrected; PAINTING_STATUS_ORDER in unit.ts confirms); Pitfall 2 full-replacement UPDATE means every useUpdateArmyListUnit call passes BOTH points_override AND notes; UnitPickerDialog stays open after each add for multi-add UX
-- Phase 8 Plan 03: ArmyListDetailSheet does NOT own UnitPickerDialog state — onAddUnit prop delegates to parent page (sibling portal); ArmyListCard duplicates stat logic from ArmyListSummaryBar intentionally (card must show totals before detail sheet is opened); Pitfall 5 (notes: notesDraft ?? "") and Pitfall 6 (key={list?.id ?? "none-detail"}) both applied
-- Phase 8 Plan 04: Loading skeleton test required async waitFor wrapper because RouterProvider renders asynchronously — synchronous querySelectorAll returned 0 elements; UnitDeleteDialog warning body uses double-quoted unit name + pluralized list count per UI-SPEC §Copywriting Contract
-- Phase 8 Plan 05: All 14 manual smoke-test steps approved; Pitfall 1 (sibling portals), Pitfall 2 (full-replacement UPDATE), and Pitfall 6 (key prop) all confirmed working in live Tauri app; Phase 8 complete and ready for /gsd:verify-work
-- Phase 9 Plan 01: Raw `<textarea>` with PaintSheet className verbatim used for PlaybookTab (no shadcn Textarea exists); `initialRef` snapshot pattern for dirty detection without React Hook Form
-- Phase 9 Plan 02: SheetHeader/SheetFooter stay outside Tabs so unit name, faction badge, and Edit/Delete buttons persist across tab switches
-- Phase 9 Plan 02: No overflow-hidden added to Tabs/TabsContent — SheetContent overflow-y-auto retained for correct scrolling (Pitfall 5)
-- Phase 9 Plan 02: key={unit?.id} on SheetContent resets PlaybookTab state on unit switch for free — no extra reset logic needed
-- Phase 10 uses CSS `@theme` layer to define `bg-faction-accent` utilities — all accent color usage in later phases references these utilities, never hardcoded hex values
-- Phase 10 Plan 00: Wave 0 stub files use no SUT imports — source-under-test doesn't exist yet; imports land in plans 10-01/02/03 alongside replacing .skip bodies
-- Phase 10 Plan 00: Explicit `import { describe, it } from 'vitest'` in every stub file for tsc strict-mode compatibility (mirrors UnitDeleteDialog pattern)
-- Phase 10 Plan 01: Test file renamed .ts -> .tsx — JSX in wrapper requires tsx extension; esbuild rejects JSX in .ts files (auto-fixed Rule 1)
-- Phase 10 Plan 01: No useMemo on context value — mirrors useSidebarCollapsed.ts pattern; ActiveFactionContext itself not exported (only Provider + hook are public API)
-- Phase 10 Plan 02: FactionSummaryCard isActive/onActivate props are optional with defaults so DashboardPage compiles before Plan 10-03 wires them
-- Phase 10 Plan 02: NavItem uses bg-faction-accent via CSS cascade only — no useActiveFaction context import needed in NavItem itself
-- Phase 10 Plan 02: FactionStat test mock uses complete Faction type (icon_path, created_at, updated_at) — plan mock was missing fields; auto-corrected (Rule 1)
-- Phase 11 Plan 00: Wave 0 stub tests/dashboard/useCountUp.test.ts stays .ts (no JSX wrapper needed for plain number-target hook); explicit vitest imports for tsc strict-mode; no SUT import until Plan 11-01 creates src/hooks/useCountUp.ts
-- Phase 11 Plan 01: Object.defineProperty used to install window.matchMedia in jsdom — vi.spyOn fails with "Received undefined" because jsdom does not define matchMedia; defineProperty makes it writable/configurable so tests can override per-call
-- Phase 11 Plan 01: vitest 4.1.5 fake timers correctly stub requestAnimationFrame; vi.advanceTimersByTime(600) advances the rAF loop — no vi.stubGlobal('requestAnimationFrame') fallback needed
-- Phase 11 Plan 02: AnimatedNumber sub-component is module-local (not exported) — it is an implementation detail of StatCard, not a public API; typeof value === 'number' guard in animate branch prevents passing string values like '72%' to useCountUp (Pitfall 2)
-- Phase 11 Plan 02: Object.defineProperty matchMedia global installed at module level in DashboardPage.test.tsx — all data-loaded tests need it once animate={true} wires AnimatedNumber into hero StatCards; vi.restoreAllMocks() added to beforeEach alongside vi.clearAllMocks() to restore the UI-07 spy before UI-08 runs
-- Phase 11 Plan 03: FactionSummaryCard star button extracted with stopPropagation — activating a faction no longer navigates to /collection; card click and star click are now independent interactions; Active badge replaced by filled Star icon (fill-faction-accent text-faction-accent); aria-labels added for screen reader accessibility
-- Phase 12 Plan 00: Wave 0 stub files use .tsx extension up-front — avoids .ts->tsx rename Phase 10-00 had to perform in 10-01
-- Phase 12 Plan 00: No matchMedia polyfill in UnitGallery.test.tsx — gallery has no animation dependency; Pitfall 6 from 12-RESEARCH.md
-- Phase 12 Plan 00: Explicit `import { describe, it } from 'vitest'` in both stub files for tsc strict-mode compatibility
-- Phase 12 Plan 01: useCollectionViewMode parse guard accepts only literal 'gallery' — null/unknown/other values default to 'table'; no standalone hook unit test (end-to-end coverage from UnitGallery toggle tests in Plan 12-02)
-- Phase 12 Plan 01: PaintingRing stroke color uses stroke='currentColor' + className='text-primary' NOT stroke-primary utility (Tailwind v4 stroke-* utilities don't apply directly to SVG stroke — Pitfall 1)
-- Phase 12 Plan 01: PaintingRing text fill uses fill='currentColor' attribute alongside className for resilient color inheritance (Open Question 2 pattern)
-- Phase 12 Plan 02: Pitfall 3 (Card defaults gap-6/py-6) — cn() + tailwind-merge correctly overrides with gap-2/pt-4/pb-4; plain div fallback NOT needed
-- Phase 12 Plan 02: mockFaction in test required game_system + description fields (plan template was missing these); auto-corrected (Rule 1)
-- Phase 12 Plan 02: useRouter warning in CollectionPage tests is benign — UnitDetailSheet only calls useRouter when open; tests never open the sheet
-- Phase 12 Plan 03: All 9 manual smoke-test steps PASS in live Tauri app — no Pitfall interventions needed; stroke='currentColor' + className='text-primary' arc renders correctly (Pitfall 1), cn() override works without plain-div fallback (Pitfall 3), Space preventDefault holds (Pitfall 4); Phase 12 complete
-- Phase 13 photo storage requires `tauri-plugin-fs` — the one new Tauri plugin introduced in v2.1; verify capability grants before building photo attach UI
-- Phase 13 Plan 00: Wave 0 stub files use .tsx for JournalTab (JSX component test) and .ts for all others — avoids .ts->tsx rename seen in Phase 10-01; no SUT imports in any stub until plans 13-01/02/03 create source files; explicit `import { describe, it } from 'vitest'` for tsc strict-mode (mirrors Phase 10/11/12 pattern)
-- Phase 13 Plan 01: tauri feature flag "protocol-asset" must be added to Cargo.toml tauri dependency when assetProtocol.enable = true in tauri.conf.json — build fails without it; plugin registration order: opener -> fs -> dialog -> sql; UnitPhoto.file_path stores UUID filename only (not absolute path)
-- Phase 13 Plan 02: useJournalSessions test file uses .tsx extension (JSX QueryClientProvider wrapper requires tsx — esbuild rejects JSX in .ts); appDataDir() resolved once per hook via useState/useEffect pattern (not per row); PAINTING_SESSIONS_KEY and UNIT_PHOTOS_KEY factories stable for Plan 13-03 UI
-- Phase 13 Plan 03: JournalTab does NOT mount its own lightbox Dialog — onPhotoClick prop delegates to CollectionPage sibling portal (Plan 13-04); photo delete uses no confirmation modal (optimistic rollback via hook); Stage Select 'Other' reveals free-text input that becomes the stage_label
-- Phase 13 Plan 04: DashboardPage also calls UnitDetailSheet and required onPhotoClick wiring + sibling lightbox Dialog — applied same CollectionPage pattern (Rule 3 fix); UnitDeleteDialog uses static imports for getPhotosByUnit + getPhotoFilenamesByUnit to satisfy both DB cleanup (explicit image_assets DELETE) and disk cleanup (fs.remove from AppData); @tauri-apps/plugin-fs module-level import does not break UnitDeleteDialog.test.tsx render-only tests
-- Phase 14 stores all spend values as integer pence in SQLite — display formatting happens in UI layer only, never stored as float
-- Phase 14 Plan 01: Migration is version 6 (006_spend_pence.sql) — Phase 13 hobby_journal was inserted as version 5 after this plan was written; spending migration uses version 6
-- Phase 14 Plan 01: updateUnit and updatePaint use UNCONDITIONAL assignment for purchase_price_pence (purchase_price_pence = $N, NOT COALESCE) so user can explicitly clear price to NULL (Pitfall 1)
-- Phase 14 Plan 01: formatCurrency is the ONLY division-by-100 site in the codebase — all call sites pass integer pence and receive locale-formatted string; defaults en-GB/GBP
-- Phase 14 Plan 01: Test fixtures in 13 additional test files still reference legacy purchase_price field — flagged for Plan 14-02 to fix alongside production call sites (UnitSheet, UnitDetailSheet, PaintSheet, unitSchema)
-- Phase 14 Plan 02: UnitSheet/PaintSheet purchase_price_pence plumbing (buildDefaultValues, onSubmit) was already done by Plan 14-01; only the FormField UI (step={1}, placeholder, helper text) needed updating
-- Phase 14 Plan 02: UnitDetailSheet had inline pence math `(/ 100).toFixed(2)` — replaced with formatCurrency() to respect the single-division-site constraint; UnitDetailSheet now shows £ locale-formatted currency
-- Phase 14 Plan 02: ['spending-stats'] literal used in useUnits.ts/usePaints.ts mutation hooks (not a constant); SPENDING_STATS_KEY constant arrives in Plan 14-03 alongside the hook that reads it
-- Phase 14 Plan 02: SPEND-01 and SPEND-02 closed; 264 passing, 13 skipped (Plan 14-03 stubs remain)
-- Phase 14 Plan 03: SPENDING_STATS_KEY = ['spending-stats'] as const installed in useSpendingStats.ts — exact match for 6-hook mutation invalidations from Plan 14-02; COALESCE(SUM(...), 0) guards against NULL on empty paints table (Pitfall 5); AppSidebar test EXTENDED (not replaced) with new 'Spending nav entry' describe block; SPEND-03 and SPEND-04 closed; 279 passing, 0 skipped
-- Phase 13 Plan 05: All 10 manual smoke-test steps PASS in live Tauri app; asset:// protocol resolves correctly, JOUR-06 disk cleanup verified; Phase 13 complete and ready for /gsd:verify-work
-- Phase 13 Plan 05: purchase_price_pence rename propagated across all 13-series call sites as Rule 1 auto-fix during smoke test — UnitDetailSheet, UnitSheet, PaintSheet, CollectionPage, DashboardPage all updated
+- migration 007 covers: ALTER TABLE units ADD COLUMN lore_notes TEXT, ADD COLUMN undercoat TEXT; ALTER TABLE factions ADD COLUMN lore_notes TEXT; ALTER TABLE paints ADD COLUMN purchase_date TEXT
+- wishlist_items table = migration 008; hobby_goals table = migration 009 (append-only discipline)
+- ANLY-02 goal progress: COUNT(DISTINCT unit_id) from painting_sessions WHERE session_date falls within goal timeframe
+- ANLY-05 streak: consecutive calendar days with at least one painting session — use dates.ts to avoid UTC edge case
 
-### Decisions Carried from v2.0
+### Decisions Carried from v2.1
 
 - All queries via `tauri-plugin-sql` directly — no ORM
 - `0|1` integer discipline for SQLite booleans
@@ -108,11 +67,8 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 - All new hook modules go to `src/hooks/` — components call hooks only
 - Sibling Sheet/Dialog portal pattern — never nest Radix portals
 - selectedUnitId pattern for any page that opens a detail Sheet
-
-### Roadmap Evolution
-
-- Phase 15 added: 40K Datasheet Integration — auto-populate Playbook tab stats/abilities/keywords from community data, bundle local SQLite rules database (v2.1, depends on Phase 14)
-- Phase 16 added: Design Overhaul — significantly improve visual design across all pages (v2.1, depends on Phase 14)
+- Migrations are append-only and immutable — new columns always via ALTER TABLE in a new numbered file
+- Integer pence discipline (formatCurrency is the only /100 site)
 
 ### Tech Debt
 
@@ -127,14 +83,8 @@ None blocking.
 
 None.
 
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Status | Directory |
-|---|-------------|------|--------|--------|-----------|
-| 260503-g7p | Add one-click launcher scripts and desktop shortcut for HobbyForge | 2026-05-03 | 974bcfe | Verified | [260503-g7p-i-would-like-to-get-something-to-launch-](./quick/260503-g7p-i-would-like-to-get-something-to-launch-/) |
-
 ## Session Continuity
 
-Last session: 2026-05-04T08:04:04.397Z
-Stopped at: Phase 16 plans ready — 8 plans verified
-Resume: Run `/gsd:execute-phase 14` to continue with Plan 14-04 (manual smoke-test — the final gate before Phase 14 ships).
+Last session: 2026-05-04
+Stopped at: v2.2 roadmap written; Phase 14-04 smoke-test is next action in v2.1
+Resume: Run `/gsd:execute-phase 14` to run Plan 14-04 (manual smoke-test for Spending Tracker)

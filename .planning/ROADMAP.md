@@ -5,6 +5,7 @@
 - ✅ **v1.1 HobbyForge MVP** — Phases 1–5 (shipped 2026-05-01)
 - ✅ **v2.0 Utility Layer** — Phases 6–9 (shipped 2026-05-03)
 - 📋 **v2.1 Visual Command** — Phases 10–16 (planned)
+- 📋 **v2.2 Full Circle** — Phases 17–22 (planned)
 
 ## Phases
 
@@ -46,6 +47,17 @@ HobbyForge v2.1 transforms the visual identity with faction-aware dynamic themin
 - [ ] **Phase 14: Spending Tracker** — Cost logging per unit and paint, Spending page with total and per-faction breakdown
 - [ ] **Phase 15: Warhammer 40K Datasheet Integration** — Auto-populate Playbook tab stats/abilities/keywords from community data, bundle local SQLite rules database, surface rulebook references in-app
 - [ ] **Phase 16: Design Overhaul** — Significantly improve visual design across all pages — typography, spacing, layouts, empty states, and overall UI polish
+
+### 📋 v2.2 Full Circle (Phases 17–22) — Planned
+
+HobbyForge v2.2 closes the full hobby loop — schema enrichment (lore notes, undercoat, purchase dates), a complete Battle Log, analytics layer (velocity, streak, spend chart), Wishlist, Hobby Goals, and Display features (Battle Ready filter, Showcase Mode).
+
+- [ ] **Phase 17: Schema Foundation + Enrichment** — Migration 007 (lore_notes + undercoat on units, lore_notes on factions, purchase_date on paints), dates.ts UTC utility, and lore/undercoat fields visible in unit detail sheet
+- [ ] **Phase 18: Battle Log** — Battle log CRUD page (battle_logs table already exists in migration 001) with opponent faction, mission, result, army list linkage, notes, and chronological list
+- [ ] **Phase 19: Analytics Core** — Recharts/shadcn chart install, hobby velocity and painting streak stats on Dashboard, monthly spend trend chart on Spending page
+- [ ] **Phase 20: Wishlist** — New wishlist_items table (migration 008), full CRUD Wishlist page with name/faction/estimated cost/notes
+- [ ] **Phase 21: Hobby Goals** — New hobby_goals table (migration 009), goal CRUD with target unit count and timeframe, progress derived from painting session history
+- [ ] **Phase 22: Display Features** — Battle Ready quick-filter on Collection page, Showcase Mode full-screen gallery using Tauri window API
 
 ## Phase Details
 
@@ -162,9 +174,87 @@ Plans:
 - [ ] 16-07-PLAN.md — Wave 2: Empty states B — ArmyListsEmptyState (Swords plural), RecipeEmptyState (BookOpen + British "colour" helper text)
 - [ ] 16-08-PLAN.md — Wave 3: Manual visual review checkpoint (24 steps across all 7 pages + shared components in live Tauri app) + final SUMMARY
 
+---
+
+### 📋 v2.2 Full Circle (Phases 17–22) — Planned
+
+**Milestone Goal:** Close the full hobby loop — from owning and painting to playing and logging — with analytics, personal showcase, and narrative enrichment features that make HobbyForge the definitive single-player hobby OS.
+
+- [ ] **Phase 17: Schema Foundation + Enrichment** — Migration 007 (lore_notes + undercoat on units, lore_notes on factions, purchase_date on paints), dates.ts UTC utility, and lore/undercoat fields visible in unit detail sheet
+- [ ] **Phase 18: Battle Log** — Battle log CRUD page (battle_logs table already exists in migration 001) with opponent faction, mission, result, army list linkage, notes, and chronological list
+- [ ] **Phase 19: Analytics Core** — Recharts/shadcn chart install, hobby velocity and painting streak stats on Dashboard, monthly spend trend chart on Spending page
+- [ ] **Phase 20: Wishlist** — New wishlist_items table (migration 008), full CRUD Wishlist page with name/faction/estimated cost/notes
+- [ ] **Phase 21: Hobby Goals** — New hobby_goals table (migration 009), goal CRUD with target unit count and timeframe, progress derived from painting session history
+- [ ] **Phase 22: Display Features** — Battle Ready quick-filter on Collection page, Showcase Mode full-screen gallery using Tauri window API
+
+### Phase 17: Schema Foundation + Enrichment
+**Goal**: The database gains the columns needed by all of v2.2 — lore notes and undercoat on units, lore notes on factions, purchase_date on paints — and a UTC-safe date utility resolves the existing timezone bug in JournalTab, with lore and undercoat fields immediately visible and editable in the unit detail sheet
+**Depends on**: Phase 16
+**Requirements**: ENRCH-01, ENRCH-02, ENRCH-03, ENRCH-04
+**Success Criteria** (what must be TRUE):
+  1. User can open any unit's detail sheet and see a "Lore Notes" text area — typing in it and saving persists the content across app restarts
+  2. User can open any faction's edit form and see a "Lore Notes" text area — typing in it and saving persists the content across app restarts
+  3. User can open any unit's detail sheet and see an "Undercoat" field — entering the primer used (e.g. "Chaos Black") saves and displays on subsequent opens
+  4. Journal session dates display the correct calendar date regardless of the user's local timezone — no off-by-one dates caused by UTC/local conversion
+**Plans**: TBD
+
+### Phase 18: Battle Log
+**Goal**: Users can record every game they play — opponent faction, mission, result, army list used, and optional notes — and view their complete game history in a chronological list
+**Depends on**: Phase 17
+**Requirements**: BATTLE-01, BATTLE-02, BATTLE-03, BATTLE-04, BATTLE-05
+**Success Criteria** (what must be TRUE):
+  1. User can navigate to a Battle Log page and log a new game by entering opponent faction, mission name, result (Win/Loss/Draw), and date — the entry saves and appears at the top of the list
+  2. User can select one of their existing army lists when logging a game — the army list name is shown on the saved log entry
+  3. User can add optional notes to a game log entry (MVP unit, lessons learned) and the notes are visible on the saved entry
+  4. User can view all logged games in a chronological list sorted newest first — each entry shows opponent, mission, result, date, army used, and notes
+  5. User can delete a game log entry and it is removed from the list immediately
+**Plans**: TBD
+
+### Phase 19: Analytics Core
+**Goal**: The Dashboard gains two auto-calculated hobby health metrics (velocity and painting streak) and the Spending page gains a monthly spend trend chart — all driven by existing journal session and purchase data
+**Depends on**: Phase 17
+**Requirements**: ANLY-04, ANLY-05, ANLY-06, ANLY-07
+**Success Criteria** (what must be TRUE):
+  1. Dashboard shows a "Hobby Velocity" stat — average units worked on per month calculated from journal session history — and the number updates when new sessions are logged
+  2. Dashboard shows a "Painting Streak" stat — the current count of consecutive calendar days with at least one journal session — and it increments when a session is logged today
+  3. Spending page shows a bar or line chart of monthly spend combining unit and paint purchases — each bar represents one calendar month's total spend
+  4. The spend trend chart uses purchase_date (from Phase 17's migration) for both units and paints — entries without a purchase_date are excluded from the chart (not bucketed to epoch)
+**Plans**: TBD
+
+### Phase 20: Wishlist
+**Goal**: Users can maintain a running list of models they want to buy — with name, faction, optional estimated cost, and notes — on a dedicated Wishlist page before the items exist in their collection
+**Depends on**: Phase 17
+**Requirements**: WISH-01, WISH-02, WISH-03, WISH-04
+**Success Criteria** (what must be TRUE):
+  1. User can navigate to a Wishlist page and add a new item by entering a name, selecting a faction, and optionally entering an estimated cost — the item saves and appears in the list
+  2. User can view all wishlist items on the Wishlist page in a list showing name, faction, estimated cost, and notes
+  3. User can add optional notes to a wishlist item (e.g. "wait for sale", "for Crusade roster") and the notes are visible on the saved item
+  4. User can delete a wishlist item and it is removed from the list immediately
+**Plans**: TBD
+
+### Phase 21: Hobby Goals
+**Goal**: Users can set monthly or quarterly painting targets — a unit count to complete by end of the period — and see live progress toward each goal calculated automatically from their journal session history
+**Depends on**: Phase 17
+**Requirements**: ANLY-01, ANLY-02, ANLY-03
+**Success Criteria** (what must be TRUE):
+  1. User can create a painting goal by specifying a target unit count and a timeframe (this month / this quarter) — the goal saves and appears on the Goals page
+  2. Each goal shows a progress bar — the filled portion reflects the count of distinct units that have at least one painting session logged during the goal's timeframe, updated automatically as sessions are added
+  3. User can view all active and completed goals on the Goals page — completed goals (progress >= target) are visually distinguished from active ones
+**Plans**: TBD
+
+### Phase 22: Display Features
+**Goal**: The Collection page gains a one-click Battle Ready filter showing only painted and assembled units, and users can enter Showcase Mode — a full-screen chromeless gallery of painted units — ideal for displaying the collection at club nights
+**Depends on**: Phase 17
+**Requirements**: DISP-01, DISP-02, DISP-03
+**Success Criteria** (what must be TRUE):
+  1. Collection page has a "Battle Ready" quick-filter button — clicking it filters the list to show only units that are fully painted and assembled, with the filter clearly indicated as active
+  2. User can click an "Enter Showcase" button and the app window goes full-screen with app chrome (sidebar, header) hidden — only the painted units gallery is visible
+  3. User can exit Showcase Mode by pressing Escape or clicking an exit button — the app returns to normal windowed view with chrome restored
+**Plans**: TBD
+
 ## Progress
 
-**Execution Order:** 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16
+**Execution Order:** 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -177,10 +267,16 @@ Plans:
 | 7. Paint Inventory | v2.0 | 5/5 | Complete | 2026-05-02 |
 | 8. Army List Builder | v2.0 | 6/6 | Complete | 2026-05-03 |
 | 9. Unit Playbook | v2.0 | 4/4 | Complete | 2026-05-02 |
-| 10. Theming Foundation | 3/4 | In Progress|  | — |
-| 11. Dashboard Command Center | v2.1 | Complete    | 2026-05-03 | 2026-05-03 |
-| 12. Collection Gallery View | 4/4 | Complete    | 2026-05-04 | — |
-| 13. Hobby Journal | 6/6 | Complete    | 2026-05-04 | — |
-| 14. Spending Tracker | 4/5 | In Progress|  | — |
+| 10. Theming Foundation | v2.1 | 3/4 | In Progress | — |
+| 11. Dashboard Command Center | v2.1 | 4/4 | Complete | 2026-05-03 |
+| 12. Collection Gallery View | v2.1 | 4/4 | Complete | 2026-05-04 |
+| 13. Hobby Journal | v2.1 | 6/6 | Complete | 2026-05-04 |
+| 14. Spending Tracker | v2.1 | 4/5 | In Progress | — |
 | 15. 40K Datasheet Integration | v2.1 | 0/7 | Not started | — |
 | 16. Design Overhaul | v2.1 | 0/8 | Not started | — |
+| 17. Schema Foundation + Enrichment | v2.2 | 0/TBD | Not started | — |
+| 18. Battle Log | v2.2 | 0/TBD | Not started | — |
+| 19. Analytics Core | v2.2 | 0/TBD | Not started | — |
+| 20. Wishlist | v2.2 | 0/TBD | Not started | — |
+| 21. Hobby Goals | v2.2 | 0/TBD | Not started | — |
+| 22. Display Features | v2.2 | 0/TBD | Not started | — |
