@@ -3,6 +3,8 @@
  */
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactNode } from "react";
 
 const useDatasheetsByFactionMock = vi.fn();
 
@@ -11,6 +13,15 @@ vi.mock("@/hooks/useDatasheet", () => ({
 }));
 
 import { DatasheetPicker } from "@/features/units/DatasheetPicker";
+
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  };
+}
 
 beforeEach(() => {
   useDatasheetsByFactionMock.mockReset();
@@ -32,7 +43,8 @@ describe("DatasheetPicker", () => {
         factionName="Space Marines"
         onSelect={vi.fn()}
         onClose={vi.fn()}
-      />
+      />,
+      { wrapper: createWrapper() }
     );
     expect(screen.getByText(/Searching Space Marines datasheets/)).toBeInTheDocument();
     expect(screen.getByText("Intercessors")).toBeInTheDocument();
@@ -57,7 +69,8 @@ describe("DatasheetPicker", () => {
         factionName="Space Marines"
         onSelect={vi.fn()}
         onClose={vi.fn()}
-      />
+      />,
+      { wrapper: createWrapper() }
     );
     const searchInput = screen.getByLabelText("Search datasheets");
 
