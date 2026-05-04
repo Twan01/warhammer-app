@@ -22,10 +22,13 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSpendingStats } from "@/hooks/useSpendingStats";
+import { useHobbyAnalytics } from "@/hooks/useHobbyAnalytics";
+import { SpendTrendChart } from "./SpendTrendChart";
 import { formatCurrency } from "@/lib/formatCurrency";
 
 export function SpendingPage() {
   const { data, isLoading, isError } = useSpendingStats();
+  const { data: analytics, isLoading: analyticsLoading } = useHobbyAnalytics();
 
   if (isLoading) {
     return (
@@ -83,6 +86,16 @@ export function SpendingPage() {
               {formatCurrency(data.totalPence)}
             </span>
           </Card>
+
+          {/* Monthly Trend section (Phase 19 ANLY-06, ANLY-07) */}
+          <section className="flex flex-col gap-4">
+            <h2 className="text-base font-semibold">Monthly Trend</h2>
+            {analyticsLoading ? (
+              <Skeleton className="h-60 w-full rounded-lg" />
+            ) : (
+              <SpendTrendChart data={analytics?.monthlyData ?? []} />
+            )}
+          </section>
 
           <section className="flex flex-col gap-4">
             <h2 className="text-base font-semibold">Breakdown</h2>
