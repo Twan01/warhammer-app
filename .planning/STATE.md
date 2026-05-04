@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: executing
-stopped_at: Phase 16 context gathered
-last_updated: "2026-05-04T07:13:33.816Z"
-last_activity: 2026-05-04 — Phase 14 Plan 01 — migration 006 + formatCurrency + types/queries + test fixtures; 254 passing, 23 skipped
+stopped_at: Completed 14-02-PLAN.md
+last_updated: "2026-05-04T07:22:46.242Z"
+last_activity: 2026-05-04 — Phase 14 Plan 02 — UnitSheet/PaintSheet purchase_price_pence fields + formatCurrency display + 6-hook spending-stats invalidation; 264 passing, 13 skipped
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 23
-  completed_plans: 19
-  percent: 83
+  completed_plans: 21
+  percent: 87
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-02 after v2.1 milestone start)
 ## Current Position
 
 Phase: 14 of 14 (IN PROGRESS: Phase 14 Spending Tracker)
-Plan: 14-01 complete — Migration 006 spend_pence + formatCurrency utility + Unit/Paint types + DB queries + 9 test stubs flipped; 254 passing, 23 skipped
-Status: Phase 14 in progress — Plans 14-00 and 14-01 done. Next: Plan 14-02 (form integration) and Plan 14-03 (SpendingPage) can run in parallel.
-Last activity: 2026-05-04 — Phase 14 Plan 01 — migration 006 + formatCurrency + types/queries + test fixtures; 254 passing, 23 skipped
+Plan: 14-02 complete — UnitSheet/PaintSheet purchase_price_pence form fields + UnitDetailSheet formatCurrency display + 6-hook spending-stats invalidation + 10 test stubs flipped; 264 passing, 13 skipped
+Status: Phase 14 in progress — Plans 14-00, 14-01, and 14-02 done. Next: Plan 14-03 (SpendingPage).
+Last activity: 2026-05-04 — Phase 14 Plan 02 — UnitSheet/PaintSheet purchase_price_pence fields + formatCurrency display + 6-hook spending-stats invalidation; 264 passing, 13 skipped
 
-Progress: [████████░░] 83% (19/23 plans complete)
+Progress: [█████████░] 87% (20/23 plans complete)
 
 ## v2.1 Phase Map
 
@@ -92,6 +92,10 @@ Architecture constraint: Phase 10 must complete before Phases 11–14. `bg-facti
 - Phase 14 Plan 01: updateUnit and updatePaint use UNCONDITIONAL assignment for purchase_price_pence (purchase_price_pence = $N, NOT COALESCE) so user can explicitly clear price to NULL (Pitfall 1)
 - Phase 14 Plan 01: formatCurrency is the ONLY division-by-100 site in the codebase — all call sites pass integer pence and receive locale-formatted string; defaults en-GB/GBP
 - Phase 14 Plan 01: Test fixtures in 13 additional test files still reference legacy purchase_price field — flagged for Plan 14-02 to fix alongside production call sites (UnitSheet, UnitDetailSheet, PaintSheet, unitSchema)
+- Phase 14 Plan 02: UnitSheet/PaintSheet purchase_price_pence plumbing (buildDefaultValues, onSubmit) was already done by Plan 14-01; only the FormField UI (step={1}, placeholder, helper text) needed updating
+- Phase 14 Plan 02: UnitDetailSheet had inline pence math `(/ 100).toFixed(2)` — replaced with formatCurrency() to respect the single-division-site constraint; UnitDetailSheet now shows £ locale-formatted currency
+- Phase 14 Plan 02: ['spending-stats'] literal used in useUnits.ts/usePaints.ts mutation hooks (not a constant); SPENDING_STATS_KEY constant arrives in Plan 14-03 alongside the hook that reads it
+- Phase 14 Plan 02: SPEND-01 and SPEND-02 closed; 264 passing, 13 skipped (Plan 14-03 stubs remain)
 
 ### Decisions Carried from v2.0
 
@@ -128,6 +132,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T07:13:33.812Z
-Stopped at: Phase 16 context gathered
+Last session: 2026-05-04T07:21:43.521Z
+Stopped at: Completed 14-02-PLAN.md
 Resume: Run `/gsd:execute-phase 14` to continue with Plan 14-02 (form integration) and Plan 14-03 (SpendingPage) — both unblocked and can run in parallel.
