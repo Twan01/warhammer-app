@@ -7,6 +7,7 @@ import { UnitSheet } from "@/features/units/UnitSheet";
 export function PaintingProjectsPage() {
   const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
   const [unitSheetOpen, setUnitSheetOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const openEdit = (unit: Unit) => {
     setEditingUnit(unit);
@@ -25,18 +26,12 @@ export function PaintingProjectsPage() {
           <p className="text-sm text-muted-foreground mt-1">Active units being worked on right now</p>
         </div>
         <div className="flex items-center gap-2">
-          <AddProjectPicker />
+          <AddProjectPicker open={pickerOpen} onOpenChange={setPickerOpen} />
         </div>
       </div>
       <KanbanBoard
         onEditUnit={openEdit}
-        onAddProject={() => {
-          // Empty-state CTA: click the AddProjectPicker button in the header
-          const btn = document.querySelector<HTMLButtonElement>(
-            'button[type="button"][aria-haspopup="dialog"]',
-          );
-          btn?.click();
-        }}
+        onAddProject={() => setPickerOpen(true)}
       />
 
       <UnitSheet

@@ -17,7 +17,7 @@ export function KanbanEmptyState({ onAddProject }: KanbanEmptyStateProps) {
           Mark a unit as an active project from Collection to see it here.
         </p>
       </div>
-      <Button className="mt-2" onClick={onAddProject}>Go to Collection</Button>
+      <Button className="mt-2" onClick={onAddProject}>Add Project</Button>
     </div>
   );
 }
