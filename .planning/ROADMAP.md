@@ -49,7 +49,7 @@ HobbyForge v2.1 transforms the visual identity with faction-aware dynamic themin
 - [x] **Phase 15: Warhammer 40K Datasheet Integration** — Auto-populate Playbook tab stats/abilities/keywords from community data, bundle local SQLite rules database, surface rulebook references in-app (completed 2024-05-04)
 - [x] **Phase 16: Design Overhaul** — Significantly improve visual design across all pages — typography, spacing, layouts, empty states, and overall UI polish
  (completed 2024-05-04)
-- [ ] **Phase 20: v2.1 Polish & Gap Closure** — Close DS-08 secondary path (DashboardPage conflict dialog), FactionsEmptyState icon pattern, upsertSyncMeta dead export, PaintingProjectsPage DOM query
+- [x] **Phase 20: v2.1 Polish & Gap Closure** — Close DS-08 secondary path (DashboardPage conflict dialog), FactionsEmptyState icon pattern, upsertSyncMeta dead export, PaintingProjectsPage DOM query (completed 2026-05-04)
 
 ### 📋 v2.2 Full Circle (Phases 17–19 + 21–23) — Planned
 
@@ -329,7 +329,7 @@ Plans:
 | 17. Schema Foundation + Enrichment | 1/1 | Complete    | 2024-05-04 | — |
 | 18. Battle Log | 4/4 | Complete    | 2024-05-04 | — |
 | 19. Analytics Core | v2.2 | 4/4 | Complete | 2024-05-04 |
-| 20. v2.1 Polish & Gap Closure | 2/3 | In Progress|  | — |
+| 20. v2.1 Polish & Gap Closure | 3/3 | Complete   | 2026-05-04 | — |
 | 21. Wishlist | v2.2 | 0/TBD | Not started | — |
 | 22. Hobby Goals | v2.2 | 0/TBD | Not started | — |
 | 23. Display Features | v2.2 | 0/TBD | Not started | — |

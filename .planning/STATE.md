@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Visual Command
 status: completed
-stopped_at: Completed 20-02-PLAN.md
-last_updated: "2026-05-04T16:52:31.454Z"
-last_activity: "2026-05-04 - Completed 20-01: FactionsEmptyState icon-pill pattern + dead upsertSyncMeta export removal"
+stopped_at: Completed 20-03-PLAN.md
+last_updated: "2026-05-04T16:58:34.178Z"
+last_activity: "2026-05-04 - Completed 20-03: DashboardPage conflict dialog wired"
 progress:
   total_phases: 15
-  completed_phases: 10
+  completed_phases: 11
   total_plans: 50
-  completed_plans: 49
-  percent: 96
+  completed_plans: 50
+  percent: 100
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.2 milestone start)
 ## Current Position
 
 Phase: 20 of 21 (v2.1 polish gap closure — in progress)
-Plan: 20-03 (next plan, if any — or phase complete)
-Status: 20-02 complete — AddProjectPicker controlled-props, pickerOpen lifted to PaintingProjectsPage, querySelector removed, KanbanEmptyState CTA text updated
-Last activity: 2026-05-04 - Completed 20-02: DOM-query tech-debt resolved via React state lift pattern
+Plan: Phase 20 complete (all 3 plans done)
+Status: 20-03 complete — DS-08 secondary path closed: DashboardPage DatasheetImportDialog wired, conflict-resolution now works from Dashboard same as CollectionPage
+Last activity: 2026-05-04 - Completed 20-03: DashboardPage conflict dialog wired
 
-Progress: [██████████] 98% (49/50 plans complete)
+Progress: [██████████] 100% (50/50 plans complete)
 
 ## v2.2 Phase Map
 
@@ -59,6 +59,7 @@ Architecture constraints:
 - getRulesDb import preserved in datasheets.ts after removal — still used by 4 remaining query functions (getDatasheetsByFaction, getFullDatasheet, getRulesSyncMeta, resolveWahapediaFactionIdByName)
 - AddProjectPicker controlled-props with internal fallback: destructure rename (open: controlledOpen) avoids shadowing; = {} default enables uncontrolled call sites; ?? operator selects controlled vs internal state
 - KanbanEmptyState CTA "Add Project" replaces "Go to Collection" — matches action that fires (picker opens, no navigation occurs); tech-debt:PaintingProjectsPage-DOM-query resolved
+- DS-08 conflict props added only to populated UnitDetailSheet in DashboardPage — empty-state no-op UnitDetailSheet (open={false}) left unchanged; DatasheetImportDialog mounted as last sibling inside populated-state fragment after lightbox Dialog
 
 ### Phase 19 Decisions
 
@@ -168,6 +169,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T16:52:31.450Z
-Stopped at: Completed 20-02-PLAN.md
+Last session: 2026-05-04T16:58:34.175Z
+Stopped at: Completed 20-03-PLAN.md
 Resume: Phase 19 complete — Phase 20 Wishlist is next. Run `/gsd:progress` to see current status
