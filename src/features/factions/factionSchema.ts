@@ -17,6 +17,7 @@ export const factionSchema = z.object({
     .string()
     .regex(/^#[0-9A-Fa-f]{6}$/, "Color must be a 6-digit hex like #4A90D9"),
   icon_path: z.string().optional().nullable(),
+  lore_notes: z.string().optional().nullable(),
 });
 
 export type FactionFormValues = z.infer<typeof factionSchema>;
