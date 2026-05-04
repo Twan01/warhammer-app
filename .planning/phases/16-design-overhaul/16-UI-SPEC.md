@@ -42,7 +42,7 @@ Declared values (must be multiples of 4):
 | 3xl | 64px | Page-level spacing / hero section vertical breathing room |
 
 **Exceptions:**
-- Empty state containers: `py-16` (64px top/bottom) — intentional, provides visual weight at page center. This is not a spacing token; it is a layout override for a specific structural pattern.
+- Empty state containers: `py-16` (64px top/bottom) — intentional, provides visual weight at page center. This is not a spacing token; it is a layout override for a specific structural pattern. Applies to both the standard empty-state pattern and the Dashboard welcome screen.
 - Touch/click targets: minimum 32px tall for all interactive nav items and buttons (current `py-1.5` on NavItem = 28px + 4px border = 32px — acceptable, do not reduce).
 - Page outer wrapper: keep current `flex flex-col gap-6 p-6` (`24px padding, 24px gap`). Phase 16 upgrades typography and content within pages; it does not restructure the outer wrapper padding.
 
@@ -59,13 +59,15 @@ Declared values (must be multiples of 4):
 | Card title / sub-heading | 16px | 600 (semibold) | 1.4 | `text-base font-semibold` |
 | Page heading | 28px | 600 (semibold) | 1.2 | `text-3xl font-semibold tracking-tight` |
 
+**Declared scale: 3 distinct sizes — 14px / 16px / 28px. No other font sizes are permitted in Phase 16.**
+
 **Only two weights are used across the entire spec: 400 (font-normal) for body text and 600 (font-semibold) for all UI labels, card titles, and headings. Do not introduce font-medium (500) or font-bold (700) anywhere in Phase 16.**
 
 **Numeric values:** Add `tabular-nums` class to all numeric displays: painted percentages, points totals, stat block values (M/T/Sv/W/Ld/OC), spend amounts formatted by `formatCurrency`. This is a single class addition at the render site.
 
 **Heading upgrade rule:** Every `<h1 className="text-xl font-semibold">` in all `*Page.tsx` files becomes `<h1 className="text-3xl font-semibold tracking-tight">`. This is the single highest-impact change. Card titles (`CardTitle`, section headers within cards) remain at 16px / semibold to preserve hierarchy.
 
-**Source:** CONTEXT.md §Typography ("upgrade from current `text-xl font-semibold` to clearly dominant headings — `text-2xl` or `text-3xl`, `tracking-tight`"; "`text-3xl` chosen here over text-2xl to match Linear's heading weight contrast at desktop densities"; "add `tabular-nums` Tailwind class to all numeric values"). Body at 14px is the existing shadcn new-york default; kept consistent. Weights collapsed from 4 to 2 per checker revision (2026-05-04): font-medium (500) removed in favour of font-semibold (600) for labels; font-bold (700) replaced by font-semibold (600) for headings — tracking-tight carries the hierarchy at 28px without needing 700.
+**Source:** CONTEXT.md §Typography ("upgrade from current `text-xl font-semibold` to clearly dominant headings — `text-2xl` or `text-3xl`, `tracking-tight`"; "`text-3xl` chosen here over text-2xl to match Linear's heading weight contrast at desktop densities"; "add `tabular-nums` Tailwind class to all numeric values"). Body at 14px is the existing shadcn new-york default; kept consistent. Weights collapsed from 4 to 2 per checker revision (2026-05-04): font-medium (500) removed in favour of font-semibold (600) for labels; font-bold (700) replaced by font-semibold (600) for headings — tracking-tight carries the hierarchy at 28px without needing 700. Scale collapsed from 5 to 3 sizes per checker revision (2026-05-04): text-xl (20px) and text-2xl (24px) removed — welcome screen uses text-base and text-3xl only.
 
 ---
 
@@ -193,13 +195,13 @@ Note: `gap-3` (12px) in the empty-state structural pattern above is an internal 
 Full-page welcome experience. Replaces the current `DashboardEmptyState`.
 
 ```
-<div className="flex flex-col items-center justify-center gap-6 py-20 text-center">
+<div className="flex flex-col items-center justify-center gap-6 py-16 text-center">
   <div className="flex items-center gap-3">
     <Sword className="h-8 w-8 text-faction-accent" />
-    <span className="text-2xl font-semibold tracking-tight">HobbyForge</span>
+    <span className="text-3xl font-semibold tracking-tight">HobbyForge</span>
   </div>
   <div className="space-y-2 max-w-sm">
-    <p className="text-xl font-semibold">Your collection is empty</p>
+    <p className="text-base font-semibold">Your collection is empty</p>
     <p className="text-sm text-muted-foreground">
       HobbyForge tracks what you own, what's painted, and what's ready to play.
       Add your first unit to get started.
@@ -210,6 +212,8 @@ Full-page welcome experience. Replaces the current `DashboardEmptyState`.
   </Button>
 </div>
 ```
+
+Sizing rationale (checker revision 2026-05-04): The HobbyForge wordmark is the page heading for the welcome screen — it uses `text-3xl` (28px), consistent with all other page headings. "Your collection is empty" is a sub-heading within the welcome block — it uses `text-base` (16px), consistent with card titles. `py-16` (64px) is the approved empty-state vertical padding token — replaces previous `py-20` (80px) which was outside the declared spacing scale.
 
 **Source:** CONTEXT.md §Empty States ("icon + polished copy", "Dashboard special case: welcome screen — first-run experience — app name/wordmark, clear CTA to add first unit, brief one-line explanation of what the app does").
 
