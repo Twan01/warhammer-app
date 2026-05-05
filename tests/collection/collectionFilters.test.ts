@@ -23,6 +23,7 @@ const initial = {
   )[],
   categories: [] as string[],
   activeOnly: false,
+  battleReady: false,
 };
 
 describe("collectionFilters store", () => {
@@ -76,6 +77,26 @@ describe("collectionFilters store", () => {
     expect(useCollectionFilters.getState().activeOnly).toBe(false);
   });
 
+  it("battleReady starts as false", () => {
+    const s = useCollectionFilters.getState();
+    expect(s.battleReady).toBe(false);
+  });
+
+  it("toggleBattleReady flips the boolean", () => {
+    useCollectionFilters.getState().toggleBattleReady();
+    expect(useCollectionFilters.getState().battleReady).toBe(true);
+    useCollectionFilters.getState().toggleBattleReady();
+    expect(useCollectionFilters.getState().battleReady).toBe(false);
+  });
+
+  it("clearAll resets battleReady to false", () => {
+    const s = useCollectionFilters.getState();
+    s.toggleBattleReady();
+    expect(s.battleReady).toBe(true);
+    s.clearAll();
+    expect(useCollectionFilters.getState().battleReady).toBe(false);
+  });
+
   it("clearAll resets every field", () => {
     const s = useCollectionFilters.getState();
     s.setSearch("x");
@@ -83,6 +104,7 @@ describe("collectionFilters store", () => {
     s.toggleStatus("Built");
     s.toggleCategory("Infantry");
     s.toggleActiveOnly();
+    s.toggleBattleReady();
     s.clearAll();
     const after = useCollectionFilters.getState();
     expect(after).toMatchObject(initial);

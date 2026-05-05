@@ -22,7 +22,7 @@ function u(over: Partial<Unit>): Unit {
     ...over,
   };
 }
-const empty = { search: "", factions: [], statuses: [], categories: [], activeOnly: false };
+const empty = { search: "", factions: [], statuses: [], categories: [], activeOnly: false, battleReady: false };
 
 describe("unitFilters", () => {
   describe("search", () => {
@@ -105,8 +105,51 @@ describe("unitFilters", () => {
         u({ id: 3, name: "Necron Warriors",   faction_id: 2, status_painting: "Built", category: "Infantry", is_active_project: 1 }),
       ];
       const out = applyUnitFilters(data, {
-        search: "tau", factions: [1], statuses: ["Built"], categories: ["Infantry"], activeOnly: true,
+        search: "tau", factions: [1], statuses: ["Built"], categories: ["Infantry"], activeOnly: true, battleReady: false,
       });
+      expect(out).toHaveLength(1);
+      expect(out[0].id).toBe(1);
+    });
+  });
+
+  describe("battleReady", () => {
+    it("battleReady=false returns all units", () => {
+      const data = [
+        u({ id: 1, status_assembly: 1, status_painting: "Completed" }),
+        u({ id: 2, status_assembly: 0, status_painting: "Built" }),
+        u({ id: 3, status_assembly: 1, status_painting: "Primed" }),
+      ];
+      expect(applyUnitFilters(data, { ...empty, battleReady: false })).toHaveLength(3);
+    });
+
+    it("battleReady=true keeps only assembled + completed units", () => {
+      const data = [
+        u({ id: 1, status_assembly: 1, status_painting: "Completed" }),
+        u({ id: 2, status_assembly: 0, status_painting: "Built" }),
+        u({ id: 3, status_assembly: 1, status_painting: "Primed" }),
+      ];
+      const out = applyUnitFilters(data, { ...empty, battleReady: true });
+      expect(out).toHaveLength(1);
+      expect(out[0].id).toBe(1);
+    });
+
+    it("battleReady=true excludes assembled-but-not-completed", () => {
+      const data = [u({ id: 1, status_assembly: 1, status_painting: "Built" })];
+      expect(applyUnitFilters(data, { ...empty, battleReady: true })).toHaveLength(0);
+    });
+
+    it("battleReady=true excludes completed-but-not-assembled", () => {
+      const data = [u({ id: 1, status_assembly: 0, status_painting: "Completed" })];
+      expect(applyUnitFilters(data, { ...empty, battleReady: true })).toHaveLength(0);
+    });
+
+    it("battleReady composes with activeOnly (AND logic)", () => {
+      const data = [
+        u({ id: 1, status_assembly: 1, status_painting: "Completed", is_active_project: 1 }),
+        u({ id: 2, status_assembly: 1, status_painting: "Completed", is_active_project: 0 }),
+        u({ id: 3, status_assembly: 0, status_painting: "Built",     is_active_project: 1 }),
+      ];
+      const out = applyUnitFilters(data, { ...empty, battleReady: true, activeOnly: true });
       expect(out).toHaveLength(1);
       expect(out[0].id).toBe(1);
     });
