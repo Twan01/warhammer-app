@@ -1,57 +1,129 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { LoadoutWargear } from "@/types/unitLoadout";
 
-// TODO(24-02): vi.mock("@/db/client") — mock getDb for SQL assertions
+vi.mock("@/db/client", () => ({
+  getDb: vi.fn(),
+}));
 
-describe.skip("unitLoadoutQueries", () => {
+import { getDb } from "@/db/client";
+import {
+  getUnitLoadouts,
+  createLoadout,
+  deleteLoadout,
+  activateLoadout,
+  addWargearToLoadout,
+  removeWargearFromLoadout,
+} from "@/db/queries/unitLoadouts";
+
+const mockDb = {
+  select: vi.fn(),
+  execute: vi.fn(),
+};
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.mocked(getDb).mockResolvedValue(mockDb as never);
+});
+
+describe("unitLoadoutQueries", () => {
   // LOAD-01: getUnitLoadouts returns all loadouts for a unit including wargear
   describe("getUnitLoadouts", () => {
-    it.skip("returns all loadouts for a unit with nested wargear arrays", () => {
-      // TODO(24-02): Mock db.select for loadouts query, then for wargear query per loadout
-      // Assert getUnitLoadouts(1) returns loadout objects with wargear: [] arrays
+    it("returns all loadouts for a unit with nested wargear arrays", async () => {
+      const loadoutRows = [
+        { id: 1, unit_id: 1, name: "Anti-tank", is_active: 1 as const, created_at: "2026-01-01", updated_at: "2026-01-01" },
+        { id: 2, unit_id: 1, name: "Anti-infantry", is_active: 0 as const, created_at: "2026-01-01", updated_at: "2026-01-01" },
+      ];
+      const wargearRows: LoadoutWargear[] = [
+        { id: 10, loadout_id: 1, weapon_name: "Lascannon", weapon_line: 1, is_manual: 0, created_at: "2026-01-01" },
+      ];
+      mockDb.select
+        .mockResolvedValueOnce(loadoutRows)
+        .mockResolvedValueOnce(wargearRows);
+
+      const result = await getUnitLoadouts(1);
+      expect(result).toHaveLength(2);
+      expect(result[0].wargear).toHaveLength(1);
+      expect(result[0].wargear[0].weapon_name).toBe("Lascannon");
+      expect(result[1].wargear).toHaveLength(0);
     });
 
-    it.skip("returns empty array when unit has no loadouts", () => {
-      // TODO(24-02): Mock db.select to return []
-      // Assert getUnitLoadouts(999) returns []
+    it("returns empty array when unit has no loadouts", async () => {
+      mockDb.select.mockResolvedValueOnce([]);
+      const result = await getUnitLoadouts(999);
+      expect(result).toEqual([]);
     });
   });
 
   // LOAD-02: activateLoadout sets is_active=1 on target and 0 on all others
   describe("activateLoadout", () => {
-    it.skip("deactivates all loadouts for unit then activates the target", () => {
-      // TODO(24-02): Call activateLoadout(loadoutId=2, unitId=1)
-      // Assert first db.execute: UPDATE unit_loadouts SET is_active = 0 WHERE unit_id = $1 [1]
-      // Assert second db.execute: UPDATE unit_loadouts SET is_active = 1 WHERE id = $1 [2]
+    it("deactivates all loadouts for unit then activates the target", async () => {
+      mockDb.execute.mockResolvedValue({ rowsAffected: 1 });
+      await activateLoadout(2, 1);
+      expect(mockDb.execute).toHaveBeenCalledTimes(2);
+      // First call: deactivate all for unit
+      expect(mockDb.execute).toHaveBeenNthCalledWith(
+        1,
+        expect.stringContaining("SET is_active = 0"),
+        [1],
+      );
+      // Second call: activate target loadout
+      expect(mockDb.execute).toHaveBeenNthCalledWith(
+        2,
+        expect.stringContaining("SET is_active = 1"),
+        [2],
+      );
     });
   });
 
   // LOAD-03: createLoadout and deleteLoadout round-trip
   describe("createLoadout", () => {
-    it.skip("inserts a new loadout row and returns the id", () => {
-      // TODO(24-02): Call createLoadout({ unit_id: 1, name: "Anti-tank" })
-      // Assert db.execute called with INSERT INTO unit_loadouts
-      // Assert returned id matches lastInsertId
+    it("inserts a new loadout row and returns the id", async () => {
+      mockDb.execute.mockResolvedValue({ lastInsertId: 5, rowsAffected: 1 });
+      const id = await createLoadout({ unit_id: 1, name: "Anti-tank" });
+      expect(mockDb.execute).toHaveBeenCalledWith(
+        expect.stringContaining("INSERT INTO unit_loadouts"),
+        [1, "Anti-tank"],
+      );
+      expect(id).toBe(5);
     });
   });
 
   describe("deleteLoadout", () => {
-    it.skip("deletes loadout by id (CASCADE removes wargear)", () => {
-      // TODO(24-02): Call deleteLoadout(5)
-      // Assert db.execute called with DELETE FROM unit_loadouts WHERE id = $1 [5]
+    it("deletes loadout by id (CASCADE removes wargear)", async () => {
+      mockDb.execute.mockResolvedValue({ rowsAffected: 1 });
+      await deleteLoadout(5);
+      expect(mockDb.execute).toHaveBeenCalledWith(
+        expect.stringContaining("DELETE FROM unit_loadouts WHERE id = $1"),
+        [5],
+      );
     });
   });
 
   describe("addWargearToLoadout", () => {
-    it.skip("inserts a wargear row linked to a loadout", () => {
-      // TODO(24-02): Call addWargearToLoadout({ loadout_id: 2, weapon_name: "Bolt Rifle", weapon_line: 1, is_manual: false })
-      // Assert db.execute with INSERT INTO unit_loadout_wargear
+    it("inserts a wargear row linked to a loadout", async () => {
+      mockDb.execute.mockResolvedValue({ lastInsertId: 10, rowsAffected: 1 });
+      const id = await addWargearToLoadout({
+        loadout_id: 2,
+        weapon_name: "Bolt Rifle",
+        weapon_line: 1,
+        is_manual: false,
+      });
+      expect(mockDb.execute).toHaveBeenCalledWith(
+        expect.stringContaining("INSERT INTO unit_loadout_wargear"),
+        [2, "Bolt Rifle", 1, 0],
+      );
+      expect(id).toBe(10);
     });
   });
 
   describe("removeWargearFromLoadout", () => {
-    it.skip("deletes a wargear row by id", () => {
-      // TODO(24-02): Call removeWargearFromLoadout(10)
-      // Assert db.execute with DELETE FROM unit_loadout_wargear WHERE id = $1 [10]
+    it("deletes a wargear row by id", async () => {
+      mockDb.execute.mockResolvedValue({ rowsAffected: 1 });
+      await removeWargearFromLoadout(10);
+      expect(mockDb.execute).toHaveBeenCalledWith(
+        expect.stringContaining("DELETE FROM unit_loadout_wargear WHERE id = $1"),
+        [10],
+      );
     });
   });
 });

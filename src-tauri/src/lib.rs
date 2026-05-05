@@ -64,6 +64,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/010_hobby_goals.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 11,
+            description: "point_tiers_loadouts",
+            sql: include_str!("../migrations/011_point_tiers_loadouts.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
