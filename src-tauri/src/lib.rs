@@ -1,5 +1,6 @@
 use tauri::Manager;
 use tauri_plugin_sql::{Migration, MigrationKind};
+use std::collections::HashMap;
 
 fn get_migrations() -> Vec<Migration> {
     vec![
@@ -51,6 +52,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/008_enrichment.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 9,
+            description: "wishlist",
+            sql: include_str!("../migrations/009_wishlist.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
@@ -62,7 +69,314 @@ fn get_rules_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/rules_001_schema.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 2,
+            description: "wargear_abilities",
+            sql: include_str!("../migrations/rules_002_wargear_abilities.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
+}
+
+// ── Sync helpers ─────────────────────────────────────────────────────────────
+
+type JsRow = HashMap<String, serde_json::Value>;
+
+fn str_val(row: &JsRow, key: &str) -> Option<String> {
+    row.get(key)
+        .and_then(|v| v.as_str())
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_string())
+}
+
+fn i64_val(row: &JsRow, key: &str) -> Option<i64> {
+    row.get(key).and_then(|v| {
+        if let Some(n) = v.as_i64() { return Some(n); }
+        v.as_str()?.parse().ok()
+    })
+}
+
+#[derive(serde::Deserialize)]
+pub struct BulkSyncPayload {
+    factions: Vec<JsRow>,
+    sources: Vec<JsRow>,
+    datasheets: Vec<JsRow>,
+    models: Vec<JsRow>,
+    abilities: Vec<JsRow>,
+    keywords: Vec<JsRow>,
+    // Extension: wargear, shared abilities, stratagems, detachments
+    wargear: Vec<JsRow>,
+    shared_abilities: Vec<JsRow>,
+    stratagems: Vec<JsRow>,
+    detachments: Vec<JsRow>,
+    detachment_abilities: Vec<JsRow>,
+    last_sync_at: String,
+    wahapedia_version: String,
+}
+
+/// Bulk-insert all Wahapedia CSV data into rules.db inside a single native
+/// SQLite transaction. Uses a direct sqlx connection (not the plugin pool)
+/// so all statements run on one connection and the transaction is real.
+#[tauri::command]
+async fn bulk_sync_rules(
+    app: tauri::AppHandle,
+    payload: BulkSyncPayload,
+) -> Result<(), String> {
+    use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, Connection};
+    use std::str::FromStr;
+
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("app_data_dir: {e}"))?;
+    let db_url = format!("sqlite:{}", app_data_dir.join("rules.db").display());
+
+    let opts = SqliteConnectOptions::from_str(&db_url)
+        .map_err(|e| format!("opts: {e}"))?
+        .create_if_missing(false)
+        .journal_mode(sqlx::sqlite::SqliteJournalMode::Wal)
+        .busy_timeout(std::time::Duration::from_secs(30));
+
+    // Single connection (not a pool) — all statements in the same transaction.
+    let mut conn = opts.connect().await.map_err(|e| format!("connect: {e}"))?;
+
+    // Disable FK checks so we can DELETE in any order
+    sqlx::query("PRAGMA foreign_keys = OFF")
+        .execute(&mut conn)
+        .await
+        .map_err(|e| format!("pragma fk off: {e}"))?;
+
+    let mut tx = conn.begin().await.map_err(|e| format!("begin: {e}"))?;
+
+    // Delete all tables (FK checks OFF so order doesn't matter)
+    for table in [
+        "rw_datasheet_keywords",
+        "rw_datasheet_abilities",
+        "rw_datasheet_models",
+        "rw_datasheets_wargear",
+        "rw_datasheets",
+        "rw_sources",
+        "rw_factions",
+        "rw_abilities",
+        "rw_stratagems",
+        "rw_detachment_abilities",
+        "rw_detachments",
+    ] {
+        sqlx::query(&format!("DELETE FROM {table}"))
+            .execute(&mut *tx)
+            .await
+            .map_err(|e| format!("delete {table}: {e}"))?;
+    }
+
+    for row in &payload.factions {
+        let id = str_val(row, "id").unwrap_or_default();
+        if id.is_empty() { continue; }
+        sqlx::query("INSERT INTO rw_factions (id, name) VALUES (?, ?)")
+            .bind(&id)
+            .bind(str_val(row, "name").unwrap_or_default())
+            .execute(&mut *tx)
+            .await
+            .map_err(|e| format!("insert faction {id}: {e}"))?;
+    }
+
+    for row in &payload.sources {
+        let id = str_val(row, "id").unwrap_or_default();
+        if id.is_empty() { continue; }
+        sqlx::query(
+            "INSERT INTO rw_sources (id, name, type, edition, version, errata_date) VALUES (?, ?, ?, ?, ?, ?)",
+        )
+        .bind(&id)
+        .bind(str_val(row, "name").unwrap_or_default())
+        .bind(str_val(row, "type"))
+        .bind(i64_val(row, "edition"))
+        .bind(str_val(row, "version"))
+        .bind(str_val(row, "errata_date"))
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert source {id}: {e}"))?;
+    }
+
+    for row in &payload.datasheets {
+        let id = str_val(row, "id").unwrap_or_default();
+        if id.is_empty() { continue; }
+        sqlx::query(
+            "INSERT INTO rw_datasheets (id, name, faction_id, source_id, role, damaged_w, damaged_description) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        )
+        .bind(&id)
+        .bind(str_val(row, "name").unwrap_or_default())
+        .bind(str_val(row, "faction_id"))
+        .bind(str_val(row, "source_id"))
+        .bind(str_val(row, "role"))
+        .bind(str_val(row, "damaged_w"))
+        .bind(str_val(row, "damaged_description"))
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert datasheet {id}: {e}"))?;
+    }
+
+    for row in &payload.models {
+        let ds_id = str_val(row, "datasheet_id").unwrap_or_default();
+        if ds_id.is_empty() { continue; }
+        sqlx::query(
+            "INSERT OR IGNORE INTO rw_datasheet_models (datasheet_id, line, name, M, T, Sv, inv_sv, W, Ld, OC) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        )
+        .bind(&ds_id)
+        .bind(i64_val(row, "line").unwrap_or(1))
+        .bind(str_val(row, "name"))
+        .bind(str_val(row, "M"))
+        .bind(i64_val(row, "T"))
+        .bind(str_val(row, "Sv"))
+        .bind(str_val(row, "inv_sv"))
+        .bind(i64_val(row, "W"))
+        .bind(str_val(row, "Ld"))
+        .bind(i64_val(row, "OC"))
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert model {ds_id}: {e}"))?;
+    }
+
+    for row in &payload.abilities {
+        let ds_id = str_val(row, "datasheet_id").unwrap_or_default();
+        if ds_id.is_empty() { continue; }
+        sqlx::query(
+            "INSERT OR IGNORE INTO rw_datasheet_abilities (datasheet_id, line, ability_id, name, description, type, parameter) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        )
+        .bind(&ds_id)
+        .bind(i64_val(row, "line").unwrap_or(1))
+        .bind(str_val(row, "ability_id"))
+        .bind(str_val(row, "name").unwrap_or_default())
+        .bind(str_val(row, "description"))
+        .bind(str_val(row, "type"))
+        .bind(str_val(row, "parameter"))
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert ability {ds_id}: {e}"))?;
+    }
+
+    for row in &payload.keywords {
+        let ds_id = str_val(row, "datasheet_id").unwrap_or_default();
+        let kw = str_val(row, "keyword").unwrap_or_default();
+        if ds_id.is_empty() || kw.is_empty() { continue; }
+        let is_faction: i64 = if str_val(row, "is_faction_keyword").as_deref() == Some("true") { 1 } else { 0 };
+        sqlx::query(
+            "INSERT INTO rw_datasheet_keywords (datasheet_id, keyword, is_faction_keyword) VALUES (?, ?, ?)",
+        )
+        .bind(&ds_id)
+        .bind(&kw)
+        .bind(is_faction)
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert keyword {ds_id}/{kw}: {e}"))?;
+    }
+
+    for row in &payload.wargear {
+        let ds_id = str_val(row, "datasheet_id").unwrap_or_default();
+        if ds_id.is_empty() { continue; }
+        sqlx::query(
+            "INSERT OR IGNORE INTO rw_datasheets_wargear (datasheet_id, line, line_in_wargear, dice, name, description, range, type, A, BS_WS, S, AP, D) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        )
+        .bind(&ds_id)
+        .bind(i64_val(row, "line").unwrap_or(1))
+        .bind(i64_val(row, "line_in_wargear").unwrap_or(1))
+        .bind(str_val(row, "dice"))
+        .bind(str_val(row, "name").unwrap_or_default())
+        .bind(str_val(row, "description"))
+        .bind(str_val(row, "range"))
+        .bind(str_val(row, "type"))
+        .bind(str_val(row, "A"))
+        .bind(str_val(row, "BS_WS"))
+        .bind(str_val(row, "S"))
+        .bind(str_val(row, "AP"))
+        .bind(str_val(row, "D"))
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert wargear {ds_id}: {e}"))?;
+    }
+
+    for row in &payload.shared_abilities {
+        let id = str_val(row, "id").unwrap_or_default();
+        if id.is_empty() { continue; }
+        sqlx::query(
+            "INSERT OR IGNORE INTO rw_abilities (id, name, legend, faction_id, description) VALUES (?, ?, ?, ?, ?)",
+        )
+        .bind(&id)
+        .bind(str_val(row, "name").unwrap_or_default())
+        .bind(str_val(row, "legend"))
+        .bind(str_val(row, "faction_id"))
+        .bind(str_val(row, "description"))
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert ability {id}: {e}"))?;
+    }
+
+    for row in &payload.stratagems {
+        let id = str_val(row, "id").unwrap_or_default();
+        if id.is_empty() { continue; }
+        sqlx::query(
+            "INSERT OR IGNORE INTO rw_stratagems (id, faction_id, name, type, cp_cost, legend, turn, phase, detachment, detachment_id, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        )
+        .bind(&id)
+        .bind(str_val(row, "faction_id"))
+        .bind(str_val(row, "name").unwrap_or_default())
+        .bind(str_val(row, "type"))
+        .bind(str_val(row, "cp_cost"))
+        .bind(str_val(row, "legend"))
+        .bind(str_val(row, "turn"))
+        .bind(str_val(row, "phase"))
+        .bind(str_val(row, "detachment"))
+        .bind(str_val(row, "detachment_id"))
+        .bind(str_val(row, "description"))
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert stratagem {id}: {e}"))?;
+    }
+
+    for row in &payload.detachments {
+        let id = str_val(row, "id").unwrap_or_default();
+        if id.is_empty() { continue; }
+        sqlx::query(
+            "INSERT OR IGNORE INTO rw_detachments (id, faction_id, name, legend, type) VALUES (?, ?, ?, ?, ?)",
+        )
+        .bind(&id)
+        .bind(str_val(row, "faction_id"))
+        .bind(str_val(row, "name").unwrap_or_default())
+        .bind(str_val(row, "legend"))
+        .bind(str_val(row, "type"))
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert detachment {id}: {e}"))?;
+    }
+
+    for row in &payload.detachment_abilities {
+        let id = str_val(row, "id").unwrap_or_default();
+        if id.is_empty() { continue; }
+        sqlx::query(
+            "INSERT OR IGNORE INTO rw_detachment_abilities (id, faction_id, name, legend, description, detachment, detachment_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        )
+        .bind(&id)
+        .bind(str_val(row, "faction_id"))
+        .bind(str_val(row, "name").unwrap_or_default())
+        .bind(str_val(row, "legend"))
+        .bind(str_val(row, "description"))
+        .bind(str_val(row, "detachment"))
+        .bind(str_val(row, "detachment_id"))
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert det_ability {id}: {e}"))?;
+    }
+
+    // Write sync meta inside the same transaction
+    sqlx::query(
+        "INSERT OR REPLACE INTO rw_sync_meta (id, last_sync_at, wahapedia_version) VALUES (1, ?, ?)",
+    )
+    .bind(&payload.last_sync_at)
+    .bind(&payload.wahapedia_version)
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| format!("insert sync_meta: {e}"))?;
+
+    tx.commit().await.map_err(|e| format!("commit: {e}"))?;
+    Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -70,8 +384,6 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_http::init())
         .setup(|app| {
-            // SETUP-07 + Pitfall 3: ensure %APPDATA%\com.hobbyforge.app\ exists
-            // before tauri-plugin-sql tries to open hobbyforge.db inside it.
             let app_data_dir = app
                 .path()
                 .app_data_dir()
@@ -89,7 +401,7 @@ pub fn run() {
                 .add_migrations("sqlite:rules.db", get_rules_migrations())
                 .build(),
         )
-        .invoke_handler(tauri::generate_handler![])
+        .invoke_handler(tauri::generate_handler![bulk_sync_rules])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
