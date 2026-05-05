@@ -17,16 +17,6 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Full Circle
 status: executing
-stopped_at: Completed 29-01-PLAN.md (Wave 1 data layer)
-last_updated: "2026-05-05T14:40:11.844Z"
-progress:
-  total_phases: 12
-  completed_phases: 6
-  total_plans: 30
-  completed_plans: 26
-  percent: 83
----
-
 # Project State
 
 ## Project Reference
@@ -38,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.3 milestone start)
 
 ## Current Position
 
-Phase: 29 — Workshop + Play (plan 01 complete)
-Plan: 29-01 complete — Wave 1 data layer: getRecipeSwatchColors, useRecipeSwatchData, getArmyListReadiness, useArmyListReadiness, cache invalidation wired
-Status: In progress — 2/? plans done for Phase 29
+Phase: 28 — Collection + Projects (plan 03 complete)
+Plan: 28-03 complete — Wave 2: KanbanCard enrichment (metadata row, next-action hints, Log Session button), prop chain wiring through KanbanBoard > KanbanColumn > KanbanCard, LogSessionSheet sibling portal in PaintingProjectsPage
+Status: In progress — 3/? plans done for Phase 28
 
-Progress: [████████░░] 83% (25/30 plans complete)
+Progress: [█████████░] 87% (26/30 plans complete)
 
 ## v2.3 Phase Map
 
@@ -69,6 +59,10 @@ Progress: [████████░░] 83% (25/30 plans complete)
 
 ### Phase 28 Decisions
 
+- stopPropagation pattern on Log Session Paintbrush button mirrors KanbanCardActions PopoverTrigger — prevents dnd-kit drag from activating on button click
+- activeUnitIds memoized (useMemo) before useKanbanEnrichment call in KanbanBoard — avoids hook receiving a new array reference on every render, preventing unnecessary refetches
+- enrichment passed as optional prop (enrichment?) on KanbanColumn — kanban renders correctly before hook resolves; no skeleton gating needed for enrichment data
+- LogSessionSheet mounted as sibling portal after UnitSheet in PaintingProjectsPage — consistent with sibling Sheet/Dialog portal pattern (never nested inside KanbanCard or KanbanBoard)
 - GalleryCardPhoto sub-component co-located in UnitGallery.tsx (not separate file) — self-contained fallback logic with useState(imgFailed) stays adjacent to the gallery rendering
 - faction color applied as borderTop on placeholder div (not background) — maintains legibility of initials text against bg-panel-surface
 - latestPhotos passed as optional prop (latestPhotos?) — gallery renders without photos during initial load before hook resolves
