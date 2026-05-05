@@ -7,6 +7,7 @@
 - ✅ **v2.1 Visual Command** — Phases 10–16 + 20 (shipped 2026-05-04)
 - ⏸️ **v2.2 Full Circle** — Phases 17–19 shipped, 21–23 deferred
 - ✅ **v2.3 Hobby Command Center** — Phases 25–29 (shipped 2026-05-05)
+- 🚧 **v2.4 Premium Dashboard UX & Visual Polish** — Phases 30–34 (in progress)
 
 ## Phases
 
@@ -78,6 +79,18 @@ Full details: `.planning/milestones/v2.1-ROADMAP.md`
 Full details: `.planning/milestones/v2.3-ROADMAP.md`
 
 </details>
+
+---
+
+### 🚧 v2.4 Premium Dashboard UX & Visual Polish (Phases 30–34)
+
+**Milestone Goal:** Transform the dashboard into a premium, hobby-native command center with grid layout, richer interactions, centralized photos, and smarter data surfaces — making it feel less like a generic admin panel and more like a personal hobby forge.
+
+- [ ] **Phase 30: Grid Layout Foundation** — Dashboard CSS grid (asymmetric 2-column bento), clickable StatCards, and 5-bucket pipeline grouping
+- [ ] **Phase 31: Focus & Projects Panels** — CurrentFocusCard v2 (photo, metadata, actions) and ActiveProjectsPanel with photo thumbnails and quick actions
+- [ ] **Phase 32: Army Readiness Card** — Dedicated ArmyReadinessCard with target point selector and per-faction progress bars
+- [ ] **Phase 33: Data Intelligence** — Log Session status updates with cache invalidation, spending metrics (cost per model, painted vs unpainted value), recipe–unit association
+- [ ] **Phase 34: Visual Polish** — FactionCards v2, radial gradient hero, elevated card surface hierarchy
 
 ## Phase Details
 
@@ -172,20 +185,65 @@ Plans:
   3. User can exit Showcase Mode by pressing Escape or clicking an exit button — the app returns to normal windowed view with chrome restored
 **Plans**: TBD
 
-### Phase 24: Collection unit point calculator with wargear selection and swap delta preview
+### Phase 30: Grid Layout Foundation
+**Goal**: The dashboard structure is rebuilt as an asymmetric CSS grid bento layout — all existing sections get column spans in a single atomic commit, StatCards navigate to relevant pages when clicked, and the 11-stage pipeline is compressed into 5 readable buckets
+**Depends on**: Phase 29
+**Requirements**: LAYOUT-01, LAYOUT-02, LAYOUT-03
+**Success Criteria** (what must be TRUE):
+  1. Dashboard displays in a 2-column asymmetric bento grid on a 1280px window — panels sit side-by-side with intentional column weights, not stacked vertically
+  2. Resizing the window to 900px causes all dashboard panels to stack into a single column without horizontal overflow
+  3. Clicking a StatCard (units, painted, battle-ready, spend) navigates to its corresponding page (Collection, Collection with status filter, Army Lists, Spending)
+  4. Dashboard pipeline shows exactly 5 labeled buckets (Not Started / Assembly / Painting / Finishing / Done) each with a model count summed from the underlying 11 painting statuses
+**Plans**: TBD
 
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 23
-**Plans:** 4/4 plans complete
+### Phase 31: Focus & Projects Panels
+**Goal**: CurrentFocusCard becomes a rich unit preview — photo thumbnail, model count, points, linked recipe, and direct action buttons — and a new ActiveProjectsPanel surfaces the top 5 active projects with the same photo-forward treatment and quick actions
+**Depends on**: Phase 30
+**Requirements**: PANEL-01, PANEL-02, PANEL-03, PHOTO-01, PHOTO-02
+**Success Criteria** (what must be TRUE):
+  1. CurrentFocusCard displays the focus unit's most recent journal photo as a thumbnail; when no photo exists, a faction-colored placeholder with an icon fills the same space
+  2. CurrentFocusCard shows unit name, faction, model count, and points value alongside the thumbnail in a single glanceable card
+  3. CurrentFocusCard has an "Open Unit" button that navigates to the unit detail sheet and a "Log Progress" button that opens LogSessionSheet with that unit pre-selected
+  4. ActiveProjectsPanel lists up to 5 active-project units, each showing photo thumbnail (or fallback), name, painting progress percentage, last-updated date, and Open / Log Session buttons
+  5. All photo thumbnails across CurrentFocusCard and ActiveProjectsPanel use the same consistent fallback component (faction color + icon) when no journal photo is available
+**Plans**: TBD
 
-Plans:
-- [ ] TBD (run /gsd:plan-phase 24 to break down)
+### Phase 32: Army Readiness Card
+**Goal**: A dedicated ArmyReadinessCard replaces the existing readiness surface on the dashboard, giving the user a per-faction breakdown of battle-ready points against a target the user selects from a preset list
+**Depends on**: Phase 30
+**Requirements**: PANEL-04, PANEL-05
+**Success Criteria** (what must be TRUE):
+  1. Dashboard shows an ArmyReadinessCard with a target selector offering four point thresholds (500 / 1000 / 1500 / 2000 pts) — selecting a threshold immediately updates all faction progress bars
+  2. Each faction listed shows a labeled progress bar indicating battle-ready points earned versus the selected target, with owned-vs-ready breakdown visible (e.g. "360 / 1000 pts ready, 1500 pts owned")
+  3. ArmyReadinessCard data comes from its own dedicated query hook (not getDashboardStats) — the card loads and refreshes independently without triggering a full dashboard re-fetch
+**Plans**: TBD
 
+### Phase 33: Data Intelligence
+**Goal**: Log Session gains the ability to update a unit's painting status in the same action, cache invalidation covers all three affected query keys, the Spending page surfaces cost-per-model and painted-vs-unpainted value metrics, and recipe–unit associations become visible from both the recipe and unit sides
+**Depends on**: Phase 31
+**Requirements**: DATA-01, DATA-02, DATA-03, DATA-04, DATA-05, DATA-06
+**Success Criteria** (what must be TRUE):
+  1. LogSessionSheet includes an optional "Update Painting Status" field — if the user selects a new status before submitting, the unit's status_painting updates atomically with the session log
+  2. After submitting a Log Session with a status change, the dashboard stat cards, collection unit list, and painting sessions list all reflect the new status without a manual refresh
+  3. Spending page shows a "Cost Per Completed Model" metric — total spend divided by the count of units at Completed status — updated whenever spend or unit data changes
+  4. Spending page shows a "Painted vs Unpainted Value" breakdown — two figures showing the estimated spend share attributed to painted units versus unpainted/in-progress units
+  5. Recipe detail view lists which units are linked to that recipe; unit detail sheet shows which recipe (if any) is linked to that unit — navigating between them works in both directions
+  6. CurrentFocusCard displays the linked recipe name when the focus unit has an associated recipe
+**Plans**: TBD
+
+### Phase 34: Visual Polish
+**Goal**: FactionSummaryCards are upgraded to a larger, more expressive format with a dominant accent color band and unambiguous active/focus indicators; the dashboard hero gains premium visual depth through a radial gradient; all card surfaces adopt an elevated/hover depth hierarchy
+**Depends on**: Phase 33
+**Requirements**: VIS-01, VIS-02, VIS-03
+**Success Criteria** (what must be TRUE):
+  1. FactionSummaryCards are visually larger than before with a solid faction-accent color band as the dominant visual element — the active/focus faction is unmistakably distinct (not just a small star icon)
+  2. The dashboard hero area (title + top stat row) has a visible radial gradient background that adds depth without obscuring any text or controls
+  3. All dashboard card surfaces respond to hover with a visible shadow transition — resting state uses the panel-elevated token, hover state uses a deeper shadow — giving the grid a tactile layered feel
+**Plans**: TBD
 
 ## Progress
 
-**Execution Order:** 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 25 → 26 → 27 → 28 → 29
+**Execution Order:** 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 25 → 26 → 27 → 28 → 29 → 30 → 31 → 32 → 33 → 34
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -209,11 +267,16 @@ Plans:
 | 18. Battle Log | v2.2 | 4/4 | Complete | 2026-05-04 |
 | 19. Analytics Core | v2.2 | 4/4 | Complete | 2026-05-04 |
 | 20. v2.1 Polish & Gap Closure | v2.1 | 3/3 | Complete | 2026-05-04 |
-| 21. Wishlist | 3/3 | Complete    | 2026-05-05 | — |
-| 22. Hobby Goals | 4/4 | Complete    | 2026-05-05 | — |
+| 21. Wishlist | v2.2 | 3/3 | Complete | 2026-05-05 |
+| 22. Hobby Goals | v2.2 | 4/4 | Complete | 2026-05-05 |
 | 23. Display Features | v2.2 | 0/TBD | Not started | — |
 | 25. Design Foundation | v2.3 | 2/2 | Complete | 2026-05-04 |
 | 26. Dashboard Redesign | v2.3 | 5/5 | Complete | 2026-05-05 |
 | 27. Navigation & Quick Add | v2.3 | 4/4 | Complete | 2026-05-05 |
 | 28. Collection + Projects | v2.3 | 5/5 | Complete | 2026-05-05 |
 | 29. Workshop + Play | v2.3 | 5/5 | Complete | 2026-05-05 |
+| 30. Grid Layout Foundation | v2.4 | 0/TBD | Not started | — |
+| 31. Focus & Projects Panels | v2.4 | 0/TBD | Not started | — |
+| 32. Army Readiness Card | v2.4 | 0/TBD | Not started | — |
+| 33. Data Intelligence | v2.4 | 0/TBD | Not started | — |
+| 34. Visual Polish | v2.4 | 0/TBD | Not started | — |

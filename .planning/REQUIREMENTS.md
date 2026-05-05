@@ -74,31 +74,31 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LAYOUT-01 | — | Pending |
-| LAYOUT-02 | — | Pending |
-| LAYOUT-03 | — | Pending |
-| PANEL-01 | — | Pending |
-| PANEL-02 | — | Pending |
-| PANEL-03 | — | Pending |
-| PANEL-04 | — | Pending |
-| PANEL-05 | — | Pending |
-| PHOTO-01 | — | Pending |
-| PHOTO-02 | — | Pending |
-| VIS-01 | — | Pending |
-| VIS-02 | — | Pending |
-| VIS-03 | — | Pending |
-| DATA-01 | — | Pending |
-| DATA-02 | — | Pending |
-| DATA-03 | — | Pending |
-| DATA-04 | — | Pending |
-| DATA-05 | — | Pending |
-| DATA-06 | — | Pending |
+| LAYOUT-01 | Phase 30 | Pending |
+| LAYOUT-02 | Phase 30 | Pending |
+| LAYOUT-03 | Phase 30 | Pending |
+| PANEL-01 | Phase 31 | Pending |
+| PANEL-02 | Phase 31 | Pending |
+| PANEL-03 | Phase 31 | Pending |
+| PHOTO-01 | Phase 31 | Pending |
+| PHOTO-02 | Phase 31 | Pending |
+| PANEL-04 | Phase 32 | Pending |
+| PANEL-05 | Phase 32 | Pending |
+| DATA-01 | Phase 33 | Pending |
+| DATA-02 | Phase 33 | Pending |
+| DATA-03 | Phase 33 | Pending |
+| DATA-04 | Phase 33 | Pending |
+| DATA-05 | Phase 33 | Pending |
+| DATA-06 | Phase 33 | Pending |
+| VIS-01 | Phase 34 | Pending |
+| VIS-02 | Phase 34 | Pending |
+| VIS-03 | Phase 34 | Pending |
 
 **Coverage:**
 - v2.4 requirements: 19 total
-- Mapped to phases: 0
-- Unmapped: 19 ⚠️
+- Mapped to phases: 19
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-05-05*
-*Last updated: 2026-05-05 after initial definition*
+*Last updated: 2026-05-05 after roadmap creation — traceability complete*
