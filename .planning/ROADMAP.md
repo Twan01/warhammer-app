@@ -291,7 +291,7 @@ Plans:
 | 20. v2.1 Polish & Gap Closure | v2.1 | 3/3 | Complete | 2026-05-04 |
 | 21. Wishlist | v2.2 | 3/3 | Complete | 2026-05-05 |
 | 22. Hobby Goals | v2.2 | 4/4 | Complete | 2026-05-05 |
-| 23. Display Features | 1/2 | In Progress|  | — |
+| 23. Display Features | 2/2 | Complete   | 2026-05-05 | — |
 | 24. Unit Point Calculator | v2.2 | 0/4 | Not started | — |
 | 25. Design Foundation | v2.3 | 2/2 | Complete | 2026-05-04 |
 | 26. Dashboard Redesign | v2.3 | 5/5 | Complete | 2026-05-05 |
