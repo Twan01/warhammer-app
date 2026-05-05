@@ -1,5 +1,25 @@
 # Milestones
 
+## v2.3 Hobby Command Center (Shipped: 2026-05-05)
+
+**Phases completed:** 5 phases (25-29), 21 plans
+**Timeline:** 2026-05-04 → 2026-05-05 (2 days)
+**Stats:** 117 commits, 189 TypeScript source files, 19,139 LOC, 86 test files, 114 v2.3-specific automated tests
+
+**Key accomplishments:**
+- Unified design system: semantic CSS tokens (Forge Black, Gunmetal, Panel Elevated, Battle Gold), shared PageHeader component on all 9 pages, enriched StatCard (icon/trend/progress), unified StatusBadge (4-tier color system for all 11 painting statuses)
+- "Hobby Command Center" dashboard: CurrentFocusCard (active project with faction accent + next-action hint), HobbyPipeline (11-stage unit funnel), RecentActivityFeed (4 event types, live invalidation), LogSessionSheet, upgraded FactionSummaryCard (progress bar + battle-ready points)
+- Global Quick Add: QuickAddContext provider, 8-action dropdown in sidebar (expanded + collapsed states), Sheet overlays from any page without navigation — covers Add Unit, Add Faction, Add Paint, Add Recipe, Create Project, Log Session, Add Purchase, Log Battle
+- Collection + Projects upgrade: gallery photo thumbnails (asset:// URL from journal photos), StatusBadge in table and gallery (replacing PaintingRing), enriched kanban cards (last-updated, recipe name, photo count, next-action hint, Log Session shortcut via sibling portal)
+- Workshop + Play layer: PaintRow color swatches, RecipeTable palette swatch strip (overlapping h-3 circles, +N overflow), ArmyListSummaryBar readiness panel (bg-battle-gold progress bar + not-ready unit list), BattleLogRow live readiness points (tabular-nums)
+
+**Archived:**
+- Roadmap: `.planning/milestones/v2.3-ROADMAP.md`
+- Requirements: `.planning/milestones/v2.3-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v2.3-MILESTONE-AUDIT.md`
+
+---
+
 ## v2.1 Visual Command (Shipped: 2026-05-04)
 
 **Phases completed:** 8 phases (10–16 + 20), 41 plans

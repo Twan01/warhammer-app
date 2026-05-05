@@ -1,19 +1,12 @@
 # HobbyForge
 
-## Current Milestone: v2.3 — Hobby Command Center
+## Current State
 
-**Goal:** Transform HobbyForge from a functional tracking dashboard into a premium, hobby-native command center — with a unified design system, an action-oriented dashboard, global Quick Add, and visual upgrades across every page.
+**Latest shipped:** v2.3 — Hobby Command Center (2026-05-05)
 
-**Target features:**
-- Design Foundation — unified design tokens (Forge Black, Gunmetal, Battle Gold), shared PageHeader, enriched MetricCard, StatusBadge
-- Dashboard Redesign — "Hobby Command Center" header, CurrentFocusCard, HobbyPipeline, upgraded FactionArmyCards, Recent Activity feed
-- Navigation & Quick Add — hobby-native sidebar group names (Command/Workshop/Play), Quick Add dropdown with 8 actions, Sheet-overlay flows
-- Collection — photo thumbnails on gallery cards, unified StatusBadge across table and gallery
-- Projects — enriched kanban cards (last updated, recipe link, photo count, next-action hint), Log Session shortcut
-- Workshop — color swatches on paint cards, paint swatch strip on recipe cards
-- Play Layer — Army List readiness panel, Battle Log army context
+HobbyForge is a fully-featured desktop hobby management app with 5 shipped milestones, 29 completed phases, 189 TypeScript source files, and 19,139 LOC. The app covers collection tracking, painting workflow (kanban + recipes + journal), paint inventory, army list building, battle logging, spending analytics, and a polished "Hobby Command Center" dashboard with global Quick Add.
 
-*v2.2 shipped phases 17–19 (Schema + Enrichment, Battle Log, Analytics Core). Phases 21–23 (Wishlist, Hobby Goals, Display Features) deferred to a future milestone.*
+**Next milestone:** Not yet planned. Run `/gsd:new-milestone` to begin.
 
 ---
 
@@ -65,17 +58,15 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ Battle Log — CRUD page with opponent faction, mission, result, army list linkage, notes, chronological list — Phase 18 — v2.2
 - ✓ Analytics Core — hobby velocity, painting streak on Dashboard, monthly spend trend chart — Phase 19 — v2.2
 
-### Active
+*All v2.3 requirements verified and shipped 2026-05-05*
 
-*v2.3 target features — Hobby Command Center (Phases 25+)*
-
-- [ ] Design Foundation — unified design tokens (Forge Black, Gunmetal, Panel Elevated, Battle Gold), shared PageHeader component, enriched MetricCard, StatusBadge
-- [ ] Dashboard Redesign — "Hobby Command Center" header with Quick Add + Log Session, CurrentFocusCard, HobbyPipeline, upgraded FactionArmyCards, Recent Activity feed
-- [ ] Navigation & Quick Add — hobby-native sidebar group names (Command/Workshop/Play/Management), Quick Add dropdown with 8 actions, Sheet-overlay flows
-- [ ] Collection visual upgrade — photo thumbnails on gallery cards, unified StatusBadge across table and gallery views
-- [ ] Projects enrichment — last-updated date, recipe link, photo count, next-action hint per kanban card; Log Session shortcut on cards
-- [ ] Workshop improvements — color swatches on paint cards, paint swatch strip on recipe cards
-- [ ] Play Layer improvements — Army List readiness panel, Battle Log army context display
+- ✓ Design Foundation — unified design tokens (Forge Black, Gunmetal, Panel Elevated, Battle Gold), shared PageHeader, enriched MetricCard, StatusBadge — Phase 25 — v2.3
+- ✓ Dashboard Redesign — "Hobby Command Center" header, CurrentFocusCard, HobbyPipeline, upgraded FactionSummaryCard, Recent Activity feed, LogSessionSheet — Phase 26 — v2.3
+- ✓ Navigation & Quick Add — hobby-native sidebar groups (Command/Workshop/Play/Management), Quick Add dropdown with 8 actions, Sheet-overlay flows — Phase 27 — v2.3
+- ✓ Collection visual upgrade — photo thumbnails on gallery cards, unified StatusBadge across table and gallery — Phase 28 — v2.3
+- ✓ Projects enrichment — last-updated, recipe link, photo count, next-action hint per kanban card; Log Session shortcut — Phase 28 — v2.3
+- ✓ Workshop improvements — color swatches on paint rows, paint swatch strip on recipe cards — Phase 29 — v2.3
+- ✓ Play Layer improvements — Army List readiness panel with progress bar, Battle Log live readiness points — Phase 29 — v2.3
 
 ### Out of Scope
 
@@ -93,7 +84,7 @@ A single personal command center that always answers "what do I own, what's pain
 
 ## Context
 
-- **Current state:** v2.0 shipped. ~14,000+ TypeScript source lines. 212 tests passing. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). All 10 DB tables live + 8 additional strategy-note columns. Paint Inventory, Army Lists, and Unit Playbook all live. Phase 10 Theming Foundation in progress.
+- **Current state:** v2.3 shipped. 189 TypeScript source files, ~19,139 LOC. 114 v2.3-specific automated tests (full suite larger). Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 9 main pages (Dashboard, Collection, Projects, Recipes, Paints, Army Lists, Battle Log, Spending, Factions). Unified design system with semantic CSS tokens, global Quick Add, photo journal, spending analytics, and live army readiness panels.
 - **Personal tool** — single user (the owner), local-first, no accounts or sync
 - **Domain:** Warhammer 40K 10th edition, hobby management (collecting → painting → playing)
 - **User journey priority:** painter/collector → ready-to-play, *not* competitive optimization
@@ -132,4 +123,4 @@ A single personal command center that always answers "what do I own, what's pain
 | PlaybookTab SheetHeader/Footer outside Tabs | Edit/Delete must work from any tab without closing sheet | ✓ Good — Pitfall 5 avoidance; confirmed in Phase 9 smoke test |
 
 ---
-*Last updated: 2026-05-04 after v2.3 milestone start*
+*Last updated: 2026-05-05 after v2.3 milestone shipped*

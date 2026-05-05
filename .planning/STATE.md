@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.2
-milestone_name: Full Circle
-status: executing
-stopped_at: Completed 29-04-PLAN.md (Phase 29 smoke test — all 4 requirements verified, 561 tests green, build clean)
-last_updated: "2026-05-05T15:11:11.929Z"
+milestone: none
+milestone_name: none
+status: idle
+stopped_at: "v2.3 Hobby Command Center archived and tagged. Run /gsd:new-milestone to start next."
+last_updated: "2026-05-05T16:30:00.000Z"
 progress:
-  total_phases: 12
-  completed_phases: 8
-  total_plans: 30
-  completed_plans: 30
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 ---
