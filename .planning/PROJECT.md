@@ -1,12 +1,22 @@
 # HobbyForge
 
-## Current State
+## Current Milestone: v2.4 Premium Dashboard UX & Visual Polish
 
-**Latest shipped:** v2.3 — Hobby Command Center (2026-05-05)
+**Goal:** Transform the dashboard into a premium, hobby-native command center with grid layout, richer interactions, centralized photos, and smarter data surfaces — making it feel less like a generic admin panel and more like a personal hobby forge.
 
-HobbyForge is a fully-featured desktop hobby management app with 5 shipped milestones, 29 completed phases, 189 TypeScript source files, and 19,139 LOC. The app covers collection tracking, painting workflow (kanban + recipes + journal), paint inventory, army list building, battle logging, spending analytics, and a polished "Hobby Command Center" dashboard with global Quick Add.
-
-**Next milestone:** Not yet planned. Run `/gsd:new-milestone` to begin.
+**Target features:**
+- Dashboard CSS grid layout (asymmetric 2-column replacing vertical stack)
+- Premium visual depth (radial gradients, elevated card surfaces)
+- CurrentFocusCard v2 (photo thumbnail, action buttons, model count + points metadata)
+- ActiveProjectsPanel (dedicated 3-5 active project cards with progress + actions)
+- ArmyReadinessCard (target point selector 500/1000/1500/2000, per-faction readiness)
+- Simplified dashboard pipeline (5 grouped buckets instead of 11)
+- Clickable StatCards (navigate to relevant pages)
+- Faction Cards v2 (larger, more expressive, clearer active/focus indicator)
+- Photos become central (thumbnails in Focus, Projects, Activity, collection)
+- Log Session updates painting status and progress
+- Recipe ↔ faction/unit integration
+- Spending intelligence (cost per completed model, painted vs unpainted value)
 
 ---
 
@@ -68,6 +78,21 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ Workshop improvements — color swatches on paint rows, paint swatch strip on recipe cards — Phase 29 — v2.3
 - ✓ Play Layer improvements — Army List readiness panel with progress bar, Battle Log live readiness points — Phase 29 — v2.3
 
+### Active
+
+- [ ] Dashboard CSS grid layout
+- [ ] Premium visual depth (radial gradients, card surface hierarchy)
+- [ ] CurrentFocusCard v2 (photo, actions, metadata)
+- [ ] ActiveProjectsPanel
+- [ ] ArmyReadinessCard with target selector
+- [ ] Simplified dashboard pipeline (5 buckets)
+- [ ] Clickable StatCards
+- [ ] Faction Cards v2
+- [ ] Photos become central
+- [ ] Log Session updates progress
+- [ ] Recipe ↔ faction/unit integration
+- [ ] Spending intelligence
+
 ### Out of Scope
 
 - Wishlist / Hobby Goals / Display Features (Battle Ready filter, Showcase Mode) — deferred from v2.2; planned for future milestone
@@ -123,4 +148,4 @@ A single personal command center that always answers "what do I own, what's pain
 | PlaybookTab SheetHeader/Footer outside Tabs | Edit/Delete must work from any tab without closing sheet | ✓ Good — Pitfall 5 avoidance; confirmed in Phase 9 smoke test |
 
 ---
-*Last updated: 2026-05-05 after v2.3 milestone shipped*
+*Last updated: 2026-05-05 after v2.4 milestone started*
