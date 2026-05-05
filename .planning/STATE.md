@@ -3,14 +3,28 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Full Circle
 status: executing
-stopped_at: "Completed 28-02-PLAN.md (Wave 2: UI components)"
-last_updated: "2026-05-05T14:30:48.657Z"
+stopped_at: "Completed 28-03-PLAN.md (Wave 2: KanbanCard enrichment + Log Session shortcut)"
+last_updated: "2026-05-05T14:40:32.172Z"
 progress:
   total_phases: 12
   completed_phases: 6
   total_plans: 30
-  completed_plans: 24
-  percent: 77
+  completed_plans: 26
+---
+
+---
+gsd_state_version: 1.0
+milestone: v2.2
+milestone_name: Full Circle
+status: executing
+stopped_at: Completed 29-01-PLAN.md (Wave 1 data layer)
+last_updated: "2026-05-05T14:40:11.844Z"
+progress:
+  total_phases: 12
+  completed_phases: 6
+  total_plans: 30
+  completed_plans: 26
+  percent: 83
 ---
 
 # Project State
@@ -24,11 +38,11 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.3 milestone start)
 
 ## Current Position
 
-Phase: 28 — Collection + Projects (plan 02 complete)
-Plan: 28-02 complete — Wave 2 UI: photo hero gallery cards, StatusBadge in gallery + StatusPopover, latestPhotos Map wired from CollectionPage
-Status: In progress — 2/? plans done for Phase 28
+Phase: 29 — Workshop + Play (plan 01 complete)
+Plan: 29-01 complete — Wave 1 data layer: getRecipeSwatchColors, useRecipeSwatchData, getArmyListReadiness, useArmyListReadiness, cache invalidation wired
+Status: In progress — 2/? plans done for Phase 29
 
-Progress: [████████░░] 80% (24/30 plans complete)
+Progress: [████████░░] 83% (25/30 plans complete)
 
 ## v2.3 Phase Map
 
@@ -38,7 +52,7 @@ Progress: [████████░░] 80% (24/30 plans complete)
 | 26 | Dashboard Redesign | DASH-01, DASH-02, DASH-03, DASH-04, DASH-05, DASH-06 | In progress (2/5) |
 | 27 | Navigation & Quick Add | NAV-01, NAV-02, NAV-03 | Complete (4/4) |
 | 28 | Collection + Projects | COLL-01, COLL-02, PROJ-01, PROJ-02, PROJ-03 | In progress (2/?) |
-| 29 | Workshop + Play | WKSP-01, WKSP-02, PLAY-01, PLAY-02 | In progress (1/?) |
+| 29 | Workshop + Play | WKSP-01, WKSP-02, PLAY-01, PLAY-02 | In progress (2/?) |
 
 ## Accumulated Context
 
@@ -47,6 +61,11 @@ Progress: [████████░░] 80% (24/30 plans complete)
 - Wave 0 stubs omit imports of not-yet-existing modules (getRecipeSwatchColors, useRecipeSwatchData, getArmyListReadiness, useArmyListReadiness) — mirrors Phase 28 pattern; TODO comments carry exact module paths for Wave 1
 - `it.skip` used (not `xit`/`xtest`) — consistent with Phase 26 Wave 0 decision; Wave 1 greps `it.skip` to find activation candidates
 - PLAY-02 stubs split across two describe blocks: query/hook stubs tagged TODO Plan 29-01, UI stubs tagged TODO Plan 29-03 — matches the two-wave execution of PLAY-02
+- `useRecipeSwatchData` returns `Map<recipe_id, {paint_id, hex_color}[]>` not flat array — Plan 29-02 UI renders swatch strips without extra grouping at component level
+- `ARMY_LIST_READINESS_KEY` factory sorts ids before spreading — `[3,1,2]` and `[1,2,3]` resolve to same cache entry (Pitfall 7); prefix `["army-list-readiness"]` used for blanket invalidation
+- `status_painting = 'Completed'` (with 'd') in SQL — canonical PAINTING_STATUS_ORDER value; 'Complete' is wrong (Pitfall 1 from RESEARCH)
+- `vi.mock` factory uses inline `vi.fn()` not top-level const reference — Vitest hoists vi.mock before variable initialization causing TDZ errors
+- Query SQL contract tests call `db.select` directly with expected SQL and assert on `dbSelectMock.mock.calls[0][0]` — separates SQL shape tests from hook behavior tests
 
 ### Phase 28 Decisions
 
@@ -224,6 +243,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-05T14:30:48.653Z
-Stopped at: Completed 28-02-PLAN.md (Wave 2: UI components)
-Resume: Phase 29 Plan 01 is next (Wave 1: data layer — getRecipeSwatchColors, useRecipeSwatchData, getArmyListReadiness, useArmyListReadiness). Run `/gsd:execute-phase 29-01` to continue.
+Last session: 2026-05-05T14:40:32.168Z
+Stopped at: Completed 28-03-PLAN.md (Wave 2: KanbanCard enrichment + Log Session shortcut)
+Resume: Phase 29 Plan 02 is next (WKSP-02 UI: recipe swatch strip in RecipeTable). Run `/gsd:execute-phase 29-02` to continue.
