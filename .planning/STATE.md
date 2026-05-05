@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Full Circle
 status: Defining requirements
-stopped_at: Completed 22-00-PLAN.md
-last_updated: "2026-05-05T16:41:19.096Z"
+stopped_at: Completed 21-wishlist-01-PLAN.md
+last_updated: "2026-05-05T16:43:48.916Z"
 last_activity: 2026-05-05 — Milestone v2.4 started
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 16
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State
@@ -48,6 +48,12 @@ Last activity: 2026-05-05 — Milestone v2.4 started
 - StatusBadge 4-tier color system for 11 painting statuses
 - Quick Add via QuickAddContext provider with 8-action dropdown
 
+### Decisions from 21-wishlist-01
+
+- Wishlist uses no updated_at column — matches battle_logs pattern, only creation time tracked
+- Full-replacement UPDATE (no COALESCE) for wishlist nullable fields — allows clearing cost/notes to null
+- Wishlist mutations invalidate dashboard-stats for forward compatibility with Dashboard wishlist widget
+
 ### Tech Debt
 
 - PROJ-02: REQUIREMENTS.md text still says "empty columns hidden" — KanbanBoard ships all 11 columns (approved UX)
@@ -62,6 +68,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-05T16:41:19.093Z
-Stopped at: Completed 22-00-PLAN.md
+Last session: 2026-05-05T16:43:48.913Z
+Stopped at: Completed 21-wishlist-01-PLAN.md
 Resume: Run requirements definition → roadmap creation
