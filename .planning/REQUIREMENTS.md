@@ -14,11 +14,11 @@
 
 ### Dashboard Redesign
 
-- [ ] **DASH-01**: Dashboard header shows the title "Hobby Command Center" with a dynamic subtitle summarizing active hobby state (e.g. "2 active projects · 8 models tracked · 0 battle-ready points")
+- [x] **DASH-01**: Dashboard header shows the title "Hobby Command Center" with a dynamic subtitle summarizing active hobby state (e.g. "2 active projects · 8 models tracked · 0 battle-ready points")
 - [x] **DASH-02**: User can click Quick Add or Log Session action buttons from the dashboard header without leaving the dashboard
 - [x] **DASH-03**: Dashboard shows a `CurrentFocusCard` as the primary visual anchor — displaying the most recently active project with its painting stages, progress, and a next-action suggestion
 - [x] **DASH-04**: Dashboard shows a visual `HobbyPipeline` strip — unit counts at each stage from Owned to Battle Ready — replacing the isolated percentage stat cards
-- [ ] **DASH-05**: Dashboard faction cards are upgraded to show painting progress percentage and battle-ready point count alongside the existing unit count
+- [x] **DASH-05**: Dashboard faction cards are upgraded to show painting progress percentage and battle-ready point count alongside the existing unit count
 - [x] **DASH-06**: Dashboard shows a Recent Activity feed derived from existing data — last N events including units added/updated, sessions logged, and battles recorded
 
 ### Navigation & Quick Add
@@ -118,11 +118,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DSFD-02 | Phase 25 | Complete |
 | DSFD-03 | Phase 25 | Complete |
 | DSFD-04 | Phase 25 | Complete |
-| DASH-01 | Phase 26 | Pending |
+| DASH-01 | Phase 26 | Complete |
 | DASH-02 | Phase 26 | Complete |
 | DASH-03 | Phase 26 | Complete |
 | DASH-04 | Phase 26 | Complete |
-| DASH-05 | Phase 26 | Pending |
+| DASH-05 | Phase 26 | Complete |
 | DASH-06 | Phase 26 | Complete |
 | NAV-01 | Phase 27 | Pending |
 | NAV-02 | Phase 27 | Pending |
