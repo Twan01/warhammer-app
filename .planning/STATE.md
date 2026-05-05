@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Full Circle
 status: executing
-stopped_at: Completed 27-00-PLAN.md
-last_updated: "2026-05-05T13:08:57.843Z"
+stopped_at: Completed 27-01-PLAN.md
+last_updated: "2026-05-05T13:15:00Z"
 progress:
   total_phases: 12
   completed_phases: 5
   total_plans: 20
-  completed_plans: 17
-  percent: 85
+  completed_plans: 18
+  percent: 90
 ---
 
 # Project State
@@ -24,11 +24,11 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.3 milestone start)
 
 ## Current Position
 
-Phase: 27 — Navigation & Quick Add (plan 00 complete)
-Plan: 27-00 complete — Wave 0 test stubs (28 it.skip stubs for NAV-01, NAV-02, NAV-03); Wave 1 QuickAddContext creation is next
-Status: In progress — 1/4 plans complete for Phase 27
+Phase: 27 — Navigation & Quick Add (plans 00-01 complete)
+Plan: 27-01 complete — QuickAddContext + DropdownMenu installed, all 6 NAV-03 tests green; Wave 2 sidebar Quick Add button is next
+Status: In progress — 2/4 plans complete for Phase 27
 
-Progress: [█████████░] 85% (17/20 plans complete)
+Progress: [█████████░] 90% (18/20 plans complete)
 
 ## v2.3 Phase Map
 
@@ -36,7 +36,7 @@ Progress: [█████████░] 85% (17/20 plans complete)
 |-------|------|--------------|--------|
 | 25 | Design Foundation | DSFD-01, DSFD-02, DSFD-03, DSFD-04 | Complete |
 | 26 | Dashboard Redesign | DASH-01, DASH-02, DASH-03, DASH-04, DASH-05, DASH-06 | In progress (2/5) |
-| 27 | Navigation & Quick Add | NAV-01, NAV-02, NAV-03 | In progress (1/4) |
+| 27 | Navigation & Quick Add | NAV-01, NAV-02, NAV-03 | In progress (2/4) |
 | 28 | Collection + Projects | COLL-01, COLL-02, PROJ-01, PROJ-02, PROJ-03 | Not started |
 | 29 | Workshop + Play | WKSP-01, WKSP-02, PLAY-01, PLAY-02 | Not started |
 
@@ -47,6 +47,9 @@ Progress: [█████████░] 85% (17/20 plans complete)
 - QuickAddContext.test.tsx uses inline stub types (not direct import) — module does not exist yet; mirrors Phase 18/19 Wave 0 pattern; TODO Wave 1 comment carries exact import path `{ QuickAddProvider, useQuickAdd, QuickAddAction } from "@/context/QuickAddContext"`
 - NAV-01 + NAV-02 tests use `vi.mock("@/context/QuickAddContext")` to mock the not-yet-created module — Vite resolves mocked imports even when the real file is absent; Wave 1 adds real module without changing the mock
 - `_action` parameter prefix used in stub `useQuickAdd` to satisfy TypeScript `noUnusedParameters` strict mode without ESLint
+- QuickAddProvider placed at main.tsx level (same as QueryProvider) — both AppSidebar and AppLayout are descendants and can call useQuickAdd()
+- useCallback wraps openQuickAdd and closeQuickAdd — stable references prevent unnecessary re-renders in consumers
+- shadcn DropdownMenu installed via `pnpm dlx shadcn@latest add dropdown-menu` — generates Radix primitive wrapper at src/components/ui/dropdown-menu.tsx
 
 ### Phase 26 Decisions
 
@@ -195,6 +198,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-05T13:08:57.840Z
-Stopped at: Completed 27-00-PLAN.md
-Resume: Phase 26 Plan 03 is next (Wave 3: DashboardPage rework — wire all Wave 2 components). Run `/gsd:execute-phase 26-03` to continue.
+Last session: 2026-05-05T13:15:00Z
+Stopped at: Completed 27-01-PLAN.md
+Resume: Phase 27 Plan 02 is next (Wave 2: AppSidebar Quick Add button with DropdownMenu). Run `/gsd:execute-phase 27-02` to continue.
