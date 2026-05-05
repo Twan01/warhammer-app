@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.2
-milestone_name: Full Circle
-status: completed
-stopped_at: Completed 28-01-PLAN.md (Wave 1 data layer)
-last_updated: "2026-05-05T14:13:39Z"
+milestone: v2.3
+milestone_name: Hobby Command Center
+status: executing
+stopped_at: Completed 29-00-PLAN.md (Wave 0 test stubs)
+last_updated: "2026-05-05T16:20:00.000Z"
 progress:
   total_phases: 12
   completed_phases: 6
-  total_plans: 27
-  completed_plans: 22
-  percent: 81
+  total_plans: 30
+  completed_plans: 23
+  percent: 77
 ---
 
 # Project State
@@ -24,11 +24,11 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.3 milestone start)
 
 ## Current Position
 
-Phase: 28 — Collection + Projects (plan 01 complete)
-Plan: 28-01 complete — Wave 1 data layer: 3 batch queries, 2 hooks, LogSessionSheet prop, 26 stubs flipped
-Status: In progress — 2/? plans done for Phase 28
+Phase: 29 — Workshop + Play (plan 00 complete)
+Plan: 29-00 complete — Wave 0 test stubs: 28 it.skip stubs across 4 files, pnpm test green
+Status: In progress — 1/? plans done for Phase 29
 
-Progress: [████████░░] 81% (22/27 plans complete)
+Progress: [████████░░] 77% (23/30 plans complete)
 
 ## v2.3 Phase Map
 
@@ -38,9 +38,15 @@ Progress: [████████░░] 81% (22/27 plans complete)
 | 26 | Dashboard Redesign | DASH-01, DASH-02, DASH-03, DASH-04, DASH-05, DASH-06 | In progress (2/5) |
 | 27 | Navigation & Quick Add | NAV-01, NAV-02, NAV-03 | Complete (4/4) |
 | 28 | Collection + Projects | COLL-01, COLL-02, PROJ-01, PROJ-02, PROJ-03 | Not started |
-| 29 | Workshop + Play | WKSP-01, WKSP-02, PLAY-01, PLAY-02 | Not started |
+| 29 | Workshop + Play | WKSP-01, WKSP-02, PLAY-01, PLAY-02 | In progress (1/?) |
 
 ## Accumulated Context
+
+### Phase 29 Decisions
+
+- Wave 0 stubs omit imports of not-yet-existing modules (getRecipeSwatchColors, useRecipeSwatchData, getArmyListReadiness, useArmyListReadiness) — mirrors Phase 28 pattern; TODO comments carry exact module paths for Wave 1
+- `it.skip` used (not `xit`/`xtest`) — consistent with Phase 26 Wave 0 decision; Wave 1 greps `it.skip` to find activation candidates
+- PLAY-02 stubs split across two describe blocks: query/hook stubs tagged TODO Plan 29-01, UI stubs tagged TODO Plan 29-03 — matches the two-wave execution of PLAY-02
 
 ### Phase 28 Decisions
 
@@ -214,6 +220,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-05T14:13:39Z
-Stopped at: Completed 28-01-PLAN.md (Wave 1 data layer)
-Resume: Phase 28 Plan 02 is next (Wave 2: UI components consuming the data layer hooks). Run `/gsd:execute-phase 28-02` to continue.
+Last session: 2026-05-05T16:20:00Z
+Stopped at: Completed 29-00-PLAN.md (Wave 0 test stubs)
+Resume: Phase 29 Plan 01 is next (Wave 1: data layer — getRecipeSwatchColors, useRecipeSwatchData, getArmyListReadiness, useArmyListReadiness). Run `/gsd:execute-phase 29-01` to continue.

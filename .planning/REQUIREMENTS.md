@@ -40,13 +40,13 @@
 
 ### Workshop
 
-- [ ] **WKSP-01**: Paint list entries display a color swatch with consistent visual treatment using the design token color system
-- [ ] **WKSP-02**: Recipe cards show a compact paint swatch strip — all linked paints visible at a glance on the card
+- [x] **WKSP-01**: Paint list entries display a color swatch with consistent visual treatment using the design token color system
+- [x] **WKSP-02**: Recipe cards show a compact paint swatch strip — all linked paints visible at a glance on the card
 
 ### Play Layer
 
-- [ ] **PLAY-01**: Army List detail shows a readiness panel with battle-ready points, total points, readiness percentage, and a list of which units are blocking full readiness
-- [ ] **PLAY-02**: Battle Log entries display the linked army list's name alongside its current battle-ready point count
+- [x] **PLAY-01**: Army List detail shows a readiness panel with battle-ready points, total points, readiness percentage, and a list of which units are blocking full readiness
+- [x] **PLAY-02**: Battle Log entries display the linked army list's name alongside its current battle-ready point count
 
 ## Deferred from v2.2
 
@@ -132,10 +132,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROJ-01 | Phase 28 | Complete |
 | PROJ-02 | Phase 28 | Pending |
 | PROJ-03 | Phase 28 | Complete |
-| WKSP-01 | Phase 29 | Pending |
-| WKSP-02 | Phase 29 | Pending |
-| PLAY-01 | Phase 29 | Pending |
-| PLAY-02 | Phase 29 | Pending |
+| WKSP-01 | Phase 29 | Complete |
+| WKSP-02 | Phase 29 | Complete |
+| PLAY-01 | Phase 29 | Complete |
+| PLAY-02 | Phase 29 | Complete |
 
 **Coverage:**
 - v2.3 requirements: 22 total
