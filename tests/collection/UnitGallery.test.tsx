@@ -133,7 +133,7 @@ describe("UnitGallery — UI-04/UI-05/UI-06 (gallery view + toggle + filter pres
     expect(screen.getByLabelText("Table view").className).not.toContain("bg-muted");
   });
 
-  it("[UI-05] gallery card renders unit name, faction badge with color_theme, and PaintingRing with percentage", () => {
+  it("[UI-05] gallery card renders unit name, faction badge with color_theme, StatusBadge, and percentage", () => {
     render(
       <UnitGallery
         data={[mockUnit]}
@@ -152,8 +152,11 @@ describe("UnitGallery — UI-04/UI-05/UI-06 (gallery view + toggle + filter pres
     expect(badge).toHaveStyle({ backgroundColor: "#1e40af" });
     expect(badge.textContent).toBe("Space Marines");
 
-    const ring = screen.getByRole("img", { name: "72% painted" });
-    expect(ring.querySelector("text")?.textContent).toBe("72%");
+    // StatusBadge renders status text (COLL-02 — replaces PaintingRing)
+    expect(screen.getByText("Layered")).toBeInTheDocument();
+
+    // Progress metadata line (COLL-02)
+    expect(screen.getByText(/72%.*models.*pts/)).toBeInTheDocument();
   });
 
   it("[UI-05] clicking a gallery card calls onRowClick with the unit (matches table click behavior)", async () => {
