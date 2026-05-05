@@ -40,6 +40,7 @@ export function useCreatePaintingSession() {
       qc.invalidateQueries({ queryKey: PAINTING_SESSIONS_KEY(variables.unit_id) });
       qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
       qc.invalidateQueries({ queryKey: ["recent-activity"] });
+      qc.invalidateQueries({ queryKey: ["goal-progress"] });
     },
   });
 }
