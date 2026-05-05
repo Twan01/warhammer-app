@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Premium Dashboard UX & Visual Polish
 status: planning
-stopped_at: Completed 24-03-PLAN.md
-last_updated: "2026-05-05T18:34:32.125Z"
+stopped_at: Completed 24-04-PLAN.md
+last_updated: "2026-05-05T18:41:27.288Z"
 last_activity: 2026-05-05 — v2.4 roadmap created, Phase 30 is next
 progress:
   total_phases: 12
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 22
-  completed_plans: 21
-  percent: 95
+  completed_plans: 22
+  percent: 0
 ---
 
 # Project State
@@ -60,7 +60,7 @@ Progress: [░░░░░░░░░░] 0% (0/5 phases complete)
 - Visual depth (Phase 34) is CSS-only — no logic, no new hooks; add last as pure polish
 - Phase 31 must ship before Phase 33 — CurrentFocusCard v2 introduces photo wiring that DATA-06 (recipe name display) depends on
 
-### Phase 24 Decisions (24-02 + 24-03)
+### Phase 24 Decisions (24-02 + 24-03 + 24-04)
 
 - weapon_name stored as TEXT copy in unit_loadout_wargear — cross-database FK to rules.db not supported in SQLite
 - activateLoadout uses two-step UPDATE without transaction — safe for local single-user SQLite desktop app
@@ -69,6 +69,9 @@ Progress: [░░░░░░░░░░] 0% (0/5 phases complete)
 - No shadcn Checkbox: used native input[type=checkbox] with accent-primary for wargear toggles in LoadoutSection
 - LoadoutSection uses Collapsible (inline) not Dialog — avoids Radix portal nesting per RESEARCH.md Pitfall 4
 - TierManager/LoadoutSection are self-contained (own hooks, pass only unitId) — no state hoisting in CollectionPage
+- Tier confirmation in ArmyListUnitRow uses useUpdateUnit (writes to units.points) not useUpdateArmyListUnit — COALESCE chain preserved without touching army_list_units.points_override (DELTA-01)
+- Delta badge cleared by setPendingTierId(null) in onSuccess (Pitfall 5) — badge disappears immediately on confirm
+- UnitSheet points Input uses HTML disabled (not readOnly) so React Hook Form excludes it from submit payload — no form handler changes needed
 
 ### Pending Todos
 
@@ -80,6 +83,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-05T18:34:32.122Z
-Stopped at: Completed 24-03-PLAN.md
+Last session: 2026-05-05T18:41:27.285Z
+Stopped at: Completed 24-04-PLAN.md
 Resume: Run `/gsd:plan-phase 30` to plan Grid Layout Foundation
