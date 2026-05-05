@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Full Circle
 status: completed
-stopped_at: Phase 28 UI-SPEC approved
-last_updated: "2026-05-05T14:01:33.081Z"
+stopped_at: Completed 28-01-PLAN.md (Wave 1 data layer)
+last_updated: "2026-05-05T14:13:39Z"
 progress:
   total_phases: 12
   completed_phases: 6
   total_plans: 27
-  completed_plans: 21
-  percent: 78
+  completed_plans: 22
+  percent: 81
 ---
 
 # Project State
@@ -24,11 +24,11 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.3 milestone start)
 
 ## Current Position
 
-Phase: 28 — Collection + Projects (plan 00 complete)
-Plan: 28-00 complete — Wave 0 test stubs created; 26 it.skip stubs across 5 files, pnpm test green
-Status: In progress — 1/? plans done for Phase 28
+Phase: 28 — Collection + Projects (plan 01 complete)
+Plan: 28-01 complete — Wave 1 data layer: 3 batch queries, 2 hooks, LogSessionSheet prop, 26 stubs flipped
+Status: In progress — 2/? plans done for Phase 28
 
-Progress: [████████░░] 78% (21/27 plans complete)
+Progress: [████████░░] 81% (22/27 plans complete)
 
 ## v2.3 Phase Map
 
@@ -47,6 +47,12 @@ Progress: [████████░░] 78% (21/27 plans complete)
 - Wave 0 stubs omit top-level imports of not-yet-existing modules — mirrors Phase 18/19/26/27 pattern; TODO Wave 1 comment blocks carry exact import paths so Wave 1 knows exactly what to uncomment
 - `it.skip` used (not `xit`/`xtest`) — consistent with Phase 26 Wave 0 decision; Wave 1 greps `it.skip` to find activation candidates
 - `getPhotoCountsByUnitIds` stubs appear in both collection (COLL-01) and painting (PROJ-01) test files — same function serves both gallery thumbnails and kanban card enrichment
+- Wave 0 `.test.ts` stubs renamed to `.test.tsx` when activated — esbuild errors on JSX syntax in `.ts` files; renderHook wrappers require JSX
+- `getAllByText` in LogSessionSheet tests — shadcn Select renders the selected value in both a visible span and a hidden native option, causing `getByText` "multiple elements" error
+- `beforeEach mockReset` required in useKanbanEnrichment tests — module-level vi.fn() mocks accumulate calls across tests without explicit reset
+- `LATEST_UNIT_PHOTOS_KEY` invalidated in `useDeleteUnitPhoto.onSettled` not `onSuccess` — ensures batch refresh even when optimistic delete rolls back on error
+- kanban-enrichment invalidation uses literal `["kanban-enrichment"]` in useRecipes — consistent with project pattern (no cross-module KANBAN_ENRICHMENT_KEY import needed)
+- `defaultUnitId` added to useEffect deps in LogSessionSheet — Pitfall 4 from plan; without it re-opening sheet for different unit would not reset the unit_id field
 
 ### Phase 27 Decisions
 
@@ -208,6 +214,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-05T14:00:36Z
-Stopped at: Completed 28-00-PLAN.md (Wave 0 test stubs)
-Resume: Phase 28 Plan 01 is next (Wave 1: production code for COLL-01, PROJ-01). Run `/gsd:execute-phase 28-01` to continue.
+Last session: 2026-05-05T14:13:39Z
+Stopped at: Completed 28-01-PLAN.md (Wave 1 data layer)
+Resume: Phase 28 Plan 02 is next (Wave 2: UI components consuming the data layer hooks). Run `/gsd:execute-phase 28-02` to continue.
