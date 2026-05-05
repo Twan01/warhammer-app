@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Full Circle
 status: executing
-stopped_at: Completed 27-01-PLAN.md
-last_updated: "2026-05-05T13:15:00Z"
+stopped_at: Completed 27-02-PLAN.md
+last_updated: "2026-05-05T13:25:17.680Z"
 progress:
   total_phases: 12
   completed_phases: 5
-  total_plans: 20
-  completed_plans: 18
+  total_plans: 25
+  completed_plans: 19
   percent: 90
 ---
 
@@ -24,11 +24,11 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.3 milestone start)
 
 ## Current Position
 
-Phase: 27 — Navigation & Quick Add (plans 00-01 complete)
-Plan: 27-01 complete — QuickAddContext + DropdownMenu installed, all 6 NAV-03 tests green; Wave 2 sidebar Quick Add button is next
-Status: In progress — 2/4 plans complete for Phase 27
+Phase: 27 — Navigation & Quick Add (plans 00-02 complete)
+Plan: 27-02 complete — Sidebar groups renamed (Command/Workshop/Play/Management), Quick Add button wired, 8 global Sheets mounted in AppLayout, all 28 NAV-01/02/03 tests green
+Status: In progress — 3/4 plans complete for Phase 27
 
-Progress: [█████████░] 90% (18/20 plans complete)
+Progress: [████████░░] 76% (19/25 plans complete)
 
 ## v2.3 Phase Map
 
@@ -48,6 +48,9 @@ Progress: [█████████░] 90% (18/20 plans complete)
 - NAV-01 + NAV-02 tests use `vi.mock("@/context/QuickAddContext")` to mock the not-yet-created module — Vite resolves mocked imports even when the real file is absent; Wave 1 adds real module without changing the mock
 - `_action` parameter prefix used in stub `useQuickAdd` to satisfy TypeScript `noUnusedParameters` strict mode without ESLint
 - QuickAddProvider placed at main.tsx level (same as QueryProvider) — both AppSidebar and AppLayout are descendants and can call useQuickAdd()
+- Radix DropdownMenuTrigger requires pointer events to open — use userEvent (pointer+mouse+click sequence) in tests, not fireEvent.click
+- Existing theming/AppSidebar and app-shell/AppSidebar tests required vi.mock for QuickAddContext after AppSidebar began calling useQuickAdd()
+- Factions moved from Command group to Management group alongside Spending (four distinct hobby-native groups now)
 - useCallback wraps openQuickAdd and closeQuickAdd — stable references prevent unnecessary re-renders in consumers
 - shadcn DropdownMenu installed via `pnpm dlx shadcn@latest add dropdown-menu` — generates Radix primitive wrapper at src/components/ui/dropdown-menu.tsx
 
@@ -198,6 +201,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-05T13:15:00Z
-Stopped at: Completed 27-01-PLAN.md
+Last session: 2026-05-05T13:25:17.677Z
+Stopped at: Completed 27-02-PLAN.md
 Resume: Phase 27 Plan 02 is next (Wave 2: AppSidebar Quick Add button with DropdownMenu). Run `/gsd:execute-phase 27-02` to continue.
