@@ -190,6 +190,17 @@ Plans:
 - [ ] 23-01-PLAN.md — Wave 1: Battle Ready filter (Zustand battleReady toggle + applyUnitFilters condition + UnitFilters button + CollectionPage wiring + extended tests)
 - [ ] 23-02-PLAN.md — Wave 2: Showcase Mode (ShowcaseMode full-screen overlay + CollectionPage entry button + Tauri fullscreen capability + component tests)
 
+### Phase 24: Unit Point Calculator
+**Goal**: The Collection page gains a point calculator that lets users manage model-count point tiers, track wargear loadout selections per unit, and preview the points delta when swapping between configurations in the army list builder
+**Depends on**: Phase 23
+**Requirements**: CALC-01, CALC-02, CALC-03, CALC-04
+**Success Criteria** (what must be TRUE):
+  1. User can define multiple point tiers per unit (e.g. 5 models = 80pts, 10 models = 160pts) — the calculator auto-matches the active model count to the correct tier
+  2. User can create named wargear loadouts per unit with options sourced from the linked datasheet's wargear list, or entered manually for unlinked units
+  3. User can mark one loadout as active per unit — the army list builder uses the active loadout for display and point calculation
+  4. When exploring loadout or tier changes in the army list builder, a colored delta badge (+N green / -N red) previews the points difference before the user commits the swap
+**Plans**: TBD
+
 ### Phase 30: Grid Layout Foundation
 **Goal**: The dashboard structure is rebuilt as an asymmetric CSS grid bento layout — all existing sections get column spans in a single atomic commit, StatCards navigate to relevant pages when clicked, and the 11-stage pipeline is compressed into 5 readable buckets
 **Depends on**: Phase 29
@@ -248,7 +259,7 @@ Plans:
 
 ## Progress
 
-**Execution Order:** 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 25 → 26 → 27 → 28 → 29 → 30 → 31 → 32 → 33 → 34
+**Execution Order:** 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 25 → 26 → 27 → 28 → 29 → 30 → 31 → 32 → 33 → 34
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -274,7 +285,8 @@ Plans:
 | 20. v2.1 Polish & Gap Closure | v2.1 | 3/3 | Complete | 2026-05-04 |
 | 21. Wishlist | v2.2 | 3/3 | Complete | 2026-05-05 |
 | 22. Hobby Goals | v2.2 | 4/4 | Complete | 2026-05-05 |
-| 23. Display Features | v2.2 | 0/2 | Not started | — |
+| 23. Display Features | 1/2 | In Progress|  | — |
+| 24. Unit Point Calculator | v2.2 | 0/TBD | Not started | — |
 | 25. Design Foundation | v2.3 | 2/2 | Complete | 2026-05-04 |
 | 26. Dashboard Redesign | v2.3 | 5/5 | Complete | 2026-05-05 |
 | 27. Navigation & Quick Add | v2.3 | 4/4 | Complete | 2026-05-05 |
