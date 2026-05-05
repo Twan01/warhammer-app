@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Premium Dashboard UX & Visual Polish
 status: planning
-stopped_at: Completed 24-04-PLAN.md
-last_updated: "2026-05-05T18:47:54.245Z"
-last_activity: 2026-05-05 — v2.4 roadmap created, Phase 30 is next
+stopped_at: Completed 35-01-PLAN.md
+last_updated: "2026-05-05T19:31:15.603Z"
+last_activity: 2026-05-05 — Phase 35 v2.2 gap closure complete (4 tech debt fixes)
 progress:
-  total_phases: 12
-  completed_phases: 7
-  total_plans: 22
-  completed_plans: 22
-  percent: 0
+  total_phases: 13
+  completed_phases: 8
+  total_plans: 23
+  completed_plans: 23
+  percent: 100
 ---
 
 # Project State
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-05-05 after v2.4 milestone started)
 Phase: 30 of 34 (Grid Layout Foundation)
 Plan: — (not yet planned)
 Status: Ready to plan
-Last activity: 2026-05-05 — v2.4 roadmap created, Phase 30 is next
+Last activity: 2026-05-05 — Phase 35 v2.2 gap closure complete (4 tech debt fixes)
 
-Progress: [░░░░░░░░░░] 0% (0/5 phases complete)
+Progress: [██████████] 100% (23/23 plans complete)
 
 ## Accumulated Context
 
@@ -81,8 +81,13 @@ None.
 
 None.
 
+### Phase 35 Decisions (35-01)
+
+- No new patterns introduced - all 4 fixes follow existing codebase conventions
+- Cache invalidation symmetry enforced: if useCreate invalidates a key, useDelete must too
+
 ## Session Continuity
 
-Last session: 2026-05-05T18:41:27.285Z
-Stopped at: Completed 24-04-PLAN.md
+Last session: 2026-05-05T19:31:15.599Z
+Stopped at: Completed 35-01-PLAN.md
 Resume: Run `/gsd:plan-phase 30` to plan Grid Layout Foundation
