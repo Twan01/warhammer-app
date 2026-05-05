@@ -64,6 +64,7 @@ function renderCard(unit: Unit, faction: Faction | undefined = makeFaction()) {
           faction={faction}
           onRemoveFromBoard={vi.fn()}
           onEditUnit={vi.fn()}
+          onLogSession={vi.fn()}
         />
       </SortableContext>
     </DndContext>,
