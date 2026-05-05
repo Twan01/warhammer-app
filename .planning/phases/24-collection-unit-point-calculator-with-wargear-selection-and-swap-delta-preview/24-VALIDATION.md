@@ -1,10 +1,11 @@
 ---
 phase: 24
 slug: collection-unit-point-calculator-with-wargear-selection-and-swap-delta-preview
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: compliant
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-05
+validated: 2026-05-05
 ---
 
 # Phase 24 — Validation Strategy
@@ -38,14 +39,14 @@ created: 2026-05-05
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 24-01-01 | 01 | 1 | TIER-01 | unit | `pnpm test -- tests/collection/unitPointTierQueries.test.ts` | ❌ W0 | ⬜ pending |
-| 24-01-02 | 01 | 1 | TIER-02 | unit | `pnpm test -- tests/collection/unitPointTierQueries.test.ts` | ❌ W0 | ⬜ pending |
-| 24-01-03 | 01 | 1 | TIER-03 | unit | `pnpm test -- tests/collection/unitPointTierQueries.test.ts` | ❌ W0 | ⬜ pending |
-| 24-02-01 | 02 | 1 | LOAD-01 | unit | `pnpm test -- tests/collection/unitLoadoutQueries.test.ts` | ❌ W0 | ⬜ pending |
-| 24-02-02 | 02 | 1 | LOAD-02 | unit | `pnpm test -- tests/collection/unitLoadoutQueries.test.ts` | ❌ W0 | ⬜ pending |
-| 24-02-03 | 02 | 1 | LOAD-03 | unit | `pnpm test -- tests/collection/unitLoadoutQueries.test.ts` | ❌ W0 | ⬜ pending |
-| 24-03-01 | 03 | 2 | DELTA-01 | unit | `pnpm test -- tests/army-list/deltaPreview.test.ts` | ❌ W0 | ⬜ pending |
-| 24-03-02 | 03 | 2 | COALESCE-01 | unit (existing) | `pnpm test -- tests/army-list/armyListQueries.test.ts` | ✅ existing | ⬜ pending |
+| 24-01-01 | 01 | 1 | TIER-01 | unit | `pnpm test -- tests/collection/unitPointTierQueries.test.ts` | ✅ | ✅ green |
+| 24-01-02 | 01 | 1 | TIER-02 | unit | `pnpm test -- tests/collection/unitPointTierQueries.test.ts` | ✅ | ✅ green |
+| 24-01-03 | 01 | 1 | TIER-03 | unit | `pnpm test -- tests/collection/unitPointTierQueries.test.ts` | ✅ | ✅ green |
+| 24-02-01 | 02 | 1 | LOAD-01 | unit | `pnpm test -- tests/collection/unitLoadoutQueries.test.ts` | ✅ | ✅ green |
+| 24-02-02 | 02 | 1 | LOAD-02 | unit | `pnpm test -- tests/collection/unitLoadoutQueries.test.ts` | ✅ | ✅ green |
+| 24-02-03 | 02 | 1 | LOAD-03 | unit | `pnpm test -- tests/collection/unitLoadoutQueries.test.ts` | ✅ | ✅ green |
+| 24-03-01 | 03 | 2 | DELTA-01 | unit | `pnpm test -- tests/army-list/deltaPreview.test.ts` | ✅ | ✅ green |
+| 24-03-02 | 03 | 2 | COALESCE-01 | unit (existing) | `pnpm test -- tests/foundation/armyListQueries.test.ts` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -53,11 +54,11 @@ created: 2026-05-05
 
 ## Wave 0 Requirements
 
-- [ ] `tests/collection/unitPointTierQueries.test.ts` — stubs for TIER-01, TIER-02, TIER-03
-- [ ] `tests/collection/unitLoadoutQueries.test.ts` — stubs for LOAD-01, LOAD-02, LOAD-03
-- [ ] `tests/army-list/deltaPreview.test.ts` — stubs for DELTA-01 (pure function, no DB mock)
+- [x] `tests/collection/unitPointTierQueries.test.ts` — 5 tests for TIER-01, TIER-02, TIER-03 (all active, green)
+- [x] `tests/collection/unitLoadoutQueries.test.ts` — 7 tests for LOAD-01, LOAD-02, LOAD-03 (all active, green)
+- [x] `tests/army-list/deltaPreview.test.ts` — 4 tests for DELTA-01 (all active, green)
 
-*Existing infrastructure covers framework install — Vitest and RTL already present.*
+*All stubs activated in Plan 24-02/03. No `it.skip` remaining.*
 
 ---
 
@@ -72,11 +73,25 @@ created: 2026-05-05
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-05-05
+
+---
+
+## Validation Audit 2026-05-05
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+**Test suite:** 644 passed, 2 skipped (pre-existing), 0 failed
+**Phase 24 tests:** 16 across 3 files — all green, no `it.skip` remaining
+**COALESCE-01 coverage:** Confirmed by existing tests in `foundation/armyListQueries.test.ts` (exact regex assertion on `COALESCE(alu.points_override, u.points, 0) AS effective_points`)
