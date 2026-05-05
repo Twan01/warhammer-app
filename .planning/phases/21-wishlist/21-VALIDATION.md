@@ -1,10 +1,11 @@
 ---
 phase: 21
 slug: wishlist
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-05
+validated: 2026-05-05
 ---
 
 # Phase 21 — Validation Strategy
@@ -38,16 +39,16 @@ created: 2026-05-05
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 21-00-01 | 00 | 0 | WISH-01..04 | stub | `pnpm test -- tests/wishlist/wishlistQueries.test.ts` | ❌ W0 | ⬜ pending |
-| 21-00-02 | 00 | 0 | WISH-01..04 | stub | `pnpm test -- tests/wishlist/WishlistPage.test.tsx` | ❌ W0 | ⬜ pending |
-| 21-01-01 | 01 | 1 | WISH-01 | unit | `pnpm test -- tests/wishlist/wishlistQueries.test.ts` | ❌ W0 | ⬜ pending |
-| 21-01-02 | 01 | 1 | WISH-02 | unit | `pnpm test -- tests/wishlist/wishlistQueries.test.ts` | ❌ W0 | ⬜ pending |
-| 21-01-03 | 01 | 1 | WISH-03 | unit | `pnpm test -- tests/wishlist/wishlistQueries.test.ts` | ❌ W0 | ⬜ pending |
-| 21-01-04 | 01 | 1 | WISH-04 | unit | `pnpm test -- tests/wishlist/wishlistQueries.test.ts` | ❌ W0 | ⬜ pending |
-| 21-02-01 | 02 | 2 | WISH-01 | component | `pnpm test -- tests/wishlist/WishlistPage.test.tsx` | ❌ W0 | ⬜ pending |
-| 21-02-02 | 02 | 2 | WISH-02 | component | `pnpm test -- tests/wishlist/WishlistPage.test.tsx` | ❌ W0 | ⬜ pending |
-| 21-02-03 | 02 | 2 | WISH-03 | component | `pnpm test -- tests/wishlist/WishlistPage.test.tsx` | ❌ W0 | ⬜ pending |
-| 21-02-04 | 02 | 2 | WISH-04 | component | `pnpm test -- tests/wishlist/WishlistPage.test.tsx` | ❌ W0 | ⬜ pending |
+| 21-00-01 | 00 | 0 | WISH-01..04 | stub | `pnpm test -- tests/wishlist/wishlistQueries.test.ts` | ✅ | ✅ green |
+| 21-00-02 | 00 | 0 | WISH-01..04 | stub | `pnpm test -- tests/wishlist/WishlistPage.test.tsx` | ✅ | ✅ green |
+| 21-01-01 | 01 | 1 | WISH-01 | unit | `pnpm test -- tests/wishlist/wishlistQueries.test.ts` | ✅ | ✅ green |
+| 21-01-02 | 01 | 1 | WISH-02 | unit | `pnpm test -- tests/wishlist/wishlistQueries.test.ts` | ✅ | ✅ green |
+| 21-01-03 | 01 | 1 | WISH-03 | unit | `pnpm test -- tests/wishlist/wishlistQueries.test.ts` | ✅ | ✅ green |
+| 21-01-04 | 01 | 1 | WISH-04 | unit | `pnpm test -- tests/wishlist/wishlistQueries.test.ts` | ✅ | ✅ green |
+| 21-02-01 | 02 | 2 | WISH-01 | component | `pnpm test -- tests/wishlist/WishlistPage.test.tsx` | ✅ | ✅ green |
+| 21-02-02 | 02 | 2 | WISH-02 | component | `pnpm test -- tests/wishlist/WishlistPage.test.tsx` | ✅ | ✅ green |
+| 21-02-03 | 02 | 2 | WISH-03 | component | `pnpm test -- tests/wishlist/WishlistPage.test.tsx` | ✅ | ✅ green |
+| 21-02-04 | 02 | 2 | WISH-04 | component | `pnpm test -- tests/wishlist/WishlistPage.test.tsx` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -55,9 +56,9 @@ created: 2026-05-05
 
 ## Wave 0 Requirements
 
-- [ ] `tests/wishlist/wishlistQueries.test.ts` — SQL contract stubs for WISH-01..04 (createWishlistItem, getWishlistItems, deleteWishlistItem, notes nullable)
-- [ ] `tests/wishlist/WishlistPage.test.tsx` — Component integration stubs for WISH-01..04 (form save, list render, delete, notes visible)
-- [ ] No new framework install needed — Vitest + RTL already configured
+- [x] `tests/wishlist/wishlistQueries.test.ts` — SQL contract stubs for WISH-01..04 (createWishlistItem, getWishlistItems, deleteWishlistItem, notes nullable)
+- [x] `tests/wishlist/WishlistPage.test.tsx` — Component integration stubs for WISH-01..04 (form save, list render, delete, notes visible)
+- [x] No new framework install needed — Vitest + RTL already configured
 
 ---
 
@@ -73,11 +74,23 @@ created: 2026-05-05
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 10s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 10s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-05-05
+
+---
+
+## Validation Audit 2026-05-05
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+All 16 tests (8 SQL contract + 8 component integration) active and passing. Zero `it.skip` remaining. Full requirement coverage WISH-01..04 verified.
