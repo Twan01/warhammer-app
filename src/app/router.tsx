@@ -18,6 +18,7 @@ import { FactionsPage } from "./factions/page";
 import { ArmyListsPage } from "./army-lists/page";
 import { SpendingPage } from "./spending/page";
 import { BattleLogPage } from "./battle-log/page";
+import { WishlistPage } from "./wishlist/page";
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -81,6 +82,12 @@ const spendingRoute = createRoute({
   component: SpendingPage,
 });
 
+const wishlistRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/wishlist",
+  component: WishlistPage,
+});
+
 const battleLogRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/battle-log",
@@ -102,6 +109,7 @@ const routeTree = rootRoute.addChildren([
   paintsRoute,
   armyListsRoute,
   spendingRoute,
+  wishlistRoute,
   battleLogRoute,
   settingsRoute,
 ]);

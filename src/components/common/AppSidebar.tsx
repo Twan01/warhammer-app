@@ -5,6 +5,7 @@ import {
   ChevronsRight,
   ClipboardList,
   Droplets,
+  Heart,
   LayoutDashboard,
   Package,
   Paintbrush,
@@ -47,6 +48,7 @@ const PLAY_NAV = [
 const MANAGEMENT_NAV = [
   { to: "/factions", label: "Factions", icon: Shield },
   { to: "/spending", label: "Spending", icon: Wallet },
+  { to: "/wishlist", label: "Wishlist", icon: Heart },
 ] as const;
 
 export function AppSidebar() {
