@@ -1,10 +1,11 @@
 ---
 phase: 27
 slug: navigation-quick-add
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-05
+validated: 2026-05-05
 ---
 
 # Phase 27 — Validation Strategy
@@ -38,13 +39,13 @@ created: 2026-05-05
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 27-00-01 | 00 | 0 | NAV-01 | unit | `pnpm test -- tests/navigation/AppSidebar.nav01.test.tsx` | ❌ W0 | ⬜ pending |
-| 27-00-02 | 00 | 0 | NAV-02 | unit | `pnpm test -- tests/navigation/QuickAdd.nav02.test.tsx` | ❌ W0 | ⬜ pending |
-| 27-00-03 | 00 | 0 | NAV-03 | unit | `pnpm test -- tests/navigation/QuickAddContext.test.tsx` | ❌ W0 | ⬜ pending |
-| 27-01-01 | 01 | 1 | NAV-03 | unit | `pnpm test -- tests/navigation/QuickAddContext.test.tsx` | ❌ W0 | ⬜ pending |
-| 27-02-01 | 02 | 2 | NAV-01 | unit | `pnpm test -- tests/navigation/AppSidebar.nav01.test.tsx` | ❌ W0 | ⬜ pending |
-| 27-02-02 | 02 | 2 | NAV-02 | unit | `pnpm test -- tests/navigation/QuickAdd.nav02.test.tsx` | ❌ W0 | ⬜ pending |
-| 27-02-03 | 02 | 2 | NAV-03 | unit | `pnpm test -- tests/navigation/QuickAdd.nav02.test.tsx` | ❌ W0 | ⬜ pending |
+| 27-00-01 | 00 | 0 | NAV-01 | unit | `pnpm test -- tests/navigation/AppSidebar.nav01.test.tsx` | ✅ | ✅ green |
+| 27-00-02 | 00 | 0 | NAV-02 | unit | `pnpm test -- tests/navigation/QuickAdd.nav02.test.tsx` | ✅ | ✅ green |
+| 27-00-03 | 00 | 0 | NAV-03 | unit | `pnpm test -- tests/navigation/QuickAddContext.test.tsx` | ✅ | ✅ green |
+| 27-01-01 | 01 | 1 | NAV-03 | unit | `pnpm test -- tests/navigation/QuickAddContext.test.tsx` | ✅ | ✅ green |
+| 27-02-01 | 02 | 2 | NAV-01 | unit | `pnpm test -- tests/navigation/AppSidebar.nav01.test.tsx` | ✅ | ✅ green |
+| 27-02-02 | 02 | 2 | NAV-02 | unit | `pnpm test -- tests/navigation/QuickAdd.nav02.test.tsx` | ✅ | ✅ green |
+| 27-02-03 | 02 | 2 | NAV-03 | unit | `pnpm test -- tests/navigation/QuickAdd.nav02.test.tsx` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -52,9 +53,9 @@ created: 2026-05-05
 
 ## Wave 0 Requirements
 
-- [ ] `tests/navigation/AppSidebar.nav01.test.tsx` — stubs for NAV-01 (group labels "Command", "Workshop", "Play", "Management"; no old labels remain; Factions in Management)
-- [ ] `tests/navigation/QuickAdd.nav02.test.tsx` — stubs for NAV-02 (Quick Add button renders, dropdown has 8 items, collapsed icon-only, NAV-03 click triggers openQuickAdd)
-- [ ] `tests/navigation/QuickAddContext.test.tsx` — stubs for NAV-03 (provider exposes openQuickAdd/closeQuickAdd/activeSheet, state transitions)
+- [x] `tests/navigation/AppSidebar.nav01.test.tsx` — 9 tests covering NAV-01 (group labels, old labels removed, membership)
+- [x] `tests/navigation/QuickAdd.nav02.test.tsx` — 13 tests covering NAV-02 (button states, dropdown items, click triggers)
+- [x] `tests/navigation/QuickAddContext.test.tsx` — 6 tests covering NAV-03 (provider state, openQuickAdd, closeQuickAdd, error boundary, action type)
 
 *Existing `tests/theming/AppSidebar.test.tsx` and `tests/app-shell/AppSidebar.test.tsx` cover collapse toggle and SPEND-03; they do NOT cover new group labels or Quick Add button — new test files required.*
 
@@ -72,11 +73,23 @@ created: 2026-05-05
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 8s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 8s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-05-05
+
+---
+
+## Validation Audit 2026-05-05
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+All 28 navigation tests pass green (9 NAV-01 + 13 NAV-02 + 6 NAV-03). Full suite: 502 passed, 2 skipped (unrelated JOUR-03 Wave 0 stubs).
