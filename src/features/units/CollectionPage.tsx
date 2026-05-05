@@ -21,6 +21,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import type { UnitPhotoWithUrl } from "@/hooks/useUnitPhotos";
+import { useLatestUnitPhotos } from "@/hooks/useUnitPhotos";
 import { useCollectionViewMode } from "@/hooks/useCollectionViewMode";
 import { UnitGallery } from "./UnitGallery";
 import { DatasheetImportDialog } from "./DatasheetImportDialog";
@@ -56,6 +57,9 @@ export function CollectionPage() {
       }),
     [units, search, factionsSel, statusesSel, categoriesSel, activeOnly]
   );
+
+  // COLL-01 — batch photo map for gallery thumbnails
+  const { data: latestPhotos } = useLatestUnitPhotos();
 
   // Sheet/dialog state — Pitfall 6: keep ID, derive unit from `units`
   const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
@@ -175,6 +179,7 @@ export function CollectionPage() {
           factions={factions ?? []}
           isLoading={unitsLoading}
           hasActiveFilters={hasActiveFilters}
+          latestPhotos={latestPhotos}
           onRowClick={handleRowClick}
           onAdd={handleAdd}
           onClearFilters={clearAll}

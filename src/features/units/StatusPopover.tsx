@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Check } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Command,
@@ -55,11 +55,9 @@ export function StatusPopover({ unit }: StatusPopoverProps) {
           type="button"
           onClick={(e) => e.stopPropagation()}
           aria-label={`Change status for ${unit.name}, currently ${unit.status_painting}`}
-          className="inline-flex"
+          className="cursor-pointer rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
-          <Badge variant="outline" className="cursor-pointer hover:bg-muted">
-            {unit.status_painting}
-          </Badge>
+          <StatusBadge status={unit.status_painting} />
         </button>
       </PopoverTrigger>
       <PopoverContent

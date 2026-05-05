@@ -84,6 +84,16 @@ vi.mock("@/hooks/useFactions", () => ({
   useFactions: () => ({ data: [mockFaction], isLoading: false, isError: false }),
 }));
 
+vi.mock("@/hooks/useUnitPhotos", async () => {
+  const actual = await vi.importActual<typeof import("@/hooks/useUnitPhotos")>(
+    "@/hooks/useUnitPhotos",
+  );
+  return {
+    ...actual,
+    useLatestUnitPhotos: () => ({ data: new Map(), isLoading: false }),
+  };
+});
+
 function renderCollectionPage() {
   const qc = new QueryClient({
     defaultOptions: { queries: { retry: false } },

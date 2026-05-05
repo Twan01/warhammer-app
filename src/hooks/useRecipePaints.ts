@@ -4,10 +4,20 @@ import {
   addRecipePaint,
   removeRecipePaint,
   getRecipeIdsByPaintId,
+  getRecipeSwatchColors,
 } from "@/db/queries/recipePaints";
 import type { CreateRecipePaintInput } from "@/types/recipePaint";
 
 export const RECIPE_PAINTS_KEY = (recipeId: number) => ["recipe-paints", recipeId] as const;
+
+/**
+ * WKSP-02 — query key for the batch swatch color lookup.
+ *
+ * Single top-level key — all recipe paint additions/removals invalidate the
+ * same cache entry, keeping swatch strips fresh without per-recipe granularity.
+ * Declared before mutation hooks that reference it.
+ */
+export const RECIPE_SWATCH_KEY = ["recipe-swatch-colors"] as const;
 
 export function useRecipePaints(recipeId: number | undefined) {
   return useQuery({
@@ -23,6 +33,7 @@ export function useAddRecipePaint() {
     mutationFn: addRecipePaint,
     onSuccess: (_, input) => {
       qc.invalidateQueries({ queryKey: RECIPE_PAINTS_KEY(input.recipe_id) });
+      qc.invalidateQueries({ queryKey: RECIPE_SWATCH_KEY });
     },
   });
 }
@@ -33,6 +44,7 @@ export function useRemoveRecipePaint() {
     mutationFn: ({ id }) => removeRecipePaint(id),
     onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: RECIPE_PAINTS_KEY(variables.recipeId) });
+      qc.invalidateQueries({ queryKey: RECIPE_SWATCH_KEY });
     },
   });
 }
@@ -66,5 +78,28 @@ export function useRecipeIdsByPaint(paintId: number | null | undefined) {
     queryFn: () =>
       enabled ? getRecipeIdsByPaintId(paintId) : Promise.resolve([] as number[]),
     enabled,
+  });
+}
+
+/**
+ * WKSP-02 — maps the flat batch swatch rows into a Map keyed by recipe_id.
+ *
+ * The UI receives Map<recipe_id, {paint_id, hex_color}[]> and renders swatch
+ * strips directly — no further grouping needed at the component level.
+ * Invalidated by useAddRecipePaint and useRemoveRecipePaint.
+ */
+export function useRecipeSwatchData() {
+  return useQuery({
+    queryKey: RECIPE_SWATCH_KEY,
+    queryFn: async () => {
+      const rows = await getRecipeSwatchColors();
+      const m = new Map<number, { paint_id: number; hex_color: string | null }[]>();
+      for (const row of rows) {
+        const list = m.get(row.recipe_id) ?? [];
+        list.push({ paint_id: row.paint_id, hex_color: row.hex_color });
+        m.set(row.recipe_id, list);
+      }
+      return m;
+    },
   });
 }
