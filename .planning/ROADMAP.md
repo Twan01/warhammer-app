@@ -292,7 +292,7 @@ Plans:
 | 21. Wishlist | v2.2 | 3/3 | Complete | 2026-05-05 |
 | 22. Hobby Goals | v2.2 | 4/4 | Complete | 2026-05-05 |
 | 23. Display Features | 2/2 | Complete   | 2026-05-05 | — |
-| 24. Unit Point Calculator | v2.2 | 0/4 | Not started | — |
+| 24. Unit Point Calculator | 1/4 | In Progress|  | — |
 | 25. Design Foundation | v2.3 | 2/2 | Complete | 2026-05-04 |
 | 26. Dashboard Redesign | v2.3 | 5/5 | Complete | 2026-05-05 |
 | 27. Navigation & Quick Add | v2.3 | 4/4 | Complete | 2026-05-05 |
