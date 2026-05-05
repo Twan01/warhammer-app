@@ -193,13 +193,19 @@ Plans:
 ### Phase 24: Unit Point Calculator
 **Goal**: The Collection page gains a point calculator that lets users manage model-count point tiers, track wargear loadout selections per unit, and preview the points delta when swapping between configurations in the army list builder
 **Depends on**: Phase 23
-**Requirements**: CALC-01, CALC-02, CALC-03, CALC-04
+**Requirements**: TIER-01, TIER-02, TIER-03, LOAD-01, LOAD-02, LOAD-03, DELTA-01, COALESCE-01
 **Success Criteria** (what must be TRUE):
   1. User can define multiple point tiers per unit (e.g. 5 models = 80pts, 10 models = 160pts) — the calculator auto-matches the active model count to the correct tier
   2. User can create named wargear loadouts per unit with options sourced from the linked datasheet's wargear list, or entered manually for unlinked units
   3. User can mark one loadout as active per unit — the army list builder uses the active loadout for display and point calculation
   4. When exploring loadout or tier changes in the army list builder, a colored delta badge (+N green / -N red) previews the points difference before the user commits the swap
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 24-01-PLAN.md — Wave 0: 3 test stub files (unitPointTierQueries + unitLoadoutQueries + deltaPreview) — 16 it.skip stubs covering TIER-01..03, LOAD-01..03, DELTA-01
+- [ ] 24-02-PLAN.md — Wave 1: migration 011 (3 tables) + lib.rs version 11 + types + query modules + hooks + computeDelta utility
+- [ ] 24-03-PLAN.md — Wave 2: TierManager + LoadoutSection components + PlaybookTab integration + activate 16 test stubs
+- [ ] 24-04-PLAN.md — Wave 3: ArmyListUnitRow delta preview + UnitSheet read-only points + manual smoke test
 
 ### Phase 30: Grid Layout Foundation
 **Goal**: The dashboard structure is rebuilt as an asymmetric CSS grid bento layout — all existing sections get column spans in a single atomic commit, StatCards navigate to relevant pages when clicked, and the 11-stage pipeline is compressed into 5 readable buckets
@@ -286,7 +292,7 @@ Plans:
 | 21. Wishlist | v2.2 | 3/3 | Complete | 2026-05-05 |
 | 22. Hobby Goals | v2.2 | 4/4 | Complete | 2026-05-05 |
 | 23. Display Features | 1/2 | In Progress|  | — |
-| 24. Unit Point Calculator | v2.2 | 0/TBD | Not started | — |
+| 24. Unit Point Calculator | v2.2 | 0/4 | Not started | — |
 | 25. Design Foundation | v2.3 | 2/2 | Complete | 2026-05-04 |
 | 26. Dashboard Redesign | v2.3 | 5/5 | Complete | 2026-05-05 |
 | 27. Navigation & Quick Add | v2.3 | 4/4 | Complete | 2026-05-05 |
