@@ -225,7 +225,14 @@ Plans:
   3. Kanban cards show last-updated date, linked recipe name (if set), and journal photo count for the unit — all three are visible on the card face without opening a detail sheet
   4. Each kanban card shows a next-action hint derived from the unit's current painting stage (e.g. "Ready to prime", "Start base coating") — the hint is visually distinct from the card title
   5. User can click a Log Session shortcut on any kanban card and the Log Session Sheet opens for that unit — no navigation to the unit's detail sheet required
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 28-00-PLAN.md — Wave 0: 5 test stub files (unitPhotoLatest + useLatestUnitPhotos + kanbanEnrichment + useKanbanEnrichment + logSessionSheet) — 26 it.skip stubs covering COLL-01, PROJ-01, PROJ-03
+- [ ] 28-01-PLAN.md — Wave 1: Data layer — getLatestPhotoByUnit + getPhotoCountsByUnitIds + getRecipeNamesByUnitIds + useLatestUnitPhotos hook + useKanbanEnrichment hook + LogSessionSheet defaultUnitId prop + invalidation wiring + flip 26 stubs
+- [ ] 28-02-PLAN.md — Wave 2: Collection UI — UnitGallery photo hero + StatusBadge + remove PaintingRing + StatusPopover trigger swap + CollectionPage useLatestUnitPhotos wiring
+- [ ] 28-03-PLAN.md — Wave 2: Kanban UI — KanbanCard metadata row + next-action hint + Log Session button + KanbanColumn/Board/Page prop threading + LogSessionSheet sibling portal
+- [ ] 28-04-PLAN.md — Wave 3: Manual smoke-test checkpoint (19 steps verifying COLL-01, COLL-02, PROJ-01, PROJ-02, PROJ-03 in live Tauri app)
 
 ### Phase 29: Workshop + Play
 **Goal**: Paint and recipe cards become visually informative with color swatches, and the Play layer gains data-driven readiness panels that answer "what's actually battle-ready?" at a glance
@@ -270,5 +277,5 @@ Plans:
 | 25. Design Foundation | 2/2 | Complete    | 2026-05-04 | — |
 | 26. Dashboard Redesign | 4/5 | Complete    | 2026-05-05 | — |
 | 27. Navigation & Quick Add | 4/4 | Complete   | 2026-05-05 | — |
-| 28. Collection + Projects | v2.3 | 0/TBD | Not started | — |
+| 28. Collection + Projects | v2.3 | 0/5 | Not started | — |
 | 29. Workshop + Play | v2.3 | 0/TBD | Not started | — |
