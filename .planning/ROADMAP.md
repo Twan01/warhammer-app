@@ -74,7 +74,7 @@ Full details: `.planning/milestones/v2.1-ROADMAP.md`
 - [x] **Phase 26: Dashboard Redesign** — "Hobby Command Center" header with Quick Add + Log Session, CurrentFocusCard, HobbyPipeline strip, upgraded FactionArmyCards, Recent Activity feed (completed 2026-05-05)
 - [x] **Phase 27: Navigation & Quick Add** — Hobby-native sidebar group names (Command/Workshop/Play/Management), Quick Add dropdown with 8 actions, Sheet-overlay flows from any page (completed 2026-05-05)
 - [x] **Phase 28: Collection + Projects** — Gallery card photo thumbnails, unified StatusBadge in table and gallery, enriched kanban cards (last updated, recipe link, photo count, next-action hint, Log Session shortcut) (completed 2026-05-05)
-- [ ] **Phase 29: Workshop + Play** — Paint color swatches, recipe paint swatch strip, Army List readiness panel, Battle Log army context display
+- [x] **Phase 29: Workshop + Play** — Paint color swatches, recipe paint swatch strip, Army List readiness panel, Battle Log army context display (completed 2026-05-05)
 
 ## Phase Details
 
@@ -285,4 +285,4 @@ Plans:
 | 26. Dashboard Redesign | 4/5 | Complete    | 2026-05-05 | — |
 | 27. Navigation & Quick Add | 4/4 | Complete    | 2026-05-05 | — |
 | 28. Collection + Projects | 5/5 | Complete    | 2026-05-05 | — |
-| 29. Workshop + Play | 4/5 | In Progress|  | — |
+| 29. Workshop + Play | 5/5 | Complete   | 2026-05-05 | — |
