@@ -65,6 +65,7 @@ Full details: `.planning/milestones/v2.1-ROADMAP.md`
 - [ ] **Phase 22: Hobby Goals** — New hobby_goals table (migration 009), goal CRUD with target unit count and timeframe, progress derived from painting session history
 - [ ] **Phase 23: Display Features** — Battle Ready quick-filter on Collection page, Showcase Mode full-screen gallery using Tauri window API
 - [ ] **Phase 24: Unit Point Calculator** — Point tiers per model count, wargear loadout management, swap delta preview in army list builder
+- [ ] **Phase 35: v2.2 Gap Closure** — Fix 4 low-severity tech debt items: BattleLogSheet timezone, PaintSheet purchase_date wiring, cache invalidation gaps in goal-progress and army-lists
 
 ---
 
@@ -207,6 +208,21 @@ Plans:
 - [ ] 24-03-PLAN.md — Wave 2: TierManager + LoadoutSection components + PlaybookTab integration + activate 16 test stubs
 - [ ] 24-04-PLAN.md — Wave 3: ArmyListUnitRow delta preview + UnitSheet read-only points + manual smoke test
 
+### Phase 35: v2.2 Gap Closure
+**Goal**: Close 4 low-severity tech debt items from the v2.2 milestone audit — timezone safety, form field wiring, and cache invalidation completeness
+**Depends on**: Phase 24
+**Requirements**: None (all requirements already satisfied — this phase addresses tech debt only)
+**Gap Closure**: Closes gaps from v2.2 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. BattleLogSheet uses `todayISO()` from `@/lib/dates` instead of a local UTC helper
+  2. `useDeletePaintingSession` invalidates `["goal-progress"]` cache on success
+  3. `useUpdateUnit` invalidates `["army-lists"]` cache on success
+  4. PaintSheet `purchase_date` form field is wired to the mutation (saves user-entered dates)
+**Plans**: 1 plan
+
+Plans:
+- [ ] 35-01-PLAN.md — 4 targeted fixes: BattleLogSheet import swap, cache invalidation additions, PaintSheet purchase_date wiring
+
 ### Phase 30: Grid Layout Foundation
 **Goal**: The dashboard structure is rebuilt as an asymmetric CSS grid bento layout — all existing sections get column spans in a single atomic commit, StatCards navigate to relevant pages when clicked, and the 11-stage pipeline is compressed into 5 readable buckets
 **Depends on**: Phase 29
@@ -265,7 +281,7 @@ Plans:
 
 ## Progress
 
-**Execution Order:** 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 25 → 26 → 27 → 28 → 29 → 30 → 31 → 32 → 33 → 34
+**Execution Order:** 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 35 → 25 → 26 → 27 → 28 → 29 → 30 → 31 → 32 → 33 → 34
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -291,8 +307,9 @@ Plans:
 | 20. v2.1 Polish & Gap Closure | v2.1 | 3/3 | Complete | 2026-05-04 |
 | 21. Wishlist | v2.2 | 3/3 | Complete | 2026-05-05 |
 | 22. Hobby Goals | v2.2 | 4/4 | Complete | 2026-05-05 |
-| 23. Display Features | 2/2 | Complete    | 2026-05-05 | — |
-| 24. Unit Point Calculator | 4/4 | Complete    | 2026-05-05 | — |
+| 23. Display Features | v2.2 | 2/2 | Complete | 2026-05-05 |
+| 24. Unit Point Calculator | v2.2 | 4/4 | Complete | 2026-05-05 |
+| 35. v2.2 Gap Closure | v2.2 | 0/1 | Not started | — |
 | 25. Design Foundation | v2.3 | 2/2 | Complete | 2026-05-04 |
 | 26. Dashboard Redesign | v2.3 | 5/5 | Complete | 2026-05-05 |
 | 27. Navigation & Quick Add | v2.3 | 4/4 | Complete | 2026-05-05 |
