@@ -154,7 +154,13 @@ Plans:
   1. User can create a painting goal by specifying a target unit count and a timeframe (this month / this quarter) — the goal saves and appears on the Goals page
   2. Each goal shows a progress bar — the filled portion reflects the count of distinct units that have at least one painting session logged during the goal's timeframe, updated automatically as sessions are added
   3. User can view all active and completed goals on the Goals page — completed goals (progress >= target) are visually distinguished from active ones
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 22-00-PLAN.md — Wave 0: 6 test stub files (goalQueries + goalSchema + computeGoalPeriod + useGoals + GoalSheet + GoalsPage) — 33 it.skip stubs covering ANLY-01..03
+- [ ] 22-01-PLAN.md — Wave 1: migration 009 (hobby_goals table) + lib.rs version 9 + types/goal.ts + computeGoalPeriod/deriveGoalStatus pure functions + goalSchema (zod) + goals.ts query module (CRUD + getGoalProgress with COUNT(DISTINCT unit_id)) + activate 20 stubs
+- [ ] 22-02-PLAN.md — Wave 2: useGoals hooks (GOALS_KEY + GOAL_PROGRESS_KEY) + useJournalSessions invalidation patch + GoalCard (status-based progress bar) + GoalSheet (create/edit) + GoalDeleteDialog + GoalEmptyState (Target icon-pill) + GoalsPage (Active/Completed/Missed section grouping) + /goals route + Goals sidebar entry (Target icon in COMMAND_NAV) + activate 13 stubs
+- [ ] 22-03-PLAN.md — Wave 3: Pre-flight verification (build + tests) + manual smoke-test checkpoint (17 steps verifying ANLY-01..03 in live Tauri app)
 
 ### Phase 23: Display Features
 **Goal**: The Collection page gains a one-click Battle Ready filter showing only painted and assembled units, and users can enter Showcase Mode — a full-screen chromeless gallery of painted units — ideal for displaying the collection at club nights
@@ -204,7 +210,7 @@ Plans:
 | 19. Analytics Core | v2.2 | 4/4 | Complete | 2026-05-04 |
 | 20. v2.1 Polish & Gap Closure | v2.1 | 3/3 | Complete | 2026-05-04 |
 | 21. Wishlist | v2.2 | 0/3 | Not started | — |
-| 22. Hobby Goals | v2.2 | 0/TBD | Not started | — |
+| 22. Hobby Goals | v2.2 | 0/4 | Not started | — |
 | 23. Display Features | v2.2 | 0/TBD | Not started | — |
 | 25. Design Foundation | v2.3 | 2/2 | Complete | 2026-05-04 |
 | 26. Dashboard Redesign | v2.3 | 5/5 | Complete | 2026-05-05 |
