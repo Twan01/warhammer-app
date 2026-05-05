@@ -1,11 +1,22 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useUpdateArmyListUnit } from "@/hooks/useArmyLists";
+import { useUnitPointTiers } from "@/hooks/useUnitPointTiers";
+import { useUnitLoadouts } from "@/hooks/useUnitLoadouts";
+import { useUpdateUnit } from "@/hooks/useUnits";
+import { computeDelta } from "@/lib/computeDelta";
 import type { ArmyListUnitRow as ArmyListUnitRowType } from "@/types/armyList";
 
 interface ArmyListUnitRowProps {
@@ -17,20 +28,44 @@ interface ArmyListUnitRowProps {
  * ARMY-03, ARMY-04 — One unit row inside ArmyListDetailSheet's unit table.
  *
  * Layout (UI-SPEC §ArmyListDetailSheet, in this exact column order):
- *   1. Unit name
+ *   1. Unit name (+ active loadout name below if set)
  *   2. Painting status badge
  *   3. Points override (inline number Input — saves on blur or Enter)
+ *      + tier selector + delta badge (Phase 24)
  *   4. Notes expand toggle (ChevronDown/Up icon)
  *   5. Remove button (Trash2 ghost icon)
  *
  * Critical contract (Pitfall 2): updateArmyListUnit is full-replacement, NOT
  * COALESCE. Every save MUST pass BOTH points_override AND notes — otherwise
  * the un-passed field is overwritten with undefined.
+ *
+ * Phase 24 additions:
+ * - Tier selector (Select) when unit has point tiers — shows model count + pts per tier
+ * - Delta badge (+N red / -N green) when a different tier is previewed
+ * - Confirm button writes to units.points via useUpdateUnit (not army_list_units)
+ * - Active loadout name displayed below unit name (subtle muted text)
+ * - Pitfall 5: setPendingTierId(null) on confirm clears badge immediately
  */
 export function ArmyListUnitRow({ unit, onRemove }: ArmyListUnitRowProps) {
   const updateArmyListUnit = useUpdateArmyListUnit();
+  const updateUnit = useUpdateUnit();
   const [expanded, setExpanded] = useState(false);
   const [notesDraft, setNotesDraft] = useState(unit.notes ?? "");
+  const [pendingTierId, setPendingTierId] = useState<number | null>(null);
+
+  const { data: tiers } = useUnitPointTiers(unit.unit_id);
+  const { data: loadouts } = useUnitLoadouts(unit.unit_id);
+
+  const hasTiers = (tiers?.length ?? 0) > 0;
+  const activeLoadout = loadouts?.find((l) => l.is_active === 1);
+
+  const candidatePoints = useMemo(() => {
+    if (pendingTierId === null) return null;
+    const tier = tiers?.find((t) => t.id === pendingTierId);
+    return tier?.points ?? null;
+  }, [pendingTierId, tiers]);
+
+  const delta = computeDelta(candidatePoints, unit.effective_points);
 
   function handlePointsBlur(rawValue: string) {
     const numeric = rawValue === "" ? null : Number(rawValue);
@@ -76,7 +111,14 @@ export function ArmyListUnitRow({ unit, onRemove }: ArmyListUnitRowProps) {
   return (
     <>
       <TableRow>
-        <TableCell className="font-medium">{unit.unit_name}</TableCell>
+        <TableCell className="font-medium">
+          {unit.unit_name}
+          {activeLoadout && (
+            <span className="text-xs text-muted-foreground block">
+              {activeLoadout.name}
+            </span>
+          )}
+        </TableCell>
 
         <TableCell className="space-x-1">
           <Badge variant="secondary">{unit.status_painting}</Badge>
@@ -86,18 +128,76 @@ export function ArmyListUnitRow({ unit, onRemove }: ArmyListUnitRowProps) {
         </TableCell>
 
         <TableCell>
-          <Input
-            type="number"
-            min={0}
-            className="w-20 h-7 text-sm"
-            placeholder={unit.unit_points !== null ? String(unit.unit_points) : "—"}
-            defaultValue={unit.points_override ?? ""}
-            onBlur={(e) => handlePointsBlur(e.currentTarget.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") (e.currentTarget as HTMLInputElement).blur();
-            }}
-            aria-label={`Points override for ${unit.unit_name}`}
-          />
+          <div className="flex items-center gap-1.5">
+            <Input
+              type="number"
+              min={0}
+              className="w-20 h-7 text-sm"
+              placeholder={unit.unit_points !== null ? String(unit.unit_points) : "—"}
+              defaultValue={unit.points_override ?? ""}
+              onBlur={(e) => handlePointsBlur(e.currentTarget.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") (e.currentTarget as HTMLInputElement).blur();
+              }}
+              aria-label={`Points override for ${unit.unit_name}`}
+            />
+            {delta !== 0 && (
+              <Badge
+                variant="outline"
+                className={
+                  delta > 0
+                    ? "text-destructive border-destructive ml-1.5"
+                    : "text-green-600 border-green-600 ml-1.5"
+                }
+              >
+                {delta > 0 ? `+${delta}` : `${delta}`}
+              </Badge>
+            )}
+          </div>
+          {hasTiers && (
+            <div className="flex items-center gap-1.5 mt-1">
+              <Select
+                value={pendingTierId !== null ? String(pendingTierId) : ""}
+                onValueChange={(val) => setPendingTierId(val ? Number(val) : null)}
+              >
+                <SelectTrigger className="w-28 h-7 text-xs">
+                  <SelectValue placeholder="Tier..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {tiers!.map((t) => (
+                    <SelectItem key={t.id} value={String(t.id)}>
+                      {t.model_count} models = {t.points}pts
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {pendingTierId !== null && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs"
+                  disabled={updateUnit.isPending}
+                  onClick={() => {
+                    const tier = tiers!.find((t) => t.id === pendingTierId);
+                    if (!tier) return;
+                    updateUnit.mutate(
+                      { id: unit.unit_id, points: tier.points },
+                      {
+                        onSuccess: () => {
+                          setPendingTierId(null); // Pitfall 5: clear pending to hide badge
+                          toast.success(`Points updated to ${tier.points} pts`);
+                        },
+                        onError: () => toast.error("Failed to update points"),
+                      },
+                    );
+                  }}
+                >
+                  Confirm
+                </Button>
+              )}
+            </div>
+          )}
         </TableCell>
 
         <TableCell>
