@@ -33,7 +33,7 @@ Project-standard 8-point scale. All values confirmed in existing card and layout
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| xs | 4px | Icon gaps (`gap-1`, `gap-1.5`), dot-to-text in StatusBadge |
+| xs | 4px | Icon gaps (`gap-1`), dot-to-text in StatusBadge |
 | sm | 8px | Inline element spacing, card interior row gaps (`gap-2`) |
 | md | 16px | Default element spacing, card horizontal padding (`px-4`) |
 | lg | 24px | Section padding, card group gaps |
@@ -45,7 +45,7 @@ Exceptions:
 - Gallery card top padding removed (photo hero flush to card top edge, `rounded-t-lg` matches card border)
 - Gallery card body padding: `px-3 pb-3 pt-2` (12px sides, 12px bottom, 8px top — tighter because image already provides visual breathing room)
 - Kanban card padding: `p-3` (12px all sides — unchanged from current)
-- Kanban metadata row top margin: `mt-1.5` (6px — sub-grid value, visually tighter than sm to keep card compact)
+- Kanban metadata row top margin: `mt-2` (8px — sm — standard small gap between progress bar and metadata)
 - Kanban next-action hint top margin: `mt-1` (4px — xs — tight coupling to metadata row above it)
 - Progress bar height: 2px (`h-0.5`) — sub-grid, decorative only
 - StatusBadge dot: 4px × 4px (`h-1 w-1`) — sub-grid, visual indicator only
@@ -179,11 +179,11 @@ Photo img:        "w-full aspect-square object-cover"
 Placeholder div:  "w-full aspect-square bg-panel-surface flex items-center
                    justify-center"
 Placeholder text: "text-lg font-semibold text-muted-foreground"
-Card body:        "flex flex-col gap-1.5 px-3 pb-3 pt-2"
+Card body:        "flex flex-col gap-2 px-3 pb-3 pt-2"
 Faction badge:    existing Badge with style={{ backgroundColor: faction.color_theme }}
                   className="border-transparent text-white text-xs"
 Unit name:        "text-sm font-semibold truncate w-full"
-Progress bar:     "w-full h-0.5 bg-border/40 rounded-full overflow-hidden mt-0.5"
+Progress bar:     "w-full h-0.5 bg-border/40 rounded-full overflow-hidden mt-1"
 Progress fill:    "h-full bg-faction-accent transition-all"
                   style={{ width: `${unit.painting_percentage}%` }}
 Percentage text:  "text-xs text-muted-foreground tabular-nums"
@@ -198,7 +198,7 @@ Percentage text:  "text-xs text-muted-foreground tabular-nums"
 **Skeleton update (Pitfall 8):** Replace existing `<Skeleton className="h-24 w-24 rounded-full" />` with:
 ```
 <Skeleton className="w-full aspect-square rounded-t-lg" />
-<div className="px-3 pb-3 pt-2 flex flex-col gap-1.5">
+<div className="px-3 pb-3 pt-2 flex flex-col gap-2">
   <Skeleton className="h-4 w-3/4" />
   <Skeleton className="h-3 w-16" />
   <Skeleton className="h-3 w-full" />
@@ -298,7 +298,7 @@ Percentage text:  "text-xs text-muted-foreground tabular-nums"
 
 **Metadata row (NEW — after progress bar):**
 ```
-<div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5
+<div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1
                 text-xs text-muted-foreground">
   <span>{formatRelativeTime(unit.updated_at)}</span>
   {recipeName && (
@@ -310,7 +310,7 @@ Percentage text:  "text-xs text-muted-foreground tabular-nums"
     </span>
   )}
   {photoCount > 0 && (
-    <span className="inline-flex items-center gap-0.5">
+    <span className="inline-flex items-center gap-1">
       <Camera className="h-3 w-3" aria-hidden="true" />
       <span aria-label={`${photoCount} photos`}>{photoCount}</span>
     </span>
@@ -342,7 +342,7 @@ export interface KanbanCardProps {
 
 **DnD safety (Pitfall 6):** The Paintbrush button uses `e.stopPropagation()` on click. The `{...listeners}` spread stays on the outer `<Card>` — the button intercepts the click event before it reaches the drag listener. Same pattern as `KanbanCardActions`.
 
-**Metadata row layout decision (Claude's discretion resolved):** Single `flex-wrap` row — `last updated` always first, recipe only when linked (conditional), photo count only when > 0 (conditional). `flex-wrap` prevents overflow on narrow columns when all three are present. `gap-x-3` (12px) separates items horizontally; `gap-y-0.5` allows graceful wrap without excessive vertical gap.
+**Metadata row layout decision (Claude's discretion resolved):** Single `flex-wrap` row — `last updated` always first, recipe only when linked (conditional), photo count only when > 0 (conditional). `flex-wrap` prevents overflow on narrow columns when all three are present. `gap-x-3` (12px) separates items horizontally; `gap-y-1` allows graceful wrap without excessive vertical gap.
 
 ---
 
@@ -481,7 +481,7 @@ Photo thumbnails scale naturally: `w-full aspect-square` means the photo is alwa
 
 Unchanged — column widths and board scroll behavior are not modified in Phase 28.
 
-Kanban card width is fixed by its column. The metadata row uses `flex-wrap` so all three metadata items (last updated, recipe, photo count) wrap gracefully if the card is narrow. `gap-x-3` maintains visual separation; `gap-y-0.5` keeps the wrapped line tight.
+Kanban card width is fixed by its column. The metadata row uses `flex-wrap` so all three metadata items (last updated, recipe, photo count) wrap gracefully if the card is narrow. `gap-x-3` maintains visual separation; `gap-y-1` keeps the wrapped line tight.
 
 ### Minimum Card Width
 
