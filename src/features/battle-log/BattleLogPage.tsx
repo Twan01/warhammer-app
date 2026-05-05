@@ -3,7 +3,7 @@ import { Swords } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBattleLogs, useBattleLogSummary } from "@/hooks/useBattleLogs";
-import { useArmyLists } from "@/hooks/useArmyLists";
+import { useArmyLists, useArmyListReadiness } from "@/hooks/useArmyLists";
 import { useUnits } from "@/hooks/useUnits";
 import type { BattleLog } from "@/types/battleLog";
 import { BattleLogRow } from "./BattleLogRow";
@@ -48,6 +48,14 @@ export function BattleLogPage() {
     (units ?? []).forEach((u) => m.set(u.id, u.name));
     return m;
   }, [units]);
+
+  const armyListIds = useMemo(() => {
+    const ids = new Set<number>();
+    (logs ?? []).forEach((l) => { if (l.army_list_id !== null) ids.add(l.army_list_id); });
+    return [...ids];
+  }, [logs]);
+
+  const { data: armyListReadiness = new Map<number, { total: number; battleReady: number }>() } = useArmyListReadiness(armyListIds);
 
   // Handlers
   const openCreate = () => { setEditingLog(null); setSheetOpen(true); };
@@ -98,6 +106,11 @@ export function BattleLogPage() {
                 armyListName={
                   log.army_list_id !== null
                     ? armyListNameById.get(log.army_list_id) ?? null
+                    : null
+                }
+                armyListReadiness={
+                  log.army_list_id !== null
+                    ? armyListReadiness.get(log.army_list_id) ?? null
                     : null
                 }
                 mvpUnitName={

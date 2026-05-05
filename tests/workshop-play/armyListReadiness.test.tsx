@@ -1,8 +1,10 @@
-/** Wave 0 stubs for PLAY-02 — army list readiness batch query + hook + BattleLogRow display. Plan 29-01 fills query/hook stubs. Plan 29-03 fills UI stubs. */
+/** Wave 1 — PLAY-02 army list readiness: query, hook, and BattleLogRow display. All stubs activated. Renamed from .ts to .tsx (JSX required for BattleLogRow render). */
 import React from "react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { render, screen, renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BattleLogRow } from "@/features/battle-log/BattleLogRow";
+import type { BattleLog } from "@/types/battleLog";
 
 // Mock @/db/client for query-level SQL contract tests.
 // Mock @/db/queries/armyLists for hook tests (getArmyListReadiness stubbed).
@@ -20,6 +22,12 @@ vi.mock("@/db/queries/armyLists", async (importOriginal) => {
     getArmyListReadiness: vi.fn(),
   };
 });
+
+// Mock Collapsible and its sub-components to avoid Radix portal issues in jsdom
+vi.mock("@/components/ui/collapsible", () => ({
+  Collapsible: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  CollapsibleContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
 
 import { getArmyListReadiness } from "@/db/queries/armyLists";
 import { useArmyListReadiness, ARMY_LIST_READINESS_KEY } from "@/hooks/useArmyLists";
@@ -168,19 +176,85 @@ describe("useArmyListReadiness hook (PLAY-02)", () => {
   });
 });
 
-describe.skip("BattleLogRow readiness display (PLAY-02)", () => {
-  it.skip("renders '(battleReady/total pts ready)' when armyListReadiness is provided");
-  // TODO Plan 29-03: render BattleLogRow with armyListReadiness={total:200, battleReady:120},
-  // assert text "(120/200 pts ready)"
+// ---- BattleLogRow UI tests ----
 
-  it.skip("renders tabular-nums class on readiness point values");
-  // TODO Plan 29-03: assert span containing pts has "tabular-nums" class
+function makeLog(overrides: Partial<BattleLog> = {}): BattleLog {
+  return {
+    id: 1, opponent_faction: "Orks", mission: "Incursion", result: "Win",
+    battle_date: "2024-05-01", army_list_id: 10, points_played: 2000,
+    opponent: null, my_score: null, opponent_score: null,
+    mvp_unit_id: null, underperforming_unit_id: null,
+    lessons_learned: null, changes_next_time: null, notes: null,
+    created_at: "2024-05-01",
+    ...overrides,
+  };
+}
 
-  it.skip("renders no readiness info when armyListReadiness is null");
-  // TODO Plan 29-03: render with armyListReadiness=null,
-  // assert no "pts ready" text
+describe("BattleLogRow readiness display (PLAY-02)", () => {
+  it("renders '(battleReady/total pts ready)' when armyListReadiness is provided", () => {
+    render(
+      <BattleLogRow
+        log={makeLog()}
+        armyListName="Ultramarines 2000pts"
+        armyListReadiness={{ total: 200, battleReady: 120 }}
+        mvpUnitName={null}
+        underperformingUnitName={null}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
 
-  it.skip("still renders '(Army list deleted)' when army_list_id is set but armyListName is null");
-  // TODO Plan 29-03: render with army_list_id=5, armyListName=null,
-  // assert italic "(Army list deleted)"
+    expect(screen.getByText(/120\/200 pts ready/)).toBeInTheDocument();
+  });
+
+  it("renders tabular-nums class on readiness point values", () => {
+    render(
+      <BattleLogRow
+        log={makeLog()}
+        armyListName="Ultramarines 2000pts"
+        armyListReadiness={{ total: 200, battleReady: 120 }}
+        mvpUnitName={null}
+        underperformingUnitName={null}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    const readinessSpan = screen.getByText(/pts ready/);
+    expect(readinessSpan).toHaveClass("tabular-nums");
+  });
+
+  it("renders no readiness info when armyListReadiness is null", () => {
+    render(
+      <BattleLogRow
+        log={makeLog()}
+        armyListName="My List"
+        armyListReadiness={null}
+        mvpUnitName={null}
+        underperformingUnitName={null}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByText(/pts ready/)).not.toBeInTheDocument();
+  });
+
+  it("still renders '(Army list deleted)' when army_list_id is set but armyListName is null", () => {
+    render(
+      <BattleLogRow
+        log={makeLog({ army_list_id: 5 })}
+        armyListName={null}
+        armyListReadiness={null}
+        mvpUnitName={null}
+        underperformingUnitName={null}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    const deleted = screen.getByText("(Army list deleted)");
+    expect(deleted).toBeInTheDocument();
+    expect(deleted).toHaveClass("italic");
+  });
 });

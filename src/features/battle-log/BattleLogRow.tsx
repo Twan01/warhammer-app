@@ -12,6 +12,7 @@ import type { BattleLog } from "@/types/battleLog";
 interface BattleLogRowProps {
   log: BattleLog;
   armyListName: string | null;       // null = army_list_id is null OR list deleted
+  armyListReadiness: { total: number; battleReady: number } | null;  // PLAY-02 live readiness points
   mvpUnitName: string | null;        // null = mvp_unit_id is null OR unit deleted
   underperformingUnitName: string | null;
   onEdit: (log: BattleLog) => void;
@@ -31,6 +32,7 @@ interface BattleLogRowProps {
 export function BattleLogRow({
   log,
   armyListName,
+  armyListReadiness,
   mvpUnitName,
   underperformingUnitName,
   onEdit,
@@ -81,7 +83,14 @@ export function BattleLogRow({
           </p>
           <p className="text-sm text-muted-foreground mt-0.5">
             {armyListName ? (
-              armyListName
+              <>
+                {armyListName}
+                {armyListReadiness && (
+                  <span className="tabular-nums">
+                    {" "}({armyListReadiness.battleReady}/{armyListReadiness.total} pts ready)
+                  </span>
+                )}
+              </>
             ) : log.army_list_id !== null ? (
               <span className="italic">(Army list deleted)</span>
             ) : (
