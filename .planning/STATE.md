@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Premium Dashboard UX & Visual Polish
 status: planning
-stopped_at: Completed 24-01-PLAN.md
-last_updated: "2026-05-05T18:22:40.776Z"
+stopped_at: Completed 24-02-PLAN.md
+last_updated: "2026-05-05T18:26:38.570Z"
 last_activity: 2026-05-05 — v2.4 roadmap created, Phase 30 is next
 progress:
   total_phases: 12
   completed_phases: 6
   total_plans: 22
-  completed_plans: 19
+  completed_plans: 20
   percent: 0
 ---
 
@@ -60,6 +60,13 @@ Progress: [░░░░░░░░░░] 0% (0/5 phases complete)
 - Visual depth (Phase 34) is CSS-only — no logic, no new hooks; add last as pure polish
 - Phase 31 must ship before Phase 33 — CurrentFocusCard v2 introduces photo wiring that DATA-06 (recipe name display) depends on
 
+### Phase 24 Decisions (24-02)
+
+- weapon_name stored as TEXT copy in unit_loadout_wargear — cross-database FK to rules.db not supported in SQLite
+- activateLoadout uses two-step UPDATE without transaction — safe for local single-user SQLite desktop app
+- COALESCE chain in armyLists.ts untouched — tier points flow via units.points update at application layer
+- useActivateLoadout invalidates ["army-lists"] cache so ArmyListUnitRow picks up active loadout name
+
 ### Pending Todos
 
 None.
@@ -70,6 +77,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-05T18:18:28.825Z
-Stopped at: Completed 24-01-PLAN.md
+Last session: 2026-05-05T18:26:38.564Z
+Stopped at: Completed 24-02-PLAN.md
 Resume: Run `/gsd:plan-phase 30` to plan Grid Layout Foundation
