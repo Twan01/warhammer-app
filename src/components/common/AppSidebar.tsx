@@ -15,6 +15,7 @@ import {
   Shield,
   Sword,
   Swords,
+  Target,
   Wallet,
 } from "lucide-react";
 import { NavItem } from "./NavItem";
@@ -33,6 +34,7 @@ const COMMAND_NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/collection", label: "Collection", icon: Package },
   { to: "/painting-projects", label: "Painting Projects", icon: Palette },
+  { to: "/goals", label: "Goals", icon: Target },
 ] as const;
 
 const WORKSHOP_NAV = [
