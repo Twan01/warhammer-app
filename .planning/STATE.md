@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.3
-milestone_name: Hobby Command Center
+milestone: v2.2
+milestone_name: Full Circle
 status: executing
-stopped_at: Completed 29-00-PLAN.md (Wave 0 test stubs)
-last_updated: "2026-05-05T16:20:00.000Z"
+stopped_at: "Completed 28-02-PLAN.md (Wave 2: UI components)"
+last_updated: "2026-05-05T14:30:48.657Z"
 progress:
   total_phases: 12
   completed_phases: 6
   total_plans: 30
-  completed_plans: 23
+  completed_plans: 24
   percent: 77
 ---
 
@@ -24,11 +24,11 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.3 milestone start)
 
 ## Current Position
 
-Phase: 29 — Workshop + Play (plan 00 complete)
-Plan: 29-00 complete — Wave 0 test stubs: 28 it.skip stubs across 4 files, pnpm test green
-Status: In progress — 1/? plans done for Phase 29
+Phase: 28 — Collection + Projects (plan 02 complete)
+Plan: 28-02 complete — Wave 2 UI: photo hero gallery cards, StatusBadge in gallery + StatusPopover, latestPhotos Map wired from CollectionPage
+Status: In progress — 2/? plans done for Phase 28
 
-Progress: [████████░░] 77% (23/30 plans complete)
+Progress: [████████░░] 80% (24/30 plans complete)
 
 ## v2.3 Phase Map
 
@@ -37,7 +37,7 @@ Progress: [████████░░] 77% (23/30 plans complete)
 | 25 | Design Foundation | DSFD-01, DSFD-02, DSFD-03, DSFD-04 | Complete |
 | 26 | Dashboard Redesign | DASH-01, DASH-02, DASH-03, DASH-04, DASH-05, DASH-06 | In progress (2/5) |
 | 27 | Navigation & Quick Add | NAV-01, NAV-02, NAV-03 | Complete (4/4) |
-| 28 | Collection + Projects | COLL-01, COLL-02, PROJ-01, PROJ-02, PROJ-03 | Not started |
+| 28 | Collection + Projects | COLL-01, COLL-02, PROJ-01, PROJ-02, PROJ-03 | In progress (2/?) |
 | 29 | Workshop + Play | WKSP-01, WKSP-02, PLAY-01, PLAY-02 | In progress (1/?) |
 
 ## Accumulated Context
@@ -50,6 +50,10 @@ Progress: [████████░░] 77% (23/30 plans complete)
 
 ### Phase 28 Decisions
 
+- GalleryCardPhoto sub-component co-located in UnitGallery.tsx (not separate file) — self-contained fallback logic with useState(imgFailed) stays adjacent to the gallery rendering
+- faction color applied as borderTop on placeholder div (not background) — maintains legibility of initials text against bg-panel-surface
+- latestPhotos passed as optional prop (latestPhotos?) — gallery renders without photos during initial load before hook resolves
+- RECIPE_SWATCH_KEY + useRecipeSwatchData added to useRecipePaints.ts — Wave 0 Phase 29 stubs referenced RECIPE_SWATCH_KEY in mutation handlers before the constant was defined; fix unblocks pnpm build
 - Wave 0 stubs omit top-level imports of not-yet-existing modules — mirrors Phase 18/19/26/27 pattern; TODO Wave 1 comment blocks carry exact import paths so Wave 1 knows exactly what to uncomment
 - `it.skip` used (not `xit`/`xtest`) — consistent with Phase 26 Wave 0 decision; Wave 1 greps `it.skip` to find activation candidates
 - `getPhotoCountsByUnitIds` stubs appear in both collection (COLL-01) and painting (PROJ-01) test files — same function serves both gallery thumbnails and kanban card enrichment
@@ -220,6 +224,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-05T16:20:00Z
-Stopped at: Completed 29-00-PLAN.md (Wave 0 test stubs)
+Last session: 2026-05-05T14:30:48.653Z
+Stopped at: Completed 28-02-PLAN.md (Wave 2: UI components)
 Resume: Phase 29 Plan 01 is next (Wave 1: data layer — getRecipeSwatchColors, useRecipeSwatchData, getArmyListReadiness, useArmyListReadiness). Run `/gsd:execute-phase 29-01` to continue.
