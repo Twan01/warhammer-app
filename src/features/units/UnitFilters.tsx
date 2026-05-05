@@ -22,11 +22,13 @@ export function UnitFilters({ units }: UnitFiltersProps) {
   const statusesSel = useCollectionFilters((s) => s.statuses);
   const categoriesSel = useCollectionFilters((s) => s.categories);
   const activeOnly = useCollectionFilters((s) => s.activeOnly);
+  const battleReady = useCollectionFilters((s) => s.battleReady);
   const setSearch = useCollectionFilters((s) => s.setSearch);
   const toggleFaction = useCollectionFilters((s) => s.toggleFaction);
   const toggleStatus = useCollectionFilters((s) => s.toggleStatus);
   const toggleCategory = useCollectionFilters((s) => s.toggleCategory);
   const toggleActiveOnly = useCollectionFilters((s) => s.toggleActiveOnly);
+  const toggleBattleReady = useCollectionFilters((s) => s.toggleBattleReady);
   const clearAll = useCollectionFilters((s) => s.clearAll);
 
   const { data: factions } = useFactions();
@@ -42,7 +44,8 @@ export function UnitFilters({ units }: UnitFiltersProps) {
     factionsSel.length > 0 ||
     statusesSel.length > 0 ||
     categoriesSel.length > 0 ||
-    activeOnly;
+    activeOnly ||
+    battleReady;
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
@@ -88,6 +91,15 @@ export function UnitFilters({ units }: UnitFiltersProps) {
         aria-pressed={activeOnly}
       >
         Active only
+      </Button>
+
+      <Button
+        variant={battleReady ? "default" : "outline"}
+        size="sm"
+        onClick={toggleBattleReady}
+        aria-pressed={battleReady}
+      >
+        Battle Ready
       </Button>
 
       {hasAny && (

@@ -41,6 +41,7 @@ export function CollectionPage() {
   const statusesSel = useCollectionFilters((s) => s.statuses);
   const categoriesSel = useCollectionFilters((s) => s.categories);
   const activeOnly = useCollectionFilters((s) => s.activeOnly);
+  const battleReady = useCollectionFilters((s) => s.battleReady);
   const clearAll = useCollectionFilters((s) => s.clearAll);
 
   const hasActiveFilters =
@@ -48,14 +49,15 @@ export function CollectionPage() {
     factionsSel.length > 0 ||
     statusesSel.length > 0 ||
     categoriesSel.length > 0 ||
-    activeOnly;
+    activeOnly ||
+    battleReady;
 
   const filteredUnits = useMemo(
     () =>
       applyUnitFilters(units ?? [], {
-        search, factions: factionsSel, statuses: statusesSel, categories: categoriesSel, activeOnly,
+        search, factions: factionsSel, statuses: statusesSel, categories: categoriesSel, activeOnly, battleReady,
       }),
-    [units, search, factionsSel, statusesSel, categoriesSel, activeOnly]
+    [units, search, factionsSel, statusesSel, categoriesSel, activeOnly, battleReady]
   );
 
   // COLL-01 — batch photo map for gallery thumbnails
