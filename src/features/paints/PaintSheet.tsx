@@ -50,6 +50,7 @@ const DEFAULT_VALUES: PaintFormValues = {
   wishlist: false,
   notes: "",
   purchase_price_pence: null,
+  purchase_date: null,
 };
 
 function buildDefaultValues(paint: Paint | null): PaintFormValues {
@@ -67,6 +68,7 @@ function buildDefaultValues(paint: Paint | null): PaintFormValues {
       wishlist: !!paint.wishlist,
       notes: paint.notes ?? "",
       purchase_price_pence: paint.purchase_price_pence ?? null,
+      purchase_date: paint.purchase_date ?? null,
     };
   }
   return DEFAULT_VALUES;
@@ -102,7 +104,7 @@ export function PaintSheet({ open, paint, onClose }: PaintSheetProps) {
         wishlist: values.wishlist ? 1 : 0 as 0 | 1,
         notes: values.notes || null,
         purchase_price_pence: values.purchase_price_pence ?? null,
-        purchase_date: null, // purchase_date added in migration 008; not yet surfaced in this form
+        purchase_date: values.purchase_date || null,
       };
 
       if (isEdit && paint) {
@@ -360,6 +362,25 @@ export function PaintSheet({ open, paint, onClose }: PaintSheetProps) {
                   <p className="text-xs text-muted-foreground">
                     Enter amount in pence (100 = £1.00)
                   </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              name="purchase_date"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Purchase Date</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value || null)}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
