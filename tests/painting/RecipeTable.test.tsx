@@ -37,6 +37,7 @@ function renderTable(props: Partial<Parameters<typeof RecipeTable>[0]> = {}) {
     factions: [] as Faction[],
     units: [] as Unit[],
     stepCountByRecipe: new Map<number, number>(),
+    swatchColorsByRecipe: new Map<number, { paint_id: number; hex_color: string | null }[]>(),
     isLoading: false,
     onRowClick: vi.fn(),
     onAdd: vi.fn(),

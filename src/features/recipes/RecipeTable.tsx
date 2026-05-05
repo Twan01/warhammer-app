@@ -26,6 +26,7 @@ export interface RecipeTableProps {
   factions: Faction[];
   units: Unit[];
   stepCountByRecipe: Map<number, number>;
+  swatchColorsByRecipe: Map<number, { paint_id: number; hex_color: string | null }[]>;
   isLoading: boolean;
   onRowClick: (recipe: PaintingRecipe) => void;
   onAdd: () => void;
@@ -38,6 +39,7 @@ export function RecipeTable({
   factions,
   units,
   stepCountByRecipe,
+  swatchColorsByRecipe,
   isLoading,
   onRowClick,
   onAdd,
@@ -59,8 +61,8 @@ export function RecipeTable({
   }, [units]);
 
   const columns = useMemo(
-    () => buildRecipeColumns(factionMap, unitMap, stepCountByRecipe, onEdit, onDelete),
-    [factionMap, unitMap, stepCountByRecipe, onEdit, onDelete],
+    () => buildRecipeColumns(factionMap, unitMap, stepCountByRecipe, swatchColorsByRecipe, onEdit, onDelete),
+    [factionMap, unitMap, stepCountByRecipe, swatchColorsByRecipe, onEdit, onDelete],
   );
 
   const table = useReactTable({

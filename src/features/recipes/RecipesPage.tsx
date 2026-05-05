@@ -18,7 +18,7 @@ import { useUnits } from "@/hooks/useUnits";
 import { getRecipePaintsByRecipe } from "@/db/queries/recipePaints";
 import type { PaintingRecipe } from "@/types/recipe";
 import { recipesRoute } from "@/app/router";
-import { useRecipeIdsByPaint } from "@/hooks/useRecipePaints";
+import { useRecipeIdsByPaint, useRecipeSwatchData } from "@/hooks/useRecipePaints";
 import { RecipeTable } from "./RecipeTable";
 import { RecipeDetailSheet } from "./RecipeDetailSheet";
 import { RecipeDeleteDialog } from "./RecipeDeleteDialog";
@@ -46,6 +46,7 @@ export function RecipesPage() {
   const { data: factions = [] } = useFactions();
   const { data: units = [] } = useUnits();
   const { data: stepCountByRecipe = new Map<number, number>() } = useAllStepCounts(recipes);
+  const { data: swatchColorsByRecipe = new Map<number, { paint_id: number; hex_color: string | null }[]>() } = useRecipeSwatchData();
 
   // Filter state
   const [factionFilter, setFactionFilter] = useState<number[]>([]); // multi-select
@@ -176,6 +177,7 @@ export function RecipesPage() {
         factions={factions}
         units={units}
         stepCountByRecipe={stepCountByRecipe}
+        swatchColorsByRecipe={swatchColorsByRecipe}
         isLoading={isLoading}
         onRowClick={openDetail}
         onAdd={onAddRecipe}
