@@ -72,7 +72,7 @@ Full details: `.planning/milestones/v2.1-ROADMAP.md`
 
 - [x] **Phase 25: Design Foundation** — Design tokens (Forge Black, Gunmetal, Panel Elevated, Battle Gold) as CSS variables, shared PageHeader component, enriched MetricCard, StatusBadge component (completed 2026-05-04)
 - [x] **Phase 26: Dashboard Redesign** — "Hobby Command Center" header with Quick Add + Log Session, CurrentFocusCard, HobbyPipeline strip, upgraded FactionArmyCards, Recent Activity feed (completed 2026-05-05)
-- [ ] **Phase 27: Navigation & Quick Add** — Hobby-native sidebar group names (Command/Workshop/Play/Management), Quick Add dropdown with 8 actions, Sheet-overlay flows from any page
+- [x] **Phase 27: Navigation & Quick Add** — Hobby-native sidebar group names (Command/Workshop/Play/Management), Quick Add dropdown with 8 actions, Sheet-overlay flows from any page (completed 2026-05-05)
 - [ ] **Phase 28: Collection + Projects** — Gallery card photo thumbnails, unified StatusBadge in table and gallery, enriched kanban cards (last updated, recipe link, photo count, next-action hint, Log Session shortcut)
 - [ ] **Phase 29: Workshop + Play** — Paint color swatches, recipe paint swatch strip, Army List readiness panel, Battle Log army context display
 
@@ -269,6 +269,6 @@ Plans:
 | 23. Display Features | v2.2 | 0/TBD | Not started | — |
 | 25. Design Foundation | 2/2 | Complete    | 2026-05-04 | — |
 | 26. Dashboard Redesign | 4/5 | Complete    | 2026-05-05 | — |
-| 27. Navigation & Quick Add | 3/4 | In Progress|  | — |
+| 27. Navigation & Quick Add | 4/4 | Complete   | 2026-05-05 | — |
 | 28. Collection + Projects | v2.3 | 0/TBD | Not started | — |
 | 29. Workshop + Play | v2.3 | 0/TBD | Not started | — |
