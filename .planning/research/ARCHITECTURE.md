@@ -1,741 +1,606 @@
-# Architecture Patterns
+# Architecture Research
 
-**Domain:** HobbyForge v2.2 — Full Circle (10 new features)
-**Researched:** 2026-05-04
-**Confidence:** HIGH — based on direct codebase audit of all existing query/hook/migration/type files
+**Domain:** HobbyForge v2.4 — Premium Dashboard UX & Visual Polish
+**Researched:** 2026-05-05
+**Confidence:** HIGH — based on direct codebase inspection of all dashboard, hook, query, and type files
 
 ---
 
-## System Overview
+## Standard Architecture
 
-Architecture is fully established and non-negotiable. All new features plug into the same stack:
+The four-layer data flow is established and non-negotiable. All new features plug in:
 
 ```
-Components → hooks (useQuery/useMutation) → db/queries/*.ts → SQLite via tauri-plugin-sql
+Components (src/features/**) → hooks (useQuery/useMutation) → db/queries/*.ts → SQLite via tauri-plugin-sql
 Ephemeral UI state → Zustand stores
-Persistent UI state → localStorage via Zustand persist
 Cache invalidation → queryClient.invalidateQueries on mutation onSuccess
 ```
 
----
-
-## Feature Classification: New Tables vs. Derived Queries
-
-| Feature | Schema Change | New Query Module | New Hook | New Page/Component |
-|---------|--------------|-----------------|----------|-------------------|
-| Battle Log | NEW TABLE `battle_logs` (already in schema 001, zero-row) | NEW `src/db/queries/battleLogs.ts` | NEW `useBattleLogs.ts` | NEW `BattleLogPage` |
-| Wishlist / To-Buy | NEW TABLE `wishlist_items` | NEW `src/db/queries/wishlist.ts` | NEW `useWishlist.ts` | NEW `WishlistPage` |
-| Hobby Goals | NEW TABLE `hobby_goals` | NEW `src/db/queries/hobbyGoals.ts` | NEW `useHobbyGoals.ts` | NEW section on Dashboard or dedicated page |
-| Hobby Velocity Tracker | No new tables — derives from `painting_sessions` | EXTEND `src/db/queries/spending.ts` or NEW `src/db/queries/analytics.ts` | NEW `useHobbyAnalytics.ts` | NEW section/widget |
-| Spend Over Time chart | No new tables — derives from `units.purchase_price_pence` + `units.purchase_date` | EXTEND `src/db/queries/spending.ts` | EXTEND `useSpendingStats.ts` or NEW export | NEW `SpendOverTimeChart` component |
-| Painting Streak | No new tables — derives from `painting_sessions.session_date` | Same analytics query module | Same analytics hook | NEW `PaintingStreakWidget` |
-| Ready-to-Play Quick View | No new tables — filter on `units` + `army_lists` | Reuse `getUnits` + filter in JS, or new `getReadyToPlayUnits` query | Reuse `useUnits` with derived filter, or NEW `useReadyToPlay.ts` | NEW `ReadyToPlayPage` or tab on Collection |
-| Showcase Mode | No new tables — filter `units` where `status_painting = 'Completed'` | Reuse existing | Reuse `useUnits` | NEW `ShowcasePage` or `ShowcaseMode` view mode on Collection |
-| Custom Lore notes | ALTER TABLE `factions` ADD `lore_notes TEXT` + ALTER TABLE `units` ADD `lore_notes TEXT` | Extend existing `getUnitById` / `getFactionById` queries — no new module | Extend existing `useUnit` / `useFactions` type interface | Extend `UnitDetailSheet` + `FactionSheet` |
-| Undercoat Log | ALTER TABLE `units` ADD `undercoat TEXT` (nullable enum: "None", "White", "Black", "Grey", "Contrast", "Other") | Extend existing `units.ts` query — new column in SELECT/INSERT/UPDATE | Extend existing `useUnits` type interface | Extend `UnitSheet` (create/edit form) + `UnitDetailSheet` |
+v2.4 is purely additive within the dashboard feature folder. No new routes, no new pages, no schema migrations. All new SQL queries use existing tables.
 
 ---
 
-## Migration 007
+## System Overview (v2.4 dashboard target)
 
-Next migration number is 007 (006 was `006_spend_pence.sql`).
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     DashboardPage (MODIFY — CSS grid layout)                 │
+│                                                                               │
+│  ┌──────────────────────────────────────────────────────────────────────┐    │
+│  │                   CSS Grid — 2-column asymmetric                      │    │
+│  │                                                                        │    │
+│  │  ┌──────────────────────────────┐  ┌──────────────────────────────┐  │    │
+│  │  │    CurrentFocusCard v2        │  │      ArmyReadinessCard        │  │    │
+│  │  │  photo · actions · metadata   │  │  target selector + per-list  │  │    │
+│  │  └──────────────────────────────┘  └──────────────────────────────┘  │    │
+│  │                                                                        │    │
+│  │  ┌─────────────────────────────────────────────────────────────────┐  │    │
+│  │  │             ActiveProjectsPanel (3–5 project cards)              │  │    │
+│  │  │     photo · progress bar · recipe badge · Log Session button     │  │    │
+│  │  └─────────────────────────────────────────────────────────────────┘  │    │
+│  │                                                                        │    │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐                 │    │
+│  │  │ StatCard │ │ StatCard │ │ StatCard │ │ StatCard │ (all clickable) │    │
+│  │  └──────────┘ └──────────┘ └──────────┘ └──────────┘                 │    │
+│  │                                                                        │    │
+│  │  ┌─────────────────────────────────────────────────────────────────┐  │    │
+│  │  │              HobbyPipeline (5 grouped buckets)                   │  │    │
+│  │  └─────────────────────────────────────────────────────────────────┘  │    │
+│  │                                                                        │    │
+│  │  ┌──────────────────────────┐  ┌──────────────────────────────────┐   │    │
+│  │  │    FactionCards v2        │  │      RecentActivityFeed          │   │    │
+│  │  │  larger · spending line   │  │  photo thumbnail on sessions     │   │    │
+│  │  └──────────────────────────┘  └──────────────────────────────────┘   │    │
+│  └──────────────────────────────────────────────────────────────────────┘    │
+│                                                                               │
+│  ── Sibling portals (NEVER nested): ──────────────────────────────────────   │
+│  LogSessionSheet v2 · UnitDetailSheet · UnitSheet · UnitDeleteDialog          │
+└───────────────────────────────────────────────────────────────────────────────┘
+         │                    │                    │                    │
+         ↓                    ↓                    ↓                    ↓
+  useDashboard         useArmyLists +        useLatestUnit        useKanban
+  Stats (exists)       useArmyList           Photos (exists)      Enrichment
+                        Readiness (exists)                         (exists)
+         │                    │                    │                    │
+         ↓                    ↓                    ↓                    ↓
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                         src/db/queries/ (existing)                            │
+│  dashboard.ts · armyLists.ts · unitPhotos.ts · spending.ts · recipes.ts      │
+└──────────────────────────────────────────────────────────────────────────────┘
+         │
+         ↓
+┌──────────────────────────────────────────────────────────────────────────────┐
+│              src/db/client.ts → Tauri plugin-sql → SQLite hobbyforge.db       │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
 
-**File:** `src-tauri/migrations/007_full_circle.sql`
+---
 
-### New Tables
+## Feature Classification: New vs Modified
 
-```sql
--- 007_full_circle.sql — HobbyForge v2.2 Full Circle
--- Additive only. No destructive statements.
+| Feature | Schema | Query | Hook | Component |
+|---------|--------|-------|------|-----------|
+| CSS grid layout + radial gradients | None | None | None | MODIFY `DashboardPage` + `globals.css` |
+| CurrentFocusCard v2 | None | None | NEW call to `useLatestUnitPhotos` in Page | MODIFY `CurrentFocusCard` |
+| ActiveProjectsPanel | None | None | NEW calls to `useLatestUnitPhotos`, `useKanbanEnrichment` in Page | NEW `ActiveProjectsPanel` |
+| ArmyReadinessCard with target selector | None | None | NEW calls to `useArmyLists`, `useArmyListReadiness` in Page | NEW `ArmyReadinessCard` |
+| Clickable StatCards | None | None | None | MODIFY `StatCard` — add `to?` prop |
+| HobbyPipeline 5-bucket grouping | None | None | None | MODIFY `HobbyPipeline` + NEW pure function |
+| FactionCards v2 | None | None | NEW call to `useSpendingStats` in Page | MODIFY `FactionSummaryCard` |
+| Photos everywhere | None | None | NEW call to `useLatestUnitPhotos` in Page | MODIFY `RecentActivityFeed` |
+| Log Session progress updates | None | None | None (uses existing `useUpdateUnit`) | MODIFY `LogSessionSheet` + `logSessionSchema` |
+| Recipe ↔ faction/unit integration | None | NEW `getRecipeNamesByFactionIds` in recipes.ts | None | MODIFY `FactionSummaryCard` |
+| Spending intelligence | None | None | None (extends `computeSpendingStats`) | MODIFY `computeSpendingStats`, `SpendingPage` display |
 
--- battle_logs already exists in 001_core_schema.sql (zero rows).
--- No CREATE needed. Confirm row count = 0 before phase begins.
+**Key finding:** Zero schema migrations. Zero new hooks. Only two new query functions. All work is in components and pure compute functions.
 
--- wishlist_items: models the user wants to buy before they are in the collection
-CREATE TABLE IF NOT EXISTS wishlist_items (
-    id                   INTEGER PRIMARY KEY AUTOINCREMENT,
-    faction_id           INTEGER REFERENCES factions(id) ON DELETE SET NULL,
-    name                 TEXT    NOT NULL,
-    unit_type            TEXT,                        -- e.g. "Infantry", "Vehicle"
-    priority             INTEGER NOT NULL DEFAULT 2,  -- 1=High, 2=Medium, 3=Low
-    estimated_cost_pence INTEGER,                     -- integer pence, nullable
-    notes                TEXT,
-    created_at           TEXT    NOT NULL DEFAULT (datetime('now')),
-    updated_at           TEXT    NOT NULL DEFAULT (datetime('now'))
+---
+
+## New Components
+
+### `ActiveProjectsPanel`
+
+**File:** `src/features/dashboard/ActiveProjectsPanel.tsx`
+
+**Props:**
+```typescript
+interface ActiveProjectsPanelProps {
+  units: Unit[];                               // stats.activeProjects (already sorted, capped at 5)
+  latestPhotos: Map<number, UnitPhotoWithUrl>; // from useLatestUnitPhotos
+  recipeNames: Map<number, string>;            // from useKanbanEnrichment
+  onLogSession: (unitId: number) => void;      // opens LogSessionSheet pre-filled
+  onUnitClick: (unitId: number) => void;       // opens UnitDetailSheet
+}
+```
+
+**Behavior:** Renders 3–5 project cards. Each card: faction-accent left border, photo thumbnail (asset:// URL from `latestPhotos.get(unit.id)`), unit name, `StatusBadge`, painting progress bar, recipe badge if `recipeNames.has(unit.id)`, "Log Session" button that calls `onLogSession(unit.id)`. Empty state: muted card with "Mark projects active in Projects to see them here."
+
+**Data note:** Uses existing `stats.activeProjects` from `computeStats` (already sorted DESC by `updated_at`, already capped at 5). No new data fetching inside this component.
+
+### `ArmyReadinessCard`
+
+**File:** `src/features/dashboard/ArmyReadinessCard.tsx`
+
+**Props:**
+```typescript
+interface ArmyReadinessCardProps {
+  armyLists: ArmyList[];
+  readiness: Map<number, { total: number; battleReady: number }>;
+}
+```
+
+**Internal state:** `selectedTarget: 500 | 1000 | 1500 | 2000` — `useState(1000)`. Ephemeral. No persistence.
+
+**Behavior:** Four target buttons (500/1000/1500/2000). For each army list: list name, progress bar showing `Math.min(readiness.get(id)?.battleReady ?? 0, selectedTarget) / selectedTarget * 100`%, fraction label "X / Y pts". Empty state when no lists.
+
+---
+
+## Modified Components
+
+### `DashboardPage` — new hook calls + CSS grid
+
+Currently calls: `useDashboardStats`, `useHobbyAnalytics`, `useRecentActivity`.
+
+Additions required:
+```typescript
+// 4 new hook calls — all parallel (React Query deduplicates)
+const { data: latestPhotos } = useLatestUnitPhotos();
+
+const activeProjectIds = useMemo(
+  () => (stats?.activeProjects ?? []).map((u) => u.id),
+  [stats?.activeProjects]
 );
+const { data: enrichment } = useKanbanEnrichment(activeProjectIds);
 
--- hobby_goals: user-defined painting / session targets with a timeframe
-CREATE TABLE IF NOT EXISTS hobby_goals (
-    id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    title        TEXT    NOT NULL,
-    category     TEXT    NOT NULL DEFAULT 'units',    -- 'units' | 'sessions'
-    target_count INTEGER NOT NULL,
-    timeframe    TEXT    NOT NULL,                    -- 'monthly' | 'quarterly' | 'yearly' | custom ISO date
-    start_date   TEXT    NOT NULL DEFAULT (date('now')),
-    end_date     TEXT,                                -- nullable; derived from timeframe on creation
-    notes        TEXT,
-    created_at   TEXT    NOT NULL DEFAULT (datetime('now')),
-    updated_at   TEXT    NOT NULL DEFAULT (datetime('now'))
+const { data: armyLists } = useArmyLists();
+const allListIds = useMemo(
+  () => (armyLists ?? []).map((l) => l.id),
+  [armyLists]
+);
+const { data: readiness } = useArmyListReadiness(allListIds);
+
+const { data: spendingStats } = useSpendingStats();  // for FactionCards v2 spending lines
+```
+
+**CSS grid:** Replace the outermost `flex flex-col gap-12` with a CSS grid. The asymmetric 2-column layout is applied at the section level, not on every card. The existing `p-6` padding on the outer div is preserved.
+
+**New state:**
+```typescript
+const [logSessionDefaultUnit, setLogSessionDefaultUnit] = useState<number | undefined>(undefined);
+```
+
+When `ActiveProjectsPanel` calls `onLogSession(unitId)`, set `logSessionDefaultUnit` and open `logSessionOpen`. The `LogSessionSheet` already accepts a `defaultUnitId` prop.
+
+**Sibling portal additions:** No new Sheet components added at the DashboardPage level — `LogSessionSheet` (already a sibling) now receives `defaultUnitId={logSessionDefaultUnit}`.
+
+### `CurrentFocusCard` — photo + actions + metadata
+
+**Extended props:**
+```typescript
+export interface CurrentFocusCardProps {
+  unit: Unit | null;
+  faction: Faction | undefined;
+  photo?: UnitPhotoWithUrl;     // NEW — from latestPhotos.get(focusUnit.id)
+  onLogSession?: () => void;    // NEW — triggers DashboardPage's logSession handler
+}
+```
+
+**Render changes:** Add photo thumbnail (`<img src={photo.assetUrl}>`) left of the text content when `photo` is defined. Add model count (`unit.model_count` + "models") and points (`unit.points` + "pts") below the faction/status line. Add "Log Session" action button that calls `onLogSession()`.
+
+### `StatCard` — clickable navigation
+
+**Extended props:**
+```typescript
+export interface StatCardProps {
+  // existing: value, label, animate, icon, trend, progress
+  to?: string;  // NEW — TanStack Router route string e.g. "/collection"
+}
+```
+
+**Behavior:** When `to` is provided, wrap the card with a `role="button"` + `useNavigate()` call. Maintain keyboard accessibility (`onKeyDown Enter/Space`). The underlying `Card` component handles the visual — add `cursor-pointer hover:bg-muted/50` conditional classes.
+
+### `HobbyPipeline` — 5-bucket grouping
+
+**New pure function (TDD wave):**
+```typescript
+// src/features/dashboard/groupPipelineBuckets.ts
+export interface PipelineBucket {
+  label: string;
+  stages: PaintingStatus[];
+  count: number;
+  tier: "not-started" | "prep" | "painting" | "finishing" | "done";
+}
+
+export function groupPipelineBuckets(units: Unit[]): PipelineBucket[] {
+  return [
+    { label: "Not Started", stages: ["Not Started"], tier: "not-started" },
+    { label: "Prep",        stages: ["Built", "Primed"], tier: "prep" },
+    { label: "Painting",    stages: ["Basecoated", "Shaded", "Layered", "Highlighted", "Details Done"], tier: "painting" },
+    { label: "Finishing",   stages: ["Based", "Varnished"], tier: "finishing" },
+    { label: "Done",        stages: ["Completed"], tier: "done" },
+  ].map((b) => ({
+    ...b,
+    count: units.filter((u) => (b.stages as readonly string[]).includes(u.status_painting)).length,
+  }));
+}
+```
+
+`HobbyPipeline.tsx` calls this function and renders 5 bucket columns instead of 11 stage columns. The tier-to-bubble-color map is simplified from 4 tiers (existing `TIER_BUBBLE_CLASS`) to 5.
+
+### `LogSessionSheet` — status + progress update fields
+
+**Extended schema (`logSessionSchema.ts`):**
+```typescript
+export const logSessionSchema = z.object({
+  unit_id: z.number().int().positive(),
+  session_date: z.string(),
+  duration_minutes: z.number().int().min(1).max(1440),
+  notes: z.string().nullable(),
+  // NEW optional fields for progress update:
+  status_painting: z.enum(PAINTING_STATUS_ORDER).nullable().optional(),
+  painting_percentage: z.number().int().min(0).max(100).nullable().optional(),
+});
+```
+
+**Extended submit logic:**
+```typescript
+async function onSubmit(values: LogSessionFormValues) {
+  // Step 1: update unit status/progress if changed
+  if (values.status_painting || values.painting_percentage !== null) {
+    await updateUnit.mutateAsync({
+      id: values.unit_id,
+      ...(values.status_painting ? { status_painting: values.status_painting } : {}),
+      ...(values.painting_percentage !== null ? { painting_percentage: values.painting_percentage } : {}),
+    });
+    // useUpdateUnit.onSuccess already invalidates ["dashboard-stats"] — no extra wiring
+  }
+  // Step 2: log the session (existing)
+  await createSession.mutateAsync({ ... });
+}
+```
+
+**UI additions:** Collapsible "Update Progress" section below the notes field. Status picker (optional `<Select>`) and percentage input (optional `<Input type="number">`). Both fields default to empty (not pre-populated with current unit state) so they are opt-in.
+
+### `FactionSummaryCard` — larger layout + spending line
+
+**Extended props:**
+```typescript
+export interface FactionSummaryCardProps {
+  stat: FactionStat;
+  isActive?: boolean;
+  onActivate?: () => void;
+  spendPence?: number;          // NEW — faction's total unit spend from spending stats
+  recipeCount?: number;         // NEW — count of recipes linked to this faction
+}
+```
+
+The spending line renders below the battle-ready points: `£X.XX spent` using existing `formatCurrency` (or raw `pence / 100` — the single site rule). Visual size increase: widen from `min-w-[180px]` to `min-w-[220px]`, increase font sizes for primary stats.
+
+### `RecentActivityFeed` — photo thumbnails for session rows
+
+**Extended event type:** `session_logged` rows gain an optional `unitId` (already present in `ActivityEvent`) which is used to look up `latestPhotos.get(event.unitId)`. If a photo exists, render a 32×32 thumbnail before the icon.
+
+**Props extension:**
+```typescript
+export interface RecentActivityFeedProps {
+  events: ActivityEvent[];
+  onUnitClick?: (unitId: number) => void;
+  latestPhotos?: Map<number, UnitPhotoWithUrl>;  // NEW
+}
+```
+
+### `computeSpendingStats` — spending intelligence fields
+
+**Extended `SpendingStats` interface:**
+```typescript
+export interface SpendingStats {
+  totalPence: number;
+  factionBreakdown: FactionSpend[];
+  paintsPence: number;
+  // NEW:
+  costPerCompletedModelPence: number | null;  // null when fullyPainted === 0
+  paintedValuePence: number;                  // sum(purchase_price_pence) for Completed units
+  unpaintedValuePence: number;                // sum for non-Completed units
+}
+```
+
+All three new fields derive from the existing `units` array passed to `computeSpendingStats`. Zero new SQL.
+
+---
+
+## Data Flow Changes
+
+### 1. DashboardPage parallel data fetch (v2.4)
+
+```
+DashboardPage mounts
+      ↓ (all parallel — React Query cache-deduplicates)
+useDashboardStats        useLatestUnitPhotos      useArmyLists         useSpendingStats
+useHobbyAnalytics        useKanbanEnrichment      useArmyListReadiness
+useRecentActivity        (enabled when ids > 0)   (enabled when ids > 0)
+      ↓                          ↓                       ↓                    ↓
+computeStats()           getLatestPhotoByUnit()   getArmyLists()       getSpendingStats()
+                         + convertFileSrc per row  getArmyListReadiness()  computeSpendingStats()
+      ↓                          ↓                       ↓                    ↓
+stats object             Map<id, UnitPhotoWithUrl>  Map<id, readiness>   SpendingStats
+      ↓──────────────────────────↓───────────────────────↓────────────────────↓
+                              DashboardPage JSX props passed to children
+```
+
+### 2. Log Session → Unit Update flow (new for v2.4)
+
+```
+User opens LogSessionSheet (from header button OR ActiveProjectsPanel "Log Session" button)
+      ↓
+If opened via ActiveProjectsPanel:
+  setLogSessionDefaultUnit(unitId) → LogSessionSheet pre-populates unit picker
+      ↓
+User fills: unit, date, duration, [optional: new status, new percentage], notes
+      ↓ form submit
+if (status or percentage set):
+    useUpdateUnit.mutateAsync({ id: unit_id, status_painting, painting_percentage })
+      → onSuccess invalidates: ["dashboard-stats"], ["spending-stats"]
+then:
+    useCreatePaintingSession.mutateAsync({ unit_id, session_date, duration_minutes, notes })
+      → onSuccess invalidates: ["hobby-analytics"], ["recent-activity"]
+      ↓
+React Query refetches affected cache keys → all dashboard panels update in one render cycle
+```
+
+### 3. Recipe ↔ faction integration data flow
+
+```
+DashboardPage renders FactionSummaryCard for each faction stat
+      ↓
+Need: recipe count per faction
+      ↓ (already in memory from useRecipes — no new fetch)
+const recipesByFaction = useMemo(
+  () => new Map(factions.map(f => [
+    f.id,
+    (recipes ?? []).filter(r => r.faction_id === f.id).length
+  ])),
+  [factions, recipes]
 );
 ```
 
-### ALTER TABLE Additions (units)
-
-```sql
--- Undercoat Log: primer/undercoat type used per unit
-ALTER TABLE units ADD COLUMN undercoat TEXT;
-
--- Custom Lore notes per unit
-ALTER TABLE units ADD COLUMN lore_notes TEXT;
-```
-
-### ALTER TABLE Additions (factions)
-
-```sql
--- Custom Lore notes per faction
-ALTER TABLE factions ADD COLUMN lore_notes TEXT;
-```
-
-### battle_logs status
-
-`battle_logs` was defined in `001_core_schema.sql` and has never been written to. It already has the correct schema (army_list_id FK, battle_date, opponent, opponent_faction, mission, points_played, result, my_score, opponent_score, mvp_unit_id, underperforming_unit_id, lessons_learned, changes_next_time, notes). No migration work needed — just build the query module and hook.
+`DashboardPage` calls `useRecipes()` (already exists, `RECIPES_KEY = ["recipes"]`). The count is derived in JS — no new query. The `getRecipeNamesByFactionIds` query function is only needed if we display recipe names (not just counts) on faction cards. A count suffices for v2.4; the query function can be deferred.
 
 ---
 
-## Feature-by-Feature Integration Details
+## Build Order (phase-by-phase, considering data dependencies)
 
-### 1. Battle Log
+### Phase 1: Pure foundations (no data dependencies, enable parallelism)
 
-**Schema:** Uses existing `battle_logs` table from `001_core_schema.sql`. Zero additional migration.
+1. `groupPipelineBuckets.ts` pure function + tests
+2. Extensions to `computeSpendingStats.ts` (new fields) + tests
+3. `globals.css` — add `--panel-gradient` custom property for radial depth effect
 
-**New file: `src/db/queries/battleLogs.ts`**
-```typescript
-getBattleLogs(): Promise<BattleLog[]>          // SELECT * ORDER BY battle_date DESC
-getBattleLogById(id): Promise<BattleLog | null>
-createBattleLog(input): Promise<number>
-updateBattleLog(input): Promise<void>
-deleteBattleLog(id): Promise<void>
-// Stat aggregates for dashboard widget:
-getBattleStats(): Promise<{ wins: number; losses: number; draws: number; total: number }>
-```
+**Why first:** Pure functions and CSS tokens have zero runtime dependencies. Tests validate them before any component touches them. These unblock Phases 2–5.
 
-**New file: `src/hooks/useBattleLogs.ts`**
-- `BATTLE_LOGS_KEY = ["battle-logs"]`
-- `useBattleLogs()` — useQuery
-- `useBattleStats()` — useQuery for win/loss/draw stat card
-- `useCreateBattleLog()` — useMutation, invalidates `["battle-logs"]` and `["battle-stats"]`
-- `useUpdateBattleLog()` — useMutation, invalidates same
-- `useDeleteBattleLog()` — useMutation, invalidates same
+### Phase 2: StatCard clickability + CSS grid layout
 
-**New files in `src/features/battle-log/`:**
-- `BattleLogPage.tsx` — list of games with stat summary (W/L/D)
-- `BattleLogSheet.tsx` — create/edit form (sibling portal pattern)
-- `BattleLogDeleteDialog.tsx` — confirm delete
-- `BattleLogRow.tsx` — single game row (date, opponent faction, mission, result, score)
-- `BattleStatsSummary.tsx` — W/L/D counter cards at top of page
-- `battleLogSchema.ts` — Zod validation schema for the form
+1. Extend `StatCard` with `to?` prop + `useNavigate`
+2. Modify `DashboardPage` outer layout: CSS grid replacing `flex flex-col gap-12`
+3. Update loading skeleton to match new grid
+4. Wire `StatCard` route targets in `DashboardPage`
 
-**Route:** `/battle-log` — add to `router.tsx` and `AppSidebar.tsx` (Lucide `Swords` icon is already imported, use `Trophy` for battle log instead to avoid conflict).
+**Why second:** Layout and navigation are independent of data. Establishes the visual skeleton that the new panels will slot into.
 
-**Type: `src/types/battleLog.ts`** — mirrors `battle_logs` table columns.
+### Phase 3: HobbyPipeline 5-bucket grouping
 
-**invalidation contract:** `useDeleteUnit.onSuccess` already cascades via FK `ON DELETE SET NULL` — no new invalidations needed on unit delete. `useDeleteArmyList.onSuccess` similarly uses `ON DELETE SET NULL` — battle logs survive list deletion.
+1. Modify `HobbyPipeline.tsx` to call `groupPipelineBuckets` (pure function from Phase 1)
+2. Update tier-to-color map for 5 tiers
+3. Update pipeline loading skeleton in `DashboardPage`
 
----
+**Why third:** Self-contained within `HobbyPipeline` — no new hook wiring needed.
 
-### 2. Wishlist / To-Buy
+### Phase 4: CurrentFocusCard v2 (requires `useLatestUnitPhotos` wiring in DashboardPage)
 
-**Schema:** New `wishlist_items` table via migration 007.
+1. Add `useLatestUnitPhotos()` call to `DashboardPage`
+2. Extend `CurrentFocusCardProps` with `photo?` and `onLogSession?`
+3. Extend `CurrentFocusCard` render: photo thumbnail, model count, points, action button
+4. Pass `latestPhotos.get(focusUnit?.id)` from `DashboardPage`
 
-**New file: `src/db/queries/wishlist.ts`**
-```typescript
-getWishlistItems(): Promise<WishlistItem[]>
-createWishlistItem(input): Promise<number>
-updateWishlistItem(input): Promise<void>
-deleteWishlistItem(id): Promise<void>
-```
+**Why fourth:** The `useLatestUnitPhotos` call added here is reused by Phase 5 (`ActiveProjectsPanel`).
 
-**New file: `src/hooks/useWishlist.ts`**
-- `WISHLIST_KEY = ["wishlist"]`
-- `useWishlistItems()` — useQuery
-- `useCreateWishlistItem()`, `useUpdateWishlistItem()`, `useDeleteWishlistItem()` — invalidate `["wishlist"]`
+### Phase 5: ActiveProjectsPanel (requires Phase 4 wiring + `useKanbanEnrichment`)
 
-**New files in `src/features/wishlist/`:**
-- `WishlistPage.tsx` — sortable table of wishlist items
-- `WishlistSheet.tsx` — create/edit form (faction picker, name, unit_type, priority, estimated_cost_pence, notes)
-- `WishlistDeleteDialog.tsx`
-- `WishlistRow.tsx` — single row with priority badge, faction badge, estimated cost display
-- `wishlistFilters.ts` — Zustand ephemeral filter state (priority filter, faction filter)
-- `wishlistSchema.ts` — Zod schema
+1. Add `useKanbanEnrichment(activeProjectIds)` call to `DashboardPage`
+2. Add `logSessionDefaultUnit` state + update `LogSessionSheet` open handler
+3. Create `ActiveProjectsPanel.tsx`
+4. Wire into CSS grid layout
 
-**Route:** `/wishlist` — add to router and sidebar nav (Lucide `ShoppingCart` icon).
+**Why fifth:** Depends on `useLatestUnitPhotos` wired in Phase 4. `useKanbanEnrichment` is additive.
 
-**Type: `src/types/wishlistItem.ts`** — mirrors table columns. `estimated_cost_pence: number | null` (pence, never float).
+### Phase 6: ArmyReadinessCard (requires `useArmyLists` + `useArmyListReadiness` in DashboardPage)
 
-**Display:** Format estimated costs as currency (reuse existing `formatPence` utility if one exists, otherwise create `src/lib/formatCurrency.ts`).
+1. Add `useArmyLists()` and `useArmyListReadiness(allListIds)` calls to `DashboardPage`
+2. Create `ArmyReadinessCard.tsx` with local target selector state
+3. Wire into CSS grid layout
 
----
+**Why sixth:** Independent of Phases 4–5 but placed here to batch the DashboardPage hook additions logically. Could technically run in parallel with Phase 5.
 
-### 3. Hobby Goals
+### Phase 7: Log Session progress updates (requires `useUpdateUnit` in LogSessionSheet)
 
-**Schema:** New `hobby_goals` table via migration 007.
+1. Extend `logSessionSchema.ts` with optional `status_painting` + `painting_percentage` fields
+2. Extend `LogSessionSheet.tsx`: add collapsible progress update section, two-mutation submit
+3. `useUpdateUnit` is already imported in `DashboardPage` scope via the unit edit flow — `LogSessionSheet` needs to call it directly, meaning it needs `useUpdateUnit` added to its imports
 
-**New file: `src/db/queries/hobbyGoals.ts`**
-```typescript
-getHobbyGoals(): Promise<HobbyGoal[]>
-createHobbyGoal(input): Promise<number>
-updateHobbyGoal(input): Promise<void>
-deleteHobbyGoal(id): Promise<void>
-```
+**Why seventh:** Depends on Phase 5 establishing the `defaultUnitId` flow (so Log Session from ActiveProjectsPanel pre-fills correctly).
 
-**Progress is always derived — never stored.** For `category = 'units'`, progress = count of units with `status_painting = 'Completed'` whose `updated_at` falls within `[start_date, end_date]`. For `category = 'sessions'`, progress = count of `painting_sessions` whose `session_date` falls within the goal's timeframe. Both computations run in JS (pure function pattern matching `computeStats`/`computeSpendingStats`).
+### Phase 8: FactionCards v2 + spending intelligence display
 
-**New file: `src/hooks/useHobbyGoals.ts`**
-- `HOBBY_GOALS_KEY = ["hobby-goals"]`
-- `useHobbyGoals()` — useQuery
-- mutations invalidate `["hobby-goals"]`
-- Goals page also needs `useUnits()` and a cross-query for sessions to compute progress
+1. Add `useSpendingStats()` call to `DashboardPage`
+2. Add `useRecipes()` call to `DashboardPage` (recipe count per faction)
+3. Derive `recipesByFaction` map in `DashboardPage`
+4. Extend `FactionSummaryCardProps` with `spendPence?` + `recipeCount?`
+5. Modify `FactionSummaryCard` layout: larger card, spending line, recipe count badge
+6. Surface `costPerCompletedModelPence` on `SpendingPage` (extend existing display)
 
-**New compute function: `src/features/hobby-goals/computeGoalProgress.ts`** (pure function, testable)
-```typescript
-computeGoalProgress(goal: HobbyGoal, units: Unit[], sessions: PaintingSession[]): {
-  current: number;
-  target: number;
-  pct: number;
-  onTrack: boolean;
-}
-```
+**Why last among core panels:** Depends on `computeSpendingStats` extension (Phase 1) and needs the most props changes. Placed after the structural layout work is stable.
 
-**New files in `src/features/hobby-goals/`:**
-- `HobbyGoalsPage.tsx` — list of goals with progress bars
-- `GoalSheet.tsx` — create/edit form (title, category, target_count, timeframe, start_date)
-- `GoalCard.tsx` — single goal with progress bar + on-track indicator
-- `hobbyGoalSchema.ts` — Zod schema
+### Phase 9: RecentActivityFeed photo thumbnails + visual depth pass
 
-**Route:** `/goals` — add to router and sidebar nav (Lucide `Target` icon).
+1. Extend `RecentActivityFeedProps` with `latestPhotos?` prop
+2. Add photo thumbnail to `session_logged` event rows
+3. Apply radial gradient depth to card backgrounds (use `--panel-gradient` token from Phase 1)
+4. Final visual polish: elevated card surfaces, premium depth across all dashboard cards
 
-**Cross-query dependency:** Goals page needs painting sessions across ALL units (not per-unit like `useJournalSessions` which is scoped per unitId). This requires a new global sessions query.
-
-**New function in `src/db/queries/paintingSessions.ts`:**
-```typescript
-getAllSessions(): Promise<PaintingSession[]>
-// SELECT * FROM painting_sessions ORDER BY session_date DESC
-```
-
-**New hook export from `src/hooks/useJournalSessions.ts`:**
-```typescript
-export const ALL_SESSIONS_KEY = ["painting-sessions"] as const;
-export function useAllSessions(): ...
-```
+**Why last:** Polish pass. Depends on all panels being in place so the visual hierarchy can be evaluated holistically.
 
 ---
 
-### 4. Hobby Velocity Tracker
+## Integration Points
 
-**Schema:** No new tables. Derives from `painting_sessions`.
+### Existing → Modified Component Boundaries
 
-**Pattern:** Same as `computeSpendingStats` — raw data from DB, computation in a pure function.
+| Existing Component | New Prop/Call | Source |
+|-------------------|---------------|--------|
+| `DashboardPage` → `CurrentFocusCard` | `photo?: UnitPhotoWithUrl` | `latestPhotos.get(focusUnit.id)` |
+| `DashboardPage` → `LogSessionSheet` | `defaultUnitId={logSessionDefaultUnit}` (already accepted) | New `logSessionDefaultUnit` state |
+| `DashboardPage` → `RecentActivityFeed` | `latestPhotos` | `useLatestUnitPhotos` result |
+| `DashboardPage` → `FactionSummaryCard` | `spendPence`, `recipeCount` | `spendingStats`, `useRecipes` |
+| `DashboardPage` → `StatCard` | `to` route strings | TanStack Router paths |
 
-**New file: `src/db/queries/analytics.ts`**
-```typescript
-getAnalyticsData(): Promise<{
-  sessions: PaintingSession[];   // all sessions for velocity/streak
-  units: Unit[];                 // for pile-of-shame count
-}>
-// Uses Promise.all like dashboard.ts / spending.ts
-```
+### New Component Boundaries
 
-**New compute function: `src/features/analytics/computeVelocity.ts`**
-```typescript
-computeVelocity(sessions: PaintingSession[], units: Unit[]): {
-  unitsPerMonth: number;       // sessions in last 30 days / avg duration → painted units rate
-  pileOfShameCount: number;    // units with status_painting !== 'Completed'
-  projectedCompletionDays: number | null;  // pile / velocity, null if velocity=0
-  sessionsLast30Days: number;
-  avgSessionMinutes: number;
-}
-```
+| New Component | Parent | Props Received | Internal Hook Calls |
+|--------------|--------|----------------|---------------------|
+| `ActiveProjectsPanel` | `DashboardPage` | `units`, `latestPhotos`, `recipeNames`, `onLogSession`, `onUnitClick` | None — pure display |
+| `ArmyReadinessCard` | `DashboardPage` | `armyLists`, `readiness` | `useState` for target only |
 
-**New hook: `src/hooks/useHobbyAnalytics.ts`**
-- `HOBBY_ANALYTICS_KEY = ["hobby-analytics"]`
-- `useHobbyVelocity()` — calls `getAnalyticsData()`, runs through `computeVelocity()`
-- `usePaintingStreak()` — calls same raw data, runs through `computeStreak()` (see feature 6)
-- Invalidated by: `useCreatePaintingSession().onSuccess`, `useDeletePaintingSession().onSuccess`, `useUpdateUnit().onSuccess`
+### Cache Invalidation Map (additions for v2.4)
 
-**Placement:** Velocity widget renders on the Dashboard as a stat card group, or on a dedicated `/analytics` page shared with Spend Over Time and Painting Streak.
+All existing invalidation contracts are preserved. The only addition:
+
+| Mutation | Addition to existing invalidations |
+|----------|----------------------------------|
+| `useUpdateUnit` (called from `LogSessionSheet v2`) | Already invalidates `["dashboard-stats"]` and `["spending-stats"]` — no new wiring |
+| `useCreatePaintingSession` (called from `LogSessionSheet v2`) | Already invalidates `["hobby-analytics"]` and `["recent-activity"]` — no new wiring |
+
+The two-mutation submit in `LogSessionSheet` reuses existing hooks with existing invalidation contracts. Zero new invalidation wiring is required for v2.4.
 
 ---
 
-### 5. Spend Over Time Chart
+## Architectural Patterns
 
-**Schema:** No new tables. Derives from `units.purchase_price_pence` and `units.purchase_date`, plus `paints.purchase_price_pence` and `paints.purchase_date` (if that column exists — check migration 006; it adds `purchase_price_pence` to paints but the `purchase_date` column may not exist on paints).
+### Pattern 1: DashboardPage as Single Data Hub (mandatory — established)
 
-**Check:** `001_core_schema.sql` has `purchase_date TEXT` on `units` only. Paints have no `purchase_date`. For the chart, units-by-month data is reliable; paints may show as a single aggregate if no date is stored. Scope to units-only for v2.2 to avoid gaps.
+All React Query hooks live in `DashboardPage`. Child components are pure display — they accept typed props, call no data hooks (only local UI state hooks like `useState`). This prevents waterfall fetches and centralizes the skeleton loading state.
 
-**New compute function: `src/features/spending/computeSpendOverTime.ts`**
-```typescript
-export interface MonthlySpend {
-  month: string;      // "2026-01" ISO format
-  pence: number;
-}
-computeSpendOverTime(units: Unit[]): MonthlySpend[]
-// Groups purchase_price_pence by month(purchase_date), sorted oldest-first
-// Units with null purchase_date are excluded from the chart (not from total)
-```
+**Applied to v2.4:** `ActiveProjectsPanel` and `ArmyReadinessCard` receive all their data as props. The `Map<>` types (photos, enrichment, readiness) are pre-derived in `DashboardPage` before being passed down.
 
-**Extend `src/db/queries/spending.ts`:**
-```typescript
-// Already returns Unit[] with purchase_price_pence. No new query needed.
-// computeSpendOverTime takes the existing units array.
-```
+### Pattern 2: Sibling Portal Contract (mandatory — established)
 
-**New component: `src/features/spending/SpendOverTimeChart.tsx`**
-- Receives `MonthlySpend[]`
-- Renders a bar chart using shadcn/ui's Recharts-based chart components (already in project as `src/components/ui/chart.tsx` if added, or plain `recharts` if installed)
-- Falls back to a simple table if Recharts not available
+Every Sheet, Dialog, and Lightbox is a top-level sibling of the main content div, never nested inside child components. Adding `ActiveProjectsPanel` with a "Log Session" button does not mean putting a `<LogSessionSheet>` inside it — the button calls `onLogSession(unitId)` prop callback, `DashboardPage` sets state and the sibling sheet opens.
 
-**Chart library check:** shadcn/ui new-york ships a `chart` component wrapping Recharts. Verify `src/components/ui/chart.tsx` exists before assuming. If not present, add it via shadcn CLI (`npx shadcn@latest add chart`) — Recharts is a peer dependency. Alternatively, render a pure CSS bar chart for v2.2 to avoid adding a dependency.
+### Pattern 3: selectedUnitId ID Pattern (mandatory — established)
 
-**Placement:** New section on `SpendingPage` below the existing faction breakdown, or a separate tab within the spending page.
+Store IDs in state, derive full objects from the React Query cache. `ActiveProjectsPanel` receives `onUnitClick(unitId: number)`, never `onUnitClick(unit: Unit)`. The `DashboardPage` derives `selectedUnit` from `stats.units` on render.
 
-**Invalidation:** `useSpendingStats` already invalidated by `useCreateUnit`/`useUpdateUnit`/`useDeleteUnit`. The chart component can reuse the same data from `useSpendingStats` extended to include the time-series array.
+### Pattern 4: Pure Compute Functions + Tests Before UI (mandatory — established)
+
+`groupPipelineBuckets` and the `computeSpendingStats` extensions are pure functions written and tested before any component touches them. This matches the `computeStats`, `computeRecentActivity`, `computeSpendingStats` pattern already in production.
+
+### Pattern 5: 0|1 Boolean Discipline (mandatory — established)
+
+No new boolean columns in v2.4. The existing `is_active_project === 1` checks in `computeStats` are already correct. No risk of regression here.
 
 ---
 
-### 6. Painting Streak
+## Anti-Patterns
 
-**Schema:** No new tables. Derives from `painting_sessions.session_date`.
+### Anti-Pattern 1: Hook calls inside `ActiveProjectsPanel` or `ArmyReadinessCard`
 
-**New compute function: `src/features/analytics/computeStreak.ts`**
-```typescript
-computeStreak(sessions: PaintingSession[]): {
-  currentStreak: number;    // consecutive days with at least 1 session up to today
-  longestStreak: number;    // all-time longest
-  lastSessionDate: string | null;
-}
-// Input: all sessions (not per-unit). Algorithm: deduplicate by date, sort desc, count consecutive days
-```
+**What people do:** Call `useLatestUnitPhotos()` inside `ActiveProjectsPanel`.
 
-**Hook:** Reuse `useHobbyAnalytics.ts` — `usePaintingStreak()` calls `getAnalyticsData()` and runs `computeStreak()`.
+**Why it's wrong:** Creates waterfall fetches (panel renders → fetches → renders again). Duplicates cache subscriptions. Makes the skeleton loading state in `DashboardPage` impossible to coordinate.
 
-**New component: `src/features/analytics/PaintingStreakWidget.tsx`**
-- Shows current streak count + flame icon
-- Renders on Dashboard (as a stat card) or on the analytics page
+**Do this instead:** All hooks at the top of `DashboardPage`. Pass `Map<>` data as props.
 
-**Invalidation:** Same as velocity — `useCreatePaintingSession().onSuccess` must invalidate `["hobby-analytics"]`. Add this to the existing mutation's `onSuccess` in `useJournalSessions.ts`.
+### Anti-Pattern 2: Nesting Sheet inside `ActiveProjectsPanel`
 
----
+**What people do:** Put `<LogSessionSheet>` inside `ActiveProjectsPanel` so each project card owns its sheet.
 
-### 7. Ready-to-Play Quick View
+**Why it's wrong:** Violates the sibling portal contract. Radix portals nested inside feature components cause z-index and React context boundary issues (documented Pitfall 1 from Phase 26).
 
-**Schema:** No new tables. Filters existing `units` data.
+**Do this instead:** `onLogSession(unitId: number)` callback prop. `DashboardPage` owns the sheet.
 
-**Definition:** A unit is "ready to play" when `status_painting = 'Completed'` AND `status_assembly = 1` AND `status_basing = 1`. Optionally filter by `points <= N` for a points budget.
+### Anti-Pattern 3: Storing Unit objects in ActiveProjectsPanel state
 
-**Approach:** New page that calls `useUnits()` (already cached) and filters client-side.
+**What people do:** `setFocusUnit(unit)` when a project card is clicked.
 
-**New compute function: `src/features/units/applyReadyToPlayFilter.ts`**
-```typescript
-applyReadyToPlayFilter(units: Unit[], maxPoints: number | null): Unit[]
-// Filter: status_painting === 'Completed' && status_assembly === 1 && status_basing === 1
-// Optional: && (points ?? 0) <= maxPoints
-```
+**Why it's wrong:** The `Unit` object becomes stale after mutations. Established pitfall from Phase 26.
 
-**New page: `src/features/units/ReadyToPlayPage.tsx`**
-- Reuses `useUnits()` — no new data fetch
-- Points limit input (Zustand ephemeral store)
-- Renders the existing `UnitTable` or `UnitGallery` with ready-to-play filtered results
-- Summary: total points available for play, count of units
+**Do this instead:** `onUnitClick(unit.id)`. `DashboardPage` derives the unit from `stats.units`.
 
-**Zustand store: `src/features/units/readyToPlayFilters.ts`**
-- `maxPoints: number | null`
-- `factionId: number | null`
+### Anti-Pattern 4: Two-mutation sequential await in onSubmit without error handling
 
-**Route:** `/ready-to-play` — add to router and sidebar nav (Lucide `CheckSquare` icon).
+**What people do:** `await updateUnit.mutateAsync(); await createSession.mutateAsync();` with a single try/catch.
 
-**This page does NOT need a new query module.** It reuses the `["units"]` cache.
+**Why it's wrong:** If `updateUnit` fails, `createSession` does not run (correct). But if `updateUnit` succeeds and `createSession` fails, the unit is updated but the session is not logged, and the user sees a "Failed" toast without knowing their progress update was saved.
+
+**Do this instead:** Show granular feedback. Wrap each mutateAsync in its own try/catch. If step 1 succeeds, show a brief intermediate success (optional). If step 2 fails, toast "Session not logged — but progress was saved." Sheet stays open for retry of step 2 only.
+
+### Anti-Pattern 5: Merging spending fields into `useDashboardStats`
+
+**What people do:** Add paint/spend queries to `getDashboardStats()` to avoid calling `useSpendingStats()` separately in `DashboardPage`.
+
+**Why it's wrong:** `getDashboardStats` is intentionally minimal (units + factions only). Adding spend queries increases dashboard load latency for the case where the user is not focused on spending data. `useSpendingStats` has its own cache key `["spending-stats"]` and invalidation contract — merging it breaks that contract.
+
+**Do this instead:** `useSpendingStats()` called in `DashboardPage`. Both hooks run in parallel via React Query — the extra call costs nothing when the data is already cached.
+
+### Anti-Pattern 6: Computing recipe-faction mapping inside `getRecipeNamesByFactionIds` SQL before it's needed
+
+**What people do:** Build the new `getRecipeNamesByFactionIds` query function speculatively.
+
+**Why it's wrong:** For v2.4, the faction cards only need a recipe count (not names). The count is trivially derivable in JS from `useRecipes()` data already in memory. The SQL query adds code complexity and a round-trip for no benefit.
+
+**Do this instead:** `recipes.filter(r => r.faction_id === faction.id).length` in `DashboardPage`'s `useMemo`. Only add `getRecipeNamesByFactionIds` if the design requires displaying individual recipe names on faction cards.
 
 ---
 
-### 8. Showcase Mode
-
-**Schema:** No new tables. Filters `units` where `status_painting = 'Completed'` and shows main_image_path / unit photos.
-
-**Two implementation options:**
-
-Option A: Separate route `/showcase` with a full-screen gallery (recommended for v2.2).
-Option B: A toggle on the Collection page's gallery view.
-
-**Recommendation:** Separate route. Showcase is a distinct UX context (club night display, dark background, large images, minimal chrome) — not a filter state on Collection.
-
-**New files in `src/features/showcase/`:**
-- `ShowcasePage.tsx` — full-screen dark gallery of painted units
-- `ShowcaseCard.tsx` — large unit card: main_image_path, unit name, faction badge
-- `ShowcaseEmptyState.tsx`
-
-**Data:** Reuses `useUnits()` (already cached). Filters client-side to `status_painting = 'Completed'`. For images, reuses existing `main_image_path` column on units. Does NOT need `useUnitPhotos`.
-
-**Route:** `/showcase` — add to router. May NOT need a sidebar nav entry (it's a display mode, not a management page). Can be triggered from Collection page header as a button: "Open Showcase" → navigates to `/showcase`.
-
-**UX note:** Showcase should suppress the sidebar (full-screen mode). Implement by checking the current route in `AppLayout` and conditionally hiding the sidebar when on `/showcase`. This is a layout concern, not a data concern.
-
----
-
-### 9. Custom Lore Notes
-
-**Schema:** ALTER TABLE `units` ADD COLUMN `lore_notes TEXT` + ALTER TABLE `factions` ADD COLUMN `lore_notes TEXT` (migration 007).
-
-**No new query modules.** Extend existing queries:
-
-**`src/db/queries/units.ts`:** Add `lore_notes` to:
-- `getUnits()` SELECT (already `SELECT *` — no change needed)
-- `getUnitById()` SELECT (already `SELECT *` — no change needed)
-- `createUnit()` INSERT columns list and values
-- `updateUnit()` SET clause (use raw assignment, NOT COALESCE — lore_notes must be clearable to NULL)
-
-**`src/db/queries/factions.ts`:** Same extension pattern.
-
-**`src/types/unit.ts`:** Add `lore_notes: string | null` to `Unit` interface and `CreateUnitInput` / `UpdateUnitInput`.
-
-**`src/types/faction.ts`:** Add `lore_notes: string | null` to `Faction` interface and input types.
-
-**UI changes:**
-- `UnitDetailSheet.tsx` — add a "Lore" tab (alongside existing tabs) with a `<Textarea>` for lore_notes. Save via `useUpdateUnit()`.
-- `FactionSheet.tsx` — add a lore_notes `<Textarea>` field to the faction form. Save via `useUpdateFaction()`.
-
-**No new hooks needed.** Existing `useUnit`, `useUpdateUnit`, `useFactions`, `useUpdateFaction` automatically pick up the new column once types are updated.
-
----
-
-### 10. Undercoat Log
-
-**Schema:** ALTER TABLE `units` ADD COLUMN `undercoat TEXT` (migration 007). Nullable. Enum values in TypeScript, free text in DB (do not use CHECK constraints — SQLite CHECK is not enforced before 3.25 and this avoids migration brittleness).
-
-**TypeScript enum:**
-```typescript
-// src/types/unit.ts
-export const UNDERCOAT_OPTIONS = [
-  "None",
-  "White",
-  "Black",
-  "Grey",
-  "Contrast",
-  "Other",
-] as const;
-export type Undercoat = typeof UNDERCOAT_OPTIONS[number];
-```
-
-**No new query modules.** Same extension pattern as lore_notes:
-- Add `undercoat` to `Unit` interface as `undercoat: Undercoat | null`
-- `createUnit()` and `updateUnit()` in `units.ts` get `undercoat` column (use raw assignment, NOT COALESCE — must be clearable)
-
-**UI changes:**
-- `UnitSheet.tsx` (create/edit form) — add `undercoat` select dropdown using `UNDERCOAT_OPTIONS`
-- `UnitDetailSheet.tsx` — display undercoat in the unit details section (read-only badge or editable inline)
-- `CollectionPage.tsx` / `UnitTableColumns.tsx` — optionally add undercoat column to table (can defer to polish)
-
-**No new hooks needed.**
-
----
-
-## New File Inventory
-
-### New DB Migration
-
-```
-src-tauri/migrations/
-└── 007_full_circle.sql     NEW — wishlist_items, hobby_goals tables; ALTER TABLE units/factions
-```
-
-### New Query Modules
-
-```
-src/db/queries/
-├── battleLogs.ts           NEW — CRUD + stat aggregate for battle_logs table
-├── wishlist.ts             NEW — CRUD for wishlist_items table
-├── hobbyGoals.ts           NEW — CRUD for hobby_goals table
-└── analytics.ts            NEW — getAnalyticsData() fetching sessions + units for velocity/streak
-```
-
-Note: `paintingSessions.ts` gains `getAllSessions()` export. `spending.ts` remains unchanged (chart uses existing data).
-
-### New Hooks
-
-```
-src/hooks/
-├── useBattleLogs.ts        NEW — useBattleLogs, useBattleStats, useCreate/Update/DeleteBattleLog
-├── useWishlist.ts          NEW — useWishlistItems, useCreate/Update/DeleteWishlistItem
-├── useHobbyGoals.ts        NEW — useHobbyGoals, useCreate/Update/DeleteHobbyGoal
-└── useHobbyAnalytics.ts    NEW — useHobbyVelocity, usePaintingStreak (both call analytics query)
-```
-
-Note: `useJournalSessions.ts` gains `useAllSessions()` export for goals + streak.
-
-### Modified Hooks (invalidation additions)
-
-```
-src/hooks/
-├── useJournalSessions.ts   MODIFY — useCreatePaintingSession/useDeletePaintingSession.onSuccess must
-│                                    also invalidate ["hobby-analytics"] and ["hobby-goals"]
-└── useUnits.ts             MODIFY — useUpdateUnit.onSuccess must also invalidate ["hobby-analytics"]
-```
-
-### New Type Files
-
-```
-src/types/
-├── battleLog.ts            NEW — BattleLog, CreateBattleLogInput, UpdateBattleLogInput
-├── wishlistItem.ts         NEW — WishlistItem, CreateWishlistItemInput, UpdateWishlistItemInput
-└── hobbyGoal.ts            NEW — HobbyGoal, CreateHobbyGoalInput, UpdateHobbyGoalInput
-```
-
-### Modified Type Files
-
-```
-src/types/
-├── unit.ts                 MODIFY — add lore_notes, undercoat fields + UNDERCOAT_OPTIONS const
-└── faction.ts              MODIFY — add lore_notes field
-```
-
-### New Feature Folders
-
-```
-src/features/
-├── battle-log/             NEW — BattleLogPage, BattleLogSheet, BattleLogRow, BattleStatsSummary
-├── wishlist/               NEW — WishlistPage, WishlistSheet, WishlistRow, wishlistFilters store
-├── hobby-goals/            NEW — HobbyGoalsPage, GoalSheet, GoalCard, computeGoalProgress.ts
-├── analytics/              NEW — computeVelocity.ts, computeStreak.ts, PaintingStreakWidget, VelocityWidget
-└── showcase/               NEW — ShowcasePage, ShowcaseCard, ShowcaseEmptyState
-```
-
-### Modified Feature Files
-
-```
-src/features/
-├── spending/
-│   └── computeSpendOverTime.ts         NEW pure function
-│   └── SpendOverTimeChart.tsx          NEW chart component, added to SpendingPage
-├── units/
-│   ├── applyReadyToPlayFilter.ts       NEW pure function
-│   ├── ReadyToPlayPage.tsx             NEW page
-│   ├── UnitSheet.tsx                   MODIFY — add undercoat field
-│   └── UnitDetailSheet.tsx             MODIFY — add lore_notes tab, undercoat display
-└── factions/
-    └── FactionSheet.tsx                MODIFY — add lore_notes textarea
-```
-
-### Router and Sidebar
-
-```
-src/app/router.tsx          MODIFY — add routes: /battle-log, /wishlist, /goals, /ready-to-play, /showcase, /analytics
-src/components/common/AppSidebar.tsx  MODIFY — add nav entries for new pages (omit /showcase from nav)
-```
-
----
-
-## Component Boundaries
-
-| Component | Responsibility | Communicates With |
-|-----------|---------------|-------------------|
-| `BattleLogPage` | List + stat summary for all games | `useBattleLogs`, `useBattleStats`, sibling `BattleLogSheet` |
-| `BattleLogSheet` | Create/edit a game entry | `useCreateBattleLog`, `useUpdateBattleLog`; needs `useArmyLists` for army picker |
-| `WishlistPage` | Wishlist item list with filters | `useWishlistItems`, `useFactions`, sibling `WishlistSheet` |
-| `HobbyGoalsPage` | Goals with live progress bars | `useHobbyGoals`, `useUnits`, `useAllSessions`, `computeGoalProgress` |
-| `ReadyToPlayPage` | Battle-ready unit filter view | `useUnits` (cached), `applyReadyToPlayFilter`, existing `UnitTable`/`UnitGallery` |
-| `ShowcasePage` | Full-screen painted unit gallery | `useUnits` (cached, filter client-side), hides sidebar |
-| `SpendOverTimeChart` | Monthly spend bar chart | Receives `MonthlySpend[]` as prop from `SpendingPage` |
-| `PaintingStreakWidget` | Current streak display | `usePaintingStreak` |
-| `VelocityWidget` | Pace + pile projection | `useHobbyVelocity` |
-| `GoalCard` | Single goal progress bar | Receives `HobbyGoal + progress` as props from `HobbyGoalsPage` |
-
----
-
-## Patterns to Follow
-
-### Pattern 1: Pure Compute Functions (established — mandatory)
-
-All aggregation lives in a testable pure function, never in hooks or components.
-
-```
-getAnalyticsData() → raw { sessions, units }
-                ↓
-useHobbyAnalytics() → calls queryFn → passes to computeVelocity() / computeStreak()
-                ↓
-Widget receives typed result as prop
-```
-
-New compute files: `computeVelocity.ts`, `computeStreak.ts`, `computeSpendOverTime.ts`, `computeGoalProgress.ts`.
-
-### Pattern 2: Sibling Portal Pattern for Sheets/Dialogs (mandatory)
-
-All new Sheets and Dialogs must follow the established sibling portal pattern. Never nest a Sheet inside another Sheet. All new pages follow the `selectedItemId` pattern: store the selected ID in local state, derive the full item from the query cache.
-
-### Pattern 3: Shared Analytics Query Module
-
-`useHobbyVelocity` and `usePaintingStreak` both need all painting sessions + all units. Both must read from the SAME `["hobby-analytics"]` query key to share the TanStack Query cache. Both hooks call `getAnalyticsData()` with the same cache key — TanStack Query deduplicates concurrent calls. Do NOT create separate query keys for velocity vs. streak — they share data.
-
-### Pattern 4: Clearable Columns Use Raw Assignment (not COALESCE)
-
-The existing `updateUnit` uses `COALESCE($N, column)` for most columns — this prevents nullifying a field when only updating some fields. However, for new text fields (`lore_notes`, `undercoat`, `notes`), users must be able to clear them back to NULL. Use raw assignment for these:
-
-```sql
-lore_notes = $N,   -- NOT COALESCE($N, lore_notes)
-undercoat  = $N,   -- NOT COALESCE($N, undercoat)
-```
-
-This is consistent with how `purchase_price_pence = $18` is already implemented (raw, not COALESCE — because it must be clearable to NULL).
-
-### Pattern 5: 0|1 Integer Booleans (established — mandatory)
-
-No new boolean columns are added in v2.2. All new tables use INTEGER priority (1/2/3) and TEXT enums — no boolean pitfall risk for the new tables.
-
----
-
-## Anti-Patterns to Avoid
-
-### Anti-Pattern 1: Per-Unit Session Hook for Cross-Cutting Analytics
-
-`useJournalSessions(unitId)` is scoped per unit and is the right hook for the Journal tab on a unit sheet. For analytics (streak, velocity, goals), you need ALL sessions across all units. Do NOT call `useJournalSessions` in a loop over all units — this creates N parallel queries and N cache entries.
-
-**Instead:** Add `getAllSessions()` to `paintingSessions.ts` and `useAllSessions()` to `useJournalSessions.ts`. Use a single `["painting-sessions"]` (no unitId) cache key for the global view.
-
-### Anti-Pattern 2: Battle Stats in a Separate DB Round-Trip
-
-Win/loss/draw counts for the battle stats widget are trivially derivable from the full `battle_logs` array. Do NOT write a separate `getBattleStats()` aggregate SQL query.
-
-**Instead:** Compute stats as a pure function from the existing `useBattleLogs()` data. Only add a `getBattleStats()` SQL aggregate if the battle log grows to hundreds of rows (unlikely for a personal tool).
-
-### Anti-Pattern 3: Storing Goal Progress in the DB
-
-Goal progress changes whenever a unit's painting status changes or a new session is logged. Storing it would require invalidation on every painting mutation.
-
-**Instead:** Derive progress at read time via `computeGoalProgress(goal, units, sessions)`. Pure function, no storage.
-
-### Anti-Pattern 4: Showcase Page Embedded in Collection Page
-
-The Gallery view toggle on Collection is for navigation-style browsing. Showcase Mode is a distinct UX context (full-screen, club night display, no sidebar). Mixing them adds conditional complexity to `CollectionPage`.
-
-**Instead:** Separate `/showcase` route. Link to it from Collection header ("Open Showcase" button). `CollectionPage` stays clean.
-
-### Anti-Pattern 5: Recharts Installed Without Checking shadcn chart Component
-
-HobbyForge already uses shadcn/ui new-york. The shadcn `chart` component wraps Recharts with consistent theming. Adding Recharts directly (bypassing shadcn's wrapper) produces inconsistent dark-mode styling.
-
-**Instead:** Run `npx shadcn@latest add chart` if `src/components/ui/chart.tsx` does not yet exist. Use the shadcn `ChartContainer` / `ChartTooltip` wrappers for `SpendOverTimeChart`. If chart component is unavailable, a plain CSS bar chart is preferable to a raw Recharts install.
-
----
-
-## Suggested Build Order (Phase Groupings)
-
-Dependencies and risk profile drive order.
-
-### Phase 17: Schema + Simple Column Extensions (migration foundation)
-
-Build first — all other features depend on the DB being ready.
-
-1. Write `007_full_circle.sql` — new tables + ALTER TABLE columns
-2. Register migration 007 in `lib.rs`
-3. Add `lore_notes` and `undercoat` to `src/types/unit.ts` + extend `units.ts` queries + `UnitSheet.tsx` / `UnitDetailSheet.tsx`
-4. Add `lore_notes` to `src/types/faction.ts` + extend `factions.ts` queries + `FactionSheet.tsx`
-5. Tests for the type extensions (ensure `Unit` and `Faction` interfaces are complete)
-
-**Rationale:** Migration + lore/undercoat are low-risk, high-leverage. Running the migration first unblocks every other feature. Lore notes and undercoat are pure extensions to existing CRUD forms — lowest complexity in the milestone.
-
-### Phase 18: Battle Log (independent entity, fullest CRUD feature)
-
-1. `src/types/battleLog.ts`
-2. `src/db/queries/battleLogs.ts`
-3. `src/hooks/useBattleLogs.ts`
-4. `src/features/battle-log/` — full page + sheet + delete dialog
-5. Route `/battle-log` + sidebar nav entry
-
-**Rationale:** Battle Log uses the pre-existing `battle_logs` table (zero new schema). It is the largest new CRUD feature. Building it second validates the full query → hook → page pattern for a new entity before building wishlist and goals.
-
-### Phase 19: Wishlist (simpler CRUD, new table)
-
-1. `src/types/wishlistItem.ts`
-2. `src/db/queries/wishlist.ts`
-3. `src/hooks/useWishlist.ts`
-4. `src/features/wishlist/` — page + sheet + delete dialog + filters
-5. Route `/wishlist` + sidebar nav entry
-
-**Rationale:** Wishlist is structurally identical to Battle Log (CRUD entity, independent table). After Phase 18 has validated the pattern, Phase 19 is faster to build.
-
-### Phase 20: Analytics (Velocity + Streak + Spend Chart)
-
-Group velocity, streak, and spend chart together — they share the analytics query module and the compute-function-then-widget architecture.
-
-1. `getAllSessions()` in `paintingSessions.ts` + `useAllSessions()` in `useJournalSessions.ts`
-2. `src/db/queries/analytics.ts` — `getAnalyticsData()`
-3. `src/hooks/useHobbyAnalytics.ts` — `useHobbyVelocity`, `usePaintingStreak`
-4. `computeVelocity.ts`, `computeStreak.ts` — pure functions + tests
-5. `VelocityWidget.tsx`, `PaintingStreakWidget.tsx`
-6. `computeSpendOverTime.ts` — pure function + tests
-7. `SpendOverTimeChart.tsx` — extend `SpendingPage.tsx` to include chart section
-8. Add analytics invalidations to `useJournalSessions.ts` and `useUnits.ts` mutations
-9. Route `/analytics` (if analytics warrants its own page) or embed on Dashboard
-
-**Rationale:** All three features pull from existing tables with no new schema. Grouping them minimizes context-switching and allows the analytics query module to be written once and reused.
-
-### Phase 21: Hobby Goals (cross-cutting, depends on analytics infrastructure)
-
-1. `src/types/hobbyGoal.ts`
-2. `src/db/queries/hobbyGoals.ts`
-3. `src/hooks/useHobbyGoals.ts`
-4. `computeGoalProgress.ts` — pure function (uses `useAllSessions` from Phase 20)
-5. `src/features/hobby-goals/` — page + goal cards + sheet
-6. Route `/goals` + sidebar nav entry
-
-**Rationale:** Goals depend on `useAllSessions` built in Phase 20. Building goals after analytics avoids building the same infrastructure twice.
-
-### Phase 22: Ready-to-Play + Showcase (view-only, no new queries)
-
-1. `applyReadyToPlayFilter.ts` — pure function + tests
-2. `ReadyToPlayPage.tsx` — reuses `useUnits`, applies filter
-3. Route `/ready-to-play` + sidebar nav entry
-4. `ShowcasePage.tsx` — reuses `useUnits`, filters to Completed, full-screen layout
-5. Route `/showcase` (no sidebar entry — triggered from Collection header)
-6. Sidebar hide logic for `/showcase` route in `AppLayout.tsx`
-
-**Rationale:** Both features are view-only, zero new DB work, zero new query modules. Lightest possible phase. Placed last because they depend on the collection data being stable (which it is from v2.1) and add polish without risk.
-
----
-
-## Cache Invalidation Contract (complete for v2.2)
-
-| Mutation | Invalidates | Reason |
-|----------|-------------|--------|
-| `useCreateBattleLog.onSuccess` | `["battle-logs"]` | Battle log list and stats refresh |
-| `useUpdateBattleLog.onSuccess` | `["battle-logs"]`, `["battle-logs", id]` | Same |
-| `useDeleteBattleLog.onSuccess` | `["battle-logs"]` | Same |
-| `useCreateWishlistItem.onSuccess` | `["wishlist"]` | Wishlist list refresh |
-| `useUpdateWishlistItem.onSuccess` | `["wishlist"]`, `["wishlist", id]` | Same |
-| `useDeleteWishlistItem.onSuccess` | `["wishlist"]` | Same |
-| `useCreateHobbyGoal.onSuccess` | `["hobby-goals"]` | Goal list refresh |
-| `useUpdateHobbyGoal.onSuccess` | `["hobby-goals"]`, `["hobby-goals", id]` | Same |
-| `useDeleteHobbyGoal.onSuccess` | `["hobby-goals"]` | Same |
-| `useCreatePaintingSession.onSuccess` (EXTEND) | `["painting-sessions", unitId]` + `["hobby-analytics"]` + `["hobby-goals"]` | Streak/velocity/goals depend on session data |
-| `useDeletePaintingSession.onSuccess` (EXTEND) | same as above | Same |
-| `useUpdateUnit.onSuccess` (EXTEND) | existing + `["hobby-analytics"]` | Velocity uses pile-of-shame count from units |
+## Scaling Considerations
+
+This is a single-user local desktop app. "Scale" means performance with growing personal collections.
+
+| Concern | At 50 units | At 200+ units | Mitigation already in place |
+|---------|-------------|---------------|------------------------------|
+| `useLatestUnitPhotos` batch query | Fast (1 SQL + N async joins) | Watch N `join()` + `convertFileSrc` calls | Already uses `Promise.all` |
+| `useKanbanEnrichment` for active projects | Trivial (≤5 units) | Bounded by `activeProjects` slice | `computeStats` caps at 5 |
+| `useArmyListReadiness` IN clause | Fast | Fast (2–10 lists typical) | Dynamic placeholder pattern already defensive |
+| `computeSpendingStats` with new fields | Negligible (pure JS) | Negligible (pure JS loop) | No new SQL |
+| CSS grid reflow | No concern | No concern | Pure CSS layout |
 
 ---
 
 ## Sources
 
-- Direct audit: `src-tauri/migrations/001_core_schema.sql` — `battle_logs` table already defined, zero rows (HIGH confidence)
-- Direct audit: `src-tauri/migrations/005_hobby_journal.sql` — `painting_sessions` table structure, confirms `session_date TEXT` (HIGH confidence)
-- Direct audit: `src-tauri/migrations/006_spend_pence.sql` — confirms `purchase_price_pence INTEGER` on units + paints; paints have no `purchase_date` column (HIGH confidence)
-- Direct audit: `src/db/queries/paintingSessions.ts` — confirms per-unit scoping of existing session queries (HIGH confidence)
-- Direct audit: `src/db/queries/spending.ts` — confirms dashboard/compute-function pattern; `Promise.all` parallel selects (HIGH confidence)
-- Direct audit: `src/db/queries/dashboard.ts` — confirms `Promise.all` pattern for multi-table fetches (HIGH confidence)
-- Direct audit: `src/hooks/useUnits.ts` — confirms cross-query invalidation pattern (DATA-09, SPEND-03/04 contract) (HIGH confidence)
-- Direct audit: `src/hooks/useSpendingStats.ts` — confirms query key naming convention and invalidation contract (HIGH confidence)
-- Direct audit: `src/hooks/useJournalSessions.ts` — confirms per-unit key pattern; identifies gap for global `useAllSessions` (HIGH confidence)
-- Direct audit: `src/features/spending/computeSpendingStats.ts` — confirms pure compute function pattern (HIGH confidence)
-- Direct audit: `src/types/unit.ts` — confirms `0|1` boolean pattern, `PAINTING_STATUS_ORDER` const (HIGH confidence)
-- Direct audit: `src/app/router.tsx` — confirms TanStack Router pattern for new routes (HIGH confidence)
-- Direct audit: `src/components/common/AppSidebar.tsx` — confirms MAIN_NAV structure, existing icon imports (HIGH confidence)
+- Direct inspection: `src/features/dashboard/DashboardPage.tsx` — current layout, hook calls, portal pattern
+- Direct inspection: `src/features/dashboard/computeStats.ts` — `ComputedDashboardStats` interface, `activeProjects` derivation
+- Direct inspection: `src/features/dashboard/CurrentFocusCard.tsx` — existing props interface
+- Direct inspection: `src/features/dashboard/HobbyPipeline.tsx` — existing 11-stage implementation
+- Direct inspection: `src/features/dashboard/StatCard.tsx` — existing props
+- Direct inspection: `src/features/dashboard/FactionSummaryCard.tsx` — existing props + navigation pattern
+- Direct inspection: `src/features/dashboard/LogSessionSheet.tsx` — existing form + schema
+- Direct inspection: `src/features/dashboard/RecentActivityFeed.tsx` — existing `ActivityEvent` consumption
+- Direct inspection: `src/db/queries/dashboard.ts` — `getDashboardStats`, `getRecentActivity`
+- Direct inspection: `src/db/queries/armyLists.ts` — `getArmyListReadiness` SQL pattern
+- Direct inspection: `src/db/queries/unitPhotos.ts` — `getLatestPhotoByUnit` batch query
+- Direct inspection: `src/db/queries/recipes.ts` — `getRecipeNamesByUnitIds` IN-clause pattern
+- Direct inspection: `src/db/queries/spending.ts` — `getSpendingStats` pattern
+- Direct inspection: `src/hooks/useDashboardStats.ts` — `DASHBOARD_STATS_KEY`, invalidation contract
+- Direct inspection: `src/hooks/useArmyLists.ts` — `useArmyListReadiness`, readiness Map derivation
+- Direct inspection: `src/hooks/useUnitPhotos.ts` — `useLatestUnitPhotos`, `Map<id, UnitPhotoWithUrl>`
+- Direct inspection: `src/hooks/useKanbanEnrichment.ts` — `KanbanEnrichment` interface, sorted key
+- Direct inspection: `src/hooks/useJournalSessions.ts` — `useCreatePaintingSession` invalidations
+- Direct inspection: `src/hooks/useSpendingStats.ts` — `SPENDING_STATS_KEY`
+- Direct inspection: `src/hooks/useRecipes.ts` — `RECIPES_KEY`
+- Direct inspection: `src/features/spending/computeSpendingStats.ts` — `SpendingStats` interface
+- Direct inspection: `src/types/unit.ts` — `Unit` interface, `PAINTING_STATUS_ORDER`
+- Direct inspection: `src/types/recipe.ts` — `PaintingRecipe` with `faction_id`, `unit_id` columns
+- Direct inspection: `src/styles/globals.css` — existing CSS token definitions (`--battle-gold`, `--faction-accent`)
 
 ---
-*Architecture research for: HobbyForge v2.2 — Full Circle*
-*Researched: 2026-05-04*
+*Architecture research for: HobbyForge v2.4 — Premium Dashboard UX*
+*Researched: 2026-05-05*
