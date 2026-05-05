@@ -1,5 +1,25 @@
 # Milestones
 
+## v2.2 Full Circle (Shipped: 2026-05-05)
+
+**Phases completed:** 8 phases (17–19, 21–24, 35), 23 plans
+**Timeline:** 2026-05-04 → 2026-05-05 (2 days)
+**Stats:** 87 commits, ~220 TypeScript source files, ~21,752 LOC, 644 automated tests
+
+**Key accomplishments:**
+- Schema enrichment (lore_notes, undercoat, purchase_date) + Battle Log CRUD (opponent faction, mission, result, army list linkage) + Analytics Core (hobby velocity, painting streak, spend trend chart)
+- Hobby Goals: create goals with target dates, track progress via painting sessions, dashboard goal card with progress ring, completion celebrations, streak integration
+- Display Features: Battle Ready collection filter preset, unit showcase mode with photo display
+- Unit Point Calculator: per-model-count point tiers (unit_point_tiers table), wargear loadout selection with checkbox toggles (unit_loadout_wargear table), delta preview badge (+N green / -N red) in army list builder, COALESCE chain integration for effective_points
+- Gap closure: timezone-safe todayISO() import, cache invalidation symmetry (delete→goal-progress, update→army-lists), purchase_date form field fully wired through Zod to mutation
+
+**Archived:**
+- Roadmap: `.planning/milestones/v2.2-ROADMAP.md`
+- Requirements: `.planning/milestones/v2.2-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v2.2-MILESTONE-AUDIT.md`
+
+---
+
 ## v2.3 Hobby Command Center (Shipped: 2026-05-05)
 
 **Phases completed:** 5 phases (25-29), 21 plans

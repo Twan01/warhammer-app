@@ -152,6 +152,58 @@
 
 ---
 
+## Milestone: v2.2 — Full Circle
+
+**Shipped:** 2026-05-05
+**Phases:** 8 (17–19, 21–24, 35) | **Plans:** 23 | **Timeline:** 2 days (2026-05-04 → 2026-05-05)
+
+### What Was Built
+
+- Phase 17: Schema enrichment — lore_notes/undercoat on units, lore_notes on factions, purchase_date on paints, todayISO() timezone-safe utility in @/lib/dates
+- Phase 18: Battle Log CRUD — BattleLogPage at /battle-log, opponent faction, mission/result/army-list linkage, chronological list with date sorting
+- Phase 19: Analytics Core — hobby velocity metrics, painting streak calculation on Dashboard, monthly spend trend chart
+- Phase 21: Hobby Goals — goal CRUD with target dates, track progress via painting sessions, dashboard goal card with progress ring
+- Phase 22: Hobby Goals Polish — goal filtering/sorting, completion celebrations, streak integration with goals
+- Phase 23: Display Features — Battle Ready collection filter preset, unit showcase mode with photo display
+- Phase 24: Unit Point Calculator — per-model-count point tiers (unit_point_tiers table), wargear loadout selection (unit_loadout_wargear table), delta preview badge in army list builder, COALESCE chain integration
+- Phase 35: Gap Closure — 4 surgical tech debt fixes (timezone, 2× cache invalidation, purchase_date form wiring)
+
+### What Worked
+
+- **Phase 24 multi-plan architecture (4 plans, 3 waves):** Splitting a complex data-heavy feature into foundation → selection → preview stages kept each plan focused and testable. 16 automated tests across 3 test files provided high confidence despite the SQL and UI complexity.
+- **Milestone audit → gap closure → re-audit cycle:** The v2.2-MILESTONE-AUDIT identified 4 specific tech debt items, Phase 35 was planned and executed in 4 minutes, and re-audit confirmed all resolved. The GSD gap closure workflow is now battle-tested.
+- **COALESCE chain untouched by tier feature:** Phase 24 wisely writes tier-confirmed points to `units.points` at application layer rather than modifying the COALESCE SQL. Army list effective_points computation remained stable with zero regression risk.
+- **Cache invalidation symmetry enforced:** Phase 35 identified that useDeletePaintingSession was missing goal-progress invalidation that useCreatePaintingSession had. The symmetry rule is now a documented pattern.
+- **Nyquist validation inline throughout:** All phases shipped with `nyquist_compliant: true` — no retrofit batch needed. The pattern established in v2.1 held consistently.
+
+### What Was Inefficient
+
+- **v2.2 "partial ship" confusion:** Phases 17–19 shipped early (2026-05-04) while Phases 21–24 were still in flight. PROJECT.md recorded this as "v2.2 partial ship" which required cleanup at milestone completion. Better to not mark partial milestones in PROJECT.md — keep it binary (shipped or not).
+- **4 tech debt items missed until milestone audit:** All 4 Phase 35 fixes (timezone import, 2 cache invalidations, purchase_date form field) could have been caught during their respective phase executions. The timezone bug in BattleLogSheet existed since Phase 18 but the smoke test didn't catch off-by-one dates.
+- **Progress table column misalignment:** Phases 23 and 24 were missing the milestone column in ROADMAP.md. This drift pattern has occurred in every milestone — needs a structural fix (template validation or automated check).
+
+### Patterns Established
+
+- **Cache invalidation symmetry rule:** If useCreateX invalidates a query key, useDeleteX must invalidate the same key. Documented as a project convention.
+- **todayISO() as single source of truth:** All date defaults use `todayISO()` from `@/lib/dates` (local timezone). No more inline `new Date().toISOString().slice(0,10)`.
+- **weapon_name TEXT copy for cross-DB references:** When referencing rules.db data from hobbyforge.db, store as denormalized TEXT column — SQLite doesn't support cross-database FKs.
+- **Gap closure as formal phase:** Tech debt items discovered at milestone audit get a dedicated numbered phase with full plan/execute/verify lifecycle, not ad-hoc patches.
+
+### Key Lessons
+
+1. **Don't mark "partial ship" in PROJECT.md.** It creates cleanup work at milestone completion and confuses the shipping history. A milestone is either complete or in-progress.
+2. **Cache invalidation should be reviewed per-mutation during code review.** Each new mutation hook should explicitly audit which query keys it touches, checking symmetry with the corresponding create/delete counterpart.
+3. **ROADMAP progress table needs automated column validation.** Three milestones in a row have had column misalignment. This is a structural issue in the manual editing workflow.
+4. **Gap closure is fast when scoped correctly.** Phase 35 completed in 4 minutes (2 tasks, 5 files). The overhead of a formal phase is negligible when the scope is surgical.
+
+### Cost Observations
+
+- Model: Claude Opus 4.6 + Sonnet 4.6 (mixed)
+- Sessions: 3 (Phase 17-19 in first, Phase 21-24 in second, Phase 35 + audit + completion in third)
+- Notable: 8 phases with 23 plans in 2 calendar days — Phase 35 gap closure (4 min) demonstrates that the plan→execute cycle is fast for surgical fixes
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -161,6 +213,7 @@
 | v1.1 | 5 | 20 | First milestone — baseline established |
 | v2.0 | 4 | 20 | Back-end foundation phase pattern; Nyquist VALIDATION.md retrofit introduced |
 | v2.1 | 8 | 41 | Dual-DB architecture; gap-closure phase pattern; inline Nyquist compliance (no retrofit) |
+| v2.2 | 8 | 23 | Cache invalidation symmetry rule; gap closure as formal phase; milestone audit → fix → re-audit cycle proven |
 
 ### Cumulative Quality
 
@@ -169,12 +222,15 @@
 | v1.1 | 113 | All passing |
 | v2.0 | 212 | All passing (isolated; FactionSummaryCard ordering issue pre-existing) |
 | v2.1 | 395 | All passing post-Phase 20 |
+| v2.2 | 644 | All passing (16 phase-24-specific tests, 2 pre-existing skips) |
 
 ### Top Lessons (Verified Across Milestones)
 
-1. Pre-wire cross-phase cache invalidation when dependencies are known early (v1.1 DATA-09 → v2.0 dashboard-stats forward-compat)
+1. Pre-wire cross-phase cache invalidation when dependencies are known early (v1.1 DATA-09 → v2.0 dashboard-stats forward-compat → v2.2 symmetry rule)
 2. Pure function + TDD Wave 0 dramatically reduces UI debugging time
 3. Sibling portal pattern prevents Radix z-index/context issues in Sheet-heavy UIs
 4. SQL join shape tests catch column-omission gaps that smoke tests miss (learned from ARMY-02)
 5. Review mounting points for Sheet-mounted features during planning — not at audit (learned from DS-08 secondary path)
-5. Foundation phases with full test coverage before UI work pay for themselves in zero data-layer debugging time
+6. Foundation phases with full test coverage before UI work pay for themselves in zero data-layer debugging time
+7. Gap closure as a formal phase is fast (4 min for Phase 35) and preserves audit trail — never patch informally
+8. ROADMAP progress table column alignment drifts every milestone — needs structural fix or automated validation

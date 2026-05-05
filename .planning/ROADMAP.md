@@ -5,7 +5,7 @@
 - ✅ **v1.1 HobbyForge MVP** — Phases 1–5 (shipped 2024-05-01)
 - ✅ **v2.0 Utility Layer** — Phases 6–9 (shipped 2024-05-03)
 - ✅ **v2.1 Visual Command** — Phases 10–16 + 20 (shipped 2026-05-04)
-- ⏸️ **v2.2 Full Circle** — Phases 17–19 shipped, 21–24 deferred
+- ✅ **v2.2 Full Circle** — Phases 17–19, 21–24, 35 (shipped 2026-05-05)
 - ✅ **v2.3 Hobby Command Center** — Phases 25–29 (shipped 2026-05-05)
 - 🚧 **v2.4 Premium Dashboard UX & Visual Polish** — Phases 30–34 (in progress)
 
@@ -54,18 +54,21 @@ Full details: `.planning/milestones/v2.1-ROADMAP.md`
 
 ---
 
-### ⏸️ v2.2 Full Circle (Phases 17–19 + 21–24) — Partial Ship
+<details>
+<summary>✅ v2.2 Full Circle (Phases 17–19, 21–24, 35) — SHIPPED 2026-05-05</summary>
 
-**Milestone Goal:** Close the full hobby loop — from owning and painting to playing and logging — with analytics, personal showcase, and narrative enrichment features that make HobbyForge the definitive single-player hobby OS.
+- [x] Phase 17: Schema Foundation + Enrichment — Migration 008 (lore_notes + undercoat on units, lore_notes on factions, purchase_date on paints), dates.ts UTC utility (completed 2026-05-04)
+- [x] Phase 18: Battle Log — Battle log CRUD page with opponent faction, mission, result, army list linkage, notes (completed 2026-05-04)
+- [x] Phase 19: Analytics Core — Recharts/shadcn chart, hobby velocity and painting streak on Dashboard, monthly spend trend chart (completed 2026-05-04)
+- [x] Phase 21: Wishlist — wishlist_items table (migration 009), full CRUD Wishlist page with cost/notes (completed 2026-05-05)
+- [x] Phase 22: Hobby Goals — hobby_goals table (migration 010), goal CRUD with target unit count, progress from session history (completed 2026-05-05)
+- [x] Phase 23: Display Features — Battle Ready quick-filter, Showcase Mode full-screen gallery via Tauri window API (completed 2026-05-05)
+- [x] Phase 24: Unit Point Calculator — Point tiers, wargear loadout management, swap delta preview in army list builder (completed 2026-05-05)
+- [x] Phase 35: v2.2 Gap Closure — BattleLogSheet timezone fix, PaintSheet purchase_date wiring, cache invalidation patches (completed 2026-05-05)
 
-- [x] **Phase 17: Schema Foundation + Enrichment** — Migration 007 (lore_notes + undercoat on units, lore_notes on factions, purchase_date on paints), dates.ts UTC utility, and lore/undercoat fields visible in unit detail sheet (completed 2026-05-04)
-- [x] **Phase 18: Battle Log** — Battle log CRUD page with opponent faction, mission, result, army list linkage, notes, and chronological list (completed 2026-05-04)
-- [x] **Phase 19: Analytics Core** — Recharts/shadcn chart install, hobby velocity and painting streak stats on Dashboard, monthly spend trend chart on Spending page (completed 2026-05-04)
-- [ ] **Phase 21: Wishlist** — New wishlist_items table (migration 009), full CRUD Wishlist page with name/faction/estimated cost/notes
-- [ ] **Phase 22: Hobby Goals** — New hobby_goals table (migration 009), goal CRUD with target unit count and timeframe, progress derived from painting session history
-- [ ] **Phase 23: Display Features** — Battle Ready quick-filter on Collection page, Showcase Mode full-screen gallery using Tauri window API
-- [ ] **Phase 24: Unit Point Calculator** — Point tiers per model count, wargear loadout management, swap delta preview in army list builder
-- [ ] **Phase 35: v2.2 Gap Closure** — Fix 4 low-severity tech debt items: BattleLogSheet timezone, PaintSheet purchase_date wiring, cache invalidation gaps in goal-progress and army-lists
+Full details: `.planning/milestones/v2.2-ROADMAP.md`
+
+</details>
 
 ---
 
@@ -95,133 +98,6 @@ Full details: `.planning/milestones/v2.3-ROADMAP.md`
 - [ ] **Phase 34: Visual Polish** — FactionCards v2, radial gradient hero, elevated card surface hierarchy
 
 ## Phase Details
-
-### Phase 17: Schema Foundation + Enrichment
-**Goal**: The database gains the columns needed by all of v2.2 — lore notes and undercoat on units, lore notes on factions, purchase_date on paints — and a UTC-safe date utility resolves the existing timezone bug in JournalTab, with lore and undercoat fields immediately visible and editable in the unit detail sheet
-**Depends on**: Phase 16
-**Requirements**: ENRCH-01, ENRCH-02, ENRCH-03, ENRCH-04
-**Success Criteria** (what must be TRUE):
-  1. User can open any unit's detail sheet and see a "Lore Notes" text area — typing in it and saving persists the content across app restarts
-  2. User can open any faction's edit form and see a "Lore Notes" text area — typing in it and saving persists the content across app restarts
-  3. User can open any unit's detail sheet and see an "Undercoat" field — entering the primer used (e.g. "Chaos Black") saves and displays on subsequent opens
-  4. Journal session dates display the correct calendar date regardless of the user's local timezone — no off-by-one dates caused by UTC/local conversion
-**Plans**: 1 plan
-
-Plans:
-- [x] 17-00-PLAN.md — Migration 008 (4 ALTER TABLE columns) + lib.rs version 8 + types/queries/forms extensions + UnitDetailSheet display rows + src/lib/dates.ts utility + JournalTab UTC bug fix + manual smoke-test checkpoint (16 tasks across 5 waves)
-
-### Phase 18: Battle Log
-**Goal**: Users can record every game they play — opponent faction, mission, result, army list used, and optional notes — and view their complete game history in a chronological list
-**Depends on**: Phase 17
-**Requirements**: BATTLE-01, BATTLE-02, BATTLE-03, BATTLE-04, BATTLE-05
-**Success Criteria** (what must be TRUE):
-  1. User can navigate to a Battle Log page and log a new game by entering opponent faction, mission name, result (Win/Loss/Draw), and date — the entry saves and appears at the top of the list
-  2. User can select one of their existing army lists when logging a game — the army list name is shown on the saved log entry
-  3. User can add optional notes to a game log entry (MVP unit, lessons learned) and the notes are visible on the saved entry
-  4. User can view all logged games in a chronological list sorted newest first — each entry shows opponent, mission, result, date, army used, and notes
-  5. User can delete a game log entry and it is removed from the list immediately
-**Plans**: 4 plans
-
-Plans:
-- [x] 18-00-PLAN.md — Wave 0: 2 stub test files (battleLogQueries.test.ts + computeBattleLogSummary.test.ts) — 14 it.skip stubs covering BATTLE-01..05
-- [x] 18-01-PLAN.md — Wave 1: types/battleLog.ts + db/queries/battleLogs.ts (full-replacement UPDATE for FK clearing — Pitfall 5) + computeBattleLogSummary pure function + useBattleLogs hooks + battleLogSchema (zod) + flip 14 stubs
-- [x] 18-02-PLAN.md — Wave 2: BattleLogPage (sibling-portal) + Row (compact 2-line + Collapsible expand + group-hover Edit/Delete) + Sheet (4 grouped sections) + DeleteDialog + SummaryBar + EmptyState + resultBadge map + /battle-log route + Battle Log sidebar entry (Swords icon in TRACKING_NAV)
-- [x] 18-03-PLAN.md — Wave 3: Manual smoke-test checkpoint (11 steps verifying BATTLE-01..05 in live Tauri app including Pitfall 5 FK clear + deleted-army-list fallback + persistence across restart)
-
-### Phase 19: Analytics Core
-**Goal**: The Dashboard gains two auto-calculated hobby health metrics (velocity and painting streak) and the Spending page gains a monthly spend trend chart — all driven by existing journal session and purchase data
-**Depends on**: Phase 17
-**Requirements**: ANLY-04, ANLY-05, ANLY-06, ANLY-07
-**Success Criteria** (what must be TRUE):
-  1. Dashboard shows a "Hobby Velocity" stat — average units worked on per month calculated from journal session history — and the number updates when new sessions are logged
-  2. Dashboard shows a "Painting Streak" stat — the current count of consecutive calendar days with at least one journal session — and it increments when a session is logged today
-  3. Spending page shows a bar or line chart of monthly spend combining unit and paint purchases — each bar represents one calendar month's total spend
-  4. The spend trend chart uses purchase_date (from Phase 17's migration) for both units and paints — entries without a purchase_date are excluded from the chart (not bucketed to epoch)
-**Plans**: 4 plans
-
-Plans:
-- [x] 19-00-PLAN.md — Wave 0: 3 stub test files (computeHobbyAnalytics + analyticsQueries + useHobbyAnalytics) — 29 it.skip stubs covering ANLY-04..07 + Pitfalls 2/5/6
-- [x] 19-01-PLAN.md — Wave 1: shadcn add chart + react-is ^19 pnpm override + analytics.ts query module (UNION units+paints with NULL purchase_date excluded for ANLY-07) + computeHobbyAnalytics pure function (Pitfall 2 floor + Pitfall 5 dates.ts + Pitfall 6 year-suffix labels) + useHobbyAnalytics hook with HOBBY_ANALYTICS_KEY + flip 29 stubs
-- [x] 19-02-PLAN.md — Wave 2: SpendTrendChart component (Recharts BarChart in shadcn ChartContainer) + DashboardPage HOBBY HEALTH section + SpendingPage Monthly Trend section + 8 mutation invalidation patches
-- [x] 19-03-PLAN.md — Wave 3: Manual smoke-test checkpoint (12 steps: HOBBY HEALTH section, velocity/streak fallbacks, chart rendering, NULL purchase_date exclusion, year-boundary labels)
-
-### Phase 21: Wishlist
-**Goal**: Users can maintain a running list of models they want to buy — with name, faction, optional estimated cost, and notes — on a dedicated Wishlist page before the items exist in their collection
-**Depends on**: Phase 17
-**Requirements**: WISH-01, WISH-02, WISH-03, WISH-04
-**Success Criteria** (what must be TRUE):
-  1. User can navigate to a Wishlist page and add a new item by entering a name, selecting a faction, and optionally entering an estimated cost — the item saves and appears in the list
-  2. User can view all wishlist items on the Wishlist page in a list showing name, faction, estimated cost, and notes
-  3. User can add optional notes to a wishlist item (e.g. "wait for sale", "for Crusade roster") and the notes are visible on the saved item
-  4. User can delete a wishlist item and it is removed from the list immediately
-**Plans**: 3 plans
-
-Plans:
-- [ ] 21-00-PLAN.md — Wave 0: 2 stub test files (wishlistQueries.test.ts + WishlistPage.test.tsx) — 16 it.skip stubs covering WISH-01..04
-- [ ] 21-01-PLAN.md — Wave 1: migration 009 (wishlist_items table) + lib.rs version 9 + types/wishlistItem.ts + db/queries/wishlistItems.ts (full-replacement UPDATE) + useWishlistItems hooks + wishlistItemSchema (zod) + activate 8 SQL stubs
-- [ ] 21-02-PLAN.md — Wave 2: WishlistPage (sibling-portal) + Row (group-hover Edit/Delete) + Sheet (buildDefaultValues + currency input) + DeleteDialog + EmptyState (Heart icon-pill) + TotalBar + /wishlist route + Wishlist sidebar entry (Heart icon in MANAGEMENT_NAV) + activate 8 component stubs
-
-### Phase 22: Hobby Goals
-**Goal**: Users can set monthly or quarterly painting targets — a unit count to complete by end of the period — and see live progress toward each goal calculated automatically from their journal session history
-**Depends on**: Phase 17
-**Requirements**: ANLY-01, ANLY-02, ANLY-03
-**Success Criteria** (what must be TRUE):
-  1. User can create a painting goal by specifying a target unit count and a timeframe (this month / this quarter) — the goal saves and appears on the Goals page
-  2. Each goal shows a progress bar — the filled portion reflects the count of distinct units that have at least one painting session logged during the goal's timeframe, updated automatically as sessions are added
-  3. User can view all active and completed goals on the Goals page — completed goals (progress >= target) are visually distinguished from active ones
-**Plans**: 4 plans
-
-Plans:
-- [ ] 22-00-PLAN.md — Wave 0: 6 test stub files (goalQueries + goalSchema + computeGoalPeriod + useGoals + GoalSheet + GoalsPage) — 33 it.skip stubs covering ANLY-01..03
-- [ ] 22-01-PLAN.md — Wave 1: migration 009 (hobby_goals table) + lib.rs version 9 + types/goal.ts + computeGoalPeriod/deriveGoalStatus pure functions + goalSchema (zod) + goals.ts query module (CRUD + getGoalProgress with COUNT(DISTINCT unit_id)) + activate 20 stubs
-- [ ] 22-02-PLAN.md — Wave 2: useGoals hooks (GOALS_KEY + GOAL_PROGRESS_KEY) + useJournalSessions invalidation patch + GoalCard (status-based progress bar) + GoalSheet (create/edit) + GoalDeleteDialog + GoalEmptyState (Target icon-pill) + GoalsPage (Active/Completed/Missed section grouping) + /goals route + Goals sidebar entry (Target icon in COMMAND_NAV) + activate 13 stubs
-- [ ] 22-03-PLAN.md — Wave 3: Pre-flight verification (build + tests) + manual smoke-test checkpoint (17 steps verifying ANLY-01..03 in live Tauri app)
-
-### Phase 23: Display Features
-**Goal**: The Collection page gains a one-click Battle Ready filter showing only painted and assembled units, and users can enter Showcase Mode — a full-screen chromeless gallery of painted units — ideal for displaying the collection at club nights
-**Depends on**: Phase 17
-**Requirements**: DISP-01, DISP-02, DISP-03
-**Success Criteria** (what must be TRUE):
-  1. Collection page has a "Battle Ready" quick-filter button — clicking it filters the list to show only units that are fully painted and assembled, with the filter clearly indicated as active
-  2. User can click an "Enter Showcase" button and the app window goes full-screen with app chrome (sidebar, header) hidden — only the painted units gallery is visible
-  3. User can exit Showcase Mode by pressing Escape or clicking an exit button — the app returns to normal windowed view with chrome restored
-**Plans**: 2 plans
-
-Plans:
-- [ ] 23-01-PLAN.md — Wave 1: Battle Ready filter (Zustand battleReady toggle + applyUnitFilters condition + UnitFilters button + CollectionPage wiring + extended tests)
-- [ ] 23-02-PLAN.md — Wave 2: Showcase Mode (ShowcaseMode full-screen overlay + CollectionPage entry button + Tauri fullscreen capability + component tests)
-
-### Phase 24: Unit Point Calculator
-**Goal**: The Collection page gains a point calculator that lets users manage model-count point tiers, track wargear loadout selections per unit, and preview the points delta when swapping between configurations in the army list builder
-**Depends on**: Phase 23
-**Requirements**: TIER-01, TIER-02, TIER-03, LOAD-01, LOAD-02, LOAD-03, DELTA-01, COALESCE-01
-**Success Criteria** (what must be TRUE):
-  1. User can define multiple point tiers per unit (e.g. 5 models = 80pts, 10 models = 160pts) — the calculator auto-matches the active model count to the correct tier
-  2. User can create named wargear loadouts per unit with options sourced from the linked datasheet's wargear list, or entered manually for unlinked units
-  3. User can mark one loadout as active per unit — the army list builder uses the active loadout for display and point calculation
-  4. When exploring loadout or tier changes in the army list builder, a colored delta badge (+N green / -N red) previews the points difference before the user commits the swap
-**Plans**: 4 plans
-
-Plans:
-- [ ] 24-01-PLAN.md — Wave 0: 3 test stub files (unitPointTierQueries + unitLoadoutQueries + deltaPreview) — 16 it.skip stubs covering TIER-01..03, LOAD-01..03, DELTA-01
-- [ ] 24-02-PLAN.md — Wave 1: migration 011 (3 tables) + lib.rs version 11 + types + query modules + hooks + computeDelta utility
-- [ ] 24-03-PLAN.md — Wave 2: TierManager + LoadoutSection components + PlaybookTab integration + activate 16 test stubs
-- [ ] 24-04-PLAN.md — Wave 3: ArmyListUnitRow delta preview + UnitSheet read-only points + manual smoke test
-
-### Phase 35: v2.2 Gap Closure
-**Goal**: Close 4 low-severity tech debt items from the v2.2 milestone audit — timezone safety, form field wiring, and cache invalidation completeness
-**Depends on**: Phase 24
-**Requirements**: None (all requirements already satisfied — this phase addresses tech debt only)
-**Gap Closure**: Closes gaps from v2.2 milestone audit
-**Success Criteria** (what must be TRUE):
-  1. BattleLogSheet uses `todayISO()` from `@/lib/dates` instead of a local UTC helper
-  2. `useDeletePaintingSession` invalidates `["goal-progress"]` cache on success
-  3. `useUpdateUnit` invalidates `["army-lists"]` cache on success
-  4. PaintSheet `purchase_date` form field is wired to the mutation (saves user-entered dates)
-**Plans**: 1 plan
-
-Plans:
-- [ ] 35-01-PLAN.md — 4 targeted fixes: BattleLogSheet import swap, cache invalidation additions, PaintSheet purchase_date wiring
 
 ### Phase 30: Grid Layout Foundation
 **Goal**: The dashboard structure is rebuilt as an asymmetric CSS grid bento layout — all existing sections get column spans in a single atomic commit, StatCards navigate to relevant pages when clicked, and the 11-stage pipeline is compressed into 5 readable buckets

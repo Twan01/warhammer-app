@@ -62,11 +62,16 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ 40K Datasheet Integration — auto-populate unit stats/abilities/keywords from community data — Phase 15 — v2.1
 - ✓ Design Overhaul — typography, spacing, layouts, empty states, and overall UI polish — Phase 16 — v2.1
 
-*v2.2 partial ship 2026-05-04 — Phases 17–19 complete; Phases 21–23 deferred*
+*All v2.2 requirements verified and shipped 2026-05-05*
 
-- ✓ Schema Foundation + Enrichment — lore_notes and undercoat on units, lore_notes on factions, purchase_date on paints, dates.ts UTC utility — Phase 17 — v2.2
+- ✓ Schema Foundation + Enrichment — lore_notes and undercoat on units, lore_notes on factions, purchase_date on paints, dates.ts timezone-safe utility — Phase 17 — v2.2
 - ✓ Battle Log — CRUD page with opponent faction, mission, result, army list linkage, notes, chronological list — Phase 18 — v2.2
 - ✓ Analytics Core — hobby velocity, painting streak on Dashboard, monthly spend trend chart — Phase 19 — v2.2
+- ✓ Hobby Goals — create goals with target dates, track progress via painting sessions, dashboard goal card — Phase 21 — v2.2
+- ✓ Hobby Goals Polish — goal filtering, completion celebrations, streak integration with goals — Phase 22 — v2.2
+- ✓ Display Features — Battle Ready collection filter preset, unit showcase mode with photo display — Phase 23 — v2.2
+- ✓ Unit Point Calculator — per-model-count point tiers, wargear loadout selection, delta preview badge in army lists — Phase 24 — v2.2
+- ✓ Gap Closure — timezone-safe date import, cache invalidation symmetry (delete→goal-progress, update→army-lists), purchase_date form field wiring — Phase 35 — v2.2
 
 *All v2.3 requirements verified and shipped 2026-05-05*
 
@@ -95,7 +100,7 @@ A single personal command center that always answers "what do I own, what's pain
 
 ### Out of Scope
 
-- Wishlist / Hobby Goals / Display Features (Battle Ready filter, Showcase Mode) — deferred from v2.2; planned for future milestone
+- Wishlist (user-curated buy lists with price tracking) — feature distinct from Hobby Goals; deferred
 - Image upload, photo timelines, image gallery — deferred in v2.0; now in scope for v2.1 Hobby Journal
 - Backup / export / import — deferred
 - Settings page — deferred
@@ -109,7 +114,7 @@ A single personal command center that always answers "what do I own, what's pain
 
 ## Context
 
-- **Current state:** v2.3 shipped. 189 TypeScript source files, ~19,139 LOC. 114 v2.3-specific automated tests (full suite larger). Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 9 main pages (Dashboard, Collection, Projects, Recipes, Paints, Army Lists, Battle Log, Spending, Factions). Unified design system with semantic CSS tokens, global Quick Add, photo journal, spending analytics, and live army readiness panels.
+- **Current state:** v2.2 shipped. ~220 TypeScript source files, ~21,752 LOC. 644 automated tests (16 phase-24-specific). Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 9 main pages (Dashboard, Collection, Projects, Recipes, Paints, Army Lists, Battle Log, Spending, Factions). Unified design system with semantic CSS tokens, global Quick Add, photo journal, spending analytics, hobby goals, unit point calculator with wargear loadouts, and live army readiness panels.
 - **Personal tool** — single user (the owner), local-first, no accounts or sync
 - **Domain:** Warhammer 40K 10th edition, hobby management (collecting → painting → playing)
 - **User journey priority:** painter/collector → ready-to-play, *not* competitive optimization
@@ -146,6 +151,10 @@ A single personal command center that always answers "what do I own, what's pain
 | Full-replacement UPDATE for army_list_units | NULL must be clearable (points_override back to inherited) | ✓ Good — confirmed correct via smoke test Pitfall 2 check |
 | Zustand for paint inventory filters (same as collection) | Consistent ephemeral UX; filters reset on navigation | ✓ Good — identical pattern to Phase 3 collection filters |
 | PlaybookTab SheetHeader/Footer outside Tabs | Edit/Delete must work from any tab without closing sheet | ✓ Good — Pitfall 5 avoidance; confirmed in Phase 9 smoke test |
+| weapon_name as TEXT copy in unit_loadout_wargear | Cross-database FK to rules.db not supported in SQLite | ✓ Good — avoids cross-DB join complexity |
+| COALESCE chain in army list SQL (alu.points_override → u.points → 0) | DB-side computation; tier confirms write to u.points, army lists pick up automatically | ✓ Excellent — delta preview just reads effective_points |
+| Cache invalidation symmetry rule | If useCreate invalidates a key, useDelete must too | ✓ Good — enforced in Phase 35 gap closure; prevents stale UI |
+| todayISO() from @/lib/dates (local timezone) | UTC-based .toISOString().slice(0,10) produces off-by-one after midnight | ✓ Good — single source of truth for date defaults |
 
 ---
-*Last updated: 2026-05-05 after v2.4 milestone started*
+*Last updated: 2026-05-05 after v2.2 milestone completed*
