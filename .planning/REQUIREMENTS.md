@@ -35,7 +35,7 @@
 ### Projects
 
 - [x] **PROJ-01**: Painting project kanban cards are enriched to show last-updated date, linked recipe name (if linked), and journal photo count for the project unit
-- [ ] **PROJ-02**: Each kanban card shows a next-action hint derived from the unit's current painting stage (e.g. "Ready to prime", "Start base coating")
+- [x] **PROJ-02**: Each kanban card shows a next-action hint derived from the unit's current painting stage (e.g. "Ready to prime", "Start base coating")
 - [x] **PROJ-03**: User can open a Log Session sheet directly from a shortcut on a kanban card without navigating to the unit detail
 
 ### Workshop
@@ -130,7 +130,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | COLL-01 | Phase 28 | Complete |
 | COLL-02 | Phase 28 | Complete |
 | PROJ-01 | Phase 28 | Complete |
-| PROJ-02 | Phase 28 | Pending |
+| PROJ-02 | Phase 28 | Complete |
 | PROJ-03 | Phase 28 | Complete |
 | WKSP-01 | Phase 29 | Complete |
 | WKSP-02 | Phase 29 | Complete |
