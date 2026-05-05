@@ -55,3 +55,39 @@ export async function deleteUnitPhoto(id: number): Promise<void> {
   const db = await getDb();
   await db.execute("DELETE FROM image_assets WHERE id = $1", [id]);
 }
+
+/**
+ * COLL-01 — batch-fetches the most recent photo per unit in a single query.
+ * Uses MAX(id), NOT MAX(taken_at) — taken_at is nullable (Pitfall 1).
+ * Returns UnitPhoto[] — caller builds Map<number, UnitPhoto> from the array.
+ */
+export async function getLatestPhotoByUnit(): Promise<UnitPhoto[]> {
+  const db = await getDb();
+  return db.select<UnitPhoto[]>(
+    `SELECT ia.* FROM image_assets ia
+     INNER JOIN (
+       SELECT entity_id, MAX(id) as max_id
+       FROM image_assets WHERE entity_type = 'unit'
+       GROUP BY entity_id
+     ) latest ON ia.id = latest.max_id`
+  );
+}
+
+/**
+ * PROJ-01 — batch photo counts for a set of unit IDs.
+ * Uses dynamic positional params for IN clause (Pitfall 3).
+ */
+export async function getPhotoCountsByUnitIds(
+  unitIds: number[]
+): Promise<{ entity_id: number; photo_count: number }[]> {
+  if (unitIds.length === 0) return [];
+  const db = await getDb();
+  const placeholders = unitIds.map((_, i) => `$${i + 1}`).join(", ");
+  return db.select(
+    `SELECT entity_id, COUNT(*) as photo_count
+     FROM image_assets
+     WHERE entity_type = 'unit' AND entity_id IN (${placeholders})
+     GROUP BY entity_id`,
+    unitIds
+  );
+}

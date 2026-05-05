@@ -72,3 +72,21 @@ export async function deleteRecipe(id: number): Promise<void> {
   // recipe_paints.recipe_id uses CASCADE — linked paints removed automatically
   await db.execute("DELETE FROM painting_recipes WHERE id = $1", [id]);
 }
+
+/**
+ * PROJ-01 — batch recipe name lookup for a set of unit IDs.
+ * Only returns recipes where unit_id matches — faction-wide recipes
+ * (unit_id IS NULL) are excluded because they are not unit-specific.
+ * Uses dynamic positional params for IN clause (Pitfall 3).
+ */
+export async function getRecipeNamesByUnitIds(
+  unitIds: number[]
+): Promise<{ unit_id: number; name: string }[]> {
+  if (unitIds.length === 0) return [];
+  const db = await getDb();
+  const placeholders = unitIds.map((_, i) => `$${i + 1}`).join(", ");
+  return db.select(
+    `SELECT unit_id, name FROM painting_recipes WHERE unit_id IN (${placeholders})`,
+    unitIds
+  );
+}
