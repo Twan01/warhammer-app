@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Full Circle
 status: Defining requirements
-stopped_at: Completed 21-wishlist-02-PLAN.md
-last_updated: "2026-05-05T17:04:10.500Z"
+stopped_at: Completed 22-hobby-goals-02-PLAN.md
+last_updated: "2026-05-05T17:11:23.968Z"
 last_activity: 2026-05-05 — Milestone v2.4 started
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 16
-  completed_plans: 14
+  completed_plans: 15
 ---
 
 # Project State
@@ -67,6 +67,13 @@ Last activity: 2026-05-05 — Milestone v2.4 started
 - deriveGoalStatus checks completed BEFORE expired (Pitfall 4) — ensures finished goals never show as "missed"
 - getGoalProgress computes period boundaries at query time via computeGoalPeriod (not stored in DB)
 
+### Decisions from 22-02
+
+- useGoalProgress enabled when goals !== undefined (empty array triggers fetch) — not !!goals or goals?.length
+- GoalSheet uses buildDefaultValues function with no zod .default() — period derived at submit time via currentPeriod(data.timeframe)
+- Goals sidebar entry placed in COMMAND_NAV with Target icon after Painting Projects
+- GoalsPage test uses getAllByText for Completed/Missed — status badge and section header both render these strings
+
 ### Tech Debt
 
 - PROJ-02: REQUIREMENTS.md text still says "empty columns hidden" — KanbanBoard ships all 11 columns (approved UX)
@@ -81,6 +88,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-05T16:56:42.461Z
-Stopped at: Completed 21-wishlist-02-PLAN.md
+Last session: 2026-05-05T17:11:23.965Z
+Stopped at: Completed 22-hobby-goals-02-PLAN.md
 Resume: Run requirements definition → roadmap creation
