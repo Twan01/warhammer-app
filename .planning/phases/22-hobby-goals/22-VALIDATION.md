@@ -1,10 +1,11 @@
 ---
 phase: 22
 slug: hobby-goals
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: compliant
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-05
+validated: 2026-05-05
 ---
 
 # Phase 22 — Validation Strategy
@@ -38,12 +39,12 @@ created: 2026-05-05
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 22-00-01 | 00 | 0 | ANLY-01 | unit | `pnpm test -- tests/goals/goalQueries.test.ts` | ❌ W0 | ⬜ pending |
-| 22-00-02 | 00 | 0 | ANLY-01 | unit | `pnpm test -- tests/goals/goalSchema.test.ts` | ❌ W0 | ⬜ pending |
-| 22-00-03 | 00 | 0 | ANLY-02 | unit | `pnpm test -- tests/goals/computeGoalPeriod.test.ts` | ❌ W0 | ⬜ pending |
-| 22-00-04 | 00 | 0 | ANLY-02 | unit | `pnpm test -- tests/goals/useGoals.test.tsx` | ❌ W0 | ⬜ pending |
-| 22-00-05 | 00 | 0 | ANLY-01 | unit | `pnpm test -- tests/goals/GoalSheet.test.tsx` | ❌ W0 | ⬜ pending |
-| 22-00-06 | 00 | 0 | ANLY-03 | unit | `pnpm test -- tests/goals/GoalsPage.test.tsx` | ❌ W0 | ⬜ pending |
+| 22-00-01 | 00 | 0 | ANLY-01 | unit | `pnpm test -- tests/goals/goalQueries.test.ts` | ✅ | ✅ green (6 tests) |
+| 22-00-02 | 00 | 0 | ANLY-01 | unit | `pnpm test -- tests/goals/goalSchema.test.ts` | ✅ | ✅ green (4 tests) |
+| 22-00-03 | 00 | 0 | ANLY-02 | unit | `pnpm test -- tests/goals/computeGoalPeriod.test.ts` | ✅ | ✅ green (10 tests) |
+| 22-00-04 | 00 | 0 | ANLY-02 | unit | `pnpm test -- tests/goals/useGoals.test.tsx` | ✅ | ✅ green (6 tests) |
+| 22-00-05 | 00 | 0 | ANLY-01 | unit | `pnpm test -- tests/goals/GoalSheet.test.tsx` | ✅ | ✅ green (3 tests) |
+| 22-00-06 | 00 | 0 | ANLY-03 | unit | `pnpm test -- tests/goals/GoalsPage.test.tsx` | ✅ | ✅ green (4 tests) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -51,12 +52,12 @@ created: 2026-05-05
 
 ## Wave 0 Requirements
 
-- [ ] `tests/goals/goalQueries.test.ts` — stubs for ANLY-01 (createGoal SQL), ANLY-02 (getGoalProgress SQL)
-- [ ] `tests/goals/goalSchema.test.ts` — stubs for ANLY-01 (Zod validation)
-- [ ] `tests/goals/computeGoalPeriod.test.ts` — stubs for ANLY-02 (period boundary math) + ANLY-03 (deriveGoalStatus ordering)
-- [ ] `tests/goals/useGoals.test.tsx` — stubs for ANLY-02 (invalidation of goal-progress), useCreateGoal/useDeleteGoal cache behavior
-- [ ] `tests/goals/GoalSheet.test.tsx` — stubs for ANLY-01 (form submit, edit mode reset)
-- [ ] `tests/goals/GoalsPage.test.tsx` — stubs for ANLY-03 (Active/Completed/Missed section grouping)
+- [x] `tests/goals/goalQueries.test.ts` — 6 tests for ANLY-01 (createGoal SQL), ANLY-02 (getGoalProgress SQL)
+- [x] `tests/goals/goalSchema.test.ts` — 4 tests for ANLY-01 (Zod validation)
+- [x] `tests/goals/computeGoalPeriod.test.ts` — 10 tests for ANLY-02 (period boundary math) + ANLY-03 (deriveGoalStatus ordering)
+- [x] `tests/goals/useGoals.test.tsx` — 6 tests for ANLY-02 (invalidation of goal-progress), useCreateGoal/useDeleteGoal cache behavior
+- [x] `tests/goals/GoalSheet.test.tsx` — 3 tests for ANLY-01 (form submit, edit mode reset)
+- [x] `tests/goals/GoalsPage.test.tsx` — 4 tests for ANLY-03 (Active/Completed/Missed section grouping)
 
 ---
 
@@ -71,11 +72,23 @@ created: 2026-05-05
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 10s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 10s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-05-05
+
+---
+
+## Validation Audit 2026-05-05
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+33 active tests across 6 files. All 3 requirements (ANLY-01, ANLY-02, ANLY-03) fully covered with automated verification. Full suite: 610 passed, 2 pre-existing skips.
