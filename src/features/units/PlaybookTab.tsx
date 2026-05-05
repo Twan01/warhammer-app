@@ -12,9 +12,11 @@ import { useFactions } from "@/hooks/useFactions";
 import { useUnits } from "@/hooks/useUnits";
 import { useQueryClient } from "@tanstack/react-query";
 import { upsertDatasheetLink } from "@/db/queries/datasheets";
-import type { DatasheetConflict, DatasheetImportPayload, FullDatasheet, RwDatasheetAbility } from "@/types/datasheet";
+import type { DatasheetConflict, DatasheetImportPayload, FullDatasheet, RwDatasheetAbility, RwDatasheetWargear } from "@/types/datasheet";
 import type { StrategyNote, UpsertStrategyNoteInput } from "@/types/strategyNote";
 import { DatasheetPicker } from "@/features/units/DatasheetPicker";
+import { TierManager } from "@/features/units/TierManager";
+import { LoadoutSection } from "@/features/units/LoadoutSection";
 
 interface PlaybookTabProps {
   unitId: number;
@@ -401,7 +403,10 @@ export function PlaybookTab({
   function handleSyncClick() {
     rulesSync.mutate(undefined, {
       onSuccess: () => toast.success("Datasheets synced"),
-      onError: () => toast.error("Sync failed — check your connection and try again"),
+      onError: (err) => {
+        console.error("[useRulesSync] sync failed:", err);
+        toast.error("Sync failed — check your connection and try again");
+      },
     });
   }
 
@@ -414,6 +419,9 @@ export function PlaybookTab({
   const hasAnyDatasheetAbility = coreAbilities.length > 0 || factionAbilities.length > 0 || unitAbilities.length > 0;
   const hasMultipleProfiles = (datasheet?.models?.length ?? 0) > 1;
   const sources = datasheet?.source ? [datasheet.source] : [];
+  const rangedWeapons = (datasheet?.wargear ?? []).filter((w) => w.type === "Ranged");
+  const meleeWeapons = (datasheet?.wargear ?? []).filter((w) => w.type === "Melee" || (w.type !== "Ranged" && w.range === "Melee"));
+  const hasWeapons = (datasheet?.wargear ?? []).length > 0;
 
   function formatSyncDate(iso: string | null): string {
     if (!iso) return "—";
@@ -533,6 +541,36 @@ export function PlaybookTab({
 
       <Separator />
 
+      {/* Weapons collapsible */}
+      {hasWeapons && (
+        <Collapsible defaultOpen={true}>
+          <CollapsibleTrigger asChild>
+            <button type="button" className="flex items-center justify-between w-full py-2 text-left">
+              <span className="text-base font-semibold">Weapons</span>
+              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform data-[state=open]:rotate-180" aria-hidden="true" />
+            </button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="flex flex-col gap-4">
+              {rangedWeapons.length > 0 && (
+                <div className="flex flex-col gap-1">
+                  <span className={SECTION_LABEL_CLASS}>Ranged</span>
+                  <WargearTable weapons={rangedWeapons} statLabel="BS" />
+                </div>
+              )}
+              {meleeWeapons.length > 0 && (
+                <div className="flex flex-col gap-1">
+                  <span className={SECTION_LABEL_CLASS}>Melee</span>
+                  <WargearTable weapons={meleeWeapons} statLabel="WS" />
+                </div>
+              )}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+
+      {hasWeapons && <Separator />}
+
       {/* DS-09 Datasheet Abilities collapsible */}
       {hasAnyDatasheetAbility && (
         <Collapsible defaultOpen={true}>
@@ -594,6 +632,16 @@ export function PlaybookTab({
       )}
 
       {(hasAnyDatasheetAbility || sources.length > 0) && <Separator />}
+
+      {/* Point Tiers — Phase 24 */}
+      <TierManager unitId={unitId} />
+
+      <Separator />
+
+      {/* Loadouts — Phase 24 */}
+      <LoadoutSection unitId={unitId} />
+
+      <Separator />
 
       {/* DS-11 Personal Ability Notes (renamed from "Abilities") */}
       <div className="flex flex-col gap-1">
@@ -694,6 +742,45 @@ export function PlaybookTab({
         onSelect={(datasheetId) => { void handlePickerSelect(datasheetId); }}
         onClose={() => setPickerOpen(false)}
       />
+    </div>
+  );
+}
+
+// WargearTable sub-component — renders a weapon stat table for one type (Ranged/Melee).
+function WargearTable({ weapons, statLabel }: { weapons: RwDatasheetWargear[]; statLabel: "BS" | "WS" }) {
+  return (
+    <div className="flex flex-col">
+      {/* Header row */}
+      <div className="grid grid-cols-[1fr_36px_32px_36px_28px_32px_28px] gap-x-1 px-2 py-1 border-b border-border">
+        {["Name", "Rng", "A", statLabel, "S", "AP", "D"].map((h) => (
+          <span key={h} className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide text-center first:text-left">
+            {h}
+          </span>
+        ))}
+      </div>
+      {weapons.map((w, i) => {
+        const range = w.range && /^\d+$/.test(w.range) ? `${w.range}"` : (w.range ?? "—");
+        const attacks = w.dice ? `${w.dice}+${w.A ?? 0}` : (w.A ?? "—");
+        const bsws = w.BS_WS ? `${w.BS_WS}+` : "—";
+        return (
+          <div key={`${w.datasheet_id}-${w.line}-${w.line_in_wargear}-${i}`} className="border-b border-border last:border-0">
+            <div className="grid grid-cols-[1fr_36px_32px_36px_28px_32px_28px] gap-x-1 px-2 py-1.5 items-center">
+              <span className="text-sm font-medium truncate">{w.name}</span>
+              <span className="text-xs text-center tabular-nums">{range}</span>
+              <span className="text-xs text-center tabular-nums">{attacks}</span>
+              <span className="text-xs text-center tabular-nums">{bsws}</span>
+              <span className="text-xs text-center tabular-nums">{w.S ?? "—"}</span>
+              <span className="text-xs text-center tabular-nums">{w.AP ?? "0"}</span>
+              <span className="text-xs text-center tabular-nums">{w.D ?? "—"}</span>
+            </div>
+            {w.description && (
+              <p className="px-2 pb-1.5 text-xs text-muted-foreground leading-relaxed">
+                {w.description}
+              </p>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

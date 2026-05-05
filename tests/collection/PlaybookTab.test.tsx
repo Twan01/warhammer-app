@@ -34,8 +34,24 @@ vi.mock("@/hooks/useFactions", () => ({
 }));
 vi.mock("@/hooks/useUnits", () => ({
   useUnits: vi.fn(() => ({ data: [{ id: 42, name: "Test Unit", faction_id: 1, category: null, painting_percentage: 0, status_painting: "Unpainted", status_assembly: 0, status_basing: 0, status_varnished: 0, is_active_project: 0, model_count: null, owned_count: null, points: null, priority: null, target_completion_date: null, purchase_date: null, purchase_price_pence: null, storage_location: null, notes: null, created_at: "", updated_at: "" }] })),
+  useUnit: vi.fn(() => ({ data: null })),
   useUpdateUnit: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
   UNITS_KEY: ["units"],
+}));
+vi.mock("@/hooks/useUnitPointTiers", () => ({
+  useUnitPointTiers: vi.fn(() => ({ data: [] })),
+  useUpsertUnitPointTier: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+  useDeleteUnitPointTier: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+  UNIT_POINT_TIERS_KEY: (id: number) => ["unit-point-tiers", id] as const,
+}));
+vi.mock("@/hooks/useUnitLoadouts", () => ({
+  useUnitLoadouts: vi.fn(() => ({ data: [] })),
+  useCreateLoadout: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+  useDeleteLoadout: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+  useActivateLoadout: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+  useAddWargearToLoadout: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+  useRemoveWargearFromLoadout: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+  UNIT_LOADOUTS_KEY: (id: number) => ["unit-loadouts", id] as const,
 }));
 vi.mock("@/db/queries/datasheets", () => ({
   upsertDatasheetLink: vi.fn(async () => undefined),
