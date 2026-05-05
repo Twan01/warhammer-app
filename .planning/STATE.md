@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Full Circle
 status: Defining requirements
-stopped_at: Completed 22-hobby-goals-02-PLAN.md
-last_updated: "2026-05-05T17:11:23.968Z"
+stopped_at: Completed 22-hobby-goals-03-PLAN.md
+last_updated: "2026-05-05T17:18:58.534Z"
 last_activity: 2026-05-05 — Milestone v2.4 started
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 16
-  completed_plans: 15
+  completed_plans: 16
 ---
 
 # Project State
@@ -74,6 +74,11 @@ Last activity: 2026-05-05 — Milestone v2.4 started
 - Goals sidebar entry placed in COMMAND_NAV with Target icon after Painting Projects
 - GoalsPage test uses getAllByText for Completed/Missed — status badge and section header both render these strings
 
+### Decisions from 22-03
+
+- Migration count is 10 (v1-v10) not 9 — plan was written before hobby_goals migration was added; correct count is 10
+- Auto-approved human-verify checkpoint under auto_chain_active mode — automated pre-flight gate (610 tests + clean build) sufficient confidence for goals feature
+
 ### Tech Debt
 
 - PROJ-02: REQUIREMENTS.md text still says "empty columns hidden" — KanbanBoard ships all 11 columns (approved UX)
@@ -88,6 +93,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-05T17:11:23.965Z
-Stopped at: Completed 22-hobby-goals-02-PLAN.md
+Last session: 2026-05-05T17:18:58.531Z
+Stopped at: Completed 22-hobby-goals-03-PLAN.md
 Resume: Run requirements definition → roadmap creation
