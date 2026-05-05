@@ -3,10 +3,25 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Full Circle
 status: executing
+stopped_at: Completed 29-03-PLAN.md (PLAY-01 readiness panel + PLAY-02 battle log readiness points)
+last_updated: "2026-05-05T15:00:40.719Z"
+progress:
+  total_phases: 12
+  completed_phases: 7
+  total_plans: 30
+  completed_plans: 29
+  percent: 97
+---
+
+---
+gsd_state_version: 1.0
+milestone: v2.2
+milestone_name: Full Circle
+status: executing
 stopped_at: Completed 28-04-PLAN.md (Smoke-test verification — all 5 Phase 28 requirements auto-approved)
 last_updated: "2026-05-05T14:48:31.769Z"
 progress:
-  total_phases: 12
+  [██████████] 97%
   completed_phases: 7
   total_plans: 30
   completed_plans: 28
@@ -43,11 +58,11 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.3 milestone start)
 
 ## Current Position
 
-Phase: 29 — Workshop + Play (plan 02 complete)
-Plan: 29-02 complete — WKSP-01 verified (PaintRow swatch tests x3), WKSP-02 implemented (RecipeTable Palette column with overlapping swatch circles, +N overflow, buildRecipeColumns 6-param signature, useRecipeSwatchData wired in RecipesPage)
-Status: In progress — 2/? plans done for Phase 29
+Phase: 29 — Workshop + Play (plan 03 complete — ALL PLANS DONE)
+Plan: 29-03 complete — PLAY-01 (ArmyListSummaryBar readiness panel: progress bar + not-ready StatusBadge list + gold "All units battle-ready" message) + PLAY-02 (BattleLogRow live readiness points via useArmyListReadiness batch hook)
+Status: Phase 29 complete — 3/3 plans done. All WKSP + PLAY requirements implemented.
 
-Progress: [█████████░] 93% (28/30 plans complete)
+Progress: [██████████] 97% (29/30 plans complete)
 
 ## v2.3 Phase Map
 
@@ -73,6 +88,10 @@ Progress: [█████████░] 93% (28/30 plans complete)
 - `status_painting = 'Completed'` (with 'd') in SQL — canonical PAINTING_STATUS_ORDER value; 'Complete' is wrong (Pitfall 1 from RESEARCH)
 - `vi.mock` factory uses inline `vi.fn()` not top-level const reference — Vitest hoists vi.mock before variable initialization causing TDZ errors
 - Query SQL contract tests call `db.select` directly with expected SQL and assert on `dbSelectMock.mock.calls[0][0]` — separates SQL shape tests from hook behavior tests
+- `armyListReadiness.test.ts` renamed to `.tsx` when BattleLogRow UI stubs activated (Plan 29-03) — esbuild requires .tsx for JSX syntax; consistent with Phase 28 wave-activation pattern
+- `Collapsible`/`CollapsibleContent` mocked in BattleLogRow tests to avoid Radix portal issues in jsdom — BattleLogRow wraps content in Collapsible; tests need only name/readiness rendering
+- `status_assembly: 1` (not string) in test makeUnit helper — ArmyListUnitRow.status_assembly is number (SQLite 0|1 integer); TypeScript strict mode caught string literal
+- BattleLog has no `updated_at` column — `makeLog` test helper must not include it; `notes: null` must be explicit since it is not optional in BattleLog interface
 
 ### Phase 28 Decisions
 
@@ -254,6 +273,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-05T16:58:00Z
-Stopped at: Completed 29-02-PLAN.md (WKSP-01 verified + WKSP-02 RecipeTable Palette swatch strip)
-Resume: Phase 29 Plan 03 is next (PLAY-01 + PLAY-02: ArmyList readiness panel UI). Run `/gsd:execute-phase 29-03` to continue.
+Last session: 2026-05-05T15:00:40.715Z
+Stopped at: Completed 29-03-PLAN.md (PLAY-01 readiness panel + PLAY-02 battle log readiness points)
+Resume: Phase 29 is complete (3/3 plans done). All WKSP + PLAY requirements green. v2.3 Workshop + Play milestone complete.

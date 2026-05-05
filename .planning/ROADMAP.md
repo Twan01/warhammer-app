@@ -285,4 +285,4 @@ Plans:
 | 26. Dashboard Redesign | 4/5 | Complete    | 2026-05-05 | — |
 | 27. Navigation & Quick Add | 4/4 | Complete    | 2026-05-05 | — |
 | 28. Collection + Projects | 5/5 | Complete    | 2026-05-05 | — |
-| 29. Workshop + Play | 3/5 | In Progress|  | — |
+| 29. Workshop + Play | 4/5 | In Progress|  | — |
