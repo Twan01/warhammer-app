@@ -177,7 +177,7 @@ Plans:
 **Goal:** [To be planned]
 **Requirements**: TBD
 **Depends on:** Phase 23
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] TBD (run /gsd:plan-phase 24 to break down)
@@ -209,8 +209,8 @@ Plans:
 | 18. Battle Log | v2.2 | 4/4 | Complete | 2026-05-04 |
 | 19. Analytics Core | v2.2 | 4/4 | Complete | 2026-05-04 |
 | 20. v2.1 Polish & Gap Closure | v2.1 | 3/3 | Complete | 2026-05-04 |
-| 21. Wishlist | 2/3 | In Progress|  | — |
-| 22. Hobby Goals | 1/4 | In Progress|  | — |
+| 21. Wishlist | 3/3 | Complete   | 2026-05-05 | — |
+| 22. Hobby Goals | 2/4 | In Progress|  | — |
 | 23. Display Features | v2.2 | 0/TBD | Not started | — |
 | 25. Design Foundation | v2.3 | 2/2 | Complete | 2026-05-04 |
 | 26. Dashboard Redesign | v2.3 | 5/5 | Complete | 2026-05-05 |

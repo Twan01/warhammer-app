@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Full Circle
 status: Defining requirements
-stopped_at: Completed 21-wishlist-01-PLAN.md
-last_updated: "2026-05-05T16:43:48.916Z"
+stopped_at: Completed 21-wishlist-02-PLAN.md
+last_updated: "2026-05-05T16:56:42.464Z"
 last_activity: 2026-05-05 — Milestone v2.4 started
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 16
-  completed_plans: 12
+  completed_plans: 14
 ---
 
 # Project State
@@ -54,6 +54,13 @@ Last activity: 2026-05-05 — Milestone v2.4 started
 - Full-replacement UPDATE (no COALESCE) for wishlist nullable fields — allows clearing cost/notes to null
 - Wishlist mutations invalidate dashboard-stats for forward compatibility with Dashboard wishlist widget
 
+### Decisions from 22-01
+
+- Migration v10 for hobby_goals (v9 was already claimed by 009_wishlist.sql from Phase 21)
+- goalSchema uses no .default() — form defaultValues handle defaults (Zod pitfall rule)
+- deriveGoalStatus checks completed BEFORE expired (Pitfall 4) — ensures finished goals never show as "missed"
+- getGoalProgress computes period boundaries at query time via computeGoalPeriod (not stored in DB)
+
 ### Tech Debt
 
 - PROJ-02: REQUIREMENTS.md text still says "empty columns hidden" — KanbanBoard ships all 11 columns (approved UX)
@@ -68,6 +75,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-05T16:43:48.913Z
-Stopped at: Completed 21-wishlist-01-PLAN.md
+Last session: 2026-05-05T16:56:42.461Z
+Stopped at: Completed 21-wishlist-02-PLAN.md
 Resume: Run requirements definition → roadmap creation
