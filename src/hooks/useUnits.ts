@@ -52,6 +52,8 @@ export function useUpdateUnit() {
       qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
       // PLAY-02: painting status changes feed into army list battle-ready points
       qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
+      // Phase 35: tier confirm writes to units.points — army list COALESCE chain needs refresh
+      qc.invalidateQueries({ queryKey: ["army-lists"] });
     },
   });
 }

@@ -37,6 +37,7 @@ import {
   type BattleLogFormValues,
 } from "./battleLogSchema";
 import type { BattleLog } from "@/types/battleLog";
+import { todayISO } from "@/lib/dates";
 
 const NO_LIST = "__none__";
 const NO_UNIT = "__none__";
@@ -44,12 +45,8 @@ const NO_UNIT = "__none__";
 const TEXTAREA_CLASS =
   "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50";
 
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10); // YYYY-MM-DD (Pitfall 6)
-}
-
 const DEFAULT_VALUES: BattleLogFormValues = {
-  battle_date: todayIso(),
+  battle_date: todayISO(),
   opponent_faction: "",
   mission: "",
   result: "Win",
@@ -84,7 +81,7 @@ function buildDefaultValues(log: BattleLog | null): BattleLogFormValues {
       notes: log.notes,
     };
   }
-  return { ...DEFAULT_VALUES, battle_date: todayIso() };
+  return { ...DEFAULT_VALUES, battle_date: todayISO() };
 }
 
 export function BattleLogSheet({

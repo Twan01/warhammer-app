@@ -76,6 +76,7 @@ export function useDeletePaintingSession(unitId: number) {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: PAINTING_SESSIONS_KEY(unitId) });
       qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
+      qc.invalidateQueries({ queryKey: ["goal-progress"] });
     },
   });
 }
