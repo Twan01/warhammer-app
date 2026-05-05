@@ -43,3 +43,30 @@ export async function getRecipeIdsByPaintId(paintId: number): Promise<number[]> 
   );
   return rows.map((r) => r.recipe_id);
 }
+
+/**
+ * WKSP-02 — batch swatch color query.
+ *
+ * Returns a flat array of {recipe_id, paint_id, hex_color} for ALL recipes in
+ * a single JOIN query. The UI groups these by recipe_id to render swatch strips.
+ *
+ * Critical: single query across all recipes — NOT N+1 per recipe (Pitfall 3).
+ * Ordered by recipe_id ASC, order_index ASC so the UI receives strips in a
+ * deterministic order without extra sorting.
+ */
+export interface RecipeSwatchEntry {
+  recipe_id: number;
+  paint_id: number;
+  hex_color: string | null;
+}
+
+export async function getRecipeSwatchColors(): Promise<RecipeSwatchEntry[]> {
+  const db = await getDb();
+  return db.select<RecipeSwatchEntry[]>(
+    `SELECT rp.recipe_id, rp.paint_id, p.hex_color
+     FROM recipe_paints rp
+     JOIN paints p ON p.id = rp.paint_id
+     ORDER BY rp.recipe_id ASC, rp.order_index ASC`,
+    [],
+  );
+}
