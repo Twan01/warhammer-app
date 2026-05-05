@@ -70,8 +70,8 @@ Full details: `.planning/milestones/v2.1-ROADMAP.md`
 
 **Milestone Goal:** Transform HobbyForge from a functional tracking dashboard into a premium, hobby-native command center — with a unified design system, an action-oriented dashboard, global Quick Add, and visual upgrades across every page.
 
-- [x] **Phase 25: Design Foundation** — Design tokens (Forge Black, Gunmetal, Panel Elevated, Battle Gold) as CSS variables, shared PageHeader component, enriched MetricCard, StatusBadge component (completed 2026-05-04)
-- [x] **Phase 26: Dashboard Redesign** — "Hobby Command Center" header with Quick Add + Log Session, CurrentFocusCard, HobbyPipeline strip, upgraded FactionArmyCards, Recent Activity feed (completed 2026-05-05)
+- [x] **Phase 25: Design Foundation** — Design tokens (Forge Black, Gunmetal, Panel Elevated, Battle Gold) as CSS variables, shared PageHeader component, enriched MetricCard, StatusBadge component (completed 2026-05-04)
+- [x] **Phase 26: Dashboard Redesign** — "Hobby Command Center" header with Quick Add + Log Session, CurrentFocusCard, HobbyPipeline strip, upgraded FactionArmyCards, Recent Activity feed (completed 2026-05-05)
 - [x] **Phase 27: Navigation & Quick Add** — Hobby-native sidebar group names (Command/Workshop/Play/Management), Quick Add dropdown with 8 actions, Sheet-overlay flows from any page (completed 2026-05-05)
 - [ ] **Phase 28: Collection + Projects** — Gallery card photo thumbnails, unified StatusBadge in table and gallery, enriched kanban cards (last updated, recipe link, photo count, next-action hint, Log Session shortcut)
 - [ ] **Phase 29: Workshop + Play** — Paint color swatches, recipe paint swatch strip, Army List readiness panel, Battle Log army context display
@@ -243,7 +243,14 @@ Plans:
   2. Recipe cards show a compact horizontal swatch strip of all linked paints — each paint in the recipe is represented by a swatch, making the palette visible at a glance
   3. Army List detail sheet shows a readiness panel with battle-ready points, total points, readiness percentage, and a list of which units are not yet battle-ready — the panel updates immediately when unit painting status changes
   4. Battle Log entries display the linked army list's name and its current battle-ready point count — the point count shown is the live value computed from painting status, not a snapshot
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 29-00-PLAN.md — Wave 0: 4 test stub files (paintRowSwatch + recipeSwatchData + armyListReadinessPanel + armyListReadiness) — 28 it.skip stubs covering WKSP-01, WKSP-02, PLAY-01, PLAY-02
+- [ ] 29-01-PLAN.md — Wave 1: Data layer — getRecipeSwatchColors batch query + useRecipeSwatchData hook + getArmyListReadiness batch query + useArmyListReadiness hook + 4 mutation invalidation patches + flip 11 stubs
+- [ ] 29-02-PLAN.md — Wave 2: Workshop UI — WKSP-01 swatch verification + RecipeTable "Palette" column with overlapping swatch strip + flip 11 WKSP stubs
+- [ ] 29-03-PLAN.md — Wave 2: Play UI — ArmyListSummaryBar readiness panel (progress bar + not-ready list + gold 100% state) + BattleLogRow live readiness points + BattleLogPage useArmyListReadiness wiring + flip 17 PLAY stubs
+- [ ] 29-04-PLAN.md — Wave 3: Manual smoke-test checkpoint (21 steps verifying WKSP-01, WKSP-02, PLAY-01, PLAY-02 in live Tauri app)
 
 ## Progress
 
@@ -277,5 +284,5 @@ Plans:
 | 25. Design Foundation | 2/2 | Complete    | 2026-05-04 | — |
 | 26. Dashboard Redesign | 4/5 | Complete    | 2026-05-05 | — |
 | 27. Navigation & Quick Add | 4/4 | Complete    | 2026-05-05 | — |
-| 28. Collection + Projects | 1/5 | In Progress|  | — |
-| 29. Workshop + Play | v2.3 | 0/TBD | Not started | — |
+| 28. Collection + Projects | v2.3 | 0/5 | Not started | — |
+| 29. Workshop + Play | v2.3 | 0/5 | Not started | — |
