@@ -17,6 +17,7 @@ import type { PaintingStatus, Unit } from "@/types/unit";
 import { PAINTING_STATUS_ORDER } from "@/types/unit";
 import { useUnits, useUpdateUnit, UNITS_KEY } from "@/hooks/useUnits";
 import { useFactions } from "@/hooks/useFactions";
+import { useKanbanEnrichment } from "@/hooks/useKanbanEnrichment";
 import {
   applyActiveFilter,
   groupByStatus,
@@ -29,9 +30,10 @@ import { KanbanEmptyState } from "./KanbanEmptyState";
 export interface KanbanBoardProps {
   onEditUnit: (unit: Unit) => void;
   onAddProject: () => void;
+  onLogSession: (unitId: number) => void;
 }
 
-export function KanbanBoard({ onEditUnit, onAddProject }: KanbanBoardProps) {
+export function KanbanBoard({ onEditUnit, onAddProject, onLogSession }: KanbanBoardProps) {
   const { data: units = [], isLoading } = useUnits();
   const { data: factions = [] } = useFactions();
   const qc = useQueryClient();
@@ -43,6 +45,12 @@ export function KanbanBoard({ onEditUnit, onAddProject }: KanbanBoardProps) {
     for (const f of factions) m.set(f.id, f);
     return m;
   }, [factions]);
+
+  const activeUnitIds = useMemo(
+    () => applyActiveFilter(units).map((u) => u.id),
+    [units],
+  );
+  const { data: enrichment } = useKanbanEnrichment(activeUnitIds);
 
   const { grouped } = useMemo(() => {
     const active = applyActiveFilter(units);
@@ -149,6 +157,8 @@ export function KanbanBoard({ onEditUnit, onAddProject }: KanbanBoardProps) {
             factionMap={factionMap}
             onRemoveFromBoard={handleRemoveFromBoard}
             onEditUnit={onEditUnit}
+            onLogSession={onLogSession}
+            enrichment={enrichment}
           />
         ))}
       </div>
@@ -159,6 +169,7 @@ export function KanbanBoard({ onEditUnit, onAddProject }: KanbanBoardProps) {
             faction={factionMap.get(activeUnit.faction_id)}
             onRemoveFromBoard={() => {}}
             onEditUnit={() => {}}
+            onLogSession={() => {}}
           />
         ) : null}
       </DragOverlay>

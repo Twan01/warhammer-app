@@ -62,7 +62,7 @@ function renderBoard(units: Unit[], factions: Faction[] = [makeFaction()]) {
   qc.setQueryData(FACTIONS_KEY, factions);
   return render(
     <QueryClientProvider client={qc}>
-      <KanbanBoard onEditUnit={vi.fn()} onAddProject={vi.fn()} />
+      <KanbanBoard onEditUnit={vi.fn()} onAddProject={vi.fn()} onLogSession={vi.fn()} />
     </QueryClientProvider>,
   );
 }

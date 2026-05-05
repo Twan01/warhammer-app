@@ -4,11 +4,13 @@ import { KanbanBoard } from "./KanbanBoard";
 import { AddProjectPicker } from "./AddProjectPicker";
 import { UnitSheet } from "@/features/units/UnitSheet";
 import { PageHeader } from "@/components/common/PageHeader";
+import { LogSessionSheet } from "@/features/dashboard/LogSessionSheet";
 
 export function PaintingProjectsPage() {
   const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
   const [unitSheetOpen, setUnitSheetOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [logSessionUnitId, setLogSessionUnitId] = useState<number | null>(null);
 
   const openEdit = (unit: Unit) => {
     setEditingUnit(unit);
@@ -29,6 +31,7 @@ export function PaintingProjectsPage() {
       <KanbanBoard
         onEditUnit={openEdit}
         onAddProject={() => setPickerOpen(true)}
+        onLogSession={(unitId) => setLogSessionUnitId(unitId)}
       />
 
       <UnitSheet
@@ -36,6 +39,11 @@ export function PaintingProjectsPage() {
         open={unitSheetOpen}
         unit={editingUnit}
         onClose={closeSheet}
+      />
+      <LogSessionSheet
+        open={logSessionUnitId !== null}
+        onClose={() => setLogSessionUnitId(null)}
+        defaultUnitId={logSessionUnitId ?? undefined}
       />
     </div>
   );

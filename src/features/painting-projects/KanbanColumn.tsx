@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { PaintingStatus, Unit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
+import type { KanbanEnrichment } from "@/hooks/useKanbanEnrichment";
 import { KanbanCard } from "./KanbanCard";
 
 export interface KanbanColumnProps {
@@ -12,6 +13,8 @@ export interface KanbanColumnProps {
   factionMap: Map<number, Faction>;
   onRemoveFromBoard: (unit: Unit) => void;
   onEditUnit: (unit: Unit) => void;
+  onLogSession: (unitId: number) => void;
+  enrichment?: KanbanEnrichment;
 }
 
 export function KanbanColumn({
@@ -20,6 +23,8 @@ export function KanbanColumn({
   factionMap,
   onRemoveFromBoard,
   onEditUnit,
+  onLogSession,
+  enrichment,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: `column-${status}`,
@@ -50,6 +55,9 @@ export function KanbanColumn({
               faction={factionMap.get(u.faction_id)}
               onRemoveFromBoard={onRemoveFromBoard}
               onEditUnit={onEditUnit}
+              onLogSession={onLogSession}
+              recipeName={enrichment?.recipeNames.get(u.id)}
+              photoCount={enrichment?.photoCounts.get(u.id)}
             />
           ))}
         </SortableContext>
