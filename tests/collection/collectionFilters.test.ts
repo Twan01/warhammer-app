@@ -90,10 +90,9 @@ describe("collectionFilters store", () => {
   });
 
   it("clearAll resets battleReady to false", () => {
-    const s = useCollectionFilters.getState();
-    s.toggleBattleReady();
-    expect(s.battleReady).toBe(true);
-    s.clearAll();
+    useCollectionFilters.getState().toggleBattleReady();
+    expect(useCollectionFilters.getState().battleReady).toBe(true);
+    useCollectionFilters.getState().clearAll();
     expect(useCollectionFilters.getState().battleReady).toBe(false);
   });
 

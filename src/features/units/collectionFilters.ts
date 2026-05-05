@@ -7,11 +7,13 @@ interface CollectionFiltersState {
   statuses: PaintingStatus[];
   categories: string[];
   activeOnly: boolean;
+  battleReady: boolean;
   setSearch: (v: string) => void;
   toggleFaction: (id: number) => void;
   toggleStatus: (s: PaintingStatus) => void;
   toggleCategory: (c: string) => void;
   toggleActiveOnly: () => void;
+  toggleBattleReady: () => void;
   clearAll: () => void;
 }
 
@@ -21,6 +23,7 @@ export const useCollectionFilters = create<CollectionFiltersState>((set) => ({
   statuses: [],
   categories: [],
   activeOnly: false,
+  battleReady: false,
   setSearch: (v) => set({ search: v }),
   toggleFaction: (id) =>
     set((s) => ({
@@ -41,6 +44,7 @@ export const useCollectionFilters = create<CollectionFiltersState>((set) => ({
         : [...s.categories, cat],
     })),
   toggleActiveOnly: () => set((s) => ({ activeOnly: !s.activeOnly })),
+  toggleBattleReady: () => set((s) => ({ battleReady: !s.battleReady })),
   clearAll: () =>
-    set({ search: "", factions: [], statuses: [], categories: [], activeOnly: false }),
+    set({ search: "", factions: [], statuses: [], categories: [], activeOnly: false, battleReady: false }),
 }));
