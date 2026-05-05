@@ -29,14 +29,14 @@
 
 ### Collection
 
-- [ ] **COLL-01**: Collection gallery cards display a photo thumbnail sourced from the unit's most recent journal photo when one exists, or a faction-colored placeholder
-- [ ] **COLL-02**: Collection gallery cards and table rows use the unified `StatusBadge` for painting status display
+- [x] **COLL-01**: Collection gallery cards display a photo thumbnail sourced from the unit's most recent journal photo when one exists, or a faction-colored placeholder
+- [x] **COLL-02**: Collection gallery cards and table rows use the unified `StatusBadge` for painting status display
 
 ### Projects
 
-- [ ] **PROJ-01**: Painting project kanban cards are enriched to show last-updated date, linked recipe name (if linked), and journal photo count for the project unit
+- [x] **PROJ-01**: Painting project kanban cards are enriched to show last-updated date, linked recipe name (if linked), and journal photo count for the project unit
 - [ ] **PROJ-02**: Each kanban card shows a next-action hint derived from the unit's current painting stage (e.g. "Ready to prime", "Start base coating")
-- [ ] **PROJ-03**: User can open a Log Session sheet directly from a shortcut on a kanban card without navigating to the unit detail
+- [x] **PROJ-03**: User can open a Log Session sheet directly from a shortcut on a kanban card without navigating to the unit detail
 
 ### Workshop
 
@@ -127,11 +127,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NAV-01 | Phase 27 | Complete |
 | NAV-02 | Phase 27 | Complete |
 | NAV-03 | Phase 27 | Complete |
-| COLL-01 | Phase 28 | Pending |
-| COLL-02 | Phase 28 | Pending |
-| PROJ-01 | Phase 28 | Pending |
+| COLL-01 | Phase 28 | Complete |
+| COLL-02 | Phase 28 | Complete |
+| PROJ-01 | Phase 28 | Complete |
 | PROJ-02 | Phase 28 | Pending |
-| PROJ-03 | Phase 28 | Pending |
+| PROJ-03 | Phase 28 | Complete |
 | WKSP-01 | Phase 29 | Pending |
 | WKSP-02 | Phase 29 | Pending |
 | PLAY-01 | Phase 29 | Pending |
