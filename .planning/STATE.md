@@ -1,33 +1,36 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.2
-milestone_name: Full Circle
-status: Defining requirements
-stopped_at: Completed 22-hobby-goals-03-PLAN.md
-last_updated: "2026-05-05T17:25:40.825Z"
-last_activity: 2026-05-05 — Milestone v2.4 started
+milestone: v2.4
+milestone_name: Premium Dashboard UX & Visual Polish
+status: planning
+stopped_at: Phase 23 context gathered
+last_updated: "2026-05-05T17:38:14.202Z"
+last_activity: 2026-05-05 — v2.4 roadmap created, Phase 30 is next
 progress:
-  total_phases: 7
+  total_phases: 11
   completed_phases: 5
   total_plans: 16
   completed_plans: 16
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-05 after v2.4 milestone start)
+See: .planning/PROJECT.md (updated 2026-05-05 after v2.4 milestone started)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.4 Premium Dashboard UX & Visual Polish — grid layout, premium visuals, richer interactions, photos central, spending intelligence
+**Current focus:** v2.4 Premium Dashboard UX & Visual Polish — Phase 30: Grid Layout Foundation
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-05-05 — Milestone v2.4 started
+Phase: 30 of 34 (Grid Layout Foundation)
+Plan: — (not yet planned)
+Status: Ready to plan
+Last activity: 2026-05-05 — v2.4 roadmap created, Phase 30 is next
+
+Progress: [░░░░░░░░░░] 0% (0/5 phases complete)
 
 ## Accumulated Context
 
@@ -48,44 +51,18 @@ Last activity: 2026-05-05 — Milestone v2.4 started
 - StatusBadge 4-tier color system for 11 painting statuses
 - Quick Add via QuickAddContext provider with 8-action dropdown
 
-### Decisions from 21-wishlist-01
+### v2.4 Key Constraints
 
-- Wishlist uses no updated_at column — matches battle_logs pattern, only creation time tracked
-- Full-replacement UPDATE (no COALESCE) for wishlist nullable fields — allows clearing cost/notes to null
-- Wishlist mutations invalidate dashboard-stats for forward compatibility with Dashboard wishlist widget
-
-### Decisions from 21-wishlist-02
-
-- Dialog (not AlertDialog) used for WishlistItemDeleteDialog — AlertDialog not installed (Phase 18 decision)
-- Wishlist sidebar entry placed in MANAGEMENT_NAV with Heart icon (domain-appropriate for desired items)
-- Hook-level mocking strategy for Wishlist tests (useWishlistItems/useFactions) — simpler than DB-level
-
-### Decisions from 22-01
-
-- Migration v10 for hobby_goals (v9 was already claimed by 009_wishlist.sql from Phase 21)
-- goalSchema uses no .default() — form defaultValues handle defaults (Zod pitfall rule)
-- deriveGoalStatus checks completed BEFORE expired (Pitfall 4) — ensures finished goals never show as "missed"
-- getGoalProgress computes period boundaries at query time via computeGoalPeriod (not stored in DB)
-
-### Decisions from 22-02
-
-- useGoalProgress enabled when goals !== undefined (empty array triggers fetch) — not !!goals or goals?.length
-- GoalSheet uses buildDefaultValues function with no zod .default() — period derived at submit time via currentPeriod(data.timeframe)
-- Goals sidebar entry placed in COMMAND_NAV with Target icon after Painting Projects
-- GoalsPage test uses getAllByText for Completed/Missed — status badge and section header both render these strings
-
-### Decisions from 22-03
-
-- Migration count is 10 (v1-v10) not 9 — plan was written before hobby_goals migration was added; correct count is 10
-- Auto-approved human-verify checkpoint under auto_chain_active mode — automated pre-flight gate (610 tests + clean build) sufficient confidence for goals feature
-
-### Tech Debt
-
-- PROJ-02: REQUIREMENTS.md text still says "empty columns hidden" — KanbanBoard ships all 11 columns (approved UX)
+- CSS grid migration (Phase 30) must be atomic — all 7 existing dashboard sections get col-span in the same commit; never leave a half-migrated grid
+- ArmyReadinessCard (Phase 32) needs its own dedicated query hook — do NOT extend getDashboardStats
+- Log Session status update (Phase 33) must invalidate three caches: ["dashboard-stats"] + ["units"] + ["painting-sessions"]
+- Recipe linking (Phase 33) needs schema audit before implementation — check if units table already has recipe_id FK or if it needs migration
+- Visual depth (Phase 34) is CSS-only — no logic, no new hooks; add last as pure polish
+- Phase 31 must ship before Phase 33 — CurrentFocusCard v2 introduces photo wiring that DATA-06 (recipe name display) depends on
 
 ### Pending Todos
 
-None blocking.
+None.
 
 ### Open Blockers
 
@@ -93,6 +70,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-05T17:18:58.531Z
-Stopped at: Completed 22-hobby-goals-03-PLAN.md
-Resume: Run requirements definition → roadmap creation
+Last session: 2026-05-05T17:38:14.199Z
+Stopped at: Phase 23 context gathered
+Resume: Run `/gsd:plan-phase 30` to plan Grid Layout Foundation
