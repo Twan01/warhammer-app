@@ -6,19 +6,11 @@
  * - openQuickAdd sets the correct action
  * - closeQuickAdd resets to null
  * - Each action maps to the correct Sheet open boolean
- *
- * Wave 0 note: QuickAddContext does not exist yet.
- * TODO Wave 1: uncomment the imports below when src/context/QuickAddContext.tsx is created.
- *   import { QuickAddProvider, useQuickAdd } from "@/context/QuickAddContext";
- *   import type { QuickAddAction } from "@/context/QuickAddContext";
  */
 import { describe, it, expect } from "vitest";
 import { render, screen, act } from "@testing-library/react";
-
-// TODO Wave 1: remove these stubs and use the real imports above
-const QuickAddProvider = ({ children }: { children: React.ReactNode }) => <>{children}</>;
-const useQuickAdd = () => ({ activeSheet: null as string | null, openQuickAdd: (_action: string) => {}, closeQuickAdd: () => {} });
-type QuickAddAction = "add-unit" | "add-faction" | "add-paint" | "add-recipe" | "create-project" | "log-session" | "add-purchase" | "log-battle";
+import { QuickAddProvider, useQuickAdd } from "@/context/QuickAddContext";
+import type { QuickAddAction } from "@/context/QuickAddContext";
 
 function TestConsumer() {
   const { activeSheet, openQuickAdd, closeQuickAdd } = useQuickAdd();
@@ -41,24 +33,24 @@ function renderWithProvider() {
 }
 
 describe("QuickAddContext NAV-03", () => {
-  it.skip("activeSheet starts as null", () => {
+  it("activeSheet starts as null", () => {
     renderWithProvider();
     expect(screen.getByTestId("active-sheet").textContent).toBe("null");
   });
 
-  it.skip("openQuickAdd('add-unit') sets activeSheet to 'add-unit'", () => {
+  it("openQuickAdd('add-unit') sets activeSheet to 'add-unit'", () => {
     renderWithProvider();
     act(() => { screen.getByText("open-unit").click(); });
     expect(screen.getByTestId("active-sheet").textContent).toBe("add-unit");
   });
 
-  it.skip("openQuickAdd('log-battle') sets activeSheet to 'log-battle'", () => {
+  it("openQuickAdd('log-battle') sets activeSheet to 'log-battle'", () => {
     renderWithProvider();
     act(() => { screen.getByText("open-battle").click(); });
     expect(screen.getByTestId("active-sheet").textContent).toBe("log-battle");
   });
 
-  it.skip("closeQuickAdd resets activeSheet to null", () => {
+  it("closeQuickAdd resets activeSheet to null", () => {
     renderWithProvider();
     act(() => { screen.getByText("open-unit").click(); });
     expect(screen.getByTestId("active-sheet").textContent).toBe("add-unit");
@@ -66,14 +58,14 @@ describe("QuickAddContext NAV-03", () => {
     expect(screen.getByTestId("active-sheet").textContent).toBe("null");
   });
 
-  it.skip("useQuickAdd throws when used outside QuickAddProvider", () => {
+  it("useQuickAdd throws when used outside QuickAddProvider", () => {
     // This test renders TestConsumer without provider and expects an error
     expect(() => render(<TestConsumer />)).toThrow(
       "useQuickAdd must be used within QuickAddProvider"
     );
   });
 
-  it.skip("QuickAddAction type includes all 8 actions", () => {
+  it("QuickAddAction type includes all 8 actions", () => {
     // Type-level assertion: compile fails if type is wrong
     const actions: QuickAddAction[] = [
       "add-unit", "add-faction", "add-paint", "add-recipe",
