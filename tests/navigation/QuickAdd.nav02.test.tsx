@@ -4,9 +4,14 @@
  * Verifies the Quick Add button renders in both expanded and collapsed states,
  * opens a dropdown with 8 labeled items, and that clicking an item calls
  * openQuickAdd with the correct action identifier.
+ *
+ * Note: Radix DropdownMenuTrigger responds to pointer events, not just click.
+ * Use userEvent (dispatches full pointer + mouse + click sequence) instead of
+ * fireEvent.click for trigger interactions.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { AppSidebar } from "@/components/common/AppSidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -41,20 +46,21 @@ describe("Quick Add NAV-02: Button", () => {
     mockOpenQuickAdd.mockClear();
   });
 
-  it.skip("renders 'Quick Add' button text when sidebar is expanded", () => {
+  it("renders 'Quick Add' button text when sidebar is expanded", () => {
     renderSidebar();
     expect(screen.getByText("Quick Add")).toBeInTheDocument();
   });
 
-  it.skip("renders icon-only button with aria-label when sidebar is collapsed", () => {
+  it("renders icon-only button with aria-label when sidebar is collapsed", () => {
     localStorage.setItem("sidebar-collapsed", "true");
     renderSidebar();
     expect(screen.getByRole("button", { name: /quick add/i })).toBeInTheDocument();
   });
 
-  it.skip("clicking Quick Add button opens dropdown menu", () => {
+  it("clicking Quick Add button opens dropdown menu", async () => {
+    const user = userEvent.setup();
     renderSidebar();
-    fireEvent.click(screen.getByText("Quick Add"));
+    await user.click(screen.getByText("Quick Add"));
     // Dropdown items should appear
     expect(screen.getByText("Add Unit")).toBeInTheDocument();
   });
@@ -66,51 +72,59 @@ describe("Quick Add NAV-02: Dropdown Items", () => {
     mockOpenQuickAdd.mockClear();
   });
 
-  it.skip("dropdown contains 'Add Unit' item", () => {
+  it("dropdown contains 'Add Unit' item", async () => {
+    const user = userEvent.setup();
     renderSidebar();
-    fireEvent.click(screen.getByText("Quick Add"));
+    await user.click(screen.getByText("Quick Add"));
     expect(screen.getByText("Add Unit")).toBeInTheDocument();
   });
 
-  it.skip("dropdown contains 'Add Faction' item", () => {
+  it("dropdown contains 'Add Faction' item", async () => {
+    const user = userEvent.setup();
     renderSidebar();
-    fireEvent.click(screen.getByText("Quick Add"));
+    await user.click(screen.getByText("Quick Add"));
     expect(screen.getByText("Add Faction")).toBeInTheDocument();
   });
 
-  it.skip("dropdown contains 'Add Paint' item", () => {
+  it("dropdown contains 'Add Paint' item", async () => {
+    const user = userEvent.setup();
     renderSidebar();
-    fireEvent.click(screen.getByText("Quick Add"));
+    await user.click(screen.getByText("Quick Add"));
     expect(screen.getByText("Add Paint")).toBeInTheDocument();
   });
 
-  it.skip("dropdown contains 'Add Recipe' item", () => {
+  it("dropdown contains 'Add Recipe' item", async () => {
+    const user = userEvent.setup();
     renderSidebar();
-    fireEvent.click(screen.getByText("Quick Add"));
+    await user.click(screen.getByText("Quick Add"));
     expect(screen.getByText("Add Recipe")).toBeInTheDocument();
   });
 
-  it.skip("dropdown contains 'Create Project' item", () => {
+  it("dropdown contains 'Create Project' item", async () => {
+    const user = userEvent.setup();
     renderSidebar();
-    fireEvent.click(screen.getByText("Quick Add"));
+    await user.click(screen.getByText("Quick Add"));
     expect(screen.getByText("Create Project")).toBeInTheDocument();
   });
 
-  it.skip("dropdown contains 'Log Session' item", () => {
+  it("dropdown contains 'Log Session' item", async () => {
+    const user = userEvent.setup();
     renderSidebar();
-    fireEvent.click(screen.getByText("Quick Add"));
+    await user.click(screen.getByText("Quick Add"));
     expect(screen.getByText("Log Session")).toBeInTheDocument();
   });
 
-  it.skip("dropdown contains 'Add Purchase' item", () => {
+  it("dropdown contains 'Add Purchase' item", async () => {
+    const user = userEvent.setup();
     renderSidebar();
-    fireEvent.click(screen.getByText("Quick Add"));
+    await user.click(screen.getByText("Quick Add"));
     expect(screen.getByText("Add Purchase")).toBeInTheDocument();
   });
 
-  it.skip("dropdown contains 'Log Battle' item", () => {
+  it("dropdown contains 'Log Battle' item", async () => {
+    const user = userEvent.setup();
     renderSidebar();
-    fireEvent.click(screen.getByText("Quick Add"));
+    await user.click(screen.getByText("Quick Add"));
     expect(screen.getByText("Log Battle")).toBeInTheDocument();
   });
 });
@@ -121,17 +135,19 @@ describe("Quick Add NAV-03: Action Dispatch", () => {
     mockOpenQuickAdd.mockClear();
   });
 
-  it.skip("clicking 'Add Unit' calls openQuickAdd('add-unit')", () => {
+  it("clicking 'Add Unit' calls openQuickAdd('add-unit')", async () => {
+    const user = userEvent.setup();
     renderSidebar();
-    fireEvent.click(screen.getByText("Quick Add"));
-    fireEvent.click(screen.getByText("Add Unit"));
+    await user.click(screen.getByText("Quick Add"));
+    await user.click(screen.getByText("Add Unit"));
     expect(mockOpenQuickAdd).toHaveBeenCalledWith("add-unit");
   });
 
-  it.skip("clicking 'Log Battle' calls openQuickAdd('log-battle')", () => {
+  it("clicking 'Log Battle' calls openQuickAdd('log-battle')", async () => {
+    const user = userEvent.setup();
     renderSidebar();
-    fireEvent.click(screen.getByText("Quick Add"));
-    fireEvent.click(screen.getByText("Log Battle"));
+    await user.click(screen.getByText("Quick Add"));
+    await user.click(screen.getByText("Log Battle"));
     expect(mockOpenQuickAdd).toHaveBeenCalledWith("log-battle");
   });
 });

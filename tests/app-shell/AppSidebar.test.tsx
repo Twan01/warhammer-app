@@ -6,7 +6,7 @@
  * Subsequent phases added Factions (Phase 2) and Army Lists (Phase 8) to the
  * same component — this file covers the original Phase 1 surface only.
  */
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import {
   RouterProvider,
@@ -15,6 +15,14 @@ import {
   createRouter,
 } from "@tanstack/react-router";
 import { AppSidebar } from "@/components/common/AppSidebar";
+
+vi.mock("@/context/QuickAddContext", () => ({
+  useQuickAdd: () => ({
+    activeSheet: null,
+    openQuickAdd: vi.fn(),
+    closeQuickAdd: vi.fn(),
+  }),
+}));
 
 function makeRouter(initialPath = "/") {
   const root = createRootRoute({ component: () => <AppSidebar /> });

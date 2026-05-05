@@ -19,6 +19,14 @@ vi.mock("@tanstack/react-router", () => ({
   ),
 }));
 
+vi.mock("@/context/QuickAddContext", () => ({
+  useQuickAdd: () => ({
+    activeSheet: null,
+    openQuickAdd: vi.fn(),
+    closeQuickAdd: vi.fn(),
+  }),
+}));
+
 function renderSidebar() {
   return render(
     <TooltipProvider>

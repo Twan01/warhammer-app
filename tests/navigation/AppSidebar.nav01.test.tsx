@@ -39,42 +39,42 @@ describe("AppSidebar NAV-01: Group Labels", () => {
     localStorage.clear();
   });
 
-  it.skip("renders 'Command' group label", () => {
+  it("renders 'Command' group label", () => {
     renderSidebar();
     expect(screen.getByText("Command")).toBeInTheDocument();
   });
 
-  it.skip("renders 'Workshop' group label", () => {
+  it("renders 'Workshop' group label", () => {
     renderSidebar();
     expect(screen.getByText("Workshop")).toBeInTheDocument();
   });
 
-  it.skip("renders 'Play' group label", () => {
+  it("renders 'Play' group label", () => {
     renderSidebar();
     expect(screen.getByText("Play")).toBeInTheDocument();
   });
 
-  it.skip("renders 'Management' group label", () => {
+  it("renders 'Management' group label", () => {
     renderSidebar();
     expect(screen.getByText("Management")).toBeInTheDocument();
   });
 
-  it.skip("does not render old 'Manage' label", () => {
+  it("does not render old 'Manage' label", () => {
     renderSidebar();
     expect(screen.queryByText("Manage")).not.toBeInTheDocument();
   });
 
-  it.skip("does not render old 'Inventory' label", () => {
+  it("does not render old 'Inventory' label", () => {
     renderSidebar();
     expect(screen.queryByText("Inventory")).not.toBeInTheDocument();
   });
 
-  it.skip("does not render old 'Tracking' label", () => {
+  it("does not render old 'Tracking' label", () => {
     renderSidebar();
     expect(screen.queryByText("Tracking")).not.toBeInTheDocument();
   });
 
-  it.skip("Factions link appears in Management group (after Play group)", () => {
+  it("Factions link appears in Management group (after Play group)", () => {
     renderSidebar();
     const factions = screen.getByText("Factions");
     const spending = screen.getByText("Spending");
@@ -83,7 +83,7 @@ describe("AppSidebar NAV-01: Group Labels", () => {
     expect(spending).toBeInTheDocument();
   });
 
-  it.skip("Dashboard link appears in Command group", () => {
+  it("Dashboard link appears in Command group", () => {
     renderSidebar();
     const dashboard = screen.getByText("Dashboard");
     expect(dashboard).toBeInTheDocument();
