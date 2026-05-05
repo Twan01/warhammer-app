@@ -25,6 +25,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { UnitGallery } from "@/features/units/UnitGallery";
 import { CollectionPage } from "@/features/units/CollectionPage";
 import { useCollectionFilters } from "@/features/units/collectionFilters";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import type { Unit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
 
@@ -99,9 +100,11 @@ function renderCollectionPage() {
     defaultOptions: { queries: { retry: false } },
   });
   return render(
-    <QueryClientProvider client={qc}>
-      <CollectionPage />
-    </QueryClientProvider>,
+    <TooltipProvider>
+      <QueryClientProvider client={qc}>
+        <CollectionPage />
+      </QueryClientProvider>
+    </TooltipProvider>,
   );
 }
 

@@ -7,6 +7,7 @@
   ],
   "permissions": [
     "core:default",
+    "core:window:allow-set-fullscreen",
     "opener:default",
     "sql:allow-load",
     "sql:allow-select",
@@ -17,11 +18,10 @@
     "fs:allow-appdata-write-recursive",
     "dialog:default",
     "dialog:allow-open",
-    "http:default",
     {
       "identifier": "http:default",
       "allow": [
-        { "url": "https://wahapedia.ru/*" }
+        { "url": "https://wahapedia.ru/**" }
       ]
     }
   ]

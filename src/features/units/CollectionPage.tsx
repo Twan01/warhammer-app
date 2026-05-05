@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
-import { Plus, LayoutList, LayoutGrid } from "lucide-react";
+import { Plus, LayoutList, LayoutGrid, Maximize } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { ShowcaseMode } from "./ShowcaseMode";
 import { useUnits, useUpdateUnit, UNITS_KEY } from "@/hooks/useUnits";
 import { useFactions } from "@/hooks/useFactions";
 import { useQueryClient } from "@tanstack/react-query";
@@ -63,6 +65,12 @@ export function CollectionPage() {
   // COLL-01 — batch photo map for gallery thumbnails
   const { data: latestPhotos } = useLatestUnitPhotos();
 
+  // DISP-02/03 — Showcase Mode: only units that have a photo
+  const showcaseUnits = useMemo(
+    () => filteredUnits.filter((u) => latestPhotos?.has(u.id)),
+    [filteredUnits, latestPhotos],
+  );
+
   // Sheet/dialog state — Pitfall 6: keep ID, derive unit from `units`
   const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
   const selectedUnit = useMemo(
@@ -89,6 +97,7 @@ export function CollectionPage() {
   } | null>(null);
 
   const [viewMode, setViewMode] = useCollectionViewMode();
+  const [showcaseOpen, setShowcaseOpen] = useState(false);
 
   // Handlers
   const handleRowClick = (unit: Unit) => setSelectedUnitId(unit.id);
@@ -144,6 +153,26 @@ export function CollectionPage() {
         subtitle="All units you own, tracked and filterable"
         actions={
           <>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Enter Showcase Mode"
+                    disabled={showcaseUnits.length === 0}
+                    onClick={() => setShowcaseOpen(true)}
+                  >
+                    <Maximize className="h-4 w-4" />
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                {showcaseUnits.length === 0
+                  ? "No photos to showcase"
+                  : "Enter Showcase Mode"}
+              </TooltipContent>
+            </Tooltip>
             <Button
               variant="ghost"
               size="icon"
@@ -261,6 +290,17 @@ export function CollectionPage() {
         }}
         onClose={() => setConflictPayload(null)}
       />
+
+      {/* DISP-02/03 — Showcase Mode overlay. Sibling to all Sheet/Dialog portals — NEVER nested.
+          Mounts as a fixed inset-0 overlay; handles fullscreen via Tauri API. */}
+      {showcaseOpen && latestPhotos && (
+        <ShowcaseMode
+          units={showcaseUnits}
+          photos={latestPhotos}
+          factions={factions ?? []}
+          onClose={() => setShowcaseOpen(false)}
+        />
+      )}
     </div>
   );
 }
