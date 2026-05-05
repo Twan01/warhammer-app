@@ -207,7 +207,13 @@ Plans:
   1. Sidebar navigation groups are labeled Command, Workshop, Play, and Management — no generic labels like "Tracking" or "Inventory" remain
   2. A Quick Add button appears in the sidebar and opens a dropdown menu with 8 labeled creation actions: Add Unit, Add Faction, Add Paint, Add Recipe, Create Project, Log Session, Add Purchase, Log Battle
   3. Clicking any Quick Add action opens the corresponding create Sheet as an overlay on the current page — the user's current route does not change and no navigation occurs
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 27-00-PLAN.md — Wave 0: 3 test stub files (AppSidebar.nav01 + QuickAdd.nav02 + QuickAddContext) — 28 it.skip stubs covering NAV-01..03
+- [ ] 27-01-PLAN.md — Wave 1: QuickAddContext provider + DropdownMenu install + main.tsx provider wire + flip 6 context tests
+- [ ] 27-02-PLAN.md — Wave 2: AppSidebar group rename (COMMAND/WORKSHOP/PLAY/MANAGEMENT) + Quick Add button + AppLayout 8-Sheet mount + flip 22 tests
+- [ ] 27-03-PLAN.md — Wave 3: Manual smoke-test checkpoint (19 steps verifying NAV-01..03 in live Tauri app)
 
 ### Phase 28: Collection + Projects
 **Goal**: Gallery cards show real photo thumbnails for painted units, painting status uses the unified StatusBadge everywhere, and kanban cards are enriched with the context needed to take action without opening a detail sheet
@@ -263,6 +269,6 @@ Plans:
 | 23. Display Features | v2.2 | 0/TBD | Not started | — |
 | 25. Design Foundation | 2/2 | Complete    | 2026-05-04 | — |
 | 26. Dashboard Redesign | 4/5 | Complete    | 2026-05-05 | — |
-| 27. Navigation & Quick Add | v2.3 | 0/TBD | Not started | — |
+| 27. Navigation & Quick Add | v2.3 | 0/4 | Not started | — |
 | 28. Collection + Projects | v2.3 | 0/TBD | Not started | — |
 | 29. Workshop + Play | v2.3 | 0/TBD | Not started | — |
