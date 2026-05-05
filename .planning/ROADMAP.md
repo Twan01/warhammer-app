@@ -5,7 +5,7 @@
 - ✅ **v1.1 HobbyForge MVP** — Phases 1–5 (shipped 2024-05-01)
 - ✅ **v2.0 Utility Layer** — Phases 6–9 (shipped 2024-05-03)
 - ✅ **v2.1 Visual Command** — Phases 10–16 + 20 (shipped 2026-05-04)
-- ⏸️ **v2.2 Full Circle** — Phases 17–19 shipped, 21–23 deferred
+- ⏸️ **v2.2 Full Circle** — Phases 17–19 shipped, 21–24 deferred
 - ✅ **v2.3 Hobby Command Center** — Phases 25–29 (shipped 2026-05-05)
 - 🚧 **v2.4 Premium Dashboard UX & Visual Polish** — Phases 30–34 (in progress)
 
@@ -54,7 +54,7 @@ Full details: `.planning/milestones/v2.1-ROADMAP.md`
 
 ---
 
-### ⏸️ v2.2 Full Circle (Phases 17–19 + 21–23) — Partial Ship
+### ⏸️ v2.2 Full Circle (Phases 17–19 + 21–24) — Partial Ship
 
 **Milestone Goal:** Close the full hobby loop — from owning and painting to playing and logging — with analytics, personal showcase, and narrative enrichment features that make HobbyForge the definitive single-player hobby OS.
 
@@ -64,6 +64,7 @@ Full details: `.planning/milestones/v2.1-ROADMAP.md`
 - [ ] **Phase 21: Wishlist** — New wishlist_items table (migration 009), full CRUD Wishlist page with name/faction/estimated cost/notes
 - [ ] **Phase 22: Hobby Goals** — New hobby_goals table (migration 009), goal CRUD with target unit count and timeframe, progress derived from painting session history
 - [ ] **Phase 23: Display Features** — Battle Ready quick-filter on Collection page, Showcase Mode full-screen gallery using Tauri window API
+- [ ] **Phase 24: Unit Point Calculator** — Point tiers per model count, wargear loadout management, swap delta preview in army list builder
 
 ---
 
@@ -183,7 +184,11 @@ Plans:
   1. Collection page has a "Battle Ready" quick-filter button — clicking it filters the list to show only units that are fully painted and assembled, with the filter clearly indicated as active
   2. User can click an "Enter Showcase" button and the app window goes full-screen with app chrome (sidebar, header) hidden — only the painted units gallery is visible
   3. User can exit Showcase Mode by pressing Escape or clicking an exit button — the app returns to normal windowed view with chrome restored
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 23-01-PLAN.md — Wave 1: Battle Ready filter (Zustand battleReady toggle + applyUnitFilters condition + UnitFilters button + CollectionPage wiring + extended tests)
+- [ ] 23-02-PLAN.md — Wave 2: Showcase Mode (ShowcaseMode full-screen overlay + CollectionPage entry button + Tauri fullscreen capability + component tests)
 
 ### Phase 30: Grid Layout Foundation
 **Goal**: The dashboard structure is rebuilt as an asymmetric CSS grid bento layout — all existing sections get column spans in a single atomic commit, StatCards navigate to relevant pages when clicked, and the 11-stage pipeline is compressed into 5 readable buckets
@@ -269,7 +274,7 @@ Plans:
 | 20. v2.1 Polish & Gap Closure | v2.1 | 3/3 | Complete | 2026-05-04 |
 | 21. Wishlist | v2.2 | 3/3 | Complete | 2026-05-05 |
 | 22. Hobby Goals | v2.2 | 4/4 | Complete | 2026-05-05 |
-| 23. Display Features | v2.2 | 0/TBD | Not started | — |
+| 23. Display Features | v2.2 | 0/2 | Not started | — |
 | 25. Design Foundation | v2.3 | 2/2 | Complete | 2026-05-04 |
 | 26. Dashboard Redesign | v2.3 | 5/5 | Complete | 2026-05-05 |
 | 27. Navigation & Quick Add | v2.3 | 4/4 | Complete | 2026-05-05 |
