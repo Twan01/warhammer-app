@@ -60,7 +60,7 @@ Full details: `.planning/milestones/v2.1-ROADMAP.md`
 - [x] **Phase 17: Schema Foundation + Enrichment** — Migration 007 (lore_notes + undercoat on units, lore_notes on factions, purchase_date on paints), dates.ts UTC utility, and lore/undercoat fields visible in unit detail sheet (completed 2026-05-04)
 - [x] **Phase 18: Battle Log** — Battle log CRUD page with opponent faction, mission, result, army list linkage, notes, and chronological list (completed 2026-05-04)
 - [x] **Phase 19: Analytics Core** — Recharts/shadcn chart install, hobby velocity and painting streak stats on Dashboard, monthly spend trend chart on Spending page (completed 2026-05-04)
-- [ ] **Phase 21: Wishlist** — New wishlist_items table (migration 008), full CRUD Wishlist page with name/faction/estimated cost/notes
+- [ ] **Phase 21: Wishlist** — New wishlist_items table (migration 009), full CRUD Wishlist page with name/faction/estimated cost/notes
 - [ ] **Phase 22: Hobby Goals** — New hobby_goals table (migration 009), goal CRUD with target unit count and timeframe, progress derived from painting session history
 - [ ] **Phase 23: Display Features** — Battle Ready quick-filter on Collection page, Showcase Mode full-screen gallery using Tauri window API
 
@@ -139,7 +139,12 @@ Plans:
   2. User can view all wishlist items on the Wishlist page in a list showing name, faction, estimated cost, and notes
   3. User can add optional notes to a wishlist item (e.g. "wait for sale", "for Crusade roster") and the notes are visible on the saved item
   4. User can delete a wishlist item and it is removed from the list immediately
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 21-00-PLAN.md — Wave 0: 2 stub test files (wishlistQueries.test.ts + WishlistPage.test.tsx) — 16 it.skip stubs covering WISH-01..04
+- [ ] 21-01-PLAN.md — Wave 1: migration 009 (wishlist_items table) + lib.rs version 9 + types/wishlistItem.ts + db/queries/wishlistItems.ts (full-replacement UPDATE) + useWishlistItems hooks + wishlistItemSchema (zod) + activate 8 SQL stubs
+- [ ] 21-02-PLAN.md — Wave 2: WishlistPage (sibling-portal) + Row (group-hover Edit/Delete) + Sheet (buildDefaultValues + currency input) + DeleteDialog + EmptyState (Heart icon-pill) + TotalBar + /wishlist route + Wishlist sidebar entry (Heart icon in MANAGEMENT_NAV) + activate 8 component stubs
 
 ### Phase 22: Hobby Goals
 **Goal**: Users can set monthly or quarterly painting targets — a unit count to complete by end of the period — and see live progress toward each goal calculated automatically from their journal session history
@@ -198,7 +203,7 @@ Plans:
 | 18. Battle Log | v2.2 | 4/4 | Complete | 2026-05-04 |
 | 19. Analytics Core | v2.2 | 4/4 | Complete | 2026-05-04 |
 | 20. v2.1 Polish & Gap Closure | v2.1 | 3/3 | Complete | 2026-05-04 |
-| 21. Wishlist | v2.2 | 0/TBD | Not started | — |
+| 21. Wishlist | v2.2 | 0/3 | Not started | — |
 | 22. Hobby Goals | v2.2 | 0/TBD | Not started | — |
 | 23. Display Features | v2.2 | 0/TBD | Not started | — |
 | 25. Design Foundation | v2.3 | 2/2 | Complete | 2026-05-04 |
