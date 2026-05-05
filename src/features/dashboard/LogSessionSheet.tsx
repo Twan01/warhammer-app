@@ -48,11 +48,12 @@ import { logSessionSchema, type LogSessionFormValues } from "./logSessionSchema"
 interface LogSessionSheetProps {
   open: boolean;
   onClose: () => void;
+  defaultUnitId?: number;
 }
 
-function buildDefaultValues(): LogSessionFormValues {
+function buildDefaultValues(defaultUnitId?: number): LogSessionFormValues {
   return {
-    unit_id: 0,
+    unit_id: defaultUnitId ?? 0,
     session_date: todayISO(),
     duration_minutes: 30,
     notes: null,
@@ -71,19 +72,20 @@ function sortUnitsForPicker(units: Unit[]): Unit[] {
   return [...active, ...inactive];
 }
 
-export function LogSessionSheet({ open, onClose }: LogSessionSheetProps) {
+export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionSheetProps) {
   const { data: units, isLoading: unitsLoading } = useUnits();
   const createSession = useCreatePaintingSession();
 
   const form = useForm<LogSessionFormValues>({
     resolver: zodResolver(logSessionSchema),
-    defaultValues: buildDefaultValues(),
+    defaultValues: buildDefaultValues(defaultUnitId),
   });
 
   // Reset form on each open so leftover values from a previous open do not persist.
+  // Include defaultUnitId in deps so re-opening for a different unit pre-populates correctly (Pitfall 4).
   useEffect(() => {
-    if (open) form.reset(buildDefaultValues());
-  }, [open, form]);
+    if (open) form.reset(buildDefaultValues(defaultUnitId));
+  }, [open, form, defaultUnitId]);
 
   const orderedUnits = useMemo(
     () => sortUnitsForPicker(units ?? []),

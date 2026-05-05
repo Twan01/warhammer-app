@@ -7,6 +7,7 @@ import {
   getPhotosByUnit,
   createUnitPhoto,
   deleteUnitPhoto,
+  getLatestPhotoByUnit,
 } from "@/db/queries/unitPhotos";
 import type { UnitPhoto, CreateUnitPhotoInput } from "@/types/unitPhoto";
 
@@ -16,6 +17,12 @@ import type { UnitPhoto, CreateUnitPhotoInput } from "@/types/unitPhoto";
  */
 export const UNIT_PHOTOS_KEY = (unitId: number) =>
   ["unit-photos", unitId] as const;
+
+/**
+ * COLL-01 — batch query key for latest photo per unit across the entire collection.
+ * staleTime: Infinity — only photo create/delete mutations invalidate.
+ */
+export const LATEST_UNIT_PHOTOS_KEY = ["unit-photos", "latest"] as const;
 
 /**
  * UnitPhoto with its derived asset:// URL for use as <img src>.
@@ -72,6 +79,7 @@ export function useCreateUnitPhoto() {
     mutationFn: createUnitPhoto,
     onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: UNIT_PHOTOS_KEY(variables.unit_id) });
+      qc.invalidateQueries({ queryKey: LATEST_UNIT_PHOTOS_KEY });
     },
   });
 }
@@ -99,6 +107,41 @@ export function useDeleteUnitPhoto(unitId: number) {
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: UNIT_PHOTOS_KEY(unitId) });
+      qc.invalidateQueries({ queryKey: LATEST_UNIT_PHOTOS_KEY });
     },
+  });
+}
+
+/**
+ * COLL-01 — batch-loads the latest photo per unit across the entire collection.
+ * Returns Map<number, UnitPhotoWithUrl> keyed by entity_id (unit id).
+ * staleTime: Infinity — only photo create/delete mutations invalidate.
+ */
+export function useLatestUnitPhotos() {
+  const [appDir, setAppDir] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    appDataDir().then((dir) => {
+      if (!cancelled) setAppDir(dir);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  return useQuery({
+    queryKey: LATEST_UNIT_PHOTOS_KEY,
+    queryFn: async (): Promise<Map<number, UnitPhotoWithUrl>> => {
+      if (appDir === null) return new Map();
+      const rows = await getLatestPhotoByUnit();
+      const withUrls = await Promise.all(
+        rows.map(async (row) => {
+          const absolute = await join(appDir, row.file_path);
+          return { ...row, assetUrl: convertFileSrc(absolute) };
+        })
+      );
+      return new Map(withUrls.map((r) => [r.entity_id, r]));
+    },
+    enabled: appDir !== null,
+    staleTime: Infinity,
   });
 }

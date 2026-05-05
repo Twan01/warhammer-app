@@ -29,6 +29,7 @@ export function useCreateRecipe() {
     mutationFn: createRecipe,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: RECIPES_KEY });
+      qc.invalidateQueries({ queryKey: ["kanban-enrichment"] });
     },
   });
 }
@@ -40,6 +41,7 @@ export function useUpdateRecipe() {
     onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: RECIPES_KEY });
       qc.invalidateQueries({ queryKey: RECIPE_KEY(variables.id) });
+      qc.invalidateQueries({ queryKey: ["kanban-enrichment"] });
     },
   });
 }
