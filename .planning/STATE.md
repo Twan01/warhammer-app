@@ -54,6 +54,12 @@ Last activity: 2026-05-05 — Milestone v2.4 started
 - Full-replacement UPDATE (no COALESCE) for wishlist nullable fields — allows clearing cost/notes to null
 - Wishlist mutations invalidate dashboard-stats for forward compatibility with Dashboard wishlist widget
 
+### Decisions from 21-wishlist-02
+
+- Dialog (not AlertDialog) used for WishlistItemDeleteDialog — AlertDialog not installed (Phase 18 decision)
+- Wishlist sidebar entry placed in MANAGEMENT_NAV with Heart icon (domain-appropriate for desired items)
+- Hook-level mocking strategy for Wishlist tests (useWishlistItems/useFactions) — simpler than DB-level
+
 ### Decisions from 22-01
 
 - Migration v10 for hobby_goals (v9 was already claimed by 009_wishlist.sql from Phase 21)
