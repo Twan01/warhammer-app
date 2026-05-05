@@ -3,10 +3,25 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Full Circle
 status: executing
+stopped_at: Completed 28-04-PLAN.md (Smoke-test verification — all 5 Phase 28 requirements auto-approved)
+last_updated: "2026-05-05T14:44:03.283Z"
+progress:
+  total_phases: 12
+  completed_phases: 7
+  total_plans: 30
+  completed_plans: 27
+  percent: 90
+---
+
+---
+gsd_state_version: 1.0
+milestone: v2.2
+milestone_name: Full Circle
+status: executing
 stopped_at: "Completed 28-03-PLAN.md (Wave 2: KanbanCard enrichment + Log Session shortcut)"
 last_updated: "2026-05-05T14:40:32.172Z"
 progress:
-  total_phases: 12
+  [█████████░] 90%
   completed_phases: 6
   total_plans: 30
   completed_plans: 26
@@ -237,6 +252,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-05T14:40:32.168Z
-Stopped at: Completed 28-03-PLAN.md (Wave 2: KanbanCard enrichment + Log Session shortcut)
+Last session: 2026-05-05T14:44:03.280Z
+Stopped at: Completed 28-04-PLAN.md (Smoke-test verification — all 5 Phase 28 requirements auto-approved)
 Resume: Phase 29 Plan 02 is next (WKSP-02 UI: recipe swatch strip in RecipeTable). Run `/gsd:execute-phase 29-02` to continue.
