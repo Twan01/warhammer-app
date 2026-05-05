@@ -1,10 +1,11 @@
 ---
 phase: 28
 slug: collection-projects
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: compliant
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-05
+updated: 2026-05-05
 ---
 
 # Phase 28 — Validation Strategy
@@ -38,16 +39,17 @@ created: 2026-05-05
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 28-00-01 | 00 | 0 | COLL-01 | unit | `pnpm test -- tests/collection/unitPhotoLatest.test.ts` | ❌ W0 | ⬜ pending |
-| 28-00-02 | 00 | 0 | COLL-01 | unit (hook) | `pnpm test -- tests/collection/useLatestUnitPhotos.test.ts` | ❌ W0 | ⬜ pending |
-| 28-00-03 | 00 | 0 | COLL-02 | unit | `pnpm test -- tests/collection/StatusPopover.test.ts` | ❌ W0 | ⬜ pending |
-| 28-00-04 | 00 | 0 | PROJ-01 | unit | `pnpm test -- tests/painting/kanbanEnrichment.test.ts` | ❌ W0 | ⬜ pending |
-| 28-00-05 | 00 | 0 | PROJ-01 | unit (hook) | `pnpm test -- tests/painting/useKanbanEnrichment.test.ts` | ❌ W0 | ⬜ pending |
-| 28-00-06 | 00 | 0 | PROJ-03 | unit (RTL) | `pnpm test -- tests/painting/logSessionSheet.test.ts` | ❌ W0 | ⬜ pending |
-| 28-01-xx | 01 | 1 | COLL-01 | unit | `pnpm test -- tests/collection/unitPhotoLatest.test.ts` | ❌ W0 | ⬜ pending |
-| 28-01-xx | 01 | 1 | PROJ-01 | unit | `pnpm test -- tests/painting/kanbanEnrichment.test.ts` | ❌ W0 | ⬜ pending |
-| 28-02-xx | 02 | 2 | COLL-01, COLL-02 | integration | `pnpm test -- tests/collection/` | ❌ W0 | ⬜ pending |
-| 28-02-xx | 02 | 2 | PROJ-01, PROJ-02, PROJ-03 | integration | `pnpm test -- tests/painting/` | ❌ W0 | ⬜ pending |
+| 28-00-01 | 00 | 0 | COLL-01 | unit | `pnpm test -- tests/collection/unitPhotoLatest.test.ts` | ✅ | ✅ green (12 tests) |
+| 28-00-02 | 00 | 0 | COLL-01 | unit (hook) | `pnpm test -- tests/collection/useLatestUnitPhotos.test.tsx` | ✅ | ✅ green (4 tests) |
+| 28-00-03 | 00 | 0 | COLL-02 | unit | `pnpm test -- tests/collection/StatusPopover.test.tsx` | ✅ | ✅ green (9 tests) |
+| 28-00-04 | 00 | 0 | PROJ-01 | unit | `pnpm test -- tests/painting/kanbanEnrichment.test.ts` | ✅ | ✅ green (6 tests) |
+| 28-00-05 | 00 | 0 | PROJ-01 | unit (hook) | `pnpm test -- tests/painting/useKanbanEnrichment.test.tsx` | ✅ | ✅ green (4 tests) |
+| 28-00-06 | 00 | 0 | PROJ-03 | unit (RTL) | `pnpm test -- tests/painting/logSessionSheet.test.tsx` | ✅ | ✅ green (4 tests) |
+| 28-01-xx | 01 | 1 | COLL-01 | unit | `pnpm test -- tests/collection/unitPhotoLatest.test.ts` | ✅ | ✅ green |
+| 28-01-xx | 01 | 1 | PROJ-01 | unit | `pnpm test -- tests/painting/kanbanEnrichment.test.ts` | ✅ | ✅ green |
+| 28-02-xx | 02 | 2 | COLL-01, COLL-02 | integration | `pnpm test -- tests/collection/` | ✅ | ✅ green |
+| 28-03-xx | 03 | 2 | PROJ-01, PROJ-02, PROJ-03 | integration | `pnpm test -- tests/painting/` | ✅ | ✅ green |
+| 28-audit | — | — | PROJ-02 | unit | `pnpm test -- tests/painting/getNextActionHint.test.ts` | ✅ | ✅ green (5 tests) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -55,12 +57,13 @@ created: 2026-05-05
 
 ## Wave 0 Requirements
 
-- [ ] `tests/collection/unitPhotoLatest.test.ts` — stubs for COLL-01 (`getLatestPhotoByUnit`, `getPhotoCountsByUnitIds`)
-- [ ] `tests/collection/useLatestUnitPhotos.test.ts` — stubs for COLL-01 hook (Map return shape)
-- [ ] `tests/collection/StatusPopover.test.ts` — stubs for COLL-02 (StatusBadge inside trigger) — file was deleted, must recreate
-- [ ] `tests/painting/kanbanEnrichment.test.ts` — stubs for PROJ-01 (`getRecipeNamesByUnitIds`, `getPhotoCountsByUnitIds`)
-- [ ] `tests/painting/useKanbanEnrichment.test.ts` — stubs for PROJ-01 hook (Map shape, sorted query key)
-- [ ] `tests/painting/logSessionSheet.test.ts` — stubs for PROJ-03 (`defaultUnitId` prop pre-populates unit picker)
+- [x] `tests/collection/unitPhotoLatest.test.ts` — COLL-01 query functions (12 tests)
+- [x] `tests/collection/useLatestUnitPhotos.test.tsx` — COLL-01 hook (4 tests)
+- [x] `tests/collection/StatusPopover.test.tsx` — COLL-02 StatusBadge trigger (9 tests)
+- [x] `tests/painting/kanbanEnrichment.test.ts` — PROJ-01 query functions (6 tests)
+- [x] `tests/painting/useKanbanEnrichment.test.tsx` — PROJ-01 hook (4 tests)
+- [x] `tests/painting/logSessionSheet.test.tsx` — PROJ-03 defaultUnitId prop (4 tests)
+- [x] `tests/painting/getNextActionHint.test.ts` — PROJ-02 next-action hints (5 tests, added by audit)
 
 ---
 
@@ -77,11 +80,25 @@ created: 2026-05-05
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 8s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 8s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved
+
+---
+
+## Validation Audit 2026-05-05
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 1 |
+| Resolved | 1 |
+| Escalated | 0 |
+
+**Gap:** PROJ-02 `getNextActionHint` — no test existed. Created `tests/painting/getNextActionHint.test.ts` with 5 tests covering exhaustiveness, specific mappings, and Completed-status guard.
+
+Full suite: 561 passed, 2 skipped, 0 failures.
