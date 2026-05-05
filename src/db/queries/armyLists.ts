@@ -146,3 +146,41 @@ export async function getArmyListsByUnitId(
     [unitId],
   );
 }
+
+/**
+ * PLAY-02 — batch readiness query.
+ *
+ * Returns total and battle-ready points per army list for a set of list IDs.
+ * Uses a single GROUP BY query — no N+1 per list.
+ *
+ * Battle-ready = units with status_painting = 'Completed' (canonical value from
+ * PAINTING_STATUS_ORDER — NOT 'Complete', Pitfall 1).
+ * Effective points = COALESCE(points_override, u.points, 0) — never computed in JS.
+ * Returns empty array immediately for empty ids — avoids SQL IN () error (Pitfall 2).
+ */
+export interface ArmyListReadiness {
+  id: number;
+  total_points: number;
+  battle_ready_points: number;
+}
+
+export async function getArmyListReadiness(
+  ids: number[]
+): Promise<ArmyListReadiness[]> {
+  if (ids.length === 0) return [];
+  const db = await getDb();
+  const placeholders = ids.map((_, i) => `$${i + 1}`).join(", ");
+  return db.select<ArmyListReadiness[]>(
+    `SELECT al.id,
+       SUM(COALESCE(alu.points_override, u.points, 0)) AS total_points,
+       SUM(CASE WHEN u.status_painting = 'Completed'
+                THEN COALESCE(alu.points_override, u.points, 0)
+                ELSE 0 END) AS battle_ready_points
+     FROM army_lists al
+     JOIN army_list_units alu ON alu.list_id = al.id
+     JOIN units u ON u.id = alu.unit_id
+     WHERE al.id IN (${placeholders})
+     GROUP BY al.id`,
+    ids,
+  );
+}

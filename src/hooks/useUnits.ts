@@ -50,6 +50,8 @@ export function useUpdateUnit() {
       // SPEND-03/04 (Pitfall 2): invalidate spending-stats so Spending page stays fresh
       qc.invalidateQueries({ queryKey: ["spending-stats"] });
       qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
+      // PLAY-02: painting status changes feed into army list battle-ready points
+      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
     },
   });
 }
