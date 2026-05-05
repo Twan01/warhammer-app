@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateUnit, useUpdateUnit } from "@/hooks/useUnits";
+import { useUnitPointTiers } from "@/hooks/useUnitPointTiers";
 import { useFactions } from "@/hooks/useFactions";
 import type { Unit } from "@/types/unit";
 import { PAINTING_STATUS_ORDER } from "@/types/unit";
@@ -101,6 +102,8 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
   const createUnit = useCreateUnit();
   const updateUnit = useUpdateUnit();
   const { data: factions, isLoading: factionsLoading } = useFactions();
+  const { data: tiers } = useUnitPointTiers(unit?.id);
+  const hasTiers = (tiers?.length ?? 0) > 0;
   const isEdit = unit !== null;
   const [expanded, setExpanded] = useState(false);
 
@@ -495,8 +498,15 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
                               e.target.value === "" ? null : e.target.valueAsNumber
                             )
                           }
+                          disabled={hasTiers}
+                          className={hasTiers ? "cursor-not-allowed opacity-60" : undefined}
                         />
                       </FormControl>
+                      {hasTiers && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Managed by point tiers ({tiers!.length} tier{tiers!.length !== 1 ? "s" : ""} defined)
+                        </p>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
