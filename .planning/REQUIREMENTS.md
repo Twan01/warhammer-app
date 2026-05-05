@@ -23,9 +23,9 @@
 
 ### Navigation & Quick Add
 
-- [ ] **NAV-01**: Sidebar group labels are renamed to hobby-native names: **Command** (Dashboard, Collection, Projects), **Workshop** (Paints, Recipes), **Play** (Army Lists, Battle Log), **Management** (Factions, Spending)
-- [ ] **NAV-02**: A Quick Add button in the sidebar opens a dropdown menu with 8 creation actions: Add Unit, Add Faction, Add Paint, Add Recipe, Create Project, Log Session, Add Purchase, Log Battle
-- [ ] **NAV-03**: Each Quick Add action opens the corresponding create Sheet as an overlay — the user stays on the current page without navigating
+- [x] **NAV-01**: Sidebar group labels are renamed to hobby-native names: **Command** (Dashboard, Collection, Projects), **Workshop** (Paints, Recipes), **Play** (Army Lists, Battle Log), **Management** (Factions, Spending)
+- [x] **NAV-02**: A Quick Add button in the sidebar opens a dropdown menu with 8 creation actions: Add Unit, Add Faction, Add Paint, Add Recipe, Create Project, Log Session, Add Purchase, Log Battle
+- [x] **NAV-03**: Each Quick Add action opens the corresponding create Sheet as an overlay — the user stays on the current page without navigating
 
 ### Collection
 
@@ -124,9 +124,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DASH-04 | Phase 26 | Complete |
 | DASH-05 | Phase 26 | Complete |
 | DASH-06 | Phase 26 | Complete |
-| NAV-01 | Phase 27 | Pending |
-| NAV-02 | Phase 27 | Pending |
-| NAV-03 | Phase 27 | Pending |
+| NAV-01 | Phase 27 | Complete |
+| NAV-02 | Phase 27 | Complete |
+| NAV-03 | Phase 27 | Complete |
 | COLL-01 | Phase 28 | Pending |
 | COLL-02 | Phase 28 | Pending |
 | PROJ-01 | Phase 28 | Pending |
