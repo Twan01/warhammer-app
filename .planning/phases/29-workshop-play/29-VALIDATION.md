@@ -1,10 +1,11 @@
 ---
 phase: 29
 slug: workshop-play
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-05
+validated: 2026-05-05
 ---
 
 # Phase 29 — Validation Strategy
@@ -38,14 +39,14 @@ created: 2026-05-05
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 29-00-01 | 00 | 0 | WKSP-01 | unit stub | `pnpm test -- tests/workshop-play/paintRowSwatch.test.tsx` | ❌ W0 | ⬜ pending |
-| 29-00-02 | 00 | 0 | WKSP-02 | unit stub | `pnpm test -- tests/workshop-play/recipeSwatchData.test.ts` | ❌ W0 | ⬜ pending |
-| 29-00-03 | 00 | 0 | PLAY-01 | unit stub | `pnpm test -- tests/workshop-play/armyListReadinessPanel.test.tsx` | ❌ W0 | ⬜ pending |
-| 29-00-04 | 00 | 0 | PLAY-02 | unit stub | `pnpm test -- tests/workshop-play/armyListReadiness.test.ts` | ❌ W0 | ⬜ pending |
-| 29-01-* | 01 | 1 | WKSP-01, WKSP-02, PLAY-01, PLAY-02 | unit | `pnpm test -- tests/workshop-play/` | ✅ W0 | ⬜ pending |
-| 29-02-* | 02 | 2 | WKSP-01, WKSP-02 | unit | `pnpm test -- tests/workshop-play/` | ✅ W0 | ⬜ pending |
-| 29-03-* | 03 | 2 | PLAY-01, PLAY-02 | unit | `pnpm test -- tests/workshop-play/` | ✅ W0 | ⬜ pending |
-| 29-04-* | 04 | 3 | ALL | smoke | manual smoke test | N/A | ⬜ pending |
+| 29-00-01 | 00 | 0 | WKSP-01 | unit stub | `pnpm test -- tests/workshop-play/paintRowSwatch.test.tsx` | ✅ | ✅ green |
+| 29-00-02 | 00 | 0 | WKSP-02 | unit stub | `pnpm test -- tests/workshop-play/recipeSwatchData.test.ts` | ✅ | ✅ green |
+| 29-00-03 | 00 | 0 | PLAY-01 | unit stub | `pnpm test -- tests/workshop-play/armyListReadinessPanel.test.tsx` | ✅ | ✅ green |
+| 29-00-04 | 00 | 0 | PLAY-02 | unit stub | `pnpm test -- tests/workshop-play/armyListReadiness.test.tsx` | ✅ | ✅ green |
+| 29-01-* | 01 | 1 | WKSP-02, PLAY-02 | unit | `pnpm test -- tests/workshop-play/` | ✅ | ✅ green |
+| 29-02-* | 02 | 2 | WKSP-01, WKSP-02 | unit | `pnpm test -- tests/workshop-play/` | ✅ | ✅ green |
+| 29-03-* | 03 | 2 | PLAY-01, PLAY-02 | unit | `pnpm test -- tests/workshop-play/` | ✅ | ✅ green |
+| 29-04-* | 04 | 3 | ALL | smoke | `pnpm test && pnpm build` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -53,10 +54,10 @@ created: 2026-05-05
 
 ## Wave 0 Requirements
 
-- [ ] `tests/workshop-play/paintRowSwatch.test.tsx` — stubs for WKSP-01 (PaintRow swatch rendering)
-- [ ] `tests/workshop-play/recipeSwatchData.test.ts` — stubs for WKSP-02 (batch query + hook + swatch strip component)
-- [ ] `tests/workshop-play/armyListReadinessPanel.test.tsx` — stubs for PLAY-01 (ArmyListSummaryBar upgrade)
-- [ ] `tests/workshop-play/armyListReadiness.test.ts` — stubs for PLAY-02 (batch query + hook + BattleLogRow integration)
+- [x] `tests/workshop-play/paintRowSwatch.test.tsx` — 3 tests for WKSP-01 (PaintRow swatch rendering)
+- [x] `tests/workshop-play/recipeSwatchData.test.ts` — 8 tests for WKSP-02 (batch query + hook + swatch strip component)
+- [x] `tests/workshop-play/armyListReadinessPanel.test.tsx` — 6 tests for PLAY-01 (ArmyListSummaryBar upgrade)
+- [x] `tests/workshop-play/armyListReadiness.test.tsx` — 11 tests for PLAY-02 (batch query + hook + BattleLogRow integration)
 
 *No new test framework install needed — Vitest 4 + RTL 16 already configured.*
 
@@ -75,11 +76,24 @@ created: 2026-05-05
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 10s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 10s (2.58s actual)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** ✅ compliant (2026-05-05)
+
+---
+
+## Validation Audit 2026-05-05
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+| Total tests | 28 |
+| Test files | 4 |
+| Suite duration | 2.58s |
