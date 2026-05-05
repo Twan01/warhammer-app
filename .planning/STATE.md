@@ -43,11 +43,11 @@ See: .planning/PROJECT.md (updated 2026-05-04 after v2.3 milestone start)
 
 ## Current Position
 
-Phase: 28 — Collection + Projects (plan 03 complete)
-Plan: 28-03 complete — Wave 2: KanbanCard enrichment (metadata row, next-action hints, Log Session button), prop chain wiring through KanbanBoard > KanbanColumn > KanbanCard, LogSessionSheet sibling portal in PaintingProjectsPage
-Status: In progress — 3/? plans done for Phase 28
+Phase: 29 — Workshop + Play (plan 02 complete)
+Plan: 29-02 complete — WKSP-01 verified (PaintRow swatch tests x3), WKSP-02 implemented (RecipeTable Palette column with overlapping swatch circles, +N overflow, buildRecipeColumns 6-param signature, useRecipeSwatchData wired in RecipesPage)
+Status: In progress — 2/? plans done for Phase 29
 
-Progress: [█████████░] 87% (26/30 plans complete)
+Progress: [█████████░] 93% (28/30 plans complete)
 
 ## v2.3 Phase Map
 
@@ -57,12 +57,14 @@ Progress: [█████████░] 87% (26/30 plans complete)
 | 26 | Dashboard Redesign | DASH-01, DASH-02, DASH-03, DASH-04, DASH-05, DASH-06 | In progress (2/5) |
 | 27 | Navigation & Quick Add | NAV-01, NAV-02, NAV-03 | Complete (4/4) |
 | 28 | Collection + Projects | COLL-01, COLL-02, PROJ-01, PROJ-02, PROJ-03 | In progress (2/?) |
-| 29 | Workshop + Play | WKSP-01, WKSP-02, PLAY-01, PLAY-02 | In progress (2/?) |
+| 29 | Workshop + Play | WKSP-01, WKSP-02, PLAY-01, PLAY-02 | In progress (2/3) — WKSP-01 + WKSP-02 complete |
 
 ## Accumulated Context
 
 ### Phase 29 Decisions
 
+- SwatchStrip test helper uses React.createElement (not JSX) so recipeSwatchData.test.ts stays .ts without rename — avoids spurious rename, keeps query/hook/UI tests in same file
+- Palette swatch strip: h-3 w-3 rounded-full circles, -ml-1 after first item, max 8 visible with +N overflow span — overlapping circle pattern established for recipe palette display
 - Wave 0 stubs omit imports of not-yet-existing modules (getRecipeSwatchColors, useRecipeSwatchData, getArmyListReadiness, useArmyListReadiness) — mirrors Phase 28 pattern; TODO comments carry exact module paths for Wave 1
 - `it.skip` used (not `xit`/`xtest`) — consistent with Phase 26 Wave 0 decision; Wave 1 greps `it.skip` to find activation candidates
 - PLAY-02 stubs split across two describe blocks: query/hook stubs tagged TODO Plan 29-01, UI stubs tagged TODO Plan 29-03 — matches the two-wave execution of PLAY-02
@@ -252,6 +254,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-05T14:44:03.280Z
-Stopped at: Completed 28-04-PLAN.md (Smoke-test verification — all 5 Phase 28 requirements auto-approved)
-Resume: Phase 29 Plan 02 is next (WKSP-02 UI: recipe swatch strip in RecipeTable). Run `/gsd:execute-phase 29-02` to continue.
+Last session: 2026-05-05T16:58:00Z
+Stopped at: Completed 29-02-PLAN.md (WKSP-01 verified + WKSP-02 RecipeTable Palette swatch strip)
+Resume: Phase 29 Plan 03 is next (PLAY-01 + PLAY-02: ArmyList readiness panel UI). Run `/gsd:execute-phase 29-03` to continue.
