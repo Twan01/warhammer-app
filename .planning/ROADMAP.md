@@ -209,7 +209,7 @@ Plans:
 | 18. Battle Log | v2.2 | 4/4 | Complete | 2026-05-04 |
 | 19. Analytics Core | v2.2 | 4/4 | Complete | 2026-05-04 |
 | 20. v2.1 Polish & Gap Closure | v2.1 | 3/3 | Complete | 2026-05-04 |
-| 21. Wishlist | 3/3 | Complete   | 2026-05-05 | — |
+| 21. Wishlist | 3/3 | Complete    | 2026-05-05 | — |
 | 22. Hobby Goals | 2/4 | In Progress|  | — |
 | 23. Display Features | v2.2 | 0/TBD | Not started | — |
 | 25. Design Foundation | v2.3 | 2/2 | Complete | 2026-05-04 |
