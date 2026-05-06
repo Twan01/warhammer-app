@@ -304,6 +304,26 @@ describe("DashboardPage", () => {
     window.localStorage.removeItem("active-faction-id");
   });
 
+  it("populated state has hero gradient wrapper with radial-gradient (VIS-02)", async () => {
+    const tau = f({ id: 1, name: "Tau" });
+    vi.mocked(getDashboardStats).mockResolvedValue({
+      units: [
+        u({ id: 1, faction_id: 1, name: "Fire Warrior", points: 100, status_painting: "Completed" }),
+      ],
+      factions: [tau],
+    });
+
+    const { container } = renderWithProviders(<DashboardPage />);
+
+    // Wait for data to load
+    expect(await screen.findByText("Total Models")).toBeInTheDocument();
+
+    // VIS-02 — hero gradient wrapper must exist with inline radial-gradient style
+    const heroWrapper = container.querySelector("[style*='radial-gradient']");
+    expect(heroWrapper).not.toBeNull();
+    expect(heroWrapper!.className).toContain("col-span-full");
+  });
+
   it("uses grid layout container in error state (LAYOUT-01 atomicity)", async () => {
     vi.mocked(getDashboardStats).mockRejectedValue(new Error("DB unreachable"));
     const { container } = renderWithProviders(<DashboardPage />);
