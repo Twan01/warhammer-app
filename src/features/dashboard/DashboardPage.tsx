@@ -58,7 +58,7 @@ export function DashboardPage() {
   const { data: stats, isLoading, isError } = useDashboardStats();
   const { data: analytics, isLoading: analyticsLoading } = useHobbyAnalytics();
   const { data: activityEvents } = useRecentActivity(stats?.units);
-  const { activeFactionId, setActiveFaction } = useActiveFaction();
+  const { activeFactionId, setActiveFaction, activeFactionHex } = useActiveFaction();
   const { data: latestPhotos } = useLatestUnitPhotos();
 
   // Sheet/dialog state
@@ -169,7 +169,7 @@ export function DashboardPage() {
             </p>
             <div className="flex flex-wrap gap-4">
               {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={`fac-${i}`} className="h-28 w-[180px]" />
+                <Skeleton key={`fac-${i}`} className="h-32 w-[220px]" />
               ))}
             </div>
           </section>
@@ -255,35 +255,48 @@ export function DashboardPage() {
   return (
     <>
       <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-[3fr_2fr] items-start">
-        {/* PageHeader — full width */}
-        <div className="col-span-full">
-          <PageHeader
-            title="Hobby Command Center"
-            subtitle={subtitle}
-            actions={
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setLogDefaultUnitId(undefined);  // Header button = no pre-selection
-                    setLogSessionOpen(true);
-                  }}
-                >
-                  <Paintbrush size={14} className="mr-1.5" aria-hidden={true} />
-                  Log Session
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setQuickAddOpen(true)}
-                >
-                  <Plus size={14} className="mr-1.5" aria-hidden={true} />
-                  Quick Add
-                </Button>
-              </>
-            }
-          />
+        {/* VIS-02 — Hero gradient wrapper: PageHeader + StatCards */}
+        <div
+          className="col-span-full rounded-xl p-6 -m-0"
+          style={{
+            background: `radial-gradient(ellipse at 50% 0%, ${activeFactionHex}12 0%, transparent 70%)`,
+          }}
+        >
+          <div className="mb-6">
+            <PageHeader
+              title="Hobby Command Center"
+              subtitle={subtitle}
+              actions={
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setLogDefaultUnitId(undefined);  // Header button = no pre-selection
+                      setLogSessionOpen(true);
+                    }}
+                  >
+                    <Paintbrush size={14} className="mr-1.5" aria-hidden={true} />
+                    Log Session
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setQuickAddOpen(true)}
+                  >
+                    <Plus size={14} className="mr-1.5" aria-hidden={true} />
+                    Quick Add
+                  </Button>
+                </>
+              }
+            />
+          </div>
+          <div className="grid grid-cols-4 gap-6">
+            <StatCard value={stats.totalModels} label="Total Models" animate={true} to="/collection" />
+            <StatCard value={stats.fullyPainted} label="Fully Painted" animate={true} to="/collection" />
+            <StatCard value={stats.battleReadyPoints} label="Battle-Ready Points" animate={true} to="/army-lists" />
+            <StatCard value={stats.activeProjectsCount} label="Active Projects" animate={true} to="/painting-projects" />
+          </div>
         </div>
 
         {/* DASH-03 — primary visual anchor — full width */}
@@ -300,14 +313,6 @@ export function DashboardPage() {
               }
             }}
           />
-        </div>
-
-        {/* Top stat row (LAYOUT-02 — 4 StatCards with navigation) — full width */}
-        <div className="col-span-full grid grid-cols-4 gap-6">
-          <StatCard value={stats.totalModels} label="Total Models" animate={true} to="/collection" />
-          <StatCard value={stats.fullyPainted} label="Fully Painted" animate={true} to="/collection" />
-          <StatCard value={stats.battleReadyPoints} label="Battle-Ready Points" animate={true} to="/army-lists" />
-          <StatCard value={stats.activeProjectsCount} label="Active Projects" animate={true} to="/painting-projects" />
         </div>
 
         {/* DASH-04 — HobbyPipeline replaces the old Progress section — full width */}

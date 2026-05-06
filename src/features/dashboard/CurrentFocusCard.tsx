@@ -31,7 +31,7 @@ export interface CurrentFocusCardProps {
 export function CurrentFocusCard({ unit, faction, photo, onOpen, onLog }: CurrentFocusCardProps) {
   if (!unit) {
     return (
-      <Card className="bg-card border border-border/60 shadow-sm px-6 py-6">
+      <Card className="bg-card border border-border/60 shadow-sm px-6 py-6 transition-shadow duration-150 hover:shadow-md">
         <div className="flex items-center gap-3 text-muted-foreground">
           <Target size={16} className="shrink-0" aria-hidden="true" />
           <p className="text-sm">
@@ -47,7 +47,7 @@ export function CurrentFocusCard({ unit, faction, photo, onOpen, onLog }: Curren
   return (
     <Card
       style={{ borderLeftColor: accent }}
-      className="bg-card border border-border/60 border-l-4 shadow-sm px-6 py-5"
+      className="bg-card border border-border/60 border-l-4 shadow-sm px-6 py-5 transition-shadow duration-150 hover:shadow-md"
       aria-label={`Current focus: ${unit.name}`}
     >
       <div className="flex items-start gap-4">

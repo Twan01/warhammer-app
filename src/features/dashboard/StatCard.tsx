@@ -68,7 +68,7 @@ export function StatCard({
       value
     );
 
-  const baseClassName = "px-6 bg-card border border-border/60 shadow-sm";
+  const baseClassName = "px-6 bg-card border border-border/60 shadow-sm transition-shadow duration-150 hover:shadow-md";
   const interactiveProps = to
     ? {
         role: "button" as const,
@@ -80,7 +80,7 @@ export function StatCard({
             navigate({ to });
           }
         },
-        className: `${baseClassName} cursor-pointer hover:bg-muted/50 transition-colors`,
+        className: `${baseClassName} cursor-pointer`,
       }
     : { className: baseClassName };
 

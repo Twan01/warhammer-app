@@ -34,7 +34,7 @@ export function ArmyReadinessCard() {
         <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
           Army Readiness
         </p>
-        <div className="rounded-lg border border-border/60 bg-card p-4 shadow-sm">
+        <div className="rounded-lg border border-border/60 bg-card p-4 shadow-sm transition-shadow duration-150 hover:shadow-md">
           <div className="flex flex-col gap-3">
             <Skeleton className="h-6 w-48" />
             <Skeleton className="h-8 w-full" />
@@ -52,7 +52,7 @@ export function ArmyReadinessCard() {
         <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
           Army Readiness
         </p>
-        <div className="rounded-lg border border-border/60 bg-card p-4 shadow-sm">
+        <div className="rounded-lg border border-border/60 bg-card p-4 shadow-sm transition-shadow duration-150 hover:shadow-md">
           <div className="flex flex-col items-center gap-2 py-6 text-muted-foreground">
             <Shield size={20} className="opacity-40" />
             <span className="text-sm">Add units to see army readiness</span>

@@ -44,7 +44,7 @@ export interface RecentActivityFeedProps {
 export function RecentActivityFeed({ events, onUnitClick }: RecentActivityFeedProps) {
   if (events.length === 0) {
     return (
-      <Card className="bg-card border border-border/60 shadow-sm px-6 py-6">
+      <Card className="bg-card border border-border/60 shadow-sm px-6 py-6 transition-shadow duration-150 hover:shadow-md">
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
           Recent Activity
         </p>
