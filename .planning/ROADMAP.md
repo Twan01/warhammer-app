@@ -96,7 +96,7 @@ Full details: `.planning/milestones/v2.3-ROADMAP.md`
 - [x] **Phase 32: Army Readiness Card** — Dedicated ArmyReadinessCard with target point selector and per-faction progress bars (completed 2026-05-06)
 - [x] **Phase 33: Data Intelligence** — Log Session status updates with cache invalidation, spending metrics (cost per model, painted vs unpainted value), recipe–unit association (completed 2026-05-06)
 - [x] **Phase 34: Visual Polish** — FactionCards v2, radial gradient hero, elevated card surface hierarchy (completed 2026-05-06)
-- [ ] **Phase 36: v2.4 Gap Closure** — Recipe cache invalidation fix, stale verification/summary doc updates
+- [x] **Phase 36: v2.4 Gap Closure** — Recipe cache invalidation fix, stale verification/summary doc updates (completed 2026-05-06)
 
 ## Phase Details
 
@@ -227,4 +227,4 @@ Plans:
 | 32. Army Readiness Card | 1/1 | Complete    | 2026-05-06 | — |
 | 33. Data Intelligence | 4/4 | Complete    | 2026-05-06 | — |
 | 34. Visual Polish | 2/2 | Complete    | 2026-05-06 | — |
-| 36. v2.4 Gap Closure | v2.4 | 0/1 | Planned | — |
+| 36. v2.4 Gap Closure | 1/1 | Complete   | 2026-05-06 | — |

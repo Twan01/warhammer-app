@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Premium Dashboard UX & Visual Polish
 status: completed
-stopped_at: Completed 33-03-PLAN.md
-last_updated: "2026-05-06T09:42:28.151Z"
-last_activity: 2026-05-06 — 33-03 DATA-05/06 recipe-unit navigation and focus card recipe display shipped
+stopped_at: Completed 36-01-PLAN.md
+last_updated: "2026-05-06T10:17:28.361Z"
+last_activity: 2026-05-06 — 36-01 recipe by-unit cache invalidation fixed + phase 34/32/33 docs updated
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 12
-  completed_plans: 12
+  total_phases: 6
+  completed_phases: 6
+  total_plans: 13
+  completed_plans: 13
   percent: 100
 ---
 
@@ -25,14 +25,19 @@ See: .planning/PROJECT.md (updated 2026-05-05 after v2.2 milestone completed)
 
 ## Current Position
 
-Phase: 33 of 34 (Data Intelligence) — COMPLETE
-Plan: 3 of 3 complete (Plans 00-03 done)
-Status: DATA-05/06 complete — Phase 33 fully shipped; advance to Phase 34-00
-Last activity: 2026-05-06 — 33-03 DATA-05/06 recipe-unit navigation and focus card recipe display shipped
+Phase: 36 of 36 (v2.4 Gap Closure) — COMPLETE
+Plan: 1 of 1 complete
+Status: DATA-06 cache invalidation fixed + stale docs updated — v2.4 milestone fully closed
+Last activity: 2026-05-06 — 36-01 recipe by-unit cache invalidation fixed + phase 34/32/33 docs updated
 
-Progress: [██████████] 100% (12/12 plans in v2.4)
+Progress: [██████████] 100% (13/13 plans in v2.4)
 
 ## Accumulated Context
+
+### Decisions from Phase 36
+
+- Recipe by-unit invalidation (36-01): raw array literal `["recipes", "by-unit"]` used in invalidateQueries — no new exported constant; key is only used inline in DashboardPage
+- Cache invalidation symmetry (36-01): all three recipe mutation hooks (create/update/delete) now invalidate `["recipes", "by-unit"]` matching the v2.2 principle
 
 ### Decisions from Phase 34
 
@@ -127,6 +132,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-06T09:37:00Z
-Stopped at: Completed 33-03-PLAN.md
-Resume: Execute Phase 34 Plan 00 (VIS wave 0 stubs) — visual polish phase
+Last session: 2026-05-06T10:17:28.358Z
+Stopped at: Completed 36-01-PLAN.md
+Resume: v2.4 milestone complete — all 19 requirements satisfied, all 13 plans shipped, gap closure done
