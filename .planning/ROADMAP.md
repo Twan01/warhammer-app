@@ -206,7 +206,7 @@ Plans:
 | 28. Collection + Projects | v2.3 | 5/5 | Complete | 2026-05-05 |
 | 29. Workshop + Play | v2.3 | 5/5 | Complete | 2026-05-05 |
 | 30. Grid Layout Foundation | 2/2 | Complete    | 2026-05-06 | — |
-| 31. Focus & Projects Panels | 3/3 | Complete   | 2026-05-06 | — |
+| 31. Focus & Projects Panels | 3/3 | Complete    | 2026-05-06 | — |
 | 32. Army Readiness Card | 1/1 | Complete    | 2026-05-06 | — |
 | 33. Data Intelligence | 1/4 | In Progress|  | — |
 | 34. Visual Polish | v2.4 | 0/TBD | Not started | — |
