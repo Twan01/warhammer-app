@@ -116,8 +116,78 @@ describe("SpendingPage — SPEND-03/04 (hero total + faction breakdown)", () => 
 });
 
 describe("SpendingPage — DATA-03/04 (spending intelligence metrics)", () => {
-  it.todo("renders 'Cost Per Completed Model' card with formatted currency when data has Completed units");
-  it.todo("renders dash in 'Cost Per Completed Model' card when costPerCompletedModelPence is null");
-  it.todo("renders 'Painted vs Unpainted Value' card with two figures and labels");
-  it.todo("renders two skeleton cards in loading state for the metric section");
+  it("renders 'Cost Per Completed Model' card with formatted currency when data has Completed units (DATA-03)", () => {
+    vi.mocked(useSpendingStats).mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: {
+        totalPence: 8000,
+        factionBreakdown: [],
+        paintsPence: 0,
+        costPerCompletedModelPence: 4000,
+        paintedValuePence: 3000,
+        unpaintedValuePence: 5000,
+      },
+    } as unknown as ReturnType<typeof useSpendingStats>);
+    render(<SpendingPage />, { wrapper: Wrapper });
+    expect(screen.getByText("Cost Per Completed Model")).toBeInTheDocument();
+    // £40.00 is the unique formatted value for costPerCompletedModelPence = 4000
+    expect(screen.getByText("£40.00")).toBeInTheDocument();
+  });
+
+  it("renders dash in 'Cost Per Completed Model' card when costPerCompletedModelPence is null (DATA-03)", () => {
+    vi.mocked(useSpendingStats).mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: {
+        totalPence: 5000,
+        factionBreakdown: [],
+        paintsPence: 0,
+        costPerCompletedModelPence: null,
+        paintedValuePence: 0,
+        unpaintedValuePence: 5000,
+      },
+    } as unknown as ReturnType<typeof useSpendingStats>);
+    render(<SpendingPage />, { wrapper: Wrapper });
+    expect(screen.getByText("Cost Per Completed Model")).toBeInTheDocument();
+    // The em dash character — should render as fallback
+    expect(screen.getByText("—")).toBeInTheDocument();
+  });
+
+  it("renders 'Painted vs Unpainted Value' card with two figures and painted/unpainted labels (DATA-04)", () => {
+    vi.mocked(useSpendingStats).mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: {
+        totalPence: 12000,
+        factionBreakdown: [],
+        paintsPence: 0,
+        costPerCompletedModelPence: 1200,
+        paintedValuePence: 4500,
+        unpaintedValuePence: 7500,
+      },
+    } as unknown as ReturnType<typeof useSpendingStats>);
+    render(<SpendingPage />, { wrapper: Wrapper });
+    expect(screen.getByText("Painted vs Unpainted Value")).toBeInTheDocument();
+    expect(screen.getByText("painted")).toBeInTheDocument();
+    expect(screen.getByText("unpainted")).toBeInTheDocument();
+    // These values are distinct from all other currency values in the render
+    expect(screen.getByText("£45.00")).toBeInTheDocument();
+    expect(screen.getByText("£75.00")).toBeInTheDocument();
+  });
+
+  it("renders two skeleton cards in loading state for the metric section (DATA-03/04)", () => {
+    vi.mocked(useSpendingStats).mockReturnValue({
+      isLoading: true,
+      isError: false,
+      data: undefined,
+    } as unknown as ReturnType<typeof useSpendingStats>);
+    render(<SpendingPage />, { wrapper: Wrapper });
+    // The loading container should have aria-label "Loading spending data"
+    const loadingContainer = screen.getByLabelText("Loading spending data");
+    // The grid with two skeleton cards should be in the loading state
+    const skeletons = loadingContainer.querySelectorAll(".rounded-lg");
+    // We expect at least 4 skeleton elements: hero (h-20), 2 metric cards (h-28), chart section (h-6 + h-40)
+    expect(skeletons.length).toBeGreaterThanOrEqual(4);
+  });
 });

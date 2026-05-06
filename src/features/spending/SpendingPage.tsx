@@ -38,6 +38,10 @@ export function SpendingPage() {
         aria-label="Loading spending data"
       >
         <Skeleton className="h-20 w-full rounded-lg" />
+        <div className="grid grid-cols-2 gap-6">
+          <Skeleton className="h-28 w-full rounded-lg" />
+          <Skeleton className="h-28 w-full rounded-lg" />
+        </div>
         <div className="flex flex-col gap-4">
           <Skeleton className="h-6 w-32 rounded-lg" />
           <Skeleton className="h-40 w-full rounded-lg" />
@@ -85,6 +89,33 @@ export function SpendingPage() {
               {formatCurrency(data.totalPence)}
             </span>
           </Card>
+
+          {/* DATA-03/04 — Spending Intelligence metrics */}
+          <div className="grid grid-cols-2 gap-6">
+            <Card className="bg-card border border-border/60 shadow-sm rounded-lg px-6 py-6 flex flex-col gap-2">
+              <span className="text-sm text-muted-foreground">Cost Per Completed Model</span>
+              <span className="text-3xl font-semibold tabular-nums">
+                {data.costPerCompletedModelPence !== null
+                  ? formatCurrency(data.costPerCompletedModelPence)
+                  : "—"}
+              </span>
+            </Card>
+            <Card className="bg-card border border-border/60 shadow-sm rounded-lg px-6 py-6 flex flex-col gap-2">
+              <span className="text-sm text-muted-foreground">Painted vs Unpainted Value</span>
+              <div className="flex items-baseline gap-3">
+                <span className="text-2xl font-semibold tabular-nums">
+                  {formatCurrency(data.paintedValuePence)}
+                </span>
+                <span className="text-sm text-muted-foreground">painted</span>
+              </div>
+              <div className="flex items-baseline gap-3">
+                <span className="text-2xl font-semibold tabular-nums">
+                  {formatCurrency(data.unpaintedValuePence)}
+                </span>
+                <span className="text-sm text-muted-foreground">unpainted</span>
+              </div>
+            </Card>
+          </div>
 
           {/* Monthly Trend section (Phase 19 ANLY-06, ANLY-07) */}
           <section className="flex flex-col gap-4">
