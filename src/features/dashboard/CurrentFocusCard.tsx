@@ -1,28 +1,34 @@
 /**
- * DASH-03 — Primary visual anchor on the Dashboard.
+ * DASH-03 v2 — Primary visual anchor on the Dashboard (Phase 31 upgrade).
  *
- * Shows the most recently active project (`activeProjects[0]` from computeStats,
- * which is already sorted by updated_at DESC). Displays unit name with the
- * faction's color_theme as a left-border accent (matches FactionSummaryCard
- * pattern), painting StatusBadge, painting_percentage progress bar, and the
- * `getNextActionHint` text for the current stage.
+ * PANEL-01: Displays left-side 80px photo thumbnail (or faction-colored Swords
+ * icon fallback), unit name, faction name, model count, points, and painting
+ * percentage progress bar.
+ *
+ * PANEL-02: Ghost action buttons — Open (opens UnitDetailSheet) and Log (opens
+ * LogSessionSheet with unit pre-selected). Both callbacks are owned by
+ * DashboardPage to maintain sibling portal contract.
  *
  * Empty state: when `unit` is null (no active projects), renders a muted
- * placeholder directing the user to mark a project active.
+ * placeholder directing the user to mark a project active. No changes.
  */
 import { Card } from "@/components/ui/card";
-import { Target } from "lucide-react";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { getNextActionHint } from "./getNextActionHint";
+import { Button } from "@/components/ui/button";
+import { Target, ExternalLink, Paintbrush } from "lucide-react";
+import { UnitThumbnail } from "@/components/common/UnitThumbnail";
 import type { Unit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
+import type { UnitPhotoWithUrl } from "@/hooks/useUnitPhotos";
 
 export interface CurrentFocusCardProps {
   unit: Unit | null;
   faction: Faction | undefined;
+  photo: UnitPhotoWithUrl | undefined;
+  onOpen: () => void;
+  onLog: () => void;
 }
 
-export function CurrentFocusCard({ unit, faction }: CurrentFocusCardProps) {
+export function CurrentFocusCard({ unit, faction, photo, onOpen, onLog }: CurrentFocusCardProps) {
   if (!unit) {
     return (
       <Card className="bg-card border border-border/60 shadow-sm px-6 py-6">
@@ -37,43 +43,49 @@ export function CurrentFocusCard({ unit, faction }: CurrentFocusCardProps) {
   }
 
   const accent = faction?.color_theme ?? "transparent";
-  const hint = getNextActionHint(unit.status_painting);
 
   return (
     <Card
       style={{ borderLeftColor: accent }}
-      className="bg-card border border-border/60 border-l-4 shadow-sm px-6 py-6"
+      className="bg-card border border-border/60 border-l-4 shadow-sm px-6 py-5"
       aria-label={`Current focus: ${unit.name}`}
     >
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-col gap-2">
+      <div className="flex items-start gap-4">
+        <UnitThumbnail size="md" photo={photo} unit={unit} faction={faction} />
+
+        <div className="flex-1 min-w-0 flex flex-col gap-1">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Current Focus
           </p>
-          <h2 className="text-xl font-semibold tracking-tight">{unit.name}</h2>
-          <div className="flex items-center gap-3">
-            {faction && (
-              <span className="text-sm text-muted-foreground">{faction.name}</span>
-            )}
-            <StatusBadge status={unit.status_painting} />
+          <h2 className="text-lg font-semibold tracking-tight truncate">{unit.name}</h2>
+          {faction && (
+            <div className="text-sm text-muted-foreground">{faction.name}</div>
+          )}
+          <div className="text-sm text-muted-foreground tabular-nums">
+            {unit.model_count ?? "---"} models · {unit.points ?? "---"} pts
+          </div>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-sm text-muted-foreground tabular-nums">
+              {unit.painting_percentage}% painted
+            </span>
+            <div className="h-1 flex-1 rounded-full bg-border/40">
+              <div
+                className="h-1 rounded-full bg-faction-accent transition-all duration-500"
+                style={{ width: `${unit.painting_percentage}%` }}
+              />
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 md:items-end md:min-w-[220px]">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="tabular-nums">{unit.painting_percentage}%</span>
-            <span>painted</span>
-          </div>
-          <div className="h-1 w-full md:w-[220px] rounded-full bg-border/40">
-            <div
-              className="h-1 rounded-full bg-faction-accent transition-all duration-500"
-              style={{ width: `${unit.painting_percentage}%` }}
-            />
-          </div>
-          <p className="text-sm text-foreground">
-            <span className="text-muted-foreground">Next: </span>
-            {hint}
-          </p>
+        <div className="flex flex-col gap-1.5 shrink-0">
+          <Button variant="ghost" size="sm" onClick={onOpen}>
+            <ExternalLink size={14} className="mr-1.5" aria-hidden={true} />
+            Open
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onLog}>
+            <Paintbrush size={14} className="mr-1.5" aria-hidden={true} />
+            Log
+          </Button>
         </div>
       </div>
     </Card>

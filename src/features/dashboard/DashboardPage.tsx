@@ -39,6 +39,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { useLatestUnitPhotos } from "@/hooks/useUnitPhotos";
 import type { UnitPhotoWithUrl } from "@/hooks/useUnitPhotos";
 import type { Unit } from "@/types/unit";
 import { useActiveFaction } from "@/context/ActiveFactionContext";
@@ -57,6 +58,7 @@ export function DashboardPage() {
   const { data: analytics, isLoading: analyticsLoading } = useHobbyAnalytics();
   const { data: activityEvents } = useRecentActivity(stats?.units);
   const { activeFactionId, setActiveFaction } = useActiveFaction();
+  const { data: latestPhotos } = useLatestUnitPhotos();
 
   // Sheet/dialog state
   const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
@@ -68,6 +70,7 @@ export function DashboardPage() {
   // Phase 26 — Quick Add (UnitSheet create mode) + Log Session sheet
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [logSessionOpen, setLogSessionOpen] = useState(false);
+  const [logDefaultUnitId, setLogDefaultUnitId] = useState<number | undefined>(undefined);
 
   // JOUR-05 sibling lightbox — owned at DashboardPage level
   const [lightboxPhoto, setLightboxPhoto] = useState<UnitPhotoWithUrl | null>(null);
@@ -251,7 +254,10 @@ export function DashboardPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setLogSessionOpen(true)}
+                  onClick={() => {
+                    setLogDefaultUnitId(undefined);  // Header button = no pre-selection
+                    setLogSessionOpen(true);
+                  }}
                 >
                   <Paintbrush size={14} className="mr-1.5" aria-hidden={true} />
                   Log Session
@@ -271,7 +277,18 @@ export function DashboardPage() {
 
         {/* DASH-03 — primary visual anchor — full width */}
         <div className="col-span-full">
-          <CurrentFocusCard unit={focusUnit} faction={focusFaction} />
+          <CurrentFocusCard
+            unit={focusUnit}
+            faction={focusFaction}
+            photo={latestPhotos?.get(focusUnit?.id ?? -1)}
+            onOpen={() => focusUnit && setSelectedUnitId(focusUnit.id)}
+            onLog={() => {
+              if (focusUnit) {
+                setLogDefaultUnitId(focusUnit.id);
+                setLogSessionOpen(true);
+              }
+            }}
+          />
         </div>
 
         {/* Top stat row (LAYOUT-02 — 4 StatCards with navigation) — full width */}
@@ -382,7 +399,14 @@ export function DashboardPage() {
       />
 
       {/* Phase 26 — Log Session sheet (sibling, never nested) */}
-      <LogSessionSheet open={logSessionOpen} onClose={() => setLogSessionOpen(false)} />
+      <LogSessionSheet
+        open={logSessionOpen}
+        onClose={() => {
+          setLogSessionOpen(false);
+          setLogDefaultUnitId(undefined);  // Reset to prevent stale pre-selection (Pitfall 3)
+        }}
+        defaultUnitId={logDefaultUnitId}
+      />
 
       <UnitDeleteDialog
         key={deletingUnit?.id ?? "none-delete"}

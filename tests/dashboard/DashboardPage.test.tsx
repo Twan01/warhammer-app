@@ -41,6 +41,13 @@ vi.mock("@/db/queries/factions", () => ({
   deleteFaction: vi.fn(),
 }));
 
+// Mock useLatestUnitPhotos — DashboardPage now calls this hook to pass photo
+// data to CurrentFocusCard. Return an empty Map so the hook stays idle and
+// does not trigger the real Tauri appDataDir() call in jsdom.
+vi.mock("@/hooks/useUnitPhotos", () => ({
+  useLatestUnitPhotos: vi.fn().mockReturnValue({ data: new Map() }),
+}));
+
 // jsdom does not define window.matchMedia — install it via Object.defineProperty so
 // useCountUp (called by AnimatedNumber inside the hero StatCards) has a working
 // implementation. Tests can override per-test via vi.spyOn. vi.restoreAllMocks() in

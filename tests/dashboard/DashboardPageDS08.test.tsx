@@ -47,6 +47,14 @@ vi.mock("@/db/queries/factions", () => ({
   deleteFaction: vi.fn(),
 }));
 
+// ─── Mock useLatestUnitPhotos ─────────────────────────────────────────────────
+// DashboardPage now calls useLatestUnitPhotos to pass photo data to
+// CurrentFocusCard. Return an empty Map so the hook stays idle and does not
+// trigger the real Tauri appDataDir() call in jsdom.
+vi.mock("@/hooks/useUnitPhotos", () => ({
+  useLatestUnitPhotos: vi.fn().mockReturnValue({ data: new Map() }),
+}));
+
 // ─── Mock analytics query (used by DashboardPage's hobby health section) ──────
 vi.mock("@/db/queries/analytics", () => ({
   getHobbyAnalytics: vi.fn().mockResolvedValue(null),
