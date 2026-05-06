@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Star } from "lucide-react";
+import { Circle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useCollectionFilters } from "@/features/units/collectionFilters";
 import type { FactionStat } from "./computeStats";
@@ -45,9 +45,18 @@ export function FactionSummaryCard({
         }
       }}
       aria-label={stat.faction.name}
-      style={{ borderLeftColor: stat.faction.color_theme }}
-      className={`relative min-w-[180px] cursor-pointer border-l-4 px-4 py-4 hover:bg-muted/50${isActive ? " ring-2 ring-faction-accent" : ""}`}
+      className={`relative overflow-hidden min-w-[220px] cursor-pointer px-4 py-6 transition-shadow duration-150${
+        isActive
+          ? " bg-faction-accent/10 ring-2 ring-faction-accent shadow-md"
+          : " bg-card shadow-sm hover:shadow-md"
+      }`}
     >
+      {/* VIS-01 — top accent band (inner div avoids border-radius clipping on rounded-xl) */}
+      <div
+        className="absolute inset-x-0 top-0 h-2"
+        style={{ backgroundColor: stat.faction.color_theme }}
+        aria-hidden="true"
+      />
       <button
         onClick={handleActivate}
         onKeyDown={(e) => {
@@ -57,14 +66,14 @@ export function FactionSummaryCard({
           }
         }}
         aria-label={isActive ? "Deactivate faction theme" : "Set as active faction theme"}
-        className="absolute right-2 top-2 rounded p-1 text-muted-foreground hover:text-foreground"
+        className="absolute right-2 top-3 rounded p-1 text-muted-foreground hover:text-foreground"
       >
-        <Star
-          size={14}
-          className={isActive ? "fill-faction-accent text-faction-accent" : ""}
+        <Circle
+          size={8}
+          className={isActive ? "fill-faction-accent text-faction-accent" : "fill-muted-foreground/30 text-muted-foreground/30"}
         />
       </button>
-      <div className="flex flex-col gap-2">
+      <div className="mt-2 flex flex-col gap-2">
         <span className="text-sm font-semibold">{stat.faction.name}</span>
         <span className="text-sm text-muted-foreground">
           <span className="tabular-nums">{stat.modelCount}</span> models
