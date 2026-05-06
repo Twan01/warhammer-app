@@ -1,7 +1,7 @@
 ---
 phase: 31
 slug: focus-projects-panels
-status: draft
+status: complete
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-05-06
@@ -38,11 +38,11 @@ created: 2026-05-06
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 31-00-01 | 00 | 0 | PHOTO-01, PHOTO-02, PANEL-01, PANEL-02, PANEL-03 | stubs | `pnpm test -- tests/dashboard/UnitThumbnail.test.ts tests/dashboard/CurrentFocusCard.test.ts tests/dashboard/ActiveProjectsPanel.test.ts` | Created in W0 | ⬜ pending |
-| 31-01-01 | 01 | 1 | PHOTO-01, PHOTO-02 | unit | `pnpm test -- tests/dashboard/UnitThumbnail.test.ts` | ✅ W0 | ⬜ pending |
-| 31-01-02 | 01 | 1 | PANEL-01, PANEL-02 | unit | `pnpm test -- tests/dashboard/CurrentFocusCard.test.ts` | ✅ W0 | ⬜ pending |
-| 31-02-01 | 02 | 2 | PANEL-03, PHOTO-01 | unit | `pnpm test -- tests/dashboard/ActiveProjectsPanel.test.ts` | ✅ W0 | ⬜ pending |
-| 31-02-02 | 02 | 2 | PANEL-03 | integration | `pnpm test -- tests/dashboard/` | ✅ existing | ⬜ pending |
+| 31-00-01 | 00 | 0 | PHOTO-01, PHOTO-02, PANEL-01, PANEL-02, PANEL-03 | stubs | `pnpm test -- tests/dashboard/UnitThumbnail.test.ts tests/dashboard/CurrentFocusCard.test.ts tests/dashboard/ActiveProjectsPanel.test.ts` | Created in W0 | ✅ green |
+| 31-01-01 | 01 | 1 | PHOTO-01, PHOTO-02 | unit | `npx vitest run tests/dashboard/UnitThumbnail.test.tsx` | ✅ created | ✅ green |
+| 31-01-02 | 01 | 1 | PANEL-01, PANEL-02 | unit | `npx vitest run tests/dashboard/CurrentFocusCard.test.tsx` | ✅ created | ✅ green |
+| 31-02-01 | 02 | 2 | PANEL-03, PHOTO-01 | unit | `npx vitest run tests/dashboard/ActiveProjectsPanel.test.tsx` | ✅ created | ✅ green |
+| 31-02-02 | 02 | 2 | PANEL-03 | integration | `pnpm test -- tests/dashboard/` | ✅ existing | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -80,3 +80,20 @@ Note: Tauri APIs (`convertFileSrc`, `appDataDir`) must be mocked. Use `vi.mock("
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** approved (Wave 0 plan created as 31-00-PLAN.md)
+
+---
+
+## Validation Audit 2026-05-06
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 31 (all it.todo stubs) |
+| Resolved | 31 (35 tests implemented across 3 .tsx files) |
+| Escalated | 0 |
+
+**Test files created:**
+- `tests/dashboard/UnitThumbnail.test.tsx` — 11 tests (PHOTO-01, PHOTO-02)
+- `tests/dashboard/CurrentFocusCard.test.tsx` — 13 tests (PANEL-01, PANEL-02)
+- `tests/dashboard/ActiveProjectsPanel.test.tsx` — 11 tests (PANEL-03)
+
+All 35 tests green. Phase 31 is fully Nyquist-compliant.
