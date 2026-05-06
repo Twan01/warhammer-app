@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PAINTING_STATUS_ORDER } from "@/types/unit";
 
 /**
  * DASH-02 — Zod schema for the LogSessionSheet form (dashboard Quick Action).
@@ -8,6 +9,10 @@ import { z } from "zod";
  * armyListSchema and battleLogSchema, documented in STATE.md Phase 18 decisions).
  * defaultValues are supplied via the `buildDefaultValues()` pattern in
  * LogSessionSheet.tsx.
+ *
+ * DATA-01: new_status is an optional nullable PaintingStatus enum field.
+ * Omitting or passing null means "no status change" — only a truthy value
+ * triggers the updateUnit mutation in LogSessionSheet.
  */
 export const logSessionSchema = z.object({
   unit_id: z
@@ -24,6 +29,7 @@ export const logSessionSchema = z.object({
     .positive("Duration must be greater than 0")
     .max(1440, "Duration cannot exceed 24 hours"),
   notes: z.string().max(2000).nullable(),
+  new_status: z.enum(PAINTING_STATUS_ORDER).nullable().optional(),
 });
 
 export type LogSessionFormValues = z.infer<typeof logSessionSchema>;
