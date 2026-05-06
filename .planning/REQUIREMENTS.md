@@ -35,11 +35,11 @@ Requirements for Premium Dashboard UX & Visual Polish. Each maps to roadmap phas
 ### Data & Intelligence
 
 - [ ] **DATA-01**: LogSessionSheet includes an optional painting status field that updates the unit's status_painting on submit
-- [ ] **DATA-02**: Log Session status update correctly invalidates dashboard-stats, units, and painting-sessions query caches
-- [ ] **DATA-03**: Spending page displays cost per completed model metric (total spend / fully painted model count)
-- [ ] **DATA-04**: Spending page displays painted vs unpainted collection value split
-- [ ] **DATA-05**: User can see which units are associated with a given recipe and vice versa
-- [ ] **DATA-06**: CurrentFocusCard shows linked recipe name when a recipe is associated with the focus unit
+- [x] **DATA-02**: Log Session status update correctly invalidates dashboard-stats, units, and painting-sessions query caches
+- [x] **DATA-03**: Spending page displays cost per completed model metric (total spend / fully painted model count)
+- [x] **DATA-04**: Spending page displays painted vs unpainted collection value split
+- [x] **DATA-05**: User can see which units are associated with a given recipe and vice versa
+- [x] **DATA-06**: CurrentFocusCard shows linked recipe name when a recipe is associated with the focus unit
 
 ## Future Requirements
 
@@ -86,11 +86,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PANEL-04 | Phase 32 | Complete |
 | PANEL-05 | Phase 32 | Complete |
 | DATA-01 | Phase 33 | Pending |
-| DATA-02 | Phase 33 | Pending |
-| DATA-03 | Phase 33 | Pending |
-| DATA-04 | Phase 33 | Pending |
-| DATA-05 | Phase 33 | Pending |
-| DATA-06 | Phase 33 | Pending |
+| DATA-02 | Phase 33 | Complete |
+| DATA-03 | Phase 33 | Complete |
+| DATA-04 | Phase 33 | Complete |
+| DATA-05 | Phase 33 | Complete |
+| DATA-06 | Phase 33 | Complete |
 | VIS-01 | Phase 34 | Pending |
 | VIS-02 | Phase 34 | Pending |
 | VIS-03 | Phase 34 | Pending |

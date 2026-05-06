@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Premium Dashboard UX & Visual Polish
-status: completed
-stopped_at: Phase 34 context gathered
-last_updated: "2026-05-06T08:26:48.548Z"
-last_activity: 2026-05-06 — 32-01 ArmyReadinessCard per-faction battle-ready points card shipped
+status: in-progress
+stopped_at: Completed 33-00-PLAN.md
+last_updated: "2026-05-06T08:30:46Z"
+last_activity: 2026-05-06 — 33-00 Wave 0 test stubs for DATA-02 through DATA-06 created
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 10
-  completed_plans: 5
-  percent: 57
+  completed_plans: 7
+  percent: 70
 ---
 
 # Project State
@@ -21,18 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-05 after v2.2 milestone completed)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.4 Premium Dashboard UX & Visual Polish — Phase 32 complete, Phase 33 next
+**Current focus:** v2.4 Premium Dashboard UX & Visual Polish — Phase 33 in progress (Plan 00 complete)
 
 ## Current Position
 
-Phase: 32 of 34 (Army Readiness Card) — COMPLETE
-Plan: 1 of 1 complete
-Status: Phase 32 complete — advance to Phase 33 (Data Intelligence)
-Last activity: 2026-05-06 — 32-01 ArmyReadinessCard per-faction battle-ready points card shipped
+Phase: 33 of 34 (Data Intelligence) — IN PROGRESS
+Plan: 0 of 3 complete (Plan 00 done, Plans 01-03 pending)
+Status: Phase 33 Wave 0 stubs complete — advance to Plan 33-01
+Last activity: 2026-05-06 — 33-00 Wave 0 test stubs for DATA-02 through DATA-06 created
 
-Progress: [█████░░░░░] 57% (4/7 plans in v2.4)
+Progress: [███████░░░] 70% (7/10 plans in v2.4)
 
 ## Accumulated Context
+
+### Decisions from Phase 33
+
+- Wave 0 stubs (33-00): intentionally omit component imports — components do not exist yet; Plan 01-03 executors add imports when implementing
 
 ### Decisions from Phase 32
 
@@ -105,6 +109,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-06T08:26:48.544Z
-Stopped at: Phase 34 context gathered
-Resume: Execute Phase 33 (Data Intelligence)
+Last session: 2026-05-06T08:30:46Z
+Stopped at: Completed 33-00-PLAN.md
+Resume: Execute Phase 33 Plan 01 (Data Intelligence — LogSessionSheet status update)
