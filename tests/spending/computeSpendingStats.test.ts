@@ -36,6 +36,87 @@ function f(over: Partial<Faction>): Faction {
   };
 }
 
+describe("computeSpendingStats — DATA-03/04 (cost per model + value split)", () => {
+  it("Test 1: costPerCompletedModelPence is null when no units have status_painting === 'Completed'", () => {
+    const tau = f({ id: 1, name: "Tau" });
+    const units = [
+      u({ id: 1, faction_id: 1, purchase_price_pence: 1500, status_painting: "Not Started" }),
+      u({ id: 2, faction_id: 1, purchase_price_pence: 2500, status_painting: "Built" }),
+    ];
+    const result = computeSpendingStats(units, [tau], 0);
+    expect(result.costPerCompletedModelPence).toBeNull();
+  });
+
+  it("Test 2: costPerCompletedModelPence equals Math.round(unitTotalPence / completedCount) when Completed units exist", () => {
+    const tau = f({ id: 1, name: "Tau" });
+    const units = [
+      u({ id: 1, faction_id: 1, purchase_price_pence: 1500, status_painting: "Not Started" }),
+      u({ id: 2, faction_id: 1, purchase_price_pence: 2500, status_painting: "Completed" }),
+    ];
+    // unitTotalPence = 4000, completedCount = 1 => 4000/1 = 4000
+    const result = computeSpendingStats(units, [tau], 0);
+    expect(result.costPerCompletedModelPence).toBe(4000);
+  });
+
+  it("Test 3: costPerCompletedModelPence is Math.round'd when not evenly divisible (10000 / 3 Completed = 3333)", () => {
+    const tau = f({ id: 1, name: "Tau" });
+    const units = [
+      u({ id: 1, faction_id: 1, purchase_price_pence: 3000, status_painting: "Completed" }),
+      u({ id: 2, faction_id: 1, purchase_price_pence: 4000, status_painting: "Completed" }),
+      u({ id: 3, faction_id: 1, purchase_price_pence: 3000, status_painting: "Completed" }),
+    ];
+    // unitTotalPence = 10000, completedCount = 3 => Math.round(10000/3) = Math.round(3333.33) = 3333
+    const result = computeSpendingStats(units, [tau], 0);
+    expect(result.costPerCompletedModelPence).toBe(Math.round(10000 / 3));
+  });
+
+  it("Test 4: paintedValuePence equals sum of purchase_price_pence for Completed units only", () => {
+    const tau = f({ id: 1, name: "Tau" });
+    const units = [
+      u({ id: 1, faction_id: 1, purchase_price_pence: 1500, status_painting: "Not Started" }),
+      u({ id: 2, faction_id: 1, purchase_price_pence: 2500, status_painting: "Completed" }),
+      u({ id: 3, faction_id: 1, purchase_price_pence: 3000, status_painting: "Completed" }),
+    ];
+    const result = computeSpendingStats(units, [tau], 0);
+    expect(result.paintedValuePence).toBe(5500);
+  });
+
+  it("Test 5: unpaintedValuePence equals unitTotalPence minus paintedValuePence (excludes paintsPence)", () => {
+    const tau = f({ id: 1, name: "Tau" });
+    const units = [
+      u({ id: 1, faction_id: 1, purchase_price_pence: 1500, status_painting: "Not Started" }),
+      u({ id: 2, faction_id: 1, purchase_price_pence: 2500, status_painting: "Completed" }),
+    ];
+    // unitTotalPence = 4000, paintedValuePence = 2500, unpaintedValuePence = 4000 - 2500 = 1500
+    const result = computeSpendingStats(units, [tau], 9999); // paintsPence intentionally high — must not count
+    expect(result.unpaintedValuePence).toBe(1500);
+  });
+
+  it("Test 6: paintedValuePence + unpaintedValuePence === unitTotalPence (invariant)", () => {
+    const tau = f({ id: 1, name: "Tau" });
+    const units = [
+      u({ id: 1, faction_id: 1, purchase_price_pence: 1500, status_painting: "Not Started" }),
+      u({ id: 2, faction_id: 1, purchase_price_pence: 2500, status_painting: "Completed" }),
+      u({ id: 3, faction_id: 1, purchase_price_pence: 3000, status_painting: "Primed" }),
+    ];
+    const result = computeSpendingStats(units, [tau], 5000);
+    const unitTotalPence = 1500 + 2500 + 3000;
+    expect(result.paintedValuePence + result.unpaintedValuePence).toBe(unitTotalPence);
+  });
+
+  it("Test 7: null purchase_price_pence on a Completed unit is treated as 0 (not NaN)", () => {
+    const tau = f({ id: 1, name: "Tau" });
+    const units = [
+      u({ id: 1, faction_id: 1, purchase_price_pence: null, status_painting: "Completed" }),
+      u({ id: 2, faction_id: 1, purchase_price_pence: 2000, status_painting: "Completed" }),
+    ];
+    const result = computeSpendingStats(units, [tau], 0);
+    expect(result.paintedValuePence).toBe(2000);
+    expect(Number.isNaN(result.paintedValuePence)).toBe(false);
+    expect(Number.isNaN(result.costPerCompletedModelPence)).toBe(false);
+  });
+});
+
 describe("computeSpendingStats — SPEND-04 (faction breakdown + Paints row)", () => {
   it("returns empty factionBreakdown entries (paintedPence=0) when no units exist for any faction (CONTEXT.md: all 4 factions always shown)", () => {
     const factions = [f({ id: 1, name: "Tau" }), f({ id: 2, name: "Ultra" })];
