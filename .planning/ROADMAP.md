@@ -123,7 +123,7 @@ Plans:
   3. CurrentFocusCard has an "Open Unit" button that navigates to the unit detail sheet and a "Log Progress" button that opens LogSessionSheet with that unit pre-selected
   4. ActiveProjectsPanel lists up to 5 active-project units, each showing photo thumbnail (or fallback), name, painting progress percentage, last-updated date, and Open / Log Session buttons
   5. All photo thumbnails across CurrentFocusCard and ActiveProjectsPanel use the same consistent fallback component (faction color + icon) when no journal photo is available
-**Plans:** 1/3 plans executed
+**Plans:** 3 plans
 Plans:
 - [ ] 31-00-PLAN.md — Wave 0 test stubs (Nyquist compliance)
 - [ ] 31-01-PLAN.md — UnitThumbnail shared component + CurrentFocusCard v2 with photo, metadata, action buttons
@@ -152,7 +152,11 @@ Plans:
   4. Spending page shows a "Painted vs Unpainted Value" breakdown — two figures showing the estimated spend share attributed to painted units versus unpainted/in-progress units
   5. Recipe detail view lists which units are linked to that recipe; unit detail sheet shows which recipe (if any) is linked to that unit — navigating between them works in both directions
   6. CurrentFocusCard displays the linked recipe name when the focus unit has an associated recipe
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 33-01-PLAN.md — Log Session status update (schema extension + sequential mutations + cache invalidation)
+- [ ] 33-02-PLAN.md — Spending intelligence metrics (cost per model + painted vs unpainted value)
+- [ ] 33-03-PLAN.md — Recipe-unit navigation + CurrentFocusCard recipe display
 
 ### Phase 34: Visual Polish
 **Goal**: FactionSummaryCards are upgraded to a larger, more expressive format with a dominant accent color band and unambiguous active/focus indicators; the dashboard hero gains premium visual depth through a radial gradient; all card surfaces adopt an elevated/hover depth hierarchy
@@ -203,5 +207,5 @@ Plans:
 | 30. Grid Layout Foundation | 2/2 | Complete    | 2026-05-06 | — |
 | 31. Focus & Projects Panels | 1/3 | In Progress|  | — |
 | 32. Army Readiness Card | 1/1 | Complete   | 2026-05-06 | — |
-| 33. Data Intelligence | v2.4 | 0/TBD | Not started | — |
+| 33. Data Intelligence | v2.4 | 0/3 | Not started | — |
 | 34. Visual Polish | v2.4 | 0/TBD | Not started | — |
