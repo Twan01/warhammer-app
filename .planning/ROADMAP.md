@@ -197,7 +197,7 @@ Plans:
 | 27. Navigation & Quick Add | v2.3 | 4/4 | Complete | 2026-05-05 |
 | 28. Collection + Projects | v2.3 | 5/5 | Complete | 2026-05-05 |
 | 29. Workshop + Play | v2.3 | 5/5 | Complete | 2026-05-05 |
-| 30. Grid Layout Foundation | 2/2 | Complete   | 2026-05-06 | — |
+| 30. Grid Layout Foundation | 2/2 | Complete    | 2026-05-06 | — |
 | 31. Focus & Projects Panels | v2.4 | 0/2 | Not started | — |
 | 32. Army Readiness Card | v2.4 | 0/TBD | Not started | — |
 | 33. Data Intelligence | v2.4 | 0/TBD | Not started | — |
