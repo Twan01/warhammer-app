@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Premium Dashboard UX & Visual Polish
 status: completed
-stopped_at: Completed 33-01-PLAN.md
-last_updated: "2026-05-06T09:07:21.825Z"
-last_activity: 2026-05-06 — 34-00 Wave 0 test stubs for VIS-01 and VIS-02 created
+stopped_at: Completed 34-01-PLAN.md
+last_updated: "2026-05-06T09:17:06.000Z"
+last_activity: 2026-05-06 — 34-01 VIS-01/02/03 visual polish implemented (top band, hero gradient, hover shadows)
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 12
   completed_plans: 9
-  percent: 75
+  percent: 92
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-05 after v2.2 milestone completed)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.4 Premium Dashboard UX & Visual Polish — Phase 34 in progress (Plan 00 complete)
+**Current focus:** v2.4 Premium Dashboard UX & Visual Polish — Phase 34 in progress (Plans 00-01 complete)
 
 ## Current Position
 
 Phase: 34 of 34 (Visual Polish) — IN PROGRESS
-Plan: 0 of 2 complete (Plan 00 done, Plans 01-02 pending)
-Status: Phase 34 Wave 0 stubs complete — advance to Plan 34-01
-Last activity: 2026-05-06 — 34-00 Wave 0 test stubs for VIS-01 and VIS-02 created
+Plan: 1 of 2 complete (Plans 00-01 done, Plan 02 pending)
+Status: VIS-01/02/03 complete — advance to Plan 34-02 (final validation)
+Last activity: 2026-05-06 — 34-01 FactionSummaryCard v2 + hero gradient + hover shadows shipped
 
-Progress: [████████░░] 75% (8/12 plans in v2.4)
+Progress: [█████████░] 92% (9/12 plans in v2.4)
 
 ## Accumulated Context
 
@@ -38,12 +38,18 @@ Progress: [████████░░] 75% (8/12 plans in v2.4)
 
 - Wave 0 stubs (34-00): FactionSummaryCard tests use renderWithRouter with a real TanStack Router tree + async findByRole/findByText — mocking useNavigate via vi.mock('@tanstack/react-router') combined with RouterProvider produces empty DOM; async findBy waits for hydration
 - Wave 0 stubs (34-00): vi.mock for @tanstack/react-router removed after discovering empty render conflict; collectionFilters mock kept (no RouterProvider conflict)
+- VIS-01 (34-01): Top accent band uses absolute inner div not CSS border — prevents border-radius clipping on rounded-xl; overflow-hidden on Card clips the band cleanly
+- VIS-01 (34-01): Active FactionSummaryCard glow = full-card (bg-faction-accent/10 + ring-2 + ring-faction-accent + shadow-md); Star icon → Circle dot size 8 for subtler activate toggle
+- VIS-02 (34-01): Hero gradient appends `12` as hex opacity suffix to activeFactionHex (~7%); this keeps gradient visible but does not obscure text or numbers
+- VIS-03 (34-01): StatCard removes hover:bg-muted/50 and uses hover:shadow-md instead — unified shadow hierarchy across all dashboard card surfaces
 
 ### Decisions from Phase 33
 
 - Wave 0 stubs (33-00): intentionally omit component imports — components do not exist yet; Plan 01-03 executors add imports when implementing
 - Sentinel value __none__ used for Radix Select "No change" SelectItem — Radix forbids empty string values in SelectItem (empty string is reserved for clearing selection)
 - hasPointerCapture/setPointerCapture/releasePointerCapture polyfills added globally to tests/setup.ts — jsdom limitation that prevents Radix Select userEvent.click in tests
+- costPerCompletedModelPence (33-02) divides unitTotalPence (all units) by completedCount — not just Completed unit total; answers "on average how much per completed model across whole collection"
+- SpendingPage test fixtures (33-02) must use distinct pence values for all mock fields to avoid getByText ambiguity with formatCurrency output
 
 ### Decisions from Phase 32
 
@@ -119,6 +125,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-06T09:07:21.822Z
-Stopped at: Completed 33-01-PLAN.md
-Resume: Execute Phase 34 Plan 01 (Visual Polish — FactionSummaryCard VIS-01 + DashboardPage hero gradient VIS-02)
+Last session: 2026-05-06T11:30:00Z
+Stopped at: Completed 33-02-PLAN.md
+Resume: Execute Phase 33 Plan 03 (DATA-05/06 — recipe linking and unit link navigation)

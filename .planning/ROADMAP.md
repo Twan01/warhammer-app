@@ -95,7 +95,7 @@ Full details: `.planning/milestones/v2.3-ROADMAP.md`
 - [x] **Phase 31: Focus & Projects Panels** — CurrentFocusCard v2 (photo, metadata, actions) and ActiveProjectsPanel with photo thumbnails and quick actions (completed 2026-05-06)
 - [x] **Phase 32: Army Readiness Card** — Dedicated ArmyReadinessCard with target point selector and per-faction progress bars (completed 2026-05-06)
 - [ ] **Phase 33: Data Intelligence** — Log Session status updates with cache invalidation, spending metrics (cost per model, painted vs unpainted value), recipe–unit association
-- [ ] **Phase 34: Visual Polish** — FactionCards v2, radial gradient hero, elevated card surface hierarchy
+- [x] **Phase 34: Visual Polish** — FactionCards v2, radial gradient hero, elevated card surface hierarchy (completed 2026-05-06)
 
 ## Phase Details
 
@@ -152,7 +152,7 @@ Plans:
   4. Spending page shows a "Painted vs Unpainted Value" breakdown — two figures showing the estimated spend share attributed to painted units versus unpainted/in-progress units
   5. Recipe detail view lists which units are linked to that recipe; unit detail sheet shows which recipe (if any) is linked to that unit — navigating between them works in both directions
   6. CurrentFocusCard displays the linked recipe name when the focus unit has an associated recipe
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 Plans:
 - [ ] 33-00-PLAN.md — Wave 0 test stubs (Nyquist compliance)
 - [ ] 33-01-PLAN.md — Log Session status update (schema extension + sequential mutations + cache invalidation)
@@ -167,7 +167,7 @@ Plans:
   1. FactionSummaryCards are visually larger than before with a solid faction-accent color band as the dominant visual element — the active/focus faction is unmistakably distinct (not just a small star icon)
   2. The dashboard hero area (title + top stat row) has a visible radial gradient background that adds depth without obscuring any text or controls
   3. All dashboard card surfaces respond to hover with a visible shadow transition — resting state uses the panel-elevated token, hover state uses a deeper shadow — giving the grid a tactile layered feel
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 34-00-PLAN.md — Wave 0 test stubs (VIS-01 FactionSummaryCard + VIS-02 hero gradient assertions)
 - [ ] 34-01-PLAN.md — FactionSummaryCard v2 + hero radial gradient + card hover shadow hierarchy
@@ -211,5 +211,5 @@ Plans:
 | 30. Grid Layout Foundation | 2/2 | Complete    | 2026-05-06 | — |
 | 31. Focus & Projects Panels | 3/3 | Complete    | 2026-05-06 | — |
 | 32. Army Readiness Card | 1/1 | Complete    | 2026-05-06 | — |
-| 33. Data Intelligence | 2/4 | In Progress|  | — |
-| 34. Visual Polish | v2.4 | 1/2 | In Progress | — |
+| 33. Data Intelligence | 3/4 | In Progress|  | — |
+| 34. Visual Polish | 2/2 | Complete   | 2026-05-06 | — |
