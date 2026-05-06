@@ -108,7 +108,10 @@ Full details: `.planning/milestones/v2.3-ROADMAP.md`
   2. Resizing the window to 900px causes all dashboard panels to stack into a single column without horizontal overflow
   3. Clicking a StatCard (units, painted, battle-ready, spend) navigates to its corresponding page (Collection, Collection with status filter, Army Lists, Spending)
   4. Dashboard pipeline shows exactly 5 labeled buckets (Not Started / Assembly / Painting / Finishing / Done) each with a model count summed from the underlying 11 painting statuses
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 30-01-PLAN.md — CSS grid layout migration + clickable StatCard navigation
+- [ ] 30-02-PLAN.md — 5-bucket pipeline grouping
 
 ### Phase 31: Focus & Projects Panels
 **Goal**: CurrentFocusCard becomes a rich unit preview — photo thumbnail, model count, points, linked recipe, and direct action buttons — and a new ActiveProjectsPanel surfaces the top 5 active projects with the same photo-forward treatment and quick actions
@@ -191,7 +194,7 @@ Full details: `.planning/milestones/v2.3-ROADMAP.md`
 | 27. Navigation & Quick Add | v2.3 | 4/4 | Complete | 2026-05-05 |
 | 28. Collection + Projects | v2.3 | 5/5 | Complete | 2026-05-05 |
 | 29. Workshop + Play | v2.3 | 5/5 | Complete | 2026-05-05 |
-| 30. Grid Layout Foundation | v2.4 | 0/TBD | Not started | — |
+| 30. Grid Layout Foundation | v2.4 | 0/2 | Not started | — |
 | 31. Focus & Projects Panels | v2.4 | 0/TBD | Not started | — |
 | 32. Army Readiness Card | v2.4 | 0/TBD | Not started | — |
 | 33. Data Intelligence | v2.4 | 0/TBD | Not started | — |
