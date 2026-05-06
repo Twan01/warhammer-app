@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Premium Dashboard UX & Visual Polish
-status: completed
-stopped_at: Completed 33-00-PLAN.md
-last_updated: "2026-05-06T08:38:56.977Z"
-last_activity: 2026-05-06 — 33-00 Wave 0 test stubs for DATA-02 through DATA-06 created
+status: in-progress
+stopped_at: Completed 34-00-PLAN.md
+last_updated: "2026-05-06T09:00:00.000Z"
+last_activity: 2026-05-06 — 34-00 Wave 0 test stubs for VIS-01 and VIS-02 created
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 12
-  completed_plans: 7
-  percent: 70
+  completed_plans: 8
+  percent: 75
 ---
 
 # Project State
@@ -21,18 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-05 after v2.2 milestone completed)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.4 Premium Dashboard UX & Visual Polish — Phase 33 in progress (Plan 00 complete)
+**Current focus:** v2.4 Premium Dashboard UX & Visual Polish — Phase 34 in progress (Plan 00 complete)
 
 ## Current Position
 
-Phase: 33 of 34 (Data Intelligence) — IN PROGRESS
-Plan: 0 of 3 complete (Plan 00 done, Plans 01-03 pending)
-Status: Phase 33 Wave 0 stubs complete — advance to Plan 33-01
-Last activity: 2026-05-06 — 33-00 Wave 0 test stubs for DATA-02 through DATA-06 created
+Phase: 34 of 34 (Visual Polish) — IN PROGRESS
+Plan: 0 of 2 complete (Plan 00 done, Plans 01-02 pending)
+Status: Phase 34 Wave 0 stubs complete — advance to Plan 34-01
+Last activity: 2026-05-06 — 34-00 Wave 0 test stubs for VIS-01 and VIS-02 created
 
-Progress: [███████░░░] 70% (7/10 plans in v2.4)
+Progress: [████████░░] 75% (8/12 plans in v2.4)
 
 ## Accumulated Context
+
+### Decisions from Phase 34
+
+- Wave 0 stubs (34-00): FactionSummaryCard tests use renderWithRouter with a real TanStack Router tree + async findByRole/findByText — mocking useNavigate via vi.mock('@tanstack/react-router') combined with RouterProvider produces empty DOM; async findBy waits for hydration
+- Wave 0 stubs (34-00): vi.mock for @tanstack/react-router removed after discovering empty render conflict; collectionFilters mock kept (no RouterProvider conflict)
 
 ### Decisions from Phase 33
 
@@ -112,6 +117,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-06T08:30:46Z
-Stopped at: Completed 33-00-PLAN.md
-Resume: Execute Phase 33 Plan 01 (Data Intelligence — LogSessionSheet status update)
+Last session: 2026-05-06T09:00:00Z
+Stopped at: Completed 34-00-PLAN.md
+Resume: Execute Phase 34 Plan 01 (Visual Polish — FactionSummaryCard VIS-01 + DashboardPage hero gradient VIS-02)
