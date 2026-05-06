@@ -110,8 +110,8 @@ Full details: `.planning/milestones/v2.3-ROADMAP.md`
   4. Dashboard pipeline shows exactly 5 labeled buckets (Not Started / Assembly / Painting / Finishing / Done) each with a model count summed from the underlying 11 painting statuses
 **Plans:** 2/2 plans complete
 Plans:
-- [ ] 30-01-PLAN.md — CSS grid layout migration + clickable StatCard navigation
-- [ ] 30-02-PLAN.md — 5-bucket pipeline grouping
+- [x] 30-01-PLAN.md — CSS grid layout migration + clickable StatCard navigation
+- [x] 30-02-PLAN.md — 5-bucket pipeline grouping
 
 ### Phase 31: Focus & Projects Panels
 **Goal**: CurrentFocusCard becomes a rich unit preview — photo thumbnail, model count, points, linked recipe, and direct action buttons — and a new ActiveProjectsPanel surfaces the top 5 active projects with the same photo-forward treatment and quick actions
@@ -123,7 +123,10 @@ Plans:
   3. CurrentFocusCard has an "Open Unit" button that navigates to the unit detail sheet and a "Log Progress" button that opens LogSessionSheet with that unit pre-selected
   4. ActiveProjectsPanel lists up to 5 active-project units, each showing photo thumbnail (or fallback), name, painting progress percentage, last-updated date, and Open / Log Session buttons
   5. All photo thumbnails across CurrentFocusCard and ActiveProjectsPanel use the same consistent fallback component (faction color + icon) when no journal photo is available
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 31-01-PLAN.md — UnitThumbnail shared component + CurrentFocusCard v2 with photo, metadata, action buttons
+- [ ] 31-02-PLAN.md — ActiveProjectsPanel with compact project rows + DashboardPage wiring
 
 ### Phase 32: Army Readiness Card
 **Goal**: A dedicated ArmyReadinessCard replaces the existing readiness surface on the dashboard, giving the user a per-faction breakdown of battle-ready points against a target the user selects from a preset list
@@ -195,7 +198,7 @@ Plans:
 | 28. Collection + Projects | v2.3 | 5/5 | Complete | 2026-05-05 |
 | 29. Workshop + Play | v2.3 | 5/5 | Complete | 2026-05-05 |
 | 30. Grid Layout Foundation | 2/2 | Complete   | 2026-05-06 | — |
-| 31. Focus & Projects Panels | v2.4 | 0/TBD | Not started | — |
+| 31. Focus & Projects Panels | v2.4 | 0/2 | Not started | — |
 | 32. Army Readiness Card | v2.4 | 0/TBD | Not started | — |
 | 33. Data Intelligence | v2.4 | 0/TBD | Not started | — |
 | 34. Visual Polish | v2.4 | 0/TBD | Not started | — |
