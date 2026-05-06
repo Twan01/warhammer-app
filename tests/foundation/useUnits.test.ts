@@ -27,6 +27,7 @@ import {
 } from "@/hooks/useUnits";
 
 const DASHBOARD_STATS_KEY = ["dashboard-stats"] as const;
+const ARMY_READINESS_KEY = ["army-readiness"] as const;
 
 const MIN_CREATE_INPUT = {
   faction_id: 1,
@@ -101,6 +102,15 @@ describe("useUnits — useCreateUnit onSuccess invalidations (DATA-09)", () => {
     const keys = spy.mock.calls.map((c) => c[0]?.queryKey);
     expect(keys).toContainEqual(DASHBOARD_STATS_KEY);
   });
+
+  it("invalidates ['army-readiness'] (Phase 32)", async () => {
+    const { spy, wrapper } = makeWrapper();
+    const { result } = renderHook(() => useCreateUnit(), { wrapper });
+    await act(async () => { await result.current.mutateAsync(MIN_CREATE_INPUT); });
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+    const keys = spy.mock.calls.map((c) => c[0]?.queryKey);
+    expect(keys).toContainEqual(ARMY_READINESS_KEY);
+  });
 });
 
 describe("useUnits — useUpdateUnit onSuccess invalidations (DATA-09)", () => {
@@ -142,6 +152,15 @@ describe("useUnits — useUpdateUnit onSuccess invalidations (DATA-09)", () => {
     const keys = spy.mock.calls.map((c) => c[0]?.queryKey);
     expect(keys).toContainEqual(DASHBOARD_STATS_KEY);
   });
+
+  it("invalidates ['army-readiness'] (Phase 32)", async () => {
+    const { spy, wrapper } = makeWrapper();
+    const { result } = renderHook(() => useUpdateUnit(), { wrapper });
+    await act(async () => { await result.current.mutateAsync({ id: 3, name: "Renamed" }); });
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+    const keys = spy.mock.calls.map((c) => c[0]?.queryKey);
+    expect(keys).toContainEqual(ARMY_READINESS_KEY);
+  });
 });
 
 describe("useUnits — useDeleteUnit onSuccess invalidations (DATA-09)", () => {
@@ -169,5 +188,14 @@ describe("useUnits — useDeleteUnit onSuccess invalidations (DATA-09)", () => {
 
     const keys = spy.mock.calls.map((c) => c[0]?.queryKey);
     expect(keys).toContainEqual(DASHBOARD_STATS_KEY);
+  });
+
+  it("invalidates ['army-readiness'] (Phase 32)", async () => {
+    const { spy, wrapper } = makeWrapper();
+    const { result } = renderHook(() => useDeleteUnit(), { wrapper });
+    await act(async () => { await result.current.mutateAsync(3); });
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+    const keys = spy.mock.calls.map((c) => c[0]?.queryKey);
+    expect(keys).toContainEqual(ARMY_READINESS_KEY);
   });
 });

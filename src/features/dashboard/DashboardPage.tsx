@@ -48,6 +48,7 @@ import { DashboardEmptyState } from "./DashboardEmptyState";
 import { CurrentFocusCard } from "./CurrentFocusCard";
 import { HobbyPipeline } from "./HobbyPipeline";
 import { RecentActivityFeed } from "./RecentActivityFeed";
+import { ArmyReadinessCard } from "./ArmyReadinessCard";
 import { LogSessionSheet } from "./LogSessionSheet";
 import { PageHeader } from "@/components/common/PageHeader";
 
@@ -170,8 +171,11 @@ export function DashboardPage() {
           </section>
         </div>
 
-        {/* Right column: Recent Activity skeleton */}
-        <Skeleton className="h-72 w-full" />
+        {/* Right column: Recent Activity + Army Readiness skeletons */}
+        <div className="flex flex-col gap-6">
+          <Skeleton className="h-72 w-full" />
+          <Skeleton className="h-48 w-full" />
+        </div>
       </div>
     );
   }
@@ -337,11 +341,14 @@ export function DashboardPage() {
           </section>
         </div>
 
-        {/* Right column: DASH-06 — Recent Activity feed */}
-        <RecentActivityFeed
-          events={activityEvents ?? []}
-          onUnitClick={handleUnitIdClick}
-        />
+        {/* Right column: Recent Activity + Army Readiness stacked */}
+        <div className="flex flex-col gap-6">
+          <RecentActivityFeed
+            events={activityEvents ?? []}
+            onUnitClick={handleUnitIdClick}
+          />
+          <ArmyReadinessCard />
+        </div>
       </div>
 
       {/* Pitfall 1: SIBLINGS, never nested. POLISH-04: key forces fresh mount per unit. */}

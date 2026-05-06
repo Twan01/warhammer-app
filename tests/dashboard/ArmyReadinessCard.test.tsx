@@ -3,7 +3,6 @@
  *
  * Mocks useArmyReadiness hooks to test rendering in isolation.
  */
-import React from "react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ARMY_READINESS_TARGETS } from "@/hooks/useArmyReadiness";

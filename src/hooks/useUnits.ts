@@ -34,6 +34,8 @@ export function useCreateUnit() {
       // SPEND-03/04 (Pitfall 2): invalidate spending-stats so Spending page stays fresh
       qc.invalidateQueries({ queryKey: ["spending-stats"] });
       qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
+      // Phase 32: army readiness depends on unit points + painting status
+      qc.invalidateQueries({ queryKey: ["army-readiness"] });
     },
   });
 }
@@ -54,6 +56,8 @@ export function useUpdateUnit() {
       qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
       // Phase 35: tier confirm writes to units.points — army list COALESCE chain needs refresh
       qc.invalidateQueries({ queryKey: ["army-lists"] });
+      // Phase 32: army readiness depends on unit points + painting status
+      qc.invalidateQueries({ queryKey: ["army-readiness"] });
     },
   });
 }
@@ -69,6 +73,8 @@ export function useDeleteUnit() {
       // SPEND-03/04 (Pitfall 2): invalidate spending-stats so Spending page stays fresh
       qc.invalidateQueries({ queryKey: ["spending-stats"] });
       qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
+      // Phase 32: army readiness depends on unit points + painting status
+      qc.invalidateQueries({ queryKey: ["army-readiness"] });
     },
     // FK errors (unit in army_list_units) reject — handled by component try/catch with toast
   });

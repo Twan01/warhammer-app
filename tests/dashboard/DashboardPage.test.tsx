@@ -23,8 +23,12 @@ import type { Faction } from "@/types/faction";
 
 // Mock the dashboard query module — DashboardPage indirectly consumes this
 // through useDashboardStats. Different tests override the return value.
+// Phase 32: getArmyReadinessByFaction added; mock returns [] so ArmyReadinessCard
+// renders the empty-state and does not interfere with existing dashboard tests.
 vi.mock("@/db/queries/dashboard", () => ({
   getDashboardStats: vi.fn(),
+  getRecentActivity: vi.fn().mockResolvedValue({ sessions: [], battles: [] }),
+  getArmyReadinessByFaction: vi.fn().mockResolvedValue([]),
 }));
 import { getDashboardStats } from "@/db/queries/dashboard";
 
