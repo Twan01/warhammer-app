@@ -1,3 +1,5 @@
+// Implementation is in recipeDetailSheet.test.tsx (JSX required for RTL rendering).
+// DATA-05 tests (Phase 33) are implemented there.
 import { describe, it } from "vitest";
 
 describe("RecipeDetailSheet — DATA-05 (unit link navigation)", () => {

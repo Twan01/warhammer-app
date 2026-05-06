@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Sheet,
   SheetContent,
@@ -57,6 +58,8 @@ export function RecipeDetailSheet({
     return m;
   }, [paints]);
 
+  const navigate = useNavigate();
+
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <SheetContent
@@ -84,7 +87,21 @@ export function RecipeDetailSheet({
 
             <div className="flex flex-col gap-4 p-4">
               <Field label="Linked Unit">
-                <span className="text-sm">{unit?.name ?? "—"}</span>
+                {unit ? (
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="h-auto p-0"
+                    onClick={() => {
+                      onClose();
+                      navigate({ to: "/collection" });
+                    }}
+                  >
+                    {unit.name}
+                  </Button>
+                ) : (
+                  <span className="text-sm text-muted-foreground">—</span>
+                )}
               </Field>
               <Field label="Area">
                 <span className="text-sm">{recipe.area ?? "—"}</span>
