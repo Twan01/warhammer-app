@@ -6,6 +6,11 @@
  * Pattern mirrors src/db/queries/units.ts and src/db/queries/factions.ts:
  * `getDb()` singleton -> `db.select<T[]>(sql)`. Two SELECTs run in parallel
  * via Promise.all to minimize the latency of the dashboard fetch.
+ *
+ * Phase 32 — getArmyReadinessByFaction: per-faction battle-ready points aggregate.
+ * Uses INNER JOIN so factions with 0 units are excluded.
+ * Uses COALESCE(u.points, 0) to treat null points as 0.
+ * Uses status_painting = 'Completed' (canonical value — NOT 'Complete').
  */
 import { getDb } from "@/db/client";
 import type { Unit } from "@/types/unit";
@@ -58,4 +63,40 @@ export async function getRecentActivity(): Promise<RecentActivityResult> {
     ),
   ]);
   return { sessions, battles };
+}
+
+/**
+ * Phase 32 — PANEL-04/05: Per-faction battle-ready points aggregate.
+ *
+ * Returns one row per faction that has at least one unit (INNER JOIN — factions
+ * with 0 units are excluded so the readiness card stays clean).
+ *
+ * points_owned  = SUM of all unit points (COALESCE null → 0)
+ * points_painted = SUM of points for units with status_painting = 'Completed'
+ *                  (canonical value — NOT 'Complete', Pitfall from armyLists.ts)
+ */
+export interface FactionReadiness {
+  faction_id: number;
+  faction_name: string;
+  color_theme: string;
+  points_owned: number;
+  points_painted: number;
+}
+
+export async function getArmyReadinessByFaction(): Promise<FactionReadiness[]> {
+  const db = await getDb();
+  return db.select<FactionReadiness[]>(
+    `SELECT
+       f.id AS faction_id,
+       f.name AS faction_name,
+       f.color_theme,
+       SUM(COALESCE(u.points, 0)) AS points_owned,
+       SUM(CASE WHEN u.status_painting = 'Completed'
+                THEN COALESCE(u.points, 0)
+                ELSE 0 END) AS points_painted
+     FROM factions f
+     JOIN units u ON u.faction_id = f.id
+     GROUP BY f.id, f.name, f.color_theme
+     ORDER BY f.name ASC`
+  );
 }
