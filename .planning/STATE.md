@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Premium Dashboard UX & Visual Polish
-status: in-progress
-stopped_at: Completed 34-00-PLAN.md
-last_updated: "2026-05-06T09:00:00.000Z"
+status: completed
+stopped_at: Completed 33-01-PLAN.md
+last_updated: "2026-05-06T09:07:21.825Z"
 last_activity: 2026-05-06 — 34-00 Wave 0 test stubs for VIS-01 and VIS-02 created
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 12
-  completed_plans: 8
+  completed_plans: 9
   percent: 75
 ---
 
@@ -42,6 +42,8 @@ Progress: [████████░░] 75% (8/12 plans in v2.4)
 ### Decisions from Phase 33
 
 - Wave 0 stubs (33-00): intentionally omit component imports — components do not exist yet; Plan 01-03 executors add imports when implementing
+- Sentinel value __none__ used for Radix Select "No change" SelectItem — Radix forbids empty string values in SelectItem (empty string is reserved for clearing selection)
+- hasPointerCapture/setPointerCapture/releasePointerCapture polyfills added globally to tests/setup.ts — jsdom limitation that prevents Radix Select userEvent.click in tests
 
 ### Decisions from Phase 32
 
@@ -117,6 +119,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-06T09:00:00Z
-Stopped at: Completed 34-00-PLAN.md
+Last session: 2026-05-06T09:07:21.822Z
+Stopped at: Completed 33-01-PLAN.md
 Resume: Execute Phase 34 Plan 01 (Visual Polish — FactionSummaryCard VIS-01 + DashboardPage hero gradient VIS-02)
