@@ -152,8 +152,9 @@ Plans:
   4. Spending page shows a "Painted vs Unpainted Value" breakdown — two figures showing the estimated spend share attributed to painted units versus unpainted/in-progress units
   5. Recipe detail view lists which units are linked to that recipe; unit detail sheet shows which recipe (if any) is linked to that unit — navigating between them works in both directions
   6. CurrentFocusCard displays the linked recipe name when the focus unit has an associated recipe
-**Plans:** 3 plans
+**Plans:** 4 plans
 Plans:
+- [ ] 33-00-PLAN.md — Wave 0 test stubs (Nyquist compliance)
 - [ ] 33-01-PLAN.md — Log Session status update (schema extension + sequential mutations + cache invalidation)
 - [ ] 33-02-PLAN.md — Spending intelligence metrics (cost per model + painted vs unpainted value)
 - [ ] 33-03-PLAN.md — Recipe-unit navigation + CurrentFocusCard recipe display
@@ -207,5 +208,5 @@ Plans:
 | 30. Grid Layout Foundation | 2/2 | Complete    | 2026-05-06 | — |
 | 31. Focus & Projects Panels | 2/3 | In Progress|  | — |
 | 32. Army Readiness Card | 1/1 | Complete    | 2026-05-06 | — |
-| 33. Data Intelligence | v2.4 | 0/3 | Not started | — |
+| 33. Data Intelligence | v2.4 | 0/4 | Not started | — |
 | 34. Visual Polish | v2.4 | 0/TBD | Not started | — |
