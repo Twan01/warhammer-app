@@ -38,13 +38,13 @@ created: 2026-05-06
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 33-00-01 | 00 | 0 | DATA-02,05,06 | stubs | `pnpm test -- tests/dashboard/useLogSessionWithStatus.test.ts tests/painting/recipeDetailSheet.test.ts` | W0 creates | ⬜ pending |
-| 33-01-01 | 01 | 1 | DATA-01 | unit | `pnpm test -- tests/dashboard/logSessionSchema.test.ts` | ❌ Plan creates | ⬜ pending |
-| 33-01-02 | 01 | 1 | DATA-01,02 | unit + RTL | `pnpm test -- tests/dashboard/useLogSessionWithStatus.test.ts && pnpm build` | W0 stubs | ⬜ pending |
-| 33-02-01 | 02 | 1 | DATA-03,04 | unit | `pnpm test -- tests/spending/computeSpendingStats.test.ts` | ✅ (extend) | ⬜ pending |
-| 33-02-02 | 02 | 1 | DATA-03,04 | unit + RTL | `pnpm test -- tests/spending/SpendingPage.test.tsx && pnpm build` | ✅ (extend) | ⬜ pending |
-| 33-03-01 | 03 | 1 | DATA-05 | unit (RTL) | `pnpm test -- tests/painting/recipeDetailSheet.test.ts && pnpm build` | W0 stubs | ⬜ pending |
-| 33-03-02 | 03 | 1 | DATA-06 | unit (RTL) | `pnpm test -- tests/dashboard/CurrentFocusCard.test.ts && pnpm build` | ✅ (extend) | ⬜ pending |
+| 33-00-01 | 00 | 0 | DATA-02,05,06 | stubs | `pnpm test -- tests/dashboard/useLogSessionWithStatus.test.ts tests/painting/recipeDetailSheet.test.ts` | ✅ | ✅ green |
+| 33-01-01 | 01 | 1 | DATA-01 | unit | `pnpm test -- tests/dashboard/logSessionSchema.test.ts` | ✅ | ✅ green |
+| 33-01-02 | 01 | 1 | DATA-01,02 | unit + RTL | `pnpm test -- tests/dashboard/useLogSessionWithStatus.test.tsx && pnpm build` | ✅ | ✅ green |
+| 33-02-01 | 02 | 1 | DATA-03,04 | unit | `pnpm test -- tests/spending/computeSpendingStats.test.ts` | ✅ | ✅ green |
+| 33-02-02 | 02 | 1 | DATA-03,04 | unit + RTL | `pnpm test -- tests/spending/SpendingPage.test.tsx && pnpm build` | ✅ | ✅ green |
+| 33-03-01 | 03 | 1 | DATA-05 | unit (RTL) | `pnpm test -- tests/painting/recipeDetailSheet.test.tsx && pnpm build` | ✅ | ✅ green |
+| 33-03-02 | 03 | 1 | DATA-06 | unit (RTL) | `pnpm test -- tests/dashboard/CurrentFocusCard.test.tsx && pnpm build` | ✅ | ✅ green |
 
 *Status: ⬜ pending | ✅ green | ❌ red | ⚠️ flaky*
 
@@ -96,4 +96,16 @@ Maximum consecutive build-only tasks: 0 (all have behavioral tests).
 - [x] Feedback latency < 15s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** approved
+**Approval:** approved 2026-05-06
+
+---
+
+## Validation Audit 2026-05-06
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+All 6 requirements (DATA-01 through DATA-06) have behavioral automated tests. Full suite: 768 tests pass, 107 test files pass. No gaps detected.
