@@ -23,7 +23,7 @@ Requirements for Premium Dashboard UX & Visual Polish. Each maps to roadmap phas
 
 ### Photo Integration
 
-- [ ] **PHOTO-01**: CurrentFocusCard, ActiveProjectsPanel, and RecentActivityFeed display unit photo thumbnails from existing journal photos
+- [ ] **PHOTO-01**: CurrentFocusCard and ActiveProjectsPanel display unit photo thumbnails from existing journal photos (Phase 31 scope). RecentActivityFeed photo thumbnail integration is deferred to a future phase — the feed's compact event-log format (icon + label + timestamp at 36px rows) is not suited for photo thumbnails without a significant redesign, and not all event types have associated units.
 - [ ] **PHOTO-02**: All photo-bearing dashboard components use a consistent fallback (faction-colored placeholder with icon) when no photo exists
 
 ### Visual Polish
@@ -67,6 +67,7 @@ Deferred to v2.5+.
 | Budget alerts / spending forecasting | Settings/preferences surface overhead for single-user app |
 | Animated spending charts (stock ticker) | D3 animation complexity for no new data insight; static charts sufficient |
 | Full-screen painting timer | Different mental model than dashboard; LogSessionSheet covers session logging |
+| RecentActivityFeed photo thumbnails | Compact event log format (36px rows) not suited for thumbnails; not all event types have units; would require visual redesign |
 
 ## Traceability
 
@@ -80,7 +81,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PANEL-01 | Phase 31 | Pending |
 | PANEL-02 | Phase 31 | Pending |
 | PANEL-03 | Phase 31 | Pending |
-| PHOTO-01 | Phase 31 | Pending |
+| PHOTO-01 | Phase 31 (CurrentFocusCard + ActiveProjectsPanel) | Pending |
 | PHOTO-02 | Phase 31 | Pending |
 | PANEL-04 | Phase 32 | Pending |
 | PANEL-05 | Phase 32 | Pending |
@@ -101,4 +102,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-05-05*
-*Last updated: 2026-05-05 after roadmap creation — traceability complete*
+*Last updated: 2026-05-06 — PHOTO-01 scoped to CurrentFocusCard + ActiveProjectsPanel; RecentActivityFeed deferred*
