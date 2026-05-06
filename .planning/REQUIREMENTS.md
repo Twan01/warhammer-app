@@ -9,8 +9,8 @@ Requirements for Premium Dashboard UX & Visual Polish. Each maps to roadmap phas
 
 ### Dashboard Layout & Navigation
 
-- [ ] **LAYOUT-01**: Dashboard uses asymmetric CSS grid with 2-column bento layout on desktop, stacking cleanly on narrow windows (min 900px)
-- [ ] **LAYOUT-02**: StatCards navigate to their relevant page when clicked (Collection, Projects, Battle Log, Spending)
+- [x] **LAYOUT-01**: Dashboard uses asymmetric CSS grid with 2-column bento layout on desktop, stacking cleanly on narrow windows (min 900px)
+- [x] **LAYOUT-02**: StatCards navigate to their relevant page when clicked (Collection, Projects, Battle Log, Spending)
 - [ ] **LAYOUT-03**: Dashboard pipeline displays 5 grouped buckets (Not Started / Assembly / Painting / Finishing / Done) with counts, mapped from 11 painting statuses
 
 ### Dashboard Panels
@@ -74,8 +74,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LAYOUT-01 | Phase 30 | Pending |
-| LAYOUT-02 | Phase 30 | Pending |
+| LAYOUT-01 | Phase 30 | Complete |
+| LAYOUT-02 | Phase 30 | Complete |
 | LAYOUT-03 | Phase 30 | Pending |
 | PANEL-01 | Phase 31 | Pending |
 | PANEL-02 | Phase 31 | Pending |

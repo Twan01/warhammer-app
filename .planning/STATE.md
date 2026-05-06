@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Premium Dashboard UX & Visual Polish
 status: planning
-stopped_at: Phase 31 context gathered
-last_updated: "2026-05-06T07:26:28.762Z"
+stopped_at: Completed 30-01-PLAN.md
+last_updated: "2026-05-06T07:31:32.105Z"
 last_activity: 2026-05-05 — v2.2 Full Circle milestone completed and archived
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 2
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -26,13 +26,21 @@ See: .planning/PROJECT.md (updated 2026-05-05 after v2.2 milestone completed)
 ## Current Position
 
 Phase: 30 of 34 (Grid Layout Foundation)
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-05-05 — v2.2 Full Circle milestone completed and archived
+Plan: 01 of 2 complete
+Status: In progress — plan 30-01 complete, plan 30-02 next
+Last activity: 2026-05-06 — 30-01 CSS grid bento layout + StatCard navigation shipped
 
-Progress: [░░░░░░░░░░] 0% (0/0 plans — v2.4 not yet planned)
+Progress: [█████░░░░░] 50% (1/2 plans in Phase 30)
 
 ## Accumulated Context
+
+### Decisions from Phase 30
+
+- CSS grid migration (30-01) executed atomically — all 4 DashboardPage render branches updated in a single commit per v2.4 constraint
+- StatCard `to` prop: useNavigate called unconditionally (Rules of Hooks); interactive behavior gated by `interactiveProps` conditional object spread, not conditional hook call
+- Hobby Health StatCards intentionally have no `to` prop — passive metrics, not navigation shortcuts
+- Loading skeleton fully restructured to mirror the bento grid columns to prevent layout shift on data load
+- Route used for Active Projects: `/painting-projects` (not `/projects` — route confirmed via router.tsx)
 
 ### Decisions Carried from v2.3
 
@@ -79,6 +87,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-06T07:26:28.760Z
-Stopped at: Phase 31 context gathered
-Resume: Run `/gsd:plan-phase 30` to plan Grid Layout Foundation
+Last session: 2026-05-06T07:31:32.102Z
+Stopped at: Completed 30-01-PLAN.md
+Resume: Execute 30-02-PLAN.md (next plan in Phase 30)
