@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Premium Dashboard UX & Visual Polish
-status: completed
-stopped_at: Completed 31-00-PLAN.md
-last_updated: "2026-05-06T08:05:02.953Z"
-last_activity: 2026-05-06 — 30-02 HobbyPipeline 5-bucket grouped view + full test suite shipped
+status: in-progress
+stopped_at: Completed 32-01-PLAN.md
+last_updated: "2026-05-06T08:05:30Z"
+last_activity: 2026-05-06 — 32-01 ArmyReadinessCard per-faction battle-ready points card shipped
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 6
-  completed_plans: 3
-  percent: 100
+  total_plans: 7
+  completed_plans: 4
+  percent: 57
 ---
 
 # Project State
@@ -21,18 +21,26 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-05 after v2.2 milestone completed)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.4 Premium Dashboard UX & Visual Polish — Phase 31 in progress (Plan 00 complete)
+**Current focus:** v2.4 Premium Dashboard UX & Visual Polish — Phase 32 complete, Phase 33 next
 
 ## Current Position
 
-Phase: 31 of 34 (Focus Projects Panels) — IN PROGRESS
-Plan: 1 of 3 complete (31-00 Wave 0 stubs done)
-Status: Phase 31 Plan 00 complete — advance to Plan 01 (UnitThumbnail + CurrentFocusCard)
-Last activity: 2026-05-06 — 31-00 Wave 0 test stubs for UnitThumbnail, CurrentFocusCard, ActiveProjectsPanel
+Phase: 32 of 34 (Army Readiness Card) — COMPLETE
+Plan: 1 of 1 complete
+Status: Phase 32 complete — advance to Phase 33 (Data Intelligence)
+Last activity: 2026-05-06 — 32-01 ArmyReadinessCard per-faction battle-ready points card shipped
 
-Progress: [█████░░░░░] 50% (3/6 plans in v2.4)
+Progress: [█████░░░░░] 57% (4/7 plans in v2.4)
 
 ## Accumulated Context
+
+### Decisions from Phase 32
+
+- INNER JOIN (not LEFT JOIN) in getArmyReadinessByFaction — factions with 0 units excluded from readiness card to keep it clean
+- useArmyReadinessTarget localStorage key: 'army-readiness:target'; ARMY_READINESS_TARGETS validates reads so corrupt values fall back to 2000
+- FactionRow progress bar capped at 100% via Math.min even when points_painted > target; text still shows actual number for transparency
+- ArmyReadinessCard added below RecentActivityFeed in flex-col gap-6 wrapper in populated and loading states
+- DashboardPage test mocks updated to include getArmyReadinessByFaction when mocking @/db/queries/dashboard
 
 ### Decisions from Phase 31
 
@@ -93,6 +101,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-06T08:05:02.950Z
-Stopped at: Completed 31-00-PLAN.md
-Resume: Execute Phase 31 (Photo Panels)
+Last session: 2026-05-06T08:05:30Z
+Stopped at: Completed 32-01-PLAN.md
+Resume: Execute Phase 33 (Data Intelligence)

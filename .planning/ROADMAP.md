@@ -93,7 +93,7 @@ Full details: `.planning/milestones/v2.3-ROADMAP.md`
 
 - [x] **Phase 30: Grid Layout Foundation** — Dashboard CSS grid (asymmetric 2-column bento), clickable StatCards, and 5-bucket pipeline grouping (completed 2026-05-06)
 - [ ] **Phase 31: Focus & Projects Panels** — CurrentFocusCard v2 (photo, metadata, actions) and ActiveProjectsPanel with photo thumbnails and quick actions
-- [ ] **Phase 32: Army Readiness Card** — Dedicated ArmyReadinessCard with target point selector and per-faction progress bars
+- [x] **Phase 32: Army Readiness Card** — Dedicated ArmyReadinessCard with target point selector and per-faction progress bars (completed 2026-05-06)
 - [ ] **Phase 33: Data Intelligence** — Log Session status updates with cache invalidation, spending metrics (cost per model, painted vs unpainted value), recipe–unit association
 - [ ] **Phase 34: Visual Polish** — FactionCards v2, radial gradient hero, elevated card surface hierarchy
 
@@ -137,7 +137,7 @@ Plans:
   1. Dashboard shows an ArmyReadinessCard with a target selector offering four point thresholds (500 / 1000 / 1500 / 2000 pts) — selecting a threshold immediately updates all faction progress bars
   2. Each faction listed shows a labeled progress bar indicating battle-ready points earned versus the selected target, with owned-vs-ready breakdown visible (e.g. "360 / 1000 pts ready, 1500 pts owned")
   3. ArmyReadinessCard data comes from its own dedicated query hook (not getDashboardStats) — the card loads and refreshes independently without triggering a full dashboard re-fetch
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 32-01-PLAN.md — Query function, hooks, ArmyReadinessCard component, DashboardPage wiring, cache invalidation
 
@@ -202,6 +202,6 @@ Plans:
 | 29. Workshop + Play | v2.3 | 5/5 | Complete | 2026-05-05 |
 | 30. Grid Layout Foundation | 2/2 | Complete    | 2026-05-06 | — |
 | 31. Focus & Projects Panels | 1/3 | In Progress|  | — |
-| 32. Army Readiness Card | v2.4 | 0/1 | Not started | — |
+| 32. Army Readiness Card | 1/1 | Complete   | 2026-05-06 | — |
 | 33. Data Intelligence | v2.4 | 0/TBD | Not started | — |
 | 34. Visual Polish | v2.4 | 0/TBD | Not started | — |

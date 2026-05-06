@@ -18,8 +18,8 @@ Requirements for Premium Dashboard UX & Visual Polish. Each maps to roadmap phas
 - [x] **PANEL-01**: CurrentFocusCard displays unit photo thumbnail (or faction-colored fallback), unit name, faction, model count, and points value
 - [x] **PANEL-02**: CurrentFocusCard provides action buttons: Open Unit and Log Progress (opens LogSessionSheet with unit preselected)
 - [x] **PANEL-03**: ActiveProjectsPanel shows up to 5 active painting projects with photo thumbnail, name, progress percentage, last updated, and quick actions (Open, Log Session)
-- [ ] **PANEL-04**: ArmyReadinessCard displays per-faction battle-ready points with a target selector (500 / 1000 / 1500 / 2000 pts)
-- [ ] **PANEL-05**: ArmyReadinessCard shows progress bar per faction toward selected target with owned-vs-ready breakdown
+- [x] **PANEL-04**: ArmyReadinessCard displays per-faction battle-ready points with a target selector (500 / 1000 / 1500 / 2000 pts)
+- [x] **PANEL-05**: ArmyReadinessCard shows progress bar per faction toward selected target with owned-vs-ready breakdown
 
 ### Photo Integration
 
@@ -83,8 +83,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PANEL-03 | Phase 31 | Complete |
 | PHOTO-01 | Phase 31 (CurrentFocusCard + ActiveProjectsPanel) | Complete |
 | PHOTO-02 | Phase 31 | Complete |
-| PANEL-04 | Phase 32 | Pending |
-| PANEL-05 | Phase 32 | Pending |
+| PANEL-04 | Phase 32 | Complete |
+| PANEL-05 | Phase 32 | Complete |
 | DATA-01 | Phase 33 | Pending |
 | DATA-02 | Phase 33 | Pending |
 | DATA-03 | Phase 33 | Pending |
