@@ -28,13 +28,13 @@ Requirements for Premium Dashboard UX & Visual Polish. Each maps to roadmap phas
 
 ### Visual Polish
 
-- [ ] **VIS-01**: FactionSummaryCard upgraded to larger cards with dominant faction accent color band and clear active/focus indicator (not just a star)
-- [ ] **VIS-02**: Dashboard hero area has premium visual depth with subtle radial gradient background
-- [ ] **VIS-03**: Card surfaces use elevated/hover hierarchy (panel-elevated token, shadow transitions)
+- [x] **VIS-01**: FactionSummaryCard upgraded to larger cards with dominant faction accent color band and clear active/focus indicator (not just a star)
+- [x] **VIS-02**: Dashboard hero area has premium visual depth with subtle radial gradient background
+- [x] **VIS-03**: Card surfaces use elevated/hover hierarchy (panel-elevated token, shadow transitions)
 
 ### Data & Intelligence
 
-- [ ] **DATA-01**: LogSessionSheet includes an optional painting status field that updates the unit's status_painting on submit
+- [x] **DATA-01**: LogSessionSheet includes an optional painting status field that updates the unit's status_painting on submit
 - [x] **DATA-02**: Log Session status update correctly invalidates dashboard-stats, units, and painting-sessions query caches
 - [x] **DATA-03**: Spending page displays cost per completed model metric (total spend / fully painted model count)
 - [x] **DATA-04**: Spending page displays painted vs unpainted collection value split
@@ -85,15 +85,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PHOTO-02 | Phase 31 | Complete |
 | PANEL-04 | Phase 32 | Complete |
 | PANEL-05 | Phase 32 | Complete |
-| DATA-01 | Phase 33 | Pending |
+| DATA-01 | Phase 33 | Complete |
 | DATA-02 | Phase 33 | Complete |
 | DATA-03 | Phase 33 | Complete |
 | DATA-04 | Phase 33 | Complete |
 | DATA-05 | Phase 33 | Complete |
 | DATA-06 | Phase 33 | Complete |
-| VIS-01 | Phase 34 | Pending |
-| VIS-02 | Phase 34 | Pending |
-| VIS-03 | Phase 34 | Pending |
+| VIS-01 | Phase 34 | Complete |
+| VIS-02 | Phase 34 | Complete |
+| VIS-03 | Phase 34 | Complete |
 
 **Coverage:**
 - v2.4 requirements: 19 total
