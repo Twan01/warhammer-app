@@ -167,7 +167,10 @@ Plans:
   1. FactionSummaryCards are visually larger than before with a solid faction-accent color band as the dominant visual element — the active/focus faction is unmistakably distinct (not just a small star icon)
   2. The dashboard hero area (title + top stat row) has a visible radial gradient background that adds depth without obscuring any text or controls
   3. All dashboard card surfaces respond to hover with a visible shadow transition — resting state uses the panel-elevated token, hover state uses a deeper shadow — giving the grid a tactile layered feel
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 34-00-PLAN.md — Wave 0 test stubs (VIS-01 FactionSummaryCard + VIS-02 hero gradient assertions)
+- [ ] 34-01-PLAN.md — FactionSummaryCard v2 + hero radial gradient + card hover shadow hierarchy
 
 ## Progress
 
@@ -209,4 +212,4 @@ Plans:
 | 31. Focus & Projects Panels | 3/3 | Complete    | 2026-05-06 | — |
 | 32. Army Readiness Card | 1/1 | Complete    | 2026-05-06 | — |
 | 33. Data Intelligence | 1/4 | In Progress|  | — |
-| 34. Visual Polish | v2.4 | 0/TBD | Not started | — |
+| 34. Visual Polish | v2.4 | 0/2 | Not started | — |
