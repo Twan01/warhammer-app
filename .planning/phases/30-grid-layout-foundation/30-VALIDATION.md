@@ -1,9 +1,9 @@
 ---
 phase: 30
 slug: grid-layout-foundation
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-06
 ---
 
@@ -38,15 +38,15 @@ created: 2026-05-06
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 30-01-01 | 01 | 1 | LAYOUT-01 | unit | `pnpm test -- tests/dashboard/DashboardPage.test.tsx` | ✅ (extend existing) | ⬜ pending |
-| 30-01-02 | 01 | 1 | LAYOUT-01 | unit | `pnpm test -- tests/dashboard/DashboardPage.test.tsx` | ✅ (extend existing) | ⬜ pending |
-| 30-01-03 | 01 | 1 | LAYOUT-01 | unit | `pnpm test -- tests/dashboard/DashboardPage.test.tsx` | ✅ (extend existing) | ⬜ pending |
-| 30-02-01 | 02 | 2 | LAYOUT-02 | unit | `pnpm test -- tests/dashboard/DashboardPage.test.tsx` | ✅ (extend existing) | ⬜ pending |
-| 30-02-02 | 02 | 2 | LAYOUT-02 | unit | `pnpm test -- tests/design-foundation/StatCard.test.tsx` | ✅ (extend existing) | ⬜ pending |
-| 30-02-03 | 02 | 2 | LAYOUT-02 | unit | `pnpm test -- tests/design-foundation/StatCard.test.tsx` | ✅ (extend existing) | ⬜ pending |
-| 30-03-01 | 03 | 3 | LAYOUT-03 | unit | `pnpm test -- tests/dashboard/HobbyPipeline.test.tsx` | ❌ Wave 0 | ⬜ pending |
-| 30-03-02 | 03 | 3 | LAYOUT-03 | unit | `pnpm test -- tests/dashboard/HobbyPipeline.test.tsx` | ❌ Wave 0 | ⬜ pending |
-| 30-03-03 | 03 | 3 | LAYOUT-03 | unit | `pnpm test -- tests/dashboard/HobbyPipeline.test.tsx` | ❌ Wave 0 | ⬜ pending |
+| 30-01-01 | 01 | 1 | LAYOUT-01 | unit | `pnpm test -- tests/dashboard/DashboardPage.test.tsx` | ✅ | ✅ green |
+| 30-01-02 | 01 | 1 | LAYOUT-01 | unit | `pnpm test -- tests/dashboard/DashboardPage.test.tsx` | ✅ | ✅ green |
+| 30-01-03 | 01 | 1 | LAYOUT-01 | unit | `pnpm test -- tests/dashboard/DashboardPage.test.tsx` | ✅ | ✅ green |
+| 30-01-04 | 01 | 1 | LAYOUT-02 | unit | `pnpm test -- tests/dashboard/DashboardPage.test.tsx` | ✅ | ✅ green |
+| 30-01-05 | 01 | 1 | LAYOUT-02 | unit | `pnpm test -- tests/design-foundation/StatCard.test.tsx` | ✅ | ✅ green |
+| 30-01-06 | 01 | 1 | LAYOUT-02 | unit | `pnpm test -- tests/design-foundation/StatCard.test.tsx` | ✅ | ✅ green |
+| 30-02-01 | 02 | 1 | LAYOUT-03 | unit | `pnpm test -- tests/dashboard/HobbyPipeline.test.tsx` | ✅ | ✅ green |
+| 30-02-02 | 02 | 1 | LAYOUT-03 | unit | `pnpm test -- tests/dashboard/HobbyPipeline.test.tsx` | ✅ | ✅ green |
+| 30-02-03 | 02 | 1 | LAYOUT-03 | unit | `pnpm test -- tests/dashboard/HobbyPipeline.test.tsx` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -54,9 +54,9 @@ created: 2026-05-06
 
 ## Wave 0 Requirements
 
-- [ ] `tests/dashboard/HobbyPipeline.test.tsx` — stubs for LAYOUT-03 (bucket rendering + count sums)
+- [x] `tests/dashboard/HobbyPipeline.test.tsx` — 9 tests for LAYOUT-03 (bucket rendering + count sums)
 
-*Existing infrastructure covers LAYOUT-01 and LAYOUT-02.*
+*All test files created and passing.*
 
 ---
 
@@ -72,11 +72,21 @@ created: 2026-05-06
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-05-06
+
+## Validation Audit 2026-05-06
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+All 3 requirements (LAYOUT-01, LAYOUT-02, LAYOUT-03) have automated test coverage. 101 tests across 3 test files pass. No gaps.
