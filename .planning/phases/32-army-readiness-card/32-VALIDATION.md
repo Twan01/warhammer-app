@@ -1,10 +1,11 @@
 ---
 phase: 32
 slug: army-readiness-card
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-06
+audited: 2026-05-06
 ---
 
 # Phase 32 — Validation Strategy
@@ -38,10 +39,10 @@ created: 2026-05-06
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 32-01-01 | 01 | 1 | PANEL-05 | unit | `pnpm test -- tests/dashboard/armyReadinessQuery.test.ts` | ❌ W0 | ⬜ pending |
-| 32-01-02 | 01 | 1 | PANEL-04, PANEL-05 | unit | `pnpm test -- tests/dashboard/useArmyReadiness.test.ts` | ❌ W0 | ⬜ pending |
-| 32-01-03 | 01 | 1 | PANEL-04, PANEL-05 | component | `pnpm test -- tests/dashboard/ArmyReadinessCard.test.tsx` | ❌ W0 | ⬜ pending |
-| 32-01-04 | 01 | 1 | PANEL-05 | unit | `pnpm test -- tests/foundation/useUnits.test.ts` | ✅ | ⬜ pending |
+| 32-01-01 | 01 | 1 | PANEL-05 | unit | `pnpm test -- tests/dashboard/armyReadinessQuery.test.ts` | ✅ | ✅ green |
+| 32-01-02 | 01 | 1 | PANEL-04, PANEL-05 | unit | `pnpm test -- tests/dashboard/armyReadinessQuery.test.ts` | ✅ (merged) | ✅ green |
+| 32-01-03 | 01 | 1 | PANEL-04, PANEL-05 | component | `pnpm test -- tests/dashboard/ArmyReadinessCard.test.tsx` | ✅ | ✅ green |
+| 32-01-04 | 01 | 1 | PANEL-05 | unit | `pnpm test -- tests/foundation/useUnits.test.ts` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -49,11 +50,11 @@ created: 2026-05-06
 
 ## Wave 0 Requirements
 
-- [ ] `tests/dashboard/armyReadinessQuery.test.ts` — stubs for PANEL-05 (getArmyReadinessByFaction SQL shape, INNER JOIN, 'Completed', null points)
-- [ ] `tests/dashboard/useArmyReadiness.test.ts` — stubs for PANEL-04, PANEL-05 (hook query key, data mapping, localStorage target persistence)
-- [ ] `tests/dashboard/ArmyReadinessCard.test.tsx` — stubs for PANEL-04, PANEL-05 (faction rows, target selector, target-met gold text, empty state)
+- [x] `tests/dashboard/armyReadinessQuery.test.ts` — SQL contract + hook tests for PANEL-04, PANEL-05 (10 tests)
+- [x] `tests/dashboard/ArmyReadinessCard.test.tsx` — Component tests for PANEL-04, PANEL-05 (11 tests)
+- [x] `tests/foundation/useUnits.test.ts` — Invalidation tests for PANEL-05 (3 tests added)
 
-*Existing infrastructure covers unit mutation invalidation testing (tests/foundation/useUnits.test.ts).*
+*Note: `useArmyReadiness.test.ts` was merged into `armyReadinessQuery.test.ts` by executor — all hook tests (5-10) present there.*
 
 ---
 
@@ -69,11 +70,23 @@ created: 2026-05-06
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-05-06
+
+---
+
+## Validation Audit 2026-05-06
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+All requirements (PANEL-04, PANEL-05) have automated test coverage. 684 tests pass, 0 failures. Hook tests consolidated into `armyReadinessQuery.test.ts` (file path deviation, not a coverage gap).
