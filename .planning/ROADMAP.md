@@ -7,7 +7,7 @@
 - ✅ **v2.1 Visual Command** — Phases 10–16 + 20 (shipped 2026-05-04)
 - ✅ **v2.2 Full Circle** — Phases 17–19, 21–24, 35 (shipped 2026-05-05)
 - ✅ **v2.3 Hobby Command Center** — Phases 25–29 (shipped 2026-05-05)
-- 🚧 **v2.4 Premium Dashboard UX & Visual Polish** — Phases 30–34 (in progress)
+- 🚧 **v2.4 Premium Dashboard UX & Visual Polish** — Phases 30–34, 36 (in progress)
 
 ## Phases
 
@@ -96,6 +96,7 @@ Full details: `.planning/milestones/v2.3-ROADMAP.md`
 - [x] **Phase 32: Army Readiness Card** — Dedicated ArmyReadinessCard with target point selector and per-faction progress bars (completed 2026-05-06)
 - [x] **Phase 33: Data Intelligence** — Log Session status updates with cache invalidation, spending metrics (cost per model, painted vs unpainted value), recipe–unit association (completed 2026-05-06)
 - [x] **Phase 34: Visual Polish** — FactionCards v2, radial gradient hero, elevated card surface hierarchy (completed 2026-05-06)
+- [ ] **Phase 36: v2.4 Gap Closure** — Recipe cache invalidation fix, stale verification/summary doc updates
 
 ## Phase Details
 
@@ -172,9 +173,22 @@ Plans:
 - [ ] 34-00-PLAN.md — Wave 0 test stubs (VIS-01 FactionSummaryCard + VIS-02 hero gradient assertions)
 - [ ] 34-01-PLAN.md — FactionSummaryCard v2 + hero radial gradient + card hover shadow hierarchy
 
+### Phase 36: v2.4 Gap Closure
+**Goal**: Close all tech debt items identified by the v2.4 milestone audit — fix recipe cache invalidation for DATA-06 freshness, update stale verification and summary documentation
+**Depends on**: Phase 34
+**Requirements**: DATA-06 (cache fix)
+**Gap Closure**: Closes gaps from v2.4-MILESTONE-AUDIT.md
+**Success Criteria** (what must be TRUE):
+  1. Recipe mutations (create/update/delete) invalidate `["recipes", "by-unit"]` query key so CurrentFocusCard recipe name refreshes immediately
+  2. 34-VERIFICATION.md status updated from `gaps_found` to `passed`
+  3. 32-01-SUMMARY.md frontmatter includes `requirements_completed: [PANEL-04, PANEL-05]`
+  4. 33-01-SUMMARY.md frontmatter includes `requirements_completed: [DATA-01]`
+Plans:
+- [ ] 36-01-PLAN.md — Recipe cache invalidation + documentation fixes
+
 ## Progress
 
-**Execution Order:** 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 35 → 25 → 26 → 27 → 28 → 29 → 30 → 31 → 32 → 33 → 34
+**Execution Order:** 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 35 → 25 → 26 → 27 → 28 → 29 → 30 → 31 → 32 → 33 → 34 → 36
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -213,3 +227,4 @@ Plans:
 | 32. Army Readiness Card | 1/1 | Complete    | 2026-05-06 | — |
 | 33. Data Intelligence | 4/4 | Complete    | 2026-05-06 | — |
 | 34. Visual Polish | 2/2 | Complete    | 2026-05-06 | — |
+| 36. v2.4 Gap Closure | v2.4 | 0/1 | Planned | — |
