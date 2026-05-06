@@ -50,6 +50,7 @@ import { CurrentFocusCard } from "./CurrentFocusCard";
 import { HobbyPipeline } from "./HobbyPipeline";
 import { RecentActivityFeed } from "./RecentActivityFeed";
 import { ArmyReadinessCard } from "./ArmyReadinessCard";
+import { ActiveProjectsPanel } from "./ActiveProjectsPanel";
 import { LogSessionSheet } from "./LogSessionSheet";
 import { PageHeader } from "@/components/common/PageHeader";
 
@@ -139,7 +140,7 @@ export function DashboardPage() {
         </div>
 
         {/* CurrentFocusCard skeleton — full width */}
-        <Skeleton className="col-span-full h-28 w-full" />
+        <Skeleton className="col-span-full h-32 w-full" />
 
         {/* StatCards skeleton — full width, 4-col inner grid */}
         <div className="col-span-full grid grid-cols-4 gap-6">
@@ -174,8 +175,18 @@ export function DashboardPage() {
           </section>
         </div>
 
-        {/* Right column: Recent Activity + Army Readiness skeletons */}
+        {/* Right column: Active Projects + Recent Activity + Army Readiness skeletons */}
         <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4">
+            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+              Active Projects
+            </p>
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={`proj-${i}`} className="h-14 w-full" />
+              ))}
+            </div>
+          </div>
           <Skeleton className="h-72 w-full" />
           <Skeleton className="h-48 w-full" />
         </div>
@@ -358,8 +369,18 @@ export function DashboardPage() {
           </section>
         </div>
 
-        {/* Right column: Recent Activity + Army Readiness stacked */}
+        {/* Right column: Active Projects + Recent Activity + Army Readiness stacked */}
         <div className="flex flex-col gap-6">
+          <ActiveProjectsPanel
+            projects={stats.activeProjects}
+            factions={stats.factions}
+            latestPhotos={latestPhotos}
+            onOpen={(unitId) => setSelectedUnitId(unitId)}
+            onLog={(unitId) => {
+              setLogDefaultUnitId(unitId);
+              setLogSessionOpen(true);
+            }}
+          />
           <RecentActivityFeed
             events={activityEvents ?? []}
             onUnitClick={handleUnitIdClick}
