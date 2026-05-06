@@ -136,7 +136,9 @@ Plans:
   1. Dashboard shows an ArmyReadinessCard with a target selector offering four point thresholds (500 / 1000 / 1500 / 2000 pts) — selecting a threshold immediately updates all faction progress bars
   2. Each faction listed shows a labeled progress bar indicating battle-ready points earned versus the selected target, with owned-vs-ready breakdown visible (e.g. "360 / 1000 pts ready, 1500 pts owned")
   3. ArmyReadinessCard data comes from its own dedicated query hook (not getDashboardStats) — the card loads and refreshes independently without triggering a full dashboard re-fetch
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 32-01-PLAN.md — Query function, hooks, ArmyReadinessCard component, DashboardPage wiring, cache invalidation
 
 ### Phase 33: Data Intelligence
 **Goal**: Log Session gains the ability to update a unit's painting status in the same action, cache invalidation covers all three affected query keys, the Spending page surfaces cost-per-model and painted-vs-unpainted value metrics, and recipe–unit associations become visible from both the recipe and unit sides
@@ -199,6 +201,6 @@ Plans:
 | 29. Workshop + Play | v2.3 | 5/5 | Complete | 2026-05-05 |
 | 30. Grid Layout Foundation | 2/2 | Complete    | 2026-05-06 | — |
 | 31. Focus & Projects Panels | v2.4 | 0/2 | Not started | — |
-| 32. Army Readiness Card | v2.4 | 0/TBD | Not started | — |
+| 32. Army Readiness Card | v2.4 | 0/1 | Not started | — |
 | 33. Data Intelligence | v2.4 | 0/TBD | Not started | — |
 | 34. Visual Polish | v2.4 | 0/TBD | Not started | — |
