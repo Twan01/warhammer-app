@@ -1,9 +1,16 @@
 # HobbyForge
 
-## Current State: v2.4 Shipped
+## Current Milestone: v2.5 Recipes 2.0 / Painting Studio
 
-**Latest shipped:** v2.4 Premium Dashboard UX & Visual Polish (2026-05-06)
-**Next milestone:** Not yet planned — run `/gsd:new-milestone` to start
+**Goal:** Transform recipes from flat paint notes into a structured painting knowledge system with step-by-step workflows, paint inventory integration, and a studio UX.
+
+**Target features:**
+- Structured recipe steps (title, phase, tool, technique, duration, photo per step)
+- Recipe metadata (style, surface, effect, difficulty, estimated minutes, result photo)
+- Paint availability integration (owned/missing/running-low per recipe)
+- Recipe-to-session linking (track which recipe/step you worked on)
+- Studio UX upgrade (cards, timeline view, filters, duplication)
+- Paint substitutions per step
 
 ---
 
@@ -87,7 +94,7 @@ A single personal command center that always answers "what do I own, what's pain
 
 ### Active
 
-(No active requirements — run `/gsd:new-milestone` to define next milestone)
+(Defining requirements for v2.5 Recipes 2.0 / Painting Studio)
 
 ### Out of Scope
 
@@ -154,4 +161,4 @@ A single personal command center that always answers "what do I own, what's pain
 | Recipe by-unit cache invalidation prefix match | Raw array literal `["recipes", "by-unit"]` invalidates all `["recipes", "by-unit", *]` keys | ✓ Good — React Query prefix matching, no new constant needed |
 
 ---
-*Last updated: 2026-05-06 after v2.4 milestone completed*
+*Last updated: 2026-05-06 after v2.5 milestone started*
