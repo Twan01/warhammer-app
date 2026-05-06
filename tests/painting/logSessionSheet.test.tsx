@@ -8,10 +8,14 @@ import type { Unit } from "@/types/unit";
  * PROJ-03 — LogSessionSheet defaultUnitId prop pre-populates the unit picker.
  */
 
-// Mock useUnits so no SQLite dependency
+// Mock useUnits / useUpdateUnit so no SQLite dependency
 const useUnitsMock = vi.fn();
 vi.mock("@/hooks/useUnits", () => ({
   useUnits: () => useUnitsMock(),
+  useUpdateUnit: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
   UNITS_KEY: ["units"],
 }));
 
@@ -122,9 +126,10 @@ describe("LogSessionSheet defaultUnitId", () => {
       </Wrapper>
     );
 
-    // Select trigger button should not be disabled
-    const trigger = screen.getByRole("combobox");
-    expect(trigger).not.toBeDisabled();
+    // Two comboboxes now (unit + new_status); get the Unit one by its accessible name
+    // or by grabbing all comboboxes and checking the first is not disabled.
+    const triggers = screen.getAllByRole("combobox");
+    expect(triggers[0]).not.toBeDisabled();
   });
 
   it("renders normally when defaultUnitId is undefined", () => {

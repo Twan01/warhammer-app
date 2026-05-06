@@ -7,6 +7,11 @@
  * updated_at DESC), then all remaining units alphabetically. This biases the
  * picker to the most likely targets without forcing the user to scroll.
  *
+ * DATA-01/02: Optional "Update Painting Status" dropdown between Unit and Date
+ * fields. Submitting with a status selected calls createSession then updateUnit
+ * sequentially. Partial failure (session ok, status fails) shows warning toast
+ * and closes the sheet without rolling back the logged session.
+ *
  * Pattern source: src/features/units/UnitSheet.tsx (form + sheet),
  *                 src/features/units/JournalTab.tsx (mutation field semantics).
  */
@@ -39,10 +44,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useUnits } from "@/hooks/useUnits";
+import { useUnits, useUpdateUnit } from "@/hooks/useUnits";
 import { useCreatePaintingSession } from "@/hooks/useJournalSessions";
 import { todayISO } from "@/lib/dates";
 import type { Unit } from "@/types/unit";
+import { PAINTING_STATUS_ORDER } from "@/types/unit";
 import { logSessionSchema, type LogSessionFormValues } from "./logSessionSchema";
 
 interface LogSessionSheetProps {
@@ -57,6 +63,7 @@ function buildDefaultValues(defaultUnitId?: number): LogSessionFormValues {
     session_date: todayISO(),
     duration_minutes: 30,
     notes: null,
+    new_status: null,
   };
 }
 
@@ -75,6 +82,7 @@ function sortUnitsForPicker(units: Unit[]): Unit[] {
 export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionSheetProps) {
   const { data: units, isLoading: unitsLoading } = useUnits();
   const createSession = useCreatePaintingSession();
+  const updateUnit = useUpdateUnit();
 
   const form = useForm<LogSessionFormValues>({
     resolver: zodResolver(logSessionSchema),
@@ -100,12 +108,27 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
         duration_minutes: values.duration_minutes,
         notes: values.notes && values.notes.trim() !== "" ? values.notes.trim() : null,
       });
-      toast.success("Session logged.");
-      onClose();
     } catch {
       toast.error("Failed to log session — try again.");
       // Sheet stays open so user can retry
+      return;
     }
+
+    if (values.new_status) {
+      try {
+        await updateUnit.mutateAsync({
+          id: values.unit_id,
+          status_painting: values.new_status,
+        });
+      } catch {
+        toast.warning("Session logged but status update failed.");
+        onClose();
+        return;
+      }
+    }
+
+    toast.success(values.new_status ? "Session logged and status updated." : "Session logged.");
+    onClose();
   }
 
   return (
@@ -154,6 +177,43 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
                     )}
                   />
                   <FormMessage>{form.formState.errors.unit_id?.message}</FormMessage>
+                  {/* unused render arg silenced */}
+                  <input type="hidden" value={field.value ?? ""} readOnly />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              name="new_status"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Update Painting Status</FormLabel>
+                  <Controller
+                    name="new_status"
+                    control={form.control}
+                    render={({ field: ctrl }) => (
+                      <Select
+                        value={ctrl.value ?? "__none__"}
+                        onValueChange={(v) => ctrl.onChange(v === "__none__" ? null : v)}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="No change" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="__none__">No change</SelectItem>
+                          {PAINTING_STATUS_ORDER.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {status}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  <FormMessage />
                   {/* unused render arg silenced */}
                   <input type="hidden" value={field.value ?? ""} readOnly />
                 </FormItem>
@@ -225,7 +285,15 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting || unitsLoading}>
+              <Button
+                type="submit"
+                disabled={
+                  form.formState.isSubmitting ||
+                  unitsLoading ||
+                  createSession.isPending ||
+                  updateUnit.isPending
+                }
+              >
                 Log Session
               </Button>
             </SheetFooter>
