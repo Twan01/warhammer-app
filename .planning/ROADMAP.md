@@ -123,7 +123,7 @@ Plans:
   3. CurrentFocusCard has an "Open Unit" button that navigates to the unit detail sheet and a "Log Progress" button that opens LogSessionSheet with that unit pre-selected
   4. ActiveProjectsPanel lists up to 5 active-project units, each showing photo thumbnail (or fallback), name, painting progress percentage, last-updated date, and Open / Log Session buttons
   5. All photo thumbnails across CurrentFocusCard and ActiveProjectsPanel use the same consistent fallback component (faction color + icon) when no journal photo is available
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 Plans:
 - [ ] 31-00-PLAN.md — Wave 0 test stubs (Nyquist compliance)
 - [ ] 31-01-PLAN.md — UnitThumbnail shared component + CurrentFocusCard v2 with photo, metadata, action buttons
@@ -201,7 +201,7 @@ Plans:
 | 28. Collection + Projects | v2.3 | 5/5 | Complete | 2026-05-05 |
 | 29. Workshop + Play | v2.3 | 5/5 | Complete | 2026-05-05 |
 | 30. Grid Layout Foundation | 2/2 | Complete    | 2026-05-06 | — |
-| 31. Focus & Projects Panels | v2.4 | 0/3 | Not started | — |
+| 31. Focus & Projects Panels | 1/3 | In Progress|  | — |
 | 32. Army Readiness Card | v2.4 | 0/1 | Not started | — |
 | 33. Data Intelligence | v2.4 | 0/TBD | Not started | — |
 | 34. Visual Polish | v2.4 | 0/TBD | Not started | — |

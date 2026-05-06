@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Premium Dashboard UX & Visual Polish
 status: completed
-stopped_at: Phase 33 context gathered
-last_updated: "2026-05-06T07:56:43.513Z"
+stopped_at: Completed 31-00-PLAN.md
+last_updated: "2026-05-06T08:05:02.953Z"
 last_activity: 2026-05-06 — 30-02 HobbyPipeline 5-bucket grouped view + full test suite shipped
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 6
-  completed_plans: 2
+  completed_plans: 3
   percent: 100
 ---
 
@@ -21,18 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-05 after v2.2 milestone completed)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.4 Premium Dashboard UX & Visual Polish — Phase 30 complete, Phase 31 next
+**Current focus:** v2.4 Premium Dashboard UX & Visual Polish — Phase 31 in progress (Plan 00 complete)
 
 ## Current Position
 
-Phase: 30 of 34 (Grid Layout Foundation) — COMPLETE
-Plan: 2 of 2 complete
-Status: Phase 30 complete — advance to Phase 31 (Photo Panels)
-Last activity: 2026-05-06 — 30-02 HobbyPipeline 5-bucket grouped view + full test suite shipped
+Phase: 31 of 34 (Focus Projects Panels) — IN PROGRESS
+Plan: 1 of 3 complete (31-00 Wave 0 stubs done)
+Status: Phase 31 Plan 00 complete — advance to Plan 01 (UnitThumbnail + CurrentFocusCard)
+Last activity: 2026-05-06 — 31-00 Wave 0 test stubs for UnitThumbnail, CurrentFocusCard, ActiveProjectsPanel
 
-Progress: [██████████] 100% (2/2 plans in Phase 30)
+Progress: [█████░░░░░] 50% (3/6 plans in v2.4)
 
 ## Accumulated Context
+
+### Decisions from Phase 31
+
+- Wave 0 test stubs (31-00): intentionally omit component imports — components do not exist yet; Plan 01/02 executors add imports when implementing components
 
 ### Decisions from Phase 30
 
@@ -89,6 +93,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-06T07:56:43.511Z
-Stopped at: Phase 33 context gathered
+Last session: 2026-05-06T08:05:02.950Z
+Stopped at: Completed 31-00-PLAN.md
 Resume: Execute Phase 31 (Photo Panels)

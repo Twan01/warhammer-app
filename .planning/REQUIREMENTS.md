@@ -15,16 +15,16 @@ Requirements for Premium Dashboard UX & Visual Polish. Each maps to roadmap phas
 
 ### Dashboard Panels
 
-- [ ] **PANEL-01**: CurrentFocusCard displays unit photo thumbnail (or faction-colored fallback), unit name, faction, model count, and points value
-- [ ] **PANEL-02**: CurrentFocusCard provides action buttons: Open Unit and Log Progress (opens LogSessionSheet with unit preselected)
-- [ ] **PANEL-03**: ActiveProjectsPanel shows up to 5 active painting projects with photo thumbnail, name, progress percentage, last updated, and quick actions (Open, Log Session)
+- [x] **PANEL-01**: CurrentFocusCard displays unit photo thumbnail (or faction-colored fallback), unit name, faction, model count, and points value
+- [x] **PANEL-02**: CurrentFocusCard provides action buttons: Open Unit and Log Progress (opens LogSessionSheet with unit preselected)
+- [x] **PANEL-03**: ActiveProjectsPanel shows up to 5 active painting projects with photo thumbnail, name, progress percentage, last updated, and quick actions (Open, Log Session)
 - [ ] **PANEL-04**: ArmyReadinessCard displays per-faction battle-ready points with a target selector (500 / 1000 / 1500 / 2000 pts)
 - [ ] **PANEL-05**: ArmyReadinessCard shows progress bar per faction toward selected target with owned-vs-ready breakdown
 
 ### Photo Integration
 
-- [ ] **PHOTO-01**: CurrentFocusCard and ActiveProjectsPanel display unit photo thumbnails from existing journal photos (Phase 31 scope). RecentActivityFeed photo thumbnail integration is deferred to a future phase — the feed's compact event-log format (icon + label + timestamp at 36px rows) is not suited for photo thumbnails without a significant redesign, and not all event types have associated units.
-- [ ] **PHOTO-02**: All photo-bearing dashboard components use a consistent fallback (faction-colored placeholder with icon) when no photo exists
+- [x] **PHOTO-01**: CurrentFocusCard and ActiveProjectsPanel display unit photo thumbnails from existing journal photos (Phase 31 scope). RecentActivityFeed photo thumbnail integration is deferred to a future phase — the feed's compact event-log format (icon + label + timestamp at 36px rows) is not suited for photo thumbnails without a significant redesign, and not all event types have associated units.
+- [x] **PHOTO-02**: All photo-bearing dashboard components use a consistent fallback (faction-colored placeholder with icon) when no photo exists
 
 ### Visual Polish
 
@@ -78,11 +78,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LAYOUT-01 | Phase 30 | Complete |
 | LAYOUT-02 | Phase 30 | Complete |
 | LAYOUT-03 | Phase 30 | Complete |
-| PANEL-01 | Phase 31 | Pending |
-| PANEL-02 | Phase 31 | Pending |
-| PANEL-03 | Phase 31 | Pending |
-| PHOTO-01 | Phase 31 (CurrentFocusCard + ActiveProjectsPanel) | Pending |
-| PHOTO-02 | Phase 31 | Pending |
+| PANEL-01 | Phase 31 | Complete |
+| PANEL-02 | Phase 31 | Complete |
+| PANEL-03 | Phase 31 | Complete |
+| PHOTO-01 | Phase 31 (CurrentFocusCard + ActiveProjectsPanel) | Complete |
+| PHOTO-02 | Phase 31 | Complete |
 | PANEL-04 | Phase 32 | Pending |
 | PANEL-05 | Phase 32 | Pending |
 | DATA-01 | Phase 33 | Pending |
