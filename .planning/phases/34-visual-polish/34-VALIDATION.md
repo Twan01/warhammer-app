@@ -1,10 +1,11 @@
 ---
 phase: 34
 slug: visual-polish
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-06
+updated: 2026-05-06
 ---
 
 # Phase 34 — Validation Strategy
@@ -38,12 +39,12 @@ created: 2026-05-06
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 34-00-01 | 00 | 0 | VIS-01 | unit | `pnpm test -- tests/dashboard/FactionSummaryCard.test.tsx` | ❌ W0 | ⬜ pending |
-| 34-00-02 | 00 | 0 | VIS-02 | unit | `pnpm test -- tests/dashboard/DashboardPage.test.tsx` | ❌ W0 | ⬜ pending |
-| 34-01-01 | 01 | 1 | VIS-01 | unit | `pnpm test -- tests/dashboard/FactionSummaryCard.test.tsx` | ❌ W0 | ⬜ pending |
-| 34-01-02 | 01 | 1 | VIS-01 | unit (existing UI-08) | `pnpm test -- tests/dashboard/DashboardPage.test.tsx` | ✅ | ⬜ pending |
-| 34-01-03 | 01 | 1 | VIS-02 | unit | `pnpm test -- tests/dashboard/DashboardPage.test.tsx` | ❌ W0 | ⬜ pending |
-| 34-01-04 | 01 | 1 | VIS-03 | manual | Visual inspection in running app | N/A | ⬜ pending |
+| 34-00-01 | 00 | 0 | VIS-01 | unit | `pnpm test -- tests/dashboard/FactionSummaryCard.test.tsx` | ✅ | ✅ green |
+| 34-00-02 | 00 | 0 | VIS-02 | unit | `pnpm test -- tests/dashboard/DashboardPage.test.tsx` | ✅ | ✅ green |
+| 34-01-01 | 01 | 1 | VIS-01 | unit | `pnpm test -- tests/dashboard/FactionSummaryCard.test.tsx` | ✅ | ✅ green |
+| 34-01-02 | 01 | 1 | VIS-01 | unit (existing UI-08) | `pnpm test -- tests/dashboard/DashboardPage.test.tsx` | ✅ | ✅ green |
+| 34-01-03 | 01 | 1 | VIS-02 | unit | `pnpm test -- tests/dashboard/DashboardPage.test.tsx` | ✅ | ✅ green |
+| 34-01-04 | 01 | 1 | VIS-03 | manual | Visual inspection in running app | N/A | ✅ manual-verified |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -51,8 +52,8 @@ created: 2026-05-06
 
 ## Wave 0 Requirements
 
-- [ ] `tests/dashboard/FactionSummaryCard.test.tsx` — stubs for VIS-01 (top band presence, card min-w-[220px], Star icon removed, activate button has aria-label, active state has ring-2 ring-faction-accent + bg-faction-accent/10)
-- [ ] Add VIS-02 assertion to `tests/dashboard/DashboardPage.test.tsx` — hero wrapper div with radial gradient is present in populated state
+- [x] `tests/dashboard/FactionSummaryCard.test.tsx` — 6 stubs for VIS-01 (top band presence, card min-w-[220px], Star icon removed, activate button has aria-label, active state has ring-2 ring-faction-accent + bg-faction-accent/10, hover:shadow-md)
+- [x] VIS-02 assertion added to `tests/dashboard/DashboardPage.test.tsx` — hero wrapper div with radial gradient is present in populated state
 
 *Existing infrastructure covers VIS-03 — CSS-only hover transitions are visually verified, not unit tested.*
 
@@ -70,11 +71,23 @@ created: 2026-05-06
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-05-06
+
+---
+
+## Validation Audit 2026-05-06
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+All 8 automated tests (6 FactionSummaryCard VIS-01 + 1 DashboardPage VIS-02 + 1 DashboardPage UI-08) pass green. VIS-03 is manual-only by design (JSDOM limitation). Full suite: 768 passed, 0 failed.
