@@ -36,6 +36,7 @@ metrics:
   files_created: 5
   files_modified: 5
 requirements: [PANEL-04, PANEL-05]
+requirements_completed: [PANEL-04, PANEL-05]
 ---
 
 # Phase 32 Plan 01: Army Readiness Card Summary
