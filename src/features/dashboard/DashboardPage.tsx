@@ -114,9 +114,11 @@ export function DashboardPage() {
   // --- Error state (Pitfall 7: do not access stats here) ---
   if (isError) {
     return (
-      <div className="flex flex-col gap-12 p-6">
-        <PageHeader title="Hobby Command Center" />
-        <p className="text-sm text-destructive">
+      <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-[3fr_2fr] items-start">
+        <div className="col-span-full">
+          <PageHeader title="Hobby Command Center" />
+        </div>
+        <p className="col-span-full text-sm text-destructive">
           Failed to load dashboard. Try refreshing the app.
         </p>
       </div>
@@ -126,46 +128,49 @@ export function DashboardPage() {
   // --- Loading state (Pitfall 7: do not access stats here) ---
   if (isLoading || !stats) {
     return (
-      <div className="flex flex-col gap-12 p-6">
-        <PageHeader title="Hobby Command Center" />
+      <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-[3fr_2fr] items-start">
+        {/* PageHeader — full width */}
+        <div className="col-span-full">
+          <PageHeader title="Hobby Command Center" />
+        </div>
 
-        {/* CurrentFocusCard skeleton — full-width */}
-        <Skeleton className="h-28 w-full" />
+        {/* CurrentFocusCard skeleton — full width */}
+        <Skeleton className="col-span-full h-28 w-full" />
 
-        {/* Top stat row — 4 skeletons */}
-        <div className="grid grid-cols-4 gap-6">
+        {/* StatCards skeleton — full width, 4-col inner grid */}
+        <div className="col-span-full grid grid-cols-4 gap-6">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={`top-${i}`} className="h-24 w-full" />
           ))}
         </div>
 
-        {/* HobbyPipeline skeleton — single horizontal block */}
-        <Skeleton className="h-32 w-full" />
+        {/* Pipeline skeleton — full width */}
+        <Skeleton className="col-span-full h-32 w-full" />
 
-        {/* HOBBY HEALTH skeleton (Phase 19) */}
-        <section className="flex flex-col gap-4">
-          <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-            Hobby Health
-          </p>
-          <div className="grid grid-cols-2 gap-6">
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-24 w-full" />
-          </div>
-        </section>
+        {/* Left column: Hobby Health + Faction skeletons */}
+        <div className="flex flex-col gap-6">
+          <section className="flex flex-col gap-4">
+            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+              Hobby Health
+            </p>
+            <div className="grid grid-cols-2 gap-6">
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-24 w-full" />
+            </div>
+          </section>
+          <section className="flex flex-col gap-4">
+            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+              By Faction
+            </p>
+            <div className="flex flex-wrap gap-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={`fac-${i}`} className="h-28 w-[180px]" />
+              ))}
+            </div>
+          </section>
+        </div>
 
-        {/* Faction row */}
-        <section className="flex flex-col gap-4">
-          <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-            By Faction
-          </p>
-          <div className="flex flex-wrap gap-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={`fac-${i}`} className="h-28 w-[180px]" />
-            ))}
-          </div>
-        </section>
-
-        {/* Recent Activity skeleton — single tall block */}
+        {/* Right column: Recent Activity skeleton */}
         <Skeleton className="h-72 w-full" />
       </div>
     );
@@ -175,21 +180,25 @@ export function DashboardPage() {
   if (!stats.hasUnits) {
     return (
       <>
-        <div className="flex flex-col gap-12 p-6">
-          <PageHeader
-            title="Hobby Command Center"
-            actions={
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setQuickAddOpen(true)}
-              >
-                <Plus size={14} className="mr-1.5" aria-hidden={true} />
-                Quick Add
-              </Button>
-            }
-          />
-          <DashboardEmptyState />
+        <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-[3fr_2fr] items-start">
+          <div className="col-span-full">
+            <PageHeader
+              title="Hobby Command Center"
+              actions={
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setQuickAddOpen(true)}
+                >
+                  <Plus size={14} className="mr-1.5" aria-hidden={true} />
+                  Quick Add
+                </Button>
+              }
+            />
+          </div>
+          <div className="col-span-full">
+            <DashboardEmptyState />
+          </div>
         </div>
 
         {/* Sibling sheets — Quick Add must work in empty state */}
@@ -227,98 +236,108 @@ export function DashboardPage() {
   // --- Populated state ---
   return (
     <>
-      <div className="flex flex-col gap-12 p-6">
-        <PageHeader
-          title="Hobby Command Center"
-          subtitle={subtitle}
-          actions={
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setLogSessionOpen(true)}
-              >
-                <Paintbrush size={14} className="mr-1.5" aria-hidden={true} />
-                Log Session
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setQuickAddOpen(true)}
-              >
-                <Plus size={14} className="mr-1.5" aria-hidden={true} />
-                Quick Add
-              </Button>
-            </>
-          }
-        />
-
-        {/* DASH-03 — primary visual anchor */}
-        <CurrentFocusCard unit={focusUnit} faction={focusFaction} />
-
-        {/* Top stat row (preserved from Phase 11) */}
-        <div className="grid grid-cols-4 gap-6">
-          <StatCard value={stats.totalModels} label="Total Models" animate={true} />
-          <StatCard value={stats.fullyPainted} label="Fully Painted" animate={true} />
-          <StatCard value={stats.battleReadyPoints} label="Battle-Ready Points" animate={true} />
-          <StatCard value={stats.activeProjectsCount} label="Active Projects" animate={true} />
+      <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-[3fr_2fr] items-start">
+        {/* PageHeader — full width */}
+        <div className="col-span-full">
+          <PageHeader
+            title="Hobby Command Center"
+            subtitle={subtitle}
+            actions={
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLogSessionOpen(true)}
+                >
+                  <Paintbrush size={14} className="mr-1.5" aria-hidden={true} />
+                  Log Session
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setQuickAddOpen(true)}
+                >
+                  <Plus size={14} className="mr-1.5" aria-hidden={true} />
+                  Quick Add
+                </Button>
+              </>
+            }
+          />
         </div>
 
-        {/* DASH-04 — HobbyPipeline replaces the old Progress section */}
-        <HobbyPipeline units={stats.units} />
+        {/* DASH-03 — primary visual anchor — full width */}
+        <div className="col-span-full">
+          <CurrentFocusCard unit={focusUnit} faction={focusFaction} />
+        </div>
 
-        {/* HOBBY HEALTH section (Phase 19, unchanged) */}
-        <section className="flex flex-col gap-4">
-          <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-            Hobby Health
-          </p>
-          <div className="grid grid-cols-2 gap-6">
-            {analyticsLoading ? (
-              <>
-                <Skeleton className="h-24 w-full" />
-                <Skeleton className="h-24 w-full" />
-              </>
-            ) : (
-              <>
-                <StatCard
-                  value={analytics?.velocityString ?? "0.0"}
-                  label="Hobby Velocity · units/month"
-                  animate={false}
+        {/* Top stat row (LAYOUT-02 — 4 StatCards with navigation) — full width */}
+        <div className="col-span-full grid grid-cols-4 gap-6">
+          <StatCard value={stats.totalModels} label="Total Models" animate={true} to="/collection" />
+          <StatCard value={stats.fullyPainted} label="Fully Painted" animate={true} to="/collection" />
+          <StatCard value={stats.battleReadyPoints} label="Battle-Ready Points" animate={true} to="/army-lists" />
+          <StatCard value={stats.activeProjectsCount} label="Active Projects" animate={true} to="/painting-projects" />
+        </div>
+
+        {/* DASH-04 — HobbyPipeline replaces the old Progress section — full width */}
+        <div className="col-span-full">
+          <HobbyPipeline units={stats.units} />
+        </div>
+
+        {/* Left column: Hobby Health + By Faction stacked */}
+        <div className="flex flex-col gap-6">
+          {/* HOBBY HEALTH section (Phase 19) — Hobby Health StatCards have NO to prop */}
+          <section className="flex flex-col gap-4">
+            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+              Hobby Health
+            </p>
+            <div className="grid grid-cols-2 gap-6">
+              {analyticsLoading ? (
+                <>
+                  <Skeleton className="h-24 w-full" />
+                  <Skeleton className="h-24 w-full" />
+                </>
+              ) : (
+                <>
+                  <StatCard
+                    value={analytics?.velocityString ?? "0.0"}
+                    label="Hobby Velocity · units/month"
+                    animate={false}
+                  />
+                  <StatCard
+                    value={analytics?.streakString ?? "0 days"}
+                    label="Painting Streak"
+                    animate={false}
+                  />
+                </>
+              )}
+            </div>
+          </section>
+
+          {/* By Faction section (DASH-05 — FactionSummaryCard upgraded in-place) */}
+          <section className="flex flex-col gap-4">
+            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+              By Faction
+            </p>
+            <div className="flex flex-wrap gap-4">
+              {stats.factionStats.map((s) => (
+                <FactionSummaryCard
+                  key={s.faction.id}
+                  stat={s}
+                  isActive={activeFactionId === s.faction.id}
+                  onActivate={() => {
+                    if (activeFactionId === s.faction.id) {
+                      setActiveFaction(null);
+                    } else {
+                      setActiveFaction(s.faction);
+                    }
+                  }}
                 />
-                <StatCard
-                  value={analytics?.streakString ?? "0 days"}
-                  label="Painting Streak"
-                  animate={false}
-                />
-              </>
-            )}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
+        </div>
 
-        {/* By Faction section (DASH-05 — FactionSummaryCard upgraded in-place) */}
-        <section className="flex flex-col gap-4">
-          <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-            By Faction
-          </p>
-          <div className="flex flex-wrap gap-4">
-            {stats.factionStats.map((s) => (
-              <FactionSummaryCard
-                key={s.faction.id}
-                stat={s}
-                isActive={activeFactionId === s.faction.id}
-                onActivate={() => {
-                  if (activeFactionId === s.faction.id) {
-                    setActiveFaction(null);
-                  } else {
-                    setActiveFaction(s.faction);
-                  }
-                }}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* DASH-06 — Recent Activity feed (replaces old two-column lists) */}
+        {/* Right column: DASH-06 — Recent Activity feed */}
         <RecentActivityFeed
           events={activityEvents ?? []}
           onUnitClick={handleUnitIdClick}

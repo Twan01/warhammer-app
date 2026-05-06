@@ -21,8 +21,13 @@
  * Phase 25 (DSFD-03): Optional `icon`, `trend`, `progress` props enrich the card while
  * preserving backward compatibility — all existing DashboardPage call sites continue
  * working unchanged (no required prop additions, no DOM regression when optionals absent).
+ *
+ * Phase 30 (LAYOUT-02): Optional `to` prop makes the card a keyboard-accessible navigator.
+ * When set, adds role="button", tabIndex, onClick, and onKeyDown (Enter/Space). Hobby Health
+ * StatCards omit `to` and remain non-interactive.
  */
 import type { ComponentType } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCountUp } from "@/hooks/useCountUp";
 
@@ -41,6 +46,8 @@ export interface StatCardProps {
   trend?: { value: number; label: string };
   /** Phase 25 — 0–100; renders a 2px faction-accent progress bar at card bottom. */
   progress?: number;
+  /** Phase 30 — optional navigation target. When set, card becomes clickable. */
+  to?: string;
 }
 
 export function StatCard({
@@ -50,7 +57,10 @@ export function StatCard({
   icon: Icon,
   trend,
   progress,
+  to,
 }: StatCardProps) {
+  const navigate = useNavigate();
+
   const displayValue =
     animate && typeof value === "number" ? (
       <AnimatedNumber value={value} />
@@ -58,8 +68,24 @@ export function StatCard({
       value
     );
 
+  const baseClassName = "px-6 bg-card border border-border/60 shadow-sm";
+  const interactiveProps = to
+    ? {
+        role: "button" as const,
+        tabIndex: 0,
+        onClick: () => navigate({ to }),
+        onKeyDown: (e: React.KeyboardEvent) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            navigate({ to });
+          }
+        },
+        className: `${baseClassName} cursor-pointer hover:bg-muted/50 transition-colors`,
+      }
+    : { className: baseClassName };
+
   return (
-    <Card className="px-6 bg-card border border-border/60 shadow-sm">
+    <Card {...interactiveProps}>
       <CardContent className="flex flex-col gap-1 px-0">
         {Icon && <Icon size={16} className="text-muted-foreground mb-1" />}
         <span className="text-3xl font-semibold tabular-nums">{displayValue}</span>
