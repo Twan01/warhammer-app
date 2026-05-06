@@ -23,10 +23,16 @@ export interface SpendingStats {
   totalPence: number;
   factionBreakdown: FactionSpend[];
   paintsPence: number;
+  /** null when 0 units have status_painting === "Completed" (DATA-03) */
+  costPerCompletedModelPence: number | null;
+  /** Sum of purchase_price_pence for Completed units only (DATA-04) */
+  paintedValuePence: number;
+  /** unitTotalPence minus paintedValuePence — excludes paintsPence (DATA-04) */
+  unpaintedValuePence: number;
 }
 
 export function computeSpendingStats(
-  units: Pick<Unit, "faction_id" | "purchase_price_pence">[],
+  units: Pick<Unit, "faction_id" | "purchase_price_pence" | "status_painting">[],
   factions: Faction[],
   paintsPence: number
 ): SpendingStats {
@@ -44,9 +50,22 @@ export function computeSpendingStats(
     0
   );
 
+  // DATA-03/04: cost-per-model and painted/unpainted value split
+  const completedUnits = units.filter((u) => u.status_painting === "Completed");
+  const completedCount = completedUnits.length;
+  const paintedValuePence = completedUnits.reduce(
+    (sum, u) => sum + (u.purchase_price_pence ?? 0),
+    0
+  );
+  const unpaintedValuePence = unitTotalPence - paintedValuePence;
+
   return {
     totalPence: unitTotalPence + paintsPence,
     factionBreakdown,
     paintsPence,
+    costPerCompletedModelPence:
+      completedCount === 0 ? null : Math.round(unitTotalPence / completedCount),
+    paintedValuePence,
+    unpaintedValuePence,
   };
 }
