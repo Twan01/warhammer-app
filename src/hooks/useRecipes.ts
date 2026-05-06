@@ -30,6 +30,7 @@ export function useCreateRecipe() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: RECIPES_KEY });
       qc.invalidateQueries({ queryKey: ["kanban-enrichment"] });
+      qc.invalidateQueries({ queryKey: ["recipes", "by-unit"] });
     },
   });
 }
@@ -42,6 +43,7 @@ export function useUpdateRecipe() {
       qc.invalidateQueries({ queryKey: RECIPES_KEY });
       qc.invalidateQueries({ queryKey: RECIPE_KEY(variables.id) });
       qc.invalidateQueries({ queryKey: ["kanban-enrichment"] });
+      qc.invalidateQueries({ queryKey: ["recipes", "by-unit"] });
     },
   });
 }
@@ -52,6 +54,7 @@ export function useDeleteRecipe() {
     mutationFn: deleteRecipe,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: RECIPES_KEY });
+      qc.invalidateQueries({ queryKey: ["recipes", "by-unit"] });
     },
   });
 }
