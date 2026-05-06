@@ -92,7 +92,7 @@ Full details: `.planning/milestones/v2.3-ROADMAP.md`
 **Milestone Goal:** Transform the dashboard into a premium, hobby-native command center with grid layout, richer interactions, centralized photos, and smarter data surfaces — making it feel less like a generic admin panel and more like a personal hobby forge.
 
 - [x] **Phase 30: Grid Layout Foundation** — Dashboard CSS grid (asymmetric 2-column bento), clickable StatCards, and 5-bucket pipeline grouping (completed 2026-05-06)
-- [ ] **Phase 31: Focus & Projects Panels** — CurrentFocusCard v2 (photo, metadata, actions) and ActiveProjectsPanel with photo thumbnails and quick actions
+- [x] **Phase 31: Focus & Projects Panels** — CurrentFocusCard v2 (photo, metadata, actions) and ActiveProjectsPanel with photo thumbnails and quick actions (completed 2026-05-06)
 - [x] **Phase 32: Army Readiness Card** — Dedicated ArmyReadinessCard with target point selector and per-faction progress bars (completed 2026-05-06)
 - [ ] **Phase 33: Data Intelligence** — Log Session status updates with cache invalidation, spending metrics (cost per model, painted vs unpainted value), recipe–unit association
 - [ ] **Phase 34: Visual Polish** — FactionCards v2, radial gradient hero, elevated card surface hierarchy
@@ -123,7 +123,7 @@ Plans:
   3. CurrentFocusCard has an "Open Unit" button that navigates to the unit detail sheet and a "Log Progress" button that opens LogSessionSheet with that unit pre-selected
   4. ActiveProjectsPanel lists up to 5 active-project units, each showing photo thumbnail (or fallback), name, painting progress percentage, last-updated date, and Open / Log Session buttons
   5. All photo thumbnails across CurrentFocusCard and ActiveProjectsPanel use the same consistent fallback component (faction color + icon) when no journal photo is available
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 31-00-PLAN.md — Wave 0 test stubs (Nyquist compliance)
 - [ ] 31-01-PLAN.md — UnitThumbnail shared component + CurrentFocusCard v2 with photo, metadata, action buttons
@@ -206,7 +206,7 @@ Plans:
 | 28. Collection + Projects | v2.3 | 5/5 | Complete | 2026-05-05 |
 | 29. Workshop + Play | v2.3 | 5/5 | Complete | 2026-05-05 |
 | 30. Grid Layout Foundation | 2/2 | Complete    | 2026-05-06 | — |
-| 31. Focus & Projects Panels | 2/3 | In Progress|  | — |
+| 31. Focus & Projects Panels | 3/3 | Complete   | 2026-05-06 | — |
 | 32. Army Readiness Card | 1/1 | Complete    | 2026-05-06 | — |
 | 33. Data Intelligence | 1/4 | In Progress|  | — |
 | 34. Visual Polish | v2.4 | 0/TBD | Not started | — |

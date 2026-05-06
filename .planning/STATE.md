@@ -53,6 +53,9 @@ Progress: [███████░░░] 70% (7/10 plans in v2.4)
 - CurrentFocusCard v2 (31-01): StatusBadge + getNextActionHint removed — progress bar + percentage + metadata row is more compact and sufficient
 - Photo wiring (31-01): useLatestUnitPhotos called once in DashboardPage, passed as prop — never inside CurrentFocusCard (Pitfall 2)
 - logDefaultUnitId (31-01): reset to undefined in LogSessionSheet onClose (Pitfall 3); header Log Session button also resets to prevent stale pre-selection
+- relativeDate (31-02): .replace(' ', 'T') on SQLite datetime before parsing — SQLite uses space separator not ISO T; returns today/yesterday/Xd ago/Xmo ago
+- ActiveProjectsPanel (31-02): latestPhotos and factions received as props — hook called once in DashboardPage; no Sheet/Dialog inside panel (sibling portal contract)
+- Skeleton (31-02): right column loading extended with Active Projects section (3 x h-14 rows); CurrentFocusCard skeleton h-28 → h-32 for taller photo layout
 
 ### Decisions from Phase 30
 
