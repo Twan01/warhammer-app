@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: (none)
-milestone_name: (none)
-status: v2.4 milestone completed and archived
-stopped_at: Milestone v2.4 archived
+milestone: v2.5
+milestone_name: Recipes 2.0 / Painting Studio
+status: Defining requirements
+stopped_at: Milestone v2.5 started
 last_updated: "2026-05-06"
-last_activity: 2026-05-06 — v2.4 milestone archived, tagged, pushed
+last_activity: 2026-05-06 — Milestone v2.5 started, defining requirements
 progress:
   total_phases: 0
   completed_phases: 0
@@ -18,15 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-06 after v2.4 milestone completed)
+See: .planning/PROJECT.md (updated 2026-05-06 after v2.5 milestone started)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** Planning next milestone — run `/gsd:new-milestone`
+**Current focus:** v2.5 Recipes 2.0 / Painting Studio — defining requirements
 
 ## Current Position
 
-No active milestone. v2.4 shipped and archived 2026-05-06.
-Next step: `/gsd:new-milestone` to start questioning → research → requirements → roadmap.
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-06 — Milestone v2.5 started
 
 ## Accumulated Context
 
@@ -65,5 +67,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-06
-Stopped at: Milestone v2.4 archived
-Resume: `/gsd:new-milestone` to plan next milestone
+Stopped at: Milestone v2.5 started — defining requirements
+Resume: Continue requirement definition for Recipes 2.0
