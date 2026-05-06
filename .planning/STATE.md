@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Premium Dashboard UX & Visual Polish
 status: executing
-stopped_at: Phase 32 context gathered
-last_updated: "2026-05-06T07:34:56.261Z"
-last_activity: 2026-05-06 — 30-01 CSS grid bento layout + StatCard navigation shipped
+stopped_at: Completed 30-02-PLAN.md
+last_updated: "2026-05-06T07:45:00.000Z"
+last_activity: 2026-05-06 — 30-02 HobbyPipeline 5-bucket grouped view shipped
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 50
+  completed_plans: 2
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-05 after v2.2 milestone completed)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.4 Premium Dashboard UX & Visual Polish — Phase 30: Grid Layout Foundation
+**Current focus:** v2.4 Premium Dashboard UX & Visual Polish — Phase 30 complete, Phase 31 next
 
 ## Current Position
 
-Phase: 30 of 34 (Grid Layout Foundation)
-Plan: 01 of 2 complete
-Status: In progress — plan 30-01 complete, plan 30-02 next
-Last activity: 2026-05-06 — 30-01 CSS grid bento layout + StatCard navigation shipped
+Phase: 30 of 34 (Grid Layout Foundation) — COMPLETE
+Plan: 2 of 2 complete
+Status: Phase 30 complete — advance to Phase 31 (Photo Panels)
+Last activity: 2026-05-06 — 30-02 HobbyPipeline 5-bucket grouped view + full test suite shipped
 
-Progress: [█████░░░░░] 50% (1/2 plans in Phase 30)
+Progress: [██████████] 100% (2/2 plans in Phase 30)
 
 ## Accumulated Context
 
@@ -41,6 +41,8 @@ Progress: [█████░░░░░] 50% (1/2 plans in Phase 30)
 - Hobby Health StatCards intentionally have no `to` prop — passive metrics, not navigation shortcuts
 - Loading skeleton fully restructured to mirror the bento grid columns to prevent layout shift on data load
 - Route used for Active Projects: `/painting-projects` (not `/projects` — route confirmed via router.tsx)
+- HobbyPipeline 5-bucket palette (muted/slate/violet/emerald/battle-gold) co-located in HobbyPipeline.tsx, not imported from status-badge.tsx, because it differs from the 4-tier StatusBadge palette
+- HobbyPipeline bucket grouping: BUCKET_GROUPS Record maps bucket label to PaintingStatus[]; BUCKET_ORDER drives render; flex+flex-1 ensures equal width without wrapping
 
 ### Decisions Carried from v2.3
 
@@ -87,6 +89,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-06T07:34:56.258Z
-Stopped at: Phase 32 context gathered
-Resume: Execute 30-02-PLAN.md (next plan in Phase 30)
+Last session: 2026-05-06T07:45:00Z
+Stopped at: Completed 30-02-PLAN.md
+Resume: Execute Phase 31 (Photo Panels)

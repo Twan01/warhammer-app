@@ -91,7 +91,7 @@ Full details: `.planning/milestones/v2.3-ROADMAP.md`
 
 **Milestone Goal:** Transform the dashboard into a premium, hobby-native command center with grid layout, richer interactions, centralized photos, and smarter data surfaces — making it feel less like a generic admin panel and more like a personal hobby forge.
 
-- [ ] **Phase 30: Grid Layout Foundation** — Dashboard CSS grid (asymmetric 2-column bento), clickable StatCards, and 5-bucket pipeline grouping
+- [x] **Phase 30: Grid Layout Foundation** — Dashboard CSS grid (asymmetric 2-column bento), clickable StatCards, and 5-bucket pipeline grouping (completed 2026-05-06)
 - [ ] **Phase 31: Focus & Projects Panels** — CurrentFocusCard v2 (photo, metadata, actions) and ActiveProjectsPanel with photo thumbnails and quick actions
 - [ ] **Phase 32: Army Readiness Card** — Dedicated ArmyReadinessCard with target point selector and per-faction progress bars
 - [ ] **Phase 33: Data Intelligence** — Log Session status updates with cache invalidation, spending metrics (cost per model, painted vs unpainted value), recipe–unit association
@@ -108,7 +108,7 @@ Full details: `.planning/milestones/v2.3-ROADMAP.md`
   2. Resizing the window to 900px causes all dashboard panels to stack into a single column without horizontal overflow
   3. Clicking a StatCard (units, painted, battle-ready, spend) navigates to its corresponding page (Collection, Collection with status filter, Army Lists, Spending)
   4. Dashboard pipeline shows exactly 5 labeled buckets (Not Started / Assembly / Painting / Finishing / Done) each with a model count summed from the underlying 11 painting statuses
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 30-01-PLAN.md — CSS grid layout migration + clickable StatCard navigation
 - [ ] 30-02-PLAN.md — 5-bucket pipeline grouping
@@ -194,7 +194,7 @@ Plans:
 | 27. Navigation & Quick Add | v2.3 | 4/4 | Complete | 2026-05-05 |
 | 28. Collection + Projects | v2.3 | 5/5 | Complete | 2026-05-05 |
 | 29. Workshop + Play | v2.3 | 5/5 | Complete | 2026-05-05 |
-| 30. Grid Layout Foundation | 1/2 | In Progress|  | — |
+| 30. Grid Layout Foundation | 2/2 | Complete   | 2026-05-06 | — |
 | 31. Focus & Projects Panels | v2.4 | 0/TBD | Not started | — |
 | 32. Army Readiness Card | v2.4 | 0/TBD | Not started | — |
 | 33. Data Intelligence | v2.4 | 0/TBD | Not started | — |
