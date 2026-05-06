@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Premium Dashboard UX & Visual Polish
 status: completed
-stopped_at: Completed 32-01-PLAN.md
-last_updated: "2026-05-06T08:14:39.813Z"
+stopped_at: Completed 31-01-PLAN.md
+last_updated: "2026-05-06T08:20:52.704Z"
 last_activity: 2026-05-06 — 32-01 ArmyReadinessCard per-faction battle-ready points card shipped
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 9
-  completed_plans: 4
+  total_plans: 10
+  completed_plans: 5
   percent: 57
 ---
 
@@ -45,6 +45,10 @@ Progress: [█████░░░░░] 57% (4/7 plans in v2.4)
 ### Decisions from Phase 31
 
 - Wave 0 test stubs (31-00): intentionally omit component imports — components do not exist yet; Plan 01/02 executors add imports when implementing components
+- UnitThumbnail (31-01): Swords icon + full background color fallback — no text initials, no borderTop per locked CONTEXT.md decisions
+- CurrentFocusCard v2 (31-01): StatusBadge + getNextActionHint removed — progress bar + percentage + metadata row is more compact and sufficient
+- Photo wiring (31-01): useLatestUnitPhotos called once in DashboardPage, passed as prop — never inside CurrentFocusCard (Pitfall 2)
+- logDefaultUnitId (31-01): reset to undefined in LogSessionSheet onClose (Pitfall 3); header Log Session button also resets to prevent stale pre-selection
 
 ### Decisions from Phase 30
 
@@ -101,6 +105,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-06T08:05:30Z
-Stopped at: Completed 32-01-PLAN.md
+Last session: 2026-05-06T08:20:52.702Z
+Stopped at: Completed 31-01-PLAN.md
 Resume: Execute Phase 33 (Data Intelligence)
