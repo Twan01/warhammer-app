@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Premium Dashboard UX & Visual Polish
 status: completed
-stopped_at: Completed 34-01-PLAN.md
-last_updated: "2026-05-06T09:17:06.000Z"
-last_activity: 2026-05-06 — 34-01 VIS-01/02/03 visual polish implemented (top band, hero gradient, hover shadows)
+stopped_at: Completed 33-02-PLAN.md
+last_updated: "2026-05-06T09:26:22.696Z"
+last_activity: 2026-05-06 — 34-01 FactionSummaryCard v2 + hero gradient + hover shadows shipped
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 12
-  completed_plans: 9
+  completed_plans: 11
   percent: 92
 ---
 
