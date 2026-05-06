@@ -1,5 +1,5 @@
 // Implementation is in CurrentFocusCard.test.tsx (JSX required for RTL rendering).
-// DATA-06 stubs (Phase 33) are preserved below.
+// DATA-06 stubs (Phase 33) are preserved below — full tests are in the .tsx file.
 import { describe, it } from "vitest";
 
 describe("CurrentFocusCard — DATA-06 (recipe name display)", () => {

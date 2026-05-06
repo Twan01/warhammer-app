@@ -14,7 +14,7 @@
  */
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Target, ExternalLink, Paintbrush } from "lucide-react";
+import { Target, ExternalLink, Paintbrush, Palette } from "lucide-react";
 import { UnitThumbnail } from "@/components/common/UnitThumbnail";
 import type { Unit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
@@ -26,9 +26,11 @@ export interface CurrentFocusCardProps {
   photo: UnitPhotoWithUrl | undefined;
   onOpen: () => void;
   onLog: () => void;
+  recipeName?: string | null;
+  extraRecipeCount?: number;
 }
 
-export function CurrentFocusCard({ unit, faction, photo, onOpen, onLog }: CurrentFocusCardProps) {
+export function CurrentFocusCard({ unit, faction, photo, onOpen, onLog, recipeName, extraRecipeCount = 0 }: CurrentFocusCardProps) {
   if (!unit) {
     return (
       <Card className="bg-card border border-border/60 shadow-sm px-6 py-6 transition-shadow duration-150 hover:shadow-md">
@@ -60,6 +62,12 @@ export function CurrentFocusCard({ unit, faction, photo, onOpen, onLog }: Curren
           <h2 className="text-lg font-semibold tracking-tight truncate">{unit.name}</h2>
           {faction && (
             <div className="text-sm text-muted-foreground">{faction.name}</div>
+          )}
+          {recipeName && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Palette size={12} aria-hidden />
+              {recipeName}{extraRecipeCount > 0 ? ` (+${extraRecipeCount} more)` : ""}
+            </span>
           )}
           <div className="text-sm text-muted-foreground tabular-nums">
             {unit.model_count ?? "---"} models · {unit.points ?? "---"} pts

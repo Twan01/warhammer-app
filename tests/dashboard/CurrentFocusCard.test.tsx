@@ -347,4 +347,116 @@ describe("CurrentFocusCard", () => {
       expect(screen.queryByRole("button", { name: /Log/i })).toBeNull();
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // DATA-06: recipe name display
+  // ---------------------------------------------------------------------------
+
+  describe("DATA-06: recipe name display", () => {
+    it("renders recipe name with Palette icon when recipeName prop is provided", () => {
+      const unit = makeUnit();
+      const faction = makeFaction();
+
+      render(
+        <CurrentFocusCard
+          unit={unit}
+          faction={faction}
+          photo={undefined}
+          onOpen={vi.fn()}
+          onLog={vi.fn()}
+          recipeName="Battle Line Alpha"
+        />
+      );
+
+      expect(screen.getByText(/Battle Line Alpha/)).toBeInTheDocument();
+      // Palette icon renders as an SVG — confirm it is in the document
+      const recipeSpan = screen.getByText(/Battle Line Alpha/).closest("span");
+      expect(recipeSpan).not.toBeNull();
+      const svg = recipeSpan?.querySelector("svg");
+      expect(svg).toBeInTheDocument();
+    });
+
+    it("renders nothing for recipe when recipeName is null", () => {
+      const unit = makeUnit();
+      const faction = makeFaction();
+
+      render(
+        <CurrentFocusCard
+          unit={unit}
+          faction={faction}
+          photo={undefined}
+          onOpen={vi.fn()}
+          onLog={vi.fn()}
+          recipeName={null}
+        />
+      );
+
+      // No recipe text in the DOM at all
+      expect(screen.queryByText(/Battle Line Alpha/)).toBeNull();
+      // Palette icon should not render
+      expect(document.querySelector("[aria-hidden][data-icon]")).toBeNull();
+    });
+
+    it("renders nothing for recipe when recipeName is undefined (prop omitted)", () => {
+      const unit = makeUnit();
+      const faction = makeFaction();
+
+      const { container } = render(
+        <CurrentFocusCard
+          unit={unit}
+          faction={faction}
+          photo={undefined}
+          onOpen={vi.fn()}
+          onLog={vi.fn()}
+          // recipeName not passed → undefined
+        />
+      );
+
+      // No span with a Palette icon should be rendered
+      // Look for any span that contains text referencing a recipe name
+      // Since no recipe name is provided, just verify the component renders normally
+      expect(container.querySelectorAll("svg").length).toBeGreaterThan(0); // Other icons exist
+      // No extra text below faction name
+      expect(screen.queryByText(/\(\+/)).toBeNull();
+    });
+
+    it("shows '+N more' suffix when extraRecipeCount > 0", () => {
+      const unit = makeUnit();
+      const faction = makeFaction();
+
+      render(
+        <CurrentFocusCard
+          unit={unit}
+          faction={faction}
+          photo={undefined}
+          onOpen={vi.fn()}
+          onLog={vi.fn()}
+          recipeName="Recipe A"
+          extraRecipeCount={2}
+        />
+      );
+
+      expect(screen.getByText(/Recipe A \(\+2 more\)/)).toBeInTheDocument();
+    });
+
+    it("does not show '+N more' suffix when extraRecipeCount is 0", () => {
+      const unit = makeUnit();
+      const faction = makeFaction();
+
+      render(
+        <CurrentFocusCard
+          unit={unit}
+          faction={faction}
+          photo={undefined}
+          onOpen={vi.fn()}
+          onLog={vi.fn()}
+          recipeName="Recipe A"
+          extraRecipeCount={0}
+        />
+      );
+
+      expect(screen.getByText("Recipe A")).toBeInTheDocument();
+      expect(screen.queryByText(/\+/)).toBeNull();
+    });
+  });
 });

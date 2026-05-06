@@ -24,9 +24,11 @@ import { useMemo, useState } from "react";
 import { Plus, Paintbrush } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useHobbyAnalytics } from "@/hooks/useHobbyAnalytics";
 import { useRecentActivity } from "@/hooks/useRecentActivity";
+import { getRecipeNamesByUnitIds } from "@/db/queries/recipes";
 import { UnitDetailSheet } from "@/features/units/UnitDetailSheet";
 import { UnitSheet } from "@/features/units/UnitSheet";
 import { UnitDeleteDialog } from "@/features/units/UnitDeleteDialog";
@@ -75,6 +77,14 @@ export function DashboardPage() {
 
   // JOUR-05 sibling lightbox — owned at DashboardPage level
   const [lightboxPhoto, setLightboxPhoto] = useState<UnitPhotoWithUrl | null>(null);
+
+  // DATA-06 — recipe name for focus unit (called unconditionally per Rules of Hooks)
+  const focusUnitId = stats?.activeProjects?.[0]?.id ?? null;
+  const { data: focusRecipes } = useQuery({
+    queryKey: ["recipes", "by-unit", focusUnitId ?? 0],
+    queryFn: () => getRecipeNamesByUnitIds([focusUnitId!]),
+    enabled: focusUnitId !== null,
+  });
 
   // DS-08 — conflict-resolution dialog state
   const [conflictPayload, setConflictPayload] = useState<DatasheetImportPayload | null>(null);
@@ -312,6 +322,8 @@ export function DashboardPage() {
                 setLogSessionOpen(true);
               }
             }}
+            recipeName={focusRecipes?.[0]?.name ?? null}
+            extraRecipeCount={Math.max(0, (focusRecipes?.length ?? 0) - 1)}
           />
         </div>
 
