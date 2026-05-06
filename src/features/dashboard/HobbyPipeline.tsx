@@ -1,41 +1,35 @@
 /**
- * DASH-04 — Horizontal painting funnel replacing the old isolated %% StatCards.
+ * DASH-04 / LAYOUT-03 — 5-bucket painting pipeline.
  *
- * Renders all 11 PAINTING_STATUS_ORDER stages as a wrapping flex strip. Each
- * stage shows the stage label and a count bubble (units currently at that exact
- * stage). Bubble background color is driven by PAINTING_STATUS_TIER from
- * status-badge.tsx so the visual mapping stays consistent with StatusBadge dots.
+ * Groups the 11 PAINTING_STATUS_ORDER stages into 5 semantic buckets:
+ *   Not Started → Assembly → Painting → Finishing → Done
  *
- * Pitfall 6 (26-RESEARCH.md): unit counts MUST come from the full units array
- * (now exposed on ComputedDashboardStats.units in Wave 1) — NEVER from the
- * sliced activeProjects/recentlyUpdated arrays which cap at 5.
+ * Each bucket sums the model count from its constituent statuses.
+ * Bucket colors are co-located here (not imported from status-badge.tsx)
+ * because the 5-bucket palette differs from the 4-tier StatusBadge palette.
  */
 import { Card } from "@/components/ui/card";
-import { PAINTING_STATUS_ORDER, type PaintingStatus } from "@/types/unit";
-import { PAINTING_STATUS_TIER } from "@/components/ui/status-badge";
+import type { PaintingStatus } from "@/types/unit";
 import type { Unit } from "@/types/unit";
 
-type Tier = "not-started" | "prep" | "painting" | "done";
+type Bucket = "Not Started" | "Assembly" | "Painting" | "Finishing" | "Done";
 
-const TIER_BUBBLE_CLASS: Record<Tier, string> = {
-  "not-started": "bg-muted-foreground/30 text-foreground",
-  prep: "bg-slate-400/30 text-foreground",
-  painting: "bg-violet-400/30 text-foreground",
-  done: "bg-battle-gold/30 text-foreground",
+const BUCKET_ORDER: Bucket[] = ["Not Started", "Assembly", "Painting", "Finishing", "Done"];
+
+const BUCKET_GROUPS: Record<Bucket, PaintingStatus[]> = {
+  "Not Started": ["Not Started"],
+  "Assembly":    ["Built", "Primed"],
+  "Painting":    ["Basecoated", "Shaded", "Layered", "Highlighted", "Details Done"],
+  "Finishing":   ["Based", "Varnished"],
+  "Done":        ["Completed"],
 };
 
-const STAGE_LABEL_SHORT: Record<PaintingStatus, string> = {
-  "Not Started": "Not Started",
-  Built: "Built",
-  Primed: "Primed",
-  Basecoated: "Basecoat",
-  Shaded: "Shaded",
-  Layered: "Layered",
-  Highlighted: "Highlight",
-  "Details Done": "Details",
-  Based: "Based",
-  Varnished: "Varnish",
-  Completed: "Done",
+const BUCKET_BUBBLE_CLASS: Record<Bucket, string> = {
+  "Not Started": "bg-muted-foreground/30 text-foreground",
+  "Assembly":    "bg-slate-400/30 text-foreground",
+  "Painting":    "bg-violet-400/30 text-foreground",
+  "Finishing":   "bg-emerald-400/30 text-foreground",
+  "Done":        "bg-battle-gold/30 text-foreground",
 };
 
 export interface HobbyPipelineProps {
@@ -48,21 +42,23 @@ export function HobbyPipeline({ units }: HobbyPipelineProps) {
       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
         Pipeline
       </p>
-      <ol className="flex flex-wrap items-end gap-x-4 gap-y-3" role="list">
-        {PAINTING_STATUS_ORDER.map((stage) => {
-          const tier = PAINTING_STATUS_TIER[stage];
-          const count = units.filter((u) => u.status_painting === stage).length;
+      <ol className="flex items-end gap-4" role="list">
+        {BUCKET_ORDER.map((bucket) => {
+          const count = BUCKET_GROUPS[bucket].reduce(
+            (sum, status) => sum + units.filter((u) => u.status_painting === status).length,
+            0
+          );
           return (
             <li
-              key={stage}
-              className="flex flex-col items-center gap-1 min-w-[64px]"
-              aria-label={`${stage}: ${count} units`}
+              key={bucket}
+              className="flex flex-1 flex-col items-center gap-1"
+              aria-label={`${bucket}: ${count} units`}
             >
               <span className="text-xs text-muted-foreground text-center">
-                {STAGE_LABEL_SHORT[stage]}
+                {bucket}
               </span>
               <span
-                className={`inline-flex items-center justify-center min-w-[32px] h-7 px-2 rounded-full text-sm font-semibold tabular-nums ${TIER_BUBBLE_CLASS[tier]}`}
+                className={`inline-flex items-center justify-center min-w-[32px] h-7 px-2 rounded-full text-sm font-semibold tabular-nums ${BUCKET_BUBBLE_CLASS[bucket]}`}
               >
                 {count}
               </span>
