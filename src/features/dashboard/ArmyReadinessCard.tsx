@@ -82,7 +82,7 @@ export function ArmyReadinessCard() {
           ))}
         </div>
       </div>
-      <div className="rounded-lg border border-border/60 bg-card p-4 shadow-sm">
+      <div className="rounded-lg border border-border/60 bg-card p-4 shadow-sm transition-shadow duration-150 hover:shadow-md">
         <div className="flex flex-col gap-4">
           {factions.map((row) => (
             <FactionRow key={row.faction_id} row={row} target={target} />
