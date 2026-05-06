@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Premium Dashboard UX & Visual Polish
-status: completed
+status: DATA-06 cache invalidation fixed + stale docs updated — v2.4 milestone fully closed
 stopped_at: Completed 36-01-PLAN.md
-last_updated: "2026-05-06T10:17:28.361Z"
+last_updated: "2026-05-06T10:21:02.544Z"
 last_activity: 2026-05-06 — 36-01 recipe by-unit cache invalidation fixed + phase 34/32/33 docs updated
 progress:
   total_phases: 6
