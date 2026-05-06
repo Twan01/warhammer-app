@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Premium Dashboard UX & Visual Polish
 status: completed
-stopped_at: Completed 33-02-PLAN.md
-last_updated: "2026-05-06T09:26:22.696Z"
-last_activity: 2026-05-06 — 34-01 FactionSummaryCard v2 + hero gradient + hover shadows shipped
+stopped_at: Completed 33-03-PLAN.md
+last_updated: "2026-05-06T09:37:00.000Z"
+last_activity: 2026-05-06 — 33-03 DATA-05/06 recipe-unit navigation and focus card recipe display shipped
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 12
-  completed_plans: 11
-  percent: 92
+  completed_plans: 12
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-05 after v2.2 milestone completed)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.4 Premium Dashboard UX & Visual Polish — Phase 34 in progress (Plans 00-01 complete)
+**Current focus:** v2.4 Premium Dashboard UX & Visual Polish — Phase 33 complete, Phase 34 next
 
 ## Current Position
 
-Phase: 34 of 34 (Visual Polish) — IN PROGRESS
-Plan: 1 of 2 complete (Plans 00-01 done, Plan 02 pending)
-Status: VIS-01/02/03 complete — advance to Plan 34-02 (final validation)
-Last activity: 2026-05-06 — 34-01 FactionSummaryCard v2 + hero gradient + hover shadows shipped
+Phase: 33 of 34 (Data Intelligence) — COMPLETE
+Plan: 3 of 3 complete (Plans 00-03 done)
+Status: DATA-05/06 complete — Phase 33 fully shipped; advance to Phase 34-00
+Last activity: 2026-05-06 — 33-03 DATA-05/06 recipe-unit navigation and focus card recipe display shipped
 
-Progress: [█████████░] 92% (9/12 plans in v2.4)
+Progress: [██████████] 100% (12/12 plans in v2.4)
 
 ## Accumulated Context
 
@@ -50,6 +50,8 @@ Progress: [█████████░] 92% (9/12 plans in v2.4)
 - hasPointerCapture/setPointerCapture/releasePointerCapture polyfills added globally to tests/setup.ts — jsdom limitation that prevents Radix Select userEvent.click in tests
 - costPerCompletedModelPence (33-02) divides unitTotalPence (all units) by completedCount — not just Completed unit total; answers "on average how much per completed model across whole collection"
 - SpendingPage test fixtures (33-02) must use distinct pence values for all mock fields to avoid getByText ambiguity with formatCurrency output
+- recipeDetailSheet.test.tsx created as companion to .ts stub (33-03) — RTL tests require JSX; .tsx file adds real tests, .ts file keeps it.todo stubs — same pattern as CurrentFocusCard tests
+- focusUnitId computed unconditionally before error/loading early returns in DashboardPage.tsx (33-03) — Rules of Hooks requirement for useQuery with enabled guard
 
 ### Decisions from Phase 32
 
@@ -125,6 +127,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-06T11:30:00Z
-Stopped at: Completed 33-02-PLAN.md
-Resume: Execute Phase 33 Plan 03 (DATA-05/06 — recipe linking and unit link navigation)
+Last session: 2026-05-06T09:37:00Z
+Stopped at: Completed 33-03-PLAN.md
+Resume: Execute Phase 34 Plan 00 (VIS wave 0 stubs) — visual polish phase
