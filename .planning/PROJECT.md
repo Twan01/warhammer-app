@@ -1,30 +1,17 @@
 # HobbyForge
 
-## Current Milestone: v2.4 Premium Dashboard UX & Visual Polish
+## Current State: v2.4 Shipped
 
-**Goal:** Transform the dashboard into a premium, hobby-native command center with grid layout, richer interactions, centralized photos, and smarter data surfaces — making it feel less like a generic admin panel and more like a personal hobby forge.
-
-**Target features:**
-- Dashboard CSS grid layout (asymmetric 2-column replacing vertical stack)
-- Premium visual depth (radial gradients, elevated card surfaces)
-- CurrentFocusCard v2 (photo thumbnail, action buttons, model count + points metadata)
-- ActiveProjectsPanel (dedicated 3-5 active project cards with progress + actions)
-- ArmyReadinessCard (target point selector 500/1000/1500/2000, per-faction readiness)
-- Simplified dashboard pipeline (5 grouped buckets instead of 11)
-- Clickable StatCards (navigate to relevant pages)
-- Faction Cards v2 (larger, more expressive, clearer active/focus indicator)
-- Photos become central (thumbnails in Focus, Projects, Activity, collection)
-- Log Session updates painting status and progress
-- Recipe ↔ faction/unit integration
-- Spending intelligence (cost per completed model, painted vs unpainted value)
+**Latest shipped:** v2.4 Premium Dashboard UX & Visual Polish (2026-05-06)
+**Next milestone:** Not yet planned — run `/gsd:new-milestone` to start
 
 ---
 
 ## What This Is
 
-HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, painting recipes, and a live dashboard answering "what do I own, what's painted, and what's ready to play" — all without ever depending on copyrighted GW data.
+HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play" — all without ever depending on copyrighted GW data.
 
-Shipped in v1.1 (Phases 1–5): the full hobby command center covering collection management, painting workflow (Kanban + recipes), and a live stats dashboard.
+Shipped through v2.4 (36 phases): full hobby command center with collection management, painting workflow (Kanban + recipes), army list builder, battle log, spending tracker, hobby goals, Wahapedia datasheet integration, photo journal, and a premium CSS grid dashboard with photo-rich panels, army readiness tracking, and visual polish.
 
 ## Core Value
 
@@ -83,20 +70,24 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ Workshop improvements — color swatches on paint rows, paint swatch strip on recipe cards — Phase 29 — v2.3
 - ✓ Play Layer improvements — Army List readiness panel with progress bar, Battle Log live readiness points — Phase 29 — v2.3
 
+*All v2.4 requirements verified and shipped 2026-05-06*
+
+- ✓ Dashboard CSS grid bento layout (asymmetric 2-column, responsive stacking) — Phase 30 — v2.4
+- ✓ Clickable StatCards navigating to relevant pages — Phase 30 — v2.4
+- ✓ 5-bucket pipeline (Not Started / Assembly / Painting / Finishing / Done) — Phase 30 — v2.4
+- ✓ CurrentFocusCard v2 (photo thumbnail, metadata, action buttons) — Phase 31 — v2.4
+- ✓ ActiveProjectsPanel (top 5 with photos, progress, quick actions) — Phase 31 — v2.4
+- ✓ UnitThumbnail shared component with consistent faction-colored fallback — Phase 31 — v2.4
+- ✓ ArmyReadinessCard with target selector (500/1000/1500/2000) and per-faction progress bars — Phase 32 — v2.4
+- ✓ LogSession painting status updates with 3-cache invalidation — Phase 33 — v2.4
+- ✓ Spending intelligence (cost per completed model, painted vs unpainted value) — Phase 33 — v2.4
+- ✓ Recipe-unit bidirectional navigation and CurrentFocusCard recipe name display — Phase 33 — v2.4
+- ✓ FactionSummaryCard v2 (accent band, active glow ring) — Phase 34 — v2.4
+- ✓ Hero radial gradient + hover shadow hierarchy on all dashboard cards — Phase 34 — v2.4
+
 ### Active
 
-- [ ] Dashboard CSS grid layout
-- [ ] Premium visual depth (radial gradients, card surface hierarchy)
-- [ ] CurrentFocusCard v2 (photo, actions, metadata)
-- [ ] ActiveProjectsPanel
-- [ ] ArmyReadinessCard with target selector
-- [ ] Simplified dashboard pipeline (5 buckets)
-- [ ] Clickable StatCards
-- [ ] Faction Cards v2
-- [ ] Photos become central
-- [ ] Log Session updates progress
-- [ ] Recipe ↔ faction/unit integration
-- [ ] Spending intelligence
+(No active requirements — run `/gsd:new-milestone` to define next milestone)
 
 ### Out of Scope
 
@@ -114,7 +105,7 @@ A single personal command center that always answers "what do I own, what's pain
 
 ## Context
 
-- **Current state:** v2.2 shipped. ~220 TypeScript source files, ~21,752 LOC. 644 automated tests (16 phase-24-specific). Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 9 main pages (Dashboard, Collection, Projects, Recipes, Paints, Army Lists, Battle Log, Spending, Factions). Unified design system with semantic CSS tokens, global Quick Add, photo journal, spending analytics, hobby goals, unit point calculator with wargear loadouts, and live army readiness panels.
+- **Current state:** v2.4 shipped. 224 TypeScript source files. 778 automated tests passing. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 9 main pages (Dashboard, Collection, Projects, Recipes, Paints, Army Lists, Battle Log, Spending, Factions). Premium CSS grid bento dashboard with photo-rich panels (UnitThumbnail, CurrentFocusCard v2, ActiveProjectsPanel), ArmyReadinessCard with target selector, data intelligence (LogSession status updates, spending metrics, recipe-unit navigation), and visual polish (FactionSummaryCard v2, hero gradient, shadow hierarchy).
 - **Personal tool** — single user (the owner), local-first, no accounts or sync
 - **Domain:** Warhammer 40K 10th edition, hobby management (collecting → painting → playing)
 - **User journey priority:** painter/collector → ready-to-play, *not* competitive optimization
@@ -155,6 +146,12 @@ A single personal command center that always answers "what do I own, what's pain
 | COALESCE chain in army list SQL (alu.points_override → u.points → 0) | DB-side computation; tier confirms write to u.points, army lists pick up automatically | ✓ Excellent — delta preview just reads effective_points |
 | Cache invalidation symmetry rule | If useCreate invalidates a key, useDelete must too | ✓ Good — enforced in Phase 35 gap closure; prevents stale UI |
 | todayISO() from @/lib/dates (local timezone) | UTC-based .toISOString().slice(0,10) produces off-by-one after midnight | ✓ Good — single source of truth for date defaults |
+| CSS grid atomic migration (Phase 30) | All 4 DashboardPage render branches updated atomically — never half-migrated grid | ✓ Good — zero layout regression during development |
+| ArmyReadinessCard dedicated query hook | Separate from getDashboardStats to avoid full dashboard re-fetch on target change | ✓ Good — independent cache invalidation and loading |
+| UnitThumbnail with Swords icon fallback | No text initials, no border-top — consistent faction-colored placeholder with icon | ✓ Good — clean fallback across CurrentFocusCard and ActiveProjectsPanel |
+| useLatestUnitPhotos called once in DashboardPage | Photo hook called once at page level, prop-drilled to panels — prevents N+1 queries | ✓ Good — single query for all dashboard photo needs |
+| FactionSummaryCard accent band via absolute div | Not CSS border — prevents border-radius clipping on rounded-xl cards | ✓ Good — clean visual at all sizes |
+| Recipe by-unit cache invalidation prefix match | Raw array literal `["recipes", "by-unit"]` invalidates all `["recipes", "by-unit", *]` keys | ✓ Good — React Query prefix matching, no new constant needed |
 
 ---
-*Last updated: 2026-05-05 after v2.2 milestone completed*
+*Last updated: 2026-05-06 after v2.4 milestone completed*

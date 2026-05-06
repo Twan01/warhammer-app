@@ -1,5 +1,26 @@
 # Milestones
 
+## v2.4 Premium Dashboard UX & Visual Polish (Shipped: 2026-05-06)
+
+**Phases completed:** 6 phases (30–34, 36), 13 plans
+**Timeline:** 2026-05-05 → 2026-05-06 (2 days)
+**Stats:** 80 commits, 224 TypeScript source files, 778 automated tests passing
+
+**Key accomplishments:**
+- Dashboard CSS grid bento layout: asymmetric 2-column responsive grid, StatCards navigate to relevant pages, 11-stage pipeline compressed to 5 readable buckets (Not Started / Assembly / Painting / Finishing / Done)
+- Photo-rich panels: UnitThumbnail shared component, CurrentFocusCard v2 (photo thumbnail + metadata + action buttons), ActiveProjectsPanel (top 5 active projects with photos, progress, quick actions)
+- ArmyReadinessCard: per-faction battle-ready points with target point selector (500/1000/1500/2000 pts), progress bars with owned-vs-ready breakdown, dedicated query hook
+- Data intelligence: LogSession painting status updates with 3-cache invalidation, spending metrics (cost per completed model, painted vs unpainted value split), bidirectional recipe-unit navigation, CurrentFocusCard recipe name display
+- Visual polish: FactionSummaryCard v2 (dominant accent band + active glow ring), hero radial gradient, hover shadow hierarchy on all dashboard card surfaces
+- Gap closure: recipe cache invalidation fix (DATA-06 by-unit prefix match), stale verification/summary doc cleanup
+
+**Archived:**
+- Roadmap: `.planning/milestones/v2.4-ROADMAP.md`
+- Requirements: `.planning/milestones/v2.4-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v2.4-MILESTONE-AUDIT.md`
+
+---
+
 ## v2.2 Full Circle (Shipped: 2026-05-05)
 
 **Phases completed:** 8 phases (17–19, 21–24, 35), 23 plans

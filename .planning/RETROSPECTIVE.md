@@ -204,6 +204,55 @@
 
 ---
 
+## Milestone: v2.4 — Premium Dashboard UX & Visual Polish
+
+**Shipped:** 2026-05-06
+**Phases:** 6 (30–34, 36) | **Plans:** 13 | **Timeline:** 2 days (2026-05-05 → 2026-05-06)
+
+### What Was Built
+
+- Phase 30: Dashboard CSS grid bento layout — asymmetric 2-column responsive grid, StatCards with `to` prop navigation (conditional `interactiveProps` spread, never conditional hook call), 5-bucket HobbyPipeline grouping with BUCKET_GROUPS/BUCKET_ORDER co-located palette
+- Phase 31: UnitThumbnail shared component (Swords icon fallback, faction-colored bg), CurrentFocusCard v2 (photo thumbnail + metadata + Open Unit / Log Progress buttons), ActiveProjectsPanel (top 5 active projects with relativeDate utility, compact rows)
+- Phase 32: ArmyReadinessCard — `getArmyReadinessByFaction` query (INNER JOIN), `useArmyReadinessTarget` localStorage hook with validated reads, 4-tier target selector (500/1000/1500/2000), per-faction progress bars capped at 100%
+- Phase 33: LogSessionSheet `new_status` field with __none__ sentinel for Radix Select, 3-key cache invalidation (dashboard-stats + units + painting-sessions), `computeSpendingStats` extended with costPerCompletedModelPence and value split, RecipeDetailSheet ↔ unit bidirectional navigation, CurrentFocusCard recipe name display
+- Phase 34: FactionSummaryCard v2 (absolute inner div accent band, bg-faction-accent/10 active glow, Circle dot icon), hero radial gradient (hex + "12" opacity suffix ~7%), hover shadow hierarchy (transition-shadow duration-150 hover:shadow-md) on all dashboard cards
+- Phase 36: Recipe cache invalidation fix — `["recipes", "by-unit"]` prefix added to all 3 mutation hooks in useRecipes.ts; 3 stale planning docs updated
+
+### What Worked
+
+- **Atomic CSS grid migration:** Phase 30 updated all 4 DashboardPage render branches (populated, empty, loading, error) in a single commit, preventing any half-migrated grid state. The responsive breakpoint (`grid-cols-1 lg:grid-cols-[2fr_1fr]`) worked correctly from the first test.
+- **UnitThumbnail as shared component:** Creating a single thumbnail component with consistent fallback (faction color + Swords icon) in Phase 31 eliminated duplicate photo rendering logic across CurrentFocusCard and ActiveProjectsPanel. Clean prop interface (`unitId`, `factionId`, `photoPath`, `size`).
+- **Milestone audit → gap closure cycle (3rd time):** The v2.4 audit caught DATA-06 cache staleness (recipe mutations not invalidating by-unit queries) and 3 stale docs. Phase 36 fixed everything in 6 minutes. The pattern is now fully routine.
+- **Nyquist validation inline for all phases:** All 6 phases shipped with `nyquist_compliant: true` — zero retrofit debt. The validate-phase workflow creates test files automatically.
+- **Wave 0 TDD continued delivering:** 33-00 and 34-00 created test stubs before any UI work, catching issues early (e.g., Radix Select requiring hasPointerCapture polyfill in jsdom).
+
+### What Was Inefficient
+
+- **VIS-03 stale verification document:** Phase 34's VERIFICATION.md was written before commit e4a221c fixed the hover shadow gap in RecentActivityFeed and ArmyReadinessCard populated branches. The verification step ran on pre-fix code, producing a false "gaps_found" status. The re-verification note was only added in Phase 36. Better to re-run verification after any post-verification fixes.
+- **SUMMARY frontmatter `requirements_completed` omissions:** Three SUMMARY files (32-01, 33-01, 36-01) were created without `requirements_completed` in frontmatter despite the requirements being code-satisfied. The milestone audit caught this as a traceability gap. The executor should add `requirements_completed` to SUMMARY frontmatter as a standard step.
+- **Progress table column misalignment (again):** Phases 30–36 rows in ROADMAP.md had misaligned columns (milestone column missing). This is the 4th consecutive milestone with this issue.
+
+### Patterns Established
+
+- **Conditional hook-call avoidance via props:** StatCard's `to` prop triggers an `interactiveProps` object spread (`cursor-pointer`, `onClick`, `role="link"`) rather than a conditional `useNavigate` call. Prevents Rules of Hooks violations in components that conditionally need navigation.
+- **Radix Select sentinel values:** Use `__none__` (not empty string) as the "no selection" value in Radix Select items — Radix reserves empty string for clearing selection.
+- **jsdom pointer capture polyfills:** `hasPointerCapture`, `setPointerCapture`, `releasePointerCapture` must be polyfilled in tests/setup.ts for Radix Select to work with userEvent.click in jsdom.
+- **Recipe cache prefix invalidation:** `invalidateQueries({ queryKey: ["recipes", "by-unit"] })` invalidates all `["recipes", "by-unit", *]` keys via React Query's prefix matching — no need for an exported constant when the key is only used inline.
+
+### Key Lessons
+
+1. **Re-run verification after post-verification code fixes.** VIS-03 was code-fixed after the verifier ran, leaving a stale "gaps_found" status that required Phase 36 cleanup. If a fix ships after verification, update the verification doc immediately.
+2. **Add `requirements_completed` to SUMMARY frontmatter as a standard executor step.** Three files missed it, causing traceability gaps at audit time. The field is load-bearing for 3-source cross-reference.
+3. **ROADMAP progress table still drifts.** Four milestones in a row now. The milestone column is consistently missing for new phases. This needs a structural fix — either automated validation or a template row.
+
+### Cost Observations
+
+- Model: Claude Opus 4.6 throughout
+- Sessions: 2 (Phase 30–34 execution, then Phase 36 gap closure + audit + completion)
+- Notable: 6 phases with 13 plans in 1 calendar day — the v2.4 scope (dashboard polish, no new schema) made phases fast; gap closure (Phase 36) completed in 6 minutes
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -214,6 +263,8 @@
 | v2.0 | 4 | 20 | Back-end foundation phase pattern; Nyquist VALIDATION.md retrofit introduced |
 | v2.1 | 8 | 41 | Dual-DB architecture; gap-closure phase pattern; inline Nyquist compliance (no retrofit) |
 | v2.2 | 8 | 23 | Cache invalidation symmetry rule; gap closure as formal phase; milestone audit → fix → re-audit cycle proven |
+| v2.3 | 5 | 21 | Unified design system; Quick Add pattern; kanban enrichment |
+| v2.4 | 6 | 13 | CSS grid dashboard; photo-rich panels; Radix sentinel pattern; gap closure routine (6 min) |
 
 ### Cumulative Quality
 
@@ -223,6 +274,8 @@
 | v2.0 | 212 | All passing (isolated; FactionSummaryCard ordering issue pre-existing) |
 | v2.1 | 395 | All passing post-Phase 20 |
 | v2.2 | 644 | All passing (16 phase-24-specific tests, 2 pre-existing skips) |
+| v2.3 | 758 | All passing (114 v2.3-specific tests) |
+| v2.4 | 778 | 778 passing, 1 pre-existing flaky (paintRowSwatch timeout), 2 skipped, 12 todo |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -232,5 +285,7 @@
 4. SQL join shape tests catch column-omission gaps that smoke tests miss (learned from ARMY-02)
 5. Review mounting points for Sheet-mounted features during planning — not at audit (learned from DS-08 secondary path)
 6. Foundation phases with full test coverage before UI work pay for themselves in zero data-layer debugging time
-7. Gap closure as a formal phase is fast (4 min for Phase 35) and preserves audit trail — never patch informally
+7. Gap closure as a formal phase is fast (4 min for Phase 35, 6 min for Phase 36) and preserves audit trail — never patch informally
 8. ROADMAP progress table column alignment drifts every milestone — needs structural fix or automated validation
+9. Re-run verification after any post-verification code fix — stale verification docs create false gaps at audit time (learned from VIS-03 in v2.4)
+10. `requirements_completed` in SUMMARY frontmatter is load-bearing for 3-source cross-reference — add it as a standard executor step
