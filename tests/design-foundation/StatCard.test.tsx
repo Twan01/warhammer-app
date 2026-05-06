@@ -1,5 +1,6 @@
 /**
  * Phase 25 (DSFD-03) — StatCard optional props and backward compat tests.
+ * Phase 30 (LAYOUT-02) — StatCard navigation `to` prop tests.
  *
  * useCountUp uses requestAnimationFrame which is not available in jsdom.
  * We mock the hook so StatCard renders synchronously in tests without
@@ -10,8 +11,9 @@
  * even inside the mock (the mock replaces the hook module entirely, so the
  * polyfill is a belt-and-suspenders guard for any direct window usage).
  */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { StatCard } from "@/features/dashboard/StatCard";
 
 // Mock useCountUp — returns the target value immediately so AnimatedNumber
@@ -19,6 +21,16 @@ import { StatCard } from "@/features/dashboard/StatCard";
 vi.mock("@/hooks/useCountUp", () => ({
   useCountUp: (target: number) => target,
 }));
+
+// Phase 30 — StatCard now imports useNavigate; mock it so tests don't need a RouterProvider.
+const mockNavigate = vi.fn();
+vi.mock("@tanstack/react-router", () => ({
+  useNavigate: () => mockNavigate,
+}));
+
+beforeEach(() => {
+  mockNavigate.mockClear();
+});
 
 // matchMedia polyfill (jsdom omits it; useCountUp reads it before the mock
 // can intercept if the module is already initialized).
@@ -116,5 +128,56 @@ describe("DSFD-03 — StatCard optional progress prop", () => {
   it("does not render a progress bar when progress prop is absent", () => {
     const { container } = render(<StatCard value={30} label="Painted" />);
     expect(container.querySelector(".bg-faction-accent")).toBeNull();
+  });
+});
+
+describe("Phase 30 — StatCard navigation (to prop)", () => {
+  it("renders role='button' and tabIndex=0 when to prop is provided", () => {
+    render(<StatCard value={42} label="Total Models" to="/collection" />);
+    const card = screen.getByRole("button");
+    expect(card).toBeInTheDocument();
+    expect(card).toHaveAttribute("tabindex", "0");
+  });
+
+  it("does NOT render role='button' when to prop is absent", () => {
+    render(<StatCard value={42} label="Total Models" />);
+    expect(screen.queryByRole("button")).toBeNull();
+  });
+
+  it("has cursor-pointer class when to prop is provided", () => {
+    render(<StatCard value={42} label="Total Models" to="/collection" />);
+    const card = screen.getByRole("button");
+    expect(card.className).toContain("cursor-pointer");
+  });
+
+  it("does NOT have cursor-pointer class when to prop is absent", () => {
+    const { container } = render(<StatCard value={42} label="Total Models" />);
+    const card = container.firstElementChild as HTMLElement;
+    expect(card.className).not.toContain("cursor-pointer");
+  });
+
+  it("calls navigate with to value on click", async () => {
+    const user = userEvent.setup();
+    render(<StatCard value={42} label="Total Models" to="/collection" />);
+    await user.click(screen.getByRole("button"));
+    expect(mockNavigate).toHaveBeenCalledWith({ to: "/collection" });
+  });
+
+  it("calls navigate on Enter key press (keyboard accessibility)", async () => {
+    const user = userEvent.setup();
+    render(<StatCard value={42} label="Total Models" to="/collection" />);
+    const card = screen.getByRole("button");
+    card.focus();
+    await user.keyboard("{Enter}");
+    expect(mockNavigate).toHaveBeenCalledWith({ to: "/collection" });
+  });
+
+  it("calls navigate on Space key press (keyboard accessibility)", async () => {
+    const user = userEvent.setup();
+    render(<StatCard value={42} label="Total Models" to="/collection" />);
+    const card = screen.getByRole("button");
+    card.focus();
+    await user.keyboard(" ");
+    expect(mockNavigate).toHaveBeenCalledWith({ to: "/collection" });
   });
 });

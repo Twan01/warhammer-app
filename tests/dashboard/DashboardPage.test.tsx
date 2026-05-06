@@ -125,8 +125,18 @@ function renderWithProviders(ui: React.ReactNode) {
     path: "/collection",
     component: () => null,
   });
+  const armyListsR = createRoute({
+    getParentRoute: () => root,
+    path: "/army-lists",
+    component: () => null,
+  });
+  const paintingProjectsR = createRoute({
+    getParentRoute: () => root,
+    path: "/painting-projects",
+    component: () => null,
+  });
   const router = createRouter({
-    routeTree: root.addChildren([dashboardR, collectionR]),
+    routeTree: root.addChildren([dashboardR, collectionR, armyListsR, paintingProjectsR]),
     history: createMemoryHistory({ initialEntries: ["/"] }),
   });
   return render(
@@ -281,5 +291,67 @@ describe("DashboardPage", () => {
 
     // Cleanup — leave localStorage clean for downstream tests
     window.localStorage.removeItem("active-faction-id");
+  });
+
+  it("uses grid layout container in error state (LAYOUT-01 atomicity)", async () => {
+    vi.mocked(getDashboardStats).mockRejectedValue(new Error("DB unreachable"));
+    const { container } = renderWithProviders(<DashboardPage />);
+    await screen.findByText("Failed to load dashboard. Try refreshing the app.");
+    const gridContainer = container.querySelector(".grid.grid-cols-1");
+    expect(gridContainer).not.toBeNull();
+  });
+
+  it("StatCards in top row have role='button' for navigation (LAYOUT-02)", async () => {
+    vi.spyOn(window, "matchMedia").mockReturnValue({
+      matches: true,
+      media: "(prefers-reduced-motion: reduce)",
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    } as MediaQueryList);
+
+    const tau = f({ id: 1, name: "Tau" });
+    vi.mocked(getDashboardStats).mockResolvedValue({
+      units: [u({ id: 1, faction_id: 1, name: "Fire Warrior", points: 100, status_painting: "Completed" })],
+      factions: [tau],
+    });
+    renderWithProviders(<DashboardPage />);
+    await screen.findByText("Total Models");
+
+    // The 4 top-row StatCards with to props should be present as buttons.
+    // FactionSummaryCard also renders role="button", so we find by text content.
+    const buttons = screen.getAllByRole("button");
+    const totalModelsButton = buttons.find((b) => b.textContent?.includes("Total Models"));
+    expect(totalModelsButton).toBeDefined();
+  });
+
+  it("Hobby Health StatCards do NOT have role='button' (no to prop — LAYOUT-02 backward compat)", async () => {
+    vi.spyOn(window, "matchMedia").mockReturnValue({
+      matches: true,
+      media: "(prefers-reduced-motion: reduce)",
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    } as MediaQueryList);
+
+    const tau = f({ id: 1, name: "Tau" });
+    vi.mocked(getDashboardStats).mockResolvedValue({
+      units: [u({ id: 1, faction_id: 1, name: "Fire Warrior", points: 100, status_painting: "Completed" })],
+      factions: [tau],
+    });
+
+    renderWithProviders(<DashboardPage />);
+    await screen.findByText("Total Models");
+
+    // Hobby Health StatCards (velocity, streak) do NOT have to prop — must not be role=button
+    const allButtons = screen.getAllByRole("button");
+    const velocityButton = allButtons.find((b) => b.textContent?.includes("Hobby Velocity"));
+    expect(velocityButton).toBeUndefined();
   });
 });
