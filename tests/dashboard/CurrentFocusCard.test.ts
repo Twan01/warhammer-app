@@ -23,3 +23,11 @@ describe("CurrentFocusCard", () => {
     it.todo("does not render action buttons when unit is null");
   });
 });
+
+describe("CurrentFocusCard — DATA-06 (recipe name display)", () => {
+  it.todo("renders recipe name with Palette icon when recipeName prop is provided");
+  it.todo("renders nothing for recipe when recipeName is null");
+  it.todo("renders nothing for recipe when recipeName is undefined (prop omitted)");
+  it.todo("shows '+N more' suffix when extraRecipeCount > 0");
+  it.todo("does not show '+N more' suffix when extraRecipeCount is 0");
+});

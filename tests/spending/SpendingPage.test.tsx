@@ -114,3 +114,10 @@ describe("SpendingPage — SPEND-03/04 (hero total + faction breakdown)", () => 
     expect(screen.getAllByText("£55.00").length).toBeGreaterThanOrEqual(2);
   });
 });
+
+describe("SpendingPage — DATA-03/04 (spending intelligence metrics)", () => {
+  it.todo("renders 'Cost Per Completed Model' card with formatted currency when data has Completed units");
+  it.todo("renders dash in 'Cost Per Completed Model' card when costPerCompletedModelPence is null");
+  it.todo("renders 'Painted vs Unpainted Value' card with two figures and labels");
+  it.todo("renders two skeleton cards in loading state for the metric section");
+});
