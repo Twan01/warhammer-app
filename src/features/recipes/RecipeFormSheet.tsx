@@ -131,6 +131,11 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
           step_name: s.step_name,
           paint_id: s.paint_id,
           notes: s.notes,
+          painting_phase: s.painting_phase ?? null,
+          tool: s.tool ?? null,
+          technique: s.technique ?? null,
+          dilution: s.dilution ?? null,
+          time_estimate_minutes: s.time_estimate_minutes ?? null,
         })),
       );
     } else if (!recipe) {
