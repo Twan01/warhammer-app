@@ -8,6 +8,7 @@ import {
   deletePaint,
 } from "@/db/queries/paints";
 import type { CreatePaintInput, UpdatePaintInput, PaintWithRecipeCount } from "@/types/paint";
+import { RECIPE_AVAILABILITY_KEY } from "@/hooks/useRecipePaints";
 
 export const PAINTS_KEY = ["paints"] as const;
 export const PAINT_KEY = (id: number) => ["paints", id] as const;
@@ -63,6 +64,8 @@ export function useUpdatePaint() {
       // SPEND-03/04 (Pitfall 2): invalidate spending-stats so Spending page stays fresh
       qc.invalidateQueries({ queryKey: ["spending-stats"] });
       qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
+      // PAINT-01: ownership changes must refresh recipe card availability badges
+      qc.invalidateQueries({ queryKey: RECIPE_AVAILABILITY_KEY });
     },
   });
 }
@@ -77,6 +80,8 @@ export function useDeletePaint() {
       // SPEND-03/04 (Pitfall 2): invalidate spending-stats so Spending page stays fresh
       qc.invalidateQueries({ queryKey: ["spending-stats"] });
       qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
+      // PAINT-01: paint deletion changes recipe step availability
+      qc.invalidateQueries({ queryKey: RECIPE_AVAILABILITY_KEY });
     },
     // FK errors (paint referenced in recipe_paints) reject — handled by component try/catch with toast
   });
