@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Recipes 2.0 / Painting Studio
-status: completed
-stopped_at: Phase 39 context gathered
-last_updated: "2026-05-07T08:58:20.259Z"
-last_activity: 2026-05-07 — 38-02 structured step UI wiring complete
+status: in_progress
+stopped_at: "Completed 39-01-PLAN.md"
+last_updated: "2026-05-07T09:29:00Z"
+last_activity: 2026-05-07 — 39-01 paint availability data layer complete
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
-  percent: 100
+  total_plans: 7
+  completed_plans: 5
+  percent: 71
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06 after v2.5 milestone started)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.5 Phase 38 — Structured Step Input
+**Current focus:** v2.5 Phase 39 — Studio UX + Paint Availability
 
 ## Current Position
 
-Phase: 38 of 41 (Structured Step Input) — COMPLETE
-Plan: 2 of 2 (38-02 complete)
-Status: Phase 38 complete — all structured step input features delivered
-Last activity: 2026-05-07 — 38-02 structured step UI wiring complete
+Phase: 39 of 41 (Studio UX + Paint Availability) — IN PROGRESS
+Plan: 1 of 3 (39-01 complete)
+Status: 39-01 paint availability data layer delivered — ready for 39-02 card grid
+Last activity: 2026-05-07 — 39-01 batch query + hook + cache invalidation complete
 
-Progress: [██████████] 100% (2/2 plans in Phase 38)
+Progress: [███████░░░] 71% (5/7 plans in v2.5)
 
 ## Accumulated Context
 
@@ -86,6 +86,12 @@ Progress: [██████████] 100% (2/2 plans in Phase 38)
 - Math.round() enforces integer discipline at input boundary — prevents float values reaching SQLite INTEGER column
 - Two-row step input layout locked: (phase Select + title + paint) on row 1, (tool + technique + dilution + time) on row 2
 
+### Decisions from Phase 39 Plan 01
+
+- Split-mock TDD strategy: vi.mock('@/db/client') captures SQL strings for query tests; vi.mock('@/db/queries/recipePaints', importOriginal) wraps the module for hook tests — prevents mock conflicts in the same test file
+- RECIPE_AVAILABILITY_KEY excluded from useCreatePaint — new paint has no step links, availability unaffected; symmetry rule applied precisely (not over-invalidating)
+- getRecipePaintAvailability() uses JOIN (not LEFT JOIN) — steps without a matching paint row (paint deleted) are excluded, avoiding NULL aggregation noise
+
 ### Key v2.5 Architectural Constraints
 
 - FIXED (Phase 37-01): useDeleteRecipe now includes `["kanban-enrichment"]` invalidation — cache symmetry restored
@@ -103,6 +109,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-07T08:58:20.256Z
-Stopped at: Phase 39 context gathered
-Resume: Phase 38 complete — begin Phase 39 (Painting Studio)
+Last session: 2026-05-07T09:29:00Z
+Stopped at: Completed 39-01-PLAN.md
+Resume: Phase 39 in progress — begin 39-02 (recipe card grid with paint availability badges)
