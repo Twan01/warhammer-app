@@ -1,23 +1,28 @@
 # Feature Research
 
-**Domain:** Warhammer 40K hobby management desktop app (v2.4 Premium Dashboard UX)
-**Researched:** 2026-05-05
-**Confidence:** HIGH (competitor landscape analyzed, domain well-understood, all prior features shipped)
+**Domain:** Structured painting recipe / painting studio — Warhammer hobby management desktop app (v2.5 Recipes 2.0)
+**Researched:** 2026-05-06
+**Confidence:** MEDIUM-HIGH (competitor landscape surveyed from Citadel Colour app, PaintPad, paintRack, BrushForge, Liber Pigmenta, ArmyCrafter, Brushrage, impcat; domain well-understood from shipped v2.4 baseline; exact implementation complexity for step-session linkage is lower-confidence because no surveyed competitor does this exactly)
 
 ---
 
 ## Scope
 
-This file covers the new capabilities targeted for v2.4. All v2.1–v2.3 features are shipped
-and referenced only as dependencies or data sources. Research focuses exclusively on what
-"premium dashboard polish, photo-centric hobby UI, and spending intelligence" means for:
+This file covers the new capabilities needed to transform HobbyForge recipes from flat
+paint notes into a structured painting knowledge system. The v2.4 baseline already ships:
 
-1. Asymmetric dashboard grid layouts
-2. Army readiness target tracking
-3. Active project panels
-4. Photo-centric hobby UIs
-5. Recipe-unit-faction linking
-6. Spending intelligence (cost per model, painted vs unpainted value)
+- `painting_recipes` table with flat `primer/basecoat/shade/layer/highlight/glaze_filter/
+  weathering/technical/basing` TEXT columns plus `notes`, `area`, `tutorial_link`
+- `recipe_paints` join table: `step_name`, `order_index`, `notes`, `paint_id`
+- `DraftStep` model in `recipeSteps.ts`: `step_name`, `paint_id`, `notes` (no phase, no tool, no technique, no time estimate, no photo)
+- Recipe detail as a flat list of steps with owned/missing indicator (green/red dot)
+- Recipe filtering by faction, unit, area, paint
+- Recipe swatch strip on cards
+- `image_assets` polymorphic photo table already in schema
+- `painting_sessions` for session logging
+
+Research focuses on what "structured recipe with step-by-step workflow, paint inventory
+integration, and studio UX" means across the competitor ecosystem.
 
 ---
 
@@ -25,144 +30,179 @@ and referenced only as dependencies or data sources. Research focuses exclusivel
 
 ### Table Stakes (Users Expect These)
 
-Features that, given v2.3 is shipped with CurrentFocusCard, HobbyPipeline, and StatCards,
-users now expect as the natural next step. Missing them makes v2.4 feel incremental rather
-than transformative.
+Features that any credible recipe/tutorial system must have. Missing these makes Recipes 2.0
+feel like a reskin of the existing flat-note system.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| Asymmetric dashboard grid (CSS grid with spanning cards) | Bento-grid is the dominant premium dashboard pattern (2025–2026). Uniform vertical stacks read as generic admin, not personal hobby command centers. | LOW | Tailwind v4 CSS grid with `col-span` / `row-span` utilities. No new data. Pure layout refactor on existing dashboard components. |
-| Clickable StatCards (navigate on click) | Every premium dashboard card is interactive. Clicking a KPI card to navigate to the underlying data is so standard that non-clickable cards feel broken. | LOW | Add `onClick` + `cursor-pointer` + `Link` wrapper to existing StatCard. Targets: collection, projects, battle log, spending pages. |
-| Photos in dashboard context (Focus + Projects + Activity) | Thumbnails on cards are now established in Collection gallery (v2.3). Users expect this visual language to propagate to the dashboard. | LOW-MEDIUM | Reads from existing `image_assets` table. Thumbnail fetch query already used on collection gallery. Add to CurrentFocusCard and project cards. |
-| Simplified pipeline (5 buckets not 11 raw statuses) | 11 status columns on a single-row pipeline widget is unreadable at a glance. Apps that display hobby progress use collapsed stage groups (Not Started / In Progress / Finishing / Done / Showcase). | MEDIUM | Schema stores 11 statuses — this is a display-only grouping. Map groups in TypeScript; no migration. Must define the 5 bucket boundaries clearly. |
-| ArmyReadinessCard with target selector | Pile of Potential and BattleBase both offer a "how much of my army is playable at X points" answer. Users planning a game night need this before they open the Army Lists page. | MEDIUM | Target presets (500/1000/1500/2000pts). Reads from `units` (points, painting_percentage, faction_id). No new schema. SQL must filter by faction and sum qualifying painted-above-threshold points. |
-| Log Session updates painting status | Logging a hobby session without any effect on underlying painting status creates a data inconsistency: the user logged progress but the collection shows no change. Apps like Brushrage and HobbyTracker Lite update the model's state on session log. | MEDIUM | LogSessionSheet (already ships in v2.3) needs a status-update field wired to the unit's `status_painting` column. Mutation must invalidate both `painting-sessions` and `units` query keys. |
+| Step title + painting phase per step | Every surveyed app (Citadel Colour, PaintPad, Liber Pigmenta, BrushForge, ArmyCrafter) organizes steps by named phase. "Step 1: Basecoat" vs a raw text note is the foundation of any recipe system. | LOW | Add `title TEXT` and `phase TEXT` columns to `recipe_paints`. Phases map to existing schema vocabulary: prime / basecoat / shade / layer / highlight / glaze / weathering / basing / varnish / other. Migrate existing `step_name` → `title`. |
+| Single paint linked per step | Already ships in `recipe_paints.paint_id`. Table stakes because this is the baseline every app builds on. | DONE | No new work — exists in current schema. |
+| Ordered steps (drag to reorder) | Every structured recipe system shows steps in sequence with a clear order. Users expect to drag steps to rearrange. | MEDIUM | `order_index` column exists. UI: add drag handles to RecipeStepList using existing `@dnd-kit` (already in the project for Kanban). |
+| Owned / missing paint status per step | Already ships (green/red dot on RecipeDetailSheet). Keeping it as paint ownership changes is core "at-a-glance recipe readiness". | DONE | No new work — `isPaintMissing()` already exists. |
+| Per-step notes / freeform text | Citadel Colour app, PaintPad, and all surveyed apps provide a notes or description field per step. Without it, steps are too sparse for complex techniques. | DONE | `recipe_paints.notes` already exists. |
+| Recipe result photo (finished model) | PaintPad, ArmyCrafter, and BrushForge all feature a finished-model hero photo on the recipe. Users need visual confirmation of what they're building toward. | LOW | Use existing `image_assets` table with `entity_type = 'recipe'`. Already supports polymorphic photos for units. No migration needed — just new query and display. |
+| Per-step photo | PaintPad specifically highlights per-step photos as a differentiator that enables "full tutorials". ArmyCrafter also supports images per step. Users following a recipe at the bench need a visual reference for each stage. | MEDIUM | Add `photo_path TEXT` (or join to `image_assets` with `entity_type = 'recipe_step'`) to `recipe_paints`. The filesystem photo infrastructure already exists for unit photos. |
+| Recipe metadata: difficulty + estimated minutes | Liber Pigmenta prominently features curated recipes with difficulty levels and time estimates per step. Citadel Colour app does not have these, which is cited as a UX gap in reviews. Users deciding "what to paint tonight" need to know if a recipe fits in 45 minutes or 4 hours. | LOW | Add `difficulty TEXT` (easy / medium / advanced) and `estimated_minutes INTEGER` to `painting_recipes`. Add `step_minutes INTEGER` to `recipe_paints`. Rollup total from steps automatically. |
+| Recipe style and surface metadata | Liber Pigmenta, BrushForge, and ArmyCrafter all categorize recipes by what they achieve (NMM, OSL, speedpaint, display, tabletop) and what surface they target (armor, skin, cloth, basing). This enables filtering "show me fast tabletop armor recipes for Space Marines". | LOW | Add `style TEXT`, `surface TEXT`, `effect TEXT` columns to `painting_recipes`. Values are enums: style = clean / grimdark / speedpaint / display / tabletop / tabletop+ / eavy-metal / custom; surface = armor / skin / cloth / weapon / leather / metal / lens / glow / base / weathering / other; effect = plasma-glow / rust / dust / battle-damage / NMM / OSL / edge-highlight / recess-shade / other. |
+| Recipe card view (not just table rows) | PaintPad and BrushForge both use card-based recipe browsing with color swatch strip and photo thumbnail. The existing RecipeTable is a plain table. A card view with swatches (v2.3 already ships on RecipesPage) is expected in any visual hobby app. | DONE/EXTEND | Swatch strip already on recipe cards (v2.3). Extend to include difficulty badge, style tag, and estimated time on the card face. No new infrastructure. |
+| Duplicate recipe action | PaintPad and BrushForge both offer recipe duplication. Users who paint the same model type across multiple factions (e.g., "same red armor, different chapter colors") expect to duplicate a recipe and tweak it rather than start from scratch. | LOW | Pure application logic: read recipe + all steps, INSERT copies with new `recipe_id`. No new schema. |
+| Filter by surface, style, difficulty, missing paints | BrushForge and PaintPad filter recipes by style and surface. Liber Pigmenta filters by game system and model type. Users with 50+ recipes need filters beyond faction/unit/area. | LOW-MEDIUM | Extend existing Zustand recipe filter store. New filter fields: `surface`, `style`, `difficulty`, `has_missing_paints` (boolean derived). All data exists after schema extension. |
 
 ### Differentiators (Competitive Advantage)
 
-Features beyond competitor parity that make HobbyForge feel like a purpose-built personal
-forge, not a generic tracker.
+Features that no surveyed competitor combines in a local-first desktop personal tool.
+HobbyForge's unique position is the integration between recipe, unit, project, session, and paint inventory in one local system.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| ActiveProjectsPanel (3–5 project cards with photo + progress + actions) | No competing local-first miniature app surfaces active projects at dashboard level with contextual actions (log session, open project, view recipe). Most apps require navigating to a separate page first. | MEDIUM | Filters `painting_projects` where status is an "active" bucket. Each card shows: photo thumbnail, project name, linked units count, last-updated date, quick "Log Session" CTA. Reads from existing painting_projects + image_assets data. |
-| CurrentFocusCard v2 (photo hero, action buttons, metadata row) | The single "what am I painting right now" question is the most-answered question in hobby tracking. Surfacing it with a real photo (not a placeholder icon), the unit's model count, points value, and direct actions (log session, open journal, change recipe) turns a stat into a workflow entry point. | MEDIUM | Reads: unit photo from `image_assets` (first image), unit points from `units.points`, model count from `units.model_count`, linked recipe from `units` FK if added. Actions open existing sheets. The photo is the core differentiator — requires a clean fallback for units with no photos. |
-| Spending intelligence: cost per completed model | HobbyForge already tracks `purchase_price_pence` and `model_count` per unit, and painting status. "Cost per completed model = total_spend / fully_painted_model_count" is a compelling personal metric that no competitor surfaces. Hobbyists discuss this metric on forums constantly — tracking "sunk cost on unpainted pile" is a known pain point. | LOW | Pure computation: `SUM(purchase_price_pence) / SUM(model_count) WHERE painting_percentage = 100`. Displayed as a dashboard StatCard or in the Spending page. No new schema. |
-| Spending intelligence: painted vs unpainted value split | Shows total spend split into "value locked in painted models" vs "value sitting in unpainted pile". Directly addresses the Warhammer community concept of "pile of shame" — giving it a monetary weight. Pile of Potential tracks painted % but not the monetary value split. | LOW | Two SQL aggregates on `units`: SUM where `painting_percentage = 100` vs SUM where not. No new schema. Displays as two-value summary or donut chart segment in Spending page. |
-| Faction Cards v2 (larger, expressive, clear focus indicator) | v2.3 FactionSummaryCard shows a progress bar and battle-ready points. A v2 iteration that uses the faction accent color as a dominant visual element (large color band or gradient fill), shows a unit photo from the faction, and has a clear "active/focus" crown indicator makes the dashboard feel like *your* army showcase, not a generic data table. | MEDIUM | Reads from `factions` (color_theme, name) + `image_assets` (one photo from a unit in this faction). No new schema. The "focus" indicator reads from existing FactionContext (active faction ID). |
-| Recipe ↔ unit ↔ faction linking surface | Recipes exist in the system but are disconnected from the dashboard and project context. Surfacing "this project uses recipe X" on the kanban card and "this recipe is used by N units in faction Y" on the recipe detail makes the whole system feel integrated. Competitor apps (Brushrage, impcat) link recipes to projects but not to faction hierarchy. | MEDIUM | Requires a `recipe_id FK` on `units` table (new column, migration). Or: read-only join via `painting_projects` if projects already link to both units and recipes. Audit current schema first before deciding migration strategy. |
+| Paint availability summary per recipe (owned / missing / running low count) | PaintPad and paintRack show a shopping list for missing paints. HobbyForge already has the owned/running-low/wishlist flags on every paint. A "you have 7/9 paints, 1 missing, 1 running low" summary on the recipe card before you start is immediately actionable — no competitor surfaces this as a card-level indicator in a personal desktop tool. | MEDIUM | Derive from JOIN of `recipe_paints` → `paints`. Count: total steps with paint linked, count owned (paints.owned=1), count running_low, count missing. Display as badge or mini-status bar on card and detail view. |
+| Paint substitution per step (alternative paint) | ArmyCrafter and paintRack have cross-brand conversion databases. PaintPad allows substitution notes. HobbyForge's local inventory approach enables something unique: "this step calls for Agrax Earthshade — you own Nuln Oil (similar dark wash) — substitute?" This removes the need for an external conversion chart for users who already have their paint catalog in the app. | MEDIUM | Add `alt_paint_id INTEGER REFERENCES paints(id)` to `recipe_paints`. Display alt paint in step with a "substitute if you have it" indicator. Does not require cross-brand matching database — user manually assigns substitutes. |
+| Recipe-to-session linkage: log which recipe/step you worked on | BrushForge has project tracking linked to recipes. Brushrage tracks painting sessions by time. No competitor allows "log a painting session and mark which recipe step you completed." This closes the loop: recipe informs session, session tracks progress on recipe. | HIGH | Extend `painting_sessions` table (or create a new join table `session_recipe_steps`) to record `recipe_id`, `step_id`, `step_completed INTEGER (0/1)`. LogSessionSheet (already ships) gains a recipe selector and step checklist. Session completion can roll up into a recipe "completion %" display. |
+| Step completion tracking (which steps done on which unit) | Liber Pigmenta offers full-screen painting session mode where you navigate phase by phase and mark steps complete on individual models. No local-first desktop tool surveyed does this at step level. For a user painting 20 Tactical Marines to the same recipe, knowing "I've done primer + basecoat on 15, shade on 8, highlight on 3" is a genuine workflow aid. | HIGH | Requires a `recipe_step_progress` table: `unit_id`, `recipe_paint_id` (step), `completed INTEGER`, `completed_at TEXT`. High complexity: new table + query + hook + UI. Likely Phase 2 within the milestone, not Phase 1. |
+| Studio view: step-by-step timeline detail (not just a sheet) | Citadel Colour app has a side-scrolling "Paint by Model" guide per model. Liber Pigmenta has full-screen recipe navigation. PaintPad renders each recipe as a readable tutorial page. The current RecipeDetailSheet is a compact sidebar list. A full-page studio view where each step is a card with phase badge, paint swatch, tool, technique, step photo, and notes is a qualitative UX leap that competitors only achieve through separate native apps. | MEDIUM | New RecipeStudioPage or panel-style detail. Each step rendered as a card: phase badge, paint swatch (hex_color), tool icon, technique, step photo, step notes, owned/missing indicator, alt paint. Route: `/recipes/:id` or a full-panel mode toggled from RecipesPage. |
+| "Start from template" action | BrushForge has a recipe generator. ArmyCrafter has community recipes you can fork. HobbyForge can offer a simpler local-first version: built-in recipe templates for common techniques (e.g., "Tabletop Space Marine", "Speedpaint Skin", "NMM Gold") that pre-populate steps. User owns and modifies the copy — no network, no AI. | MEDIUM | Store templates as seed data or as a special `is_template INTEGER DEFAULT 0` flag on `painting_recipes`. Template recipes are read-only in the UI; user can "Start from template" to create an editable copy. 3–5 canonical templates cover 80% of use cases. |
+| Used-in projects section on recipe detail | No surveyed competitor links recipes back to which units/projects are using them bidirectionally. HobbyForge already has `units.recipe_id` (added in v2.4). Showing "This recipe is used by: Fire Warriors (3/10 painted), Ethereal (done)" on the recipe detail makes the recipe feel alive and contextual, not just a reference card. | LOW | Simple JOIN: `SELECT units.name, units.painting_percentage FROM units WHERE units.recipe_id = ?`. Already achievable with v2.4 schema if `recipe_id` FK is confirmed on units. |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Drag-to-resize dashboard cards | "I want to customize the layout" | Implementing a drag-resize grid (like Gridster or react-grid-layout) is a full product unto itself. Adds significant bundle weight. The designed hierarchy IS the information architecture. | Fixed asymmetric grid with thoughtful default proportions; no user resize |
-| Per-model photo gallery (sub-unit level) | "I want to show each individual Space Marine" | HobbyForge tracks at unit level. Per-model tracking is a data model overhaul. Miniarx does this — it's their primary differentiator. | Per-unit photos with multi-image support covers 90% of the use case |
-| AI recipe suggestion ("generate a recipe for this faction's colors") | "Tell me how to paint this" | Requires LLM API calls — violates local-first, no-network constraint. Could hallucinate paint names. | Manual recipe entry with paint swatch strip (v2.3 already ships this on recipe cards) |
-| Cloud photo storage / sync | "I want my photos on my phone too" | Hard incompatibility with local-first architecture. Tauri filesystem access is local. Cloud sync requires an account system. | Local photos only; future companion milestone if warranted |
-| Cost forecasting / budget alerts | "Warn me before I overspend" | Budget limit management adds a settings/preferences surface. Notification permission complexity on Tauri. The user is also the only person who sets budgets. | Show actuals clearly; user self-regulates |
-| Animated spending charts (value changes over time like a stock ticker) | "Make it feel alive" | D3 animation in React + shadcn/ui Recharts is non-trivial; adds jank risk on slow SQLite queries; no new data insight | Static charts with hover tooltips are sufficient and snappier |
-| Full-screen "painting mode" timer on dashboard | "I want a timer visible while I paint" | A full-screen painting timer is a different mental model than a dashboard. LogSessionSheet already handles session logging. | Log session after the fact via LogSessionSheet (already shipped) |
+| AI recipe generation ("write a recipe for Tau armor") | BrushForge offers this as a premium AI feature. Users ask for it. | Violates local-first / no-network constraint in PROJECT.md. Explicitly listed as out of scope. AI-generated paint names can hallucinate non-existent paints. | Manual recipe entry with template starting points (see "Start from template" differentiator above). 3–5 built-in templates reduce blank-canvas friction. |
+| Cross-brand paint substitution database (auto-suggest Vallejo equivalent for every Citadel paint) | Users want to substitute OOP or unavailable paints. External tools like ModelShade and ArmyCrafter do this. | Requires maintaining a curated database of thousands of paint equivalences across 10+ brands. A living data set — constantly changing as brands update ranges. Not buildable offline without bundling a large static database that will go stale. | Manual `alt_paint_id` substitution per step: user assigns their own substitutes from their personal paint inventory. Works offline, never stale, zero maintenance. |
+| Recipe sharing / export to community | PaintPad and ArmyCrafter are built around community recipe discovery. Users who want to share ask for this. | HobbyForge is explicitly personal and local-first. Sharing requires accounts, cloud backend, moderation, UGC storage. Fundamentally incompatible with architecture. | Recipe detail page is printable / screenshottable. A future "export to JSON/PDF" milestone could enable sharing via file. |
+| Video step embeds (YouTube tutorial per step) | ArmyCrafter supports video per step. Users follow YouTube tutorials while painting. | Embedding video requires a media player, network call for YouTube embeds, or local video file management. Local video is large; YouTube embed violates no-network constraint. | `tutorial_link TEXT` field already exists on `painting_recipes`. Link-out to external video on click. Surface the existing link more prominently in Studio view. |
+| Recipe "rating" or "favourite" system | PaintPad has recipe starring. Community platforms have ratings. | For a single-user personal tool, a rating system serves no purpose — there's no community to rate against and no competing recipes you didn't create. Adds UI surface for zero information gain. | Order recipes by `updated_at` recency or by linked unit / faction for quick access. Filter + sort covers the "find my best recipe" use case. |
+| Automatic paint quantity tracking per session (deduct from inventory) | Users want paint quantity to decrease as they use it. | Paint consumption is highly variable (dilution ratio, model size, technique). Automatic deduction will be wrong. Forced deduction adds friction to session logging. | Manual `running_low INTEGER` flag on paints (already exists). User sets it manually when they notice a paint getting low. |
 
 ---
 
 ## Feature Dependencies
 
 ```
-CSS Grid Layout (asymmetric)
-    no data deps — layout only
-    enables──> better visual space for all other dashboard features
+Recipe metadata (style, surface, effect, difficulty, estimated_minutes)
+    requires──> Schema migration: ADD COLUMN to painting_recipes
+    enables──> Extended filters (style, surface, difficulty)
+    enables──> Difficulty badge + time display on recipe card
 
-CurrentFocusCard v2
-    reads from──> image_assets (unit photos) [v2.1 — shipped]
-    reads from──> units (model_count, points, faction_id)
-    optionally reads from──> recipes (linked recipe_id — requires recipe↔unit FK)
-    enables──> LogSessionSheet (action button target — already shipped)
+Step title + phase
+    requires──> Schema migration: ADD COLUMN title, phase to recipe_paints
+    enables──> Step phase badge in Studio view
+    enables──> Phase-grouped step timeline
 
-ActiveProjectsPanel
-    reads from──> painting_projects (status, updated_at, linked units)
-    reads from──> image_assets (project/unit photo thumbnail)
-    enhances──> LogSessionSheet (quick action on each card — already shipped)
+Per-step minutes
+    requires──> Schema migration: ADD COLUMN step_minutes to recipe_paints
+    enables──> Auto-computed estimated_minutes rollup on recipe
 
-ArmyReadinessCard
-    reads from──> units (points, painting_percentage, faction_id) [shipped]
-    reads from──> factions (name, color_theme) [shipped]
-    depends on FactionContext (active faction selection — v2.1, shipped)
+Alt paint substitution
+    requires──> Schema migration: ADD COLUMN alt_paint_id to recipe_paints
+    reads from──> paints (owned, name, hex_color)
+    requires──> Step title + phase (step must be structured first)
 
-Simplified Pipeline (5 buckets)
-    reads from──> units (status_painting counts — already in dashboard query)
-    no data deps — display grouping only
+Per-step photo
+    requires──> Schema migration: ADD COLUMN photo_path to recipe_paints
+    OR uses existing image_assets (entity_type='recipe_step', entity_id=recipe_paints.id)
+    enables──> Studio view with visual step-by-step guide
 
-Clickable StatCards
-    no data deps — navigation only
-    requires TanStack Router links [shipped]
+Recipe result photo
+    uses existing──> image_assets (entity_type='recipe', entity_id=recipe.id)
+    no migration needed
+    enables──> Recipe card hero photo
 
-Spending Intelligence (cost per model, painted vs unpainted split)
-    reads from──> units (purchase_price_pence, model_count, painting_percentage)
-    all data already exists — no migration
-    enhances──> SpendingPage (new summary metrics alongside existing chart)
+Studio view (RecipeStudioPage)
+    requires──> Step title + phase (to render structured cards)
+    requires──> Per-step photo (for full tutorial value)
+    enhances──> Alt paint substitution display
+    enhances──> Per-step minutes display
 
-Faction Cards v2
-    reads from──> factions (color_theme, name)
-    reads from──> image_assets (one unit photo per faction — optional, with fallback)
-    reads from──> FactionContext (active faction indicator)
-    enhances──> FactionSummaryCard (replaces or extends it)
+Paint availability summary
+    reads from──> recipe_paints JOIN paints (owned, running_low)
+    no migration needed after step columns added
+    enables──> Recipe card readiness badge
 
-Recipe ↔ unit ↔ faction linking
-    requires──> schema migration: recipe_id FK on units table (NEW column)
-    OR reads via painting_projects if projects already join both
-    enhances──> RecipeDetailSheet (show "used by N units" count)
-    enhances──> CurrentFocusCard v2 (show linked recipe name)
+Recipe-to-session linkage
+    requires──> Schema migration: new columns on painting_sessions
+                OR new table session_recipe_steps
+    requires──> Recipe steps be structured (title + phase first)
+    extends──> LogSessionSheet (add recipe selector + step checklist)
+    enables──> Step completion tracking rollup on studio view
 
-Log Session updates status
-    extends──> LogSessionSheet (add status update field — existing component)
-    mutates──> units (status_painting column)
-    must invalidate──> ["units"], ["dashboard-stats"], ["painting-sessions"] query keys
+Step completion tracking (per unit)
+    requires──> New table: recipe_step_progress (unit_id, recipe_paint_id, completed, completed_at)
+    requires──> Recipe-to-session linkage (sessions trigger completion marks)
+    enables──> "X/Y steps done" progress on unit detail and studio view
+    HIGH complexity — Phase 2 within milestone
 
-Photos become central (thumbnails across dashboard)
-    reads from──> image_assets (entity_type='unit', entity_id) [v2.1 — shipped]
-    enhances──> CurrentFocusCard v2
-    enhances──> ActiveProjectsPanel
-    enhances──> RecentActivityFeed
-    no new schema — photo infrastructure already exists
+Start from template
+    requires──> is_template flag OR seed data in painting_recipes
+    requires──> Duplicate recipe action (templates are duplicated, not edited)
+    LOW complexity — implement after duplicate action
+
+Duplicate recipe action
+    no schema change needed
+    requires──> Step structure in place to copy correctly (copy steps with all new columns)
+    LOW complexity — implement early
+
+Used-in projects section
+    reads from──> units (recipe_id FK — confirmed added in v2.4)
+    no migration needed if recipe_id on units is confirmed
+    LOW complexity — simple JOIN query
+
+Extended filters (surface, style, difficulty, missing paints)
+    requires──> Recipe metadata columns exist (surface, style, difficulty)
+    requires──> Paint availability summary computed
+    extends──> Zustand recipe filter store
+
+Recipe ↔ session ↔ unit integration on dashboard
+    requires──> Recipe-to-session linkage
+    extends──> CurrentFocusCard (show recipe + current step)
+    extends──> Kanban cards (show recipe name + steps-done count)
 ```
 
 ### Dependency Notes
 
-- **Recipe ↔ unit linking is the highest-risk dependency.** Auditing whether `painting_projects` already creates the needed join is the first task before writing any migration. If projects bridge units and recipes, no migration is needed. If not, `units.recipe_id` or a join table is required.
+- **Schema migration is the first task.** All structured recipe features depend on new columns in `recipe_paints` (title, phase, step_minutes, alt_paint_id, photo_path) and `painting_recipes` (style, surface, effect, difficulty, estimated_minutes). These should go in a single migration file: `012_recipes_v2.sql`. Existing data must not be dropped — old `step_name` maps to new `title`, flat phase TEXT columns become read-only legacy fields that the new step model supersedes.
 
-- **Photos have a common fallback problem.** Units without photos should show a tasteful placeholder (faction-colored icon, not a broken image frame). This pattern must be defined once and reused across CurrentFocusCard v2, ActiveProjectsPanel, and Faction Cards v2.
+- **Duplicate recipe action must be implemented before templates.** Templates are just seed recipes that get duplicated on "Start from template." Building duplicate first gives templates for free.
 
-- **ArmyReadinessCard and Simplified Pipeline both read from units status data** already fetched by the dashboard query. Co-locating these in one `useDashboardStats` hook call avoids N+1 queries.
+- **Session-recipe linkage is the highest-complexity new feature.** It requires extending `painting_sessions` (or a new join table) AND extending LogSessionSheet. It also requires step structure to already exist. Schedule this as Phase 2 or Phase 3 within the milestone, not Phase 1.
 
-- **Log Session updating status requires careful invalidation.** The mutation touches `units`, which invalidates `["dashboard-stats"]`, `["units"]`, and potentially army list readiness calculations. Must not double-update if a status was already set.
+- **Step completion tracking depends on session linkage.** It is Phase 3 territory at the earliest. The studio view itself (phase 1 or 2) should be useful without step completion — the two are independent UX flows.
+
+- **Per-step photo vs image_assets:** Using `image_assets` with `entity_type='recipe_step'` and `entity_id=recipe_paints.id` is consistent with existing image infrastructure and adds zero new schema. Using a direct `photo_path TEXT` column on `recipe_paints` is simpler to query. Recommend `photo_path TEXT` on `recipe_paints` as the simpler local-first approach — `image_assets` polymorphism is designed for timeline galleries, not embedded step thumbnails.
 
 ---
 
-## Prioritization for v2.4
+## MVP Definition
 
-### Must Ship (Core of Milestone)
+### Phase 1 — Structured Recipe Core (must ship first)
 
-These define "premium dashboard UX" — without them v2.4 is just polish:
+Minimum needed to make Recipes 2.0 meaningfully different from the flat system.
 
-- [ ] CSS Grid layout (asymmetric 2-column) — defines the new dashboard structure
-- [ ] CurrentFocusCard v2 with photo hero — most-used dashboard element
-- [ ] ActiveProjectsPanel — new primary panel that justifies the grid
-- [ ] ArmyReadinessCard with target point selector — answers the "can I play?" question
-- [ ] Simplified pipeline (5 buckets) — makes the pipeline widget readable
-- [ ] Spending intelligence metrics (cost per model, painted/unpainted split) — low cost, high value
+- [ ] Schema migration: `title`, `phase`, `step_minutes`, `photo_path`, `alt_paint_id` on `recipe_paints`; `style`, `surface`, `effect`, `difficulty`, `estimated_minutes` on `painting_recipes`
+- [ ] RecipeFormSheet extended to capture new metadata fields (style, surface, difficulty, estimated time)
+- [ ] RecipeStepRow extended: title input, phase selector (dropdown), step minutes, optional alt paint combobox
+- [ ] Studio view (step-by-step timeline) replacing the flat step list in RecipeDetailSheet
+- [ ] Recipe result photo (via image_assets) on recipe card and studio view header
+- [ ] Per-step photo capture and display in studio view
+- [ ] Paint availability summary badge on recipe cards (owned/missing count)
+- [ ] Duplicate recipe action
+- [ ] Extended filters (surface, style, difficulty, has_missing_paints)
 
-### Should Ship (Premium feel completes here)
+### Phase 2 — Inventory Integration + Session Linkage
 
-- [ ] Clickable StatCards — zero-effort polish, expected by users
-- [ ] Photos become central (thumbnail queries + fallback pattern) — visual upgrade across dashboard
-- [ ] Log Session updates painting status — closes the data loop
-- [ ] Faction Cards v2 — expressive visual upgrade for faction selection
+Add after Phase 1 is stable and in use.
 
-### Add After Core Is Stable
+- [ ] Alt paint substitution display in studio view with owned indicator
+- [ ] Session-recipe linkage: extend LogSessionSheet to select recipe + mark steps worked on
+- [ ] Start from template (3–5 built-in templates)
+- [ ] Used-in projects section on recipe detail (JOIN via units.recipe_id)
+- [ ] Recipe name + step-done count on Kanban cards and CurrentFocusCard
 
-- [ ] Recipe ↔ unit ↔ faction linking — depends on schema audit; defer if audit reveals migration needed
-- [ ] Premium visual depth (radial gradients, card surface hierarchy) — CSS-only, add last as polish
+### Phase 3 — Advanced Tracking (defer until Phase 2 validated)
+
+- [ ] Step completion tracking per unit (new `recipe_step_progress` table)
+- [ ] Recipe completion % rollup on unit detail sheet
+- [ ] "Paint with me" mode: full-screen step navigation for bench use
 
 ---
 
@@ -170,83 +210,83 @@ These define "premium dashboard UX" — without them v2.4 is just polish:
 
 | Feature | User Value | Implementation Cost | Schema Change | Priority |
 |---------|------------|---------------------|---------------|----------|
-| CSS Grid layout | HIGH | LOW | None | P1 |
-| Spending intelligence metrics | HIGH | LOW | None | P1 |
-| Clickable StatCards | HIGH | LOW | None | P1 |
-| Simplified pipeline (5 buckets) | HIGH | LOW | None | P1 |
-| Log Session updates status | HIGH | LOW-MEDIUM | None | P1 |
-| Photos in dashboard (thumbnails) | HIGH | LOW-MEDIUM | None | P1 |
-| CurrentFocusCard v2 | HIGH | MEDIUM | None (or recipe_id) | P1 |
-| ArmyReadinessCard | HIGH | MEDIUM | None | P1 |
-| ActiveProjectsPanel | HIGH | MEDIUM | None | P1 |
-| Faction Cards v2 | MEDIUM | MEDIUM | None | P2 |
-| Recipe ↔ unit linking | MEDIUM | MEDIUM | recipe_id on units | P2 |
-| Premium visual depth | MEDIUM | LOW | None | P2 |
+| Schema migration (new columns) | Enabler | LOW | YES — single migration | P1 |
+| Step title + phase selector | HIGH | LOW | YES (migration) | P1 |
+| Style / surface / difficulty metadata | HIGH | LOW | YES (migration) | P1 |
+| Duplicate recipe action | HIGH | LOW | None | P1 |
+| Studio view (step-by-step timeline) | HIGH | MEDIUM | Requires new columns | P1 |
+| Recipe result photo | HIGH | LOW | None (uses image_assets) | P1 |
+| Per-step photo | HIGH | MEDIUM | photo_path column | P1 |
+| Paint availability summary | HIGH | MEDIUM | None after migration | P1 |
+| Extended filters | HIGH | LOW-MEDIUM | Requires metadata columns | P1 |
+| Alt paint substitution | MEDIUM | MEDIUM | alt_paint_id column | P2 |
+| Session-recipe linkage | HIGH | HIGH | YES — new table or columns | P2 |
+| Start from template | MEDIUM | LOW (after duplicate) | is_template flag | P2 |
+| Used-in projects section | MEDIUM | LOW | None (uses units.recipe_id) | P2 |
+| Step completion per unit | MEDIUM | HIGH | YES — new table | P3 |
+| Full-screen painting mode | LOW | HIGH | None | P3 |
 
 **Priority key:**
-- P1: Required for v2.4 to feel like a milestone, not a patch
-- P2: Valuable polish, add if P1 is stable; could slip to v2.5
+- P1: Required for Recipes 2.0 to feel structurally different from flat notes
+- P2: Workflow integration — makes recipes actionable in context
+- P3: Advanced tracking — defer until P1+P2 validated
 
 ---
 
 ## Competitor Feature Comparison
 
-| Feature | Miniarx | Figure Case | HobbyTracker | Pile of Potential | HobbyForge v2.4 Approach |
-|---------|---------|-------------|--------------|-------------------|--------------------------|
-| Asymmetric dashboard grid | No (flat list) | No | No | No | CSS Grid bento layout — unique in local-first desktop hobby apps |
-| Photo-centric UI | YES — core feature (photo tracking, galleries) | Partial (photo stages) | Progress photos | No | Photos promoted to all dashboard surfaces; local filesystem |
-| Army readiness at target points | No | No | No | Partial (painted % only) | Target selector (500/1000/1500/2000) + per-faction readiness |
-| Cost per painted model | No | No | Kit cost tracking only | No | Auto-calculated from existing purchase_price_pence + model_count |
-| Painted vs unpainted value split | No | No | No | No | SQL aggregate split — first-class metric in Spending page |
-| Recipe ↔ unit ↔ faction linking | No | No | No | No | FK on units table (if migration confirmed) — unique |
-| Active project panel on dashboard | No (separate page) | No | No | No | 3–5 project cards with photo + quick actions on dashboard |
-| Log session → status update | No | Yes (status change per stage) | Yes (session-linked status) | No | Extend existing LogSessionSheet with status update field |
+| Feature | Citadel Colour app | PaintPad | BrushForge | Liber Pigmenta | ArmyCrafter | HobbyForge v2.5 Approach |
+|---------|-------------------|----------|------------|----------------|-------------|--------------------------|
+| Step-by-step phases | YES (Contrast / Classic method) | YES (any structure) | YES (grouped steps) | YES (7-step wizard) | YES (user-defined) | Phase enum on each step in recipe_paints |
+| Per-step photo | NO | YES | YES | NO | YES | photo_path on recipe_paints |
+| Difficulty + time estimate | NO (gap noted in reviews) | NO | NO (only category) | YES — both difficulty + time | NO | Both columns on painting_recipes |
+| Paint inventory integration | NO (only GW paints shown) | YES (ownership tracking) | YES (owned paints) | YES (paint requirements) | NO | Derives from existing paints table owned/running_low flags |
+| Paint substitution | NO | Notes field only | NO | NO | Cross-brand DB | Manual alt_paint_id per step — local, no DB needed |
+| Recipe duplication | NO | YES | YES | YES | YES (fork community recipe) | Duplicate action — INSERT copy of recipe + all steps |
+| Session linkage | NO | NO | Partial (project tracking) | YES (session navigation per step) | NO | Extend LogSessionSheet with recipe + step selectors |
+| Used-in / linked units | NO | NO | Partial | NO | NO | JOIN via units.recipe_id (confirmed v2.4) |
+| Template / starter recipes | YES (official GW guides) | Community recipes | YES (AI generator) | YES (curated recipes) | YES (community) | Local seed templates + "Start from template" action |
+| Result photo | YES (model showcase) | YES | YES | YES | YES | image_assets entity_type='recipe' |
+| Studio / full-page view | YES (app-wide) | YES (tutorial page) | YES (recipe builder) | YES (full-screen session) | NO | RecipeStudioPage or full-panel recipe detail |
 
 ---
 
-## Data Gaps to Flag for Requirements
+## Existing Infrastructure to Reuse
 
-1. **Recipe ↔ unit schema:** Does `painting_projects` already provide the recipe-unit bridge?
-   Audit `painting_projects` FK structure before writing any migration. If not, decide:
-   (a) `units.recipe_id FK -> recipes(id)` (one recipe per unit, simplest), or
-   (b) a join table `unit_recipes` (many-to-many, future-proof but higher cost).
-   Recommendation: (a) for v2.4 since a unit realistically follows one recipe.
+The following is already built and should NOT be reimplemented:
 
-2. **Photo fallback pattern:** All new photo-bearing components need a consistent
-   no-photo state. Define once: faction-color-filled placeholder with unit's first
-   letter or a brush icon. Must render identically across CurrentFocusCard v2,
-   ActiveProjectsPanel, and Faction Cards v2.
-
-3. **ArmyReadiness point calculation:** The dashboard query needs points-per-faction
-   already-painted (painting_percentage >= threshold). Confirm whether `units.points`
-   is the entered points value (it is — manually entered by user per PROJECT.md constraint).
-   COALESCE pattern from army list SQL applies here.
-
-4. **Pipeline bucket boundaries:** The 11 statuses map to 5 display buckets.
-   Must define the mapping explicitly before UI work:
-   - Bucket 1 "Not Started": "Unpainted"
-   - Bucket 2 "Assembly": "Assembled", "Built", "Primed"
-   - Bucket 3 "In Progress": "Base Coated", "Layering", "Shading"
-   - Bucket 4 "Finishing": "Highlighting", "Detailing", "Basing"
-   - Bucket 5 "Done": "Fully Painted"
-   (Exact status strings must be validated against PAINTING_STATUS_ORDER in `src/types/datasheet.ts`.)
+| Existing Piece | How Recipes 2.0 Reuses It |
+|----------------|---------------------------|
+| `image_assets` table (polymorphic photos) | Recipe result photo: `entity_type='recipe'`. Step photo can use `photo_path TEXT` column as simpler alternative. |
+| `@dnd-kit` (Kanban drag-and-drop) | RecipeStepList drag-to-reorder using same DndContext + SortableContext pattern |
+| `PaintCombobox` component | Extend for `alt_paint_id` picker — already searches paint inventory |
+| Zustand recipe filter store | Extend with new filter fields (surface, style, difficulty, has_missing_paints) |
+| `isPaintMissing()` utility | Reuse for per-step owned indicator in studio view |
+| LogSessionSheet | Extend with recipe + step selection fields for session linkage |
+| `recipe_paints` join table | Extend in-place with new columns; existing data preserved |
+| `painting_recipes` table | Extend in-place with new columns; no data loss |
+| RecipeFormSheet | Extend with new metadata section (style / surface / difficulty / estimated time) |
+| RecipeDetailSheet | Replace flat step list with studio timeline component; keep Sheet wrapper and FK details |
+| `units.recipe_id` FK (added v2.4) | Used-in section on recipe detail — simple JOIN already queryable |
 
 ---
 
 ## Sources
 
-- Bento Grid Dashboard Design guide (orbix.studio) — asymmetric grid UX principles and CSS Grid implementation patterns
-- Miniarx (miniarx.com) — photo-centric miniature collector dashboard, photo upload + status tracking
-- Figure Case / Warganizer (App Store) — painting stage photo tracking, status-linked photos
-- HobbyTracker Lite (App Store) — kit cost tracking, time tracking, session-linked status
-- Brushrage (Play Store / reachu.io) — paint recipe + inventory integration with project tracking
-- Pile of Potential (wargamer.com review) — pile-of-shame tracking, unit cost + painted % per project
-- PatternFly Dashboard Patterns (patternfly.org) — status cards, card-footer actions, link-style buttons
-- DakkaDakka / Warhammer community forums — "cost per model" metric, pile of shame monetary framing (community validation that this metric resonates)
-- HobbyForge PROJECT.md — confirmed existing schema capabilities and out-of-scope constraints
-- HobbyForge FEATURES.md (v2.2) — prior feature landscape; confirmed all v2.1–v2.3 shipped features
+- Citadel Colour: The App (Google Play / App Store, ageofminiatures.com review) — step structure, Paint by Model, classic vs contrast guide system
+- PaintPad (paintpad.app) — per-step photos, recipe-as-tutorial pattern, starred recipes, community discovery
+- paintRack (Google Play / App Store) — paint set model for recipes, owned/missing integration, 27,000+ paint library
+- BrushForge (brushforgeapp.com) — AI recipe generator, project-step linkage, mixes with notes, step completion tracking
+- Liber Pigmenta (liberpigmenta.com) — 7-step wizard, difficulty + time estimates, full-screen painting session mode, distraction-free step navigation
+- ArmyCrafter (armycrafter.com) — community recipes, cross-brand paint alternatives, image-per-step tutorials
+- Brushrage (Play Store) — session-by-session time tracking on bar chart, paint + recipe integration
+- Hobby Color Converter (Google Play) — cross-brand paint equivalence (informs why manual alt_paint_id is preferable to auto-matching DB)
+- ModelShade, Herrick Games Paint Chart — paint substitution database scope (confirms maintaining one is infeasible offline)
+- DakkaDakka / Warhammer 40K community forums — "what makes a recipe useful at the bench" pain points
+- HobbyForge PROJECT.md — confirmed schema baseline, constraints, and out-of-scope items
+- HobbyForge v3.0-ROADMAP.md — v2.5 / Milestone 3.1 requirements definition
 
 ---
 
-*Feature research for: HobbyForge v2.4 — Premium Dashboard UX & Visual Polish*
-*Researched: 2026-05-05*
+*Feature research for: HobbyForge v2.5 — Recipes 2.0 / Painting Studio*
+*Researched: 2026-05-06*
