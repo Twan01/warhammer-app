@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Recipes 2.0 / Painting Studio
-status: 40-02 Duplicate button, step photo upload, result photo upload, timeline thumbnails delivered
-stopped_at: Completed 40-02-PLAN.md
-last_updated: "2026-05-07T12:53:00Z"
-last_activity: 2026-05-07 — 40-02 recipe duplication UI + step photo upload + timeline thumbnails
+status: PAINT-02 (substitute paint) and PAINT-03 (add all missing to wishlist) delivered end-to-end
+stopped_at: Completed 40-03-PLAN.md
+last_updated: "2026-05-07T11:02:07Z"
+last_activity: 2026-05-07 — 40-03 Alt paint combobox, Alt: timeline display, Add all missing to wishlist button
 progress:
   total_phases: 5
-  completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
-  percent: 90
+  completed_phases: 4
+  total_plans: 11
+  completed_plans: 11
+  percent: 100
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-06 after v2.5 milestone started)
 ## Current Position
 
 Phase: 40 of 41 (Recipe Actions + Step Photos) — COMPLETE
-Plan: 2 of 2 (40-02 complete — UI layer for duplication + step photos)
-Status: STUDIO-03 (recipe duplication) and STEP-05 (step photos) delivered end-to-end
-Last activity: 2026-05-07 — 40-02 Duplicate button, step/result photo upload, timeline thumbnails
+Plan: 3 of 3 (40-03 complete — substitute paint combobox + add all missing to wishlist)
+Status: PAINT-02 (substitute paint) and PAINT-03 (add all missing to wishlist) delivered end-to-end
+Last activity: 2026-05-07 — 40-03 Alt paint combobox, Alt: timeline display, Add all missing to wishlist button
 
-Progress: [█████████░] 90% (9/10 plans in v2.5)
+Progress: [██████████] 100% (11/11 plans in v2.5)
 
 ## Accumulated Context
 
@@ -121,6 +121,14 @@ Progress: [█████████░] 90% (9/10 plans in v2.5)
 - Photo upload pattern confirmed: openDialog → readFile(absolute path, no baseDir) → writeFile(UUID.ext, {baseDir: AppData}) → store UUID filename in DB
 - result_photo_path now read from form values in create path (was hardcoded null) — completing the STEP-05 photo upload chain for new recipes
 
+### Decisions from Phase 40 Plan 03
+
+- Alt paint combobox placed on step row line 2 (grid-cols-5) — keeps line 1 uncluttered; line 2 already has utility metadata fields
+- canAddToWishlist guards on recipe.faction_id != null — prevents FK violation on wishlist_items.faction_id NOT NULL constraint
+- Alt paint does NOT affect isPaintMissing / availability badge — primary paint_id only determines availability per PAINT-02 spec
+- Name-based dedup (brand + name string) for wishlist duplicate prevention — avoids re-adding paints already on wishlist by name
+- Sequential mutateAsync loop (not Promise.all) — simpler error handling; first failure surfaces via catch block
+
 ### Key v2.5 Architectural Constraints
 
 - FIXED (Phase 37-01): useDeleteRecipe now includes `["kanban-enrichment"]` invalidation — cache symmetry restored
@@ -138,6 +146,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-07T12:53:00Z
-Stopped at: Completed 40-02-PLAN.md
-Resume: Phase 40 complete — both plans done. Next: Phase 41 (session-recipe linking, INTEG-01/02)
+Last session: 2026-05-07T11:02:07Z
+Stopped at: Completed 40-03-PLAN.md
+Resume: Phase 40 complete — all 3 plans done. Next: Phase 41 (session-recipe linking, INTEG-01/02)

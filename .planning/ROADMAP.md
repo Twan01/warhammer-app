@@ -111,7 +111,7 @@ Full details: `.planning/milestones/v2.4-ROADMAP.md`
 - [x] **Phase 37: Schema Foundation + Pre-flight Fixes** — Migrate recipe_paints to recipe_steps, add recipe metadata columns, fix pre-existing cache invalidation bug, eliminate N+1 step count query (completed 2026-05-07)
 - [x] **Phase 38: Structured Step Input** — Full step CRUD with phase/tool/technique/dilution fields, time estimates, and @dnd-kit reordering (completed 2026-05-07)
 - [x] **Phase 39: Studio UX + Paint Availability** — Card grid view with metadata badges, step-by-step timeline detail, advanced filters, and owned/missing paint badge on cards (completed 2026-05-07)
-- [ ] **Phase 40: Recipe Actions + Step Photos** — Recipe duplication, per-step photo upload, substitute paint linking, and add-all-missing-to-wishlist action
+- [x] **Phase 40: Recipe Actions + Step Photos** — Recipe duplication, per-step photo upload, substitute paint linking, and add-all-missing-to-wishlist action (completed 2026-05-07)
 - [ ] **Phase 41: Session Integration** — Recipe + step selection in LogSessionSheet, session history visible from recipe detail view
 
 ## Phase Details
@@ -168,7 +168,7 @@ Plans:
   2. User can attach a photo to any step and the photo displays inline in the step timeline
   3. User can designate an alternative substitute paint for any step; the substitute appears alongside the primary paint in the step detail
   4. User can tap "Add all missing to wishlist" on a recipe and all missing paints are added to the wishlist page in one action with no duplicates
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 40-01-PLAN.md — Migration 013 + types + addRecipePaint 12-column expansion + duplicateRecipe query + useDuplicateRecipe hook
 - [ ] 40-02-PLAN.md — Recipe duplication UI + step photo upload + result photo upload + timeline thumbnails
@@ -229,5 +229,5 @@ Plans:
 | 37. Schema Foundation + Pre-flight Fixes | v2.5 | 2/2 | Complete | 2026-05-07 |
 | 38. Structured Step Input | v2.5 | 2/2 | Complete | 2026-05-07 |
 | 39. Studio UX + Paint Availability | v2.5 | 3/3 | Complete | 2026-05-07 |
-| 40. Recipe Actions + Step Photos | 2/3 | In Progress|  | - |
+| 40. Recipe Actions + Step Photos | 3/3 | Complete   | 2026-05-07 | - |
 | 41. Session Integration | v2.5 | 0/TBD | Not started | - |
