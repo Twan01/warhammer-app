@@ -3,6 +3,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { open as openDialog } from "@tauri-apps/plugin-dialog";
+import { readFile, writeFile, BaseDirectory } from "@tauri-apps/plugin-fs";
+import { ImageIcon } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -180,6 +183,27 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
     setPaintsBeforeCreate(paints.map((p) => p.id));
     setPendingStepLocalId(stepLocalId);
     setPaintSheetOpen(true);
+  }
+
+  async function handleResultPhotoUpload() {
+    try {
+      const result = (await openDialog({
+        multiple: false,
+        directory: false,
+        filters: [{ name: "Images", extensions: ["png", "jpg", "jpeg", "webp", "gif"] }],
+      })) as string | null;
+      if (result === null) return;
+
+      const ext = result.split(".").pop()?.toLowerCase() ?? "jpg";
+      const data = await readFile(result);
+      const filename = `${crypto.randomUUID()}.${ext}`;
+      await writeFile(filename, data, { baseDir: BaseDirectory.AppData });
+
+      form.setValue("result_photo_path", filename);
+      toast.success("Result photo added.");
+    } catch {
+      toast.error("Failed to upload photo.");
+    }
   }
 
   async function onSubmit(values: RecipeFormValues) {
@@ -545,6 +569,21 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
                   </FormItem>
                 )}
               />
+
+              <FormItem>
+                <FormLabel>Result photo (optional)</FormLabel>
+                <div className="flex items-center gap-2">
+                  <Button type="button" variant="outline" size="sm" onClick={handleResultPhotoUpload}>
+                    <ImageIcon className="mr-2 h-4 w-4" />
+                    {form.watch("result_photo_path") ? "Change photo" : "Upload photo"}
+                  </Button>
+                  {form.watch("result_photo_path") && (
+                    <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                      {form.watch("result_photo_path")}
+                    </span>
+                  )}
+                </div>
+              </FormItem>
 
               <FormField
                 name="tutorial_link"
