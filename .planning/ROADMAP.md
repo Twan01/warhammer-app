@@ -109,7 +109,7 @@ Full details: `.planning/milestones/v2.4-ROADMAP.md`
 **Milestone Goal:** Transform recipes from flat paint notes into a structured painting knowledge system with step-by-step workflows, paint inventory integration, and a studio UX.
 
 - [x] **Phase 37: Schema Foundation + Pre-flight Fixes** — Migrate recipe_paints to recipe_steps, add recipe metadata columns, fix pre-existing cache invalidation bug, eliminate N+1 step count query (completed 2026-05-07)
-- [ ] **Phase 38: Structured Step Input** — Full step CRUD with phase/tool/technique/dilution fields, time estimates, and @dnd-kit reordering
+- [x] **Phase 38: Structured Step Input** — Full step CRUD with phase/tool/technique/dilution fields, time estimates, and @dnd-kit reordering (completed 2026-05-07)
 - [ ] **Phase 39: Studio UX + Paint Availability** — Card grid view with metadata badges, step-by-step timeline detail, advanced filters, and owned/missing paint badge on cards
 - [ ] **Phase 40: Recipe Actions + Step Photos** — Recipe duplication, per-step photo upload, substitute paint linking, and add-all-missing-to-wishlist action
 - [ ] **Phase 41: Session Integration** — Recipe + step selection in LogSessionSheet, session history visible from recipe detail view
@@ -139,7 +139,7 @@ Plans:
   2. User can edit or delete any existing step without affecting sibling steps
   3. User can drag a step to a new position and the new order persists after closing and reopening the recipe
   4. User can set tool, dilution ratio, technique, and time estimate (minutes) per step; the recipe header shows the sum of all step time estimates
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 38-01-PLAN.md — Data layer: PAINTING_PHASES const, DraftStep extension, addRecipePaint INSERT expansion, tests
 - [ ] 38-02-PLAN.md — UI layer: RecipeStepRow two-line layout, RecipeFormSheet hydration/save/time sum
@@ -219,7 +219,7 @@ Plans:
 | 34. Visual Polish | v2.4 | 2/2 | Complete | 2026-05-06 |
 | 36. v2.4 Gap Closure | v2.4 | 1/1 | Complete | 2026-05-06 |
 | 37. Schema Foundation + Pre-flight Fixes | 2/2 | Complete    | 2026-05-07 | - |
-| 38. Structured Step Input | 1/2 | In Progress|  | - |
+| 38. Structured Step Input | 2/2 | Complete   | 2026-05-07 | - |
 | 39. Studio UX + Paint Availability | v2.5 | 0/TBD | Not started | - |
 | 40. Recipe Actions + Step Photos | v2.5 | 0/TBD | Not started | - |
 | 41. Session Integration | v2.5 | 0/TBD | Not started | - |
