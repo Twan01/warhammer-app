@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Recipes 2.0 / Painting Studio
 status: PAINT-02 (substitute paint) and PAINT-03 (add all missing to wishlist) delivered end-to-end
-stopped_at: Completed 40-03-PLAN.md
-last_updated: "2026-05-07T11:07:43.962Z"
+stopped_at: Phase 41 context gathered
+last_updated: "2026-05-07T11:39:07.469Z"
 last_activity: "2026-05-07 — 40-03 Alt paint combobox, Alt: timeline display, Add all missing to wishlist button"
 progress:
   total_phases: 5
@@ -146,6 +146,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-07T11:02:07Z
-Stopped at: Completed 40-03-PLAN.md
+Last session: 2026-05-07T11:39:07.465Z
+Stopped at: Phase 41 context gathered
 Resume: Phase 40 complete — all 3 plans done. Next: Phase 41 (session-recipe linking, INTEG-01/02)
