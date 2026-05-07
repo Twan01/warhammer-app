@@ -25,9 +25,10 @@ vi.mock("@/hooks/useRecipes", () => ({
 
 // useRecipePaints is the key mock: returning steps with time_estimate_minutes
 // populates the draft steps state in RecipeFormSheet
-const mockExistingSteps = vi.fn(() => ({ data: [] }));
+// Typed as returning unknown data to avoid inference to never[] for the initial empty array
+const mockExistingSteps = vi.fn(() => ({ data: [] as unknown[] }));
 vi.mock("@/hooks/useRecipePaints", () => ({
-  useRecipePaints: (...args: unknown[]) => mockExistingSteps(...args),
+  useRecipePaints: () => mockExistingSteps(),
   useAddRecipePaint: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useRemoveRecipePaint: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
