@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Recipes 2.0 / Painting Studio
-status: planning
-stopped_at: Roadmap written — ready to plan Phase 37
-last_updated: "2026-05-07T07:26:09.590Z"
-last_activity: 2026-05-07 — v2.5 roadmap created
+status: executing
+stopped_at: Completed 37-02-PLAN.md
+last_updated: "2026-05-07T07:35:11.203Z"
+last_activity: 2026-05-07 — 37-02 N+1 batch step count fix complete
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 0
+  completed_plans: 2
+  percent: 100
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-06 after v2.5 milestone started)
 
 ## Current Position
 
-Phase: 37 of 41 (Schema Foundation + Pre-flight Fixes)
-Plan: 2 of 2 (37-01 complete)
-Status: In Progress
-Last activity: 2026-05-07 — 37-01 schema foundation complete
+Phase: 37 of 41 (Schema Foundation + Pre-flight Fixes) — COMPLETE
+Plan: 2 of 2 (37-02 complete)
+Status: Phase 37 done — ready for Phase 38
+Last activity: 2026-05-07 — 37-02 N+1 batch step count fix complete
 
-Progress: [█████░░░░░] 50% (1/2 plans in Phase 37)
+Progress: [██████████] 100% (2/2 plans in Phase 37)
 
 ## Accumulated Context
 
@@ -67,10 +67,16 @@ Progress: [█████░░░░░] 50% (1/2 plans in Phase 37)
 - result_photo_path column added to DB/types now; photo upload form field deferred to Phase 40 (STEP-05)
 - New step fields (painting_phase, tool, technique, dilution, time_estimate_minutes) default to null in RecipeFormSheet — full step creation UI comes in Phase 38
 
+### Decisions from Phase 37 Plan 02
+
+- Single GROUP BY query (getStepCountsByRecipe) returns all recipe step counts in one round-trip — O(1) vs O(N)
+- STEP_COUNTS_KEY = ["recipe-step-counts"] declared as a module constant so invalidation is centralized in useAddRecipePaint and useRemoveRecipePaint
+- RecipesPage no longer imports from the query layer directly — all data flows through hooks (architecture rule enforced)
+
 ### Key v2.5 Architectural Constraints
 
 - FIXED (Phase 37-01): useDeleteRecipe now includes `["kanban-enrichment"]` invalidation — cache symmetry restored
-- N+1 step count on RecipesPage must be replaced with batch query in Phase 37
+- FIXED (Phase 37-02): RecipesPage N+1 step count loop replaced with single batch GROUP BY query
 - Substitutions (PAINT-02) need persisted step IDs — must come AFTER Phase 38 step creation
 - Session-recipe linking (INTEG-01/02) is highest complexity — Phase 41 last
 
@@ -84,6 +90,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-07
-Stopped at: Completed 37-01-PLAN.md — schema migration + TypeScript data layer updated
-Resume: Execute plan 37-02 (N+1 batch query fix + RecipesPage step count)
+Last session: 2026-05-07T07:35:11.200Z
+Stopped at: Completed 37-02-PLAN.md
+Resume: Phase 37 complete — begin Phase 38 (Recipe Step Creation UI)

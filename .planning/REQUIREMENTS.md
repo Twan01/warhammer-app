@@ -12,7 +12,7 @@ Requirements for Recipes 2.0 / Painting Studio. Each maps to roadmap phases.
 - [x] **SCHEMA-01**: User can create recipes with structured steps that replace the flat recipe_paints system (migration backfill preserves existing data)
 - [x] **SCHEMA-02**: User can set recipe metadata: style, surface, effect, difficulty, estimated total minutes, and result photo
 - [x] **SCHEMA-03**: Pre-existing useDeleteRecipe cache invalidation bug is fixed (missing kanban-enrichment key)
-- [ ] **SCHEMA-04**: Recipe step count uses batch query instead of N+1 per-recipe loop
+- [x] **SCHEMA-04**: Recipe step count uses batch query instead of N+1 per-recipe loop
 
 ### Recipe Steps
 
@@ -64,7 +64,7 @@ Requirements for Recipes 2.0 / Painting Studio. Each maps to roadmap phases.
 | SCHEMA-01 | Phase 37 | Complete |
 | SCHEMA-02 | Phase 37 | Complete |
 | SCHEMA-03 | Phase 37 | Complete |
-| SCHEMA-04 | Phase 37 | Pending |
+| SCHEMA-04 | Phase 37 | Complete |
 | STEP-01 | Phase 38 | Pending |
 | STEP-02 | Phase 38 | Pending |
 | STEP-03 | Phase 38 | Pending |
