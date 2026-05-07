@@ -47,6 +47,8 @@ const MIN_ADD_INPUT: CreateRecipeStepInput = {
   technique: null,
   dilution: null,
   time_estimate_minutes: null,
+  step_photo_path: null,
+  alt_paint_id: null,
 };
 
 function makeWrapper() {

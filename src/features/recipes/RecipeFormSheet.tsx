@@ -149,6 +149,8 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
           technique: s.technique ?? null,
           dilution: s.dilution ?? null,
           time_estimate_minutes: s.time_estimate_minutes ?? null,
+          step_photo_path: s.step_photo_path ?? null,
+          alt_paint_id: s.alt_paint_id ?? null,
         })),
       );
     } else if (!recipe) {
@@ -219,6 +221,8 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
               technique: s.technique,
               dilution: s.dilution,
               time_estimate_minutes: s.time_estimate_minutes,
+              step_photo_path: s.step_photo_path ?? null,
+              alt_paint_id: s.alt_paint_id ?? null,
             });
           }
         }
@@ -262,6 +266,8 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
               technique: s.technique,
               dilution: s.dilution,
               time_estimate_minutes: s.time_estimate_minutes,
+              step_photo_path: s.step_photo_path ?? null,
+              alt_paint_id: s.alt_paint_id ?? null,
             });
           }
         }

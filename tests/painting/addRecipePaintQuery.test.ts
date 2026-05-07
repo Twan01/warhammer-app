@@ -31,6 +31,8 @@ function makeInput(over: Partial<CreateRecipeStepInput> = {}): CreateRecipeStepI
     technique: null,
     dilution: null,
     time_estimate_minutes: null,
+    step_photo_path: null,
+    alt_paint_id: null,
     ...over,
   };
 }
@@ -40,8 +42,8 @@ beforeEach(() => {
   executeMock.mockResolvedValue({ lastInsertId: 99 });
 });
 
-describe("addRecipePaint — 10-column INSERT coverage (STEP-01/03/04)", () => {
-  it("calls db.execute with all 10 columns in the INSERT statement", async () => {
+describe("addRecipePaint — 12-column INSERT coverage (STEP-01/03/04)", () => {
+  it("calls db.execute with all 12 columns in the INSERT statement", async () => {
     await addRecipePaint(makeInput());
     const [sql] = executeMock.mock.calls[0];
     expect(sql).toContain("recipe_id");
@@ -54,9 +56,11 @@ describe("addRecipePaint — 10-column INSERT coverage (STEP-01/03/04)", () => {
     expect(sql).toContain("technique");
     expect(sql).toContain("dilution");
     expect(sql).toContain("time_estimate_minutes");
+    expect(sql).toContain("step_photo_path");
+    expect(sql).toContain("alt_paint_id");
   });
 
-  it("uses positional placeholders $1 through $10 in the VALUES clause", async () => {
+  it("uses positional placeholders $1 through $12 in the VALUES clause", async () => {
     await addRecipePaint(makeInput());
     const [sql] = executeMock.mock.calls[0];
     expect(sql).toContain("$1");
@@ -69,9 +73,11 @@ describe("addRecipePaint — 10-column INSERT coverage (STEP-01/03/04)", () => {
     expect(sql).toContain("$8");
     expect(sql).toContain("$9");
     expect(sql).toContain("$10");
+    expect(sql).toContain("$11");
+    expect(sql).toContain("$12");
   });
 
-  it("passes all 10 params in the correct positional order", async () => {
+  it("passes all 12 params in the correct positional order", async () => {
     const input = makeInput({
       recipe_id: 10,
       paint_id: 20,
@@ -83,6 +89,8 @@ describe("addRecipePaint — 10-column INSERT coverage (STEP-01/03/04)", () => {
       technique: "Wash",
       dilution: "1:3 water",
       time_estimate_minutes: 15,
+      step_photo_path: "photo.jpg",
+      alt_paint_id: 55,
     });
     await addRecipePaint(input);
     const [, params] = executeMock.mock.calls[0];
@@ -96,6 +104,8 @@ describe("addRecipePaint — 10-column INSERT coverage (STEP-01/03/04)", () => {
     expect(params[7]).toBe("Wash");      // $8 technique
     expect(params[8]).toBe("1:3 water"); // $9 dilution
     expect(params[9]).toBe(15);          // $10 time_estimate_minutes
+    expect(params[10]).toBe("photo.jpg"); // $11 step_photo_path
+    expect(params[11]).toBe(55);          // $12 alt_paint_id
   });
 
   it("applies ?? null guards — passes null for undefined-like new fields", async () => {
@@ -105,6 +115,8 @@ describe("addRecipePaint — 10-column INSERT coverage (STEP-01/03/04)", () => {
       technique: null,
       dilution: null,
       time_estimate_minutes: null,
+      step_photo_path: null,
+      alt_paint_id: null,
     });
     await addRecipePaint(input);
     const [, params] = executeMock.mock.calls[0];
@@ -113,6 +125,8 @@ describe("addRecipePaint — 10-column INSERT coverage (STEP-01/03/04)", () => {
     expect(params[7]).toBeNull();  // $8 technique
     expect(params[8]).toBeNull();  // $9 dilution
     expect(params[9]).toBeNull();  // $10 time_estimate_minutes
+    expect(params[10]).toBeNull(); // $11 step_photo_path
+    expect(params[11]).toBeNull(); // $12 alt_paint_id
   });
 
   it("returns the lastInsertId from db.execute result", async () => {
