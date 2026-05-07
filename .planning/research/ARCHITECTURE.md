@@ -1,599 +1,459 @@
 # Architecture Research
 
-**Domain:** HobbyForge v2.5 Recipes 2.0 / Painting Studio — structured recipe steps, metadata, paint substitutions, session linking
-**Researched:** 2026-05-06
-**Confidence:** HIGH — based on direct code audit of all existing recipe files, migration SQL, and architecture audit document
+**Domain:** Rules Sync 2.0 / Rules Data Hub — HobbyForge v2.6 (Phases 42–46)
+**Researched:** 2026-05-07
+**Confidence:** HIGH (derived from full codebase read + existing V3_ARCHITECTURE_AUDIT.md)
 
 ---
 
-## Existing Architecture (Baseline)
+## Current State Audit — What Already Exists
 
-### Current Recipe Data Model
+### Sync Pipeline Status: Fully Wired
 
-```
-painting_recipes (1 row per recipe)
-  id, name, faction_id, unit_id, area
-  primer, basecoat, shade, layer, highlight,   <- flat TEXT columns, written as NULL, never read
-  glaze_filter, weathering, technical, basing
-  notes, tutorial_link
-  created_at, updated_at
-
-recipe_paints (1 row per step — the current "step" concept)
-  id, recipe_id, paint_id
-  step_name     <- "Basecoat", "Shade", etc.
-  order_index   <- drag-sort position
-  notes         <- per-step notes
-  created_at
-```
-
-The 9 flat TEXT columns on `painting_recipes` (primer/basecoat/shade/etc.) are **dead weight** — `RecipeFormSheet.tsx` explicitly writes them as `null` on every create and no component ever reads them. They exist only in the migration. This is confirmed by auditing all `SELECT *` usages — the columns are in the struct but never displayed.
-
-### Current Data Flow
+The audit question from v3.0-ROADMAP.md is resolved. The production sync path is:
 
 ```
-RecipesPage (state: selectedRecipe, detailOpen, formOpen, deleting)
-  |
-  +- RecipeTable         <- useRecipes() + useAllStepCounts() + useRecipeSwatchData()
-  +- RecipeDetailSheet   <- useRecipePaints(recipe.id) + usePaints() + useFactions() + useUnits()
-  +- RecipeFormSheet     <- local [steps: DraftStep[]] + useRecipePaints(recipe.id) for edit seed
-  |    +- RecipeStepList (dnd-kit SortableContext over DraftStep[])
-  |         +- RecipeStepRow (step_name Input + PaintCombobox per step)
-  |              +- [sibling portal] PaintSheet (inline create-new-paint)
-  +- RecipeDeleteDialog
+PlaybookTab "Sync" button
+  → useRulesSync() hook               [src/hooks/useRulesSync.ts]
+    → fetch 12 Wahapedia CSVs         [parallel via tauri-plugin-http]
+    → parseWahapediaCsv() + stripHtml()
+    → invoke("bulk_sync_rules", payload)
+      → Rust bulk_sync_rules           [src-tauri/src/lib.rs]
+        → DELETE 11 rw_* tables        [FK checks OFF, single transaction]
+        → INSERT all rows              [11 tables, full replacement]
+        → INSERT OR REPLACE rw_sync_meta
+        → COMMIT
+  → React Query invalidation           [sync-meta, datasheets, datasheets-by-faction]
 ```
 
-### Existing Cache Keys
+Both TypeScript AND Rust are active. TypeScript handles HTTP + parsing. Rust handles the atomic DB transaction. The split is intentional and correct — tauri-plugin-sql does not support multi-statement transactions, so sqlx is used directly in Rust for the sync write path.
 
-| Key | Owner | Invalidated By |
-|-----|-------|---------------|
-| `["recipes"]` | useRecipes | create, update, delete recipe |
-| `["recipes", id]` | useRecipe(id) | update recipe |
-| `["recipe-paints", recipeId]` | useRecipePaints(id) | addRecipePaint, removeRecipePaint |
-| `["recipe-swatch-colors"]` | useRecipeSwatchData | addRecipePaint, removeRecipePaint |
-| `["recipe-paints", "all-counts", ...]` | useAllStepCounts (inline in RecipesPage) | recipe form submit |
-| `["kanban-enrichment"]` | kanban board | create, update recipe |
-| `["recipes", "by-unit"]` | by-unit lookup | create, update, delete recipe |
-| `["recipe-ids-by-paint", paintId]` | useRecipeIdsByPaint | (read-only nav, not invalidated) |
+### rules.db Table Coverage
+
+| Table | Migration | Synced | Queried | Status |
+|-------|-----------|--------|---------|--------|
+| `rw_factions` | 001 | YES | YES | Live |
+| `rw_datasheets` | 001 | YES | YES | Live |
+| `rw_datasheet_models` | 001 | YES | YES | Live |
+| `rw_datasheet_abilities` | 001 | YES | YES | Live |
+| `rw_datasheet_keywords` | 001 | YES | YES | Live |
+| `rw_sources` | 001 | YES | YES | Live |
+| `rw_sync_meta` | 001 | YES | YES | Live (last_sync_at, wahapedia_version only) |
+| `rw_datasheets_wargear` | 002 | YES | YES | Live (getFullDatasheet) |
+| `rw_abilities` | 002 | YES | NO | Dark — data present, zero queries |
+| `rw_stratagems` | 002 | YES | NO | Dark — data present, zero queries |
+| `rw_detachments` | 002 | YES | NO | Dark — data present, zero queries |
+| `rw_detachment_abilities` | 002 | YES | NO | Dark — data present, zero queries |
+
+**Critical finding:** No rules.db schema changes are required for surfacing dark tables. All 12 tables exist and are populated after any sync. v2.6 work is: extending `rw_sync_meta` columns, adding override/log tables to `hobbyforge.db`, and surfacing the four dark tables in the UI.
 
 ---
 
-## New Architecture: Recipes 2.0
+## System Overview
 
-### Schema Changes (Migration 012)
+### Dual-Database Architecture
 
-**New table: recipe_steps** (replaces recipe_paints as the primary step container)
+```
++-----------------------------------------------------------------------+
+|                          UI Layer (React 19)                          |
+|  +----------------+  +---------------------+  +--------------------+  |
+|  | PlaybookTab    |  | SyncMetadataPanel   |  | OverridesPanel     |  |
+|  | (MODIFIED)     |  | (NEW v2.6)          |  | (NEW v2.6)         |  |
+|  +-------+--------+  +----------+----------+  +---------+----------+  |
++----------|--------------------..--------------------------|-----------+
+           |         React Query Hooks                      |
++----------|---------------------------------------------------|---------+
+|  +-------+------+  +---------------------+  +-------------+---------+  |
+|  | useDatasheet |  | useRulesSync        |  | useRulesOverrides     |  |
+|  | useRulesSync |  | (MODIFIED v2.6)     |  | (NEW v2.6)            |  |
+|  | Meta (exist) |  |                     |  |                       |  |
+|  +--------------+  +----------+----------+  +-------------+---------+  |
++------------------------------|----------------------------|--------------+
+                               | Query Modules              |
++------------------------------|----------------------------|--------------+
+|  +--------------+  +---------+-----------+  +------------+-----------+  |
+|  | datasheets.ts|  | stratagems.ts       |  | rulesOverrides.ts      |  |
+|  | (existing)   |  | detachments.ts      |  | (NEW v2.6)             |  |
+|  |              |  | sharedAbilities.ts  |  |                        |  |
+|  |              |  | (NEW v2.6)          |  |                        |  |
+|  +--------------+  +---------------------+  +------------------------+  |
++--------------------------------------------------------------------------+
+           |                                             |
++----------+----------+                      +----------+-----------+
+|     rules.db        |                      |    hobbyforge.db     |
+|  rw_* tables (all   |                      |  unit_rules_overrides|
+|  12 already exist)  |                      |  sync_error_log      |
+|  rw_sync_meta       |                      |  (NEW migration 015) |
+|  (extended via      |                      |                      |
+|   rules_003)        |                      |                      |
++---------------------+                      +----------------------+
+         |                                             |
+         +-------------------+-------------------------+
+                             |
+               Tauri plugin-sql + sqlx (Rust)
+```
+
+---
+
+## Component Boundaries
+
+### Existing Components (Modify Only)
+
+| Component | File | v2.6 Change |
+|-----------|------|-------------|
+| `useRulesSync` | `src/hooks/useRulesSync.ts` | Extend rowCounts return; add prevVersion capture; invalidate 3 new query keys on success |
+| `bulk_sync_rules` + `BulkSyncPayload` | `src-tauri/src/lib.rs` | Extend rw_sync_meta INSERT to write row count columns; write sync_error_log row to hobbyforge.db |
+| `get_rules_migrations()` | `src-tauri/src/lib.rs` | Add migration version 3 (rules_003_sync_metadata.sql) |
+| `RulesSyncMeta` interface | `src/types/datasheet.ts` | Add row count + duration columns |
+| `PlaybookTab` | `src/features/units/PlaybookTab.tsx` | Add stratagem/detachment section below abilities using new hooks |
+
+### New Components (v2.6)
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| `getStratagems()` | `src/db/queries/stratagems.ts` | Query rw_stratagems by faction_id / detachment_id / phase |
+| `getDetachments()` | `src/db/queries/detachments.ts` | Query rw_detachments + rw_detachment_abilities by faction_id |
+| `getSharedAbilities()` | `src/db/queries/sharedAbilities.ts` | Query rw_abilities by faction_id |
+| `getUnitRulesOverrides()` | `src/db/queries/rulesOverrides.ts` | CRUD for unit_rules_overrides in hobbyforge.db |
+| `getSyncHistory()` | `src/db/queries/syncHistory.ts` | Read sync_error_log + extended rw_sync_meta |
+| `useStratagems()` | `src/hooks/useStratagems.ts` | React Query wrapper; staleTime Infinity; invalidated by sync |
+| `useDetachments()` | `src/hooks/useDetachments.ts` | React Query wrapper; staleTime Infinity |
+| `useSharedAbilities()` | `src/hooks/useSharedAbilities.ts` | React Query wrapper; staleTime Infinity |
+| `useRulesOverrides()` | `src/hooks/useRulesOverrides.ts` | React Query wrapper; mutations for upsert/delete |
+| `useSyncHistory()` | `src/hooks/useSyncHistory.ts` | React Query wrapper; staleTime 0 (always fresh) |
+| `UnitRulesOverride` | `src/types/rulesOverrides.ts` | Interface + CreateInput + UpdateInput types |
+| `SyncLogEntry` | `src/types/rulesOverrides.ts` | Interface matching sync_error_log columns |
+| `SyncMetadataPanel` | `src/features/rules/SyncMetadataPanel.tsx` | Row counts, version, freshness, error history |
+| `OverridesPanel` | `src/features/rules/OverridesPanel.tsx` | CRUD UI for unit_rules_overrides within PlaybookTab |
+| `VersionComparisonPanel` | `src/features/rules/VersionComparisonPanel.tsx` | Prev vs current version, row count deltas |
+| `StratagemsList` | `src/features/rules/StratagemsList.tsx` | Stratagem cards grouped by phase/type |
+| `DetachmentAbilitiesPanel` | `src/features/rules/DetachmentAbilitiesPanel.tsx` | Detachment ability display |
+
+---
+
+## New Schema
+
+### rules.db Migration 003 (rules_003_sync_metadata.sql)
+
+Extends the single `rw_sync_meta` row with row count tracking per table and sync duration. No new tables — only ALTER TABLE:
 
 ```sql
-CREATE TABLE IF NOT EXISTS recipe_steps (
-    id               INTEGER PRIMARY KEY AUTOINCREMENT,
-    recipe_id        INTEGER NOT NULL REFERENCES painting_recipes(id) ON DELETE CASCADE,
-    title            TEXT    NOT NULL,
-    phase            TEXT,                      -- "Basecoat" | "Shade" | "Layer" | "Highlight" | etc.
-    paint_id         INTEGER REFERENCES paints(id) ON DELETE SET NULL,
-    tool             TEXT,                      -- "Drybrush", "Airbrush", "Layer brush"
-    technique        TEXT,                      -- "Thin 1:2 with medium", "Stipple"
-    dilution         TEXT,                      -- "1:1 water", "flow improver"
-    duration_minutes INTEGER,
-    photo_asset_id   INTEGER REFERENCES image_assets(id) ON DELETE SET NULL,
-    order_index      INTEGER NOT NULL DEFAULT 0,
-    notes            TEXT,
-    created_at       TEXT    NOT NULL DEFAULT (datetime('now'))
+ALTER TABLE rw_sync_meta ADD COLUMN source_url TEXT;
+ALTER TABLE rw_sync_meta ADD COLUMN factions_count INTEGER;
+ALTER TABLE rw_sync_meta ADD COLUMN datasheets_count INTEGER;
+ALTER TABLE rw_sync_meta ADD COLUMN models_count INTEGER;
+ALTER TABLE rw_sync_meta ADD COLUMN abilities_count INTEGER;
+ALTER TABLE rw_sync_meta ADD COLUMN keywords_count INTEGER;
+ALTER TABLE rw_sync_meta ADD COLUMN wargear_count INTEGER;
+ALTER TABLE rw_sync_meta ADD COLUMN stratagems_count INTEGER;
+ALTER TABLE rw_sync_meta ADD COLUMN detachments_count INTEGER;
+ALTER TABLE rw_sync_meta ADD COLUMN detachment_abilities_count INTEGER;
+ALTER TABLE rw_sync_meta ADD COLUMN shared_abilities_count INTEGER;
+ALTER TABLE rw_sync_meta ADD COLUMN sync_duration_ms INTEGER;
+ALTER TABLE rw_sync_meta ADD COLUMN had_errors INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE rw_sync_meta ADD COLUMN prev_wahapedia_version TEXT;
+```
+
+### hobbyforge.db Migration 015 (015_rules_overrides.sql)
+
+Two new tables for override persistence and sync error logging:
+
+```sql
+-- Manual user overrides that survive re-sync.
+-- Keyed by (unit_id, field). UNIQUE constraint enforces one override per field per unit.
+-- field examples: 'points', 'T', 'W', 'Sv', 'keywords', 'ability_reminder'
+CREATE TABLE IF NOT EXISTS unit_rules_overrides (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    unit_id         INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+    field           TEXT NOT NULL,
+    value           TEXT NOT NULL,
+    note            TEXT,
+    override_source TEXT NOT NULL DEFAULT 'manual',
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(unit_id, field)
+);
+
+-- One row per sync attempt. Written before and updated after each sync.
+CREATE TABLE IF NOT EXISTS sync_error_log (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    synced_at           TEXT NOT NULL DEFAULT (datetime('now')),
+    outcome             TEXT NOT NULL,  -- 'success' | 'partial' | 'failure'
+    wahapedia_version   TEXT,
+    error_message       TEXT,
+    failed_table        TEXT,
+    duration_ms         INTEGER,
+    details             TEXT  -- JSON blob for per-table row counts or partial failure map
 );
 ```
 
-**New table: recipe_paint_substitutions**
+### Why No Snapshot Table
 
-```sql
-CREATE TABLE IF NOT EXISTS recipe_paint_substitutions (
-    id             INTEGER PRIMARY KEY AUTOINCREMENT,
-    recipe_step_id INTEGER NOT NULL REFERENCES recipe_steps(id) ON DELETE CASCADE,
-    paint_id       INTEGER NOT NULL REFERENCES paints(id) ON DELETE RESTRICT,
-    notes          TEXT,
-    created_at     TEXT    NOT NULL DEFAULT (datetime('now'))
-);
-```
-
-**ALTER TABLE painting_recipes (7 additive columns):**
-
-```sql
-ALTER TABLE painting_recipes ADD COLUMN style TEXT;
-ALTER TABLE painting_recipes ADD COLUMN surface TEXT;
-ALTER TABLE painting_recipes ADD COLUMN effect TEXT;
-ALTER TABLE painting_recipes ADD COLUMN difficulty TEXT;           -- "Beginner" | "Intermediate" | "Advanced"
-ALTER TABLE painting_recipes ADD COLUMN estimated_minutes INTEGER;
-ALTER TABLE painting_recipes ADD COLUMN result_photo_id INTEGER REFERENCES image_assets(id) ON DELETE SET NULL;
-ALTER TABLE painting_recipes ADD COLUMN source_recipe_id INTEGER REFERENCES painting_recipes(id) ON DELETE SET NULL;
-```
-
-**ALTER TABLE painting_sessions (2 additive columns for recipe-session linking):**
-
-```sql
-ALTER TABLE painting_sessions ADD COLUMN recipe_id      INTEGER REFERENCES painting_recipes(id) ON DELETE SET NULL;
-ALTER TABLE painting_sessions ADD COLUMN recipe_step_id INTEGER REFERENCES recipe_steps(id)     ON DELETE SET NULL;
-```
-
-### FK Semantics Summary
-
-| Relationship | On Delete |
-|---|---|
-| recipe_steps.recipe_id → painting_recipes | CASCADE (steps die with recipe) |
-| recipe_steps.paint_id → paints | SET NULL (step becomes paint-less, not deleted) |
-| recipe_steps.photo_asset_id → image_assets | SET NULL |
-| recipe_paint_substitutions.recipe_step_id → recipe_steps | CASCADE (substitutions die with step) |
-| recipe_paint_substitutions.paint_id → paints | RESTRICT (cannot delete a paint used as substitution) |
-| painting_recipes.result_photo_id → image_assets | SET NULL |
-| painting_recipes.source_recipe_id → painting_recipes | SET NULL (delete original, copy survives) |
-| painting_sessions.recipe_id → painting_recipes | SET NULL (history preserved even if recipe deleted) |
-| painting_sessions.recipe_step_id → recipe_steps | SET NULL (history preserved even if step deleted) |
+A snapshot of all rw_* rows before each sync for line-level diffing would require duplicating ~5000+ rows per sync. For a personal tool, version string delta + row count comparison is sufficient. The `prev_wahapedia_version` column on `rw_sync_meta` captures what changed at the version level. Row count deltas per table are stored in `sync_error_log.details` as JSON. Full content diff deferred.
 
 ---
 
-## Data Migration: recipe_paints to recipe_steps
+## Data Flow Changes
 
-### Why Application-Layer, Not SQL Migration
-
-The migration 012 SQL only adds new tables and columns. The actual data copy from `recipe_paints` → `recipe_steps` must happen in TypeScript, not inside the migration file. Reasons:
-
-1. Migration SQL runs before the app UI starts — no progress feedback, no error toasts
-2. The migration runner is silent on partial failures
-3. `tauri-plugin-sql` migration files run exactly once and cannot be retried selectively
-
-### Migration Strategy
+### Modified Sync Flow
 
 ```
-App startup sequence:
-1. plugin-sql runs migration 012 (schema changes only)
-2. migrateRecipePaintsToSteps() called from src/main.tsx (or a startup hook)
-3. Guard: if (await countRecipeSteps()) > 0 AND (await countRecipePaints()) > 0 → already migrated, skip
-4. INSERT INTO recipe_steps SELECT ... FROM recipe_paints (column mapping below)
-5. recipe_paints table stays intact as backup for the migration window
+useRulesSync.mutationFn()
+  1. Capture prevVersion from useRulesSyncMeta cache (before fetch)
+  2. Fetch 12 CSVs in parallel — unchanged
+  3. Parse + strip HTML — unchanged
+  4. invoke("bulk_sync_rules", {
+       ...existing payload,
+       row_counts: { factions: N, datasheets: N, ... }  // NEW
+     })
+
+     Rust bulk_sync_rules:
+       a. Resolve hobbyforge.db path, open second sqlx connection
+       b. INSERT into sync_error_log (outcome: 'in-progress', synced_at: now)
+       c. DELETE 11 rw_* tables — unchanged
+       d. INSERT all rows — unchanged
+       e. INSERT OR REPLACE rw_sync_meta WITH extended columns (row counts, duration, prev_version)
+       f. UPDATE sync_error_log SET outcome = 'success', duration_ms = elapsed
+       g. COMMIT rules.db transaction
+       h. Update hobbyforge.db sync_error_log via separate connection (outside transaction)
+
+  5. Return { wahapediaVersion, rowCounts, prevVersion }
+
+onSuccess:
+  qc.invalidateQueries({ queryKey: RULES_SYNC_META_KEY })
+  qc.invalidateQueries({ queryKey: ["datasheets-by-faction"] })
+  qc.invalidateQueries({ queryKey: ["datasheet"] })
+  qc.invalidateQueries({ queryKey: ["stratagems"] })           // NEW
+  qc.invalidateQueries({ queryKey: ["detachments"] })          // NEW
+  qc.invalidateQueries({ queryKey: ["shared-abilities"] })     // NEW
+  qc.invalidateQueries({ queryKey: ["sync-history"] })         // NEW
 ```
 
-**Column mapping:**
+### Override Persistence Flow
 
 ```
-recipe_paints.recipe_id   → recipe_steps.recipe_id
-recipe_paints.step_name   → recipe_steps.title
-recipe_paints.paint_id    → recipe_steps.paint_id
-recipe_paints.order_index → recipe_steps.order_index
-recipe_paints.notes       → recipe_steps.notes
-(all new fields: phase, tool, technique, dilution, duration_minutes, photo_asset_id → NULL)
+PlaybookTab → OverridesPanel
+  useRulesOverrides(unitId)
+    → getUnitRulesOverrides(unitId)  // hobbyforge.db
+    → returns [{ field: 'T', value: '5', note: 'Updated in Balance Dataslate' }]
+
+  User edits override:
+    useUpsertRulesOverride().mutate({ unit_id, field, value, note })
+      → INSERT OR REPLACE unit_rules_overrides
+      → invalidate ["rules-overrides", unitId]
+
+  PlaybookTab stat display:
+    const override = overrides?.find(o => o.field === 'T');
+    const displayT = override?.value ?? ds?.models[0]?.T?.toString() ?? '-';
+    // Show badge if override is active
+
+Override survives re-sync:
+  → lives in hobbyforge.db, not rules.db
+  → DELETE FROM rw_* only touches rules.db
+  → override row untouched
 ```
 
-**Implementation location:** `src/db/queries/recipeSteps.ts` — exported as `migrateRecipePaintsToSteps()`.
-
----
-
-## System Overview (Target Architecture)
+### Version Comparison Flow
 
 ```
-RecipesPage (state: selectedRecipe, detailOpen, formOpen, studioView, deleting)
-  |
-  +- [table view] RecipeTable
-  |    <- useRecipes() + useRecipeStepCounts() + useRecipeSwatchData()
-  |
-  +- [studio view] RecipeStudioCard per recipe
-  |    <- useRecipes() + useRecipeStepCounts() + useRecipeSwatchData()
-  |    <- computeAvailability(steps, paintMap) -- pure function
-  |
-  +- RecipeDetailSheet (or RecipeTimelineView inside it)
-  |    <- useRecipeSteps(recipe.id)
-  |    <- usePaints() + useFactions() + useUnits()
-  |    <- [lazy on step expand] useRecipeSubstitutions(stepId)
-  |
-  +- RecipeFormSheet (create / edit)
-  |    <- local [steps: DraftStep[]] seeded from useRecipeSteps(recipe.id) in edit mode
-  |    +- RecipeStepList (dnd-kit SortableContext)
-  |         +- RecipeStepRow (title, phase, tool, technique, dilution, PaintCombobox)
-  |              +- [sibling portal] PaintSheet (inline create-new-paint)
-  |
-  +- RecipeDuplicateDialog
-  +- RecipeDeleteDialog
+SyncMetadataPanel
+  useSyncHistory() → sync_error_log (last 10 entries)
+  useRulesSyncMeta() → rw_sync_meta (current + prev version)
+
+  Display:
+    - Current: wahapedia_version, last_sync_at
+    - Previous: prev_wahapedia_version (if different → "VERSION CHANGED" badge)
+    - Row counts per table (e.g. "Datasheets: 2,851")
+    - If had_errors = 1 → warning indicator
+    - Error log entries with timestamps and outcome
+
+VersionComparisonPanel (shown when version changed):
+  - Old version string, new version string
+  - Row count delta per table from sync_error_log.details JSON
+  - "Review your overrides — data may have changed" advisory
+  - Links to OverridesPanel per unit
 ```
-
----
-
-## Component Inventory: New vs Modified
-
-### New Files
-
-| File | Type | Purpose |
-|------|------|---------|
-| `src/types/recipeStep.ts` | Type | `RecipeStep`, `CreateRecipeStepInput`, `UpdateRecipeStepInput` |
-| `src/types/recipeSubstitution.ts` | Type | `RecipeSubstitution`, `CreateRecipeSubstitutionInput` |
-| `src/db/queries/recipeSteps.ts` | Query | Full CRUD for `recipe_steps` + migration helper + batch count query |
-| `src/db/queries/recipeSubstitutions.ts` | Query | CRUD for `recipe_paint_substitutions` |
-| `src/hooks/useRecipeSteps.ts` | Hook | `useRecipeSteps(recipeId)`, `useCreateRecipeStep()`, `useDeleteAllRecipeSteps()`, `useRecipeStepCounts()` |
-| `src/hooks/useRecipeSubstitutions.ts` | Hook | `useRecipeSubstitutions(stepId)`, `useAddSubstitution()`, `useRemoveSubstitution()` |
-| `src/features/recipes/RecipeStudioCard.tsx` | UI | Card-format recipe display for Studio view |
-| `src/features/recipes/RecipeTimelineView.tsx` | UI | Vertical timeline of steps with phase grouping |
-| `src/features/recipes/RecipeStepDetail.tsx` | UI | Single expanded step showing all fields + substitutions |
-| `src/features/recipes/RecipeDuplicateDialog.tsx` | UI | Confirm + rename before deep-copy of recipe + steps |
-| `src/features/recipes/recipeMetadataSchema.ts` | Schema | Zod for new metadata fields (style, surface, effect, difficulty, estimated_minutes) |
-| `src/features/recipes/RecipeAvailabilityBadge.tsx` | UI | Owned / running-low / missing count badge |
-
-### Modified Files
-
-| File | Change Summary |
-|------|---------------|
-| `src/types/recipe.ts` | Add 7 new columns to `PaintingRecipe` interface |
-| `src/features/recipes/recipeSteps.ts` | Extend `DraftStep` with `phase`, `tool`, `technique`, `dilution`, `duration_minutes`, `photo_asset_id` |
-| `src/features/recipes/RecipeStepRow.tsx` | Add phase selector, tool/technique/dilution inputs; more rows per step |
-| `src/features/recipes/RecipeStepList.tsx` | Same dnd-kit structure; save target changes to `recipe_steps` |
-| `src/features/recipes/RecipeFormSheet.tsx` | Add metadata fields; wire save to `useCreateRecipeStep` not `useAddRecipePaint` |
-| `src/features/recipes/recipeSchema.ts` | Extend with metadata fields or compose with `recipeMetadataSchema.ts` |
-| `src/features/recipes/RecipeDetailSheet.tsx` | Replace `useRecipePaints(id)` with `useRecipeSteps(id)`; phase grouping; availability badge |
-| `src/features/recipes/RecipeTableColumns.tsx` | Add difficulty badge, estimated_minutes; swatch still via `useRecipeSwatchData()` |
-| `src/features/recipes/RecipesPage.tsx` | Add style/surface/difficulty/missing-paints filters; view toggle; duplicate action |
-| `src/db/queries/recipes.ts` | Add 7 new columns to INSERT/UPDATE; add `duplicateRecipe()` |
-| `src/db/queries/recipePaints.ts` | `getRecipeSwatchColors()` JOIN target: `recipe_paints` → `recipe_steps` |
-| `src/hooks/useRecipePaints.ts` | Update `useRecipeSwatchData()` query fn; existing RECIPE_SWATCH_KEY unchanged |
-
----
-
-## Data Flows
-
-### Write Flow: Create / Edit Recipe with Steps
-
-```
-RecipeFormSheet.onSubmit()
-  |
-  +- 1. createRecipe / updateRecipe
-  |       -> painting_recipes row with 7 new metadata columns
-  |       -> invalidates: ["recipes"], ["recipes", id], ["kanban-enrichment"], ["recipes","by-unit"]
-  |
-  +- 2. [edit only] deleteAllRecipeSteps(recipe.id)
-  |       -> single DELETE WHERE recipe_id = ?
-  |       -> full replacement (same pattern as current recipe_paints remove-all)
-  |
-  +- 3. for each DraftStep with title: createRecipeStep({ recipe_id, ...step })
-  |
-  +- 4. Invalidate:
-           ["recipe-steps", recipeId]
-           ["recipe-swatch-colors"]
-           ["recipe-steps", "all-counts"]
-```
-
-### Read Flow: RecipeDetailSheet / Timeline
-
-```
-RecipeDetailSheet opens (recipe: PaintingRecipe)
-  |
-  +- useRecipeSteps(recipe.id)
-  |    queryKey: ["recipe-steps", recipe.id]
-  |    queryFn:  SELECT * FROM recipe_steps WHERE recipe_id = ? ORDER BY order_index ASC
-  |
-  +- usePaints()  <- paint map for owned/missing lookup, already in cache
-  |
-  +- computeAvailability(steps, paintMap) <- pure function, no DB
-  |    -> RecipeAvailabilityBadge
-  |
-  +- [on step expand] useRecipeSubstitutions(stepId)
-       queryKey: ["recipe-substitutions", stepId]
-       queryFn:  SELECT * FROM recipe_paint_substitutions WHERE recipe_step_id = ?
-```
-
-### Read Flow: Swatch Strip (Adapter Pattern)
-
-The swatch strip on RecipeTable rows and RecipeStudioCards continues to use `useRecipeSwatchData()` with the unchanged `RECIPE_SWATCH_KEY`. Only `getRecipeSwatchColors()` changes its JOIN target:
-
-```sql
--- OLD (recipe_paints):
-SELECT rp.recipe_id, rp.paint_id, p.hex_color
-FROM recipe_paints rp JOIN paints p ON p.id = rp.paint_id
-ORDER BY rp.recipe_id ASC, rp.order_index ASC
-
--- NEW (recipe_steps):
-SELECT rs.recipe_id, rs.paint_id, p.hex_color
-FROM recipe_steps rs
-JOIN paints p ON p.id = rs.paint_id
-WHERE rs.paint_id IS NOT NULL
-ORDER BY rs.recipe_id ASC, rs.order_index ASC
-```
-
-Zero consumer changes — same hook, same key, same return shape.
-
-### Paint Availability Computation (Pure Function)
-
-```typescript
-// src/features/recipes/computeRecipeAvailability.ts
-export interface RecipeAvailability {
-  owned: number;
-  runningLow: number;
-  missing: number;
-}
-
-export function computeRecipeAvailability(
-  steps: RecipeStep[],
-  paintMap: Map<number, Paint>
-): RecipeAvailability {
-  let owned = 0, runningLow = 0, missing = 0;
-  for (const s of steps) {
-    if (!s.paint_id) continue;
-    const p = paintMap.get(s.paint_id);
-    if (!p || p.owned !== 1) missing++;
-    else if (p.running_low === 1) runningLow++;
-    else owned++;
-  }
-  return { owned, runningLow, missing };
-}
-```
-
-Both `useRecipeSteps(id)` and `usePaints()` are already in cache when RecipeDetailSheet opens — zero additional DB round-trips.
-
-### Recipe Duplication Flow
-
-```
-RecipeDuplicateDialog confirms with new name
-  |
-  +- duplicateRecipe(sourceId, newName)
-       1. INSERT INTO painting_recipes (all columns except id/created_at/updated_at)
-            source_recipe_id = sourceId
-       2. INSERT INTO recipe_steps ... SELECT from recipe_steps WHERE recipe_id = sourceId
-            (all step fields, new recipe_id, no IDs)
-       3. Return new recipe ID
-  |
-  +- Invalidate: ["recipes"], ["recipe-steps", newId], ["recipe-swatch-colors"]
-```
-
-Note: substitutions are NOT duplicated (they are step-specific adjustments, not part of the core recipe knowledge). The duplicated steps start substitution-free.
-
-### Session Linking Flow
-
-```
-LogSessionSheet (existing — add recipe/step pickers)
-  |
-  +- [NEW] recipe_id selector (optional) -> FK to painting_recipes
-  +- [NEW] recipe_step_id selector (filtered by selected recipe) -> FK to recipe_steps
-  |
-  +- createSession.mutateAsync({ unit_id, session_date, duration_minutes, notes, recipe_id, recipe_step_id })
-  |
-  +- Invalidate (existing):
-       ["hobby-analytics"], ["recent-activity"], ["goal-progress"], ["dashboard-stats"]
-     Invalidate (NEW — for "used in N sessions" on recipe detail):
-       ["sessions-by-recipe", recipe_id]   (if that query is added)
-```
-
----
-
-## Cache Invalidation Strategy
-
-### New Cache Keys
-
-| Key | Shape | Invalidated By |
-|-----|-------|---------------|
-| `["recipe-steps", recipeId]` | per-recipe | recipe form save (create/update), deleteAllRecipeSteps, deleteRecipe |
-| `["recipe-steps", "all-counts"]` | single batch | recipe form save |
-| `["recipe-substitutions", stepId]` | per-step | addSubstitution, removeSubstitution |
-| `["sessions-by-recipe", recipeId]` | per-recipe (optional) | createSession with recipe_id |
-
-### Symmetry Rules
-
-Following the established cache invalidation symmetry rule — every key invalidated by create must also be invalidated by delete:
-
-| Mutation | Keys to Invalidate |
-|----------|-------------------|
-| `useCreateRecipeStep` | `["recipe-steps", recipeId]`, `["recipe-swatch-colors"]`, `["recipe-steps", "all-counts"]` |
-| `useDeleteAllRecipeSteps` | `["recipe-steps", recipeId]`, `["recipe-swatch-colors"]`, `["recipe-steps", "all-counts"]` |
-| `useAddSubstitution` | `["recipe-substitutions", stepId]` |
-| `useRemoveSubstitution` | `["recipe-substitutions", stepId]` |
-| `useDeleteRecipe` (existing) | add `["recipe-steps", recipeId]` to existing invalidations |
-| `useUpdateRecipe` (existing) | add `["recipe-steps", recipeId]` to existing invalidations |
-
-### Legacy Key Handling
-
-`RECIPE_PAINTS_KEY` and `RECIPE_SWATCH_KEY` in `useRecipePaints.ts` remain unchanged.
-
-`["recipe-paints", "all-counts", ...]` should be renamed to `["recipe-steps", "all-counts"]` for clarity. The inline `useAllStepCounts()` in `RecipesPage.tsx` is also replaced with a proper exported hook that uses the batch COUNT query.
 
 ---
 
 ## Architectural Patterns
 
-### Pattern 1: Full Replacement for Step Persistence
+### Pattern 1: Cross-DB Override Resolution at Hook Layer
 
-**What:** On recipe save (edit mode), DELETE all existing `recipe_steps` WHERE recipe_id = ?, then INSERT all current draft steps.
+**What:** Fields that can have both a synced value (rules.db) and a user override (hobbyforge.db) are resolved in the TypeScript hook, not in SQL. The hook fetches both and merges.
 
-**Why:** Steps are always edited as a complete ordered list. Tracking individual step IDs in local draft state to enable partial updates adds complexity with no UX benefit. The full-replacement pattern is already proven with `recipe_paints`.
+**When to use:** Any field in PlaybookTab where the user can override the imported value.
 
-**Trade-offs:** Slightly more DB writes on edit. Negligible at personal-tool scale (<200 recipes). Guarantees order_index stays clean.
+**Trade-offs:** One additional DB call per unit view to read overrides. Acceptable at single-user local scale.
 
+**Example:**
 ```typescript
-// RecipeFormSheet.onSubmit() — edit path
-await deleteAllRecipeSteps(recipe.id);       // single DELETE WHERE recipe_id = ?
-for (const s of computeOrderIndex(steps)) {
-  if (s.title.trim()) {
-    await createRecipeStep({ recipe_id: recipe.id, ...s });
-  }
-}
+// In PlaybookTab, resolve T stat:
+const { data: ds } = useDatasheet(unitId);
+const { data: overrides } = useRulesOverrides(unitId);
+const tOverride = overrides?.find(o => o.field === 'T');
+const displayT = tOverride?.value ?? ds?.models[0]?.T?.toString() ?? '-';
 ```
 
-### Pattern 2: Adapter Pattern for Swatch Source Migration
+### Pattern 2: Rust Owns All Sync Writes, TypeScript Owns All Reads
 
-**What:** `getRecipeSwatchColors()` changes its JOIN target from `recipe_paints` to `recipe_steps`. The hook key `["recipe-swatch-colors"]` and the `useRecipeSwatchData()` return type are identical. Zero consumer changes.
+**What:** No sync data is ever written from TypeScript. All multi-table writes for sync go through `bulk_sync_rules` in Rust using a real sqlx transaction. TypeScript reads via `getRulesDb()` (tauri-plugin-sql) after the fact.
 
-**Why:** Decouples the data source migration from the UI migration. The swatch strip keeps working before, during, and after the step data migration.
+**When to use:** Always. This boundary is a hard architectural rule, not a preference.
 
-### Pattern 3: Lazy Substitution Queries
+**Trade-offs:** The hobbyforge.db sync_error_log write from inside Rust requires a second sqlx connection to a different DB file. The pattern is identical — resolve app_data_dir, build URL for hobbyforge.db, write the log row outside the rules.db transaction.
 
-**What:** `useRecipeSubstitutions(stepId)` is called only for the actively expanded step in `RecipeStepDetail`, not preloaded for all steps.
+### Pattern 3: Dark Table Surfacing is Query + Hook + Component Only
 
-**Why:** N+1 is a concern when loading in a loop. A single expanded step is one query on user demand. Substitutions are rare metadata — pre-fetching all is wasteful.
+**What:** rw_abilities, rw_stratagems, rw_detachments, rw_detachment_abilities are already populated. Surfacing them requires no migration. The work is purely: new query functions + hooks + UI components.
 
-### Pattern 4: Availability as Pure Function
+**When to use:** Phase 44. The "Extended Rules Schema" phase name is misleading — the rules.db schema is already complete for these tables.
 
-**What:** Paint availability counts (owned/runningLow/missing) are computed client-side over the already-cached `useRecipeSteps(id)` + `usePaints()` data.
+**Trade-offs:** None. Purely additive, no migration risk.
 
-**Why:** Both data sources are in React Query cache when RecipeDetailSheet opens. A pure function is testable, has zero latency, and requires no DB round-trip.
+### Pattern 4: UNIQUE(unit_id, field) for Single-Value Overrides
 
-### Pattern 5: Substitutions Edited in Detail Sheet Only (Not in Form)
+**What:** unit_rules_overrides uses INSERT OR REPLACE on a UNIQUE(unit_id, field) constraint. One override per field per unit. Multi-value fields (like keywords) store a JSON array in the TEXT value column.
 
-**What:** Substitutions are managed in `RecipeDetailSheet` / `RecipeStepDetail` after a step has been saved and has a real `id`. The `RecipeFormSheet` does not manage substitutions.
+**When to use:** All override upserts.
 
-**Why:** Substitutions require a real `recipe_step_id` FK. Managing them in ephemeral draft state before the step has an `id` requires a two-pass save (save steps, get IDs, then save substitutions) which adds complexity and error-recovery burden.
+**Trade-offs:** JSON in TEXT is not normalized, but avoids a many-to-many table for a personal tool at negligible scale. Acceptable.
 
----
+### Pattern 5: staleTime Infinity for All rules.db Queries
 
-## Anti-Patterns
+**What:** All hooks reading from rules.db use `staleTime: Infinity`. Cache is invalidated explicitly after sync via `qc.invalidateQueries`. This matches the existing `useDatasheet`, `useRulesSyncMeta`, and `useDatasheetsByFaction` behavior.
 
-### Anti-Pattern 1: N+1 Step Count Query (Known Technical Debt)
+**When to use:** All new hooks for stratagems, detachments, shared abilities.
 
-**What people do:** The current `useAllStepCounts()` in `RecipesPage.tsx` loops through all recipes and calls `getRecipePaintsByRecipe(r.id)` per recipe.
-
-**Why it's wrong:** After migration to `recipe_steps`, the same pattern queries N times. Noticeable on the Recipes page with 50+ recipes.
-
-**Do this instead:** Replace with a single batch COUNT query:
-
-```sql
-SELECT recipe_id, COUNT(*) as count FROM recipe_steps GROUP BY recipe_id
-```
-
-Return `Map<number, number>` in one round-trip. Implement in `getRecipeStepCounts()` in `recipeSteps.ts`.
-
-### Anti-Pattern 2: Nested Sheets for Step Photo Upload
-
-**What people do:** Open a photo-upload dialog from inside `RecipeStepRow` inside `RecipeFormSheet`.
-
-**Why it's wrong:** Radix portals nested inside feature components cause z-index and React context issues. Documented pitfall in CLAUDE.md — sibling portal pattern is mandatory.
-
-**Do this instead:** Render the photo dialog as a sibling of `RecipeFormSheet` in `RecipesPage`, using the same `pendingStepLocalId` pattern already used for inline paint create.
-
-### Anti-Pattern 3: Substitutions in DraftStep Local State
-
-**What people do:** Track substitutions in the `DraftStep[]` local state array inside `RecipeFormSheet`.
-
-**Why it's wrong:** Two-pass save required — save steps first to get IDs, then save substitutions. Creates complex rollback/error handling if the second pass fails.
-
-**Do this instead:** Substitutions are edited only in `RecipeDetailSheet` / `RecipeStepDetail` after a step has been saved and has a real ID.
-
-### Anti-Pattern 4: Data Migration in SQL Migration File
-
-**What people do:** Write `INSERT INTO recipe_steps SELECT ... FROM recipe_paints` inside migration 012.
-
-**Why it's wrong:** Migration files run before app startup. No user feedback, no error toasts, no rollback. The migration runner is silent on failures.
-
-**Do this instead:** `migrateRecipePaintsToSteps()` is an application-layer TypeScript function called at startup with a guard (check `recipe_steps` COUNT before running). Shows progress in UI if needed.
-
-### Anti-Pattern 5: COALESCE-based UPDATE for recipe_steps
-
-**What people do:** Mirror the `updateRecipe` COALESCE pattern for step updates.
-
-**Why it's wrong:** Steps are always fully replaced (Pattern 1). There is no partial UPDATE use case. Individual step edits happen only in `RecipeDetailSheet`, where the full step object is available.
-
-**Do this instead:** `updateRecipeStep()` takes the complete `RecipeStep` and sets all columns explicitly. No COALESCE needed.
+**Trade-offs:** If user closes and reopens the app, React Query cache is cold — queries run on first access. This is correct behavior: data is always fresh from DB on app start.
 
 ---
 
-## Build Order
+## Integration Points Summary
 
-### Foundation (required before any feature work)
+### Existing Features That Gain Data (No API Change)
 
-**Step 1: Schema + Types**
-1. Write migration 012 SQL (new tables + ALTER statements)
-2. New type files: `src/types/recipeStep.ts`, `src/types/recipeSubstitution.ts`
-3. Extend `PaintingRecipe` interface with 7 new columns in `src/types/recipe.ts`
-4. Extend `DraftStep` in `recipeSteps.ts` with new fields
-5. Verify migration runs cleanly — check existing recipes survive, steps table is empty
+| Feature | What It Gains |
+|---------|---------------|
+| PlaybookTab | Stratagem list section, detachment abilities section, override badges on stats |
+| Army Lists (v2.7) | Detachment picker backed by rw_detachments (data already present after v2.6 sync) |
+| Game Day Mode (v2.8) | Stratagems grouped by phase (data already present after v2.6 sync) |
 
-**Step 2: Query Layer**
-1. Write `src/db/queries/recipeSteps.ts` — full CRUD + `migrateRecipePaintsToSteps()` + `getRecipeStepCounts()`
-2. Write `src/db/queries/recipeSubstitutions.ts`
-3. Update `getRecipeSwatchColors()` in `recipePaints.ts` to JOIN `recipe_steps`
-4. Update `recipes.ts` INSERT/UPDATE for 7 new metadata columns; add `duplicateRecipe()`
+### Cache Key Namespace — New Keys for v2.6
 
-**Step 3: Hook Layer**
-1. Write `src/hooks/useRecipeSteps.ts` — all hooks with correct cache keys and invalidation symmetry
-2. Write `src/hooks/useRecipeSubstitutions.ts`
-3. Update `useRecipePaints.ts` — only the `useRecipeSwatchData` query fn changes; key stays
-
-**Step 4: Data Migration Execution**
-1. Wire `migrateRecipePaintsToSteps()` call into app startup
-2. Test: existing recipe_paints rows appear as recipe_steps after startup
-3. Test: swatch strips still render correctly (getRecipeSwatchColors now reads recipe_steps)
-
-### Feature Layer (builds on foundation)
-
-**Step 5: Form Upgrades** (depends on Steps 1-4)
-- Extend `RecipeStepRow` with new fields (phase selector, tool, technique, dilution inputs)
-- Extend `RecipeFormSheet` with metadata fields (style, surface, effect, difficulty, estimated_minutes)
-- Change save path: `useCreateRecipeStep` instead of `useAddRecipePaint`
-- Update `recipeSchema.ts` with new fields
-
-**Step 6: Display Upgrades** (depends on Steps 1-4)
-- Update `RecipeDetailSheet` — `useRecipeSteps(id)` replaces `useRecipePaints(id)`
-- Add `RecipeAvailabilityBadge` with `computeRecipeAvailability()` pure function + tests
-- Update `RecipeTableColumns` — difficulty badge, estimated_minutes, step count from batch query
-
-**Step 7: Studio UX** (depends on Steps 5-6)
-- `RecipeStudioCard` — card layout for studio view
-- `RecipeTimelineView` — vertical timeline with phase-grouped steps
-- `RecipesPage` — view toggle (table / studio), new filter bar (style, surface, difficulty, missing-paints)
-- `RecipeDuplicateDialog` + `duplicateRecipe()` query wired up
-
-**Step 8: Session Linking** (depends on Step 1, independent of Steps 5-7)
-- Extend `LogSessionSheet` with optional recipe picker and step picker
-- Update `createSession` mutation to accept and write `recipe_id` + `recipe_step_id`
-- Add "used in N sessions" count to `RecipeDetailSheet`
-
-**Step 9: Substitutions** (depends on Steps 1-4, 6)
-- `RecipeStepDetail` expanded view with substitution list
-- `useRecipeSubstitutions(stepId)` wired into detail sheet
+| Key | Type | Invalidated By |
+|-----|------|----------------|
+| `["stratagems"]` | prefix | sync success |
+| `["stratagems", factionId]` | specific | sync success |
+| `["detachments"]` | prefix | sync success |
+| `["detachments", factionId]` | specific | sync success |
+| `["shared-abilities"]` | prefix | sync success |
+| `["shared-abilities", factionId]` | specific | sync success |
+| `["rules-overrides", unitId]` | specific | upsert/delete override |
+| `["sync-history"]` | prefix | sync attempt (success or failure) |
 
 ---
 
-## Integration Points
+## Build Order (Phase-by-Phase)
 
-### Internal Boundaries
+### Phase 42 — Architecture Audit (This Document, No Code)
 
-| Boundary | Communication | Notes |
-|----------|---------------|-------|
-| `recipe_steps` ↔ `paints` | FK `paint_id` SET NULL on delete | Step survives paint deletion (becomes paint-less) |
-| `recipe_steps` ↔ `image_assets` | FK `photo_asset_id` SET NULL on delete | Step photo optional; step survives photo deletion |
-| `recipe_paint_substitutions` ↔ `recipe_steps` | FK CASCADE on step delete | Substitutions die with their step |
-| `recipe_paint_substitutions` ↔ `paints` | FK RESTRICT on paint delete | Cannot delete paint used as substitution |
-| `painting_sessions` ↔ `painting_recipes` | FK SET NULL on delete | Session history preserved after recipe deletion |
-| `painting_sessions` ↔ `recipe_steps` | FK SET NULL on delete | Session history preserved after step deletion |
-| `RecipeFormSheet` ↔ `PaintSheet` | Sibling portal via parent state | Existing pattern — do not nest |
-| `RecipeFormSheet` ↔ `RecipeStepRow` | Props + `DraftStep[]` lifted state | No React Query inside step rows |
+Confirm: all 12 rules.db tables exist and are synced. 4 tables are dark. rw_sync_meta needs extension. hobbyforge.db needs 2 new tables. No rules.db structural changes needed for dark table surfacing.
 
-### Downstream Consumers Affected
+### Phase 43 — Extended Rules Schema
 
-| Consumer | Required Change |
-|----------|----------------|
-| `RecipeDetailSheet` | `useRecipePaints(id)` → `useRecipeSteps(id)` |
-| `RecipesPage.useAllStepCounts` | Replace N+1 loop with `useRecipeStepCounts()` batch hook |
-| `useRecipePaints.useRecipeSwatchData` | Update query fn; key unchanged |
-| `useDeleteRecipe` | Add `["recipe-steps", recipeId]` to invalidations |
-| `useUpdateRecipe` | Add `["recipe-steps", recipeId]` to invalidations |
-| `LogSessionSheet` | Add recipe + step pickers; new FK columns written on save |
-| `kanban-enrichment` query | No change (reads only `painting_recipes.name`) |
-| Paint delete guard | `recipe_paint_substitutions.paint_id` RESTRICT means existing paint delete guard at component level must account for substitution FK errors |
+1. Write `src-tauri/migrations/rules_003_sync_metadata.sql` (ALTER rw_sync_meta)
+2. Write `src-tauri/migrations/015_rules_overrides.sql` (CREATE 2 tables in hobbyforge.db)
+3. Register rules_003 in `get_rules_migrations()` in lib.rs
+4. Register 015 in `get_migrations()` in lib.rs
+5. Extend `RulesSyncMeta` TypeScript interface in `src/types/datasheet.ts`
+6. Create `src/types/rulesOverrides.ts` with UnitRulesOverride + SyncLogEntry
+7. Smoke test: `pnpm tauri dev`, verify new columns and tables exist
+
+Schema first. Types derive from schema. No hooks or UI until schema compiles and runs.
+
+### Phase 44 — Sync Pipeline Extension + Dark Table Queries
+
+1. Extend Rust `bulk_sync_rules` to write row count columns to rw_sync_meta
+2. Add hobbyforge.db sync_error_log write in Rust (separate sqlx connection)
+3. Update `useRulesSync.ts` onSuccess to invalidate 4 new query keys
+4. Create `src/db/queries/stratagems.ts`, `detachments.ts`, `sharedAbilities.ts`
+5. Create `src/hooks/useStratagems.ts`, `useDetachments.ts`, `useSharedAbilities.ts`
+6. Wire `StratagemsList` + `DetachmentAbilitiesPanel` into PlaybookTab
+7. Unit tests for new query functions
+
+### Phase 45 — Sync Metadata & Import Tracking
+
+1. Create `src/db/queries/syncHistory.ts` (read sync_error_log + rw_sync_meta)
+2. Create `src/hooks/useSyncHistory.ts`
+3. Build `SyncMetadataPanel` with freshness logic (pure utility function, testable)
+4. Wire into PlaybookTab or dedicated Rules settings section
+5. Unit tests for freshness computation
+
+### Phase 46 — Manual Overrides & Version Comparison
+
+1. Create `src/db/queries/rulesOverrides.ts` (CRUD)
+2. Create `src/hooks/useRulesOverrides.ts` (useRulesOverrides + useUpsertRulesOverride + useDeleteRulesOverride)
+3. Build `OverridesPanel` component
+4. Integrate override resolution in PlaybookTab stat display
+5. Build `VersionComparisonPanel`
+6. Wire version comparison into SyncMetadataPanel
+7. Unit tests for override CRUD + resolution logic + version comparison computation
 
 ---
 
-## Scaling Considerations
+## Anti-Patterns to Avoid
 
-Single-user local desktop app. The only relevant scale question is query efficiency as recipe count grows.
+### Anti-Pattern 1: Writing Overrides to rules.db
 
-| Recipe Count | Notes |
-|---|---|
-| 1-50 (current baseline) | All patterns fine. N+1 step count is imperceptible. |
-| 50-200 (realistic ceiling for a personal tool) | N+1 step count query starts to lag on RecipesPage load. Batch COUNT query (Anti-Pattern 1 fix) is the only mitigation needed. |
-| 200+ (unexpected but possible) | Consider virtualizing the recipe list. Current TanStack Table renders all rows eagerly. |
+**What people do:** UPDATE rw_datasheet_models SET T = 5 to "fix" an imported stat.
+
+**Why it's wrong:** Every sync runs `DELETE FROM rw_datasheet_models`. Override silently destroyed with no warning.
+
+**Do this instead:** All user-authored data lives in hobbyforge.db via unit_rules_overrides. Resolution happens in TypeScript at read time.
+
+### Anti-Pattern 2: Multi-Statement Transaction from TypeScript
+
+**What people do:** Loop over `getRulesDb().execute()` calls expecting atomicity.
+
+**Why it's wrong:** tauri-plugin-sql auto-commits every execute(). Network failure mid-loop leaves rules.db partially written.
+
+**Do this instead:** All sync writes go through bulk_sync_rules in Rust (real sqlx transaction).
+
+### Anti-Pattern 3: Snapshot Table for Full Content Diff
+
+**What people do:** Mirror all rw_* rows before sync into snapshot tables for row-level diffing.
+
+**Why it's wrong:** Full Wahapedia dataset is 5000+ rows across 11 tables. Doubles storage. Creates migration complexity for a personal tool. Row-level diff is overkill.
+
+**Do this instead:** Compare wahapedia_version strings + row count deltas. Show "4 new datasheets in this sync." Full content diff deferred.
+
+### Anti-Pattern 4: Querying Dark Tables from Components Directly
+
+**What people do:** Call getRulesDb().select() inside a component to get stratagems.
+
+**Why it's wrong:** Bypasses React Query caching and the query -> hook -> component contract. Every render triggers a DB call.
+
+**Do this instead:** stratagems.ts query module -> useStratagems.ts hook -> component. No exceptions.
 
 ---
 
 ## Sources
 
-- Direct code audit: `src/features/recipes/*.tsx` — all 12 recipe feature files
-- Direct code audit: `src/hooks/useRecipes.ts`, `src/hooks/useRecipePaints.ts`
-- Direct code audit: `src/db/queries/recipes.ts`, `src/db/queries/recipePaints.ts`
-- Direct code audit: `src/types/recipe.ts`, `src/types/recipePaint.ts`
-- Schema audit: `src-tauri/migrations/001_core_schema.sql`, `005_hobby_journal.sql`
-- Architecture audit: `.planning/V3_ARCHITECTURE_AUDIT.md` (section 3.1 Recipes 2.0, section 5 Migration Plan)
-- Project context: `.planning/PROJECT.md`
-- Established patterns: `CLAUDE.md` (sibling portal pattern, cache invalidation symmetry rule, integer boolean discipline, no ORM)
+- `src-tauri/src/lib.rs` — Full Rust backend, BulkSyncPayload, bulk_sync_rules (read 2026-05-07)
+- `src/hooks/useRulesSync.ts` — Current sync hook (read 2026-05-07)
+- `src/db/rules-client.ts` — rules.db singleton (read 2026-05-07)
+- `src/db/queries/datasheets.ts` — Current rules query module (read 2026-05-07)
+- `src/types/datasheet.ts` — Current rules TypeScript types (read 2026-05-07)
+- `src/hooks/useDatasheet.ts` — Current datasheet hooks (read 2026-05-07)
+- `src-tauri/migrations/rules_001_schema.sql` — rules.db base schema (read 2026-05-07)
+- `src-tauri/migrations/rules_002_wargear_abilities.sql` — Extended rules schema (read 2026-05-07)
+- `.planning/V3_ARCHITECTURE_AUDIT.md` — Prior architecture audit (read 2026-05-07)
+- `.planning/milestones/v3.0-ROADMAP.md` — v2.6 requirements (read 2026-05-07)
+- `.planning/milestones/v3.0-PHASES.md` — Phase breakdown (read 2026-05-07)
 
 ---
-*Architecture research for: HobbyForge v2.5 Recipes 2.0 / Painting Studio*
-*Researched: 2026-05-06*
+
+*Architecture research for: HobbyForge v2.6 Rules Sync 2.0 / Rules Data Hub*
+*Researched: 2026-05-07*
+*Confidence: HIGH — all findings based on direct codebase reads, zero training-data assumptions*
