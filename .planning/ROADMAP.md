@@ -112,7 +112,7 @@ Full details: `.planning/milestones/v2.4-ROADMAP.md`
 - [x] **Phase 38: Structured Step Input** — Full step CRUD with phase/tool/technique/dilution fields, time estimates, and @dnd-kit reordering (completed 2026-05-07)
 - [x] **Phase 39: Studio UX + Paint Availability** — Card grid view with metadata badges, step-by-step timeline detail, advanced filters, and owned/missing paint badge on cards (completed 2026-05-07)
 - [x] **Phase 40: Recipe Actions + Step Photos** — Recipe duplication, per-step photo upload, substitute paint linking, and add-all-missing-to-wishlist action (completed 2026-05-07)
-- [ ] **Phase 41: Session Integration** — Recipe + step selection in LogSessionSheet, session history visible from recipe detail view
+- [x] **Phase 41: Session Integration** — Recipe + step selection in LogSessionSheet, session history visible from recipe detail view (completed 2026-05-07)
 
 ## Phase Details
 
@@ -182,7 +182,7 @@ Plans:
   1. The LogSessionSheet includes optional recipe and step selectors; selecting a recipe populates the step dropdown with that recipe's steps
   2. A session logged with a recipe/step link appears in the Sessions section of the recipe detail view, showing date, unit, and duration
   3. Session-recipe links are optional — existing log flows work without selecting a recipe
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 41-01-PLAN.md — Migration 014 + types + queries + hooks + schema for session-recipe linking
 - [ ] 41-02-PLAN.md — LogSessionSheet recipe/step selectors + RecipeDetailSheet sessions section
@@ -233,4 +233,4 @@ Plans:
 | 38. Structured Step Input | v2.5 | 2/2 | Complete | 2026-05-07 |
 | 39. Studio UX + Paint Availability | v2.5 | 3/3 | Complete | 2026-05-07 |
 | 40. Recipe Actions + Step Photos | 3/3 | Complete    | 2026-05-07 | - |
-| 41. Session Integration | 1/2 | In Progress|  | - |
+| 41. Session Integration | 2/2 | Complete   | 2026-05-07 | - |
