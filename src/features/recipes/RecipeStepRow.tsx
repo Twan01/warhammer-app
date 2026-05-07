@@ -116,8 +116,8 @@ export function RecipeStepRow({
             <ImageIcon className={step.step_photo_path ? "h-4 w-4 text-primary" : "h-4 w-4"} />
           </Button>
         </div>
-        {/* Line 2: tool + technique + dilution + time estimate */}
-        <div className="grid grid-cols-4 gap-1.5">
+        {/* Line 2: tool + technique + dilution + time estimate + alt paint */}
+        <div className="grid grid-cols-5 gap-1.5">
           <Input
             placeholder="Tool"
             className="text-xs"
@@ -152,6 +152,13 @@ export function RecipeStepRow({
               })
             }
           />
+          <div data-testid="alt-paint-combobox-container">
+            <span className="text-[10px] text-muted-foreground">Alt paint</span>
+            <PaintCombobox
+              value={step.alt_paint_id}
+              onChange={(paintId) => onChange({ ...step, alt_paint_id: paintId })}
+            />
+          </div>
         </div>
         <datalist id="tool-suggestions">
           {["Size 0 brush", "Size 1 brush", "Size 2 brush", "Dry brush", "Airbrush", "Sponge", "Palette knife"].map((t) => (

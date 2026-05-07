@@ -58,6 +58,19 @@ export function RecipeStepTimeline({ steps, paintMap, stepPhotoUrls }: RecipeSte
               ) : (
                 <span className="text-xs text-muted-foreground">(no paint linked)</span>
               )}
+              {/* Alt paint display — Phase 40 PAINT-02 */}
+              {step.alt_paint_id != null && (() => {
+                const altPaint = paintMap.get(step.alt_paint_id);
+                return altPaint ? (
+                  <span
+                    className="inline-flex items-center gap-1 text-xs text-muted-foreground"
+                    data-testid="alt-paint-display"
+                  >
+                    <span aria-hidden="true" className="text-yellow-500">●</span>
+                    Alt: {altPaint.brand} {altPaint.name}
+                  </span>
+                ) : null;
+              })()}
               {/* Tool / technique / dilution / time inline row */}
               {(step.tool || step.technique || step.dilution || step.time_estimate_minutes) && (
                 <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
