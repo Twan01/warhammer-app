@@ -16,12 +16,20 @@ import { useFactions } from "@/hooks/useFactions";
 import { useUnits } from "@/hooks/useUnits";
 import type { PaintingRecipe } from "@/types/recipe";
 import { recipesRoute } from "@/app/router";
-import { useRecipeIdsByPaint, useRecipeSwatchData, useAllStepCounts } from "@/hooks/useRecipePaints";
-import { RecipeTable } from "./RecipeTable";
+import {
+  useRecipeIdsByPaint,
+  useRecipeSwatchData,
+  useAllStepCounts,
+  useRecipePaintAvailability,
+  type AvailabilityStats,
+} from "@/hooks/useRecipePaints";
+import { RECIPE_SURFACES, RECIPE_STYLES, RECIPE_DIFFICULTIES } from "./recipeSchema";
+import { RecipeCardGrid } from "./RecipeCardGrid";
 import { RecipeDetailSheet } from "./RecipeDetailSheet";
 import { RecipeDeleteDialog } from "./RecipeDeleteDialog";
 import { RecipeFormSheet } from "./RecipeFormSheet";
 import { PageHeader } from "@/components/common/PageHeader";
+import { applyRecipeFilters } from "./applyRecipeFilters";
 
 export function RecipesPage() {
   const { data: recipes = [], isLoading } = useRecipes();
@@ -29,6 +37,7 @@ export function RecipesPage() {
   const { data: units = [] } = useUnits();
   const { data: stepCountByRecipe = new Map<number, number>() } = useAllStepCounts();
   const { data: swatchColorsByRecipe = new Map<number, { paint_id: number; hex_color: string | null }[]>() } = useRecipeSwatchData();
+  const { data: availabilityByRecipe = new Map<number, AvailabilityStats>() } = useRecipePaintAvailability();
 
   // Filter state
   const [factionFilter, setFactionFilter] = useState<number[]>([]); // multi-select
@@ -49,6 +58,12 @@ export function RecipesPage() {
 
   const { data: recipeIdsByPaint } = useRecipeIdsByPaint(paintFilter);
 
+  // New studio filters
+  const [surfaceFilter, setSurfaceFilter] = useState<string | null>(null);
+  const [styleFilter, setStyleFilter] = useState<string | null>(null);
+  const [difficultyFilter, setDifficultyFilter] = useState<string | null>(null);
+  const [hasMissingFilter, setHasMissingFilter] = useState(false);
+
   // Sheet/dialog state
   const [selectedRecipe, setSelectedRecipe] = useState<PaintingRecipe | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -58,25 +73,31 @@ export function RecipesPage() {
   const [editing, setEditing] = useState<PaintingRecipe | null>(null);
 
   const filtered = useMemo(() => {
-    return recipes.filter((r) => {
-      if (factionFilter.length > 0) {
-        if (r.faction_id === null || !factionFilter.includes(r.faction_id)) return false;
-      }
-      if (unitFilter !== null) {
-        if (r.unit_id !== unitFilter) return false;
-      }
-      const area = areaFilter.trim().toLowerCase();
-      if (area.length > 0) {
-        if (!r.area || !r.area.toLowerCase().includes(area)) return false;
-      }
-      if (paintFilter !== null) {
-        // useRecipeIdsByPaint is disabled until data resolves; while loading, hide all recipes
-        // (matches "no recipes use this paint" empty state until data arrives — single render flash).
-        if (!recipeIdsByPaint || !recipeIdsByPaint.includes(r.id)) return false;
-      }
-      return true;
+    return applyRecipeFilters(recipes, {
+      factionFilter,
+      unitFilter,
+      areaFilter,
+      paintFilter,
+      recipeIdsByPaint,
+      surfaceFilter,
+      styleFilter,
+      difficultyFilter,
+      hasMissingFilter,
+      availabilityByRecipe,
     });
-  }, [recipes, factionFilter, unitFilter, areaFilter, paintFilter, recipeIdsByPaint]);
+  }, [
+    recipes,
+    factionFilter,
+    unitFilter,
+    areaFilter,
+    paintFilter,
+    recipeIdsByPaint,
+    surfaceFilter,
+    styleFilter,
+    difficultyFilter,
+    hasMissingFilter,
+    availabilityByRecipe,
+  ]);
 
   const openDetail = (recipe: PaintingRecipe) => {
     setSelectedRecipe(recipe);
@@ -112,6 +133,16 @@ export function RecipesPage() {
     setEditing(null);
   };
 
+  const hasActiveFilters =
+    factionFilter.length > 0 ||
+    unitFilter !== null ||
+    areaFilter.length > 0 ||
+    paintFilter !== null ||
+    surfaceFilter !== null ||
+    styleFilter !== null ||
+    difficultyFilter !== null ||
+    hasMissingFilter;
+
   return (
     <div className="flex flex-col gap-6 p-6">
       <PageHeader
@@ -138,7 +169,35 @@ export function RecipesPage() {
           onChange={(e) => setAreaFilter(e.target.value)}
           className="w-48"
         />
-        {(factionFilter.length > 0 || unitFilter !== null || areaFilter.length > 0 || paintFilter !== null) && (
+        <StringFilter
+          label={surfaceFilter ?? "Surface"}
+          placeholder="Filter surface..."
+          items={RECIPE_SURFACES as unknown as string[]}
+          value={surfaceFilter}
+          onChange={setSurfaceFilter}
+        />
+        <StringFilter
+          label={styleFilter ?? "Style"}
+          placeholder="Filter style..."
+          items={RECIPE_STYLES as unknown as string[]}
+          value={styleFilter}
+          onChange={setStyleFilter}
+        />
+        <StringFilter
+          label={difficultyFilter ?? "Difficulty"}
+          placeholder="Filter difficulty..."
+          items={RECIPE_DIFFICULTIES as unknown as string[]}
+          value={difficultyFilter}
+          onChange={setDifficultyFilter}
+        />
+        <Button
+          variant={hasMissingFilter ? "default" : "outline"}
+          size="sm"
+          onClick={() => setHasMissingFilter((v) => !v)}
+        >
+          Missing paints
+        </Button>
+        {hasActiveFilters && (
           <Button
             variant="ghost"
             size="sm"
@@ -147,6 +206,10 @@ export function RecipesPage() {
               setUnitFilter(null);
               setAreaFilter("");
               setPaintFilter(null);
+              setSurfaceFilter(null);
+              setStyleFilter(null);
+              setDifficultyFilter(null);
+              setHasMissingFilter(false);
             }}
           >
             Clear filters
@@ -154,14 +217,15 @@ export function RecipesPage() {
         )}
       </div>
 
-      <RecipeTable
+      <RecipeCardGrid
         data={filtered}
         factions={factions}
         units={units}
         stepCountByRecipe={stepCountByRecipe}
         swatchColorsByRecipe={swatchColorsByRecipe}
+        availabilityByRecipe={availabilityByRecipe}
         isLoading={isLoading}
-        onRowClick={openDetail}
+        onCardClick={openDetail}
         onAdd={onAddRecipe}
         onEdit={onEditRecipe}
         onDelete={openDelete}
@@ -291,6 +355,62 @@ function UnitFilter({
                   }}
                 >
                   {u.name}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function StringFilter({
+  label,
+  placeholder,
+  items,
+  value,
+  onChange,
+}: {
+  label: string;
+  placeholder: string;
+  items: string[];
+  value: string | null;
+  onChange: (next: string | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant={value !== null ? "default" : "outline"} size="sm">
+          {label}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-56 p-0">
+        <Command>
+          <CommandInput placeholder={placeholder} />
+          <CommandList>
+            <CommandEmpty>No option found.</CommandEmpty>
+            <CommandGroup>
+              <CommandItem
+                value="__any__"
+                onSelect={() => {
+                  onChange(null);
+                  setOpen(false);
+                }}
+              >
+                Any
+              </CommandItem>
+              {items.map((item) => (
+                <CommandItem
+                  key={item}
+                  value={item}
+                  onSelect={() => {
+                    onChange(item);
+                    setOpen(false);
+                  }}
+                >
+                  {item}
                 </CommandItem>
               ))}
             </CommandGroup>
