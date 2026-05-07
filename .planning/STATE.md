@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Recipes 2.0 / Painting Studio
-status: 41-01 data layer complete — migration 014, 6-param createSession, getSessionsByRecipe, RECIPE_SESSIONS_KEY, useSessionsByRecipe, extended logSessionSchema
-stopped_at: Completed 41-01-PLAN.md
-last_updated: "2026-05-07T11:59:56.258Z"
-last_activity: "2026-05-07 — 40-03 Alt paint combobox, Alt: timeline display, Add all missing to wishlist button"
+status: 41-02 UI integration complete — Recipe/Step selectors in LogSessionSheet, Sessions section in RecipeDetailSheet, v2.5 milestone complete
+stopped_at: Completed 41-02-PLAN.md
+last_updated: "2026-05-07T14:25:00.000Z"
+last_activity: "2026-05-07 — 41-02 Recipe/Step selectors in LogSessionSheet + Sessions history panel in RecipeDetailSheet"
 progress:
   total_phases: 5
   completed_phases: 4
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-06 after v2.5 milestone started)
 
 ## Current Position
 
-Phase: 41 of 41 (Session-Recipe Integration) — IN PROGRESS
-Plan: 1 of 2 complete (41-01 data layer: migration 014, queries, hooks, schema)
-Status: 41-01 data layer complete — migration 014, 6-param createSession, getSessionsByRecipe, RECIPE_SESSIONS_KEY, useSessionsByRecipe, extended logSessionSchema
-Last activity: 2026-05-07 — 41-01 session-recipe data layer (migration, types, queries, hooks, schema)
+Phase: 41 of 41 (Session-Recipe Integration) — COMPLETE
+Plan: 2 of 2 complete (41-02 UI: Recipe/Step selectors, Sessions section, component tests)
+Status: 41-02 UI integration complete — Recipe/Step selectors in LogSessionSheet, Sessions section in RecipeDetailSheet, v2.5 milestone complete
+Last activity: 2026-05-07 — 41-02 Recipe/Step selectors in LogSessionSheet + Sessions history panel in RecipeDetailSheet
 
-Progress: [█████████░] 92% (11/12 plans in v2.5)
+Progress: [██████████] 100% (12/12 plans in v2.5)
 
 ## Accumulated Context
 
@@ -129,6 +129,13 @@ Progress: [█████████░] 92% (11/12 plans in v2.5)
 - Name-based dedup (brand + name string) for wishlist duplicate prevention — avoids re-adding paints already on wishlist by name
 - Sequential mutateAsync loop (not Promise.all) — simpler error handling; first failure surfaces via catch block
 
+### Decisions from Phase 41 Plan 02
+
+- getAllByText for shadcn Select text nodes in tests — Radix Select renders display text in both SelectTrigger and hidden native option, so getByText throws "multiple elements found"; getAllByText + length > 0 matches existing unit picker test pattern
+- sortRecipesForPicker as module-level helper after sortUnitsForPicker — consistent with existing picker sort convention; faction order index Map avoids repeated array searches per comparison
+- unitMap useMemo in RecipeDetailSheet resolves unit_id to name — reuses units data already loaded via useUnits(), no additional DB fetch
+- Sessions section placed after wishlist button with Separator — follows Field component pattern used throughout RecipeDetailSheet
+
 ### Decisions from Phase 41 Plan 01
 
 - ON DELETE SET NULL for recipe_id/recipe_step_id FKs — session survives recipe or step deletion, link is cleared
@@ -154,6 +161,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-07T11:59:56.255Z
-Stopped at: Completed 41-01-PLAN.md
-Resume: Phase 41 Plan 01 complete — data layer done. Next: Phase 41 Plan 02 (LogSessionSheet recipe/step selectors + RecipeDetailSheet session history panel)
+Last session: 2026-05-07T14:25:00.000Z
+Stopped at: Completed 41-02-PLAN.md
+Resume: v2.5 milestone complete — all 12 plans across phases 37-41 delivered. INTEG-01 and INTEG-02 fulfilled. No open blockers.
