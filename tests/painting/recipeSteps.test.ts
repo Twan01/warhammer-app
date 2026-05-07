@@ -6,7 +6,18 @@ import { computeOrderIndex, isPaintMissing, makeDraftStep, type DraftStep } from
 import type { Paint } from "@/types/paint";
 
 function step(over: Partial<DraftStep> = {}): DraftStep {
-  return { localId: "x", step_name: "", paint_id: null, notes: null, ...over };
+  return {
+    localId: "x",
+    step_name: "",
+    paint_id: null,
+    notes: null,
+    painting_phase: null,
+    tool: null,
+    technique: null,
+    dilution: null,
+    time_estimate_minutes: null,
+    ...over,
+  };
 }
 
 describe("RECIPE-05 computeOrderIndex", () => {
@@ -65,5 +76,38 @@ describe("makeDraftStep", () => {
     expect(a.step_name).toBe("");
     expect(a.paint_id).toBeNull();
     expect(a.notes).toBeNull();
+    expect(a.painting_phase).toBeNull();
+    expect(a.time_estimate_minutes).toBeNull();
+  });
+});
+
+describe("STEP-01/03/04 DraftStep new fields", () => {
+  it("makeDraftStep initializes painting_phase to null", () => {
+    expect(makeDraftStep().painting_phase).toBeNull();
+  });
+  it("makeDraftStep initializes tool to null", () => {
+    expect(makeDraftStep().tool).toBeNull();
+  });
+  it("makeDraftStep initializes technique to null", () => {
+    expect(makeDraftStep().technique).toBeNull();
+  });
+  it("makeDraftStep initializes dilution to null", () => {
+    expect(makeDraftStep().dilution).toBeNull();
+  });
+  it("makeDraftStep initializes time_estimate_minutes to null", () => {
+    expect(makeDraftStep().time_estimate_minutes).toBeNull();
+  });
+  it("computeOrderIndex preserves new fields through spread", () => {
+    const input = step({
+      localId: "z",
+      painting_phase: "basecoat",
+      tool: "Size 1 brush",
+      time_estimate_minutes: 10,
+    });
+    const result = computeOrderIndex([input]);
+    expect(result[0].painting_phase).toBe("basecoat");
+    expect(result[0].tool).toBe("Size 1 brush");
+    expect(result[0].time_estimate_minutes).toBe(10);
+    expect(result[0].order_index).toBe(0);
   });
 });

@@ -12,9 +12,15 @@ export async function getRecipePaintsByRecipe(recipeId: number): Promise<RecipeS
 export async function addRecipePaint(input: CreateRecipeStepInput): Promise<number> {
   const db = await getDb();
   const result = await db.execute(
-    `INSERT INTO recipe_steps (recipe_id, paint_id, step_name, order_index, notes)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [input.recipe_id, input.paint_id, input.step_name, input.order_index, input.notes ?? null]
+    `INSERT INTO recipe_steps
+     (recipe_id, paint_id, step_name, order_index, notes,
+      painting_phase, tool, technique, dilution, time_estimate_minutes)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+    [
+      input.recipe_id, input.paint_id, input.step_name, input.order_index, input.notes ?? null,
+      input.painting_phase ?? null, input.tool ?? null, input.technique ?? null,
+      input.dilution ?? null, input.time_estimate_minutes ?? null,
+    ]
   );
   return result.lastInsertId ?? 0;
 }
