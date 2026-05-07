@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Recipes 2.0 / Painting Studio
 status: in_progress
-stopped_at: "Completed 39-01-PLAN.md"
-last_updated: "2026-05-07T09:29:00Z"
-last_activity: 2026-05-07 — 39-01 paint availability data layer complete
+stopped_at: Completed 39-02-PLAN.md
+last_updated: "2026-05-07T09:48:00Z"
+last_activity: 2026-05-07 — 39-02 recipe card grid and studio filters complete
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 7
-  completed_plans: 5
-  percent: 71
+  completed_plans: 6
+  percent: 86
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-06 after v2.5 milestone started)
 ## Current Position
 
 Phase: 39 of 41 (Studio UX + Paint Availability) — IN PROGRESS
-Plan: 1 of 3 (39-01 complete)
-Status: 39-01 paint availability data layer delivered — ready for 39-02 card grid
-Last activity: 2026-05-07 — 39-01 batch query + hook + cache invalidation complete
+Plan: 2 of 3 (39-02 complete)
+Status: 39-02 recipe card grid and studio filters delivered — ready for 39-03 detail timeline
+Last activity: 2026-05-07 — 39-02 RecipeCard grid, availability badges, studio filters complete
 
-Progress: [███████░░░] 71% (5/7 plans in v2.5)
+Progress: [█████████░] 86% (6/7 plans in v2.5)
 
 ## Accumulated Context
 
@@ -92,6 +92,13 @@ Progress: [███████░░░] 71% (5/7 plans in v2.5)
 - RECIPE_AVAILABILITY_KEY excluded from useCreatePaint — new paint has no step links, availability unaffected; symmetry rule applied precisely (not over-invalidating)
 - getRecipePaintAvailability() uses JOIN (not LEFT JOIN) — steps without a matching paint row (paint deleted) are excluded, avoiding NULL aggregation noise
 
+### Decisions from Phase 39 Plan 02
+
+- applyRecipeFilters extracted to applyRecipeFilters.ts following the applyEntityFilters pattern in other features
+- StringFilter local component reused for Surface/Style/Difficulty — single-select popover with __any__ sentinel, variant changes to default when active filter
+- difficultyColors uses literal Tailwind class strings (not dynamic) to avoid Tailwind purge removing unused utility classes
+- Availability badge uses inline style backgroundColor (#ef4444/#f59e0b/#22c55e) for color accuracy and purge safety
+
 ### Key v2.5 Architectural Constraints
 
 - FIXED (Phase 37-01): useDeleteRecipe now includes `["kanban-enrichment"]` invalidation — cache symmetry restored
@@ -109,6 +116,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-07T09:29:00Z
-Stopped at: Completed 39-01-PLAN.md
-Resume: Phase 39 in progress — begin 39-02 (recipe card grid with paint availability badges)
+Last session: 2026-05-07T09:47:59.425Z
+Stopped at: Completed 39-02-PLAN.md
+Resume: Phase 39 in progress — begin 39-03 (paint availability detail timeline in RecipeDetailSheet)
