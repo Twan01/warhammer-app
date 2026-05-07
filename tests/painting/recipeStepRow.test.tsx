@@ -58,6 +58,8 @@ function makeDraftStep(over: Partial<DraftStep> = {}): DraftStep {
     technique: null,
     dilution: null,
     time_estimate_minutes: null,
+    step_photo_path: null,
+    alt_paint_id: null,
     ...over,
   };
 }

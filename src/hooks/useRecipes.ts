@@ -5,8 +5,14 @@ import {
   createRecipe,
   updateRecipe,
   deleteRecipe,
+  duplicateRecipe,
 } from "@/db/queries/recipes";
 import type { CreateRecipeInput, UpdateRecipeInput } from "@/types/recipe";
+import {
+  RECIPE_SWATCH_KEY,
+  STEP_COUNTS_KEY,
+  RECIPE_AVAILABILITY_KEY,
+} from "@/hooks/useRecipePaints";
 
 export const RECIPES_KEY = ["recipes"] as const;
 export const RECIPE_KEY = (id: number) => ["recipes", id] as const;
@@ -56,6 +62,21 @@ export function useDeleteRecipe() {
       qc.invalidateQueries({ queryKey: RECIPES_KEY });
       qc.invalidateQueries({ queryKey: ["kanban-enrichment"] });
       qc.invalidateQueries({ queryKey: ["recipes", "by-unit"] });
+    },
+  });
+}
+
+export function useDuplicateRecipe() {
+  const qc = useQueryClient();
+  return useMutation<number, Error, { originalId: number; newName: string }>({
+    mutationFn: ({ originalId, newName }) => duplicateRecipe(originalId, newName),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: RECIPES_KEY });
+      qc.invalidateQueries({ queryKey: ["kanban-enrichment"] });
+      qc.invalidateQueries({ queryKey: ["recipes", "by-unit"] });
+      qc.invalidateQueries({ queryKey: RECIPE_SWATCH_KEY });
+      qc.invalidateQueries({ queryKey: STEP_COUNTS_KEY });
+      qc.invalidateQueries({ queryKey: RECIPE_AVAILABILITY_KEY });
     },
   });
 }

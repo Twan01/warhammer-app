@@ -139,6 +139,8 @@ function makeStep(time: number | null, overrides: Partial<RecipeStep> = {}): Rec
     technique: null,
     dilution: null,
     time_estimate_minutes: time,
+    step_photo_path: null,
+    alt_paint_id: null,
     created_at: "2026-01-01 00:00:00",
     ...overrides,
   };
