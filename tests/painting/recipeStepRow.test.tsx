@@ -141,7 +141,9 @@ describe("RecipeStepRow — STEP-01/03 structured step inputs", () => {
   describe("PaintCombobox", () => {
     it("renders the PaintCombobox (mocked)", () => {
       renderRow();
-      expect(screen.getByTestId("paint-combobox")).toBeInTheDocument();
+      // Two comboboxes: primary paint + alt paint
+      const comboboxes = screen.getAllByTestId("paint-combobox");
+      expect(comboboxes.length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -238,6 +240,33 @@ describe("RecipeStepRow — STEP-01/03 structured step inputs", () => {
       expect(
         screen.getByRole("button", { name: "Remove step" })
       ).toBeInTheDocument();
+    });
+  });
+
+  describe("alt paint combobox — PAINT-02", () => {
+    it("renders an alt paint combobox container on the second row", () => {
+      const { container } = renderRow();
+      const altContainer = container.querySelector("[data-testid='alt-paint-combobox-container']");
+      expect(altContainer).toBeInTheDocument();
+    });
+
+    it("renders the 'Alt paint' label in the alt paint container", () => {
+      renderRow();
+      expect(screen.getByText("Alt paint")).toBeInTheDocument();
+    });
+
+    it("renders two paint-combobox instances (primary and alt)", () => {
+      renderRow();
+      const comboboxes = screen.getAllByTestId("paint-combobox");
+      expect(comboboxes).toHaveLength(2);
+    });
+
+    it("renders without error when alt_paint_id is set", () => {
+      expect(() => renderRow(makeDraftStep({ alt_paint_id: 5 }))).not.toThrow();
+    });
+
+    it("renders without error when alt_paint_id is null", () => {
+      expect(() => renderRow(makeDraftStep({ alt_paint_id: null }))).not.toThrow();
     });
   });
 });
