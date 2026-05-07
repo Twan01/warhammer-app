@@ -88,7 +88,17 @@ A single personal command center that always answers "what do I own, what's pain
 
 ### Active
 
-(No active milestone — next milestone TBD)
+## Current Milestone: v2.6 Rules Sync 2.0 / Rules Data Hub
+
+**Goal:** Stabilize and extend the local rules import architecture so HobbyForge becomes a reliable personal rules and points reference.
+
+**Target features:**
+- Architecture audit of current sync pipeline (TypeScript useRulesSync vs Rust bulk_sync_rules)
+- Extended rules schema: wargear, shared abilities, stratagems, detachments, detachment abilities
+- Sync pipeline extension for new CSV data types
+- Sync metadata and import tracking (source registry, freshness, error logs)
+- Manual overrides for points/stats/keywords that persist across re-syncs
+- Version comparison showing what changed after a re-sync
 
 ### Out of Scope
 
@@ -163,4 +173,4 @@ A single personal command center that always answers "what do I own, what's pain
 | Conditional RECIPE_SESSIONS_KEY invalidation | Only when recipe_id != null — no unnecessary cache busts for unlinked sessions | ✓ Good — precise invalidation following symmetry rule |
 
 ---
-*Last updated: 2026-05-07 after v2.5 milestone*
+*Last updated: 2026-05-07 after v2.6 milestone start*
