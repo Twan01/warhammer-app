@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Recipes 2.0 / Painting Studio
-status: Defining requirements
-stopped_at: Milestone v2.5 started
-last_updated: "2026-05-06"
-last_activity: 2026-05-06 — Milestone v2.5 started, defining requirements
+status: Ready to plan
+stopped_at: Roadmap created — 5 phases (37–41), 18/18 requirements mapped
+last_updated: "2026-05-07"
+last_activity: 2026-05-07 — v2.5 roadmap created, Phase 37 ready to plan
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06 after v2.5 milestone started)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.5 Recipes 2.0 / Painting Studio — defining requirements
+**Current focus:** v2.5 Phase 37 — Schema Foundation + Pre-flight Fixes
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-05-06 — Milestone v2.5 started
+Phase: 37 of 41 (Schema Foundation + Pre-flight Fixes)
+Plan: — (not yet planned)
+Status: Ready to plan
+Last activity: 2026-05-07 — v2.5 roadmap created
+
+Progress: [░░░░░░░░░░] 0% (0/5 phases)
 
 ## Accumulated Context
 
@@ -49,12 +51,21 @@ Last activity: 2026-05-06 — Milestone v2.5 started
 - StatusBadge 4-tier color system for 11 painting statuses
 - Quick Add via QuickAddContext provider with 8-action dropdown
 - Cache invalidation symmetry: if useCreate invalidates a key, useDelete must too
-- todayISO() from @/lib/dates is the single source of truth for date defaults (local timezone, not UTC)
-- weapon_name stored as TEXT copy in unit_loadout_wargear — cross-database FK to rules.db not supported in SQLite
-- COALESCE chain in armyLists.ts — tier points flow via units.points update, army lists pick up automatically
-- UnitThumbnail shared component (Swords icon + faction-color fallback) for all photo thumbnails
-- Recipe by-unit cache invalidation uses prefix match — `["recipes", "by-unit"]` invalidates all unit-specific keys
+- todayISO() from @/lib/dates is the single source of truth for date defaults
+- UnitThumbnail shared component (Swords icon + faction-color fallback)
+- Recipe by-unit cache invalidation uses prefix match
 - Radix Select sentinel value `__none__` for "no selection" — Radix forbids empty string in SelectItem
+- recipe_paints IS the step system — extend to recipe_steps (not a parallel table)
+- @dnd-kit already wired; reuse for step reordering
+- Photo upload pattern: reuse JournalTab UUID-relative-path approach
+- useFieldArray NOT used for step forms — documented ID collision with @dnd-kit useSortable (RHF #10607)
+
+### Key v2.5 Architectural Constraints
+
+- Pre-existing bug (Phase 37): useDeleteRecipe missing `["kanban-enrichment"]` invalidation — fix before any new UI
+- N+1 step count on RecipesPage must be replaced with batch query in Phase 37
+- Substitutions (PAINT-02) need persisted step IDs — must come AFTER Phase 38 step creation
+- Session-recipe linking (INTEG-01/02) is highest complexity — Phase 41 last
 
 ### Pending Todos
 
@@ -66,6 +77,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-06
-Stopped at: Milestone v2.5 started — defining requirements
-Resume: Continue requirement definition for Recipes 2.0
+Last session: 2026-05-07
+Stopped at: Roadmap written — ready to plan Phase 37
+Resume: Run /gsd:plan-phase 37

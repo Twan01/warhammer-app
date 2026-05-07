@@ -61,30 +61,30 @@ Requirements for Recipes 2.0 / Painting Studio. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCHEMA-01 | — | Pending |
-| SCHEMA-02 | — | Pending |
-| SCHEMA-03 | — | Pending |
-| SCHEMA-04 | — | Pending |
-| STEP-01 | — | Pending |
-| STEP-02 | — | Pending |
-| STEP-03 | — | Pending |
-| STEP-04 | — | Pending |
-| STEP-05 | — | Pending |
-| PAINT-01 | — | Pending |
-| PAINT-02 | — | Pending |
-| PAINT-03 | — | Pending |
-| STUDIO-01 | — | Pending |
-| STUDIO-02 | — | Pending |
-| STUDIO-03 | — | Pending |
-| STUDIO-04 | — | Pending |
-| INTEG-01 | — | Pending |
-| INTEG-02 | — | Pending |
+| SCHEMA-01 | Phase 37 | Pending |
+| SCHEMA-02 | Phase 37 | Pending |
+| SCHEMA-03 | Phase 37 | Pending |
+| SCHEMA-04 | Phase 37 | Pending |
+| STEP-01 | Phase 38 | Pending |
+| STEP-02 | Phase 38 | Pending |
+| STEP-03 | Phase 38 | Pending |
+| STEP-04 | Phase 38 | Pending |
+| STUDIO-01 | Phase 39 | Pending |
+| STUDIO-02 | Phase 39 | Pending |
+| STUDIO-04 | Phase 39 | Pending |
+| PAINT-01 | Phase 39 | Pending |
+| STUDIO-03 | Phase 40 | Pending |
+| STEP-05 | Phase 40 | Pending |
+| PAINT-02 | Phase 40 | Pending |
+| PAINT-03 | Phase 40 | Pending |
+| INTEG-01 | Phase 41 | Pending |
+| INTEG-02 | Phase 41 | Pending |
 
 **Coverage:**
 - v2.5 requirements: 18 total
-- Mapped to phases: 0
-- Unmapped: 18 ⚠️
+- Mapped to phases: 18
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-07*
-*Last updated: 2026-05-07 after initial definition*
+*Last updated: 2026-05-07 — traceability mapped after roadmap creation*
