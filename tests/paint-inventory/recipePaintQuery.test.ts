@@ -23,11 +23,11 @@ beforeEach(() => {
 });
 
 describe("recipePaints queries — getRecipeIdsByPaintId", () => {
-  it("calls db.select with literal SQL 'SELECT DISTINCT recipe_id FROM recipe_paints WHERE paint_id = $1' and params [paintId]", async () => {
+  it("calls db.select with literal SQL 'SELECT DISTINCT recipe_id FROM recipe_steps WHERE paint_id = $1' and params [paintId]", async () => {
     selectMock.mockResolvedValueOnce([]);
     await getRecipeIdsByPaintId(5);
     expect(selectMock).toHaveBeenCalledWith(
-      "SELECT DISTINCT recipe_id FROM recipe_paints WHERE paint_id = $1",
+      "SELECT DISTINCT recipe_id FROM recipe_steps WHERE paint_id = $1",
       [5],
     );
   });

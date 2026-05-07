@@ -1,5 +1,27 @@
 import { z } from "zod";
 
+export const RECIPE_STYLES = [
+  "Battle Ready", "Parade Ready", "Display", "Tabletop", "Speed Paint", "Competition",
+] as const;
+export type RecipeStyle = typeof RECIPE_STYLES[number];
+
+export const RECIPE_SURFACES = [
+  "Armor", "Skin", "Cloth", "Metal", "Bone", "Leather", "Wood", "Stone",
+  "Energy/Glow", "Fur/Hair", "Eyes/Lenses", "Base", "Weapon", "Other",
+] as const;
+export type RecipeSurface = typeof RECIPE_SURFACES[number];
+
+export const RECIPE_EFFECTS = [
+  "Clean", "Weathered", "Battle Damaged", "OSL", "NMM", "TMM",
+  "Zenithal", "Wet Blend", "Contrast", "Dry Brush", "Other",
+] as const;
+export type RecipeEffect = typeof RECIPE_EFFECTS[number];
+
+export const RECIPE_DIFFICULTIES = [
+  "Beginner", "Intermediate", "Advanced", "Expert",
+] as const;
+export type RecipeDifficulty = typeof RECIPE_DIFFICULTIES[number];
+
 export const recipeSchema = z.object({
   name: z
     .string()
@@ -21,6 +43,13 @@ export const recipeSchema = z.object({
     .refine((v) => v === null || v === "" || /^https?:\/\/.+/.test(v), {
       message: "Must be a valid URL starting with http:// or https://",
     }),
+  // v2.5 metadata fields
+  style: z.string().nullable(),
+  surface: z.string().nullable(),
+  effect: z.string().nullable(),
+  difficulty: z.string().nullable(),
+  estimated_minutes: z.number().int().min(1).nullable(),
+  result_photo_path: z.string().nullable(),
 });
 
 export type RecipeFormValues = z.infer<typeof recipeSchema>;

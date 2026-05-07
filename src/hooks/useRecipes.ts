@@ -54,6 +54,7 @@ export function useDeleteRecipe() {
     mutationFn: deleteRecipe,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: RECIPES_KEY });
+      qc.invalidateQueries({ queryKey: ["kanban-enrichment"] });
       qc.invalidateQueries({ queryKey: ["recipes", "by-unit"] });
     },
   });
