@@ -1,606 +1,599 @@
 # Architecture Research
 
-**Domain:** HobbyForge v2.4 — Premium Dashboard UX & Visual Polish
-**Researched:** 2026-05-05
-**Confidence:** HIGH — based on direct codebase inspection of all dashboard, hook, query, and type files
+**Domain:** HobbyForge v2.5 Recipes 2.0 / Painting Studio — structured recipe steps, metadata, paint substitutions, session linking
+**Researched:** 2026-05-06
+**Confidence:** HIGH — based on direct code audit of all existing recipe files, migration SQL, and architecture audit document
 
 ---
 
-## Standard Architecture
+## Existing Architecture (Baseline)
 
-The four-layer data flow is established and non-negotiable. All new features plug in:
+### Current Recipe Data Model
 
 ```
-Components (src/features/**) → hooks (useQuery/useMutation) → db/queries/*.ts → SQLite via tauri-plugin-sql
-Ephemeral UI state → Zustand stores
-Cache invalidation → queryClient.invalidateQueries on mutation onSuccess
+painting_recipes (1 row per recipe)
+  id, name, faction_id, unit_id, area
+  primer, basecoat, shade, layer, highlight,   <- flat TEXT columns, written as NULL, never read
+  glaze_filter, weathering, technical, basing
+  notes, tutorial_link
+  created_at, updated_at
+
+recipe_paints (1 row per step — the current "step" concept)
+  id, recipe_id, paint_id
+  step_name     <- "Basecoat", "Shade", etc.
+  order_index   <- drag-sort position
+  notes         <- per-step notes
+  created_at
 ```
 
-v2.4 is purely additive within the dashboard feature folder. No new routes, no new pages, no schema migrations. All new SQL queries use existing tables.
+The 9 flat TEXT columns on `painting_recipes` (primer/basecoat/shade/etc.) are **dead weight** — `RecipeFormSheet.tsx` explicitly writes them as `null` on every create and no component ever reads them. They exist only in the migration. This is confirmed by auditing all `SELECT *` usages — the columns are in the struct but never displayed.
+
+### Current Data Flow
+
+```
+RecipesPage (state: selectedRecipe, detailOpen, formOpen, deleting)
+  |
+  +- RecipeTable         <- useRecipes() + useAllStepCounts() + useRecipeSwatchData()
+  +- RecipeDetailSheet   <- useRecipePaints(recipe.id) + usePaints() + useFactions() + useUnits()
+  +- RecipeFormSheet     <- local [steps: DraftStep[]] + useRecipePaints(recipe.id) for edit seed
+  |    +- RecipeStepList (dnd-kit SortableContext over DraftStep[])
+  |         +- RecipeStepRow (step_name Input + PaintCombobox per step)
+  |              +- [sibling portal] PaintSheet (inline create-new-paint)
+  +- RecipeDeleteDialog
+```
+
+### Existing Cache Keys
+
+| Key | Owner | Invalidated By |
+|-----|-------|---------------|
+| `["recipes"]` | useRecipes | create, update, delete recipe |
+| `["recipes", id]` | useRecipe(id) | update recipe |
+| `["recipe-paints", recipeId]` | useRecipePaints(id) | addRecipePaint, removeRecipePaint |
+| `["recipe-swatch-colors"]` | useRecipeSwatchData | addRecipePaint, removeRecipePaint |
+| `["recipe-paints", "all-counts", ...]` | useAllStepCounts (inline in RecipesPage) | recipe form submit |
+| `["kanban-enrichment"]` | kanban board | create, update recipe |
+| `["recipes", "by-unit"]` | by-unit lookup | create, update, delete recipe |
+| `["recipe-ids-by-paint", paintId]` | useRecipeIdsByPaint | (read-only nav, not invalidated) |
 
 ---
 
-## System Overview (v2.4 dashboard target)
+## New Architecture: Recipes 2.0
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                     DashboardPage (MODIFY — CSS grid layout)                 │
-│                                                                               │
-│  ┌──────────────────────────────────────────────────────────────────────┐    │
-│  │                   CSS Grid — 2-column asymmetric                      │    │
-│  │                                                                        │    │
-│  │  ┌──────────────────────────────┐  ┌──────────────────────────────┐  │    │
-│  │  │    CurrentFocusCard v2        │  │      ArmyReadinessCard        │  │    │
-│  │  │  photo · actions · metadata   │  │  target selector + per-list  │  │    │
-│  │  └──────────────────────────────┘  └──────────────────────────────┘  │    │
-│  │                                                                        │    │
-│  │  ┌─────────────────────────────────────────────────────────────────┐  │    │
-│  │  │             ActiveProjectsPanel (3–5 project cards)              │  │    │
-│  │  │     photo · progress bar · recipe badge · Log Session button     │  │    │
-│  │  └─────────────────────────────────────────────────────────────────┘  │    │
-│  │                                                                        │    │
-│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐                 │    │
-│  │  │ StatCard │ │ StatCard │ │ StatCard │ │ StatCard │ (all clickable) │    │
-│  │  └──────────┘ └──────────┘ └──────────┘ └──────────┘                 │    │
-│  │                                                                        │    │
-│  │  ┌─────────────────────────────────────────────────────────────────┐  │    │
-│  │  │              HobbyPipeline (5 grouped buckets)                   │  │    │
-│  │  └─────────────────────────────────────────────────────────────────┘  │    │
-│  │                                                                        │    │
-│  │  ┌──────────────────────────┐  ┌──────────────────────────────────┐   │    │
-│  │  │    FactionCards v2        │  │      RecentActivityFeed          │   │    │
-│  │  │  larger · spending line   │  │  photo thumbnail on sessions     │   │    │
-│  │  └──────────────────────────┘  └──────────────────────────────────┘   │    │
-│  └──────────────────────────────────────────────────────────────────────┘    │
-│                                                                               │
-│  ── Sibling portals (NEVER nested): ──────────────────────────────────────   │
-│  LogSessionSheet v2 · UnitDetailSheet · UnitSheet · UnitDeleteDialog          │
-└───────────────────────────────────────────────────────────────────────────────┘
-         │                    │                    │                    │
-         ↓                    ↓                    ↓                    ↓
-  useDashboard         useArmyLists +        useLatestUnit        useKanban
-  Stats (exists)       useArmyList           Photos (exists)      Enrichment
-                        Readiness (exists)                         (exists)
-         │                    │                    │                    │
-         ↓                    ↓                    ↓                    ↓
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                         src/db/queries/ (existing)                            │
-│  dashboard.ts · armyLists.ts · unitPhotos.ts · spending.ts · recipes.ts      │
-└──────────────────────────────────────────────────────────────────────────────┘
-         │
-         ↓
-┌──────────────────────────────────────────────────────────────────────────────┐
-│              src/db/client.ts → Tauri plugin-sql → SQLite hobbyforge.db       │
-└──────────────────────────────────────────────────────────────────────────────┘
-```
+### Schema Changes (Migration 012)
 
----
+**New table: recipe_steps** (replaces recipe_paints as the primary step container)
 
-## Feature Classification: New vs Modified
-
-| Feature | Schema | Query | Hook | Component |
-|---------|--------|-------|------|-----------|
-| CSS grid layout + radial gradients | None | None | None | MODIFY `DashboardPage` + `globals.css` |
-| CurrentFocusCard v2 | None | None | NEW call to `useLatestUnitPhotos` in Page | MODIFY `CurrentFocusCard` |
-| ActiveProjectsPanel | None | None | NEW calls to `useLatestUnitPhotos`, `useKanbanEnrichment` in Page | NEW `ActiveProjectsPanel` |
-| ArmyReadinessCard with target selector | None | None | NEW calls to `useArmyLists`, `useArmyListReadiness` in Page | NEW `ArmyReadinessCard` |
-| Clickable StatCards | None | None | None | MODIFY `StatCard` — add `to?` prop |
-| HobbyPipeline 5-bucket grouping | None | None | None | MODIFY `HobbyPipeline` + NEW pure function |
-| FactionCards v2 | None | None | NEW call to `useSpendingStats` in Page | MODIFY `FactionSummaryCard` |
-| Photos everywhere | None | None | NEW call to `useLatestUnitPhotos` in Page | MODIFY `RecentActivityFeed` |
-| Log Session progress updates | None | None | None (uses existing `useUpdateUnit`) | MODIFY `LogSessionSheet` + `logSessionSchema` |
-| Recipe ↔ faction/unit integration | None | NEW `getRecipeNamesByFactionIds` in recipes.ts | None | MODIFY `FactionSummaryCard` |
-| Spending intelligence | None | None | None (extends `computeSpendingStats`) | MODIFY `computeSpendingStats`, `SpendingPage` display |
-
-**Key finding:** Zero schema migrations. Zero new hooks. Only two new query functions. All work is in components and pure compute functions.
-
----
-
-## New Components
-
-### `ActiveProjectsPanel`
-
-**File:** `src/features/dashboard/ActiveProjectsPanel.tsx`
-
-**Props:**
-```typescript
-interface ActiveProjectsPanelProps {
-  units: Unit[];                               // stats.activeProjects (already sorted, capped at 5)
-  latestPhotos: Map<number, UnitPhotoWithUrl>; // from useLatestUnitPhotos
-  recipeNames: Map<number, string>;            // from useKanbanEnrichment
-  onLogSession: (unitId: number) => void;      // opens LogSessionSheet pre-filled
-  onUnitClick: (unitId: number) => void;       // opens UnitDetailSheet
-}
-```
-
-**Behavior:** Renders 3–5 project cards. Each card: faction-accent left border, photo thumbnail (asset:// URL from `latestPhotos.get(unit.id)`), unit name, `StatusBadge`, painting progress bar, recipe badge if `recipeNames.has(unit.id)`, "Log Session" button that calls `onLogSession(unit.id)`. Empty state: muted card with "Mark projects active in Projects to see them here."
-
-**Data note:** Uses existing `stats.activeProjects` from `computeStats` (already sorted DESC by `updated_at`, already capped at 5). No new data fetching inside this component.
-
-### `ArmyReadinessCard`
-
-**File:** `src/features/dashboard/ArmyReadinessCard.tsx`
-
-**Props:**
-```typescript
-interface ArmyReadinessCardProps {
-  armyLists: ArmyList[];
-  readiness: Map<number, { total: number; battleReady: number }>;
-}
-```
-
-**Internal state:** `selectedTarget: 500 | 1000 | 1500 | 2000` — `useState(1000)`. Ephemeral. No persistence.
-
-**Behavior:** Four target buttons (500/1000/1500/2000). For each army list: list name, progress bar showing `Math.min(readiness.get(id)?.battleReady ?? 0, selectedTarget) / selectedTarget * 100`%, fraction label "X / Y pts". Empty state when no lists.
-
----
-
-## Modified Components
-
-### `DashboardPage` — new hook calls + CSS grid
-
-Currently calls: `useDashboardStats`, `useHobbyAnalytics`, `useRecentActivity`.
-
-Additions required:
-```typescript
-// 4 new hook calls — all parallel (React Query deduplicates)
-const { data: latestPhotos } = useLatestUnitPhotos();
-
-const activeProjectIds = useMemo(
-  () => (stats?.activeProjects ?? []).map((u) => u.id),
-  [stats?.activeProjects]
+```sql
+CREATE TABLE IF NOT EXISTS recipe_steps (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    recipe_id        INTEGER NOT NULL REFERENCES painting_recipes(id) ON DELETE CASCADE,
+    title            TEXT    NOT NULL,
+    phase            TEXT,                      -- "Basecoat" | "Shade" | "Layer" | "Highlight" | etc.
+    paint_id         INTEGER REFERENCES paints(id) ON DELETE SET NULL,
+    tool             TEXT,                      -- "Drybrush", "Airbrush", "Layer brush"
+    technique        TEXT,                      -- "Thin 1:2 with medium", "Stipple"
+    dilution         TEXT,                      -- "1:1 water", "flow improver"
+    duration_minutes INTEGER,
+    photo_asset_id   INTEGER REFERENCES image_assets(id) ON DELETE SET NULL,
+    order_index      INTEGER NOT NULL DEFAULT 0,
+    notes            TEXT,
+    created_at       TEXT    NOT NULL DEFAULT (datetime('now'))
 );
-const { data: enrichment } = useKanbanEnrichment(activeProjectIds);
+```
 
-const { data: armyLists } = useArmyLists();
-const allListIds = useMemo(
-  () => (armyLists ?? []).map((l) => l.id),
-  [armyLists]
+**New table: recipe_paint_substitutions**
+
+```sql
+CREATE TABLE IF NOT EXISTS recipe_paint_substitutions (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    recipe_step_id INTEGER NOT NULL REFERENCES recipe_steps(id) ON DELETE CASCADE,
+    paint_id       INTEGER NOT NULL REFERENCES paints(id) ON DELETE RESTRICT,
+    notes          TEXT,
+    created_at     TEXT    NOT NULL DEFAULT (datetime('now'))
 );
-const { data: readiness } = useArmyListReadiness(allListIds);
-
-const { data: spendingStats } = useSpendingStats();  // for FactionCards v2 spending lines
 ```
 
-**CSS grid:** Replace the outermost `flex flex-col gap-12` with a CSS grid. The asymmetric 2-column layout is applied at the section level, not on every card. The existing `p-6` padding on the outer div is preserved.
+**ALTER TABLE painting_recipes (7 additive columns):**
 
-**New state:**
-```typescript
-const [logSessionDefaultUnit, setLogSessionDefaultUnit] = useState<number | undefined>(undefined);
+```sql
+ALTER TABLE painting_recipes ADD COLUMN style TEXT;
+ALTER TABLE painting_recipes ADD COLUMN surface TEXT;
+ALTER TABLE painting_recipes ADD COLUMN effect TEXT;
+ALTER TABLE painting_recipes ADD COLUMN difficulty TEXT;           -- "Beginner" | "Intermediate" | "Advanced"
+ALTER TABLE painting_recipes ADD COLUMN estimated_minutes INTEGER;
+ALTER TABLE painting_recipes ADD COLUMN result_photo_id INTEGER REFERENCES image_assets(id) ON DELETE SET NULL;
+ALTER TABLE painting_recipes ADD COLUMN source_recipe_id INTEGER REFERENCES painting_recipes(id) ON DELETE SET NULL;
 ```
 
-When `ActiveProjectsPanel` calls `onLogSession(unitId)`, set `logSessionDefaultUnit` and open `logSessionOpen`. The `LogSessionSheet` already accepts a `defaultUnitId` prop.
+**ALTER TABLE painting_sessions (2 additive columns for recipe-session linking):**
 
-**Sibling portal additions:** No new Sheet components added at the DashboardPage level — `LogSessionSheet` (already a sibling) now receives `defaultUnitId={logSessionDefaultUnit}`.
+```sql
+ALTER TABLE painting_sessions ADD COLUMN recipe_id      INTEGER REFERENCES painting_recipes(id) ON DELETE SET NULL;
+ALTER TABLE painting_sessions ADD COLUMN recipe_step_id INTEGER REFERENCES recipe_steps(id)     ON DELETE SET NULL;
+```
 
-### `CurrentFocusCard` — photo + actions + metadata
+### FK Semantics Summary
 
-**Extended props:**
+| Relationship | On Delete |
+|---|---|
+| recipe_steps.recipe_id → painting_recipes | CASCADE (steps die with recipe) |
+| recipe_steps.paint_id → paints | SET NULL (step becomes paint-less, not deleted) |
+| recipe_steps.photo_asset_id → image_assets | SET NULL |
+| recipe_paint_substitutions.recipe_step_id → recipe_steps | CASCADE (substitutions die with step) |
+| recipe_paint_substitutions.paint_id → paints | RESTRICT (cannot delete a paint used as substitution) |
+| painting_recipes.result_photo_id → image_assets | SET NULL |
+| painting_recipes.source_recipe_id → painting_recipes | SET NULL (delete original, copy survives) |
+| painting_sessions.recipe_id → painting_recipes | SET NULL (history preserved even if recipe deleted) |
+| painting_sessions.recipe_step_id → recipe_steps | SET NULL (history preserved even if step deleted) |
+
+---
+
+## Data Migration: recipe_paints to recipe_steps
+
+### Why Application-Layer, Not SQL Migration
+
+The migration 012 SQL only adds new tables and columns. The actual data copy from `recipe_paints` → `recipe_steps` must happen in TypeScript, not inside the migration file. Reasons:
+
+1. Migration SQL runs before the app UI starts — no progress feedback, no error toasts
+2. The migration runner is silent on partial failures
+3. `tauri-plugin-sql` migration files run exactly once and cannot be retried selectively
+
+### Migration Strategy
+
+```
+App startup sequence:
+1. plugin-sql runs migration 012 (schema changes only)
+2. migrateRecipePaintsToSteps() called from src/main.tsx (or a startup hook)
+3. Guard: if (await countRecipeSteps()) > 0 AND (await countRecipePaints()) > 0 → already migrated, skip
+4. INSERT INTO recipe_steps SELECT ... FROM recipe_paints (column mapping below)
+5. recipe_paints table stays intact as backup for the migration window
+```
+
+**Column mapping:**
+
+```
+recipe_paints.recipe_id   → recipe_steps.recipe_id
+recipe_paints.step_name   → recipe_steps.title
+recipe_paints.paint_id    → recipe_steps.paint_id
+recipe_paints.order_index → recipe_steps.order_index
+recipe_paints.notes       → recipe_steps.notes
+(all new fields: phase, tool, technique, dilution, duration_minutes, photo_asset_id → NULL)
+```
+
+**Implementation location:** `src/db/queries/recipeSteps.ts` — exported as `migrateRecipePaintsToSteps()`.
+
+---
+
+## System Overview (Target Architecture)
+
+```
+RecipesPage (state: selectedRecipe, detailOpen, formOpen, studioView, deleting)
+  |
+  +- [table view] RecipeTable
+  |    <- useRecipes() + useRecipeStepCounts() + useRecipeSwatchData()
+  |
+  +- [studio view] RecipeStudioCard per recipe
+  |    <- useRecipes() + useRecipeStepCounts() + useRecipeSwatchData()
+  |    <- computeAvailability(steps, paintMap) -- pure function
+  |
+  +- RecipeDetailSheet (or RecipeTimelineView inside it)
+  |    <- useRecipeSteps(recipe.id)
+  |    <- usePaints() + useFactions() + useUnits()
+  |    <- [lazy on step expand] useRecipeSubstitutions(stepId)
+  |
+  +- RecipeFormSheet (create / edit)
+  |    <- local [steps: DraftStep[]] seeded from useRecipeSteps(recipe.id) in edit mode
+  |    +- RecipeStepList (dnd-kit SortableContext)
+  |         +- RecipeStepRow (title, phase, tool, technique, dilution, PaintCombobox)
+  |              +- [sibling portal] PaintSheet (inline create-new-paint)
+  |
+  +- RecipeDuplicateDialog
+  +- RecipeDeleteDialog
+```
+
+---
+
+## Component Inventory: New vs Modified
+
+### New Files
+
+| File | Type | Purpose |
+|------|------|---------|
+| `src/types/recipeStep.ts` | Type | `RecipeStep`, `CreateRecipeStepInput`, `UpdateRecipeStepInput` |
+| `src/types/recipeSubstitution.ts` | Type | `RecipeSubstitution`, `CreateRecipeSubstitutionInput` |
+| `src/db/queries/recipeSteps.ts` | Query | Full CRUD for `recipe_steps` + migration helper + batch count query |
+| `src/db/queries/recipeSubstitutions.ts` | Query | CRUD for `recipe_paint_substitutions` |
+| `src/hooks/useRecipeSteps.ts` | Hook | `useRecipeSteps(recipeId)`, `useCreateRecipeStep()`, `useDeleteAllRecipeSteps()`, `useRecipeStepCounts()` |
+| `src/hooks/useRecipeSubstitutions.ts` | Hook | `useRecipeSubstitutions(stepId)`, `useAddSubstitution()`, `useRemoveSubstitution()` |
+| `src/features/recipes/RecipeStudioCard.tsx` | UI | Card-format recipe display for Studio view |
+| `src/features/recipes/RecipeTimelineView.tsx` | UI | Vertical timeline of steps with phase grouping |
+| `src/features/recipes/RecipeStepDetail.tsx` | UI | Single expanded step showing all fields + substitutions |
+| `src/features/recipes/RecipeDuplicateDialog.tsx` | UI | Confirm + rename before deep-copy of recipe + steps |
+| `src/features/recipes/recipeMetadataSchema.ts` | Schema | Zod for new metadata fields (style, surface, effect, difficulty, estimated_minutes) |
+| `src/features/recipes/RecipeAvailabilityBadge.tsx` | UI | Owned / running-low / missing count badge |
+
+### Modified Files
+
+| File | Change Summary |
+|------|---------------|
+| `src/types/recipe.ts` | Add 7 new columns to `PaintingRecipe` interface |
+| `src/features/recipes/recipeSteps.ts` | Extend `DraftStep` with `phase`, `tool`, `technique`, `dilution`, `duration_minutes`, `photo_asset_id` |
+| `src/features/recipes/RecipeStepRow.tsx` | Add phase selector, tool/technique/dilution inputs; more rows per step |
+| `src/features/recipes/RecipeStepList.tsx` | Same dnd-kit structure; save target changes to `recipe_steps` |
+| `src/features/recipes/RecipeFormSheet.tsx` | Add metadata fields; wire save to `useCreateRecipeStep` not `useAddRecipePaint` |
+| `src/features/recipes/recipeSchema.ts` | Extend with metadata fields or compose with `recipeMetadataSchema.ts` |
+| `src/features/recipes/RecipeDetailSheet.tsx` | Replace `useRecipePaints(id)` with `useRecipeSteps(id)`; phase grouping; availability badge |
+| `src/features/recipes/RecipeTableColumns.tsx` | Add difficulty badge, estimated_minutes; swatch still via `useRecipeSwatchData()` |
+| `src/features/recipes/RecipesPage.tsx` | Add style/surface/difficulty/missing-paints filters; view toggle; duplicate action |
+| `src/db/queries/recipes.ts` | Add 7 new columns to INSERT/UPDATE; add `duplicateRecipe()` |
+| `src/db/queries/recipePaints.ts` | `getRecipeSwatchColors()` JOIN target: `recipe_paints` → `recipe_steps` |
+| `src/hooks/useRecipePaints.ts` | Update `useRecipeSwatchData()` query fn; existing RECIPE_SWATCH_KEY unchanged |
+
+---
+
+## Data Flows
+
+### Write Flow: Create / Edit Recipe with Steps
+
+```
+RecipeFormSheet.onSubmit()
+  |
+  +- 1. createRecipe / updateRecipe
+  |       -> painting_recipes row with 7 new metadata columns
+  |       -> invalidates: ["recipes"], ["recipes", id], ["kanban-enrichment"], ["recipes","by-unit"]
+  |
+  +- 2. [edit only] deleteAllRecipeSteps(recipe.id)
+  |       -> single DELETE WHERE recipe_id = ?
+  |       -> full replacement (same pattern as current recipe_paints remove-all)
+  |
+  +- 3. for each DraftStep with title: createRecipeStep({ recipe_id, ...step })
+  |
+  +- 4. Invalidate:
+           ["recipe-steps", recipeId]
+           ["recipe-swatch-colors"]
+           ["recipe-steps", "all-counts"]
+```
+
+### Read Flow: RecipeDetailSheet / Timeline
+
+```
+RecipeDetailSheet opens (recipe: PaintingRecipe)
+  |
+  +- useRecipeSteps(recipe.id)
+  |    queryKey: ["recipe-steps", recipe.id]
+  |    queryFn:  SELECT * FROM recipe_steps WHERE recipe_id = ? ORDER BY order_index ASC
+  |
+  +- usePaints()  <- paint map for owned/missing lookup, already in cache
+  |
+  +- computeAvailability(steps, paintMap) <- pure function, no DB
+  |    -> RecipeAvailabilityBadge
+  |
+  +- [on step expand] useRecipeSubstitutions(stepId)
+       queryKey: ["recipe-substitutions", stepId]
+       queryFn:  SELECT * FROM recipe_paint_substitutions WHERE recipe_step_id = ?
+```
+
+### Read Flow: Swatch Strip (Adapter Pattern)
+
+The swatch strip on RecipeTable rows and RecipeStudioCards continues to use `useRecipeSwatchData()` with the unchanged `RECIPE_SWATCH_KEY`. Only `getRecipeSwatchColors()` changes its JOIN target:
+
+```sql
+-- OLD (recipe_paints):
+SELECT rp.recipe_id, rp.paint_id, p.hex_color
+FROM recipe_paints rp JOIN paints p ON p.id = rp.paint_id
+ORDER BY rp.recipe_id ASC, rp.order_index ASC
+
+-- NEW (recipe_steps):
+SELECT rs.recipe_id, rs.paint_id, p.hex_color
+FROM recipe_steps rs
+JOIN paints p ON p.id = rs.paint_id
+WHERE rs.paint_id IS NOT NULL
+ORDER BY rs.recipe_id ASC, rs.order_index ASC
+```
+
+Zero consumer changes — same hook, same key, same return shape.
+
+### Paint Availability Computation (Pure Function)
+
 ```typescript
-export interface CurrentFocusCardProps {
-  unit: Unit | null;
-  faction: Faction | undefined;
-  photo?: UnitPhotoWithUrl;     // NEW — from latestPhotos.get(focusUnit.id)
-  onLogSession?: () => void;    // NEW — triggers DashboardPage's logSession handler
+// src/features/recipes/computeRecipeAvailability.ts
+export interface RecipeAvailability {
+  owned: number;
+  runningLow: number;
+  missing: number;
 }
-```
 
-**Render changes:** Add photo thumbnail (`<img src={photo.assetUrl}>`) left of the text content when `photo` is defined. Add model count (`unit.model_count` + "models") and points (`unit.points` + "pts") below the faction/status line. Add "Log Session" action button that calls `onLogSession()`.
-
-### `StatCard` — clickable navigation
-
-**Extended props:**
-```typescript
-export interface StatCardProps {
-  // existing: value, label, animate, icon, trend, progress
-  to?: string;  // NEW — TanStack Router route string e.g. "/collection"
-}
-```
-
-**Behavior:** When `to` is provided, wrap the card with a `role="button"` + `useNavigate()` call. Maintain keyboard accessibility (`onKeyDown Enter/Space`). The underlying `Card` component handles the visual — add `cursor-pointer hover:bg-muted/50` conditional classes.
-
-### `HobbyPipeline` — 5-bucket grouping
-
-**New pure function (TDD wave):**
-```typescript
-// src/features/dashboard/groupPipelineBuckets.ts
-export interface PipelineBucket {
-  label: string;
-  stages: PaintingStatus[];
-  count: number;
-  tier: "not-started" | "prep" | "painting" | "finishing" | "done";
-}
-
-export function groupPipelineBuckets(units: Unit[]): PipelineBucket[] {
-  return [
-    { label: "Not Started", stages: ["Not Started"], tier: "not-started" },
-    { label: "Prep",        stages: ["Built", "Primed"], tier: "prep" },
-    { label: "Painting",    stages: ["Basecoated", "Shaded", "Layered", "Highlighted", "Details Done"], tier: "painting" },
-    { label: "Finishing",   stages: ["Based", "Varnished"], tier: "finishing" },
-    { label: "Done",        stages: ["Completed"], tier: "done" },
-  ].map((b) => ({
-    ...b,
-    count: units.filter((u) => (b.stages as readonly string[]).includes(u.status_painting)).length,
-  }));
-}
-```
-
-`HobbyPipeline.tsx` calls this function and renders 5 bucket columns instead of 11 stage columns. The tier-to-bubble-color map is simplified from 4 tiers (existing `TIER_BUBBLE_CLASS`) to 5.
-
-### `LogSessionSheet` — status + progress update fields
-
-**Extended schema (`logSessionSchema.ts`):**
-```typescript
-export const logSessionSchema = z.object({
-  unit_id: z.number().int().positive(),
-  session_date: z.string(),
-  duration_minutes: z.number().int().min(1).max(1440),
-  notes: z.string().nullable(),
-  // NEW optional fields for progress update:
-  status_painting: z.enum(PAINTING_STATUS_ORDER).nullable().optional(),
-  painting_percentage: z.number().int().min(0).max(100).nullable().optional(),
-});
-```
-
-**Extended submit logic:**
-```typescript
-async function onSubmit(values: LogSessionFormValues) {
-  // Step 1: update unit status/progress if changed
-  if (values.status_painting || values.painting_percentage !== null) {
-    await updateUnit.mutateAsync({
-      id: values.unit_id,
-      ...(values.status_painting ? { status_painting: values.status_painting } : {}),
-      ...(values.painting_percentage !== null ? { painting_percentage: values.painting_percentage } : {}),
-    });
-    // useUpdateUnit.onSuccess already invalidates ["dashboard-stats"] — no extra wiring
+export function computeRecipeAvailability(
+  steps: RecipeStep[],
+  paintMap: Map<number, Paint>
+): RecipeAvailability {
+  let owned = 0, runningLow = 0, missing = 0;
+  for (const s of steps) {
+    if (!s.paint_id) continue;
+    const p = paintMap.get(s.paint_id);
+    if (!p || p.owned !== 1) missing++;
+    else if (p.running_low === 1) runningLow++;
+    else owned++;
   }
-  // Step 2: log the session (existing)
-  await createSession.mutateAsync({ ... });
+  return { owned, runningLow, missing };
 }
 ```
 
-**UI additions:** Collapsible "Update Progress" section below the notes field. Status picker (optional `<Select>`) and percentage input (optional `<Input type="number">`). Both fields default to empty (not pre-populated with current unit state) so they are opt-in.
+Both `useRecipeSteps(id)` and `usePaints()` are already in cache when RecipeDetailSheet opens — zero additional DB round-trips.
 
-### `FactionSummaryCard` — larger layout + spending line
+### Recipe Duplication Flow
 
-**Extended props:**
-```typescript
-export interface FactionSummaryCardProps {
-  stat: FactionStat;
-  isActive?: boolean;
-  onActivate?: () => void;
-  spendPence?: number;          // NEW — faction's total unit spend from spending stats
-  recipeCount?: number;         // NEW — count of recipes linked to this faction
-}
+```
+RecipeDuplicateDialog confirms with new name
+  |
+  +- duplicateRecipe(sourceId, newName)
+       1. INSERT INTO painting_recipes (all columns except id/created_at/updated_at)
+            source_recipe_id = sourceId
+       2. INSERT INTO recipe_steps ... SELECT from recipe_steps WHERE recipe_id = sourceId
+            (all step fields, new recipe_id, no IDs)
+       3. Return new recipe ID
+  |
+  +- Invalidate: ["recipes"], ["recipe-steps", newId], ["recipe-swatch-colors"]
 ```
 
-The spending line renders below the battle-ready points: `£X.XX spent` using existing `formatCurrency` (or raw `pence / 100` — the single site rule). Visual size increase: widen from `min-w-[180px]` to `min-w-[220px]`, increase font sizes for primary stats.
+Note: substitutions are NOT duplicated (they are step-specific adjustments, not part of the core recipe knowledge). The duplicated steps start substitution-free.
 
-### `RecentActivityFeed` — photo thumbnails for session rows
+### Session Linking Flow
 
-**Extended event type:** `session_logged` rows gain an optional `unitId` (already present in `ActivityEvent`) which is used to look up `latestPhotos.get(event.unitId)`. If a photo exists, render a 32×32 thumbnail before the icon.
-
-**Props extension:**
-```typescript
-export interface RecentActivityFeedProps {
-  events: ActivityEvent[];
-  onUnitClick?: (unitId: number) => void;
-  latestPhotos?: Map<number, UnitPhotoWithUrl>;  // NEW
-}
 ```
-
-### `computeSpendingStats` — spending intelligence fields
-
-**Extended `SpendingStats` interface:**
-```typescript
-export interface SpendingStats {
-  totalPence: number;
-  factionBreakdown: FactionSpend[];
-  paintsPence: number;
-  // NEW:
-  costPerCompletedModelPence: number | null;  // null when fullyPainted === 0
-  paintedValuePence: number;                  // sum(purchase_price_pence) for Completed units
-  unpaintedValuePence: number;                // sum for non-Completed units
-}
+LogSessionSheet (existing — add recipe/step pickers)
+  |
+  +- [NEW] recipe_id selector (optional) -> FK to painting_recipes
+  +- [NEW] recipe_step_id selector (filtered by selected recipe) -> FK to recipe_steps
+  |
+  +- createSession.mutateAsync({ unit_id, session_date, duration_minutes, notes, recipe_id, recipe_step_id })
+  |
+  +- Invalidate (existing):
+       ["hobby-analytics"], ["recent-activity"], ["goal-progress"], ["dashboard-stats"]
+     Invalidate (NEW — for "used in N sessions" on recipe detail):
+       ["sessions-by-recipe", recipe_id]   (if that query is added)
 ```
-
-All three new fields derive from the existing `units` array passed to `computeSpendingStats`. Zero new SQL.
 
 ---
 
-## Data Flow Changes
+## Cache Invalidation Strategy
 
-### 1. DashboardPage parallel data fetch (v2.4)
+### New Cache Keys
 
-```
-DashboardPage mounts
-      ↓ (all parallel — React Query cache-deduplicates)
-useDashboardStats        useLatestUnitPhotos      useArmyLists         useSpendingStats
-useHobbyAnalytics        useKanbanEnrichment      useArmyListReadiness
-useRecentActivity        (enabled when ids > 0)   (enabled when ids > 0)
-      ↓                          ↓                       ↓                    ↓
-computeStats()           getLatestPhotoByUnit()   getArmyLists()       getSpendingStats()
-                         + convertFileSrc per row  getArmyListReadiness()  computeSpendingStats()
-      ↓                          ↓                       ↓                    ↓
-stats object             Map<id, UnitPhotoWithUrl>  Map<id, readiness>   SpendingStats
-      ↓──────────────────────────↓───────────────────────↓────────────────────↓
-                              DashboardPage JSX props passed to children
-```
+| Key | Shape | Invalidated By |
+|-----|-------|---------------|
+| `["recipe-steps", recipeId]` | per-recipe | recipe form save (create/update), deleteAllRecipeSteps, deleteRecipe |
+| `["recipe-steps", "all-counts"]` | single batch | recipe form save |
+| `["recipe-substitutions", stepId]` | per-step | addSubstitution, removeSubstitution |
+| `["sessions-by-recipe", recipeId]` | per-recipe (optional) | createSession with recipe_id |
 
-### 2. Log Session → Unit Update flow (new for v2.4)
+### Symmetry Rules
 
-```
-User opens LogSessionSheet (from header button OR ActiveProjectsPanel "Log Session" button)
-      ↓
-If opened via ActiveProjectsPanel:
-  setLogSessionDefaultUnit(unitId) → LogSessionSheet pre-populates unit picker
-      ↓
-User fills: unit, date, duration, [optional: new status, new percentage], notes
-      ↓ form submit
-if (status or percentage set):
-    useUpdateUnit.mutateAsync({ id: unit_id, status_painting, painting_percentage })
-      → onSuccess invalidates: ["dashboard-stats"], ["spending-stats"]
-then:
-    useCreatePaintingSession.mutateAsync({ unit_id, session_date, duration_minutes, notes })
-      → onSuccess invalidates: ["hobby-analytics"], ["recent-activity"]
-      ↓
-React Query refetches affected cache keys → all dashboard panels update in one render cycle
-```
+Following the established cache invalidation symmetry rule — every key invalidated by create must also be invalidated by delete:
 
-### 3. Recipe ↔ faction integration data flow
+| Mutation | Keys to Invalidate |
+|----------|-------------------|
+| `useCreateRecipeStep` | `["recipe-steps", recipeId]`, `["recipe-swatch-colors"]`, `["recipe-steps", "all-counts"]` |
+| `useDeleteAllRecipeSteps` | `["recipe-steps", recipeId]`, `["recipe-swatch-colors"]`, `["recipe-steps", "all-counts"]` |
+| `useAddSubstitution` | `["recipe-substitutions", stepId]` |
+| `useRemoveSubstitution` | `["recipe-substitutions", stepId]` |
+| `useDeleteRecipe` (existing) | add `["recipe-steps", recipeId]` to existing invalidations |
+| `useUpdateRecipe` (existing) | add `["recipe-steps", recipeId]` to existing invalidations |
 
-```
-DashboardPage renders FactionSummaryCard for each faction stat
-      ↓
-Need: recipe count per faction
-      ↓ (already in memory from useRecipes — no new fetch)
-const recipesByFaction = useMemo(
-  () => new Map(factions.map(f => [
-    f.id,
-    (recipes ?? []).filter(r => r.faction_id === f.id).length
-  ])),
-  [factions, recipes]
-);
-```
+### Legacy Key Handling
 
-`DashboardPage` calls `useRecipes()` (already exists, `RECIPES_KEY = ["recipes"]`). The count is derived in JS — no new query. The `getRecipeNamesByFactionIds` query function is only needed if we display recipe names (not just counts) on faction cards. A count suffices for v2.4; the query function can be deferred.
+`RECIPE_PAINTS_KEY` and `RECIPE_SWATCH_KEY` in `useRecipePaints.ts` remain unchanged.
 
----
-
-## Build Order (phase-by-phase, considering data dependencies)
-
-### Phase 1: Pure foundations (no data dependencies, enable parallelism)
-
-1. `groupPipelineBuckets.ts` pure function + tests
-2. Extensions to `computeSpendingStats.ts` (new fields) + tests
-3. `globals.css` — add `--panel-gradient` custom property for radial depth effect
-
-**Why first:** Pure functions and CSS tokens have zero runtime dependencies. Tests validate them before any component touches them. These unblock Phases 2–5.
-
-### Phase 2: StatCard clickability + CSS grid layout
-
-1. Extend `StatCard` with `to?` prop + `useNavigate`
-2. Modify `DashboardPage` outer layout: CSS grid replacing `flex flex-col gap-12`
-3. Update loading skeleton to match new grid
-4. Wire `StatCard` route targets in `DashboardPage`
-
-**Why second:** Layout and navigation are independent of data. Establishes the visual skeleton that the new panels will slot into.
-
-### Phase 3: HobbyPipeline 5-bucket grouping
-
-1. Modify `HobbyPipeline.tsx` to call `groupPipelineBuckets` (pure function from Phase 1)
-2. Update tier-to-color map for 5 tiers
-3. Update pipeline loading skeleton in `DashboardPage`
-
-**Why third:** Self-contained within `HobbyPipeline` — no new hook wiring needed.
-
-### Phase 4: CurrentFocusCard v2 (requires `useLatestUnitPhotos` wiring in DashboardPage)
-
-1. Add `useLatestUnitPhotos()` call to `DashboardPage`
-2. Extend `CurrentFocusCardProps` with `photo?` and `onLogSession?`
-3. Extend `CurrentFocusCard` render: photo thumbnail, model count, points, action button
-4. Pass `latestPhotos.get(focusUnit?.id)` from `DashboardPage`
-
-**Why fourth:** The `useLatestUnitPhotos` call added here is reused by Phase 5 (`ActiveProjectsPanel`).
-
-### Phase 5: ActiveProjectsPanel (requires Phase 4 wiring + `useKanbanEnrichment`)
-
-1. Add `useKanbanEnrichment(activeProjectIds)` call to `DashboardPage`
-2. Add `logSessionDefaultUnit` state + update `LogSessionSheet` open handler
-3. Create `ActiveProjectsPanel.tsx`
-4. Wire into CSS grid layout
-
-**Why fifth:** Depends on `useLatestUnitPhotos` wired in Phase 4. `useKanbanEnrichment` is additive.
-
-### Phase 6: ArmyReadinessCard (requires `useArmyLists` + `useArmyListReadiness` in DashboardPage)
-
-1. Add `useArmyLists()` and `useArmyListReadiness(allListIds)` calls to `DashboardPage`
-2. Create `ArmyReadinessCard.tsx` with local target selector state
-3. Wire into CSS grid layout
-
-**Why sixth:** Independent of Phases 4–5 but placed here to batch the DashboardPage hook additions logically. Could technically run in parallel with Phase 5.
-
-### Phase 7: Log Session progress updates (requires `useUpdateUnit` in LogSessionSheet)
-
-1. Extend `logSessionSchema.ts` with optional `status_painting` + `painting_percentage` fields
-2. Extend `LogSessionSheet.tsx`: add collapsible progress update section, two-mutation submit
-3. `useUpdateUnit` is already imported in `DashboardPage` scope via the unit edit flow — `LogSessionSheet` needs to call it directly, meaning it needs `useUpdateUnit` added to its imports
-
-**Why seventh:** Depends on Phase 5 establishing the `defaultUnitId` flow (so Log Session from ActiveProjectsPanel pre-fills correctly).
-
-### Phase 8: FactionCards v2 + spending intelligence display
-
-1. Add `useSpendingStats()` call to `DashboardPage`
-2. Add `useRecipes()` call to `DashboardPage` (recipe count per faction)
-3. Derive `recipesByFaction` map in `DashboardPage`
-4. Extend `FactionSummaryCardProps` with `spendPence?` + `recipeCount?`
-5. Modify `FactionSummaryCard` layout: larger card, spending line, recipe count badge
-6. Surface `costPerCompletedModelPence` on `SpendingPage` (extend existing display)
-
-**Why last among core panels:** Depends on `computeSpendingStats` extension (Phase 1) and needs the most props changes. Placed after the structural layout work is stable.
-
-### Phase 9: RecentActivityFeed photo thumbnails + visual depth pass
-
-1. Extend `RecentActivityFeedProps` with `latestPhotos?` prop
-2. Add photo thumbnail to `session_logged` event rows
-3. Apply radial gradient depth to card backgrounds (use `--panel-gradient` token from Phase 1)
-4. Final visual polish: elevated card surfaces, premium depth across all dashboard cards
-
-**Why last:** Polish pass. Depends on all panels being in place so the visual hierarchy can be evaluated holistically.
-
----
-
-## Integration Points
-
-### Existing → Modified Component Boundaries
-
-| Existing Component | New Prop/Call | Source |
-|-------------------|---------------|--------|
-| `DashboardPage` → `CurrentFocusCard` | `photo?: UnitPhotoWithUrl` | `latestPhotos.get(focusUnit.id)` |
-| `DashboardPage` → `LogSessionSheet` | `defaultUnitId={logSessionDefaultUnit}` (already accepted) | New `logSessionDefaultUnit` state |
-| `DashboardPage` → `RecentActivityFeed` | `latestPhotos` | `useLatestUnitPhotos` result |
-| `DashboardPage` → `FactionSummaryCard` | `spendPence`, `recipeCount` | `spendingStats`, `useRecipes` |
-| `DashboardPage` → `StatCard` | `to` route strings | TanStack Router paths |
-
-### New Component Boundaries
-
-| New Component | Parent | Props Received | Internal Hook Calls |
-|--------------|--------|----------------|---------------------|
-| `ActiveProjectsPanel` | `DashboardPage` | `units`, `latestPhotos`, `recipeNames`, `onLogSession`, `onUnitClick` | None — pure display |
-| `ArmyReadinessCard` | `DashboardPage` | `armyLists`, `readiness` | `useState` for target only |
-
-### Cache Invalidation Map (additions for v2.4)
-
-All existing invalidation contracts are preserved. The only addition:
-
-| Mutation | Addition to existing invalidations |
-|----------|----------------------------------|
-| `useUpdateUnit` (called from `LogSessionSheet v2`) | Already invalidates `["dashboard-stats"]` and `["spending-stats"]` — no new wiring |
-| `useCreatePaintingSession` (called from `LogSessionSheet v2`) | Already invalidates `["hobby-analytics"]` and `["recent-activity"]` — no new wiring |
-
-The two-mutation submit in `LogSessionSheet` reuses existing hooks with existing invalidation contracts. Zero new invalidation wiring is required for v2.4.
+`["recipe-paints", "all-counts", ...]` should be renamed to `["recipe-steps", "all-counts"]` for clarity. The inline `useAllStepCounts()` in `RecipesPage.tsx` is also replaced with a proper exported hook that uses the batch COUNT query.
 
 ---
 
 ## Architectural Patterns
 
-### Pattern 1: DashboardPage as Single Data Hub (mandatory — established)
+### Pattern 1: Full Replacement for Step Persistence
 
-All React Query hooks live in `DashboardPage`. Child components are pure display — they accept typed props, call no data hooks (only local UI state hooks like `useState`). This prevents waterfall fetches and centralizes the skeleton loading state.
+**What:** On recipe save (edit mode), DELETE all existing `recipe_steps` WHERE recipe_id = ?, then INSERT all current draft steps.
 
-**Applied to v2.4:** `ActiveProjectsPanel` and `ArmyReadinessCard` receive all their data as props. The `Map<>` types (photos, enrichment, readiness) are pre-derived in `DashboardPage` before being passed down.
+**Why:** Steps are always edited as a complete ordered list. Tracking individual step IDs in local draft state to enable partial updates adds complexity with no UX benefit. The full-replacement pattern is already proven with `recipe_paints`.
 
-### Pattern 2: Sibling Portal Contract (mandatory — established)
+**Trade-offs:** Slightly more DB writes on edit. Negligible at personal-tool scale (<200 recipes). Guarantees order_index stays clean.
 
-Every Sheet, Dialog, and Lightbox is a top-level sibling of the main content div, never nested inside child components. Adding `ActiveProjectsPanel` with a "Log Session" button does not mean putting a `<LogSessionSheet>` inside it — the button calls `onLogSession(unitId)` prop callback, `DashboardPage` sets state and the sibling sheet opens.
+```typescript
+// RecipeFormSheet.onSubmit() — edit path
+await deleteAllRecipeSteps(recipe.id);       // single DELETE WHERE recipe_id = ?
+for (const s of computeOrderIndex(steps)) {
+  if (s.title.trim()) {
+    await createRecipeStep({ recipe_id: recipe.id, ...s });
+  }
+}
+```
 
-### Pattern 3: selectedUnitId ID Pattern (mandatory — established)
+### Pattern 2: Adapter Pattern for Swatch Source Migration
 
-Store IDs in state, derive full objects from the React Query cache. `ActiveProjectsPanel` receives `onUnitClick(unitId: number)`, never `onUnitClick(unit: Unit)`. The `DashboardPage` derives `selectedUnit` from `stats.units` on render.
+**What:** `getRecipeSwatchColors()` changes its JOIN target from `recipe_paints` to `recipe_steps`. The hook key `["recipe-swatch-colors"]` and the `useRecipeSwatchData()` return type are identical. Zero consumer changes.
 
-### Pattern 4: Pure Compute Functions + Tests Before UI (mandatory — established)
+**Why:** Decouples the data source migration from the UI migration. The swatch strip keeps working before, during, and after the step data migration.
 
-`groupPipelineBuckets` and the `computeSpendingStats` extensions are pure functions written and tested before any component touches them. This matches the `computeStats`, `computeRecentActivity`, `computeSpendingStats` pattern already in production.
+### Pattern 3: Lazy Substitution Queries
 
-### Pattern 5: 0|1 Boolean Discipline (mandatory — established)
+**What:** `useRecipeSubstitutions(stepId)` is called only for the actively expanded step in `RecipeStepDetail`, not preloaded for all steps.
 
-No new boolean columns in v2.4. The existing `is_active_project === 1` checks in `computeStats` are already correct. No risk of regression here.
+**Why:** N+1 is a concern when loading in a loop. A single expanded step is one query on user demand. Substitutions are rare metadata — pre-fetching all is wasteful.
+
+### Pattern 4: Availability as Pure Function
+
+**What:** Paint availability counts (owned/runningLow/missing) are computed client-side over the already-cached `useRecipeSteps(id)` + `usePaints()` data.
+
+**Why:** Both data sources are in React Query cache when RecipeDetailSheet opens. A pure function is testable, has zero latency, and requires no DB round-trip.
+
+### Pattern 5: Substitutions Edited in Detail Sheet Only (Not in Form)
+
+**What:** Substitutions are managed in `RecipeDetailSheet` / `RecipeStepDetail` after a step has been saved and has a real `id`. The `RecipeFormSheet` does not manage substitutions.
+
+**Why:** Substitutions require a real `recipe_step_id` FK. Managing them in ephemeral draft state before the step has an `id` requires a two-pass save (save steps, get IDs, then save substitutions) which adds complexity and error-recovery burden.
 
 ---
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Hook calls inside `ActiveProjectsPanel` or `ArmyReadinessCard`
+### Anti-Pattern 1: N+1 Step Count Query (Known Technical Debt)
 
-**What people do:** Call `useLatestUnitPhotos()` inside `ActiveProjectsPanel`.
+**What people do:** The current `useAllStepCounts()` in `RecipesPage.tsx` loops through all recipes and calls `getRecipePaintsByRecipe(r.id)` per recipe.
 
-**Why it's wrong:** Creates waterfall fetches (panel renders → fetches → renders again). Duplicates cache subscriptions. Makes the skeleton loading state in `DashboardPage` impossible to coordinate.
+**Why it's wrong:** After migration to `recipe_steps`, the same pattern queries N times. Noticeable on the Recipes page with 50+ recipes.
 
-**Do this instead:** All hooks at the top of `DashboardPage`. Pass `Map<>` data as props.
+**Do this instead:** Replace with a single batch COUNT query:
 
-### Anti-Pattern 2: Nesting Sheet inside `ActiveProjectsPanel`
+```sql
+SELECT recipe_id, COUNT(*) as count FROM recipe_steps GROUP BY recipe_id
+```
 
-**What people do:** Put `<LogSessionSheet>` inside `ActiveProjectsPanel` so each project card owns its sheet.
+Return `Map<number, number>` in one round-trip. Implement in `getRecipeStepCounts()` in `recipeSteps.ts`.
 
-**Why it's wrong:** Violates the sibling portal contract. Radix portals nested inside feature components cause z-index and React context boundary issues (documented Pitfall 1 from Phase 26).
+### Anti-Pattern 2: Nested Sheets for Step Photo Upload
 
-**Do this instead:** `onLogSession(unitId: number)` callback prop. `DashboardPage` owns the sheet.
+**What people do:** Open a photo-upload dialog from inside `RecipeStepRow` inside `RecipeFormSheet`.
 
-### Anti-Pattern 3: Storing Unit objects in ActiveProjectsPanel state
+**Why it's wrong:** Radix portals nested inside feature components cause z-index and React context issues. Documented pitfall in CLAUDE.md — sibling portal pattern is mandatory.
 
-**What people do:** `setFocusUnit(unit)` when a project card is clicked.
+**Do this instead:** Render the photo dialog as a sibling of `RecipeFormSheet` in `RecipesPage`, using the same `pendingStepLocalId` pattern already used for inline paint create.
 
-**Why it's wrong:** The `Unit` object becomes stale after mutations. Established pitfall from Phase 26.
+### Anti-Pattern 3: Substitutions in DraftStep Local State
 
-**Do this instead:** `onUnitClick(unit.id)`. `DashboardPage` derives the unit from `stats.units`.
+**What people do:** Track substitutions in the `DraftStep[]` local state array inside `RecipeFormSheet`.
 
-### Anti-Pattern 4: Two-mutation sequential await in onSubmit without error handling
+**Why it's wrong:** Two-pass save required — save steps first to get IDs, then save substitutions. Creates complex rollback/error handling if the second pass fails.
 
-**What people do:** `await updateUnit.mutateAsync(); await createSession.mutateAsync();` with a single try/catch.
+**Do this instead:** Substitutions are edited only in `RecipeDetailSheet` / `RecipeStepDetail` after a step has been saved and has a real ID.
 
-**Why it's wrong:** If `updateUnit` fails, `createSession` does not run (correct). But if `updateUnit` succeeds and `createSession` fails, the unit is updated but the session is not logged, and the user sees a "Failed" toast without knowing their progress update was saved.
+### Anti-Pattern 4: Data Migration in SQL Migration File
 
-**Do this instead:** Show granular feedback. Wrap each mutateAsync in its own try/catch. If step 1 succeeds, show a brief intermediate success (optional). If step 2 fails, toast "Session not logged — but progress was saved." Sheet stays open for retry of step 2 only.
+**What people do:** Write `INSERT INTO recipe_steps SELECT ... FROM recipe_paints` inside migration 012.
 
-### Anti-Pattern 5: Merging spending fields into `useDashboardStats`
+**Why it's wrong:** Migration files run before app startup. No user feedback, no error toasts, no rollback. The migration runner is silent on failures.
 
-**What people do:** Add paint/spend queries to `getDashboardStats()` to avoid calling `useSpendingStats()` separately in `DashboardPage`.
+**Do this instead:** `migrateRecipePaintsToSteps()` is an application-layer TypeScript function called at startup with a guard (check `recipe_steps` COUNT before running). Shows progress in UI if needed.
 
-**Why it's wrong:** `getDashboardStats` is intentionally minimal (units + factions only). Adding spend queries increases dashboard load latency for the case where the user is not focused on spending data. `useSpendingStats` has its own cache key `["spending-stats"]` and invalidation contract — merging it breaks that contract.
+### Anti-Pattern 5: COALESCE-based UPDATE for recipe_steps
 
-**Do this instead:** `useSpendingStats()` called in `DashboardPage`. Both hooks run in parallel via React Query — the extra call costs nothing when the data is already cached.
+**What people do:** Mirror the `updateRecipe` COALESCE pattern for step updates.
 
-### Anti-Pattern 6: Computing recipe-faction mapping inside `getRecipeNamesByFactionIds` SQL before it's needed
+**Why it's wrong:** Steps are always fully replaced (Pattern 1). There is no partial UPDATE use case. Individual step edits happen only in `RecipeDetailSheet`, where the full step object is available.
 
-**What people do:** Build the new `getRecipeNamesByFactionIds` query function speculatively.
+**Do this instead:** `updateRecipeStep()` takes the complete `RecipeStep` and sets all columns explicitly. No COALESCE needed.
 
-**Why it's wrong:** For v2.4, the faction cards only need a recipe count (not names). The count is trivially derivable in JS from `useRecipes()` data already in memory. The SQL query adds code complexity and a round-trip for no benefit.
+---
 
-**Do this instead:** `recipes.filter(r => r.faction_id === faction.id).length` in `DashboardPage`'s `useMemo`. Only add `getRecipeNamesByFactionIds` if the design requires displaying individual recipe names on faction cards.
+## Build Order
+
+### Foundation (required before any feature work)
+
+**Step 1: Schema + Types**
+1. Write migration 012 SQL (new tables + ALTER statements)
+2. New type files: `src/types/recipeStep.ts`, `src/types/recipeSubstitution.ts`
+3. Extend `PaintingRecipe` interface with 7 new columns in `src/types/recipe.ts`
+4. Extend `DraftStep` in `recipeSteps.ts` with new fields
+5. Verify migration runs cleanly — check existing recipes survive, steps table is empty
+
+**Step 2: Query Layer**
+1. Write `src/db/queries/recipeSteps.ts` — full CRUD + `migrateRecipePaintsToSteps()` + `getRecipeStepCounts()`
+2. Write `src/db/queries/recipeSubstitutions.ts`
+3. Update `getRecipeSwatchColors()` in `recipePaints.ts` to JOIN `recipe_steps`
+4. Update `recipes.ts` INSERT/UPDATE for 7 new metadata columns; add `duplicateRecipe()`
+
+**Step 3: Hook Layer**
+1. Write `src/hooks/useRecipeSteps.ts` — all hooks with correct cache keys and invalidation symmetry
+2. Write `src/hooks/useRecipeSubstitutions.ts`
+3. Update `useRecipePaints.ts` — only the `useRecipeSwatchData` query fn changes; key stays
+
+**Step 4: Data Migration Execution**
+1. Wire `migrateRecipePaintsToSteps()` call into app startup
+2. Test: existing recipe_paints rows appear as recipe_steps after startup
+3. Test: swatch strips still render correctly (getRecipeSwatchColors now reads recipe_steps)
+
+### Feature Layer (builds on foundation)
+
+**Step 5: Form Upgrades** (depends on Steps 1-4)
+- Extend `RecipeStepRow` with new fields (phase selector, tool, technique, dilution inputs)
+- Extend `RecipeFormSheet` with metadata fields (style, surface, effect, difficulty, estimated_minutes)
+- Change save path: `useCreateRecipeStep` instead of `useAddRecipePaint`
+- Update `recipeSchema.ts` with new fields
+
+**Step 6: Display Upgrades** (depends on Steps 1-4)
+- Update `RecipeDetailSheet` — `useRecipeSteps(id)` replaces `useRecipePaints(id)`
+- Add `RecipeAvailabilityBadge` with `computeRecipeAvailability()` pure function + tests
+- Update `RecipeTableColumns` — difficulty badge, estimated_minutes, step count from batch query
+
+**Step 7: Studio UX** (depends on Steps 5-6)
+- `RecipeStudioCard` — card layout for studio view
+- `RecipeTimelineView` — vertical timeline with phase-grouped steps
+- `RecipesPage` — view toggle (table / studio), new filter bar (style, surface, difficulty, missing-paints)
+- `RecipeDuplicateDialog` + `duplicateRecipe()` query wired up
+
+**Step 8: Session Linking** (depends on Step 1, independent of Steps 5-7)
+- Extend `LogSessionSheet` with optional recipe picker and step picker
+- Update `createSession` mutation to accept and write `recipe_id` + `recipe_step_id`
+- Add "used in N sessions" count to `RecipeDetailSheet`
+
+**Step 9: Substitutions** (depends on Steps 1-4, 6)
+- `RecipeStepDetail` expanded view with substitution list
+- `useRecipeSubstitutions(stepId)` wired into detail sheet
+
+---
+
+## Integration Points
+
+### Internal Boundaries
+
+| Boundary | Communication | Notes |
+|----------|---------------|-------|
+| `recipe_steps` ↔ `paints` | FK `paint_id` SET NULL on delete | Step survives paint deletion (becomes paint-less) |
+| `recipe_steps` ↔ `image_assets` | FK `photo_asset_id` SET NULL on delete | Step photo optional; step survives photo deletion |
+| `recipe_paint_substitutions` ↔ `recipe_steps` | FK CASCADE on step delete | Substitutions die with their step |
+| `recipe_paint_substitutions` ↔ `paints` | FK RESTRICT on paint delete | Cannot delete paint used as substitution |
+| `painting_sessions` ↔ `painting_recipes` | FK SET NULL on delete | Session history preserved after recipe deletion |
+| `painting_sessions` ↔ `recipe_steps` | FK SET NULL on delete | Session history preserved after step deletion |
+| `RecipeFormSheet` ↔ `PaintSheet` | Sibling portal via parent state | Existing pattern — do not nest |
+| `RecipeFormSheet` ↔ `RecipeStepRow` | Props + `DraftStep[]` lifted state | No React Query inside step rows |
+
+### Downstream Consumers Affected
+
+| Consumer | Required Change |
+|----------|----------------|
+| `RecipeDetailSheet` | `useRecipePaints(id)` → `useRecipeSteps(id)` |
+| `RecipesPage.useAllStepCounts` | Replace N+1 loop with `useRecipeStepCounts()` batch hook |
+| `useRecipePaints.useRecipeSwatchData` | Update query fn; key unchanged |
+| `useDeleteRecipe` | Add `["recipe-steps", recipeId]` to invalidations |
+| `useUpdateRecipe` | Add `["recipe-steps", recipeId]` to invalidations |
+| `LogSessionSheet` | Add recipe + step pickers; new FK columns written on save |
+| `kanban-enrichment` query | No change (reads only `painting_recipes.name`) |
+| Paint delete guard | `recipe_paint_substitutions.paint_id` RESTRICT means existing paint delete guard at component level must account for substitution FK errors |
 
 ---
 
 ## Scaling Considerations
 
-This is a single-user local desktop app. "Scale" means performance with growing personal collections.
+Single-user local desktop app. The only relevant scale question is query efficiency as recipe count grows.
 
-| Concern | At 50 units | At 200+ units | Mitigation already in place |
-|---------|-------------|---------------|------------------------------|
-| `useLatestUnitPhotos` batch query | Fast (1 SQL + N async joins) | Watch N `join()` + `convertFileSrc` calls | Already uses `Promise.all` |
-| `useKanbanEnrichment` for active projects | Trivial (≤5 units) | Bounded by `activeProjects` slice | `computeStats` caps at 5 |
-| `useArmyListReadiness` IN clause | Fast | Fast (2–10 lists typical) | Dynamic placeholder pattern already defensive |
-| `computeSpendingStats` with new fields | Negligible (pure JS) | Negligible (pure JS loop) | No new SQL |
-| CSS grid reflow | No concern | No concern | Pure CSS layout |
+| Recipe Count | Notes |
+|---|---|
+| 1-50 (current baseline) | All patterns fine. N+1 step count is imperceptible. |
+| 50-200 (realistic ceiling for a personal tool) | N+1 step count query starts to lag on RecipesPage load. Batch COUNT query (Anti-Pattern 1 fix) is the only mitigation needed. |
+| 200+ (unexpected but possible) | Consider virtualizing the recipe list. Current TanStack Table renders all rows eagerly. |
 
 ---
 
 ## Sources
 
-- Direct inspection: `src/features/dashboard/DashboardPage.tsx` — current layout, hook calls, portal pattern
-- Direct inspection: `src/features/dashboard/computeStats.ts` — `ComputedDashboardStats` interface, `activeProjects` derivation
-- Direct inspection: `src/features/dashboard/CurrentFocusCard.tsx` — existing props interface
-- Direct inspection: `src/features/dashboard/HobbyPipeline.tsx` — existing 11-stage implementation
-- Direct inspection: `src/features/dashboard/StatCard.tsx` — existing props
-- Direct inspection: `src/features/dashboard/FactionSummaryCard.tsx` — existing props + navigation pattern
-- Direct inspection: `src/features/dashboard/LogSessionSheet.tsx` — existing form + schema
-- Direct inspection: `src/features/dashboard/RecentActivityFeed.tsx` — existing `ActivityEvent` consumption
-- Direct inspection: `src/db/queries/dashboard.ts` — `getDashboardStats`, `getRecentActivity`
-- Direct inspection: `src/db/queries/armyLists.ts` — `getArmyListReadiness` SQL pattern
-- Direct inspection: `src/db/queries/unitPhotos.ts` — `getLatestPhotoByUnit` batch query
-- Direct inspection: `src/db/queries/recipes.ts` — `getRecipeNamesByUnitIds` IN-clause pattern
-- Direct inspection: `src/db/queries/spending.ts` — `getSpendingStats` pattern
-- Direct inspection: `src/hooks/useDashboardStats.ts` — `DASHBOARD_STATS_KEY`, invalidation contract
-- Direct inspection: `src/hooks/useArmyLists.ts` — `useArmyListReadiness`, readiness Map derivation
-- Direct inspection: `src/hooks/useUnitPhotos.ts` — `useLatestUnitPhotos`, `Map<id, UnitPhotoWithUrl>`
-- Direct inspection: `src/hooks/useKanbanEnrichment.ts` — `KanbanEnrichment` interface, sorted key
-- Direct inspection: `src/hooks/useJournalSessions.ts` — `useCreatePaintingSession` invalidations
-- Direct inspection: `src/hooks/useSpendingStats.ts` — `SPENDING_STATS_KEY`
-- Direct inspection: `src/hooks/useRecipes.ts` — `RECIPES_KEY`
-- Direct inspection: `src/features/spending/computeSpendingStats.ts` — `SpendingStats` interface
-- Direct inspection: `src/types/unit.ts` — `Unit` interface, `PAINTING_STATUS_ORDER`
-- Direct inspection: `src/types/recipe.ts` — `PaintingRecipe` with `faction_id`, `unit_id` columns
-- Direct inspection: `src/styles/globals.css` — existing CSS token definitions (`--battle-gold`, `--faction-accent`)
+- Direct code audit: `src/features/recipes/*.tsx` — all 12 recipe feature files
+- Direct code audit: `src/hooks/useRecipes.ts`, `src/hooks/useRecipePaints.ts`
+- Direct code audit: `src/db/queries/recipes.ts`, `src/db/queries/recipePaints.ts`
+- Direct code audit: `src/types/recipe.ts`, `src/types/recipePaint.ts`
+- Schema audit: `src-tauri/migrations/001_core_schema.sql`, `005_hobby_journal.sql`
+- Architecture audit: `.planning/V3_ARCHITECTURE_AUDIT.md` (section 3.1 Recipes 2.0, section 5 Migration Plan)
+- Project context: `.planning/PROJECT.md`
+- Established patterns: `CLAUDE.md` (sibling portal pattern, cache invalidation symmetry rule, integer boolean discipline, no ORM)
 
 ---
-*Architecture research for: HobbyForge v2.4 — Premium Dashboard UX*
-*Researched: 2026-05-05*
+*Architecture research for: HobbyForge v2.5 Recipes 2.0 / Painting Studio*
+*Researched: 2026-05-06*
