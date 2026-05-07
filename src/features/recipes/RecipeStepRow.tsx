@@ -1,6 +1,9 @@
-import { GripVertical, Trash2 } from "lucide-react";
+import { GripVertical, Trash2, ImageIcon } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { open as openDialog } from "@tauri-apps/plugin-dialog";
+import { readFile, writeFile, BaseDirectory } from "@tauri-apps/plugin-fs";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +38,27 @@ export function RecipeStepRow({
     transition,
     opacity: isDragging ? 0.4 : 1,
   };
+
+  async function handlePhotoUpload() {
+    try {
+      const result = (await openDialog({
+        multiple: false,
+        directory: false,
+        filters: [{ name: "Images", extensions: ["png", "jpg", "jpeg", "webp", "gif"] }],
+      })) as string | null;
+      if (result === null) return; // user cancelled
+
+      const ext = result.split(".").pop()?.toLowerCase() ?? "jpg";
+      const data = await readFile(result); // absolute path — NO baseDir option
+      const filename = `${crypto.randomUUID()}.${ext}`;
+      await writeFile(filename, data, { baseDir: BaseDirectory.AppData });
+
+      onChange({ ...step, step_photo_path: filename });
+      toast.success("Step photo added.");
+    } catch {
+      toast.error("Failed to upload photo.");
+    }
+  }
 
   return (
     <div
@@ -81,6 +105,16 @@ export function RecipeStepRow({
               onCreateNew={onCreateNewPaint}
             />
           </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={handlePhotoUpload}
+            aria-label="Upload step photo"
+          >
+            <ImageIcon className={step.step_photo_path ? "h-4 w-4 text-primary" : "h-4 w-4"} />
+          </Button>
         </div>
         {/* Line 2: tool + technique + dilution + time estimate */}
         <div className="grid grid-cols-4 gap-1.5">

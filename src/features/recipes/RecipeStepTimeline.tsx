@@ -7,9 +7,10 @@ import { isPaintMissing } from "./recipeSteps";
 export interface RecipeStepTimelineProps {
   steps: RecipeStep[];
   paintMap: Map<number, Paint>;
+  stepPhotoUrls?: Map<number, string>; // step.id -> asset:// URL
 }
 
-export function RecipeStepTimeline({ steps, paintMap }: RecipeStepTimelineProps) {
+export function RecipeStepTimeline({ steps, paintMap, stepPhotoUrls }: RecipeStepTimelineProps) {
   if (steps.length === 0) {
     return <span className="text-sm text-muted-foreground">No steps added yet.</span>;
   }
@@ -82,6 +83,15 @@ export function RecipeStepTimeline({ steps, paintMap }: RecipeStepTimelineProps)
                     </span>
                   )}
                 </div>
+              )}
+              {/* Step photo thumbnail */}
+              {step.step_photo_path && stepPhotoUrls?.get(step.id) && (
+                <img
+                  src={stepPhotoUrls.get(step.id)}
+                  alt={`Step: ${step.step_name} reference`}
+                  className="mt-1 h-16 w-16 rounded object-cover"
+                  data-testid="step-photo-thumbnail"
+                />
               )}
             </div>
           </div>
