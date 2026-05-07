@@ -1,5 +1,25 @@
 # Milestones
 
+## v2.5 Recipes 2.0 / Painting Studio (Shipped: 2026-05-07)
+
+**Phases completed:** 5 phases (37–41), 12 plans
+**Timeline:** 2026-05-07 (single day)
+**Stats:** 87 files changed, +13,262 / -623 lines, 18 requirements satisfied
+
+**Key accomplishments:**
+- Schema foundation: migration 012 renames recipe_paints → recipe_steps (zero data loss), adds 11 columns across 3 migrations (012/013/014), fixes pre-existing kanban cache invalidation bug, replaces N+1 step count with batch GROUP BY query
+- Structured step input: full painting step UI with phase label (10-value dropdown), tool, technique, dilution, time estimate per step with recipe total sum, @dnd-kit drag-and-drop reordering with persist-on-save cycle
+- Studio UX transformation: RecipeTable replaced with responsive card grid (RecipeCard + RecipeCardGrid), paint availability badges (owned/missing/running-low per recipe via batch SQL), step-by-step vertical timeline detail view, 4-dimension filtering (surface/style/difficulty/missing paints)
+- Recipe actions: one-click recipe duplication (copies header + all 12 step columns + substitutions), per-step photo upload via Tauri FS API with timeline thumbnails, alternate substitute paint linking per step, bulk "Add all missing to wishlist" with name-based deduplication
+- Session-recipe integration: LogSessionSheet recipe/step dropdowns with faction-sorted picker and cascading clear, RecipeDetailSheet sessions history section — closes the planning-to-execution loop
+
+**Archived:**
+- Roadmap: `.planning/milestones/v2.5-ROADMAP.md`
+- Requirements: `.planning/milestones/v2.5-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v2.5-MILESTONE-AUDIT.md`
+
+---
+
 ## v2.4 Premium Dashboard UX & Visual Polish (Shipped: 2026-05-06)
 
 **Phases completed:** 6 phases (30–34, 36), 13 plans
