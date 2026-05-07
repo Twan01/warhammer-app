@@ -4,6 +4,7 @@ import {
   getSessionsByUnit,
   createSession,
   deleteSession,
+  getSessionsByRecipe,
 } from "@/db/queries/paintingSessions";
 import type { PaintingSession, CreateSessionInput } from "@/types/paintingSession";
 
@@ -13,6 +14,9 @@ import type { PaintingSession, CreateSessionInput } from "@/types/paintingSessio
  */
 export const PAINTING_SESSIONS_KEY = (unitId: number) =>
   ["painting-sessions", unitId] as const;
+
+export const RECIPE_SESSIONS_KEY = (recipeId: number) =>
+  ["recipe-sessions", recipeId] as const;
 
 /**
  * Loads the painting session list for a single unit, sorted newest first.
@@ -32,6 +36,21 @@ export function useJournalSessions(unitId: number | undefined) {
   });
 }
 
+export function useSessionsByRecipe(recipeId: number | undefined) {
+  return useQuery({
+    queryKey:
+      recipeId !== undefined
+        ? RECIPE_SESSIONS_KEY(recipeId)
+        : (["recipe-sessions"] as const),
+    queryFn: () =>
+      recipeId !== undefined
+        ? getSessionsByRecipe(recipeId)
+        : Promise.resolve([] as PaintingSession[]),
+    enabled: recipeId !== undefined,
+    staleTime: Infinity,
+  });
+}
+
 export function useCreatePaintingSession() {
   const qc = useQueryClient();
   return useMutation<void, Error, CreateSessionInput>({
@@ -41,6 +60,10 @@ export function useCreatePaintingSession() {
       qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
       qc.invalidateQueries({ queryKey: ["recent-activity"] });
       qc.invalidateQueries({ queryKey: ["goal-progress"] });
+      // Phase 41 — invalidate recipe-sessions cache if session linked to a recipe
+      if (variables.recipe_id != null) {
+        qc.invalidateQueries({ queryKey: RECIPE_SESSIONS_KEY(variables.recipe_id) });
+      }
     },
   });
 }

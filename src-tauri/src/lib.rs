@@ -76,6 +76,18 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/012_recipe_steps.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 13,
+            description: "step_photos_alt_paint",
+            sql: include_str!("../migrations/013_step_photos_alt_paint.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 14,
+            description: "session_recipe_link",
+            sql: include_str!("../migrations/014_session_recipe_link.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
