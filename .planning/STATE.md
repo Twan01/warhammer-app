@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Recipes 2.0 / Painting Studio
-status: Ready to plan
-stopped_at: Roadmap created — 5 phases (37–41), 18/18 requirements mapped
-last_updated: "2026-05-07"
-last_activity: 2026-05-07 — v2.5 roadmap created, Phase 37 ready to plan
+status: planning
+stopped_at: Roadmap written — ready to plan Phase 37
+last_updated: "2026-05-07T07:26:09.590Z"
+last_activity: 2026-05-07 — v2.5 roadmap created
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-06 after v2.5 milestone started)
 ## Current Position
 
 Phase: 37 of 41 (Schema Foundation + Pre-flight Fixes)
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-05-07 — v2.5 roadmap created
+Plan: 2 of 2 (37-01 complete)
+Status: In Progress
+Last activity: 2026-05-07 — 37-01 schema foundation complete
 
-Progress: [░░░░░░░░░░] 0% (0/5 phases)
+Progress: [█████░░░░░] 50% (1/2 plans in Phase 37)
 
 ## Accumulated Context
 
@@ -60,9 +60,16 @@ Progress: [░░░░░░░░░░] 0% (0/5 phases)
 - Photo upload pattern: reuse JournalTab UUID-relative-path approach
 - useFieldArray NOT used for step forms — documented ID collision with @dnd-kit useSortable (RHF #10607)
 
+### Decisions from Phase 37 Plan 01
+
+- Deprecated alias pattern (RecipePaint = RecipeStep) avoids mass import refactor in a single phase — clean up in a later refactor
+- New recipe metadata fields use raw assignment in UPDATE (not COALESCE) so users can clear them to NULL
+- result_photo_path column added to DB/types now; photo upload form field deferred to Phase 40 (STEP-05)
+- New step fields (painting_phase, tool, technique, dilution, time_estimate_minutes) default to null in RecipeFormSheet — full step creation UI comes in Phase 38
+
 ### Key v2.5 Architectural Constraints
 
-- Pre-existing bug (Phase 37): useDeleteRecipe missing `["kanban-enrichment"]` invalidation — fix before any new UI
+- FIXED (Phase 37-01): useDeleteRecipe now includes `["kanban-enrichment"]` invalidation — cache symmetry restored
 - N+1 step count on RecipesPage must be replaced with batch query in Phase 37
 - Substitutions (PAINT-02) need persisted step IDs — must come AFTER Phase 38 step creation
 - Session-recipe linking (INTEG-01/02) is highest complexity — Phase 41 last
@@ -78,5 +85,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-07
-Stopped at: Roadmap written — ready to plan Phase 37
-Resume: Run /gsd:plan-phase 37
+Stopped at: Completed 37-01-PLAN.md — schema migration + TypeScript data layer updated
+Resume: Execute plan 37-02 (N+1 batch query fix + RecipesPage step count)
