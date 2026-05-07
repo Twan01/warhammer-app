@@ -12,6 +12,10 @@
  * sequentially. Partial failure (session ok, status fails) shows warning toast
  * and closes the sheet without rolling back the logged session.
  *
+ * INTEG-01: Recipe and Step selectors added in Phase 41. Step selector is
+ * conditionally rendered only when a recipe is selected. Changing the recipe
+ * clears the step selection to prevent stale FK references.
+ *
  * Pattern source: src/features/units/UnitSheet.tsx (form + sheet),
  *                 src/features/units/JournalTab.tsx (mutation field semantics).
  */
@@ -46,9 +50,14 @@ import {
 } from "@/components/ui/select";
 import { useUnits, useUpdateUnit } from "@/hooks/useUnits";
 import { useCreatePaintingSession } from "@/hooks/useJournalSessions";
+import { useRecipes } from "@/hooks/useRecipes";
+import { useRecipePaints } from "@/hooks/useRecipePaints";
+import { useFactions } from "@/hooks/useFactions";
 import { todayISO } from "@/lib/dates";
 import type { Unit } from "@/types/unit";
 import { PAINTING_STATUS_ORDER } from "@/types/unit";
+import type { PaintingRecipe } from "@/types/recipe";
+import type { Faction } from "@/types/faction";
 import { logSessionSchema, type LogSessionFormValues } from "./logSessionSchema";
 
 interface LogSessionSheetProps {
@@ -64,6 +73,8 @@ function buildDefaultValues(defaultUnitId?: number): LogSessionFormValues {
     duration_minutes: 30,
     notes: null,
     new_status: null,
+    recipe_id: null,
+    recipe_step_id: null,
   };
 }
 
@@ -79,10 +90,22 @@ function sortUnitsForPicker(units: Unit[]): Unit[] {
   return [...active, ...inactive];
 }
 
+function sortRecipesForPicker(recipes: PaintingRecipe[], factions: Faction[]): PaintingRecipe[] {
+  const factionOrder = new Map(factions.map((f, i) => [f.id, i]));
+  return [...recipes].sort((a, b) => {
+    const fa = factionOrder.get(a.faction_id ?? -1) ?? 999;
+    const fb = factionOrder.get(b.faction_id ?? -1) ?? 999;
+    if (fa !== fb) return fa - fb;
+    return a.name.localeCompare(b.name);
+  });
+}
+
 export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionSheetProps) {
   const { data: units, isLoading: unitsLoading } = useUnits();
   const createSession = useCreatePaintingSession();
   const updateUnit = useUpdateUnit();
+  const { data: recipes = [], isLoading: recipesLoading } = useRecipes();
+  const { data: factions = [] } = useFactions();
 
   const form = useForm<LogSessionFormValues>({
     resolver: zodResolver(logSessionSchema),
@@ -100,6 +123,22 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
     [units]
   );
 
+  const watchedRecipeId = form.watch("recipe_id");
+
+  const { data: recipeSteps = [] } = useRecipePaints(
+    watchedRecipeId != null ? watchedRecipeId : undefined
+  );
+
+  // Clear step selection when recipe changes (prevents stale FK reference)
+  useEffect(() => {
+    form.setValue("recipe_step_id", null);
+  }, [watchedRecipeId, form]);
+
+  const orderedRecipes = useMemo(
+    () => sortRecipesForPicker(recipes, factions),
+    [recipes, factions]
+  );
+
   async function onSubmit(values: LogSessionFormValues) {
     try {
       await createSession.mutateAsync({
@@ -107,6 +146,8 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
         session_date: values.session_date,
         duration_minutes: values.duration_minutes,
         notes: values.notes && values.notes.trim() !== "" ? values.notes.trim() : null,
+        recipe_id: values.recipe_id ?? null,
+        recipe_step_id: values.recipe_step_id ?? null,
       });
     } catch {
       toast.error("Failed to log session — try again.");
@@ -219,6 +260,92 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
                 </FormItem>
               )}
             />
+
+            <FormField
+              name="recipe_id"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Recipe</FormLabel>
+                  <Controller
+                    name="recipe_id"
+                    control={form.control}
+                    render={({ field: ctrl }) => (
+                      <Select
+                        disabled={recipesLoading}
+                        value={ctrl.value != null ? String(ctrl.value) : "__none__"}
+                        onValueChange={(v) =>
+                          ctrl.onChange(v === "__none__" ? null : Number(v))
+                        }
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue
+                              placeholder={recipesLoading ? "Loading recipes..." : "No recipe"}
+                            />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="__none__">No recipe</SelectItem>
+                          {orderedRecipes.map((r) => (
+                            <SelectItem key={r.id} value={String(r.id)}>
+                              {r.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  <FormMessage />
+                  {/* unused render arg silenced */}
+                  <input type="hidden" value={field.value ?? ""} readOnly />
+                </FormItem>
+              )}
+            />
+
+            {watchedRecipeId != null && (
+              <FormField
+                name="recipe_step_id"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Recipe Step</FormLabel>
+                    <Controller
+                      name="recipe_step_id"
+                      control={form.control}
+                      render={({ field: ctrl }) => (
+                        <Select
+                          value={ctrl.value != null ? String(ctrl.value) : "__none__"}
+                          onValueChange={(v) =>
+                            ctrl.onChange(v === "__none__" ? null : Number(v))
+                          }
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="No step" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="__none__">No step</SelectItem>
+                            {recipeSteps
+                              .slice()
+                              .sort((a, b) => a.order_index - b.order_index)
+                              .map((s) => (
+                                <SelectItem key={s.id} value={String(s.id)}>
+                                  {s.painting_phase ? `${s.painting_phase}: ` : ""}{s.step_name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    <FormMessage />
+                    {/* unused render arg silenced */}
+                    <input type="hidden" value={field.value ?? ""} readOnly />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               name="session_date"
