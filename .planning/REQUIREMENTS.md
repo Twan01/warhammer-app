@@ -24,7 +24,7 @@ Requirements for Recipes 2.0 / Painting Studio. Each maps to roadmap phases.
 
 ### Paint Integration
 
-- [ ] **PAINT-01**: User can see owned/missing/running-low paint count as a badge on recipe cards
+- [x] **PAINT-01**: User can see owned/missing/running-low paint count as a badge on recipe cards
 - [ ] **PAINT-02**: User can link an alternative substitute paint to any step
 - [ ] **PAINT-03**: User can add all missing paints from a recipe to their wishlist in one action
 
@@ -72,7 +72,7 @@ Requirements for Recipes 2.0 / Painting Studio. Each maps to roadmap phases.
 | STUDIO-01 | Phase 39 | Pending |
 | STUDIO-02 | Phase 39 | Pending |
 | STUDIO-04 | Phase 39 | Pending |
-| PAINT-01 | Phase 39 | Pending |
+| PAINT-01 | Phase 39 | Complete |
 | STUDIO-03 | Phase 40 | Pending |
 | STEP-05 | Phase 40 | Pending |
 | PAINT-02 | Phase 40 | Pending |
