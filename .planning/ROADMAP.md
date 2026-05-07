@@ -9,6 +9,7 @@
 - ✅ **v2.3 Hobby Command Center** — Phases 25–29 (shipped 2026-05-05)
 - ✅ **v2.4 Premium Dashboard UX & Visual Polish** — Phases 30–34, 36 (shipped 2026-05-06)
 - ✅ **v2.5 Recipes 2.0 / Painting Studio** — Phases 37–41 (shipped 2026-05-07)
+- 🚧 **v2.6 Rules Sync 2.0 / Rules Data Hub** — Phases 42–46 (in progress)
 
 ## Phases
 
@@ -117,9 +118,83 @@ Full details: `.planning/milestones/v2.5-ROADMAP.md`
 
 </details>
 
+---
+
+### 🚧 v2.6 Rules Sync 2.0 / Rules Data Hub (In Progress)
+
+**Milestone Goal:** Stabilize and extend the local rules import architecture so HobbyForge becomes a reliable personal rules and points reference — with extended data types surfaced in the UI, a hardened sync pipeline, sync metadata tracking, and persistent manual overrides that survive re-syncs.
+
+- [ ] **Phase 42: Architecture Audit** — Read-only investigation of the current sync pipeline and extended rules schema; produces a written architecture note covering data flow, type/query/hook gaps, and migration plan for metadata and overrides tables
+- [ ] **Phase 43: Extended Rules Read Layer** — TypeScript types, query functions, and React Query hooks for stratagems, detachments, detachment abilities, and shared faction abilities; all four data types surfaced in PlaybookTab
+- [ ] **Phase 44: Sync Pipeline Hardening** — Rust `bulk_sync_rules` returns per-table row counts; TypeScript displays counts in post-sync confirmation; CSV column validation rejects malformed files; sync errors logged to persistent table; all new rules hooks invalidated on sync success
+- [ ] **Phase 45: Sync Metadata & Import Tracking** — Last sync date/time, per-table row counts, source version, error history, freshness badge on rules-dependent pages, and pre-sync snapshot mechanism all visible and functional
+- [ ] **Phase 46: Manual Overrides & Version Comparison** — Users can override points, stats, keywords, and ability reminders per unit in hobbyforge.db; overrides persist across re-syncs and are visually distinguished from imported data; post-sync diff view shows what changed or was removed
+
+## Phase Details
+
+### Phase 42: Architecture Audit
+**Goal**: Developer has a written architecture note that fully maps the current sync pipeline and identifies every gap needed before extending it
+**Depends on**: Phase 41 (v2.5 complete)
+**Requirements**: AUDIT-01, AUDIT-02, AUDIT-03, AUDIT-04
+**Success Criteria** (what must be TRUE):
+  1. Architecture note confirms which rw_* extended tables exist and are populated after a live sync run
+  2. Architecture note documents the complete data flow from TypeScript CSV fetch through Rust transaction to SQLite write
+  3. Architecture note lists every TypeScript type, query function, and React Query hook that is missing for stratagems, detachments, detachment abilities, and shared abilities
+  4. Architecture note includes a migration plan for sync_meta, sync_errors, rules_snapshot, and unit_overrides tables with column-level detail
+**Plans**: TBD
+
+### Phase 43: Extended Rules Read Layer
+**Goal**: Users can view stratagems, detachments, detachment abilities, and shared faction abilities in PlaybookTab — backed by a complete TypeScript data layer
+**Depends on**: Phase 42
+**Requirements**: SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04, SCHEMA-05
+**Success Criteria** (what must be TRUE):
+  1. User can see faction stratagems (name, phase, CP cost, description, keywords) for their linked unit's faction in PlaybookTab
+  2. User can see faction detachments (name, description, rule text) in PlaybookTab
+  3. User can see detachment abilities grouped by their parent detachment in PlaybookTab
+  4. User can see shared faction abilities (non-datasheet-specific) in PlaybookTab
+  5. TypeScript types, query functions, and React Query hooks exist for all four extended data types and follow the established src/db/queries + src/hooks pattern
+**Plans**: TBD
+
+### Phase 44: Sync Pipeline Hardening
+**Goal**: The sync pipeline validates input, reports outcomes per table, and persists errors — eliminating silent failures and ambiguous post-sync state
+**Depends on**: Phase 42
+**Requirements**: SYNC-01, SYNC-02, SYNC-03, SYNC-04, SYNC-05
+**Success Criteria** (what must be TRUE):
+  1. After a sync completes, the confirmation UI shows how many rows were inserted per table (e.g., "datasheets: 847, stratagems: 312, abilities: 1204")
+  2. Uploading a CSV file with missing required column headers triggers a visible validation error before any data is inserted
+  3. Any error that occurs during sync is written to a persistent errors table with timestamp, error type, and message — and survives app restart
+  4. All rules-related React Query hooks (including the new stratagems, detachments, and abilities hooks) are invalidated after a successful sync
+**Plans**: TBD
+
+### Phase 45: Sync Metadata & Import Tracking
+**Goal**: Users can always see when their rules data was last synced, how complete it is, and whether it is fresh — and a pre-sync snapshot is captured before each re-sync
+**Depends on**: Phase 44
+**Requirements**: META-01, META-02, META-03, META-04, META-05, META-06
+**Success Criteria** (what must be TRUE):
+  1. User can see the date and time of the last successful sync displayed in the UI
+  2. User can see per-table row counts from the most recent sync (matching the counts shown in the post-sync confirmation)
+  3. User can see a Wahapedia source version or edition field populated after sync
+  4. User can view a timestamped list of past sync errors
+  5. Rules-dependent pages (e.g., PlaybookTab) show a stale/fresh badge indicating whether the data needs re-syncing
+  6. Before each re-sync, the current rules data is snapshotted into a separate table so version comparison in Phase 46 is possible
+**Plans**: TBD
+
+### Phase 46: Manual Overrides & Version Comparison
+**Goal**: Users can correct or annotate any imported rules value for their own units, with changes surviving every future re-sync, and can see what the re-sync changed
+**Depends on**: Phase 45
+**Requirements**: OVRD-01, OVRD-02, OVRD-03, OVRD-04, OVRD-05, OVRD-06, OVRD-07
+**Success Criteria** (what must be TRUE):
+  1. User can enter a custom points value for a unit that overrides the imported value and is preserved after re-syncing
+  2. User can override individual stat fields (M/T/Sv/W/Ld/OC) for a unit and have the overrides preserved after re-syncing
+  3. User can override keywords and ability reminders for a unit and have the overrides preserved after re-syncing
+  4. In the UI, overridden values are visually distinguished from imported values (e.g., a badge or icon marking the field as manually set)
+  5. After a re-sync, user can open a diff view showing which points values, stats, abilities, or keywords changed between the previous snapshot and the new data
+  6. After a re-sync, user can see which datasheets were removed or renamed compared to the snapshot
+**Plans**: TBD
+
 ## Progress
 
-**Execution Order:** 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 35 → 25 → 26 → 27 → 28 → 29 → 30 → 31 → 32 → 33 → 34 → 36 → 37 → 38 → 39 → 40 → 41
+**Execution Order:** 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 35 → 25 → 26 → 27 → 28 → 29 → 30 → 31 → 32 → 33 → 34 → 36 → 37 → 38 → 39 → 40 → 41 → 42 → 43 → 44 → 45 → 46
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -164,3 +239,8 @@ Full details: `.planning/milestones/v2.5-ROADMAP.md`
 | 39. Studio UX + Paint Availability | v2.5 | 3/3 | Complete | 2026-05-07 |
 | 40. Recipe Actions + Step Photos | v2.5 | 3/3 | Complete | 2026-05-07 |
 | 41. Session Integration | v2.5 | 2/2 | Complete | 2026-05-07 |
+| 42. Architecture Audit | v2.6 | 0/TBD | Not started | - |
+| 43. Extended Rules Read Layer | v2.6 | 0/TBD | Not started | - |
+| 44. Sync Pipeline Hardening | v2.6 | 0/TBD | Not started | - |
+| 45. Sync Metadata & Import Tracking | v2.6 | 0/TBD | Not started | - |
+| 46. Manual Overrides & Version Comparison | v2.6 | 0/TBD | Not started | - |
