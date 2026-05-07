@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Recipes 2.0 / Painting Studio
 status: completed
-stopped_at: Completed 39-03-PLAN.md
-last_updated: "2026-05-07T10:09:54.796Z"
+stopped_at: Phase 40 context gathered
+last_updated: "2026-05-07T10:15:29.307Z"
 last_activity: 2026-05-07 — 39-03 vertical timeline, metadata badge row, STUDIO-02 complete
 progress:
   total_phases: 5
@@ -123,6 +123,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-07T12:00:00Z
-Stopped at: Completed 39-03-PLAN.md
+Last session: 2026-05-07T10:15:29.301Z
+Stopped at: Phase 40 context gathered
 Resume: Phase 39 complete — begin Phase 40 (photo upload for result_photo_path, STEP-05)
