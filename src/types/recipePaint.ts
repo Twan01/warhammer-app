@@ -15,6 +15,9 @@ export interface RecipeStep {
   technique: string | null;
   dilution: string | null;
   time_estimate_minutes: number | null;
+  // v2.5 Phase 40 fields
+  step_photo_path: string | null;
+  alt_paint_id: number | null;
   created_at: string;
 }
 

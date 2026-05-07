@@ -16,6 +16,8 @@ function step(over: Partial<DraftStep> = {}): DraftStep {
     technique: null,
     dilution: null,
     time_estimate_minutes: null,
+    step_photo_path: null,
+    alt_paint_id: null,
     ...over,
   };
 }
@@ -97,17 +99,27 @@ describe("STEP-01/03/04 DraftStep new fields", () => {
   it("makeDraftStep initializes time_estimate_minutes to null", () => {
     expect(makeDraftStep().time_estimate_minutes).toBeNull();
   });
+  it("makeDraftStep initializes step_photo_path to null", () => {
+    expect(makeDraftStep().step_photo_path).toBeNull();
+  });
+  it("makeDraftStep initializes alt_paint_id to null", () => {
+    expect(makeDraftStep().alt_paint_id).toBeNull();
+  });
   it("computeOrderIndex preserves new fields through spread", () => {
     const input = step({
       localId: "z",
       painting_phase: "basecoat",
       tool: "Size 1 brush",
       time_estimate_minutes: 10,
+      step_photo_path: "uuid.jpg",
+      alt_paint_id: 5,
     });
     const result = computeOrderIndex([input]);
     expect(result[0].painting_phase).toBe("basecoat");
     expect(result[0].tool).toBe("Size 1 brush");
     expect(result[0].time_estimate_minutes).toBe(10);
+    expect(result[0].step_photo_path).toBe("uuid.jpg");
+    expect(result[0].alt_paint_id).toBe(5);
     expect(result[0].order_index).toBe(0);
   });
 });
