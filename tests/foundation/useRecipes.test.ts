@@ -197,4 +197,17 @@ describe("useRecipes — useDeleteRecipe onSuccess invalidations (DATA-06)", () 
     const keys = spy.mock.calls.map((c) => c[0]?.queryKey);
     expect(keys).toContainEqual(BY_UNIT_KEY);
   });
+
+  it("invalidates ['kanban-enrichment'] (SCHEMA-03)", async () => {
+    const { spy, wrapper } = makeWrapper();
+    const { result } = renderHook(() => useDeleteRecipe(), { wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync(7);
+    });
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+
+    const keys = spy.mock.calls.map((c) => c[0]?.queryKey);
+    expect(keys).toContainEqual(["kanban-enrichment"]);
+  });
 });
