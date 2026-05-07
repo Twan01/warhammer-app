@@ -15,6 +15,9 @@ export interface PaintingSession {
   duration_minutes: number;
   notes: string | null;
   created_at: string;            // ISO datetime via SQLite datetime('now')
+  // Phase 41 — session-recipe linking (INTEG-01/02)
+  recipe_id: number | null;
+  recipe_step_id: number | null;
 }
 
 /**
@@ -26,4 +29,7 @@ export interface CreateSessionInput {
   session_date: string;
   duration_minutes: number;
   notes?: string | null;
+  // Phase 41 — session-recipe linking (INTEG-01/02)
+  recipe_id?: number | null;
+  recipe_step_id?: number | null;
 }

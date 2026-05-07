@@ -30,6 +30,9 @@ export const logSessionSchema = z.object({
     .max(1440, "Duration cannot exceed 24 hours"),
   notes: z.string().max(2000).nullable(),
   new_status: z.enum(PAINTING_STATUS_ORDER).nullable().optional(),
+  // Phase 41 — INTEG-01 (recipe+step selector in LogSessionSheet)
+  recipe_id: z.number().int().positive().nullable().optional(),
+  recipe_step_id: z.number().int().positive().nullable().optional(),
 });
 
 export type LogSessionFormValues = z.infer<typeof logSessionSchema>;

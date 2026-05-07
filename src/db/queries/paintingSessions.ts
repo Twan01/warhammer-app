@@ -19,8 +19,23 @@ export async function getSessionsByUnit(unitId: number): Promise<PaintingSession
 export async function createSession(input: CreateSessionInput): Promise<void> {
   const db = await getDb();
   await db.execute(
-    "INSERT INTO painting_sessions (unit_id, session_date, duration_minutes, notes) VALUES ($1, $2, $3, $4)",
-    [input.unit_id, input.session_date, input.duration_minutes, input.notes ?? null]
+    "INSERT INTO painting_sessions (unit_id, session_date, duration_minutes, notes, recipe_id, recipe_step_id) VALUES ($1, $2, $3, $4, $5, $6)",
+    [
+      input.unit_id,
+      input.session_date,
+      input.duration_minutes,
+      input.notes ?? null,
+      input.recipe_id ?? null,
+      input.recipe_step_id ?? null,
+    ]
+  );
+}
+
+export async function getSessionsByRecipe(recipeId: number): Promise<PaintingSession[]> {
+  const db = await getDb();
+  return db.select<PaintingSession[]>(
+    "SELECT * FROM painting_sessions WHERE recipe_id = $1 ORDER BY session_date DESC, id DESC",
+    [recipeId]
   );
 }
 
