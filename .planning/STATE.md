@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Recipes 2.0 / Painting Studio
-status: in_progress
-stopped_at: Completed 40-01-PLAN.md
-last_updated: "2026-05-07T10:43:41Z"
-last_activity: 2026-05-07 — 40-01 migration 013, type updates, addRecipePaint 12-col, duplicateRecipe
+status: 40-02 Duplicate button, step photo upload, result photo upload, timeline thumbnails delivered
+stopped_at: Completed 40-02-PLAN.md
+last_updated: "2026-05-07T12:53:00Z"
+last_activity: 2026-05-07 — 40-02 recipe duplication UI + step photo upload + timeline thumbnails
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_plans: 10
+  completed_plans: 10
+  percent: 90
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-06 after v2.5 milestone started)
 
 ## Current Position
 
-Phase: 40 of 41 (Recipe Actions + Step Photos) — IN PROGRESS
-Plan: 1 of ? (40-01 complete — data layer foundation done)
-Status: 40-01 migration 013, types, 12-col INSERT, duplicateRecipe, useDuplicateRecipe delivered
-Last activity: 2026-05-07 — 40-01 data layer foundation (step photos + alt paint schema)
+Phase: 40 of 41 (Recipe Actions + Step Photos) — COMPLETE
+Plan: 2 of 2 (40-02 complete — UI layer for duplication + step photos)
+Status: STUDIO-03 (recipe duplication) and STEP-05 (step photos) delivered end-to-end
+Last activity: 2026-05-07 — 40-02 Duplicate button, step/result photo upload, timeline thumbnails
 
-Progress: [████████░░] 80% (8/? plans in v2.5)
+Progress: [█████████░] 90% (9/10 plans in v2.5)
 
 ## Accumulated Context
 
@@ -114,6 +114,13 @@ Progress: [████████░░] 80% (8/? plans in v2.5)
 - duplicateRecipe copies all 12 step columns including Phase 40 fields — avoids data loss on duplication
 - useDuplicateRecipe invalidates RECIPE_SWATCH_KEY, STEP_COUNTS_KEY, RECIPE_AVAILABILITY_KEY — new recipe has steps so all caches affected
 
+### Decisions from Phase 40 Plan 02
+
+- onDuplicate callback pattern chosen: RecipeDetailSheet stays stateless, parent RecipesPage handles opening the copy immediately
+- stepPhotoUrls resolved in RecipeDetailSheet (not RecipeStepTimeline) — timeline stays a pure presentational component receiving pre-resolved URLs
+- Photo upload pattern confirmed: openDialog → readFile(absolute path, no baseDir) → writeFile(UUID.ext, {baseDir: AppData}) → store UUID filename in DB
+- result_photo_path now read from form values in create path (was hardcoded null) — completing the STEP-05 photo upload chain for new recipes
+
 ### Key v2.5 Architectural Constraints
 
 - FIXED (Phase 37-01): useDeleteRecipe now includes `["kanban-enrichment"]` invalidation — cache symmetry restored
@@ -131,6 +138,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-07T10:43:41Z
-Stopped at: Completed 40-01-PLAN.md
-Resume: Phase 40 in progress — 40-01 data layer complete, continue with 40-02 (next plan in phase)
+Last session: 2026-05-07T12:53:00Z
+Stopped at: Completed 40-02-PLAN.md
+Resume: Phase 40 complete — both plans done. Next: Phase 41 (session-recipe linking, INTEG-01/02)
