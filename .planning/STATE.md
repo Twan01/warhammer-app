@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Recipes 2.0 / Painting Studio
-status: in-progress
-stopped_at: Completed 38-01-PLAN.md
-last_updated: "2026-05-07T10:18:00.000Z"
-last_activity: 2026-05-07 — 38-01 data layer extension complete
+status: completed
+stopped_at: Completed 38-02-PLAN.md
+last_updated: "2026-05-07T08:14:37Z"
+last_activity: 2026-05-07 — 38-02 structured step UI wiring complete
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 1
-  percent: 50
+  completed_phases: 2
+  total_plans: 4
+  completed_plans: 4
+  percent: 100
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-06 after v2.5 milestone started)
 
 ## Current Position
 
-Phase: 38 of 41 (Structured Step Input) — IN PROGRESS
-Plan: 1 of 2 (38-01 complete)
-Status: 38-01 done — ready for 38-02 (step creation UI wiring)
-Last activity: 2026-05-07 — 38-01 data layer extension complete
+Phase: 38 of 41 (Structured Step Input) — COMPLETE
+Plan: 2 of 2 (38-02 complete)
+Status: Phase 38 complete — all structured step input features delivered
+Last activity: 2026-05-07 — 38-02 structured step UI wiring complete
 
-Progress: [█████░░░░░] 50% (1/2 plans in Phase 38)
+Progress: [██████████] 100% (2/2 plans in Phase 38)
 
 ## Accumulated Context
 
@@ -79,6 +79,13 @@ Progress: [█████░░░░░] 50% (1/2 plans in Phase 38)
 - DraftStep new fields use string | null rather than PaintingPhase union type — keeps draft state loose; validation/coercion happens at form submit
 - RecipeFormSheet.tsx existing-step mapper must be kept in sync with DraftStep interface (auto-fix applied)
 
+### Decisions from Phase 38 Plan 02
+
+- datalist suggestions (not combobox) for tool and technique — keeps freeform text entry while offering hints
+- formatMinutes placed at module level above the component — testable in isolation, avoids re-creating on every render
+- Math.round() enforces integer discipline at input boundary — prevents float values reaching SQLite INTEGER column
+- Two-row step input layout locked: (phase Select + title + paint) on row 1, (tool + technique + dilution + time) on row 2
+
 ### Key v2.5 Architectural Constraints
 
 - FIXED (Phase 37-01): useDeleteRecipe now includes `["kanban-enrichment"]` invalidation — cache symmetry restored
@@ -96,6 +103,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-07T10:18:00.000Z
-Stopped at: Completed 38-01-PLAN.md
-Resume: Phase 38 Plan 1 complete — begin Phase 38 Plan 2 (Step Creation UI wiring)
+Last session: 2026-05-07T08:14:37Z
+Stopped at: Completed 38-02-PLAN.md
+Resume: Phase 38 complete — begin Phase 39 (Painting Studio)
