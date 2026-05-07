@@ -4,7 +4,7 @@ milestone: v2.5
 milestone_name: Recipes 2.0 / Painting Studio
 status: completed
 stopped_at: Completed 38-02-PLAN.md
-last_updated: "2026-05-07T08:14:37Z"
+last_updated: "2026-05-07T08:19:54.506Z"
 last_activity: 2026-05-07 — 38-02 structured step UI wiring complete
 progress:
   total_phases: 5
