@@ -16,10 +16,10 @@ Requirements for Recipes 2.0 / Painting Studio. Each maps to roadmap phases.
 
 ### Recipe Steps
 
-- [ ] **STEP-01**: User can add/edit/delete steps with title, phase (prime/basecoat/shade/layer/highlight/glaze/weathering/basing/varnish/other), and paint link
-- [ ] **STEP-02**: User can reorder steps via drag-and-drop (reuses @dnd-kit)
-- [ ] **STEP-03**: User can set tool, dilution, and technique per step
-- [ ] **STEP-04**: User can set time estimate per step (minutes), which rolls up to recipe total
+- [x] **STEP-01**: User can add/edit/delete steps with title, phase (prime/basecoat/shade/layer/highlight/glaze/weathering/basing/varnish/other), and paint link
+- [x] **STEP-02**: User can reorder steps via drag-and-drop (reuses @dnd-kit)
+- [x] **STEP-03**: User can set tool, dilution, and technique per step
+- [x] **STEP-04**: User can set time estimate per step (minutes), which rolls up to recipe total
 - [ ] **STEP-05**: User can attach a photo to each step
 
 ### Paint Integration
@@ -65,10 +65,10 @@ Requirements for Recipes 2.0 / Painting Studio. Each maps to roadmap phases.
 | SCHEMA-02 | Phase 37 | Complete |
 | SCHEMA-03 | Phase 37 | Complete |
 | SCHEMA-04 | Phase 37 | Complete |
-| STEP-01 | Phase 38 | Pending |
-| STEP-02 | Phase 38 | Pending |
-| STEP-03 | Phase 38 | Pending |
-| STEP-04 | Phase 38 | Pending |
+| STEP-01 | Phase 38 | Complete |
+| STEP-02 | Phase 38 | Complete |
+| STEP-03 | Phase 38 | Complete |
+| STEP-04 | Phase 38 | Complete |
 | STUDIO-01 | Phase 39 | Pending |
 | STUDIO-02 | Phase 39 | Pending |
 | STUDIO-04 | Phase 39 | Pending |

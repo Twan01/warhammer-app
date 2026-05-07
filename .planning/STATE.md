@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Recipes 2.0 / Painting Studio
-status: completed
-stopped_at: Phase 38 context gathered
-last_updated: "2026-05-07T07:45:16.285Z"
-last_activity: 2026-05-07 — 37-02 N+1 batch step count fix complete
+status: in-progress
+stopped_at: Completed 38-01-PLAN.md
+last_updated: "2026-05-07T10:18:00.000Z"
+last_activity: 2026-05-07 — 38-01 data layer extension complete
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 2
-  completed_plans: 2
-  percent: 100
+  completed_plans: 1
+  percent: 50
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06 after v2.5 milestone started)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.5 Phase 37 — Schema Foundation + Pre-flight Fixes
+**Current focus:** v2.5 Phase 38 — Structured Step Input
 
 ## Current Position
 
-Phase: 37 of 41 (Schema Foundation + Pre-flight Fixes) — COMPLETE
-Plan: 2 of 2 (37-02 complete)
-Status: Phase 37 done — ready for Phase 38
-Last activity: 2026-05-07 — 37-02 N+1 batch step count fix complete
+Phase: 38 of 41 (Structured Step Input) — IN PROGRESS
+Plan: 1 of 2 (38-01 complete)
+Status: 38-01 done — ready for 38-02 (step creation UI wiring)
+Last activity: 2026-05-07 — 38-01 data layer extension complete
 
-Progress: [██████████] 100% (2/2 plans in Phase 37)
+Progress: [█████░░░░░] 50% (1/2 plans in Phase 38)
 
 ## Accumulated Context
 
@@ -73,6 +73,12 @@ Progress: [██████████] 100% (2/2 plans in Phase 37)
 - STEP_COUNTS_KEY = ["recipe-step-counts"] declared as a module constant so invalidation is centralized in useAddRecipePaint and useRemoveRecipePaint
 - RecipesPage no longer imports from the query layer directly — all data flows through hooks (architecture rule enforced)
 
+### Decisions from Phase 38 Plan 01
+
+- PAINTING_PHASES placed in recipeSchema.ts (not recipeSteps.ts) — follows the existing pattern where all const arrays for the recipe feature live in one file
+- DraftStep new fields use string | null rather than PaintingPhase union type — keeps draft state loose; validation/coercion happens at form submit
+- RecipeFormSheet.tsx existing-step mapper must be kept in sync with DraftStep interface (auto-fix applied)
+
 ### Key v2.5 Architectural Constraints
 
 - FIXED (Phase 37-01): useDeleteRecipe now includes `["kanban-enrichment"]` invalidation — cache symmetry restored
@@ -90,6 +96,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-07T07:45:16.282Z
-Stopped at: Phase 38 context gathered
-Resume: Phase 37 complete — begin Phase 38 (Recipe Step Creation UI)
+Last session: 2026-05-07T10:18:00.000Z
+Stopped at: Completed 38-01-PLAN.md
+Resume: Phase 38 Plan 1 complete — begin Phase 38 Plan 2 (Step Creation UI wiring)
