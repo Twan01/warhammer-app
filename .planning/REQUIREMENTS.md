@@ -1,0 +1,90 @@
+# Requirements: HobbyForge v2.5
+
+**Defined:** 2026-05-07
+**Core Value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
+
+## v2.5 Requirements
+
+Requirements for Recipes 2.0 / Painting Studio. Each maps to roadmap phases.
+
+### Schema Foundation
+
+- [ ] **SCHEMA-01**: User can create recipes with structured steps that replace the flat recipe_paints system (migration backfill preserves existing data)
+- [ ] **SCHEMA-02**: User can set recipe metadata: style, surface, effect, difficulty, estimated total minutes, and result photo
+- [ ] **SCHEMA-03**: Pre-existing useDeleteRecipe cache invalidation bug is fixed (missing kanban-enrichment key)
+- [ ] **SCHEMA-04**: Recipe step count uses batch query instead of N+1 per-recipe loop
+
+### Recipe Steps
+
+- [ ] **STEP-01**: User can add/edit/delete steps with title, phase (prime/basecoat/shade/layer/highlight/glaze/weathering/basing/varnish/other), and paint link
+- [ ] **STEP-02**: User can reorder steps via drag-and-drop (reuses @dnd-kit)
+- [ ] **STEP-03**: User can set tool, dilution, and technique per step
+- [ ] **STEP-04**: User can set time estimate per step (minutes), which rolls up to recipe total
+- [ ] **STEP-05**: User can attach a photo to each step
+
+### Paint Integration
+
+- [ ] **PAINT-01**: User can see owned/missing/running-low paint count as a badge on recipe cards
+- [ ] **PAINT-02**: User can link an alternative substitute paint to any step
+- [ ] **PAINT-03**: User can add all missing paints from a recipe to their wishlist in one action
+
+### Studio UX
+
+- [ ] **STUDIO-01**: User can view recipes as a card grid with color swatches, metadata badges, and availability indicator
+- [ ] **STUDIO-02**: User can view recipe detail as a step-by-step vertical timeline
+- [ ] **STUDIO-03**: User can duplicate a recipe (copies header + all steps + substitutions)
+- [ ] **STUDIO-04**: User can filter recipes by surface, style, difficulty, and missing paints
+
+### Integration
+
+- [ ] **INTEG-01**: User can select a recipe and step when logging a painting session via LogSessionSheet
+- [ ] **INTEG-02**: User can see which sessions were linked to a recipe from the recipe detail view
+
+## Future Requirements
+
+### Recipe Enhancements (v2.6+)
+
+- **RECIPE-F01**: Per-step completion tracking per unit (recipe_step_progress table)
+- **RECIPE-F02**: Built-in starter recipe templates
+- **RECIPE-F03**: Recipe sharing/export as markdown or PDF
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| AI recipe generator | Deferred to v3+ — no AI features in scope |
+| Cross-brand paint conversion database | High maintenance, goes stale; alt_paint_id per step is sufficient |
+| Recipe sharing/social features | Local-first by design — no network features |
+| useFieldArray for step form | Documented ID collision with @dnd-kit useSortable (RHF #10607) |
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| SCHEMA-01 | — | Pending |
+| SCHEMA-02 | — | Pending |
+| SCHEMA-03 | — | Pending |
+| SCHEMA-04 | — | Pending |
+| STEP-01 | — | Pending |
+| STEP-02 | — | Pending |
+| STEP-03 | — | Pending |
+| STEP-04 | — | Pending |
+| STEP-05 | — | Pending |
+| PAINT-01 | — | Pending |
+| PAINT-02 | — | Pending |
+| PAINT-03 | — | Pending |
+| STUDIO-01 | — | Pending |
+| STUDIO-02 | — | Pending |
+| STUDIO-03 | — | Pending |
+| STUDIO-04 | — | Pending |
+| INTEG-01 | — | Pending |
+| INTEG-02 | — | Pending |
+
+**Coverage:**
+- v2.5 requirements: 18 total
+- Mapped to phases: 0
+- Unmapped: 18 ⚠️
+
+---
+*Requirements defined: 2026-05-07*
+*Last updated: 2026-05-07 after initial definition*
