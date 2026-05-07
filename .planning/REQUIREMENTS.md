@@ -20,19 +20,19 @@ Requirements for Recipes 2.0 / Painting Studio. Each maps to roadmap phases.
 - [x] **STEP-02**: User can reorder steps via drag-and-drop (reuses @dnd-kit)
 - [x] **STEP-03**: User can set tool, dilution, and technique per step
 - [x] **STEP-04**: User can set time estimate per step (minutes), which rolls up to recipe total
-- [ ] **STEP-05**: User can attach a photo to each step
+- [x] **STEP-05**: User can attach a photo to each step
 
 ### Paint Integration
 
 - [x] **PAINT-01**: User can see owned/missing/running-low paint count as a badge on recipe cards
-- [ ] **PAINT-02**: User can link an alternative substitute paint to any step
+- [x] **PAINT-02**: User can link an alternative substitute paint to any step
 - [ ] **PAINT-03**: User can add all missing paints from a recipe to their wishlist in one action
 
 ### Studio UX
 
 - [x] **STUDIO-01**: User can view recipes as a card grid with color swatches, metadata badges, and availability indicator
-- [ ] **STUDIO-02**: User can view recipe detail as a step-by-step vertical timeline
-- [ ] **STUDIO-03**: User can duplicate a recipe (copies header + all steps + substitutions)
+- [x] **STUDIO-02**: User can view recipe detail as a step-by-step vertical timeline
+- [x] **STUDIO-03**: User can duplicate a recipe (copies header + all steps + substitutions)
 - [x] **STUDIO-04**: User can filter recipes by surface, style, difficulty, and missing paints
 
 ### Integration
@@ -70,12 +70,12 @@ Requirements for Recipes 2.0 / Painting Studio. Each maps to roadmap phases.
 | STEP-03 | Phase 38 | Complete |
 | STEP-04 | Phase 38 | Complete |
 | STUDIO-01 | Phase 39 | Complete |
-| STUDIO-02 | Phase 39 | Pending |
+| STUDIO-02 | Phase 39 | Complete |
 | STUDIO-04 | Phase 39 | Complete |
 | PAINT-01 | Phase 39 | Complete |
-| STUDIO-03 | Phase 40 | Pending |
-| STEP-05 | Phase 40 | Pending |
-| PAINT-02 | Phase 40 | Pending |
+| STUDIO-03 | Phase 40 | Complete |
+| STEP-05 | Phase 40 | Complete |
+| PAINT-02 | Phase 40 | Complete |
 | PAINT-03 | Phase 40 | Pending |
 | INTEG-01 | Phase 41 | Pending |
 | INTEG-02 | Phase 41 | Pending |
