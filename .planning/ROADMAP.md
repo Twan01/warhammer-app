@@ -153,7 +153,11 @@ Plans:
   2. Clicking a recipe opens a full detail view that presents all steps as a vertical timeline with phase label, paint swatch, tool, technique, and time per step
   3. User can filter the recipe grid by surface type, style, difficulty level, and whether any paints are missing from inventory
   4. The paint availability badge on each card updates immediately when paint ownership changes elsewhere in the app
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 39-01-PLAN.md — Batch paint availability query, hook, and cache invalidation wiring
+- [ ] 39-02-PLAN.md — RecipeCard + RecipeCardGrid components, RecipesPage swap, filters, delete old table
+- [ ] 39-03-PLAN.md — RecipeStepTimeline component, RecipeDetailSheet metadata badges + timeline integration
 
 ### Phase 40: Recipe Actions + Step Photos
 **Goal**: Users can duplicate recipes, attach reference photos to individual steps, link substitute paints, and bulk-add all missing recipe paints to the wishlist in a single action
@@ -218,8 +222,8 @@ Plans:
 | 33. Data Intelligence | v2.4 | 4/4 | Complete | 2026-05-06 |
 | 34. Visual Polish | v2.4 | 2/2 | Complete | 2026-05-06 |
 | 36. v2.4 Gap Closure | v2.4 | 1/1 | Complete | 2026-05-06 |
-| 37. Schema Foundation + Pre-flight Fixes | 2/2 | Complete    | 2026-05-07 | - |
-| 38. Structured Step Input | 2/2 | Complete    | 2026-05-07 | - |
-| 39. Studio UX + Paint Availability | v2.5 | 0/TBD | Not started | - |
+| 37. Schema Foundation + Pre-flight Fixes | v2.5 | 2/2 | Complete | 2026-05-07 |
+| 38. Structured Step Input | v2.5 | 2/2 | Complete | 2026-05-07 |
+| 39. Studio UX + Paint Availability | v2.5 | 0/3 | In progress | - |
 | 40. Recipe Actions + Step Photos | v2.5 | 0/TBD | Not started | - |
 | 41. Session Integration | v2.5 | 0/TBD | Not started | - |
