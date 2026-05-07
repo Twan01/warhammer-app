@@ -253,6 +253,57 @@
 
 ---
 
+## Milestone: v2.5 — Recipes 2.0 / Painting Studio
+
+**Shipped:** 2026-05-07
+**Phases:** 5 (37–41) | **Plans:** 12 | **Timeline:** 1 day (2026-05-07)
+
+### What Was Built
+
+- Phase 37: Migration 012 (recipe_paints → recipe_steps rename + 11 new columns), recipe metadata fields (style/surface/effect/difficulty/time/photo), kanban cache invalidation fix, batch step count query replacing N+1 loop
+- Phase 38: Full step input UI — painting phase dropdown (10 values), tool/technique/dilution/time inputs on two-line layout, @dnd-kit drag-and-drop reordering, time sum display in recipe header
+- Phase 39: RecipeTable → RecipeCard/RecipeCardGrid transformation, paint availability batch query with AvailabilityBadge (green/red/amber dots), RecipeStepTimeline vertical detail view, 4-dimension filtering (surface/style/difficulty/missing paints), applyRecipeFilters extraction
+- Phase 40: Migration 013 (step_photo_path + alt_paint_id), recipe duplication (copies header + all 12 step columns), per-step photo upload via Tauri FS API with timeline thumbnails, alt paint combobox, bulk "Add all missing to wishlist" with name-based dedup
+- Phase 41: Migration 014 (recipe_id/recipe_step_id on painting_sessions), LogSessionSheet recipe/step dropdowns with faction-sorted picker and cascading clear, RecipeDetailSheet sessions history section
+
+### What Worked
+
+- **Rename-not-copy migration strategy:** Phase 37's `ALTER TABLE recipe_paints RENAME TO recipe_steps` preserved all existing data with zero risk of loss or duplication. Combined with a `RecipePaint = RecipeStep` type alias, the rename was invisible to downstream consumers until they opted in to the new name.
+- **Progressive column expansion (10 → 12):** Phase 38 expanded addRecipePaint to 10 columns, Phase 40 to 12. Each expansion was additive and backward-compatible (new columns default to NULL). No existing code broke at any step.
+- **Batch SQL for aggregates (2 independent queries):** `getStepCountsByRecipe` (GROUP BY) and `getRecipePaintAvailability` (JOIN + CASE WHEN) each replaced potential N+1 patterns with single round-trips. Both return Map-shaped results consumed by the page.
+- **Pure presentational timeline component:** RecipeStepTimeline takes `steps + paintMap + stepPhotoUrls` as props with zero internal data fetching. Made testing trivial and photo URL resolution cleanly separated in the parent RecipeDetailSheet.
+- **SUMMARY frontmatter gap still present:** 8 of 18 requirements missing from SUMMARY `requirements_completed` arrays (same issue flagged in v2.4). All 18 were verified in VERIFICATION.md — the gap is documentation-only but it adds overhead at audit time.
+
+### What Was Inefficient
+
+- **SUMMARY frontmatter requirements_completed not populated in 8/12 plans:** Despite being flagged as a lesson in v2.4, 8 plan SUMMARYs still shipped with empty `requirements_completed` arrays. The 3-source cross-reference at audit time had to manually verify these via VERIFICATION.md. The executor workflow should enforce this field.
+- **Phase 40/41 progress table column misalignment:** Phases 40 and 41 were missing the milestone column in ROADMAP.md (5th consecutive milestone with this issue). Fixed at archive time.
+- **No one-liner in any SUMMARY frontmatter:** All 12 SUMMARY files had `one_liner: null`, which forced manual accomplishment extraction at milestone completion. The `one_liner` field should be populated during plan execution.
+
+### Patterns Established
+
+- **Rename migration for table evolution:** When restructuring an existing table, `ALTER TABLE ... RENAME TO` + type alias is safer than create-copy-drop. Data stays in place; downstream code migrates incrementally.
+- **Batch availability query pattern:** For features that need per-entity aggregate stats on a listing page (owned/missing/low counts per recipe), a single GROUP BY JOIN query returning a Map is the standard approach. Paired with a dedicated cache key for cross-mutation invalidation.
+- **ON DELETE SET NULL for cross-feature FKs:** When feature B (sessions) references feature A (recipes), use SET NULL so B survives A's deletion. The link clears but the row persists.
+- **Cascading Select clear via useEffect:** When Select B depends on Select A's value, a `useEffect([watchedA]) → form.setValue(B, null)` prevents stale FK references. Applied in LogSessionSheet (recipe → step cascade).
+- **Sequential mutateAsync for bulk operations:** For small-batch writes (e.g., adding 3–5 wishlist items), a sequential `for...of + mutateAsync` loop is simpler and more debuggable than `Promise.all`. Acceptable for local desktop apps.
+
+### Key Lessons
+
+1. **Enforce `requirements_completed` in SUMMARY frontmatter during plan execution.** v2.4 identified this; v2.5 didn't fix it. 8/12 plans missing. This is the most persistent documentation gap — needs a workflow enforcement hook, not just a lesson.
+2. **Enforce `one_liner` in SUMMARY frontmatter.** All 12 plans missing. The milestone completion workflow depends on this field for accomplishment extraction; without it, accomplishments must be manually composed.
+3. **ROADMAP progress table column alignment needs automated validation.** 5th consecutive milestone. Manual editing will never fix this consistently.
+4. **Rename migration + type alias is the cleanest table evolution strategy.** Zero data loss, zero downstream breakage, incremental consumer migration. Use this for any table restructure going forward.
+5. **Batch aggregate queries scale cleanly.** Two independent batch queries (step counts + paint availability) serve the entire RecipesPage without N+1 risk. The Map-return pattern is reusable for any aggregate-on-listing-page scenario.
+
+### Cost Observations
+
+- Model: Claude Opus 4.6 throughout
+- Sessions: 2 (Phase 37–40 execution, Phase 41 + audit + completion)
+- Notable: 5 phases with 12 plans and 18 requirements in 1 calendar day — fastest milestone yet by velocity-per-requirement (18 req in 1 day); clean phase dependency chain (37→38→39→40→41) with no parallelism needed
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -265,6 +316,7 @@
 | v2.2 | 8 | 23 | Cache invalidation symmetry rule; gap closure as formal phase; milestone audit → fix → re-audit cycle proven |
 | v2.3 | 5 | 21 | Unified design system; Quick Add pattern; kanban enrichment |
 | v2.4 | 6 | 13 | CSS grid dashboard; photo-rich panels; Radix sentinel pattern; gap closure routine (6 min) |
+| v2.5 | 5 | 12 | Recipe restructure (rename migration); batch aggregate queries; session-recipe linking; no gap closure needed |
 
 ### Cumulative Quality
 
@@ -276,6 +328,7 @@
 | v2.2 | 644 | All passing (16 phase-24-specific tests, 2 pre-existing skips) |
 | v2.3 | 758 | All passing (114 v2.3-specific tests) |
 | v2.4 | 778 | 778 passing, 1 pre-existing flaky (paintRowSwatch timeout), 2 skipped, 12 todo |
+| v2.5 | ~900 | All passing (18 requirements, 42/42 observable truths verified, Nyquist compliant) |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -289,3 +342,5 @@
 8. ROADMAP progress table column alignment drifts every milestone — needs structural fix or automated validation
 9. Re-run verification after any post-verification code fix — stale verification docs create false gaps at audit time (learned from VIS-03 in v2.4)
 10. `requirements_completed` in SUMMARY frontmatter is load-bearing for 3-source cross-reference — add it as a standard executor step
+11. Rename migration + type alias is the cleanest table evolution strategy — zero data loss, zero downstream breakage (learned in v2.5 Phase 37)
+12. `one_liner` in SUMMARY frontmatter must be enforced — milestone completion depends on it for accomplishment extraction (all 12 v2.5 SUMMARYs missing)

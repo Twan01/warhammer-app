@@ -1,24 +1,10 @@
 # HobbyForge
 
-## Current Milestone: v2.5 Recipes 2.0 / Painting Studio
-
-**Goal:** Transform recipes from flat paint notes into a structured painting knowledge system with step-by-step workflows, paint inventory integration, and a studio UX.
-
-**Target features:**
-- Structured recipe steps (title, phase, tool, technique, duration, photo per step)
-- Recipe metadata (style, surface, effect, difficulty, estimated minutes, result photo)
-- Paint availability integration (owned/missing/running-low per recipe)
-- Recipe-to-session linking (track which recipe/step you worked on)
-- Studio UX upgrade (cards, timeline view, filters, duplication)
-- Paint substitutions per step
-
----
-
 ## What This Is
 
-HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play" — all without ever depending on copyrighted GW data.
+HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, structured painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play" — all without ever depending on copyrighted GW data.
 
-Shipped through v2.4 (36 phases): full hobby command center with collection management, painting workflow (Kanban + recipes), army list builder, battle log, spending tracker, hobby goals, Wahapedia datasheet integration, photo journal, and a premium CSS grid dashboard with photo-rich panels, army readiness tracking, and visual polish.
+Shipped through v2.5 (41 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with paint availability), army list builder, battle log, spending tracker, hobby goals, Wahapedia datasheet integration, photo journal, session-recipe linking, and a premium CSS grid dashboard with photo-rich panels, army readiness tracking, and visual polish.
 
 ## Core Value
 
@@ -92,9 +78,17 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ FactionSummaryCard v2 (accent band, active glow ring) — Phase 34 — v2.4
 - ✓ Hero radial gradient + hover shadow hierarchy on all dashboard cards — Phase 34 — v2.4
 
+*All v2.5 requirements verified and shipped 2026-05-07*
+
+- ✓ Schema foundation: recipe_paints → recipe_steps migration with zero data loss, 6 recipe metadata columns, cache fix, batch step count — Phases 37 — v2.5
+- ✓ Structured step input: painting phase, tool, technique, dilution, time per step, drag-and-drop reorder — Phase 38 — v2.5
+- ✓ Studio UX: card grid with paint availability badges, step timeline detail view, 4-dimension filtering — Phase 39 — v2.5
+- ✓ Recipe actions: duplication, per-step photos, substitute paint linking, bulk wishlist add — Phase 40 — v2.5
+- ✓ Session-recipe integration: recipe/step selectors in LogSessionSheet, session history in recipe detail — Phase 41 — v2.5
+
 ### Active
 
-(Defining requirements for v2.5 Recipes 2.0 / Painting Studio)
+(No active milestone — next milestone TBD)
 
 ### Out of Scope
 
@@ -112,7 +106,7 @@ A single personal command center that always answers "what do I own, what's pain
 
 ## Context
 
-- **Current state:** v2.4 shipped. 224 TypeScript source files. 778 automated tests passing. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 9 main pages (Dashboard, Collection, Projects, Recipes, Paints, Army Lists, Battle Log, Spending, Factions). Premium CSS grid bento dashboard with photo-rich panels (UnitThumbnail, CurrentFocusCard v2, ActiveProjectsPanel), ArmyReadinessCard with target selector, data intelligence (LogSession status updates, spending metrics, recipe-unit navigation), and visual polish (FactionSummaryCard v2, hero gradient, shadow hierarchy).
+- **Current state:** v2.5 shipped. ~240 TypeScript source files. ~900 automated tests passing. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 9 main pages (Dashboard, Collection, Projects, Recipes, Paints, Army Lists, Battle Log, Spending, Factions). Recipes transformed into structured painting knowledge system: step-by-step workflows with phase/tool/technique/dilution/time, card grid studio with paint availability badges, timeline detail view, recipe duplication, per-step photos, substitute paints, bulk wishlist add, and session-recipe linking. 14 SQLite migrations, 3 new in v2.5 (012/013/014).
 - **Personal tool** — single user (the owner), local-first, no accounts or sync
 - **Domain:** Warhammer 40K 10th edition, hobby management (collecting → painting → playing)
 - **User journey priority:** painter/collector → ready-to-play, *not* competitive optimization
@@ -159,6 +153,14 @@ A single personal command center that always answers "what do I own, what's pain
 | useLatestUnitPhotos called once in DashboardPage | Photo hook called once at page level, prop-drilled to panels — prevents N+1 queries | ✓ Good — single query for all dashboard photo needs |
 | FactionSummaryCard accent band via absolute div | Not CSS border — prevents border-radius clipping on rounded-xl cards | ✓ Good — clean visual at all sizes |
 | Recipe by-unit cache invalidation prefix match | Raw array literal `["recipes", "by-unit"]` invalidates all `["recipes", "by-unit", *]` keys | ✓ Good — React Query prefix matching, no new constant needed |
+| recipe_paints RENAME to recipe_steps (not new table) | Preserves all existing data; avoids copy+drop migration risk | ✓ Excellent — zero data loss, backward compat via type alias |
+| Raw assignment (not COALESCE) for recipe metadata UPDATE | Users need to clear fields to NULL; COALESCE prevents clearing | ✓ Good — explicit design; consistent with how optional fields work |
+| useFieldArray NOT used for step forms | Documented ID collision with @dnd-kit useSortable (RHF #10607) | ✓ Good — manual array + useMemo avoids the bug |
+| Batch GROUP BY for step counts | Single query replaces N+1 per-recipe loop on RecipesPage | ✓ Excellent — O(1) vs O(N) queries |
+| JOIN (not LEFT JOIN) for paint availability | Steps with deleted paints excluded from availability counts | ✓ Good — avoids NULL aggregation noise |
+| Sequential mutateAsync for bulk wishlist add | Simpler error handling than Promise.all; first failure surfaces | ✓ Good — fine for local desktop app with low item counts |
+| ON DELETE SET NULL for session-recipe FKs | Session survives recipe/step deletion; link cleared not orphaned | ✓ Good — preserves session data integrity |
+| Conditional RECIPE_SESSIONS_KEY invalidation | Only when recipe_id != null — no unnecessary cache busts for unlinked sessions | ✓ Good — precise invalidation following symmetry rule |
 
 ---
-*Last updated: 2026-05-06 after v2.5 milestone started*
+*Last updated: 2026-05-07 after v2.5 milestone*
