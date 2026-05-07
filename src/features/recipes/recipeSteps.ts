@@ -10,6 +10,8 @@ export interface DraftStep {
   technique: string | null;
   dilution: string | null;
   time_estimate_minutes: number | null;
+  step_photo_path: string | null;
+  alt_paint_id: number | null;
 }
 
 export function makeDraftStep(): DraftStep {
@@ -23,6 +25,8 @@ export function makeDraftStep(): DraftStep {
     technique: null,
     dilution: null,
     time_estimate_minutes: null,
+    step_photo_path: null,
+    alt_paint_id: null,
   };
 }
 
