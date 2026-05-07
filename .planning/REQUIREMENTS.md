@@ -30,10 +30,10 @@ Requirements for Recipes 2.0 / Painting Studio. Each maps to roadmap phases.
 
 ### Studio UX
 
-- [ ] **STUDIO-01**: User can view recipes as a card grid with color swatches, metadata badges, and availability indicator
+- [x] **STUDIO-01**: User can view recipes as a card grid with color swatches, metadata badges, and availability indicator
 - [ ] **STUDIO-02**: User can view recipe detail as a step-by-step vertical timeline
 - [ ] **STUDIO-03**: User can duplicate a recipe (copies header + all steps + substitutions)
-- [ ] **STUDIO-04**: User can filter recipes by surface, style, difficulty, and missing paints
+- [x] **STUDIO-04**: User can filter recipes by surface, style, difficulty, and missing paints
 
 ### Integration
 
@@ -69,9 +69,9 @@ Requirements for Recipes 2.0 / Painting Studio. Each maps to roadmap phases.
 | STEP-02 | Phase 38 | Complete |
 | STEP-03 | Phase 38 | Complete |
 | STEP-04 | Phase 38 | Complete |
-| STUDIO-01 | Phase 39 | Pending |
+| STUDIO-01 | Phase 39 | Complete |
 | STUDIO-02 | Phase 39 | Pending |
-| STUDIO-04 | Phase 39 | Pending |
+| STUDIO-04 | Phase 39 | Complete |
 | PAINT-01 | Phase 39 | Complete |
 | STUDIO-03 | Phase 40 | Pending |
 | STEP-05 | Phase 40 | Pending |

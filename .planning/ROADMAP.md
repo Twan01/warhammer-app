@@ -153,7 +153,7 @@ Plans:
   2. Clicking a recipe opens a full detail view that presents all steps as a vertical timeline with phase label, paint swatch, tool, technique, and time per step
   3. User can filter the recipe grid by surface type, style, difficulty level, and whether any paints are missing from inventory
   4. The paint availability badge on each card updates immediately when paint ownership changes elsewhere in the app
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 Plans:
 - [ ] 39-01-PLAN.md — Batch paint availability query, hook, and cache invalidation wiring
 - [ ] 39-02-PLAN.md — RecipeCard + RecipeCardGrid components, RecipesPage swap, filters, delete old table
@@ -224,6 +224,6 @@ Plans:
 | 36. v2.4 Gap Closure | v2.4 | 1/1 | Complete | 2026-05-06 |
 | 37. Schema Foundation + Pre-flight Fixes | v2.5 | 2/2 | Complete | 2026-05-07 |
 | 38. Structured Step Input | v2.5 | 2/2 | Complete | 2026-05-07 |
-| 39. Studio UX + Paint Availability | 1/3 | In Progress|  | - |
+| 39. Studio UX + Paint Availability | 2/3 | In Progress|  | - |
 | 40. Recipe Actions + Step Photos | v2.5 | 0/TBD | Not started | - |
 | 41. Session Integration | v2.5 | 0/TBD | Not started | - |
