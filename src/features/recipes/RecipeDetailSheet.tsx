@@ -11,12 +11,20 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Clock } from "lucide-react";
 import { useRecipePaints } from "@/hooks/useRecipePaints";
 import { usePaints } from "@/hooks/usePaints";
 import { useFactions } from "@/hooks/useFactions";
 import { useUnits } from "@/hooks/useUnits";
 import type { PaintingRecipe } from "@/types/recipe";
-import { isPaintMissing } from "./recipeSteps";
+import { RecipeStepTimeline } from "./RecipeStepTimeline";
+
+const difficultyColors: Record<string, string> = {
+  Beginner: "text-green-500",
+  Intermediate: "text-yellow-500",
+  Advanced: "text-orange-500",
+  Expert: "text-red-500",
+};
 
 export interface RecipeDetailSheetProps {
   open: boolean;
@@ -83,6 +91,30 @@ export function RecipeDetailSheet({
                   <span className="text-muted-foreground">No faction linked</span>
                 )}
               </SheetDescription>
+              {(recipe.style || recipe.surface || recipe.effect || recipe.difficulty || recipe.estimated_minutes != null) && (
+                <div className="flex flex-wrap items-center gap-1.5 px-4 pt-2" data-testid="recipe-metadata">
+                  {recipe.surface && (
+                    <Badge variant="outline" className="text-xs">{recipe.surface}</Badge>
+                  )}
+                  {recipe.style && (
+                    <Badge variant="outline" className="text-xs">{recipe.style}</Badge>
+                  )}
+                  {recipe.effect && (
+                    <Badge variant="outline" className="text-xs">{recipe.effect}</Badge>
+                  )}
+                  {recipe.difficulty && (
+                    <Badge variant="secondary" className={`text-xs ${difficultyColors[recipe.difficulty] ?? ""}`}>
+                      {recipe.difficulty}
+                    </Badge>
+                  )}
+                  {recipe.estimated_minutes != null && (
+                    <Badge variant="outline" className="text-xs">
+                      <Clock className="mr-1 h-3 w-3" />
+                      {recipe.estimated_minutes} min
+                    </Badge>
+                  )}
+                </div>
+              )}
             </SheetHeader>
 
             <div className="flex flex-col gap-4 p-4">
@@ -127,39 +159,7 @@ export function RecipeDetailSheet({
               <Separator />
 
               <Field label="Recipe Steps">
-                {steps.length === 0 ? (
-                  <span className="text-sm text-muted-foreground">No steps added yet.</span>
-                ) : (
-                  <ol className="flex flex-col gap-2">
-                    {steps.map((s, i) => {
-                      const paint = paintMap.get(s.paint_id);
-                      const missing = isPaintMissing(paint);
-                      return (
-                        <li key={s.id} className="flex items-center gap-2 text-sm">
-                          <span className="text-xs text-muted-foreground">{i + 1}.</span>
-                          <span className="font-medium">{s.step_name}</span>
-                          {paint ? (
-                            <span className="inline-flex items-center gap-1">
-                              <span
-                                aria-hidden="true"
-                                className={missing ? "text-red-500" : "text-green-500"}
-                              >
-                                ●
-                              </span>
-                              <span>
-                                {paint.brand} {paint.name}
-                              </span>
-                            </span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">
-                              (no paint linked)
-                            </span>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ol>
-                )}
+                <RecipeStepTimeline steps={steps} paintMap={paintMap} />
               </Field>
             </div>
 
