@@ -5,6 +5,7 @@ import {
   removeRecipePaint,
   getRecipeIdsByPaintId,
   getRecipeSwatchColors,
+  getStepCountsByRecipe,
 } from "@/db/queries/recipePaints";
 import type { CreateRecipeStepInput } from "@/types/recipePaint";
 
@@ -18,6 +19,14 @@ export const RECIPE_PAINTS_KEY = (recipeId: number) => ["recipe-paints", recipeI
  * Declared before mutation hooks that reference it.
  */
 export const RECIPE_SWATCH_KEY = ["recipe-swatch-colors"] as const;
+
+/**
+ * SCHEMA-04 — query key for the batch step count lookup.
+ *
+ * Single top-level key — invalidated by useAddRecipePaint and useRemoveRecipePaint
+ * so step counts in RecipesPage refresh immediately after any step change.
+ */
+export const STEP_COUNTS_KEY = ["recipe-step-counts"] as const;
 
 export function useRecipePaints(recipeId: number | undefined) {
   return useQuery({
@@ -34,6 +43,7 @@ export function useAddRecipePaint() {
     onSuccess: (_, input) => {
       qc.invalidateQueries({ queryKey: RECIPE_PAINTS_KEY(input.recipe_id) });
       qc.invalidateQueries({ queryKey: RECIPE_SWATCH_KEY });
+      qc.invalidateQueries({ queryKey: STEP_COUNTS_KEY });
     },
   });
 }
@@ -45,6 +55,7 @@ export function useRemoveRecipePaint() {
     onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: RECIPE_PAINTS_KEY(variables.recipeId) });
       qc.invalidateQueries({ queryKey: RECIPE_SWATCH_KEY });
+      qc.invalidateQueries({ queryKey: STEP_COUNTS_KEY });
     },
   });
 }
@@ -100,6 +111,23 @@ export function useRecipeSwatchData() {
         m.set(row.recipe_id, list);
       }
       return m;
+    },
+  });
+}
+
+/**
+ * SCHEMA-04 — batch step counts for all recipes.
+ *
+ * Returns Map<recipe_id, step_count> from a single GROUP BY query.
+ * Replaces the N+1 loop that called getRecipePaintsByRecipe per recipe.
+ * Invalidated by useAddRecipePaint and useRemoveRecipePaint.
+ */
+export function useAllStepCounts() {
+  return useQuery({
+    queryKey: STEP_COUNTS_KEY,
+    queryFn: async () => {
+      const rows = await getStepCountsByRecipe();
+      return new Map(rows.map((r) => [r.recipe_id, r.step_count]));
     },
   });
 }
