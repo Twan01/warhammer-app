@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   Sheet,
@@ -11,13 +11,17 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Clock } from "lucide-react";
+import { Clock, Copy } from "lucide-react";
+import { toast } from "sonner";
 import { useRecipePaints } from "@/hooks/useRecipePaints";
 import { usePaints } from "@/hooks/usePaints";
 import { useFactions } from "@/hooks/useFactions";
 import { useUnits } from "@/hooks/useUnits";
+import { useDuplicateRecipe } from "@/hooks/useRecipes";
 import type { PaintingRecipe } from "@/types/recipe";
 import { RecipeStepTimeline } from "./RecipeStepTimeline";
+import { appDataDir, join } from "@tauri-apps/api/path";
+import { convertFileSrc } from "@tauri-apps/api/core";
 
 const difficultyColors: Record<string, string> = {
   Beginner: "text-green-500",
@@ -32,6 +36,7 @@ export interface RecipeDetailSheetProps {
   onClose: () => void;
   onEdit: (recipe: PaintingRecipe) => void;
   onDelete: (recipe: PaintingRecipe) => void;
+  onDuplicate: (newRecipeId: number) => void;
 }
 
 export function RecipeDetailSheet({
@@ -40,6 +45,7 @@ export function RecipeDetailSheet({
   onClose,
   onEdit,
   onDelete,
+  onDuplicate,
 }: RecipeDetailSheetProps) {
   const { data: factions } = useFactions();
   const { data: units } = useUnits();
@@ -65,6 +71,44 @@ export function RecipeDetailSheet({
     for (const p of paints) m.set(p.id, p);
     return m;
   }, [paints]);
+
+  const duplicateRecipe = useDuplicateRecipe();
+
+  async function handleDuplicate() {
+    if (!recipe) return;
+    try {
+      const newId = await duplicateRecipe.mutateAsync({
+        originalId: recipe.id,
+        newName: `${recipe.name} (Copy)`,
+      });
+      toast.success("Recipe duplicated.");
+      onDuplicate(newId);
+    } catch {
+      toast.error("Failed to duplicate recipe.");
+    }
+  }
+
+  const [stepPhotoUrls, setStepPhotoUrls] = useState<Map<number, string>>(new Map());
+
+  useEffect(() => {
+    let cancelled = false;
+    async function resolve() {
+      const stepsWithPhotos = steps.filter((s) => s.step_photo_path);
+      if (stepsWithPhotos.length === 0) {
+        setStepPhotoUrls(new Map());
+        return;
+      }
+      const appDir = await appDataDir();
+      const entries: [number, string][] = [];
+      for (const s of stepsWithPhotos) {
+        const abs = await join(appDir, s.step_photo_path!);
+        entries.push([s.id, convertFileSrc(abs)]);
+      }
+      if (!cancelled) setStepPhotoUrls(new Map(entries));
+    }
+    resolve();
+    return () => { cancelled = true; };
+  }, [steps]);
 
   const navigate = useNavigate();
 
@@ -159,7 +203,7 @@ export function RecipeDetailSheet({
               <Separator />
 
               <Field label="Recipe Steps">
-                <RecipeStepTimeline steps={steps} paintMap={paintMap} />
+                <RecipeStepTimeline steps={steps} paintMap={paintMap} stepPhotoUrls={stepPhotoUrls} />
               </Field>
             </div>
 
@@ -170,6 +214,14 @@ export function RecipeDetailSheet({
                 onClick={() => onDelete(recipe)}
               >
                 Delete Recipe
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleDuplicate}
+                disabled={duplicateRecipe.isPending}
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                Duplicate
               </Button>
               <Button onClick={() => onEdit(recipe)}>Edit Recipe</Button>
             </SheetFooter>

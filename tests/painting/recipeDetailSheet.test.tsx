@@ -43,6 +43,23 @@ vi.mock("@/hooks/useRecipePaints", () => ({
   useRecipePaints: () => ({ data: mockSteps }),
 }));
 
+const mockDuplicateMutateAsync = vi.fn();
+vi.mock("@/hooks/useRecipes", () => ({
+  useDuplicateRecipe: () => ({
+    mutateAsync: mockDuplicateMutateAsync,
+    isPending: false,
+  }),
+}));
+
+// Mock Tauri path and core APIs (not available in jsdom)
+vi.mock("@tauri-apps/api/path", () => ({
+  appDataDir: vi.fn().mockResolvedValue("/mock/app/data"),
+  join: vi.fn().mockImplementation((...parts: string[]) => parts.join("/")),
+}));
+vi.mock("@tauri-apps/api/core", () => ({
+  convertFileSrc: vi.fn().mockImplementation((path: string) => `asset://${path}`),
+}));
+
 // ---------------------------------------------------------------------------
 // Test fixtures
 // ---------------------------------------------------------------------------
@@ -133,6 +150,8 @@ function makeStep(over: Partial<RecipeStep> = {}): RecipeStep {
     technique: null,
     dilution: null,
     time_estimate_minutes: null,
+    step_photo_path: null,
+    alt_paint_id: null,
     created_at: "2026-01-01 00:00:00",
     ...over,
   };
@@ -142,6 +161,7 @@ function renderSheet(recipe: PaintingRecipe | null) {
   const onClose = vi.fn();
   const onEdit = vi.fn();
   const onDelete = vi.fn();
+  const onDuplicate = vi.fn();
   render(
     <RecipeDetailSheet
       open={true}
@@ -149,9 +169,10 @@ function renderSheet(recipe: PaintingRecipe | null) {
       onClose={onClose}
       onEdit={onEdit}
       onDelete={onDelete}
+      onDuplicate={onDuplicate}
     />
   );
-  return { onClose, onEdit, onDelete };
+  return { onClose, onEdit, onDelete, onDuplicate };
 }
 
 // ---------------------------------------------------------------------------
@@ -285,5 +306,49 @@ describe("RecipeDetailSheet — STUDIO-02 (timeline and metadata badges)", () =>
       renderSheet(makeRecipe({ area: "Pauldrons" }));
       expect(screen.getByText("Pauldrons")).toBeInTheDocument();
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// STUDIO-03 — Recipe duplication button tests
+// ---------------------------------------------------------------------------
+
+describe("RecipeDetailSheet — STUDIO-03 (duplicate button)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUnits = [mockUnit];
+    mockSteps = [];
+    mockPaints = [];
+    mockDuplicateMutateAsync.mockResolvedValue(99);
+  });
+
+  it("renders a Duplicate button in the footer", () => {
+    renderSheet(makeRecipe());
+    expect(screen.getByRole("button", { name: /duplicate/i })).toBeInTheDocument();
+  });
+
+  it("calls useDuplicateRecipe with originalId and '(Copy)' suffix on click", async () => {
+    const user = userEvent.setup();
+    const recipe = makeRecipe({ id: 1, name: "Ultramarines Blue Scheme" });
+    renderSheet(recipe);
+
+    const btn = screen.getByRole("button", { name: /duplicate/i });
+    await user.click(btn);
+
+    expect(mockDuplicateMutateAsync).toHaveBeenCalledWith({
+      originalId: 1,
+      newName: "Ultramarines Blue Scheme (Copy)",
+    });
+  });
+
+  it("calls onDuplicate callback with the new recipe id on success", async () => {
+    const user = userEvent.setup();
+    const recipe = makeRecipe({ id: 1, name: "Ultramarines Blue Scheme" });
+    const { onDuplicate } = renderSheet(recipe);
+
+    const btn = screen.getByRole("button", { name: /duplicate/i });
+    await user.click(btn);
+
+    expect(onDuplicate).toHaveBeenCalledWith(99);
   });
 });
