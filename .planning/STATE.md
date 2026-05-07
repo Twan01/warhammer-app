@@ -1,13 +1,13 @@
 ---
 gsd_state_version: 1.0
-milestone: none
-milestone_name: none
-status: between_milestones
-stopped_at: v2.5 milestone archived
-last_updated: "2026-05-07T16:00:00.000Z"
-last_activity: 2026-05-07 — v2.5 Recipes 2.0 / Painting Studio shipped and archived
+milestone: v2.6
+milestone_name: Rules Sync 2.0 / Rules Data Hub
+status: defining_requirements
+stopped_at: Milestone v2.6 started
+last_updated: "2026-05-07T18:00:00.000Z"
+last_activity: 2026-05-07 — Milestone v2.6 started
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -18,16 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-07 after v2.5 milestone)
+See: .planning/PROJECT.md (updated 2026-05-07 after v2.6 milestone start)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** Planning next milestone
+**Current focus:** v2.6 Rules Sync 2.0 / Rules Data Hub
 
 ## Current Position
 
-Milestone: v2.5 shipped and archived (2026-05-07)
-Status: Between milestones — 41 phases across 7 milestones (v1.1 → v2.5) complete
-Next: /gsd:new-milestone to start next milestone cycle
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-07 — Milestone v2.6 started
 
 ## Accumulated Context
 
