@@ -70,3 +70,27 @@ export async function getRecipeSwatchColors(): Promise<RecipeSwatchEntry[]> {
     [],
   );
 }
+
+/**
+ * SCHEMA-04 — batch step count query.
+ *
+ * Returns {recipe_id, step_count} for ALL recipes in a single GROUP BY query.
+ * Replaces the N+1 pattern where RecipesPage called getRecipePaintsByRecipe
+ * per recipe just to count steps.
+ *
+ * Single SQL query — O(1) regardless of recipe count.
+ */
+export interface RecipeStepCount {
+  recipe_id: number;
+  step_count: number;
+}
+
+export async function getStepCountsByRecipe(): Promise<RecipeStepCount[]> {
+  const db = await getDb();
+  return db.select<RecipeStepCount[]>(
+    `SELECT recipe_id, COUNT(*) AS step_count
+     FROM recipe_steps
+     GROUP BY recipe_id`,
+    [],
+  );
+}
