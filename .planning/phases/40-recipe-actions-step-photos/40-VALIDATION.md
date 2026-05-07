@@ -1,9 +1,9 @@
 ---
 phase: 40
 slug: recipe-actions-step-photos
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-07
 ---
 
@@ -38,15 +38,15 @@ created: 2026-05-07
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 40-01-01 | 01 | 1 | STEP-05, PAINT-02 | unit | `pnpm test -- tests/painting/addRecipePaintQuery.test.ts` | ✅ (update) | ⬜ pending |
-| 40-01-02 | 01 | 1 | STEP-05 | unit | `pnpm test -- tests/painting/recipeSteps.test.ts` | ✅ (extend) | ⬜ pending |
-| 40-01-03 | 01 | 1 | PAINT-02 | unit | `pnpm test -- tests/painting/recipeSteps.test.ts` | ✅ (extend) | ⬜ pending |
-| 40-02-01 | 02 | 1 | STUDIO-03 | unit | `pnpm test -- tests/painting/duplicateRecipe.test.ts` | ❌ Wave 0 | ⬜ pending |
-| 40-02-02 | 02 | 1 | STUDIO-03 | component | `pnpm test -- tests/painting/recipeDetailSheet.test.tsx` | ✅ (extend) | ⬜ pending |
-| 40-03-01 | 03 | 2 | STEP-05 | component | `pnpm test -- tests/painting/recipeStepRow.test.tsx` | ✅ (extend) | ⬜ pending |
-| 40-03-02 | 03 | 2 | STEP-05 | component | `pnpm test -- tests/painting/recipeDetailSheet.test.tsx` | ✅ (extend) | ⬜ pending |
-| 40-04-01 | 04 | 2 | PAINT-02 | component | `pnpm test -- tests/painting/recipeStepRow.test.tsx` | ✅ (extend) | ⬜ pending |
-| 40-04-02 | 04 | 2 | PAINT-03 | component | `pnpm test -- tests/painting/recipeDetailSheet.test.tsx` | ✅ (extend) | ⬜ pending |
+| 40-01-01 | 01 | 1 | STEP-05, PAINT-02 | unit | `pnpm test -- tests/painting/addRecipePaintQuery.test.ts` | ✅ | ✅ green |
+| 40-01-02 | 01 | 1 | STEP-05 | unit | `pnpm test -- tests/painting/recipeSteps.test.ts` | ✅ | ✅ green |
+| 40-01-03 | 01 | 1 | PAINT-02 | unit | `pnpm test -- tests/painting/recipeSteps.test.ts` | ✅ | ✅ green |
+| 40-02-01 | 02 | 1 | STUDIO-03 | unit | `pnpm test -- tests/painting/duplicateRecipe.test.ts` | ✅ | ✅ green |
+| 40-02-02 | 02 | 1 | STUDIO-03 | component | `pnpm test -- tests/painting/recipeDetailSheet.test.tsx` | ✅ | ✅ green |
+| 40-03-01 | 03 | 2 | STEP-05 | component | `pnpm test -- tests/painting/recipeStepRow.test.tsx` | ✅ | ✅ green |
+| 40-03-02 | 03 | 2 | STEP-05 | component | `pnpm test -- tests/painting/recipeDetailSheet.test.tsx` | ✅ | ✅ green |
+| 40-04-01 | 03 | 2 | PAINT-02 | component | `pnpm test -- tests/painting/recipeStepRow.test.tsx` | ✅ | ✅ green |
+| 40-04-02 | 03 | 2 | PAINT-02, PAINT-03 | component | `pnpm test -- tests/painting/recipeDetailSheet.test.tsx` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -54,10 +54,10 @@ created: 2026-05-07
 
 ## Wave 0 Requirements
 
-- [ ] `tests/painting/duplicateRecipe.test.ts` — stubs for STUDIO-03 (recipe copy, step copy, name suffix)
-- [ ] Update `tests/painting/addRecipePaintQuery.test.ts` — change 10-column assertions to 12-column for step_photo_path + alt_paint_id
+- [x] `tests/painting/duplicateRecipe.test.ts` — 8 STUDIO-03 tests (SQL coverage)
+- [x] Update `tests/painting/addRecipePaintQuery.test.ts` — 12-column assertions with $11/$12
 
-*Existing test files for recipeSteps, recipeStepRow, recipeDetailSheet need extensions, not creation.*
+*All Wave 0 requirements satisfied during Phase 40 execution.*
 
 ---
 
@@ -74,11 +74,25 @@ created: 2026-05-07
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** PASSED
+
+---
+
+## Validation Audit 2026-05-07
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 2 |
+| Resolved | 2 |
+| Escalated | 0 |
+
+**Gap details:**
+1. **PAINT-02 alt paint timeline display** — MISSING → 4 tests added to `recipeDetailSheet.test.tsx` (alt-paint-display render, "Alt:" prefix, brand+name, hidden when no alt_paint_id)
+2. **PAINT-03 wishlist button click behavior** — PARTIAL → 1 test added to `recipeDetailSheet.test.tsx` (calls createWishlistItem.mutateAsync with correct args)
