@@ -108,7 +108,7 @@ Full details: `.planning/milestones/v2.4-ROADMAP.md`
 
 **Milestone Goal:** Transform recipes from flat paint notes into a structured painting knowledge system with step-by-step workflows, paint inventory integration, and a studio UX.
 
-- [ ] **Phase 37: Schema Foundation + Pre-flight Fixes** — Migrate recipe_paints to recipe_steps, add recipe metadata columns, fix pre-existing cache invalidation bug, eliminate N+1 step count query
+- [x] **Phase 37: Schema Foundation + Pre-flight Fixes** — Migrate recipe_paints to recipe_steps, add recipe metadata columns, fix pre-existing cache invalidation bug, eliminate N+1 step count query (completed 2026-05-07)
 - [ ] **Phase 38: Structured Step Input** — Full step CRUD with phase/tool/technique/dilution fields, time estimates, and @dnd-kit reordering
 - [ ] **Phase 39: Studio UX + Paint Availability** — Card grid view with metadata badges, step-by-step timeline detail, advanced filters, and owned/missing paint badge on cards
 - [ ] **Phase 40: Recipe Actions + Step Photos** — Recipe duplication, per-step photo upload, substitute paint linking, and add-all-missing-to-wishlist action
@@ -125,7 +125,7 @@ Full details: `.planning/milestones/v2.4-ROADMAP.md`
   2. Every recipe card shows a correct step count without issuing one query per recipe
   3. Deleting a recipe from the Kanban board no longer leaves stale kanban-enrichment cache entries
   4. A recipe can be saved with style, surface, effect, difficulty, estimated minutes, and result photo metadata fields
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 37-01-PLAN.md — Migration 012 + types/queries/hooks/schema/form for recipe_steps and recipe metadata + useDeleteRecipe cache fix
 - [ ] 37-02-PLAN.md — Batch step count query replacing N+1 loop on RecipesPage
@@ -215,7 +215,7 @@ Plans:
 | 33. Data Intelligence | v2.4 | 4/4 | Complete | 2026-05-06 |
 | 34. Visual Polish | v2.4 | 2/2 | Complete | 2026-05-06 |
 | 36. v2.4 Gap Closure | v2.4 | 1/1 | Complete | 2026-05-06 |
-| 37. Schema Foundation + Pre-flight Fixes | 1/2 | In Progress|  | - |
+| 37. Schema Foundation + Pre-flight Fixes | 2/2 | Complete   | 2026-05-07 | - |
 | 38. Structured Step Input | v2.5 | 0/TBD | Not started | - |
 | 39. Studio UX + Paint Availability | v2.5 | 0/TBD | Not started | - |
 | 40. Recipe Actions + Step Photos | v2.5 | 0/TBD | Not started | - |
