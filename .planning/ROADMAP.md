@@ -182,7 +182,10 @@ Plans:
   1. The LogSessionSheet includes optional recipe and step selectors; selecting a recipe populates the step dropdown with that recipe's steps
   2. A session logged with a recipe/step link appears in the Sessions section of the recipe detail view, showing date, unit, and duration
   3. Session-recipe links are optional — existing log flows work without selecting a recipe
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 41-01-PLAN.md — Migration 014 + types + queries + hooks + schema for session-recipe linking
+- [ ] 41-02-PLAN.md — LogSessionSheet recipe/step selectors + RecipeDetailSheet sessions section
 
 ## Progress
 
@@ -230,4 +233,4 @@ Plans:
 | 38. Structured Step Input | v2.5 | 2/2 | Complete | 2026-05-07 |
 | 39. Studio UX + Paint Availability | v2.5 | 3/3 | Complete | 2026-05-07 |
 | 40. Recipe Actions + Step Photos | 3/3 | Complete    | 2026-05-07 | - |
-| 41. Session Integration | v2.5 | 0/TBD | Not started | - |
+| 41. Session Integration | v2.5 | 0/2 | Not started | - |
