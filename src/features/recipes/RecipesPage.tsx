@@ -11,41 +11,23 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { useQuery } from "@tanstack/react-query";
 import { useRecipes } from "@/hooks/useRecipes";
 import { useFactions } from "@/hooks/useFactions";
 import { useUnits } from "@/hooks/useUnits";
-import { getRecipePaintsByRecipe } from "@/db/queries/recipePaints";
 import type { PaintingRecipe } from "@/types/recipe";
 import { recipesRoute } from "@/app/router";
-import { useRecipeIdsByPaint, useRecipeSwatchData } from "@/hooks/useRecipePaints";
+import { useRecipeIdsByPaint, useRecipeSwatchData, useAllStepCounts } from "@/hooks/useRecipePaints";
 import { RecipeTable } from "./RecipeTable";
 import { RecipeDetailSheet } from "./RecipeDetailSheet";
 import { RecipeDeleteDialog } from "./RecipeDeleteDialog";
 import { RecipeFormSheet } from "./RecipeFormSheet";
 import { PageHeader } from "@/components/common/PageHeader";
 
-// Aggregate step counts in one query so the table can render "{N} steps" per row
-function useAllStepCounts(recipes: PaintingRecipe[]) {
-  return useQuery({
-    queryKey: ["recipe-paints", "all-counts", recipes.map((r) => r.id).join(",")],
-    queryFn: async () => {
-      const result = new Map<number, number>();
-      for (const r of recipes) {
-        const steps = await getRecipePaintsByRecipe(r.id);
-        result.set(r.id, steps.length);
-      }
-      return result;
-    },
-    enabled: recipes.length > 0,
-  });
-}
-
 export function RecipesPage() {
   const { data: recipes = [], isLoading } = useRecipes();
   const { data: factions = [] } = useFactions();
   const { data: units = [] } = useUnits();
-  const { data: stepCountByRecipe = new Map<number, number>() } = useAllStepCounts(recipes);
+  const { data: stepCountByRecipe = new Map<number, number>() } = useAllStepCounts();
   const { data: swatchColorsByRecipe = new Map<number, { paint_id: number; hex_color: string | null }[]>() } = useRecipeSwatchData();
 
   // Filter state

@@ -250,7 +250,7 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
         toast.success("Recipe created.");
       }
       // Invalidate the aggregated step-count query in RecipesPage
-      qc.invalidateQueries({ queryKey: ["recipe-paints", "all-counts"] });
+      qc.invalidateQueries({ queryKey: ["recipe-step-counts"] });
       onClose();
     } catch {
       toast.error("Failed to save recipe. Changes were not saved.");
