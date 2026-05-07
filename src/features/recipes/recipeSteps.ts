@@ -5,6 +5,11 @@ export interface DraftStep {
   step_name: string;
   paint_id: number | null;
   notes: string | null;
+  painting_phase: string | null;
+  tool: string | null;
+  technique: string | null;
+  dilution: string | null;
+  time_estimate_minutes: number | null;
 }
 
 export function makeDraftStep(): DraftStep {
@@ -13,6 +18,11 @@ export function makeDraftStep(): DraftStep {
     step_name: "",
     paint_id: null,
     notes: null,
+    painting_phase: null,
+    tool: null,
+    technique: null,
+    dilution: null,
+    time_estimate_minutes: null,
   };
 }
 

@@ -22,6 +22,12 @@ export const RECIPE_DIFFICULTIES = [
 ] as const;
 export type RecipeDifficulty = typeof RECIPE_DIFFICULTIES[number];
 
+export const PAINTING_PHASES = [
+  "prime", "basecoat", "shade", "layer", "highlight",
+  "glaze", "weathering", "basing", "varnish", "other",
+] as const;
+export type PaintingPhase = typeof PAINTING_PHASES[number];
+
 export const recipeSchema = z.object({
   name: z
     .string()
