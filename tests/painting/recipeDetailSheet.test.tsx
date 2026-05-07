@@ -51,6 +51,16 @@ vi.mock("@/hooks/useRecipes", () => ({
   }),
 }));
 
+let mockWishlistItems: { id: number; name: string }[] = [];
+const mockCreateWishlistMutateAsync = vi.fn();
+vi.mock("@/hooks/useWishlistItems", () => ({
+  useWishlistItems: () => ({ data: mockWishlistItems }),
+  useCreateWishlistItem: () => ({
+    mutateAsync: mockCreateWishlistMutateAsync,
+    isPending: false,
+  }),
+}));
+
 // Mock Tauri path and core APIs (not available in jsdom)
 vi.mock("@tauri-apps/api/path", () => ({
   appDataDir: vi.fn().mockResolvedValue("/mock/app/data"),
@@ -185,6 +195,7 @@ describe("RecipeDetailSheet — DATA-05 (unit link navigation)", () => {
     mockUnits = [mockUnit];
     mockSteps = [];
     mockPaints = [];
+    mockWishlistItems = [];
   });
 
   describe("linked unit display", () => {
@@ -244,6 +255,7 @@ describe("RecipeDetailSheet — STUDIO-02 (timeline and metadata badges)", () =>
     mockUnits = [mockUnit];
     mockSteps = [];
     mockPaints = [];
+    mockWishlistItems = [];
   });
 
   describe("metadata badge row", () => {
@@ -319,6 +331,7 @@ describe("RecipeDetailSheet — STUDIO-03 (duplicate button)", () => {
     mockUnits = [mockUnit];
     mockSteps = [];
     mockPaints = [];
+    mockWishlistItems = [];
     mockDuplicateMutateAsync.mockResolvedValue(99);
   });
 
@@ -350,5 +363,88 @@ describe("RecipeDetailSheet — STUDIO-03 (duplicate button)", () => {
     await user.click(btn);
 
     expect(onDuplicate).toHaveBeenCalledWith(99);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// PAINT-03 — "Add all missing to wishlist" button tests
+// ---------------------------------------------------------------------------
+
+describe("RecipeDetailSheet — PAINT-03 (add all missing to wishlist)", () => {
+  const missingPaint: Paint = {
+    id: 10,
+    name: "Macragge Blue",
+    brand: "Citadel",
+    paint_type: "Base",
+    color_family: null,
+    hex_color: "#1e3a5f",
+    owned: 0,
+    quantity: null,
+    running_low: 0,
+    wishlist: 0,
+    notes: null,
+    purchase_price_pence: null,
+    purchase_date: null,
+    created_at: "2026-01-01 00:00:00",
+    updated_at: "2026-01-01 00:00:00",
+  };
+
+  const ownedPaint: Paint = {
+    id: 11,
+    name: "Agrax Earthshade",
+    brand: "Citadel",
+    paint_type: "Shade",
+    color_family: null,
+    hex_color: "#5a4a2a",
+    owned: 1,
+    quantity: null,
+    running_low: 0,
+    wishlist: 0,
+    notes: null,
+    purchase_price_pence: null,
+    purchase_date: null,
+    created_at: "2026-01-01 00:00:00",
+    updated_at: "2026-01-01 00:00:00",
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUnits = [mockUnit];
+    mockSteps = [];
+    mockPaints = [];
+    mockWishlistItems = [];
+    mockCreateWishlistMutateAsync.mockResolvedValue(1);
+  });
+
+  it("shows 'Add all missing to wishlist' button when recipe has missing paints and a faction_id", () => {
+    mockPaints = [missingPaint];
+    mockSteps = [makeStep({ id: 1, paint_id: missingPaint.id })];
+    renderSheet(makeRecipe({ faction_id: mockFaction.id }));
+
+    expect(screen.getByRole("button", { name: /add all missing to wishlist/i })).toBeInTheDocument();
+  });
+
+  it("hides 'Add all missing to wishlist' button when all paints are owned", () => {
+    mockPaints = [ownedPaint];
+    mockSteps = [makeStep({ id: 1, paint_id: ownedPaint.id })];
+    renderSheet(makeRecipe({ faction_id: mockFaction.id }));
+
+    expect(screen.queryByRole("button", { name: /add all missing to wishlist/i })).not.toBeInTheDocument();
+  });
+
+  it("hides 'Add all missing to wishlist' button when recipe has no faction_id", () => {
+    mockPaints = [missingPaint];
+    mockSteps = [makeStep({ id: 1, paint_id: missingPaint.id })];
+    renderSheet(makeRecipe({ faction_id: null }));
+
+    expect(screen.queryByRole("button", { name: /add all missing to wishlist/i })).not.toBeInTheDocument();
+  });
+
+  it("hides 'Add all missing to wishlist' button when there are no steps", () => {
+    mockPaints = [missingPaint];
+    mockSteps = [];
+    renderSheet(makeRecipe({ faction_id: mockFaction.id }));
+
+    expect(screen.queryByRole("button", { name: /add all missing to wishlist/i })).not.toBeInTheDocument();
   });
 });

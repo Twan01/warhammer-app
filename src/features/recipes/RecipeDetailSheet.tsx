@@ -11,15 +11,17 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Clock, Copy } from "lucide-react";
+import { Clock, Copy, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import { useRecipePaints } from "@/hooks/useRecipePaints";
 import { usePaints } from "@/hooks/usePaints";
 import { useFactions } from "@/hooks/useFactions";
 import { useUnits } from "@/hooks/useUnits";
 import { useDuplicateRecipe } from "@/hooks/useRecipes";
+import { useWishlistItems, useCreateWishlistItem } from "@/hooks/useWishlistItems";
 import type { PaintingRecipe } from "@/types/recipe";
 import { RecipeStepTimeline } from "./RecipeStepTimeline";
+import { isPaintMissing } from "./recipeSteps";
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { convertFileSrc } from "@tauri-apps/api/core";
 
@@ -73,6 +75,54 @@ export function RecipeDetailSheet({
   }, [paints]);
 
   const duplicateRecipe = useDuplicateRecipe();
+  const { data: wishlistItems = [] } = useWishlistItems();
+  const createWishlistItem = useCreateWishlistItem();
+
+  const missingPaints = useMemo(() => {
+    return steps
+      .filter((s) => s.paint_id != null && s.paint_id !== 0)
+      .map((s) => paintMap.get(s.paint_id))
+      .filter((p): p is NonNullable<typeof p> => p !== undefined && isPaintMissing(p));
+  }, [steps, paintMap]);
+
+  const uniqueMissingPaints = useMemo(() => {
+    const seen = new Set<number>();
+    return missingPaints.filter((p) => {
+      if (seen.has(p.id)) return false;
+      seen.add(p.id);
+      return true;
+    });
+  }, [missingPaints]);
+
+  const canAddToWishlist = uniqueMissingPaints.length > 0 && recipe?.faction_id != null;
+
+  async function handleAddMissingToWishlist() {
+    if (uniqueMissingPaints.length === 0) return;
+
+    const existingNames = new Set(wishlistItems.map((w) => w.name));
+    const toAdd = uniqueMissingPaints.filter(
+      (p) => !existingNames.has(`${p.brand} ${p.name}`)
+    );
+
+    if (toAdd.length === 0) {
+      toast.info("All missing paints already on wishlist");
+      return;
+    }
+
+    try {
+      for (const paint of toAdd) {
+        await createWishlistItem.mutateAsync({
+          name: `${paint.brand} ${paint.name}`,
+          faction_id: recipe!.faction_id!,
+          estimated_cost_pence: null,
+          notes: `From recipe: ${recipe!.name}`,
+        });
+      }
+      toast.success(`Added ${toAdd.length} paint${toAdd.length !== 1 ? "s" : ""} to wishlist`);
+    } catch {
+      toast.error("Failed to add paints to wishlist.");
+    }
+  }
 
   async function handleDuplicate() {
     if (!recipe) return;
@@ -205,6 +255,19 @@ export function RecipeDetailSheet({
               <Field label="Recipe Steps">
                 <RecipeStepTimeline steps={steps} paintMap={paintMap} stepPhotoUrls={stepPhotoUrls} />
               </Field>
+
+              {canAddToWishlist && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="self-start"
+                  onClick={handleAddMissingToWishlist}
+                  disabled={createWishlistItem.isPending}
+                >
+                  <ShoppingCart className="mr-2 h-4 w-4" />
+                  Add all missing to wishlist
+                </Button>
+              )}
             </div>
 
             <SheetFooter className="mt-6 gap-2 sm:gap-2">
