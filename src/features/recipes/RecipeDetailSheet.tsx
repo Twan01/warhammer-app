@@ -19,6 +19,7 @@ import { useFactions } from "@/hooks/useFactions";
 import { useUnits } from "@/hooks/useUnits";
 import { useDuplicateRecipe } from "@/hooks/useRecipes";
 import { useWishlistItems, useCreateWishlistItem } from "@/hooks/useWishlistItems";
+import { useSessionsByRecipe } from "@/hooks/useJournalSessions";
 import type { PaintingRecipe } from "@/types/recipe";
 import { RecipeStepTimeline } from "./RecipeStepTimeline";
 import { isPaintMissing } from "./recipeSteps";
@@ -73,6 +74,14 @@ export function RecipeDetailSheet({
     for (const p of paints) m.set(p.id, p);
     return m;
   }, [paints]);
+
+  const { data: sessions = [] } = useSessionsByRecipe(recipe?.id);
+
+  const unitMap = useMemo(() => {
+    const m = new Map<number, string>();
+    for (const u of units ?? []) m.set(u.id, u.name);
+    return m;
+  }, [units]);
 
   const duplicateRecipe = useDuplicateRecipe();
   const { data: wishlistItems = [] } = useWishlistItems();
@@ -268,6 +277,31 @@ export function RecipeDetailSheet({
                   Add all missing to wishlist
                 </Button>
               )}
+
+              <Separator />
+
+              <Field label="Sessions">
+                {sessions.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No sessions logged for this recipe yet
+                  </p>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {sessions.map((s) => (
+                      <div key={s.id} className="text-sm" data-testid="recipe-session-row">
+                        <span className="font-medium">{s.session_date}</span>
+                        {" · "}
+                        {unitMap.get(s.unit_id) ?? "Unknown unit"}
+                        {" · "}
+                        {s.duration_minutes} min
+                        {s.notes && (
+                          <p className="text-muted-foreground text-xs truncate">{s.notes}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Field>
             </div>
 
             <SheetFooter className="mt-6 gap-2 sm:gap-2">
