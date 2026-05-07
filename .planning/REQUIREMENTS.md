@@ -107,10 +107,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OVRD-07 | Phase 46 | Pending |
 
 **Coverage:**
-- v2.6 requirements: 28 total
-- Mapped to phases: 28
+- v2.6 requirements: 27 total
+- Mapped to phases: 27
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-07*
-*Last updated: 2026-05-07 after initial definition*
+*Last updated: 2026-05-07 — roadmap created, traceability confirmed*
