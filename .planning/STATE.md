@@ -4,13 +4,13 @@ milestone: v2.5
 milestone_name: Recipes 2.0 / Painting Studio
 status: PAINT-02 (substitute paint) and PAINT-03 (add all missing to wishlist) delivered end-to-end
 stopped_at: Completed 40-03-PLAN.md
-last_updated: "2026-05-07T11:02:07Z"
-last_activity: 2026-05-07 — 40-03 Alt paint combobox, Alt: timeline display, Add all missing to wishlist button
+last_updated: "2026-05-07T11:07:43.962Z"
+last_activity: "2026-05-07 — 40-03 Alt paint combobox, Alt: timeline display, Add all missing to wishlist button"
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 10
+  completed_plans: 10
   percent: 100
 ---
 

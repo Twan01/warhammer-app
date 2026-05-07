@@ -229,5 +229,5 @@ Plans:
 | 37. Schema Foundation + Pre-flight Fixes | v2.5 | 2/2 | Complete | 2026-05-07 |
 | 38. Structured Step Input | v2.5 | 2/2 | Complete | 2026-05-07 |
 | 39. Studio UX + Paint Availability | v2.5 | 3/3 | Complete | 2026-05-07 |
-| 40. Recipe Actions + Step Photos | 3/3 | Complete   | 2026-05-07 | - |
+| 40. Recipe Actions + Step Photos | 3/3 | Complete    | 2026-05-07 | - |
 | 41. Session Integration | v2.5 | 0/TBD | Not started | - |
