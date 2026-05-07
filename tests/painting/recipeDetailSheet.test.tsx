@@ -447,4 +447,107 @@ describe("RecipeDetailSheet — PAINT-03 (add all missing to wishlist)", () => {
 
     expect(screen.queryByRole("button", { name: /add all missing to wishlist/i })).not.toBeInTheDocument();
   });
+
+  it("calls createWishlistItem.mutateAsync with correct args when button is clicked", async () => {
+    const user = userEvent.setup();
+    mockPaints = [missingPaint];
+    mockSteps = [makeStep({ id: 1, paint_id: missingPaint.id })];
+    mockWishlistItems = [];
+    const recipe = makeRecipe({ faction_id: mockFaction.id, name: "Ultramarines Blue Scheme" });
+    renderSheet(recipe);
+
+    const btn = screen.getByRole("button", { name: /add all missing to wishlist/i });
+    await user.click(btn);
+
+    expect(mockCreateWishlistMutateAsync).toHaveBeenCalledWith({
+      name: "Citadel Macragge Blue",
+      faction_id: mockFaction.id,
+      estimated_cost_pence: null,
+      notes: "From recipe: Ultramarines Blue Scheme",
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// PAINT-02 — RecipeStepTimeline "Alt:" display tests
+// ---------------------------------------------------------------------------
+
+describe("RecipeDetailSheet — PAINT-02 (alt paint display in timeline)", () => {
+  const primaryPaint: Paint = {
+    id: 20,
+    name: "Macragge Blue",
+    brand: "Citadel",
+    paint_type: "Base",
+    color_family: null,
+    hex_color: "#1e3a5f",
+    owned: 1,
+    quantity: null,
+    running_low: 0,
+    wishlist: 0,
+    notes: null,
+    purchase_price_pence: null,
+    purchase_date: null,
+    created_at: "2026-01-01 00:00:00",
+    updated_at: "2026-01-01 00:00:00",
+  };
+
+  const altPaint: Paint = {
+    id: 21,
+    name: "Kantor Blue",
+    brand: "Citadel",
+    paint_type: "Base",
+    color_family: null,
+    hex_color: "#0d2b47",
+    owned: 1,
+    quantity: null,
+    running_low: 0,
+    wishlist: 0,
+    notes: null,
+    purchase_price_pence: null,
+    purchase_date: null,
+    created_at: "2026-01-01 00:00:00",
+    updated_at: "2026-01-01 00:00:00",
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUnits = [mockUnit];
+    mockSteps = [];
+    mockPaints = [];
+    mockWishlistItems = [];
+  });
+
+  it("renders alt-paint-display when step has alt_paint_id and the paint exists in paintMap", () => {
+    mockPaints = [primaryPaint, altPaint];
+    mockSteps = [makeStep({ id: 1, paint_id: primaryPaint.id, alt_paint_id: altPaint.id })];
+    renderSheet(makeRecipe());
+
+    expect(screen.getByTestId("alt-paint-display")).toBeInTheDocument();
+  });
+
+  it("alt-paint-display contains 'Alt:' prefix", () => {
+    mockPaints = [primaryPaint, altPaint];
+    mockSteps = [makeStep({ id: 1, paint_id: primaryPaint.id, alt_paint_id: altPaint.id })];
+    renderSheet(makeRecipe());
+
+    const el = screen.getByTestId("alt-paint-display");
+    expect(el).toHaveTextContent("Alt:");
+  });
+
+  it("alt-paint-display shows the alt paint's brand and name", () => {
+    mockPaints = [primaryPaint, altPaint];
+    mockSteps = [makeStep({ id: 1, paint_id: primaryPaint.id, alt_paint_id: altPaint.id })];
+    renderSheet(makeRecipe());
+
+    const el = screen.getByTestId("alt-paint-display");
+    expect(el).toHaveTextContent("Citadel Kantor Blue");
+  });
+
+  it("does NOT render alt-paint-display when step has no alt_paint_id", () => {
+    mockPaints = [primaryPaint];
+    mockSteps = [makeStep({ id: 1, paint_id: primaryPaint.id, alt_paint_id: null })];
+    renderSheet(makeRecipe());
+
+    expect(screen.queryByTestId("alt-paint-display")).not.toBeInTheDocument();
+  });
 });
