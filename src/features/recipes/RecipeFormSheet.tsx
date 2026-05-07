@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
@@ -95,6 +95,14 @@ function buildDefaults(recipe: PaintingRecipe | null): RecipeFormValues {
   };
 }
 
+function formatMinutes(total: number): string {
+  if (total === 0) return "";
+  if (total < 60) return `~${total} min`;
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return m === 0 ? `~${h}h` : `~${h}h ${m}min`;
+}
+
 export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps) {
   const isEdit = recipe !== null;
   const qc = useQueryClient();
@@ -120,6 +128,11 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
   const [paintsBeforeCreate, setPaintsBeforeCreate] = useState<number[]>([]);
   // Which step row triggered the create — auto-select after save
   const [pendingStepLocalId, setPendingStepLocalId] = useState<string | null>(null);
+
+  const totalMinutes = useMemo(
+    () => steps.reduce((acc, s) => acc + (s.time_estimate_minutes ?? 0), 0),
+    [steps],
+  );
 
   // Re-initialize draft steps and form values when the recipe prop changes
   useEffect(() => {
@@ -201,11 +214,11 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
               step_name: s.step_name,
               order_index: s.order_index,
               notes: s.notes,
-              painting_phase: null,
-              tool: null,
-              technique: null,
-              dilution: null,
-              time_estimate_minutes: null,
+              painting_phase: s.painting_phase,
+              tool: s.tool,
+              technique: s.technique,
+              dilution: s.dilution,
+              time_estimate_minutes: s.time_estimate_minutes,
             });
           }
         }
@@ -244,11 +257,11 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
               step_name: s.step_name,
               order_index: s.order_index,
               notes: s.notes,
-              painting_phase: null,
-              tool: null,
-              technique: null,
-              dilution: null,
-              time_estimate_minutes: null,
+              painting_phase: s.painting_phase,
+              tool: s.tool,
+              technique: s.technique,
+              dilution: s.dilution,
+              time_estimate_minutes: s.time_estimate_minutes,
             });
           }
         }
@@ -568,9 +581,16 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
               />
 
               <div className="flex flex-col gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Recipe Steps
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Recipe Steps
+                  </span>
+                  {totalMinutes > 0 && (
+                    <span className="text-xs text-muted-foreground">
+                      {formatMinutes(totalMinutes)}
+                    </span>
+                  )}
+                </div>
                 <RecipeStepList
                   steps={steps}
                   onChange={setSteps}
