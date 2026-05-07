@@ -70,6 +70,20 @@ vi.mock("@tauri-apps/api/core", () => ({
   convertFileSrc: vi.fn().mockImplementation((path: string) => `asset://${path}`),
 }));
 
+let mockSessions: {
+  id: number;
+  unit_id: number;
+  session_date: string;
+  duration_minutes: number;
+  notes: string | null;
+  created_at: string;
+  recipe_id: number | null;
+  recipe_step_id: number | null;
+}[] = [];
+vi.mock("@/hooks/useJournalSessions", () => ({
+  useSessionsByRecipe: () => ({ data: mockSessions }),
+}));
+
 // ---------------------------------------------------------------------------
 // Test fixtures
 // ---------------------------------------------------------------------------
@@ -196,6 +210,7 @@ describe("RecipeDetailSheet — DATA-05 (unit link navigation)", () => {
     mockSteps = [];
     mockPaints = [];
     mockWishlistItems = [];
+    mockSessions = [];
   });
 
   describe("linked unit display", () => {
@@ -256,6 +271,7 @@ describe("RecipeDetailSheet — STUDIO-02 (timeline and metadata badges)", () =>
     mockSteps = [];
     mockPaints = [];
     mockWishlistItems = [];
+    mockSessions = [];
   });
 
   describe("metadata badge row", () => {
@@ -332,6 +348,7 @@ describe("RecipeDetailSheet — STUDIO-03 (duplicate button)", () => {
     mockSteps = [];
     mockPaints = [];
     mockWishlistItems = [];
+    mockSessions = [];
     mockDuplicateMutateAsync.mockResolvedValue(99);
   });
 
@@ -413,6 +430,7 @@ describe("RecipeDetailSheet — PAINT-03 (add all missing to wishlist)", () => {
     mockSteps = [];
     mockPaints = [];
     mockWishlistItems = [];
+    mockSessions = [];
     mockCreateWishlistMutateAsync.mockResolvedValue(1);
   });
 
@@ -515,6 +533,7 @@ describe("RecipeDetailSheet — PAINT-02 (alt paint display in timeline)", () =>
     mockSteps = [];
     mockPaints = [];
     mockWishlistItems = [];
+    mockSessions = [];
   });
 
   it("renders alt-paint-display when step has alt_paint_id and the paint exists in paintMap", () => {
@@ -549,5 +568,114 @@ describe("RecipeDetailSheet — PAINT-02 (alt paint display in timeline)", () =>
     renderSheet(makeRecipe());
 
     expect(screen.queryByTestId("alt-paint-display")).not.toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// INTEG-02 — RecipeDetailSheet session history tests
+// ---------------------------------------------------------------------------
+
+describe("RecipeDetailSheet — INTEG-02 (session history)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUnits = [mockUnit];
+    mockSteps = [];
+    mockPaints = [];
+    mockWishlistItems = [];
+    mockSessions = [];
+  });
+
+  it("renders 'No sessions logged for this recipe yet' when sessions is empty", () => {
+    mockSessions = [];
+    renderSheet(makeRecipe());
+    expect(screen.getByText("No sessions logged for this recipe yet")).toBeInTheDocument();
+  });
+
+  it("renders session rows with date, unit name, and duration when sessions exist", () => {
+    mockSessions = [
+      {
+        id: 1,
+        unit_id: mockUnit.id,
+        session_date: "2026-05-07",
+        duration_minutes: 45,
+        notes: null,
+        created_at: "2026-05-07",
+        recipe_id: 1,
+        recipe_step_id: null,
+      },
+    ];
+    renderSheet(makeRecipe());
+
+    const row = screen.getByTestId("recipe-session-row");
+    expect(row).toBeInTheDocument();
+    expect(row).toHaveTextContent("2026-05-07");
+    expect(row).toHaveTextContent("Intercessor Squad");
+    expect(row).toHaveTextContent("45 min");
+  });
+
+  it("shows notes snippet when session has notes", () => {
+    mockSessions = [
+      {
+        id: 2,
+        unit_id: mockUnit.id,
+        session_date: "2026-05-06",
+        duration_minutes: 30,
+        notes: "Applied two thin coats",
+        created_at: "2026-05-06",
+        recipe_id: 1,
+        recipe_step_id: null,
+      },
+    ];
+    renderSheet(makeRecipe());
+
+    expect(screen.getByText("Applied two thin coats")).toBeInTheDocument();
+  });
+
+  it("shows 'Unknown unit' when unit_id does not match any unit", () => {
+    mockUnits = []; // No units loaded
+    mockSessions = [
+      {
+        id: 3,
+        unit_id: 999,
+        session_date: "2026-05-05",
+        duration_minutes: 20,
+        notes: null,
+        created_at: "2026-05-05",
+        recipe_id: 1,
+        recipe_step_id: null,
+      },
+    ];
+    renderSheet(makeRecipe());
+
+    expect(screen.getByText(/Unknown unit/)).toBeInTheDocument();
+  });
+
+  it("renders multiple session rows", () => {
+    mockSessions = [
+      {
+        id: 1,
+        unit_id: mockUnit.id,
+        session_date: "2026-05-07",
+        duration_minutes: 45,
+        notes: null,
+        created_at: "2026-05-07",
+        recipe_id: 1,
+        recipe_step_id: null,
+      },
+      {
+        id: 2,
+        unit_id: mockUnit.id,
+        session_date: "2026-05-06",
+        duration_minutes: 30,
+        notes: null,
+        created_at: "2026-05-06",
+        recipe_id: 1,
+        recipe_step_id: null,
+      },
+    ];
+    renderSheet(makeRecipe());
+
+    const rows = screen.getAllByTestId("recipe-session-row");
+    expect(rows).toHaveLength(2);
   });
 });
