@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Recipes 2.0 / Painting Studio
-status: PAINT-02 (substitute paint) and PAINT-03 (add all missing to wishlist) delivered end-to-end
-stopped_at: Phase 41 context gathered
-last_updated: "2026-05-07T11:39:07.469Z"
+status: 41-01 data layer complete — migration 014, 6-param createSession, getSessionsByRecipe, RECIPE_SESSIONS_KEY, useSessionsByRecipe, extended logSessionSchema
+stopped_at: Completed 41-01-PLAN.md
+last_updated: "2026-05-07T11:59:56.258Z"
 last_activity: "2026-05-07 — 40-03 Alt paint combobox, Alt: timeline display, Add all missing to wishlist button"
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 12
+  completed_plans: 11
   percent: 100
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06 after v2.5 milestone started)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.5 Phase 40 — Recipe Actions + Step Photos
+**Current focus:** v2.5 Phase 41 — Session-Recipe Integration
 
 ## Current Position
 
-Phase: 40 of 41 (Recipe Actions + Step Photos) — COMPLETE
-Plan: 3 of 3 (40-03 complete — substitute paint combobox + add all missing to wishlist)
-Status: PAINT-02 (substitute paint) and PAINT-03 (add all missing to wishlist) delivered end-to-end
-Last activity: 2026-05-07 — 40-03 Alt paint combobox, Alt: timeline display, Add all missing to wishlist button
+Phase: 41 of 41 (Session-Recipe Integration) — IN PROGRESS
+Plan: 1 of 2 complete (41-01 data layer: migration 014, queries, hooks, schema)
+Status: 41-01 data layer complete — migration 014, 6-param createSession, getSessionsByRecipe, RECIPE_SESSIONS_KEY, useSessionsByRecipe, extended logSessionSchema
+Last activity: 2026-05-07 — 41-01 session-recipe data layer (migration, types, queries, hooks, schema)
 
-Progress: [██████████] 100% (11/11 plans in v2.5)
+Progress: [█████████░] 92% (11/12 plans in v2.5)
 
 ## Accumulated Context
 
@@ -129,6 +129,14 @@ Progress: [██████████] 100% (11/11 plans in v2.5)
 - Name-based dedup (brand + name string) for wishlist duplicate prevention — avoids re-adding paints already on wishlist by name
 - Sequential mutateAsync loop (not Promise.all) — simpler error handling; first failure surfaces via catch block
 
+### Decisions from Phase 41 Plan 01
+
+- ON DELETE SET NULL for recipe_id/recipe_step_id FKs — session survives recipe or step deletion, link is cleared
+- Migration 013 was unregistered in lib.rs (pre-existing bug); registered alongside 014 (auto-fix Rule 1)
+- staleTime: Infinity for useSessionsByRecipe mirrors useJournalSessions pattern — session data is mutation-gated
+- Conditional invalidation of RECIPE_SESSIONS_KEY — only when recipe_id != null, avoids unnecessary cache busts for unlinked sessions
+- RECIPE_SESSIONS_KEY = (recipeId: number) => ["recipe-sessions", recipeId] as const — per-recipe cache key factory mirrors PAINTING_SESSIONS_KEY
+
 ### Key v2.5 Architectural Constraints
 
 - FIXED (Phase 37-01): useDeleteRecipe now includes `["kanban-enrichment"]` invalidation — cache symmetry restored
@@ -146,6 +154,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-07T11:39:07.465Z
-Stopped at: Phase 41 context gathered
-Resume: Phase 40 complete — all 3 plans done. Next: Phase 41 (session-recipe linking, INTEG-01/02)
+Last session: 2026-05-07T11:59:56.255Z
+Stopped at: Completed 41-01-PLAN.md
+Resume: Phase 41 Plan 01 complete — data layer done. Next: Phase 41 Plan 02 (LogSessionSheet recipe/step selectors + RecipeDetailSheet session history panel)

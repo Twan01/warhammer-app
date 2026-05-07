@@ -37,8 +37,8 @@ Requirements for Recipes 2.0 / Painting Studio. Each maps to roadmap phases.
 
 ### Integration
 
-- [ ] **INTEG-01**: User can select a recipe and step when logging a painting session via LogSessionSheet
-- [ ] **INTEG-02**: User can see which sessions were linked to a recipe from the recipe detail view
+- [x] **INTEG-01**: User can select a recipe and step when logging a painting session via LogSessionSheet
+- [x] **INTEG-02**: User can see which sessions were linked to a recipe from the recipe detail view
 
 ## Future Requirements
 
@@ -77,8 +77,8 @@ Requirements for Recipes 2.0 / Painting Studio. Each maps to roadmap phases.
 | STEP-05 | Phase 40 | Complete |
 | PAINT-02 | Phase 40 | Complete |
 | PAINT-03 | Phase 40 | Complete |
-| INTEG-01 | Phase 41 | Pending |
-| INTEG-02 | Phase 41 | Pending |
+| INTEG-01 | Phase 41 | Complete |
+| INTEG-02 | Phase 41 | Complete |
 
 **Coverage:**
 - v2.5 requirements: 18 total
