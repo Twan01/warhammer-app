@@ -224,6 +224,6 @@ Plans:
 | 36. v2.4 Gap Closure | v2.4 | 1/1 | Complete | 2026-05-06 |
 | 37. Schema Foundation + Pre-flight Fixes | v2.5 | 2/2 | Complete | 2026-05-07 |
 | 38. Structured Step Input | v2.5 | 2/2 | Complete | 2026-05-07 |
-| 39. Studio UX + Paint Availability | 3/3 | Complete   | 2026-05-07 | - |
+| 39. Studio UX + Paint Availability | 3/3 | Complete    | 2026-05-07 | - |
 | 40. Recipe Actions + Step Photos | v2.5 | 0/TBD | Not started | - |
 | 41. Session Integration | v2.5 | 0/TBD | Not started | - |
