@@ -233,4 +233,4 @@ Plans:
 | 38. Structured Step Input | v2.5 | 2/2 | Complete | 2026-05-07 |
 | 39. Studio UX + Paint Availability | v2.5 | 3/3 | Complete | 2026-05-07 |
 | 40. Recipe Actions + Step Photos | 3/3 | Complete    | 2026-05-07 | - |
-| 41. Session Integration | 2/2 | Complete   | 2026-05-07 | - |
+| 41. Session Integration | 2/2 | Complete    | 2026-05-07 | - |
