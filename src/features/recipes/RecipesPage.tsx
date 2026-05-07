@@ -237,6 +237,11 @@ export function RecipesPage() {
         onClose={closeDetail}
         onEdit={onEditRecipe}
         onDelete={openDelete}
+        onDuplicate={(newId) => {
+          const newRecipe = recipes.find((r) => r.id === newId) ?? null;
+          setSelectedRecipe(newRecipe);
+          setDetailOpen(true);
+        }}
       />
 
       <RecipeDeleteDialog

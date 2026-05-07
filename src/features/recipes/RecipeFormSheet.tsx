@@ -251,7 +251,7 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
           effect: values.effect,
           difficulty: values.difficulty,
           estimated_minutes: values.estimated_minutes,
-          result_photo_path: null, // photo upload comes Phase 40
+          result_photo_path: values.result_photo_path,
         });
         for (const s of indexedSteps) {
           if (s.paint_id !== null) {
