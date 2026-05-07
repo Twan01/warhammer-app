@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Recipes 2.0 / Painting Studio
 status: in_progress
-stopped_at: Completed 39-02-PLAN.md
-last_updated: "2026-05-07T09:48:00Z"
-last_activity: 2026-05-07 — 39-02 recipe card grid and studio filters complete
+stopped_at: Completed 39-03-PLAN.md
+last_updated: "2026-05-07T12:00:00Z"
+last_activity: 2026-05-07 — 39-03 RecipeStepTimeline, detail sheet metadata badges complete
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
-  percent: 86
+  completed_plans: 7
+  percent: 100
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-06 after v2.5 milestone started)
 
 ## Current Position
 
-Phase: 39 of 41 (Studio UX + Paint Availability) — IN PROGRESS
-Plan: 2 of 3 (39-02 complete)
-Status: 39-02 recipe card grid and studio filters delivered — ready for 39-03 detail timeline
-Last activity: 2026-05-07 — 39-02 RecipeCard grid, availability badges, studio filters complete
+Phase: 39 of 41 (Studio UX + Paint Availability) — COMPLETE
+Plan: 3 of 3 (39-03 complete — all plans done)
+Status: 39-03 RecipeStepTimeline and metadata badges delivered — Phase 39 complete
+Last activity: 2026-05-07 — 39-03 vertical timeline, metadata badge row, STUDIO-02 complete
 
-Progress: [█████████░] 86% (6/7 plans in v2.5)
+Progress: [██████████] 100% (7/7 plans in v2.5)
 
 ## Accumulated Context
 
@@ -99,6 +99,13 @@ Progress: [█████████░] 86% (6/7 plans in v2.5)
 - difficultyColors uses literal Tailwind class strings (not dynamic) to avoid Tailwind purge removing unused utility classes
 - Availability badge uses inline style backgroundColor (#ef4444/#f59e0b/#22c55e) for color accuracy and purge safety
 
+### Decisions from Phase 39 Plan 03
+
+- RecipeStepTimeline is a pure presentational component receiving steps + paintMap as props — no internal data fetching
+- Metadata badge row placed inside SheetHeader (not content area) so it appears adjacent to the recipe title and faction badge
+- Tests added to .tsx test file (has real implementation) not .ts stub file (only todos)
+- Vertical timeline connecting line uses absolute positioning left-[11px] aligned to center of 14px node dot
+
 ### Key v2.5 Architectural Constraints
 
 - FIXED (Phase 37-01): useDeleteRecipe now includes `["kanban-enrichment"]` invalidation — cache symmetry restored
@@ -116,6 +123,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-07T09:47:59.425Z
-Stopped at: Completed 39-02-PLAN.md
-Resume: Phase 39 in progress — begin 39-03 (paint availability detail timeline in RecipeDetailSheet)
+Last session: 2026-05-07T12:00:00Z
+Stopped at: Completed 39-03-PLAN.md
+Resume: Phase 39 complete — begin Phase 40 (photo upload for result_photo_path, STEP-05)

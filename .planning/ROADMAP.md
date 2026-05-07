@@ -110,7 +110,7 @@ Full details: `.planning/milestones/v2.4-ROADMAP.md`
 
 - [x] **Phase 37: Schema Foundation + Pre-flight Fixes** — Migrate recipe_paints to recipe_steps, add recipe metadata columns, fix pre-existing cache invalidation bug, eliminate N+1 step count query (completed 2026-05-07)
 - [x] **Phase 38: Structured Step Input** — Full step CRUD with phase/tool/technique/dilution fields, time estimates, and @dnd-kit reordering (completed 2026-05-07)
-- [ ] **Phase 39: Studio UX + Paint Availability** — Card grid view with metadata badges, step-by-step timeline detail, advanced filters, and owned/missing paint badge on cards
+- [x] **Phase 39: Studio UX + Paint Availability** — Card grid view with metadata badges, step-by-step timeline detail, advanced filters, and owned/missing paint badge on cards (completed 2026-05-07)
 - [ ] **Phase 40: Recipe Actions + Step Photos** — Recipe duplication, per-step photo upload, substitute paint linking, and add-all-missing-to-wishlist action
 - [ ] **Phase 41: Session Integration** — Recipe + step selection in LogSessionSheet, session history visible from recipe detail view
 
@@ -153,7 +153,7 @@ Plans:
   2. Clicking a recipe opens a full detail view that presents all steps as a vertical timeline with phase label, paint swatch, tool, technique, and time per step
   3. User can filter the recipe grid by surface type, style, difficulty level, and whether any paints are missing from inventory
   4. The paint availability badge on each card updates immediately when paint ownership changes elsewhere in the app
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 39-01-PLAN.md — Batch paint availability query, hook, and cache invalidation wiring
 - [ ] 39-02-PLAN.md — RecipeCard + RecipeCardGrid components, RecipesPage swap, filters, delete old table
@@ -224,6 +224,6 @@ Plans:
 | 36. v2.4 Gap Closure | v2.4 | 1/1 | Complete | 2026-05-06 |
 | 37. Schema Foundation + Pre-flight Fixes | v2.5 | 2/2 | Complete | 2026-05-07 |
 | 38. Structured Step Input | v2.5 | 2/2 | Complete | 2026-05-07 |
-| 39. Studio UX + Paint Availability | 2/3 | In Progress|  | - |
+| 39. Studio UX + Paint Availability | 3/3 | Complete   | 2026-05-07 | - |
 | 40. Recipe Actions + Step Photos | v2.5 | 0/TBD | Not started | - |
 | 41. Session Integration | v2.5 | 0/TBD | Not started | - |
