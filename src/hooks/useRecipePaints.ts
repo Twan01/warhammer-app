@@ -6,6 +6,7 @@ import {
   getRecipeIdsByPaintId,
   getRecipeSwatchColors,
   getStepCountsByRecipe,
+  getRecipePaintAvailability,
 } from "@/db/queries/recipePaints";
 import type { CreateRecipeStepInput } from "@/types/recipePaint";
 
@@ -128,6 +129,50 @@ export function useAllStepCounts() {
     queryFn: async () => {
       const rows = await getStepCountsByRecipe();
       return new Map(rows.map((r) => [r.recipe_id, r.step_count]));
+    },
+  });
+}
+
+/**
+ * PAINT-01 — query key for the batch paint availability lookup.
+ *
+ * Single top-level key — invalidated by useUpdatePaint and useDeletePaint in
+ * usePaints.ts so recipe card badges refresh immediately when paint ownership
+ * changes on the Paints page.
+ */
+export const RECIPE_AVAILABILITY_KEY = ["recipe-paint-availability"] as const;
+
+/**
+ * PAINT-01 — per-recipe paint availability stats.
+ *
+ * owned      = step has a paint that is owned and NOT running low
+ * missing    = step has a paint that is NOT owned
+ * runningLow = step has a paint that is owned and IS running low
+ */
+export interface AvailabilityStats {
+  owned: number;
+  missing: number;
+  runningLow: number;
+}
+
+/**
+ * PAINT-01 — batch paint availability for all recipes.
+ *
+ * Returns Map<recipe_id, AvailabilityStats> from a single GROUP BY JOIN query.
+ * Steps with paint_id = 0 or null are excluded (no paint linked).
+ * Consumed by Plan 02 (card grid) and Plan 03 (detail timeline).
+ */
+export function useRecipePaintAvailability() {
+  return useQuery({
+    queryKey: RECIPE_AVAILABILITY_KEY,
+    queryFn: async () => {
+      const rows = await getRecipePaintAvailability();
+      return new Map<number, AvailabilityStats>(
+        rows.map((r) => [
+          r.recipe_id,
+          { owned: r.owned, missing: r.missing, runningLow: r.running_low },
+        ]),
+      );
     },
   });
 }

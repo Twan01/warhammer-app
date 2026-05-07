@@ -100,3 +100,40 @@ export async function getStepCountsByRecipe(): Promise<RecipeStepCount[]> {
     [],
   );
 }
+
+/**
+ * PAINT-01 — batch paint availability query.
+ *
+ * Returns {recipe_id, owned, missing, running_low} for ALL recipes in a single
+ * GROUP BY JOIN query. Excludes steps where paint_id is NULL or 0 (unlinked
+ * steps have no paint to check ownership against).
+ *
+ * Definitions:
+ *   owned       = paint exists, is owned, and is NOT running low
+ *   missing     = paint exists but is NOT owned
+ *   running_low = paint exists, is owned, and IS running low
+ *
+ * Single SQL query — O(1) regardless of recipe count.
+ */
+export interface RecipePaintAvailability {
+  recipe_id: number;
+  owned: number;
+  missing: number;
+  running_low: number;
+}
+
+export async function getRecipePaintAvailability(): Promise<RecipePaintAvailability[]> {
+  const db = await getDb();
+  return db.select<RecipePaintAvailability[]>(
+    `SELECT
+       rs.recipe_id,
+       COUNT(CASE WHEN p.owned = 1 AND p.running_low = 0 THEN 1 END) AS owned,
+       COUNT(CASE WHEN p.owned != 1 THEN 1 END) AS missing,
+       COUNT(CASE WHEN p.owned = 1 AND p.running_low = 1 THEN 1 END) AS running_low
+     FROM recipe_steps rs
+     JOIN paints p ON p.id = rs.paint_id
+     WHERE rs.paint_id IS NOT NULL AND rs.paint_id != 0
+     GROUP BY rs.recipe_id`,
+    [],
+  );
+}
