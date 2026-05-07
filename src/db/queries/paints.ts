@@ -64,13 +64,13 @@ export async function updatePaint(input: UpdatePaintInput): Promise<void> {
 export async function deletePaint(id: number): Promise<void> {
   const db = await getDb();
   await db.execute("DELETE FROM paints WHERE id = $1", [id]);
-  // FK violation (paint referenced in recipe_paints) throws — caller catches
+  // FK violation (paint referenced in recipe_steps) throws — caller catches
 }
 
 /**
- * Returns all paints with a recipe_count column from a LEFT JOIN on recipe_paints.
+ * Returns all paints with a recipe_count column from a LEFT JOIN on recipe_steps.
  * Used by the Phase 7 Paint Inventory page (PINV-05) to render "used in N recipes"
- * badges. The COUNT happens in SQL — never re-query recipe_paints from JS to count
+ * badges. The COUNT happens in SQL — never re-query recipe_steps from JS to count
  * usages per paint (that's an N+1 anti-pattern).
  *
  * The corresponding query key is PAINTS_WITH_RECIPES_KEY in src/hooks/usePaints.ts.
@@ -82,7 +82,7 @@ export async function getPaintsWithRecipeCount(): Promise<PaintWithRecipeCount[]
   return db.select<PaintWithRecipeCount[]>(`
     SELECT p.*, COUNT(rp.id) AS recipe_count
     FROM paints p
-    LEFT JOIN recipe_paints rp ON rp.paint_id = p.id
+    LEFT JOIN recipe_steps rp ON rp.paint_id = p.id
     GROUP BY p.id
     ORDER BY p.brand ASC, p.name ASC
   `);

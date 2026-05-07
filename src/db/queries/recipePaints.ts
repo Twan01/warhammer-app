@@ -1,18 +1,18 @@
 import { getDb } from "@/db/client";
-import type { RecipePaint, CreateRecipePaintInput } from "@/types/recipePaint";
+import type { RecipeStep, CreateRecipeStepInput } from "@/types/recipePaint";
 
-export async function getRecipePaintsByRecipe(recipeId: number): Promise<RecipePaint[]> {
+export async function getRecipePaintsByRecipe(recipeId: number): Promise<RecipeStep[]> {
   const db = await getDb();
-  return db.select<RecipePaint[]>(
-    "SELECT * FROM recipe_paints WHERE recipe_id = $1 ORDER BY order_index ASC",
+  return db.select<RecipeStep[]>(
+    "SELECT * FROM recipe_steps WHERE recipe_id = $1 ORDER BY order_index ASC",
     [recipeId]
   );
 }
 
-export async function addRecipePaint(input: CreateRecipePaintInput): Promise<number> {
+export async function addRecipePaint(input: CreateRecipeStepInput): Promise<number> {
   const db = await getDb();
   const result = await db.execute(
-    `INSERT INTO recipe_paints (recipe_id, paint_id, step_name, order_index, notes)
+    `INSERT INTO recipe_steps (recipe_id, paint_id, step_name, order_index, notes)
      VALUES ($1, $2, $3, $4, $5)`,
     [input.recipe_id, input.paint_id, input.step_name, input.order_index, input.notes ?? null]
   );
@@ -21,12 +21,12 @@ export async function addRecipePaint(input: CreateRecipePaintInput): Promise<num
 
 export async function removeRecipePaint(id: number): Promise<void> {
   const db = await getDb();
-  await db.execute("DELETE FROM recipe_paints WHERE id = $1", [id]);
+  await db.execute("DELETE FROM recipe_steps WHERE id = $1", [id]);
 }
 // No updateRecipePaint — links are immutable; to change, remove + re-add.
 
 /**
- * Returns the distinct recipe IDs that reference a given paint via recipe_paints.
+ * Returns the distinct recipe IDs that reference a given paint via recipe_steps.
  * Used by the Phase 7 Paint Inventory page (PINV-05) — when the user clicks a
  * "Used in N recipes" badge on a paint row, the Recipes page reads `paintId`
  * from the URL and calls useRecipeIdsByPaint(paintId) to narrow the visible
@@ -38,7 +38,7 @@ export async function removeRecipePaint(id: number): Promise<void> {
 export async function getRecipeIdsByPaintId(paintId: number): Promise<number[]> {
   const db = await getDb();
   const rows = await db.select<{ recipe_id: number }[]>(
-    "SELECT DISTINCT recipe_id FROM recipe_paints WHERE paint_id = $1",
+    "SELECT DISTINCT recipe_id FROM recipe_steps WHERE paint_id = $1",
     [paintId],
   );
   return rows.map((r) => r.recipe_id);
@@ -64,7 +64,7 @@ export async function getRecipeSwatchColors(): Promise<RecipeSwatchEntry[]> {
   const db = await getDb();
   return db.select<RecipeSwatchEntry[]>(
     `SELECT rp.recipe_id, rp.paint_id, p.hex_color
-     FROM recipe_paints rp
+     FROM recipe_steps rp
      JOIN paints p ON p.id = rp.paint_id
      ORDER BY rp.recipe_id ASC, rp.order_index ASC`,
     [],

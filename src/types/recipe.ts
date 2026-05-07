@@ -1,6 +1,7 @@
 /**
  * PaintingRecipe entity (DATA-06).
  * Mirrors the painting_recipes table in 001_core_schema.sql.
+ * v2.5 metadata fields added in migration 012 (Phase 37).
  */
 export interface PaintingRecipe {
   id: number;
@@ -19,6 +20,13 @@ export interface PaintingRecipe {
   basing: string | null;
   notes: string | null;
   tutorial_link: string | null;
+  // v2.5 metadata (Phase 37)
+  style: string | null;
+  surface: string | null;
+  effect: string | null;
+  difficulty: string | null;
+  estimated_minutes: number | null;
+  result_photo_path: string | null;
   created_at: string;
   updated_at: string;
 }

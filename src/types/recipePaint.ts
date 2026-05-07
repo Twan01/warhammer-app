@@ -1,15 +1,26 @@
 /**
- * RecipePaint join entity (DATA-06).
- * Mirrors the recipe_paints table in 001_core_schema.sql.
+ * RecipeStep entity (v2.5 SCHEMA-01).
+ * Mirrors the recipe_steps table (renamed from recipe_paints in migration 012).
  */
-export interface RecipePaint {
+export interface RecipeStep {
   id: number;
   recipe_id: number;
   paint_id: number;
   step_name: string;
   order_index: number;
   notes: string | null;
+  // v2.5 structured step fields (Phase 37)
+  painting_phase: string | null;
+  tool: string | null;
+  technique: string | null;
+  dilution: string | null;
+  time_estimate_minutes: number | null;
   created_at: string;
 }
 
-export type CreateRecipePaintInput = Omit<RecipePaint, "id" | "created_at">;
+/** @deprecated Use RecipeStep instead */
+export type RecipePaint = RecipeStep;
+
+export type CreateRecipeStepInput = Omit<RecipeStep, "id" | "created_at">;
+/** @deprecated Use CreateRecipeStepInput instead */
+export type CreateRecipePaintInput = CreateRecipeStepInput;

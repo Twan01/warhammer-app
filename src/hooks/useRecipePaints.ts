@@ -6,7 +6,7 @@ import {
   getRecipeIdsByPaintId,
   getRecipeSwatchColors,
 } from "@/db/queries/recipePaints";
-import type { CreateRecipePaintInput } from "@/types/recipePaint";
+import type { CreateRecipeStepInput } from "@/types/recipePaint";
 
 export const RECIPE_PAINTS_KEY = (recipeId: number) => ["recipe-paints", recipeId] as const;
 
@@ -29,7 +29,7 @@ export function useRecipePaints(recipeId: number | undefined) {
 
 export function useAddRecipePaint() {
   const qc = useQueryClient();
-  return useMutation<number, Error, CreateRecipePaintInput>({
+  return useMutation<number, Error, CreateRecipeStepInput>({
     mutationFn: addRecipePaint,
     onSuccess: (_, input) => {
       qc.invalidateQueries({ queryKey: RECIPE_PAINTS_KEY(input.recipe_id) });
@@ -54,7 +54,7 @@ export function useRemoveRecipePaint() {
  *
  * Per-paint factory: each paint's recipe-id set is its own subtree so a paint
  * mutation invalidates only the relevant cache. Phase 7 does not currently
- * invalidate this key from any mutation — recipe_paints links are written via
+ * invalidate this key from any mutation — recipe_steps links are written via
  * RecipeFormSheet in Phase 4 code which already invalidates the recipe-paints
  * step counts. This key is read-only on the Recipes page.
  */

@@ -41,7 +41,14 @@ import { useFactions } from "@/hooks/useFactions";
 import { useUnits } from "@/hooks/useUnits";
 import { usePaints } from "@/hooks/usePaints";
 import type { PaintingRecipe } from "@/types/recipe";
-import { recipeSchema, type RecipeFormValues } from "./recipeSchema";
+import {
+  recipeSchema,
+  type RecipeFormValues,
+  RECIPE_STYLES,
+  RECIPE_SURFACES,
+  RECIPE_EFFECTS,
+  RECIPE_DIFFICULTIES,
+} from "./recipeSchema";
 import {
   type DraftStep,
   computeOrderIndex,
@@ -62,6 +69,12 @@ const DEFAULT_VALUES: RecipeFormValues = {
   area: null,
   notes: null,
   tutorial_link: null,
+  style: null,
+  surface: null,
+  effect: null,
+  difficulty: null,
+  estimated_minutes: null,
+  result_photo_path: null,
 };
 
 function buildDefaults(recipe: PaintingRecipe | null): RecipeFormValues {
@@ -73,6 +86,12 @@ function buildDefaults(recipe: PaintingRecipe | null): RecipeFormValues {
     area: recipe.area,
     notes: recipe.notes,
     tutorial_link: recipe.tutorial_link,
+    style: recipe.style,
+    surface: recipe.surface,
+    effect: recipe.effect,
+    difficulty: recipe.difficulty,
+    estimated_minutes: recipe.estimated_minutes,
+    result_photo_path: recipe.result_photo_path,
   };
 }
 
@@ -158,6 +177,12 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
           area: values.area,
           notes: values.notes,
           tutorial_link: values.tutorial_link || null,
+          style: values.style,
+          surface: values.surface,
+          effect: values.effect,
+          difficulty: values.difficulty,
+          estimated_minutes: values.estimated_minutes,
+          result_photo_path: values.result_photo_path,
         });
         // STATE.md decision: RecipePaint links are immutable. Remove all + re-add.
         for (const existing of existingSteps) {
@@ -171,6 +196,11 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
               step_name: s.step_name,
               order_index: s.order_index,
               notes: s.notes,
+              painting_phase: null,
+              tool: null,
+              technique: null,
+              dilution: null,
+              time_estimate_minutes: null,
             });
           }
         }
@@ -194,6 +224,12 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
           basing: null,
           notes: values.notes,
           tutorial_link: values.tutorial_link || null,
+          style: values.style,
+          surface: values.surface,
+          effect: values.effect,
+          difficulty: values.difficulty,
+          estimated_minutes: values.estimated_minutes,
+          result_photo_path: null, // photo upload comes Phase 40
         });
         for (const s of indexedSteps) {
           if (s.paint_id !== null) {
@@ -203,6 +239,11 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
               step_name: s.step_name,
               order_index: s.order_index,
               notes: s.notes,
+              painting_phase: null,
+              tool: null,
+              technique: null,
+              dilution: null,
+              time_estimate_minutes: null,
             });
           }
         }
@@ -328,6 +369,152 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
                         {...field}
                         value={field.value ?? ""}
                         onChange={(e) => field.onChange(e.target.value || null)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                name="style"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Style (optional)</FormLabel>
+                    <Select
+                      value={field.value ?? "__none__"}
+                      onValueChange={(v) =>
+                        field.onChange(v === "__none__" ? null : v)
+                      }
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select style" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="__none__">None</SelectItem>
+                        {RECIPE_STYLES.map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {s}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                name="surface"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Surface (optional)</FormLabel>
+                    <Select
+                      value={field.value ?? "__none__"}
+                      onValueChange={(v) =>
+                        field.onChange(v === "__none__" ? null : v)
+                      }
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select surface" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="__none__">None</SelectItem>
+                        {RECIPE_SURFACES.map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {s}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                name="effect"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Effect (optional)</FormLabel>
+                    <Select
+                      value={field.value ?? "__none__"}
+                      onValueChange={(v) =>
+                        field.onChange(v === "__none__" ? null : v)
+                      }
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select effect" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="__none__">None</SelectItem>
+                        {RECIPE_EFFECTS.map((e) => (
+                          <SelectItem key={e} value={e}>
+                            {e}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                name="difficulty"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Difficulty (optional)</FormLabel>
+                    <Select
+                      value={field.value ?? "__none__"}
+                      onValueChange={(v) =>
+                        field.onChange(v === "__none__" ? null : v)
+                      }
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select difficulty" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="__none__">None</SelectItem>
+                        {RECIPE_DIFFICULTIES.map((d) => (
+                          <SelectItem key={d} value={d}>
+                            {d}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                name="estimated_minutes"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estimated time (minutes, optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 45"
+                        min={1}
+                        value={field.value ?? ""}
+                        onChange={(e) =>
+                          field.onChange(e.target.value ? Number(e.target.value) : null)
+                        }
                       />
                     </FormControl>
                     <FormMessage />

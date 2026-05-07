@@ -18,11 +18,13 @@ export async function createRecipe(input: CreateRecipeInput): Promise<number> {
     `INSERT INTO painting_recipes (
        name, faction_id, unit_id, area,
        primer, basecoat, shade, layer, highlight, glaze_filter,
-       weathering, technical, basing, notes, tutorial_link
+       weathering, technical, basing, notes, tutorial_link,
+       style, surface, effect, difficulty, estimated_minutes, result_photo_path
      ) VALUES (
        $1, $2, $3, $4,
        $5, $6, $7, $8, $9, $10,
-       $11, $12, $13, $14, $15
+       $11, $12, $13, $14, $15,
+       $16, $17, $18, $19, $20, $21
      )`,
     [
       input.name, input.faction_id ?? null, input.unit_id ?? null, input.area ?? null,
@@ -30,6 +32,8 @@ export async function createRecipe(input: CreateRecipeInput): Promise<number> {
       input.highlight ?? null, input.glaze_filter ?? null,
       input.weathering ?? null, input.technical ?? null, input.basing ?? null,
       input.notes ?? null, input.tutorial_link ?? null,
+      input.style ?? null, input.surface ?? null, input.effect ?? null,
+      input.difficulty ?? null, input.estimated_minutes ?? null, input.result_photo_path ?? null,
     ]
   );
   return result.lastInsertId ?? 0;
@@ -39,22 +43,28 @@ export async function updateRecipe(input: UpdateRecipeInput): Promise<void> {
   const db = await getDb();
   await db.execute(
     `UPDATE painting_recipes
-        SET name         = COALESCE($2, name),
-            faction_id   = COALESCE($3, faction_id),
-            unit_id      = COALESCE($4, unit_id),
-            area         = COALESCE($5, area),
-            primer       = COALESCE($6, primer),
-            basecoat     = COALESCE($7, basecoat),
-            shade        = COALESCE($8, shade),
-            layer        = COALESCE($9, layer),
-            highlight    = COALESCE($10, highlight),
-            glaze_filter = COALESCE($11, glaze_filter),
-            weathering   = COALESCE($12, weathering),
-            technical    = COALESCE($13, technical),
-            basing       = COALESCE($14, basing),
-            notes        = COALESCE($15, notes),
-            tutorial_link = COALESCE($16, tutorial_link),
-            updated_at   = datetime('now')
+        SET name              = COALESCE($2, name),
+            faction_id        = COALESCE($3, faction_id),
+            unit_id           = COALESCE($4, unit_id),
+            area              = COALESCE($5, area),
+            primer            = COALESCE($6, primer),
+            basecoat          = COALESCE($7, basecoat),
+            shade             = COALESCE($8, shade),
+            layer             = COALESCE($9, layer),
+            highlight         = COALESCE($10, highlight),
+            glaze_filter      = COALESCE($11, glaze_filter),
+            weathering        = COALESCE($12, weathering),
+            technical         = COALESCE($13, technical),
+            basing            = COALESCE($14, basing),
+            notes             = COALESCE($15, notes),
+            tutorial_link     = COALESCE($16, tutorial_link),
+            style             = $17,
+            surface           = $18,
+            effect            = $19,
+            difficulty        = $20,
+            estimated_minutes = $21,
+            result_photo_path = $22,
+            updated_at        = datetime('now')
       WHERE id = $1`,
     [
       input.id,
@@ -63,13 +73,15 @@ export async function updateRecipe(input: UpdateRecipeInput): Promise<void> {
       input.highlight ?? null, input.glaze_filter ?? null,
       input.weathering ?? null, input.technical ?? null, input.basing ?? null,
       input.notes ?? null, input.tutorial_link ?? null,
+      input.style ?? null, input.surface ?? null, input.effect ?? null,
+      input.difficulty ?? null, input.estimated_minutes ?? null, input.result_photo_path ?? null,
     ]
   );
 }
 
 export async function deleteRecipe(id: number): Promise<void> {
   const db = await getDb();
-  // recipe_paints.recipe_id uses CASCADE — linked paints removed automatically
+  // recipe_steps.recipe_id uses CASCADE — linked steps removed automatically
   await db.execute("DELETE FROM painting_recipes WHERE id = $1", [id]);
 }
 

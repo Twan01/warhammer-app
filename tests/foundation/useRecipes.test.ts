@@ -45,6 +45,13 @@ const MIN_CREATE_INPUT = {
   basing: null,
   notes: null,
   tutorial_link: null,
+  // v2.5 metadata fields (Phase 37)
+  style: null,
+  surface: null,
+  effect: null,
+  difficulty: null,
+  estimated_minutes: null,
+  result_photo_path: null,
 };
 
 function makeWrapper() {
