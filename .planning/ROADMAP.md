@@ -139,7 +139,7 @@ Plans:
   2. User can edit or delete any existing step without affecting sibling steps
   3. User can drag a step to a new position and the new order persists after closing and reopening the recipe
   4. User can set tool, dilution ratio, technique, and time estimate (minutes) per step; the recipe header shows the sum of all step time estimates
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 38-01-PLAN.md — Data layer: PAINTING_PHASES const, DraftStep extension, addRecipePaint INSERT expansion, tests
 - [ ] 38-02-PLAN.md — UI layer: RecipeStepRow two-line layout, RecipeFormSheet hydration/save/time sum
@@ -219,7 +219,7 @@ Plans:
 | 34. Visual Polish | v2.4 | 2/2 | Complete | 2026-05-06 |
 | 36. v2.4 Gap Closure | v2.4 | 1/1 | Complete | 2026-05-06 |
 | 37. Schema Foundation + Pre-flight Fixes | 2/2 | Complete    | 2026-05-07 | - |
-| 38. Structured Step Input | v2.5 | 0/2 | Not started | - |
+| 38. Structured Step Input | 1/2 | In Progress|  | - |
 | 39. Studio UX + Paint Availability | v2.5 | 0/TBD | Not started | - |
 | 40. Recipe Actions + Step Photos | v2.5 | 0/TBD | Not started | - |
 | 41. Session Integration | v2.5 | 0/TBD | Not started | - |
