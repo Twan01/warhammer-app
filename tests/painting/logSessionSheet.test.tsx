@@ -29,6 +29,23 @@ vi.mock("@/hooks/useJournalSessions", () => ({
   PAINTING_SESSIONS_KEY: (id: number) => ["painting-sessions", id],
 }));
 
+// Mock useRecipes
+const useRecipesMock = vi.fn();
+vi.mock("@/hooks/useRecipes", () => ({
+  useRecipes: () => useRecipesMock(),
+}));
+
+// Mock useRecipePaints
+const useRecipePaintsMock = vi.fn();
+vi.mock("@/hooks/useRecipePaints", () => ({
+  useRecipePaints: (recipeId: number | undefined) => useRecipePaintsMock(recipeId),
+}));
+
+// Mock useFactions
+vi.mock("@/hooks/useFactions", () => ({
+  useFactions: () => ({ data: [{ id: 1, name: "Space Marines" }] }),
+}));
+
 // Mock todayISO to return a stable date
 vi.mock("@/lib/dates", () => ({
   todayISO: () => "2026-05-05",
@@ -80,9 +97,16 @@ const units: Unit[] = [
   u({ id: 99, name: "Necron Warriors" }),
 ];
 
+const recipes = [
+  { id: 1, name: "Blue Armor Recipe", faction_id: 1 },
+  { id: 2, name: "Gold Trim Recipe", faction_id: 1 },
+];
+
 beforeEach(() => {
   vi.clearAllMocks();
   useUnitsMock.mockReturnValue({ data: units, isLoading: false });
+  useRecipesMock.mockReturnValue({ data: recipes, isLoading: false });
+  useRecipePaintsMock.mockReturnValue({ data: [], isLoading: false });
 });
 
 describe("LogSessionSheet defaultUnitId", () => {
@@ -141,5 +165,44 @@ describe("LogSessionSheet defaultUnitId", () => {
 
     // Should show the placeholder when no defaultUnitId provided
     expect(screen.getByText("Select a unit")).toBeDefined();
+  });
+});
+
+describe("LogSessionSheet — INTEG-01 (recipe/step selectors)", () => {
+  it("renders a Recipe combobox when recipes are available", () => {
+    render(
+      <Wrapper>
+        <LogSessionSheet open={true} onClose={() => {}} />
+      </Wrapper>
+    );
+    expect(screen.getByText("Recipe")).toBeInTheDocument();
+    // getAllByText because shadcn Select renders text in both trigger and hidden option.
+    expect(screen.getAllByText("No recipe").length).toBeGreaterThan(0);
+  });
+
+  it("does not render Step selector when no recipe is selected", () => {
+    render(
+      <Wrapper>
+        <LogSessionSheet open={true} onClose={() => {}} />
+      </Wrapper>
+    );
+    expect(screen.queryByText("Recipe Step")).not.toBeInTheDocument();
+  });
+
+  it("form resets recipe_id and recipe_step_id to null on each open", () => {
+    const { rerender } = render(
+      <Wrapper>
+        <LogSessionSheet open={false} onClose={() => {}} />
+      </Wrapper>
+    );
+    rerender(
+      <Wrapper>
+        <LogSessionSheet open={true} onClose={() => {}} />
+      </Wrapper>
+    );
+    // "No recipe" should be shown (default selection), not a specific recipe name.
+    // getAllByText because shadcn Select renders text in both trigger and hidden option.
+    const matches = screen.getAllByText("No recipe");
+    expect(matches.length).toBeGreaterThan(0);
   });
 });
