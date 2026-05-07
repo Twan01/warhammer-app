@@ -168,7 +168,11 @@ Plans:
   2. User can attach a photo to any step and the photo displays inline in the step timeline
   3. User can designate an alternative substitute paint for any step; the substitute appears alongside the primary paint in the step detail
   4. User can tap "Add all missing to wishlist" on a recipe and all missing paints are added to the wishlist page in one action with no duplicates
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 40-01-PLAN.md — Migration 013 + types + addRecipePaint 12-column expansion + duplicateRecipe query + useDuplicateRecipe hook
+- [ ] 40-02-PLAN.md — Recipe duplication UI + step photo upload + result photo upload + timeline thumbnails
+- [ ] 40-03-PLAN.md — Alt paint combobox in step row + alt paint display in timeline + add-all-missing-to-wishlist button
 
 ### Phase 41: Session Integration
 **Goal**: Painting sessions can be linked to a specific recipe and step at log time, and a recipe's detail view shows all sessions that referenced it — closing the loop between planning and execution
@@ -224,6 +228,6 @@ Plans:
 | 36. v2.4 Gap Closure | v2.4 | 1/1 | Complete | 2026-05-06 |
 | 37. Schema Foundation + Pre-flight Fixes | v2.5 | 2/2 | Complete | 2026-05-07 |
 | 38. Structured Step Input | v2.5 | 2/2 | Complete | 2026-05-07 |
-| 39. Studio UX + Paint Availability | 3/3 | Complete    | 2026-05-07 | - |
-| 40. Recipe Actions + Step Photos | v2.5 | 0/TBD | Not started | - |
+| 39. Studio UX + Paint Availability | v2.5 | 3/3 | Complete | 2026-05-07 |
+| 40. Recipe Actions + Step Photos | v2.5 | 0/3 | Not started | - |
 | 41. Session Integration | v2.5 | 0/TBD | Not started | - |
