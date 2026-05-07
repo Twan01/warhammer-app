@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Recipes 2.0 / Painting Studio
-status: completed
-stopped_at: Phase 40 context gathered
-last_updated: "2026-05-07T10:15:29.307Z"
-last_activity: 2026-05-07 — 39-03 vertical timeline, metadata badge row, STUDIO-02 complete
+status: in_progress
+stopped_at: Completed 40-01-PLAN.md
+last_updated: "2026-05-07T10:43:41Z"
+last_activity: 2026-05-07 — 40-01 migration 013, type updates, addRecipePaint 12-col, duplicateRecipe
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 8
+  completed_plans: 8
   percent: 100
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06 after v2.5 milestone started)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.5 Phase 39 — Studio UX + Paint Availability
+**Current focus:** v2.5 Phase 40 — Recipe Actions + Step Photos
 
 ## Current Position
 
-Phase: 39 of 41 (Studio UX + Paint Availability) — COMPLETE
-Plan: 3 of 3 (39-03 complete — all plans done)
-Status: 39-03 RecipeStepTimeline and metadata badges delivered — Phase 39 complete
-Last activity: 2026-05-07 — 39-03 vertical timeline, metadata badge row, STUDIO-02 complete
+Phase: 40 of 41 (Recipe Actions + Step Photos) — IN PROGRESS
+Plan: 1 of ? (40-01 complete — data layer foundation done)
+Status: 40-01 migration 013, types, 12-col INSERT, duplicateRecipe, useDuplicateRecipe delivered
+Last activity: 2026-05-07 — 40-01 data layer foundation (step photos + alt paint schema)
 
-Progress: [██████████] 100% (7/7 plans in v2.5)
+Progress: [████████░░] 80% (8/? plans in v2.5)
 
 ## Accumulated Context
 
@@ -106,6 +106,14 @@ Progress: [██████████] 100% (7/7 plans in v2.5)
 - Tests added to .tsx test file (has real implementation) not .ts stub file (only todos)
 - Vertical timeline connecting line uses absolute positioning left-[11px] aligned to center of 14px node dot
 
+### Decisions from Phase 40 Plan 01
+
+- step_photo_path TEXT nullable — no NOT NULL constraint, photos are optional at step level
+- alt_paint_id INTEGER REFERENCES paints(id) — FK to paints table, nullable for optional substitute paint
+- DraftStep mirrors RecipeStep new fields — null initialization matches makeDraftStep() pattern
+- duplicateRecipe copies all 12 step columns including Phase 40 fields — avoids data loss on duplication
+- useDuplicateRecipe invalidates RECIPE_SWATCH_KEY, STEP_COUNTS_KEY, RECIPE_AVAILABILITY_KEY — new recipe has steps so all caches affected
+
 ### Key v2.5 Architectural Constraints
 
 - FIXED (Phase 37-01): useDeleteRecipe now includes `["kanban-enrichment"]` invalidation — cache symmetry restored
@@ -123,6 +131,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-07T10:15:29.301Z
-Stopped at: Phase 40 context gathered
-Resume: Phase 39 complete — begin Phase 40 (photo upload for result_photo_path, STEP-05)
+Last session: 2026-05-07T10:43:41Z
+Stopped at: Completed 40-01-PLAN.md
+Resume: Phase 40 in progress — 40-01 data layer complete, continue with 40-02 (next plan in phase)
