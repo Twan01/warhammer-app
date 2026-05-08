@@ -8,6 +8,13 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useStrategyNote, useUpsertStrategyNote } from "@/hooks/useStrategyNote";
 import { useDatasheet, useRulesSyncMeta, useWahapediaFactionId, DATASHEET_KEY } from "@/hooks/useDatasheet";
 import { useRulesSync } from "@/hooks/useRulesSync";
+import {
+  useStratagemsByFaction,
+  useDetachmentsByFaction,
+  useSharedAbilitiesByFaction,
+  useDetachmentAbilitiesByDetachment,
+} from "@/hooks/useRulesExtended";
+import type { RwDetachment, RwStratagem } from "@/types/datasheet";
 import { useFactions } from "@/hooks/useFactions";
 import { useUnits } from "@/hooks/useUnits";
 import { useQueryClient } from "@tanstack/react-query";
@@ -258,6 +265,26 @@ export function PlaybookTab({
   const { data: syncMeta } = useRulesSyncMeta();
   const { data: datasheet } = useDatasheet(unitId);
   const rulesSync = useRulesSync();
+
+  // Extended rules hooks (Phase 43 — SCHEMA-01 to SCHEMA-04)
+  const { data: stratagems = [] } = useStratagemsByFaction(wahapediaFactionId ?? undefined);
+  const { data: detachments = [] } = useDetachmentsByFaction(wahapediaFactionId ?? undefined);
+  const { data: sharedAbilities = [] } = useSharedAbilitiesByFaction(wahapediaFactionId ?? undefined);
+
+  const hasStratagems = stratagems.length > 0;
+  const hasDetachments = detachments.length > 0;
+  const hasSharedAbilities = sharedAbilities.length > 0;
+
+  const stratagemsByPhase = useMemo(() => {
+    const map = new Map<string, RwStratagem[]>();
+    for (const s of stratagems) {
+      const key = s.phase ?? "Other";
+      const group = map.get(key) ?? [];
+      group.push(s);
+      map.set(key, group);
+    }
+    return map;
+  }, [stratagems]);
 
   // Picker open state — local to PlaybookTab so the auto-open trigger is a one-shot effect.
   const [pickerOpen, setPickerOpen] = useState(false);
