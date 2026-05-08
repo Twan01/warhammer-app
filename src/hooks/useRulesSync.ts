@@ -19,7 +19,7 @@ import { capturePreSyncSnapshot, getLatestSnapshot } from "@/db/queries/rulesSna
 import { SYNC_ERRORS_KEY } from "@/hooks/useSyncErrors";
 import { getRulesSyncMeta } from "@/db/queries/datasheets";
 import { computeSyncDiff } from "@/lib/computeSyncDiff";
-import type { SyncDiff } from "@/lib/computeSyncDiff";
+import type { SyncDiff, ExtendedSnapshotData } from "@/lib/computeSyncDiff";
 import { getRulesDb } from "@/db/rules-client";
 
 /** Mirrors the Rust SyncResult struct returned by bulk_sync_rules via Tauri IPC. */
@@ -142,10 +142,15 @@ export function useRulesSync() {
 
       // Read pre-sync snapshot for diff computation BEFORE capturing new snapshot (OVRD-06, OVRD-07)
       let preSyncSnapshotData: string | null = null;
+      let preSyncModelsData: string | null = null;
+      let preSyncKeywordsData: string | null = null;
+      let preSyncAbilitiesData: string | null = null;
       try {
         const existingSnapshot = await getLatestSnapshot();
-        const dsRow = existingSnapshot.find((r) => r.table_name === "rw_datasheets");
-        preSyncSnapshotData = dsRow?.snapshot_data ?? null;
+        preSyncSnapshotData = existingSnapshot.find((r) => r.table_name === "rw_datasheets")?.snapshot_data ?? null;
+        preSyncModelsData = existingSnapshot.find((r) => r.table_name === "rw_datasheet_models")?.snapshot_data ?? null;
+        preSyncKeywordsData = existingSnapshot.find((r) => r.table_name === "rw_datasheet_keywords")?.snapshot_data ?? null;
+        preSyncAbilitiesData = existingSnapshot.find((r) => r.table_name === "rw_datasheet_abilities")?.snapshot_data ?? null;
       } catch {
         // First sync ever — no snapshot exists yet
       }
@@ -185,7 +190,30 @@ export function useRulesSync() {
           "SELECT id, name FROM rw_datasheets ORDER BY id",
           [],
         );
-        diff = computeSyncDiff(preSyncSnapshotData, currentDatasheets);
+
+        // Query current post-sync state for per-field diff (Phase 47 — OVRD-06)
+        const [currentModels, currentKeywords, currentAbilities] = await Promise.all([
+          rulesDb.select<Record<string, unknown>[]>(
+            "SELECT datasheet_id, line, name, M, T, Sv, inv_sv, W, Ld, OC FROM rw_datasheet_models ORDER BY datasheet_id, line",
+            [],
+          ),
+          rulesDb.select<Record<string, unknown>[]>(
+            "SELECT datasheet_id, keyword, is_faction_keyword FROM rw_datasheet_keywords ORDER BY datasheet_id, keyword",
+            [],
+          ),
+          rulesDb.select<Record<string, unknown>[]>(
+            "SELECT datasheet_id, line, ability_id, name, description, type FROM rw_datasheet_abilities ORDER BY datasheet_id, line",
+            [],
+          ),
+        ]);
+
+        const extended: ExtendedSnapshotData = {
+          models: { before: preSyncModelsData, after: JSON.stringify(currentModels) },
+          keywords: { before: preSyncKeywordsData, after: JSON.stringify(currentKeywords) },
+          abilities: { before: preSyncAbilitiesData, after: JSON.stringify(currentAbilities) },
+        };
+
+        diff = computeSyncDiff(preSyncSnapshotData, currentDatasheets, extended);
       } catch {
         // Diff is best-effort; sync itself succeeded
         console.warn("[useRulesSync] diff computation failed");
