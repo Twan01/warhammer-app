@@ -2,7 +2,7 @@
 phase: 50
 slug: section-form-ui
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-05-08
 ---
@@ -19,7 +19,7 @@ created: 2026-05-08
 |----------|-------|
 | **Framework** | Vitest 4 + React Testing Library 16 |
 | **Config file** | `vitest.config.ts` |
-| **Quick run command** | `pnpm test -- tests/painting/recipeSection.test.ts` |
+| **Quick run command** | `pnpm test -- tests/painting/recipeSection.pure.test.ts` |
 | **Full suite command** | `pnpm test` |
 | **Estimated runtime** | ~15 seconds |
 
@@ -27,7 +27,7 @@ created: 2026-05-08
 
 ## Sampling Rate
 
-- **After every task commit:** Run `pnpm test -- tests/painting/recipeSection.test.ts`
+- **After every task commit:** Run `pnpm test -- tests/painting/recipeSection.pure.test.ts`
 - **After every plan wave:** Run `pnpm test`
 - **Before `/gsd:verify-work`:** Full suite must be green
 - **Max feedback latency:** 15 seconds
@@ -38,25 +38,39 @@ created: 2026-05-08
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 50-01-01 | 01 | 0 | FORM-03, FORM-05, FORM-06 | unit (pure fn) | `pnpm test -- tests/painting/recipeSection.test.ts` | ❌ W0 | ⬜ pending |
-| 50-01-02 | 01 | 0 | FORM-01, FORM-02 | unit (component) | `pnpm test -- tests/painting/RecipeSectionCard.test.tsx` | ❌ W0 | ⬜ pending |
-| 50-02-01 | 02 | 1 | FORM-01 | unit (component) | `pnpm test -- tests/painting/RecipeSectionCard.test.tsx` | ❌ W0 | ⬜ pending |
-| 50-02-02 | 02 | 1 | FORM-02 | unit (component) | `pnpm test -- tests/painting/RecipeSectionCard.test.tsx` | ❌ W0 | ⬜ pending |
-| 50-02-03 | 02 | 1 | FORM-03 | unit (pure fn) | `pnpm test -- tests/painting/recipeSection.test.ts` | ❌ W0 | ⬜ pending |
-| 50-02-04 | 02 | 1 | FORM-04 | unit (pure fn) | Covered by existing `tests/painting/recipeSteps.test.ts` | ✅ | ⬜ pending |
-| 50-02-05 | 02 | 1 | FORM-05 | unit (pure fn) | `pnpm test -- tests/painting/recipeSection.test.ts` | ❌ W0 | ⬜ pending |
-| 50-02-06 | 02 | 1 | FORM-06 | unit (pure fn) | `pnpm test -- tests/painting/recipeSection.test.ts` | ❌ W0 | ⬜ pending |
+| 50-01-01 | 01 | 0 | FORM-05, FORM-06 | unit (pure fn) | `pnpm test -- tests/painting/recipeSection.pure.test.ts` | W0 | pending |
+| 50-01-02 | 01 | 0 | FORM-05, FORM-06 | unit (pure fn) | `pnpm test -- tests/painting/recipeSection.pure.test.ts` | W0 | pending |
+| 50-02-01 | 02 | 1 | FORM-01, FORM-02 | build | `pnpm build` | n/a | pending |
+| 50-02-02 | 02 | 1 | FORM-03, FORM-04 | build + test | `pnpm build && pnpm test -- tests/painting/recipeSection.pure.test.ts` | n/a | pending |
+| 50-03-01 | 03 | 2 | FORM-01 to FORM-06 | build + test | `pnpm build && pnpm test -- tests/painting/recipeSection.pure.test.ts` | n/a | pending |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+*Status: pending / green / red / flaky*
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `tests/painting/recipeSection.test.ts` — stubs for FORM-03, FORM-05, FORM-06: `buildDraftSections`, `makeDraftSection`, `computeSectionOrder` pure functions
-- [ ] `tests/painting/RecipeSectionCard.test.tsx` — stubs for FORM-01, FORM-02: collapse/expand behavior, header fields, delete confirmation guard
+- [ ] `tests/painting/recipeSection.pure.test.ts` — created by plan 01 Task 1 (TDD RED phase): pure function tests for `buildDraftSections`, `makeDraftSection`
 
-*Existing `tests/painting/recipeSteps.test.ts` covers step-level pure functions — no Wave 0 gap for FORM-04*
+*Note: `tests/painting/recipeSection.test.ts` already exists from Phase 48 (hook invalidation tests) — this is a DIFFERENT file. The `.pure.test.ts` suffix disambiguates pure function tests from hook tests.*
+
+*Existing `tests/painting/recipeSteps.test.ts` covers step-level pure functions — no Wave 0 gap for FORM-04.*
+
+---
+
+## Sampling Continuity
+
+Verify no 3 consecutive tasks use build-only verification:
+
+| Task | Verify Type | Breaks streak? |
+|------|------------|----------------|
+| 50-01-01 | test (RED) | yes |
+| 50-01-02 | test (GREEN) | yes |
+| 50-02-01 | build only | streak=1 |
+| 50-02-02 | build + test | yes (resets) |
+| 50-03-01 | build + test | yes (resets) |
+
+Maximum consecutive build-only: 1. Compliant.
 
 ---
 
@@ -73,11 +87,11 @@ created: 2026-05-08
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** ready
