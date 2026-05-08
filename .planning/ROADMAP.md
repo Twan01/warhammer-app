@@ -141,7 +141,9 @@ Full details: `.planning/milestones/v2.5-ROADMAP.md`
   2. Architecture note documents the complete data flow from TypeScript CSV fetch through Rust transaction to SQLite write
   3. Architecture note lists every TypeScript type, query function, and React Query hook that is missing for stratagems, detachments, detachment abilities, and shared abilities
   4. Architecture note includes a migration plan for sync_meta, sync_errors, rules_snapshot, and unit_overrides tables with column-level detail
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [x] 42-01-PLAN.md — Write ARCHITECTURE-AUDIT.md reference document
 
 ### Phase 43: Extended Rules Read Layer
 **Goal**: Users can view stratagems, detachments, detachment abilities, and shared faction abilities in PlaybookTab — backed by a complete TypeScript data layer
@@ -153,7 +155,10 @@ Full details: `.planning/milestones/v2.5-ROADMAP.md`
   3. User can see detachment abilities grouped by their parent detachment in PlaybookTab
   4. User can see shared faction abilities (non-datasheet-specific) in PlaybookTab
   5. TypeScript types, query functions, and React Query hooks exist for all four extended data types and follow the established src/db/queries + src/hooks pattern
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 43-01-PLAN.md — Types, query module, hooks module, and data layer tests (SCHEMA-05)
+- [ ] 43-02-PLAN.md — PlaybookTab UI integration with collapsible sections and component tests (SCHEMA-01/02/03/04)
 
 ### Phase 44: Sync Pipeline Hardening
 **Goal**: The sync pipeline validates input, reports outcomes per table, and persists errors — eliminating silent failures and ambiguous post-sync state
@@ -242,8 +247,8 @@ Plans:
 | 39. Studio UX + Paint Availability | v2.5 | 3/3 | Complete | 2026-05-07 |
 | 40. Recipe Actions + Step Photos | v2.5 | 3/3 | Complete | 2026-05-07 |
 | 41. Session Integration | v2.5 | 2/2 | Complete | 2026-05-07 |
-| 42. Architecture Audit | 1/1 | Complete    | 2026-05-08 | - |
-| 43. Extended Rules Read Layer | v2.6 | 0/TBD | Not started | - |
+| 42. Architecture Audit | v2.6 | 1/1 | Complete | 2026-05-08 |
+| 43. Extended Rules Read Layer | v2.6 | 0/2 | Not started | - |
 | 44. Sync Pipeline Hardening | v2.6 | 0/2 | Not started | - |
 | 45. Sync Metadata & Import Tracking | v2.6 | 0/TBD | Not started | - |
 | 46. Manual Overrides & Version Comparison | v2.6 | 0/TBD | Not started | - |
