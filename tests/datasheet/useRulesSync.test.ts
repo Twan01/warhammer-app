@@ -11,9 +11,11 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 // NOTE: vi.mock factories are hoisted to the top of the file by Vitest.
 // Variables used inside factory functions must be declared with vi.hoisted()
 // to ensure they are initialized before the factory runs.
-const { invalidateQueriesMock, insertSyncErrorMock } = vi.hoisted(() => ({
+const { invalidateQueriesMock, insertSyncErrorMock, capturePreSyncSnapshotMock, getRulesSyncMetaMock } = vi.hoisted(() => ({
   invalidateQueriesMock: vi.fn(),
   insertSyncErrorMock: vi.fn(),
+  capturePreSyncSnapshotMock: vi.fn(),
+  getRulesSyncMetaMock: vi.fn(),
 }));
 
 vi.mock("@tanstack/react-query", () => ({
@@ -49,6 +51,18 @@ vi.mock("@/hooks/useDatasheet", () => ({
   RULES_SYNC_META_KEY: ["rules-sync-meta"],
 }));
 
+vi.mock("@/db/queries/rulesSnapshot", () => ({
+  capturePreSyncSnapshot: capturePreSyncSnapshotMock,
+}));
+
+vi.mock("@/db/queries/datasheets", () => ({
+  getRulesSyncMeta: getRulesSyncMetaMock,
+}));
+
+vi.mock("@/hooks/useSyncErrors", () => ({
+  SYNC_ERRORS_KEY: ["sync-errors"],
+}));
+
 import { useRulesSync } from "@/hooks/useRulesSync";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { invoke } from "@tauri-apps/api/core";
@@ -61,13 +75,13 @@ beforeEach(() => {
 });
 
 describe("useRulesSync", () => {
-  it("SYNC-05: onSuccess invalidates all 7 query keys", () => {
+  it("SYNC-05: onSuccess invalidates all 8 query keys", () => {
     const opts = useRulesSync() as unknown as {
       onSuccess: () => void;
     };
     opts.onSuccess();
 
-    expect(invalidateQueriesMock).toHaveBeenCalledTimes(7);
+    expect(invalidateQueriesMock).toHaveBeenCalledTimes(8);
 
     const calls = invalidateQueriesMock.mock.calls.map(
       (c: { queryKey: string[] }[]) => c[0].queryKey[0],
@@ -79,6 +93,7 @@ describe("useRulesSync", () => {
     expect(calls).toContain("detachments-by-faction");
     expect(calls).toContain("detachment-abilities");
     expect(calls).toContain("shared-abilities-by-faction");
+    expect(calls).toContain("sync-errors");
   });
 
   it("SYNC-05: Phase 43 invalidation calls use exact: false", () => {
@@ -181,5 +196,22 @@ describe("useRulesSync", () => {
 
     // Also assert invoke was called with the Tauri command name
     expect(vi.mocked(invoke)).toHaveBeenCalledWith("bulk_sync_rules", expect.any(Object));
+  });
+
+  it("META-06: onSuccess invalidates SYNC_ERRORS_KEY", () => {
+    const hookResult = useRulesSync() as unknown as Record<string, (...args: unknown[]) => void>;
+    hookResult.onSuccess({ wahapediaVersion: "v1", rowCounts: {} });
+    expect(invalidateQueriesMock).toHaveBeenCalledWith(
+      expect.objectContaining({ queryKey: ["sync-errors"] })
+    );
+  });
+
+  it("META-04: onError invalidates SYNC_ERRORS_KEY after logging error", async () => {
+    insertSyncErrorMock.mockResolvedValue(undefined);
+    const hookResult = useRulesSync() as unknown as Record<string, (...args: unknown[]) => Promise<void>>;
+    await hookResult.onError(new Error("test error"));
+    expect(invalidateQueriesMock).toHaveBeenCalledWith(
+      expect.objectContaining({ queryKey: ["sync-errors"] })
+    );
   });
 });

@@ -15,6 +15,9 @@ import { RULES_SYNC_META_KEY } from "@/hooks/useDatasheet";
 import { validateCsvHeaders } from "@/lib/validateCsvHeaders";
 import { insertSyncError } from "@/db/queries/syncErrors";
 import type { InsertSyncErrorInput } from "@/db/queries/syncErrors";
+import { capturePreSyncSnapshot } from "@/db/queries/rulesSnapshot";
+import { SYNC_ERRORS_KEY } from "@/hooks/useSyncErrors";
+import { getRulesSyncMeta } from "@/db/queries/datasheets";
 
 /** Mirrors the Rust SyncResult struct returned by bulk_sync_rules via Tauri IPC. */
 interface RustSyncResult {
@@ -134,6 +137,15 @@ export function useRulesSync() {
         legend: a.legend ? stripHtml(a.legend) : "",
       }));
 
+      // META-06: Capture pre-sync snapshot before Rust deletes all rows
+      try {
+        const currentMeta = await getRulesSyncMeta();
+        await capturePreSyncSnapshot(currentMeta?.wahapedia_version);
+      } catch (e) {
+        // Non-blocking: snapshot failure must not prevent sync
+        console.warn("[useRulesSync] snapshot capture failed — proceeding with sync:", e);
+      }
+
       const rustResult = await invoke<RustSyncResult>("bulk_sync_rules", {
         payload: {
           factions,
@@ -178,6 +190,7 @@ export function useRulesSync() {
       qc.invalidateQueries({ queryKey: ["detachments-by-faction"], exact: false });
       qc.invalidateQueries({ queryKey: ["detachment-abilities"], exact: false });
       qc.invalidateQueries({ queryKey: ["shared-abilities-by-faction"], exact: false });
+      qc.invalidateQueries({ queryKey: SYNC_ERRORS_KEY });
     },
     onError: async (err: Error) => {
       const message = err.message ?? "Unknown sync error";
@@ -199,6 +212,7 @@ export function useRulesSync() {
         // Fire-and-forget: toast is the primary user feedback. DB write failure is non-critical.
         console.error("[useRulesSync] failed to log sync error to DB");
       }
+      qc.invalidateQueries({ queryKey: SYNC_ERRORS_KEY });
     },
   });
 }
