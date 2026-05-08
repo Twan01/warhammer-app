@@ -1,59 +1,42 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.6
-milestone_name: Rules Sync 2.0 / Rules Data Hub
-status: completed
-stopped_at: Completed 47-02-PLAN.md
-last_updated: "2026-05-08T13:23:19.667Z"
-last_activity: 2026-05-08 — Phase 47 Plan 02 complete (OVRD-06 UI layer + tech debt cleanup)
+milestone: v0.2.7
+milestone_name: Recipes 3.0 / Hierarchical Painting Workflows
+status: defining-requirements
+stopped_at: null
+last_updated: "2026-05-08"
+last_activity: 2026-05-08 — Milestone v0.2.7 started
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 11
-  completed_plans: 11
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-08 after v2.6 milestone)
+See: .planning/PROJECT.md (updated 2026-05-08 after v0.2.7 milestone started)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** Planning next milestone
+**Current focus:** Defining requirements for v0.2.7
 
 ## Current Position
 
-Milestone: v2.6 shipped 2026-05-08
-Status: Between milestones — planning next
-Last activity: 2026-05-08 — Phase 47 Plan 02 complete (OVRD-06 UI layer + tech debt cleanup)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-08 — Milestone v0.2.7 started
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed (v2.6): 0
-- Prior milestone (v2.5): 12 plans across 5 phases
-
-**By Phase (v2.6):**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 42–46 | TBD | - | - |
-
-*Updated after each plan completion*
-| Phase 42-architecture-audit P01 | 3 | 1 tasks | 1 files |
-| Phase 44 P01 | 13m | 3 tasks | 6 files |
-| Phase 43-extended-rules-read-layer P01 | 678 | 2 tasks | 5 files |
-| Phase 44 P02 | 8m | 2 tasks | 3 files |
-| Phase 43 P02 | 15 | 2 tasks | 2 files |
-| Phase 45 P01 | 271 | 2 tasks | 9 files |
-| Phase 45 P02 | 9 | 3 tasks | 4 files |
-| Phase 46 P01 | 473 | 2 tasks | 10 files |
-| Phase 46 P02 | 20m | 3 tasks | 2 files |
-| Phase 47 P02 | 15 | 2 tasks | 12 files |
+- Prior milestone (v0.2.6): 11 plans across 6 phases
+- Prior milestone (v0.2.5): 12 plans across 5 phases
 
 ## Accumulated Context
 
@@ -69,8 +52,8 @@ Progress: [██████████] 100%
 - Tailwind v4 CSS-first theming — @theme inline {} block, no tailwind.config.js
 - Cache invalidation symmetry: if useCreate invalidates a key, useDelete must too
 - todayISO() from @/lib/dates is the single source of truth for date defaults
-- **v2.6 critical**: Overrides MUST live in hobbyforge.db — rules.db is destroyed and re-inserted on every sync; any rw_* data in rules.db is lost on re-sync
-- **v2.6 critical**: Cross-database FKs are not supported in SQLite; unit_overrides references units by unit_id in hobbyforge.db, not rules.db
+- **v0.2.6 critical**: Overrides MUST live in hobbyforge.db — rules.db is destroyed and re-inserted on every sync; any rw_* data in rules.db is lost on re-sync
+- **v0.2.6 critical**: Cross-database FKs are not supported in SQLite; unit_overrides references units by unit_id in hobbyforge.db, not rules.db
 - rules.db uses WAL mode + 10s busy_timeout (write-heavy during sync)
 - Dual-query merge pattern (no ATTACH DATABASE) continues for cross-DB data
 - **Phase 44**: SyncResult uses pub field visibility for Tauri IPC serde::Serialize serialization

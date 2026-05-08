@@ -4,7 +4,7 @@
 
 HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, structured painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play" — all without ever depending on copyrighted GW data.
 
-Shipped through v2.6 (47 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with paint availability), army list builder, battle log, spending tracker, hobby goals, photo journal, session-recipe linking, premium CSS grid dashboard, and a complete rules data hub — Wahapedia datasheet import with hardened sync pipeline, sync metadata/freshness tracking, persistent manual overrides, and per-field diff comparison after re-syncs.
+Shipped through v0.2.6 (47 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with paint availability), army list builder, battle log, spending tracker, hobby goals, photo journal, session-recipe linking, premium CSS grid dashboard, and a complete rules data hub — Wahapedia datasheet import with hardened sync pipeline, sync metadata/freshness tracking, persistent manual overrides, and per-field diff comparison after re-syncs.
 
 ## Core Value
 
@@ -14,90 +14,99 @@ A single personal command center that always answers "what do I own, what's pain
 
 ### Validated
 
-*All v1.1 requirements verified and shipped 2026-05-01*
+*All v0.1.1 requirements verified and shipped 2026-05-01*
 
-- ✓ App shell (Tauri 2 + React 19 + TS + SQLite, dark mode, sidebar, TanStack Router/Query) — Phase 1 — v1.1
-- ✓ Full 10-table schema, FK enforcement, seed data (4 factions, 5 units, 6 paints, 3 recipes) — Phase 2 — v1.1
-- ✓ Faction / Unit / Paint CRUD with typed query → hook → UI stack — Phase 2 — v1.1
-- ✓ Collection page: searchable, filterable table, optimistic status updates, detail Sheet — Phase 3 — v1.1
-- ✓ Painting Projects Kanban with dnd-kit drag-and-drop and optimistic rollback — Phase 4 — v1.1
-- ✓ Painting recipe CRUD with step-level paint linkage and owned/missing indicator — Phase 4 — v1.1
-- ✓ Dashboard stat cards, faction summaries, active projects list, recently updated — Phase 5 — v1.1
+- ✓ App shell (Tauri 2 + React 19 + TS + SQLite, dark mode, sidebar, TanStack Router/Query) — Phase 1 — v0.1.1
+- ✓ Full 10-table schema, FK enforcement, seed data (4 factions, 5 units, 6 paints, 3 recipes) — Phase 2 — v0.1.1
+- ✓ Faction / Unit / Paint CRUD with typed query → hook → UI stack — Phase 2 — v0.1.1
+- ✓ Collection page: searchable, filterable table, optimistic status updates, detail Sheet — Phase 3 — v0.1.1
+- ✓ Painting Projects Kanban with dnd-kit drag-and-drop and optimistic rollback — Phase 4 — v0.1.1
+- ✓ Painting recipe CRUD with step-level paint linkage and owned/missing indicator — Phase 4 — v0.1.1
+- ✓ Dashboard stat cards, faction summaries, active projects list, recently updated — Phase 5 — v0.1.1
 
-*All v2.0 requirements verified and shipped 2026-05-03*
+*All v0.2.0 requirements verified and shipped 2026-05-03*
 
-- ✓ Schema migration 004 — 8 nullable columns on unit_strategy_notes; typed query/hook modules for army lists, strategy notes, and paint recipes — Phase 6 — v2.0
-- ✓ Paint Inventory page at /paints: brand/type/color-family filters, running-low/wishlist presets, recipe badge navigation, inline owned toggle — Phase 7 — v2.0
-- ✓ Army List Builder: create/edit/delete lists, add/remove units, COALESCE-in-SQL points, battle-ready %, per-unit notes, army-list membership pre-check on unit delete — Phase 8 — v2.0
-- ✓ Unit Playbook tab: stats block (M/T/Sv/W/Ld/OC), abilities, keywords, 8 strategy notes, dirty-state Save with toasts — Phase 9 — v2.0
+- ✓ Schema migration 004 — 8 nullable columns on unit_strategy_notes; typed query/hook modules for army lists, strategy notes, and paint recipes — Phase 6 — v0.2.0
+- ✓ Paint Inventory page at /paints: brand/type/color-family filters, running-low/wishlist presets, recipe badge navigation, inline owned toggle — Phase 7 — v0.2.0
+- ✓ Army List Builder: create/edit/delete lists, add/remove units, COALESCE-in-SQL points, battle-ready %, per-unit notes, army-list membership pre-check on unit delete — Phase 8 — v0.2.0
+- ✓ Unit Playbook tab: stats block (M/T/Sv/W/Ld/OC), abilities, keywords, 8 strategy notes, dirty-state Save with toasts — Phase 9 — v0.2.0
 
-*All v2.1 requirements verified and shipped 2026-05-04*
+*All v0.2.1 requirements verified and shipped 2026-05-04*
 
-- ✓ Faction Dynamic Theming — UI accent colors shift per selected faction across the entire app — Phase 10 — v2.1
-- ✓ Collapsible Icon Sidebar — icon-only mode with tooltip polish, persisted state — Phase 10 — v2.1
-- ✓ Dashboard Command Center — animated stat counters, faction-accented summary cards — Phase 11 — v2.1
-- ✓ Collection Gallery View — card grid with painting-status ring as alternate to table — Phase 12 — v2.1
-- ✓ Hobby Journal — per-unit photo timeline + painting session log with time tracking — Phase 13 — v2.1
-- ✓ Spending Tracker — cost per unit and paint, per-faction and total spend views — Phase 14 — v2.1
-- ✓ 40K Datasheet Integration — auto-populate unit stats/abilities/keywords from community data — Phase 15 — v2.1
-- ✓ Design Overhaul — typography, spacing, layouts, empty states, and overall UI polish — Phase 16 — v2.1
+- ✓ Faction Dynamic Theming — UI accent colors shift per selected faction across the entire app — Phase 10 — v0.2.1
+- ✓ Collapsible Icon Sidebar — icon-only mode with tooltip polish, persisted state — Phase 10 — v0.2.1
+- ✓ Dashboard Command Center — animated stat counters, faction-accented summary cards — Phase 11 — v0.2.1
+- ✓ Collection Gallery View — card grid with painting-status ring as alternate to table — Phase 12 — v0.2.1
+- ✓ Hobby Journal — per-unit photo timeline + painting session log with time tracking — Phase 13 — v0.2.1
+- ✓ Spending Tracker — cost per unit and paint, per-faction and total spend views — Phase 14 — v0.2.1
+- ✓ 40K Datasheet Integration — auto-populate unit stats/abilities/keywords from community data — Phase 15 — v0.2.1
+- ✓ Design Overhaul — typography, spacing, layouts, empty states, and overall UI polish — Phase 16 — v0.2.1
 
-*All v2.2 requirements verified and shipped 2026-05-05*
+*All v0.2.2 requirements verified and shipped 2026-05-05*
 
-- ✓ Schema Foundation + Enrichment — lore_notes and undercoat on units, lore_notes on factions, purchase_date on paints, dates.ts timezone-safe utility — Phase 17 — v2.2
-- ✓ Battle Log — CRUD page with opponent faction, mission, result, army list linkage, notes, chronological list — Phase 18 — v2.2
-- ✓ Analytics Core — hobby velocity, painting streak on Dashboard, monthly spend trend chart — Phase 19 — v2.2
-- ✓ Hobby Goals — create goals with target dates, track progress via painting sessions, dashboard goal card — Phase 21 — v2.2
-- ✓ Hobby Goals Polish — goal filtering, completion celebrations, streak integration with goals — Phase 22 — v2.2
-- ✓ Display Features — Battle Ready collection filter preset, unit showcase mode with photo display — Phase 23 — v2.2
-- ✓ Unit Point Calculator — per-model-count point tiers, wargear loadout selection, delta preview badge in army lists — Phase 24 — v2.2
-- ✓ Gap Closure — timezone-safe date import, cache invalidation symmetry (delete→goal-progress, update→army-lists), purchase_date form field wiring — Phase 35 — v2.2
+- ✓ Schema Foundation + Enrichment — lore_notes and undercoat on units, lore_notes on factions, purchase_date on paints, dates.ts timezone-safe utility — Phase 17 — v0.2.2
+- ✓ Battle Log — CRUD page with opponent faction, mission, result, army list linkage, notes, chronological list — Phase 18 — v0.2.2
+- ✓ Analytics Core — hobby velocity, painting streak on Dashboard, monthly spend trend chart — Phase 19 — v0.2.2
+- ✓ Hobby Goals — create goals with target dates, track progress via painting sessions, dashboard goal card — Phase 21 — v0.2.2
+- ✓ Hobby Goals Polish — goal filtering, completion celebrations, streak integration with goals — Phase 22 — v0.2.2
+- ✓ Display Features — Battle Ready collection filter preset, unit showcase mode with photo display — Phase 23 — v0.2.2
+- ✓ Unit Point Calculator — per-model-count point tiers, wargear loadout selection, delta preview badge in army lists — Phase 24 — v0.2.2
+- ✓ Gap Closure — timezone-safe date import, cache invalidation symmetry (delete→goal-progress, update→army-lists), purchase_date form field wiring — Phase 35 — v0.2.2
 
-*All v2.3 requirements verified and shipped 2026-05-05*
+*All v0.2.3 requirements verified and shipped 2026-05-05*
 
-- ✓ Design Foundation — unified design tokens (Forge Black, Gunmetal, Panel Elevated, Battle Gold), shared PageHeader, enriched MetricCard, StatusBadge — Phase 25 — v2.3
-- ✓ Dashboard Redesign — "Hobby Command Center" header, CurrentFocusCard, HobbyPipeline, upgraded FactionSummaryCard, Recent Activity feed, LogSessionSheet — Phase 26 — v2.3
-- ✓ Navigation & Quick Add — hobby-native sidebar groups (Command/Workshop/Play/Management), Quick Add dropdown with 8 actions, Sheet-overlay flows — Phase 27 — v2.3
-- ✓ Collection visual upgrade — photo thumbnails on gallery cards, unified StatusBadge across table and gallery — Phase 28 — v2.3
-- ✓ Projects enrichment — last-updated, recipe link, photo count, next-action hint per kanban card; Log Session shortcut — Phase 28 — v2.3
-- ✓ Workshop improvements — color swatches on paint rows, paint swatch strip on recipe cards — Phase 29 — v2.3
-- ✓ Play Layer improvements — Army List readiness panel with progress bar, Battle Log live readiness points — Phase 29 — v2.3
+- ✓ Design Foundation — unified design tokens (Forge Black, Gunmetal, Panel Elevated, Battle Gold), shared PageHeader, enriched MetricCard, StatusBadge — Phase 25 — v0.2.3
+- ✓ Dashboard Redesign — "Hobby Command Center" header, CurrentFocusCard, HobbyPipeline, upgraded FactionSummaryCard, Recent Activity feed, LogSessionSheet — Phase 26 — v0.2.3
+- ✓ Navigation & Quick Add — hobby-native sidebar groups (Command/Workshop/Play/Management), Quick Add dropdown with 8 actions, Sheet-overlay flows — Phase 27 — v0.2.3
+- ✓ Collection visual upgrade — photo thumbnails on gallery cards, unified StatusBadge across table and gallery — Phase 28 — v0.2.3
+- ✓ Projects enrichment — last-updated, recipe link, photo count, next-action hint per kanban card; Log Session shortcut — Phase 28 — v0.2.3
+- ✓ Workshop improvements — color swatches on paint rows, paint swatch strip on recipe cards — Phase 29 — v0.2.3
+- ✓ Play Layer improvements — Army List readiness panel with progress bar, Battle Log live readiness points — Phase 29 — v0.2.3
 
-*All v2.4 requirements verified and shipped 2026-05-06*
+*All v0.2.4 requirements verified and shipped 2026-05-06*
 
-- ✓ Dashboard CSS grid bento layout (asymmetric 2-column, responsive stacking) — Phase 30 — v2.4
-- ✓ Clickable StatCards navigating to relevant pages — Phase 30 — v2.4
-- ✓ 5-bucket pipeline (Not Started / Assembly / Painting / Finishing / Done) — Phase 30 — v2.4
-- ✓ CurrentFocusCard v2 (photo thumbnail, metadata, action buttons) — Phase 31 — v2.4
-- ✓ ActiveProjectsPanel (top 5 with photos, progress, quick actions) — Phase 31 — v2.4
-- ✓ UnitThumbnail shared component with consistent faction-colored fallback — Phase 31 — v2.4
-- ✓ ArmyReadinessCard with target selector (500/1000/1500/2000) and per-faction progress bars — Phase 32 — v2.4
-- ✓ LogSession painting status updates with 3-cache invalidation — Phase 33 — v2.4
-- ✓ Spending intelligence (cost per completed model, painted vs unpainted value) — Phase 33 — v2.4
-- ✓ Recipe-unit bidirectional navigation and CurrentFocusCard recipe name display — Phase 33 — v2.4
-- ✓ FactionSummaryCard v2 (accent band, active glow ring) — Phase 34 — v2.4
-- ✓ Hero radial gradient + hover shadow hierarchy on all dashboard cards — Phase 34 — v2.4
+- ✓ Dashboard CSS grid bento layout (asymmetric 2-column, responsive stacking) — Phase 30 — v0.2.4
+- ✓ Clickable StatCards navigating to relevant pages — Phase 30 — v0.2.4
+- ✓ 5-bucket pipeline (Not Started / Assembly / Painting / Finishing / Done) — Phase 30 — v0.2.4
+- ✓ CurrentFocusCard v2 (photo thumbnail, metadata, action buttons) — Phase 31 — v0.2.4
+- ✓ ActiveProjectsPanel (top 5 with photos, progress, quick actions) — Phase 31 — v0.2.4
+- ✓ UnitThumbnail shared component with consistent faction-colored fallback — Phase 31 — v0.2.4
+- ✓ ArmyReadinessCard with target selector (500/1000/1500/2000) and per-faction progress bars — Phase 32 — v0.2.4
+- ✓ LogSession painting status updates with 3-cache invalidation — Phase 33 — v0.2.4
+- ✓ Spending intelligence (cost per completed model, painted vs unpainted value) — Phase 33 — v0.2.4
+- ✓ Recipe-unit bidirectional navigation and CurrentFocusCard recipe name display — Phase 33 — v0.2.4
+- ✓ FactionSummaryCard v2 (accent band, active glow ring) — Phase 34 — v0.2.4
+- ✓ Hero radial gradient + hover shadow hierarchy on all dashboard cards — Phase 34 — v0.2.4
 
-*All v2.5 requirements verified and shipped 2026-05-07*
+*All v0.2.5 requirements verified and shipped 2026-05-07*
 
-- ✓ Schema foundation: recipe_paints → recipe_steps migration with zero data loss, 6 recipe metadata columns, cache fix, batch step count — Phases 37 — v2.5
-- ✓ Structured step input: painting phase, tool, technique, dilution, time per step, drag-and-drop reorder — Phase 38 — v2.5
-- ✓ Studio UX: card grid with paint availability badges, step timeline detail view, 4-dimension filtering — Phase 39 — v2.5
-- ✓ Recipe actions: duplication, per-step photos, substitute paint linking, bulk wishlist add — Phase 40 — v2.5
-- ✓ Session-recipe integration: recipe/step selectors in LogSessionSheet, session history in recipe detail — Phase 41 — v2.5
+- ✓ Schema foundation: recipe_paints → recipe_steps migration with zero data loss, 6 recipe metadata columns, cache fix, batch step count — Phases 37 — v0.2.5
+- ✓ Structured step input: painting phase, tool, technique, dilution, time per step, drag-and-drop reorder — Phase 38 — v0.2.5
+- ✓ Studio UX: card grid with paint availability badges, step timeline detail view, 4-dimension filtering — Phase 39 — v0.2.5
+- ✓ Recipe actions: duplication, per-step photos, substitute paint linking, bulk wishlist add — Phase 40 — v0.2.5
+- ✓ Session-recipe integration: recipe/step selectors in LogSessionSheet, session history in recipe detail — Phase 41 — v0.2.5
 
-*All v2.6 requirements verified and shipped 2026-05-08*
+*All v0.2.6 requirements verified and shipped 2026-05-08*
 
-- ✓ Architecture audit: full sync pipeline mapping, type/query/hook gap inventory, migration plan — Phase 42 — v2.6
-- ✓ Extended rules read layer: stratagems, detachments, detachment abilities, shared abilities in PlaybookTab with TypeScript data layer — Phase 43 — v2.6
-- ✓ Sync pipeline hardening: Rust per-table row counts, CSV header validation, persistent error logging, cache invalidation contract — Phase 44 — v2.6
-- ✓ Sync metadata & import tracking: last sync date, row counts, source version, error history, freshness badge, pre-sync snapshot — Phase 45 — v2.6
-- ✓ Manual overrides: per-unit points/stats/keywords/abilities overrides surviving re-syncs, 3-level COALESCE, visual override markers — Phase 46 — v2.6
-- ✓ Per-field diff: enriched snapshots, stat/keyword/ability value comparison, Modified section in diff UI — Phases 46–47 — v2.6
+- ✓ Architecture audit: full sync pipeline mapping, type/query/hook gap inventory, migration plan — Phase 42 — v0.2.6
+- ✓ Extended rules read layer: stratagems, detachments, detachment abilities, shared abilities in PlaybookTab with TypeScript data layer — Phase 43 — v0.2.6
+- ✓ Sync pipeline hardening: Rust per-table row counts, CSV header validation, persistent error logging, cache invalidation contract — Phase 44 — v0.2.6
+- ✓ Sync metadata & import tracking: last sync date, row counts, source version, error history, freshness badge, pre-sync snapshot — Phase 45 — v0.2.6
+- ✓ Manual overrides: per-unit points/stats/keywords/abilities overrides surviving re-syncs, 3-level COALESCE, visual override markers — Phase 46 — v0.2.6
+- ✓ Per-field diff: enriched snapshots, stat/keyword/ability value comparison, Modified section in diff UI — Phases 46–47 — v0.2.6
 
 ### Active
 
-(No active milestone — planning next)
+## Current Milestone: v0.2.7 Recipes 3.0 / Hierarchical Painting Workflows
+
+**Goal:** Add recipe sections (workflow groupings) so users can model real painting sequences — completing one surface or technique block before moving to the next.
+
+**Target features:**
+- Recipe sections table (grouping steps into workflow blocks)
+- Section-aware recipe detail view (workflow timeline)
+- Section-aware recipe form (collapsible section cards with steps)
+- Migration preserving all existing recipe data
+- Recipe duplication copying sections + steps
 
 ### Out of Scope
 
@@ -115,7 +124,7 @@ A single personal command center that always answers "what do I own, what's pain
 
 ## Context
 
-- **Current state:** v2.6 shipped. ~250 TypeScript source files. 1,031 automated tests passing. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 9 main pages. Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline: Rust bulk_sync_rules with per-table row counts, CSV validation, persistent error logging, sync metadata, freshness tracking, pre-sync snapshots, manual overrides surviving re-syncs, and per-field diff comparison. 15 SQLite migrations (14 hobbyforge.db + 1 rules.db wargear extension).
+- **Current state:** v0.2.6 shipped. ~250 TypeScript source files. 1,031 automated tests passing. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 9 main pages. Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline: Rust bulk_sync_rules with per-table row counts, CSV validation, persistent error logging, sync metadata, freshness tracking, pre-sync snapshots, manual overrides surviving re-syncs, and per-field diff comparison. 15 SQLite migrations (14 hobbyforge.db + 1 rules.db wargear extension).
 - **Personal tool** — single user (the owner), local-first, no accounts or sync
 - **Domain:** Warhammer 40K 10th edition, hobby management (collecting → painting → playing)
 - **User journey priority:** painter/collector → ready-to-play, *not* competitive optimization
@@ -125,7 +134,7 @@ A single personal command center that always answers "what do I own, what's pain
 
 - **Tech stack**: Tauri 2 (desktop shell) + React 19 + TypeScript + Tailwind v4 CSS + shadcn/ui + SQLite — chosen for local-first desktop with modern web UI
 - **ORM**: `tauri-plugin-sql` directly (no ORM). Prisma confirmed dead-end in Tauri production builds. Drizzle is a v3 escape hatch only if raw typed queries become unmanageable.
-- **Platform**: Windows only for v2.0 — matches user's dev environment
+- **Platform**: Windows only for v0.2.0 — matches user's dev environment
 - **Legal**: No scraping, reproducing, or distributing GW rules / codexes / datasheets / points. User manually enters all points and rules notes — non-negotiable copyright constraint
 - **Local-first**: All data on local disk (SQLite + filesystem). No network calls, no cloud, no telemetry
 - **Code organization**: Database access lives in `src/db/queries/*`. Feature-folder structure under `src/features/*`. Components only call hooks, never query functions directly.
@@ -146,7 +155,7 @@ A single personal command center that always answers "what do I own, what's pain
 | TDD Wave 0 pattern (pure functions + tests before UI) | Provides automated verification signal throughout execution | ✓ Good — computeStats/relativeTime/kanbanUtils bugs caught before UI existed |
 | selectedUnitId pattern (store ID, derive unit from cache) | Prevents stale data after optimistic cache updates | ✓ Good — correctly handles post-mutation refresh without extra re-fetches |
 | Sibling Sheet/Dialog portal pattern | Nested Radix portals cause z-index and context issues | ✓ Good — consistent pattern across all 3 pages using Sheets/Dialogs |
-| Windows-only for v2.0 | Matches dev environment; avoids cross-platform packaging overhead | ✓ Good — no issues in Phases 6–9 |
+| Windows-only for v0.2.0 | Matches dev environment; avoids cross-platform packaging overhead | ✓ Good — no issues in Phases 6–9 |
 | 40K 10th edition only | Simpler scope; multi-system via game_system field later if needed | ✓ Good — no scope pressure yet |
 | COALESCE in SQL for effective_points | DB-side computation prevents N-place reimplementation | ✓ Excellent — ArmyListSummaryBar just sums; zero JS math |
 | Full-replacement UPDATE for army_list_units | NULL must be clearable (points_override back to inherited) | ✓ Good — confirmed correct via smoke test Pitfall 2 check |
@@ -178,4 +187,4 @@ A single personal command center that always answers "what do I own, what's pain
 | Promise.all for post-sync extended queries | Three parallel SELECT queries with same ORDER BY as SNAPSHOT_TABLES for deterministic comparison | ✓ Good — minimal latency overhead for per-field diff |
 
 ---
-*Last updated: 2026-05-08 after v2.6 milestone*
+*Last updated: 2026-05-08 after v0.2.7 milestone started*

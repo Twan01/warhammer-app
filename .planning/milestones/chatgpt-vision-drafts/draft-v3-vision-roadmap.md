@@ -1,0 +1,54 @@
+# HobbyForge v3.0 Vision — Personal Warhammer Command OS
+
+This file contains the original product vision, constraints, baseline audit, and acceptance criteria that informed milestones v0.2.5–v2.11. The phase-level implementation details have been split into individual milestone roadmap files.
+
+## Individual milestone roadmaps
+
+| Version | Name | File |
+|---------|------|------|
+| v0.2.5 | Recipes 2.0 / Painting Studio | `v0.2.5-ROADMAP.md` |
+| v0.2.6 | Rules Sync 2.0 / Rules Data Hub | `v0.2.6-ROADMAP.md` |
+| v2.7 | Points & Army Lists 2.0 | `v2.7-ROADMAP.md` |
+| v2.8 | Game Day Mode | `v2.8-ROADMAP.md` |
+| v2.9 | Battle Intelligence 2.0 | `v2.9-ROADMAP.md` |
+| v2.10 | Smart Planning / Next Best Action | `v2.10-ROADMAP.md` |
+| v2.11 | Smart Wishlist / Budget Optimizer | `v2.11-ROADMAP.md` |
+
+---
+
+## Core product promise
+
+> Move from "I own models" to "I am ready to play, I know what to paint next, I understand my list, and I learn from every game."
+
+## Non-negotiable constraints
+
+1. The app remains personal and local-first.
+2. External imported data is treated as user-provided local data.
+3. The app source must not bundle copyrighted Games Workshop rules, points, codex text or artwork.
+4. Imported rules/points data must be traceable, versioned and user-verifiable.
+5. Manual overrides must always be possible.
+6. Never silently present imported data as guaranteed current/official.
+7. Preserve the existing Tauri + React + SQLite architecture.
+8. Preserve sibling portal patterns for sheets/dialogs.
+9. Prefer additive migrations.
+10. Do not duplicate existing systems.
+
+## Product principle
+
+Every feature must support at least one of these goals:
+
+1. Help the user prepare a real game.
+2. Help the user know what to paint next.
+3. Help the user understand their rules/list.
+4. Help the user avoid forgetting important rules.
+5. Help the user learn from games played.
+6. Help the user manage collection, backlog and spending.
+
+## Final target
+
+> A personal local-first Warhammer command OS combining collection, painting, rules, points, list preparation, game-day reminders and post-game learning.
+
+---
+
+*Original vision document created: 2026-05-07*
+*Split into per-milestone files: 2026-05-07*
