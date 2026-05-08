@@ -10,6 +10,7 @@
 - ✅ **v0.2.4 Premium Dashboard UX & Visual Polish** — Phases 30–34, 36 (shipped 2026-05-06)
 - ✅ **v0.2.5 Recipes 2.0 / Painting Studio** — Phases 37–41 (shipped 2026-05-07)
 - ✅ **v0.2.6 Rules Sync 2.0 / Rules Data Hub** — Phases 42–47 (shipped 2026-05-08)
+- 🚧 **v0.2.7 Recipes 3.0 / Hierarchical Painting Workflows** — Phases 48–51 (in progress)
 
 ## Phases
 
@@ -134,9 +135,62 @@ Full details: `.planning/milestones/v0.2.6-ROADMAP.md`
 
 </details>
 
+---
+
+### 🚧 v0.2.7 Recipes 3.0 / Hierarchical Painting Workflows (In Progress)
+
+**Milestone Goal:** Add recipe sections (workflow groupings) so users can model real painting sequences — completing one surface or technique block before moving to the next.
+
+## Phase Details
+
+### Phase 48: Section Data Layer
+**Goal**: Users can persist and retrieve recipe sections with full CRUD, ordering, and section-aware step counts through a typed query/hook layer — all backed by a zero-data-loss migration.
+**Depends on**: Phase 47 (v0.2.6 complete)
+**Requirements**: SECT-01, SECT-02, SECT-03, SECT-04, SECT-05, SECT-06
+**Success Criteria** (what must be TRUE):
+  1. Migration 016 runs at app startup without errors and all existing recipe steps remain linked to their recipes (zero data loss)
+  2. Every existing recipe has exactly one auto-created default section with all its steps pointed at it
+  3. User can create, rename, and delete a recipe section through the hook layer with correct 5-key cache invalidation on delete (sections, steps, step-counts, availability, swatch)
+  4. User can persist a new section order and it survives app restart
+  5. A batch GROUP BY query returns accurate per-section step counts in one round-trip
+**Plans**: TBD
+
+### Phase 49: Section Read UI
+**Goal**: Users can view a recipe's full workflow as a timeline grouped by section headers, with surface, timing, and paint-availability context visible at a glance — with backward-compatible flat fallback for section-free recipes.
+**Depends on**: Phase 48
+**Requirements**: VIEW-01, VIEW-02, VIEW-03, VIEW-04
+**Success Criteria** (what must be TRUE):
+  1. Opening a recipe with sections shows steps grouped under named section headers with no steps appearing outside a section block
+  2. Each section header displays the section name, surface badge, step count, and estimated total time for that section
+  3. Each section header shows a per-section owned/missing paint count (e.g., "3 owned, 1 missing")
+  4. Opening a recipe that has no sections renders the existing flat step timeline unchanged
+**Plans**: TBD
+
+### Phase 50: Section Form UI
+**Goal**: Users can create and edit recipes with collapsible section cards containing step lists, with drag-and-drop reorder at both the section and step levels, and progressive disclosure so single-section recipes stay as simple as they were before.
+**Depends on**: Phase 49
+**Requirements**: FORM-01, FORM-02, FORM-03, FORM-04, FORM-05, FORM-06
+**Success Criteria** (what must be TRUE):
+  1. Opening the recipe form for a recipe with sections shows each section as a collapsible card containing its steps, with sections and steps loaded in the correct grouping
+  2. User can add a new section, rename it inline, and delete it (with its steps removed) without leaving the form
+  3. User can drag section cards to reorder them; the new order is reflected immediately in the form and persisted on save
+  4. User can drag steps within a section to reorder them; step reorder is independent per section and persisted on save
+  5. Creating a new recipe opens the form with exactly one default section already present, keeping the experience as simple as before sections existed
+**Plans**: TBD
+
+### Phase 51: Duplication + Integration Polish
+**Goal**: Recipe duplication correctly copies all sections and steps with remapped IDs, and all existing recipe workflows (availability badges, swatch strips, LogSession, recipe cards) continue to work unchanged alongside the new section count display.
+**Depends on**: Phase 50
+**Requirements**: INTG-01, INTG-02, INTG-03
+**Success Criteria** (what must be TRUE):
+  1. Duplicating a recipe produces a new recipe with the same section structure and steps; editing a step in the copy does not affect the original
+  2. Recipe cards on the RecipesPage display the section count alongside the step count
+  3. All pre-existing flows (paint availability badges, swatch strip, LogSessionSheet recipe/step selectors, bulk wishlist add) work identically to v0.2.6 with no regressions
+**Plans**: TBD
+
 ## Progress
 
-**Execution Order:** 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 35 → 25 → 26 → 27 → 28 → 29 → 30 → 31 → 32 → 33 → 34 → 36 → 37 → 38 → 39 → 40 → 41 → 42 → 43 → 44 → 45 → 46 → 47
+**Execution Order:** 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 35 → 25 → 26 → 27 → 28 → 29 → 30 → 31 → 32 → 33 → 34 → 36 → 37 → 38 → 39 → 40 → 41 → 42 → 43 → 44 → 45 → 46 → 47 → 48 → 49 → 50 → 51
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -187,3 +241,7 @@ Full details: `.planning/milestones/v0.2.6-ROADMAP.md`
 | 45. Sync Metadata & Import Tracking | v0.2.6 | 2/2 | Complete | 2026-05-08 |
 | 46. Manual Overrides & Version Comparison | v0.2.6 | 2/2 | Complete | 2026-05-08 |
 | 47. v0.2.6 Gap Closure | v0.2.6 | 2/2 | Complete | 2026-05-08 |
+| 48. Section Data Layer | v0.2.7 | 0/TBD | Not started | - |
+| 49. Section Read UI | v0.2.7 | 0/TBD | Not started | - |
+| 50. Section Form UI | v0.2.7 | 0/TBD | Not started | - |
+| 51. Duplication + Integration Polish | v0.2.7 | 0/TBD | Not started | - |

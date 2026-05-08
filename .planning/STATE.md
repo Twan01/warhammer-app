@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v0.2.7
 milestone_name: Recipes 3.0 / Hierarchical Painting Workflows
-status: defining-requirements
+status: ready-to-plan
 stopped_at: null
 last_updated: "2026-05-08"
-last_activity: 2026-05-08 — Milestone v0.2.7 started
+last_activity: 2026-05-08 — Roadmap created for v0.2.7 (4 phases, 19 requirements mapped)
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-08 after v0.2.7 milestone started)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** Defining requirements for v0.2.7
+**Current focus:** Phase 48 — Section Data Layer
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-05-08 — Milestone v0.2.7 started
+Phase: 48 of 51 (Section Data Layer)
+Plan: — (not yet planned)
+Status: Ready to plan
+Last activity: 2026-05-08 — Roadmap written, 19/19 requirements mapped across 4 phases
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -52,40 +52,13 @@ Progress: [░░░░░░░░░░] 0%
 - Tailwind v4 CSS-first theming — @theme inline {} block, no tailwind.config.js
 - Cache invalidation symmetry: if useCreate invalidates a key, useDelete must too
 - todayISO() from @/lib/dates is the single source of truth for date defaults
-- **v0.2.6 critical**: Overrides MUST live in hobbyforge.db — rules.db is destroyed and re-inserted on every sync; any rw_* data in rules.db is lost on re-sync
-- **v0.2.6 critical**: Cross-database FKs are not supported in SQLite; unit_overrides references units by unit_id in hobbyforge.db, not rules.db
-- rules.db uses WAL mode + 10s busy_timeout (write-heavy during sync)
-- Dual-query merge pattern (no ATTACH DATABASE) continues for cross-DB data
-- **Phase 44**: SyncResult uses pub field visibility for Tauri IPC serde::Serialize serialization
-- **Phase 44**: rw_datasheet_keywords INSERT uses INSERT OR IGNORE (matches all other tables, prevents duplicates)
-- **Phase 44**: sync_errors migration is version 15 in hobbyforge.db get_migrations() (separate from rules migrations)
-- **Phase 44**: validateCsvHeaders uses map-based REQUIRED_HEADERS record rather than per-file functions
-- **Phase 44 P02**: mock.calls tuple types in tests use array types (T[]) not tuple types ([T]) for TypeScript strictness
-- **Phase 44 P02**: vi.hoisted() used for test mocks referenced in vi.mock factories to avoid hoisting ReferenceError
-- **Phase 44 P02**: PlaybookTab toast shows 5 key table counts (datasheets, stratagems, abilities, wargear, keywords) not all 11
-- **Phase 43 P02**: DetachmentSection is a proper React component (not an inline map callback) to call useDetachmentAbilitiesByDetachment unconditionally — required by React hook rules
-- **Phase 43 P02**: ExtendedAbilityEntry structurally typed { name, description } rather than widening existing AbilityEntry (which is typed to RwDatasheetAbility) — avoids coupling two unrelated data types
-- **Phase 45 P01**: rules_snapshot table lives in hobbyforge.db (not rules.db) — rules.db is wiped on every sync, snapshot data must survive
-- **Phase 45 P01**: cleanOldSnapshots retains 3 most recent snapshot groups (11 rows each) to bound table growth
-- **Phase 45 P01**: Composite-PK tables (rw_datasheet_models, rw_datasheet_abilities, rw_datasheet_keywords, rw_datasheets_wargear) store COUNT(*) only with null snapshot_data — no single-column id
-- **Phase 45 P01**: Rust upsert casts SyncResult u64 fields to i64 for sqlx binding (SQLite INTEGER type)
-- **Phase 45 P01**: getSyncFreshness thresholds — <7 days = fresh, 7-14 = aging, >=14 = stale (based on Wahapedia weekly update cadence)
-- **Phase 45 P01**: useSyncErrors uses staleTime: 0 — error list must reflect latest state after every failed sync
-- **Phase 46 P01**: Army list effective_points uses 3-level COALESCE: alu.points_override > uo.points > u.points — per-army-list override takes priority over global unit override
-- **Phase 46 P01**: computeSyncDiff returns empty diff (not error) when snapshotData is null — first-time sync has no baseline to compare against
-- **Phase 46 P01**: select-then-upsert pattern used for upsertUnitOverride (matches strategyNotes.ts convention) even though unit_id has UNIQUE constraint
-- **Phase 46 P02**: Points override value synced via useEffect from overrideRow?.points to avoid controlled input drift on re-renders
-- **Phase 46 P02**: Override save in handleSave is conditional — only fires when at least one stat differs from imported value OR parsedPoints !== null (prevents empty override row writes)
-- **Phase 46 P02**: Diff computation is best-effort — wrapped in try/catch after invoke; sync success never blocked by diff failures
-- **Phase 46 P02**: Pre-sync snapshot read uses getLatestSnapshot() from hobbyforge.db before capturePreSyncSnapshot() to get baseline for diffing
-- **Phase 47 P01**: ExtendedSnapshotData options object used for computeSyncDiff third param — avoids 8-param signature explosion and maintains backward compat
-- **Phase 47 P01**: persistedIds filter (same id AND same name) prevents double-counting renamed datasheets in modified array
-- **Phase 47 P01**: Multi-line model field labels include model name in parens only when datasheet has >1 model line
-- **Phase 47 P01**: rw_datasheets_wargear remains query:null in SNAPSHOT_TABLES — out of OVRD-06 scope per prior user decision
-- **Phase 47 P01**: Record<string, unknown>[] generic type for rulesSnapshot select() accommodates both simple id+name and composite-PK row shapes
-- **Phase 47 P02**: Promise.all used for parallel post-sync reads of models/keywords/abilities — same ORDER BY clauses as SNAPSHOT_TABLES for deterministic comparison
-- **Phase 47 P02**: Modified section positioned between Renamed and Added in diff collapsible (severity order: removed > renamed > modified > added)
-- **Phase 47 P02**: rulesSnapshot.test.ts COUNT assertion updated from 4 to 1 — Plan 01 changed models/keywords/abilities to full JSON storage, only wargear remains COUNT-only
+- useFieldArray NOT used for step/section forms — documented RHF #10607 ID collision with useSortable; manual useState + crypto.randomUUID() is the project standard
+- **v0.2.7 architecture locked**: Two-DndContext approach for nested DnD — outer DndContext for section reorder, one inner DndContext per section for step reorder; UUID localIds on both DraftSection and DraftStep prevent namespace collisions
+- **v0.2.7 key risk**: duplicateRecipe must build Map<oldSectionId, newSectionId> during section copy and remap each step's section_id — omitting this causes structural corruption (Phase 51, first item)
+- **v0.2.7 cascade contract**: ON DELETE CASCADE on recipe_steps.section_id — never delete steps manually before deleting a section; the cascade handles it
+- **v0.2.7 invalidation contract**: useDeleteRecipeSection.onSuccess must invalidate all 5 keys: RECIPE_SECTIONS_KEY, RECIPE_PAINTS_KEY, STEP_COUNTS_KEY, RECIPE_AVAILABILITY_KEY, RECIPE_SWATCH_KEY
+- **v0.2.7 migration number**: 016 (next after 015_sync_errors in hobbyforge.db)
+- **v0.2.7 form init**: single useEffect guarded on both existingSections.length and existingSteps.length resolving — never two separate effects; buildDraftSections is a pure tested function
 
 ### Pending Todos
 
@@ -97,6 +70,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-08T13:00:35.408Z
-Stopped at: Completed 47-02-PLAN.md
-Resume: Execute Phase 47 Plan 02 — UI layer for per-field diff display
+Last session: 2026-05-08
+Stopped at: Roadmap written — ready to plan Phase 48
+Resume file: None

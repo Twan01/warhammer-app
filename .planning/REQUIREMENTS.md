@@ -66,31 +66,31 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SECT-01 | — | Pending |
-| SECT-02 | — | Pending |
-| SECT-03 | — | Pending |
-| SECT-04 | — | Pending |
-| SECT-05 | — | Pending |
-| SECT-06 | — | Pending |
-| VIEW-01 | — | Pending |
-| VIEW-02 | — | Pending |
-| VIEW-03 | — | Pending |
-| VIEW-04 | — | Pending |
-| FORM-01 | — | Pending |
-| FORM-02 | — | Pending |
-| FORM-03 | — | Pending |
-| FORM-04 | — | Pending |
-| FORM-05 | — | Pending |
-| FORM-06 | — | Pending |
-| INTG-01 | — | Pending |
-| INTG-02 | — | Pending |
-| INTG-03 | — | Pending |
+| SECT-01 | Phase 48 | Pending |
+| SECT-02 | Phase 48 | Pending |
+| SECT-03 | Phase 48 | Pending |
+| SECT-04 | Phase 48 | Pending |
+| SECT-05 | Phase 48 | Pending |
+| SECT-06 | Phase 48 | Pending |
+| VIEW-01 | Phase 49 | Pending |
+| VIEW-02 | Phase 49 | Pending |
+| VIEW-03 | Phase 49 | Pending |
+| VIEW-04 | Phase 49 | Pending |
+| FORM-01 | Phase 50 | Pending |
+| FORM-02 | Phase 50 | Pending |
+| FORM-03 | Phase 50 | Pending |
+| FORM-04 | Phase 50 | Pending |
+| FORM-05 | Phase 50 | Pending |
+| FORM-06 | Phase 50 | Pending |
+| INTG-01 | Phase 51 | Pending |
+| INTG-02 | Phase 51 | Pending |
+| INTG-03 | Phase 51 | Pending |
 
 **Coverage:**
 - v0.2.7 requirements: 19 total
-- Mapped to phases: 0
-- Unmapped: 19 ⚠️
+- Mapped to phases: 19
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-08*
-*Last updated: 2026-05-08 after initial definition*
+*Last updated: 2026-05-08 — traceability filled after roadmap creation*
