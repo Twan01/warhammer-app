@@ -178,7 +178,7 @@ export function useRulesSync() {
       });
 
       // Compute post-sync diff (OVRD-06, OVRD-07)
-      let diff: SyncDiff = { added: [], removed: [], renamed: [], total_changed: 0 };
+      let diff: SyncDiff = { added: [], removed: [], renamed: [], modified: [], total_changed: 0 };
       try {
         const rulesDb = await getRulesDb();
         const currentDatasheets = await rulesDb.select<{ id: string; name: string }[]>(

@@ -27,6 +27,7 @@ describe("computeSyncDiff", () => {
       added: [],
       removed: [],
       renamed: [],
+      modified: [],
       total_changed: 0,
     });
   });

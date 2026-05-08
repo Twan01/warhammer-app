@@ -19,17 +19,21 @@ export interface RulesSnapshotRow {
 }
 
 /**
- * Tables to snapshot with their id+name extraction queries.
+ * Tables to snapshot with their extraction queries.
  * Tables with single-column PK get real id+name pairs stored as JSON.
- * Tables with composite PKs store null snapshot_data (row_count only).
+ * Composite-PK tables store full row data as JSON (models, abilities, keywords)
+ * or null snapshot_data for row_count only (wargear — out of OVRD-06 scope).
  */
 const SNAPSHOT_TABLES: Array<{ table: string; query: string | null }> = [
   { table: "rw_factions",             query: "SELECT id, name FROM rw_factions ORDER BY id" },
   { table: "rw_sources",              query: "SELECT id, name FROM rw_sources ORDER BY id" },
   { table: "rw_datasheets",           query: "SELECT id, name FROM rw_datasheets ORDER BY id" },
-  { table: "rw_datasheet_models",     query: null },
-  { table: "rw_datasheet_abilities",  query: null },
-  { table: "rw_datasheet_keywords",   query: null },
+  { table: "rw_datasheet_models",
+    query: "SELECT datasheet_id, line, name, M, T, Sv, inv_sv, W, Ld, OC FROM rw_datasheet_models ORDER BY datasheet_id, line" },
+  { table: "rw_datasheet_abilities",
+    query: "SELECT datasheet_id, line, ability_id, name, description, type FROM rw_datasheet_abilities ORDER BY datasheet_id, line" },
+  { table: "rw_datasheet_keywords",
+    query: "SELECT datasheet_id, keyword, is_faction_keyword FROM rw_datasheet_keywords ORDER BY datasheet_id, keyword" },
   { table: "rw_datasheets_wargear",   query: null },
   { table: "rw_abilities",            query: "SELECT id, name FROM rw_abilities ORDER BY id" },
   { table: "rw_stratagems",           query: "SELECT id, name FROM rw_stratagems ORDER BY id" },
@@ -54,7 +58,7 @@ export async function capturePreSyncSnapshot(wahapediaVersion?: string | null): 
     let snapshotData: string | null;
 
     if (query) {
-      const rows = await rulesDb.select<{ id: string; name: string }[]>(query, []);
+      const rows = await rulesDb.select<Record<string, unknown>[]>(query, []);
       rowCount = rows.length;
       snapshotData = JSON.stringify(rows);
     } else {
