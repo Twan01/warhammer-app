@@ -66,7 +66,7 @@ describe("useRulesSync", () => {
     expect(invalidateQueriesMock).toHaveBeenCalledTimes(7);
 
     const calls = invalidateQueriesMock.mock.calls.map(
-      (c: [{ queryKey: string[] }]) => c[0].queryKey[0],
+      (c: { queryKey: string[] }[]) => c[0].queryKey[0],
     );
     expect(calls).toContain("rules-sync-meta");
     expect(calls).toContain("datasheets-by-faction");
@@ -84,13 +84,13 @@ describe("useRulesSync", () => {
     opts.onSuccess();
 
     const phase43Calls = invalidateQueriesMock.mock.calls.filter(
-      (c: [{ queryKey: string[]; exact?: boolean }]) =>
+      (c: { queryKey: string[]; exact?: boolean }[]) =>
         ["stratagems-by-faction", "detachments-by-faction", "detachment-abilities", "shared-abilities-by-faction"]
           .includes(c[0].queryKey[0]),
     );
     expect(phase43Calls).toHaveLength(4);
     for (const call of phase43Calls) {
-      expect(call[0].exact).toBe(false);
+      expect((call[0] as { queryKey: string[]; exact?: boolean }).exact).toBe(false);
     }
   });
 

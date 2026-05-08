@@ -402,10 +402,20 @@ export function PlaybookTab({
 
   function handleSyncClick() {
     rulesSync.mutate(undefined, {
-      onSuccess: () => toast.success("Datasheets synced"),
+      onSuccess: (data) => {
+        const c = data.rowCounts;
+        const summary = [
+          `${c.datasheets} datasheets`,
+          `${c.stratagems} stratagems`,
+          `${c.abilities} abilities`,
+          `${c.wargear} wargear`,
+          `${c.keywords} keywords`,
+        ].join(", ");
+        toast.success(`Synced: ${summary}`);
+      },
       onError: (err) => {
         console.error("[useRulesSync] sync failed:", err);
-        toast.error("Sync failed — check your connection and try again");
+        toast.error(`Sync failed: ${err.message}`);
       },
     });
   }
