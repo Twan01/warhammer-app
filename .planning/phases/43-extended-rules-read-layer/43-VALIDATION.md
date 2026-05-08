@@ -1,10 +1,11 @@
 ---
 phase: 43
 slug: extended-rules-read-layer
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-08
+audited: 2026-05-08
 ---
 
 # Phase 43 — Validation Strategy
@@ -21,7 +22,7 @@ created: 2026-05-08
 | **Config file** | `vitest.config.ts` |
 | **Quick run command** | `pnpm test -- tests/datasheet/ tests/collection/PlaybookTab.test.tsx` |
 | **Full suite command** | `pnpm test` |
-| **Estimated runtime** | ~15 seconds |
+| **Estimated runtime** | ~53 seconds |
 
 ---
 
@@ -38,14 +39,12 @@ created: 2026-05-08
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 43-01-01 | 01 | 1 | SCHEMA-05 | unit | `pnpm test -- tests/datasheet/rulesExtendedQueries.test.ts` | ❌ W0 | ⬜ pending |
-| 43-01-02 | 01 | 1 | SCHEMA-05 | unit | `pnpm test -- tests/datasheet/useRulesExtended.test.tsx` | ❌ W0 | ⬜ pending |
-| 43-02-01 | 02 | 1 | SCHEMA-05 | unit | `pnpm test -- tests/datasheet/rulesExtendedQueries.test.ts` | ❌ W0 | ⬜ pending |
-| 43-02-02 | 02 | 1 | SCHEMA-05 | unit | `pnpm test -- tests/datasheet/useRulesExtended.test.tsx` | ❌ W0 | ⬜ pending |
-| 43-03-01 | 03 | 2 | SCHEMA-01 | unit | `pnpm test -- tests/collection/PlaybookTab.test.tsx` | ✅ (extend) | ⬜ pending |
-| 43-03-02 | 03 | 2 | SCHEMA-02 | unit | `pnpm test -- tests/collection/PlaybookTab.test.tsx` | ✅ (extend) | ⬜ pending |
-| 43-03-03 | 03 | 2 | SCHEMA-03 | unit | `pnpm test -- tests/collection/PlaybookTab.test.tsx` | ✅ (extend) | ⬜ pending |
-| 43-03-04 | 03 | 2 | SCHEMA-04 | unit | `pnpm test -- tests/collection/PlaybookTab.test.tsx` | ✅ (extend) | ⬜ pending |
+| 43-01-T1 | 01 | 1 | SCHEMA-05 | unit | `pnpm test -- tests/datasheet/rulesExtendedQueries.test.ts` | ✅ | ✅ green |
+| 43-01-T2 | 01 | 1 | SCHEMA-05 | unit | `pnpm test -- tests/datasheet/useRulesExtended.test.tsx` | ✅ | ✅ green |
+| 43-02-T1a | 02 | 2 | SCHEMA-01 | unit | `pnpm test -- tests/collection/PlaybookTab.test.tsx` | ✅ | ✅ green |
+| 43-02-T1b | 02 | 2 | SCHEMA-02 | unit | `pnpm test -- tests/collection/PlaybookTab.test.tsx` | ✅ | ✅ green |
+| 43-02-T1c | 02 | 2 | SCHEMA-03 | unit | `pnpm test -- tests/collection/PlaybookTab.test.tsx` | ✅ | ✅ green |
+| 43-02-T1d | 02 | 2 | SCHEMA-04 | unit | `pnpm test -- tests/collection/PlaybookTab.test.tsx` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -53,10 +52,10 @@ created: 2026-05-08
 
 ## Wave 0 Requirements
 
-- [ ] `tests/datasheet/rulesExtendedQueries.test.ts` — stubs for SCHEMA-05 (query functions): mock `@/db/rules-client`, assert SQL strings and params for all four functions
-- [ ] `tests/datasheet/useRulesExtended.test.tsx` — stubs for SCHEMA-05 (hooks): mock `@/db/queries/rulesExtended`, assert `enabled`/`idle` behavior, `staleTime: Infinity`
+- [x] `tests/datasheet/rulesExtendedQueries.test.ts` — 4 tests for SCHEMA-05 (query functions): mock `@/db/rules-client`, assert SQL strings and params for all four functions
+- [x] `tests/datasheet/useRulesExtended.test.tsx` — 8 tests for SCHEMA-05 (hooks): mock `@/db/queries/rulesExtended`, assert `enabled`/`idle` behavior, `staleTime: Infinity`
 
-*Existing `tests/collection/PlaybookTab.test.tsx` needs extension but already exists — not a Wave 0 gap.*
+*Both Wave 0 test files created during Plan 01 execution (commits 91eafc6, 097b7cd).*
 
 ---
 
@@ -72,11 +71,27 @@ created: 2026-05-08
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** PASSED
+
+---
+
+## Validation Audit 2026-05-08
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+**Test Results at Audit Time:**
+- `tests/datasheet/rulesExtendedQueries.test.ts`: 4 tests ✅
+- `tests/datasheet/useRulesExtended.test.tsx`: 8 tests ✅
+- `tests/collection/PlaybookTab.test.tsx`: 21 tests ✅ (9 SCHEMA-01-04 + 12 existing)
+- Full suite: 972 passed, 6 skipped, 12 todo — 0 failures
