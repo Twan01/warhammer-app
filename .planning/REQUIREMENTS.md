@@ -34,9 +34,9 @@ Requirements for Recipes 3.0 / Hierarchical Painting Workflows. Each maps to roa
 
 ### Integration & Polish
 
-- [ ] **INTG-01**: User can duplicate a recipe and get correct copies of all sections and steps (ID remapping)
-- [ ] **INTG-02**: User sees section count on recipe cards in RecipesPage
-- [ ] **INTG-03**: User's existing recipe create/edit/delete/availability/swatch/LogSession flows still work unchanged
+- [x] **INTG-01**: User can duplicate a recipe and get correct copies of all sections and steps (ID remapping)
+- [x] **INTG-02**: User sees section count on recipe cards in RecipesPage
+- [x] **INTG-03**: User's existing recipe create/edit/delete/availability/swatch/LogSession flows still work unchanged
 
 ## Future Requirements
 
@@ -82,9 +82,9 @@ Deferred to future release. Tracked but not in current roadmap.
 | FORM-04 | Phase 50 | Complete |
 | FORM-05 | Phase 50 | Complete |
 | FORM-06 | Phase 50 | Complete |
-| INTG-01 | Phase 51 | Pending |
-| INTG-02 | Phase 51 | Pending |
-| INTG-03 | Phase 51 | Pending |
+| INTG-01 | Phase 51 | Complete |
+| INTG-02 | Phase 51 | Complete |
+| INTG-03 | Phase 51 | Complete |
 
 **Coverage:**
 - v0.2.7 requirements: 19 total

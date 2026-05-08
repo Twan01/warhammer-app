@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: completed
-stopped_at: Phase 51 plans verified
-last_updated: "2026-05-08T18:23:57.688Z"
-last_activity: 2026-05-08 — Completed 50-03 (RecipeFormSheet section-aware rewrite)
+stopped_at: "Completed 51-01 (duplicateRecipe section copy pass + getSectionCountsByRecipe)"
+last_updated: "2026-05-08T20:32:00.000Z"
+last_activity: 2026-05-08 — Completed 51-01 (duplicateRecipe section copy pass + getSectionCountsByRecipe + 8-key invalidation)
 progress:
   total_phases: 4
   completed_phases: 3
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-08 after v0.2.7 milestone started)
 
 ## Current Position
 
-Phase: 50 of 51 (Section Form UI) — Complete
-Plan: 03 of 03 — complete
-Status: Phase complete
-Last activity: 2026-05-08 — Completed 50-03 (RecipeFormSheet section-aware rewrite)
+Phase: 51 of 51 (Duplication Integration + Polish) — In Progress
+Plan: 01 of 03 — complete
+Status: In progress
+Last activity: 2026-05-08 — Completed 51-01 (duplicateRecipe section copy pass + getSectionCountsByRecipe + 8-key invalidation)
 
 Progress: [██████████] 100%
 
@@ -43,6 +43,7 @@ Progress: [██████████] 100%
 **49-01:** 2 tasks, 4 files, 493s
 **50-01:** 2 tasks, 2 files, ~480s
 **50-03:** 1 task, 2 files, ~20 min
+**51-01:** 3 tasks, 5 files, 404s
 
 ## Accumulated Context
 
@@ -78,6 +79,9 @@ Progress: [██████████] 100%
 - **50-03 decision**: DELETE-all existing sections on edit then re-INSERT preserves clean section ordering without a diff algorithm — CASCADE removes their steps atomically
 - **50-03 decision**: Progressive disclosure threshold: sections.length <= 1 renders flat RecipeStepList, sections.length >= 2 renders RecipeSectionList with section cards
 - **50-03 decision**: formatMinutes.test.tsx updated to mock useRecipeSections and export RECIPE_PAINTS_KEY/STEP_COUNTS_KEY/RECIPE_AVAILABILITY_KEY/RECIPE_SWATCH_KEY constants — required after RecipeFormSheet gained these imports
+- **51-01 decision**: sectionIdMap uses Map<number, number> built during section copy loop — ensures O(1) remapping per step with no extra SQL queries
+- **51-01 decision**: step section_id null path uses explicit null check before Map.get() — preserves null as null (does not remap to undefined)
+- **51-01 decision**: useDuplicateRecipe invalidates ["recipe-sections"] prefix (not RECIPE_SECTIONS_KEY factory) — covers all per-recipe section cache entries in one call
 
 ### Pending Todos
 
