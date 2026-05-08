@@ -1,31 +1,38 @@
 /**
- * Phase 15 — useRulesSync mutation hook (DS-01).
+ * Phase 15 — useRulesSync mutation hook (DS-01), extended with full data download.
+ * Phase 44 — Hardened with CSV header validation, typed Rust SyncResult, error
+ * persistence, and complete cache invalidation (SYNC-01, SYNC-02, SYNC-03, SYNC-04, SYNC-05).
  *
- * Pipeline:
- *   1. Fetch all 6 Wahapedia CSVs (Datasheets, Datasheets_models, Datasheets_abilities,
- *      Datasheets_keywords, Factions, Source) plus Last_update.csv (1-line freshness file).
- *   2. parseWahapediaCsv() each body.
- *   3. Open a single transaction on rules.db, DELETE FROM all 6 rw_* tables,
- *      INSERT all rows. stripHtml() applied to ability description and ability name.
- *      is_faction_keyword "true"/"false" coerced to 1/0.
- *   4. COMMIT.
- *   5. upsertSyncMeta({ last_sync_at: now, wahapedia_version: lastUpdate }).
- *   6. Invalidate query keys so PlaybookTab + Picker refetch.
- *
- * On any failure, ROLLBACK and rethrow so the mutation surface is surfaced
- * via toast in PlaybookTab (Plan 15-05 wires the error toast).
+ * Fetches 12 Wahapedia CSVs, parses them, strips HTML, then calls the
+ * `bulk_sync_rules` Tauri command which runs a single native SQLite transaction.
  */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetch } from "@tauri-apps/plugin-http";
+import { invoke } from "@tauri-apps/api/core";
 import { parseWahapediaCsv } from "@/lib/parseWahapediaCsv";
 import { stripHtml } from "@/lib/stripHtml";
-import { getRulesDb } from "@/db/rules-client";
-import { upsertSyncMeta } from "@/db/queries/datasheets";
 import { RULES_SYNC_META_KEY } from "@/hooks/useDatasheet";
+import { validateCsvHeaders } from "@/lib/validateCsvHeaders";
+import { insertSyncError } from "@/db/queries/syncErrors";
+import type { InsertSyncErrorInput } from "@/db/queries/syncErrors";
+
+/** Mirrors the Rust SyncResult struct returned by bulk_sync_rules via Tauri IPC. */
+interface RustSyncResult {
+  factions: number;
+  sources: number;
+  datasheets: number;
+  models: number;
+  abilities: number;
+  keywords: number;
+  wargear: number;
+  shared_abilities: number;
+  stratagems: number;
+  detachments: number;
+  detachment_abilities: number;
+}
 
 const WAHAPEDIA_BASE = "https://wahapedia.ru/wh40k10ed";
 
-/** Files fetched by useRulesSync — exposed for tests / debug. */
 export const RULES_SYNC_FILES = [
   "Factions.csv",
   "Source.csv",
@@ -33,17 +40,28 @@ export const RULES_SYNC_FILES = [
   "Datasheets_models.csv",
   "Datasheets_abilities.csv",
   "Datasheets_keywords.csv",
+  "Datasheets_wargear.csv",
+  "Abilities.csv",
+  "Stratagems.csv",
+  "Detachments.csv",
+  "Detachment_abilities.csv",
   "Last_update.csv",
 ] as const;
 
 async function fetchCsv(filename: string): Promise<string> {
-  const response = await fetch(`${WAHAPEDIA_BASE}/${filename}`, { method: "GET" });
-  if (!response.ok) throw new Error(`Failed to fetch ${filename}: ${response.status}`);
+  const response = await fetch(`${WAHAPEDIA_BASE}/${filename}`, {
+    method: "GET",
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      "Accept": "text/csv,text/plain,*/*",
+      "Referer": "https://wahapedia.ru/",
+    },
+  });
+  if (!response.ok) throw new Error(`Failed to fetch ${filename}: HTTP ${response.status}`);
   return response.text();
 }
 
 function parseLastUpdate(raw: string): string {
-  // Last_update.csv format: "last_update|2026-04-27 20:55:42|\n"
   const lines = raw.trim().split("\n");
   if (lines.length < 2) return "";
   const parts = lines[1].split("|");
@@ -55,123 +73,132 @@ export function useRulesSync() {
 
   return useMutation<{ wahapediaVersion: string; rowCounts: Record<string, number> }, Error, void>({
     mutationFn: async () => {
-      // STEP 1: fetch all 7 files in parallel
-      const [factionsRaw, sourcesRaw, dsRaw, modelsRaw, abilitiesRaw, keywordsRaw, lastUpdateRaw] =
-        await Promise.all(RULES_SYNC_FILES.map((f) => fetchCsv(f)));
+      const [
+        factionsRaw, sourcesRaw, dsRaw, modelsRaw, abilitiesRaw, keywordsRaw,
+        wargearRaw, sharedAbilitiesRaw, stratagemsRaw, detachmentsRaw,
+        detachmentAbilitiesRaw, lastUpdateRaw,
+      ] = await Promise.all(RULES_SYNC_FILES.map((f) => fetchCsv(f)));
 
-      // STEP 2: parse (Last_update is 1-line, special handling)
-      const factions = parseWahapediaCsv(factionsRaw);
-      const sources = parseWahapediaCsv(sourcesRaw);
-      const datasheets = parseWahapediaCsv(dsRaw);
-      const models = parseWahapediaCsv(modelsRaw);
-      const abilities = parseWahapediaCsv(abilitiesRaw);
-      const keywords = parseWahapediaCsv(keywordsRaw);
+      const factions       = parseWahapediaCsv(factionsRaw);
+      const sources        = parseWahapediaCsv(sourcesRaw);
+      const datasheets     = parseWahapediaCsv(dsRaw);
+      const models         = parseWahapediaCsv(modelsRaw);
+      const abilities      = parseWahapediaCsv(abilitiesRaw);
+      const keywords       = parseWahapediaCsv(keywordsRaw);
+      const wargear        = parseWahapediaCsv(wargearRaw);
+      const sharedAbils    = parseWahapediaCsv(sharedAbilitiesRaw);
+      const stratagems     = parseWahapediaCsv(stratagemsRaw);
+      const detachments    = parseWahapediaCsv(detachmentsRaw);
+      const detachAbils    = parseWahapediaCsv(detachmentAbilitiesRaw);
       const wahapediaVersion = parseLastUpdate(lastUpdateRaw);
 
-      // STEP 3+4: single transaction on rules.db (Pitfall 7 — without transaction, ~30s)
-      const db = await getRulesDb();
-      await db.execute("BEGIN");
-      try {
-        await db.execute("DELETE FROM rw_datasheet_keywords");
-        await db.execute("DELETE FROM rw_datasheet_abilities");
-        await db.execute("DELETE FROM rw_datasheet_models");
-        await db.execute("DELETE FROM rw_datasheets");
-        await db.execute("DELETE FROM rw_sources");
-        await db.execute("DELETE FROM rw_factions");
+      // Validate CSV headers before any data transformation (SYNC-03)
+      validateCsvHeaders("Factions.csv", factions);
+      validateCsvHeaders("Source.csv", sources);
+      validateCsvHeaders("Datasheets.csv", datasheets);
+      validateCsvHeaders("Datasheets_models.csv", models);
+      validateCsvHeaders("Datasheets_abilities.csv", abilities);
+      validateCsvHeaders("Datasheets_keywords.csv", keywords);
+      validateCsvHeaders("Datasheets_wargear.csv", wargear);
+      validateCsvHeaders("Abilities.csv", sharedAbils);
+      validateCsvHeaders("Stratagems.csv", stratagems);
+      validateCsvHeaders("Detachments.csv", detachments);
+      validateCsvHeaders("Detachment_abilities.csv", detachAbils);
 
-        for (const f of factions) {
-          await db.execute(
-            "INSERT INTO rw_factions (id, name) VALUES ($1, $2)",
-            [f.id, f.name]
-          );
-        }
-        for (const s of sources) {
-          await db.execute(
-            "INSERT INTO rw_sources (id, name, type, edition, version, errata_date) VALUES ($1, $2, $3, $4, $5, $6)",
-            [
-              s.id, s.name, s.type || null,
-              s.edition ? Number(s.edition) : null,
-              s.version || null, s.errata_date || null,
-            ]
-          );
-        }
-        for (const d of datasheets) {
-          await db.execute(
-            "INSERT INTO rw_datasheets (id, name, faction_id, source_id, role, damaged_w, damaged_description) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-            [
-              d.id, d.name, d.faction_id || null, d.source_id || null,
-              d.role || null, d.damaged_w || null,
-              d.damaged_description ? stripHtml(d.damaged_description) : null,
-            ]
-          );
-        }
-        // Some Wahapedia model rows have duplicate (datasheet_id, line) keys due to
-        // text quirks. INSERT OR IGNORE keeps the first occurrence and avoids
-        // crashing the transaction on the duplicate-PK error.
-        for (const m of models) {
-          await db.execute(
-            "INSERT OR IGNORE INTO rw_datasheet_models (datasheet_id, line, name, M, T, Sv, inv_sv, W, Ld, OC) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
-            [
-              m.datasheet_id, Number(m.line) || 1, m.name || null,
-              m.M || null,
-              m.T ? Number(m.T) : null,
-              m.Sv || null,
-              m.inv_sv || null,
-              m.W ? Number(m.W) : null,
-              m.Ld || null,
-              m.OC ? Number(m.OC) : null,
-            ]
-          );
-        }
-        for (const a of abilities) {
-          await db.execute(
-            "INSERT OR IGNORE INTO rw_datasheet_abilities (datasheet_id, line, ability_id, name, description, type, parameter) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-            [
-              a.datasheet_id, Number(a.line) || 1, a.ability_id || null,
-              stripHtml(a.name || ""),
-              a.description ? stripHtml(a.description) : null,
-              a.type || null, a.parameter || null,
-            ]
-          );
-        }
-        for (const k of keywords) {
-          if (!k.datasheet_id || !k.keyword) continue;
-          await db.execute(
-            "INSERT INTO rw_datasheet_keywords (datasheet_id, keyword, is_faction_keyword) VALUES ($1, $2, $3)",
-            [
-              k.datasheet_id, k.keyword,
-              k.is_faction_keyword === "true" ? 1 : 0,
-            ]
-          );
-        }
+      // Strip HTML before sending to Rust
+      const datasheetRows = datasheets.map((d) => ({
+        ...d,
+        damaged_description: d.damaged_description ? stripHtml(d.damaged_description) : "",
+      }));
+      const abilityRows = abilities.map((a) => ({
+        ...a,
+        name: stripHtml(a.name || ""),
+        description: a.description ? stripHtml(a.description) : "",
+      }));
+      const wargearRows = wargear.map((w) => ({
+        ...w,
+        description: w.description ? stripHtml(w.description) : "",
+      }));
+      const sharedAbilRows = sharedAbils.map((a) => ({
+        ...a,
+        description: a.description ? stripHtml(a.description) : "",
+      }));
+      const stratagemRows = stratagems.map((s) => ({
+        ...s,
+        description: s.description ? stripHtml(s.description) : "",
+        legend: s.legend ? stripHtml(s.legend) : "",
+      }));
+      const detachAbilRows = detachAbils.map((a) => ({
+        ...a,
+        description: a.description ? stripHtml(a.description) : "",
+        legend: a.legend ? stripHtml(a.legend) : "",
+      }));
 
-        await db.execute("COMMIT");
-      } catch (e) {
-        await db.execute("ROLLBACK");
-        throw e;
-      }
-
-      // STEP 5: write sync meta after successful commit
-      const last_sync_at = new Date().toISOString();
-      await upsertSyncMeta({ last_sync_at, wahapedia_version: wahapediaVersion });
+      const rustResult = await invoke<RustSyncResult>("bulk_sync_rules", {
+        payload: {
+          factions,
+          sources,
+          datasheets: datasheetRows,
+          models,
+          abilities: abilityRows,
+          keywords,
+          wargear: wargearRows,
+          shared_abilities: sharedAbilRows,
+          stratagems: stratagemRows,
+          detachments,
+          detachment_abilities: detachAbilRows,
+          last_sync_at: new Date().toISOString(),
+          wahapedia_version: wahapediaVersion,
+        },
+      });
 
       return {
         wahapediaVersion,
         rowCounts: {
-          factions: factions.length,
-          sources: sources.length,
-          datasheets: datasheets.length,
-          models: models.length,
-          abilities: abilities.length,
-          keywords: keywords.length,
+          factions: rustResult.factions,
+          sources: rustResult.sources,
+          datasheets: rustResult.datasheets,
+          models: rustResult.models,
+          abilities: rustResult.abilities,
+          keywords: rustResult.keywords,
+          wargear: rustResult.wargear,
+          shared_abilities: rustResult.shared_abilities,
+          stratagems: rustResult.stratagems,
+          detachments: rustResult.detachments,
+          detachment_abilities: rustResult.detachment_abilities,
         },
       };
     },
     onSuccess: () => {
-      // STEP 6: invalidate sync meta + ALL per-faction picker lists + ALL per-unit datasheet queries
       qc.invalidateQueries({ queryKey: RULES_SYNC_META_KEY });
-      qc.invalidateQueries({ queryKey: ["datasheets-by-faction"] });
-      qc.invalidateQueries({ queryKey: ["datasheet"] });
+      qc.invalidateQueries({ queryKey: ["datasheets-by-faction"], exact: false });
+      qc.invalidateQueries({ queryKey: ["datasheet"], exact: false });
+      // Phase 44 additions — Phase 43 query keys (SYNC-05)
+      qc.invalidateQueries({ queryKey: ["stratagems-by-faction"], exact: false });
+      qc.invalidateQueries({ queryKey: ["detachments-by-faction"], exact: false });
+      qc.invalidateQueries({ queryKey: ["detachment-abilities"], exact: false });
+      qc.invalidateQueries({ queryKey: ["shared-abilities-by-faction"], exact: false });
+    },
+    onError: async (err: Error) => {
+      const message = err.message ?? "Unknown sync error";
+      let errorType: InsertSyncErrorInput["error_type"] = "sync_error";
+      if (message.includes("Failed to fetch") || message.includes("HTTP")) {
+        errorType = "fetch_failed";
+      } else if (message.includes("missing required columns") || message.includes("CSV is empty")) {
+        errorType = "validation_error";
+      }
+      const csvFileMatch = message.match(/^([A-Za-z_]+\.csv):/);
+      try {
+        await insertSyncError({
+          occurred_at: new Date().toISOString(),
+          error_type: errorType,
+          message,
+          csv_file: csvFileMatch?.[1] ?? null,
+        });
+      } catch {
+        // Fire-and-forget: toast is the primary user feedback. DB write failure is non-critical.
+        console.error("[useRulesSync] failed to log sync error to DB");
+      }
     },
   });
 }
