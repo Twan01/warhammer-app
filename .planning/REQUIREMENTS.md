@@ -32,12 +32,12 @@ Requirements for v2.6 Rules Sync 2.0 / Rules Data Hub. Each maps to roadmap phas
 
 ### Sync Metadata & Import Tracking
 
-- [ ] **META-01**: User can see last successful sync date and time in the UI
-- [ ] **META-02**: User can see per-table row counts from last sync
-- [ ] **META-03**: User can see Wahapedia source version/edition
-- [ ] **META-04**: User can see sync error history (timestamped list)
-- [ ] **META-05**: User can see freshness indicator (stale/fresh badge) on rules-dependent pages
-- [ ] **META-06**: Pre-sync snapshot is captured before each re-sync to enable version comparison
+- [x] **META-01**: User can see last successful sync date and time in the UI
+- [x] **META-02**: User can see per-table row counts from last sync
+- [x] **META-03**: User can see Wahapedia source version/edition
+- [x] **META-04**: User can see sync error history (timestamped list)
+- [x] **META-05**: User can see freshness indicator (stale/fresh badge) on rules-dependent pages
+- [x] **META-06**: Pre-sync snapshot is captured before each re-sync to enable version comparison
 
 ### Manual Overrides & Version Comparison
 
@@ -92,12 +92,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SYNC-03 | Phase 44 | Complete |
 | SYNC-04 | Phase 44 | Complete |
 | SYNC-05 | Phase 44 | Complete |
-| META-01 | Phase 45 | Pending |
-| META-02 | Phase 45 | Pending |
-| META-03 | Phase 45 | Pending |
-| META-04 | Phase 45 | Pending |
-| META-05 | Phase 45 | Pending |
-| META-06 | Phase 45 | Pending |
+| META-01 | Phase 45 | Complete |
+| META-02 | Phase 45 | Complete |
+| META-03 | Phase 45 | Complete |
+| META-04 | Phase 45 | Complete |
+| META-05 | Phase 45 | Complete |
+| META-06 | Phase 45 | Complete |
 | OVRD-01 | Phase 46 | Pending |
 | OVRD-02 | Phase 46 | Pending |
 | OVRD-03 | Phase 46 | Pending |
