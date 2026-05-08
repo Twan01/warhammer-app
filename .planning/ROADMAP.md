@@ -201,7 +201,7 @@ Plans:
   4. In the UI, overridden values are visually distinguished from imported values (e.g., a badge or icon marking the field as manually set)
   5. After a re-sync, user can open a diff view showing which points values, stats, abilities, or keywords changed between the previous snapshot and the new data
   6. After a re-sync, user can see which datasheets were removed or renamed compared to the snapshot
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 46-01-PLAN.md — Override data infrastructure: migration, types, query module, hook, army list COALESCE extension, computeSyncDiff (OVRD-01/02/03/04/06/07)
 - [ ] 46-02-PLAN.md — PlaybookTab UI: override markers, diff collapsible, toast summary, useRulesSync diff wiring (OVRD-05/06/07)
@@ -257,4 +257,4 @@ Plans:
 | 43. Extended Rules Read Layer | 2/2 | Complete    | 2026-05-08 | - |
 | 44. Sync Pipeline Hardening | 2/2 | Complete    | 2026-05-08 | - |
 | 45. Sync Metadata & Import Tracking | 2/2 | Complete    | 2026-05-08 | - |
-| 46. Manual Overrides & Version Comparison | v2.6 | 0/2 | Not started | - |
+| 46. Manual Overrides & Version Comparison | 1/2 | In Progress|  | - |

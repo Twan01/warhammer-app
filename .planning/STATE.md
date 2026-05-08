@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.6
 milestone_name: Rules Sync 2.0 / Rules Data Hub
 status: executing
-stopped_at: Phase 46 planning complete — 2 plans, verification passed
-last_updated: "2026-05-08T09:21:30.839Z"
+stopped_at: Completed 46-01-PLAN.md
+last_updated: "2026-05-08T09:31:40.651Z"
 last_activity: 2026-05-08 — Phase 45 Plan 01 complete (META-01, META-02, META-03, META-04, META-05, META-06)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 9
-  completed_plans: 7
-  percent: 86
+  completed_plans: 8
+  percent: 89
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07 after v2.6 milestone start)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.6 Rules Sync 2.0 / Rules Data Hub — Phase 45: Sync Metadata Import Tracking
+**Current focus:** v2.6 Rules Sync 2.0 / Rules Data Hub — Phase 46: Manual Overrides / Version Comparison
 
 ## Current Position
 
-Phase: 45 of 46 (Sync Metadata Import Tracking)
-Plan: 01 complete (data infrastructure: migrations, Rust upsert, TypeScript types, snapshot module, freshness utility)
+Phase: 46 of 46 (Manual Overrides / Version Comparison)
+Plan: 01 complete (override data infrastructure + computeSyncDiff pure function)
 Status: In Progress
-Last activity: 2026-05-08 — Phase 45 Plan 01 complete (META-01, META-02, META-03, META-04, META-05, META-06)
+Last activity: 2026-05-08 — Phase 46 Plan 01 complete (OVRD-01, OVRD-02, OVRD-03, OVRD-04, OVRD-06, OVRD-07)
 
-Progress: [█████████░] 86%
+Progress: [█████████░] 89%
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Progress: [█████████░] 86%
 | Phase 43 P02 | 15 | 2 tasks | 2 files |
 | Phase 45 P01 | 271 | 2 tasks | 9 files |
 | Phase 45 P02 | 9 | 3 tasks | 4 files |
+| Phase 46 P01 | 473 | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,9 @@ Progress: [█████████░] 86%
 - **Phase 45 P01**: Rust upsert casts SyncResult u64 fields to i64 for sqlx binding (SQLite INTEGER type)
 - **Phase 45 P01**: getSyncFreshness thresholds — <7 days = fresh, 7-14 = aging, >=14 = stale (based on Wahapedia weekly update cadence)
 - **Phase 45 P01**: useSyncErrors uses staleTime: 0 — error list must reflect latest state after every failed sync
+- **Phase 46 P01**: Army list effective_points uses 3-level COALESCE: alu.points_override > uo.points > u.points — per-army-list override takes priority over global unit override
+- **Phase 46 P01**: computeSyncDiff returns empty diff (not error) when snapshotData is null — first-time sync has no baseline to compare against
+- **Phase 46 P01**: select-then-upsert pattern used for upsertUnitOverride (matches strategyNotes.ts convention) even though unit_id has UNIQUE constraint
 
 ### Pending Todos
 
@@ -97,6 +101,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-08T09:21:30.836Z
-Stopped at: Phase 46 planning complete — 2 plans, verification passed
+Last session: 2026-05-08T09:31:40.648Z
+Stopped at: Completed 46-01-PLAN.md
 Resume: Run /gsd:plan-phase 42
