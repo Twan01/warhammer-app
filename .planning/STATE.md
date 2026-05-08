@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: executing
-stopped_at: Completed 50-02 (RecipeSectionCard + RecipeSectionList)
-last_updated: "2026-05-08T18:28:00.000Z"
-last_activity: 2026-05-08 — Completed 50-02 (RecipeSectionCard, RecipeSectionList, alert-dialog)
+stopped_at: Completed 50-03 (RecipeFormSheet section-aware rewrite)
+last_updated: "2026-05-08T16:15:43.270Z"
+last_activity: 2026-05-08 — Completed 50-02 (RecipeSectionCard, RecipeSectionList)
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 3
+  completed_plans: 6
   percent: 100
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-08 after v0.2.7 milestone started)
 
 ## Current Position
 
-Phase: 50 of 51 (Section Form UI) — In progress
-Plan: 02 of 03 — complete
-Status: In progress
-Last activity: 2026-05-08 — Completed 50-02 (RecipeSectionCard, RecipeSectionList)
+Phase: 50 of 51 (Section Form UI) — Complete
+Plan: 03 of 03 — complete
+Status: Phase complete
+Last activity: 2026-05-08 — Completed 50-03 (RecipeFormSheet section-aware rewrite)
 
 Progress: [██████████] 100%
 
@@ -42,6 +42,7 @@ Progress: [██████████] 100%
 **48-02:** 3 tasks, 4 files, 324s
 **49-01:** 2 tasks, 4 files, 493s
 **50-01:** 2 tasks, 2 files, ~480s
+**50-03:** 1 task, 2 files, ~20 min
 
 ## Accumulated Context
 
@@ -74,6 +75,9 @@ Progress: [██████████] 100%
 - **50-02 decision**: alert-dialog.tsx created as blocking dependency fix — radix-ui AlertDialog primitive available in radix-ui package but shadcn wrapper was absent; follows same wrapping pattern as dialog.tsx
 - **50-02 decision**: RecipeSectionCard CollapsibleContent wraps RecipeStepList in px-3 pb-3 div for visual padding separation from header
 - **50-02 decision**: Step count badge in section header only when collapsed AND steps.length > 0 — avoids redundancy when steps are visible
+- **50-03 decision**: DELETE-all existing sections on edit then re-INSERT preserves clean section ordering without a diff algorithm — CASCADE removes their steps atomically
+- **50-03 decision**: Progressive disclosure threshold: sections.length <= 1 renders flat RecipeStepList, sections.length >= 2 renders RecipeSectionList with section cards
+- **50-03 decision**: formatMinutes.test.tsx updated to mock useRecipeSections and export RECIPE_PAINTS_KEY/STEP_COUNTS_KEY/RECIPE_AVAILABILITY_KEY/RECIPE_SWATCH_KEY constants — required after RecipeFormSheet gained these imports
 
 ### Pending Todos
 
@@ -85,6 +89,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-08T18:28:00.000Z
-Stopped at: Completed 50-02 (RecipeSectionCard + RecipeSectionList)
-Resume file: .planning/phases/50-section-form-ui/50-03-PLAN.md
+Last session: 2026-05-08T16:15:43.268Z
+Stopped at: Completed 50-03 (RecipeFormSheet section-aware rewrite)
+Resume file: None
