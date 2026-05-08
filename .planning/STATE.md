@@ -4,7 +4,7 @@ milestone: v2.6
 milestone_name: Rules Sync 2.0 / Rules Data Hub
 status: completed
 stopped_at: Completed 47-02-PLAN.md
-last_updated: "2026-05-08T13:05:02.711Z"
+last_updated: "2026-05-08T13:23:19.667Z"
 last_activity: 2026-05-08 — Phase 47 Plan 02 complete (OVRD-06 UI layer + tech debt cleanup)
 progress:
   total_phases: 6
@@ -18,16 +18,15 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-07 after v2.6 milestone start)
+See: .planning/PROJECT.md (updated 2026-05-08 after v2.6 milestone)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.6 Rules Sync 2.0 / Rules Data Hub — Phase 46: Manual Overrides / Version Comparison
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 47 of 47 (v2.6 gap closure — OVRD-06 per-field diff)
-Plan: 02 complete (UI layer + tech debt cleanup)
-Status: Complete — v2.6 milestone fully closed
+Milestone: v2.6 shipped 2026-05-08
+Status: Between milestones — planning next
 Last activity: 2026-05-08 — Phase 47 Plan 02 complete (OVRD-06 UI layer + tech debt cleanup)
 
 Progress: [██████████] 100%

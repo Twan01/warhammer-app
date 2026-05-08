@@ -9,7 +9,7 @@
 - ✅ **v2.3 Hobby Command Center** — Phases 25–29 (shipped 2026-05-05)
 - ✅ **v2.4 Premium Dashboard UX & Visual Polish** — Phases 30–34, 36 (shipped 2026-05-06)
 - ✅ **v2.5 Recipes 2.0 / Painting Studio** — Phases 37–41 (shipped 2026-05-07)
-- 🚧 **v2.6 Rules Sync 2.0 / Rules Data Hub** — Phases 42–47 (in progress)
+- ✅ **v2.6 Rules Sync 2.0 / Rules Data Hub** — Phases 42–47 (shipped 2026-05-08)
 
 ## Phases
 
@@ -120,108 +120,19 @@ Full details: `.planning/milestones/v2.5-ROADMAP.md`
 
 ---
 
-### v2.6 Rules Sync 2.0 / Rules Data Hub (In Progress)
+<details>
+<summary>✅ v2.6 Rules Sync 2.0 / Rules Data Hub (Phases 42–47) — SHIPPED 2026-05-08</summary>
 
-**Milestone Goal:** Stabilize and extend the local rules import architecture so HobbyForge becomes a reliable personal rules and points reference — with extended data types surfaced in the UI, a hardened sync pipeline, sync metadata tracking, and persistent manual overrides that survive re-syncs.
+- [x] Phase 42: Architecture Audit (1/1 plans) — completed 2026-05-08
+- [x] Phase 43: Extended Rules Read Layer (2/2 plans) — completed 2026-05-08
+- [x] Phase 44: Sync Pipeline Hardening (2/2 plans) — completed 2026-05-08
+- [x] Phase 45: Sync Metadata & Import Tracking (2/2 plans) — completed 2026-05-08
+- [x] Phase 46: Manual Overrides & Version Comparison (2/2 plans) — completed 2026-05-08
+- [x] Phase 47: v2.6 Gap Closure (2/2 plans) — completed 2026-05-08
 
-- [x] **Phase 42: Architecture Audit** — Read-only investigation of the current sync pipeline and extended rules schema; produces a written architecture note covering data flow, type/query/hook gaps, and migration plan for metadata and overrides tables (completed 2026-05-08)
-- [x] **Phase 43: Extended Rules Read Layer** — TypeScript types, query functions, and React Query hooks for stratagems, detachments, detachment abilities, and shared faction abilities; all four data types surfaced in PlaybookTab (completed 2026-05-08)
-- [x] **Phase 44: Sync Pipeline Hardening** — Rust `bulk_sync_rules` returns per-table row counts; TypeScript displays counts in post-sync confirmation; CSV column validation rejects malformed files; sync errors logged to persistent table; all new rules hooks invalidated on sync success (completed 2026-05-08)
-- [x] **Phase 45: Sync Metadata & Import Tracking** — Last sync date/time, per-table row counts, source version, error history, freshness badge on rules-dependent pages, and pre-sync snapshot mechanism all visible and functional (completed 2026-05-08)
-- [x] **Phase 46: Manual Overrides & Version Comparison** — Users can override points, stats, keywords, and ability reminders per unit in hobbyforge.db; overrides persist across re-syncs and are visually distinguished from imported data; post-sync diff view shows what changed or was removed (completed 2026-05-08)
-- [x] **Phase 47: v2.6 Gap Closure** — Extend snapshot to store full field values; per-field diff comparison for points, stats, keywords, and abilities; fix stale JSDoc and SUMMARY frontmatter gaps (completed 2026-05-08)
+Full details: `.planning/milestones/v2.6-ROADMAP.md`
 
-## Phase Details
-
-### Phase 42: Architecture Audit
-**Goal**: Developer has a written architecture note that fully maps the current sync pipeline and identifies every gap needed before extending it
-**Depends on**: Phase 41 (v2.5 complete)
-**Requirements**: AUDIT-01, AUDIT-02, AUDIT-03, AUDIT-04
-**Success Criteria** (what must be TRUE):
-  1. Architecture note confirms which rw_* extended tables exist and are populated after a live sync run
-  2. Architecture note documents the complete data flow from TypeScript CSV fetch through Rust transaction to SQLite write
-  3. Architecture note lists every TypeScript type, query function, and React Query hook that is missing for stratagems, detachments, detachment abilities, and shared abilities
-  4. Architecture note includes a migration plan for sync_meta, sync_errors, rules_snapshot, and unit_overrides tables with column-level detail
-**Plans:** 1 plan
-Plans:
-- [x] 42-01-PLAN.md — Write ARCHITECTURE-AUDIT.md reference document
-
-### Phase 43: Extended Rules Read Layer
-**Goal**: Users can view stratagems, detachments, detachment abilities, and shared faction abilities in PlaybookTab — backed by a complete TypeScript data layer
-**Depends on**: Phase 42
-**Requirements**: SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04, SCHEMA-05
-**Success Criteria** (what must be TRUE):
-  1. User can see faction stratagems (name, phase, CP cost, description, keywords) for their linked unit's faction in PlaybookTab
-  2. User can see faction detachments (name, description, rule text) in PlaybookTab
-  3. User can see detachment abilities grouped by their parent detachment in PlaybookTab
-  4. User can see shared faction abilities (non-datasheet-specific) in PlaybookTab
-  5. TypeScript types, query functions, and React Query hooks exist for all four extended data types and follow the established src/db/queries + src/hooks pattern
-**Plans:** 2/2 plans complete
-Plans:
-- [ ] 43-01-PLAN.md — Types, query module, hooks module, and data layer tests (SCHEMA-05)
-- [ ] 43-02-PLAN.md — PlaybookTab UI integration with collapsible sections and component tests (SCHEMA-01/02/03/04)
-
-### Phase 44: Sync Pipeline Hardening
-**Goal**: The sync pipeline validates input, reports outcomes per table, and persists errors — eliminating silent failures and ambiguous post-sync state
-**Depends on**: Phase 42
-**Requirements**: SYNC-01, SYNC-02, SYNC-03, SYNC-04, SYNC-05
-**Success Criteria** (what must be TRUE):
-  1. After a sync completes, the confirmation UI shows how many rows were inserted per table (e.g., "datasheets: 847, stratagems: 312, abilities: 1204")
-  2. Uploading a CSV file with missing required column headers triggers a visible validation error before any data is inserted
-  3. Any error that occurs during sync is written to a persistent errors table with timestamp, error type, and message — and survives app restart
-  4. All rules-related React Query hooks (including the new stratagems, detachments, and abilities hooks) are invalidated after a successful sync
-**Plans:** 2/2 plans complete
-Plans:
-- [ ] 44-01-PLAN.md — Rust SyncResult return type, CSV validation module, sync_errors migration and query module
-- [ ] 44-02-PLAN.md — Wire validation, Rust counts, error logging, and cache invalidation into useRulesSync and PlaybookTab
-
-### Phase 45: Sync Metadata & Import Tracking
-**Goal**: Users can always see when their rules data was last synced, how complete it is, and whether it is fresh — and a pre-sync snapshot is captured before each re-sync
-**Depends on**: Phase 44
-**Requirements**: META-01, META-02, META-03, META-04, META-05, META-06
-**Success Criteria** (what must be TRUE):
-  1. User can see the date and time of the last successful sync displayed in the UI
-  2. User can see per-table row counts from the most recent sync (matching the counts shown in the post-sync confirmation)
-  3. User can see a Wahapedia source version or edition field populated after sync
-  4. User can view a timestamped list of past sync errors
-  5. Rules-dependent pages (e.g., PlaybookTab) show a stale/fresh badge indicating whether the data needs re-syncing
-  6. Before each re-sync, the current rules data is snapshotted into a separate table so version comparison in Phase 46 is possible
-**Plans:** 2/2 plans complete
-Plans:
-- [ ] 45-01-PLAN.md — Migrations, Rust upsert extension, TypeScript types, snapshot query module, hooks, and freshness utility (META-01/02/03/04/05/06)
-- [ ] 45-02-PLAN.md — Wire snapshot into useRulesSync, PlaybookTab UI with freshness dot, sync details, and error history (META-01/02/03/04/05/06)
-
-### Phase 46: Manual Overrides & Version Comparison
-**Goal**: Users can correct or annotate any imported rules value for their own units, with changes surviving every future re-sync, and can see what the re-sync changed
-**Depends on**: Phase 45
-**Requirements**: OVRD-01, OVRD-02, OVRD-03, OVRD-04, OVRD-05, OVRD-06, OVRD-07
-**Success Criteria** (what must be TRUE):
-  1. User can enter a custom points value for a unit that overrides the imported value and is preserved after re-syncing
-  2. User can override individual stat fields (M/T/Sv/W/Ld/OC) for a unit and have the overrides preserved after re-syncing
-  3. User can override keywords and ability reminders for a unit and have the overrides preserved after re-syncing
-  4. In the UI, overridden values are visually distinguished from imported values (e.g., a badge or icon marking the field as manually set)
-  5. After a re-sync, user can open a diff view showing which points values, stats, abilities, or keywords changed between the previous snapshot and the new data
-  6. After a re-sync, user can see which datasheets were removed or renamed compared to the snapshot
-**Plans:** 2/2 plans complete
-Plans:
-- [ ] 46-01-PLAN.md — Override data infrastructure: migration, types, query module, hook, army list COALESCE extension, computeSyncDiff (OVRD-01/02/03/04/06/07)
-- [ ] 46-02-PLAN.md — PlaybookTab UI: override markers, diff collapsible, toast summary, useRulesSync diff wiring (OVRD-05/06/07)
-
-### Phase 47: v2.6 Gap Closure
-**Goal**: Close the remaining OVRD-06 gap by extending the pre-sync snapshot to store full field values and adding per-field diff comparison; clean up accumulated tech debt
-**Depends on**: Phase 46
-**Requirements**: OVRD-06
-**Gap Closure:** Closes gaps from v2.6 milestone audit
-**Success Criteria** (what must be TRUE):
-  1. Pre-sync snapshot stores full field values (points, stats, keywords, abilities) per datasheet — not just {id, name}
-  2. computeSyncDiff compares per-field values and reports which specific fields changed (e.g., points 150→160, keyword added/removed)
-  3. Diff UI displays per-field value changes alongside the existing datasheet-level changes
-  4. Stale JSDoc in armyLists.ts (lines 20, 159) is corrected to match the actual 3-level COALESCE chain
-  5. SUMMARY frontmatter in phases 43–46 includes requirements_completed entries
-**Plans:** 2/2 plans complete
-Plans:
-- [ ] 47-01-PLAN.md — Extend snapshot queries and SyncDiff with per-field diff algorithm + tests (OVRD-06)
-- [ ] 47-02-PLAN.md — Wire extended diff into useRulesSync, PlaybookTab Modified UI section, JSDoc fix, SUMMARY frontmatter (OVRD-06)
+</details>
 
 ## Progress
 
@@ -271,8 +182,8 @@ Plans:
 | 40. Recipe Actions + Step Photos | v2.5 | 3/3 | Complete | 2026-05-07 |
 | 41. Session Integration | v2.5 | 2/2 | Complete | 2026-05-07 |
 | 42. Architecture Audit | v2.6 | 1/1 | Complete | 2026-05-08 |
-| 43. Extended Rules Read Layer | 2/2 | Complete    | 2026-05-08 | - |
-| 44. Sync Pipeline Hardening | 2/2 | Complete    | 2026-05-08 | - |
-| 45. Sync Metadata & Import Tracking | 2/2 | Complete    | 2026-05-08 | - |
-| 46. Manual Overrides & Version Comparison | 2/2 | Complete    | 2026-05-08 | - |
-| 47. v2.6 Gap Closure | 2/2 | Complete    | 2026-05-08 | - |
+| 43. Extended Rules Read Layer | v2.6 | 2/2 | Complete | 2026-05-08 |
+| 44. Sync Pipeline Hardening | v2.6 | 2/2 | Complete | 2026-05-08 |
+| 45. Sync Metadata & Import Tracking | v2.6 | 2/2 | Complete | 2026-05-08 |
+| 46. Manual Overrides & Version Comparison | v2.6 | 2/2 | Complete | 2026-05-08 |
+| 47. v2.6 Gap Closure | v2.6 | 2/2 | Complete | 2026-05-08 |
