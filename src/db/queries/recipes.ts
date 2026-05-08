@@ -1,6 +1,7 @@
 import { getDb } from "@/db/client";
 import type { PaintingRecipe, CreateRecipeInput, UpdateRecipeInput } from "@/types/recipe";
 import type { RecipeStep } from "@/types/recipePaint";
+import type { RecipeSection } from "@/types/recipeSection";
 
 export async function getRecipes(): Promise<PaintingRecipe[]> {
   const db = await getDb();
@@ -105,11 +106,13 @@ export async function getRecipeNamesByUnitIds(
 }
 
 /**
- * STUDIO-03 — duplicate a recipe with all its steps.
+ * STUDIO-03 — duplicate a recipe with all its steps and sections.
  *
  * Copies all 21 metadata fields from the original recipe (using newName for the
- * name field), then copies all steps with all 12 columns including Phase 40 fields
- * (step_photo_path, alt_paint_id). Returns the new recipe's ID.
+ * name field), then copies all sections (INTG-01 section copy pass) building a
+ * Map<oldSectionId, newSectionId> for ID remapping, then copies all steps with
+ * all 13 columns including section_id (remapped via sectionIdMap).
+ * Returns the new recipe's ID.
  */
 export async function duplicateRecipe(originalId: number, newName: string): Promise<number> {
   const db = await getDb();
@@ -143,25 +146,44 @@ export async function duplicateRecipe(originalId: number, newName: string): Prom
   );
   const newRecipeId = result.lastInsertId ?? 0;
 
-  // 3. Read original steps
+  // 3. Read original sections (INTG-01 section copy pass)
+  const sections = await db.select<RecipeSection[]>(
+    "SELECT * FROM recipe_sections WHERE recipe_id = $1 ORDER BY order_index ASC",
+    [originalId]
+  );
+
+  // 4. Copy sections and build old->new ID map
+  const sectionIdMap = new Map<number, number>();
+  for (const section of sections) {
+    const sectionResult = await db.execute(
+      `INSERT INTO recipe_sections (recipe_id, name, surface, optional, order_index, notes)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [newRecipeId, section.name, section.surface, section.optional, section.order_index, section.notes ?? null]
+    );
+    sectionIdMap.set(section.id, sectionResult.lastInsertId ?? 0);
+  }
+
+  // 5. Read original steps
   const steps = await db.select<RecipeStep[]>(
     "SELECT * FROM recipe_steps WHERE recipe_id = $1 ORDER BY order_index ASC",
     [originalId]
   );
 
-  // 4. Copy each step to the new recipe (all 12 columns including Phase 40 fields)
+  // 6. Copy each step to the new recipe (all 13 columns including section_id remapped via sectionIdMap)
   for (const step of steps) {
+    const remappedSectionId = step.section_id !== null ? (sectionIdMap.get(step.section_id) ?? null) : null;
     await db.execute(
       `INSERT INTO recipe_steps
        (recipe_id, paint_id, step_name, order_index, notes,
         painting_phase, tool, technique, dilution, time_estimate_minutes,
-        step_photo_path, alt_paint_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+        step_photo_path, alt_paint_id, section_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
       [
         newRecipeId, step.paint_id, step.step_name, step.order_index,
         step.notes, step.painting_phase, step.tool, step.technique,
         step.dilution, step.time_estimate_minutes,
         step.step_photo_path ?? null, step.alt_paint_id ?? null,
+        remappedSectionId,
       ]
     );
   }
