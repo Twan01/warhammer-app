@@ -126,7 +126,7 @@ Full details: `.planning/milestones/v2.5-ROADMAP.md`
 
 - [x] **Phase 42: Architecture Audit** — Read-only investigation of the current sync pipeline and extended rules schema; produces a written architecture note covering data flow, type/query/hook gaps, and migration plan for metadata and overrides tables (completed 2026-05-08)
 - [ ] **Phase 43: Extended Rules Read Layer** — TypeScript types, query functions, and React Query hooks for stratagems, detachments, detachment abilities, and shared faction abilities; all four data types surfaced in PlaybookTab
-- [ ] **Phase 44: Sync Pipeline Hardening** — Rust `bulk_sync_rules` returns per-table row counts; TypeScript displays counts in post-sync confirmation; CSV column validation rejects malformed files; sync errors logged to persistent table; all new rules hooks invalidated on sync success
+- [x] **Phase 44: Sync Pipeline Hardening** — Rust `bulk_sync_rules` returns per-table row counts; TypeScript displays counts in post-sync confirmation; CSV column validation rejects malformed files; sync errors logged to persistent table; all new rules hooks invalidated on sync success (completed 2026-05-08)
 - [ ] **Phase 45: Sync Metadata & Import Tracking** — Last sync date/time, per-table row counts, source version, error history, freshness badge on rules-dependent pages, and pre-sync snapshot mechanism all visible and functional
 - [ ] **Phase 46: Manual Overrides & Version Comparison** — Users can override points, stats, keywords, and ability reminders per unit in hobbyforge.db; overrides persist across re-syncs and are visually distinguished from imported data; post-sync diff view shows what changed or was removed
 
@@ -169,7 +169,7 @@ Plans:
   2. Uploading a CSV file with missing required column headers triggers a visible validation error before any data is inserted
   3. Any error that occurs during sync is written to a persistent errors table with timestamp, error type, and message — and survives app restart
   4. All rules-related React Query hooks (including the new stratagems, detachments, and abilities hooks) are invalidated after a successful sync
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 44-01-PLAN.md — Rust SyncResult return type, CSV validation module, sync_errors migration and query module
 - [ ] 44-02-PLAN.md — Wire validation, Rust counts, error logging, and cache invalidation into useRulesSync and PlaybookTab
@@ -249,6 +249,6 @@ Plans:
 | 41. Session Integration | v2.5 | 2/2 | Complete | 2026-05-07 |
 | 42. Architecture Audit | v2.6 | 1/1 | Complete | 2026-05-08 |
 | 43. Extended Rules Read Layer | 1/2 | In Progress|  | - |
-| 44. Sync Pipeline Hardening | 1/2 | In Progress|  | - |
+| 44. Sync Pipeline Hardening | 2/2 | Complete   | 2026-05-08 | - |
 | 45. Sync Metadata & Import Tracking | v2.6 | 0/TBD | Not started | - |
 | 46. Manual Overrides & Version Comparison | v2.6 | 0/TBD | Not started | - |

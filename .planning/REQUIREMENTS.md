@@ -25,10 +25,10 @@ Requirements for v2.6 Rules Sync 2.0 / Rules Data Hub. Each maps to roadmap phas
 ### Sync Pipeline
 
 - [x] **SYNC-01**: Rust bulk_sync_rules returns per-table row counts after each sync
-- [ ] **SYNC-02**: useRulesSync displays per-table row counts in the post-sync confirmation
+- [x] **SYNC-02**: useRulesSync displays per-table row counts in the post-sync confirmation
 - [x] **SYNC-03**: CSV column header validation rejects malformed CSVs before insertion
 - [x] **SYNC-04**: Sync errors are logged to a persistent table with timestamp, error type, and message
-- [ ] **SYNC-05**: All new rules query hooks are invalidated on sync success (cache invalidation contract)
+- [x] **SYNC-05**: All new rules query hooks are invalidated on sync success (cache invalidation contract)
 
 ### Sync Metadata & Import Tracking
 
@@ -88,10 +88,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCHEMA-04 | Phase 43 | Pending |
 | SCHEMA-05 | Phase 43 | Complete |
 | SYNC-01 | Phase 44 | Complete |
-| SYNC-02 | Phase 44 | Pending |
+| SYNC-02 | Phase 44 | Complete |
 | SYNC-03 | Phase 44 | Complete |
 | SYNC-04 | Phase 44 | Complete |
-| SYNC-05 | Phase 44 | Pending |
+| SYNC-05 | Phase 44 | Complete |
 | META-01 | Phase 45 | Pending |
 | META-02 | Phase 45 | Pending |
 | META-03 | Phase 45 | Pending |
