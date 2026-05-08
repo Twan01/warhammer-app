@@ -1,8 +1,8 @@
 ---
 phase: 48
 slug: section-data-layer
-status: draft
-nyquist_compliant: false
+status: complete
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-05-08
 ---
@@ -38,11 +38,16 @@ created: 2026-05-08
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 48-01-T1 | 01 | 1 | SECT-01, SECT-02, SECT-03 | build | `pnpm build` | N/A | ⬜ pending |
-| 48-01-T2 | 01 | 1 | SECT-01, SECT-02 | build | `pnpm build` | N/A | ⬜ pending |
-| 48-02-T1 | 02 | 2 | SECT-04, SECT-05, SECT-06 | build | `pnpm build` | N/A | ⬜ pending |
-| 48-02-T2 | 02 | 2 | SECT-04, SECT-05 | build | `pnpm build` | N/A | ⬜ pending |
-| 48-02-T3 | 02 | 2 | SECT-01–SECT-06 | unit | `pnpm test -- tests/painting/recipeSections.test.ts` | ❌ W2 | ⬜ pending |
+| 48-01-T1 | 01 | 1 | SECT-01, SECT-02, SECT-03 | build | `pnpm build` | N/A | ✅ green |
+| 48-01-T2 | 01 | 1 | SECT-01, SECT-02 | build | `pnpm build` | N/A | ✅ green |
+| 48-02-T1 | 02 | 2 | SECT-04, SECT-05, SECT-06 | build | `pnpm build` | N/A | ✅ green |
+| 48-02-T2 | 02 | 2 | SECT-04, SECT-05 | build | `pnpm build` | N/A | ✅ green |
+| 48-02-T3 | 02 | 2 | SECT-01–SECT-06 | unit | `pnpm test -- tests/painting/recipeSections.test.ts` | ✅ exists | ✅ green |
+| 48-02-T3-GAP1 | 02 | 2 | useDeleteRecipeSection 5-key cascade | unit | `pnpm test -- tests/painting/recipeSections.test.ts` | ✅ exists | ✅ green |
+| 48-02-T3-GAP2 | 02 | 2 | useCreateRecipeSection invalidation | unit | `pnpm test -- tests/painting/recipeSections.test.ts` | ✅ exists | ✅ green |
+| 48-02-T3-GAP3 | 02 | 2 | useUpdateRecipeSection invalidation | unit | `pnpm test -- tests/painting/recipeSections.test.ts` | ✅ exists | ✅ green |
+| 48-02-T3-GAP4 | 02 | 2 | useReorderRecipeSections invalidation | unit | `pnpm test -- tests/painting/recipeSections.test.ts` | ✅ exists | ✅ green |
+| 48-02-T3-GAP5 | 02 | 2 | useSectionStepCounts Map transform | unit | `pnpm test -- tests/painting/recipeSections.test.ts` | ✅ exists | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -69,11 +74,11 @@ Existing infrastructure covers all phase requirements. No Wave 0 plan is needed:
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** complete — all 33 tests pass, full suite 1064 passed / 0 failed
