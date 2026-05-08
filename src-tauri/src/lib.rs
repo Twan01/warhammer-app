@@ -94,6 +94,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/015_sync_errors.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 16,
+            description: "rules_snapshot",
+            sql: include_str!("../migrations/016_rules_snapshot.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
@@ -109,6 +115,12 @@ fn get_rules_migrations() -> Vec<Migration> {
             version: 2,
             description: "wargear_abilities",
             sql: include_str!("../migrations/rules_002_wargear_abilities.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 3,
+            description: "sync_meta_counts",
+            sql: include_str!("../migrations/rules_003_sync_meta_counts.sql"),
             kind: MigrationKind::Up,
         },
     ]
@@ -433,12 +445,27 @@ async fn bulk_sync_rules(
         counts.detachment_abilities += res.rows_affected();
     }
 
-    // Write sync meta inside the same transaction
+    // Write sync meta inside the same transaction — includes all 11 per-table
+    // row counts populated during the insert loops above.
     sqlx::query(
-        "INSERT OR REPLACE INTO rw_sync_meta (id, last_sync_at, wahapedia_version) VALUES (1, ?, ?)",
+        "INSERT OR REPLACE INTO rw_sync_meta (id, last_sync_at, wahapedia_version,
+         factions_count, sources_count, datasheets_count, models_count, abilities_count,
+         keywords_count, wargear_count, shared_abilities_count, stratagems_count,
+         detachments_count, detachment_abilities_count) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     )
     .bind(&payload.last_sync_at)
     .bind(&payload.wahapedia_version)
+    .bind(counts.factions as i64)
+    .bind(counts.sources as i64)
+    .bind(counts.datasheets as i64)
+    .bind(counts.models as i64)
+    .bind(counts.abilities as i64)
+    .bind(counts.keywords as i64)
+    .bind(counts.wargear as i64)
+    .bind(counts.shared_abilities as i64)
+    .bind(counts.stratagems as i64)
+    .bind(counts.detachments as i64)
+    .bind(counts.detachment_abilities as i64)
     .execute(&mut *tx)
     .await
     .map_err(|e| format!("insert sync_meta: {e}"))?;

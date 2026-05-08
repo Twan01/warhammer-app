@@ -68,6 +68,18 @@ export interface RulesSyncMeta {
   id: 1;
   last_sync_at: string | null;
   wahapedia_version: string | null;
+  // Phase 45 — per-table row counts (null before first post-migration sync)
+  factions_count: number | null;
+  sources_count: number | null;
+  datasheets_count: number | null;
+  models_count: number | null;
+  abilities_count: number | null;
+  keywords_count: number | null;
+  wargear_count: number | null;
+  shared_abilities_count: number | null;
+  stratagems_count: number | null;
+  detachments_count: number | null;
+  detachment_abilities_count: number | null;
 }
 
 /** Weapon stat line from Datasheets_wargear.csv. */
