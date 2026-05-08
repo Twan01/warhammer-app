@@ -12,9 +12,9 @@ Requirements for Recipes 3.0 / Hierarchical Painting Workflows. Each maps to roa
 - [x] **SECT-01**: User can see recipe sections stored in a new recipe_sections table (id, recipe_id, name, surface, optional, order_index, notes, timestamps)
 - [x] **SECT-02**: User's existing recipe steps gain a section_id FK linking them to their section
 - [x] **SECT-03**: User's existing recipes are auto-migrated with one default section per recipe, all steps pointed at it (zero data loss)
-- [ ] **SECT-04**: User can create, read, update, and delete recipe sections through typed query/hook layer
-- [ ] **SECT-05**: User can reorder sections via persisted order_index (drag-and-drop at data layer)
-- [ ] **SECT-06**: User can see per-section step counts via batch GROUP BY query helper
+- [x] **SECT-04**: User can create, read, update, and delete recipe sections through typed query/hook layer
+- [x] **SECT-05**: User can reorder sections via persisted order_index (drag-and-drop at data layer)
+- [x] **SECT-06**: User can see per-section step counts via batch GROUP BY query helper
 
 ### Section Read UI
 
@@ -69,9 +69,9 @@ Deferred to future release. Tracked but not in current roadmap.
 | SECT-01 | Phase 48 | Complete |
 | SECT-02 | Phase 48 | Complete |
 | SECT-03 | Phase 48 | Complete |
-| SECT-04 | Phase 48 | Pending |
-| SECT-05 | Phase 48 | Pending |
-| SECT-06 | Phase 48 | Pending |
+| SECT-04 | Phase 48 | Complete |
+| SECT-05 | Phase 48 | Complete |
+| SECT-06 | Phase 48 | Complete |
 | VIEW-01 | Phase 49 | Pending |
 | VIEW-02 | Phase 49 | Pending |
 | VIEW-03 | Phase 49 | Pending |

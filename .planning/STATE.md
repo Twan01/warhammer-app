@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.2.7
 milestone_name: Recipes 3.0 / Hierarchical Workflows
-status: in-progress
-stopped_at: Completed 48-01-PLAN.md
-last_updated: "2026-05-08T14:54:03.260Z"
+status: executing
+stopped_at: Completed 48-02-PLAN.md
+last_updated: "2026-05-08T15:02:25.038Z"
 last_activity: 2026-05-08 — Completed 48-01 (migration 018 + RecipeSection types)
 progress:
   total_phases: 4
-  completed_phases: 0
-  total_plans: 8
-  completed_plans: 1
-  percent: 12
+  completed_phases: 1
+  total_plans: 2
+  completed_plans: 2
+  percent: 25
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-08 after v0.2.7 milestone started)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** Phase 48 — Section Data Layer (Plan 02 next)
+**Current focus:** Phase 49 — Section Read UI (next phase)
 
 ## Current Position
 
-Phase: 48 of 51 (Section Data Layer)
-Plan: 02 of 02 (next)
+Phase: 48 of 51 (Section Data Layer) — COMPLETE
+Plan: 02 of 02 — complete
 Status: In progress
-Last activity: 2026-05-08 — Completed 48-01 (migration 018 + RecipeSection types)
+Last activity: 2026-05-08 — Completed 48-02 (recipeSections query module + hooks + tests)
 
-Progress: [█░░░░░░░░░] 12%
+Progress: [██░░░░░░░░] 25%
 
 ## Performance Metrics
 
@@ -39,6 +39,7 @@ Progress: [█░░░░░░░░░] 12%
 - Prior milestone (v0.2.5): 12 plans across 5 phases
 
 **48-01:** 2 tasks, 8 files, 185s
+**48-02:** 3 tasks, 4 files, 324s
 
 ## Accumulated Context
 
@@ -62,6 +63,8 @@ Progress: [█░░░░░░░░░] 12%
 - **v0.2.7 migration number corrected**: migration 018 (016 and 017 already existed — 016_rules_snapshot.sql, 017_unit_overrides.sql)
 - **v0.2.7 form init**: single useEffect guarded on both existingSections.length and existingSteps.length resolving — never two separate effects; buildDraftSections is a pure tested function
 - **48-01 decision**: section_id: null passed at all existing addRecipePaint call sites — Phase 50 form will supply real section_id values
+- **48-02 decision**: updateRecipeSection uses COALESCE for name/optional/order_index but direct assign for surface/notes — null is a valid clear-value for the latter two fields
+- **48-02 decision**: useUpdateRecipeSection mutation input type carries recipe_id for cache invalidation without passing it to the DB update path (UpdateRecipeSectionInput & { recipe_id: number })
 
 ### Pending Todos
 
@@ -73,6 +76,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-08T14:54:03.257Z
-Stopped at: Completed 48-01-PLAN.md
-Resume file: .planning/phases/48-section-data-layer/48-02-PLAN.md
+Last session: 2026-05-08T15:02:25.036Z
+Stopped at: Completed 48-02-PLAN.md
+Resume file: .planning/phases/49-section-read-ui/49-01-PLAN.md
