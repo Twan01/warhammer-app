@@ -125,7 +125,7 @@ Full details: `.planning/milestones/v2.5-ROADMAP.md`
 **Milestone Goal:** Stabilize and extend the local rules import architecture so HobbyForge becomes a reliable personal rules and points reference — with extended data types surfaced in the UI, a hardened sync pipeline, sync metadata tracking, and persistent manual overrides that survive re-syncs.
 
 - [x] **Phase 42: Architecture Audit** — Read-only investigation of the current sync pipeline and extended rules schema; produces a written architecture note covering data flow, type/query/hook gaps, and migration plan for metadata and overrides tables (completed 2026-05-08)
-- [ ] **Phase 43: Extended Rules Read Layer** — TypeScript types, query functions, and React Query hooks for stratagems, detachments, detachment abilities, and shared faction abilities; all four data types surfaced in PlaybookTab
+- [x] **Phase 43: Extended Rules Read Layer** — TypeScript types, query functions, and React Query hooks for stratagems, detachments, detachment abilities, and shared faction abilities; all four data types surfaced in PlaybookTab (completed 2026-05-08)
 - [x] **Phase 44: Sync Pipeline Hardening** — Rust `bulk_sync_rules` returns per-table row counts; TypeScript displays counts in post-sync confirmation; CSV column validation rejects malformed files; sync errors logged to persistent table; all new rules hooks invalidated on sync success (completed 2026-05-08)
 - [ ] **Phase 45: Sync Metadata & Import Tracking** — Last sync date/time, per-table row counts, source version, error history, freshness badge on rules-dependent pages, and pre-sync snapshot mechanism all visible and functional
 - [ ] **Phase 46: Manual Overrides & Version Comparison** — Users can override points, stats, keywords, and ability reminders per unit in hobbyforge.db; overrides persist across re-syncs and are visually distinguished from imported data; post-sync diff view shows what changed or was removed
@@ -155,7 +155,7 @@ Plans:
   3. User can see detachment abilities grouped by their parent detachment in PlaybookTab
   4. User can see shared faction abilities (non-datasheet-specific) in PlaybookTab
   5. TypeScript types, query functions, and React Query hooks exist for all four extended data types and follow the established src/db/queries + src/hooks pattern
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 43-01-PLAN.md — Types, query module, hooks module, and data layer tests (SCHEMA-05)
 - [ ] 43-02-PLAN.md — PlaybookTab UI integration with collapsible sections and component tests (SCHEMA-01/02/03/04)
@@ -248,7 +248,7 @@ Plans:
 | 40. Recipe Actions + Step Photos | v2.5 | 3/3 | Complete | 2026-05-07 |
 | 41. Session Integration | v2.5 | 2/2 | Complete | 2026-05-07 |
 | 42. Architecture Audit | v2.6 | 1/1 | Complete | 2026-05-08 |
-| 43. Extended Rules Read Layer | 1/2 | In Progress|  | - |
-| 44. Sync Pipeline Hardening | 2/2 | Complete   | 2026-05-08 | - |
+| 43. Extended Rules Read Layer | 2/2 | Complete   | 2026-05-08 | - |
+| 44. Sync Pipeline Hardening | 2/2 | Complete    | 2026-05-08 | - |
 | 45. Sync Metadata & Import Tracking | v2.6 | 0/TBD | Not started | - |
 | 46. Manual Overrides & Version Comparison | v2.6 | 0/TBD | Not started | - |
