@@ -50,10 +50,14 @@ vi.mock("@/hooks/useDatasheet", () => ({
 }));
 
 import { useRulesSync } from "@/hooks/useRulesSync";
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
+import { invoke } from "@tauri-apps/api/core";
 
 beforeEach(() => {
   invalidateQueriesMock.mockReset();
   insertSyncErrorMock.mockReset();
+  vi.mocked(tauriFetch).mockReset();
+  vi.mocked(invoke).mockReset();
 });
 
 describe("useRulesSync", () => {
@@ -129,5 +133,53 @@ describe("useRulesSync", () => {
     const input = insertSyncErrorMock.mock.calls[0][0];
     expect(input.error_type).toBe("sync_error");
     expect(input.csv_file).toBeNull();
+  });
+
+  it("SYNC-02: mutationFn rowCounts are sourced from Rust invoke result, not TypeScript array lengths", async () => {
+    // Arrange: mock fetch to return empty CSV text for all 12 files
+    // parseWahapediaCsv is already mocked to return [] (empty array, zero .length)
+    // validateCsvHeaders is already mocked as no-op
+    const fakeCsvResponse = { ok: true, text: async () => "" };
+    vi.mocked(tauriFetch).mockResolvedValue(fakeCsvResponse as ReturnType<typeof tauriFetch> extends Promise<infer R> ? R : never);
+
+    // Mock invoke to return a RustSyncResult with distinct non-zero counts.
+    // If rowCounts were built from array .length instead of rustResult fields,
+    // the values would all be 0 (because parseWahapediaCsv returns []).
+    const mockRustResult = {
+      factions: 10,
+      sources: 20,
+      datasheets: 300,
+      models: 1200,
+      abilities: 450,
+      keywords: 600,
+      wargear: 250,
+      shared_abilities: 90,
+      stratagems: 80,
+      detachments: 30,
+      detachment_abilities: 70,
+    };
+    vi.mocked(invoke).mockResolvedValue(mockRustResult);
+
+    // Act: call mutationFn directly via the captured useMutation options
+    const opts = useRulesSync() as unknown as {
+      mutationFn: () => Promise<{ wahapediaVersion: string; rowCounts: Record<string, number> }>;
+    };
+    const result = await opts.mutationFn();
+
+    // Assert: rowCounts match Rust struct fields, not TypeScript .length values
+    // (parseWahapediaCsv returns [] so .length would be 0 for every field)
+    expect(result.rowCounts.factions).toBe(10);
+    expect(result.rowCounts.datasheets).toBe(300);
+    expect(result.rowCounts.models).toBe(1200);
+    expect(result.rowCounts.abilities).toBe(450);
+    expect(result.rowCounts.keywords).toBe(600);
+    expect(result.rowCounts.wargear).toBe(250);
+    expect(result.rowCounts.shared_abilities).toBe(90);
+    expect(result.rowCounts.stratagems).toBe(80);
+    expect(result.rowCounts.detachments).toBe(30);
+    expect(result.rowCounts.detachment_abilities).toBe(70);
+
+    // Also assert invoke was called with the Tauri command name
+    expect(vi.mocked(invoke)).toHaveBeenCalledWith("bulk_sync_rules", expect.any(Object));
   });
 });
