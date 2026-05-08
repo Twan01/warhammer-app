@@ -46,7 +46,7 @@ Requirements for v2.6 Rules Sync 2.0 / Rules Data Hub. Each maps to roadmap phas
 - [x] **OVRD-03**: User can manually override keywords for a unit (persists across re-syncs)
 - [x] **OVRD-04**: User can manually override ability reminders for a unit (persists across re-syncs)
 - [x] **OVRD-05**: Manual overrides are visually distinguished from imported data in the UI
-- [ ] **OVRD-06**: User can see what changed after a re-sync (points, stats, abilities, keywords changes)
+- [x] **OVRD-06**: User can see what changed after a re-sync (points, stats, abilities, keywords changes)
 - [x] **OVRD-07**: User can see if a datasheet was removed or renamed after re-sync
 
 ## Future Requirements
@@ -103,7 +103,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OVRD-03 | Phase 46 | Complete |
 | OVRD-04 | Phase 46 | Complete |
 | OVRD-05 | Phase 46 | Complete |
-| OVRD-06 | Phase 47 | Pending |
+| OVRD-06 | Phase 47 | Complete |
 | OVRD-07 | Phase 46 | Complete |
 
 **Coverage:**
