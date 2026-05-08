@@ -88,6 +88,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/014_session_recipe_link.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 15,
+            description: "sync_errors",
+            sql: include_str!("../migrations/015_sync_errors.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
@@ -144,6 +150,21 @@ pub struct BulkSyncPayload {
     wahapedia_version: String,
 }
 
+#[derive(serde::Serialize)]
+pub struct SyncResult {
+    pub factions: u64,
+    pub sources: u64,
+    pub datasheets: u64,
+    pub models: u64,
+    pub abilities: u64,
+    pub keywords: u64,
+    pub wargear: u64,
+    pub shared_abilities: u64,
+    pub stratagems: u64,
+    pub detachments: u64,
+    pub detachment_abilities: u64,
+}
+
 /// Bulk-insert all Wahapedia CSV data into rules.db inside a single native
 /// SQLite transaction. Uses a direct sqlx connection (not the plugin pool)
 /// so all statements run on one connection and the transaction is real.
@@ -151,7 +172,7 @@ pub struct BulkSyncPayload {
 async fn bulk_sync_rules(
     app: tauri::AppHandle,
     payload: BulkSyncPayload,
-) -> Result<(), String> {
+) -> Result<SyncResult, String> {
     use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, Connection};
     use std::str::FromStr;
 
@@ -178,6 +199,12 @@ async fn bulk_sync_rules(
 
     let mut tx = conn.begin().await.map_err(|e| format!("begin: {e}"))?;
 
+    let mut counts = SyncResult {
+        factions: 0, sources: 0, datasheets: 0, models: 0,
+        abilities: 0, keywords: 0, wargear: 0, shared_abilities: 0,
+        stratagems: 0, detachments: 0, detachment_abilities: 0,
+    };
+
     // Delete all tables (FK checks OFF so order doesn't matter)
     for table in [
         "rw_datasheet_keywords",
@@ -201,18 +228,19 @@ async fn bulk_sync_rules(
     for row in &payload.factions {
         let id = str_val(row, "id").unwrap_or_default();
         if id.is_empty() { continue; }
-        sqlx::query("INSERT INTO rw_factions (id, name) VALUES (?, ?)")
+        let res = sqlx::query("INSERT INTO rw_factions (id, name) VALUES (?, ?)")
             .bind(&id)
             .bind(str_val(row, "name").unwrap_or_default())
             .execute(&mut *tx)
             .await
             .map_err(|e| format!("insert faction {id}: {e}"))?;
+        counts.factions += res.rows_affected();
     }
 
     for row in &payload.sources {
         let id = str_val(row, "id").unwrap_or_default();
         if id.is_empty() { continue; }
-        sqlx::query(
+        let res = sqlx::query(
             "INSERT INTO rw_sources (id, name, type, edition, version, errata_date) VALUES (?, ?, ?, ?, ?, ?)",
         )
         .bind(&id)
@@ -224,12 +252,13 @@ async fn bulk_sync_rules(
         .execute(&mut *tx)
         .await
         .map_err(|e| format!("insert source {id}: {e}"))?;
+        counts.sources += res.rows_affected();
     }
 
     for row in &payload.datasheets {
         let id = str_val(row, "id").unwrap_or_default();
         if id.is_empty() { continue; }
-        sqlx::query(
+        let res = sqlx::query(
             "INSERT INTO rw_datasheets (id, name, faction_id, source_id, role, damaged_w, damaged_description) VALUES (?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(&id)
@@ -242,12 +271,13 @@ async fn bulk_sync_rules(
         .execute(&mut *tx)
         .await
         .map_err(|e| format!("insert datasheet {id}: {e}"))?;
+        counts.datasheets += res.rows_affected();
     }
 
     for row in &payload.models {
         let ds_id = str_val(row, "datasheet_id").unwrap_or_default();
         if ds_id.is_empty() { continue; }
-        sqlx::query(
+        let res = sqlx::query(
             "INSERT OR IGNORE INTO rw_datasheet_models (datasheet_id, line, name, M, T, Sv, inv_sv, W, Ld, OC) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(&ds_id)
@@ -263,12 +293,13 @@ async fn bulk_sync_rules(
         .execute(&mut *tx)
         .await
         .map_err(|e| format!("insert model {ds_id}: {e}"))?;
+        counts.models += res.rows_affected();
     }
 
     for row in &payload.abilities {
         let ds_id = str_val(row, "datasheet_id").unwrap_or_default();
         if ds_id.is_empty() { continue; }
-        sqlx::query(
+        let res = sqlx::query(
             "INSERT OR IGNORE INTO rw_datasheet_abilities (datasheet_id, line, ability_id, name, description, type, parameter) VALUES (?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(&ds_id)
@@ -281,6 +312,7 @@ async fn bulk_sync_rules(
         .execute(&mut *tx)
         .await
         .map_err(|e| format!("insert ability {ds_id}: {e}"))?;
+        counts.abilities += res.rows_affected();
     }
 
     for row in &payload.keywords {
@@ -288,8 +320,8 @@ async fn bulk_sync_rules(
         let kw = str_val(row, "keyword").unwrap_or_default();
         if ds_id.is_empty() || kw.is_empty() { continue; }
         let is_faction: i64 = if str_val(row, "is_faction_keyword").as_deref() == Some("true") { 1 } else { 0 };
-        sqlx::query(
-            "INSERT INTO rw_datasheet_keywords (datasheet_id, keyword, is_faction_keyword) VALUES (?, ?, ?)",
+        let res = sqlx::query(
+            "INSERT OR IGNORE INTO rw_datasheet_keywords (datasheet_id, keyword, is_faction_keyword) VALUES (?, ?, ?)",
         )
         .bind(&ds_id)
         .bind(&kw)
@@ -297,12 +329,13 @@ async fn bulk_sync_rules(
         .execute(&mut *tx)
         .await
         .map_err(|e| format!("insert keyword {ds_id}/{kw}: {e}"))?;
+        counts.keywords += res.rows_affected();
     }
 
     for row in &payload.wargear {
         let ds_id = str_val(row, "datasheet_id").unwrap_or_default();
         if ds_id.is_empty() { continue; }
-        sqlx::query(
+        let res = sqlx::query(
             "INSERT OR IGNORE INTO rw_datasheets_wargear (datasheet_id, line, line_in_wargear, dice, name, description, range, type, A, BS_WS, S, AP, D) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(&ds_id)
@@ -321,12 +354,13 @@ async fn bulk_sync_rules(
         .execute(&mut *tx)
         .await
         .map_err(|e| format!("insert wargear {ds_id}: {e}"))?;
+        counts.wargear += res.rows_affected();
     }
 
     for row in &payload.shared_abilities {
         let id = str_val(row, "id").unwrap_or_default();
         if id.is_empty() { continue; }
-        sqlx::query(
+        let res = sqlx::query(
             "INSERT OR IGNORE INTO rw_abilities (id, name, legend, faction_id, description) VALUES (?, ?, ?, ?, ?)",
         )
         .bind(&id)
@@ -337,12 +371,13 @@ async fn bulk_sync_rules(
         .execute(&mut *tx)
         .await
         .map_err(|e| format!("insert ability {id}: {e}"))?;
+        counts.shared_abilities += res.rows_affected();
     }
 
     for row in &payload.stratagems {
         let id = str_val(row, "id").unwrap_or_default();
         if id.is_empty() { continue; }
-        sqlx::query(
+        let res = sqlx::query(
             "INSERT OR IGNORE INTO rw_stratagems (id, faction_id, name, type, cp_cost, legend, turn, phase, detachment, detachment_id, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(&id)
@@ -359,12 +394,13 @@ async fn bulk_sync_rules(
         .execute(&mut *tx)
         .await
         .map_err(|e| format!("insert stratagem {id}: {e}"))?;
+        counts.stratagems += res.rows_affected();
     }
 
     for row in &payload.detachments {
         let id = str_val(row, "id").unwrap_or_default();
         if id.is_empty() { continue; }
-        sqlx::query(
+        let res = sqlx::query(
             "INSERT OR IGNORE INTO rw_detachments (id, faction_id, name, legend, type) VALUES (?, ?, ?, ?, ?)",
         )
         .bind(&id)
@@ -375,12 +411,13 @@ async fn bulk_sync_rules(
         .execute(&mut *tx)
         .await
         .map_err(|e| format!("insert detachment {id}: {e}"))?;
+        counts.detachments += res.rows_affected();
     }
 
     for row in &payload.detachment_abilities {
         let id = str_val(row, "id").unwrap_or_default();
         if id.is_empty() { continue; }
-        sqlx::query(
+        let res = sqlx::query(
             "INSERT OR IGNORE INTO rw_detachment_abilities (id, faction_id, name, legend, description, detachment, detachment_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(&id)
@@ -393,6 +430,7 @@ async fn bulk_sync_rules(
         .execute(&mut *tx)
         .await
         .map_err(|e| format!("insert det_ability {id}: {e}"))?;
+        counts.detachment_abilities += res.rows_affected();
     }
 
     // Write sync meta inside the same transaction
@@ -406,7 +444,7 @@ async fn bulk_sync_rules(
     .map_err(|e| format!("insert sync_meta: {e}"))?;
 
     tx.commit().await.map_err(|e| format!("commit: {e}"))?;
-    Ok(())
+    Ok(counts)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
