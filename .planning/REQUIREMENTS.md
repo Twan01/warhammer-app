@@ -16,10 +16,10 @@ Requirements for v2.6 Rules Sync 2.0 / Rules Data Hub. Each maps to roadmap phas
 
 ### Extended Rules Schema
 
-- [ ] **SCHEMA-01**: User can view faction stratagems (name, phase, CP cost, description, keywords) in PlaybookTab
-- [ ] **SCHEMA-02**: User can view faction detachments (name, description, rule text) in PlaybookTab
-- [ ] **SCHEMA-03**: User can view detachment abilities grouped by detachment in PlaybookTab
-- [ ] **SCHEMA-04**: User can view shared faction abilities (non-datasheet-specific) in PlaybookTab
+- [x] **SCHEMA-01**: User can view faction stratagems (name, phase, CP cost, description, keywords) in PlaybookTab
+- [x] **SCHEMA-02**: User can view faction detachments (name, description, rule text) in PlaybookTab
+- [x] **SCHEMA-03**: User can view detachment abilities grouped by detachment in PlaybookTab
+- [x] **SCHEMA-04**: User can view shared faction abilities (non-datasheet-specific) in PlaybookTab
 - [x] **SCHEMA-05**: TypeScript types, query functions, and React Query hooks exist for stratagems, detachments, detachment abilities, and shared abilities
 
 ### Sync Pipeline
@@ -82,10 +82,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUDIT-02 | Phase 42 | Complete |
 | AUDIT-03 | Phase 42 | Complete |
 | AUDIT-04 | Phase 42 | Complete |
-| SCHEMA-01 | Phase 43 | Pending |
-| SCHEMA-02 | Phase 43 | Pending |
-| SCHEMA-03 | Phase 43 | Pending |
-| SCHEMA-04 | Phase 43 | Pending |
+| SCHEMA-01 | Phase 43 | Complete |
+| SCHEMA-02 | Phase 43 | Complete |
+| SCHEMA-03 | Phase 43 | Complete |
+| SCHEMA-04 | Phase 43 | Complete |
 | SCHEMA-05 | Phase 43 | Complete |
 | SYNC-01 | Phase 44 | Complete |
 | SYNC-02 | Phase 44 | Complete |
