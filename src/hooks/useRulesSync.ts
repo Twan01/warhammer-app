@@ -15,9 +15,12 @@ import { RULES_SYNC_META_KEY } from "@/hooks/useDatasheet";
 import { validateCsvHeaders } from "@/lib/validateCsvHeaders";
 import { insertSyncError } from "@/db/queries/syncErrors";
 import type { InsertSyncErrorInput } from "@/db/queries/syncErrors";
-import { capturePreSyncSnapshot } from "@/db/queries/rulesSnapshot";
+import { capturePreSyncSnapshot, getLatestSnapshot } from "@/db/queries/rulesSnapshot";
 import { SYNC_ERRORS_KEY } from "@/hooks/useSyncErrors";
 import { getRulesSyncMeta } from "@/db/queries/datasheets";
+import { computeSyncDiff } from "@/lib/computeSyncDiff";
+import type { SyncDiff } from "@/lib/computeSyncDiff";
+import { getRulesDb } from "@/db/rules-client";
 
 /** Mirrors the Rust SyncResult struct returned by bulk_sync_rules via Tauri IPC. */
 interface RustSyncResult {
@@ -74,7 +77,7 @@ function parseLastUpdate(raw: string): string {
 export function useRulesSync() {
   const qc = useQueryClient();
 
-  return useMutation<{ wahapediaVersion: string; rowCounts: Record<string, number> }, Error, void>({
+  return useMutation<{ wahapediaVersion: string; rowCounts: Record<string, number>; diff: SyncDiff }, Error, void>({
     mutationFn: async () => {
       const [
         factionsRaw, sourcesRaw, dsRaw, modelsRaw, abilitiesRaw, keywordsRaw,
@@ -137,6 +140,16 @@ export function useRulesSync() {
         legend: a.legend ? stripHtml(a.legend) : "",
       }));
 
+      // Read pre-sync snapshot for diff computation BEFORE capturing new snapshot (OVRD-06, OVRD-07)
+      let preSyncSnapshotData: string | null = null;
+      try {
+        const existingSnapshot = await getLatestSnapshot();
+        const dsRow = existingSnapshot.find((r) => r.table_name === "rw_datasheets");
+        preSyncSnapshotData = dsRow?.snapshot_data ?? null;
+      } catch {
+        // First sync ever — no snapshot exists yet
+      }
+
       // META-06: Capture pre-sync snapshot before Rust deletes all rows
       try {
         const currentMeta = await getRulesSyncMeta();
@@ -164,6 +177,20 @@ export function useRulesSync() {
         },
       });
 
+      // Compute post-sync diff (OVRD-06, OVRD-07)
+      let diff: SyncDiff = { added: [], removed: [], renamed: [], total_changed: 0 };
+      try {
+        const rulesDb = await getRulesDb();
+        const currentDatasheets = await rulesDb.select<{ id: string; name: string }[]>(
+          "SELECT id, name FROM rw_datasheets ORDER BY id",
+          [],
+        );
+        diff = computeSyncDiff(preSyncSnapshotData, currentDatasheets);
+      } catch {
+        // Diff is best-effort; sync itself succeeded
+        console.warn("[useRulesSync] diff computation failed");
+      }
+
       return {
         wahapediaVersion,
         rowCounts: {
@@ -179,6 +206,7 @@ export function useRulesSync() {
           detachments: rustResult.detachments,
           detachment_abilities: rustResult.detachment_abilities,
         },
+        diff,
       };
     },
     onSuccess: () => {
