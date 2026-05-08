@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.6
 milestone_name: Rules Sync 2.0 / Rules Data Hub
 status: executing
-stopped_at: Completed 44-02-PLAN.md
-last_updated: "2026-05-08T07:44:43.893Z"
-last_activity: 2026-05-08 — Phase 44 Plan 01 complete (SYNC-01, SYNC-03, SYNC-04)
+stopped_at: Completed 43-02-PLAN.md
+last_updated: "2026-05-08T07:52:34.242Z"
+last_activity: 2026-05-08 — Phase 44 Plan 02 complete (SYNC-01, SYNC-02, SYNC-05)
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 5
-  completed_plans: 4
-  percent: 40
+  completed_plans: 5
+  percent: 80
 ---
 
 # Project State
@@ -49,6 +49,7 @@ Progress: [████████░░] 80%
 | Phase 44 P01 | 13m | 3 tasks | 6 files |
 | Phase 43-extended-rules-read-layer P01 | 678 | 2 tasks | 5 files |
 | Phase 44 P02 | 8m | 2 tasks | 3 files |
+| Phase 43 P02 | 15 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,8 @@ Progress: [████████░░] 80%
 - **Phase 44 P02**: mock.calls tuple types in tests use array types (T[]) not tuple types ([T]) for TypeScript strictness
 - **Phase 44 P02**: vi.hoisted() used for test mocks referenced in vi.mock factories to avoid hoisting ReferenceError
 - **Phase 44 P02**: PlaybookTab toast shows 5 key table counts (datasheets, stratagems, abilities, wargear, keywords) not all 11
+- **Phase 43 P02**: DetachmentSection is a proper React component (not an inline map callback) to call useDetachmentAbilitiesByDetachment unconditionally — required by React hook rules
+- **Phase 43 P02**: ExtendedAbilityEntry structurally typed { name, description } rather than widening existing AbilityEntry (which is typed to RwDatasheetAbility) — avoids coupling two unrelated data types
 
 ### Pending Todos
 
@@ -86,6 +89,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-08T07:44:43.890Z
-Stopped at: Completed 44-02-PLAN.md
+Last session: 2026-05-08T07:52:03.798Z
+Stopped at: Completed 43-02-PLAN.md
 Resume: Run /gsd:plan-phase 42
