@@ -137,7 +137,7 @@ Full details: `.planning/milestones/v0.2.6-ROADMAP.md`
 
 ---
 
-### 🚧 v0.2.7 Recipes 3.0 / Hierarchical Painting Workflows (In Progress)
+### v0.2.7 Recipes 3.0 / Hierarchical Painting Workflows (In Progress)
 
 **Milestone Goal:** Add recipe sections (workflow groupings) so users can model real painting sequences — completing one surface or technique block before moving to the next.
 
@@ -156,8 +156,8 @@ Full details: `.planning/milestones/v0.2.6-ROADMAP.md`
 **Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 48-01-PLAN.md — Schema migration + TypeScript type definitions
-- [ ] 48-02-PLAN.md — Query/hook layer + unit tests
+- [x] 48-01-PLAN.md — Schema migration + TypeScript type definitions
+- [x] 48-02-PLAN.md — Query/hook layer + unit tests
 
 ### Phase 49: Section Read UI
 **Goal**: Users can view a recipe's full workflow as a timeline grouped by section headers, with surface, timing, and paint-availability context visible at a glance — with backward-compatible flat fallback for section-free recipes.
@@ -168,7 +168,10 @@ Plans:
   2. Each section header displays the section name, surface badge, step count, and estimated total time for that section
   3. Each section header shows a per-section owned/missing paint count (e.g., "3 owned, 1 missing")
   4. Opening a recipe that has no sections renders the existing flat step timeline unchanged
-**Plans**: TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 49-01-PLAN.md — SectionedTimeline component + RecipeDetailSheet conditional branch
 
 ### Phase 50: Section Form UI
 **Goal**: Users can create and edit recipes with collapsible section cards containing step lists, with drag-and-drop reorder at both the section and step levels, and progressive disclosure so single-section recipes stay as simple as they were before.
@@ -245,7 +248,7 @@ Plans:
 | 45. Sync Metadata & Import Tracking | v0.2.6 | 2/2 | Complete | 2026-05-08 |
 | 46. Manual Overrides & Version Comparison | v0.2.6 | 2/2 | Complete | 2026-05-08 |
 | 47. v0.2.6 Gap Closure | v0.2.6 | 2/2 | Complete | 2026-05-08 |
-| 48. Section Data Layer | 2/2 | Complete    | 2026-05-08 | - |
-| 49. Section Read UI | v0.2.7 | 0/TBD | Not started | - |
+| 48. Section Data Layer | v0.2.7 | 2/2 | Complete | 2026-05-08 |
+| 49. Section Read UI | v0.2.7 | 0/1 | Not started | - |
 | 50. Section Form UI | v0.2.7 | 0/TBD | Not started | - |
 | 51. Duplication + Integration Polish | v0.2.7 | 0/TBD | Not started | - |
