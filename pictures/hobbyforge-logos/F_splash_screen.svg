@@ -1,0 +1,21 @@
+<svg width="1360" height="640" viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg">
+<rect x="0" y="0" width="680" height="320" rx="20" fill="#141414"/>
+<g transform="translate(340,120) rotate(-30)">
+<rect x="-5" y="-8" width="10" height="80" rx="3" fill="#c8c8c8"/>
+<rect x="-20" y="-26" width="40" height="22" rx="4" fill="#e8e8e8"/>
+<rect x="-20" y="-26" width="20" height="22" rx="4" fill="#c8c8c8"/>
+</g>
+<circle cx="305" cy="85" r="1.8" fill="#e8a040" opacity="0.7"/>
+<circle cx="298" cy="78" r="1.2" fill="#f0c060" opacity="0.5"/>
+<circle cx="312" cy="80" r="1" fill="#e8a040" opacity="0.45"/>
+<circle cx="294" cy="72" r="0.7" fill="#f0c060" opacity="0.35"/>
+<circle cx="308" cy="74" r="0.8" fill="#e8a040" opacity="0.4"/>
+<circle cx="290" cy="68" r="0.5" fill="#f0c060" opacity="0.25"/>
+<circle cx="200" cy="100" r="0.4" fill="#e8a040" opacity="0.08"/>
+<circle cx="480" cy="80" r="0.3" fill="#e8a040" opacity="0.06"/>
+<circle cx="250" cy="200" r="0.5" fill="#e8a040" opacity="0.05"/>
+<circle cx="450" cy="220" r="0.4" fill="#e8a040" opacity="0.04"/>
+<text x="340" y="230" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="26" font-weight="500" letter-spacing="8" fill="#e0e0e0">HOBBYFORGE</text>
+<text x="340" y="255" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" letter-spacing="4" fill="#e0e0e0" opacity="0.3">PAINT. BUILD. PLAY.</text>
+<line x1="290" y1="270" x2="390" y2="270" stroke="#e0e0e0" stroke-width="0.3" opacity="0.15"/>
+</svg>

@@ -1,0 +1,1553 @@
+# HobbyForge — Full Development Roadmap for Claude
+
+## 0. Product Summary
+
+**HobbyForge** is a personal desktop app for managing a Warhammer hobby collection. The app is focused primarily on painting, collecting, rules, army readiness, and gradually learning to play.
+
+## 1. Core Product Vision
+
+The app should become a personal Warhammer command center with four main pillars:
+
+1. **Collection management**
+
+   * Track owned models, units, factions, quantities, status, purchase info, photos, and notes.
+
+2. **Painting progress and recipes**
+
+   * Track the painting status of each unit/model.
+   * Store painting plans, paint recipes, photos, basing ideas, tutorials, and lessons learned.
+
+3. **Army readiness and list planning**
+
+   * Build simple army lists from the collection.
+   * Manually enter points.
+   * See whether a list is assembled, painted, based, and ready to play.
+   * Rules of the units
+
+
+4. **Learning to play**
+
+   * Store personal unit notes, roles, synergies, strategy ideas, battle logs, and lessons learned.
+
+The long-term goal is not to build a competitive list optimizer first. The priority is to help the user go from “collector/painter” to “ready-to-play hobbyist”.
+
+---
+
+# 2. Recommended Technical Stack
+
+## 2.1 Desktop App Framework
+
+Use:
+
+* **Tauri** for desktop packaging
+* **React** for frontend
+* **TypeScript** for type safety
+* **Tailwind CSS** for styling
+* **shadcn/ui** for UI components
+* **SQLite** for local storage
+* **Prisma** as ORM if compatible with the chosen Tauri setup
+
+Alternative if Prisma creates too much friction inside Tauri:
+
+* SQLite directly via a Tauri Rust plugin or a lightweight TypeScript-friendly SQLite wrapper.
+
+## 2.2 Data Storage
+
+Data should be local-first.
+
+Recommended structure:
+
+* SQLite database for structured data
+* Local filesystem folder for images
+* JSON export/import for backup
+
+Suggested app data folder:
+
+```text
+HobbyForge/
+├── database/
+│   └── hobbyforge.sqlite
+├── images/
+│   ├── units/
+│   ├── models/
+│   ├── painting-progress/
+│   └── references/
+├── exports/
+└── backups/
+```
+
+## 2.3 Design Style
+
+The app should feel like a serious but enjoyable hobby dashboard.
+
+Style direction:
+
+* Clean desktop interface
+* Dark mode first, but light mode possible later
+* Strong use of cards, tags, status indicators, progress bars
+* Avoid toy-like UI
+* Make it feel like a personal command center
+
+Suggested visual identity:
+
+* Dark slate background
+* Subtle faction-colored accents
+* Rounded cards
+* Compact tables for collection data
+* Large visual tiles for painting projects
+
+---
+
+# 3. MVP Scope
+
+The MVP should be deliberately focused.
+
+## MVP Goal
+
+The user can:
+
+1. Add factions and units.
+2. Track collection and painting status.
+3. Create painting recipes.
+4. Track paint inventory.
+5. Build a simple army list manually.
+6. See dashboard statistics.
+7. Save personal play notes.
+
+## MVP Must-Have Features
+
+### 3.1 Dashboard
+
+The dashboard should show:
+
+* Total armies/factions tracked
+* Total units owned
+* Total models owned
+* Painting completion percentage
+* Assembly completion percentage
+* Basing completion percentage
+* Current active painting projects
+* Recently updated units
+* Army readiness summary
+
+Example dashboard cards:
+
+* “Tau Empire — 1,250 pts owned — 720 pts painted”
+* “Ultramarines — 850 pts owned — 400 pts painted”
+* “Current project: Tau Fire Warriors — Basecoat stage”
+
+### 3.2 Collection Management
+
+The user should be able to create, edit, delete, and view units.
+
+Each unit should include:
+
+* Faction
+* Unit name
+* Unit type/category
+* Number of models
+* Owned quantity
+* Assembled status
+* Primed status
+* Painted status
+* Based status
+* Varnished status
+* Points value manually entered
+* Purchase date
+* Purchase price
+* Storage location
+* Notes
+* Main image
+
+Suggested unit categories:
+
+* HQ / Leader
+* Battleline
+* Infantry
+* Elite
+* Vehicle
+* Monster
+* Transport
+* Character
+* Dedicated Transport
+* Other
+
+For Warhammer 40K 10th edition, official categories may evolve, so allow user-defined categories.
+
+### 3.3 Painting Status System
+
+Each unit/model should have a painting progress status.
+
+Suggested status values:
+
+* Not started
+* Built
+* Primed
+* Basecoated
+* Shaded
+* Layered
+* Highlighted
+* Details done
+* Based
+* Varnished
+* Completed
+
+Also support a manual percentage completion field.
+
+Each unit should have:
+
+* Painting status
+* Painting percentage
+* Active/inactive project flag
+* Painting priority
+* Target completion date
+
+### 3.4 Painting Recipes
+
+The user should be able to create painting recipes.
+
+Each recipe should include:
+
+* Recipe name
+* Faction / army association
+* Unit association optional
+* Surface/area, e.g. armor, weapon, skin, cloth, lens, metal, base
+* Primer
+* Basecoat
+* Shade/wash
+* Layer
+* Highlight
+* Glaze/filter
+* Weathering
+* Technical paints
+* Basing recipe
+* Notes
+* Tutorial links
+
+Example recipe:
+
+```text
+Recipe: Tau White Armor
+Area: Armor panels
+Primer: White Scar / Grey Seer
+Basecoat: Corax White or Ulthuan Grey
+Shade: Apothecary White / thinned Soulblight Grey
+Layer: Ulthuan Grey
+Highlight: White Scar
+Notes: Keep recess shading very controlled to avoid dirty white armor.
+```
+
+### 3.5 Paint Inventory
+
+The user should be able to track paints.
+
+Paint fields:
+
+* Brand
+* Paint name
+* Paint type
+* Color family
+* Owned status
+* Quantity
+* Running low flag
+* Wishlist flag
+* Notes
+
+Paint types:
+
+* Primer
+* Base
+* Layer
+* Contrast
+* Shade
+* Technical
+* Dry
+* Air
+* Metallic
+* Ink
+* Oil
+* Enamel
+* Pigment
+* Other
+
+### 3.6 Army List Builder — Simple Version
+
+The MVP should not attempt to validate every official list-building rule.
+
+Core functionality:
+
+* Create army list
+* Select faction
+* Add units from the user’s collection
+* Manually enter points per unit
+* Total points calculated automatically
+* Show number of models
+* Show painted/assembled/based status per unit
+* Add tags: Casual, Learning, Narrative, Competitive, Test
+* Add notes
+
+Useful calculated fields:
+
+* Total points
+* Painted points
+* Unpainted points
+* Percentage painted by points
+* Total models
+* Battle-ready status
+
+Example:
+
+```text
+List: Tau 1000 pts Learning List
+Total: 995 pts
+Painted: 620 pts
+Ready: 62%
+Unpainted blocker: Crisis Battlesuits
+```
+
+### 3.7 Strategy and Learning Notes
+
+For each unit, allow personal tactical notes.
+
+Fields:
+
+* Battlefield role
+* Strengths
+* Weaknesses
+* Best targets
+* Synergies
+* Mistakes to avoid
+* Rules references
+* Personal notes
+
+Important: store only user-written notes and references. Do not scrape or reproduce copyrighted rules.
+
+### 3.8 Battle Log
+
+The user should be able to record games.
+
+Fields:
+
+* Date
+* Opponent
+* Opponent faction
+* User faction
+* Army list used
+* Mission
+* Points played
+* Result: win/loss/draw
+* Score
+* MVP unit
+* Underperforming unit
+* Key lessons
+* What to change next time
+* General notes
+
+MVP version can be basic, but the data model should support future analytics.
+
+---
+
+# 4. Future V2/V3 Features
+
+## 4.1 V2 Features
+
+After the MVP is stable, add:
+
+* Photo timeline per unit
+* Batch painting mode
+* Hobby calendar
+* Wishlist
+* Budget tracker
+* Advanced dashboard filters
+* Export to PDF/Markdown
+* Import/export backup system
+* Tags for units, paints, recipes and lists
+* Battle analytics
+* Army list comparison
+
+## 4.2 V3 Features
+
+Advanced future ideas:
+
+* AI-assisted painting recipe generator
+* AI battle note summarizer
+* Strategy cards before games
+* Synergy map between units
+* “What should I paint next?” recommendation engine
+* Campaign/narrative tracker
+* Crusade-style progression tracker
+* Printable army cards with user notes
+* Mobile companion app
+
+---
+
+# 5. Data Model
+
+Claude should implement the data model before building advanced UI.
+
+## 5.1 Core Entities
+
+### Faction
+
+Fields:
+
+* id
+* name
+* game_system
+* description
+* color_theme
+* icon_path
+* created_at
+* updated_at
+
+Examples:
+
+* Tau Empire
+* Ultramarines
+* Necrons
+* Tyranids
+* Death Guard
+
+### Unit
+
+Fields:
+
+* id
+* faction_id
+* name
+* category
+* unit_type
+* model_count
+* owned_count
+* points
+* status_assembly
+* status_painting
+* painting_percentage
+* status_basing
+* status_varnished
+* is_active_project
+* priority
+* target_completion_date
+* purchase_date
+* purchase_price
+* storage_location
+* main_image_path
+* notes
+* created_at
+* updated_at
+
+### ModelInstance — optional for later
+
+For MVP, unit-level tracking is enough. Later, individual models can be tracked.
+
+Fields:
+
+* id
+* unit_id
+* name_or_number
+* status_assembly
+* status_painting
+* painting_percentage
+* main_image_path
+* notes
+* created_at
+* updated_at
+
+### Paint
+
+Fields:
+
+* id
+* brand
+* name
+* paint_type
+* color_family
+* hex_color optional
+* owned
+* quantity
+* running_low
+* wishlist
+* notes
+* created_at
+* updated_at
+
+### PaintingRecipe
+
+Fields:
+
+* id
+* name
+* faction_id optional
+* unit_id optional
+* area
+* primer
+* basecoat
+* shade
+* layer
+* highlight
+* glaze
+* weathering
+* technical
+* basing
+* notes
+* created_at
+* updated_at
+
+### RecipePaintJoin
+
+Use a join table to link recipes to paints.
+
+Fields:
+
+* id
+* recipe_id
+* paint_id
+* step_name
+* order_index
+* notes
+
+### ArmyList
+
+Fields:
+
+* id
+* name
+* faction_id
+* target_points
+* list_type
+* notes
+* created_at
+* updated_at
+
+### ArmyListUnit
+
+Fields:
+
+* id
+* army_list_id
+* unit_id
+* quantity
+* points_override
+* notes
+
+### UnitStrategyNote
+
+Fields:
+
+* id
+* unit_id
+* battlefield_role
+* strengths
+* weaknesses
+* best_targets
+* synergies
+* mistakes_to_avoid
+* rules_references
+* notes
+* created_at
+* updated_at
+
+### BattleLog
+
+Fields:
+
+* id
+* date
+* user_faction_id
+* opponent_name
+* opponent_faction
+* army_list_id optional
+* mission
+* points_played
+* result
+* user_score
+* opponent_score
+* mvp_unit_id optional
+* underperforming_unit_id optional
+* key_lessons
+* changes_next_time
+* notes
+* created_at
+* updated_at
+
+### ImageAsset
+
+Fields:
+
+* id
+* entity_type
+* entity_id
+* image_path
+* image_type
+* caption
+* created_at
+
+Entity types:
+
+* unit
+* model
+* recipe
+* battle_log
+* reference
+
+---
+
+# 6. Application Pages
+
+## 6.1 Main Navigation
+
+Suggested sidebar navigation:
+
+1. Dashboard
+2. Collection
+3. Painting Projects
+4. Paint Inventory
+5. Recipes
+6. Army Lists
+7. Strategy Notes
+8. Battle Logs
+9. Wishlist
+10. Settings
+
+For MVP, Wishlist can be hidden or marked as future.
+
+## 6.2 Dashboard Page
+
+Dashboard should include:
+
+* Global stats
+* Faction summary cards
+* Active projects
+* Progress bars
+* Recent activity
+* Next recommended actions
+
+Example cards:
+
+* “Total Models: 126”
+* “Fully Painted: 48”
+* “Battle Ready Points: 850”
+* “Current Project: Necron Warriors”
+
+## 6.3 Collection Page
+
+Main view:
+
+* Table/grid of units
+* Filters by faction, category, painting status, active project
+* Search by name
+* Add unit button
+* Unit detail drawer/page
+
+Unit detail page:
+
+* Unit image
+* Main fields
+* Status progress
+* Painting recipe links
+* Strategy notes
+* Army lists containing this unit
+* Battle performance history later
+
+## 6.4 Painting Projects Page
+
+Shows only active painting projects.
+
+Features:
+
+* Kanban board by painting status
+* Priority sorting
+* Target date
+* Quick update status
+* Add progress photo
+
+Columns:
+
+* Built
+* Primed
+* Basecoated
+* Shaded
+* Highlighting
+* Details
+* Basing
+* Completed
+
+## 6.5 Paint Inventory Page
+
+Features:
+
+* Table of paints
+* Filters by brand/type/color family
+* Running low view
+* Wishlist view
+* Add/edit paint
+
+## 6.6 Recipes Page
+
+Features:
+
+* Recipe list
+* Filter by faction, unit, area
+* Recipe detail view
+* Link paints to recipe
+* Add tutorial links
+
+## 6.7 Army Lists Page
+
+Features:
+
+* List of army lists
+* Create new list
+* Add units from collection
+* Total points calculation
+* Painted readiness calculation
+* Notes
+
+Army list detail should show:
+
+* Unit name
+* Category
+* Quantity
+* Points
+* Painting status
+* Basing status
+* Notes
+
+## 6.8 Strategy Notes Page
+
+Could be integrated into unit detail at first.
+
+Later, add a dedicated page with:
+
+* Unit role cards
+* Synergy search
+* List-level notes
+* “Before game checklist”
+
+## 6.9 Battle Logs Page
+
+Features:
+
+* Game history
+* Add battle log
+* Filter by faction/opponent/result
+* View lessons learned
+* Link to army list
+
+---
+
+# 7. Development Phases
+
+## Phase 0 — Project Setup
+
+Goal: create a working desktop app shell.
+
+Tasks:
+
+1. Initialize Tauri + React + TypeScript project.
+2. Add Tailwind CSS.
+3. Add shadcn/ui.
+4. Set up app layout with sidebar navigation.
+5. Add basic routing.
+6. Create placeholder pages.
+7. Set up SQLite database connection.
+8. Create initial migration system.
+
+Acceptance criteria:
+
+* App launches locally as a desktop app.
+* Sidebar navigation works.
+* Placeholder pages exist.
+* SQLite database file is created locally.
+
+## Phase 1 — Database and Core CRUD
+
+Goal: implement the core data model and basic CRUD operations.
+
+Tasks:
+
+1. Create database tables:
+
+   * factions
+   * units
+   * paints
+   * painting_recipes
+   * recipe_paints
+   * army_lists
+   * army_list_units
+   * unit_strategy_notes
+   * battle_logs
+   * image_assets
+2. Create TypeScript types.
+3. Create data access layer.
+4. Build CRUD functions for Factions, Units, Paints, Recipes.
+5. Add seed data for test factions and units.
+
+Acceptance criteria:
+
+* User can create/edit/delete factions.
+* User can create/edit/delete units.
+* User can create/edit/delete paints.
+* User can create/edit/delete painting recipes.
+* Data persists after app restart.
+
+## Phase 2 — Collection Module
+
+Goal: make the collection page genuinely useful.
+
+Tasks:
+
+1. Build collection table/grid.
+2. Add search.
+3. Add filters:
+
+   * faction
+   * category
+   * painting status
+   * active project
+4. Add unit detail page or drawer.
+5. Add unit creation form.
+6. Add quick status update.
+7. Add progress bar per unit.
+
+Acceptance criteria:
+
+* User can manage collection comfortably.
+* User can filter by faction and status.
+* User can quickly see what is painted/unpainted.
+
+## Phase 3 — Painting Module
+
+Goal: make painting tracking the heart of the app.
+
+Tasks:
+
+1. Build active painting projects page.
+2. Add Kanban view by painting status.
+3. Add status update interactions.
+4. Add painting recipe detail page.
+5. Link recipes to units.
+6. Link paints to recipes.
+7. Add progress percentage.
+8. Add notes for mistakes/lessons learned.
+
+Acceptance criteria:
+
+* User can see all active painting projects.
+* User can move units between painting stages.
+* User can store a full recipe for a unit or army.
+* User can track which paints are used in each recipe.
+
+## Phase 4 — Paint Inventory
+
+Goal: make paint tracking practical.
+
+Tasks:
+
+1. Build paint inventory table.
+2. Add filters by brand, type, color family.
+3. Add running-low flag.
+4. Add wishlist flag.
+5. Show where each paint is used.
+
+Acceptance criteria:
+
+* User can see all paints owned.
+* User can track missing/running-low paints.
+* User can see which recipes use a paint.
+
+## Phase 5 — Army List Builder
+
+Goal: create simple list-building from the user’s collection.
+
+Tasks:
+
+1. Build army list overview page.
+2. Build army list creation form.
+3. Add units from collection.
+4. Calculate total points.
+5. Calculate painted points.
+6. Calculate readiness percentage.
+7. Add notes per list and per unit.
+8. Add tags/list type.
+
+Acceptance criteria:
+
+* User can create a 1000/2000 point list manually.
+* User can see which units are not painted.
+* User can see whether a list is “battle ready”.
+
+## Phase 6 — Strategy Notes and Learning to Play
+
+Goal: support transition from collecting/painting to playing.
+
+Tasks:
+
+1. Add strategy notes to unit detail.
+2. Add fields for role, strengths, weaknesses, synergies.
+3. Add rules reference field.
+4. Add list-level strategy notes.
+5. Add “learning checklist” per faction or army.
+
+Acceptance criteria:
+
+* User can write personal unit tactics.
+* User can record synergies and reminders.
+* User can prepare for a first game without needing external notes everywhere.
+
+## Phase 7 — Battle Log
+
+Goal: create a feedback loop after games.
+
+Tasks:
+
+1. Build battle log page.
+2. Add create battle log form.
+3. Link battle log to army list.
+4. Link MVP and underperforming unit.
+5. Store lessons learned and next changes.
+6. Add basic analytics:
+
+   * total games
+   * win/loss/draw
+   * most used list
+   * most frequent MVP
+
+Acceptance criteria:
+
+* User can record games.
+* User can review lessons learned.
+* User can improve list/strategy based on experience.
+
+## Phase 8 — Images and Progress Photos
+
+Goal: add visual progress tracking.
+
+Tasks:
+
+1. Add local image storage.
+2. Allow image upload/selection for units.
+3. Add progress photos to painting projects.
+4. Add image gallery per unit.
+5. Add captions and dates.
+
+Acceptance criteria:
+
+* User can add photos to units.
+* User can view painting progress over time.
+* Images remain available after app restart.
+
+## Phase 9 — Backup, Export and Settings
+
+Goal: protect user data and make the app durable.
+
+Tasks:
+
+1. Add settings page.
+2. Add database backup button.
+3. Add JSON export.
+4. Add JSON import.
+5. Add image folder backup guidance.
+6. Add theme setting.
+7. Add app data folder setting if feasible.
+
+Acceptance criteria:
+
+* User can export all data.
+* User can restore data.
+* User can safely keep long-term hobby records.
+
+---
+
+# 8. Suggested Build Order for Claude
+
+Claude should not try to build everything at once.
+
+Use this order:
+
+1. Create app shell.
+2. Create database.
+3. Implement factions.
+4. Implement units.
+5. Implement collection page.
+6. Implement paints.
+7. Implement recipes.
+8. Link recipes and paints.
+9. Implement painting projects.
+10. Implement army lists.
+11. Implement strategy notes.
+12. Implement battle logs.
+13. Implement images.
+14. Implement backup/export.
+15. Polish UI.
+
+---
+
+# 9. Claude Development Instructions
+
+Claude should follow these principles:
+
+## 9.1 General Rules
+
+* Build incrementally.
+* Do not rewrite the whole app unless necessary.
+* Keep code modular.
+* Use TypeScript types everywhere.
+* Prefer simple, stable solutions over clever abstractions.
+* Prioritize working functionality over visual polish at first.
+* After each phase, verify the app runs.
+* Keep a changelog.
+
+## 9.2 Code Organization
+
+Suggested folder structure:
+
+```text
+src/
+├── app/
+│   ├── App.tsx
+│   ├── routes.tsx
+│   └── layout/
+│       ├── Sidebar.tsx
+│       └── AppLayout.tsx
+├── components/
+│   ├── ui/
+│   ├── common/
+│   └── forms/
+├── features/
+│   ├── dashboard/
+│   ├── factions/
+│   ├── collection/
+│   ├── painting/
+│   ├── paints/
+│   ├── recipes/
+│   ├── army-lists/
+│   ├── strategy/
+│   └── battle-logs/
+├── db/
+│   ├── schema.ts
+│   ├── migrations/
+│   ├── queries/
+│   └── seed.ts
+├── types/
+├── utils/
+└── styles/
+```
+
+## 9.3 Database Layer
+
+Do not scatter database calls across UI components.
+
+Use a dedicated data access layer:
+
+```text
+src/db/queries/
+├── factions.ts
+├── units.ts
+├── paints.ts
+├── recipes.ts
+├── armyLists.ts
+└── battleLogs.ts
+```
+
+## 9.4 Component Pattern
+
+For each feature, use:
+
+```text
+features/collection/
+├── CollectionPage.tsx
+├── UnitDetail.tsx
+├── UnitForm.tsx
+├── UnitTable.tsx
+├── UnitFilters.tsx
+└── collection.types.ts
+```
+
+## 9.5 Acceptance Test After Every Phase
+
+Claude should always provide:
+
+1. What was implemented
+2. Files changed
+3. How to run/test
+4. Known limitations
+5. Next recommended step
+
+---
+
+# 10. MVP User Stories
+
+## Collection
+
+As a user, I want to add a Warhammer unit so that I can track what I own.
+
+Acceptance criteria:
+
+* I can enter unit name, faction, category, model count and points.
+* I can save the unit.
+* I can see it in the collection table.
+* It remains after restarting the app.
+
+## Painting
+
+As a user, I want to track painting progress so that I know what to paint next.
+
+Acceptance criteria:
+
+* I can assign a painting status.
+* I can mark a unit as active project.
+* I can see all active projects in one page.
+
+## Recipes
+
+As a user, I want to save painting recipes so that I can reproduce a paint scheme.
+
+Acceptance criteria:
+
+* I can create a recipe.
+* I can link it to a unit/faction.
+* I can add paints and steps.
+
+## Paint Inventory
+
+As a user, I want to track paints so that I know what I own and what I need to buy.
+
+Acceptance criteria:
+
+* I can add paints.
+* I can mark paints as running low.
+* I can mark paints as wishlist.
+
+## Army Lists
+
+As a user, I want to create an army list from my collection so that I can prepare for games.
+
+Acceptance criteria:
+
+* I can create a list.
+* I can add units.
+* The app calculates total points.
+* The app shows painted points.
+
+## Battle Log
+
+As a user, I want to record battles so that I can learn from games.
+
+Acceptance criteria:
+
+* I can create a battle log.
+* I can link it to an army list.
+* I can store result, lessons and units that performed well or badly.
+
+---
+
+# 11. UI Wireframe Notes
+
+## Dashboard Layout
+
+Top row:
+
+* Total models
+* Painted models
+* Battle-ready points
+* Active projects
+
+Middle row:
+
+* Faction progress cards
+* Painting progress chart
+
+Bottom row:
+
+* Current projects
+* Recent updates
+* Next actions
+
+## Collection Layout
+
+Left/top filters:
+
+* Search
+* Faction
+* Status
+* Category
+
+Main:
+
+* Table or card grid
+
+Right/detail drawer:
+
+* Unit information
+* Painting status
+* Recipes
+* Strategy notes
+
+## Painting Projects Layout
+
+Kanban board:
+
+* Built
+* Primed
+* Basecoated
+* Shaded
+* Highlighted
+* Based
+* Completed
+
+Each card:
+
+* Unit name
+* Faction
+* Progress percentage
+* Priority
+* Target date
+
+## Army List Layout
+
+Header:
+
+* List name
+* Faction
+* Target points
+* Total points
+* Painted readiness
+
+Main:
+
+* Unit rows
+* Add unit button
+* Notes panel
+
+---
+
+# 12. Important Legal / Copyright Constraint
+
+The app must not scrape, reproduce, or distribute official Games Workshop rules, codexes, datasheets, or proprietary point values.
+
+Safe approach:
+
+* Let the user manually enter points.
+* Let the user manually write notes.
+* Allow references such as “see Codex page X” or “official app datasheet”.
+* Do not ship official unit rules or copied datasheets.
+
+This app is for personal organization and learning.
+
+---
+
+# 13. Initial Seed Data
+
+Add sample seed data for testing:
+
+Factions:
+
+* Tau Empire
+* Ultramarines
+* Necrons
+* Tyranids
+
+Sample units:
+
+* Tau Fire Warriors
+* Crisis Battlesuits
+* Commander in Battlesuit
+* Necron Warriors
+* Ultramarines Intercessors
+
+Sample paints:
+
+* Citadel Abaddon Black
+* Citadel White Scar
+* Citadel Nuln Oil
+* Citadel Leadbelcher
+* Citadel Macragge Blue
+* Citadel Retributor Armour
+
+Sample recipes:
+
+* Tau White Armor
+* Ultramarines Blue Armor
+* Necron Ancient Metal
+
+---
+
+# 14. First Claude Prompt
+
+Use this prompt to start implementation:
+
+```text
+You are helping me build HobbyForge, a personal desktop Warhammer hobby management app.
+
+Tech stack:
+- Tauri
+- React
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- SQLite local database
+
+Product goal:
+HobbyForge helps me track my Warhammer collection, painting progress, painting recipes, paint inventory, simple army lists, strategy notes, and battle logs. It is a personal tool, not a public rules app. Do not include copyrighted Games Workshop rules or scraped datasheets.
+
+Please start with Phase 0:
+1. Initialize the project structure.
+2. Create the desktop app shell.
+3. Add Tailwind and shadcn/ui.
+4. Create a sidebar layout with placeholder pages:
+   - Dashboard
+   - Collection
+   - Painting Projects
+   - Paint Inventory
+   - Recipes
+   - Army Lists
+   - Strategy Notes
+   - Battle Logs
+   - Settings
+5. Set up a clean folder structure for future features.
+6. Explain exactly how to run the app locally.
+
+Do not implement all features yet. Build incrementally and keep the code clean.
+After implementation, provide:
+- files created/changed
+- how to run/test
+- known limitations
+- next recommended step
+```
+
+---
+
+# 15. Second Claude Prompt — Database Phase
+
+Use after Phase 0 is working:
+
+```text
+Now implement Phase 1 for HobbyForge.
+
+Goal:
+Set up the local SQLite database and the first version of the core schema.
+
+Please implement:
+- factions
+- units
+- paints
+- painting_recipes
+- recipe_paints
+- army_lists
+- army_list_units
+- unit_strategy_notes
+- battle_logs
+- image_assets
+
+Requirements:
+- Use TypeScript types.
+- Keep database access separate from UI components.
+- Add seed data for Tau Empire, Ultramarines, Necrons, Tyranids and a few test units/paints.
+- Make sure data persists after app restart.
+- Do not build advanced UI yet, but add basic read views to confirm data loads.
+
+After implementation, provide:
+- files created/changed
+- schema explanation
+- how to run/test
+- known limitations
+- next recommended step
+```
+
+---
+
+# 16. Third Claude Prompt — Collection Module
+
+```text
+Now implement Phase 2: the Collection module.
+
+Goal:
+Create a usable Collection page where I can add, edit, delete, search and filter Warhammer units.
+
+Requirements:
+- Collection table or grid
+- Add unit form
+- Edit unit form
+- Delete unit action
+- Search by unit name
+- Filter by faction
+- Filter by painting status
+- Filter by active project
+- Unit detail view or drawer
+- Quick update painting status
+- Progress indicator
+
+Important:
+- Keep UI clean and desktop-friendly.
+- Keep data logic out of UI components.
+- Use existing schema and types.
+- Do not implement army lists yet.
+
+After implementation, provide:
+- files changed
+- how to test
+- known limitations
+- next recommended step
+```
+
+---
+
+# 17. Fourth Claude Prompt — Painting and Recipes
+
+```text
+Now implement Phase 3: Painting Projects and Recipes.
+
+Goal:
+Make painting progress and painting recipes central to the app.
+
+Requirements:
+- Active Painting Projects page
+- Kanban or grouped view by painting status
+- Ability to update unit painting status
+- Ability to mark/unmark unit as active project
+- Recipe list page
+- Recipe detail page
+- Create/edit/delete recipes
+- Link recipes to factions and optionally units
+- Link paints to recipes through recipe steps
+- Notes and tutorial link fields
+
+After implementation, provide:
+- files changed
+- how to test
+- known limitations
+- next recommended step
+```
+
+---
+
+# 18. Fifth Claude Prompt — Army Lists
+
+```text
+Now implement Phase 5: Simple Army List Builder.
+
+Goal:
+Allow me to create simple Warhammer army lists from my collection.
+
+Requirements:
+- Army list overview page
+- Create/edit/delete army list
+- Add units from my collection
+- Manual points per unit or points override
+- Automatic total points calculation
+- Automatic painted points calculation
+- Army readiness percentage
+- List type tags: Casual, Learning, Narrative, Competitive, Test
+- Notes per list
+- Notes per unit in list
+
+Important:
+- Do not implement official Warhammer rule validation.
+- Do not include copyrighted rules.
+- Points are manually entered by the user.
+
+After implementation, provide:
+- files changed
+- how to test
+- known limitations
+- next recommended step
+```
+
+---
+
+# 19. Sixth Claude Prompt — Battle Logs and Strategy
+
+```text
+Now implement Phase 6 and Phase 7: Strategy Notes and Battle Logs.
+
+Goal:
+Help me start playing Warhammer and learn from each game.
+
+Requirements:
+- Add unit strategy notes to unit detail:
+  - battlefield role
+  - strengths
+  - weaknesses
+  - best targets
+  - synergies
+  - mistakes to avoid
+  - rules references
+  - personal notes
+- Battle log page
+- Create/edit/delete battle logs
+- Link battle log to army list
+- Track opponent, opponent faction, mission, points, result, score
+- Track MVP unit and underperforming unit
+- Store lessons learned and what to change next time
+- Add basic analytics: number of games, win/loss/draw, frequent MVPs
+
+After implementation, provide:
+- files changed
+- how to test
+- known limitations
+- next recommended step
+```
+
+---
+
+# 20. Final Polish Prompt
+
+```text
+Now polish HobbyForge.
+
+Goal:
+Improve usability, visual consistency, and data safety.
+
+Requirements:
+- Improve dashboard cards and stats
+- Add empty states
+- Add confirmation modals for delete actions
+- Add toast notifications
+- Add loading/error states
+- Add backup/export to JSON
+- Add import from JSON if feasible
+- Add settings page
+- Improve layout responsiveness
+- Ensure consistent styling across all pages
+- Review TypeScript types and remove duplicated logic
+
+After implementation, provide:
+- files changed
+- how to test
+- known limitations
+- future improvement ideas
+```
+
+---
+
+# 21. Recommended MVP Cut Line
+
+The first version is complete when the user can:
+
+1. Add factions.
+2. Add units.
+3. Track assembly/painting/basing status.
+4. Create painting recipes.
+5. Track paints.
+6. Build a simple army list.
+7. See army readiness.
+8. Add unit strategy notes.
+9. Record battle logs.
+10. Backup/export data.
+
+Do not move to advanced AI, strategy optimization or army validation before these are stable.
+
+---
+
+# 22. Long-Term Product Direction
+
+Once the MVP works, the best expansion path is:
+
+1. Better painting workflow
+2. Better visual progress tracking
+3. Better battle learning loop
+4. Better army readiness analytics
+5. Optional AI support
+
+The app should remain personal, practical, and focused on helping the user enjoy the hobby more.

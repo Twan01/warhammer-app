@@ -1,0 +1,22 @@
+# Build outputs
+dist/
+src-tauri/target/
+
+# Dependencies
+node_modules/
+
+# Lock files (version lists, no coding value)
+pnpm-lock.yaml
+src-tauri/Cargo.lock
+
+# Tauri CLI-generated schemas (not hand-authored)
+src-tauri/gen/
+
+# Binary assets — app icons (multi-platform, ~20 PNG/ICNS/ICO files)
+src-tauri/icons/
+
+# Large image assets (logo archives, reference photos)
+pictures/
+
+# Git internals
+.git/
