@@ -1,9 +1,9 @@
 ---
 phase: 50
 slug: section-form-ui
-status: draft
+status: audited
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-05-08
 ---
 
@@ -38,11 +38,11 @@ created: 2026-05-08
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 50-01-01 | 01 | 0 | FORM-05, FORM-06 | unit (pure fn) | `pnpm test -- tests/painting/recipeSection.pure.test.ts` | W0 | pending |
-| 50-01-02 | 01 | 0 | FORM-05, FORM-06 | unit (pure fn) | `pnpm test -- tests/painting/recipeSection.pure.test.ts` | W0 | pending |
-| 50-02-01 | 02 | 1 | FORM-01, FORM-02 | build | `pnpm build` | n/a | pending |
-| 50-02-02 | 02 | 1 | FORM-03, FORM-04 | build + test | `pnpm build && pnpm test -- tests/painting/recipeSection.pure.test.ts` | n/a | pending |
-| 50-03-01 | 03 | 2 | FORM-01 to FORM-06 | build + test | `pnpm build && pnpm test -- tests/painting/recipeSection.pure.test.ts` | n/a | pending |
+| 50-01-01 | 01 | 0 | FORM-05, FORM-06 | unit (pure fn) | `pnpm test -- tests/painting/recipeSection.pure.test.ts` | W0 | green |
+| 50-01-02 | 01 | 0 | FORM-05, FORM-06 | unit (pure fn) | `pnpm test -- tests/painting/recipeSection.pure.test.ts` | W0 | green |
+| 50-02-01 | 02 | 1 | FORM-01, FORM-02 | component | `pnpm test -- tests/painting/recipeSectionCard.test.tsx` | yes | green |
+| 50-02-02 | 02 | 1 | FORM-03, FORM-04 | build + test | `pnpm build && pnpm test -- tests/painting/recipeSection.pure.test.ts` | n/a | green |
+| 50-03-01 | 03 | 2 | FORM-01 to FORM-06 | build + test | `pnpm build && pnpm test -- tests/painting/recipeSection.pure.test.ts` | n/a | green |
 
 *Status: pending / green / red / flaky*
 
@@ -95,3 +95,17 @@ Maximum consecutive build-only: 1. Compliant.
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** ready
+
+---
+
+## Validation Audit 2026-05-08
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 2 |
+| Resolved | 2 |
+| Escalated | 0 |
+
+**Tests added:** `tests/painting/recipeSectionCard.test.tsx` (17 tests)
+- FORM-01: 4 tests — collapse toggle, re-expand, step count badge when collapsed
+- FORM-02: 13 tests — name edit, empty delete (no dialog), non-empty delete (AlertDialog confirm/cancel), multi-section list rendering

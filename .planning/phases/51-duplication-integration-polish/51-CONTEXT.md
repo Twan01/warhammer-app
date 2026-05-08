@@ -35,8 +35,8 @@ Recipe duplication correctly copies all sections and steps with remapped IDs, re
 
 ### Duplication cache invalidation
 - useDuplicateRecipe.onSuccess adds RECIPE_SECTIONS_KEY to its invalidation list (new sections created during duplication)
-- Full invalidation list after update: RECIPES_KEY, kanban-enrichment, recipes/by-unit, RECIPE_SWATCH_KEY, STEP_COUNTS_KEY, RECIPE_AVAILABILITY_KEY, RECIPE_SECTIONS_KEY
-- Section step counts (STEP_COUNTS_KEY) already invalidated — no additional change needed there
+- Full invalidation list after update (8 keys): RECIPES_KEY, kanban-enrichment, recipes/by-unit, RECIPE_SWATCH_KEY, STEP_COUNTS_KEY, RECIPE_AVAILABILITY_KEY, RECIPE_SECTIONS_KEY, SECTION_COUNTS_KEY
+- SECTION_COUNTS_KEY added because getSectionCountsByRecipe introduces a new cache key that must be refreshed when sections are created during duplication
 
 ### Regression scope (INTG-03)
 - Paint availability badges on RecipeCard — must show correct owned/missing counts
