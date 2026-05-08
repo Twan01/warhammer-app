@@ -129,7 +129,7 @@ Full details: `.planning/milestones/v2.5-ROADMAP.md`
 - [x] **Phase 44: Sync Pipeline Hardening** — Rust `bulk_sync_rules` returns per-table row counts; TypeScript displays counts in post-sync confirmation; CSV column validation rejects malformed files; sync errors logged to persistent table; all new rules hooks invalidated on sync success (completed 2026-05-08)
 - [x] **Phase 45: Sync Metadata & Import Tracking** — Last sync date/time, per-table row counts, source version, error history, freshness badge on rules-dependent pages, and pre-sync snapshot mechanism all visible and functional (completed 2026-05-08)
 - [x] **Phase 46: Manual Overrides & Version Comparison** — Users can override points, stats, keywords, and ability reminders per unit in hobbyforge.db; overrides persist across re-syncs and are visually distinguished from imported data; post-sync diff view shows what changed or was removed (completed 2026-05-08)
-- [ ] **Phase 47: v2.6 Gap Closure** — Extend snapshot to store full field values; per-field diff comparison for points, stats, keywords, and abilities; fix stale JSDoc and SUMMARY frontmatter gaps
+- [x] **Phase 47: v2.6 Gap Closure** — Extend snapshot to store full field values; per-field diff comparison for points, stats, keywords, and abilities; fix stale JSDoc and SUMMARY frontmatter gaps (completed 2026-05-08)
 
 ## Phase Details
 
@@ -218,7 +218,7 @@ Plans:
   3. Diff UI displays per-field value changes alongside the existing datasheet-level changes
   4. Stale JSDoc in armyLists.ts (lines 20, 159) is corrected to match the actual 3-level COALESCE chain
   5. SUMMARY frontmatter in phases 43–46 includes requirements_completed entries
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 47-01-PLAN.md — Extend snapshot queries and SyncDiff with per-field diff algorithm + tests (OVRD-06)
 - [ ] 47-02-PLAN.md — Wire extended diff into useRulesSync, PlaybookTab Modified UI section, JSDoc fix, SUMMARY frontmatter (OVRD-06)
@@ -275,4 +275,4 @@ Plans:
 | 44. Sync Pipeline Hardening | 2/2 | Complete    | 2026-05-08 | - |
 | 45. Sync Metadata & Import Tracking | 2/2 | Complete    | 2026-05-08 | - |
 | 46. Manual Overrides & Version Comparison | 2/2 | Complete    | 2026-05-08 | - |
-| 47. v2.6 Gap Closure | 1/2 | In Progress|  | - |
+| 47. v2.6 Gap Closure | 2/2 | Complete   | 2026-05-08 | - |
