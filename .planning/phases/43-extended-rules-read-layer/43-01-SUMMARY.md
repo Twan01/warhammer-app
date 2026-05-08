@@ -50,6 +50,7 @@ metrics:
   tasks_total: 2
   files_created: 4
   files_modified: 1
+requirements_completed: [SCHEMA-05]
 ---
 
 # Phase 43 Plan 01: Extended Rules Read Layer Summary

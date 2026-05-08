@@ -547,6 +547,7 @@ export function PlaybookTab({
           if (data.diff.added.length > 0) diffParts.push(`${data.diff.added.length} added`);
           if (data.diff.removed.length > 0) diffParts.push(`${data.diff.removed.length} removed`);
           if (data.diff.renamed.length > 0) diffParts.push(`${data.diff.renamed.length} renamed`);
+          if (data.diff.modified.length > 0) diffParts.push(`${data.diff.modified.length} modified`);
           toast.success(`Synced: ${summary} (${diffParts.join(", ")})`);
         } else {
           toast.success(`Synced: ${summary}`);
@@ -760,6 +761,32 @@ export function PlaybookTab({
                         <span key={d.id} className="text-xs text-muted-foreground pl-4">
                           {d.oldName} &rarr; {d.newName}
                         </span>
+                      ))}
+                    </div>
+                  )}
+                  {lastSyncDiff.modified.length > 0 && (
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-xs font-semibold text-muted-foreground">
+                        Modified ({lastSyncDiff.modified.length})
+                      </span>
+                      {lastSyncDiff.modified.map((d) => (
+                        <div key={d.id} className="flex flex-col gap-0.5 pl-4">
+                          <span className="text-xs text-muted-foreground font-medium">{d.name}</span>
+                          {d.changes.slice(0, 5).map((c, i) => (
+                            <span key={i} className="text-xs text-muted-foreground pl-2">
+                              {c.oldValue && c.newValue
+                                ? `${c.field}: ${c.oldValue} → ${c.newValue}`
+                                : c.newValue
+                                  ? `+${c.field}`
+                                  : `-${c.field}`}
+                            </span>
+                          ))}
+                          {d.changes.length > 5 && (
+                            <span className="text-xs text-muted-foreground pl-2 italic">
+                              &hellip;and {d.changes.length - 5} more
+                            </span>
+                          )}
+                        </div>
                       ))}
                     </div>
                   )}
