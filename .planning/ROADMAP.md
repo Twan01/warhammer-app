@@ -239,7 +239,7 @@ Full details: `.planning/milestones/v2.5-ROADMAP.md`
 | 39. Studio UX + Paint Availability | v2.5 | 3/3 | Complete | 2026-05-07 |
 | 40. Recipe Actions + Step Photos | v2.5 | 3/3 | Complete | 2026-05-07 |
 | 41. Session Integration | v2.5 | 2/2 | Complete | 2026-05-07 |
-| 42. Architecture Audit | 1/1 | Complete   | 2026-05-08 | - |
+| 42. Architecture Audit | 1/1 | Complete    | 2026-05-08 | - |
 | 43. Extended Rules Read Layer | v2.6 | 0/TBD | Not started | - |
 | 44. Sync Pipeline Hardening | v2.6 | 0/TBD | Not started | - |
 | 45. Sync Metadata & Import Tracking | v2.6 | 0/TBD | Not started | - |
