@@ -19,7 +19,7 @@ created: 2026-05-08
 |----------|-------|
 | **Framework** | Vitest 4.x + React Testing Library 16 (jsdom) |
 | **Config file** | `vitest.config.ts` |
-| **Quick run command** | `pnpm test -- tests/recipes/` |
+| **Quick run command** | `pnpm test -- tests/painting/recipeSections.test.ts` |
 | **Full suite command** | `pnpm test` |
 | **Estimated runtime** | ~15 seconds |
 
@@ -27,7 +27,7 @@ created: 2026-05-08
 
 ## Sampling Rate
 
-- **After every task commit:** Run `pnpm test -- tests/recipes/`
+- **After every task commit:** Run `pnpm test -- tests/painting/recipeSections.test.ts`
 - **After every plan wave:** Run `pnpm test`
 - **Before `/gsd:verify-work`:** Full suite must be green
 - **Max feedback latency:** 15 seconds
@@ -38,12 +38,11 @@ created: 2026-05-08
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 48-01-01 | 01 | 1 | SECT-01 | unit | `pnpm test -- tests/recipes/recipeSections.test.ts` | ❌ W0 | ⬜ pending |
-| 48-01-02 | 01 | 1 | SECT-02 | unit | `pnpm test -- tests/recipes/recipeSections.test.ts` | ❌ W0 | ⬜ pending |
-| 48-01-03 | 01 | 1 | SECT-03 | unit | `pnpm test -- tests/recipes/recipeSections.test.ts` | ❌ W0 | ⬜ pending |
-| 48-01-04 | 01 | 1 | SECT-04 | unit | `pnpm test -- tests/recipes/useRecipeSections.test.ts` | ❌ W0 | ⬜ pending |
-| 48-01-05 | 01 | 1 | SECT-05 | unit | `pnpm test -- tests/recipes/useRecipeSections.test.ts` | ❌ W0 | ⬜ pending |
-| 48-01-06 | 01 | 1 | SECT-06 | unit | `pnpm test -- tests/recipes/recipeSections.test.ts` | ❌ W0 | ⬜ pending |
+| 48-01-T1 | 01 | 1 | SECT-01, SECT-02, SECT-03 | build | `pnpm build` | N/A | ⬜ pending |
+| 48-01-T2 | 01 | 1 | SECT-01, SECT-02 | build | `pnpm build` | N/A | ⬜ pending |
+| 48-02-T1 | 02 | 2 | SECT-04, SECT-05, SECT-06 | build | `pnpm build` | N/A | ⬜ pending |
+| 48-02-T2 | 02 | 2 | SECT-04, SECT-05 | build | `pnpm build` | N/A | ⬜ pending |
+| 48-02-T3 | 02 | 2 | SECT-01–SECT-06 | unit | `pnpm test -- tests/painting/recipeSections.test.ts` | ❌ W2 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -51,10 +50,11 @@ created: 2026-05-08
 
 ## Wave 0 Requirements
 
-- [ ] `tests/recipes/recipeSections.test.ts` — stubs for SECT-01, SECT-02, SECT-03, SECT-06
-- [ ] `tests/recipes/useRecipeSections.test.ts` — stubs for SECT-04, SECT-05
+Existing infrastructure covers all phase requirements. No Wave 0 plan is needed:
 
-*Existing test infrastructure (Vitest, jest-dom, mock patterns) covers framework needs.*
+- Wave 1 tasks (Plan 48-01) use `pnpm build` as their verification gate — TypeScript compilation confirms migration SQL file exists, types are well-formed, and imports resolve
+- Wave 2 Task 3 (Plan 48-02) creates the test file `tests/painting/recipeSections.test.ts` with full query and hook coverage
+- Automated test coverage for SECT-01 through SECT-06 arrives in Wave 2 via the TDD task — this is acceptable because Wave 1 is schema + types only (no runtime behavior to test without Tauri)
 
 ---
 
