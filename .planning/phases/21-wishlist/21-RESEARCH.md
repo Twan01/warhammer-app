@@ -256,7 +256,7 @@ export async function createWishlistItem(input: CreateWishlistItemInput): Promis
 **When to use:** Every new table.
 **Example:**
 ```sql
--- 009_wishlist.sql — HobbyForge v2.2 Phase 21 (WISH-01..04)
+-- 009_wishlist.sql — HobbyForge v0.2.2 Phase 21 (WISH-01..04)
 CREATE TABLE IF NOT EXISTS wishlist_items (
   id                    INTEGER PRIMARY KEY AUTOINCREMENT,
   name                  TEXT NOT NULL,
@@ -377,7 +377,7 @@ Verified patterns from this codebase:
 ### Migration SQL (009_wishlist.sql)
 ```sql
 -- Source: mirrors 008_enrichment.sql naming convention + 001_core_schema.sql table patterns
--- 009_wishlist.sql — HobbyForge v2.2 Phase 21 (WISH-01..04)
+-- 009_wishlist.sql — HobbyForge v0.2.2 Phase 21 (WISH-01..04)
 CREATE TABLE IF NOT EXISTS wishlist_items (
   id                    INTEGER PRIMARY KEY AUTOINCREMENT,
   name                  TEXT NOT NULL,
@@ -533,7 +533,7 @@ const totalPence = useMemo(
 - `src/app/router.tsx` — createRoute pattern, routeTree.addChildren ordering
 - `src-tauri/migrations/008_enrichment.sql` — Confirmed last migration file; next = 009
 - `.planning/phases/21-wishlist/21-CONTEXT.md` — All locked decisions and discretion areas
-- `.planning/milestones/v2.2-REQUIREMENTS.md` — WISH-01..04 requirement text (lines 18–21)
+- `.planning/milestones/v0.2.2-REQUIREMENTS.md` — WISH-01..04 requirement text (lines 18–21)
 - `.planning/STATE.md` — wishlist_items = migration "008" note (now superseded by 008 being used for enrichment → actual next is 009)
 
 ### Secondary (MEDIUM confidence)

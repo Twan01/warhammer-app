@@ -146,7 +146,7 @@ src/
 
 **SQL shape:**
 ```sql
--- 009_hobby_goals.sql — HobbyForge v2.2 Phase 22 (ANLY-01..03)
+-- 009_hobby_goals.sql — HobbyForge v0.2.2 Phase 22 (ANLY-01..03)
 -- Stores user-defined painting targets with fixed-period timeframes.
 -- Progress is computed at query time from painting_sessions (not cached here).
 
@@ -432,7 +432,7 @@ export type GoalFormValues = z.infer<typeof goalSchema>;
 
 ### Migration 009 (verified pattern from 008_enrichment.sql)
 ```sql
--- 009_hobby_goals.sql — HobbyForge v2.2 Phase 22 (ANLY-01..03)
+-- 009_hobby_goals.sql — HobbyForge v0.2.2 Phase 22 (ANLY-01..03)
 CREATE TABLE IF NOT EXISTS hobby_goals (
   id           INTEGER PRIMARY KEY AUTOINCREMENT,
   name         TEXT    NOT NULL,

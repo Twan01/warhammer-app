@@ -1,6 +1,6 @@
 # Milestones
 
-## v2.6 Rules Sync 2.0 / Rules Data Hub (Shipped: 2026-05-08)
+## v0.2.6 Rules Sync 2.0 / Rules Data Hub (Shipped: 2026-05-08)
 
 **Phases completed:** 6 phases (42–47), 11 plans
 **Timeline:** 2026-05-08 (single day)
@@ -15,13 +15,13 @@
 - Per-field diff: enriched snapshot stores full field values for models/keywords/abilities, `computeSyncDiff` compares per-field changes, PlaybookTab Modified section shows stat/keyword/ability value changes after re-sync
 
 **Archived:**
-- Roadmap: `.planning/milestones/v2.6-ROADMAP.md`
-- Requirements: `.planning/milestones/v2.6-REQUIREMENTS.md`
-- Audit: `.planning/milestones/v2.6-MILESTONE-AUDIT.md`
+- Roadmap: `.planning/milestones/v0.2.6-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.2.6-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.2.6-MILESTONE-AUDIT.md`
 
 ---
 
-## v2.5 Recipes 2.0 / Painting Studio (Shipped: 2026-05-07)
+## v0.2.5 Recipes 2.0 / Painting Studio (Shipped: 2026-05-07)
 
 **Phases completed:** 5 phases (37–41), 12 plans
 **Timeline:** 2026-05-07 (single day)
@@ -35,13 +35,13 @@
 - Session-recipe integration: LogSessionSheet recipe/step dropdowns with faction-sorted picker and cascading clear, RecipeDetailSheet sessions history section — closes the planning-to-execution loop
 
 **Archived:**
-- Roadmap: `.planning/milestones/v2.5-ROADMAP.md`
-- Requirements: `.planning/milestones/v2.5-REQUIREMENTS.md`
-- Audit: `.planning/milestones/v2.5-MILESTONE-AUDIT.md`
+- Roadmap: `.planning/milestones/v0.2.5-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.2.5-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.2.5-MILESTONE-AUDIT.md`
 
 ---
 
-## v2.4 Premium Dashboard UX & Visual Polish (Shipped: 2026-05-06)
+## v0.2.4 Premium Dashboard UX & Visual Polish (Shipped: 2026-05-06)
 
 **Phases completed:** 6 phases (30–34, 36), 13 plans
 **Timeline:** 2026-05-05 → 2026-05-06 (2 days)
@@ -56,13 +56,13 @@
 - Gap closure: recipe cache invalidation fix (DATA-06 by-unit prefix match), stale verification/summary doc cleanup
 
 **Archived:**
-- Roadmap: `.planning/milestones/v2.4-ROADMAP.md`
-- Requirements: `.planning/milestones/v2.4-REQUIREMENTS.md`
-- Audit: `.planning/milestones/v2.4-MILESTONE-AUDIT.md`
+- Roadmap: `.planning/milestones/v0.2.4-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.2.4-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.2.4-MILESTONE-AUDIT.md`
 
 ---
 
-## v2.2 Full Circle (Shipped: 2026-05-05)
+## v0.2.2 Full Circle (Shipped: 2026-05-05)
 
 **Phases completed:** 8 phases (17–19, 21–24, 35), 23 plans
 **Timeline:** 2026-05-04 → 2026-05-05 (2 days)
@@ -76,17 +76,17 @@
 - Gap closure: timezone-safe todayISO() import, cache invalidation symmetry (delete→goal-progress, update→army-lists), purchase_date form field fully wired through Zod to mutation
 
 **Archived:**
-- Roadmap: `.planning/milestones/v2.2-ROADMAP.md`
-- Requirements: `.planning/milestones/v2.2-REQUIREMENTS.md`
-- Audit: `.planning/milestones/v2.2-MILESTONE-AUDIT.md`
+- Roadmap: `.planning/milestones/v0.2.2-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.2.2-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.2.2-MILESTONE-AUDIT.md`
 
 ---
 
-## v2.3 Hobby Command Center (Shipped: 2026-05-05)
+## v0.2.3 Hobby Command Center (Shipped: 2026-05-05)
 
 **Phases completed:** 5 phases (25-29), 21 plans
 **Timeline:** 2026-05-04 → 2026-05-05 (2 days)
-**Stats:** 117 commits, 189 TypeScript source files, 19,139 LOC, 86 test files, 114 v2.3-specific automated tests
+**Stats:** 117 commits, 189 TypeScript source files, 19,139 LOC, 86 test files, 114 v0.2.3-specific automated tests
 
 **Key accomplishments:**
 - Unified design system: semantic CSS tokens (Forge Black, Gunmetal, Panel Elevated, Battle Gold), shared PageHeader component on all 9 pages, enriched StatCard (icon/trend/progress), unified StatusBadge (4-tier color system for all 11 painting statuses)
@@ -96,13 +96,13 @@
 - Workshop + Play layer: PaintRow color swatches, RecipeTable palette swatch strip (overlapping h-3 circles, +N overflow), ArmyListSummaryBar readiness panel (bg-battle-gold progress bar + not-ready unit list), BattleLogRow live readiness points (tabular-nums)
 
 **Archived:**
-- Roadmap: `.planning/milestones/v2.3-ROADMAP.md`
-- Requirements: `.planning/milestones/v2.3-REQUIREMENTS.md`
-- Audit: `.planning/milestones/v2.3-MILESTONE-AUDIT.md`
+- Roadmap: `.planning/milestones/v0.2.3-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.2.3-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.2.3-MILESTONE-AUDIT.md`
 
 ---
 
-## v2.1 Visual Command (Shipped: 2026-05-04)
+## v0.2.1 Visual Command (Shipped: 2026-05-04)
 
 **Phases completed:** 8 phases (10–16 + 20), 41 plans
 **Timeline:** 2026-05-03 → 2026-05-04 (2 days)
@@ -116,16 +116,16 @@
 - Spending Tracker: integer-pence discipline, `formatCurrency` as sole /100 site, `SpendingPage` with per-faction breakdown, 6 mutations invalidate `["spending-stats"]`
 - Dual-DB Wahapedia integration: `bulk_sync_rules` Rust command, `useRulesSync` 7-CSV parallel fetch + transactional insert, `DatasheetPicker`, `DatasheetImportDialog`, full PlaybookTab (stats/abilities/keywords/sources/lore notes) — DS-01..12 all satisfied
 - Geist Variable font via @fontsource-variable, text-3xl page headers + border-b hairline, icon-pill empty states across all 7 pages, tabular-nums everywhere, card elevation system (shadow-sm + hover:shadow-md)
-- v2.1 gap closure (Phase 20): DS-08 secondary path (DashboardPage conflict dialog), FactionsEmptyState Shield icon-pill, PaintingProjectsPage controlled-props CTA lift, upsertSyncMeta dead export removed
+- v0.2.1 gap closure (Phase 20): DS-08 secondary path (DashboardPage conflict dialog), FactionsEmptyState Shield icon-pill, PaintingProjectsPage controlled-props CTA lift, upsertSyncMeta dead export removed
 
 **Archived:**
-- Roadmap: `.planning/milestones/v2.1-ROADMAP.md`
-- Requirements: `.planning/milestones/v2.1-REQUIREMENTS.md`
-- Audit: `.planning/milestones/v2.1-MILESTONE-AUDIT.md`
+- Roadmap: `.planning/milestones/v0.2.1-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.2.1-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.2.1-MILESTONE-AUDIT.md`
 
 ---
 
-## v1.1 HobbyForge MVP (Shipped: 2026-05-01)
+## v0.1.1 HobbyForge MVP (Shipped: 2026-05-01)
 
 **Phases completed:** 5 phases (1–5), 20 plans
 **Timeline:** 2026-04-30 → 2026-05-01 (2 days)
@@ -139,9 +139,9 @@
 - Live-computed Dashboard: 7 stat cards, faction summary cards with click-through filter, active projects + recently updated lists, 113 passing tests total
 
 **Archived:**
-- Roadmap: `.planning/milestones/v1.1-ROADMAP.md`
-- Requirements: `.planning/milestones/v1.1-REQUIREMENTS.md`
-- Audit: `.planning/milestones/v1.1-MILESTONE-AUDIT.md`
+- Roadmap: `.planning/milestones/v0.1.1-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.1.1-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.1.1-MILESTONE-AUDIT.md`
 
 **Tech debt carried forward:**
 - PROJ-02: REQUIREMENTS.md text still said "empty columns hidden" — KanbanBoard ships all 11 columns always (user-approved UX improvement). Update when planning next milestone.
@@ -149,27 +149,27 @@
 
 ---
 
-## v2.0 Utility Layer (Shipped: 2026-05-03)
+## v0.2.0 Utility Layer (Shipped: 2026-05-03)
 
 **Phases completed:** 4 phases (6–9), 20 plans
 **Timeline:** 2026-05-01 → 2026-05-03 (3 days)
 **Stats:** 74 automated tests, ~14,000+ TypeScript LOC
 
 **Key accomplishments:**
-- Phase 6 back-end foundation: migration 004 (8 ALTER TABLE ADD COLUMN on `unit_strategy_notes`), TypeScript types for all three v2.0 features, query modules (`armyLists.ts`, `strategyNotes.ts`), hook modules with DATA-09 forward-compat invalidation, 38 automated tests
+- Phase 6 back-end foundation: migration 004 (8 ALTER TABLE ADD COLUMN on `unit_strategy_notes`), TypeScript types for all three v0.2.0 features, query modules (`armyLists.ts`, `strategyNotes.ts`), hook modules with DATA-09 forward-compat invalidation, 38 automated tests
 - Phase 7 Paint Inventory: PaintsPage at `/paints` with brand/type/color-family multi-select filters, running-low and wishlist preset views, color swatch, "used in N recipes" badge with navigation to `/recipes?paintId=X`, inline owned toggle with optimistic update
 - Phase 8 Army List Builder: ArmyListsPage, CRUD sheets, UnitPickerDialog (multi-add, stays open), ArmyListDetailSheet with pinned summary bar (COALESCE effective_points in SQL), per-unit notes, UnitDeleteDialog army-list membership pre-check, sibling portal architecture confirmed
 - Phase 9 Unit Playbook: PlaybookTab inside shadcn Tabs with 6-field stats block (M/T/Sv/W/Ld/OC, suffix display, pencil edit mode), abilities/keywords, 8 strategy note fields in fixed order, dirty-state Save with toasts, SQLite persistence round-tripped in live app
 
 **Archived:**
-- Roadmap: `.planning/milestones/v2.0-ROADMAP.md`
-- Requirements: `.planning/milestones/v2.0-REQUIREMENTS.md`
-- Audit: `.planning/milestones/v2.0-MILESTONE-AUDIT.md`
+- Roadmap: `.planning/milestones/v0.2.0-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.2.0-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.2.0-MILESTONE-AUDIT.md`
 
 **Tech debt carried forward:**
 - PINV-01 requirement text says `/paint-inventory` but implementation uses `/paints` (CONTEXT.md decision not reflected in requirements doc)
 - STRAT-06 requirement text references wrong migration filename (002 vs 004)
-- PaintingProjectsPage empty-state CTA uses fragile DOM query (carried from v1.1)
+- PaintingProjectsPage empty-state CTA uses fragile DOM query (carried from v0.1.1)
 
 ---
 

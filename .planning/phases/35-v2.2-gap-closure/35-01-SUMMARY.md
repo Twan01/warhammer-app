@@ -1,5 +1,5 @@
 ---
-phase: 35-v2.2-gap-closure
+phase: 35-v0.2.2-gap-closure
 plan: 01
 subsystem: ui, hooks
 tags: [react-query, cache-invalidation, zod, timezone, react-hook-form]
@@ -45,7 +45,7 @@ duration: 4min
 completed: 2026-05-05
 ---
 
-# Phase 35 Plan 01: v2.2 Gap Closure Summary
+# Phase 35 Plan 01: v0.2.2 Gap Closure Summary
 
 **4 surgical tech debt fixes: timezone-safe date import, two missing cache invalidations, and purchase_date form field wiring**
 
@@ -91,8 +91,8 @@ None.
 None - no external service configuration required.
 
 ## Next Phase Readiness
-- All v2.2 tech debt items are closed
-- Codebase is clean for v2.4 Premium Dashboard UX work (Phase 30+)
+- All v0.2.2 tech debt items are closed
+- Codebase is clean for v0.2.4 Premium Dashboard UX work (Phase 30+)
 - 644 tests pass, 0 failures
 
 ## Self-Check: PASSED
@@ -100,5 +100,5 @@ None - no external service configuration required.
 All 5 modified files verified present. Both task commits (24bf73f, d1c2550) confirmed in git log.
 
 ---
-*Phase: 35-v2.2-gap-closure*
+*Phase: 35-v0.2.2-gap-closure*
 *Completed: 2026-05-05*

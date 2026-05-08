@@ -26,7 +26,7 @@ human_verification:
 
 # Phase 10: Theming Foundation Verification Report
 
-**Phase Goal:** Faction-accent CSS system wired to a runtime-mutable CSS custom property and React context, with collapsible sidebar — the foundation all v2.1 phases build on
+**Phase Goal:** Faction-accent CSS system wired to a runtime-mutable CSS custom property and React context, with collapsible sidebar — the foundation all v0.2.1 phases build on
 **Verified:** 2026-05-03T00:00:00Z
 **Status:** passed
 **Re-verification:** No — initial verification
@@ -79,7 +79,7 @@ human_verification:
 
 | From | To | Via | Status | Details |
 |------|----|-----|--------|---------|
-| `globals.css` `--faction-accent` | Tailwind `bg-faction-accent` | `--color-faction-accent: var(--faction-accent)` in `@theme inline` | WIRED | All themed components in v2.1 reference this utility |
+| `globals.css` `--faction-accent` | Tailwind `bg-faction-accent` | `--color-faction-accent: var(--faction-accent)` in `@theme inline` | WIRED | All themed components in v0.2.1 reference this utility |
 | `ActiveFactionContext.tsx` | `document.documentElement.style` | `setProperty("--faction-accent", hex)` in `useEffect` | WIRED | Confirmed by `setPropertySpy` unit test |
 | `router.tsx` `ActiveFactionProvider` | `DashboardPage` `useActiveFaction()` | Provider wraps `Outlet` — context available app-wide | WIRED | Phase 11 DashboardPage test confirms no "outside provider" error |
 | `DashboardPage.tsx` toggle | `FactionSummaryCard` `onActivate` | `setActiveFaction(faction)` / `setActiveFaction(null)` | WIRED | Lines 213–217 of `DashboardPage.tsx` |

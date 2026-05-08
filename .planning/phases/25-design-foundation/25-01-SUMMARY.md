@@ -55,7 +55,7 @@ completed: 2026-05-04
 
 # Phase 25 Plan 01: Design Foundation Primitives Summary
 
-**CSS design tokens (forge-black/panel-elevated/panel-surface/battle-gold), PageHeader component, 4-tier StatusBadge, and backward-compatible enriched StatCard — all v2.3 phase infrastructure in place**
+**CSS design tokens (forge-black/panel-elevated/panel-surface/battle-gold), PageHeader component, 4-tier StatusBadge, and backward-compatible enriched StatCard — all v0.2.3 phase infrastructure in place**
 
 ## Performance
 

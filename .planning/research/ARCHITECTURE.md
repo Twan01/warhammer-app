@@ -1,6 +1,6 @@
 # Architecture Research
 
-**Domain:** Rules Sync 2.0 / Rules Data Hub — HobbyForge v2.6 (Phases 42–46)
+**Domain:** Rules Sync 2.0 / Rules Data Hub — HobbyForge v0.2.6 (Phases 42–46)
 **Researched:** 2026-05-07
 **Confidence:** HIGH (derived from full codebase read + existing V3_ARCHITECTURE_AUDIT.md)
 
@@ -45,7 +45,7 @@ Both TypeScript AND Rust are active. TypeScript handles HTTP + parsing. Rust han
 | `rw_detachments` | 002 | YES | NO | Dark — data present, zero queries |
 | `rw_detachment_abilities` | 002 | YES | NO | Dark — data present, zero queries |
 
-**Critical finding:** No rules.db schema changes are required for surfacing dark tables. All 12 tables exist and are populated after any sync. v2.6 work is: extending `rw_sync_meta` columns, adding override/log tables to `hobbyforge.db`, and surfacing the four dark tables in the UI.
+**Critical finding:** No rules.db schema changes are required for surfacing dark tables. All 12 tables exist and are populated after any sync. v0.2.6 work is: extending `rw_sync_meta` columns, adding override/log tables to `hobbyforge.db`, and surfacing the four dark tables in the UI.
 
 ---
 
@@ -58,14 +58,14 @@ Both TypeScript AND Rust are active. TypeScript handles HTTP + parsing. Rust han
 |                          UI Layer (React 19)                          |
 |  +----------------+  +---------------------+  +--------------------+  |
 |  | PlaybookTab    |  | SyncMetadataPanel   |  | OverridesPanel     |  |
-|  | (MODIFIED)     |  | (NEW v2.6)          |  | (NEW v2.6)         |  |
+|  | (MODIFIED)     |  | (NEW v0.2.6)          |  | (NEW v0.2.6)         |  |
 |  +-------+--------+  +----------+----------+  +---------+----------+  |
 +----------|--------------------..--------------------------|-----------+
            |         React Query Hooks                      |
 +----------|---------------------------------------------------|---------+
 |  +-------+------+  +---------------------+  +-------------+---------+  |
 |  | useDatasheet |  | useRulesSync        |  | useRulesOverrides     |  |
-|  | useRulesSync |  | (MODIFIED v2.6)     |  | (NEW v2.6)            |  |
+|  | useRulesSync |  | (MODIFIED v0.2.6)     |  | (NEW v0.2.6)            |  |
 |  | Meta (exist) |  |                     |  |                       |  |
 |  +--------------+  +----------+----------+  +-------------+---------+  |
 +------------------------------|----------------------------|--------------+
@@ -73,9 +73,9 @@ Both TypeScript AND Rust are active. TypeScript handles HTTP + parsing. Rust han
 +------------------------------|----------------------------|--------------+
 |  +--------------+  +---------+-----------+  +------------+-----------+  |
 |  | datasheets.ts|  | stratagems.ts       |  | rulesOverrides.ts      |  |
-|  | (existing)   |  | detachments.ts      |  | (NEW v2.6)             |  |
+|  | (existing)   |  | detachments.ts      |  | (NEW v0.2.6)             |  |
 |  |              |  | sharedAbilities.ts  |  |                        |  |
-|  |              |  | (NEW v2.6)          |  |                        |  |
+|  |              |  | (NEW v0.2.6)          |  |                        |  |
 |  +--------------+  +---------------------+  +------------------------+  |
 +--------------------------------------------------------------------------+
            |                                             |
@@ -99,7 +99,7 @@ Both TypeScript AND Rust are active. TypeScript handles HTTP + parsing. Rust han
 
 ### Existing Components (Modify Only)
 
-| Component | File | v2.6 Change |
+| Component | File | v0.2.6 Change |
 |-----------|------|-------------|
 | `useRulesSync` | `src/hooks/useRulesSync.ts` | Extend rowCounts return; add prevVersion capture; invalidate 3 new query keys on success |
 | `bulk_sync_rules` + `BulkSyncPayload` | `src-tauri/src/lib.rs` | Extend rw_sync_meta INSERT to write row count columns; write sync_error_log row to hobbyforge.db |
@@ -107,7 +107,7 @@ Both TypeScript AND Rust are active. TypeScript handles HTTP + parsing. Rust han
 | `RulesSyncMeta` interface | `src/types/datasheet.ts` | Add row count + duration columns |
 | `PlaybookTab` | `src/features/units/PlaybookTab.tsx` | Add stratagem/detachment section below abilities using new hooks |
 
-### New Components (v2.6)
+### New Components (v0.2.6)
 
 | Component | File | Purpose |
 |-----------|------|---------|
@@ -336,10 +336,10 @@ const displayT = tOverride?.value ?? ds?.models[0]?.T?.toString() ?? '-';
 | Feature | What It Gains |
 |---------|---------------|
 | PlaybookTab | Stratagem list section, detachment abilities section, override badges on stats |
-| Army Lists (v2.7) | Detachment picker backed by rw_detachments (data already present after v2.6 sync) |
-| Game Day Mode (v2.8) | Stratagems grouped by phase (data already present after v2.6 sync) |
+| Army Lists (v2.7) | Detachment picker backed by rw_detachments (data already present after v0.2.6 sync) |
+| Game Day Mode (v2.8) | Stratagems grouped by phase (data already present after v0.2.6 sync) |
 
-### Cache Key Namespace — New Keys for v2.6
+### Cache Key Namespace — New Keys for v0.2.6
 
 | Key | Type | Invalidated By |
 |-----|------|----------------|
@@ -449,11 +449,11 @@ Schema first. Types derive from schema. No hooks or UI until schema compiles and
 - `src-tauri/migrations/rules_001_schema.sql` — rules.db base schema (read 2026-05-07)
 - `src-tauri/migrations/rules_002_wargear_abilities.sql` — Extended rules schema (read 2026-05-07)
 - `.planning/V3_ARCHITECTURE_AUDIT.md` — Prior architecture audit (read 2026-05-07)
-- `.planning/milestones/v3.0-ROADMAP.md` — v2.6 requirements (read 2026-05-07)
+- `.planning/milestones/v3.0-ROADMAP.md` — v0.2.6 requirements (read 2026-05-07)
 - `.planning/milestones/v3.0-PHASES.md` — Phase breakdown (read 2026-05-07)
 
 ---
 
-*Architecture research for: HobbyForge v2.6 Rules Sync 2.0 / Rules Data Hub*
+*Architecture research for: HobbyForge v0.2.6 Rules Sync 2.0 / Rules Data Hub*
 *Researched: 2026-05-07*
 *Confidence: HIGH — all findings based on direct codebase reads, zero training-data assumptions*

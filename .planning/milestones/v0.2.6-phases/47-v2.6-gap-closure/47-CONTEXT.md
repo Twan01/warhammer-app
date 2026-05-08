@@ -1,4 +1,4 @@
-# Phase 47: v2.6 Gap Closure - Context
+# Phase 47: v0.2.6 Gap Closure - Context
 
 **Gathered:** 2026-05-08
 **Status:** Ready for planning
@@ -129,5 +129,5 @@ None — discussion stayed within phase scope.
 
 ---
 
-*Phase: 47-v2.6-gap-closure*
+*Phase: 47-v0.2.6-gap-closure*
 *Context gathered: 2026-05-08*

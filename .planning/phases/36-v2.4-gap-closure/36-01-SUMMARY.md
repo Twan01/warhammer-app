@@ -1,5 +1,5 @@
 ---
-phase: 36-v2.4-gap-closure
+phase: 36-v0.2.4-gap-closure
 plan: 01
 subsystem: dashboard/hooks/docs
 tags: [cache-invalidation, react-query, documentation, gap-closure, DATA-06]
@@ -29,7 +29,7 @@ metrics:
 requirements_completed: [DATA-06]
 ---
 
-# Phase 36 Plan 01: v2.4 Gap Closure Summary
+# Phase 36 Plan 01: v0.2.4 Gap Closure Summary
 
 **One-liner:** Recipe mutation hooks now invalidate the `["recipes", "by-unit"]` query prefix so CurrentFocusCard recipe name refreshes immediately; three stale planning docs updated to reflect shipped code at HEAD.
 
@@ -85,7 +85,7 @@ Files exist:
 - `.planning/phases/34-visual-polish/34-VERIFICATION.md` — FOUND (status: passed)
 - `.planning/phases/32-army-readiness-card/32-01-SUMMARY.md` — FOUND (requirements_completed present)
 - `.planning/phases/33-data-intelligence/33-01-SUMMARY.md` — FOUND (requirements_completed present)
-- `.planning/phases/36-v2.4-gap-closure/36-01-SUMMARY.md` — FOUND
+- `.planning/phases/36-v0.2.4-gap-closure/36-01-SUMMARY.md` — FOUND
 
 Commits verified:
 - FOUND: 9e8a3d3 (fix(36-01): invalidate ['recipes', 'by-unit'] cache on all recipe mutations)

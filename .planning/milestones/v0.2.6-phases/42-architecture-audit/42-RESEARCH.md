@@ -51,7 +51,7 @@ None specified — all decisions are locked.
 
 Phase 42 is a read-only audit. No code changes are made. The output is a single ARCHITECTURE-AUDIT.md document that downstream phases (43–46) consume as their primary reference.
 
-The sync pipeline is significantly more complete than the v2.6 roadmap anticipated. Both migration files are applied (rules_001 and rules_002), the Rust `bulk_sync_rules` handler inserts all 11 rw_* tables including stratagems, detachments, detachment_abilities, and shared abilities, and the TypeScript side fetches and strips HTML from all 12 CSVs. The pipeline WRITE path is essentially done. The gap is entirely on the READ side — TypeScript types, query functions, and React Query hooks do not exist for stratagems, detachments, detachment_abilities, or shared abilities (rw_abilities).
+The sync pipeline is significantly more complete than the v0.2.6 roadmap anticipated. Both migration files are applied (rules_001 and rules_002), the Rust `bulk_sync_rules` handler inserts all 11 rw_* tables including stratagems, detachments, detachment_abilities, and shared abilities, and the TypeScript side fetches and strips HTML from all 12 CSVs. The pipeline WRITE path is essentially done. The gap is entirely on the READ side — TypeScript types, query functions, and React Query hooks do not exist for stratagems, detachments, detachment_abilities, or shared abilities (rw_abilities).
 
 The audit also surfaces a structural design constraint that governs Phases 45 and 46: rules.db is fully destroyed (DELETE all rows) on every sync, so any persistent data — error logs, snapshots, user overrides — must live in hobbyforge.db. This constraint is already captured in STATE.md and CONTEXT.md but must be documented prominently in the architecture note.
 
@@ -378,7 +378,7 @@ export interface RwStratagem {
 
 | Old Assumption | Actual State | Impact |
 |----------------|-------------|--------|
-| "Extended tables may not be synced yet" | All 11 tables are synced; rules_002 was merged in v2.1 Phase 15 | Phase 44 has less work than roadmap assumed |
+| "Extended tables may not be synced yet" | All 11 tables are synced; rules_002 was merged in v0.2.1 Phase 15 | Phase 44 has less work than roadmap assumed |
 | "Row counts come from DB" | Row counts are computed client-side before Rust invoke | SYNC-01 requires Rust to return actual counts |
 | "Missing types for all extended data" | RwAbility already exists; only RwStratagem, RwDetachment, RwDetachmentAbility missing | Phase 43 is scoped to 3 types, not 4 |
 

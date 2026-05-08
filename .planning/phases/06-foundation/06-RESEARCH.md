@@ -1,7 +1,7 @@
 # Phase 6: Foundation - Research
 
 **Researched:** 2026-05-01
-**Domain:** Back-end plumbing for v1.1 — migration, TypeScript types, query functions, TanStack Query hooks
+**Domain:** Back-end plumbing for v0.1.1 — migration, TypeScript types, query functions, TanStack Query hooks
 **Confidence:** HIGH — based on direct codebase audit of all relevant source files
 
 ---
@@ -47,7 +47,7 @@
 
 ## Summary
 
-Phase 6 is a pure back-end phase with no UI deliverables. It has five discrete outputs: (1) migration 002 that adds 8 nullable columns to `unit_strategy_notes`, (2) TypeScript types for all three v1.1 features, (3) query modules `armyLists.ts` and `strategyNotes.ts` plus a new function in `paints.ts`, (4) hooks `useArmyLists.ts` and `useStrategyNote.ts` plus a patch to `usePaints.ts`, and (5) the PAINTS_WITH_RECIPES_KEY cross-invalidation fix. Every pattern needed is already demonstrated in the codebase — this phase extends existing conventions rather than introducing new ones.
+Phase 6 is a pure back-end phase with no UI deliverables. It has five discrete outputs: (1) migration 002 that adds 8 nullable columns to `unit_strategy_notes`, (2) TypeScript types for all three v0.1.1 features, (3) query modules `armyLists.ts` and `strategyNotes.ts` plus a new function in `paints.ts`, (4) hooks `useArmyLists.ts` and `useStrategyNote.ts` plus a patch to `usePaints.ts`, and (5) the PAINTS_WITH_RECIPES_KEY cross-invalidation fix. Every pattern needed is already demonstrated in the codebase — this phase extends existing conventions rather than introducing new ones.
 
 The most critical discovery: the migration version numbering is DIFFERENT from what the docs suggest. Migrations 001, 002, and 003 are ALREADY TAKEN by `001_core_schema.sql`, `002_seed_factions.sql`, and `003_seed_data.sql`. The Unit Playbook stats migration must be registered as **version 4** in `lib.rs` and the SQL file named **`004_unit_playbook_stats.sql`**. Using version 4 is mandatory — versions 1-3 are already applied in `_sqlx_migrations` and cannot be reused.
 
@@ -111,7 +111,7 @@ And the SQL file is `src-tauri/migrations/004_unit_playbook_stats.sql`.
 
 ```sql
 -- 004_unit_playbook_stats.sql
--- Adds stats block + abilities/keywords to unit_strategy_notes for v1.1 Unit Playbook
+-- Adds stats block + abilities/keywords to unit_strategy_notes for v0.1.1 Unit Playbook
 -- STRAT-06: ALTER TABLE only — never DROP, never CREATE TABLE, never edit 001_core_schema.sql
 -- All new columns are nullable; existing rows remain intact with NULL values
 ALTER TABLE unit_strategy_notes ADD COLUMN move INTEGER;

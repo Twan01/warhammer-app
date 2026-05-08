@@ -113,7 +113,7 @@ None.
 ## Next Phase Readiness
 
 - DS-08 fully closed: both CollectionPage and DashboardPage now surface the conflict-resolution dialog when a Re-import finds stat conflicts in the Playbook tab
-- Phase 20 (v2.1 polish gap closure) is now complete — all 3 plans done
+- Phase 20 (v0.2.1 polish gap closure) is now complete — all 3 plans done
 - Manual smoke test deferred to phase end: Sync rules → open unit from Dashboard active-projects → Playbook tab → Re-import with stat conflict → DatasheetImportDialog should appear
 
 ---

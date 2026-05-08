@@ -91,7 +91,7 @@ human_verification:
 
 ## Requirements Coverage
 
-The 8 requirement IDs listed in the phase plans are defined in `ROADMAP.md` Phase 24 entry — they are not in `REQUIREMENTS.md` (which covers v2.4 requirements separately). All 8 are phase-internal derived requirements.
+The 8 requirement IDs listed in the phase plans are defined in `ROADMAP.md` Phase 24 entry — they are not in `REQUIREMENTS.md` (which covers v0.2.4 requirements separately). All 8 are phase-internal derived requirements.
 
 | Requirement | Declared In | Description | Status |
 |-------------|-------------|-------------|--------|

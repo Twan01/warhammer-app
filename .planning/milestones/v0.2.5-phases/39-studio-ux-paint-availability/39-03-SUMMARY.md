@@ -9,7 +9,7 @@ requires:
   - phase: 39-01
     provides: RecipeStep type with painting_phase/tool/technique/dilution/time fields
   - phase: 38-01
-    provides: PaintingRecipe v2.5 metadata fields (style/surface/effect/difficulty/estimated_minutes)
+    provides: PaintingRecipe v0.2.5 metadata fields (style/surface/effect/difficulty/estimated_minutes)
   - phase: 38-02
     provides: RecipeFormSheet step creation UI with all structured step fields
 provides:

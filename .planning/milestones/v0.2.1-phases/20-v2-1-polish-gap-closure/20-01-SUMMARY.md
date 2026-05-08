@@ -46,7 +46,7 @@ duration: 108min
 completed: 2026-05-04
 ---
 
-# Phase 20 Plan 01: v2.1 Polish Gap Closure (FactionsEmptyState + upsertSyncMeta) Summary
+# Phase 20 Plan 01: v0.2.1 Polish Gap Closure (FactionsEmptyState + upsertSyncMeta) Summary
 
 **Shield icon-pill empty state on Factions page and dead upsertSyncMeta export removed from datasheets.ts, leaving Rust bulk_sync_rules as the sole sync-meta write path**
 

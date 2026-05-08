@@ -1,8 +1,8 @@
 # Pitfalls Research
 
-**Domain:** HobbyForge v2.6 Rules Sync 2.0 / Rules Data Hub — adding sync metadata, manual overrides, and version comparison to an existing dual-database Tauri 2 + React 19 + SQLite app with a working delete-all / re-insert sync pipeline
+**Domain:** HobbyForge v0.2.6 Rules Sync 2.0 / Rules Data Hub — adding sync metadata, manual overrides, and version comparison to an existing dual-database Tauri 2 + React 19 + SQLite app with a working delete-all / re-insert sync pipeline
 **Researched:** 2026-05-07
-**Confidence:** HIGH — derived from direct codebase inspection of `lib.rs`, `useRulesSync.ts`, `rules-client.ts`, `datasheets.ts`, `datasheet.ts`, all rules migrations, and the v2.6 roadmap
+**Confidence:** HIGH — derived from direct codebase inspection of `lib.rs`, `useRulesSync.ts`, `rules-client.ts`, `datasheets.ts`, `datasheet.ts`, all rules migrations, and the v0.2.6 roadmap
 
 ---
 
@@ -365,5 +365,5 @@ Phase 43 (Extended Rules Schema). Assess faction resolution coverage before wiri
 - Research: SQLite `sqldiff.exe` documentation — pre-sync snapshot is necessary for meaningful diff output; delete-all destroys comparison baseline
 
 ---
-*Pitfalls research for: HobbyForge v2.6 Rules Sync 2.0 / Rules Data Hub*
+*Pitfalls research for: HobbyForge v0.2.6 Rules Sync 2.0 / Rules Data Hub*
 *Researched: 2026-05-07*

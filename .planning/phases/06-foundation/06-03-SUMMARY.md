@@ -33,7 +33,7 @@ metrics:
 
 # Phase 6 Plan 03: Query Layer — getPaintsWithRecipeCount, StrategyNote, ArmyList CRUD Summary
 
-One-liner: SQL query layer for v2.0 — LEFT JOIN recipe count, select-then-upsert strategy notes, and 8-function army list CRUD with NULL-passthrough update and duplicate-allowed unit membership.
+One-liner: SQL query layer for v0.2.0 — LEFT JOIN recipe count, select-then-upsert strategy notes, and 8-function army list CRUD with NULL-passthrough update and duplicate-allowed unit membership.
 
 ## Delivered
 

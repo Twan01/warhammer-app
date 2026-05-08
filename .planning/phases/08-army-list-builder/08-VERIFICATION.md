@@ -89,7 +89,7 @@ human_verification:
 
 ### Requirements Coverage
 
-Note: There is a semantic mismatch between `v1.1-REQUIREMENTS.md` and the ROADMAP/plan frontmatter IDs. The ROADMAP.md is the authoritative planning document. Both are cross-referenced below.
+Note: There is a semantic mismatch between `v0.1.1-REQUIREMENTS.md` and the ROADMAP/plan frontmatter IDs. The ROADMAP.md is the authoritative planning document. Both are cross-referenced below.
 
 | ROADMAP Req ID | REQUIREMENTS.md Mapping | Description | Plan | Status | Evidence |
 |----------------|------------------------|-------------|------|--------|---------|
@@ -101,7 +101,7 @@ Note: There is a semantic mismatch between `v1.1-REQUIREMENTS.md` and the ROADMA
 | ARMY-06 (ROADMAP) | ARMY-07 (REQ) | Empty state CTA when no lists exist | 08-04 | SATISFIED | `ArmyListsEmptyState.tsx` with "Build your first army list" heading; 3 passing tests |
 | ARMY-07 (ROADMAP) | (no direct REQ match — route/nav not explicitly in REQUIREMENTS.md) | Route + sidebar nav | 08-04 | SATISFIED | `armyListsRoute` + `AppSidebar.tsx` MAIN_NAV entry |
 
-**REQUIREMENTS.md ARMY-04 coverage note:** ARMY-04 in v1.1-REQUIREMENTS.md reads "Army list detail auto-calculates: total points, painted points (units where `status_painting = 'Completed'`), and battle-ready %". This corresponds to `ArmyListSummaryBar.tsx` and `ArmyListCard.tsx` auto-calculation logic, which is present and verified. The ROADMAP.md does not assign a dedicated ID for this (it is covered under Success Criterion 3 as part of what ARMY-03 enables). This requirement is SATISFIED.
+**REQUIREMENTS.md ARMY-04 coverage note:** ARMY-04 in v0.1.1-REQUIREMENTS.md reads "Army list detail auto-calculates: total points, painted points (units where `status_painting = 'Completed'`), and battle-ready %". This corresponds to `ArmyListSummaryBar.tsx` and `ArmyListCard.tsx` auto-calculation logic, which is present and verified. The ROADMAP.md does not assign a dedicated ID for this (it is covered under Success Criterion 3 as part of what ARMY-03 enables). This requirement is SATISFIED.
 
 ---
 

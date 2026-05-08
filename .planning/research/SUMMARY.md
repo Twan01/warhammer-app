@@ -1,6 +1,6 @@
-# Project Research Summary — v1.1
+# Project Research Summary — v0.1.1
 
-**Project:** HobbyForge v1.1 — Paint Inventory UI, Army List Builder, Unit Playbook
+**Project:** HobbyForge v0.1.1 — Paint Inventory UI, Army List Builder, Unit Playbook
 **Domain:** Local-first Windows desktop hobby tracker (Tauri + React + SQLite)
 **Researched:** 2026-05-01
 **Confidence:** HIGH (stack + architecture verified against official sources; features surveyed against real competing tools; pitfalls cross-validated across GitHub issues, official docs, and legal sources)
@@ -393,7 +393,7 @@ These are not technical uncertainties -- they require a product/legal decision f
 
 ### Primary (HIGH confidence)
 - Tauri v2 SQL plugin official docs (v2.tauri.app/plugin/sql/) -- plugin API, migration runner, capabilities
-- @tauri-apps/plugin-sql npm v2.3.2 -- version verification
+- @tauri-apps/plugin-sql npm v0.2.3.2 -- version verification
 - GitHub prisma/prisma issues #20103 -- production build freeze confirmation
 - GitHub Brendonovich/prisma-client-rust discussions/274 -- archived March 2025 confirmation
 - SQLite official docs (sqlite.org/foreignkeys.html) -- FK pragma per-connection requirement

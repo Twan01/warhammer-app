@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-Establish the shared visual primitives that every subsequent v2.3 phase builds on: semantic design tokens in `globals.css`, a reusable `PageHeader` component applied to all main pages, an enriched `StatCard` (optional icon + trend + progress), and a unified `StatusBadge` for painting status. No feature work, no page restructuring beyond adopting PageHeader.
+Establish the shared visual primitives that every subsequent v0.2.3 phase builds on: semantic design tokens in `globals.css`, a reusable `PageHeader` component applied to all main pages, an enriched `StatCard` (optional icon + trend + progress), and a unified `StatusBadge` for painting status. No feature work, no page restructuring beyond adopting PageHeader.
 
 </domain>
 

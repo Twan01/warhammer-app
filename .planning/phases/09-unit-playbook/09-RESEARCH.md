@@ -517,7 +517,7 @@ Note: `strategyNoteQueries.test.ts` (foundation) already covers the query layer 
 
 ### Secondary (MEDIUM confidence)
 
-- `.planning/STATE.md` + `.planning/milestones/v1.1-REQUIREMENTS.md` — project history and requirement text for STRAT-01..05
+- `.planning/STATE.md` + `.planning/milestones/v0.1.1-REQUIREMENTS.md` — project history and requirement text for STRAT-01..05
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-06
 **Scope:** Pre-implementation audit for v3.0 roadmap (`.planning/milestones/v3.0-ROADMAP.md`)
-**Baseline:** v2.4 shipped — 36 phases, 224 TypeScript source files, 778 tests
+**Baseline:** v0.2.4 shipped — 36 phases, 224 TypeScript source files, 778 tests
 
 ---
 
@@ -219,7 +219,7 @@ Extended (002): rw_datasheets_wargear, rw_abilities, rw_stratagems, rw_detachmen
 
 ### 3.7 Smart Wishlist — LARGE
 
-**What exists:** Wishlist items (v2.2), spending tracker
+**What exists:** Wishlist items (v0.2.2), spending tracker
 
 **What's missing:** Link wishlist to recipes/lists/units/tactical gaps, transparent priority scoring, spending intelligence (cost per battle-ready point, backlog value)
 

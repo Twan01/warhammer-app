@@ -59,7 +59,7 @@
 
 ### Deferred Ideas (OUT OF SCOPE)
 - Cache invalidation for new hooks on sync success — Phase 44 (SYNC-05)
-- Detachment selection UI (choosing which detachment to play) — future phase, not in v2.6 scope
+- Detachment selection UI (choosing which detachment to play) — future phase, not in v0.2.6 scope
 - Stratagem favoriting or custom notes per stratagem — new capability, not in scope
 - Filtering stratagems by CP cost or type — could be useful but beyond read-only display scope
 </user_constraints>

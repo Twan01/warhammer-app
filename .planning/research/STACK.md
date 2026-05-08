@@ -1,6 +1,6 @@
 # Stack Research
 
-**Domain:** Local-first Windows desktop — HobbyForge v2.6 Rules Sync 2.0 / Rules Data Hub
+**Domain:** Local-first Windows desktop — HobbyForge v0.2.6 Rules Sync 2.0 / Rules Data Hub
 **Researched:** 2026-05-07
 **Confidence:** HIGH — verified against package.json, Cargo.toml, Cargo.lock, lib.rs, all rules migrations, useRulesSync.ts, datasheets.ts, and types/datasheet.ts
 
@@ -8,7 +8,7 @@
 
 ## Executive Decision: 0 New npm Packages, 0 New Rust Crates
 
-Every v2.6 feature (sync metadata, manual overrides, version comparison/diff) is
+Every v0.2.6 feature (sync metadata, manual overrides, version comparison/diff) is
 solved by the existing stack. The rules sync pipeline is already more complete than
 the milestone requirements assumed — all 12 CSVs are fetched, all extended tables
 exist in rules_002, and the Rust command already handles every data type. The work
@@ -18,7 +18,7 @@ is wiring, schema extension, and UI — not new dependencies.
 
 ## Current-State Audit (Code-Verified)
 
-This is the most important input for v2.6. Phase 42 (Architecture Audit) confirms
+This is the most important input for v0.2.6. Phase 42 (Architecture Audit) confirms
 what already exists before any code changes.
 
 ### What Already Works (Verified in Source)
@@ -40,7 +40,7 @@ what already exists before any code changes.
 | getFullDatasheet wargear fetch | `db/queries/datasheets.ts` line 93-96 | COMPLETE — returns `wargear[]` in `FullDatasheet` |
 | Sync metadata query | `useDatasheet.ts` → `getRulesSyncMeta()` | PARTIAL — returns `last_sync_at` and `wahapedia_version` only |
 
-### What Does NOT Yet Exist (v2.6 Must Build)
+### What Does NOT Yet Exist (v0.2.6 Must Build)
 
 | Gap | Phase | Approach |
 |-----|-------|---------|
@@ -74,9 +74,9 @@ what already exists before any code changes.
 
 ---
 
-## Confirmed Existing Stack — All v2.6 Capabilities Covered
+## Confirmed Existing Stack — All v0.2.6 Capabilities Covered
 
-| Technology | Installed Version | v2.6 Role |
+| Technology | Installed Version | v0.2.6 Role |
 |------------|------------------|-----------|
 | `tauri-plugin-sql` | ^2.4.0 (Rust 2.4.0) | New rules migrations, ALTER TABLE, rw_overrides CRUD |
 | `sqlx` | 0.8.6 (in Cargo.lock) | Rust bulk_sync_rules already uses sqlx directly — ADD row count capture before `tx.commit()` |
@@ -423,7 +423,7 @@ export async function getStratagemsByFaction(
 No new packages means no new compatibility surface. All existing packages stay at
 their current locked versions.
 
-| Package | Version | v2.6 Usage | Compatibility |
+| Package | Version | v0.2.6 Usage | Compatibility |
 |---------|---------|------------|---------------|
 | `tauri-plugin-sql` | ^2.4.0 | New migrations, ALTER TABLE, override CRUD | Confirmed: additive migrations auto-run at startup |
 | `sqlx` | 0.8.6 | Rust `BulkSyncResult` struct (additive) | Confirmed: already in production for bulk_sync_rules |
@@ -447,5 +447,5 @@ their current locked versions.
 
 ---
 
-*Stack research for: HobbyForge v2.6 — Rules Sync 2.0 / Rules Data Hub*
+*Stack research for: HobbyForge v0.2.6 — Rules Sync 2.0 / Rules Data Hub*
 *Researched: 2026-05-07*

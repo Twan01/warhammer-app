@@ -94,7 +94,7 @@ Total: 33 activated tests, 0 skipped, 0 it.skip remaining.
 | ANLY-02 | Goal progress is calculated by counting distinct units with at least one painting session during the goal period | SATISFIED | `getGoalProgress` queries `COUNT(DISTINCT unit_id) FROM painting_sessions WHERE session_date >= $1 AND session_date <= $2`. Period boundaries derived from `computeGoalPeriod`. useJournalSessions.useCreatePaintingSession.onSuccess invalidates `["goal-progress"]`. |
 | ANLY-03 | User can view all active and completed goals with a progress bar | SATISFIED | GoalsPage groups into Active / Completed / Missed sections. GoalCard renders progress bar with fill width `${pct}%` and color based on `deriveGoalStatus`. Completed badge uses `bg-battle-gold`, missed uses `bg-muted-foreground/30`. Empty state provided via GoalEmptyState. |
 
-All three requirement IDs from plan frontmatter accounted for. No orphaned requirements found for Phase 22 in v2.2-REQUIREMENTS.md.
+All three requirement IDs from plan frontmatter accounted for. No orphaned requirements found for Phase 22 in v0.2.2-REQUIREMENTS.md.
 
 ---
 

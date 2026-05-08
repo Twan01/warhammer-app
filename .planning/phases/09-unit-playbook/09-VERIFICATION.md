@@ -64,7 +64,7 @@ re_verification: false
 | STRAT-04 | 09-00, 09-01, 09-03 | 8 strategy note fields in fixed order (Battlefield Role … Personal Notes) | SATISFIED | `STRATEGY_NOTE_FIELDS` array in PlaybookTab.tsx; test verifies DOM order strictly; Plan 09-03 Step 6 PASS |
 | STRAT-05 | 09-00, 09-01, 09-03 | Inline save on button click with dirty-state gating and toasts | SATISFIED | `isDirty` useMemo + `disabled` prop on Save button; handleSave with mutateAsync + sonner; tests cover all 4 STRAT-05 behaviors; Plan 09-03 Step 7 PASS |
 
-**Notes on requirements source:** STRAT-01..05 are defined in `.planning/milestones/v1.1-REQUIREMENTS.md` (the v1.1 milestone requirements document). They do NOT appear in `.planning/REQUIREMENTS.md` (which tracks v2.1 requirements for Phases 10–14). This is expected — Phase 9 was planned against the v1.1 milestone roadmap. No orphaned requirements found.
+**Notes on requirements source:** STRAT-01..05 are defined in `.planning/milestones/v0.1.1-REQUIREMENTS.md` (the v0.1.1 milestone requirements document). They do NOT appear in `.planning/REQUIREMENTS.md` (which tracks v0.2.1 requirements for Phases 10–14). This is expected — Phase 9 was planned against the v0.1.1 milestone roadmap. No orphaned requirements found.
 
 ---
 
@@ -124,7 +124,7 @@ Phase 9 goal is fully achieved. The Unit Playbook tab is a real, wired, tested f
 - `UnitDetailSheet.tsx` integrates the tab correctly: SheetHeader and SheetFooter remain outside Tabs as required; no `overflow-hidden` regression; `key={unit?.id}` preserved.
 - Backend dependencies (`useStrategyNote`, `useUpsertStrategyNote`, `strategyNotes.ts` queries, `strategyNote.ts` types) all exist and are correctly wired.
 - The manual smoke test (Plan 09-03) confirms SQLite persistence, live tab switching, and all visual behaviors.
-- All 5 STRAT requirements (from `.planning/milestones/v1.1-REQUIREMENTS.md`) are satisfied.
+- All 5 STRAT requirements (from `.planning/milestones/v0.1.1-REQUIREMENTS.md`) are satisfied.
 
 ---
 

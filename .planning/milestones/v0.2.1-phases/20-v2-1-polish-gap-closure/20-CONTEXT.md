@@ -1,4 +1,4 @@
-# Phase 20: v2.1 Polish & Gap Closure - Context
+# Phase 20: v0.2.1 Polish & Gap Closure - Context
 
 **Gathered:** 2026-05-04
 **Status:** Ready for planning
@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-Close 4 specific tech debt items identified in the v2.1 milestone audit. No new features, no schema changes, no new routes. Every fix is a targeted edit to existing files.
+Close 4 specific tech debt items identified in the v0.2.1 milestone audit. No new features, no schema changes, no new routes. Every fix is a targeted edit to existing files.
 
 1. **DS-08 DashboardPage** — Wire conflict dialog props to the populated UnitDetailSheet; add DatasheetImportDialog sibling
 2. **FactionsEmptyState** — Apply icon-pill pattern with Shield icon to match all other empty states
@@ -58,7 +58,7 @@ Close 4 specific tech debt items identified in the v2.1 milestone audit. No new 
 **Downstream agents MUST read these before planning or implementing.**
 
 ### Tech debt audit (source of truth for all 4 items)
-- `.planning/milestones/v2.1-MILESTONE-AUDIT.md` — exact item descriptions, fix effort estimates, and evidence file locations
+- `.planning/milestones/v0.2.1-MILESTONE-AUDIT.md` — exact item descriptions, fix effort estimates, and evidence file locations
 
 ### DS-08 conflict dialog reference implementation
 - `src/features/units/CollectionPage.tsx` lines 78–84 — conflictPayload + pendingResolution state declarations

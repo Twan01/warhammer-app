@@ -1,12 +1,12 @@
 ---
-phase: 47-v2.6-gap-closure
+phase: 47-v0.2.6-gap-closure
 verified: 2026-05-08T00:00:00Z
 status: passed
 score: 9/9 must-haves verified
 re_verification: false
 ---
 
-# Phase 47: v2.6 Gap Closure Verification Report
+# Phase 47: v0.2.6 Gap Closure Verification Report
 
 **Phase Goal:** Close the remaining OVRD-06 gap by extending the pre-sync snapshot to store full field values and adding per-field diff comparison; clean up accumulated tech debt
 **Verified:** 2026-05-08

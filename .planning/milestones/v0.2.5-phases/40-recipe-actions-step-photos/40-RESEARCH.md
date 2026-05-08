@@ -377,7 +377,7 @@ Phase 40/
 ### Pitfall 6: Step photo orphan on form cancel
 **What goes wrong:** User uploads photo on a step, then cancels the form. Photo file exists in AppData with no DB row referencing it. Over time, orphan files accumulate.
 **Why it happens:** Photo write happens immediately on selection (before form save). This is the same trade-off in JournalTab.
-**How to avoid:** Accept as known limitation per JournalTab precedent. Document in plan. No cleanup mechanism needed for v2.5.
+**How to avoid:** Accept as known limitation per JournalTab precedent. Document in plan. No cleanup mechanism needed for v0.2.5.
 
 ### Pitfall 7: convertFileSrc requires absolute path — relative path from DB is not enough
 **What goes wrong:** Passing the stored UUID filename directly to `convertFileSrc` produces a broken asset URL.

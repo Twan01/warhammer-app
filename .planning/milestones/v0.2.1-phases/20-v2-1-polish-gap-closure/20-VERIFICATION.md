@@ -16,9 +16,9 @@ human_verification:
     why_human: "Requires live rules.db sync data and a stat conflict to reproduce the conflict dialog flow"
 ---
 
-# Phase 20: v2.1 Polish & Gap Closure — Verification Report
+# Phase 20: v0.2.1 Polish & Gap Closure — Verification Report
 
-**Phase Goal:** Close the one integration gap found in the v2.1 milestone audit (DS-08 secondary path) and eliminate accumulated tech debt — DashboardPage conflict dialog wiring, FactionsEmptyState icon pattern, dead upsertSyncMeta export, PaintingProjectsPage DOM query CTA
+**Phase Goal:** Close the one integration gap found in the v0.2.1 milestone audit (DS-08 secondary path) and eliminate accumulated tech debt — DashboardPage conflict dialog wiring, FactionsEmptyState icon pattern, dead upsertSyncMeta export, PaintingProjectsPage DOM query CTA
 **Verified:** 2026-05-04T18:30:00Z
 **Status:** passed
 **Re-verification:** No — initial verification
@@ -71,12 +71,12 @@ human_verification:
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|-------------|-------------|--------|---------|
-| DS-08 (secondary path) | 20-03-PLAN.md | Conflict review dialog wired for DashboardPage path (secondary entry point alongside CollectionPage) | SATISFIED | DatasheetImportDialog mounted as sibling in populated-state fragment; 3 conflict props on populated UnitDetailSheet; 2 state hooks at page level. Closes gap documented in v2.1-MILESTONE-AUDIT.md line 62 |
+| DS-08 (secondary path) | 20-03-PLAN.md | Conflict review dialog wired for DashboardPage path (secondary entry point alongside CollectionPage) | SATISFIED | DatasheetImportDialog mounted as sibling in populated-state fragment; 3 conflict props on populated UnitDetailSheet; 2 state hooks at page level. Closes gap documented in v0.2.1-MILESTONE-AUDIT.md line 62 |
 | tech-debt:FactionsEmptyState-icon-pill | 20-01-PLAN.md | Align FactionsEmptyState with project-wide icon-pill pattern | SATISFIED | Shield in rounded-xl pill; all 5 structural deviations corrected |
 | tech-debt:upsertSyncMeta-removal | 20-01-PLAN.md | Remove dead upsertSyncMeta export from datasheets.ts | SATISFIED | Function + JSDoc block removed; zero callers; getRulesDb import preserved for 4 remaining functions |
 | tech-debt:PaintingProjectsPage-DOM-query | 20-02-PLAN.md | Replace document.querySelector hack with React state lift | SATISFIED | pickerOpen state lifted to page; AddProjectPicker controlled-props; querySelector absent from codebase |
 
-**Note on DS-08 in REQUIREMENTS.md:** The formal `REQUIREMENTS.md` file in `.planning/` covers only v2.2 requirements. DS-08 was a v2.1 requirement defined within Phase 15's context (tracked in `15-VERIFICATION.md` and `v2.1-MILESTONE-AUDIT.md`). The three tech-debt IDs have no formal requirement entry — they are internal tracking labels scoped to Phase 20. No orphaned requirements found.
+**Note on DS-08 in REQUIREMENTS.md:** The formal `REQUIREMENTS.md` file in `.planning/` covers only v0.2.2 requirements. DS-08 was a v0.2.1 requirement defined within Phase 15's context (tracked in `15-VERIFICATION.md` and `v0.2.1-MILESTONE-AUDIT.md`). The three tech-debt IDs have no formal requirement entry — they are internal tracking labels scoped to Phase 20. No orphaned requirements found.
 
 ### Anti-Patterns Found
 

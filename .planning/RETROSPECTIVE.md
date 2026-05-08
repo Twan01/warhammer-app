@@ -4,7 +4,7 @@
 
 ---
 
-## Milestone: v1.1 — HobbyForge MVP
+## Milestone: v0.1.1 — HobbyForge MVP
 
 **Shipped:** 2026-05-01
 **Phases:** 5 | **Plans:** 20 | **Timeline:** 2 days (2026-04-30 → 2026-05-01)
@@ -54,14 +54,14 @@
 
 ---
 
-## Milestone: v2.0 — Utility Layer
+## Milestone: v0.2.0 — Utility Layer
 
 **Shipped:** 2026-05-03
 **Phases:** 4 (6–9) | **Plans:** 20 | **Timeline:** 3 days (2026-05-01 → 2026-05-03)
 
 ### What Was Built
 
-- Phase 6 back-end foundation: migration 004 (8 `ALTER TABLE ADD COLUMN` on `unit_strategy_notes`), TypeScript types for all three v2.0 features, query modules (`armyLists.ts`, `strategyNotes.ts`), hook modules with DATA-09 forward-compat dashboard invalidation, 38 automated tests
+- Phase 6 back-end foundation: migration 004 (8 `ALTER TABLE ADD COLUMN` on `unit_strategy_notes`), TypeScript types for all three v0.2.0 features, query modules (`armyLists.ts`, `strategyNotes.ts`), hook modules with DATA-09 forward-compat dashboard invalidation, 38 automated tests
 - Phase 7 Paint Inventory: PaintsPage at `/paints` with Zustand-backed brand/type/color-family multi-select filters, running-low/wishlist preset views, color swatch, recipe-count badge with cross-page navigation (`/recipes?paintId=X`), inline owned toggle with optimistic update
 - Phase 8 Army List Builder: ArmyListsPage, CRUD sheets, multi-add UnitPickerDialog, ArmyListDetailSheet with pinned summary bar (COALESCE effective_points computed in SQL), per-unit notes expandable rows, full-replacement UPDATE for NULL-clearable points_override, UnitDeleteDialog with army-list membership pre-check
 - Phase 9 Unit Playbook: PlaybookTab inside shadcn Tabs with 6-field stats block (suffix display, pencil edit mode, Escape-to-cancel), abilities/keywords inputs, 8 fixed-order strategy note fields, dirty-state Save gating with sonner toasts, SQLite persistence round-tripped in live app
@@ -73,17 +73,17 @@
 - **COALESCE in SQL (never JS):** Computing `effective_points = COALESCE(alu.points_override, u.points, 0)` in `getArmyListWithUnits` SQL meant `ArmyListSummaryBar` could just sum a flat array — no conditional logic, no unit-level JS math. One canonical computation point.
 - **Sibling portal pattern held at scale:** Phase 8 had the most complex portal geometry (List Sheet + Delete Dialog + Unit Picker Dialog, all potentially open), and the established sibling pattern handled it perfectly. Zero z-index or context issues.
 - **Wave 0 TDD on pure functions:** `applyPaintFilters` (Phase 7) and `getArmyListsByUnitId` pre-check (Phase 8) both had pure-function tests before any UI existed. The Phase 8 smoke test passed 14/14 steps on the first run — no regressions.
-- **Nyquist VALIDATION.md retrofit:** Retroactively auditing all v2.0 phases for Nyquist compliance surfaced the ARMY-02 gap that the audit later confirmed. Validation docs are load-bearing.
+- **Nyquist VALIDATION.md retrofit:** Retroactively auditing all v0.2.0 phases for Nyquist compliance surfaced the ARMY-02 gap that the audit later confirmed. Validation docs are load-bearing.
 
 ### What Was Inefficient
 
-- **VALIDATION.md compliance flags not set during execution:** As with v1.1, all four VALIDATION.md files were created with `nyquist_compliant: false` (or draft status) during phase execution and had to be retrofitted after the milestone. The fix is to update the flag inline when the last test passes, not in a retrospective batch.
+- **VALIDATION.md compliance flags not set during execution:** As with v0.1.1, all four VALIDATION.md files were created with `nyquist_compliant: false` (or draft status) during phase execution and had to be retrofitted after the milestone. The fix is to update the flag inline when the last test passes, not in a retrospective batch.
 - **Progress table formatting drift:** ROADMAP.md Phase 8 and 9 rows had misaligned column counts (the milestone column was missing). Caught and fixed at archive time. Progress tables should be spot-checked when plans complete.
 - **ARMY-02 gap missed until audit:** The `status_assembly` column was in the schema and the `ArmyListUnitRow` type (after fix), but the SQL join never selected it. The gap was missed because the smoke test doesn't assert on every column — it asserts on behaviors. Automated tests for the SQL join (checking selected columns) would have caught this inline.
 
 ### Patterns Established
 
-- **Back-end foundation phase pattern:** When adding multiple new features that share a data layer, isolate the schema + types + queries + hooks into a Wave-0 phase. UI phases then build on a verified foundation. Applied in v2.0 Phase 6; worth repeating for future feature clusters.
+- **Back-end foundation phase pattern:** When adding multiple new features that share a data layer, isolate the schema + types + queries + hooks into a Wave-0 phase. UI phases then build on a verified foundation. Applied in v0.2.0 Phase 6; worth repeating for future feature clusters.
 - **Full-replacement UPDATE for nullable overrides:** When a field must be clearable to NULL (not just set), use a `SET field=$2` pattern, not `COALESCE($2, field)`. Document as a pitfall in the plan. Confirmed via smoke test.
 - **Cross-page navigation via router validateSearch:** `/recipes?paintId=X` pattern (Phase 7) is the canonical cross-page filter navigation — clean URL params, typed by TanStack Router's `validateSearch`, consumed by the target page's `useSearch`.
 
@@ -101,7 +101,7 @@
 
 ---
 
-## Milestone: v2.1 — Visual Command
+## Milestone: v0.2.1 — Visual Command
 
 **Shipped:** 2026-05-04
 **Phases:** 8 (10–16 + 20) | **Plans:** 41 | **Timeline:** 2 days (2026-05-03 → 2026-05-04)
@@ -122,12 +122,12 @@
 - **Dual-DB architecture isolation:** rules.db stays physically separate and migration versioning is independent of hobbyforge.db. No schema conflicts across 15 migrations total. Clean pattern that could extend to additional specialized DBs.
 - **Wave 0 stubs for complex phases (Phase 15):** Writing 19 `it.skip` stubs before implementing a 7-plan phase gave a concrete execution map and caught Pitfall 3 (tolerating empty rules.db before first sync) before any UI existed.
 - **Sibling portal pattern at scale:** Phase 15 added `DatasheetImportDialog` as a sibling of the lightbox Dialog which is already a sibling of `UnitDetailSheet`. Nested portals never tempted — the established pattern handled triple-portal geometry cleanly.
-- **Nyquist VALIDATION.md inline (first time):** Unlike v1.1/v2.0, most VALIDATION.md files were created with `nyquist_compliant: true` during execution rather than retrofitted at audit time. Phase 20 generated the remaining 2 test files in a single nyquist audit session — zero retrofit debt.
+- **Nyquist VALIDATION.md inline (first time):** Unlike v0.1.1/v0.2.0, most VALIDATION.md files were created with `nyquist_compliant: true` during execution rather than retrofitted at audit time. Phase 20 generated the remaining 2 test files in a single nyquist audit session — zero retrofit debt.
 - **Phase 20 gap closure pattern:** Rather than treating the DS-08 secondary path as a permanent known limitation, routing it through a dedicated gap-closure phase preserved the clean audit trail. The final milestone score went from `tech_debt` to `passed` in one session.
 
 ### What Was Inefficient
 
-- **ROADMAP.md Phase Details section accumulated duplicate entries:** The v2.2 section appeared twice in ROADMAP.md (first as an in-progress summary, then again as detailed Phase Details). Arose because Phase 20 was inserted into the v2.1 scope after v2.2 planning had begun. Fixed at archive time.
+- **ROADMAP.md Phase Details section accumulated duplicate entries:** The v0.2.2 section appeared twice in ROADMAP.md (first as an in-progress summary, then again as detailed Phase Details). Arose because Phase 20 was inserted into the v0.2.1 scope after v0.2.2 planning had begun. Fixed at archive time.
 - **Progress table column drift:** Several rows in the ROADMAP.md progress table had misaligned columns (Milestone column missing or in wrong position). Fixed at archive time. Should be spot-checked when plans complete.
 - **DS-08 secondary path discovered at audit, not at execution:** The DashboardPage conflict-dialog wiring was missed by Phase 15 planning and only caught by the milestone audit. A review of "which pages mount this feature?" during Phase 15 planning would have caught it inline.
 - **Phase 20 was unplanned at Phase 15 time:** Gap-closure phase required running the full discuss → plan → execute → validate → audit loop a second time. This overhead is low for 4 tech debt items but signals that end-of-milestone gap analysis should be a GSD workflow step, not a surprise.
@@ -142,7 +142,7 @@
 
 1. **Review mounting points for new features during planning, not audit.** DS-08 was planned for CollectionPage only but DashboardPage also mounts UnitDetailSheet. A "which pages use this Sheet?" check during Phase 15 planning would have caught it. Add this to plan checklist for Sheet-mounted features.
 2. **Milestone audits should be structured workflow steps.** Running `/gsd:audit-milestone` surfaced DS-08, 3 tech debt items, and a stale progress table. The workflow is now the standard end-of-milestone step — not optional.
-3. **Duplicate ROADMAP.md sections grow from inserted phases.** When a phase is inserted into a milestone scope after planning has begun (Phase 20 inserted into v2.1 after v2.2 planning started), the ROADMAP ends up with overlapping section headers. Fix: update the milestone's phase list in one place only.
+3. **Duplicate ROADMAP.md sections grow from inserted phases.** When a phase is inserted into a milestone scope after planning has begun (Phase 20 inserted into v0.2.1 after v0.2.2 planning started), the ROADMAP ends up with overlapping section headers. Fix: update the milestone's phase list in one place only.
 
 ### Cost Observations
 
@@ -152,7 +152,7 @@
 
 ---
 
-## Milestone: v2.2 — Full Circle
+## Milestone: v0.2.2 — Full Circle
 
 **Shipped:** 2026-05-05
 **Phases:** 8 (17–19, 21–24, 35) | **Plans:** 23 | **Timeline:** 2 days (2026-05-04 → 2026-05-05)
@@ -171,14 +171,14 @@
 ### What Worked
 
 - **Phase 24 multi-plan architecture (4 plans, 3 waves):** Splitting a complex data-heavy feature into foundation → selection → preview stages kept each plan focused and testable. 16 automated tests across 3 test files provided high confidence despite the SQL and UI complexity.
-- **Milestone audit → gap closure → re-audit cycle:** The v2.2-MILESTONE-AUDIT identified 4 specific tech debt items, Phase 35 was planned and executed in 4 minutes, and re-audit confirmed all resolved. The GSD gap closure workflow is now battle-tested.
+- **Milestone audit → gap closure → re-audit cycle:** The v0.2.2-MILESTONE-AUDIT identified 4 specific tech debt items, Phase 35 was planned and executed in 4 minutes, and re-audit confirmed all resolved. The GSD gap closure workflow is now battle-tested.
 - **COALESCE chain untouched by tier feature:** Phase 24 wisely writes tier-confirmed points to `units.points` at application layer rather than modifying the COALESCE SQL. Army list effective_points computation remained stable with zero regression risk.
 - **Cache invalidation symmetry enforced:** Phase 35 identified that useDeletePaintingSession was missing goal-progress invalidation that useCreatePaintingSession had. The symmetry rule is now a documented pattern.
-- **Nyquist validation inline throughout:** All phases shipped with `nyquist_compliant: true` — no retrofit batch needed. The pattern established in v2.1 held consistently.
+- **Nyquist validation inline throughout:** All phases shipped with `nyquist_compliant: true` — no retrofit batch needed. The pattern established in v0.2.1 held consistently.
 
 ### What Was Inefficient
 
-- **v2.2 "partial ship" confusion:** Phases 17–19 shipped early (2026-05-04) while Phases 21–24 were still in flight. PROJECT.md recorded this as "v2.2 partial ship" which required cleanup at milestone completion. Better to not mark partial milestones in PROJECT.md — keep it binary (shipped or not).
+- **v0.2.2 "partial ship" confusion:** Phases 17–19 shipped early (2026-05-04) while Phases 21–24 were still in flight. PROJECT.md recorded this as "v0.2.2 partial ship" which required cleanup at milestone completion. Better to not mark partial milestones in PROJECT.md — keep it binary (shipped or not).
 - **4 tech debt items missed until milestone audit:** All 4 Phase 35 fixes (timezone import, 2 cache invalidations, purchase_date form field) could have been caught during their respective phase executions. The timezone bug in BattleLogSheet existed since Phase 18 but the smoke test didn't catch off-by-one dates.
 - **Progress table column misalignment:** Phases 23 and 24 were missing the milestone column in ROADMAP.md. This drift pattern has occurred in every milestone — needs a structural fix (template validation or automated check).
 
@@ -204,7 +204,7 @@
 
 ---
 
-## Milestone: v2.4 — Premium Dashboard UX & Visual Polish
+## Milestone: v0.2.4 — Premium Dashboard UX & Visual Polish
 
 **Shipped:** 2026-05-06
 **Phases:** 6 (30–34, 36) | **Plans:** 13 | **Timeline:** 2 days (2026-05-05 → 2026-05-06)
@@ -222,7 +222,7 @@
 
 - **Atomic CSS grid migration:** Phase 30 updated all 4 DashboardPage render branches (populated, empty, loading, error) in a single commit, preventing any half-migrated grid state. The responsive breakpoint (`grid-cols-1 lg:grid-cols-[2fr_1fr]`) worked correctly from the first test.
 - **UnitThumbnail as shared component:** Creating a single thumbnail component with consistent fallback (faction color + Swords icon) in Phase 31 eliminated duplicate photo rendering logic across CurrentFocusCard and ActiveProjectsPanel. Clean prop interface (`unitId`, `factionId`, `photoPath`, `size`).
-- **Milestone audit → gap closure cycle (3rd time):** The v2.4 audit caught DATA-06 cache staleness (recipe mutations not invalidating by-unit queries) and 3 stale docs. Phase 36 fixed everything in 6 minutes. The pattern is now fully routine.
+- **Milestone audit → gap closure cycle (3rd time):** The v0.2.4 audit caught DATA-06 cache staleness (recipe mutations not invalidating by-unit queries) and 3 stale docs. Phase 36 fixed everything in 6 minutes. The pattern is now fully routine.
 - **Nyquist validation inline for all phases:** All 6 phases shipped with `nyquist_compliant: true` — zero retrofit debt. The validate-phase workflow creates test files automatically.
 - **Wave 0 TDD continued delivering:** 33-00 and 34-00 created test stubs before any UI work, catching issues early (e.g., Radix Select requiring hasPointerCapture polyfill in jsdom).
 
@@ -249,11 +249,11 @@
 
 - Model: Claude Opus 4.6 throughout
 - Sessions: 2 (Phase 30–34 execution, then Phase 36 gap closure + audit + completion)
-- Notable: 6 phases with 13 plans in 1 calendar day — the v2.4 scope (dashboard polish, no new schema) made phases fast; gap closure (Phase 36) completed in 6 minutes
+- Notable: 6 phases with 13 plans in 1 calendar day — the v0.2.4 scope (dashboard polish, no new schema) made phases fast; gap closure (Phase 36) completed in 6 minutes
 
 ---
 
-## Milestone: v2.5 — Recipes 2.0 / Painting Studio
+## Milestone: v0.2.5 — Recipes 2.0 / Painting Studio
 
 **Shipped:** 2026-05-07
 **Phases:** 5 (37–41) | **Plans:** 12 | **Timeline:** 1 day (2026-05-07)
@@ -272,11 +272,11 @@
 - **Progressive column expansion (10 → 12):** Phase 38 expanded addRecipePaint to 10 columns, Phase 40 to 12. Each expansion was additive and backward-compatible (new columns default to NULL). No existing code broke at any step.
 - **Batch SQL for aggregates (2 independent queries):** `getStepCountsByRecipe` (GROUP BY) and `getRecipePaintAvailability` (JOIN + CASE WHEN) each replaced potential N+1 patterns with single round-trips. Both return Map-shaped results consumed by the page.
 - **Pure presentational timeline component:** RecipeStepTimeline takes `steps + paintMap + stepPhotoUrls` as props with zero internal data fetching. Made testing trivial and photo URL resolution cleanly separated in the parent RecipeDetailSheet.
-- **SUMMARY frontmatter gap still present:** 8 of 18 requirements missing from SUMMARY `requirements_completed` arrays (same issue flagged in v2.4). All 18 were verified in VERIFICATION.md — the gap is documentation-only but it adds overhead at audit time.
+- **SUMMARY frontmatter gap still present:** 8 of 18 requirements missing from SUMMARY `requirements_completed` arrays (same issue flagged in v0.2.4). All 18 were verified in VERIFICATION.md — the gap is documentation-only but it adds overhead at audit time.
 
 ### What Was Inefficient
 
-- **SUMMARY frontmatter requirements_completed not populated in 8/12 plans:** Despite being flagged as a lesson in v2.4, 8 plan SUMMARYs still shipped with empty `requirements_completed` arrays. The 3-source cross-reference at audit time had to manually verify these via VERIFICATION.md. The executor workflow should enforce this field.
+- **SUMMARY frontmatter requirements_completed not populated in 8/12 plans:** Despite being flagged as a lesson in v0.2.4, 8 plan SUMMARYs still shipped with empty `requirements_completed` arrays. The 3-source cross-reference at audit time had to manually verify these via VERIFICATION.md. The executor workflow should enforce this field.
 - **Phase 40/41 progress table column misalignment:** Phases 40 and 41 were missing the milestone column in ROADMAP.md (5th consecutive milestone with this issue). Fixed at archive time.
 - **No one-liner in any SUMMARY frontmatter:** All 12 SUMMARY files had `one_liner: null`, which forced manual accomplishment extraction at milestone completion. The `one_liner` field should be populated during plan execution.
 
@@ -290,7 +290,7 @@
 
 ### Key Lessons
 
-1. **Enforce `requirements_completed` in SUMMARY frontmatter during plan execution.** v2.4 identified this; v2.5 didn't fix it. 8/12 plans missing. This is the most persistent documentation gap — needs a workflow enforcement hook, not just a lesson.
+1. **Enforce `requirements_completed` in SUMMARY frontmatter during plan execution.** v0.2.4 identified this; v0.2.5 didn't fix it. 8/12 plans missing. This is the most persistent documentation gap — needs a workflow enforcement hook, not just a lesson.
 2. **Enforce `one_liner` in SUMMARY frontmatter.** All 12 plans missing. The milestone completion workflow depends on this field for accomplishment extraction; without it, accomplishments must be manually composed.
 3. **ROADMAP progress table column alignment needs automated validation.** 5th consecutive milestone. Manual editing will never fix this consistently.
 4. **Rename migration + type alias is the cleanest table evolution strategy.** Zero data loss, zero downstream breakage, incremental consumer migration. Use this for any table restructure going forward.
@@ -304,7 +304,7 @@
 
 ---
 
-## Milestone: v2.6 — Rules Sync 2.0 / Rules Data Hub
+## Milestone: v0.2.6 — Rules Sync 2.0 / Rules Data Hub
 
 **Shipped:** 2026-05-08
 **Phases:** 6 (42–47) | **Plans:** 11 | **Timeline:** 1 day (2026-05-08)
@@ -323,13 +323,13 @@
 - **Architecture audit as Phase 0:** Phase 42 was a read-only investigation that produced a written reference document. Every subsequent phase referenced it for table schemas, data flow diagrams, and migration plans. Zero planning confusion across Phases 43–47.
 - **ExtendedSnapshotData options object:** Instead of adding 6 positional parameters to computeSyncDiff, the optional third param `extended?: ExtendedSnapshotData` maintained full backward compatibility. Zero call sites needed updating; existing tests continued passing unchanged.
 - **Overrides in hobbyforge.db, not rules.db:** The critical design decision to store unit_overrides in hobbyforge.db (not rules.db which is wiped on every sync) was established early in Phase 42's audit and never questioned. Overrides survived re-syncs from day one.
-- **Milestone audit → gap closure cycle (5th time):** The v2.6 audit identified OVRD-06 as partial (per-field diff missing), stale JSDoc, and SUMMARY frontmatter gaps. Phase 47 closed all gaps. The cycle is fully routine — audit findings become Phase 47 scope.
+- **Milestone audit → gap closure cycle (5th time):** The v0.2.6 audit identified OVRD-06 as partial (per-field diff missing), stale JSDoc, and SUMMARY frontmatter gaps. Phase 47 closed all gaps. The cycle is fully routine — audit findings become Phase 47 scope.
 - **SUMMARY frontmatter standardization in Phase 47:** Finally addressed the persistent `requirements_completed` gap across Phases 43–46 (8 files). Phase 47 Plan 02 renamed and added the field in all 8 files as part of tech debt cleanup.
 
 ### What Was Inefficient
 
-- **Phase 42 audit predated Phase 47 execution:** The milestone audit at v2.6 was run after Phase 46 (status: `tech_debt`). Phase 47 resolved all tech debt items, but the audit wasn't re-run. The audit file still shows `status: tech_debt` and `requirements: 26/27` even though all 27 are now complete.
-- **one_liner still missing from all 11 SUMMARY files:** Despite being flagged as a lesson in v2.5, none of the v2.6 SUMMARYs populated the `one_liner` field. Accomplishment extraction at milestone completion still required manual grep of summary headers. The `summary-extract` tool returned null for every file.
+- **Phase 42 audit predated Phase 47 execution:** The milestone audit at v0.2.6 was run after Phase 46 (status: `tech_debt`). Phase 47 resolved all tech debt items, but the audit wasn't re-run. The audit file still shows `status: tech_debt` and `requirements: 26/27` even though all 27 are now complete.
+- **one_liner still missing from all 11 SUMMARY files:** Despite being flagged as a lesson in v0.2.5, none of the v0.2.6 SUMMARYs populated the `one_liner` field. Accomplishment extraction at milestone completion still required manual grep of summary headers. The `summary-extract` tool returned null for every file.
 - **ROADMAP progress table column misalignment (6th consecutive):** Phases 43–47 were missing the milestone column. Fixed at archive time. This is the most persistent process issue.
 
 ### Patterns Established
@@ -341,7 +341,7 @@
 
 ### Key Lessons
 
-1. **Re-run milestone audit after gap closure phase.** The v2.6 audit shows `tech_debt` status but all tech debt was resolved by Phase 47. The stale audit status is misleading.
+1. **Re-run milestone audit after gap closure phase.** The v0.2.6 audit shows `tech_debt` status but all tech debt was resolved by Phase 47. The stale audit status is misleading.
 2. **Enforce `one_liner` in SUMMARY frontmatter.** 6th milestone with this gap. The `summary-extract` tool depends on it; milestone completion falls back to manual extraction every time.
 3. **Architecture audits should be standard for multi-phase features.** Phase 42's investment paid off across 5 downstream phases. Worth formalizing as a GSD workflow option.
 4. **Per-field diff is valuable but scope-sensitive.** OVRD-06 was initially deferred as "snapshot stores only {id, name}" in Phase 46, then promoted to a gap closure phase. The enriched snapshot approach (storing full row JSON) is clean but required 2 additional plans. Worth scoping upfront in future features.
@@ -360,31 +360,31 @@
 
 | Milestone | Phases | Plans | Key Change |
 |-----------|--------|-------|------------|
-| v1.1 | 5 | 20 | First milestone — baseline established |
-| v2.0 | 4 | 20 | Back-end foundation phase pattern; Nyquist VALIDATION.md retrofit introduced |
-| v2.1 | 8 | 41 | Dual-DB architecture; gap-closure phase pattern; inline Nyquist compliance (no retrofit) |
-| v2.2 | 8 | 23 | Cache invalidation symmetry rule; gap closure as formal phase; milestone audit → fix → re-audit cycle proven |
-| v2.3 | 5 | 21 | Unified design system; Quick Add pattern; kanban enrichment |
-| v2.4 | 6 | 13 | CSS grid dashboard; photo-rich panels; Radix sentinel pattern; gap closure routine (6 min) |
-| v2.5 | 5 | 12 | Recipe restructure (rename migration); batch aggregate queries; session-recipe linking; no gap closure needed |
-| v2.6 | 6 | 11 | Architecture audit phase; dual-DB overrides; per-field diff; SUMMARY frontmatter standardization |
+| v0.1.1 | 5 | 20 | First milestone — baseline established |
+| v0.2.0 | 4 | 20 | Back-end foundation phase pattern; Nyquist VALIDATION.md retrofit introduced |
+| v0.2.1 | 8 | 41 | Dual-DB architecture; gap-closure phase pattern; inline Nyquist compliance (no retrofit) |
+| v0.2.2 | 8 | 23 | Cache invalidation symmetry rule; gap closure as formal phase; milestone audit → fix → re-audit cycle proven |
+| v0.2.3 | 5 | 21 | Unified design system; Quick Add pattern; kanban enrichment |
+| v0.2.4 | 6 | 13 | CSS grid dashboard; photo-rich panels; Radix sentinel pattern; gap closure routine (6 min) |
+| v0.2.5 | 5 | 12 | Recipe restructure (rename migration); batch aggregate queries; session-recipe linking; no gap closure needed |
+| v0.2.6 | 6 | 11 | Architecture audit phase; dual-DB overrides; per-field diff; SUMMARY frontmatter standardization |
 
 ### Cumulative Quality
 
 | Milestone | Tests | Status |
 |-----------|-------|--------|
-| v1.1 | 113 | All passing |
-| v2.0 | 212 | All passing (isolated; FactionSummaryCard ordering issue pre-existing) |
-| v2.1 | 395 | All passing post-Phase 20 |
-| v2.2 | 644 | All passing (16 phase-24-specific tests, 2 pre-existing skips) |
-| v2.3 | 758 | All passing (114 v2.3-specific tests) |
-| v2.4 | 778 | 778 passing, 1 pre-existing flaky (paintRowSwatch timeout), 2 skipped, 12 todo |
-| v2.5 | ~900 | All passing (18 requirements, 42/42 observable truths verified, Nyquist compliant) |
-| v2.6 | 1,031 | All passing (27 requirements, Nyquist compliant, 1 test added by validation audit) |
+| v0.1.1 | 113 | All passing |
+| v0.2.0 | 212 | All passing (isolated; FactionSummaryCard ordering issue pre-existing) |
+| v0.2.1 | 395 | All passing post-Phase 20 |
+| v0.2.2 | 644 | All passing (16 phase-24-specific tests, 2 pre-existing skips) |
+| v0.2.3 | 758 | All passing (114 v0.2.3-specific tests) |
+| v0.2.4 | 778 | 778 passing, 1 pre-existing flaky (paintRowSwatch timeout), 2 skipped, 12 todo |
+| v0.2.5 | ~900 | All passing (18 requirements, 42/42 observable truths verified, Nyquist compliant) |
+| v0.2.6 | 1,031 | All passing (27 requirements, Nyquist compliant, 1 test added by validation audit) |
 
 ### Top Lessons (Verified Across Milestones)
 
-1. Pre-wire cross-phase cache invalidation when dependencies are known early (v1.1 DATA-09 → v2.0 dashboard-stats forward-compat → v2.2 symmetry rule)
+1. Pre-wire cross-phase cache invalidation when dependencies are known early (v0.1.1 DATA-09 → v0.2.0 dashboard-stats forward-compat → v0.2.2 symmetry rule)
 2. Pure function + TDD Wave 0 dramatically reduces UI debugging time
 3. Sibling portal pattern prevents Radix z-index/context issues in Sheet-heavy UIs
 4. SQL join shape tests catch column-omission gaps that smoke tests miss (learned from ARMY-02)
@@ -392,7 +392,7 @@
 6. Foundation phases with full test coverage before UI work pay for themselves in zero data-layer debugging time
 7. Gap closure as a formal phase is fast (4 min for Phase 35, 6 min for Phase 36) and preserves audit trail — never patch informally
 8. ROADMAP progress table column alignment drifts every milestone — needs structural fix or automated validation
-9. Re-run verification after any post-verification code fix — stale verification docs create false gaps at audit time (learned from VIS-03 in v2.4)
+9. Re-run verification after any post-verification code fix — stale verification docs create false gaps at audit time (learned from VIS-03 in v0.2.4)
 10. `requirements_completed` in SUMMARY frontmatter is load-bearing for 3-source cross-reference — add it as a standard executor step
-11. Rename migration + type alias is the cleanest table evolution strategy — zero data loss, zero downstream breakage (learned in v2.5 Phase 37)
-12. `one_liner` in SUMMARY frontmatter must be enforced — milestone completion depends on it for accomplishment extraction (all 12 v2.5 SUMMARYs missing)
+11. Rename migration + type alias is the cleanest table evolution strategy — zero data loss, zero downstream breakage (learned in v0.2.5 Phase 37)
+12. `one_liner` in SUMMARY frontmatter must be enforced — milestone completion depends on it for accomplishment extraction (all 12 v0.2.5 SUMMARYs missing)

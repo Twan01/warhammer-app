@@ -55,7 +55,7 @@ completed: 2026-05-01
 
 # Phase 6 Plan 02: Type Definitions Summary
 
-**Three TypeScript type files for v1.1 utility layer: 18-field StrategyNote (save=INTEGER), 8-type ArmyList family (no updated_at on ArmyListUnit), and PaintWithRecipeCount extending existing Paint**
+**Three TypeScript type files for v0.1.1 utility layer: 18-field StrategyNote (save=INTEGER), 8-type ArmyList family (no updated_at on ArmyListUnit), and PaintWithRecipeCount extending existing Paint**
 
 ## Performance
 

@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-Pure back-end foundation for v1.1 — no UI ships. Deliverables: migration 002 (`ALTER TABLE` only), TypeScript types for all three v1.1 features, query modules `armyLists.ts` and `strategyNotes.ts`, new hooks `useArmyLists.ts` and `useStrategyNote.ts`, and a cross-invalidation patch to `usePaints.ts`. Phase ends when all query functions return typed results against the live database and the app launches without error.
+Pure back-end foundation for v0.1.1 — no UI ships. Deliverables: migration 002 (`ALTER TABLE` only), TypeScript types for all three v0.1.1 features, query modules `armyLists.ts` and `strategyNotes.ts`, new hooks `useArmyLists.ts` and `useStrategyNote.ts`, and a cross-invalidation patch to `usePaints.ts`. Phase ends when all query functions return typed results against the live database and the app launches without error.
 
 </domain>
 
@@ -44,7 +44,7 @@ No specific implementation preferences stated — open to patterns already estab
 
 ### Phase scope and success criteria
 - `.planning/ROADMAP.md` §Phase 6 — success criteria 1–5 define exact deliverables and the acceptance bar
-- `.planning/REQUIREMENTS.md` §v1.1 — PINV-01..06, ARMY-01..07, STRAT-01..06 define what query functions and types must support
+- `.planning/REQUIREMENTS.md` §v0.1.1 — PINV-01..06, ARMY-01..07, STRAT-01..06 define what query functions and types must support
 
 ### Schema and migration
 - `src-tauri/migrations/001_core_schema.sql` — existing schema; do not modify; verify column names before writing types
@@ -94,7 +94,7 @@ No specific implementation preferences stated — open to patterns already estab
 <deferred>
 ## Deferred Ideas
 
-- Army suggestion engine (SUGG-01..03) — deferred to v1.2; no implementation in Phase 6 or any v1.1 phase
+- Army suggestion engine (SUGG-01..03) — deferred to v1.2; no implementation in Phase 6 or any v0.1.1 phase
 - `/paint-inventory` route, sidebar nav entries — Phase 7
 - Army list UI components — Phase 8
 - `UnitDetailSheet` Tabs wrapper and `PlaybookTab` — Phase 9

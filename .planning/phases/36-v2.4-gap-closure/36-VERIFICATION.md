@@ -1,13 +1,13 @@
 ---
-phase: 36-v2.4-gap-closure
+phase: 36-v0.2.4-gap-closure
 verified: 2026-05-06T12:00:00Z
 status: passed
 score: 4/4 must-haves verified
 ---
 
-# Phase 36: v2.4 Gap Closure Verification Report
+# Phase 36: v0.2.4 Gap Closure Verification Report
 
-**Phase Goal:** Close all tech debt items identified by the v2.4 milestone audit — fix recipe cache invalidation for DATA-06 freshness, update stale verification and summary documentation
+**Phase Goal:** Close all tech debt items identified by the v0.2.4 milestone audit — fix recipe cache invalidation for DATA-06 freshness, update stale verification and summary documentation
 **Verified:** 2026-05-06T12:00:00Z
 **Status:** passed
 **Re-verification:** No — initial verification
@@ -46,7 +46,7 @@ score: 4/4 must-haves verified
 |-------------|-------------|-------------|--------|---------|
 | DATA-06 | 36-01-PLAN | Recipe cache invalidation so CurrentFocusCard recipe name refreshes immediately | SATISFIED | All 3 recipe mutation hooks now invalidate `["recipes", "by-unit"]` prefix; consumer query at DashboardPage line 84 will refetch immediately on any recipe create/update/delete |
 
-**REQUIREMENTS.md traceability:** DATA-06 is mapped to Phase 33 in REQUIREMENTS.md (line 93) with status "Complete" — the initial delivery of the feature (recipe name display) was in Phase 33. Phase 36 closes the cache-staleness sub-gap identified in the v2.4 audit. No orphaned requirements.
+**REQUIREMENTS.md traceability:** DATA-06 is mapped to Phase 33 in REQUIREMENTS.md (line 93) with status "Complete" — the initial delivery of the feature (recipe name display) was in Phase 33. Phase 36 closes the cache-staleness sub-gap identified in the v0.2.4 audit. No orphaned requirements.
 
 ### Anti-Patterns Found
 

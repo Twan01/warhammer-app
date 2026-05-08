@@ -67,7 +67,7 @@ No specific references cited. Implementation should follow existing patterns in 
 
 ### Phase scope and success criteria
 - `.planning/ROADMAP.md` §Phase 7 — success criteria 1–5 define the acceptance bar (note: route decision above overrides "sidebar nav and route" wording — no new route is added)
-- `.planning/milestones/v1.1-REQUIREMENTS.md` §PINV-01..06 — exact requirement text for all six paint inventory requirements
+- `.planning/milestones/v0.1.1-REQUIREMENTS.md` §PINV-01..06 — exact requirement text for all six paint inventory requirements
 
 ### Existing patterns to follow
 - `src/features/units/collectionFilters.ts` — Zustand filter store pattern; create `src/features/paints/paintInventoryFilters.ts` using the same structure

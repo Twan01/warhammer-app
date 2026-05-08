@@ -423,7 +423,7 @@ async function handleConfirm() {
 
 ### Migration 005: painting_sessions + stage_label
 ```sql
--- 005_hobby_journal.sql — HobbyForge v2.1 Phase 13 (JOUR-01..06)
+-- 005_hobby_journal.sql — HobbyForge v0.2.1 Phase 13 (JOUR-01..06)
 -- Adds painting_sessions table and stage_label column to image_assets.
 -- Additive only — no destructive statements.
 
@@ -517,10 +517,10 @@ const [lightboxPhoto, setLightboxPhoto] = useState<UnitPhoto | null>(null);
 
 | Old Approach | Current Approach | When Changed | Impact |
 |--------------|------------------|--------------|--------|
-| Tauri v1 `fs` module (`@tauri-apps/api/fs`) | `@tauri-apps/plugin-fs` separate package | Tauri v2.0 (2024) | Import path changed; BaseDirectory enum values changed |
+| Tauri v1 `fs` module (`@tauri-apps/api/fs`) | `@tauri-apps/plugin-fs` separate package | Tauri v0.2.0 (2024) | Import path changed; BaseDirectory enum values changed |
 | `appDataDir()` from `@tauri-apps/api/path` | Still `@tauri-apps/api/path` | unchanged | No change |
-| `convertFileSrc` from `@tauri-apps/api/tauri` | `convertFileSrc` from `@tauri-apps/api/core` | Tauri v2.0 | Import path updated |
-| Tauri v1 `dialog` module | `@tauri-apps/plugin-dialog` separate package | Tauri v2.0 | Import path changed |
+| `convertFileSrc` from `@tauri-apps/api/tauri` | `convertFileSrc` from `@tauri-apps/api/core` | Tauri v0.2.0 | Import path updated |
+| Tauri v1 `dialog` module | `@tauri-apps/plugin-dialog` separate package | Tauri v0.2.0 | Import path changed |
 | TanStack Query v4 optimistic updates | TanStack Query v5 — same pattern, minor type changes | 2024 | `onMutate` context typing slightly stricter |
 
 ---

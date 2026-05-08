@@ -56,7 +56,7 @@ Users can maintain a running list of models they want to buy — with name, fact
 **Downstream agents MUST read these before planning or implementing.**
 
 ### Requirements
-- `.planning/milestones/v2.2-REQUIREMENTS.md` — WISH-01..04 requirement definitions (lines 16-21)
+- `.planning/milestones/v0.2.2-REQUIREMENTS.md` — WISH-01..04 requirement definitions (lines 16-21)
 - `.planning/ROADMAP.md` — Phase 21 success criteria (lines 133-141)
 
 ### Patterns to follow

@@ -73,7 +73,7 @@ Requirements: SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04, SCHEMA-05
 
 ### Requirements
 - `.planning/REQUIREMENTS.md` — SCHEMA-01 through SCHEMA-05 requirements for this phase
-- `.planning/milestones/v2.6-ROADMAP.md` — Phase 43 goal, success criteria, and dependency on Phase 42
+- `.planning/milestones/v0.2.6-ROADMAP.md` — Phase 43 goal, success criteria, and dependency on Phase 42
 
 ### Existing Patterns
 - `src/types/datasheet.ts` — Existing RwAbility type (reuse for shared abilities), all other rw_* types as pattern reference
@@ -119,7 +119,7 @@ No specific requirements — open to standard approaches. The architecture audit
 ## Deferred Ideas
 
 - Cache invalidation for new hooks on sync success — Phase 44 (SYNC-05)
-- Detachment selection UI (choosing which detachment to play) — future phase, not in v2.6 scope
+- Detachment selection UI (choosing which detachment to play) — future phase, not in v0.2.6 scope
 - Stratagem favoriting or custom notes per stratagem — new capability, not in scope
 - Filtering stratagems by CP cost or type — could be useful but beyond read-only display scope
 

@@ -105,7 +105,7 @@ None — no external service configuration required.
 
 ## Next Phase Readiness
 
-- ARCHITECTURE-AUDIT.md is the complete reference for all v2.6 phases
+- ARCHITECTURE-AUDIT.md is the complete reference for all v0.2.6 phases
 - Phase 43 (Extended Rules Read Layer) can begin immediately: implement 3 missing types, 4 query functions, 4 React Query hooks in `src/db/queries/rulesExtended.ts` and `src/hooks/useRulesExtended.ts`
 - Phase 44 (Sync Pipeline Hardening) can scope its work from the SYNC-01 through SYNC-05 gap list in Section 3
 - Phases 45-46 have column-sketch migration proposals in Section 4 to guide their research

@@ -71,7 +71,7 @@ Stats block → Abilities (multi-line textarea) → Keywords (single-line or sma
 
 ### Phase scope and requirements
 - `.planning/ROADMAP.md` §Phase 9 — success criteria 1–5 are the acceptance bar
-- `.planning/milestones/v1.1-REQUIREMENTS.md` §STRAT-01..05 — exact requirement text for the five playbook requirements (STRAT-06 was Phase 6 scope, already done)
+- `.planning/milestones/v0.1.1-REQUIREMENTS.md` §STRAT-01..05 — exact requirement text for the five playbook requirements (STRAT-06 was Phase 6 scope, already done)
 
 ### Phase 6 deliverables this phase consumes
 - `src/hooks/useStrategyNote.ts` — `useStrategyNote(unitId)` and `useUpsertStrategyNote()` hooks; already implemented and tested

@@ -1,5 +1,5 @@
 ---
-phase: 47-v2.6-gap-closure
+phase: 47-v0.2.6-gap-closure
 plan: 01
 subsystem: rules-sync
 tags: [diff, snapshot, per-field, ovrd-06, pure-function]

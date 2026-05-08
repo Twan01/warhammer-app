@@ -18,7 +18,7 @@ human_verification:
 
 # Phase 25: Design Foundation Verification Report
 
-**Phase Goal:** Establish shared visual primitives for v2.3 — semantic design tokens in globals.css, a reusable PageHeader component applied to all main pages, an enriched StatCard (optional icon + trend + progress), and a unified StatusBadge for painting status.
+**Phase Goal:** Establish shared visual primitives for v0.2.3 — semantic design tokens in globals.css, a reusable PageHeader component applied to all main pages, an enriched StatCard (optional icon + trend + progress), and a unified StatusBadge for painting status.
 **Verified:** 2026-05-04
 **Status:** human_needed
 **Re-verification:** No — initial verification

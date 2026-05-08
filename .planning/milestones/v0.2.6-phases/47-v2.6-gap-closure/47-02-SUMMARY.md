@@ -1,5 +1,5 @@
 ---
-phase: 47-v2.6-gap-closure
+phase: 47-v0.2.6-gap-closure
 plan: "02"
 subsystem: sync-ui
 tags: [react, typescript, tauri, sqlite, ovrd-06, tech-debt]

@@ -186,7 +186,7 @@ With Phase 5 sign-off, milestone `v1.0` reaches 100% (16/16 plans complete acros
 - Phase 4 (Painting Module): 4 plans complete (incl. 04-03 remediation)
 - Phase 5 (Dashboard): 4 plans complete
 
-Recommended next step: run `/gsd:verify-work` to validate the milestone end-to-end and write the v1.0 retrospective before starting Phase 6 (v1.1 Foundation).
+Recommended next step: run `/gsd:verify-work` to validate the milestone end-to-end and write the v1.0 retrospective before starting Phase 6 (v0.1.1 Foundation).
 
 ## Sign-Off
 

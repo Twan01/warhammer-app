@@ -12,7 +12,7 @@ provides:
   - "LogSessionSheet with Recipe and Step Radix Select dropdowns (faction-then-alpha sorted, __none__ sentinel, cascading clear)"
   - "RecipeDetailSheet with Sessions section below step timeline (date, unit name, duration, notes)"
   - "INTEG-01 and INTEG-02 component tests (8 new tests, all passing)"
-affects: [dashboard, recipes, painting-studio, v2.5-milestone]
+affects: [dashboard, recipes, painting-studio, v0.2.5-milestone]
 
 # Tech tracking
 tech-stack:
@@ -98,7 +98,7 @@ None.
 
 ## Next Phase Readiness
 
-- v2.5 milestone complete — all 12 plans across phases 37–41 delivered
+- v0.2.5 milestone complete — all 12 plans across phases 37–41 delivered
 - INTEG-01 and INTEG-02 requirements fulfilled; session-recipe linking is fully operational (data layer in 41-01, UI in 41-02)
 - No blockers or outstanding concerns
 

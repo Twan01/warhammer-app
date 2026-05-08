@@ -1,6 +1,6 @@
 # Feature Research
 
-**Domain:** Rules sync 2.0, extended rules schema, sync metadata/tracking, manual overrides, version comparison — HobbyForge v2.6 Rules Data Hub
+**Domain:** Rules sync 2.0, extended rules schema, sync metadata/tracking, manual overrides, version comparison — HobbyForge v0.2.6 Rules Data Hub
 **Researched:** 2026-05-07
 **Confidence:** HIGH (based on direct codebase inspection of all relevant files; the existing system state is fully known)
 
@@ -136,7 +136,7 @@ Features that go beyond showing the already-stored data — adding traceability,
 
 ## Phase-by-Phase Feature Assignment
 
-Aligned with v2.6 phases 42–46:
+Aligned with v0.2.6 phases 42–46:
 
 ### Phase 42 — Architecture Audit (no code)
 - Confirm the above findings: sync is fully wired end-to-end; all extended tables exist and are populated on sync
@@ -200,7 +200,7 @@ Aligned with v2.6 phases 42–46:
 
 The following must NOT be reimplemented:
 
-| Existing Piece | How v2.6 Reuses It |
+| Existing Piece | How v0.2.6 Reuses It |
 |----------------|---------------------|
 | `useRulesSync` hook | Extend in-place: fix row counts, add import log write, improve error toast |
 | `bulk_sync_rules` Rust command | No changes needed — all 11 extended tables already handled |
@@ -228,5 +228,5 @@ The following must NOT be reimplemented:
 
 ---
 
-*Feature research for: HobbyForge v2.6 — Rules Sync 2.0 / Rules Data Hub*
+*Feature research for: HobbyForge v0.2.6 — Rules Sync 2.0 / Rules Data Hub*
 *Researched: 2026-05-07*

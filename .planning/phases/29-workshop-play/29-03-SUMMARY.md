@@ -124,7 +124,7 @@ None - no external service configuration required.
 
 - PLAY-01 and PLAY-02 complete; Phase 29 Workshop + Play requirements fully implemented
 - Phase 29 is now complete (3/3 plans done: WKSP-01, WKSP-02, PLAY-01, PLAY-02)
-- Ready to begin the final phase or close v2.3 milestone
+- Ready to begin the final phase or close v0.2.3 milestone
 
 ---
 *Phase: 29-workshop-play*

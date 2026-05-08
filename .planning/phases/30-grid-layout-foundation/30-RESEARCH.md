@@ -294,7 +294,7 @@ const bucketCount = (bucket: Bucket) =>
 **Warning signs:** TanStack Router will not throw at navigation time for unregistered routes — it silently navigates to a 404/not-found state. Always verify route paths against router.tsx.
 
 ### Pitfall 2: Half-Migrated Grid (Atomicity Requirement)
-**What goes wrong:** Updating the populated branch grid without updating loading/error branches leaves inconsistent layout. The v2.4 accumulated context explicitly states: "CSS grid migration must be atomic — all 7 existing dashboard sections get col-span in the same commit; never leave a half-migrated grid."
+**What goes wrong:** Updating the populated branch grid without updating loading/error branches leaves inconsistent layout. The v0.2.4 accumulated context explicitly states: "CSS grid migration must be atomic — all 7 existing dashboard sections get col-span in the same commit; never leave a half-migrated grid."
 **Why it happens:** Developer updates only the populated branch (the most visible one) and misses the other two.
 **How to avoid:** The plan must treat all three render branches as a single atomic unit in one wave/task. The test verifier should render all three states and check for grid container class in each.
 

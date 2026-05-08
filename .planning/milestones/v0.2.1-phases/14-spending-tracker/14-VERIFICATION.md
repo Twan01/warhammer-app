@@ -73,7 +73,7 @@ human_verification: []
 
 ### Requirements Coverage
 
-SPEND- requirements are defined in Phase 14 planning documents (14-CONTEXT.md, 14-VALIDATION.md) rather than the current REQUIREMENTS.md (which covers v2.2 requirements only). The requirements were part of an earlier milestone. Coverage assessed from plan frontmatter and CONTEXT.md definitions.
+SPEND- requirements are defined in Phase 14 planning documents (14-CONTEXT.md, 14-VALIDATION.md) rather than the current REQUIREMENTS.md (which covers v0.2.2 requirements only). The requirements were part of an earlier milestone. Coverage assessed from plan frontmatter and CONTEXT.md definitions.
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|------------|-------------|--------|----------|

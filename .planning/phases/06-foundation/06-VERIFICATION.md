@@ -12,7 +12,7 @@ human_verification:
 
 # Phase 6: Foundation Verification Report
 
-**Phase Goal:** All back-end plumbing for v1.1 is in place and verified — the schema is migrated, types are defined, query functions are implemented, and hooks are wired — so that Phases 7, 8, and 9 build on a verified data layer with zero migration risk
+**Phase Goal:** All back-end plumbing for v0.1.1 is in place and verified — the schema is migrated, types are defined, query functions are implemented, and hooks are wired — so that Phases 7, 8, and 9 build on a verified data layer with zero migration risk
 **Verified:** 2026-05-01T23:22:00Z
 **Status:** passed
 **Re-verification:** No — initial verification

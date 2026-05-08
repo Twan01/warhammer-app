@@ -71,7 +71,7 @@ The Recipes page transforms from a flat table into a studio experience: a visual
 - `.planning/REQUIREMENTS.md` — STUDIO-01, STUDIO-02, STUDIO-04, PAINT-01 define the acceptance criteria for this phase
 
 ### Recipe data model (Phase 37 outputs)
-- `src/types/recipe.ts` — PaintingRecipe interface with v2.5 metadata fields (style, surface, effect, difficulty, estimated_minutes)
+- `src/types/recipe.ts` — PaintingRecipe interface with v0.2.5 metadata fields (style, surface, effect, difficulty, estimated_minutes)
 - `src/types/recipePaint.ts` — RecipeStep interface with structured step fields (painting_phase, tool, technique, dilution, time_estimate_minutes)
 - `src/features/recipes/recipeSchema.ts` — RECIPE_STYLES, RECIPE_SURFACES, RECIPE_EFFECTS, RECIPE_DIFFICULTIES, PAINTING_PHASES const arrays
 

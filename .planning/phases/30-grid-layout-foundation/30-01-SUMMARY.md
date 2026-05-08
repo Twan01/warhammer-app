@@ -89,7 +89,7 @@ Each task was committed atomically:
 
 ## Decisions Made
 
-- All 4 DashboardPage render branches updated atomically in a single commit — the v2.4 constraint "CSS grid migration must be atomic" was honored
+- All 4 DashboardPage render branches updated atomically in a single commit — the v0.2.4 constraint "CSS grid migration must be atomic" was honored
 - `useNavigate` called unconditionally per Rules of Hooks; interactive behavior gated by `interactiveProps` conditional object spread
 - Hobby Health StatCards intentionally have no `to` prop — they are passive metrics, not navigation shortcuts
 - Loading skeleton fully restructured to mirror the bento grid to prevent layout shift

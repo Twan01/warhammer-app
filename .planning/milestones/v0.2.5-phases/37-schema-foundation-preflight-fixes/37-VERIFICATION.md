@@ -8,7 +8,7 @@ re_verification: false
 
 # Phase 37: Schema Foundation + Pre-flight Fixes Verification Report
 
-**Phase Goal:** The recipe data model is rebuilt on a structured step foundation, existing data is preserved, and two pre-existing bugs that would corrupt the v2.5 experience are eliminated before any new UI lands
+**Phase Goal:** The recipe data model is rebuilt on a structured step foundation, existing data is preserved, and two pre-existing bugs that would corrupt the v0.2.5 experience are eliminated before any new UI lands
 **Verified:** 2026-05-07
 **Status:** passed
 **Re-verification:** No — initial verification

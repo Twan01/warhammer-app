@@ -96,7 +96,7 @@ None — no external service configuration required.
 
 - Hobby Goals feature (ANLY-01, ANLY-02, ANLY-03) fully implemented and verified
 - Phase 22-hobby-goals is complete — all 3 plans executed
-- Ready to proceed to next milestone phase (v2.4 Premium Dashboard UX per STATE.md)
+- Ready to proceed to next milestone phase (v0.2.4 Premium Dashboard UX per STATE.md)
 
 ---
 *Phase: 22-hobby-goals*

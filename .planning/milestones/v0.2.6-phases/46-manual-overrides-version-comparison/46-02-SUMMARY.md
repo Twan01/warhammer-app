@@ -104,10 +104,10 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-- Phase 46 is complete. All 27 v2.6 requirements have been addressed across Phases 42-46.
+- Phase 46 is complete. All 27 v0.2.6 requirements have been addressed across Phases 42-46.
 - The full override system (data layer + UI) is now live: unit_overrides table, override markers, points override input, clear overrides, post-sync diff view.
 - Army list effective_points already uses the 3-level COALESCE chain (per-list override > global unit override > base points) from Phase 46 Plan 01.
-- v2.6 milestone (Rules Sync 2.0 / Rules Data Hub) is complete.
+- v0.2.6 milestone (Rules Sync 2.0 / Rules Data Hub) is complete.
 
 ---
 *Phase: 46-manual-overrides-version-comparison*

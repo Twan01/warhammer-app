@@ -25,7 +25,7 @@ affects: [15-02, 15-03, 15-04, 15-05]
 # Tech tracking
 tech-stack:
   added:
-    - tauri-plugin-http v2.5.9 (Rust + @tauri-apps/plugin-http JS bindings)
+    - tauri-plugin-http v0.2.5.9 (Rust + @tauri-apps/plugin-http JS bindings)
     - shadcn Collapsible component (backed by radix-ui unified package)
   patterns:
     - Dual-DB migration chaining via add_migrations() per connection string (version sequences are independent per tauri-plugin-sql)
@@ -83,7 +83,7 @@ completed: 2026-05-04
 
 ## Accomplishments
 
-- Installed tauri-plugin-http v2.5.9 (Rust + JS) and registered in lib.rs builder chain; scoped HTTP capability to https://wahapedia.ru/* only
+- Installed tauri-plugin-http v0.2.5.9 (Rust + JS) and registered in lib.rs builder chain; scoped HTTP capability to https://wahapedia.ru/* only
 - Created rules_001_schema.sql with all 7 rw_* tables (rw_factions, rw_datasheets, rw_datasheet_models, rw_datasheet_abilities, rw_datasheet_keywords, rw_sources, rw_sync_meta) and chained as independent rules.db migration v1
 - Added migration 007 (datasheet_link) to hobbyforge.db, preloaded both DBs in tauri.conf.json, created 12-export datasheet.ts types file, installed shadcn Collapsible, flipped 3 migration test stubs to passing (282 + 16 skipped total suite)
 

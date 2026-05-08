@@ -1,4 +1,4 @@
-# Phase 47: v2.6 Gap Closure - Research
+# Phase 47: v0.2.6 Gap Closure - Research
 
 **Researched:** 2026-05-08
 **Domain:** TypeScript diff algorithm extension, snapshot data enrichment, React UI extension, documentation debt

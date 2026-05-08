@@ -61,7 +61,7 @@ Add a "Journal" tab to the existing UnitDetailSheet with two features: (1) a pai
 
 ### Prior phase context
 - `.planning/phases/09-unit-playbook/09-CONTEXT.md` — PlaybookTab pattern (unitId prop, own data fetching) to follow for JournalTab
-- `.planning/STATE.md` §Accumulated Context — "Phase 13 photo storage requires tauri-plugin-fs — the one new Tauri plugin introduced in v2.1; verify capability grants before building photo attach UI"
+- `.planning/STATE.md` §Accumulated Context — "Phase 13 photo storage requires tauri-plugin-fs — the one new Tauri plugin introduced in v0.2.1; verify capability grants before building photo attach UI"
 
 No external plugin specs — tauri-plugin-fs API to be researched by gsd-phase-researcher.
 
@@ -102,8 +102,8 @@ No specific visual references given — standard patterns are appropriate.
 <deferred>
 ## Deferred Ideas
 
-- JOUR-07: Export unit journal as PDF/image — already in REQUIREMENTS.md v2.2+ backlog
-- JOUR-08: Photo before/after comparison slider — already in REQUIREMENTS.md v2.2+ backlog
+- JOUR-07: Export unit journal as PDF/image — already in REQUIREMENTS.md v0.2.2+ backlog
+- JOUR-08: Photo before/after comparison slider — already in REQUIREMENTS.md v0.2.2+ backlog
 - Drag-and-drop photo attach — rejected in favor of native file picker (simpler, reliable on Windows)
 
 </deferred>

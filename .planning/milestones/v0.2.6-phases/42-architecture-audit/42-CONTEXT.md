@@ -22,7 +22,7 @@
 
 **Decision:** Code-path inspection only. Trace through `useRulesSync.ts` CSV fetch → `bulk_sync_rules` Rust INSERT for each table. Confirm that the migration DDL exists and the Rust handler has INSERT statements for every table. No runtime testing required.
 
-**Why:** This is a read-only audit. The sync pipeline is already shipped (v2.1 Phase 15). We verify by reading the code, not by running a sync. The architecture note documents what the code proves.
+**Why:** This is a read-only audit. The sync pipeline is already shipped (v0.2.1 Phase 15). We verify by reading the code, not by running a sync. The architecture note documents what the code proves.
 
 **Verification checklist per table:** Migration DDL exists → Rust DELETE row exists → Rust INSERT loop exists → TypeScript data flows to Rust payload.
 

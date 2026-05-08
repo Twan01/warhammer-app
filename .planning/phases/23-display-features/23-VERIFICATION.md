@@ -71,9 +71,9 @@ human_verification:
 |-------------|------------|-------------|--------|----------|
 | DISP-01 | 23-01 | Battle Ready collection filter preset | SATISFIED | `collectionFilters.ts` + `applyUnitFilters.ts` + `UnitFilters.tsx` + `CollectionPage.tsx` all implement the filter end-to-end |
 | DISP-02 | 23-02 | Showcase Mode for completed units | SATISFIED | `ShowcaseMode.tsx` + `CollectionPage.tsx` wiring + `default.json` capability implement full-screen gallery |
-| DISP-03 | 23-02 | User can exit Showcase Mode to return to normal view | SATISFIED | `handleClose` in `ShowcaseMode.tsx` calls `setFullscreen(false)` + `onClose()`; Escape key and X button both trigger it; defined in `v2.3-REQUIREMENTS.md` and `ROADMAP.md` |
+| DISP-03 | 23-02 | User can exit Showcase Mode to return to normal view | SATISFIED | `handleClose` in `ShowcaseMode.tsx` calls `setFullscreen(false)` + `onClose()`; Escape key and X button both trigger it; defined in `v0.2.3-REQUIREMENTS.md` and `ROADMAP.md` |
 
-**Note on DISP-03 in REQUIREMENTS.md:** DISP-03 is not listed in `.planning/REQUIREMENTS.md` (the v2.4 scope document). It is defined in `.planning/milestones/v2.3-REQUIREMENTS.md` (archived v2.3 milestone) and referenced in `ROADMAP.md:182`. This is not a gap — DISP-03 is a v2.3 requirement that migrated into phase 23 execution; the current `REQUIREMENTS.md` tracks only v2.4 forward requirements. The implementation satisfies the requirement.
+**Note on DISP-03 in REQUIREMENTS.md:** DISP-03 is not listed in `.planning/REQUIREMENTS.md` (the v0.2.4 scope document). It is defined in `.planning/milestones/v0.2.3-REQUIREMENTS.md` (archived v0.2.3 milestone) and referenced in `ROADMAP.md:182`. This is not a gap — DISP-03 is a v0.2.3 requirement that migrated into phase 23 execution; the current `REQUIREMENTS.md` tracks only v0.2.4 forward requirements. The implementation satisfies the requirement.
 
 ### Anti-Patterns Found
 

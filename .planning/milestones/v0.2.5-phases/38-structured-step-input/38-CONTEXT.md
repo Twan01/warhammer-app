@@ -62,7 +62,7 @@ Users can build a recipe step-by-step with all relevant painting detail — pain
 
 ### Schema and types
 - `src-tauri/migrations/rules_002_wargear_abilities.sql` — Latest migration reference for SQL patterns (actual recipe_steps migration is 012)
-- `src/types/recipePaint.ts` — RecipeStep interface with all v2.5 fields (painting_phase, tool, technique, dilution, time_estimate_minutes)
+- `src/types/recipePaint.ts` — RecipeStep interface with all v0.2.5 fields (painting_phase, tool, technique, dilution, time_estimate_minutes)
 - `src/types/recipe.ts` — PaintingRecipe interface with metadata fields
 
 ### Existing step UI (must be extended, not replaced)

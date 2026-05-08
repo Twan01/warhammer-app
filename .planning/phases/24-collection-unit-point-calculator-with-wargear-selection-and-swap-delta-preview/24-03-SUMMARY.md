@@ -111,7 +111,7 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 - Phase 24 Wave 2 is complete: TierManager + LoadoutSection ship in PlaybookTab with 16 tests green
-- Phase 25 (v2.3 continuation) or Phase 30 (v2.4 Grid Layout) can proceed
+- Phase 25 (v0.2.3 continuation) or Phase 30 (v0.2.4 Grid Layout) can proceed
 - No blockers
 
 ## Self-Check: PASSED

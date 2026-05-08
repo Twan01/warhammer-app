@@ -14,7 +14,7 @@ provides:
   - Phase 29 full test suite green (561 tests, 0 failures)
   - TypeScript build verified clean
   - All 4 Phase 29 requirements WKSP-01/02, PLAY-01/02 verified
-  - Phase 29 complete — v2.3 Workshop + Play milestone done
+  - Phase 29 complete — v0.2.3 Workshop + Play milestone done
 affects: []
 
 # Tech tracking
@@ -93,8 +93,8 @@ None - no external service configuration required.
 ## Next Phase Readiness
 
 - Phase 29 complete — all 4 Workshop + Play requirements shipped and verified
-- v2.3 Workshop + Play milestone is done
-- All plans in the roadmap (30/30) are now complete — v2.3 Hobby Command Center is fully delivered
+- v0.2.3 Workshop + Play milestone is done
+- All plans in the roadmap (30/30) are now complete — v0.2.3 Hobby Command Center is fully delivered
 
 ---
 *Phase: 29-workshop-play*

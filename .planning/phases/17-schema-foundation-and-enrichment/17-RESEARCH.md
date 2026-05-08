@@ -147,7 +147,7 @@ tests/lib/
 **When to use:** Whenever new optional columns are added (established Phase 14 precedent).
 **Example:**
 ```sql
--- 008_enrichment.sql — HobbyForge v2.2 Phase 17 (ENRCH-01..04)
+-- 008_enrichment.sql — HobbyForge v0.2.2 Phase 17 (ENRCH-01..04)
 ALTER TABLE units    ADD COLUMN lore_notes   TEXT;
 ALTER TABLE units    ADD COLUMN undercoat    TEXT;
 ALTER TABLE factions ADD COLUMN lore_notes   TEXT;
@@ -346,7 +346,7 @@ export function parseLocalDate(dateStr: string): Date {
 
 ### Migration 008 — Complete File
 ```sql
--- 008_enrichment.sql — HobbyForge v2.2 Phase 17 (ENRCH-01..04)
+-- 008_enrichment.sql — HobbyForge v0.2.2 Phase 17 (ENRCH-01..04)
 -- Adds lore_notes + undercoat on units, lore_notes on factions,
 -- purchase_date on paints.
 -- Additive only: ALTER TABLE ... ADD COLUMN. No destructive statements.
