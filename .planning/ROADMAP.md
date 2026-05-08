@@ -185,7 +185,7 @@ Plans:
   4. User can view a timestamped list of past sync errors
   5. Rules-dependent pages (e.g., PlaybookTab) show a stale/fresh badge indicating whether the data needs re-syncing
   6. Before each re-sync, the current rules data is snapshotted into a separate table so version comparison in Phase 46 is possible
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 45-01-PLAN.md — Migrations, Rust upsert extension, TypeScript types, snapshot query module, hooks, and freshness utility (META-01/02/03/04/05/06)
 - [ ] 45-02-PLAN.md — Wire snapshot into useRulesSync, PlaybookTab UI with freshness dot, sync details, and error history (META-01/02/03/04/05/06)
@@ -253,5 +253,5 @@ Plans:
 | 42. Architecture Audit | v2.6 | 1/1 | Complete | 2026-05-08 |
 | 43. Extended Rules Read Layer | 2/2 | Complete    | 2026-05-08 | - |
 | 44. Sync Pipeline Hardening | 2/2 | Complete    | 2026-05-08 | - |
-| 45. Sync Metadata & Import Tracking | v2.6 | 0/2 | Not started | - |
+| 45. Sync Metadata & Import Tracking | 1/2 | In Progress|  | - |
 | 46. Manual Overrides & Version Comparison | v2.6 | 0/TBD | Not started | - |

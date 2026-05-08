@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.6
 milestone_name: Rules Sync 2.0 / Rules Data Hub
 status: executing
-stopped_at: Phase 45 context gathered
-last_updated: "2026-05-08T08:00:40.972Z"
+stopped_at: Completed 45-01-PLAN.md
+last_updated: "2026-05-08T08:29:05.821Z"
 last_activity: 2026-05-08 — Phase 44 Plan 02 complete (SYNC-01, SYNC-02, SYNC-05)
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 5
-  completed_plans: 5
-  percent: 80
+  total_plans: 7
+  completed_plans: 6
+  percent: 86
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07 after v2.6 milestone start)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** v2.6 Rules Sync 2.0 / Rules Data Hub — Phase 44: Sync Pipeline Hardening
+**Current focus:** v2.6 Rules Sync 2.0 / Rules Data Hub — Phase 45: Sync Metadata Import Tracking
 
 ## Current Position
 
-Phase: 44 of 46 (Sync Pipeline Hardening)
-Plan: 02 complete (sync integration: typed IPC, CSV validation, error logging, cache invalidation)
+Phase: 45 of 46 (Sync Metadata Import Tracking)
+Plan: 01 complete (data infrastructure: migrations, Rust upsert, TypeScript types, snapshot module, freshness utility)
 Status: In Progress
-Last activity: 2026-05-08 — Phase 44 Plan 02 complete (SYNC-01, SYNC-02, SYNC-05)
+Last activity: 2026-05-08 — Phase 45 Plan 01 complete (META-01, META-02, META-03, META-04, META-05, META-06)
 
-Progress: [████████░░] 80%
+Progress: [█████████░] 86%
 
 ## Performance Metrics
 
@@ -50,6 +50,7 @@ Progress: [████████░░] 80%
 | Phase 43-extended-rules-read-layer P01 | 678 | 2 tasks | 5 files |
 | Phase 44 P02 | 8m | 2 tasks | 3 files |
 | Phase 43 P02 | 15 | 2 tasks | 2 files |
+| Phase 45 P01 | 271 | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,12 @@ Progress: [████████░░] 80%
 - **Phase 44 P02**: PlaybookTab toast shows 5 key table counts (datasheets, stratagems, abilities, wargear, keywords) not all 11
 - **Phase 43 P02**: DetachmentSection is a proper React component (not an inline map callback) to call useDetachmentAbilitiesByDetachment unconditionally — required by React hook rules
 - **Phase 43 P02**: ExtendedAbilityEntry structurally typed { name, description } rather than widening existing AbilityEntry (which is typed to RwDatasheetAbility) — avoids coupling two unrelated data types
+- **Phase 45 P01**: rules_snapshot table lives in hobbyforge.db (not rules.db) — rules.db is wiped on every sync, snapshot data must survive
+- **Phase 45 P01**: cleanOldSnapshots retains 3 most recent snapshot groups (11 rows each) to bound table growth
+- **Phase 45 P01**: Composite-PK tables (rw_datasheet_models, rw_datasheet_abilities, rw_datasheet_keywords, rw_datasheets_wargear) store COUNT(*) only with null snapshot_data — no single-column id
+- **Phase 45 P01**: Rust upsert casts SyncResult u64 fields to i64 for sqlx binding (SQLite INTEGER type)
+- **Phase 45 P01**: getSyncFreshness thresholds — <7 days = fresh, 7-14 = aging, >=14 = stale (based on Wahapedia weekly update cadence)
+- **Phase 45 P01**: useSyncErrors uses staleTime: 0 — error list must reflect latest state after every failed sync
 
 ### Pending Todos
 
@@ -89,6 +96,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-08T08:00:40.969Z
-Stopped at: Phase 45 context gathered
+Last session: 2026-05-08T08:29:05.819Z
+Stopped at: Completed 45-01-PLAN.md
 Resume: Run /gsd:plan-phase 42
