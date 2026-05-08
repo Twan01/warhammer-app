@@ -183,7 +183,12 @@ Plans:
   3. User can drag section cards to reorder them; the new order is reflected immediately in the form and persisted on save
   4. User can drag steps within a section to reorder them; step reorder is independent per section and persisted on save
   5. Creating a new recipe opens the form with exactly one default section already present, keeping the experience as simple as before sections existed
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 50-01-PLAN.md -- DraftSection type + buildDraftSections pure functions (TDD)
+- [ ] 50-02-PLAN.md -- RecipeSectionList + RecipeSectionCard UI components
+- [ ] 50-03-PLAN.md -- RecipeFormSheet rewrite with section state + progressive disclosure
 
 ### Phase 51: Duplication + Integration Polish
 **Goal**: Recipe duplication correctly copies all sections and steps with remapped IDs, and all existing recipe workflows (availability badges, swatch strips, LogSession, recipe cards) continue to work unchanged alongside the new section count display.
@@ -250,5 +255,5 @@ Plans:
 | 47. v0.2.6 Gap Closure | v0.2.6 | 2/2 | Complete | 2026-05-08 |
 | 48. Section Data Layer | v0.2.7 | 2/2 | Complete | 2026-05-08 |
 | 49. Section Read UI | 1/1 | Complete   | 2026-05-08 | - |
-| 50. Section Form UI | v0.2.7 | 0/TBD | Not started | - |
+| 50. Section Form UI | v0.2.7 | 0/3 | Not started | - |
 | 51. Duplication + Integration Polish | v0.2.7 | 0/TBD | Not started | - |
