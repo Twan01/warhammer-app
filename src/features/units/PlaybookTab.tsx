@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AlertCircle, ChevronDown, Loader2, Pencil, RefreshCw } from "lucide-react";
+import { AlertCircle, ChevronDown, Loader2, Pencil, RefreshCw, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useStrategyNote, useUpsertStrategyNote } from "@/hooks/useStrategyNote";
 import { useDatasheet, useRulesSyncMeta, useWahapediaFactionId, DATASHEET_KEY } from "@/hooks/useDatasheet";
 import { useRulesSync } from "@/hooks/useRulesSync";
+import { useUnitOverride, useUpsertUnitOverride, useDeleteUnitOverride } from "@/hooks/useUnitOverride";
+import type { SyncDiff } from "@/lib/computeSyncDiff";
+import type { UpsertUnitOverrideInput } from "@/types/unitOverride";
 import { getSyncFreshness, getSyncAgeLabel, FRESHNESS_DOT_CLASS } from "@/lib/syncFreshness";
 import { useRulesSyncErrors } from "@/hooks/useSyncErrors";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -205,6 +208,42 @@ export function PlaybookTab({
     };
     try {
       await upsert.mutateAsync(payload);
+
+      // OVRD-01: If unit has a linked datasheet, save stat edits as overrides too
+      if (datasheet) {
+        const pointsOverride = pointsOverrideValue.trim() !== ""
+          ? parseInt(pointsOverrideValue, 10)
+          : null;
+        const parsedPoints = pointsOverride !== null && Number.isFinite(pointsOverride) ? pointsOverride : null;
+
+        const overridePayload: UpsertUnitOverrideInput = {
+          unit_id: unitId,
+          points: parsedPoints,
+          move,
+          toughness,
+          save: saveStat,
+          wounds,
+          leadership,
+          objective_control: objectiveControl,
+          keywords: keywords || null,
+          abilities: abilities || null,
+        };
+        // Only save override if at least one stat differs from imported value OR points override is set
+        const hasAnyStatOverride = STAT_KEYS.some((k) => {
+          const imported = importedStatValue(k);
+          const current = statValue(k);
+          return imported !== null && current !== null && current !== imported;
+        });
+        if (hasAnyStatOverride || parsedPoints !== null) {
+          try {
+            await upsertOverride.mutateAsync(overridePayload);
+          } catch {
+            // Override save failure is non-critical — strategy note already saved
+            console.warn("[PlaybookTab] override save failed");
+          }
+        }
+      }
+
       toast.success("Playbook saved");
       // Update snapshot so isDirty becomes false without round-trip refetch
       initialRef.current = {
@@ -257,6 +296,40 @@ export function PlaybookTab({
     }
   }
 
+  // OVRD-05: Override marker helpers
+  function overrideKey(key: StatKey): string {
+    const map: Record<StatKey, string> = {
+      M: "move", T: "toughness", Sv: "save", W: "wounds", Ld: "leadership", OC: "objective_control",
+    };
+    return map[key];
+  }
+
+  function isStatOverridden(key: StatKey): boolean {
+    if (!overrideRow) return false;
+    const col = overrideKey(key) as keyof typeof overrideRow;
+    return overrideRow[col] !== null && overrideRow[col] !== undefined;
+  }
+
+  function importedStatValue(key: StatKey): number | null {
+    const model = datasheet?.models?.[0];
+    if (!model) return null;
+    const raw = (() => {
+      switch (key) {
+        case "M": return model.M;
+        case "T": return model.T;
+        case "Sv": return model.Sv;
+        case "W": return model.W;
+        case "Ld": return model.Ld;
+        case "OC": return model.OC;
+        default: return null;
+      }
+    })();
+    if (raw === null || raw === undefined || raw === "") return null;
+    const cleaned = String(raw).replace(/["+]/g, "");
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : null;
+  }
+
   // Datasheet integration hooks (DS-01..DS-12)
   const qc = useQueryClient();
   const { data: factions } = useFactions();
@@ -271,6 +344,24 @@ export function PlaybookTab({
   const { data: syncErrors = [] } = useRulesSyncErrors();
   const { data: datasheet } = useDatasheet(unitId);
   const rulesSync = useRulesSync();
+
+  // OVRD-01..04: override hooks
+  const { data: overrideRow } = useUnitOverride(unitId);
+  const upsertOverride = useUpsertUnitOverride();
+  const deleteOverride = useDeleteUnitOverride();
+
+  // State for diff view and points override
+  const [lastSyncDiff, setLastSyncDiff] = useState<SyncDiff | null>(null);
+  const [pointsOverrideValue, setPointsOverrideValue] = useState<string>("");
+
+  // Sync pointsOverrideValue state with overrideRow data when it loads
+  useEffect(() => {
+    if (overrideRow?.points !== null && overrideRow?.points !== undefined) {
+      setPointsOverrideValue(String(overrideRow.points));
+    } else {
+      setPointsOverrideValue("");
+    }
+  }, [overrideRow?.points]);
 
   // Extended rules hooks (Phase 43 — SCHEMA-01 to SCHEMA-04)
   const { data: stratagems = [] } = useStratagemsByFaction(wahapediaFactionId ?? undefined);
@@ -444,7 +535,20 @@ export function PlaybookTab({
           `${c.wargear} wargear`,
           `${c.keywords} keywords`,
         ].join(", ");
-        toast.success(`Synced: ${summary}`);
+
+        // Store diff for the collapsible section
+        setLastSyncDiff(data.diff);
+
+        // Toast with diff info appended
+        if (data.diff.total_changed > 0) {
+          const diffParts: string[] = [];
+          if (data.diff.added.length > 0) diffParts.push(`${data.diff.added.length} added`);
+          if (data.diff.removed.length > 0) diffParts.push(`${data.diff.removed.length} removed`);
+          if (data.diff.renamed.length > 0) diffParts.push(`${data.diff.renamed.length} renamed`);
+          toast.success(`Synced: ${summary} (${diffParts.join(", ")})`);
+        } else {
+          toast.success(`Synced: ${summary}`);
+        }
       },
       onError: (err) => {
         console.error("[useRulesSync] sync failed:", err);
@@ -537,6 +641,30 @@ export function PlaybookTab({
                 )}
               </Button>
             )}
+            {overrideRow && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      aria-label="Clear all overrides"
+                      onClick={() => {
+                        deleteOverride.mutate(unitId, {
+                          onSuccess: () => toast.success("Overrides cleared"),
+                          onError: () => toast.error("Failed to clear overrides"),
+                        });
+                      }}
+                    >
+                      <X className="h-3.5 w-3.5" aria-hidden="true" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Clear all overrides</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
             <Button
               type="button"
               variant="ghost"
@@ -603,6 +731,47 @@ export function PlaybookTab({
                 </CollapsibleContent>
               </Collapsible>
             )}
+
+            {/* OVRD-06/07: Post-sync diff view */}
+            {lastSyncDiff && lastSyncDiff.total_changed > 0 && (
+              <Collapsible>
+                <CollapsibleTrigger className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                  <ChevronDown className="h-3 w-3 transition-transform data-[state=open]:rotate-180" aria-hidden="true" />
+                  <span>Changes since last sync ({lastSyncDiff.total_changed})</span>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-1.5 pl-4 flex flex-col gap-1.5">
+                  {lastSyncDiff.removed.length > 0 && (
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3 text-destructive" aria-hidden="true" />
+                        <span className="text-xs font-semibold text-destructive">Removed ({lastSyncDiff.removed.length})</span>
+                      </div>
+                      {lastSyncDiff.removed.map((d) => (
+                        <span key={d.id} className="text-xs text-muted-foreground pl-4">{d.name}</span>
+                      ))}
+                    </div>
+                  )}
+                  {lastSyncDiff.renamed.length > 0 && (
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-xs font-semibold text-muted-foreground">Renamed ({lastSyncDiff.renamed.length})</span>
+                      {lastSyncDiff.renamed.map((d) => (
+                        <span key={d.id} className="text-xs text-muted-foreground pl-4">
+                          {d.oldName} &rarr; {d.newName}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {lastSyncDiff.added.length > 0 && (
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-xs font-semibold text-muted-foreground">Added ({lastSyncDiff.added.length})</span>
+                      {lastSyncDiff.added.map((d) => (
+                        <span key={d.id} className="text-xs text-muted-foreground pl-4">{d.name}</span>
+                      ))}
+                    </div>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
+            )}
           </div>
         )}
 
@@ -621,17 +790,68 @@ export function PlaybookTab({
           </div>
         )}
 
+        {/* OVRD-01: Points override — visible in edit mode when unit has linked datasheet */}
+        {hasDatasheetLink && statsEditMode && (
+          <div className="flex items-center gap-2 px-1">
+            <span className="text-xs font-medium text-muted-foreground w-16">Points</span>
+            <Input
+              type="number"
+              min={0}
+              placeholder={unit?.points != null ? String(unit.points) : "—"}
+              value={pointsOverrideValue}
+              onChange={(e) => setPointsOverrideValue(e.target.value)}
+              className="h-7 w-24 text-sm tabular-nums"
+              aria-label="Points override"
+            />
+            {overrideRow?.points != null && (
+              <span className="text-[10px] text-muted-foreground">
+                (imported: {unit?.points ?? "—"})
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* OVRD-01: Points override display — visible in view mode when a points override is active */}
+        {hasDatasheetLink && !statsEditMode && overrideRow?.points != null && (
+          <div className="flex items-center gap-2 px-1">
+            <span className="text-xs font-medium text-muted-foreground w-16">Points</span>
+            <span className="text-sm font-semibold tabular-nums">{overrideRow.points} pts</span>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Pencil className="h-2.5 w-2.5 text-primary cursor-help" aria-hidden="true" />
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  Manual override — imported value: {unit?.points ?? "—"} pts
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        )}
+
         <div className="flex flex-row gap-1">
           {STAT_KEYS.map((key) => (
             <div
               key={key}
-              className={`flex-1 flex flex-col items-center justify-center min-h-[44px] border ${
-                statsEditMode ? "border-primary" : "border-border"
+              className={`relative flex-1 flex flex-col items-center justify-center min-h-[44px] border ${
+                isStatOverridden(key) ? "border-primary bg-primary/5" : statsEditMode ? "border-primary" : "border-border"
               } rounded-sm bg-card gap-1 px-1 py-2`}
             >
               <span className="text-[10px] font-semibold text-muted-foreground uppercase">
                 {key}
               </span>
+              {isStatOverridden(key) && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Pencil className="h-2.5 w-2.5 text-primary absolute top-1 right-1 cursor-help" aria-hidden="true" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      Manual override — imported value: {formatStatValue(key, importedStatValue(key))}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
               {statsEditMode ? (
                 <Input
                   type="number"
