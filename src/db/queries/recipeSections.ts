@@ -104,3 +104,23 @@ export async function getStepCountsBySection(): Promise<SectionStepCount[]> {
     [],
   );
 }
+
+/**
+ * INTG-02 — batch section count per recipe.
+ * Returns {recipe_id, section_count}[] via GROUP BY.
+ * Single SQL query for RecipeCard grid display.
+ */
+export interface RecipeSectionCount {
+  recipe_id: number;
+  section_count: number;
+}
+
+export async function getSectionCountsByRecipe(): Promise<RecipeSectionCount[]> {
+  const db = await getDb();
+  return db.select<RecipeSectionCount[]>(
+    `SELECT recipe_id, COUNT(*) AS section_count
+     FROM recipe_sections
+     GROUP BY recipe_id`,
+    [],
+  );
+}

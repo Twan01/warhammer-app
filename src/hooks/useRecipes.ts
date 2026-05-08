@@ -13,6 +13,7 @@ import {
   STEP_COUNTS_KEY,
   RECIPE_AVAILABILITY_KEY,
 } from "@/hooks/useRecipePaints";
+import { SECTION_COUNTS_KEY } from "@/hooks/useRecipeSections";
 
 export const RECIPES_KEY = ["recipes"] as const;
 export const RECIPE_KEY = (id: number) => ["recipes", id] as const;
@@ -77,6 +78,9 @@ export function useDuplicateRecipe() {
       qc.invalidateQueries({ queryKey: RECIPE_SWATCH_KEY });
       qc.invalidateQueries({ queryKey: STEP_COUNTS_KEY });
       qc.invalidateQueries({ queryKey: RECIPE_AVAILABILITY_KEY });
+      // RECIPE_SECTIONS_KEY prefix — covers all per-recipe section queries
+      qc.invalidateQueries({ queryKey: ["recipe-sections"] });
+      qc.invalidateQueries({ queryKey: SECTION_COUNTS_KEY }); // batch section count cache
     },
   });
 }

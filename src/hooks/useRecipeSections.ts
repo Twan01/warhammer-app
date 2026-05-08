@@ -6,6 +6,7 @@ import {
   deleteRecipeSection,
   reorderRecipeSections,
   getStepCountsBySection,
+  getSectionCountsByRecipe,
 } from "@/db/queries/recipeSections";
 import {
   RECIPE_PAINTS_KEY,
@@ -17,6 +18,7 @@ import type { CreateRecipeSectionInput, UpdateRecipeSectionInput } from "@/types
 
 export const RECIPE_SECTIONS_KEY = (recipeId: number) => ["recipe-sections", recipeId] as const;
 export const SECTION_STEP_COUNTS_KEY = ["section-step-counts"] as const;
+export const SECTION_COUNTS_KEY = ["recipe-section-counts"] as const;
 
 export function useRecipeSections(recipeId: number | undefined) {
   return useQuery({
@@ -86,6 +88,16 @@ export function useSectionStepCounts() {
     queryFn: async () => {
       const rows = await getStepCountsBySection();
       return new Map(rows.map((r) => [r.section_id, r.step_count]));
+    },
+  });
+}
+
+export function useAllSectionCounts() {
+  return useQuery({
+    queryKey: SECTION_COUNTS_KEY,
+    queryFn: async () => {
+      const rows = await getSectionCountsByRecipe();
+      return new Map(rows.map((r) => [r.recipe_id, r.section_count]));
     },
   });
 }
