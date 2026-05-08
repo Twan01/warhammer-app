@@ -15,13 +15,14 @@ export async function addRecipePaint(input: CreateRecipeStepInput): Promise<numb
     `INSERT INTO recipe_steps
      (recipe_id, paint_id, step_name, order_index, notes,
       painting_phase, tool, technique, dilution, time_estimate_minutes,
-      step_photo_path, alt_paint_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+      step_photo_path, alt_paint_id, section_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
     [
       input.recipe_id, input.paint_id, input.step_name, input.order_index, input.notes ?? null,
       input.painting_phase ?? null, input.tool ?? null, input.technique ?? null,
       input.dilution ?? null, input.time_estimate_minutes ?? null,
       input.step_photo_path ?? null, input.alt_paint_id ?? null,
+      input.section_id ?? null,
     ]
   );
   return result.lastInsertId ?? 0;
