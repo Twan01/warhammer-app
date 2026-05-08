@@ -304,6 +304,56 @@
 
 ---
 
+## Milestone: v2.6 — Rules Sync 2.0 / Rules Data Hub
+
+**Shipped:** 2026-05-08
+**Phases:** 6 (42–47) | **Plans:** 11 | **Timeline:** 1 day (2026-05-08)
+
+### What Was Built
+
+- Phase 42: Architecture audit — full sync pipeline mapping (TypeScript CSV fetch → Rust transaction → SQLite), type/query/hook gap inventory, migration plan for 4 new tables
+- Phase 43: Extended rules read layer — TypeScript types, queries, and hooks for stratagems, detachments, detachment abilities, and shared abilities; PlaybookTab collapsible sections (SCHEMA-01–05)
+- Phase 44: Sync pipeline hardening — Rust SyncResult with per-table row counts via rows_affected(), CSV header validation module, sync_errors persistence layer (SYNC-01–05)
+- Phase 45: Sync metadata & import tracking — rw_sync_meta count columns, rules_snapshot DDL, Rust upsert extension, freshness utility, PlaybookTab sync details and error history (META-01–06)
+- Phase 46: Manual overrides — unit_overrides migration + CRUD, 3-level COALESCE for effective_points, computeSyncDiff pure function, PlaybookTab override markers + diff view (OVRD-01–07)
+- Phase 47: Gap closure — enriched SNAPSHOT_TABLES with full field data, ExtendedSnapshotData options object, per-field comparison (stats/keywords/abilities), Modified section in diff UI, SUMMARY frontmatter standardization
+
+### What Worked
+
+- **Architecture audit as Phase 0:** Phase 42 was a read-only investigation that produced a written reference document. Every subsequent phase referenced it for table schemas, data flow diagrams, and migration plans. Zero planning confusion across Phases 43–47.
+- **ExtendedSnapshotData options object:** Instead of adding 6 positional parameters to computeSyncDiff, the optional third param `extended?: ExtendedSnapshotData` maintained full backward compatibility. Zero call sites needed updating; existing tests continued passing unchanged.
+- **Overrides in hobbyforge.db, not rules.db:** The critical design decision to store unit_overrides in hobbyforge.db (not rules.db which is wiped on every sync) was established early in Phase 42's audit and never questioned. Overrides survived re-syncs from day one.
+- **Milestone audit → gap closure cycle (5th time):** The v2.6 audit identified OVRD-06 as partial (per-field diff missing), stale JSDoc, and SUMMARY frontmatter gaps. Phase 47 closed all gaps. The cycle is fully routine — audit findings become Phase 47 scope.
+- **SUMMARY frontmatter standardization in Phase 47:** Finally addressed the persistent `requirements_completed` gap across Phases 43–46 (8 files). Phase 47 Plan 02 renamed and added the field in all 8 files as part of tech debt cleanup.
+
+### What Was Inefficient
+
+- **Phase 42 audit predated Phase 47 execution:** The milestone audit at v2.6 was run after Phase 46 (status: `tech_debt`). Phase 47 resolved all tech debt items, but the audit wasn't re-run. The audit file still shows `status: tech_debt` and `requirements: 26/27` even though all 27 are now complete.
+- **one_liner still missing from all 11 SUMMARY files:** Despite being flagged as a lesson in v2.5, none of the v2.6 SUMMARYs populated the `one_liner` field. Accomplishment extraction at milestone completion still required manual grep of summary headers. The `summary-extract` tool returned null for every file.
+- **ROADMAP progress table column misalignment (6th consecutive):** Phases 43–47 were missing the milestone column. Fixed at archive time. This is the most persistent process issue.
+
+### Patterns Established
+
+- **Architecture audit phase for complex feature clusters:** Before starting a multi-phase feature (rules sync 2.0), invest one phase in a read-only audit that maps existing architecture, identifies gaps, and produces a migration plan. All subsequent phases reference the audit document.
+- **Options object for backward-compatible function extension:** When extending a pure function's signature, use an optional trailing options object (`extended?: T`) instead of positional params. Preserves all existing call sites and tests.
+- **Dual-query merge for cross-database data:** Since ATTACH DATABASE isn't available via tauri-plugin-sql, query both databases separately and merge in TypeScript. Used consistently for override-enriched data views.
+- **Pre-sync snapshot read before capture ordering:** `getLatestSnapshot()` must run before `capturePreSyncSnapshot()` to capture the baseline for diffing. The ordering is enforced in mutationFn with sequential awaits.
+
+### Key Lessons
+
+1. **Re-run milestone audit after gap closure phase.** The v2.6 audit shows `tech_debt` status but all tech debt was resolved by Phase 47. The stale audit status is misleading.
+2. **Enforce `one_liner` in SUMMARY frontmatter.** 6th milestone with this gap. The `summary-extract` tool depends on it; milestone completion falls back to manual extraction every time.
+3. **Architecture audits should be standard for multi-phase features.** Phase 42's investment paid off across 5 downstream phases. Worth formalizing as a GSD workflow option.
+4. **Per-field diff is valuable but scope-sensitive.** OVRD-06 was initially deferred as "snapshot stores only {id, name}" in Phase 46, then promoted to a gap closure phase. The enriched snapshot approach (storing full row JSON) is clean but required 2 additional plans. Worth scoping upfront in future features.
+
+### Cost Observations
+
+- Model: Claude Opus 4.6 throughout
+- Sessions: 2 (Phase 42–46 execution, Phase 47 gap closure + validation + completion)
+- Notable: 6 phases with 11 plans and 27 requirements in 1 calendar day; single-day milestone completion is now the norm for well-scoped work
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -317,6 +367,7 @@
 | v2.3 | 5 | 21 | Unified design system; Quick Add pattern; kanban enrichment |
 | v2.4 | 6 | 13 | CSS grid dashboard; photo-rich panels; Radix sentinel pattern; gap closure routine (6 min) |
 | v2.5 | 5 | 12 | Recipe restructure (rename migration); batch aggregate queries; session-recipe linking; no gap closure needed |
+| v2.6 | 6 | 11 | Architecture audit phase; dual-DB overrides; per-field diff; SUMMARY frontmatter standardization |
 
 ### Cumulative Quality
 
@@ -329,6 +380,7 @@
 | v2.3 | 758 | All passing (114 v2.3-specific tests) |
 | v2.4 | 778 | 778 passing, 1 pre-existing flaky (paintRowSwatch timeout), 2 skipped, 12 todo |
 | v2.5 | ~900 | All passing (18 requirements, 42/42 observable truths verified, Nyquist compliant) |
+| v2.6 | 1,031 | All passing (27 requirements, Nyquist compliant, 1 test added by validation audit) |
 
 ### Top Lessons (Verified Across Milestones)
 

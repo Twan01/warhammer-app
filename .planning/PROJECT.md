@@ -4,7 +4,7 @@
 
 HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, structured painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play" — all without ever depending on copyrighted GW data.
 
-Shipped through v2.5 (41 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with paint availability), army list builder, battle log, spending tracker, hobby goals, Wahapedia datasheet integration, photo journal, session-recipe linking, and a premium CSS grid dashboard with photo-rich panels, army readiness tracking, and visual polish.
+Shipped through v2.6 (47 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with paint availability), army list builder, battle log, spending tracker, hobby goals, photo journal, session-recipe linking, premium CSS grid dashboard, and a complete rules data hub — Wahapedia datasheet import with hardened sync pipeline, sync metadata/freshness tracking, persistent manual overrides, and per-field diff comparison after re-syncs.
 
 ## Core Value
 
@@ -86,24 +86,21 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ Recipe actions: duplication, per-step photos, substitute paint linking, bulk wishlist add — Phase 40 — v2.5
 - ✓ Session-recipe integration: recipe/step selectors in LogSessionSheet, session history in recipe detail — Phase 41 — v2.5
 
+*All v2.6 requirements verified and shipped 2026-05-08*
+
+- ✓ Architecture audit: full sync pipeline mapping, type/query/hook gap inventory, migration plan — Phase 42 — v2.6
+- ✓ Extended rules read layer: stratagems, detachments, detachment abilities, shared abilities in PlaybookTab with TypeScript data layer — Phase 43 — v2.6
+- ✓ Sync pipeline hardening: Rust per-table row counts, CSV header validation, persistent error logging, cache invalidation contract — Phase 44 — v2.6
+- ✓ Sync metadata & import tracking: last sync date, row counts, source version, error history, freshness badge, pre-sync snapshot — Phase 45 — v2.6
+- ✓ Manual overrides: per-unit points/stats/keywords/abilities overrides surviving re-syncs, 3-level COALESCE, visual override markers — Phase 46 — v2.6
+- ✓ Per-field diff: enriched snapshots, stat/keyword/ability value comparison, Modified section in diff UI — Phases 46–47 — v2.6
+
 ### Active
 
-## Current Milestone: v2.6 Rules Sync 2.0 / Rules Data Hub
-
-**Goal:** Stabilize and extend the local rules import architecture so HobbyForge becomes a reliable personal rules and points reference.
-
-**Target features:**
-- Architecture audit of current sync pipeline (TypeScript useRulesSync vs Rust bulk_sync_rules)
-- Extended rules schema: wargear, shared abilities, stratagems, detachments, detachment abilities
-- Sync pipeline extension for new CSV data types
-- Sync metadata and import tracking (source registry, freshness, error logs)
-- Manual overrides for points/stats/keywords that persist across re-syncs
-- Version comparison showing what changed after a re-sync
+(No active milestone — planning next)
 
 ### Out of Scope
 
-- Wishlist (user-curated buy lists with price tracking) — feature distinct from Hobby Goals; deferred
-- Image upload, photo timelines, image gallery — deferred in v2.0; now in scope for v2.1 Hobby Journal
 - Backup / export / import — deferred
 - Settings page — deferred
 - Multi-game-system support (AoS, Horus Heresy, etc.) — 40K 10th edition only
@@ -113,10 +110,12 @@ A single personal command center that always answers "what do I own, what's pain
 - Official rules, codexes, datasheets, GW point values — legal/copyright constraint, never in scope
 - Competitive list optimization or rules validation — explicitly not the goal
 - Real-time multiplayer / cloud sync / accounts — local-first by design
+- Real-time auto-sync (scheduled Wahapedia fetch) — local-first, user triggers manually
+- ATTACH DATABASE for cross-DB queries — tauri-plugin-sql limitation; dual-query merge pattern continues
 
 ## Context
 
-- **Current state:** v2.5 shipped. ~240 TypeScript source files. ~900 automated tests passing. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 9 main pages (Dashboard, Collection, Projects, Recipes, Paints, Army Lists, Battle Log, Spending, Factions). Recipes transformed into structured painting knowledge system: step-by-step workflows with phase/tool/technique/dilution/time, card grid studio with paint availability badges, timeline detail view, recipe duplication, per-step photos, substitute paints, bulk wishlist add, and session-recipe linking. 14 SQLite migrations, 3 new in v2.5 (012/013/014).
+- **Current state:** v2.6 shipped. ~250 TypeScript source files. 1,031 automated tests passing. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 9 main pages. Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline: Rust bulk_sync_rules with per-table row counts, CSV validation, persistent error logging, sync metadata, freshness tracking, pre-sync snapshots, manual overrides surviving re-syncs, and per-field diff comparison. 15 SQLite migrations (14 hobbyforge.db + 1 rules.db wargear extension).
 - **Personal tool** — single user (the owner), local-first, no accounts or sync
 - **Domain:** Warhammer 40K 10th edition, hobby management (collecting → painting → playing)
 - **User journey priority:** painter/collector → ready-to-play, *not* competitive optimization
@@ -171,6 +170,12 @@ A single personal command center that always answers "what do I own, what's pain
 | Sequential mutateAsync for bulk wishlist add | Simpler error handling than Promise.all; first failure surfaces | ✓ Good — fine for local desktop app with low item counts |
 | ON DELETE SET NULL for session-recipe FKs | Session survives recipe/step deletion; link cleared not orphaned | ✓ Good — preserves session data integrity |
 | Conditional RECIPE_SESSIONS_KEY invalidation | Only when recipe_id != null — no unnecessary cache busts for unlinked sessions | ✓ Good — precise invalidation following symmetry rule |
+| Overrides in hobbyforge.db, not rules.db | rules.db is destroyed and re-inserted on every sync — any data in rw_* tables is lost | ✓ Good — overrides survive re-syncs reliably |
+| ExtendedSnapshotData options object for computeSyncDiff | Avoids 8-param explosion; optional third param maintains full backward compat | ✓ Good — clean API; existing call sites unchanged |
+| Record<string, unknown>[] for snapshot select() generic | Composite-PK tables return different row shapes than simple id+name tables | ✓ Good — result goes to JSON.stringify so shape only matters at runtime |
+| 3-level COALESCE for effective points | alu.points_override > uo.points > u.points — army-list override takes priority | ✓ Excellent — single SQL expression, no JS math |
+| Pre-sync snapshot read before capture | getLatestSnapshot() → capturePreSyncSnapshot() ordering ensures baseline for diff | ✓ Good — first sync gracefully returns empty diff |
+| Promise.all for post-sync extended queries | Three parallel SELECT queries with same ORDER BY as SNAPSHOT_TABLES for deterministic comparison | ✓ Good — minimal latency overhead for per-field diff |
 
 ---
-*Last updated: 2026-05-07 after v2.6 milestone start*
+*Last updated: 2026-05-08 after v2.6 milestone*

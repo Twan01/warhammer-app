@@ -1,5 +1,26 @@
 # Milestones
 
+## v2.6 Rules Sync 2.0 / Rules Data Hub (Shipped: 2026-05-08)
+
+**Phases completed:** 6 phases (42–47), 11 plans
+**Timeline:** 2026-05-08 (single day)
+**Stats:** 79 commits, 32 files changed, +3,816 / -159 lines, 27 requirements satisfied, 1,031 automated tests passing
+
+**Key accomplishments:**
+- Architecture audit: full sync pipeline mapping (TypeScript CSV fetch → Rust transaction → SQLite) with gap inventory for types, queries, hooks, and migration plan
+- Extended rules read layer: TypeScript types, query functions, and React Query hooks for stratagems, detachments, detachment abilities, and shared faction abilities — all four surfaced in PlaybookTab collapsible sections
+- Sync pipeline hardening: Rust `bulk_sync_rules` returns per-table row counts via `SyncResult`, CSV column header validation rejects malformed files, sync errors logged to persistent `sync_errors` table, all rules query keys invalidated on success
+- Sync metadata & import tracking: last sync date/time, per-table row counts, Wahapedia source version, sync error history, freshness badge (stale/fresh) on rules pages, pre-sync snapshot mechanism capturing all 11 tables
+- Manual overrides: per-unit points/stats/keywords/abilities overrides in hobbyforge.db that survive re-syncs, 3-level COALESCE chain for effective points, override markers in PlaybookTab UI
+- Per-field diff: enriched snapshot stores full field values for models/keywords/abilities, `computeSyncDiff` compares per-field changes, PlaybookTab Modified section shows stat/keyword/ability value changes after re-sync
+
+**Archived:**
+- Roadmap: `.planning/milestones/v2.6-ROADMAP.md`
+- Requirements: `.planning/milestones/v2.6-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v2.6-MILESTONE-AUDIT.md`
+
+---
+
 ## v2.5 Recipes 2.0 / Painting Studio (Shipped: 2026-05-07)
 
 **Phases completed:** 5 phases (37–41), 12 plans
