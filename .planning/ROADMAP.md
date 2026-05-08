@@ -218,8 +218,10 @@ Plans:
   3. Diff UI displays per-field value changes alongside the existing datasheet-level changes
   4. Stale JSDoc in armyLists.ts (lines 20, 159) is corrected to match the actual 3-level COALESCE chain
   5. SUMMARY frontmatter in phases 43–46 includes requirements_completed entries
+**Plans:** 2 plans
 Plans:
-- [ ] (to be planned)
+- [ ] 47-01-PLAN.md — Extend snapshot queries and SyncDiff with per-field diff algorithm + tests (OVRD-06)
+- [ ] 47-02-PLAN.md — Wire extended diff into useRulesSync, PlaybookTab Modified UI section, JSDoc fix, SUMMARY frontmatter (OVRD-06)
 
 ## Progress
 
@@ -273,4 +275,4 @@ Plans:
 | 44. Sync Pipeline Hardening | 2/2 | Complete    | 2026-05-08 | - |
 | 45. Sync Metadata & Import Tracking | 2/2 | Complete    | 2026-05-08 | - |
 | 46. Manual Overrides & Version Comparison | 2/2 | Complete    | 2026-05-08 | - |
-| 47. v2.6 Gap Closure | v2.6 | 0/0 | Planned | - |
+| 47. v2.6 Gap Closure | v2.6 | 0/2 | Planned | - |
