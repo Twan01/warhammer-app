@@ -253,5 +253,5 @@ Plans:
 | 42. Architecture Audit | v2.6 | 1/1 | Complete | 2026-05-08 |
 | 43. Extended Rules Read Layer | 2/2 | Complete    | 2026-05-08 | - |
 | 44. Sync Pipeline Hardening | 2/2 | Complete    | 2026-05-08 | - |
-| 45. Sync Metadata & Import Tracking | 2/2 | Complete   | 2026-05-08 | - |
+| 45. Sync Metadata & Import Tracking | 2/2 | Complete    | 2026-05-08 | - |
 | 46. Manual Overrides & Version Comparison | v2.6 | 0/TBD | Not started | - |
