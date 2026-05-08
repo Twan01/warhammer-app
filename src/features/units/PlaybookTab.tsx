@@ -234,7 +234,9 @@ export function PlaybookTab({
           const current = statValue(k);
           return imported !== null && current !== null && current !== imported;
         });
-        if (hasAnyStatOverride || parsedPoints !== null) {
+        const hasKeywordsOverride = (keywords || null) !== null;
+        const hasAbilitiesOverride = (abilities || null) !== null;
+        if (hasAnyStatOverride || parsedPoints !== null || hasKeywordsOverride || hasAbilitiesOverride) {
           try {
             await upsertOverride.mutateAsync(overridePayload);
           } catch {
