@@ -62,6 +62,18 @@ vi.mock("@/features/units/DatasheetPicker", () => ({
   DatasheetPicker: () => null, // render nothing — picker is tested separately
 }));
 
+const useStratagemsByFactionMock = vi.fn();
+const useDetachmentsByFactionMock = vi.fn();
+const useSharedAbilitiesByFactionMock = vi.fn();
+const useDetachmentAbilitiesByDetachmentMock = vi.fn();
+
+vi.mock("@/hooks/useRulesExtended", () => ({
+  useStratagemsByFaction: (factionId: string | undefined) => useStratagemsByFactionMock(factionId),
+  useDetachmentsByFaction: (factionId: string | undefined) => useDetachmentsByFactionMock(factionId),
+  useSharedAbilitiesByFaction: (factionId: string | undefined) => useSharedAbilitiesByFactionMock(factionId),
+  useDetachmentAbilitiesByDetachment: (detachmentId: string | undefined) => useDetachmentAbilitiesByDetachmentMock(detachmentId),
+}));
+
 import * as queries from "@/db/queries/strategyNotes";
 import * as datasheetHooks from "@/hooks/useDatasheet";
 import { PlaybookTab } from "@/features/units/PlaybookTab";
@@ -129,6 +141,11 @@ beforeEach(() => {
   // Default: no existing note (most tests use this; specific tests override)
   getStrategyNoteMock.mockResolvedValue(null);
   upsertStrategyNoteMock.mockResolvedValue(undefined);
+  // Reset extended rules mocks to empty default
+  useStratagemsByFactionMock.mockReset().mockReturnValue({ data: [] });
+  useDetachmentsByFactionMock.mockReset().mockReturnValue({ data: [] });
+  useSharedAbilitiesByFactionMock.mockReset().mockReturnValue({ data: [] });
+  useDetachmentAbilitiesByDetachmentMock.mockReset().mockReturnValue({ data: [] });
 });
 
 afterEach(() => {
@@ -459,5 +476,154 @@ describe("PlaybookTab — Weapons section (Phase 15 wargear)", () => {
     // Wait for the component to settle
     await screen.findByRole("button", { name: /Save Playbook/ });
     expect(screen.queryByText("Weapons")).toBeNull();
+  });
+});
+
+describe("PlaybookTab — SCHEMA-01 Stratagems", () => {
+  const sampleStratagem = {
+    id: "s1",
+    faction_id: "SM",
+    name: "Armour of Contempt",
+    type: "Battle Tactic",
+    cp_cost: "1",
+    legend: null,
+    turn: "Your turn",
+    phase: "Command phase",
+    detachment: null,
+    detachment_id: null,
+    description: "Improve AP by 1",
+  };
+
+  it("SCHEMA-01: renders 'Stratagems' heading when useStratagemsByFaction returns data", async () => {
+    useStratagemsByFactionMock.mockReturnValue({ data: [sampleStratagem] });
+    renderInsideTabs(42);
+    expect(await screen.findByText("Stratagems")).toBeInTheDocument();
+  });
+
+  it("SCHEMA-01: renders stratagem name, CP cost, and phase group header", async () => {
+    useStratagemsByFactionMock.mockReturnValue({ data: [sampleStratagem] });
+    renderInsideTabs(42);
+    await screen.findByText("Stratagems");
+    expect(screen.getByText("Armour of Contempt")).toBeInTheDocument();
+    expect(screen.getByText("1 CP")).toBeInTheDocument();
+    expect(screen.getByText("Command phase")).toBeInTheDocument();
+  });
+
+  it("SCHEMA-01: renders stratagem description text", async () => {
+    useStratagemsByFactionMock.mockReturnValue({ data: [sampleStratagem] });
+    renderInsideTabs(42);
+    await screen.findByText("Stratagems");
+    expect(screen.getByText("Improve AP by 1")).toBeInTheDocument();
+  });
+
+  it("SCHEMA-01: hides Stratagems section when hook returns empty array", async () => {
+    useStratagemsByFactionMock.mockReturnValue({ data: [] });
+    renderInsideTabs(42);
+    await screen.findByRole("button", { name: /Save Playbook/ });
+    expect(screen.queryByText("Stratagems")).toBeNull();
+  });
+});
+
+describe("PlaybookTab — SCHEMA-02 Detachments", () => {
+  const sampleDetachment = {
+    id: "d1",
+    faction_id: "SM",
+    name: "Gladius Task Force",
+    legend: "A versatile strike force",
+    type: "Standard",
+  };
+
+  it("SCHEMA-02: renders 'Detachments' heading when useDetachmentsByFaction returns data", async () => {
+    useDetachmentsByFactionMock.mockReturnValue({ data: [sampleDetachment] });
+    renderInsideTabs(42);
+    expect(await screen.findByText("Detachments")).toBeInTheDocument();
+  });
+
+  it("SCHEMA-02: renders detachment name and legend text", async () => {
+    useDetachmentsByFactionMock.mockReturnValue({ data: [sampleDetachment] });
+    renderInsideTabs(42);
+    await screen.findByText("Detachments");
+    expect(screen.getByText("Gladius Task Force")).toBeInTheDocument();
+    expect(screen.getByText("A versatile strike force")).toBeInTheDocument();
+  });
+
+  it("SCHEMA-02: hides Detachments section when hook returns empty array", async () => {
+    useDetachmentsByFactionMock.mockReturnValue({ data: [] });
+    renderInsideTabs(42);
+    await screen.findByRole("button", { name: /Save Playbook/ });
+    expect(screen.queryByText("Detachments")).toBeNull();
+  });
+});
+
+describe("PlaybookTab — SCHEMA-03 Detachment abilities nested under parent", () => {
+  const sampleDetachment = {
+    id: "d1",
+    faction_id: "SM",
+    name: "Gladius Task Force",
+    legend: null,
+    type: "Standard",
+  };
+  const sampleAbility = {
+    id: "da1",
+    faction_id: "SM",
+    name: "Combat Doctrines",
+    legend: null,
+    description: "Each time a unit fires",
+    detachment: "Gladius Task Force",
+    detachment_id: "d1",
+  };
+
+  it("SCHEMA-03: renders ability name nested under detachment when useDetachmentAbilitiesByDetachment returns data", async () => {
+    useDetachmentsByFactionMock.mockReturnValue({ data: [sampleDetachment] });
+    useDetachmentAbilitiesByDetachmentMock.mockReturnValue({ data: [sampleAbility] });
+    renderInsideTabs(42);
+    await screen.findByText("Detachments");
+    expect(screen.getByText("Gladius Task Force")).toBeInTheDocument();
+    expect(screen.getByText("Combat Doctrines")).toBeInTheDocument();
+    expect(screen.getByText("Each time a unit fires")).toBeInTheDocument();
+  });
+});
+
+describe("PlaybookTab — SCHEMA-04 Shared Faction Abilities", () => {
+  const sampleAbility = {
+    id: "a1",
+    name: "Oath of Moment",
+    legend: null,
+    faction_id: "SM",
+    description: "Re-roll hits against one target",
+  };
+
+  it("SCHEMA-04: renders 'Shared Faction Abilities' heading when useSharedAbilitiesByFaction returns data", async () => {
+    useSharedAbilitiesByFactionMock.mockReturnValue({ data: [sampleAbility] });
+    renderInsideTabs(42);
+    expect(await screen.findByText("Shared Faction Abilities")).toBeInTheDocument();
+  });
+
+  it("SCHEMA-04: renders shared ability name and description", async () => {
+    useSharedAbilitiesByFactionMock.mockReturnValue({ data: [sampleAbility] });
+    renderInsideTabs(42);
+    await screen.findByText("Shared Faction Abilities");
+    expect(screen.getByText("Oath of Moment")).toBeInTheDocument();
+    expect(screen.getByText("Re-roll hits against one target")).toBeInTheDocument();
+  });
+
+  it("SCHEMA-04: hides section when hook returns empty array", async () => {
+    useSharedAbilitiesByFactionMock.mockReturnValue({ data: [] });
+    renderInsideTabs(42);
+    await screen.findByRole("button", { name: /Save Playbook/ });
+    expect(screen.queryByText("Shared Faction Abilities")).toBeNull();
+  });
+});
+
+describe("PlaybookTab — combined absence of extended sections", () => {
+  it("shows none of the extended section headings when all three hooks return empty arrays and wahapediaFactionId is null", async () => {
+    useStratagemsByFactionMock.mockReturnValue({ data: [] });
+    useDetachmentsByFactionMock.mockReturnValue({ data: [] });
+    useSharedAbilitiesByFactionMock.mockReturnValue({ data: [] });
+    renderInsideTabs(42);
+    await screen.findByRole("button", { name: /Save Playbook/ });
+    expect(screen.queryByText("Stratagems")).toBeNull();
+    expect(screen.queryByText("Detachments")).toBeNull();
+    expect(screen.queryByText("Shared Faction Abilities")).toBeNull();
   });
 });

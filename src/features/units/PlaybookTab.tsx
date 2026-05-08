@@ -670,6 +670,77 @@ export function PlaybookTab({
 
       {(hasAnyDatasheetAbility || sources.length > 0) && <Separator />}
 
+      {/* SCHEMA-01: Stratagems grouped by phase */}
+      {hasStratagems && (
+        <>
+          <Separator />
+          <Collapsible defaultOpen={true}>
+            <CollapsibleTrigger asChild>
+              <button type="button" className="flex items-center justify-between w-full py-2 text-left">
+                <span className="text-base font-semibold">Stratagems</span>
+                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform data-[state=open]:rotate-180" aria-hidden="true" />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="flex flex-col gap-4">
+                {Array.from(stratagemsByPhase.entries()).map(([phaseName, phaseStratagems]) => (
+                  <div key={phaseName} className="flex flex-col gap-2">
+                    <span className={SECTION_LABEL_CLASS}>{phaseName}</span>
+                    {phaseStratagems.map((s) => (
+                      <StratagemEntry key={s.id} stratagem={s} />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </>
+      )}
+
+      {/* SCHEMA-02 + SCHEMA-03: Detachments with nested abilities */}
+      {hasDetachments && (
+        <>
+          <Separator />
+          <Collapsible defaultOpen={true}>
+            <CollapsibleTrigger asChild>
+              <button type="button" className="flex items-center justify-between w-full py-2 text-left">
+                <span className="text-base font-semibold">Detachments</span>
+                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform data-[state=open]:rotate-180" aria-hidden="true" />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="flex flex-col gap-4">
+                {detachments.map((det) => (
+                  <DetachmentSection key={det.id} detachment={det} />
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </>
+      )}
+
+      {/* SCHEMA-04: Shared Faction Abilities */}
+      {hasSharedAbilities && (
+        <>
+          <Separator />
+          <Collapsible defaultOpen={true}>
+            <CollapsibleTrigger asChild>
+              <button type="button" className="flex items-center justify-between w-full py-2 text-left">
+                <span className="text-base font-semibold">Shared Faction Abilities</span>
+                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform data-[state=open]:rotate-180" aria-hidden="true" />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="flex flex-col gap-2">
+                {sharedAbilities.map((a) => (
+                  <ExtendedAbilityEntry key={a.id} name={a.name} description={a.description} />
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </>
+      )}
+
       {/* Point Tiers — Phase 24 */}
       <TierManager unitId={unitId} />
 
@@ -831,6 +902,66 @@ function AbilityEntry({ ability }: { ability: import("@/types/datasheet").RwData
         <p className="text-sm text-muted-foreground leading-relaxed">
           {ability.description}
         </p>
+      )}
+    </div>
+  );
+}
+
+// StratagemEntry — displays one stratagem with CP cost, type, turn, and description.
+function StratagemEntry({ stratagem }: { stratagem: RwStratagem }) {
+  return (
+    <div className="flex flex-col gap-1 pl-2 border-l border-border">
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-semibold text-foreground">{stratagem.name}</span>
+        {stratagem.cp_cost && (
+          <span className="text-xs font-medium text-muted-foreground">{stratagem.cp_cost} CP</span>
+        )}
+        {stratagem.type && (
+          <span className="text-xs text-muted-foreground">{stratagem.type}</span>
+        )}
+      </div>
+      {stratagem.turn && (
+        <span className="text-xs text-muted-foreground">{stratagem.turn}</span>
+      )}
+      {stratagem.description && (
+        <p className="text-sm text-muted-foreground leading-relaxed">{stratagem.description}</p>
+      )}
+    </div>
+  );
+}
+
+// DetachmentSection — resolves hooks-in-loop by being a proper component that calls
+// useDetachmentAbilitiesByDetachment unconditionally (no conditional hook call).
+function DetachmentSection({ detachment }: { detachment: RwDetachment }) {
+  const { data: abilities = [] } = useDetachmentAbilitiesByDetachment(detachment.id);
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-sm font-semibold text-foreground">{detachment.name}</span>
+      {detachment.legend && (
+        <p className="text-xs text-muted-foreground">{detachment.legend}</p>
+      )}
+      {detachment.type && (
+        <span className="text-xs text-muted-foreground">Type: {detachment.type}</span>
+      )}
+      {abilities.length > 0 && (
+        <div className="flex flex-col gap-1 pl-2">
+          {abilities.map((a) => (
+            <ExtendedAbilityEntry key={a.id} name={a.name} description={a.description} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ExtendedAbilityEntry — structural-typed sub-component for detachment abilities and shared
+// abilities (avoids widening AbilityEntry which is typed to RwDatasheetAbility).
+function ExtendedAbilityEntry({ name, description }: { name: string; description: string | null }) {
+  return (
+    <div className="flex flex-col gap-1 pl-2 border-l border-border">
+      <span className="text-sm font-semibold text-foreground">{name}</span>
+      {description && (
+        <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
       )}
     </div>
   );
