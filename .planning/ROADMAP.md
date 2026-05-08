@@ -127,7 +127,7 @@ Full details: `.planning/milestones/v2.5-ROADMAP.md`
 - [x] **Phase 42: Architecture Audit** — Read-only investigation of the current sync pipeline and extended rules schema; produces a written architecture note covering data flow, type/query/hook gaps, and migration plan for metadata and overrides tables (completed 2026-05-08)
 - [x] **Phase 43: Extended Rules Read Layer** — TypeScript types, query functions, and React Query hooks for stratagems, detachments, detachment abilities, and shared faction abilities; all four data types surfaced in PlaybookTab (completed 2026-05-08)
 - [x] **Phase 44: Sync Pipeline Hardening** — Rust `bulk_sync_rules` returns per-table row counts; TypeScript displays counts in post-sync confirmation; CSV column validation rejects malformed files; sync errors logged to persistent table; all new rules hooks invalidated on sync success (completed 2026-05-08)
-- [ ] **Phase 45: Sync Metadata & Import Tracking** — Last sync date/time, per-table row counts, source version, error history, freshness badge on rules-dependent pages, and pre-sync snapshot mechanism all visible and functional
+- [x] **Phase 45: Sync Metadata & Import Tracking** — Last sync date/time, per-table row counts, source version, error history, freshness badge on rules-dependent pages, and pre-sync snapshot mechanism all visible and functional (completed 2026-05-08)
 - [ ] **Phase 46: Manual Overrides & Version Comparison** — Users can override points, stats, keywords, and ability reminders per unit in hobbyforge.db; overrides persist across re-syncs and are visually distinguished from imported data; post-sync diff view shows what changed or was removed
 
 ## Phase Details
@@ -185,7 +185,7 @@ Plans:
   4. User can view a timestamped list of past sync errors
   5. Rules-dependent pages (e.g., PlaybookTab) show a stale/fresh badge indicating whether the data needs re-syncing
   6. Before each re-sync, the current rules data is snapshotted into a separate table so version comparison in Phase 46 is possible
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 45-01-PLAN.md — Migrations, Rust upsert extension, TypeScript types, snapshot query module, hooks, and freshness utility (META-01/02/03/04/05/06)
 - [ ] 45-02-PLAN.md — Wire snapshot into useRulesSync, PlaybookTab UI with freshness dot, sync details, and error history (META-01/02/03/04/05/06)
@@ -253,5 +253,5 @@ Plans:
 | 42. Architecture Audit | v2.6 | 1/1 | Complete | 2026-05-08 |
 | 43. Extended Rules Read Layer | 2/2 | Complete    | 2026-05-08 | - |
 | 44. Sync Pipeline Hardening | 2/2 | Complete    | 2026-05-08 | - |
-| 45. Sync Metadata & Import Tracking | 1/2 | In Progress|  | - |
+| 45. Sync Metadata & Import Tracking | 2/2 | Complete   | 2026-05-08 | - |
 | 46. Manual Overrides & Version Comparison | v2.6 | 0/TBD | Not started | - |
