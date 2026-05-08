@@ -198,6 +198,71 @@ describe("useRulesSync", () => {
     expect(vi.mocked(invoke)).toHaveBeenCalledWith("bulk_sync_rules", expect.any(Object));
   });
 
+  it("META-06: mutationFn calls capturePreSyncSnapshot before invoke(bulk_sync_rules)", async () => {
+    // Arrange: mock fetch to return empty CSV text for all 12 files
+    const fakeCsvResponse = { ok: true, text: async () => "" };
+    vi.mocked(tauriFetch).mockResolvedValue(fakeCsvResponse as ReturnType<typeof tauriFetch> extends Promise<infer R> ? R : never);
+
+    const mockRustResult = {
+      factions: 1, sources: 1, datasheets: 1, models: 1, abilities: 1,
+      keywords: 1, wargear: 1, shared_abilities: 1, stratagems: 1,
+      detachments: 1, detachment_abilities: 1,
+    };
+    vi.mocked(invoke).mockResolvedValue(mockRustResult);
+
+    // Track call order
+    const callOrder: string[] = [];
+    capturePreSyncSnapshotMock.mockImplementation(async () => {
+      callOrder.push("capturePreSyncSnapshot");
+    });
+    getRulesSyncMetaMock.mockResolvedValue(null);
+    vi.mocked(invoke).mockImplementation(async () => {
+      callOrder.push("invoke");
+      return mockRustResult;
+    });
+
+    const opts = useRulesSync() as unknown as {
+      mutationFn: () => Promise<unknown>;
+    };
+    await opts.mutationFn();
+
+    // capturePreSyncSnapshot must appear before invoke in the call order
+    const snapshotIdx = callOrder.indexOf("capturePreSyncSnapshot");
+    const invokeIdx = callOrder.indexOf("invoke");
+    expect(snapshotIdx).toBeGreaterThanOrEqual(0);
+    expect(invokeIdx).toBeGreaterThanOrEqual(0);
+    expect(snapshotIdx).toBeLessThan(invokeIdx);
+  });
+
+  it("META-06: mutationFn proceeds with sync when capturePreSyncSnapshot throws", async () => {
+    // Arrange: mock fetch to return empty CSV text for all 12 files
+    const fakeCsvResponse = { ok: true, text: async () => "" };
+    vi.mocked(tauriFetch).mockResolvedValue(fakeCsvResponse as ReturnType<typeof tauriFetch> extends Promise<infer R> ? R : never);
+
+    const mockRustResult = {
+      factions: 5, sources: 2, datasheets: 100, models: 400, abilities: 150,
+      keywords: 200, wargear: 80, shared_abilities: 30, stratagems: 25,
+      detachments: 10, detachment_abilities: 20,
+    };
+    vi.mocked(invoke).mockResolvedValue(mockRustResult);
+
+    // Snapshot throws — sync must still proceed
+    capturePreSyncSnapshotMock.mockRejectedValue(new Error("rules.db not available"));
+    getRulesSyncMetaMock.mockResolvedValue(null);
+
+    const opts = useRulesSync() as unknown as {
+      mutationFn: () => Promise<{ wahapediaVersion: string; rowCounts: Record<string, number> }>;
+    };
+
+    // Should not throw despite snapshot failure
+    const result = await opts.mutationFn();
+
+    // invoke was still called
+    expect(vi.mocked(invoke)).toHaveBeenCalledWith("bulk_sync_rules", expect.any(Object));
+    // Result is populated from Rust
+    expect(result.rowCounts.datasheets).toBe(100);
+  });
+
   it("META-06: onSuccess invalidates SYNC_ERRORS_KEY", () => {
     const hookResult = useRulesSync() as unknown as Record<string, (...args: unknown[]) => void>;
     hookResult.onSuccess({ wahapediaVersion: "v1", rowCounts: {} });
