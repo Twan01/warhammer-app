@@ -120,7 +120,7 @@ Full details: `.planning/milestones/v2.5-ROADMAP.md`
 
 ---
 
-### 🚧 v2.6 Rules Sync 2.0 / Rules Data Hub (In Progress)
+### v2.6 Rules Sync 2.0 / Rules Data Hub (In Progress)
 
 **Milestone Goal:** Stabilize and extend the local rules import architecture so HobbyForge becomes a reliable personal rules and points reference — with extended data types surfaced in the UI, a hardened sync pipeline, sync metadata tracking, and persistent manual overrides that survive re-syncs.
 
@@ -164,7 +164,10 @@ Full details: `.planning/milestones/v2.5-ROADMAP.md`
   2. Uploading a CSV file with missing required column headers triggers a visible validation error before any data is inserted
   3. Any error that occurs during sync is written to a persistent errors table with timestamp, error type, and message — and survives app restart
   4. All rules-related React Query hooks (including the new stratagems, detachments, and abilities hooks) are invalidated after a successful sync
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 44-01-PLAN.md — Rust SyncResult return type, CSV validation module, sync_errors migration and query module
+- [ ] 44-02-PLAN.md — Wire validation, Rust counts, error logging, and cache invalidation into useRulesSync and PlaybookTab
 
 ### Phase 45: Sync Metadata & Import Tracking
 **Goal**: Users can always see when their rules data was last synced, how complete it is, and whether it is fresh — and a pre-sync snapshot is captured before each re-sync
@@ -241,6 +244,6 @@ Full details: `.planning/milestones/v2.5-ROADMAP.md`
 | 41. Session Integration | v2.5 | 2/2 | Complete | 2026-05-07 |
 | 42. Architecture Audit | 1/1 | Complete    | 2026-05-08 | - |
 | 43. Extended Rules Read Layer | v2.6 | 0/TBD | Not started | - |
-| 44. Sync Pipeline Hardening | v2.6 | 0/TBD | Not started | - |
+| 44. Sync Pipeline Hardening | v2.6 | 0/2 | Not started | - |
 | 45. Sync Metadata & Import Tracking | v2.6 | 0/TBD | Not started | - |
 | 46. Manual Overrides & Version Comparison | v2.6 | 0/TBD | Not started | - |
