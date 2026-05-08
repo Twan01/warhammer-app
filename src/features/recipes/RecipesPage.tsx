@@ -23,6 +23,7 @@ import {
   useRecipePaintAvailability,
   type AvailabilityStats,
 } from "@/hooks/useRecipePaints";
+import { useAllSectionCounts } from "@/hooks/useRecipeSections";
 import { RECIPE_SURFACES, RECIPE_STYLES, RECIPE_DIFFICULTIES } from "./recipeSchema";
 import { RecipeCardGrid } from "./RecipeCardGrid";
 import { RecipeDetailSheet } from "./RecipeDetailSheet";
@@ -36,6 +37,7 @@ export function RecipesPage() {
   const { data: factions = [] } = useFactions();
   const { data: units = [] } = useUnits();
   const { data: stepCountByRecipe = new Map<number, number>() } = useAllStepCounts();
+  const { data: sectionCountByRecipe = new Map<number, number>() } = useAllSectionCounts();
   const { data: swatchColorsByRecipe = new Map<number, { paint_id: number; hex_color: string | null }[]>() } = useRecipeSwatchData();
   const { data: availabilityByRecipe = new Map<number, AvailabilityStats>() } = useRecipePaintAvailability();
 
@@ -222,6 +224,7 @@ export function RecipesPage() {
         factions={factions}
         units={units}
         stepCountByRecipe={stepCountByRecipe}
+        sectionCountByRecipe={sectionCountByRecipe}
         swatchColorsByRecipe={swatchColorsByRecipe}
         availabilityByRecipe={availabilityByRecipe}
         isLoading={isLoading}
