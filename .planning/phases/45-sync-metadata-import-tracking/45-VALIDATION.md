@@ -1,10 +1,11 @@
 ---
 phase: 45
 slug: sync-metadata-import-tracking
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-08
+validated: 2026-05-08
 ---
 
 # Phase 45 — Validation Strategy
@@ -21,7 +22,7 @@ created: 2026-05-08
 | **Config file** | `vite.config.ts` (vitest inline config) |
 | **Quick run command** | `pnpm test -- tests/datasheet/` |
 | **Full suite command** | `pnpm test` |
-| **Estimated runtime** | ~15 seconds |
+| **Estimated runtime** | ~70 seconds |
 
 ---
 
@@ -38,13 +39,13 @@ created: 2026-05-08
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 45-01-01 | 01 | 1 | META-01 | unit | `pnpm test -- tests/datasheet/syncMetaQueries.test.ts` | ❌ W0 | ⬜ pending |
-| 45-01-02 | 01 | 1 | META-02 | unit | `pnpm test -- tests/datasheet/syncMetaQueries.test.ts` | ❌ W0 | ⬜ pending |
-| 45-01-03 | 01 | 1 | META-03 | unit | `pnpm test -- tests/datasheet/syncMetaQueries.test.ts` | ❌ W0 | ⬜ pending |
-| 45-02-01 | 02 | 1 | META-04 | unit | `pnpm test -- tests/datasheet/syncErrorQueries.test.ts` | ✅ | ⬜ pending |
-| 45-02-02 | 02 | 1 | META-05 | unit | `pnpm test -- tests/datasheet/syncFreshness.test.ts` | ❌ W0 | ⬜ pending |
-| 45-03-01 | 03 | 2 | META-06 | unit | `pnpm test -- tests/datasheet/rulesSnapshot.test.ts` | ❌ W0 | ⬜ pending |
-| 45-03-02 | 03 | 2 | META-06 | unit | `pnpm test -- tests/datasheet/useRulesSync.test.ts` | ✅ | ⬜ pending |
+| 45-01-01 | 01 | 1 | META-01 | unit | `pnpm test -- tests/datasheet/syncMetaQueries.test.ts` | ✅ | ✅ green |
+| 45-01-02 | 01 | 1 | META-02 | unit | `pnpm test -- tests/datasheet/syncMetaQueries.test.ts` | ✅ | ✅ green |
+| 45-01-03 | 01 | 1 | META-03 | unit | `pnpm test -- tests/datasheet/syncMetaQueries.test.ts` | ✅ | ✅ green |
+| 45-02-01 | 02 | 1 | META-04 | unit | `pnpm test -- tests/datasheet/syncErrorQueries.test.ts` | ✅ | ✅ green |
+| 45-02-02 | 02 | 1 | META-05 | unit | `pnpm test -- tests/datasheet/syncFreshness.test.ts` | ✅ | ✅ green |
+| 45-03-01 | 03 | 2 | META-06 | unit | `pnpm test -- tests/datasheet/rulesSnapshot.test.ts` | ✅ | ✅ green |
+| 45-03-02 | 03 | 2 | META-06 | unit | `pnpm test -- tests/datasheet/useRulesSync.test.ts` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -52,12 +53,12 @@ created: 2026-05-08
 
 ## Wave 0 Requirements
 
-- [ ] `tests/datasheet/syncMetaQueries.test.ts` — stubs for META-01, META-02, META-03 (extended RulesSyncMeta with count fields)
-- [ ] `tests/datasheet/syncFreshness.test.ts` — stubs for META-05 (freshness tier computation function)
-- [ ] `tests/datasheet/rulesSnapshot.test.ts` — stubs for META-06 (capturePreSyncSnapshot, cleanOldSnapshots, getLatestSnapshot)
+- [x] `tests/datasheet/syncMetaQueries.test.ts` — 5 tests for META-01, META-02, META-03 (extended RulesSyncMeta with count fields)
+- [x] `tests/datasheet/syncFreshness.test.ts` — 10 tests for META-05 (freshness tier computation function)
+- [x] `tests/datasheet/rulesSnapshot.test.ts` — 8 tests for META-06 (capturePreSyncSnapshot, cleanOldSnapshots, getLatestSnapshot)
 
-*Existing `tests/datasheet/syncErrorQueries.test.ts` covers getSyncErrors read path. Extend with `useSyncErrors` hook test.*
-*Existing `tests/datasheet/useRulesSync.test.ts` needs new test case asserting snapshot capture before invoke.*
+*`tests/datasheet/syncErrorQueries.test.ts` covers getSyncErrors read path (META-04).*
+*`tests/datasheet/useRulesSync.test.ts` covers snapshot call ordering + non-blocking failure + SYNC_ERRORS_KEY invalidation (META-04, META-06).*
 
 ---
 
@@ -72,11 +73,25 @@ created: 2026-05-08
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** complete
+
+---
+
+## Validation Audit 2026-05-08
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 2 |
+| Resolved | 2 |
+| Escalated | 0 |
+
+**Gap 1** (MISSING → RESOLVED): `syncMetaQueries.test.ts` created — 5 tests covering META-01/02/03 (getRulesSyncMeta query returns extended interface with 11 count fields, null handling, wahapedia_version)
+
+**Gap 2** (PARTIAL → RESOLVED): `useRulesSync.test.ts` extended with 2 tests — META-06 snapshot call ordering (capturePreSyncSnapshot runs before invoke) and non-blocking failure (sync proceeds when snapshot throws)
