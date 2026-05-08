@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: executing
-stopped_at: Phase 50 planned — 3 plans in 3 waves
-last_updated: "2026-05-08T15:53:18.849Z"
-last_activity: 2026-05-08 — Completed 49-01 (SectionedTimeline component + RecipeDetailSheet wiring)
+stopped_at: Completed 50-01 (DraftSection pure functions — TDD)
+last_updated: "2026-05-08T17:54:00.000Z"
+last_activity: 2026-05-08 — Completed 50-01 (DraftSection, makeDraftSection, buildDraftSections)
 progress:
   total_phases: 4
   completed_phases: 2
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-08 after v0.2.7 milestone started)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** Phase 49 — Section Read UI (next phase)
+**Current focus:** Phase 50 — Section Form UI
 
 ## Current Position
 
-Phase: 49 of 51 (Section Read UI) — In progress
-Plan: 01 of 01 — complete
+Phase: 50 of 51 (Section Form UI) — In progress
+Plan: 01 of 03 — complete
 Status: In progress
-Last activity: 2026-05-08 — Completed 49-01 (SectionedTimeline component + RecipeDetailSheet wiring)
+Last activity: 2026-05-08 — Completed 50-01 (DraftSection, makeDraftSection, buildDraftSections)
 
 Progress: [██████████] 100%
 
@@ -41,6 +41,7 @@ Progress: [██████████] 100%
 **48-01:** 2 tasks, 8 files, 185s
 **48-02:** 3 tasks, 4 files, 324s
 **49-01:** 2 tasks, 4 files, 493s
+**50-01:** 2 tasks, 2 files, ~480s
 
 ## Accumulated Context
 
@@ -68,6 +69,8 @@ Progress: [██████████] 100%
 - **48-02 decision**: useUpdateRecipeSection mutation input type carries recipe_id for cache invalidation without passing it to the DB update path (UpdateRecipeSectionInput & { recipe_id: number })
 - **49-01 decision**: SectionedTimeline returns null for empty sections array — zero render cost for recipes without sections
 - **49-01 decision**: RecipeDetailSheet uses sections.length > 0 && !sectionsLoading conditional — VIEW-04 flat fallback preserved for unsectioned recipes
+- **50-01 decision**: DraftSection mirrors DraftStep UUID localId pattern — crypto.randomUUID() assigned at draft creation, never persisted to DB
+- **50-01 decision**: buildDraftSections null-coalesces all optional RecipeStep fields with `?? null` — handles rows that predate v0.2.7 columns safely
 
 ### Pending Todos
 
@@ -79,6 +82,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-08T15:53:18.846Z
-Stopped at: Phase 50 planned — 3 plans in 3 waves
-Resume file: .planning/phases/50-section-form-ui/50-01-PLAN.md
+Last session: 2026-05-08T17:54:00.000Z
+Stopped at: Completed 50-01 (DraftSection pure functions — TDD)
+Resume file: .planning/phases/50-section-form-ui/50-02-PLAN.md
