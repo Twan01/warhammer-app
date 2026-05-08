@@ -248,7 +248,7 @@ Plans:
 | 40. Recipe Actions + Step Photos | v2.5 | 3/3 | Complete | 2026-05-07 |
 | 41. Session Integration | v2.5 | 2/2 | Complete | 2026-05-07 |
 | 42. Architecture Audit | v2.6 | 1/1 | Complete | 2026-05-08 |
-| 43. Extended Rules Read Layer | 2/2 | Complete   | 2026-05-08 | - |
+| 43. Extended Rules Read Layer | 2/2 | Complete    | 2026-05-08 | - |
 | 44. Sync Pipeline Hardening | 2/2 | Complete    | 2026-05-08 | - |
 | 45. Sync Metadata & Import Tracking | v2.6 | 0/TBD | Not started | - |
 | 46. Manual Overrides & Version Comparison | v2.6 | 0/TBD | Not started | - |
