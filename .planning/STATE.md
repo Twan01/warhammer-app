@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: executing
-stopped_at: Completed 50-01 (DraftSection pure functions — TDD)
-last_updated: "2026-05-08T17:54:00.000Z"
-last_activity: 2026-05-08 — Completed 50-01 (DraftSection, makeDraftSection, buildDraftSections)
+stopped_at: Completed 50-02 (RecipeSectionCard + RecipeSectionList)
+last_updated: "2026-05-08T18:28:00.000Z"
+last_activity: 2026-05-08 — Completed 50-02 (RecipeSectionCard, RecipeSectionList, alert-dialog)
 progress:
   total_phases: 4
   completed_phases: 2
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-05-08 after v0.2.7 milestone started)
 ## Current Position
 
 Phase: 50 of 51 (Section Form UI) — In progress
-Plan: 01 of 03 — complete
+Plan: 02 of 03 — complete
 Status: In progress
-Last activity: 2026-05-08 — Completed 50-01 (DraftSection, makeDraftSection, buildDraftSections)
+Last activity: 2026-05-08 — Completed 50-02 (RecipeSectionCard, RecipeSectionList)
 
 Progress: [██████████] 100%
 
@@ -71,6 +71,9 @@ Progress: [██████████] 100%
 - **49-01 decision**: RecipeDetailSheet uses sections.length > 0 && !sectionsLoading conditional — VIEW-04 flat fallback preserved for unsectioned recipes
 - **50-01 decision**: DraftSection mirrors DraftStep UUID localId pattern — crypto.randomUUID() assigned at draft creation, never persisted to DB
 - **50-01 decision**: buildDraftSections null-coalesces all optional RecipeStep fields with `?? null` — handles rows that predate v0.2.7 columns safely
+- **50-02 decision**: alert-dialog.tsx created as blocking dependency fix — radix-ui AlertDialog primitive available in radix-ui package but shadcn wrapper was absent; follows same wrapping pattern as dialog.tsx
+- **50-02 decision**: RecipeSectionCard CollapsibleContent wraps RecipeStepList in px-3 pb-3 div for visual padding separation from header
+- **50-02 decision**: Step count badge in section header only when collapsed AND steps.length > 0 — avoids redundancy when steps are visible
 
 ### Pending Todos
 
@@ -82,6 +85,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-08T17:54:00.000Z
-Stopped at: Completed 50-01 (DraftSection pure functions — TDD)
-Resume file: .planning/phases/50-section-form-ui/50-02-PLAN.md
+Last session: 2026-05-08T18:28:00.000Z
+Stopped at: Completed 50-02 (RecipeSectionCard + RecipeSectionList)
+Resume file: .planning/phases/50-section-form-ui/50-03-PLAN.md

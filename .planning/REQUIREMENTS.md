@@ -25,10 +25,10 @@ Requirements for Recipes 3.0 / Hierarchical Painting Workflows. Each maps to roa
 
 ### Section Form UI
 
-- [ ] **FORM-01**: User can edit recipes with collapsible section cards containing step lists
-- [ ] **FORM-02**: User can add, rename, and delete sections within the recipe form
-- [ ] **FORM-03**: User can reorder sections via drag-and-drop in the form (outer DndContext)
-- [ ] **FORM-04**: User can reorder steps within a section via drag-and-drop (inner DndContext per section)
+- [x] **FORM-01**: User can edit recipes with collapsible section cards containing step lists
+- [x] **FORM-02**: User can add, rename, and delete sections within the recipe form
+- [x] **FORM-03**: User can reorder sections via drag-and-drop in the form (outer DndContext)
+- [x] **FORM-04**: User can reorder steps within a section via drag-and-drop (inner DndContext per section)
 - [x] **FORM-05**: User creating a new recipe gets one auto-created default section (simple recipes stay easy)
 - [x] **FORM-06**: User editing an existing recipe sees sections loaded with steps grouped correctly
 
@@ -76,10 +76,10 @@ Deferred to future release. Tracked but not in current roadmap.
 | VIEW-02 | Phase 49 | Complete |
 | VIEW-03 | Phase 49 | Complete |
 | VIEW-04 | Phase 49 | Complete |
-| FORM-01 | Phase 50 | Pending |
-| FORM-02 | Phase 50 | Pending |
-| FORM-03 | Phase 50 | Pending |
-| FORM-04 | Phase 50 | Pending |
+| FORM-01 | Phase 50 | Complete |
+| FORM-02 | Phase 50 | Complete |
+| FORM-03 | Phase 50 | Complete |
+| FORM-04 | Phase 50 | Complete |
 | FORM-05 | Phase 50 | Complete |
 | FORM-06 | Phase 50 | Complete |
 | INTG-01 | Phase 51 | Pending |

@@ -183,7 +183,7 @@ Plans:
   3. User can drag section cards to reorder them; the new order is reflected immediately in the form and persisted on save
   4. User can drag steps within a section to reorder them; step reorder is independent per section and persisted on save
   5. Creating a new recipe opens the form with exactly one default section already present, keeping the experience as simple as before sections existed
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [ ] 50-01-PLAN.md -- DraftSection type + buildDraftSections pure functions (TDD)
@@ -255,5 +255,5 @@ Plans:
 | 47. v0.2.6 Gap Closure | v0.2.6 | 2/2 | Complete | 2026-05-08 |
 | 48. Section Data Layer | v0.2.7 | 2/2 | Complete | 2026-05-08 |
 | 49. Section Read UI | 1/1 | Complete    | 2026-05-08 | - |
-| 50. Section Form UI | 1/3 | In Progress|  | - |
+| 50. Section Form UI | 2/3 | In Progress|  | - |
 | 51. Duplication + Integration Polish | v0.2.7 | 0/TBD | Not started | - |
