@@ -198,7 +198,7 @@ Plans:
   1. Duplicating a recipe produces a new recipe with the same section structure and steps; editing a step in the copy does not affect the original
   2. Recipe cards on the RecipesPage display the section count alongside the step count
   3. All pre-existing flows (paint availability badges, swatch strip, LogSessionSheet recipe/step selectors, bulk wishlist add) work identically to v0.2.6 with no regressions
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 51-01-PLAN.md — Section-aware duplication + batch section count query + cache invalidation
@@ -260,4 +260,4 @@ Plans:
 | 48. Section Data Layer | v0.2.7 | 2/2 | Complete | 2026-05-08 |
 | 49. Section Read UI | 1/1 | Complete    | 2026-05-08 | - |
 | 50. Section Form UI | 3/3 | Complete    | 2026-05-08 | - |
-| 51. Duplication + Integration Polish | 1/2 | In Progress|  | - |
+| 51. Duplication + Integration Polish | 2/2 | Complete   | 2026-05-08 | - |

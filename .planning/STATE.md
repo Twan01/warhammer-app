@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: completed
-stopped_at: "Completed 51-01 (duplicateRecipe section copy pass + getSectionCountsByRecipe)"
-last_updated: "2026-05-08T20:32:00.000Z"
-last_activity: 2026-05-08 — Completed 51-01 (duplicateRecipe section copy pass + getSectionCountsByRecipe + 8-key invalidation)
+stopped_at: "Completed 51-02 (sectionCount display on RecipeCard + RecipesPage wiring)"
+last_updated: "2026-05-08T21:15:00.000Z"
+last_activity: 2026-05-08 — Completed 51-02 (sectionCount prop chain RecipesPage -> RecipeCardGrid -> RecipeCard, INTG-02 + INTG-03)
 progress:
   total_phases: 4
   completed_phases: 3
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-05-08 after v0.2.7 milestone started)
 ## Current Position
 
 Phase: 51 of 51 (Duplication Integration + Polish) — In Progress
-Plan: 01 of 03 — complete
+Plan: 02 of 03 — complete
 Status: In progress
-Last activity: 2026-05-08 — Completed 51-01 (duplicateRecipe section copy pass + getSectionCountsByRecipe + 8-key invalidation)
+Last activity: 2026-05-08 — Completed 51-02 (sectionCount prop chain RecipesPage -> RecipeCardGrid -> RecipeCard, INTG-02 + INTG-03)
 
 Progress: [██████████] 100%
 
@@ -44,6 +44,7 @@ Progress: [██████████] 100%
 **50-01:** 2 tasks, 2 files, ~480s
 **50-03:** 1 task, 2 files, ~20 min
 **51-01:** 3 tasks, 5 files, 404s
+**51-02:** 2 tasks, 5 files, ~480s
 
 ## Accumulated Context
 
@@ -82,6 +83,8 @@ Progress: [██████████] 100%
 - **51-01 decision**: sectionIdMap uses Map<number, number> built during section copy loop — ensures O(1) remapping per step with no extra SQL queries
 - **51-01 decision**: step section_id null path uses explicit null check before Map.get() — preserves null as null (does not remap to undefined)
 - **51-01 decision**: useDuplicateRecipe invalidates ["recipe-sections"] prefix (not RECIPE_SECTIONS_KEY factory) — covers all per-recipe section cache entries in one call
+- **51-02 decision**: sectionCount <= 1 hides the section row entirely — single-section recipes show step count only (progressive disclosure threshold confirmed)
+- **51-02 decision**: useAllSectionCounts called at RecipesPage level alongside useAllStepCounts — same pattern, single batch query, Map<number,number> threaded down
 
 ### Pending Todos
 
@@ -93,6 +96,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-08T18:23:57.684Z
-Stopped at: Phase 51 plans verified
-Resume file: .planning/phases/51-duplication-integration-polish/51-01-PLAN.md
+Last session: 2026-05-08T21:15:00.000Z
+Stopped at: Completed 51-02-PLAN.md
+Resume file: .planning/phases/51-duplication-integration-polish/51-03-PLAN.md
