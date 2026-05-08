@@ -57,6 +57,7 @@ const STEP_FIXTURES: RecipeStep[] = [
     time_estimate_minutes: 15,
     step_photo_path: "step1.jpg",
     alt_paint_id: 99,
+    section_id: null,
     created_at: "2026-01-01T00:00:00Z",
   },
   {
@@ -73,6 +74,7 @@ const STEP_FIXTURES: RecipeStep[] = [
     time_estimate_minutes: null,
     step_photo_path: null,
     alt_paint_id: null,
+    section_id: null,
     created_at: "2026-01-01T00:00:00Z",
   },
 ];

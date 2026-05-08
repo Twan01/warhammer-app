@@ -18,6 +18,8 @@ export interface RecipeStep {
   // v2.5 Phase 40 fields
   step_photo_path: string | null;
   alt_paint_id: number | null;
+  // v0.2.7 section grouping (Phase 48)
+  section_id: number | null;
   created_at: string;
 }
 

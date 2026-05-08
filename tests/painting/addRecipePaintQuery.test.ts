@@ -33,6 +33,7 @@ function makeInput(over: Partial<CreateRecipeStepInput> = {}): CreateRecipeStepI
     time_estimate_minutes: null,
     step_photo_path: null,
     alt_paint_id: null,
+    section_id: null,
     ...over,
   };
 }

@@ -247,6 +247,7 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
               time_estimate_minutes: s.time_estimate_minutes,
               step_photo_path: s.step_photo_path ?? null,
               alt_paint_id: s.alt_paint_id ?? null,
+              section_id: null,
             });
           }
         }
@@ -292,6 +293,7 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
               time_estimate_minutes: s.time_estimate_minutes,
               step_photo_path: s.step_photo_path ?? null,
               alt_paint_id: s.alt_paint_id ?? null,
+              section_id: null,
             });
           }
         }
