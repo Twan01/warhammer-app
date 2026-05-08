@@ -29,7 +29,7 @@ metrics:
   completed_date: "2026-05-08"
   tasks_completed: 3
   files_changed: 6
-requirements: [SYNC-01, SYNC-03, SYNC-04]
+requirements_completed: [SYNC-01, SYNC-03, SYNC-04]
 ---
 
 # Phase 44 Plan 01: Sync Pipeline Hardening Foundations Summary

@@ -17,7 +17,7 @@ import type {
  * - addUnitToList allows the same unit_id to appear multiple times in one list
  *   (no UNIQUE constraint on (list_id, unit_id) — intentional per CONTEXT.md).
  * - getArmyListWithUnits JOINs units to read live unit.points and computes
- *   effective_points = COALESCE(alu.points_override, u.points, 0) in SQL.
+ *   effective_points = COALESCE(alu.points_override, uo.points, u.points, 0) in SQL.
  *   Never cache unit.points — it changes when the user edits the unit.
  */
 
@@ -156,7 +156,7 @@ export async function getArmyListsByUnitId(
  *
  * Battle-ready = units with status_painting = 'Completed' (canonical value from
  * PAINTING_STATUS_ORDER — NOT 'Complete', Pitfall 1).
- * Effective points = COALESCE(points_override, u.points, 0) — never computed in JS.
+ * Effective points = COALESCE(alu.points_override, uo.points, u.points, 0) — never computed in JS.
  * Returns empty array immediately for empty ids — avoids SQL IN () error (Pitfall 2).
  */
 export interface ArmyListReadiness {

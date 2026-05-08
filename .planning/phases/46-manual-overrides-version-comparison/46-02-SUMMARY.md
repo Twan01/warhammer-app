@@ -46,11 +46,7 @@ key-decisions:
 patterns-established:
   - "Override marker pattern: isStatOverridden() + relative-positioned Pencil absolute top-1 right-1 inside each stat cell"
 
-requirements-completed:
-  - OVRD-01
-  - OVRD-05
-  - OVRD-06
-  - OVRD-07
+requirements_completed: [OVRD-01, OVRD-05, OVRD-06, OVRD-07]
 
 # Metrics
 duration: 20min

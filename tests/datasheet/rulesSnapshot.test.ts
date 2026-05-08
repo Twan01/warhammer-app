@@ -84,7 +84,7 @@ describe("rulesSnapshot — capturePreSyncSnapshot", () => {
     }
   });
 
-  it("META-06: uses COUNT(*) for composite-PK tables (query: null), SELECT id,name for simple-PK tables", async () => {
+  it("META-06: uses COUNT(*) for wargear (query: null), SELECT id,name for 7 simple-PK tables, full queries for 3 composite-PK tables (Phase 47)", async () => {
     rulesSelectMock.mockImplementation((sql: string) => {
       if (sql.includes("COUNT(*)")) return Promise.resolve([{ cnt: 42 }]);
       return Promise.resolve([{ id: "x", name: "y" }]);
@@ -100,9 +100,9 @@ describe("rulesSnapshot — capturePreSyncSnapshot", () => {
     const nameCalls = rulesSelectMock.mock.calls.filter((c: unknown[]) =>
       (c[0] as string).includes("SELECT id, name"),
     );
-    // 4 composite-PK tables: models, abilities (datasheet), keywords, wargear
-    expect(countCalls).toHaveLength(4);
-    // 7 simple-PK tables
+    // Phase 47: only rw_datasheets_wargear uses COUNT(*) — models/keywords/abilities now store full JSON
+    expect(countCalls).toHaveLength(1);
+    // 7 simple-PK tables: factions, sources, datasheets, abilities, stratagems, detachments, detachment_abilities
     expect(nameCalls).toHaveLength(7);
   });
 

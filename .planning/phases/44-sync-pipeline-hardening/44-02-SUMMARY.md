@@ -25,7 +25,7 @@ metrics:
   completed_date: "2026-05-08"
   tasks_completed: 2
   files_changed: 3
-requirements: [SYNC-01, SYNC-02, SYNC-05]
+requirements_completed: [SYNC-02, SYNC-05]
 ---
 
 # Phase 44 Plan 02: Sync Pipeline Integration Summary
