@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
 milestone: v2.6
-milestone_name: Rules Sync 2.0 / Rules Data Hub
-status: completed
-stopped_at: Phase 47 context gathered
-last_updated: "2026-05-08T12:22:10.697Z"
-last_activity: 2026-05-08 — Phase 46 Plan 02 complete (OVRD-01, OVRD-05, OVRD-06, OVRD-07)
+milestone_name: Rules Sync 2.0 / Rules Data Hub (gap closure)
+status: in_progress
+stopped_at: Phase 47 Plan 01 complete
+last_updated: "2026-05-08T14:52:00.000Z"
+last_activity: 2026-05-08 — Phase 47 Plan 01 complete (OVRD-06 per-field diff algorithm)
 progress:
   total_phases: 6
   completed_phases: 5
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-07 after v2.6 milestone start)
 
 ## Current Position
 
-Phase: 46 of 46 (Manual Overrides / Version Comparison)
-Plan: 02 complete (override markers UI + diff view + points override input)
-Status: Complete — v2.6 milestone finished
-Last activity: 2026-05-08 — Phase 46 Plan 02 complete (OVRD-01, OVRD-05, OVRD-06, OVRD-07)
+Phase: 47 of 47 (v2.6 gap closure — OVRD-06 per-field diff)
+Plan: 01 complete (per-field diff algorithm + snapshot enrichment)
+Status: In Progress — Plan 02 (UI layer) pending
+Last activity: 2026-05-08 — Phase 47 Plan 01 complete (OVRD-06 per-field diff algorithm)
 
-Progress: [██████████] 100%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -95,6 +95,11 @@ Progress: [██████████] 100%
 - **Phase 46 P02**: Override save in handleSave is conditional — only fires when at least one stat differs from imported value OR parsedPoints !== null (prevents empty override row writes)
 - **Phase 46 P02**: Diff computation is best-effort — wrapped in try/catch after invoke; sync success never blocked by diff failures
 - **Phase 46 P02**: Pre-sync snapshot read uses getLatestSnapshot() from hobbyforge.db before capturePreSyncSnapshot() to get baseline for diffing
+- **Phase 47 P01**: ExtendedSnapshotData options object used for computeSyncDiff third param — avoids 8-param signature explosion and maintains backward compat
+- **Phase 47 P01**: persistedIds filter (same id AND same name) prevents double-counting renamed datasheets in modified array
+- **Phase 47 P01**: Multi-line model field labels include model name in parens only when datasheet has >1 model line
+- **Phase 47 P01**: rw_datasheets_wargear remains query:null in SNAPSHOT_TABLES — out of OVRD-06 scope per prior user decision
+- **Phase 47 P01**: Record<string, unknown>[] generic type for rulesSnapshot select() accommodates both simple id+name and composite-PK row shapes
 
 ### Pending Todos
 
@@ -106,6 +111,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-08T12:22:10.694Z
-Stopped at: Phase 47 context gathered
-Resume: v2.6 milestone complete — run /gsd:progress for next milestone
+Last session: 2026-05-08T14:52:00.000Z
+Stopped at: Completed 47-01-PLAN.md
+Resume: Execute Phase 47 Plan 02 — UI layer for per-field diff display
