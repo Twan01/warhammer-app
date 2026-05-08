@@ -148,12 +148,16 @@ Full details: `.planning/milestones/v0.2.6-ROADMAP.md`
 **Depends on**: Phase 47 (v0.2.6 complete)
 **Requirements**: SECT-01, SECT-02, SECT-03, SECT-04, SECT-05, SECT-06
 **Success Criteria** (what must be TRUE):
-  1. Migration 016 runs at app startup without errors and all existing recipe steps remain linked to their recipes (zero data loss)
+  1. Migration 018 runs at app startup without errors and all existing recipe steps remain linked to their recipes (zero data loss)
   2. Every existing recipe has exactly one auto-created default section with all its steps pointed at it
   3. User can create, rename, and delete a recipe section through the hook layer with correct 5-key cache invalidation on delete (sections, steps, step-counts, availability, swatch)
   4. User can persist a new section order and it survives app restart
   5. A batch GROUP BY query returns accurate per-section step counts in one round-trip
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 48-01-PLAN.md — Schema migration + TypeScript type definitions
+- [ ] 48-02-PLAN.md — Query/hook layer + unit tests
 
 ### Phase 49: Section Read UI
 **Goal**: Users can view a recipe's full workflow as a timeline grouped by section headers, with surface, timing, and paint-availability context visible at a glance — with backward-compatible flat fallback for section-free recipes.
@@ -241,7 +245,7 @@ Full details: `.planning/milestones/v0.2.6-ROADMAP.md`
 | 45. Sync Metadata & Import Tracking | v0.2.6 | 2/2 | Complete | 2026-05-08 |
 | 46. Manual Overrides & Version Comparison | v0.2.6 | 2/2 | Complete | 2026-05-08 |
 | 47. v0.2.6 Gap Closure | v0.2.6 | 2/2 | Complete | 2026-05-08 |
-| 48. Section Data Layer | v0.2.7 | 0/TBD | Not started | - |
+| 48. Section Data Layer | v0.2.7 | 0/2 | Not started | - |
 | 49. Section Read UI | v0.2.7 | 0/TBD | Not started | - |
 | 50. Section Form UI | v0.2.7 | 0/TBD | Not started | - |
 | 51. Duplication + Integration Polish | v0.2.7 | 0/TBD | Not started | - |
