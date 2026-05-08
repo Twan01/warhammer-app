@@ -60,8 +60,8 @@ describe("rulesSnapshot — capturePreSyncSnapshot", () => {
     await capturePreSyncSnapshot(null);
 
     // 11 INSERT calls (one per table)
-    const insertCalls = hobbyExecuteMock.mock.calls.filter(([sql]: [string]) =>
-      sql.includes("INSERT INTO rules_snapshot"),
+    const insertCalls = hobbyExecuteMock.mock.calls.filter((c: unknown[]) =>
+      (c[0] as string).includes("INSERT INTO rules_snapshot"),
     );
     expect(insertCalls).toHaveLength(11);
   });
@@ -76,8 +76,8 @@ describe("rulesSnapshot — capturePreSyncSnapshot", () => {
 
     await capturePreSyncSnapshot("v2.5");
 
-    const insertCalls = hobbyExecuteMock.mock.calls.filter(([sql]: [string]) =>
-      sql.includes("INSERT INTO rules_snapshot"),
+    const insertCalls = hobbyExecuteMock.mock.calls.filter((c: unknown[]) =>
+      (c[0] as string).includes("INSERT INTO rules_snapshot"),
     );
     for (const [, params] of insertCalls) {
       expect(params[1]).toBe("v2.5");
@@ -94,11 +94,11 @@ describe("rulesSnapshot — capturePreSyncSnapshot", () => {
 
     await capturePreSyncSnapshot(null);
 
-    const countCalls = rulesSelectMock.mock.calls.filter(([sql]: [string]) =>
-      sql.includes("COUNT(*)"),
+    const countCalls = rulesSelectMock.mock.calls.filter((c: unknown[]) =>
+      (c[0] as string).includes("COUNT(*)"),
     );
-    const nameCalls = rulesSelectMock.mock.calls.filter(([sql]: [string]) =>
-      sql.includes("SELECT id, name"),
+    const nameCalls = rulesSelectMock.mock.calls.filter((c: unknown[]) =>
+      (c[0] as string).includes("SELECT id, name"),
     );
     // 4 composite-PK tables: models, abilities (datasheet), keywords, wargear
     expect(countCalls).toHaveLength(4);
