@@ -9,7 +9,7 @@
 - ✅ **v2.3 Hobby Command Center** — Phases 25–29 (shipped 2026-05-05)
 - ✅ **v2.4 Premium Dashboard UX & Visual Polish** — Phases 30–34, 36 (shipped 2026-05-06)
 - ✅ **v2.5 Recipes 2.0 / Painting Studio** — Phases 37–41 (shipped 2026-05-07)
-- 🚧 **v2.6 Rules Sync 2.0 / Rules Data Hub** — Phases 42–46 (in progress)
+- 🚧 **v2.6 Rules Sync 2.0 / Rules Data Hub** — Phases 42–47 (in progress)
 
 ## Phases
 
@@ -129,6 +129,7 @@ Full details: `.planning/milestones/v2.5-ROADMAP.md`
 - [x] **Phase 44: Sync Pipeline Hardening** — Rust `bulk_sync_rules` returns per-table row counts; TypeScript displays counts in post-sync confirmation; CSV column validation rejects malformed files; sync errors logged to persistent table; all new rules hooks invalidated on sync success (completed 2026-05-08)
 - [x] **Phase 45: Sync Metadata & Import Tracking** — Last sync date/time, per-table row counts, source version, error history, freshness badge on rules-dependent pages, and pre-sync snapshot mechanism all visible and functional (completed 2026-05-08)
 - [x] **Phase 46: Manual Overrides & Version Comparison** — Users can override points, stats, keywords, and ability reminders per unit in hobbyforge.db; overrides persist across re-syncs and are visually distinguished from imported data; post-sync diff view shows what changed or was removed (completed 2026-05-08)
+- [ ] **Phase 47: v2.6 Gap Closure** — Extend snapshot to store full field values; per-field diff comparison for points, stats, keywords, and abilities; fix stale JSDoc and SUMMARY frontmatter gaps
 
 ## Phase Details
 
@@ -206,9 +207,23 @@ Plans:
 - [ ] 46-01-PLAN.md — Override data infrastructure: migration, types, query module, hook, army list COALESCE extension, computeSyncDiff (OVRD-01/02/03/04/06/07)
 - [ ] 46-02-PLAN.md — PlaybookTab UI: override markers, diff collapsible, toast summary, useRulesSync diff wiring (OVRD-05/06/07)
 
+### Phase 47: v2.6 Gap Closure
+**Goal**: Close the remaining OVRD-06 gap by extending the pre-sync snapshot to store full field values and adding per-field diff comparison; clean up accumulated tech debt
+**Depends on**: Phase 46
+**Requirements**: OVRD-06
+**Gap Closure:** Closes gaps from v2.6 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. Pre-sync snapshot stores full field values (points, stats, keywords, abilities) per datasheet — not just {id, name}
+  2. computeSyncDiff compares per-field values and reports which specific fields changed (e.g., points 150→160, keyword added/removed)
+  3. Diff UI displays per-field value changes alongside the existing datasheet-level changes
+  4. Stale JSDoc in armyLists.ts (lines 20, 159) is corrected to match the actual 3-level COALESCE chain
+  5. SUMMARY frontmatter in phases 43–46 includes requirements_completed entries
+Plans:
+- [ ] (to be planned)
+
 ## Progress
 
-**Execution Order:** 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 35 → 25 → 26 → 27 → 28 → 29 → 30 → 31 → 32 → 33 → 34 → 36 → 37 → 38 → 39 → 40 → 41 → 42 → 43 → 44 → 45 → 46
+**Execution Order:** 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 35 → 25 → 26 → 27 → 28 → 29 → 30 → 31 → 32 → 33 → 34 → 36 → 37 → 38 → 39 → 40 → 41 → 42 → 43 → 44 → 45 → 46 → 47
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -258,3 +273,4 @@ Plans:
 | 44. Sync Pipeline Hardening | 2/2 | Complete    | 2026-05-08 | - |
 | 45. Sync Metadata & Import Tracking | 2/2 | Complete    | 2026-05-08 | - |
 | 46. Manual Overrides & Version Comparison | 2/2 | Complete    | 2026-05-08 | - |
+| 47. v2.6 Gap Closure | v2.6 | 0/0 | Planned | - |
