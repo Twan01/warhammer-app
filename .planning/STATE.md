@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.6
 milestone_name: Rules Sync 2.0 / Rules Data Hub
 status: executing
-stopped_at: Completed 46-01-PLAN.md
-last_updated: "2026-05-08T09:31:40.651Z"
-last_activity: 2026-05-08 — Phase 45 Plan 01 complete (META-01, META-02, META-03, META-04, META-05, META-06)
+stopped_at: Completed 46-02-PLAN.md
+last_updated: "2026-05-08T11:50:00.000Z"
+last_activity: 2026-05-08 — Phase 46 Plan 02 complete (OVRD-01, OVRD-05, OVRD-06, OVRD-07)
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 9
-  completed_plans: 8
-  percent: 89
+  completed_plans: 9
+  percent: 100
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-07 after v2.6 milestone start)
 ## Current Position
 
 Phase: 46 of 46 (Manual Overrides / Version Comparison)
-Plan: 01 complete (override data infrastructure + computeSyncDiff pure function)
-Status: In Progress
-Last activity: 2026-05-08 — Phase 46 Plan 01 complete (OVRD-01, OVRD-02, OVRD-03, OVRD-04, OVRD-06, OVRD-07)
+Plan: 02 complete (override markers UI + diff view + points override input)
+Status: Complete — v2.6 milestone finished
+Last activity: 2026-05-08 — Phase 46 Plan 02 complete (OVRD-01, OVRD-05, OVRD-06, OVRD-07)
 
-Progress: [█████████░] 89%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Progress: [█████████░] 89%
 | Phase 45 P01 | 271 | 2 tasks | 9 files |
 | Phase 45 P02 | 9 | 3 tasks | 4 files |
 | Phase 46 P01 | 473 | 2 tasks | 10 files |
+| Phase 46 P02 | 20m | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,10 @@ Progress: [█████████░] 89%
 - **Phase 46 P01**: Army list effective_points uses 3-level COALESCE: alu.points_override > uo.points > u.points — per-army-list override takes priority over global unit override
 - **Phase 46 P01**: computeSyncDiff returns empty diff (not error) when snapshotData is null — first-time sync has no baseline to compare against
 - **Phase 46 P01**: select-then-upsert pattern used for upsertUnitOverride (matches strategyNotes.ts convention) even though unit_id has UNIQUE constraint
+- **Phase 46 P02**: Points override value synced via useEffect from overrideRow?.points to avoid controlled input drift on re-renders
+- **Phase 46 P02**: Override save in handleSave is conditional — only fires when at least one stat differs from imported value OR parsedPoints !== null (prevents empty override row writes)
+- **Phase 46 P02**: Diff computation is best-effort — wrapped in try/catch after invoke; sync success never blocked by diff failures
+- **Phase 46 P02**: Pre-sync snapshot read uses getLatestSnapshot() from hobbyforge.db before capturePreSyncSnapshot() to get baseline for diffing
 
 ### Pending Todos
 
@@ -101,6 +106,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-08T09:31:40.648Z
-Stopped at: Completed 46-01-PLAN.md
-Resume: Run /gsd:plan-phase 42
+Last session: 2026-05-08T11:50:00.000Z
+Stopped at: Completed 46-02-PLAN.md
+Resume: v2.6 milestone complete — run /gsd:progress for next milestone

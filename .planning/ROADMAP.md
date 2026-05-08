@@ -128,7 +128,7 @@ Full details: `.planning/milestones/v2.5-ROADMAP.md`
 - [x] **Phase 43: Extended Rules Read Layer** — TypeScript types, query functions, and React Query hooks for stratagems, detachments, detachment abilities, and shared faction abilities; all four data types surfaced in PlaybookTab (completed 2026-05-08)
 - [x] **Phase 44: Sync Pipeline Hardening** — Rust `bulk_sync_rules` returns per-table row counts; TypeScript displays counts in post-sync confirmation; CSV column validation rejects malformed files; sync errors logged to persistent table; all new rules hooks invalidated on sync success (completed 2026-05-08)
 - [x] **Phase 45: Sync Metadata & Import Tracking** — Last sync date/time, per-table row counts, source version, error history, freshness badge on rules-dependent pages, and pre-sync snapshot mechanism all visible and functional (completed 2026-05-08)
-- [ ] **Phase 46: Manual Overrides & Version Comparison** — Users can override points, stats, keywords, and ability reminders per unit in hobbyforge.db; overrides persist across re-syncs and are visually distinguished from imported data; post-sync diff view shows what changed or was removed
+- [x] **Phase 46: Manual Overrides & Version Comparison** — Users can override points, stats, keywords, and ability reminders per unit in hobbyforge.db; overrides persist across re-syncs and are visually distinguished from imported data; post-sync diff view shows what changed or was removed (completed 2026-05-08)
 
 ## Phase Details
 
@@ -201,7 +201,7 @@ Plans:
   4. In the UI, overridden values are visually distinguished from imported values (e.g., a badge or icon marking the field as manually set)
   5. After a re-sync, user can open a diff view showing which points values, stats, abilities, or keywords changed between the previous snapshot and the new data
   6. After a re-sync, user can see which datasheets were removed or renamed compared to the snapshot
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 46-01-PLAN.md — Override data infrastructure: migration, types, query module, hook, army list COALESCE extension, computeSyncDiff (OVRD-01/02/03/04/06/07)
 - [ ] 46-02-PLAN.md — PlaybookTab UI: override markers, diff collapsible, toast summary, useRulesSync diff wiring (OVRD-05/06/07)
@@ -257,4 +257,4 @@ Plans:
 | 43. Extended Rules Read Layer | 2/2 | Complete    | 2026-05-08 | - |
 | 44. Sync Pipeline Hardening | 2/2 | Complete    | 2026-05-08 | - |
 | 45. Sync Metadata & Import Tracking | 2/2 | Complete    | 2026-05-08 | - |
-| 46. Manual Overrides & Version Comparison | 1/2 | In Progress|  | - |
+| 46. Manual Overrides & Version Comparison | 2/2 | Complete   | 2026-05-08 | - |
