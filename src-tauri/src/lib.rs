@@ -100,6 +100,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/016_rules_snapshot.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 17,
+            description: "unit_overrides",
+            sql: include_str!("../migrations/017_unit_overrides.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
