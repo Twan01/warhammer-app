@@ -12,6 +12,7 @@ export interface RecipeCardGridProps {
   factions: Faction[];
   units: Unit[];
   stepCountByRecipe: Map<number, number>;
+  sectionCountByRecipe: Map<number, number>;
   swatchColorsByRecipe: Map<number, { paint_id: number; hex_color: string | null }[]>;
   availabilityByRecipe: Map<number, AvailabilityStats>;
   isLoading: boolean;
@@ -26,6 +27,7 @@ export function RecipeCardGrid({
   factions,
   units: _units,
   stepCountByRecipe,
+  sectionCountByRecipe,
   swatchColorsByRecipe,
   availabilityByRecipe,
   isLoading,
@@ -77,6 +79,7 @@ export function RecipeCardGrid({
           recipe={recipe}
           faction={recipe.faction_id !== null ? factionMap.get(recipe.faction_id) : undefined}
           stepCount={stepCountByRecipe.get(recipe.id) ?? 0}
+          sectionCount={sectionCountByRecipe.get(recipe.id) ?? 0}
           swatches={swatchColorsByRecipe.get(recipe.id) ?? []}
           availability={availabilityByRecipe.get(recipe.id)}
           onClick={onCardClick}

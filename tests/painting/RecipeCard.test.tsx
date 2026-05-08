@@ -48,6 +48,7 @@ function renderCard(props: Partial<Parameters<typeof RecipeCard>[0]> = {}) {
     recipe: makeRecipe(),
     faction: makeFaction(),
     stepCount: 6,
+    sectionCount: 0,
     swatches: makeSwatches(3),
     availability: undefined as AvailabilityStats | undefined,
     onClick: vi.fn(),
@@ -124,5 +125,20 @@ describe("RecipeCard", () => {
     renderCard({ recipe, onClick });
     fireEvent.click(screen.getByText("Test Recipe"));
     expect(onClick).toHaveBeenCalledWith(recipe);
+  });
+
+  it("Test 10: shows section count when sectionCount > 1", () => {
+    renderCard({ sectionCount: 3 });
+    expect(screen.getByText("3 sections")).toBeInTheDocument();
+  });
+
+  it("Test 11: hides section count when sectionCount <= 1", () => {
+    renderCard({ sectionCount: 1 });
+    expect(screen.queryByText(/sections/)).not.toBeInTheDocument();
+  });
+
+  it("Test 12: hides section count when sectionCount is 0", () => {
+    renderCard({ sectionCount: 0 });
+    expect(screen.queryByText(/sections/)).not.toBeInTheDocument();
   });
 });

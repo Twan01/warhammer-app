@@ -1,4 +1,4 @@
-import { Clock, Layers, Pencil, Trash2 } from "lucide-react";
+import { Clock, Layers, LayoutList, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -17,6 +17,7 @@ export interface RecipeCardProps {
   recipe: PaintingRecipe;
   faction: Faction | undefined;
   stepCount: number;
+  sectionCount: number;
   swatches: { paint_id: number; hex_color: string | null }[];
   availability: AvailabilityStats | undefined;
   onClick: (recipe: PaintingRecipe) => void;
@@ -96,6 +97,7 @@ export function RecipeCard({
   recipe,
   faction,
   stepCount,
+  sectionCount,
   swatches,
   availability,
   onClick,
@@ -167,8 +169,14 @@ export function RecipeCard({
           )}
         </div>
 
-        {/* Stats row: steps + time */}
+        {/* Stats row: sections + steps + time */}
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          {sectionCount > 1 && (
+            <span className="flex items-center gap-1">
+              <LayoutList className="h-3 w-3" />
+              {sectionCount} sections
+            </span>
+          )}
           <span className="flex items-center gap-1">
             <Layers className="h-3 w-3" />
             {stepCount} {stepCount === 1 ? "step" : "steps"}
