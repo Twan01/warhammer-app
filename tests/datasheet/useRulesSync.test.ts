@@ -11,11 +11,13 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 // NOTE: vi.mock factories are hoisted to the top of the file by Vitest.
 // Variables used inside factory functions must be declared with vi.hoisted()
 // to ensure they are initialized before the factory runs.
-const { invalidateQueriesMock, insertSyncErrorMock, capturePreSyncSnapshotMock, getRulesSyncMetaMock } = vi.hoisted(() => ({
+const { invalidateQueriesMock, insertSyncErrorMock, capturePreSyncSnapshotMock, getRulesSyncMetaMock, getLatestSnapshotMock, getRulesDbSelectMock } = vi.hoisted(() => ({
   invalidateQueriesMock: vi.fn(),
   insertSyncErrorMock: vi.fn(),
   capturePreSyncSnapshotMock: vi.fn(),
   getRulesSyncMetaMock: vi.fn(),
+  getLatestSnapshotMock: vi.fn(),
+  getRulesDbSelectMock: vi.fn(),
 }));
 
 vi.mock("@tanstack/react-query", () => ({
@@ -53,6 +55,13 @@ vi.mock("@/hooks/useDatasheet", () => ({
 
 vi.mock("@/db/queries/rulesSnapshot", () => ({
   capturePreSyncSnapshot: capturePreSyncSnapshotMock,
+  getLatestSnapshot: getLatestSnapshotMock,
+}));
+
+vi.mock("@/db/rules-client", () => ({
+  getRulesDb: vi.fn(async () => ({
+    select: getRulesDbSelectMock,
+  })),
 }));
 
 vi.mock("@/db/queries/datasheets", () => ({
@@ -72,6 +81,8 @@ beforeEach(() => {
   insertSyncErrorMock.mockReset();
   vi.mocked(tauriFetch).mockReset();
   vi.mocked(invoke).mockReset();
+  getLatestSnapshotMock.mockReset();
+  getRulesDbSelectMock.mockReset();
 });
 
 describe("useRulesSync", () => {
@@ -278,5 +289,87 @@ describe("useRulesSync", () => {
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({ queryKey: ["sync-errors"] })
     );
+  });
+});
+
+// ── Phase 47 — Extended snapshot wiring in mutationFn (OVRD-06) ───────────────
+
+describe("useRulesSync — extended snapshot data wiring (Phase 47)", () => {
+  it("OVRD-06: mutationFn passes extended snapshot data to computeSyncDiff and returns diff.modified with T field change", async () => {
+    // Arrange: mock fetch to return empty CSV text for all 12 files
+    const fakeCsvResponse = { ok: true, text: async () => "" };
+    vi.mocked(tauriFetch).mockResolvedValue(
+      fakeCsvResponse as ReturnType<typeof tauriFetch> extends Promise<infer R> ? R : never,
+    );
+
+    const mockRustResult = {
+      factions: 1, sources: 1, datasheets: 1, models: 1, abilities: 1,
+      keywords: 1, wargear: 1, shared_abilities: 1, stratagems: 1,
+      detachments: 1, detachment_abilities: 1,
+    };
+    vi.mocked(invoke).mockResolvedValue(mockRustResult);
+
+    getRulesSyncMetaMock.mockResolvedValue(null);
+    capturePreSyncSnapshotMock.mockResolvedValue(undefined);
+
+    // Pre-sync snapshot: ds1 exists with T=5 in models snapshot
+    const preSyncDsSnapshot = JSON.stringify([{ id: "ds1", name: "Alpha" }]);
+    const preSyncModelsSnapshot = JSON.stringify([
+      { datasheet_id: "ds1", line: 1, name: null, M: "6\"", T: 5, Sv: "3+", inv_sv: null, W: 2, Ld: "6+", OC: 1 },
+    ]);
+    const preSyncKeywordsSnapshot = JSON.stringify([
+      { datasheet_id: "ds1", keyword: "INFANTRY", is_faction_keyword: 0 },
+    ]);
+    const preSyncAbilitiesSnapshot = JSON.stringify([
+      { datasheet_id: "ds1", line: 1, ability_id: "ab1", name: "Rapid Fire", description: null, type: null },
+    ]);
+
+    getLatestSnapshotMock.mockResolvedValue([
+      { id: 1, captured_at: "2026-01-01T00:00:00Z", wahapedia_version: "v1", table_name: "rw_datasheets",          row_count: 1, snapshot_data: preSyncDsSnapshot },
+      { id: 2, captured_at: "2026-01-01T00:00:00Z", wahapedia_version: "v1", table_name: "rw_datasheet_models",   row_count: 1, snapshot_data: preSyncModelsSnapshot },
+      { id: 3, captured_at: "2026-01-01T00:00:00Z", wahapedia_version: "v1", table_name: "rw_datasheet_keywords", row_count: 1, snapshot_data: preSyncKeywordsSnapshot },
+      { id: 4, captured_at: "2026-01-01T00:00:00Z", wahapedia_version: "v1", table_name: "rw_datasheet_abilities", row_count: 1, snapshot_data: preSyncAbilitiesSnapshot },
+    ]);
+
+    // Post-sync state: ds1 still exists, but T changed from 5 to 6
+    getRulesDbSelectMock.mockImplementation(async (query: string) => {
+      if (query.startsWith("SELECT id, name FROM rw_datasheets")) {
+        return [{ id: "ds1", name: "Alpha" }];
+      }
+      if (query.startsWith("SELECT datasheet_id, line, name, M, T, Sv")) {
+        // rw_datasheet_models — T is now 6
+        return [
+          { datasheet_id: "ds1", line: 1, name: null, M: "6\"", T: 6, Sv: "3+", inv_sv: null, W: 2, Ld: "6+", OC: 1 },
+        ];
+      }
+      if (query.startsWith("SELECT datasheet_id, keyword")) {
+        // rw_datasheet_keywords — unchanged
+        return [{ datasheet_id: "ds1", keyword: "INFANTRY", is_faction_keyword: 0 }];
+      }
+      if (query.startsWith("SELECT datasheet_id, line, ability_id")) {
+        // rw_datasheet_abilities — unchanged
+        return [{ datasheet_id: "ds1", line: 1, ability_id: "ab1", name: "Rapid Fire", description: null, type: null }];
+      }
+      return [];
+    });
+
+    // Act
+    const opts = useRulesSync() as unknown as {
+      mutationFn: () => Promise<{ wahapediaVersion: string; rowCounts: Record<string, number>; diff: { modified: Array<{ id: string; name: string; changes: Array<{ field: string; oldValue: string; newValue: string }> }>; total_changed: number; added: unknown[]; removed: unknown[]; renamed: unknown[] } }>;
+    };
+    const result = await opts.mutationFn();
+
+    // Assert: diff.modified has at least one entry for ds1 with T field change
+    expect(result.diff.modified).toHaveLength(1);
+    expect(result.diff.modified[0].id).toBe("ds1");
+    expect(result.diff.modified[0].name).toBe("Alpha");
+
+    const tChange = result.diff.modified[0].changes.find((c) => c.field === "T");
+    expect(tChange).toBeDefined();
+    expect(tChange?.oldValue).toBe("5");
+    expect(tChange?.newValue).toBe("6");
+
+    // total_changed must reflect the modified entry
+    expect(result.diff.total_changed).toBeGreaterThanOrEqual(1);
   });
 });
