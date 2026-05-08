@@ -31,6 +31,18 @@ vi.mock("@/hooks/useRecipePaints", () => ({
   useRecipePaints: () => mockExistingSteps(),
   useAddRecipePaint: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useRemoveRecipePaint: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  RECIPE_PAINTS_KEY: (id: number) => ["recipe-paints", id],
+  STEP_COUNTS_KEY: ["recipe-step-counts"],
+  RECIPE_AVAILABILITY_KEY: ["recipe-paint-availability"],
+  RECIPE_SWATCH_KEY: ["recipe-swatch-colors"],
+}));
+
+// useRecipeSections is required — RecipeFormSheet now fetches sections for edit mode.
+// Returning one section (id=99) so buildDraftSections groups existingSteps under it.
+const mockExistingSections = vi.fn(() => ({ data: [] as unknown[] }));
+vi.mock("@/hooks/useRecipeSections", () => ({
+  useRecipeSections: () => mockExistingSections(),
+  RECIPE_SECTIONS_KEY: (id: number) => ["recipe-sections", id],
 }));
 
 vi.mock("@/hooks/useFactions", () => ({
@@ -147,8 +159,28 @@ function makeStep(time: number | null, overrides: Partial<RecipeStep> = {}): Rec
   };
 }
 
+// Default section used by renderSheet so steps are grouped under it
+const DEFAULT_SECTION_ID = 99;
+
 function renderSheet(recipe: PaintingRecipe, steps: RecipeStep[]) {
-  mockExistingSteps.mockReturnValue({ data: steps });
+  // Tag all steps with the default section id so buildDraftSections groups them correctly
+  const taggedSteps = steps.map((s) => ({ ...s, section_id: DEFAULT_SECTION_ID }));
+  mockExistingSteps.mockReturnValue({ data: taggedSteps });
+  mockExistingSections.mockReturnValue({
+    data: [
+      {
+        id: DEFAULT_SECTION_ID,
+        recipe_id: recipe.id,
+        name: "Steps",
+        surface: null,
+        optional: 0,
+        order_index: 0,
+        notes: null,
+        created_at: "2026-01-01 00:00:00",
+        updated_at: "2026-01-01 00:00:00",
+      },
+    ],
+  });
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const onClose = vi.fn();
   render(

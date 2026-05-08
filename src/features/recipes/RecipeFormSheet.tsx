@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { readFile, writeFile, BaseDirectory } from "@tauri-apps/plugin-fs";
-import { ImageIcon } from "lucide-react";
+import { ImageIcon, Plus } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -39,7 +39,12 @@ import {
   useAddRecipePaint,
   useRemoveRecipePaint,
   useRecipePaints,
+  RECIPE_PAINTS_KEY,
+  STEP_COUNTS_KEY,
+  RECIPE_AVAILABILITY_KEY,
+  RECIPE_SWATCH_KEY,
 } from "@/hooks/useRecipePaints";
+import { useRecipeSections, RECIPE_SECTIONS_KEY } from "@/hooks/useRecipeSections";
 import { useFactions } from "@/hooks/useFactions";
 import { useUnits } from "@/hooks/useUnits";
 import { usePaints } from "@/hooks/usePaints";
@@ -53,10 +58,12 @@ import {
   RECIPE_DIFFICULTIES,
 } from "./recipeSchema";
 import {
-  type DraftStep,
   computeOrderIndex,
 } from "./recipeSteps";
+import { type DraftSection, makeDraftSection, buildDraftSections } from "./recipeSection";
 import { RecipeStepList } from "./RecipeStepList";
+import { RecipeSectionList } from "./RecipeSectionList";
+import { createRecipeSection, deleteRecipeSection } from "@/db/queries/recipeSections";
 import { PaintSheet } from "@/features/paints/PaintSheet";
 
 export interface RecipeFormSheetProps {
@@ -119,13 +126,15 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
   const { data: paints = [] } = usePaints();
   // Existing steps for edit mode (enabled flag prevents fetch when creating new)
   const { data: existingSteps = [] } = useRecipePaints(recipe?.id);
+  // Existing sections for edit mode
+  const { data: existingSections = [] } = useRecipeSections(recipe?.id);
 
   const form = useForm<RecipeFormValues>({
     resolver: zodResolver(recipeSchema),
     defaultValues: buildDefaults(recipe),
   });
 
-  const [steps, setSteps] = useState<DraftStep[]>([]);
+  const [sections, setSections] = useState<DraftSection[]>([makeDraftSection("Steps")]);
   const [paintSheetOpen, setPaintSheetOpen] = useState(false);
   // Track existing paint ids before opening PaintSheet so we can detect the new one
   const [paintsBeforeCreate, setPaintsBeforeCreate] = useState<number[]>([]);
@@ -133,34 +142,22 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
   const [pendingStepLocalId, setPendingStepLocalId] = useState<string | null>(null);
 
   const totalMinutes = useMemo(
-    () => steps.reduce((acc, s) => acc + (s.time_estimate_minutes ?? 0), 0),
-    [steps],
+    () => sections.flatMap((s) => s.steps).reduce((acc, s) => acc + (s.time_estimate_minutes ?? 0), 0),
+    [sections],
   );
 
-  // Re-initialize draft steps and form values when the recipe prop changes
+  // Re-initialize draft sections and form values when the recipe prop changes
   useEffect(() => {
     form.reset(buildDefaults(recipe));
-    if (recipe && existingSteps.length > 0) {
-      setSteps(
-        existingSteps.map((s) => ({
-          localId: crypto.randomUUID(),
-          step_name: s.step_name,
-          paint_id: s.paint_id,
-          notes: s.notes,
-          painting_phase: s.painting_phase ?? null,
-          tool: s.tool ?? null,
-          technique: s.technique ?? null,
-          dilution: s.dilution ?? null,
-          time_estimate_minutes: s.time_estimate_minutes ?? null,
-          step_photo_path: s.step_photo_path ?? null,
-          alt_paint_id: s.alt_paint_id ?? null,
-        })),
-      );
+    if (recipe && existingSections.length > 0) {
+      // Edit mode: build draft from DB sections + steps
+      setSections(buildDraftSections(existingSections, existingSteps));
     } else if (!recipe) {
-      setSteps([]);
+      // New recipe: one default section
+      setSections([makeDraftSection("Steps")]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recipe?.id, existingSteps.length]);
+  }, [recipe?.id, existingSections.length, existingSteps.length]);
 
   // PAINT-03: detect new paint after PaintSheet closes
   useEffect(() => {
@@ -169,10 +166,13 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
     // Find the new paint id (not present before)
     const newPaint = paints.find((p) => !paintsBeforeCreate.includes(p.id));
     if (newPaint) {
-      setSteps((prev) =>
-        prev.map((s) =>
-          s.localId === pendingStepLocalId ? { ...s, paint_id: newPaint.id } : s,
-        ),
+      setSections((prev) =>
+        prev.map((sec) => ({
+          ...sec,
+          steps: sec.steps.map((s) =>
+            s.localId === pendingStepLocalId ? { ...s, paint_id: newPaint.id } : s,
+          ),
+        })),
       );
     }
     setPendingStepLocalId(null);
@@ -183,6 +183,10 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
     setPaintsBeforeCreate(paints.map((p) => p.id));
     setPendingStepLocalId(stepLocalId);
     setPaintSheetOpen(true);
+  }
+
+  function addSection() {
+    setSections((prev) => [...prev, makeDraftSection()]);
   }
 
   async function handleResultPhotoUpload() {
@@ -208,11 +212,8 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
 
   async function onSubmit(values: RecipeFormValues) {
     try {
-      // RECIPE-05: assign order_index by current array position
-      const indexedSteps = computeOrderIndex(steps);
-
+      let recipeId: number;
       if (isEdit && recipe) {
-        // Update recipe row
         await updateRecipe.mutateAsync({
           id: recipe.id,
           name: values.name,
@@ -228,33 +229,17 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
           estimated_minutes: values.estimated_minutes,
           result_photo_path: values.result_photo_path,
         });
-        // STATE.md decision: RecipePaint links are immutable. Remove all + re-add.
+        recipeId = recipe.id;
+        // Delete all existing sections — CASCADE handles step cleanup
+        for (const existing of existingSections) {
+          await deleteRecipeSection(existing.id);
+        }
+        // Remove any orphaned steps without section_id (legacy data)
         for (const existing of existingSteps) {
-          await removeRecipePaint.mutateAsync({ id: existing.id, recipeId: recipe.id });
+          await removeRecipePaint.mutateAsync({ id: existing.id, recipeId });
         }
-        for (const s of indexedSteps) {
-          if (s.paint_id !== null) {
-            await addRecipePaint.mutateAsync({
-              recipe_id: recipe.id,
-              paint_id: s.paint_id,
-              step_name: s.step_name,
-              order_index: s.order_index,
-              notes: s.notes,
-              painting_phase: s.painting_phase,
-              tool: s.tool,
-              technique: s.technique,
-              dilution: s.dilution,
-              time_estimate_minutes: s.time_estimate_minutes,
-              step_photo_path: s.step_photo_path ?? null,
-              alt_paint_id: s.alt_paint_id ?? null,
-              section_id: null,
-            });
-          }
-        }
-        toast.success("Recipe saved.");
       } else {
-        // Create recipe row first
-        const newId = await createRecipe.mutateAsync({
+        recipeId = await createRecipe.mutateAsync({
           name: values.name,
           faction_id: values.faction_id,
           unit_id: values.unit_id,
@@ -278,10 +263,31 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
           estimated_minutes: values.estimated_minutes,
           result_photo_path: values.result_photo_path,
         });
+      }
+
+      // Create sections in array order, build localId -> dbId map
+      const sectionIdMap = new Map<string, number>();
+      for (let i = 0; i < sections.length; i++) {
+        const sec = sections[i];
+        const newSectionId = await createRecipeSection({
+          recipe_id: recipeId,
+          name: sec.name,
+          surface: sec.surface,
+          optional: sec.optional,
+          order_index: i,
+          notes: sec.notes,
+        });
+        sectionIdMap.set(sec.localId, newSectionId);
+      }
+
+      // Create steps with mapped section_id
+      for (const sec of sections) {
+        const dbSectionId = sectionIdMap.get(sec.localId) ?? null;
+        const indexedSteps = computeOrderIndex(sec.steps);
         for (const s of indexedSteps) {
           if (s.paint_id !== null) {
             await addRecipePaint.mutateAsync({
-              recipe_id: newId,
+              recipe_id: recipeId,
               paint_id: s.paint_id,
               step_name: s.step_name,
               order_index: s.order_index,
@@ -293,14 +299,21 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
               time_estimate_minutes: s.time_estimate_minutes,
               step_photo_path: s.step_photo_path ?? null,
               alt_paint_id: s.alt_paint_id ?? null,
-              section_id: null,
+              section_id: dbSectionId,
             });
           }
         }
-        toast.success("Recipe created.");
       }
-      // Invalidate the aggregated step-count query in RecipesPage
+
+      // Invalidate all 6 cache keys
+      qc.invalidateQueries({ queryKey: RECIPE_SECTIONS_KEY(recipeId) });
+      qc.invalidateQueries({ queryKey: RECIPE_PAINTS_KEY(recipeId) });
+      qc.invalidateQueries({ queryKey: STEP_COUNTS_KEY });
+      qc.invalidateQueries({ queryKey: RECIPE_AVAILABILITY_KEY });
+      qc.invalidateQueries({ queryKey: RECIPE_SWATCH_KEY });
       qc.invalidateQueries({ queryKey: ["recipe-step-counts"] });
+
+      toast.success(isEdit ? "Recipe saved." : "Recipe created.");
       onClose();
     } catch {
       toast.error("Failed to save recipe. Changes were not saved.");
@@ -311,7 +324,7 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
     <>
       <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
         <SheetContent
-          // key forces re-mount when switching recipes (clears local step state)
+          // key forces re-mount when switching recipes (clears local section state)
           key={recipe?.id ?? "new"}
           className="overflow-y-auto sm:max-w-xl"
         >
@@ -638,11 +651,24 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
                     </span>
                   )}
                 </div>
-                <RecipeStepList
-                  steps={steps}
-                  onChange={setSteps}
-                  onCreateNewPaint={(stepLocalId) => openInlinePaintCreate(stepLocalId)}
-                />
+                {sections.length <= 1 ? (
+                  <RecipeStepList
+                    steps={sections[0]?.steps ?? []}
+                    onChange={(next) =>
+                      setSections((prev) => [{ ...(prev[0] ?? makeDraftSection("Steps")), steps: next }])
+                    }
+                    onCreateNewPaint={(stepLocalId) => openInlinePaintCreate(stepLocalId)}
+                  />
+                ) : (
+                  <RecipeSectionList
+                    sections={sections}
+                    onChange={setSections}
+                    onCreateNewPaint={(stepLocalId) => openInlinePaintCreate(stepLocalId)}
+                  />
+                )}
+                <Button type="button" variant="outline" size="sm" onClick={addSection} className="self-start">
+                  <Plus className="mr-2 h-4 w-4" /> Add Section
+                </Button>
               </div>
 
               <SheetFooter className="mt-6 gap-2 sm:gap-2">
