@@ -1,4 +1,24 @@
 # Milestones
+## v0.2.7 Recipes 3.0 / Hierarchical Painting Workflows (Shipped: 2026-05-08)
+
+**Phases completed:** 4 phases (48–51), 8 plans
+**Timeline:** 2026-05-08 (single day)
+**Stats:** 14 commits, 59 files changed, +8,259 / -174 lines, 19 requirements satisfied, 1,112 automated tests passing
+
+**Key accomplishments:**
+- Section data layer: migration 018 creates recipe_sections table with zero-data-loss default section backfill, typed CRUD queries, 5-key cascade invalidation contract on section delete
+- Sectioned timeline view: SectionedTimeline component with section headers showing name, surface badge, step count, estimated time, and per-section owned/missing paint availability dots — backward-compatible flat fallback for unsectioned recipes
+- Section form UI: collapsible DnD-reorderable section cards with progressive disclosure (single-section recipes stay flat as before), DraftSection/buildDraftSections pure functions with TDD
+- Section-aware recipe duplication: Map<oldId, newId> remapping during section copy, section count badges on recipe cards (hidden for single-section recipes)
+- Full backward compatibility: all pre-existing recipe workflows (availability, swatches, LogSession, CRUD) unchanged — 1,112 tests passing with zero regressions
+
+**Archived:**
+- Roadmap: `.planning/milestones/v0.2.7-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.2.7-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.2.7-MILESTONE-AUDIT.md`
+
+---
+
 
 ## v0.2.6 Rules Sync 2.0 / Rules Data Hub (Shipped: 2026-05-08)
 

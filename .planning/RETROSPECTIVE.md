@@ -354,6 +354,53 @@
 
 ---
 
+## Milestone: v0.2.7 — Recipes 3.0 / Hierarchical Painting Workflows
+
+**Shipped:** 2026-05-08
+**Phases:** 4 (48–51) | **Plans:** 8 | **Timeline:** 1 day (2026-05-08)
+
+### What Was Built
+
+- Phase 48: Migration 018 (recipe_sections table with 9 columns, section_id FK on recipe_steps, zero-data-loss default section backfill), typed CRUD queries, 5-key cascade invalidation contract on section delete, batch per-section step counts via GROUP BY
+- Phase 49: SectionedTimeline component — section headers with name, surface badge, step count, estimated time, per-section owned/missing paint availability dots; backward-compatible flat fallback for unsectioned recipes
+- Phase 50: DraftSection type + buildDraftSections pure functions (TDD), RecipeSectionCard (collapsible + useSortable), RecipeSectionList (outer DndContext for section reorder), RecipeFormSheet rewrite with DraftSection[] state and progressive disclosure
+- Phase 51: duplicateRecipe extended with section copy + Map<oldId, newId> remapping, getSectionCountsByRecipe batch query, RecipeCard section count badge with progressive disclosure (hidden for single-section recipes), 1,112 tests passing
+
+### What Worked
+
+- **Data layer foundation phase (Phase 48):** Separating migration + types + queries + hooks into a dedicated phase before any UI work meant Phases 49–51 had zero data-layer surprises. Consistent with the v0.2.0 and v0.2.5 pattern.
+- **TDD for pure functions (Phase 50):** Plan 50-01 wrote `makeDraftSection` and `buildDraftSections` with 8 tests before any UI existed. The form rewrite in Plan 50-03 consumed these functions without a single bug.
+- **Progressive disclosure design decision:** The `sections.length <= 1` threshold keeps simple recipes simple while exposing full section UI only when needed. Confirmed as correct by all verification reports.
+- **No gap closure phase needed:** All 19 requirements passed on first audit — no gap closure phase was required. This is the second milestone (after v0.2.5) with a clean first-pass audit.
+- **Nyquist compliance inline:** All 4 phases shipped with `nyquist_compliant: true` — zero retrofit debt. The pattern is now fully routine.
+
+### What Was Inefficient
+
+- **SUMMARY frontmatter `requirements_completed` still empty in 6/8 plans:** Despite being flagged as a lesson in v0.2.4, v0.2.5, and v0.2.6, 6 of 8 SUMMARY files shipped with empty `requirements_completed` arrays. The 3-source cross-reference at audit time had to fall back to VERIFICATION.md evidence. This is the 4th consecutive milestone with this issue.
+- **SUMMARY frontmatter `one_liner` missing in all 8 plans:** 8th consecutive milestone with null `one_liner` fields. Accomplishment extraction at milestone completion is always manual.
+- **2 orphaned hook exports:** `useReorderRecipeSections` and `useSectionStepCounts` were built in Phase 48 but never consumed by any component. The form used DELETE+re-INSERT instead of the reorder hook, and SectionedTimeline computes counts inline instead of using the batch hook. Planning could have anticipated the actual consumption patterns.
+
+### Patterns Established
+
+- **Two-DndContext nested approach:** Outer DndContext for section reorder, inner DndContext per section for step reorder. Each context is independent — no cross-container DnD complexity.
+- **DELETE-all + re-INSERT for hierarchical saves:** When saving a form with parent + child relationships (sections + steps), delete all existing parents (CASCADE removes children), then re-INSERT in order. Simpler than diffing.
+- **Progressive disclosure threshold for optional complexity:** When a feature adds complexity that not all entities need, use a count-based threshold (e.g., sections.length <= 1) to hide the complex UI for simple cases.
+- **sectionIdMap for duplication ID remapping:** When duplicating an entity with child hierarchies, build a Map<oldId, newId> during the parent copy loop and use it during the child copy loop. O(1) per child.
+
+### Key Lessons
+
+1. **Anticipate consumption patterns when building hooks.** Two hooks (useReorderRecipeSections, useSectionStepCounts) were built speculatively but the UI used alternative approaches. Planning should ask "how will the form/view actually consume this data?" before building hooks.
+2. **SUMMARY frontmatter enforcement remains the most persistent gap.** `requirements_completed` and `one_liner` fields are missing in nearly every plan across 4 milestones. This needs a workflow enforcement mechanism, not just retrospective lessons.
+3. **Clean first-pass audits correlate with well-scoped milestones.** Both v0.2.5 and v0.2.7 had clean audits (no gap closure needed) and both had focused, well-scoped work (recipe features, 4–5 phases, clear dependency chain). Milestones with broader scope (v0.2.1, v0.2.2) needed gap closure.
+
+### Cost Observations
+
+- Model: Claude Opus 4.6 throughout
+- Sessions: 2 (v0.2.6 + v0.2.7 execution in same day, then audit + completion)
+- Notable: 4 phases with 8 plans and 19 requirements in 1 calendar day — fastest per-plan velocity; clean linear dependency chain (48→49→50→51) with no parallelism needed
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -368,6 +415,7 @@
 | v0.2.4 | 6 | 13 | CSS grid dashboard; photo-rich panels; Radix sentinel pattern; gap closure routine (6 min) |
 | v0.2.5 | 5 | 12 | Recipe restructure (rename migration); batch aggregate queries; session-recipe linking; no gap closure needed |
 | v0.2.6 | 6 | 11 | Architecture audit phase; dual-DB overrides; per-field diff; SUMMARY frontmatter standardization |
+| v0.2.7 | 4 | 8 | Hierarchical recipe sections; nested DnD; progressive disclosure; no gap closure needed |
 
 ### Cumulative Quality
 
@@ -381,6 +429,7 @@
 | v0.2.4 | 778 | 778 passing, 1 pre-existing flaky (paintRowSwatch timeout), 2 skipped, 12 todo |
 | v0.2.5 | ~900 | All passing (18 requirements, 42/42 observable truths verified, Nyquist compliant) |
 | v0.2.6 | 1,031 | All passing (27 requirements, Nyquist compliant, 1 test added by validation audit) |
+| v0.2.7 | 1,112 | All passing (19 requirements, 33/33 observable truths verified, Nyquist compliant, no gap closure) |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -396,3 +445,5 @@
 10. `requirements_completed` in SUMMARY frontmatter is load-bearing for 3-source cross-reference — add it as a standard executor step
 11. Rename migration + type alias is the cleanest table evolution strategy — zero data loss, zero downstream breakage (learned in v0.2.5 Phase 37)
 12. `one_liner` in SUMMARY frontmatter must be enforced — milestone completion depends on it for accomplishment extraction (all 12 v0.2.5 SUMMARYs missing)
+13. Anticipate hook consumption patterns during planning — speculative hooks that don't match the UI's actual data flow become dead code (learned in v0.2.7 Phase 48)
+14. Clean first-pass audits correlate with well-scoped milestones — focused work (4–5 phases, clear dependency chain) ships without gap closure

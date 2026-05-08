@@ -4,7 +4,7 @@
 
 HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, structured painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play" — all without ever depending on copyrighted GW data.
 
-Shipped through v0.2.6 (47 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with paint availability), army list builder, battle log, spending tracker, hobby goals, photo journal, session-recipe linking, premium CSS grid dashboard, and a complete rules data hub — Wahapedia datasheet import with hardened sync pipeline, sync metadata/freshness tracking, persistent manual overrides, and per-field diff comparison after re-syncs.
+Shipped through v0.2.7 (51 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, paint availability, and DnD reorder), army list builder, battle log, spending tracker, hobby goals, photo journal, session-recipe linking, premium CSS grid dashboard, and a complete rules data hub — Wahapedia datasheet import with hardened sync pipeline, sync metadata/freshness tracking, persistent manual overrides, and per-field diff comparison after re-syncs.
 
 ## Core Value
 
@@ -95,18 +95,18 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ Manual overrides: per-unit points/stats/keywords/abilities overrides surviving re-syncs, 3-level COALESCE, visual override markers — Phase 46 — v0.2.6
 - ✓ Per-field diff: enriched snapshots, stat/keyword/ability value comparison, Modified section in diff UI — Phases 46–47 — v0.2.6
 
+*All v0.2.7 requirements verified and shipped 2026-05-08*
+
+- ✓ Section data layer: recipe_sections table (9 columns), section_id FK on recipe_steps, zero-data-loss migration with default section backfill — Phase 48 — v0.2.7
+- ✓ Section CRUD: typed query/hook layer for create/read/update/delete/reorder sections, batch per-section step counts — Phase 48 — v0.2.7
+- ✓ Sectioned timeline view: section headers with name, surface badge, step count, time estimate, per-section paint availability — Phase 49 — v0.2.7
+- ✓ Flat timeline backward compatibility: recipes without sections render existing flat timeline unchanged — Phase 49 — v0.2.7
+- ✓ Section form UI: collapsible DnD section cards with progressive disclosure, section add/rename/delete, step reorder within sections — Phase 50 — v0.2.7
+- ✓ Section-aware duplication: recipe copy includes sections with Map<oldId, newId> remapping, section count on recipe cards — Phase 51 — v0.2.7
+
 ### Active
 
-## Current Milestone: v0.2.7 Recipes 3.0 / Hierarchical Painting Workflows
-
-**Goal:** Add recipe sections (workflow groupings) so users can model real painting sequences — completing one surface or technique block before moving to the next.
-
-**Target features:**
-- Recipe sections table (grouping steps into workflow blocks)
-- Section-aware recipe detail view (workflow timeline)
-- Section-aware recipe form (collapsible section cards with steps)
-- Migration preserving all existing recipe data
-- Recipe duplication copying sections + steps
+(No active milestone — next milestone to be defined)
 
 ### Out of Scope
 
@@ -124,7 +124,7 @@ A single personal command center that always answers "what do I own, what's pain
 
 ## Context
 
-- **Current state:** v0.2.6 shipped. ~250 TypeScript source files. 1,031 automated tests passing. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 9 main pages. Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline: Rust bulk_sync_rules with per-table row counts, CSV validation, persistent error logging, sync metadata, freshness tracking, pre-sync snapshots, manual overrides surviving re-syncs, and per-field diff comparison. 15 SQLite migrations (14 hobbyforge.db + 1 rules.db wargear extension).
+- **Current state:** v0.2.7 shipped. ~260 TypeScript source files. 1,112 automated tests passing. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 9 main pages. Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline. Hierarchical recipe sections with collapsible DnD form cards, sectioned timeline view, and section-aware duplication. 18 SQLite migrations (17 hobbyforge.db + 1 rules.db wargear extension).
 - **Personal tool** — single user (the owner), local-first, no accounts or sync
 - **Domain:** Warhammer 40K 10th edition, hobby management (collecting → painting → playing)
 - **User journey priority:** painter/collector → ready-to-play, *not* competitive optimization
@@ -185,6 +185,11 @@ A single personal command center that always answers "what do I own, what's pain
 | 3-level COALESCE for effective points | alu.points_override > uo.points > u.points — army-list override takes priority | ✓ Excellent — single SQL expression, no JS math |
 | Pre-sync snapshot read before capture | getLatestSnapshot() → capturePreSyncSnapshot() ordering ensures baseline for diff | ✓ Good — first sync gracefully returns empty diff |
 | Promise.all for post-sync extended queries | Three parallel SELECT queries with same ORDER BY as SNAPSHOT_TABLES for deterministic comparison | ✓ Good — minimal latency overhead for per-field diff |
+| Two-DndContext nested approach for section + step DnD | Outer DndContext for section reorder, inner DndContext per section for step reorder | ✓ Good — avoids cross-container DnD complexity; each context independent |
+| DELETE-all + re-INSERT for section saves | Avoids diff algorithm; CASCADE removes steps atomically before re-INSERT | ✓ Good — clean ordering, no orphaned rows |
+| Progressive disclosure threshold (sections.length <= 1) | Single-section recipes show flat step list, 2+ shows section cards | ✓ Good — preserves simple UX for simple recipes |
+| sectionIdMap in duplicateRecipe | Map<oldId, newId> built during section copy loop, used for step section_id remapping | ✓ Excellent — O(1) remap per step, prevents structural corruption |
+| ON DELETE CASCADE for recipe_steps.section_id | Deleting a section automatically removes its steps — no manual cleanup | ✓ Good — consistent with recipe→section CASCADE |
 
 ---
-*Last updated: 2026-05-08 after v0.2.7 milestone started*
+*Last updated: 2026-05-08 after v0.2.7 milestone*

@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.1
-milestone_name: milestone
-status: executing
-stopped_at: Completed 51-02-PLAN.md
-last_updated: "2026-05-08T19:16:50.169Z"
-last_activity: 2026-05-08 — Completed 51-02 (sectionCount prop chain RecipesPage -> RecipeCardGrid -> RecipeCard, INTG-02 + INTG-03)
+milestone: v0.2.7
+milestone_name: Recipes 3.0 / Hierarchical Painting Workflows
+status: completed
+stopped_at: Milestone v0.2.7 complete
+last_updated: "2026-05-08T22:30:00.000Z"
+last_activity: 2026-05-08 — Milestone v0.2.7 shipped (4 phases, 8 plans, 19 requirements)
 progress:
   total_phases: 4
   completed_phases: 4
@@ -18,33 +18,23 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-08 after v0.2.7 milestone started)
+See: .planning/PROJECT.md (updated 2026-05-08 after v0.2.7 milestone)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** Phase 50 — Section Form UI
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 51 of 51 (Duplication Integration + Polish) — In Progress
-Plan: 02 of 03 — complete
-Status: In progress
-Last activity: 2026-05-08 — Completed 51-02 (sectionCount prop chain RecipesPage -> RecipeCardGrid -> RecipeCard, INTG-02 + INTG-03)
+Milestone v0.2.7 complete. No active milestone.
 
 Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Prior milestone (v0.2.6): 11 plans across 6 phases
-- Prior milestone (v0.2.5): 12 plans across 5 phases
-
-**48-01:** 2 tasks, 8 files, 185s
-**48-02:** 3 tasks, 4 files, 324s
-**49-01:** 2 tasks, 4 files, 493s
-**50-01:** 2 tasks, 2 files, ~480s
-**50-03:** 1 task, 2 files, ~20 min
-**51-01:** 3 tasks, 5 files, 404s
-**51-02:** 2 tasks, 5 files, ~480s
+- v0.2.7: 8 plans across 4 phases (single day)
+- v0.2.6: 11 plans across 6 phases (single day)
+- v0.2.5: 12 plans across 5 phases (single day)
 
 ## Accumulated Context
 
@@ -61,30 +51,10 @@ Progress: [██████████] 100%
 - Cache invalidation symmetry: if useCreate invalidates a key, useDelete must too
 - todayISO() from @/lib/dates is the single source of truth for date defaults
 - useFieldArray NOT used for step/section forms — documented RHF #10607 ID collision with useSortable; manual useState + crypto.randomUUID() is the project standard
-- **v0.2.7 architecture locked**: Two-DndContext approach for nested DnD — outer DndContext for section reorder, one inner DndContext per section for step reorder; UUID localIds on both DraftSection and DraftStep prevent namespace collisions
-- **v0.2.7 key risk**: duplicateRecipe must build Map<oldSectionId, newSectionId> during section copy and remap each step's section_id — omitting this causes structural corruption (Phase 51, first item)
-- **v0.2.7 cascade contract**: ON DELETE CASCADE on recipe_steps.section_id — never delete steps manually before deleting a section; the cascade handles it
-- **v0.2.7 invalidation contract**: useDeleteRecipeSection.onSuccess must invalidate all 5 keys: RECIPE_SECTIONS_KEY, RECIPE_PAINTS_KEY, STEP_COUNTS_KEY, RECIPE_AVAILABILITY_KEY, RECIPE_SWATCH_KEY
-- **v0.2.7 migration number corrected**: migration 018 (016 and 017 already existed — 016_rules_snapshot.sql, 017_unit_overrides.sql)
-- **v0.2.7 form init**: single useEffect guarded on both existingSections.length and existingSteps.length resolving — never two separate effects; buildDraftSections is a pure tested function
-- **48-01 decision**: section_id: null passed at all existing addRecipePaint call sites — Phase 50 form will supply real section_id values
-- **48-02 decision**: updateRecipeSection uses COALESCE for name/optional/order_index but direct assign for surface/notes — null is a valid clear-value for the latter two fields
-- **48-02 decision**: useUpdateRecipeSection mutation input type carries recipe_id for cache invalidation without passing it to the DB update path (UpdateRecipeSectionInput & { recipe_id: number })
-- **49-01 decision**: SectionedTimeline returns null for empty sections array — zero render cost for recipes without sections
-- **49-01 decision**: RecipeDetailSheet uses sections.length > 0 && !sectionsLoading conditional — VIEW-04 flat fallback preserved for unsectioned recipes
-- **50-01 decision**: DraftSection mirrors DraftStep UUID localId pattern — crypto.randomUUID() assigned at draft creation, never persisted to DB
-- **50-01 decision**: buildDraftSections null-coalesces all optional RecipeStep fields with `?? null` — handles rows that predate v0.2.7 columns safely
-- **50-02 decision**: alert-dialog.tsx created as blocking dependency fix — radix-ui AlertDialog primitive available in radix-ui package but shadcn wrapper was absent; follows same wrapping pattern as dialog.tsx
-- **50-02 decision**: RecipeSectionCard CollapsibleContent wraps RecipeStepList in px-3 pb-3 div for visual padding separation from header
-- **50-02 decision**: Step count badge in section header only when collapsed AND steps.length > 0 — avoids redundancy when steps are visible
-- **50-03 decision**: DELETE-all existing sections on edit then re-INSERT preserves clean section ordering without a diff algorithm — CASCADE removes their steps atomically
-- **50-03 decision**: Progressive disclosure threshold: sections.length <= 1 renders flat RecipeStepList, sections.length >= 2 renders RecipeSectionList with section cards
-- **50-03 decision**: formatMinutes.test.tsx updated to mock useRecipeSections and export RECIPE_PAINTS_KEY/STEP_COUNTS_KEY/RECIPE_AVAILABILITY_KEY/RECIPE_SWATCH_KEY constants — required after RecipeFormSheet gained these imports
-- **51-01 decision**: sectionIdMap uses Map<number, number> built during section copy loop — ensures O(1) remapping per step with no extra SQL queries
-- **51-01 decision**: step section_id null path uses explicit null check before Map.get() — preserves null as null (does not remap to undefined)
-- **51-01 decision**: useDuplicateRecipe invalidates ["recipe-sections"] prefix (not RECIPE_SECTIONS_KEY factory) — covers all per-recipe section cache entries in one call
-- **51-02 decision**: sectionCount <= 1 hides the section row entirely — single-section recipes show step count only (progressive disclosure threshold confirmed)
-- **51-02 decision**: useAllSectionCounts called at RecipesPage level alongside useAllStepCounts — same pattern, single batch query, Map<number,number> threaded down
+- Two-DndContext approach for nested DnD — outer for section reorder, inner per section for step reorder
+- DELETE-all + re-INSERT for section saves — CASCADE removes steps atomically
+- Progressive disclosure: sections.length <= 1 shows flat step list, 2+ shows section cards
+- ON DELETE CASCADE on recipe_steps.section_id — never delete steps manually before deleting a section
 
 ### Pending Todos
 
@@ -96,6 +66,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-08T21:15:00.000Z
-Stopped at: Completed 51-02-PLAN.md
-Resume file: .planning/phases/51-duplication-integration-polish/51-03-PLAN.md
+Last session: 2026-05-08T22:30:00.000Z
+Stopped at: Milestone v0.2.7 complete
+Resume: `/gsd:new-milestone` to start next milestone
