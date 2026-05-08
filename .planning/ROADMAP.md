@@ -155,7 +155,7 @@ Plans:
   3. User can see detachment abilities grouped by their parent detachment in PlaybookTab
   4. User can see shared faction abilities (non-datasheet-specific) in PlaybookTab
   5. TypeScript types, query functions, and React Query hooks exist for all four extended data types and follow the established src/db/queries + src/hooks pattern
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 43-01-PLAN.md — Types, query module, hooks module, and data layer tests (SCHEMA-05)
 - [ ] 43-02-PLAN.md — PlaybookTab UI integration with collapsible sections and component tests (SCHEMA-01/02/03/04)
@@ -169,7 +169,7 @@ Plans:
   2. Uploading a CSV file with missing required column headers triggers a visible validation error before any data is inserted
   3. Any error that occurs during sync is written to a persistent errors table with timestamp, error type, and message — and survives app restart
   4. All rules-related React Query hooks (including the new stratagems, detachments, and abilities hooks) are invalidated after a successful sync
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 44-01-PLAN.md — Rust SyncResult return type, CSV validation module, sync_errors migration and query module
 - [ ] 44-02-PLAN.md — Wire validation, Rust counts, error logging, and cache invalidation into useRulesSync and PlaybookTab
@@ -248,7 +248,7 @@ Plans:
 | 40. Recipe Actions + Step Photos | v2.5 | 3/3 | Complete | 2026-05-07 |
 | 41. Session Integration | v2.5 | 2/2 | Complete | 2026-05-07 |
 | 42. Architecture Audit | v2.6 | 1/1 | Complete | 2026-05-08 |
-| 43. Extended Rules Read Layer | v2.6 | 0/2 | Not started | - |
-| 44. Sync Pipeline Hardening | v2.6 | 0/2 | Not started | - |
+| 43. Extended Rules Read Layer | 1/2 | In Progress|  | - |
+| 44. Sync Pipeline Hardening | 1/2 | In Progress|  | - |
 | 45. Sync Metadata & Import Tracking | v2.6 | 0/TBD | Not started | - |
 | 46. Manual Overrides & Version Comparison | v2.6 | 0/TBD | Not started | - |
