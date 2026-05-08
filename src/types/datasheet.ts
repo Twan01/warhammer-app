@@ -70,6 +70,67 @@ export interface RulesSyncMeta {
   wahapedia_version: string | null;
 }
 
+/** Weapon stat line from Datasheets_wargear.csv. */
+export interface RwDatasheetWargear {
+  datasheet_id: string;
+  line: number;
+  line_in_wargear: number;
+  dice: string | null;
+  name: string;
+  description: string | null;  // special rules text (HTML stripped)
+  range: string | null;        // e.g. "24", "Melee"
+  type: string | null;         // "Ranged" | "Melee"
+  A: string | null;
+  BS_WS: string | null;        // e.g. "3" (display as "3+")
+  S: string | null;
+  AP: string | null;           // e.g. "0", "-1"
+  D: string | null;
+}
+
+/** Shared faction-wide ability from Abilities.csv. */
+export interface RwAbility {
+  id: string;
+  name: string;
+  legend: string | null;
+  faction_id: string | null;
+  description: string | null;
+}
+
+/** Stratagem from rw_stratagems (synced from Stratagems.csv). */
+export interface RwStratagem {
+  id: string;
+  faction_id: string | null;
+  name: string;
+  type: string | null;
+  cp_cost: string | null;
+  legend: string | null;
+  turn: string | null;
+  phase: string | null;
+  detachment: string | null;
+  detachment_id: string | null;
+  description: string | null;
+}
+
+/** Detachment from rw_detachments (synced from Detachments.csv). */
+export interface RwDetachment {
+  id: string;
+  faction_id: string | null;
+  name: string;
+  legend: string | null;
+  type: string | null;
+}
+
+/** Detachment ability from rw_detachment_abilities (synced from Detachment_abilities.csv). */
+export interface RwDetachmentAbility {
+  id: string;
+  faction_id: string | null;
+  name: string;
+  legend: string | null;
+  description: string | null;
+  detachment: string | null;
+  detachment_id: string | null;
+}
+
 /** Lightweight projection used by the DatasheetPicker faction-filtered list. */
 export interface DatasheetSummary {
   id: string;
@@ -77,13 +138,14 @@ export interface DatasheetSummary {
   role: string | null;
 }
 
-/** Full payload returned by getFullDatasheet — rendered in PlaybookTab Datasheet Abilities + Sources sections. */
+/** Full payload returned by getFullDatasheet — rendered in PlaybookTab. */
 export interface FullDatasheet {
   ds: RwDatasheet;
   models: RwDatasheetModel[];
   abilities: RwDatasheetAbility[];
   keywords: RwDatasheetKeyword[];
   source: RwSource | null;
+  wargear: RwDatasheetWargear[];
 }
 
 /**
