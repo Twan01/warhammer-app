@@ -1,10 +1,11 @@
 ---
 phase: 46
 slug: manual-overrides-version-comparison
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-08
+validated: 2026-05-08
 ---
 
 # Phase 46 — Validation Strategy
@@ -38,11 +39,11 @@ created: 2026-05-08
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 46-01-01 | 01 | 0 | OVRD-01..04 | unit | `pnpm test -- tests/collection/unitOverrideQueries.test.ts` | ❌ W0 | ⬜ pending |
-| 46-01-02 | 01 | 0 | OVRD-06,07 | unit | `pnpm test -- tests/datasheet/computeSyncDiff.test.ts` | ❌ W0 | ⬜ pending |
-| 46-01-03 | 01 | 1 | OVRD-01..04 | unit | `pnpm test -- tests/collection/unitOverrideQueries.test.ts` | ❌ W0 | ⬜ pending |
-| 46-02-01 | 02 | 1 | OVRD-05 | manual | N/A — visual indicator | N/A | ⬜ pending |
-| 46-02-02 | 02 | 1 | OVRD-06,07 | unit | `pnpm test -- tests/datasheet/computeSyncDiff.test.ts` | ❌ W0 | ⬜ pending |
+| 46-01-01 | 01 | 0 | OVRD-01..04 | unit | `pnpm test -- tests/collection/unitOverrideQueries.test.ts` | ✅ | ✅ green |
+| 46-01-02 | 01 | 0 | OVRD-06,07 | unit | `pnpm test -- tests/datasheet/computeSyncDiff.test.ts` | ✅ | ✅ green |
+| 46-01-03 | 01 | 1 | OVRD-01..04 | unit | `pnpm test -- tests/collection/unitOverrideQueries.test.ts` | ✅ | ✅ green |
+| 46-02-01 | 02 | 1 | OVRD-05 | manual | N/A — visual indicator | N/A | ✅ manual |
+| 46-02-02 | 02 | 1 | OVRD-06,07 | unit | `pnpm test -- tests/datasheet/computeSyncDiff.test.ts` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -50,8 +51,8 @@ created: 2026-05-08
 
 ## Wave 0 Requirements
 
-- [ ] `tests/collection/unitOverrideQueries.test.ts` — stubs for OVRD-01 to OVRD-04 (getUnitOverride, upsertUnitOverride, deleteUnitOverride)
-- [ ] `tests/datasheet/computeSyncDiff.test.ts` — stubs for OVRD-06 and OVRD-07 (added, removed, renamed datasheets; null snapshotData edge case)
+- [x] `tests/collection/unitOverrideQueries.test.ts` — 9 tests for OVRD-01 to OVRD-04 (getUnitOverride, upsertUnitOverride INSERT/UPDATE, deleteUnitOverride, stat fields, keywords/abilities, null fields)
+- [x] `tests/datasheet/computeSyncDiff.test.ts` — 8 tests for OVRD-06 and OVRD-07 (null snapshotData, identical sets, added, removed, renamed, mixed scenario, total_changed sum, empty snapshot)
 
 ---
 
@@ -67,11 +68,22 @@ created: 2026-05-08
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** PASSED
+
+## Validation Audit 2026-05-08
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+**Test suite:** 129 files passed, 1016 tests passed, 0 failed.
+**Phase 46 tests:** 9 (unitOverrideQueries) + 8 (computeSyncDiff) = 17 automated tests, all green.
