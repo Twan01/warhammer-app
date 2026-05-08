@@ -18,10 +18,10 @@ Requirements for Recipes 3.0 / Hierarchical Painting Workflows. Each maps to roa
 
 ### Section Read UI
 
-- [ ] **VIEW-01**: User sees recipe detail as a workflow timeline grouped by section headers
-- [ ] **VIEW-02**: User sees section name, surface badge, step count, and estimated time in each section header
-- [ ] **VIEW-03**: User sees per-section owned/missing paint summary in section headers
-- [ ] **VIEW-04**: User's recipes without sections render with existing flat timeline (backward compat)
+- [x] **VIEW-01**: User sees recipe detail as a workflow timeline grouped by section headers
+- [x] **VIEW-02**: User sees section name, surface badge, step count, and estimated time in each section header
+- [x] **VIEW-03**: User sees per-section owned/missing paint summary in section headers
+- [x] **VIEW-04**: User's recipes without sections render with existing flat timeline (backward compat)
 
 ### Section Form UI
 
@@ -72,10 +72,10 @@ Deferred to future release. Tracked but not in current roadmap.
 | SECT-04 | Phase 48 | Complete |
 | SECT-05 | Phase 48 | Complete |
 | SECT-06 | Phase 48 | Complete |
-| VIEW-01 | Phase 49 | Pending |
-| VIEW-02 | Phase 49 | Pending |
-| VIEW-03 | Phase 49 | Pending |
-| VIEW-04 | Phase 49 | Pending |
+| VIEW-01 | Phase 49 | Complete |
+| VIEW-02 | Phase 49 | Complete |
+| VIEW-03 | Phase 49 | Complete |
+| VIEW-04 | Phase 49 | Complete |
 | FORM-01 | Phase 50 | Pending |
 | FORM-02 | Phase 50 | Pending |
 | FORM-03 | Phase 50 | Pending |

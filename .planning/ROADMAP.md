@@ -168,7 +168,7 @@ Plans:
   2. Each section header displays the section name, surface badge, step count, and estimated total time for that section
   3. Each section header shows a per-section owned/missing paint count (e.g., "3 owned, 1 missing")
   4. Opening a recipe that has no sections renders the existing flat step timeline unchanged
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 49-01-PLAN.md — SectionedTimeline component + RecipeDetailSheet conditional branch
@@ -249,6 +249,6 @@ Plans:
 | 46. Manual Overrides & Version Comparison | v0.2.6 | 2/2 | Complete | 2026-05-08 |
 | 47. v0.2.6 Gap Closure | v0.2.6 | 2/2 | Complete | 2026-05-08 |
 | 48. Section Data Layer | v0.2.7 | 2/2 | Complete | 2026-05-08 |
-| 49. Section Read UI | v0.2.7 | 0/1 | Not started | - |
+| 49. Section Read UI | 1/1 | Complete   | 2026-05-08 | - |
 | 50. Section Form UI | v0.2.7 | 0/TBD | Not started | - |
 | 51. Duplication + Integration Polish | v0.2.7 | 0/TBD | Not started | - |

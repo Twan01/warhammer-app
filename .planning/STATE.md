@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: executing
-stopped_at: Phase 50 context gathered
-last_updated: "2026-05-08T15:30:21.662Z"
-last_activity: 2026-05-08 — Completed 48-02 (recipeSections query module + hooks + tests)
+stopped_at: Completed 49-01-PLAN.md
+last_updated: "2026-05-08T15:35:28.938Z"
+last_activity: 2026-05-08 — Completed 49-01 (SectionedTimeline component + RecipeDetailSheet wiring)
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 25
 ---
 
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-08 after v0.2.7 milestone started)
 
 ## Current Position
 
-Phase: 48 of 51 (Section Data Layer) — COMPLETE
-Plan: 02 of 02 — complete
+Phase: 49 of 51 (Section Read UI) — In progress
+Plan: 01 of 01 — complete
 Status: In progress
-Last activity: 2026-05-08 — Completed 48-02 (recipeSections query module + hooks + tests)
+Last activity: 2026-05-08 — Completed 49-01 (SectionedTimeline component + RecipeDetailSheet wiring)
 
-Progress: [██░░░░░░░░] 25%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -40,6 +40,7 @@ Progress: [██░░░░░░░░] 25%
 
 **48-01:** 2 tasks, 8 files, 185s
 **48-02:** 3 tasks, 4 files, 324s
+**49-01:** 2 tasks, 4 files, 493s
 
 ## Accumulated Context
 
@@ -65,6 +66,8 @@ Progress: [██░░░░░░░░] 25%
 - **48-01 decision**: section_id: null passed at all existing addRecipePaint call sites — Phase 50 form will supply real section_id values
 - **48-02 decision**: updateRecipeSection uses COALESCE for name/optional/order_index but direct assign for surface/notes — null is a valid clear-value for the latter two fields
 - **48-02 decision**: useUpdateRecipeSection mutation input type carries recipe_id for cache invalidation without passing it to the DB update path (UpdateRecipeSectionInput & { recipe_id: number })
+- **49-01 decision**: SectionedTimeline returns null for empty sections array — zero render cost for recipes without sections
+- **49-01 decision**: RecipeDetailSheet uses sections.length > 0 && !sectionsLoading conditional — VIEW-04 flat fallback preserved for unsectioned recipes
 
 ### Pending Todos
 
@@ -76,6 +79,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-08T15:30:21.658Z
-Stopped at: Phase 50 context gathered
-Resume file: .planning/phases/50-section-form-ui/50-CONTEXT.md
+Last session: 2026-05-08T15:35:28.936Z
+Stopped at: Completed 49-01-PLAN.md
+Resume file: None
