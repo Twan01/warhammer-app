@@ -124,7 +124,7 @@ Full details: `.planning/milestones/v2.5-ROADMAP.md`
 
 **Milestone Goal:** Stabilize and extend the local rules import architecture so HobbyForge becomes a reliable personal rules and points reference — with extended data types surfaced in the UI, a hardened sync pipeline, sync metadata tracking, and persistent manual overrides that survive re-syncs.
 
-- [ ] **Phase 42: Architecture Audit** — Read-only investigation of the current sync pipeline and extended rules schema; produces a written architecture note covering data flow, type/query/hook gaps, and migration plan for metadata and overrides tables
+- [x] **Phase 42: Architecture Audit** — Read-only investigation of the current sync pipeline and extended rules schema; produces a written architecture note covering data flow, type/query/hook gaps, and migration plan for metadata and overrides tables (completed 2026-05-08)
 - [ ] **Phase 43: Extended Rules Read Layer** — TypeScript types, query functions, and React Query hooks for stratagems, detachments, detachment abilities, and shared faction abilities; all four data types surfaced in PlaybookTab
 - [ ] **Phase 44: Sync Pipeline Hardening** — Rust `bulk_sync_rules` returns per-table row counts; TypeScript displays counts in post-sync confirmation; CSV column validation rejects malformed files; sync errors logged to persistent table; all new rules hooks invalidated on sync success
 - [ ] **Phase 45: Sync Metadata & Import Tracking** — Last sync date/time, per-table row counts, source version, error history, freshness badge on rules-dependent pages, and pre-sync snapshot mechanism all visible and functional
@@ -239,7 +239,7 @@ Full details: `.planning/milestones/v2.5-ROADMAP.md`
 | 39. Studio UX + Paint Availability | v2.5 | 3/3 | Complete | 2026-05-07 |
 | 40. Recipe Actions + Step Photos | v2.5 | 3/3 | Complete | 2026-05-07 |
 | 41. Session Integration | v2.5 | 2/2 | Complete | 2026-05-07 |
-| 42. Architecture Audit | v2.6 | 0/TBD | Not started | - |
+| 42. Architecture Audit | 1/1 | Complete   | 2026-05-08 | - |
 | 43. Extended Rules Read Layer | v2.6 | 0/TBD | Not started | - |
 | 44. Sync Pipeline Hardening | v2.6 | 0/TBD | Not started | - |
 | 45. Sync Metadata & Import Tracking | v2.6 | 0/TBD | Not started | - |

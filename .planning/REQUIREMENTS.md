@@ -9,10 +9,10 @@ Requirements for v2.6 Rules Sync 2.0 / Rules Data Hub. Each maps to roadmap phas
 
 ### Architecture Audit
 
-- [ ] **AUDIT-01**: Architecture note confirms all rw_* extended tables (stratagems, detachments, detachment_abilities, abilities) exist and are populated after sync
-- [ ] **AUDIT-02**: Architecture note documents the full sync data flow (TypeScript fetch to Rust transaction to SQLite)
-- [ ] **AUDIT-03**: Architecture note identifies all TypeScript type, query, and hook gaps for extended rules data
-- [ ] **AUDIT-04**: Architecture note proposes migration plan for sync metadata, overrides, and snapshot tables
+- [x] **AUDIT-01**: Architecture note confirms all rw_* extended tables (stratagems, detachments, detachment_abilities, abilities) exist and are populated after sync
+- [x] **AUDIT-02**: Architecture note documents the full sync data flow (TypeScript fetch to Rust transaction to SQLite)
+- [x] **AUDIT-03**: Architecture note identifies all TypeScript type, query, and hook gaps for extended rules data
+- [x] **AUDIT-04**: Architecture note proposes migration plan for sync metadata, overrides, and snapshot tables
 
 ### Extended Rules Schema
 
@@ -78,10 +78,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUDIT-01 | Phase 42 | Pending |
-| AUDIT-02 | Phase 42 | Pending |
-| AUDIT-03 | Phase 42 | Pending |
-| AUDIT-04 | Phase 42 | Pending |
+| AUDIT-01 | Phase 42 | Complete |
+| AUDIT-02 | Phase 42 | Complete |
+| AUDIT-03 | Phase 42 | Complete |
+| AUDIT-04 | Phase 42 | Complete |
 | SCHEMA-01 | Phase 43 | Pending |
 | SCHEMA-02 | Phase 43 | Pending |
 | SCHEMA-03 | Phase 43 | Pending |
