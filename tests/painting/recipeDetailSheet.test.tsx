@@ -43,6 +43,10 @@ vi.mock("@/hooks/useRecipePaints", () => ({
   useRecipePaints: () => ({ data: mockSteps }),
 }));
 
+vi.mock("@/hooks/useRecipeSections", () => ({
+  useRecipeSections: () => ({ data: [], isLoading: false }),
+}));
+
 const mockDuplicateMutateAsync = vi.fn();
 vi.mock("@/hooks/useRecipes", () => ({
   useDuplicateRecipe: () => ({
@@ -176,6 +180,7 @@ function makeStep(over: Partial<RecipeStep> = {}): RecipeStep {
     time_estimate_minutes: null,
     step_photo_path: null,
     alt_paint_id: null,
+    section_id: null,
     created_at: "2026-01-01 00:00:00",
     ...over,
   };

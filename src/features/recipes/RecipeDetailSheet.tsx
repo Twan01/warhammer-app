@@ -20,8 +20,10 @@ import { useUnits } from "@/hooks/useUnits";
 import { useDuplicateRecipe } from "@/hooks/useRecipes";
 import { useWishlistItems, useCreateWishlistItem } from "@/hooks/useWishlistItems";
 import { useSessionsByRecipe } from "@/hooks/useJournalSessions";
+import { useRecipeSections } from "@/hooks/useRecipeSections";
 import type { PaintingRecipe } from "@/types/recipe";
 import { RecipeStepTimeline } from "./RecipeStepTimeline";
+import { SectionedTimeline } from "./SectionedTimeline";
 import { isPaintMissing } from "./recipeSteps";
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { convertFileSrc } from "@tauri-apps/api/core";
@@ -54,6 +56,7 @@ export function RecipeDetailSheet({
   const { data: units } = useUnits();
   const { data: paints = [] } = usePaints();
   const { data: steps = [] } = useRecipePaints(recipe?.id);
+  const { data: sections = [], isLoading: sectionsLoading } = useRecipeSections(recipe?.id);
 
   const faction = useMemo(
     () =>
@@ -262,7 +265,16 @@ export function RecipeDetailSheet({
               <Separator />
 
               <Field label="Recipe Steps">
-                <RecipeStepTimeline steps={steps} paintMap={paintMap} stepPhotoUrls={stepPhotoUrls} />
+                {sections.length > 0 && !sectionsLoading ? (
+                  <SectionedTimeline
+                    sections={sections}
+                    steps={steps}
+                    paintMap={paintMap}
+                    stepPhotoUrls={stepPhotoUrls}
+                  />
+                ) : (
+                  <RecipeStepTimeline steps={steps} paintMap={paintMap} stepPhotoUrls={stepPhotoUrls} />
+                )}
               </Field>
 
               {canAddToWishlist && (
