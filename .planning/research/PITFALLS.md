@@ -1,254 +1,302 @@
 # Pitfalls Research
 
-**Domain:** HobbyForge v0.2.6 Rules Sync 2.0 / Rules Data Hub — adding sync metadata, manual overrides, and version comparison to an existing dual-database Tauri 2 + React 19 + SQLite app with a working delete-all / re-insert sync pipeline
-**Researched:** 2026-05-07
-**Confidence:** HIGH — derived from direct codebase inspection of `lib.rs`, `useRulesSync.ts`, `rules-client.ts`, `datasheets.ts`, `datasheet.ts`, all rules migrations, and the v0.2.6 roadmap
+**Domain:** HobbyForge v0.2.7 — Adding hierarchical recipe sections to an existing flat-step recipe system (Tauri 2 + React 19 + SQLite + @dnd-kit + React Hook Form without useFieldArray)
+**Researched:** 2026-05-08
+**Confidence:** HIGH — derived from direct codebase inspection of RecipeStepList.tsx, RecipeFormSheet.tsx, recipeSteps.ts, recipePaints.ts, useRecipePaints.ts, recipes.ts, migration files 001–017, and verified against @dnd-kit GitHub issues and SQLite ALTER TABLE documentation
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Manual Overrides Silently Destroyed by the Delete-All Re-insert Pattern
+### Pitfall 1: Two Nested DndContexts — Cross-Context Drag Events Are Silently Swallowed
 
 **What goes wrong:**
-`bulk_sync_rules` opens a transaction, deletes all rows from every `rw_*` table (FK checks disabled), then re-inserts from the CSV payload. Any user-entered manual override stored as a column on an `rw_*` table is destroyed on every sync. After re-sync, override values disappear with no error, no warning, and no recovery path.
+The naïve architecture for "sections reorder + steps reorder within sections" is two levels of DndContext: an outer one for section-level drag, an inner one (inside each RecipeSectionCard) for step-level drag. This does not work. @dnd-kit's event model is non-bubbling by design: drag events are consumed by the innermost DndContext containing an activated sensor. A step drag started inside a section card's DndContext will never reach the outer section DndContext. Dragging a section header will always activate the step-level sensor if any step is in proximity. The two contexts also share the same internal reducer initial state, which causes ID collisions between section IDs and step IDs when they happen to have matching values (integer database IDs 1, 2, 3 overlap across both entity types). The result is unpredictable drag behavior: items snap to wrong positions, drag events target the wrong sortable, and no error is thrown.
 
 **Why it happens:**
-The delete-all pattern is correct for read-only imported data. It becomes destructive the moment any user-writable data lives in the same rows. The natural instinct when adding an override is to add a nullable column (e.g., `rw_datasheets.points_override INTEGER`) directly to the imported table, which makes it a victim of the DELETE cascade on the next sync.
+The existing RecipeStepList already wraps a DndContext for step reordering. When RecipeSectionCard is introduced, the reflex is to add another DndContext at the section level, wrapping section cards. This seems clean (one context per level) but violates @dnd-kit's fundamental constraint: nested DndContexts are isolated silos, not a hierarchy.
 
 **How to avoid:**
-Store manual overrides in a separate table in `hobbyforge.db` — never in `rules.db`. The pattern is:
-
-```sql
--- In hobbyforge.db (additive migration 015 or higher)
-CREATE TABLE IF NOT EXISTS rules_overrides (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
-  entity_type   TEXT NOT NULL, -- 'datasheet', 'model', 'ability', 'keyword'
-  entity_id     TEXT NOT NULL, -- Wahapedia TEXT id (the rw_* primary key)
-  field         TEXT NOT NULL, -- 'points', 'M', 'T', 'Sv', etc.
-  value         TEXT NOT NULL, -- stored as TEXT; UI casts to correct type
-  note          TEXT,
-  created_at    TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at    TEXT NOT NULL DEFAULT (datetime('now')),
-  UNIQUE (entity_type, entity_id, field)
-);
-```
-
-At display time, merge the override onto the imported row client-side: if `rules_overrides` has an entry for this `(entity_type, entity_id, field)`, show the override value with a visual indicator. The `bulk_sync_rules` transaction never touches `hobbyforge.db`.
-
-**Warning signs:**
-- A nullable column appears in a `rules_002_*.sql` or later rules migration.
-- Any `UPDATE rw_*` statement appears in the sync path.
-- A PR adds `points_override`, `stat_override`, or similar fields to a `rw_*` table.
-
-**Phase to address:**
-Phase 46 (Manual Overrides). The schema must be designed before any override UI is built. Write a test: add an override, trigger a sync, assert the override row still exists.
-
----
-
-### Pitfall 2: Version Comparison Snapshot Has Nothing to Compare Against
-
-**What goes wrong:**
-The Phase 46 "version comparison" feature is built but produces no useful output because there is no pre-sync snapshot to diff against. The current `rw_sync_meta` table stores only `last_sync_at` and `wahapedia_version` — it stores no copy of the previous data state. Showing "what changed" requires knowing what the values were before the delete-all replaced them.
-
-**Why it happens:**
-The delete-all pattern gives perfect correctness for the current state but destroys all history. Developers assume a version string comparison ("version 2024-03-01 → 2024-04-15, something changed") is enough to power a diff UI, but a version bump tells the user only that something changed — not what changed or whether it affects their units.
-
-**How to avoid:**
-Take a targeted snapshot of the rows the user cares about before the DELETE pass. The minimal sufficient approach:
-
-1. Before the transaction's DELETE loop, read the current values of every `rw_datasheets`, `rw_datasheet_models`, and `rw_datasheets_wargear` row that is linked to a user's unit (via `unit_strategy_notes.datasheet_id` in `hobbyforge.db`) and store them in a `rw_sync_changelog` table (or a JSON blob in `rw_sync_meta`).
-2. After the re-insert, compare the new values against the snapshot and record the differences.
-3. Expose the differences to the UI via a `getRulesSyncChangelog()` query.
-
-Alternatively, store a JSON snapshot of the pre-sync state in a `rw_sync_meta.previous_snapshot TEXT` column. Either approach requires the snapshot to be taken inside the same Rust command before the DELETE.
-
-**Warning signs:**
-- The changelog or comparison UI is built in TypeScript/React before the Rust snapshot logic exists.
-- `rw_sync_meta` has no column other than `last_sync_at` and `wahapedia_version`.
-- Phase 46 starts before Phase 45 (sync metadata) is complete.
-
-**Phase to address:**
-Phase 45 (Sync Metadata) must define the snapshot/changelog schema. Phase 46 (Version Comparison) reads from it. Never build the UI before the data structure exists.
-
----
-
-### Pitfall 3: tauri-plugin-sql Cannot ATTACH Rules.db to the Main DB Connection
-
-**What goes wrong:**
-The developer wants to write a single query joining `hobbyforge.db` and `rules.db` (e.g., to show override values next to imported stats in one result set). They attempt `ATTACH DATABASE '...' AS rules` via `tauri-plugin-sql`. The plugin manages a connection pool per registered database URL; `ATTACH` modifies a specific connection, not the pool. The plugin may silently refuse the ATTACH, route subsequent queries to a different pooled connection that has no ATTACH, or fail with an undocumented error.
-
-**Why it happens:**
-SQLite supports `ATTACH DATABASE` natively and it works in direct `sqlx` usage. The plugin's connection pool breaks the assumption that a specific connection is used for every query. The alternative plugin `silvermine/tauri-plugin-sqlite` explicitly advertises ATTACH support, implying the official plugin does not.
-
-**How to avoid:**
-Never rely on `ATTACH` via `tauri-plugin-sql`. Apply one of two proven patterns this codebase already uses:
-
-1. **Dual query + client-side merge (current pattern):** Query `rules.db` for imported data, query `hobbyforge.db` for overrides, merge client-side in the hook. This is how `getFullDatasheet` + `getDatasheetIdForUnit` work across two databases now.
-
-2. **Rust command for heavy cross-DB joins:** If a join is too expensive to do client-side (e.g., showing all user units with their corresponding imported stats and overrides in one list), implement it as a Tauri command in `lib.rs` that opens both databases with `sqlx`, performs the join in Rust, and returns the merged result as a serialized payload. This is the `bulk_sync_rules` pattern.
-
-Never attempt a new ATTACH-based query pattern without first verifying it works in tauri-plugin-sql under the pool architecture.
-
-**Warning signs:**
-- An `ATTACH DATABASE` or `sqlite_master` ATTACH statement appears in any TypeScript query file.
-- A query in `datasheets.ts` or a new `overrides.ts` references a table from the other database without a Rust command wrapper.
-
-**Phase to address:**
-Phase 46 (Manual Overrides) when override+import merged views are first needed. Establish the dual-query merge pattern before any UI work.
-
----
-
-### Pitfall 4: Sync Metadata Row Counts Are Not Invalidated After Sync
-
-**What goes wrong:**
-Phase 45 adds per-table row counts to `rw_sync_meta` (e.g., `datasheets_count INTEGER`, `stratagems_count INTEGER`). The sync UI shows these counts. After a re-sync, the React Query cache for `RULES_SYNC_META_KEY` is stale because `useRulesSync.onSuccess` only invalidates `RULES_SYNC_META_KEY`, `["datasheets-by-faction"]`, and `["datasheet"]`. New keys added in Phase 45 (e.g., `["rules-sync-changelog"]`, `["rules-overrides"]`) are not invalidated. The freshness indicators on the UI show pre-sync values until the user manually refreshes.
-
-**Why it happens:**
-`useRulesSync.onSuccess` has a hardcoded list of three invalidation keys. Every new query key added in Phase 45 must be explicitly added to this list, but the connection is non-obvious — a developer adding `useRulesSyncChangelog()` may not look at `useRulesSync.ts` to add the invalidation.
-
-**How to avoid:**
-Apply the cache invalidation symmetry rule already established in this codebase. When Phase 45 adds `useRulesSyncChangelog`, `useRulesSyncRowCounts`, or similar hooks, add their query keys to `useRulesSync.onSuccess` in the same commit. Document this requirement as a comment block at the top of `useRulesSync.ts`:
+Use a single outer DndContext for the entire recipe form. Inside it, create one SortableContext for the section list and one SortableContext per section for that section's steps. Handle drag logic at the single DndContext level using `onDragEnd` with type discrimination:
 
 ```typescript
-// ── Sync invalidation contract ────────────────────────────────────────
-// Every hook that reads from rules.db state that changes after a sync
-// MUST have its queryKey listed here. Adding a new rw_* hook without
-// updating this list is a cache asymmetry bug.
-// Keys: RULES_SYNC_META_KEY, ["datasheets-by-faction"], ["datasheet"],
-//       ["rules-sync-changelog"], ["rules-overrides"] (add as needed)
+function handleDragEnd(event: DragEndEvent) {
+  const { active, over } = event;
+  if (!over || active.id === over.id) return;
+
+  const isSectionDrag = active.data.current?.type === "section";
+  const isStepDrag    = active.data.current?.type === "step";
+
+  if (isSectionDrag) {
+    // reorder sections array
+  } else if (isStepDrag) {
+    const fromSectionId = active.data.current?.sectionLocalId;
+    const toSectionId   = over.data.current?.sectionLocalId ?? fromSectionId;
+    // reorder steps within fromSectionId
+  }
+}
 ```
 
+Critically: remove the DndContext from inside RecipeStepList — it becomes a pure SortableContext only. The existing RecipeStepList exports DndContext today; that DndContext must be lifted up to RecipeSectionList or RecipeFormSheet.
+
 **Warning signs:**
-- `useRulesSync.onSuccess` has fewer invalidation calls than there are hooks reading from `rules.db`.
-- A freshness indicator or row count does not update immediately after a sync without a page refresh.
-- A new `use*` hook for rules data is merged without a corresponding `invalidateQueries` line in `useRulesSync.ts`.
+- Any file inside `src/features/recipes/` imports `DndContext` from `@dnd-kit/core` other than the top-level section list component.
+- `RecipeSectionCard.tsx` or `RecipeStepList.tsx` renders `<DndContext>`.
+- Dragging a section header also moves a step — indicates two contexts competed for the same pointer event.
 
 **Phase to address:**
-Phase 45 (Sync Metadata). Enforce via a lint-style comment contract in `useRulesSync.ts`.
+Phase 3 (Form UI). Must be the architectural decision before any drag code is written. Write a test: drag section A below section B; assert section order updated; drag step inside section A; assert step order updated; assert section order unchanged.
 
 ---
 
-### Pitfall 5: Wahapedia CSV Column Format Changes Break Silent Parse
+### Pitfall 2: ID Namespace Collision Between Sections and Steps in the Single DndContext
 
 **What goes wrong:**
-Wahapedia CSVs use `|` as the column delimiter (not `,`). The `parseWahapediaCsv` utility parses them correctly today. If Wahapedia adds a new column, removes a column, renames a column, or changes the delimiter, `parseWahapediaCsv` continues to succeed — it returns row objects with different keys than expected. The `bulk_sync_rules` Rust command receives `HashMap<String, serde_json::Value>` rows and uses `str_val(row, "column_name")` which returns `None` (silently mapped to empty string) for any missing key. The sync completes with zero errors but inserts empty values for the changed columns. The user sees blank stats or missing abilities and has no indication that the import silently failed.
+With a single DndContext, all draggable IDs must be globally unique within that context. The existing step localIds are `crypto.randomUUID()` strings — safe. But if section IDs use database integers (1, 2, 3) and step IDs also use database integers, the SortableContext items array contains collisions: section id `2` and step id `2` are the same value from @dnd-kit's perspective. The drag system targets the wrong element. The symptom is non-deterministic: an `arrayMove` reorders the section list when the user intended to reorder a step, or vice versa. This is the exact same class of bug that drove the decision to avoid `useFieldArray` in v2.5 (RHF #10607) — integer ID collisions are the root cause there too.
 
 **Why it happens:**
-The `str_val` / `i64_val` helpers are designed to be tolerant of missing keys (they return `Option`, and the callers fall back to empty string or 0). This is correct for optional fields but silently hides structural changes to required fields.
+Developers use database `id` as the sortable identifier because it's convenient and already available on fetched data. The collision only manifests when both sections and steps have overlapping integer IDs, which always happens as data grows.
 
 **How to avoid:**
+Use `localId` (UUID strings) for all draggable IDs, consistently. The existing DraftStep already has `localId: crypto.randomUUID()`. Apply the same pattern to DraftSection:
 
-1. After each CSV fetch, log the actual column names to the sync metadata (`rw_sync_meta.column_signature TEXT`) so structural changes are detectable.
-2. Add a TypeScript-side header validation step in `useRulesSync.ts` before calling `invoke("bulk_sync_rules", ...)`. For each critical CSV, assert that the expected column names are present in the parsed header row. If a required column is missing, throw with a message like `"Datasheets.csv: expected column 'faction_id' not found — Wahapedia format may have changed"`.
-3. Expose the validation error in the sync UI as a named error, not a generic "sync failed" message.
-
-The validation does not need to be exhaustive. Check only the columns that map to `NOT NULL` columns in `rw_*` tables (e.g., `id`, `name`, `datasheet_id`).
-
-**Warning signs:**
-- Sync completes with status "success" but the PlaybookTab shows empty stats or abilities for a datasheet that previously had data.
-- `rw_datasheets.faction_id` has a high NULL count after sync.
-- Row counts in `rw_sync_meta` are non-zero but PlaybookTab content is empty.
-
-**Phase to address:**
-Phase 44 (Sync Pipeline Extension) when new CSV types are added. Add validation for all 12 CSV files before extending to new ones. Verification: test with a CSV that has a renamed column; assert sync throws a named error.
-
----
-
-### Pitfall 6: Sync Failure Corrupts rules.db When Transaction Is Not Atomic
-
-**What goes wrong:**
-The current `bulk_sync_rules` command is atomic: it opens a transaction, deletes all rows, inserts all rows, commits. If any step fails, the rollback leaves `rules.db` intact with the previous data. If Phase 44 extends the command by adding new CSV data types outside the transaction (e.g., as a separate TypeScript-side insert loop after `invoke` returns), a partial failure leaves `rules.db` in an inconsistent state: some tables contain new data, others contain the pre-sync data. The PlaybookTab may show abilities for a datasheet that no longer exists, or show datasheets with no associated models.
-
-**Why it happens:**
-Extending the sync by adding a second TypeScript-side mutation after the Rust command is the path of least resistance for developers who do not want to modify the Rust code. The atomic contract of `bulk_sync_rules` is not obvious from the TypeScript call site.
-
-**How to avoid:**
-All rules.db writes during a sync must happen inside the single `bulk_sync_rules` transaction. If new CSV data types (Phase 44) require new tables, extend the `BulkSyncPayload` struct in Rust and add the new table's insert loop to the existing transaction. Never write to `rules.db` from TypeScript after the Rust command returns. Document this constraint with a comment above the `bulk_sync_rules` invocation in `useRulesSync.ts`.
-
-**Warning signs:**
-- A new `db.execute(...)` call on `rules.db` appears in `useRulesSync.ts` after the `invoke("bulk_sync_rules", ...)` call.
-- A Phase 44 implementation adds a TypeScript-side insert loop for stratagems or detachments "for now" with a plan to move to Rust "later."
-- `rw_sync_meta.last_sync_at` is updated before all tables are populated.
-
-**Phase to address:**
-Phase 44 (Sync Pipeline Extension). Any new table must be added to the Rust transaction, not a separate TypeScript call. Verify with a test: simulate a failure mid-insert; assert all tables revert to their pre-sync state.
-
----
-
-### Pitfall 7: Sync Metadata Migration Added to rules.db Without Updating the Override Table Migration Ordering
-
-**What goes wrong:**
-Phase 45 adds new columns to `rw_sync_meta` (e.g., row counts, error log, column signature). These require a `rules_003_*` migration. Phase 46 adds `rules_overrides` to `hobbyforge.db`. The developer writes the `rules_003` migration but registers it in `get_rules_migrations()` in `lib.rs` without incrementing the version correctly. Or the developer creates the hobbyforge.db migration as version 15 but the codebase already has an unshipped migration at that number in the unstaged files. Migration version collisions cause `tauri-plugin-sql` to apply the wrong SQL silently (if the version already ran) or skip the new migration entirely.
-
-**Why it happens:**
-Two separate migration sequences (hobbyforge.db at version 14, rules.db at version 2) are maintained in `lib.rs`. The Glob output shows `rules_002_wargear_abilities.sql` in the same flat `migrations/` directory as `014_session_recipe_link.sql`. A developer who doesn't look at both sequences can assign a version number that conflicts with the wrong sequence. Also, the `git status` shows `rules_002_wargear_abilities.sql` as an untracked file — confirming this migration exists on disk but may not be registered, which is a pre-existing ambiguity.
-
-**How to avoid:**
-- Hobbyforge.db: next available is migration **015**.
-- Rules.db: next available is **rules_003**.
-- Use the filename prefix convention strictly: `015_*.sql` for hobbyforge.db, `rules_003_*.sql` for rules.db. Never mix the namespaces.
-- After adding any migration, run the app from a clean state (delete the `.db` files from `%APPDATA%/com.hobbyforge.app/`) and verify the app starts with no migration errors.
-- Add a comment at the top of `lib.rs` tracking the highest migration number for each DB: `// hobbyforge.db: up to 014 | rules.db: up to 002`.
-
-**Warning signs:**
-- The `rules_002_wargear_abilities.sql` file appears as untracked in `git status` (confirmed in current repo state) — verify it is registered in `get_rules_migrations()` before assuming it ran.
-- Any `.sql` file added to the `migrations/` directory that is not registered in `lib.rs`.
-- A new migration file has a version number lower than or equal to an existing file's version in the same sequence.
-
-**Phase to address:**
-Phase 42 (Architecture Audit) must confirm `rules_002_wargear_abilities.sql` is registered and has run. Phase 45 must register `rules_003` before writing any code that depends on the new columns.
-
----
-
-### Pitfall 8: Override + Import Merge Produces Stale Display After Override Edit
-
-**What goes wrong:**
-The override display works correctly after a sync (merged client-side in the hook). The user edits an override value in the UI. The `useCreateRulesOverride` mutation runs, inserts into `rules_overrides` in `hobbyforge.db`, and invalidates `["rules-overrides"]`. But the PlaybookTab still shows the old (pre-override) value because `useDatasheet` has `staleTime: Infinity` and is not invalidated. The override is in the DB but the cached `FullDatasheet` still shows the imported value.
-
-**Why it happens:**
-`staleTime: Infinity` is correct for imported data (it only changes on sync). But the hook is used to derive the merged display that includes overrides. When the override table changes, the derived display must also update. The invalidation of `["rules-overrides"]` alone is insufficient because `useDatasheet` caches the pre-merge result.
-
-**How to avoid:**
-When an override mutation runs, also invalidate the datasheet key for the affected unit:
 ```typescript
-qc.invalidateQueries({ queryKey: ["datasheet", unitId] });
-qc.invalidateQueries({ queryKey: ["rules-overrides", entityType, entityId] });
+export interface DraftSection {
+  localId: string;       // crypto.randomUUID() — DnD identifier, never database id
+  db_id:   number | null; // null for new unsaved sections
+  name: string;
+  surface: string | null;
+  optional: 0 | 1;
+  steps: DraftStep[];
+}
 ```
-Or: restructure the PlaybookTab to keep the import data and override data in separate query results and merge them in the component — the import cache stays infinite, the override cache invalidates normally. This is more composable and avoids cache coupling.
 
-The second approach (separate queries, merge in component) is preferred because it keeps `staleTime: Infinity` on the immutable imported data and normal stale behavior on the mutable override data.
+Pass `section.localId` to SortableContext items and `useSortable({ id: section.localId })`. Never pass `section.db_id` to any sortable primitive. The type check in `handleDragEnd` uses `active.data.current?.type` not the ID value itself.
 
 **Warning signs:**
-- Editing an override value does not update the PlaybookTab without a page navigation.
-- `useDatasheet.staleTime` is changed to a short value to work around the stale display — this causes unnecessary re-syncs to rules.db.
-- `useCreateRulesOverride.onSuccess` does not invalidate any datasheet key.
+- `SortableContext items={sections.map(s => s.id)}` where `id` is the database integer.
+- `useSortable({ id: step.id })` where `id` is `number` type.
+- Dragging a step of order index 2 moves the second section instead — classic integer namespace collision.
 
 **Phase to address:**
-Phase 46 (Manual Overrides). Design the query split before building the override edit UI.
+Phase 3 (Form UI). Establish the `localId` convention in `DraftSection` type in `recipeSteps.ts` before writing any drag code. Unit test: create 3 sections each with 3 steps; verify all 12 sortable IDs are unique strings.
 
 ---
 
-### Pitfall 9: Faction Name Mismatch Between HobbyForge and Wahapedia Breaks DatasheetPicker After Schema Extension
+### Pitfall 3: Migration 018 Uses ON DELETE CASCADE on section_id Without Verifying painting_sessions Referential Behavior
 
 **What goes wrong:**
-`resolveWahapediaFactionIdByName` uses fuzzy LIKE matching between the user's HobbyForge faction name and `rw_factions.name` values. This is fragile when extended rules tables are added. New tables (`rw_stratagems`, `rw_detachments`, `rw_detachment_abilities`) use `faction_id` (TEXT, the Wahapedia faction code like "SM", "TAU") not the full name. If the DatasheetPicker or a new StratagemsTab tries to filter stratagems by faction using the HobbyForge faction name, it must go through the same name→code resolution. If the fuzzy match fails (e.g., user has faction named "Tau Empire" but Wahapedia uses "T'au Empire"), the filter silently returns zero results.
+The proposed migration adds `recipe_steps.section_id INTEGER REFERENCES recipe_sections(id) ON DELETE CASCADE`. This means deleting a section cascades to delete all its steps. That is intentional. However, `painting_sessions.recipe_step_id` references `recipe_steps(id)` with `ON DELETE SET NULL` (migration 014). If a user deletes a section — which cascades and deletes the contained steps — SQLite must cascade the FK on `recipe_steps` (delete the step rows) AND simultaneously set `painting_sessions.recipe_step_id = NULL` for any sessions that referenced those steps. SQLite handles this with PRAGMA foreign_keys = ON, but only if the connection has FK enforcement active. The app's `client.ts` runs `PRAGMA foreign_keys = ON` on every new connection — but only on `hobbyforge.db`. If FK enforcement is somehow OFF at the time of the cascade (e.g., in a test environment using a bare SQLite mock), the session rows retain stale `recipe_step_id` values pointing to deleted steps, which silently corrupts session data.
 
 **Why it happens:**
-The name resolution pattern works well for the base DatasheetPicker but was not designed to be used across all extended rules tables. Each new table-filtered component independently tries to resolve the faction name, duplicating the fragile logic and multiplying the failure surface.
+Multi-level cascade chains (section → step → session) are easy to miss because the intermediate table (recipe_steps) appears safe to delete — the cascade appears to only go one level down. The second-order FK on painting_sessions is in a different table that isn't obvious to the developer working on recipe sections.
 
 **How to avoid:**
-Establish `useWahapediaFactionId` as the single source of truth for faction resolution. Any new hook or component that filters extended rules tables by faction must call `useWahapediaFactionId(localFactionName)` first and handle the null return gracefully (show "all factions" view or a "faction not found" callout). Do not inline the name-resolution SQL in any new query file.
-
-Consider adding a user-visible faction mapping UI in Phase 42 or 43: if the automatic resolution fails, let the user explicitly link their HobbyForge faction to a Wahapedia faction code. Store this mapping in `hobbyforge.db` and use it preferentially over the fuzzy match.
+- Verify `PRAGMA foreign_keys = ON` is active before the section delete in all test paths, not just production.
+- Write a test specifically for the cascade chain: create a section with 2 steps, log sessions linked to those steps, delete the section, assert: steps deleted, session `recipe_step_id` IS NULL.
+- The migration SQL itself is correct — no change needed. The risk is in testing, not production code (since `client.ts` always enables FKs).
 
 **Warning signs:**
-- A new `getStratagemsByFaction(factionName: string)` query file contains a LIKE clause matching against `rw_factions.name` — duplicating the resolution pattern.
-- A stratagems panel shows zero results for a user whose faction name has a punctuation difference from Wahapedia's naming.
-- `resolveWahapediaFactionIdByName` is called from more than one query module.
+- Test files mock `getDb()` without running `PRAGMA foreign_keys = ON` on the mock connection.
+- After deleting a section in a test, `getRecipePaintsByRecipe()` still returns the section's steps.
+- Session history in RecipeDetailSheet shows sessions with a step reference that no longer exists.
 
 **Phase to address:**
-Phase 43 (Extended Rules Schema). Assess faction resolution coverage before wiring any new table to the UI.
+Phase 1 (Schema + data layer). The FK chain test must be in the migration tests before any UI work builds on top.
+
+---
+
+### Pitfall 4: duplicateRecipe Does Not Copy Sections — Duplicated Recipe Is Structurally Broken
+
+**What goes wrong:**
+The current `duplicateRecipe()` in `recipes.ts` copies all 21 recipe fields and all steps. After adding sections, steps have a `section_id` FK. When `duplicateRecipe` runs, it:
+1. Creates a new recipe row (new ID).
+2. Copies steps from the old recipe — but the copied steps still reference the **original recipe's** section IDs.
+
+The result is a duplicated recipe whose steps reference sections belonging to a different recipe. The steps appear in the detail view grouped under another recipe's sections (if those sections still exist), or appear with a NULL section (if sections are from a recipe the user later deleted). The duplication succeeds with no error, but the structural integrity is silently broken.
+
+**Why it happens:**
+The copy loop in `duplicateRecipe` only needs to add one column (`section_id`) to each copied step row, but section_id values are not portable — they reference source-recipe-specific section rows. This is easy to overlook when extending the copy loop to include the new column.
+
+**How to avoid:**
+Extend `duplicateRecipe` to follow the three-step sequence: copy recipe → copy sections (with new `recipe_id`, record old-id → new-id mapping) → copy steps (with new `recipe_id` and remapped `section_id`):
+
+```typescript
+// pseudocode
+const sectionIdMap = new Map<number, number>(); // old section id → new section id
+for (const section of originalSections) {
+  const newSectionId = await createRecipeSection({ ...section, recipe_id: newRecipeId });
+  sectionIdMap.set(section.id, newSectionId);
+}
+for (const step of originalSteps) {
+  await addRecipePaint({
+    ...step,
+    recipe_id: newRecipeId,
+    section_id: step.section_id !== null ? (sectionIdMap.get(step.section_id) ?? null) : null,
+  });
+}
+```
+
+**Warning signs:**
+- `duplicateRecipe` copies steps in a loop that includes a `section_id` column but does not build a section mapping first.
+- After duplicating, opening the new recipe's detail shows steps grouped under the original recipe's sections (check: detail sheet shows section names from a recipe with a different ID).
+- Deleting the original recipe after duplication removes the duplicated recipe's step groupings.
+
+**Phase to address:**
+Phase 4 (Polish + regression). The duplication fix must be the first item of Phase 4. Add an acceptance test: duplicate a 2-section recipe, delete the original, verify the copy still renders sections correctly.
+
+---
+
+### Pitfall 5: Batch SQL Helpers Silently Return Incorrect Counts for Sectioned Recipes
+
+**What goes wrong:**
+`getStepCountsByRecipe()` (GROUP BY recipe_id) and `getRecipePaintAvailability()` (GROUP BY recipe_id) are unaffected by the section schema change at the SQL level — they still return correct per-recipe totals. However, if a new `getStepCountsBySection()` helper is introduced for section-level counts in RecipeSectionCard, and a step is saved without a section_id (section_id IS NULL — allowed by the nullable FK), that step is excluded from `getStepCountsBySection()` but included in `getStepCountsByRecipe()`. The section card shows "0 steps" while the recipe card shows "4 steps." Users see inconsistent counts with no explanation. This is not a bug in the existing helpers — it is a silent data inconsistency.
+
+**Why it happens:**
+The migration sets existing steps to a default section, so the inconsistency cannot happen for migrated data. It can happen in new code paths: if `addRecipePaint` is called without a `section_id` (e.g., from LogSessionSheet or a future API that doesn't set section context), the step is sectionless. Because `section_id` is nullable (backward compat requirement), the column accepts NULL silently.
+
+**How to avoid:**
+- In `addRecipePaint`, assert `section_id` is always provided when creating steps in a sectioned recipe context. The default section is guaranteed to exist after migration 018 — always pass its id.
+- `getStepCountsBySection()` should use a `WHERE section_id IS NOT NULL` guard and log a warning if `getStepCountsByRecipe()` total exceeds the sum of section step counts for any recipe (indicates orphaned steps).
+- In RecipeFormSheet's submit path: before inserting steps, verify `section_id != null` for all steps in the sectioned form. If null, assign to the default section.
+
+**Warning signs:**
+- Recipe card shows "7 steps" but section cards within the recipe detail total 6 — one step has `section_id IS NULL`.
+- A step appears in the recipe timeline but not in any section group.
+- `getStepCountsBySection()` sum < `getStepCountsByRecipe()` count for the same recipe_id.
+
+**Phase to address:**
+Phase 1 (Schema + data layer) for the helper design. Phase 3 (Form UI) for the submit path assertion. Add a query-level test: insert a step with section_id NULL, call both helpers, assert and document the discrepancy.
+
+---
+
+### Pitfall 6: DraftSection State in RecipeFormSheet Desynchronizes With existingSteps on Edit Re-open
+
+**What goes wrong:**
+The existing `RecipeFormSheet` initializes `DraftStep[]` from `existingSteps` in a `useEffect` keyed on `[recipe?.id, existingSteps.length]`. After adding sections, the form must initialize `DraftSection[]` (each with its own `DraftStep[]`). If the initialization logic is not atomic — i.e., sections and their steps are loaded in separate effects or separate queries — the form can briefly show sections with empty step arrays (steps not yet loaded), and any user action during that window (typing a section name, adding a step) commits against an incomplete draft state. When the second effect fires and repopulates steps, it overwrites the user's changes.
+
+**Why it happens:**
+Sections and steps require two queries (`useRecipeSections(recipe?.id)` and `useRecipePaints(recipe?.id)`). Both are async. React renders between them. The initialization effect fires when `existingSteps.length` changes, but if sections have already been used to initialize DraftSection state, the second effect replaces those DraftSections wholesale.
+
+**How to avoid:**
+Initialize draft sections and steps in a single `useEffect` that depends on both data sources being ready:
+
+```typescript
+useEffect(() => {
+  if (!recipe) { setDraftSections([]); return; }
+  // Wait for BOTH to resolve before initializing
+  if (existingSections.length === 0 && existingSteps.length === 0) return;
+  setDraftSections(buildDraftSections(existingSections, existingSteps));
+}, [recipe?.id, existingSections.length, existingSteps.length]);
+```
+
+`buildDraftSections` is a pure function that takes both arrays and produces the nested draft structure — test it independently. Never have two separate effects that each call `setDraftSections`.
+
+**Warning signs:**
+- Opening a recipe for edit briefly shows sections with "0 steps" before steps appear.
+- Rapidly opening and closing the form for the same recipe causes inconsistent step counts.
+- `setDraftSections` is called in more than one `useEffect` in `RecipeFormSheet`.
+
+**Phase to address:**
+Phase 3 (Form UI). Write the `buildDraftSections` pure function with tests before wiring it into the component.
+
+---
+
+### Pitfall 7: Cache Invalidation Asymmetry — Section Mutations Miss Step Count and Availability Keys
+
+**What goes wrong:**
+The codebase enforces the cache invalidation symmetry rule: "if useCreate invalidates a key, useDelete must too." Adding `useRecipeSections` introduces a new mutation surface. When a section is deleted (which cascades to delete its steps), the following keys become stale:
+- `["recipe-sections", recipeId]` — obvious, developers will invalidate this
+- `["recipe-paints", recipeId]` — steps were deleted, must refetch
+- `["recipe-step-counts"]` — step counts changed
+- `["recipe-paint-availability"]` — availability ratios changed
+- `["recipe-swatch-colors"]` — swatch strip colors changed
+
+Developers writing `useDeleteRecipeSection` will think to invalidate sections. They will likely miss the 4 step-derived keys because those keys live in `useRecipePaints.ts`, not in `useRecipeSections.ts`. The sections hook and the paints hook are in different files. The RecipesPage swatch strips and step count badges go stale after a section delete with no visual feedback.
+
+**Why it happens:**
+The step-derived cache keys (`STEP_COUNTS_KEY`, `RECIPE_AVAILABILITY_KEY`, `RECIPE_SWATCH_KEY`, `RECIPE_PAINTS_KEY(recipeId)`) were designed around direct step mutations. A section mutation that causes step deletion is an indirect mutation — the connection to step caches is non-obvious from the sections hook's perspective.
+
+**How to avoid:**
+Export the step-derived keys from `useRecipePaints.ts` (they already are: `STEP_COUNTS_KEY`, `RECIPE_AVAILABILITY_KEY`, `RECIPE_SWATCH_KEY`, `RECIPE_PAINTS_KEY`) and import them in `useRecipeSections.ts`. The `useDeleteRecipeSection` mutation's `onSuccess` must invalidate all five keys:
+
+```typescript
+// In useRecipeSections.ts — useDeleteRecipeSection onSuccess
+qc.invalidateQueries({ queryKey: RECIPE_SECTIONS_KEY(variables.recipeId) });
+qc.invalidateQueries({ queryKey: RECIPE_PAINTS_KEY(variables.recipeId) });
+qc.invalidateQueries({ queryKey: STEP_COUNTS_KEY });
+qc.invalidateQueries({ queryKey: RECIPE_AVAILABILITY_KEY });
+qc.invalidateQueries({ queryKey: RECIPE_SWATCH_KEY });
+```
+
+Add a comment block at the top of `useRecipeSections.ts` mirroring the contract pattern from `useRulesSync.ts`:
+```typescript
+// ── Section mutation invalidation contract ────────────────────────────────
+// Section deletes cascade to step deletes. Any hook reading step-derived
+// data MUST be invalidated by useDeleteRecipeSection.
+// Keys: RECIPE_SECTIONS_KEY, RECIPE_PAINTS_KEY, STEP_COUNTS_KEY,
+//       RECIPE_AVAILABILITY_KEY, RECIPE_SWATCH_KEY
+```
+
+**Warning signs:**
+- After deleting a section, the recipe card on RecipesPage still shows the old step count.
+- The availability badge (owned/missing) on a recipe card does not update after a section delete.
+- `useDeleteRecipeSection.onSuccess` has fewer `invalidateQueries` calls than `useRemoveRecipePaint.onSuccess`.
+
+**Phase to address:**
+Phase 1 (Schema + data layer). Define the `useRecipeSections` hook with all 5 invalidations before any UI consumes it. Verify with a test: delete a section, assert step counts query returns updated value without page refresh.
+
+---
+
+### Pitfall 8: Collapsible Sections Make Simple Recipe Forms Feel Like Overhead
+
+**What goes wrong:**
+If the section concept is always visible — every new recipe immediately shows a "Section 1" card header, collapse toggle, section name field, and surface dropdown — users creating simple one-surface recipes feel they are wrestling with unnecessary structure. The form becomes 20% taller and more cognitive load than the v2.5 form. The product principle "creating a simple one-section recipe must be just as easy as today" is violated. Users with existing simple recipes (all steps in one area) open the edit form and see their steps now wrapped in a labeled section card with a new name field they never asked for.
+
+**Why it happens:**
+The section layer is genuinely useful for complex recipes but adds no value for a recipe with one surface and 4 steps. The default section migration automatically groups all existing steps into one section — correct for data integrity but potentially confusing in the UI.
+
+**How to avoid:**
+- Auto-collapse the section header UI for recipes with exactly one section. Show steps directly without a visible section card wrapper. The section still exists in the data model; the UI just doesn't emphasize it.
+- Only show the section name field and surface selector when the recipe has more than one section, or when the user explicitly clicks "Add Section."
+- The "Add Section" button is the gateway to the multi-section workflow. A recipe starts with an implicit section — only adding a second section reveals the section-level UI.
+- Section name and surface fields on the single default section should be optional and collapsed by default.
+
+**Warning signs:**
+- Every new recipe immediately renders a visible "Section 1" card with a text field asking for a section name.
+- The form height for a simple 3-step recipe is noticeably taller after the v0.2.7 migration than before.
+- User needs to interact with a section UI element before adding the first step.
+
+**Phase to address:**
+Phase 3 (Form UI). Establish the progressive disclosure rule before building RecipeSectionCard: "section scaffolding is hidden when recipe has exactly one section." Phase 2's read-only detail view should also apply this — single-section recipes look identical to v2.5's detail view.
+
+---
+
+### Pitfall 9: Section Order Index Drift After Insert/Delete Operations
+
+**What goes wrong:**
+`order_index` values for sections become non-contiguous after inserts and deletes. If sections start as [0, 1, 2] and the middle section is deleted, the remaining sections are [0, 2]. Adding a new section with `order_index = sections.length` produces [0, 2, 2] — a duplicate order value. The reorder query sorts by `order_index ASC`, so two sections with `order_index = 2` have non-deterministic display order. The drag-reorder `reorderRecipeSections` batch UPDATE normalizes order_index from 0 to N-1 — but only when the user actually drags. A user who never drags sections (just adds and deletes) accumulates order_index drift permanently.
+
+This is the same pattern that caused problems in the existing step ordering before `computeOrderIndex()` was introduced in v2.5.
+
+**Why it happens:**
+Integer position columns naturally drift when items are inserted or deleted without renumbering. The section table will be managed with explicit INSERT/DELETE operations (not array replacement like draft steps), so there is no automatic normalization step on every save.
+
+**How to avoid:**
+Apply `computeOrderIndex` to sections at the point of persistence, mirroring the step pattern:
+- On save (RecipeFormSheet submit), normalize all section `order_index` values to their array position before writing to DB — same as `computeOrderIndex(steps)` today.
+- On add-section: append with `order_index = sections.length` (current array length after insertion) — always contiguous if array is the source of truth.
+- On delete-section: remove from draft array and renumber on next save — never DELETE + UPDATE order_index separately in two queries.
+
+Alternatively, manage sections as a `DraftSection[]` array (same as DraftStep[] today) and write all sections in a delete-all + re-insert pattern on form save, which guarantees correct order_index on every save.
+
+**Warning signs:**
+- `SELECT * FROM recipe_sections WHERE recipe_id = $1 ORDER BY order_index ASC` returns sections in wrong visual order after an insert without a drag operation.
+- Two sections have the same `order_index` value for the same recipe.
+- A freshly added section appears between existing sections instead of at the bottom.
+
+**Phase to address:**
+Phase 1 (Schema + data layer) for `reorderRecipeSections` design. Phase 3 (Form UI) for section state management. Test: add section, delete section, add section again; assert `order_index` values are [0, 1], not [0, 2] or [0, 0].
 
 ---
 
@@ -256,13 +304,13 @@ Phase 43 (Extended Rules Schema). Assess faction resolution coverage before wiri
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Store override as a column on `rw_*` table | No new table needed | Destroyed on every sync — unrecoverable | Never |
-| Add a TypeScript-side insert loop after `invoke("bulk_sync_rules")` | Avoids Rust changes | Breaks atomicity guarantee; partial failure corrupts rules.db | Never |
-| Keep `rw_sync_meta` with only `last_sync_at` and `wahapedia_version` | No migration needed | Phase 46 version comparison has nothing to diff against | Acceptable until Phase 45 — must be extended then |
-| Fuzzy faction name match in each new rules query module | Quick to implement | Silently returns zero results for non-matching faction names; maintenance burden multiplies | Never — centralize in `useWahapediaFactionId` |
-| Skip snapshot before DELETE in Rust command | Simpler Rust code | Version comparison feature is impossible without pre-sync state | Not acceptable if Phase 46 is in scope |
-| Use client-side ATTACH DATABASE via tauri-plugin-sql | Eliminates dual-query pattern | Breaks under pool routing; silently queries the wrong connection | Never — use dual-query or Rust command |
-| `staleTime: Infinity` on a hook that returns merged override+import data | No unnecessary re-fetches | Override edits are not reflected until page navigation | Never — separate the imported and user-mutable data into distinct hooks |
+| Inner DndContext per section card for step reorder | Keeps RecipeStepList unchanged | Section drag events never reach outer context; cross-section step moves impossible | Never — must use single DndContext |
+| Use database `id` as useSortable identifier for sections | No localId plumbing needed | Integer namespace collision with step IDs in single DndContext | Never — use localId (UUID) consistently |
+| duplicateRecipe copies steps with original section_id | Simpler loop, one fewer query | Copied recipe's steps reference source recipe's sections; structural corruption on source delete | Never |
+| Skip initializing DraftSection from existingSteps atomically | Simpler code, one effect per query | Two-phase initialization causes stale draft state on rapid re-open | Never |
+| Only invalidate `RECIPE_SECTIONS_KEY` in useDeleteRecipeSection | Less code to write | Step count, availability, swatch caches go stale after section delete | Never — all 5 keys required |
+| Always show section card UI regardless of section count | No conditional render logic needed | Simple recipes feel heavier; violates product principle | Only acceptable as temporary spike/prototype — never ship |
+| INSERT new section with `order_index = MAX(order_index) + 1` | Contiguous if no deletes | Gaps accumulate after deletes; two sections get same order_index | Never — use array position as source of truth |
 
 ---
 
@@ -270,13 +318,13 @@ Phase 43 (Extended Rules Schema). Assess faction resolution coverage before wiri
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| Wahapedia CSV pipe-delimited format | Assume format is stable; parse without header validation | Validate expected column names are present before invoking Rust sync; emit named errors on structural change |
-| `bulk_sync_rules` Rust transaction | Add TypeScript-side rules.db writes after `invoke()` returns | All rules.db writes belong inside the single Rust transaction; extend `BulkSyncPayload` struct instead |
-| `rules.db` migration versioning | Assign version numbers without checking both DB sequences | Maintain `// hobbyforge.db: up to N | rules.db: up to M` comment in `lib.rs`; always use `rules_00N_` prefix |
-| `rules_002_wargear_abilities.sql` (currently untracked) | Assume it ran because the file exists | Verify registration in `get_rules_migrations()` in Phase 42 audit before any Phase 43 work |
-| `rw_sync_meta.id = 1` singleton row | Add per-table sync metadata as additional rows with different IDs | Keep the singleton pattern; add columns to the singleton row for each new metadata field |
-| Cross-DB query (hobbyforge.db + rules.db) | Use ATTACH DATABASE via tauri-plugin-sql | Query each DB independently, merge in hook/component, or use a Rust command for heavy joins |
-| `useDatasheet` staleTime: Infinity | Re-use the same hook for merged override+import display | Keep `useDatasheet` for pure import data; add a separate `useRulesOverridesForUnit` hook for override data |
+| @dnd-kit nested DndContext | Two DndContexts (section + step level) | Single DndContext at RecipeSectionList level; multiple SortableContexts inside |
+| @dnd-kit useSortable ids with sections + steps | Pass `section.db_id` or `step.id` (integers) | Pass `section.localId` and `step.localId` (UUID strings) — always unique across entity types |
+| RecipeStepList currently owns DndContext | Reuse RecipeStepList unchanged when adding sections | Strip DndContext out of RecipeStepList; it becomes SortableContext only; DndContext moves up one level |
+| duplicateRecipe adding section_id to step copy loop | Copy section_id as-is from original step | Build old-id → new-id map for sections first, remap step.section_id during copy |
+| LogSessionSheet step selector after sections | Step selector queries all steps for a recipe — still works via `getRecipePaintsByRecipe` | No change needed in Phase 1–4; the step list is flat in LogSessionSheet which is correct |
+| migration 018 CASCADE chain | Write section delete test without FK enforcement | Always run `PRAGMA foreign_keys = ON` in test setup; verify sessions.recipe_step_id → NULL after cascaded step delete |
+| `getStepCountsBySection()` new helper | Returns 0 for steps where section_id IS NULL | Warn/assert in submit path that all steps have section_id; document the discrepancy |
 
 ---
 
@@ -284,11 +332,10 @@ Phase 43 (Extended Rules Schema). Assess faction resolution coverage before wiri
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Snapshot of all 10k+ rules rows before each sync | Sync takes 10+ seconds; UI freezes | Snapshot only rows linked to user's units (inner join with `unit_strategy_notes.datasheet_id`) | At first sync if snapshot is unbounded |
-| N+1 override lookups in PlaybookTab (one query per field) | PlaybookTab renders slowly with many override indicators | Batch `SELECT * FROM rules_overrides WHERE entity_id = $1` once per datasheet, index on `(entity_type, entity_id)` | Noticeable at 5+ overrides per datasheet |
-| Changelog diff computed in TypeScript over all rw_* tables | Version comparison UI loads slowly | Compute diff in Rust during sync; store results in `rw_sync_changelog`; UI only reads pre-computed diff | With 2500+ datasheets, client-side diff is 50k+ row comparisons |
-| `useRulesSyncMeta` staleTime: Infinity with new row-count columns | Freshness indicators never update after sync | Add `RULES_SYNC_META_KEY` to `useRulesSync.onSuccess` invalidation (already present) and ensure all new metadata keys are also listed | Immediately if new query keys are not invalidated |
-| Sync logs accumulate unbounded rows in `rw_sync_error_log` | DB size grows; log query gets slow | Store only the last 10 sync attempts; DELETE old rows inside the sync transaction before inserting new ones | At ~100 syncs (minor concern for a personal app) |
+| N+1 section queries in RecipeDetailSheet | Detail sheet slow to open for recipes with many sections | Add `getSectionCountsByRecipe()` GROUP BY helper (same pattern as step counts) if RecipesPage needs per-recipe section counts | Noticeable at 20+ recipes in RecipesPage |
+| Batch step helpers broken by section filter | Adding `WHERE section_id IS NOT NULL` to `getStepCountsByRecipe` changes semantics for existing callers | Do not modify `getStepCountsByRecipe` — add a separate `getStepCountsBySection` helper instead | Immediately if existing callers break |
+| DraftSection array with deeply nested DraftStep arrays causes full re-render on any step change | Any keystroke in any step rerenders all section cards | Use `useCallback` for per-section `onChange` handlers; `React.memo` on RecipeStepRow | Noticeable at 4+ sections with 8+ steps each |
+| Two async queries (sections + steps) for RecipeFormSheet edit mode cause flash of empty state | Edit form opens showing empty sections while steps load | Show loading state until both queries resolve; initialize draft only when both ready | On every edit form open |
 
 ---
 
@@ -296,26 +343,26 @@ Phase 43 (Extended Rules Schema). Assess faction resolution coverage before wiri
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Override indicator looks the same as imported data | User cannot tell which values they entered vs. what was imported | Show a distinct visual badge ("Override" or pencil icon) next to any value sourced from `rules_overrides` |
-| Version comparison shows all 2500 datasheet changes | User is overwhelmed; important unit changes are buried | Filter comparison to only show changes affecting units in the user's collection (inner join with `units.datasheet_id`) |
-| Sync failure shows generic "Error" with no actionable detail | User does not know if Wahapedia is down, format changed, or they have no internet | Show named error categories: "Network error", "Format changed — column X missing", "Partial insert — rules.db rolled back" |
-| "Last synced: 3 days ago" freshness indicator with no refresh button | User has no path to update stale data | Put a refresh action directly on the freshness indicator; do not require navigation to a settings page |
-| Override edit UI is a raw text input for stat values | User enters "3+" where the field expects an integer; import shows "3+" but override shows error | Show the field's current imported value as placeholder; validate against the expected data type for each field |
-| Sync progress has no visual feedback for 12 CSV downloads | User thinks the app is frozen during the 5–30 second sync | Show per-file progress ("Fetching Stratagems.csv 7/12…") in the sync modal; the `Promise.all` in `useRulesSync` already knows which file is being fetched |
+| Section UI always visible even for one-section recipes | Simple recipes feel harder to create and edit | Collapse section scaffolding for single-section recipes; only show when user adds a second section |
+| Collapsing a section while editing loses unsaved changes inside it | User collapses accidentally, steps "disappear", panic | Collapsed sections still exist in draft state; collapse is cosmetic only, never destroys draft data |
+| Section names required as non-empty before save | User must name every section to save, even the default one | Default section name ("General" or derived from recipe.area) applied automatically; section name field is optional |
+| Move step between sections via drag (cross-section drag) built in v1 | Complex implementation; easy to introduce bugs with single DndContext | Explicitly out of scope for v0.2.7 per milestone doc; if cross-section drag is needed later, add it as a dedicated phase |
+| Section reorder drag handles too close to step drag handles | User triggers wrong drag tier accidentally | Section drag handle is on the section card header; step drag handle is on the step row left edge; give each tier a visually distinct drag affordance and sufficient hit area |
+| "Delete section" also deletes steps without warning | User accidentally loses 6 steps | Show confirmation: "Delete section and its N steps?" with step count from `getStepCountsBySection` |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **rules_002 registration confirmed:** Verify `rules_002_wargear_abilities.sql` is in `get_rules_migrations()` and has actually run (query `SELECT name FROM sqlite_master WHERE type='table'` in rules.db; `rw_stratagems` must exist)
-- [ ] **Override survives sync:** Add a manual override, trigger a full sync, assert the override row still exists in `rules_overrides` and is displayed in PlaybookTab
-- [ ] **Sync atomicity on failure:** Simulate a mid-sync failure (e.g., truncated stratagems payload); assert all rw_* tables contain the pre-failure data, not partial new data
-- [ ] **Cache invalidation after sync:** After re-sync, all freshness indicators, row counts, and changelog views update without a page navigation
-- [ ] **Cache invalidation after override edit:** Edit an override value; assert PlaybookTab shows the new override immediately without navigation
-- [ ] **Faction resolution for extended tables:** Open StratagemsTab (Phase 43+) for a faction; assert stratagems are shown (not an empty list caused by name mismatch)
-- [ ] **Version comparison is scoped:** Version comparison shows only changes affecting units in the user's collection, not all 2500 datasheets
-- [ ] **Wahapedia column validation:** Simulate a CSV with a renamed required column; assert sync fails with a named error, not silently succeeds with empty fields
-- [ ] **Migration version correctness:** `rules_003_*.sql` (Phase 45) registers as version 3 in `get_rules_migrations()`; no collision with hobbyforge.db sequence
+- [ ] **Migration cascade test:** Create section with 2 steps + sessions linked to those steps; delete section; assert steps gone AND session.recipe_step_id IS NULL (not just section gone)
+- [ ] **Duplicate recipe sections:** Duplicate a 2-section recipe; delete the original; open the copy; assert section names and step groupings are intact (not referencing deleted sections)
+- [ ] **Single DndContext coverage:** Drag section A below section B; assert section order correct. Then drag step 1 within section B to position 3; assert step order correct, section order unchanged
+- [ ] **ID namespace safety:** Log all useSortable IDs during a drag session; assert no integer value appears as both a section ID and a step ID in the same DndContext
+- [ ] **Cache symmetry after section delete:** Delete a section; assert recipe-step-counts, recipe-paint-availability, and recipe-swatch-colors all update without page navigation
+- [ ] **Simple recipe regression:** Create a new 3-step recipe; assert it feels as fast as in v2.5 (no mandatory section naming before first step can be added)
+- [ ] **Order index after insert+delete:** Add 3 sections; delete the middle one; add a new one; assert order_index values are [0, 1, 2] not [0, 2, 2]
+- [ ] **Batch helpers unmodified:** `getStepCountsByRecipe()` and `getRecipePaintAvailability()` return identical results to pre-v0.2.7 for recipes with all steps assigned to a section
+- [ ] **LogSessionSheet regression:** Open LogSessionSheet; select a recipe; assert step dropdown still lists steps in the correct order; no section data or IDs leaking into step selector
 
 ---
 
@@ -323,12 +370,11 @@ Phase 43 (Extended Rules Schema). Assess faction resolution coverage before wiri
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Overrides stored in rw_* table (destroyed by sync) | HIGH | Cannot recover deleted data. Write a new hobbyforge.db migration adding `rules_overrides` table; display a one-time notice that overrides must be re-entered; never add columns to rw_* tables again |
-| Sync failure partially populated rules.db | MEDIUM | The Rust transaction rollback should prevent this; if it occurs, the user can re-sync (bulk_sync_rules is idempotent once running correctly); investigate whether a TypeScript-side write bypassed the transaction |
-| Changelog has nothing to compare against (no pre-sync snapshot) | MEDIUM | Add pre-sync snapshot logic to `bulk_sync_rules`; run one sync to establish the baseline; the first comparison will show "no prior data" rather than a diff |
-| rules_002 migration not registered (untracked file) | LOW | Add it to `get_rules_migrations()` in `lib.rs` as version 2 (it uses `CREATE TABLE IF NOT EXISTS` so re-running is safe); rebuild; tables will be created if missing |
-| Faction name mismatch showing zero stratagems | LOW | Add `useWahapediaFactionId` fallback that returns `null` and shows "faction not mapped" callout with a manual mapping action; no data loss |
-| Stale PlaybookTab after override edit | LOW | Add missing `invalidateQueries(["datasheet", unitId])` to override mutation `onSuccess`; takes effect on next mutation |
+| Two nested DndContexts shipped (Pitfall 1) | HIGH — requires architectural refactor | Audit all recipe feature files for DndContext imports; lift to single DndContext; remove inner ones; retest all drag scenarios |
+| Integer ID collision in sortable (Pitfall 2) | MEDIUM | Add localId to DraftSection, update all SortableContext items arrays and useSortable calls; no DB change needed |
+| duplicateRecipe copies wrong section_ids (Pitfall 4) | MEDIUM — data corruption in existing duplicates | Write a migration that deletes duplicate recipe steps pointing to other recipe's sections and re-assigns them to the duplicate's default section; add section copy logic to duplicateRecipe |
+| Stale step count badges after section delete (Pitfall 7) | LOW | Add 4 missing invalidateQueries calls to useDeleteRecipeSection.onSuccess; takes effect immediately |
+| Order_index drift causing wrong section order (Pitfall 9) | LOW | Run a one-time SQL to normalize: `UPDATE recipe_sections SET order_index = (SELECT COUNT(*) FROM recipe_sections rs2 WHERE rs2.recipe_id = recipe_sections.recipe_id AND rs2.id < recipe_sections.id)` |
 
 ---
 
@@ -336,34 +382,39 @@ Phase 43 (Extended Rules Schema). Assess faction resolution coverage before wiri
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Overrides destroyed by sync (Pitfall 1) | Phase 46 — schema design before any override UI | Test: add override, sync, assert override row persists |
-| No snapshot for version comparison (Pitfall 2) | Phase 45 — define snapshot schema before Phase 46 | Test: sync twice; assert changelog contains field-level diffs for changed values |
-| ATTACH DATABASE via tauri-plugin-sql (Pitfall 3) | Phase 46 — establish dual-query pattern at start of override feature | Code review: no ATTACH statement in any TypeScript file |
-| New query keys not invalidated after sync (Pitfall 4) | Phase 45 — add comment contract to useRulesSync.ts | Test: sync; assert all rules-reading hooks return fresh data without navigation |
-| CSV format change silent failure (Pitfall 5) | Phase 44 — add header validation before all 12 CSV files | Test: mutate a CSV header; assert sync throws named error |
-| Sync atomicity broken by TypeScript writes (Pitfall 6) | Phase 44 — code review policy: no db.execute on rules.db in useRulesSync | Test: simulate mid-insert failure; assert pre-sync data is intact |
-| Migration version collision (Pitfall 7) | Phase 42 audit — confirm rules_002 is registered; Phase 45 uses rules_003 | Startup with clean DB files: no migration errors in console |
-| Stale display after override edit (Pitfall 8) | Phase 46 — separate import and override query hooks | Test: edit override; assert PlaybookTab updates without navigation |
-| Faction name mismatch on extended tables (Pitfall 9) | Phase 43 — use useWahapediaFactionId in all faction-filtered views | Test: filter stratagems by faction with a non-exact name match; assert non-empty result or "faction not mapped" UI |
+| Two nested DndContexts (Pitfall 1) | Phase 3 — single DndContext architectural decision before any drag code | Test: section drag + step drag both work in same form instance |
+| Integer ID namespace collision (Pitfall 2) | Phase 3 — localId convention on DraftSection before SortableContext wiring | Test: 3 sections × 3 steps — 12 unique UUID string IDs in DndContext |
+| Cascade chain missing sessions (Pitfall 3) | Phase 1 — cascade FK test in migration tests | Test: section delete cascades to sessions.recipe_step_id = NULL |
+| duplicateRecipe ignoring sections (Pitfall 4) | Phase 4 — first item in Phase 4 checklist | Test: duplicate → delete original → open copy → sections intact |
+| Batch helpers silently excluding sectionless steps (Pitfall 5) | Phase 1 — getStepCountsBySection design + submit path assertion in Phase 3 | Test: query both helpers for same recipe; totals match |
+| Two-phase draft initialization race (Pitfall 6) | Phase 3 — buildDraftSections pure function tested before component wiring | Test: open edit form; assert sections+steps populated atomically on first render |
+| Cache asymmetry on section delete (Pitfall 7) | Phase 1 — all 5 keys in useDeleteRecipeSection before any UI | Test: delete section → step count badge updates without navigation |
+| Section UI overwhelming simple recipes (Pitfall 8) | Phase 3 — progressive disclosure rule coded before RecipeSectionCard renders | Test: new recipe has no visible section card until "Add Section" is clicked |
+| Order index drift (Pitfall 9) | Phase 1 — reorderRecipeSections design; Phase 3 — draft array as source of truth | Test: add+delete+add sections; assert contiguous order_index values |
 
 ---
 
 ## Sources
 
-- Direct inspection: `src-tauri/src/lib.rs` — confirmed delete-all / re-insert transaction pattern; `BulkSyncPayload` struct; `rw_sync_meta` singleton write inside transaction
-- Direct inspection: `src/hooks/useRulesSync.ts` — confirmed 12 CSV files fetched, `invoke("bulk_sync_rules")` called once, 3 invalidation keys in `onSuccess`
-- Direct inspection: `src-tauri/migrations/rules_001_schema.sql` — `rw_sync_meta` has only `last_sync_at` and `wahapedia_version`
-- Direct inspection: `src-tauri/migrations/rules_002_wargear_abilities.sql` — all extended tables exist in SQL; git status shows this file is currently untracked
-- Direct inspection: `src/db/queries/datasheets.ts` — dual-query pattern (separate getRulesDb / getDb calls, merged client-side); `resolveWahapediaFactionIdByName` fuzzy match pattern
-- Direct inspection: `src/hooks/useDatasheet.ts` — `staleTime: Infinity` on all rules hooks; `RULES_SYNC_META_KEY` used for meta invalidation
-- Direct inspection: `src/types/datasheet.ts` — `FullDatasheet` interface has no override fields; `RulesSyncMeta` has no row count fields
-- Codebase pattern: `src/db/client.ts` + `src/db/rules-client.ts` — two separate singleton connections; no ATTACH
-- Codebase pattern: `.planning/PROJECT.md` Key Decisions — "weapon_name as TEXT copy in unit_loadout_wargear — Cross-database FK to rules.db not supported in SQLite"
-- Research: SQLite ATTACH DATABASE documentation (sqlite.org/lang_attach.html) — ATTACH works per-connection, not per-pool
-- Research: silvermine/tauri-plugin-sqlite GitHub — explicitly advertises ATTACH support as a differentiator from the official plugin, implying official plugin does not support it cleanly
-- Research: Wahapedia data export page (wahapedia.ru/wh40k10ed/the-rules/data-export/) — format is CSV with pipe delimiter; spec is in an external Excel file, format can change without notice
-- Research: SQLite `sqldiff.exe` documentation — pre-sync snapshot is necessary for meaningful diff output; delete-all destroys comparison baseline
+- Direct inspection: `src/features/recipes/RecipeStepList.tsx` — confirmed DndContext + SortableContext + closestCenter; this DndContext must be lifted when adding section-level sort
+- Direct inspection: `src/features/recipes/recipeSteps.ts` — confirmed `localId: crypto.randomUUID()` pattern for DraftStep; must mirror for DraftSection
+- Direct inspection: `src/features/recipes/RecipeFormSheet.tsx` — confirmed single useEffect keyed on `[recipe?.id, existingSteps.length]`; two-query initialization adds race condition
+- Direct inspection: `src/db/queries/recipes.ts` — confirmed `duplicateRecipe` copies steps with `section_id` absent from INSERT (column doesn't exist yet but must be added correctly)
+- Direct inspection: `src/db/queries/recipePaints.ts` — confirmed `getStepCountsByRecipe` and `getRecipePaintAvailability` both use `GROUP BY recipe_id`; no section_id consideration
+- Direct inspection: `src/hooks/useRecipePaints.ts` — confirmed 5 exported cache keys that section delete mutations must also invalidate
+- Direct inspection: `src-tauri/migrations/014_session_recipe_link.sql` — confirmed `painting_sessions.recipe_step_id REFERENCES recipe_steps(id) ON DELETE SET NULL`; cascade chain risk confirmed
+- Direct inspection: `src-tauri/migrations/` — confirmed next hobbyforge.db migration is **018** (017 is latest: `017_unit_overrides.sql`)
+- Codebase pattern: `PROJECT.md` Key Decisions — "useFieldArray NOT used for step forms — Documented ID collision with @dnd-kit useSortable (RHF #10607)"
+- Codebase pattern: `PROJECT.md` Key Decisions — "Cache invalidation symmetry rule — If useCreate invalidates a key, useDelete must too"
+- Codebase pattern: `PROJECT.md` Key Decisions — "Sibling Sheet/Dialog portal pattern — Nested Radix portals cause z-index and context issues"
+- Research: @dnd-kit GitHub Discussion #766 — confirmed events are consumed by innermost DndContext, do not bubble to parent
+- Research: @dnd-kit GitHub Discussion #280 — "DndContext catches a drop event and doesn't pass it on" — architectural constraint confirmed
+- Research: @dnd-kit GitHub Issue #46 — "DndContext reducers all point to the same initial state variable, causing ID collisions across nested and sibling providers"
+- Research: @dnd-kit docs (docs.dndkit.com/presets/sortable/sortable-context) — confirmed multiple SortableContexts within single DndContext is the correct multi-container pattern
+- Research: RHF Discussion #10607 (github.com/orgs/react-hook-form/discussions/10607) — confirmed ID collision between useFieldArray numeric ids and @dnd-kit useSortable; this codebase already avoids useFieldArray for this reason
+- Research: SQLite ALTER TABLE docs (sqlite.org/lang_altertable.html) — `ADD COLUMN` with nullable FK is safe; no table rebuild required for nullable FK addition
+- Research: TanStack Query docs — invalidateQueries with exact:false covers hierarchical key trees; cross-file key imports required for cross-entity invalidation
 
 ---
-*Pitfalls research for: HobbyForge v0.2.6 Rules Sync 2.0 / Rules Data Hub*
-*Researched: 2026-05-07*
+*Pitfalls research for: HobbyForge v0.2.7 — Hierarchical recipe sections added to flat-step recipe system*
+*Researched: 2026-05-08*

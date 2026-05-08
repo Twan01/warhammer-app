@@ -1,459 +1,457 @@
 # Architecture Research
 
-**Domain:** Rules Sync 2.0 / Rules Data Hub — HobbyForge v0.2.6 (Phases 42–46)
-**Researched:** 2026-05-07
-**Confidence:** HIGH (derived from full codebase read + existing V3_ARCHITECTURE_AUDIT.md)
+**Domain:** HobbyForge v0.2.7 — Recipe Sections integration with existing recipe architecture
+**Researched:** 2026-05-08
+**Confidence:** HIGH (based on full codebase reads of all affected source files)
 
 ---
 
-## Current State Audit — What Already Exists
+## Existing Architecture Summary
 
-### Sync Pipeline Status: Fully Wired
-
-The audit question from v3.0-ROADMAP.md is resolved. The production sync path is:
+The recipe subsystem follows the four-layer pattern established project-wide:
 
 ```
-PlaybookTab "Sync" button
-  → useRulesSync() hook               [src/hooks/useRulesSync.ts]
-    → fetch 12 Wahapedia CSVs         [parallel via tauri-plugin-http]
-    → parseWahapediaCsv() + stripHtml()
-    → invoke("bulk_sync_rules", payload)
-      → Rust bulk_sync_rules           [src-tauri/src/lib.rs]
-        → DELETE 11 rw_* tables        [FK checks OFF, single transaction]
-        → INSERT all rows              [11 tables, full replacement]
-        → INSERT OR REPLACE rw_sync_meta
-        → COMMIT
-  → React Query invalidation           [sync-meta, datasheets, datasheets-by-faction]
+UI (RecipeFormSheet, RecipeDetailSheet, RecipeSectionList...)
+      |
+React Query hooks (useRecipes.ts, useRecipePaints.ts, useRecipeSections.ts [NEW])
+      |
+Query modules (recipes.ts, recipePaints.ts, recipeSections.ts [NEW])
+      |
+getDb() -> SQLite (hobbyforge.db)
 ```
 
-Both TypeScript AND Rust are active. TypeScript handles HTTP + parsing. Rust handles the atomic DB transaction. The split is intentional and correct — tauri-plugin-sql does not support multi-statement transactions, so sqlx is used directly in Rust for the sync write path.
+Key structural facts that shape the integration:
 
-### rules.db Table Coverage
-
-| Table | Migration | Synced | Queried | Status |
-|-------|-----------|--------|---------|--------|
-| `rw_factions` | 001 | YES | YES | Live |
-| `rw_datasheets` | 001 | YES | YES | Live |
-| `rw_datasheet_models` | 001 | YES | YES | Live |
-| `rw_datasheet_abilities` | 001 | YES | YES | Live |
-| `rw_datasheet_keywords` | 001 | YES | YES | Live |
-| `rw_sources` | 001 | YES | YES | Live |
-| `rw_sync_meta` | 001 | YES | YES | Live (last_sync_at, wahapedia_version only) |
-| `rw_datasheets_wargear` | 002 | YES | YES | Live (getFullDatasheet) |
-| `rw_abilities` | 002 | YES | NO | Dark — data present, zero queries |
-| `rw_stratagems` | 002 | YES | NO | Dark — data present, zero queries |
-| `rw_detachments` | 002 | YES | NO | Dark — data present, zero queries |
-| `rw_detachment_abilities` | 002 | YES | NO | Dark — data present, zero queries |
-
-**Critical finding:** No rules.db schema changes are required for surfacing dark tables. All 12 tables exist and are populated after any sync. v0.2.6 work is: extending `rw_sync_meta` columns, adding override/log tables to `hobbyforge.db`, and surfacing the four dark tables in the UI.
-
----
-
-## System Overview
-
-### Dual-Database Architecture
-
-```
-+-----------------------------------------------------------------------+
-|                          UI Layer (React 19)                          |
-|  +----------------+  +---------------------+  +--------------------+  |
-|  | PlaybookTab    |  | SyncMetadataPanel   |  | OverridesPanel     |  |
-|  | (MODIFIED)     |  | (NEW v0.2.6)          |  | (NEW v0.2.6)         |  |
-|  +-------+--------+  +----------+----------+  +---------+----------+  |
-+----------|--------------------..--------------------------|-----------+
-           |         React Query Hooks                      |
-+----------|---------------------------------------------------|---------+
-|  +-------+------+  +---------------------+  +-------------+---------+  |
-|  | useDatasheet |  | useRulesSync        |  | useRulesOverrides     |  |
-|  | useRulesSync |  | (MODIFIED v0.2.6)     |  | (NEW v0.2.6)            |  |
-|  | Meta (exist) |  |                     |  |                       |  |
-|  +--------------+  +----------+----------+  +-------------+---------+  |
-+------------------------------|----------------------------|--------------+
-                               | Query Modules              |
-+------------------------------|----------------------------|--------------+
-|  +--------------+  +---------+-----------+  +------------+-----------+  |
-|  | datasheets.ts|  | stratagems.ts       |  | rulesOverrides.ts      |  |
-|  | (existing)   |  | detachments.ts      |  | (NEW v0.2.6)             |  |
-|  |              |  | sharedAbilities.ts  |  |                        |  |
-|  |              |  | (NEW v0.2.6)          |  |                        |  |
-|  +--------------+  +---------------------+  +------------------------+  |
-+--------------------------------------------------------------------------+
-           |                                             |
-+----------+----------+                      +----------+-----------+
-|     rules.db        |                      |    hobbyforge.db     |
-|  rw_* tables (all   |                      |  unit_rules_overrides|
-|  12 already exist)  |                      |  sync_error_log      |
-|  rw_sync_meta       |                      |  (NEW migration 015) |
-|  (extended via      |                      |                      |
-|   rules_003)        |                      |                      |
-+---------------------+                      +----------------------+
-         |                                             |
-         +-------------------+-------------------------+
-                             |
-               Tauri plugin-sql + sqlx (Rust)
-```
+- `DraftStep[]` in `RecipeFormSheet` is managed as a plain React `useState` array, NOT `useFieldArray`. This is a documented decision: `useFieldArray` injects its own `id` field that collides with `@dnd-kit/useSortable`'s `id` prop (RHF issue #10607). This constraint propagates: `DraftSection[]` containing `DraftStep[]` must follow the same manual-array pattern.
+- Cache invalidation follows the **symmetry rule**: every key invalidated by `useCreate*` must also be invalidated by `useDelete*`.
+- Batch queries (step counts, swatch colors, availability) use a single GROUP BY SQL query across all recipes. Sections must not break these.
+- `recipePaints.ts` and `useRecipePaints.ts` retain their legacy names despite operating on `recipe_steps`. The naming stays.
+- Steps with `paint_id = null` are already valid (unlinked steps exist). Steps with `section_id = null` after migration are equally valid — the nullable FK is the backward-compat mechanism.
 
 ---
 
 ## Component Boundaries
 
-### Existing Components (Modify Only)
+### Existing Components: What Changes
 
-| Component | File | v0.2.6 Change |
-|-----------|------|-------------|
-| `useRulesSync` | `src/hooks/useRulesSync.ts` | Extend rowCounts return; add prevVersion capture; invalidate 3 new query keys on success |
-| `bulk_sync_rules` + `BulkSyncPayload` | `src-tauri/src/lib.rs` | Extend rw_sync_meta INSERT to write row count columns; write sync_error_log row to hobbyforge.db |
-| `get_rules_migrations()` | `src-tauri/src/lib.rs` | Add migration version 3 (rules_003_sync_metadata.sql) |
-| `RulesSyncMeta` interface | `src/types/datasheet.ts` | Add row count + duration columns |
-| `PlaybookTab` | `src/features/units/PlaybookTab.tsx` | Add stratagem/detachment section below abilities using new hooks |
+| Component | Location | Change Required | Nature |
+|-----------|----------|----------------|--------|
+| `RecipeFormSheet.tsx` | `src/features/recipes/` | Replace flat `DraftStep[]` state with `DraftSection[]` each containing `DraftStep[]`; update submit to write sections then steps | Significant rewrite of draft state + submit logic |
+| `RecipeDetailSheet.tsx` | `src/features/recipes/` | Add `useRecipeSections(recipe?.id)` call; conditionally render `RecipeSectionedTimeline` vs existing fallback | Moderate: new hook + conditional render |
+| `RecipeStepTimeline.tsx` | `src/features/recipes/` | No change — retained as fallback for recipes with no sections | None |
+| `recipeSteps.ts` | `src/features/recipes/` | Add `DraftSection` interface, `makeDraftSection()`, `computeSectionOrderIndexes()` alongside existing exports | Small additive only |
+| `src/types/recipePaint.ts` | `src/types/` | Add `section_id: number \| null` to `RecipeStep` interface | One-line addition |
+| `src/db/queries/recipePaints.ts` | `src/db/queries/` | Add `section_id` parameter to `addRecipePaint` insert; add `getRecipeStepsBySection()`; add `moveStepToSection()` | Additive only |
+| `src/db/queries/recipes.ts` | `src/db/queries/` | Extend `duplicateRecipe()` to copy sections first, build old-to-new section ID map, remap `section_id` on each copied step | Moderate: section copy loop + ID remap |
+| `useRecipes.ts` | `src/hooks/` | `useDuplicateRecipe` must invalidate `["recipe-sections"]` prefix key | One-line addition |
 
-### New Components (v0.2.6)
+### New Components
 
-| Component | File | Purpose |
-|-----------|------|---------|
-| `getStratagems()` | `src/db/queries/stratagems.ts` | Query rw_stratagems by faction_id / detachment_id / phase |
-| `getDetachments()` | `src/db/queries/detachments.ts` | Query rw_detachments + rw_detachment_abilities by faction_id |
-| `getSharedAbilities()` | `src/db/queries/sharedAbilities.ts` | Query rw_abilities by faction_id |
-| `getUnitRulesOverrides()` | `src/db/queries/rulesOverrides.ts` | CRUD for unit_rules_overrides in hobbyforge.db |
-| `getSyncHistory()` | `src/db/queries/syncHistory.ts` | Read sync_error_log + extended rw_sync_meta |
-| `useStratagems()` | `src/hooks/useStratagems.ts` | React Query wrapper; staleTime Infinity; invalidated by sync |
-| `useDetachments()` | `src/hooks/useDetachments.ts` | React Query wrapper; staleTime Infinity |
-| `useSharedAbilities()` | `src/hooks/useSharedAbilities.ts` | React Query wrapper; staleTime Infinity |
-| `useRulesOverrides()` | `src/hooks/useRulesOverrides.ts` | React Query wrapper; mutations for upsert/delete |
-| `useSyncHistory()` | `src/hooks/useSyncHistory.ts` | React Query wrapper; staleTime 0 (always fresh) |
-| `UnitRulesOverride` | `src/types/rulesOverrides.ts` | Interface + CreateInput + UpdateInput types |
-| `SyncLogEntry` | `src/types/rulesOverrides.ts` | Interface matching sync_error_log columns |
-| `SyncMetadataPanel` | `src/features/rules/SyncMetadataPanel.tsx` | Row counts, version, freshness, error history |
-| `OverridesPanel` | `src/features/rules/OverridesPanel.tsx` | CRUD UI for unit_rules_overrides within PlaybookTab |
-| `VersionComparisonPanel` | `src/features/rules/VersionComparisonPanel.tsx` | Prev vs current version, row count deltas |
-| `StratagemsList` | `src/features/rules/StratagemsList.tsx` | Stratagem cards grouped by phase/type |
-| `DetachmentAbilitiesPanel` | `src/features/rules/DetachmentAbilitiesPanel.tsx` | Detachment ability display |
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| `src/types/recipeSection.ts` | `src/types/` | `RecipeSection`, `CreateRecipeSectionInput`, `UpdateRecipeSectionInput` |
+| `src/db/queries/recipeSections.ts` | `src/db/queries/` | `getRecipeSections`, `createRecipeSection`, `updateRecipeSection`, `deleteRecipeSection`, `reorderRecipeSections`, `getStepCountsBySection` |
+| `src/hooks/useRecipeSections.ts` | `src/hooks/` | `useRecipeSections`, `useCreateRecipeSection`, `useUpdateRecipeSection`, `useDeleteRecipeSection`, `useReorderRecipeSections` + cache keys |
+| `src/features/recipes/RecipeSectionList.tsx` | `src/features/recipes/` | Outer DnD container for section-level reorder; renders `RecipeSectionCard` list |
+| `src/features/recipes/RecipeSectionCard.tsx` | `src/features/recipes/` | Collapsible card: section name, surface badge, step count, optional badge; contains `RecipeStepList` |
+| `src/features/recipes/RecipeSectionForm.tsx` | `src/features/recipes/` | Inline name + surface editor used inside card header in form mode |
+| `src/features/recipes/RecipeSectionedTimeline.tsx` | `src/features/recipes/` | Read-only timeline with section headers; used in `RecipeDetailSheet` when sections exist |
 
 ---
 
-## New Schema
+## Data Flow: Nested Draft State
 
-### rules.db Migration 003 (rules_003_sync_metadata.sql)
+### The Core Constraint
 
-Extends the single `rw_sync_meta` row with row count tracking per table and sync duration. No new tables — only ALTER TABLE:
+`RecipeFormSheet` currently manages a flat `DraftStep[]` via `useState`. Sections require a `DraftSection[]` where each section owns a `DraftStep[]`. The `useFieldArray` collision constraint applies to both levels: section IDs and step IDs must both come from `crypto.randomUUID()` stored as `localId`, not RHF field indices.
 
-```sql
-ALTER TABLE rw_sync_meta ADD COLUMN source_url TEXT;
-ALTER TABLE rw_sync_meta ADD COLUMN factions_count INTEGER;
-ALTER TABLE rw_sync_meta ADD COLUMN datasheets_count INTEGER;
-ALTER TABLE rw_sync_meta ADD COLUMN models_count INTEGER;
-ALTER TABLE rw_sync_meta ADD COLUMN abilities_count INTEGER;
-ALTER TABLE rw_sync_meta ADD COLUMN keywords_count INTEGER;
-ALTER TABLE rw_sync_meta ADD COLUMN wargear_count INTEGER;
-ALTER TABLE rw_sync_meta ADD COLUMN stratagems_count INTEGER;
-ALTER TABLE rw_sync_meta ADD COLUMN detachments_count INTEGER;
-ALTER TABLE rw_sync_meta ADD COLUMN detachment_abilities_count INTEGER;
-ALTER TABLE rw_sync_meta ADD COLUMN shared_abilities_count INTEGER;
-ALTER TABLE rw_sync_meta ADD COLUMN sync_duration_ms INTEGER;
-ALTER TABLE rw_sync_meta ADD COLUMN had_errors INTEGER NOT NULL DEFAULT 0;
-ALTER TABLE rw_sync_meta ADD COLUMN prev_wahapedia_version TEXT;
-```
+### Recommended Draft Types (additions to `recipeSteps.ts`)
 
-### hobbyforge.db Migration 015 (015_rules_overrides.sql)
-
-Two new tables for override persistence and sync error logging:
-
-```sql
--- Manual user overrides that survive re-sync.
--- Keyed by (unit_id, field). UNIQUE constraint enforces one override per field per unit.
--- field examples: 'points', 'T', 'W', 'Sv', 'keywords', 'ability_reminder'
-CREATE TABLE IF NOT EXISTS unit_rules_overrides (
-    id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    unit_id         INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,
-    field           TEXT NOT NULL,
-    value           TEXT NOT NULL,
-    note            TEXT,
-    override_source TEXT NOT NULL DEFAULT 'manual',
-    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
-    UNIQUE(unit_id, field)
-);
-
--- One row per sync attempt. Written before and updated after each sync.
-CREATE TABLE IF NOT EXISTS sync_error_log (
-    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
-    synced_at           TEXT NOT NULL DEFAULT (datetime('now')),
-    outcome             TEXT NOT NULL,  -- 'success' | 'partial' | 'failure'
-    wahapedia_version   TEXT,
-    error_message       TEXT,
-    failed_table        TEXT,
-    duration_ms         INTEGER,
-    details             TEXT  -- JSON blob for per-table row counts or partial failure map
-);
-```
-
-### Why No Snapshot Table
-
-A snapshot of all rw_* rows before each sync for line-level diffing would require duplicating ~5000+ rows per sync. For a personal tool, version string delta + row count comparison is sufficient. The `prev_wahapedia_version` column on `rw_sync_meta` captures what changed at the version level. Row count deltas per table are stored in `sync_error_log.details` as JSON. Full content diff deferred.
-
----
-
-## Data Flow Changes
-
-### Modified Sync Flow
-
-```
-useRulesSync.mutationFn()
-  1. Capture prevVersion from useRulesSyncMeta cache (before fetch)
-  2. Fetch 12 CSVs in parallel — unchanged
-  3. Parse + strip HTML — unchanged
-  4. invoke("bulk_sync_rules", {
-       ...existing payload,
-       row_counts: { factions: N, datasheets: N, ... }  // NEW
-     })
-
-     Rust bulk_sync_rules:
-       a. Resolve hobbyforge.db path, open second sqlx connection
-       b. INSERT into sync_error_log (outcome: 'in-progress', synced_at: now)
-       c. DELETE 11 rw_* tables — unchanged
-       d. INSERT all rows — unchanged
-       e. INSERT OR REPLACE rw_sync_meta WITH extended columns (row counts, duration, prev_version)
-       f. UPDATE sync_error_log SET outcome = 'success', duration_ms = elapsed
-       g. COMMIT rules.db transaction
-       h. Update hobbyforge.db sync_error_log via separate connection (outside transaction)
-
-  5. Return { wahapediaVersion, rowCounts, prevVersion }
-
-onSuccess:
-  qc.invalidateQueries({ queryKey: RULES_SYNC_META_KEY })
-  qc.invalidateQueries({ queryKey: ["datasheets-by-faction"] })
-  qc.invalidateQueries({ queryKey: ["datasheet"] })
-  qc.invalidateQueries({ queryKey: ["stratagems"] })           // NEW
-  qc.invalidateQueries({ queryKey: ["detachments"] })          // NEW
-  qc.invalidateQueries({ queryKey: ["shared-abilities"] })     // NEW
-  qc.invalidateQueries({ queryKey: ["sync-history"] })         // NEW
-```
-
-### Override Persistence Flow
-
-```
-PlaybookTab → OverridesPanel
-  useRulesOverrides(unitId)
-    → getUnitRulesOverrides(unitId)  // hobbyforge.db
-    → returns [{ field: 'T', value: '5', note: 'Updated in Balance Dataslate' }]
-
-  User edits override:
-    useUpsertRulesOverride().mutate({ unit_id, field, value, note })
-      → INSERT OR REPLACE unit_rules_overrides
-      → invalidate ["rules-overrides", unitId]
-
-  PlaybookTab stat display:
-    const override = overrides?.find(o => o.field === 'T');
-    const displayT = override?.value ?? ds?.models[0]?.T?.toString() ?? '-';
-    // Show badge if override is active
-
-Override survives re-sync:
-  → lives in hobbyforge.db, not rules.db
-  → DELETE FROM rw_* only touches rules.db
-  → override row untouched
-```
-
-### Version Comparison Flow
-
-```
-SyncMetadataPanel
-  useSyncHistory() → sync_error_log (last 10 entries)
-  useRulesSyncMeta() → rw_sync_meta (current + prev version)
-
-  Display:
-    - Current: wahapedia_version, last_sync_at
-    - Previous: prev_wahapedia_version (if different → "VERSION CHANGED" badge)
-    - Row counts per table (e.g. "Datasheets: 2,851")
-    - If had_errors = 1 → warning indicator
-    - Error log entries with timestamps and outcome
-
-VersionComparisonPanel (shown when version changed):
-  - Old version string, new version string
-  - Row count delta per table from sync_error_log.details JSON
-  - "Review your overrides — data may have changed" advisory
-  - Links to OverridesPanel per unit
-```
-
----
-
-## Architectural Patterns
-
-### Pattern 1: Cross-DB Override Resolution at Hook Layer
-
-**What:** Fields that can have both a synced value (rules.db) and a user override (hobbyforge.db) are resolved in the TypeScript hook, not in SQL. The hook fetches both and merges.
-
-**When to use:** Any field in PlaybookTab where the user can override the imported value.
-
-**Trade-offs:** One additional DB call per unit view to read overrides. Acceptable at single-user local scale.
-
-**Example:**
 ```typescript
-// In PlaybookTab, resolve T stat:
-const { data: ds } = useDatasheet(unitId);
-const { data: overrides } = useRulesOverrides(unitId);
-const tOverride = overrides?.find(o => o.field === 'T');
-const displayT = tOverride?.value ?? ds?.models[0]?.T?.toString() ?? '-';
+export interface DraftSection {
+  localId: string;       // crypto.randomUUID() — @dnd-kit sortable ID for sections
+  name: string;
+  surface: string | null;
+  optional: 0 | 1;
+  notes: string | null;
+  steps: DraftStep[];    // steps are owned by their section
+}
+
+export function makeDraftSection(name = "General"): DraftSection {
+  return {
+    localId: crypto.randomUUID(),
+    name,
+    surface: null,
+    optional: 0,
+    notes: null,
+    steps: [],
+  };
+}
+
+export function computeSectionOrderIndexes(
+  sections: DraftSection[],
+): Array<DraftSection & { order_index: number }> {
+  return sections.map((sec, i) => ({ ...sec, order_index: i }));
+}
 ```
 
-### Pattern 2: Rust Owns All Sync Writes, TypeScript Owns All Reads
+### State in `RecipeFormSheet`
 
-**What:** No sync data is ever written from TypeScript. All multi-table writes for sync go through `bulk_sync_rules` in Rust using a real sqlx transaction. TypeScript reads via `getRulesDb()` (tauri-plugin-sql) after the fact.
+Replace:
+```typescript
+const [steps, setSteps] = useState<DraftStep[]>([]);
+```
+With:
+```typescript
+const [sections, setSections] = useState<DraftSection[]>([]);
+```
 
-**When to use:** Always. This boundary is a hard architectural rule, not a preference.
+All step mutations are scoped by `sectionLocalId`. The pattern is identical to existing step mutation functions, one level deeper:
 
-**Trade-offs:** The hobbyforge.db sync_error_log write from inside Rust requires a second sqlx connection to a different DB file. The pattern is identical — resolve app_data_dir, build URL for hobbyforge.db, write the log row outside the rules.db transaction.
+```typescript
+function addStepToSection(sectionLocalId: string) {
+  setSections(prev =>
+    prev.map(sec =>
+      sec.localId === sectionLocalId
+        ? { ...sec, steps: [...sec.steps, makeDraftStep()] }
+        : sec
+    )
+  );
+}
 
-### Pattern 3: Dark Table Surfacing is Query + Hook + Component Only
+function updateStepInSection(sectionLocalId: string, stepLocalId: string, next: DraftStep) {
+  setSections(prev =>
+    prev.map(sec =>
+      sec.localId === sectionLocalId
+        ? { ...sec, steps: sec.steps.map(s => s.localId === stepLocalId ? next : s) }
+        : sec
+    )
+  );
+}
 
-**What:** rw_abilities, rw_stratagems, rw_detachments, rw_detachment_abilities are already populated. Surfacing them requires no migration. The work is purely: new query functions + hooks + UI components.
+function removeStepFromSection(sectionLocalId: string, stepLocalId: string) {
+  setSections(prev =>
+    prev.map(sec =>
+      sec.localId === sectionLocalId
+        ? { ...sec, steps: sec.steps.filter(s => s.localId !== stepLocalId) }
+        : sec
+    )
+  );
+}
+```
 
-**When to use:** Phase 44. The "Extended Rules Schema" phase name is misleading — the rules.db schema is already complete for these tables.
+Section-level mutations are simpler (no nesting):
 
-**Trade-offs:** None. Purely additive, no migration risk.
+```typescript
+function updateSection(sectionLocalId: string, patch: Partial<DraftSection>) {
+  setSections(prev =>
+    prev.map(sec => sec.localId === sectionLocalId ? { ...sec, ...patch } : sec)
+  );
+}
 
-### Pattern 4: UNIQUE(unit_id, field) for Single-Value Overrides
+function removeSection(sectionLocalId: string) {
+  setSections(prev => prev.filter(sec => sec.localId !== sectionLocalId));
+}
+```
 
-**What:** unit_rules_overrides uses INSERT OR REPLACE on a UNIQUE(unit_id, field) constraint. One override per field per unit. Multi-value fields (like keywords) store a JSON array in the TEXT value column.
+### Form Initialization (edit mode)
 
-**When to use:** All override upserts.
+The existing `useEffect` that seeds `steps` from `existingSteps` must be replaced. In edit mode, both `useRecipeSections(recipe?.id)` and `useRecipePaints(recipe?.id)` are needed. Build `DraftSection[]` by grouping steps under their section:
 
-**Trade-offs:** JSON in TEXT is not normalized, but avoids a many-to-many table for a personal tool at negligible scale. Acceptable.
+```typescript
+const { data: existingSections = [] } = useRecipeSections(recipe?.id);
+const { data: existingSteps = [] } = useRecipePaints(recipe?.id);
 
-### Pattern 5: staleTime Infinity for All rules.db Queries
+useEffect(() => {
+  form.reset(buildDefaults(recipe));
+  if (recipe && existingSections.length > 0) {
+    const stepsBySection = new Map<number, RecipeStep[]>();
+    for (const step of existingSteps) {
+      const key = step.section_id ?? -1;
+      stepsBySection.set(key, [...(stepsBySection.get(key) ?? []), step]);
+    }
+    setSections(
+      existingSections.map(sec => ({
+        localId: crypto.randomUUID(),
+        name: sec.name,
+        surface: sec.surface,
+        optional: sec.optional,
+        notes: sec.notes,
+        steps: (stepsBySection.get(sec.id) ?? []).map(s => ({
+          localId: crypto.randomUUID(),
+          step_name: s.step_name,
+          paint_id: s.paint_id,
+          notes: s.notes,
+          painting_phase: s.painting_phase ?? null,
+          tool: s.tool ?? null,
+          technique: s.technique ?? null,
+          dilution: s.dilution ?? null,
+          time_estimate_minutes: s.time_estimate_minutes ?? null,
+          step_photo_path: s.step_photo_path ?? null,
+          alt_paint_id: s.alt_paint_id ?? null,
+        })),
+      }))
+    );
+  } else if (!recipe) {
+    setSections([makeDraftSection("General")]);
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [recipe?.id, existingSections.length, existingSteps.length]);
+```
 
-**What:** All hooks reading from rules.db use `staleTime: Infinity`. Cache is invalidated explicitly after sync via `qc.invalidateQueries`. This matches the existing `useDatasheet`, `useRulesSyncMeta`, and `useDatasheetsByFaction` behavior.
+The dependency array uses `.length` sentinels on both — matching the established pattern from the existing `existingSteps.length` sentinel in the current `RecipeFormSheet` (line 163).
 
-**When to use:** All new hooks for stratagems, detachments, shared abilities.
+### Submit Logic
 
-**Trade-offs:** If user closes and reopens the app, React Query cache is cold — queries run on first access. This is correct behavior: data is always fresh from DB on app start.
+The existing submit removes all steps and re-adds them (immutable-link pattern). With sections, extend this with section delete-and-recreate:
+
+```
+1. Update recipe row (unchanged)
+2. Delete all existing sections for this recipe
+   ON DELETE CASCADE on recipe_steps.section_id removes steps automatically
+3. For each DraftSection (array order = order_index):
+   a. createRecipeSection -> get new section_id
+   b. For each DraftStep in section with paint_id != null:
+      addRecipePaint with section_id = new section_id
+4. Invalidate caches (see below)
+```
+
+This keeps the "remove all + re-add" pattern consistent with the existing step immutability decision. No surgical section update needed. The cascade from step 2 handles step deletion — do not manually call `removeRecipePaint` per step before deleting sections.
+
+**Critical:** `section_id: number | null` must be added to `CreateRecipeStepInput` in `recipePaint.ts`. The `addRecipePaint` insert in `recipePaints.ts` must include it as nullable positional parameter `$13`.
 
 ---
 
-## Integration Points Summary
+## Cache Invalidation Strategy
 
-### Existing Features That Gain Data (No API Change)
+### New Cache Key
 
-| Feature | What It Gains |
-|---------|---------------|
-| PlaybookTab | Stratagem list section, detachment abilities section, override badges on stats |
-| Army Lists (v2.7) | Detachment picker backed by rw_detachments (data already present after v0.2.6 sync) |
-| Game Day Mode (v2.8) | Stratagems grouped by phase (data already present after v0.2.6 sync) |
+```typescript
+// In useRecipeSections.ts
+export const RECIPE_SECTIONS_KEY = (recipeId: number) =>
+  ["recipe-sections", recipeId] as const;
+```
 
-### Cache Key Namespace — New Keys for v0.2.6
+This is a per-recipe key, matching the `RECIPE_PAINTS_KEY(recipeId)` pattern. Sections are always fetched for a specific recipe, not globally, so a single top-level key is not appropriate here.
 
-| Key | Type | Invalidated By |
-|-----|------|----------------|
-| `["stratagems"]` | prefix | sync success |
-| `["stratagems", factionId]` | specific | sync success |
-| `["detachments"]` | prefix | sync success |
-| `["detachments", factionId]` | specific | sync success |
-| `["shared-abilities"]` | prefix | sync success |
-| `["shared-abilities", factionId]` | specific | sync success |
-| `["rules-overrides", unitId]` | specific | upsert/delete override |
-| `["sync-history"]` | prefix | sync attempt (success or failure) |
+### Symmetry Rule: Full Invalidation Map
+
+| Mutation | Keys to Invalidate |
+|----------|-------------------|
+| `useCreateRecipeSection` | `RECIPE_SECTIONS_KEY(recipeId)`, `STEP_COUNTS_KEY` |
+| `useUpdateRecipeSection` | `RECIPE_SECTIONS_KEY(recipeId)` |
+| `useDeleteRecipeSection` | `RECIPE_SECTIONS_KEY(recipeId)`, `RECIPE_PAINTS_KEY(recipeId)`, `STEP_COUNTS_KEY`, `RECIPE_SWATCH_KEY`, `RECIPE_AVAILABILITY_KEY` |
+| `useReorderRecipeSections` | `RECIPE_SECTIONS_KEY(recipeId)` |
+| `useDuplicateRecipe` (updated) | existing keys + `["recipe-sections"]` prefix |
+
+**Note on delete:** When `deleteRecipeSection` removes a section, the `ON DELETE CASCADE` on `recipe_steps.section_id` removes all steps in that section. This means `RECIPE_PAINTS_KEY`, `RECIPE_SWATCH_KEY`, `STEP_COUNTS_KEY`, and `RECIPE_AVAILABILITY_KEY` all become stale. Delete invalidates more keys than create — this asymmetry is correct, not a violation of the symmetry rule.
+
+### Form Submit Invalidation
+
+`RecipeFormSheet.onSubmit` currently has an explicit `qc.invalidateQueries({ queryKey: ["recipe-step-counts"] })` call after the mutation sequence (line 301 in current file). This belt-and-suspenders call must be extended to also cover `RECIPE_SECTIONS_KEY(recipeId)` and `RECIPE_AVAILABILITY_KEY`.
+
+### `useDuplicateRecipe` Update
+
+Use React Query prefix match for sections — the same pattern already used for `["recipes", "by-unit"]`:
+
+```typescript
+qc.invalidateQueries({ queryKey: ["recipe-sections"] }); // prefix match, invalidates all
+```
 
 ---
 
-## Build Order (Phase-by-Phase)
+## `duplicateRecipe` Update
 
-### Phase 42 — Architecture Audit (This Document, No Code)
+Current `duplicateRecipe` in `recipes.ts`:
+1. Reads original recipe
+2. Inserts copy
+3. Reads original steps
+4. Copies each step with `newRecipeId`
 
-Confirm: all 12 rules.db tables exist and are synced. 4 tables are dark. rw_sync_meta needs extension. hobbyforge.db needs 2 new tables. No rules.db structural changes needed for dark table surfacing.
+With sections it becomes:
+1. Reads original recipe
+2. Inserts copy -> `newRecipeId`
+3. Reads original sections via `getRecipeSections(originalId)` (or raw SELECT)
+4. For each section: insert with `newRecipeId` -> `newSectionId`; build map `oldSectionId -> newSectionId`
+5. Reads original steps
+6. For each step: insert with `newRecipeId` and `section_id = sectionIdMap.get(step.section_id ?? -1) ?? null`
 
-### Phase 43 — Extended Rules Schema
+The ID remap (steps 4-6) is the only non-trivial addition. Without it, copied steps would reference old section IDs belonging to the source recipe, creating orphaned FK references or wrong section groupings.
 
-1. Write `src-tauri/migrations/rules_003_sync_metadata.sql` (ALTER rw_sync_meta)
-2. Write `src-tauri/migrations/015_rules_overrides.sql` (CREATE 2 tables in hobbyforge.db)
-3. Register rules_003 in `get_rules_migrations()` in lib.rs
-4. Register 015 in `get_migrations()` in lib.rs
-5. Extend `RulesSyncMeta` TypeScript interface in `src/types/datasheet.ts`
-6. Create `src/types/rulesOverrides.ts` with UnitRulesOverride + SyncLogEntry
-7. Smoke test: `pnpm tauri dev`, verify new columns and tables exist
+---
 
-Schema first. Types derive from schema. No hooks or UI until schema compiles and runs.
+## DnD Architecture: Two Independent Contexts
 
-### Phase 44 — Sync Pipeline Extension + Dark Table Queries
+Section-level DnD wraps step-level DnD. Both use `@dnd-kit`. The key constraint: **do not nest DndContext inside DndContext**. This is the known @dnd-kit anti-pattern where drag events bubble to both contexts.
 
-1. Extend Rust `bulk_sync_rules` to write row count columns to rw_sync_meta
-2. Add hobbyforge.db sync_error_log write in Rust (separate sqlx connection)
-3. Update `useRulesSync.ts` onSuccess to invalidate 4 new query keys
-4. Create `src/db/queries/stratagems.ts`, `detachments.ts`, `sharedAbilities.ts`
-5. Create `src/hooks/useStratagems.ts`, `useDetachments.ts`, `useSharedAbilities.ts`
-6. Wire `StratagemsList` + `DetachmentAbilitiesPanel` into PlaybookTab
-7. Unit tests for new query functions
+Correct structure:
+- `RecipeSectionList` owns one outer `DndContext` for section reordering (`items = section localIds`)
+- `RecipeStepList` owns one inner `DndContext` per section for step reordering (`items = step localIds`)
+- Each `DndContext` has its own `useSensors()` instance
+- The existing `RecipeStepList` component is reused unchanged inside `RecipeSectionCard` — it already handles its own `DndContext`
 
-### Phase 45 — Sync Metadata & Import Tracking
+`RecipeSectionList` renders:
+```
+<DndContext sensors={...} onDragEnd={handleSectionDragEnd}>
+  <SortableContext items={sections.map(s => s.localId)} strategy={verticalListSortingStrategy}>
+    {sections.map(sec => (
+      <RecipeSectionCard
+        key={sec.localId}
+        section={sec}
+        onStepChange={(steps) => updateSection(sec.localId, { steps })}
+        onSectionChange={(patch) => updateSection(sec.localId, patch)}
+        onRemove={() => removeSection(sec.localId)}
+        onCreateNewPaint={openInlinePaintCreate}
+      />
+    ))}
+  </SortableContext>
+</DndContext>
+```
 
-1. Create `src/db/queries/syncHistory.ts` (read sync_error_log + rw_sync_meta)
-2. Create `src/hooks/useSyncHistory.ts`
-3. Build `SyncMetadataPanel` with freshness logic (pure utility function, testable)
-4. Wire into PlaybookTab or dedicated Rules settings section
-5. Unit tests for freshness computation
+`RecipeSectionCard` renders `RecipeStepList` with `steps={section.steps}` and `onChange={...}` — passing the section's step array and a handler that calls `updateSection(sec.localId, { steps: nextSteps })` on the parent. `RecipeStepList` is entirely unchanged.
 
-### Phase 46 — Manual Overrides & Version Comparison
+---
 
-1. Create `src/db/queries/rulesOverrides.ts` (CRUD)
-2. Create `src/hooks/useRulesOverrides.ts` (useRulesOverrides + useUpsertRulesOverride + useDeleteRulesOverride)
-3. Build `OverridesPanel` component
-4. Integrate override resolution in PlaybookTab stat display
-5. Build `VersionComparisonPanel`
-6. Wire version comparison into SyncMetadataPanel
-7. Unit tests for override CRUD + resolution logic + version comparison computation
+## `RecipeDetailSheet` and Timeline Update
+
+`RecipeDetailSheet` currently:
+- Calls `useRecipePaints(recipe?.id)` to get steps
+- Passes steps to `RecipeStepTimeline`
+
+Updated behavior:
+- Also calls `useRecipeSections(recipe?.id)`
+- If `sections.length > 0`: render new `RecipeSectionedTimeline` component
+- If `sections.length === 0`: render existing `RecipeStepTimeline` as fallback (backward compat for edge cases where migration produced no sections)
+
+`RecipeSectionedTimeline` props:
+```typescript
+interface RecipeSectionedTimelineProps {
+  sections: RecipeSection[];
+  steps: RecipeStep[];        // all steps for the recipe; component groups by section_id
+  paintMap: Map<number, Paint>;
+  stepPhotoUrls?: Map<number, string>;
+}
+```
+
+The component groups `steps` by `section_id` internally (a `Map<number, RecipeStep[]>` built with `useMemo`). This avoids requiring the parent to do the grouping and keeps `RecipeDetailSheet` simple.
+
+`RecipeStepTimeline` is unchanged. It continues to be the fallback and may also be reused inside `RecipeSectionedTimeline` for each section's step list if desired.
+
+---
+
+## Suggested Build Order
+
+### Phase 1 — Data Layer (foundation, no UI)
+
+1. Migration 016: `recipe_sections` table + `ALTER TABLE recipe_steps ADD COLUMN section_id INTEGER REFERENCES recipe_sections(id) ON DELETE CASCADE`
+2. Data migration SQL in same file: one default section per existing recipe (using `COALESCE(NULLIF(area, ''), 'General')`), backfill `section_id` on existing steps
+3. `src/types/recipeSection.ts` — new types file
+4. Add `section_id: number | null` to `RecipeStep` in `src/types/recipePaint.ts`
+5. Add `section_id` to `addRecipePaint` insert + update `CreateRecipeStepInput` in `recipePaints.ts`
+6. `src/db/queries/recipeSections.ts` — all 6 query functions
+7. `src/hooks/useRecipeSections.ts` — all hooks + cache keys
+8. Tests: migration data integrity, CRUD operations, `getStepCountsBySection` batch helper, verify existing `getStepCountsByRecipe` and `getRecipePaintAvailability` still work unchanged
+
+**Rationale:** Data layer first lets Phase 2 read sections without touching the complex form. Migration mistakes are caught before any UI investment.
+
+### Phase 2 — Read-Only UI
+
+1. New `RecipeSectionedTimeline` component
+2. Update `RecipeDetailSheet` to call `useRecipeSections(recipe?.id)` and conditionally render `RecipeSectionedTimeline` vs `RecipeStepTimeline`
+3. Tests: detail sheet renders section headers and steps grouped correctly; falls back to flat timeline when no sections
+
+**Rationale:** Read-only first is safer. No form submission path, no risk of data corruption during development. Validates query layer works before touching the complex form state.
+
+### Phase 3 — Form UI
+
+1. Add `DraftSection`, `makeDraftSection()`, `computeSectionOrderIndexes()` to `recipeSteps.ts`
+2. `RecipeSectionForm.tsx` — inline name/surface editor (simple controlled inputs, no RHF)
+3. `RecipeSectionCard.tsx` — collapsible card using `RecipeStepList` internally
+4. `RecipeSectionList.tsx` — outer DnD for section reorder
+5. Rewrite `RecipeFormSheet`: replace `DraftStep[]` state with `DraftSection[]`, update `useEffect` initialization, update `onSubmit` to delete-and-recreate sections
+6. Auto-create one default "General" section for new recipes
+7. Tests: add section, add step inside section, reorder sections, reorder steps within section, simple one-section recipe create round-trip, edit round-trip preserves sections and steps
+
+**Rationale:** `RecipeStepRow` and `RecipeStepList` are unchanged — they slot directly into `RecipeSectionCard` without modification. The form rewrite is isolated to `RecipeFormSheet` + new section components.
+
+### Phase 4 — Duplication + Regression
+
+1. Update `duplicateRecipe` in `recipes.ts` with section copy + section ID remap for steps
+2. Update `useDuplicateRecipe` to invalidate `["recipe-sections"]` prefix
+3. Verify `getStepCountsByRecipe` still works (no change needed)
+4. Verify `getRecipePaintAvailability` still works (no change needed)
+5. Verify `getRecipeSwatchColors` still works (no change needed)
+6. Verify `LogSessionSheet` step selector works (reads `useRecipePaints` — steps still have `recipe_id`, selector unaffected)
+7. Full regression pass
+8. Tests: duplicate copies sections + steps with correct `section_id` remapping; no orphaned section references
 
 ---
 
 ## Anti-Patterns to Avoid
 
-### Anti-Pattern 1: Writing Overrides to rules.db
+### Nested DndContext
 
-**What people do:** UPDATE rw_datasheet_models SET T = 5 to "fix" an imported stat.
+**What people do:** Wrap `RecipeSectionList`'s `DndContext` around `RecipeStepList`'s `DndContext`
+**Why it breaks:** @dnd-kit `DndContext` is not designed for nesting — drag events bubble to both contexts causing incorrect collision detection and reordering bugs
+**Do this instead:** Two independent `DndContext` instances; step list `DndContext` lives entirely inside `RecipeSectionCard` as an independent context unrelated to the section-level one
 
-**Why it's wrong:** Every sync runs `DELETE FROM rw_datasheet_models`. Override silently destroyed with no warning.
+### useFieldArray for DraftSection
 
-**Do this instead:** All user-authored data lives in hobbyforge.db via unit_rules_overrides. Resolution happens in TypeScript at read time.
+**What people do:** Use RHF `useFieldArray` to get free add/remove/reorder for the sections array
+**Why it breaks:** RHF injects its own `id` field onto each item; `@dnd-kit/useSortable` also needs an `id` prop from the same object — they collide (documented as RHF issue #10607). This is the same reason the existing step form uses manual `useState` instead of `useFieldArray`.
+**Do this instead:** `useState<DraftSection[]>` with manual `addSection`, `removeSection`, `updateSection` handlers — exactly mirroring how steps are currently managed in `RecipeFormSheet`
 
-### Anti-Pattern 2: Multi-Statement Transaction from TypeScript
+### Manually Deleting Steps Before Deleting a Section
 
-**What people do:** Loop over `getRulesDb().execute()` calls expecting atomicity.
+**What people do:** On section delete, call `removeRecipePaint` for each step in the section, then `deleteRecipeSection`
+**Why it's wrong:** `ON DELETE CASCADE` on `recipe_steps.section_id` handles step deletion automatically. Manually deleting steps first creates N+1 mutations and leaves the cache partially stale if any individual mutation fails.
+**Do this instead:** Delete the section; trust the cascade; invalidate `RECIPE_PAINTS_KEY(recipeId)` in `useDeleteRecipeSection` so the step cache refreshes cleanly
 
-**Why it's wrong:** tauri-plugin-sql auto-commits every execute(). Network failure mid-loop leaves rules.db partially written.
+### Adding Section Joins to Batch Queries
 
-**Do this instead:** All sync writes go through bulk_sync_rules in Rust (real sqlx transaction).
+**What people do:** Add a JOIN to `recipe_sections` inside `getStepCountsByRecipe`, `getRecipeSwatchColors`, or `getRecipePaintAvailability` to "support" sections
+**Why it's wrong:** All three batch queries operate at the recipe level (`GROUP BY recipe_id`). Adding section joins increases complexity, risks introducing bugs, and serves no use case — the recipe card UI still wants recipe-level totals.
+**Do this instead:** Keep existing batch queries unchanged. Add a separate `getStepCountsBySection()` only for the section card header "N steps" label.
 
-### Anti-Pattern 3: Snapshot Table for Full Content Diff
+### Forgetting the section_id Remap in duplicateRecipe
 
-**What people do:** Mirror all rw_* rows before sync into snapshot tables for row-level diffing.
+**What people do:** Copy sections to the new recipe, then copy steps with `section_id = originalStep.section_id`
+**Why it breaks:** `originalStep.section_id` references a section belonging to the source recipe. The new recipe's sections have different IDs. Steps end up pointing at sections that belong to a different recipe — or, after the source recipe is deleted, orphaned FKs.
+**Do this instead:** Build a `Map<oldSectionId, newSectionId>` during the section copy loop. Use `sectionIdMap.get(step.section_id ?? -1) ?? null` when inserting each copied step.
 
-**Why it's wrong:** Full Wahapedia dataset is 5000+ rows across 11 tables. Doubles storage. Creates migration complexity for a personal tool. Row-level diff is overkill.
+---
 
-**Do this instead:** Compare wahapedia_version strings + row count deltas. Show "4 new datasheets in this sync." Full content diff deferred.
+## Integration Boundaries: Unchanged Consumers
 
-### Anti-Pattern 4: Querying Dark Tables from Components Directly
+These components read recipe data but require no changes for sections:
 
-**What people do:** Call getRulesDb().select() inside a component to get stratagems.
-
-**Why it's wrong:** Bypasses React Query caching and the query -> hook -> component contract. Every render triggers a DB call.
-
-**Do this instead:** stratagems.ts query module -> useStratagems.ts hook -> component. No exceptions.
+| Component | Why Unchanged |
+|-----------|---------------|
+| `RecipeCard.tsx` / `RecipeCardGrid.tsx` | Reads recipe-level metadata and batch availability — both unchanged |
+| `RecipesPage.tsx` | 8-dimension filter operates on `PaintingRecipe[]` — no section data involved |
+| `LogSessionSheet` | Selects `recipe_id` + `recipe_step_id` — steps still exist and still have `recipe_id` |
+| `KanbanCard` enrichment | Shows recipe name only |
+| `CurrentFocusCard` | Shows recipe name only |
+| `usePaints.ts` mutations | Invalidate `RECIPE_AVAILABILITY_KEY` — no section awareness needed |
 
 ---
 
 ## Sources
 
-- `src-tauri/src/lib.rs` — Full Rust backend, BulkSyncPayload, bulk_sync_rules (read 2026-05-07)
-- `src/hooks/useRulesSync.ts` — Current sync hook (read 2026-05-07)
-- `src/db/rules-client.ts` — rules.db singleton (read 2026-05-07)
-- `src/db/queries/datasheets.ts` — Current rules query module (read 2026-05-07)
-- `src/types/datasheet.ts` — Current rules TypeScript types (read 2026-05-07)
-- `src/hooks/useDatasheet.ts` — Current datasheet hooks (read 2026-05-07)
-- `src-tauri/migrations/rules_001_schema.sql` — rules.db base schema (read 2026-05-07)
-- `src-tauri/migrations/rules_002_wargear_abilities.sql` — Extended rules schema (read 2026-05-07)
-- `.planning/V3_ARCHITECTURE_AUDIT.md` — Prior architecture audit (read 2026-05-07)
-- `.planning/milestones/v3.0-ROADMAP.md` — v0.2.6 requirements (read 2026-05-07)
-- `.planning/milestones/v3.0-PHASES.md` — Phase breakdown (read 2026-05-07)
+- `src/features/recipes/RecipeFormSheet.tsx` (read 2026-05-08)
+- `src/features/recipes/recipeSteps.ts` (read 2026-05-08)
+- `src/features/recipes/RecipeStepList.tsx` (read 2026-05-08)
+- `src/features/recipes/RecipeDetailSheet.tsx` (read 2026-05-08)
+- `src/features/recipes/RecipeStepTimeline.tsx` (read 2026-05-08)
+- `src/db/queries/recipePaints.ts` (read 2026-05-08)
+- `src/db/queries/recipes.ts` (read 2026-05-08)
+- `src/hooks/useRecipePaints.ts` (read 2026-05-08)
+- `src/hooks/useRecipes.ts` (read 2026-05-08)
+- `src/types/recipePaint.ts` (read 2026-05-08)
+- `.planning/milestones/v0.2.7-hierarchical-workflows-context.md` (read 2026-05-08)
 
 ---
 
-*Architecture research for: HobbyForge v0.2.6 Rules Sync 2.0 / Rules Data Hub*
-*Researched: 2026-05-07*
+*Architecture research for: HobbyForge v0.2.7 Hierarchical Recipe Sections*
+*Researched: 2026-05-08*
 *Confidence: HIGH — all findings based on direct codebase reads, zero training-data assumptions*

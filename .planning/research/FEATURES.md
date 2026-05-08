@@ -1,33 +1,16 @@
 # Feature Research
 
-**Domain:** Rules sync 2.0, extended rules schema, sync metadata/tracking, manual overrides, version comparison — HobbyForge v0.2.6 Rules Data Hub
-**Researched:** 2026-05-07
-**Confidence:** HIGH (based on direct codebase inspection of all relevant files; the existing system state is fully known)
+**Domain:** Hierarchical recipe/workflow sections in a miniature painting app
+**Researched:** 2026-05-08
+**Confidence:** HIGH (domain patterns clear; competitor landscape is sparse in this niche, but real-world painting community workflows provide strong signal)
 
 ---
 
-## Baseline: What Already Exists (Do Not Rebuild)
+## Context
 
-This is a subsequent milestone. The following rules infrastructure is already fully implemented:
+This research covers the *section/grouping layer* being added on top of an existing recipe system. The existing recipe already has: CRUD, structured steps (painting_phase, tool, technique, dilution, time, photo, alt_paint), drag-and-drop step reorder, availability badges, duplication, and session-recipe integration.
 
-**Fully wired (schema + sync + UI):**
-- 12-CSV parallel fetch from Wahapedia via `useRulesSync` (Factions, Source, Datasheets, Datasheets_models, Datasheets_abilities, Datasheets_keywords, Datasheets_wargear, Abilities, Stratagems, Detachments, Detachment_abilities, Last_update)
-- Rust `bulk_sync_rules` command: receives all 12 parsed data types, runs DELETE-then-INSERT in a single transaction for all 11 `rw_*` tables
-- `rules_002_wargear_abilities.sql` migration: creates `rw_datasheets_wargear`, `rw_abilities`, `rw_stratagems`, `rw_detachments`, `rw_detachment_abilities`
-- `rw_sync_meta` table with `last_sync_at` and `wahapedia_version`; written inside sync transaction
-- PlaybookTab: stats, weapons (from `rw_datasheets_wargear`), datasheet abilities (from `rw_datasheet_abilities`), keywords, sources, "Last synced" label, sync trigger button
-
-**Stored in DB but NOT exposed in UI — gap is entirely on the read/display side:**
-- `rw_stratagems` — data synced, no `getStratagems*` query function, no UI section
-- `rw_detachments` — data synced, no `getDetachments*` query function, no UI section
-- `rw_detachment_abilities` — data synced, no `getDetachmentAbilities*` query function, no UI section
-- `rw_abilities` (shared faction abilities) — data synced, no `getSharedAbilities*` query function, no UI section
-
-**Missing infrastructure entirely:**
-- No import log table (sync history, row counts per run, error records)
-- No manual override persistence (user edits stats today with no override flag; re-import silently replaces)
-- No version comparison (no snapshot before DELETE, no diff after INSERT)
-- `useRulesSync` returns `rowCounts` but does NOT include counts for stratagems, detachment_abilities, or shared_abilities
+The question is: what features belong in the **section layer**, which are differentiators, and which should be avoided?
 
 ---
 
@@ -35,140 +18,137 @@ This is a subsequent milestone. The following rules infrastructure is already fu
 
 ### Table Stakes (Users Expect These)
 
-Features that are directly required for the milestone goal — "reliable personal rules and points reference." Missing these means the extended sync data is stored but invisible, and the sync system is opaque.
+Features the section layer must have to feel complete. Absence = product feels broken or half-built.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| Stratagems display in PlaybookTab | The sync already fetches and stores all stratagems. Showing nothing from `rw_stratagems` in the UI makes the entire extended sync feel broken. Core wargame reference — every 40K player needs quick access to their faction's stratagems. | MEDIUM | New `getStratagemsByFaction(factionId)` query + TanStack Query hook + collapsible section in PlaybookTab. `rw_stratagems` has: id, faction_id, name, type, cp_cost, legend, turn, phase, detachment, detachment_id, description. Group by `phase` for usability. |
-| Detachments display in PlaybookTab | Detachments define an army's special rules in 10th edition. Showing the user's faction's detachments (name, type, legend) is foundational context for list building. Data already in `rw_detachments`. | LOW | New `getDetachmentsByFaction(factionId)` query + hook + simple list section in PlaybookTab. Schema: id, faction_id, name, legend, type. |
-| Detachment abilities display | Detachments without their abilities are useless. `rw_detachment_abilities` (description, detachment_id) must be shown alongside each detachment. | MEDIUM | New `getDetachmentAbilitiesByDetachment(detachmentId)` query or eager JOIN in `getDetachmentsByFaction`. Display grouped under each detachment. Schema: id, faction_id, name, legend, description, detachment, detachment_id. |
-| Shared faction abilities display | Faction-wide abilities (e.g. "And They Shall Know No Fear" for Space Marines) apply to all units. Currently invisible despite being stored in `rw_abilities`. | LOW | New `getSharedAbilitiesByFaction(factionId)` query + hook + section in PlaybookTab. Schema: id, name, legend, faction_id, description. |
-| Sync row counts surfaced in UI | After a sync run, the user has no way to verify that data landed correctly. The `useRulesSync` mutation already returns a `rowCounts` object — but it is missing stratagems, detachment_abilities, and shared_abilities counts, and nothing shows it to the user. | LOW | (1) Add missing count keys to the returned object in `useRulesSync`. (2) Surface counts in the sync success notification or a post-sync summary dialog. |
-| Sync failure shows which file failed | Current error toast says "Sync failed — check your connection and try again". The underlying error message from `fetchCsv()` already contains the filename. | LOW | Improve `onError` in PlaybookTab's `handleSyncClick` to extract and display the filename from `err.message`. No hook change needed. |
-| Last sync date accessible outside PlaybookTab | Currently "Last synced" only appears in PlaybookTab (unit detail). The sync trigger dialog and any future Rules Hub page also need this. | LOW | `useRulesSyncMeta` hook exists and returns `rw_sync_meta`. Just consume it in `DatasheetImportDialog` and any new Rules Hub component. Zero new code. |
+| Section CRUD (name, create, edit, delete) | Any grouping without editable names is useless — users need to name areas like "Armor Blue", "Gold Trim", "Base" | LOW | Section name is the primary identifier; inline editing preferred over modal |
+| Section ordering (drag-and-drop reorder between sections) | Steps already have DnD reorder; sections should behave identically at their level — inconsistency would feel broken | MEDIUM | Outer DnD context wrapping existing inner DnD; @dnd-kit supports nested sortable with conditional context logic |
+| Step-in-section ordering (DnD within a section) | Must preserve existing step DnD behavior within a section — regression would be immediately noticed | MEDIUM | Existing RecipeStepList already handles this; needs to be scoped to a section container |
+| Section collapse/expand | Sections add visual noise; collapse is standard accordion UX (Linear 2025, Notion, accordion patterns all confirm this) | LOW | Collapsible sections are table stakes for any grouped list UI; LinearApp shipped collapsible sections March 2025 |
+| Section summary line (step count, optional surface badge) | Users need to assess section scope without expanding — summary information reduces cognitive load | LOW | Step count + surface label sufficient; no need for per-section time totals at v1 |
+| Default section auto-created | Simple one-section recipes must remain as frictionless as today — any regression in simple recipe creation is a regression in the whole feature | LOW | Migration creates one default section per existing recipe; new recipes auto-create one default section |
+| Backward-compatible section_id nullable on steps | Steps without a section must still render — graceful fallback to flat list if no sections exist | LOW | Critical for zero-downtime migration; section_id is nullable by design |
+| Recipe duplication copies sections | Duplication is a heavily used action (existing feature); if duplication drops sections, users will notice immediately | MEDIUM | Requires copying recipe_sections rows before copying recipe_steps rows; FK ordering matters |
+| Section-aware detail view (workflow timeline) | RecipeDetailSheet shows steps in order — section headers between step groups is the natural extension and directly serves the core "workflow" use case | MEDIUM | Replace flat timeline with grouped timeline; section header shows name, surface, step count |
+| Section-aware recipe form (sectioned step list) | Form creates/edits sections and their steps — if form is still flat while detail shows sections, the model is confusing | HIGH | Largest piece: draft sections containing draft steps, replacing current flat draft steps |
 
 ### Differentiators (Competitive Advantage)
 
-Features that go beyond showing the already-stored data — adding traceability, safety, and change awareness that no consumer hobby app provides for local rules data.
+Features that go beyond what competitors offer and directly serve the painting-specific use case.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| Import log / sync history | User can see every sync event: timestamp, Wahapedia version, row counts per table, success/failure status, error message if any. Transforms sync from a black box into an auditable operation. | MEDIUM | New `rw_import_log` table (rules_003 migration): `id INTEGER PK`, `synced_at TEXT`, `wahapedia_version TEXT`, `row_counts TEXT` (JSON blob), `status TEXT` (success/partial/error), `error_message TEXT`. Appended after each sync run. `useRulesSync` writes the log row on success/error via `getRulesDb()`. UI: history list in a new Rules Hub section or modal. |
-| Manual override persistence with override flag | When the user edits a stat field (e.g. changes W from 2 to 3 after a re-balance), there is currently no way to distinguish "I entered this myself" from "this was imported". On re-sync + re-import, the user sees a generic conflict dialog. Override records would let the UI say "You have a manual override (W=3) — Wahapedia shows W=2" instead of a generic field diff. Overrides must survive re-sync. | HIGH | New `unit_stat_overrides` table in `hobbyforge.db` (migration 015): `id INTEGER PK`, `unit_id INTEGER FK`, `field_key TEXT`, `override_value TEXT`, `imported_value TEXT`, `overridden_at TEXT`. Write on save when imported value is known. Read in DatasheetImportDialog to show override context. Override wins unless user explicitly chooses "use imported". |
-| Version comparison (change detection after re-sync) | Shows the user what changed since the last sync: "Fire Warriors: W changed 1→2, keyword BATTLELINE added". Directly addresses the "update points after a FAQ" use case — user knows exactly which of their linked units need re-review without opening each one. | HIGH | Requires snapshotting key fields (stats, ability names, keyword list) for each linked datasheet before `bulk_sync_rules` runs its DELETE pass. Diff is computed post-insert by comparing snapshot vs new data. Change report displayed after sync: list of affected datasheets with field-level diffs. Snapshot can be taken in TypeScript via `getRulesDb()` before `invoke("bulk_sync_rules")`. |
-| Freshness indicator per-datasheet in PlaybookTab | Each PlaybookTab currently shows "Last synced: [date]" which is the global sync date, not per-datasheet. Adding the Wahapedia source version (from `rw_sources.version` via `rw_datasheets.source_id`) gives per-datasheet provenance. | LOW | Already queryable: `getFullDatasheet` already fetches the source row. Just render `source.version` and `source.errata_date` in the PlaybookTab header alongside the global sync date. Zero new queries. |
-| Stratagem phase grouping | In PlaybookTab and later in Game Day Mode (v2.8), stratagems are far more useful when grouped by game phase (Command / Movement / Shooting / Charge / Fight / End). `rw_stratagems.phase` already stores this. | LOW | Pure UI grouping — `Array.groupBy` or a reduce on the fetched stratagems array. No query change needed. Renders as phase-labeled collapsible groups. |
-| Detachment-filtered stratagem view | When a user plays a specific detachment, they only want stratagems for that detachment, not the full faction list. `rw_stratagems.detachment_id` FK already exists. | LOW | Optional `detachmentId` param on `getStratagemsByFaction` — adds `AND (detachment_id IS NULL OR detachment_id = $2)` when provided. UI: detachment selector above stratagem list. Dependency: user must have selected or linked a detachment. |
+| Surface label per section (e.g., Armor, Metal, Base) | Maps directly to how miniature painters think: "armor first, then trim, then base" — no competitor app offers section-level surface classification | LOW | Reuses existing RECIPE_SURFACES enum; dropdown on section; section-level surface acts as grouping header, step-level surface remains for per-step detail |
+| Optional section flag | "Display-level upgrade" sections (e.g., NMM reflection on lenses) can be marked as skippable for tabletop-quality painters — unique to this domain's Battle Ready vs Parade Ready distinction | LOW | Simple boolean on section; UI shows "(optional)" badge; RecipeDetailSheet can visually de-emphasize optional sections |
+| Section-level missing-paint count badge | Aggregating missing paints per section tells the user "I can't start Gold Trim yet — missing 2 paints" — more actionable than a recipe-level count | MEDIUM | Requires joining section → steps → paints → inventory per section; reuses availability query pattern from getRecipePaintAvailability |
+| Section-level time estimate rollup | Summing time_estimate_minutes from steps within a section gives a per-section duration ("Armor Blue ~45 min") — enables realistic session planning | LOW | Pure SQL aggregation: SUM(time_estimate_minutes) GROUP BY section_id; no new data needed since steps already carry time_estimate_minutes |
+| Subassembly modeling via sections | Advanced painters who paint arms/torsos/cloaks separately before assembly can name sections by subassembly — the optional flag doubles as a "paint before assembly" grouping marker | LOW | No extra data model needed; users adopt by convention; section notes field supports "assemble after this section" guidance |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
+Features that seem like natural extensions but add disproportionate complexity for this tool's scope.
+
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Auto-apply re-sync to override fields | "Why confirm every time?" | Violates non-negotiable constraint #5: "Manual overrides must always be possible." Silent overwrite destroys user-authored data. | Override comparison dialog with "keep override" as default choice, not "use imported." Low friction: only shown when override differs from incoming value. |
-| Automatic scheduled sync (background) | "I want it always current" | Tauri has no scheduler. Background network calls without user intent violate local-first ethos. Silent sync could fail with no feedback. | "Last synced N days ago" label with one-click "Sync now." Friction is appropriate — sync is an intentional user action on an infrequently changing data source. |
-| Points import from any source | "Wahapedia has points in some CSVs" | Legal constraint — copyrighted GW points cannot be imported. Points data in Wahapedia CSVs is not included in the official CSV export set. User-entered point tiers are the correct approach per PROJECT.md. | Keep user-entered `unit_point_tiers`. Surface "points last verified" date using the sync timestamp + override system. |
-| Wahapedia HTML scraping (fallback when CSVs fail) | "CSVs sometimes break" | Violates Wahapedia ToS, fragile against DOM changes, legally riskier. | Treat CSV format changes as a versioned breaking event. Log the failure clearly. Wait for Wahapedia to restore/update CSVs. The import log makes this transparent. |
-| Full codex/rulebook text import | "I want all rules in one app" | GW copyright. The community CSV data (Wahapedia) is the legal ceiling for what can be imported. Anything beyond unit stats, abilities, weapons, stratagems, and detachments is off-limits. | Strategy notes and personal ability notes fields in PlaybookTab cover user-authored rules reminders. |
-| Sync progress bar with per-file status | "I want to see each CSV downloading" | 12 CSV fetches run in `Promise.all` in under 3 seconds on a typical connection. Progress granularity adds complexity for minimal benefit in a personal tool. | Single loading state with spinner + post-sync row count summary. |
+| Cross-section drag-and-drop (move steps between sections) | Feels like natural DnD completeness — if you can reorder sections and steps within a section, why not move steps across sections? | @dnd-kit cross-list sortable (Issue #714) is significantly more complex than within-list sortable — cross-list state management, collision detection across containers, event propagation conflicts. Milestone context explicitly defers this for v1. Risk of breaking existing step DnD. | Provide a "Move to section" dropdown on step row — button-based section reassignment requires one UPDATE query, no DnD plumbing, and is easily discoverable |
+| Section dependency graph (section B unlocks after section A) | "Can't do Gold Trim until Armor is done" sounds useful | Dependency graphs require tracking completion state per section, rendering blocked/available states, preventing edits to blocked sections — scope explodes into a mini project management tool; no miniature painting app has shipped this | The optional flag + section ordering already implies sequence; users understand visual ordering = suggested sequence without needing enforced dependencies |
+| Per-section photo upload | "Show what the section looks like complete" | Sections are intermediate states, not final outcomes; photos are already on steps (step_photo_path); adding section photos means managing another file storage path, more UI surface, and doubles the photo management problem | Use the step photo on the final step within a section as the "section result" photo; the recipe-level result_photo_path covers the overall result |
+| Section templates (reusable section presets) | "I always use the same Basing workflow" — save it as a reusable template | Template libraries require a separate data model (section_templates table), a template picker UI, an "apply template" mutation, and a template management page — this is its own milestone | Recipe duplication already handles this: create a recipe named "Base Template", duplicate it whenever you want to reuse the structure |
+| Section execution mode (batch vs model-by-model) | Power users want to flag "do this step on all 10 marines at once" | This metadata has no downstream effect in the current app — no session tracking consumes it, no reports use it, no UI changes behavior based on it; purely aspirational metadata with zero return on investment | Defer until LogSessionSheet supports section selection; record in section notes field if users need it before then |
+| Section-level progress tracking (completion %) | "Mark section as done" feeds hobby progress metrics | Session-recipe integration currently tracks which step was last worked on; adding section-level completion requires its own state table, session invalidation logic, and query complexity | The milestone context notes LogSessionSheet section integration as a future target; implement then, not now |
+| Infinite nesting (sections within sections, sub-sections) | Seems like a natural extension once one level of hierarchy exists | UX research on nested tabs and grouped lists consistently warns against more than 2 levels of nesting depth; miniature painting never needs more than Recipe/Section/Step; deeper nesting adds navigation complexity with no painting domain value | The 3-level model covers all real-world patterns: subassemblies, technique blocks, and surface areas |
 
 ---
 
 ## Feature Dependencies
 
 ```
-[Stratagems display]
-    requires──> rw_stratagems populated by bulk_sync_rules (DONE)
-    requires──> getStratagemsByFaction() query (NEW)
-    requires──> useStratagems() hook (NEW)
-    enables──> Stratagem phase grouping (pure UI on top of same data)
-    enables──> Detachment-filtered stratagem view (optional filter param)
-    enables──> Game Day Mode stratagem reminders (v2.8 — depends on this)
+[Section CRUD]
+    required by──> [Section-aware form]
+    required by──> [Section-aware detail view]
+    required by──> [Section ordering (DnD)]
+    required by──> [Recipe duplication with sections]
+    required by──> [Section-level time rollup]
+    required by──> [Section-level missing-paint count]
+    requires──> [Migration 016 (recipe_sections table + section_id on steps)]
 
-[Detachments display]
-    requires──> rw_detachments populated (DONE)
-    requires──> getDetachmentsByFaction() query (NEW)
-    enables──> Detachment-filtered stratagem view
-    enables──> Game Day Mode detachment rules (v2.8)
-    enables──> Army List detachment field (v2.7 — needs detachment list to show)
+[Step-in-section ordering]
+    requires──> [Section CRUD]
+    extends──> [Existing step DnD in RecipeStepList]
 
-[Detachment abilities display]
-    requires──> rw_detachment_abilities populated (DONE)
-    requires──> Detachments display (needs detachment context to group under)
-    requires──> getDetachmentAbilitiesByDetachment() query (NEW)
+[Section-level missing-paint count]
+    requires──> [Section CRUD]
+    extends──> [Existing getRecipePaintAvailability query pattern]
 
-[Shared faction abilities display]
-    requires──> rw_abilities populated (DONE)
-    requires──> getSharedAbilitiesByFaction() query (NEW)
+[Optional section flag]
+    requires──> [Section CRUD]
+    enhances──> [Section-aware detail view]
 
-[Import log]
-    requires──> rules_003 migration (rw_import_log table)
-    requires──> Write in useRulesSync onSuccess + onError
-    enables──> Sync history UI
-    independent of all other features — can be Phase 44 or Phase 45
+[Section-level time rollup]
+    requires──> [Section CRUD]
+    requires──> [Steps having time_estimate_minutes (already exists)]
 
-[Manual override persistence]
-    requires──> migration 015 (unit_stat_overrides in hobbyforge.db)
-    requires──> Override write path: detect when saving a stat that has a known imported value
-    requires──> Override read path: DatasheetImportDialog shows override context
-    enables──> Version comparison (override-aware diff highlighting)
-    conflicts──> Current implicit "imported fields have no memory" behaviour
+[Surface label per section]
+    requires──> [Section CRUD]
+    reuses──> [RECIPE_SURFACES enum (already exists)]
 
-[Version comparison]
-    requires──> Pre-sync snapshot of linked datasheets before DELETE-INSERT runs
-    requires──> Post-sync diff computation comparing snapshot vs new rw_* rows
-    enhances──> Manual override persistence (show "you have an override on this changed field")
-    conflicts──> bulk_sync_rules DELETE-all strategy (snapshot must be taken before DELETE)
-    NOTE: snapshot taken in TypeScript before invoke("bulk_sync_rules"), not in Rust
+[Recipe duplication with sections]
+    requires──> [Section CRUD]
+    extends──> [Existing duplicateRecipe in recipes.ts]
 
-[TypeScript types: RwStratagem, RwDetachment, RwDetachmentAbility]
-    required by──> all extended display features
-    currently missing from src/types/datasheet.ts
+[Section-aware form]
+    requires──> [Section CRUD]
+    extends──> [Existing RecipeFormSheet]
+    extends──> [Existing RecipeStepRow (unchanged inside sections)]
+    depends_on──> [DraftSection type alongside existing DraftStep]
+
+[Section-aware detail view]
+    requires──> [Section CRUD]
+    extends──> [Existing RecipeDetailSheet]
+    extends──> [Existing RecipeStepTimeline]
 ```
 
 ### Dependency Notes
 
-- **No schema changes needed for extended display.** All four hidden data types (`rw_stratagems`, `rw_detachments`, `rw_detachment_abilities`, `rw_abilities`) already have complete tables and populated data. Phase 43 is purely query + hook + UI work.
-- **Version comparison must snapshot before the DELETE pass.** The current `bulk_sync_rules` strategy is DELETE all rows then INSERT fresh. The snapshot for comparison must be taken in TypeScript via `getRulesDb()` immediately before `invoke("bulk_sync_rules")`. Doing it inside Rust would require changes to the Rust command interface; doing it in TypeScript is lower risk.
-- **Manual overrides depend on a new hobbyforge.db migration.** This is migration 015 — additive, no existing data touched.
-- **Import log is fully independent.** Can ship in any phase without blocking anything else. Recommend Phase 44 alongside sync pipeline cleanup.
+- **Section CRUD requires Migration 016:** The database layer must land before any UI or query work — this is Phase 1 in the implementation sequence.
+- **Section-aware form requires Section CRUD:** The form manages draft sections in memory; mutations only fire on save, but the data model must exist first.
+- **Section DnD extends existing step DnD:** Both use @dnd-kit; section DnD is an outer SortableContext wrapping the existing inner SortableContext per section. The key risk is the documented RHF useFieldArray + useSortable ID collision — the existing workaround (manual array + useMemo) must be extended to draft sections.
+- **Section detail view is safer to build before form:** Read-only rendering of sections has no mutation risk; building it first provides a verification checkpoint before the more complex form changes.
+- **Section-level missing-paint count is a P2 feature:** It depends on Section CRUD but is independent of the form and detail view. Can be added after the core section layer is working.
 
 ---
 
-## Phase-by-Phase Feature Assignment
+## MVP Definition
 
-Aligned with v0.2.6 phases 42–46:
+For v0.2.7, "MVP" means: the section layer ships complete for the described scope. This is not an exploratory MVP — it is a well-scoped feature milestone.
 
-### Phase 42 — Architecture Audit (no code)
-- Confirm the above findings: sync is fully wired end-to-end; all extended tables exist and are populated on sync
-- Document: which Wahapedia CSV fields map to which `rw_*` columns (needed for snapshot/diff logic)
-- Produce the architecture note required before implementation begins
+### Launch With (v1 — this milestone)
 
-### Phase 43 — Extended Rules Schema (read side + TypeScript types + UI)
-- New TypeScript types: `RwStratagem`, `RwDetachment`, `RwDetachmentAbility` in `src/types/datasheet.ts`
-- New query functions in `src/db/queries/datasheets.ts`: `getStratagemsByFaction`, `getDetachmentsByFaction`, `getDetachmentAbilitiesByDetachment`, `getSharedAbilitiesByFaction`
-- New hooks: `useStratagems(factionId)`, `useDetachments(factionId)`, `useSharedAbilities(factionId)`
-- PlaybookTab new sections: Shared Faction Abilities, Detachments + Abilities, Stratagems (grouped by phase)
-- Fix `useRulesSync` row counts: add `stratagems`, `detachment_abilities`, `shared_abilities` keys
+- [ ] Migration 016: recipe_sections table + section_id FK on recipe_steps + data migration wrapping existing steps in default sections
+- [ ] TypeScript types: RecipeSection, CreateRecipeSectionInput, UpdateRecipeSectionInput; RecipeStep gains section_id
+- [ ] Query module (recipeSections.ts): getRecipeSections, createRecipeSection, updateRecipeSection, deleteRecipeSection, reorderRecipeSections
+- [ ] Query additions (recipePaints.ts): getRecipeStepsBySection, moveStepToSection (button-based cross-section reassignment)
+- [ ] Hook module (useRecipeSections.ts): query + all mutations with correct cache invalidation
+- [ ] RecipeDetailSheet: section-grouped workflow timeline with section headers, step count, surface badge
+- [ ] RecipeSectionList + RecipeSectionCard components: collapsible, section DnD reorder, section summary line
+- [ ] RecipeFormSheet: draft sections containing draft steps (existing RecipeStepRow unchanged inside)
+- [ ] Section CRUD in form: add section, edit section name/surface/optional, delete section (cascades steps)
+- [ ] Default section auto-creation for new recipes and for recipes migrated from flat step list
+- [ ] Recipe duplication copies sections + steps (maintains section → step FK relationships)
+- [ ] Regression: paint availability badges, swatch strips, wishlist, LogSessionSheet step selector all unaffected
 
-### Phase 44 — Sync Pipeline Extension
-- `rules_003` migration: `rw_import_log` table
-- `useRulesSync`: write import log entry on success (with row counts JSON) and on error
-- Improve sync error toast: extract filename from error message and surface it
-- `useRulesSyncMeta` / `getImportLog` query: read last N import log entries for UI
-- Row count display in sync success notification
+### Add After Validation (post-v0.2.7)
 
-### Phase 45 — Sync Metadata & Import Tracking
-- Rules Hub UI: dedicated section (new page or Settings-adjacent panel) showing sync history from `rw_import_log`
-- Freshness indicator per-datasheet: render `source.version` + `source.errata_date` in PlaybookTab using already-fetched source row
-- Last sync date in `DatasheetImportDialog` (already accessible via `useRulesSyncMeta`)
+- [ ] Section-level missing-paint count badge on RecipeSectionCard — add when users report friction identifying which section they can start next
+- [ ] Section-level time estimate rollup in detail view — add when session planning is the primary workflow trigger
+- [ ] LogSessionSheet section selector — when session tracking becomes the primary workflow trigger
+- [ ] Move-step-to-section button on RecipeStepRow — add when users report the section assignment workflow feels clunky
 
-### Phase 46 — Manual Overrides & Version Comparison
-- `migration 015`: `unit_stat_overrides` table in `hobbyforge.db`
-- Override write path: when user saves a PlaybookTab stat that was previously imported, record override vs imported value
-- Override read path: DatasheetImportDialog shows override badge; `useDatasheet` invalidation checks for overrides
-- Pre-sync snapshot: capture current stat/ability/keyword values for all linked datasheets before `invoke("bulk_sync_rules")`
-- Post-sync diff computation: compare snapshot vs new `rw_*` rows; build change list
-- Change report UI: post-sync summary showing affected units and changed fields
+### Future Consideration (v2+)
+
+- [ ] Section templates / reusable section presets — defer until recipe library grows large enough to justify template management UI
+- [ ] Per-section completion tracking — defer until LogSessionSheet section integration lands and provides the completion signal
 
 ---
 
@@ -176,57 +156,77 @@ Aligned with v0.2.6 phases 42–46:
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Stratagems display | HIGH | MEDIUM | P1 |
-| Detachments + abilities display | HIGH | LOW-MEDIUM | P1 |
-| Shared faction abilities display | MEDIUM | LOW | P1 |
-| Sync row counts surfaced | MEDIUM | LOW | P1 |
-| Sync error detail (filename) | LOW | LOW | P1 |
-| TypeScript types for extended data | Enabler | LOW | P1 |
-| Import log / sync history | MEDIUM | MEDIUM | P2 |
-| Freshness indicator per-datasheet | MEDIUM | LOW | P2 |
-| Stratagem phase grouping | MEDIUM | LOW | P2 (on top of P1) |
-| Detachment-filtered stratagem view | MEDIUM | LOW | P2 |
-| Manual override persistence | HIGH | HIGH | P2 |
-| Version comparison after re-sync | HIGH | HIGH | P2 |
+| Migration 016 + data migration | HIGH | LOW | P1 |
+| Section CRUD (query + hook layer) | HIGH | LOW | P1 |
+| Section-aware detail view (RecipeDetailSheet) | HIGH | MEDIUM | P1 |
+| Section-aware form (RecipeFormSheet) | HIGH | HIGH | P1 |
+| Section DnD reorder | HIGH | MEDIUM | P1 |
+| Collapsible section cards | HIGH | LOW | P1 |
+| Surface label per section | MEDIUM | LOW | P1 |
+| Optional section flag | MEDIUM | LOW | P1 |
+| Recipe duplication with sections | HIGH | MEDIUM | P1 |
+| Section-level time rollup | MEDIUM | LOW | P2 |
+| Section-level missing-paint count | MEDIUM | MEDIUM | P2 |
+| Move-step-to-section button | MEDIUM | LOW | P2 |
+| Cross-section drag-and-drop | LOW | HIGH | P3 (anti-feature for v1) |
+| Section templates | LOW | HIGH | P3 |
+| Per-section photo | LOW | MEDIUM | P3 |
 
 **Priority key:**
-- P1: Must ship for the milestone to be considered functional
-- P2: Should ship to achieve the "reliable personal rules reference" goal
-- P3: Nice to have, defer to later milestone if time-constrained
+- P1: Must have for milestone to be considered done
+- P2: Should have, add when P1 is working
+- P3: Nice to have — defer; some are anti-features at this scope
 
 ---
 
-## Existing Infrastructure to Reuse
+## Competitor Feature Analysis
 
-The following must NOT be reimplemented:
+| Feature | PaintPad | Brushrage | PaintMyMinis | HobbyForge (v0.2.7 target) |
+|---------|----------|-----------|--------------|---------------------------|
+| Intra-recipe grouping / sections | Not found — flat step list or free-text tutorial | Not found — paint-set based, no structured steps | Not found — flat paint/step list | Section layer with surface labels, ordering, collapse |
+| Section ordering | N/A | N/A | N/A | DnD reorder |
+| Optional sections | N/A | N/A | N/A | optional flag |
+| Section-level surface classification | N/A | N/A | N/A | Surface label reusing RECIPE_SURFACES enum |
+| Drag-and-drop step reorder | Not documented | Not documented | Not documented | Existing within-section DnD |
+| Paint availability per section | N/A | Paint inventory/wishlist | Paint inventory | Per-section missing-paint count (P2) |
 
-| Existing Piece | How v0.2.6 Reuses It |
-|----------------|---------------------|
-| `useRulesSync` hook | Extend in-place: fix row counts, add import log write, improve error toast |
-| `bulk_sync_rules` Rust command | No changes needed — all 11 extended tables already handled |
-| `getRulesDb()` singleton | Used by new query functions for stratagems/detachments/abilities |
-| `useRulesSyncMeta()` hook | Already reads `rw_sync_meta`; expose in more UI locations |
-| `getFullDatasheet()` query | Already fetches source row with version/errata_date — just display it |
-| `DatasheetImportDialog` | Extend to show override context; add last-sync-date |
-| PlaybookTab collapsible pattern | Use same `<Collapsible>` + `<CollapsibleContent>` pattern for new sections |
-| `RULES_SYNC_META_KEY` invalidation | Already invalidated by `useRulesSync` onSuccess; new hooks can share this pattern |
+No miniature painting app surveyed (PaintPad, Brushrage, PaintMyMinis, paintRack) currently implements a hierarchical section layer within recipes. All use flat step or paint-set lists. This is a genuine differentiator — not a catch-up feature.
+
+---
+
+## Real-World Painting Workflow Patterns (Domain Signal)
+
+Research into community painting tutorials and guides (Warhammer Community, Goonhammer, DakkaDakka, Age of Miniatures, Army Painter) consistently describes painting workflows in section terms:
+
+1. **Area-first approach:** "Do all the armor, then the cloth, then the metal, then the skin" — maps directly to Recipe → Section (surface area) → Steps. The area-first vs phase-first distinction is a central community debate, and the section model supports both.
+
+2. **Subassembly separation:** Legs, torso, arms, head, backpack are often painted before final assembly. Sections map naturally to body part groupings with notes like "attach after this section."
+
+3. **Technique block separation:** Sponge weathering, airbrush stages, NMM passes are distinct workflow blocks that cut across surface areas but form coherent technique sections. The section model supports this without forcing a surface label.
+
+4. **Battle Ready vs Parade Ready distinction:** Optional sections for display-quality work (OSL lenses, freehand, edge highlights on every surface) that tabletop painters skip. The optional section flag maps directly to this recognized community pattern.
+
+5. **Section-before-moving-on:** "It is best to do one section at a time by doing the base coat, washing, and then drybrushing" — validates the core premise that flat linear steps don't model real painting behavior. The section system lets users model this as distinct section blocks rather than interleaved steps.
 
 ---
 
 ## Sources
 
-- Direct codebase inspection: `src/hooks/useRulesSync.ts` — confirmed 12-CSV fetch + complete Rust invoke payload
-- Direct codebase inspection: `src-tauri/src/lib.rs` — confirmed all 11 extended table DELETE+INSERT blocks in `bulk_sync_rules`
-- Direct codebase inspection: `src-tauri/migrations/rules_002_wargear_abilities.sql` — confirmed complete schema for wargear, abilities, stratagems, detachments, detachment_abilities
-- Direct codebase inspection: `src/features/units/PlaybookTab.tsx` — confirmed NO sections for stratagems, detachments, shared abilities
-- Direct codebase inspection: `src/db/queries/datasheets.ts` — confirmed absence of getStratagems*, getDetachments*, getSharedAbilities* functions
-- Direct codebase inspection: `src/types/datasheet.ts` — confirmed absence of RwStratagem, RwDetachment, RwDetachmentAbility types
-- Direct codebase inspection: `src/db/rules-client.ts` — confirmed singleton pattern and WAL/FK-ON settings
-- `.planning/milestones/v3.0-ROADMAP.md` — Milestone 3.2 requirements
-- `.planning/milestones/v3.0-PHASES.md` — Phase 42–46 breakdown with risk notes
-- `.planning/PROJECT.md` — non-negotiable constraints, key decisions
+- PaintPad recipe structure: https://paintpad.app/ (WebFetch — no intra-recipe sectioning found; MEDIUM confidence)
+- Brushrage app features: https://play.google.com/store/apps/details?id=de.game_coding.trackmymi (MEDIUM confidence via app store description)
+- PaintMyMinis features: https://www.paintmyminis.de/ (MEDIUM confidence)
+- Miniature painting area-first workflow: https://www.wargamer.com/painting-miniatures (MEDIUM confidence)
+- Warhammer Community official painting guide: https://www.warhammer-community.com/en-gb/articles/R3aCeiQA/how-to-paint-warhammer-expert-tips-for-two-very-different-types-of-painter/ (HIGH confidence)
+- Subassembly painting practices: http://www.mengelminiatures.com/2014/09/hobby-use-of-subassemblies.html (MEDIUM confidence)
+- Subassembly community discussion: https://cypaint.com/article/should-you-paint-a-miniature-before-putting-it-together (MEDIUM confidence)
+- @dnd-kit nested sortable patterns: https://dndkit.com/concepts/sortable/ (HIGH confidence — official docs)
+- @dnd-kit cross-list complexity issue: https://github.com/clauderic/dnd-kit/issues/714 (HIGH confidence — official repo issue)
+- Linear collapsible sections (2025): https://linear.app/changelog/2025-03-19-collapsible-sections (HIGH confidence — official changelog)
+- Accordion/collapsible UX best practices: https://muz.li/blog/the-ultimate-accordion-design-playbook/ (MEDIUM confidence)
+- Cross-list DnD complexity analysis: https://www.digia.tech/post/drag-and-drop-ui-systems (MEDIUM confidence)
+- Drag-and-drop UX antipatterns: https://www.pencilandpaper.io/articles/ux-pattern-drag-and-drop (MEDIUM confidence)
+- Miniature painting app survey (List): https://minipainting.fandom.com/wiki/List_of_Miniature_Painting_Apps (MEDIUM confidence)
 
 ---
-
-*Feature research for: HobbyForge v0.2.6 — Rules Sync 2.0 / Rules Data Hub*
-*Researched: 2026-05-07*
+*Feature research for: HobbyForge v0.2.7 — Recipes 3.0 / Hierarchical Painting Workflows (section layer)*
+*Researched: 2026-05-08*
