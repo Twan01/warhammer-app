@@ -247,6 +247,11 @@ export function useRulesSync() {
       qc.invalidateQueries({ queryKey: ["detachment-abilities"], exact: false });
       qc.invalidateQueries({ queryKey: ["shared-abilities-by-faction"], exact: false });
       qc.invalidateQueries({ queryKey: SYNC_ERRORS_KEY });
+      // Phase 52 — new rules.db query keys
+      qc.invalidateQueries({ queryKey: ["detachment-by-id"], exact: false });
+      qc.invalidateQueries({ queryKey: ["stratagems-by-detachment"], exact: false });
+      // NOTE: do NOT add rules-favorites or rules-notes here —
+      // they live in hobbyforge.db and survive sync unchanged.
     },
     onError: async (err: Error) => {
       const message = err.message ?? "Unknown sync error";

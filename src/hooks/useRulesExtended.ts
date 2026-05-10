@@ -16,6 +16,8 @@ import {
   getDetachmentsByFaction,
   getDetachmentAbilitiesByDetachment,
   getSharedAbilitiesByFaction,
+  getDetachmentById,
+  getStratagemsByDetachment,
 } from "@/db/queries/rulesExtended";
 
 export const STRATAGEMS_BY_FACTION_KEY = (factionId: string) =>
@@ -26,6 +28,10 @@ export const DETACHMENT_ABILITIES_KEY = (detachmentId: string) =>
   ["detachment-abilities", detachmentId] as const;
 export const SHARED_ABILITIES_BY_FACTION_KEY = (factionId: string) =>
   ["shared-abilities-by-faction", factionId] as const;
+export const DETACHMENT_BY_ID_KEY = (detachmentId: string) =>
+  ["detachment-by-id", detachmentId] as const;
+export const STRATAGEMS_BY_DETACHMENT_KEY = (detachmentId: string) =>
+  ["stratagems-by-detachment", detachmentId] as const;
 
 export function useStratagemsByFaction(factionId: string | undefined) {
   return useQuery({
@@ -73,6 +79,30 @@ export function useSharedAbilitiesByFaction(factionId: string | undefined) {
     queryFn: () =>
       factionId !== undefined ? getSharedAbilitiesByFaction(factionId) : Promise.resolve([]),
     enabled: factionId !== undefined,
+    staleTime: Infinity,
+  });
+}
+
+export function useDetachmentById(detachmentId: string | undefined) {
+  return useQuery({
+    queryKey: detachmentId !== undefined
+      ? DETACHMENT_BY_ID_KEY(detachmentId)
+      : (["detachment-by-id"] as const),
+    queryFn: () =>
+      detachmentId !== undefined ? getDetachmentById(detachmentId) : Promise.resolve(null),
+    enabled: detachmentId !== undefined,
+    staleTime: Infinity,
+  });
+}
+
+export function useStratagemsByDetachment(detachmentId: string | undefined) {
+  return useQuery({
+    queryKey: detachmentId !== undefined
+      ? STRATAGEMS_BY_DETACHMENT_KEY(detachmentId)
+      : (["stratagems-by-detachment"] as const),
+    queryFn: () =>
+      detachmentId !== undefined ? getStratagemsByDetachment(detachmentId) : Promise.resolve([]),
+    enabled: detachmentId !== undefined,
     staleTime: Infinity,
   });
 }

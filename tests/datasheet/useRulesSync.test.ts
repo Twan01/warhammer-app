@@ -86,13 +86,13 @@ beforeEach(() => {
 });
 
 describe("useRulesSync", () => {
-  it("SYNC-05: onSuccess invalidates all 8 query keys", () => {
+  it("SYNC-05: onSuccess invalidates all 10 query keys (8 original + 2 Phase 52)", () => {
     const opts = useRulesSync() as unknown as {
       onSuccess: () => void;
     };
     opts.onSuccess();
 
-    expect(invalidateQueriesMock).toHaveBeenCalledTimes(8);
+    expect(invalidateQueriesMock).toHaveBeenCalledTimes(10);
 
     const calls = invalidateQueriesMock.mock.calls.map(
       (c: { queryKey: string[] }[]) => c[0].queryKey[0],
@@ -105,6 +105,9 @@ describe("useRulesSync", () => {
     expect(calls).toContain("detachment-abilities");
     expect(calls).toContain("shared-abilities-by-faction");
     expect(calls).toContain("sync-errors");
+    // Phase 52 — new rules.db query keys
+    expect(calls).toContain("detachment-by-id");
+    expect(calls).toContain("stratagems-by-detachment");
   });
 
   it("SYNC-05: Phase 43 invalidation calls use exact: false", () => {
