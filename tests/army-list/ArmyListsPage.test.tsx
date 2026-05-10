@@ -57,6 +57,8 @@ function listFixture(over: Partial<ArmyList> = {}): ArmyList {
     points_limit: 1000,
     list_type: "Casual",
     notes: null,
+    detachment_id: null,
+    detachment_name: null,
     created_at: "2026-05-02 00:00:00",
     updated_at: "2026-05-02 00:00:00",
     ...over,

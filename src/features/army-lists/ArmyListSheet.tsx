@@ -93,6 +93,8 @@ export function ArmyListSheet({ open, list, onClose }: ArmyListSheetProps) {
         points_limit: values.points_limit ?? null,
         list_type: values.list_type ?? null,
         notes: values.notes ?? null,
+        detachment_id: null as string | null,
+        detachment_name: null as string | null,
       };
 
       if (isEdit && list) {

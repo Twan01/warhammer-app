@@ -18,6 +18,8 @@ export interface ArmyList {
   points_limit: number | null;
   list_type: string | null;
   notes: string | null;
+  detachment_id: string | null;    // Wahapedia rw_detachments.id
+  detachment_name: string | null;  // Denormalized copy, survives rules.db re-sync
   created_at: string;
   updated_at: string;
 }

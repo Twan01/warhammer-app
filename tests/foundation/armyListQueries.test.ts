@@ -52,16 +52,17 @@ describe("armyLists queries — getArmyLists / getArmyListWithUnits", () => {
 });
 
 describe("armyLists queries — createArmyList / updateArmyList / deleteArmyList", () => {
-  it("createArmyList INSERTs name, faction_id, points_limit, list_type, notes and returns lastInsertId", async () => {
+  it("createArmyList INSERTs name, faction_id, points_limit, list_type, notes, detachment_id, detachment_name and returns lastInsertId", async () => {
     executeMock.mockResolvedValueOnce({ lastInsertId: 11 });
     const id = await createArmyList({
       name: "List A", faction_id: 2, points_limit: 1000,
       list_type: "Casual", notes: "test",
+      detachment_id: null, detachment_name: null,
     });
     expect(id).toBe(11);
     const [sql, params] = executeMock.mock.calls[0];
-    expect(sql).toMatch(/INSERT INTO army_lists \(name, faction_id, points_limit, list_type, notes\)/);
-    expect(params).toEqual(["List A", 2, 1000, "Casual", "test"]);
+    expect(sql).toMatch(/INSERT INTO army_lists \(name, faction_id, points_limit, list_type, notes, detachment_id, detachment_name\)/);
+    expect(params).toEqual(["List A", 2, 1000, "Casual", "test", null, null]);
   });
 
   it("updateArmyList uses COALESCE partial-update pattern matching updateUnit/updatePaint", async () => {
