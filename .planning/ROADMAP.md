@@ -192,10 +192,9 @@ Plans:
   5. A visible disclaimer on the page identifies all data as community-sourced Wahapedia data, not official Games Workshop material
 **Plans**: 3 plans
 Plans:
-- [ ] 52-01-PLAN.md — Migration 019 + TypeScript types + army list query extensions
-- [ ] 52-02-PLAN.md — Points import design document (ARMY-06)
-- [ ] 52-03-PLAN.md — Query modules + hooks + sync invalidation
-
+- [ ] 53-01-PLAN.md — Page scaffold: route, sidebar, sync status card, faction picker, tabs shell, disclaimer
+- [ ] 53-02-PLAN.md — Stratagems tab: expandable cards, phase/CP filter chips, text search
+- [ ] 53-03-PLAN.md — Detachments tab + Shared Abilities tab with search
 ### Phase 54: Army Lists 2.0 — Detachment Selection
 **Goal**: Users can select a detachment for each army list and immediately see the detachment's ability and its filtered stratagems in the army list detail — closing the most-requested gap in the current army list builder
 **Depends on**: Phase 52
