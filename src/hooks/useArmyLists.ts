@@ -11,6 +11,7 @@ import {
   removeUnitFromList,
   updateArmyListUnit,
   getArmyListReadiness,
+  clearArmyListDetachment,
 } from "@/db/queries/armyLists";
 import type {
   CreateArmyListInput,
@@ -83,6 +84,19 @@ export function useUpdateArmyList() {
       qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
       qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.id) });
       qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.id) });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+    },
+  });
+}
+
+export function useClearArmyListDetachment() {
+  const qc = useQueryClient();
+  return useMutation<void, Error, number>({
+    mutationFn: clearArmyListDetachment,
+    onSuccess: (_, id) => {
+      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
+      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(id) });
+      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(id) });
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
     },
   });

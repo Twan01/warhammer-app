@@ -59,9 +59,9 @@ export async function getArmyListWithUnits(listId: number): Promise<ArmyListUnit
 export async function createArmyList(input: CreateArmyListInput): Promise<number> {
   const db = await getDb();
   const result = await db.execute(
-    `INSERT INTO army_lists (name, faction_id, points_limit, list_type, notes)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [input.name, input.faction_id, input.points_limit, input.list_type, input.notes]
+    `INSERT INTO army_lists (name, faction_id, points_limit, list_type, notes, detachment_id, detachment_name)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [input.name, input.faction_id, input.points_limit, input.list_type, input.notes, input.detachment_id ?? null, input.detachment_name ?? null]
   );
   return result.lastInsertId ?? 0;
 }
@@ -70,12 +70,14 @@ export async function updateArmyList(input: UpdateArmyListInput): Promise<void> 
   const db = await getDb();
   await db.execute(
     `UPDATE army_lists
-        SET name         = COALESCE($2, name),
-            faction_id   = COALESCE($3, faction_id),
-            points_limit = COALESCE($4, points_limit),
-            list_type    = COALESCE($5, list_type),
-            notes        = COALESCE($6, notes),
-            updated_at   = datetime('now')
+        SET name            = COALESCE($2, name),
+            faction_id      = COALESCE($3, faction_id),
+            points_limit    = COALESCE($4, points_limit),
+            list_type       = COALESCE($5, list_type),
+            notes           = COALESCE($6, notes),
+            detachment_id   = COALESCE($7, detachment_id),
+            detachment_name = COALESCE($8, detachment_name),
+            updated_at      = datetime('now')
       WHERE id = $1`,
     [
       input.id,
@@ -84,7 +86,26 @@ export async function updateArmyList(input: UpdateArmyListInput): Promise<void> 
       input.points_limit ?? null,
       input.list_type ?? null,
       input.notes ?? null,
+      input.detachment_id ?? null,
+      input.detachment_name ?? null,
     ]
+  );
+}
+
+/**
+ * Phase 52 — explicit NULL-clearing for detachment columns.
+ * Separate from updateArmyList because COALESCE blocks NULL passthrough.
+ * Called when user deselects a detachment from an army list.
+ */
+export async function clearArmyListDetachment(id: number): Promise<void> {
+  const db = await getDb();
+  await db.execute(
+    `UPDATE army_lists
+        SET detachment_id = NULL,
+            detachment_name = NULL,
+            updated_at = datetime('now')
+      WHERE id = $1`,
+    [id]
   );
 }
 
