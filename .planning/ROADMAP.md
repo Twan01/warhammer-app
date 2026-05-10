@@ -300,7 +300,7 @@ Plans:
 | 49. Section Read UI | v0.2.7 | 1/1 | Complete | 2026-05-08 |
 | 50. Section Form UI | v0.2.7 | 3/3 | Complete | 2026-05-08 |
 | 51. Duplication + Integration Polish | v0.2.7 | 2/2 | Complete | 2026-05-08 |
-| 52. Schema + Data Layer Foundation | v0.2.8 | 0/3 | In progress | - |
+| 52. Schema + Data Layer Foundation | 1/3 | In Progress|  | - |
 | 53. Rules Data Hub UI | v0.2.8 | 0/TBD | Not started | - |
 | 54. Army Lists 2.0 — Detachment Selection | v0.2.8 | 0/TBD | Not started | - |
 | 55. Playbook Enhancements — Favorites and Notes | v0.2.8 | 0/TBD | Not started | - |

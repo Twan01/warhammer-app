@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: planning
-stopped_at: Phase 52 context gathered
-last_updated: "2026-05-10T17:48:46.882Z"
+stopped_at: Completed 52-01-PLAN.md
+last_updated: "2026-05-10T18:06:55.316Z"
 last_activity: 2026-05-10 — Roadmap created, 27/27 requirements mapped across 5 phases
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 3
+  completed_plans: 1
   percent: 0
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-10 after v0.2.8 milestone started)
 ## Current Position
 
 Phase: 52 of 56 (Schema + Data Layer Foundation)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-05-10 — Roadmap created, 27/27 requirements mapped across 5 phases
+Plan: 01 complete (1/3)
+Status: In Progress
+Last activity: 2026-05-10 — Plan 52-01 complete: migration 019, rules types, detachment columns
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███░░░░░░░] 33%
 
 ## Performance Metrics
 
@@ -58,6 +58,9 @@ Progress: [░░░░░░░░░░] 0%
 - staleTime: Infinity + sync invalidation registration required for every new rules.db hook
 - useWahapediaFactionId(faction.name) required for all rules-facing queries — passing integer returns empty array silently
 - Game Day checklist state: Zustand persist (localStorage) — move to SQLite only if multi-session resumption is validated
+- clearArmyListDetachment is separate from updateArmyList because COALESCE blocks NULL passthrough for explicit detachment clearing (52-01)
+- detachment_name is denormalized onto army_lists to survive rules.db full wipe on re-sync (52-01)
+- RULE_TYPES const array mirrors SQL CHECK constraint to enforce rule_type union at TypeScript level (52-01)
 
 ### Pending Todos
 
@@ -69,6 +72,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-10T17:48:46.878Z
-Stopped at: Phase 52 context gathered
+Last session: 2026-05-10T18:06:55.313Z
+Stopped at: Completed 52-01-PLAN.md
 Resume: Run /gsd:plan-phase 52
