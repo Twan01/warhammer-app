@@ -7,6 +7,7 @@ import {
   Droplets,
   Heart,
   LayoutDashboard,
+  Library,
   Package,
   Paintbrush,
   Palette,
@@ -45,6 +46,7 @@ const WORKSHOP_NAV = [
 const PLAY_NAV = [
   { to: "/army-lists", label: "Army Lists", icon: ClipboardList },
   { to: "/battle-log", label: "Battle Log", icon: Swords },
+  { to: "/rules-hub", label: "Rules Hub", icon: Library },
 ] as const;
 
 const MANAGEMENT_NAV = [

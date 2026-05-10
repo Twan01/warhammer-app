@@ -20,6 +20,7 @@ import { SpendingPage } from "./spending/page";
 import { BattleLogPage } from "./battle-log/page";
 import { WishlistPage } from "./wishlist/page";
 import { GoalsPage } from "./goals/page";
+import { RulesHubPageShell } from "./rules-hub/page";
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -107,6 +108,12 @@ const settingsRoute = createRoute({
   component: SettingsPage,
 });
 
+const rulesHubRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/rules-hub",
+  component: RulesHubPageShell,
+});
+
 const routeTree = rootRoute.addChildren([
   dashboardRoute,
   factionsRoute,
@@ -120,6 +127,7 @@ const routeTree = rootRoute.addChildren([
   wishlistRoute,
   battleLogRoute,
   settingsRoute,
+  rulesHubRoute,
 ]);
 
 export const router = createRouter({ routeTree });
