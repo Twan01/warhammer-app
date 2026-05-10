@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: executing
-stopped_at: Phase 53 context gathered
-last_updated: "2026-05-10T18:52:51.633Z"
+stopped_at: 53-01-PLAN.md complete
+last_updated: "2026-05-10T19:27:13.543Z"
 last_activity: "2026-05-10 — Plan 52-03 complete: query modules + hooks for favorites, notes, and detachment queries"
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 6
+  completed_plans: 4
   percent: 100
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-10 after v0.2.8 milestone started)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** Phase 52 — Schema + Data Layer Foundation
+**Current focus:** Phase 53 — Rules Data Hub UI
 
 ## Current Position
 
-Phase: 52 of 56 (Schema + Data Layer Foundation)
-Plan: 03 complete (3/3) — Phase 52 COMPLETE
+Phase: 53 of 56 (Rules Data Hub UI)
+Plan: 01 complete (1/3)
 Status: In Progress
-Last activity: 2026-05-10 — Plan 52-03 complete: query modules + hooks for favorites, notes, and detachment queries
+Last activity: 2026-05-10 — Plan 53-01 complete: Rules Hub page scaffold with sync status card, faction picker, tab shell, sidebar nav
 
-Progress: [██████████] 100%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
@@ -68,6 +68,9 @@ Progress: [██████████] 100%
 - useRulesFavorites optimistic updates use placeholder id=-1 for new entries; onSettled refetch brings real server data (52-03)
 - useRulesSync.ts invalidates detachment-by-id and stratagems-by-detachment but NOT rules-favorites or rules-notes — hobbyforge.db survives rules wipe (52-03)
 - COALESCE on INSERT OR REPLACE preserves created_at when replacing existing row by composite UNIQUE key (52-03)
+- SyncDiff summary uses array .length counts (not scalar integers) since SyncDiff stores item arrays, not numeric totals (53-01)
+- TooltipProvider must be included in test wrappers for any component using Radix Tooltip — jsdom throws without it (53-01)
+- unknown cast required for UseQueryResult partial mocks: `as unknown as ReturnType<typeof hook>` (53-01)
 
 ### Pending Todos
 
@@ -79,6 +82,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-10T18:52:51.629Z
-Stopped at: Phase 53 context gathered
+Last session: 2026-05-10T19:27:13.540Z
+Stopped at: 53-01-PLAN.md complete
 Resume: Run /gsd:plan-phase 52

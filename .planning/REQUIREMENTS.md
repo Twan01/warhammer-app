@@ -9,15 +9,15 @@ Requirements for Rules Data Hub / Army Lists 2.0 / Game Day. Each maps to roadma
 
 ### Rules Data Hub
 
-- [ ] **RULES-01**: User can view sync status (last sync date, row counts per table, source version, freshness badge)
-- [ ] **RULES-02**: User can view and trigger sync from the Rules Data Hub page
-- [ ] **RULES-03**: User can view sync error history with timestamps and error details
-- [ ] **RULES-04**: User can view sync diff summary (datasheets added/removed/modified/renamed since last sync)
+- [x] **RULES-01**: User can view sync status (last sync date, row counts per table, source version, freshness badge)
+- [x] **RULES-02**: User can view and trigger sync from the Rules Data Hub page
+- [x] **RULES-03**: User can view sync error history with timestamps and error details
+- [x] **RULES-04**: User can view sync diff summary (datasheets added/removed/modified/renamed since last sync)
 - [ ] **RULES-05**: User can browse stratagems by faction with filters (phase, CP cost, keyword)
 - [ ] **RULES-06**: User can browse detachments and detachment abilities by faction
 - [ ] **RULES-07**: User can browse shared abilities by faction
 - [ ] **RULES-08**: User can search rules data by name/keyword across all rule types
-- [ ] **RULES-09**: Rules Hub displays clear disclaimer that data is user-provided external data (not official)
+- [x] **RULES-09**: Rules Hub displays clear disclaimer that data is user-provided external data (not official)
 
 ### Army Lists 2.0
 
@@ -79,15 +79,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | ARMY-06 | Phase 52 | Complete |
-| RULES-01 | Phase 53 | Pending |
-| RULES-02 | Phase 53 | Pending |
-| RULES-03 | Phase 53 | Pending |
-| RULES-04 | Phase 53 | Pending |
+| RULES-01 | Phase 53 | Complete |
+| RULES-02 | Phase 53 | Complete |
+| RULES-03 | Phase 53 | Complete |
+| RULES-04 | Phase 53 | Complete |
 | RULES-05 | Phase 53 | Pending |
 | RULES-06 | Phase 53 | Pending |
 | RULES-07 | Phase 53 | Pending |
 | RULES-08 | Phase 53 | Pending |
-| RULES-09 | Phase 53 | Pending |
+| RULES-09 | Phase 53 | Complete |
 | ARMY-01 | Phase 54 | Pending |
 | ARMY-02 | Phase 54 | Pending |
 | ARMY-03 | Phase 54 | Pending |
