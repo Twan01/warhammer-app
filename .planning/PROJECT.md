@@ -106,7 +106,16 @@ A single personal command center that always answers "what do I own, what's pain
 
 ### Active
 
-(No active milestone — next milestone to be defined)
+## Current Milestone: v0.2.8 Rules Data Hub / Army Lists 2.0 / Game Day
+
+**Goal:** Expose synced rules data in UI and connect to Army Lists and Game Day mode — making rules data visible, searchable, and useful for real game preparation.
+
+**Target features:**
+- Rules Data Hub UI (sync status, rules browser, diff summary)
+- Playbook enhancements (favorites, user notes on rules, reminders)
+- Army Lists 2.0 (detachment selection, stratagems, stale-data warnings)
+- Game Day Mode (phase-grouped reminders, unit abilities, checklists)
+- Points import design documentation
 
 ### Out of Scope
 
@@ -192,4 +201,4 @@ A single personal command center that always answers "what do I own, what's pain
 | ON DELETE CASCADE for recipe_steps.section_id | Deleting a section automatically removes its steps — no manual cleanup | ✓ Good — consistent with recipe→section CASCADE |
 
 ---
-*Last updated: 2026-05-08 after v0.2.7 milestone*
+*Last updated: 2026-05-10 after v0.2.8 milestone started*

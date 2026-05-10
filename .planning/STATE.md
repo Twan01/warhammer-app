@@ -1,33 +1,36 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.2.7
-milestone_name: Recipes 3.0 / Hierarchical Painting Workflows
-status: completed
-stopped_at: Milestone v0.2.7 complete
-last_updated: "2026-05-08T22:30:00.000Z"
-last_activity: 2026-05-08 — Milestone v0.2.7 shipped (4 phases, 8 plans, 19 requirements)
+milestone: v0.2.8
+milestone_name: Rules Data Hub / Army Lists 2.0 / Game Day
+status: defining_requirements
+stopped_at: Milestone v0.2.8 started — defining requirements
+last_updated: "2026-05-10T12:00:00.000Z"
+last_activity: 2026-05-10 — Milestone v0.2.8 started
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-08 after v0.2.7 milestone)
+See: .planning/PROJECT.md (updated 2026-05-10 after v0.2.8 milestone started)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** Planning next milestone
+**Current focus:** Defining requirements for v0.2.8
 
 ## Current Position
 
-Milestone v0.2.7 complete. No active milestone.
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-10 — Milestone v0.2.8 started
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -66,6 +69,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-08T22:30:00.000Z
-Stopped at: Milestone v0.2.7 complete
-Resume: `/gsd:new-milestone` to start next milestone
+Last session: 2026-05-10T12:00:00.000Z
+Stopped at: Milestone v0.2.8 started — defining requirements
+Resume: Continue with requirements definition
