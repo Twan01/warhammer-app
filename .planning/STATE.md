@@ -1,13 +1,13 @@
 ---
 gsd_state_version: 1.0
 milestone: v0.2.8
-milestone_name: Rules Data Hub / Army Lists 2.0 / Game Day
-status: defining_requirements
-stopped_at: Milestone v0.2.8 started — defining requirements
+milestone_name: Rules Data Hub UI / Army Lists 2.0 / Game Day
+status: ready_to_plan
+stopped_at: Roadmap created — Phase 52 ready to plan
 last_updated: "2026-05-10T12:00:00.000Z"
-last_activity: 2026-05-10 — Milestone v0.2.8 started
+last_activity: 2026-05-10 — v0.2.8 roadmap created (5 phases, 27 requirements mapped)
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-10 after v0.2.8 milestone started)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** Defining requirements for v0.2.8
+**Current focus:** Phase 52 — Schema + Data Layer Foundation
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-05-10 — Milestone v0.2.8 started
+Phase: 52 of 56 (Schema + Data Layer Foundation)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-05-10 — Roadmap created, 27/27 requirements mapped across 5 phases
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -48,16 +48,16 @@ Progress: [░░░░░░░░░░] 0%
 - All new query modules go to `src/db/queries/` — never import DB in UI
 - All new hook modules go to `src/hooks/` — components call hooks only
 - Sibling Sheet/Dialog portal pattern — never nest Radix portals
-- Migrations are append-only and immutable — new columns always via ALTER TABLE in a new numbered file
+- Migrations are append-only and immutable — new numbered file per change
 - pnpm is the package manager — npm fails with workspace: protocol errors
 - Tailwind v4 CSS-first theming — @theme inline {} block, no tailwind.config.js
 - Cache invalidation symmetry: if useCreate invalidates a key, useDelete must too
 - todayISO() from @/lib/dates is the single source of truth for date defaults
-- useFieldArray NOT used for step/section forms — documented RHF #10607 ID collision with useSortable; manual useState + crypto.randomUUID() is the project standard
-- Two-DndContext approach for nested DnD — outer for section reorder, inner per section for step reorder
-- DELETE-all + re-INSERT for section saves — CASCADE removes steps atomically
-- Progressive disclosure: sections.length <= 1 shows flat step list, 2+ shows section cards
-- ON DELETE CASCADE on recipe_steps.section_id — never delete steps manually before deleting a section
+- User data (favorites, notes, detachment selection) MUST go in hobbyforge.db, never rules.db — rules.db is fully deleted on every sync
+- ATTACH DATABASE not supported by tauri-plugin-sql — dual-query merge pattern always
+- staleTime: Infinity + sync invalidation registration required for every new rules.db hook
+- useWahapediaFactionId(faction.name) required for all rules-facing queries — passing integer returns empty array silently
+- Game Day checklist state: Zustand persist (localStorage) — move to SQLite only if multi-session resumption is validated
 
 ### Pending Todos
 
@@ -70,5 +70,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-10T12:00:00.000Z
-Stopped at: Milestone v0.2.8 started — defining requirements
-Resume: Continue with requirements definition
+Stopped at: Roadmap created — Phase 52 ready to plan
+Resume: Run /gsd:plan-phase 52

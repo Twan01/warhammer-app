@@ -78,39 +78,39 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RULES-01 | — | Pending |
-| RULES-02 | — | Pending |
-| RULES-03 | — | Pending |
-| RULES-04 | — | Pending |
-| RULES-05 | — | Pending |
-| RULES-06 | — | Pending |
-| RULES-07 | — | Pending |
-| RULES-08 | — | Pending |
-| RULES-09 | — | Pending |
-| ARMY-01 | — | Pending |
-| ARMY-02 | — | Pending |
-| ARMY-03 | — | Pending |
-| ARMY-04 | — | Pending |
-| ARMY-05 | — | Pending |
-| ARMY-06 | — | Pending |
-| GAME-01 | — | Pending |
-| GAME-02 | — | Pending |
-| GAME-03 | — | Pending |
-| GAME-04 | — | Pending |
-| GAME-05 | — | Pending |
-| GAME-06 | — | Pending |
-| GAME-07 | — | Pending |
-| GAME-08 | — | Pending |
-| PLAY-01 | — | Pending |
-| PLAY-02 | — | Pending |
-| PLAY-03 | — | Pending |
-| PLAY-04 | — | Pending |
+| ARMY-06 | Phase 52 | Pending |
+| RULES-01 | Phase 53 | Pending |
+| RULES-02 | Phase 53 | Pending |
+| RULES-03 | Phase 53 | Pending |
+| RULES-04 | Phase 53 | Pending |
+| RULES-05 | Phase 53 | Pending |
+| RULES-06 | Phase 53 | Pending |
+| RULES-07 | Phase 53 | Pending |
+| RULES-08 | Phase 53 | Pending |
+| RULES-09 | Phase 53 | Pending |
+| ARMY-01 | Phase 54 | Pending |
+| ARMY-02 | Phase 54 | Pending |
+| ARMY-03 | Phase 54 | Pending |
+| ARMY-04 | Phase 54 | Pending |
+| ARMY-05 | Phase 54 | Pending |
+| PLAY-01 | Phase 55 | Pending |
+| PLAY-02 | Phase 55 | Pending |
+| PLAY-03 | Phase 55 | Pending |
+| PLAY-04 | Phase 55 | Pending |
+| GAME-01 | Phase 56 | Pending |
+| GAME-02 | Phase 56 | Pending |
+| GAME-03 | Phase 56 | Pending |
+| GAME-04 | Phase 56 | Pending |
+| GAME-05 | Phase 56 | Pending |
+| GAME-06 | Phase 56 | Pending |
+| GAME-07 | Phase 56 | Pending |
+| GAME-08 | Phase 56 | Pending |
 
 **Coverage:**
 - v0.2.8 requirements: 27 total
-- Mapped to phases: 0
-- Unmapped: 27 ⚠️
+- Mapped to phases: 27
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-10*
-*Last updated: 2026-05-10 after initial definition*
+*Last updated: 2026-05-10 after roadmap creation*

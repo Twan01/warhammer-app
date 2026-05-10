@@ -11,6 +11,7 @@
 - ✅ **v0.2.5 Recipes 2.0 / Painting Studio** — Phases 37–41 (shipped 2026-05-07)
 - ✅ **v0.2.6 Rules Sync 2.0 / Rules Data Hub** — Phases 42–47 (shipped 2026-05-08)
 - ✅ **v0.2.7 Recipes 3.0 / Hierarchical Painting Workflows** — Phases 48–51 (shipped 2026-05-08)
+- 🚧 **v0.2.8 Rules Data Hub UI / Army Lists 2.0 / Game Day** — Phases 52–56 (in progress)
 
 ## Phases
 
@@ -149,9 +150,82 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 
 </details>
 
+---
+
+### 🚧 v0.2.8 Rules Data Hub UI / Army Lists 2.0 / Game Day (In Progress)
+
+**Milestone Goal:** Expose synced Wahapedia rules data in a standalone browser, connect detachment selection to army lists, and deliver a focused Game Day mode for in-game reference — making rules data visible, searchable, and useful for real game preparation.
+
+- [ ] **Phase 52: Schema + Data Layer Foundation** — Migration 019: detachment_id on army_lists, rules_favorites and rules_notes tables in hobbyforge.db; typed query modules and hooks for all new tables; points import design documentation
+- [ ] **Phase 53: Rules Data Hub UI** — Standalone RulesHubPage with sync status header, faction browser, rules browser (stratagems/detachments/shared abilities) with filtering and search, sync error history, diff summary, and Wahapedia disclaimer
+- [ ] **Phase 54: Army Lists 2.0 — Detachment Selection** — DetachmentPicker in ArmyListDetailSheet, detachment ability and filtered stratagems display, stale-data warning, favorites summary; user can see all rules-data context for their list in one place
+- [ ] **Phase 55: Playbook Enhancements — Favorites and Notes** — Star/favorite toggle and Game Day reminder flag on any rule entry; inline personal notes on any rule; visual distinction between imported data and user annotations throughout PlaybookTab and RulesHubPage
+- [ ] **Phase 56: Game Day Mode** — GameDayPage launched from army list: CP tracker, phase-grouped stratagem view, pre-game checklist (Zustand persist), per-unit ability quick reference, once-per-game ability toggles, painting status of units in list, favorited reminders surfaced at top
+
+## Phase Details
+
+### Phase 52: Schema + Data Layer Foundation
+**Goal**: All new schema, query functions, hooks, and design documentation for v0.2.8 exist and are fully typed — every downstream phase builds on this layer without touching migrations again
+**Depends on**: Phase 51 (v0.2.7 shipped)
+**Requirements**: ARMY-06
+**Success Criteria** (what must be TRUE):
+  1. Migration 019 runs on app start with zero errors: army_lists gains detachment_id TEXT NULL column, hobbyforge.db gains rules_favorites table (rule_id TEXT, rule_type TEXT, rule_name TEXT, is_reminder INTEGER) and rules_notes table (rule_id TEXT, rule_type TEXT, rule_name TEXT, note_text TEXT)
+  2. TypeScript types ArmyList (updated), RulesFavorite, and RulesNote exist and are imported without errors
+  3. Query functions getDetachmentById, getStratagemsByDetachment (rulesExtended.ts), getRulesFavorites, upsertRulesFavorite, deleteRulesFavorite (rulesFavorites.ts), getRulesNotes, upsertRulesNote (rulesNotes.ts) exist with correct parameterized SQL
+  4. React Query hooks useDetachmentById, useStratagemsByDetachment, useRulesFavorites, useRulesNotes, and matching mutations are registered with staleTime: Infinity where reading from rules.db and registered for cache invalidation in useRulesSync.onSuccess
+  5. Points import design document is written at `.planning/points-import-design.md` covering schema, versioning, deltas, manual override interaction, and army list impact
+**Plans**: TBD
+
+### Phase 53: Rules Data Hub UI
+**Goal**: Users can browse all synced Wahapedia rules data from a dedicated page — stratagems, detachments, and shared abilities — with faction filtering, text search, sync status, error history, and diff summary visible at a glance
+**Depends on**: Phase 52
+**Requirements**: RULES-01, RULES-02, RULES-03, RULES-04, RULES-05, RULES-06, RULES-07, RULES-08, RULES-09
+**Success Criteria** (what must be TRUE):
+  1. RulesHubPage is accessible via sidebar nav and route /rules-hub; displays sync status header (last sync date, row counts per table, source version, freshness badge) and a trigger-sync button
+  2. User can filter rules by faction (using useWahapediaFactionId translation) and search by name/keyword across stratagems, detachments, and shared abilities simultaneously
+  3. User can browse stratagems filtered by phase (Command/Movement/Shooting/Charge/Fight) and CP cost; user can browse detachments and their abilities; user can browse shared abilities — each as a distinct, labeled section or tab
+  4. User can view sync error history with timestamps and error messages; user can view a diff summary showing how many datasheets were added, removed, modified, or renamed since the last sync
+  5. A visible disclaimer on the page identifies all data as community-sourced Wahapedia data, not official Games Workshop material
+**Plans**: TBD
+
+### Phase 54: Army Lists 2.0 — Detachment Selection
+**Goal**: Users can select a detachment for each army list and immediately see the detachment's ability and its filtered stratagems in the army list detail — closing the most-requested gap in the current army list builder
+**Depends on**: Phase 52
+**Requirements**: ARMY-01, ARMY-02, ARMY-03, ARMY-04, ARMY-05
+**Success Criteria** (what must be TRUE):
+  1. ArmyListDetailSheet contains a DetachmentPicker (Combobox) scoped to the list's faction; selecting a detachment persists detachment_id and a detachment_name TEXT copy to hobbyforge.db
+  2. After selecting a detachment, the user can see the detachment's ability displayed in the army list detail below the picker
+  3. The user can see stratagems filtered to the selected detachment listed in the army list detail, using the same StratagemEntry display component as PlaybookTab
+  4. When the last sync occurred more than 30 days ago, a visible stale-data warning appears in the army list detail (not a blocking error — just a banner)
+  5. User-marked favorites from PlaybookTab (is_reminder = 1) appear as a "Reminders" section within the army list detail, so game-relevant rules are one place to check before play
+**Plans**: TBD
+
+### Phase 55: Playbook Enhancements — Favorites and Notes
+**Goal**: Users can mark any rule as a favorite or Game Day reminder and attach personal notes to any imported rule — with all user annotations visually distinct from synced Wahapedia data and surviving re-syncs
+**Depends on**: Phase 52, Phase 53
+**Requirements**: PLAY-01, PLAY-02, PLAY-03, PLAY-04
+**Success Criteria** (what must be TRUE):
+  1. Every stratagem, detachment ability, and shared ability entry in PlaybookTab and RulesHubPage shows a star toggle; toggling it immediately persists a rules_favorites row in hobbyforge.db and survives a rules.db re-sync
+  2. Every rule entry shows a "Game Day reminder" flag toggle (distinct from the favorite star); rules with is_reminder = 1 are the source for ARMY-05 (army list reminders) and GAME-07 (Game Day reminders)
+  3. Every rule entry shows a note textarea; typing and saving a note persists a rules_notes row in hobbyforge.db using the rule_name TEXT copy; the note survives re-sync and reappears on rule re-display
+  4. Favorited rules and user notes are visually distinct from imported Wahapedia data — different background, label, or icon — making it clear which content is user-generated vs. community-sourced
+**Plans**: TBD
+
+### Phase 56: Game Day Mode
+**Goal**: Users can launch a focused in-game reference view from any army list — with a CP tracker, phase-grouped stratagems for the selected detachment, a persistent pre-game checklist, per-unit ability cards, and painting status visible at a glance
+**Depends on**: Phase 53, Phase 54, Phase 55
+**Requirements**: GAME-01, GAME-02, GAME-03, GAME-04, GAME-05, GAME-06, GAME-07, GAME-08
+**Success Criteria** (what must be TRUE):
+  1. A "Game Day" button on ArmyListDetailSheet navigates to GameDayPage pre-scoped to that army list; the page shows the list name, detachment name, and faction
+  2. Stratagems for the selected detachment are grouped by game phase (Command, Movement, Shooting, Charge, Fight) and displayed as readable cards; user-marked reminders (is_reminder = 1) appear at the top of the stratagem view
+  3. A CP tracker shows current CP remaining (starts at user-set value); each tap on a stratagem card decrements CP by that stratagem's cost, with undo available; CP state persists across navigation using Zustand persist (localStorage)
+  4. A pre-game checklist is displayed with user-defined setup steps; checked items remain checked until the user explicitly resets the checklist; checklist state persists using Zustand persist (localStorage)
+  5. Each unit in the army list has a collapsible ability quick-reference card; abilities with an explicit once-per-game marker show a used/unused toggle; unit painting status (painted/unpainted) is visible on each card as a contextual readiness signal
+**Plans**: TBD
+
 ## Progress
 
-**Execution Order:** 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 35 → 25 → 26 → 27 → 28 → 29 → 30 → 31 → 32 → 33 → 34 → 36 → 37 → 38 → 39 → 40 → 41 → 42 → 43 → 44 → 45 → 46 → 47 → 48 → 49 → 50 → 51
+**Execution Order:** 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 35 → 25 → 26 → 27 → 28 → 29 → 30 → 31 → 32 → 33 → 34 → 36 → 37 → 38 → 39 → 40 → 41 → 42 → 43 → 44 → 45 → 46 → 47 → 48 → 49 → 50 → 51 → 52 → 53 → 54 → 55 → 56
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -206,3 +280,8 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 | 49. Section Read UI | v0.2.7 | 1/1 | Complete | 2026-05-08 |
 | 50. Section Form UI | v0.2.7 | 3/3 | Complete | 2026-05-08 |
 | 51. Duplication + Integration Polish | v0.2.7 | 2/2 | Complete | 2026-05-08 |
+| 52. Schema + Data Layer Foundation | v0.2.8 | 0/TBD | Not started | - |
+| 53. Rules Data Hub UI | v0.2.8 | 0/TBD | Not started | - |
+| 54. Army Lists 2.0 — Detachment Selection | v0.2.8 | 0/TBD | Not started | - |
+| 55. Playbook Enhancements — Favorites and Notes | v0.2.8 | 0/TBD | Not started | - |
+| 56. Game Day Mode | v0.2.8 | 0/TBD | Not started | - |
