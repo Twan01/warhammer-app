@@ -1,302 +1,221 @@
 # Pitfalls Research
 
-**Domain:** HobbyForge v0.2.7 — Adding hierarchical recipe sections to an existing flat-step recipe system (Tauri 2 + React 19 + SQLite + @dnd-kit + React Hook Form without useFieldArray)
-**Researched:** 2026-05-08
-**Confidence:** HIGH — derived from direct codebase inspection of RecipeStepList.tsx, RecipeFormSheet.tsx, recipeSteps.ts, recipePaints.ts, useRecipePaints.ts, recipes.ts, migration files 001–017, and verified against @dnd-kit GitHub issues and SQLite ALTER TABLE documentation
+**Domain:** HobbyForge v0.2.8 — Adding Rules Data Hub UI, Army Lists 2.0, Game Day Mode, and Playbook enhancements to existing dual-DB Tauri 2 + React 19 + SQLite system
+**Researched:** 2026-05-10
+**Confidence:** HIGH (all findings derived from direct codebase inspection, shipped code decisions in PROJECT.md, and established patterns in the existing query/hook/component stack)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Two Nested DndContexts — Cross-Context Drag Events Are Silently Swallowed
+### Pitfall 1: Writing User Annotations into rules.db
 
 **What goes wrong:**
-The naïve architecture for "sections reorder + steps reorder within sections" is two levels of DndContext: an outer one for section-level drag, an inner one (inside each RecipeSectionCard) for step-level drag. This does not work. @dnd-kit's event model is non-bubbling by design: drag events are consumed by the innermost DndContext containing an activated sensor. A step drag started inside a section card's DndContext will never reach the outer section DndContext. Dragging a section header will always activate the step-level sensor if any step is in proximity. The two contexts also share the same internal reducer initial state, which causes ID collisions between section IDs and step IDs when they happen to have matching values (integer database IDs 1, 2, 3 overlap across both entity types). The result is unpredictable drag behavior: items snap to wrong positions, drag events target the wrong sortable, and no error is thrown.
+A new feature — favorites, user notes on rules, game day reminders, detachment selection — stores its data in rules.db by calling `getRulesDb()` for writes. Every sync calls `bulk_sync_rules` in Rust, which begins with a full `DELETE FROM rw_*` pass before re-inserting. All user data written to rules.db is silently destroyed at the next sync.
 
 **Why it happens:**
-The existing RecipeStepList already wraps a DndContext for step reordering. When RecipeSectionCard is introduced, the reflex is to add another DndContext at the section level, wrapping section cards. This seems clean (one context per level) but violates @dnd-kit's fundamental constraint: nested DndContexts are isolated silos, not a hierarchy.
+The new feature reads from rules.db tables and the developer naturally co-locates the write alongside the reads in the same `rulesExtended.ts` query file. The DELETE-before-INSERT sync pattern is not obvious from the query layer alone — it is only visible in the Rust `lib.rs` command and the Phase 44 sync hardening code. The `syncErrors.ts` file explicitly warns about this with a CRITICAL comment, but developers reading only `rulesExtended.ts` will not see it.
 
 **How to avoid:**
-Use a single outer DndContext for the entire recipe form. Inside it, create one SortableContext for the section list and one SortableContext per section for that section's steps. Handle drag logic at the single DndContext level using `onDragEnd` with type discrimination:
-
-```typescript
-function handleDragEnd(event: DragEndEvent) {
-  const { active, over } = event;
-  if (!over || active.id === over.id) return;
-
-  const isSectionDrag = active.data.current?.type === "section";
-  const isStepDrag    = active.data.current?.type === "step";
-
-  if (isSectionDrag) {
-    // reorder sections array
-  } else if (isStepDrag) {
-    const fromSectionId = active.data.current?.sectionLocalId;
-    const toSectionId   = over.data.current?.sectionLocalId ?? fromSectionId;
-    // reorder steps within fromSectionId
-  }
-}
-```
-
-Critically: remove the DndContext from inside RecipeStepList — it becomes a pure SortableContext only. The existing RecipeStepList exports DndContext today; that DndContext must be lifted up to RecipeSectionList or RecipeFormSheet.
+Every table that holds user-generated content — favorites, personal notes, reminder flags, detachment_id selections, game day checklist state — MUST live in hobbyforge.db via `getDb()`. Use the pattern established in `unit_overrides` (017_unit_overrides.sql): a separate hobbyforge.db table with a `TEXT` column storing the Wahapedia ID as a copy, not a cross-DB reference. The sync-survival rule is stated in PROJECT.md Key Decisions: "Overrides in hobbyforge.db, not rules.db — rules.db is fully DELETEd on every sync."
 
 **Warning signs:**
-- Any file inside `src/features/recipes/` imports `DndContext` from `@dnd-kit/core` other than the top-level section list component.
-- `RecipeSectionCard.tsx` or `RecipeStepList.tsx` renders `<DndContext>`.
-- Dragging a section header also moves a step — indicates two contexts competed for the same pointer event.
+- Any `INSERT` or `UPDATE` that uses `getRulesDb()` instead of `getDb()`
+- A new table added via a `rules_00N_*.sql` migration file that stores anything user-editable
+- A query function in `rulesExtended.ts` that calls `db.execute()` rather than `db.select()`
 
 **Phase to address:**
-Phase 3 (Form UI). Must be the architectural decision before any drag code is written. Write a test: drag section A below section B; assert section order updated; drag step inside section A; assert step order updated; assert section order unchanged.
+Schema design phase (first phase of v0.2.8). Every new hobbyforge.db table must be designed and justified before a single query function is written. Each migration file for user data must use `getDb()`.
 
 ---
 
-### Pitfall 2: ID Namespace Collision Between Sections and Steps in the Single DndContext
+### Pitfall 2: Attempting Cross-DB JOINs via ATTACH DATABASE
 
 **What goes wrong:**
-With a single DndContext, all draggable IDs must be globally unique within that context. The existing step localIds are `crypto.randomUUID()` strings — safe. But if section IDs use database integers (1, 2, 3) and step IDs also use database integers, the SortableContext items array contains collisions: section id `2` and step id `2` are the same value from @dnd-kit's perspective. The drag system targets the wrong element. The symptom is non-deterministic: an `arrayMove` reorders the section list when the user intended to reorder a step, or vice versa. This is the exact same class of bug that drove the decision to avoid `useFieldArray` in v2.5 (RHF #10607) — integer ID collisions are the root cause there too.
+Army Lists 2.0 needs to show the selected detachment name alongside the list. The detachment name lives in `rw_detachments` (rules.db) and the selection lives in `army_lists` (hobbyforge.db). A developer writes a SQL JOIN across both databases using SQLite `ATTACH DATABASE` syntax. This compiles correctly in a standalone SQLite shell but tauri-plugin-sql opens each database as a separate isolated connection — `ATTACH` is not available between those connections and the query throws a runtime error with no compile-time warning.
 
 **Why it happens:**
-Developers use database `id` as the sortable identifier because it's convenient and already available on fetched data. The collision only manifests when both sections and steps have overlapping integer IDs, which always happens as data grows.
+SQLite's `ATTACH DATABASE` is a well-known multi-file SQL pattern and works in most SQLite clients and ORMs. The constraint is specific to tauri-plugin-sql's connection model and is only documented in PROJECT.md's "Out of Scope" section. New contributors and AI-assisted code will naturally reach for ATTACH.
 
 **How to avoid:**
-Use `localId` (UUID strings) for all draggable IDs, consistently. The existing DraftStep already has `localId: crypto.randomUUID()`. Apply the same pattern to DraftSection:
-
-```typescript
-export interface DraftSection {
-  localId: string;       // crypto.randomUUID() — DnD identifier, never database id
-  db_id:   number | null; // null for new unsaved sections
-  name: string;
-  surface: string | null;
-  optional: 0 | 1;
-  steps: DraftStep[];
-}
-```
-
-Pass `section.localId` to SortableContext items and `useSortable({ id: section.localId })`. Never pass `section.db_id` to any sortable primitive. The type check in `handleDragEnd` uses `active.data.current?.type` not the ID value itself.
+Continue the dual-query merge pattern used throughout the existing codebase. Read from each DB separately and merge in TypeScript. For Army Lists 2.0 detachment display: store `detachment_id TEXT` in `army_lists` (hobbyforge.db), fetch the detachment name from `rw_detachments` via a separate `getRulesDb()` select, then merge by ID in the hook before returning. The `weapon_name as TEXT copy in unit_loadout_wargear` precedent in PROJECT.md Key Decisions is the canonical example of this pattern.
 
 **Warning signs:**
-- `SortableContext items={sections.map(s => s.id)}` where `id` is the database integer.
-- `useSortable({ id: step.id })` where `id` is `number` type.
-- Dragging a step of order index 2 moves the second section instead — classic integer namespace collision.
+- Any SQL string containing `ATTACH`, `DETACH`, or referencing two different database filenames
+- A query function that calls both `getDb()` and `getRulesDb()` and passes data from one as a parameter to the other within the same SQL string
+- A JOIN that references an `rw_` prefixed table inside a `getDb()` context
 
 **Phase to address:**
-Phase 3 (Form UI). Establish the `localId` convention in `DraftSection` type in `recipeSteps.ts` before writing any drag code. Unit test: create 3 sections each with 3 steps; verify all 12 sortable IDs are unique strings.
+Army Lists 2.0 schema design phase. Establish `detachment_id TEXT` on `army_lists` and document the dual-query merge contract in the query file comment before any UI work.
 
 ---
 
-### Pitfall 3: Migration 018 Uses ON DELETE CASCADE on section_id Without Verifying painting_sessions Referential Behavior
+### Pitfall 3: Breaking the 3-Level COALESCE Points Chain
 
 **What goes wrong:**
-The proposed migration adds `recipe_steps.section_id INTEGER REFERENCES recipe_sections(id) ON DELETE CASCADE`. This means deleting a section cascades to delete all its steps. That is intentional. However, `painting_sessions.recipe_step_id` references `recipe_steps(id)` with `ON DELETE SET NULL` (migration 014). If a user deletes a section — which cascades and deletes the contained steps — SQLite must cascade the FK on `recipe_steps` (delete the step rows) AND simultaneously set `painting_sessions.recipe_step_id = NULL` for any sessions that referenced those steps. SQLite handles this with PRAGMA foreign_keys = ON, but only if the connection has FK enforcement active. The app's `client.ts` runs `PRAGMA foreign_keys = ON` on every new connection — but only on `hobbyforge.db`. If FK enforcement is somehow OFF at the time of the cascade (e.g., in a test environment using a bare SQLite mock), the session rows retain stale `recipe_step_id` values pointing to deleted steps, which silently corrupts session data.
+Army Lists 2.0 adds detachment selection and the developer, believing detachments could affect unit costs, adds a fourth level to the COALESCE chain in `getArmyListWithUnits` but forgets to update `getArmyListReadiness`. The two query functions now disagree on what `effective_points` means. The ArmyListSummaryBar and ArmyReadinessCard show different totals for the same list. The bug is silent — both functions succeed, the values just differ.
 
 **Why it happens:**
-Multi-level cascade chains (section → step → session) are easy to miss because the intermediate table (recipe_steps) appears safe to delete — the cascade appears to only go one level down. The second-order FK on painting_sessions is in a different table that isn't obvious to the developer working on recipe sections.
+The COALESCE chain (`alu.points_override → uo.points → u.points → 0`) is duplicated verbatim in two separate query functions in `armyLists.ts`. There is no shared SQL constant for the expression. Modifying one without the other is a straightforward oversight since nothing enforces consistency between them.
 
 **How to avoid:**
-- Verify `PRAGMA foreign_keys = ON` is active before the section delete in all test paths, not just production.
-- Write a test specifically for the cascade chain: create a section with 2 steps, log sessions linked to those steps, delete the section, assert: steps deleted, session `recipe_step_id` IS NULL.
-- The migration SQL itself is correct — no change needed. The risk is in testing, not production code (since `client.ts` always enables FKs).
+In 40K 10th edition, detachments do not modify individual unit point costs — they unlock stratagems and abilities. Do not add a fourth COALESCE level for detachment cost adjustments. If future rules require it, extract the COALESCE expression into a named SQL fragment or a SQL view, then reference it from both query functions. Update both sites atomically in a single commit and add a code comment at each site: "If you add a COALESCE level here, update the matching expression in [other function name]."
 
 **Warning signs:**
-- Test files mock `getDb()` without running `PRAGMA foreign_keys = ON` on the mock connection.
-- After deleting a section in a test, `getRecipePaintsByRecipe()` still returns the section's steps.
-- Session history in RecipeDetailSheet shows sessions with a step reference that no longer exists.
+- `getArmyListWithUnits` and `getArmyListReadiness` showing different total points for the same army list
+- A COALESCE chain that differs between the two functions
+- Tests for army list total points that cover only one of the two functions
 
 **Phase to address:**
-Phase 1 (Schema + data layer). The FK chain test must be in the migration tests before any UI work builds on top.
+Army Lists 2.0 — any phase that modifies `armyLists.ts`. Code review checklist: both COALESCE expressions must match.
 
 ---
 
-### Pitfall 4: duplicateRecipe Does Not Copy Sections — Duplicated Recipe Is Structurally Broken
+### Pitfall 4: Missing staleTime: Infinity or Sync Invalidation for New Rules Hooks
 
 **What goes wrong:**
-The current `duplicateRecipe()` in `recipes.ts` copies all 21 recipe fields and all steps. After adding sections, steps have a `section_id` FK. When `duplicateRecipe` runs, it:
-1. Creates a new recipe row (new ID).
-2. Copies steps from the old recipe — but the copied steps still reference the **original recipe's** section IDs.
-
-The result is a duplicated recipe whose steps reference sections belonging to a different recipe. The steps appear in the detail view grouped under another recipe's sections (if those sections still exist), or appear with a NULL section (if sections are from a recipe the user later deleted). The duplication succeeds with no error, but the structural integrity is silently broken.
+Two failure modes occur in combination. First, a new rules hook for the Rules Browser or Game Day Mode is written without `staleTime: Infinity` — the default 5-minute staleTime from QueryProvider triggers a background refetch during a game session, causing a jarring rerender. Second, the new hook's query key is not added to `useRulesSync`'s `onSuccess` invalidation block — after the user syncs, the browser or game day panel continues showing pre-sync data until the app is restarted.
 
 **Why it happens:**
-The copy loop in `duplicateRecipe` only needs to add one column (`section_id`) to each copied step row, but section_id values are not portable — they reference source-recipe-specific section rows. This is easy to overlook when extending the copy loop to include the new column.
+`staleTime: Infinity` is the correct setting for rules data (static until explicit sync) but it is not the QueryProvider default. Each new hook must opt in. The sync invalidation block in `useRulesSync` is a manual list that must be updated every time a new rules hook is introduced — there is no automated mechanism to enforce this.
 
 **How to avoid:**
-Extend `duplicateRecipe` to follow the three-step sequence: copy recipe → copy sections (with new `recipe_id`, record old-id → new-id mapping) → copy steps (with new `recipe_id` and remapped `section_id`):
-
-```typescript
-// pseudocode
-const sectionIdMap = new Map<number, number>(); // old section id → new section id
-for (const section of originalSections) {
-  const newSectionId = await createRecipeSection({ ...section, recipe_id: newRecipeId });
-  sectionIdMap.set(section.id, newSectionId);
-}
-for (const step of originalSteps) {
-  await addRecipePaint({
-    ...step,
-    recipe_id: newRecipeId,
-    section_id: step.section_id !== null ? (sectionIdMap.get(step.section_id) ?? null) : null,
-  });
-}
-```
+Every hook that reads from rules.db must set `staleTime: Infinity`. New query keys must be added to the `useRulesSync` `onSuccess` invalidation list at the same time the hook is created (same PR, same commit). Treat the invalidation list as a required checklist item in every phase's success criteria.
 
 **Warning signs:**
-- `duplicateRecipe` copies steps in a loop that includes a `section_id` column but does not build a section mapping first.
-- After duplicating, opening the new recipe's detail shows steps grouped under the original recipe's sections (check: detail sheet shows section names from a recipe with a different ID).
-- Deleting the original recipe after duplication removes the duplicated recipe's step groupings.
+- A `useQuery` against `getRulesDb()` without `staleTime: Infinity` in its options
+- A new query key constant for rules data that does not appear in `useRulesSync`'s invalidation block
+- The Rules Browser or Game Day panel showing old data immediately after a successful sync
 
 **Phase to address:**
-Phase 4 (Polish + regression). The duplication fix must be the first item of Phase 4. Add an acceptance test: duplicate a 2-section recipe, delete the original, verify the copy still renders sections correctly.
+Rules Data Hub UI phase (first to introduce new rules hooks) and every subsequent phase that adds a rules-reading hook.
 
 ---
 
-### Pitfall 5: Batch SQL Helpers Silently Return Incorrect Counts for Sectioned Recipes
+### Pitfall 5: Bypassing the Wahapedia Faction ID Translation
 
 **What goes wrong:**
-`getStepCountsByRecipe()` (GROUP BY recipe_id) and `getRecipePaintAvailability()` (GROUP BY recipe_id) are unaffected by the section schema change at the SQL level — they still return correct per-recipe totals. However, if a new `getStepCountsBySection()` helper is introduced for section-level counts in RecipeSectionCard, and a step is saved without a section_id (section_id IS NULL — allowed by the nullable FK), that step is excluded from `getStepCountsBySection()` but included in `getStepCountsByRecipe()`. The section card shows "0 steps" while the recipe card shows "4 steps." Users see inconsistent counts with no explanation. This is not a bug in the existing helpers — it is a silent data inconsistency.
+The Rules Browser or Game Day Mode filters stratagems and detachments by the user's active faction. The developer passes `faction.id` (HobbyForge integer PK from hobbyforge.db) or `faction.name` directly to `getStratagemsByFaction`. Wahapedia faction IDs are opaque TEXT strings (e.g., `"SM"` for Space Marines) that do not match either. The query returns an empty array with no error — the empty list looks like "no data synced."
 
 **Why it happens:**
-The migration sets existing steps to a default section, so the inconsistency cannot happen for migrated data. It can happen in new code paths: if `addRecipePaint` is called without a `section_id` (e.g., from LogSessionSheet or a future API that doesn't set section context), the step is sectionless. Because `section_id` is nullable (backward compat requirement), the column accepts NULL silently.
+The `useWahapediaFactionId(faction.name)` lookup hook is only called in `PlaybookTab` and is easy to overlook when building independent pages. There is no type-level enforcement preventing an integer from being passed as the `factionId: string` parameter — TypeScript accepts `String(faction.id)` which produces `"1"` rather than `"SM"`.
 
 **How to avoid:**
-- In `addRecipePaint`, assert `section_id` is always provided when creating steps in a sectioned recipe context. The default section is guaranteed to exist after migration 018 — always pass its id.
-- `getStepCountsBySection()` should use a `WHERE section_id IS NOT NULL` guard and log a warning if `getStepCountsByRecipe()` total exceeds the sum of section step counts for any recipe (indicates orphaned steps).
-- In RecipeFormSheet's submit path: before inserting steps, verify `section_id != null` for all steps in the sectioned form. If null, assign to the default section.
+`useWahapediaFactionId` must be the single source of truth for the HobbyForge-name → Wahapedia-ID translation. For every new context that needs rules.db faction-filtered data (Rules Browser page, Game Day header, any future rules feature), call `useWahapediaFactionId(faction.name)` and pass the resulting string to rules hooks. Document this requirement at the top of `rulesExtended.ts`.
 
 **Warning signs:**
-- Recipe card shows "7 steps" but section cards within the recipe detail total 6 — one step has `section_id IS NULL`.
-- A step appears in the recipe timeline but not in any section group.
-- `getStepCountsBySection()` sum < `getStepCountsByRecipe()` count for the same recipe_id.
+- Stratagems or detachments sections rendering empty even after a sync that reports non-zero stratagem/detachment row counts
+- A query function receiving a numeric faction ID (integer) rather than a Wahapedia string ID
+- A new hook typed as `factionId: number` rather than `factionId: string`
 
 **Phase to address:**
-Phase 1 (Schema + data layer) for the helper design. Phase 3 (Form UI) for the submit path assertion. Add a query-level test: insert a step with section_id NULL, call both helpers, assert and document the discrepancy.
+Rules Data Hub UI phase (first phase to surface a standalone rules browser). Establish `useWahapediaFactionId` as a documented shared lookup, not a PlaybookTab-internal detail.
 
 ---
 
-### Pitfall 6: DraftSection State in RecipeFormSheet Desynchronizes With existingSteps on Edit Re-open
+### Pitfall 6: User Notes on Rules with No Orphan Handling After Sync
 
 **What goes wrong:**
-The existing `RecipeFormSheet` initializes `DraftStep[]` from `existingSteps` in a `useEffect` keyed on `[recipe?.id, existingSteps.length]`. After adding sections, the form must initialize `DraftSection[]` (each with its own `DraftStep[]`). If the initialization logic is not atomic — i.e., sections and their steps are loaded in separate effects or separate queries — the form can briefly show sections with empty step arrays (steps not yet loaded), and any user action during that window (typing a section name, adding a step) commits against an incomplete draft state. When the second effect fires and repopulates steps, it overwrites the user's changes.
+The user saves a personal note on a stratagem (`stratagem_id = "SM-STR-001"`). Wahapedia re-releases data and that stratagem is renamed or removed. At the next sync, `rw_stratagems` no longer has that ID. The user note in hobbyforge.db has a `stratagem_id TEXT NOT NULL` column pointing at a now-absent ID. The UI joins to rules.db to get the stratagem name and gets NULL. The note silently disappears from view or triggers a display error.
 
 **Why it happens:**
-Sections and steps require two queries (`useRecipeSections(recipe?.id)` and `useRecipePaints(recipe?.id)`). Both are async. React renders between them. The initialization effect fires when `existingSteps.length` changes, but if sections have already been used to initialize DraftSection state, the second effect replaces those DraftSections wholesale.
+Cross-DB orphan detection is impossible via SQLite FK constraints — the TEXT ID in hobbyforge.db references a row in rules.db, but SQLite can only enforce FKs within the same database. This is the same structural problem that motivated storing `weapon_name TEXT` as a copy in `unit_loadout_wargear`. Without the copy, the UI has no display data when the rules.db row vanishes.
 
 **How to avoid:**
-Initialize draft sections and steps in a single `useEffect` that depends on both data sources being ready:
-
-```typescript
-useEffect(() => {
-  if (!recipe) { setDraftSections([]); return; }
-  // Wait for BOTH to resolve before initializing
-  if (existingSections.length === 0 && existingSteps.length === 0) return;
-  setDraftSections(buildDraftSections(existingSections, existingSteps));
-}, [recipe?.id, existingSections.length, existingSteps.length]);
-```
-
-`buildDraftSections` is a pure function that takes both arrays and produces the nested draft structure — test it independently. Never have two separate effects that each call `setDraftSections`.
+For all rules-linked user data (notes, favorites, reminders), store both the `rule_id TEXT` (for re-association after sync) and a `rule_name TEXT` copy (for display even when the rule no longer exists in rules.db). In the UI, detect orphan state by checking whether the rules.db row still exists and show a "This rule was removed in the last sync" indicator rather than hiding the note silently.
 
 **Warning signs:**
-- Opening a recipe for edit briefly shows sections with "0 steps" before steps appear.
-- Rapidly opening and closing the form for the same recipe causes inconsistent step counts.
-- `setDraftSections` is called in more than one `useEffect` in `RecipeFormSheet`.
+- A user-note or favorite table schema with `stratagem_id TEXT NOT NULL` but no `stratagem_name TEXT` copy column
+- A component that JOINs to rules.db for the name display without a fallback when the join returns NULL
+- User notes or favorites silently disappearing from the UI after a sync that removes a stratagem or detachment
 
 **Phase to address:**
-Phase 3 (Form UI). Write the `buildDraftSections` pure function with tests before wiring it into the component.
+Playbook enhancements phase (user notes on rules). The schema must include `rule_name TEXT` as a denormalized copy from the start — retrofitting this requires a migration and data backfill.
 
 ---
 
-### Pitfall 7: Cache Invalidation Asymmetry — Section Mutations Miss Step Count and Availability Keys
+### Pitfall 7: Game Day Checklist State Treated as Component State
 
 **What goes wrong:**
-The codebase enforces the cache invalidation symmetry rule: "if useCreate invalidates a key, useDelete must too." Adding `useRecipeSections` introduces a new mutation surface. When a section is deleted (which cascades to delete its steps), the following keys become stale:
-- `["recipe-sections", recipeId]` — obvious, developers will invalidate this
-- `["recipe-paints", recipeId]` — steps were deleted, must refetch
-- `["recipe-step-counts"]` — step counts changed
-- `["recipe-paint-availability"]` — availability ratios changed
-- `["recipe-swatch-colors"]` — swatch strip colors changed
-
-Developers writing `useDeleteRecipeSection` will think to invalidate sections. They will likely miss the 4 step-derived keys because those keys live in `useRecipePaints.ts`, not in `useRecipeSections.ts`. The sections hook and the paints hook are in different files. The RecipesPage swatch strips and step count badges go stale after a section delete with no visual feedback.
+Game Day Mode has per-unit or per-phase checklists (mark stratagem as used, check reminder, confirm unit deployed). The developer stores checklist state in React `useState`. The user opens Game Day, ticks several boxes, switches to Army Lists to verify points, navigates back to Game Day — all state is gone because the Sheet or page component unmounted. The user must manually re-check completed items mid-game.
 
 **Why it happens:**
-The step-derived cache keys (`STEP_COUNTS_KEY`, `RECIPE_AVAILABILITY_KEY`, `RECIPE_SWATCH_KEY`, `RECIPE_PAINTS_KEY(recipeId)`) were designed around direct step mutations. A section mutation that causes step deletion is an indirect mutation — the connection to step caches is non-obvious from the sections hook's perspective.
+Game Day checklists feel "temporary for a game session" so the developer reaches for `useState`. The Sheets-based navigation throughout the app means components unmount freely when the user switches context. For all prior features the project correctly uses React Query for persisted state and Zustand for ephemeral-but-navigation-stable state — but Game Day is new enough that the pattern choice is not obvious.
 
 **How to avoid:**
-Export the step-derived keys from `useRecipePaints.ts` (they already are: `STEP_COUNTS_KEY`, `RECIPE_AVAILABILITY_KEY`, `RECIPE_SWATCH_KEY`, `RECIPE_PAINTS_KEY`) and import them in `useRecipeSections.ts`. The `useDeleteRecipeSection` mutation's `onSuccess` must invalidate all five keys:
-
-```typescript
-// In useRecipeSections.ts — useDeleteRecipeSection onSuccess
-qc.invalidateQueries({ queryKey: RECIPE_SECTIONS_KEY(variables.recipeId) });
-qc.invalidateQueries({ queryKey: RECIPE_PAINTS_KEY(variables.recipeId) });
-qc.invalidateQueries({ queryKey: STEP_COUNTS_KEY });
-qc.invalidateQueries({ queryKey: RECIPE_AVAILABILITY_KEY });
-qc.invalidateQueries({ queryKey: RECIPE_SWATCH_KEY });
-```
-
-Add a comment block at the top of `useRecipeSections.ts` mirroring the contract pattern from `useRulesSync.ts`:
-```typescript
-// ── Section mutation invalidation contract ────────────────────────────────
-// Section deletes cascade to step deletes. Any hook reading step-derived
-// data MUST be invalidated by useDeleteRecipeSection.
-// Keys: RECIPE_SECTIONS_KEY, RECIPE_PAINTS_KEY, STEP_COUNTS_KEY,
-//       RECIPE_AVAILABILITY_KEY, RECIPE_SWATCH_KEY
-```
+Game Day checklist state that must survive navigation must live in a Zustand store (persisted for the session, reset on app close) or in a `game_day_sessions` table in hobbyforge.db (persisted across restarts). The choice depends on whether the user would want to resume a game session after closing the app. Define this contract before writing any UI. If Zustand: document explicitly that state resets on app restart. If SQLite: add a migration in the schema phase.
 
 **Warning signs:**
-- After deleting a section, the recipe card on RecipesPage still shows the old step count.
-- The availability badge (owned/missing) on a recipe card does not update after a section delete.
-- `useDeleteRecipeSection.onSuccess` has fewer `invalidateQueries` calls than `useRemoveRecipePaint.onSuccess`.
+- Checklist tick state stored in `useState` within a Sheet or page component
+- A large `useState` object tracking N per-unit ability checkboxes
+- No Zustand store or migration added for game session state despite any requirement that the session should survive navigation
 
 **Phase to address:**
-Phase 1 (Schema + data layer). Define the `useRecipeSections` hook with all 5 invalidations before any UI consumes it. Verify with a test: delete a section, assert step counts query returns updated value without page refresh.
+Game Day Mode architecture phase. The checklist persistence contract (Zustand vs SQLite) must be decided and documented before any UI work begins.
 
 ---
 
-### Pitfall 8: Collapsible Sections Make Simple Recipe Forms Feel Like Overhead
+### Pitfall 8: Army List Detachment Selection Not Validated After Sync
 
 **What goes wrong:**
-If the section concept is always visible — every new recipe immediately shows a "Section 1" card header, collapse toggle, section name field, and surface dropdown — users creating simple one-surface recipes feel they are wrestling with unnecessary structure. The form becomes 20% taller and more cognitive load than the v2.5 form. The product principle "creating a simple one-section recipe must be just as easy as today" is violated. Users with existing simple recipes (all steps in one area) open the edit form and see their steps now wrapped in a labeled section card with a new name field they never asked for.
+An army list stores `detachment_id TEXT` referencing a row in `rw_detachments`. After the next sync, Wahapedia renames or removes that detachment. The `army_lists.detachment_id` still holds the old ID. No stale-data warning is shown. The user opens Game Day Mode and receives stratagems filtered to a detachment that no longer exists — or receives all faction stratagems because the filter returns no match.
 
 **Why it happens:**
-The section layer is genuinely useful for complex recipes but adds no value for a recipe with one surface and 4 steps. The default section migration automatically groups all existing steps into one section — correct for data integrity but potentially confusing in the UI.
+The existing stale-data warning system (sync diff, freshness badge, PlaybookTab "last synced") operates at the unit-datasheet level and has no concept of army list detachment references. The sync pipeline does not know to check `army_lists.detachment_id` values against the current `rw_detachments` table. This is a new dependency surface with no prior analog in the codebase.
 
 **How to avoid:**
-- Auto-collapse the section header UI for recipes with exactly one section. Show steps directly without a visible section card wrapper. The section still exists in the data model; the UI just doesn't emphasize it.
-- Only show the section name field and surface selector when the recipe has more than one section, or when the user explicitly clicks "Add Section."
-- The "Add Section" button is the gateway to the multi-section workflow. A recipe starts with an implicit section — only adding a second section reveals the section-level UI.
-- Section name and surface fields on the single default section should be optional and collapsed by default.
+Post-sync validation: after each successful sync, run a dual-query comparison (fetch `army_lists.detachment_id` values from hobbyforge.db, fetch current `rw_detachments.id` values from rules.db, compare in TypeScript). Surface any non-matching IDs as warnings in the Army Lists page detail sheet. Store `detachment_name TEXT` alongside `detachment_id` so the old name can be shown in the warning even after the row is gone from rules.db.
 
 **Warning signs:**
-- Every new recipe immediately renders a visible "Section 1" card with a text field asking for a section name.
-- The form height for a simple 3-step recipe is noticeably taller after the v0.2.7 migration than before.
-- User needs to interact with a section UI element before adding the first step.
+- `army_lists.detachment_id` contains a value but no matching row exists in `rw_detachments`
+- Game Day stratagem filter produces an empty list for a list that has a detachment selected
+- No validation step runs after `useRulesSync` completes
 
 **Phase to address:**
-Phase 3 (Form UI). Establish the progressive disclosure rule before building RecipeSectionCard: "section scaffolding is hidden when recipe has exactly one section." Phase 2's read-only detail view should also apply this — single-section recipes look identical to v2.5's detail view.
+Army Lists 2.0 detachment selection phase (store the name copy) and the Rules Data Hub UI or sync hardening phase (add post-sync validation).
 
 ---
 
-### Pitfall 9: Section Order Index Drift After Insert/Delete Operations
+### Pitfall 9: Rules Browser Framing Implies Official GW Content
 
 **What goes wrong:**
-`order_index` values for sections become non-contiguous after inserts and deletes. If sections start as [0, 1, 2] and the middle section is deleted, the remaining sections are [0, 2]. Adding a new section with `order_index = sections.length` produces [0, 2, 2] — a duplicate order value. The reorder query sorts by `order_index ASC`, so two sections with `order_index = 2` have non-deterministic display order. The drag-reorder `reorderRecipeSections` batch UPDATE normalizes order_index from 0 to N-1 — but only when the user actually drags. A user who never drags sections (just adds and deletes) accumulates order_index drift permanently.
-
-This is the same pattern that caused problems in the existing step ordering before `computeOrderIndex()` was introduced in v2.5.
+The Rules Data Hub UI presents a page titled "Warhammer 40K Rules" or renders detachments and stratagems under a "Rules" heading without attribution. The framing implies the app bundles or distributes official GW content. GW's IP policy prohibits reproducing codex data. Even though data is fetched from Wahapedia by the user's own manual action, presenting it as authoritative rules without clear attribution creates copyright and trademark risk.
 
 **Why it happens:**
-Integer position columns naturally drift when items are inserted or deleted without renumbering. The section table will be managed with explicit INSERT/DELETE operations (not array replacement like draft steps), so there is no automatic normalization step on every save.
+The UX instinct is to name things clearly. "Rules Browser" and "Warhammer 40K Rules" are the most descriptive names. The legal constraint is explicit in PROJECT.md but does not surface during day-to-day component development.
 
 **How to avoid:**
-Apply `computeOrderIndex` to sections at the point of persistence, mirroring the step pattern:
-- On save (RecipeFormSheet submit), normalize all section `order_index` values to their array position before writing to DB — same as `computeOrderIndex(steps)` today.
-- On add-section: append with `order_index = sections.length` (current array length after insertion) — always contiguous if array is the source of truth.
-- On delete-section: remove from draft array and renumber on next save — never DELETE + UPDATE order_index separately in two queries.
-
-Alternatively, manage sections as a `DraftSection[]` array (same as DraftStep[] today) and write all sections in a delete-all + re-insert pattern on form save, which guarantees correct order_index on every save.
+Frame all content as "community-sourced data synced from Wahapedia" with a persistent attribution note visible in the UI. Use neutral labels ("Faction Rules," "Detachments," "Stratagems") rather than GW trademark names as section headers for rules content. Keep the sync trigger entirely user-initiated — no auto-fetch on startup, on a timer, or on Game Day open. Never display point values presented as GW-authoritative (points are user-entered or override-based).
 
 **Warning signs:**
-- `SELECT * FROM recipe_sections WHERE recipe_id = $1 ORDER BY order_index ASC` returns sections in wrong visual order after an insert without a drag operation.
-- Two sections have the same `order_index` value for the same recipe.
-- A freshly added section appears between existing sections instead of at the bottom.
+- A page or section header saying "Warhammer 40K Rules," "Official Datasheets," or "GW Rules"
+- An auto-sync call in `useEffect` on app start or Game Day mount
+- No Wahapedia attribution visible in the Rules Browser UI
+- Points values displayed as "from codex" or "official"
 
 **Phase to address:**
-Phase 1 (Schema + data layer) for `reorderRecipeSections` design. Phase 3 (Form UI) for section state management. Test: add section, delete section, add section again; assert `order_index` values are [0, 1], not [0, 2] or [0, 0].
+Rules Data Hub UI phase. Copyright framing review must be a named success criterion in that phase's checklist.
+
+---
+
+### Pitfall 10: N+1 Queries in Rules Browser or Game Day Ability Display
+
+**What goes wrong:**
+The Rules Browser renders all stratagems for a faction and for each stratagem fetches its detachment name to display a detachment badge. Game Day ability panel renders all units in the army list and for each unit calls a separate `useQuery` to fetch that unit's abilities. With 80 stratagems or 15 units, the app executes 80 or 15 sequential DB queries on page open. The UI renders noticeably slowly, React Query Devtools shows dozens of simultaneous queries.
+
+**Why it happens:**
+The existing per-entity hook pattern (`useDetachmentAbilitiesByDetachment` called inside `DetachmentSection`) is correct for PlaybookTab's narrow context (one unit, one detachment at a time). Applied to a full list context — all stratagems, all units — the same pattern generates N queries. The N+1 pattern is not visible from the hook signature and existing components do not demonstrate the list-context version.
+
+**How to avoid:**
+For list-level displays, write batch queries (single SELECT with `WHERE id IN (...)` or `GROUP BY`) that return all needed data in one round trip. The existing precedents are `getArmyListReadiness` (batch readiness for multiple lists in one query) and the batch `getBatchStepCounts` pattern for recipe sections. For the Rules Browser: a single `getAllStratagemsByFaction` query. For Game Day units: either a batch abilities query or `Promise.all` for parallel (not sequential) fetches.
+
+**Warning signs:**
+- A `useQuery` hook called inside a `.map()` over a list (also violates Rules of Hooks if not wrapped in a proper component boundary)
+- React Query Devtools showing N queries loading simultaneously when the Rules Browser or Game Day panel mounts
+- UI noticeably slow to populate when the army list has more than 10 units or a faction has more than 20 stratagems
+
+**Phase to address:**
+Rules Data Hub UI phase (stratagems/detachment browser) and Game Day Mode phase (unit ability display). Query count must be part of each phase's success criteria.
 
 ---
 
@@ -304,13 +223,12 @@ Phase 1 (Schema + data layer) for `reorderRecipeSections` design. Phase 3 (Form 
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Inner DndContext per section card for step reorder | Keeps RecipeStepList unchanged | Section drag events never reach outer context; cross-section step moves impossible | Never — must use single DndContext |
-| Use database `id` as useSortable identifier for sections | No localId plumbing needed | Integer namespace collision with step IDs in single DndContext | Never — use localId (UUID) consistently |
-| duplicateRecipe copies steps with original section_id | Simpler loop, one fewer query | Copied recipe's steps reference source recipe's sections; structural corruption on source delete | Never |
-| Skip initializing DraftSection from existingSteps atomically | Simpler code, one effect per query | Two-phase initialization causes stale draft state on rapid re-open | Never |
-| Only invalidate `RECIPE_SECTIONS_KEY` in useDeleteRecipeSection | Less code to write | Step count, availability, swatch caches go stale after section delete | Never — all 5 keys required |
-| Always show section card UI regardless of section count | No conditional render logic needed | Simple recipes feel heavier; violates product principle | Only acceptable as temporary spike/prototype — never ship |
-| INSERT new section with `order_index = MAX(order_index) + 1` | Contiguous if no deletes | Gaps accumulate after deletes; two sections get same order_index | Never — use array position as source of truth |
+| Store `detachment_id` only, no name copy | Simpler schema (one column) | Orphan display breaks silently after sync removes detachment | Never — always store name copy alongside the TEXT ID |
+| useState for game day checklist | No migration needed | State lost on Sheet close or app restart | Only if checklist is explicitly documented as single-screen ephemeral with no resume requirement |
+| Show all faction stratagems without detachment filter | Faster to build the list | Unusable at the table — 80+ stratagems with no context for the selected detachment | Never for Game Day mode; acceptable for a "browse all" reference view |
+| Filter stratagems by detachment in JavaScript | No additional query | Re-runs on every render; wastes bandwidth for large stratagem sets | Never — filter with `WHERE detachment_id = $1` in SQL |
+| Hardcode Wahapedia faction IDs ("SM", "CSM") | Quick fix for Space Marines | Breaks for any faction not in the hardcoded list; not maintainable | Never — use `useWahapediaFactionId` for all faction lookups |
+| Invalidate all React Query keys after sync | Simplest invalidation logic | Forces refetch of all hobby data (collections, recipes, army lists) that did not change | Acceptable as a temporary shortcut; refine to rules-only keys in the same phase |
 
 ---
 
@@ -318,13 +236,14 @@ Phase 1 (Schema + data layer) for `reorderRecipeSections` design. Phase 3 (Form 
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| @dnd-kit nested DndContext | Two DndContexts (section + step level) | Single DndContext at RecipeSectionList level; multiple SortableContexts inside |
-| @dnd-kit useSortable ids with sections + steps | Pass `section.db_id` or `step.id` (integers) | Pass `section.localId` and `step.localId` (UUID strings) — always unique across entity types |
-| RecipeStepList currently owns DndContext | Reuse RecipeStepList unchanged when adding sections | Strip DndContext out of RecipeStepList; it becomes SortableContext only; DndContext moves up one level |
-| duplicateRecipe adding section_id to step copy loop | Copy section_id as-is from original step | Build old-id → new-id map for sections first, remap step.section_id during copy |
-| LogSessionSheet step selector after sections | Step selector queries all steps for a recipe — still works via `getRecipePaintsByRecipe` | No change needed in Phase 1–4; the step list is flat in LogSessionSheet which is correct |
-| migration 018 CASCADE chain | Write section delete test without FK enforcement | Always run `PRAGMA foreign_keys = ON` in test setup; verify sessions.recipe_step_id → NULL after cascaded step delete |
-| `getStepCountsBySection()` new helper | Returns 0 for steps where section_id IS NULL | Warn/assert in submit path that all steps have section_id; document the discrepancy |
+| Detachment → Army List | Store `detachment_id` as a FK-referencing rules.db | Store `detachment_id TEXT` + `detachment_name TEXT` copy in `army_lists` (hobbyforge.db) |
+| Stratagem favorites / user notes | Write to `rw_stratagems` or a new table in rules.db | New hobbyforge.db table with `stratagem_id TEXT` + `stratagem_name TEXT` copy columns |
+| Game Day stratagems by phase | Derive grouping in JSX inline | Reuse the `stratagemsByPhase` Map memo pattern from PlaybookTab; do not duplicate the grouping logic |
+| Post-sync cache invalidation | Omit new hook key from `useRulesSync` invalidation list | Audit every new `useQuery` against rules.db and add its key to the sync invalidation block in the same commit |
+| Points in Game Day or Army Lists 2.0 | Show raw `u.points` from rules import as authoritative | Only show `effective_points` (3-level COALESCE result) — never raw Wahapedia-sourced points |
+| Rules Browser faction filter | Pass HobbyForge `faction.id` integer to rules queries | Always translate via `useWahapediaFactionId(faction.name)` first to get the Wahapedia string ID |
+| Sync trigger from Game Day | Auto-sync on Game Day open to guarantee fresh data | Never auto-sync — user-triggered only; show freshness badge + manual sync button |
+| Detachment stratagems | Show all faction stratagems in Game Day | Filter by `RwStratagem.detachment_id` when a detachment is selected on the army list |
 
 ---
 
@@ -332,10 +251,10 @@ Phase 1 (Schema + data layer) for `reorderRecipeSections` design. Phase 3 (Form 
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| N+1 section queries in RecipeDetailSheet | Detail sheet slow to open for recipes with many sections | Add `getSectionCountsByRecipe()` GROUP BY helper (same pattern as step counts) if RecipesPage needs per-recipe section counts | Noticeable at 20+ recipes in RecipesPage |
-| Batch step helpers broken by section filter | Adding `WHERE section_id IS NOT NULL` to `getStepCountsByRecipe` changes semantics for existing callers | Do not modify `getStepCountsByRecipe` — add a separate `getStepCountsBySection` helper instead | Immediately if existing callers break |
-| DraftSection array with deeply nested DraftStep arrays causes full re-render on any step change | Any keystroke in any step rerenders all section cards | Use `useCallback` for per-section `onChange` handlers; `React.memo` on RecipeStepRow | Noticeable at 4+ sections with 8+ steps each |
-| Two async queries (sections + steps) for RecipeFormSheet edit mode cause flash of empty state | Edit form opens showing empty sections while steps load | Show loading state until both queries resolve; initialize draft only when both ready | On every edit form open |
+| N+1 detachment ability fetches | Game Day slow to open; React Query Devtools shows 10–40 sequential queries | Batch queries with `IN (...)` or `GROUP BY`; parallel `Promise.all` as fallback | Any army list with more than 5 units or 3 detachments |
+| Rendering all faction stratagems unfiltered | Rules Browser laggy scroll; 80+ React nodes visible at once | Filter by `detachment_id` or `phase` in SQL; virtualize long lists | Factions with more than 30 stratagems (Space Marines, Chaos Space Marines) |
+| Missing `staleTime: Infinity` on rules hooks | Background refetch triggers mid-game rerender | Set `staleTime: Infinity` on every `useQuery` against `getRulesDb()` | Immediately visible after the default 5-minute staleTime expires |
+| Snapshot capture adding latency to sync | Extra 200–500ms per sync as 11 tables are read sequentially before bulk insert | Do not add more sequential reads to the snapshot path; keep snapshot table count stable | Only noticeable if snapshot tables increase beyond current 11 |
 
 ---
 
@@ -343,26 +262,26 @@ Phase 1 (Schema + data layer) for `reorderRecipeSections` design. Phase 3 (Form 
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Section UI always visible even for one-section recipes | Simple recipes feel harder to create and edit | Collapse section scaffolding for single-section recipes; only show when user adds a second section |
-| Collapsing a section while editing loses unsaved changes inside it | User collapses accidentally, steps "disappear", panic | Collapsed sections still exist in draft state; collapse is cosmetic only, never destroys draft data |
-| Section names required as non-empty before save | User must name every section to save, even the default one | Default section name ("General" or derived from recipe.area) applied automatically; section name field is optional |
-| Move step between sections via drag (cross-section drag) built in v1 | Complex implementation; easy to introduce bugs with single DndContext | Explicitly out of scope for v0.2.7 per milestone doc; if cross-section drag is needed later, add it as a dedicated phase |
-| Section reorder drag handles too close to step drag handles | User triggers wrong drag tier accidentally | Section drag handle is on the section card header; step drag handle is on the step row left edge; give each tier a visually distinct drag affordance and sufficient hit area |
-| "Delete section" also deletes steps without warning | User accidentally loses 6 steps | Show confirmation: "Delete section and its N steps?" with step count from `getStepCountsBySection` |
+| Rules Browser with no "sync required" empty state | User opens rules browser before first sync, sees a blank list with no explanation | Show "Sync community data to see rules" empty state with a sync button — same pattern as PlaybookTab `!syncMeta` banner |
+| Game Day showing all faction stratagems instead of detachment-filtered | User must scroll through 80+ stratagems to find the 10–15 relevant to their detachment | Filter stratagems by `detachment_id` when a detachment is selected; show all only in a "browse" mode |
+| Stale detachment warning with no acknowledgement | Warning badge persists after user intentionally keeps old detachment selection | Allow user to dismiss/acknowledge the stale warning; persist the acknowledgement in hobbyforge.db |
+| Favorites or notes gated behind unit-datasheet linkage | User wants to favorite a stratagem from the Rules Browser but has not linked any unit | Favorites must be accessible from the Rules Browser directly, not gated by unit datasheet state |
+| Game Day checklist resetting on Sheet close | User navigating away to check a unit's stats loses all in-game checklist progress | Persist game session state in Zustand store (not component state) so it survives Sheet unmount |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Migration cascade test:** Create section with 2 steps + sessions linked to those steps; delete section; assert steps gone AND session.recipe_step_id IS NULL (not just section gone)
-- [ ] **Duplicate recipe sections:** Duplicate a 2-section recipe; delete the original; open the copy; assert section names and step groupings are intact (not referencing deleted sections)
-- [ ] **Single DndContext coverage:** Drag section A below section B; assert section order correct. Then drag step 1 within section B to position 3; assert step order correct, section order unchanged
-- [ ] **ID namespace safety:** Log all useSortable IDs during a drag session; assert no integer value appears as both a section ID and a step ID in the same DndContext
-- [ ] **Cache symmetry after section delete:** Delete a section; assert recipe-step-counts, recipe-paint-availability, and recipe-swatch-colors all update without page navigation
-- [ ] **Simple recipe regression:** Create a new 3-step recipe; assert it feels as fast as in v2.5 (no mandatory section naming before first step can be added)
-- [ ] **Order index after insert+delete:** Add 3 sections; delete the middle one; add a new one; assert order_index values are [0, 1, 2] not [0, 2, 2]
-- [ ] **Batch helpers unmodified:** `getStepCountsByRecipe()` and `getRecipePaintAvailability()` return identical results to pre-v0.2.7 for recipes with all steps assigned to a section
-- [ ] **LogSessionSheet regression:** Open LogSessionSheet; select a recipe; assert step dropdown still lists steps in the correct order; no section data or IDs leaking into step selector
+- [ ] **Rules Browser empty state:** Rules page renders for a user who has never synced — verify a "sync required" empty state (not a blank page) appears and offers a sync button
+- [ ] **Detachment stratagem filter:** Game Day stratagem list is filtered by selected `detachment_id`, not showing all 80+ faction stratagems — verify with a faction that has multiple detachments (Space Marines has 6+)
+- [ ] **Post-sync stale detachment detection:** After syncing with a modified dataset, army lists referencing now-absent detachments show a warning — verify by testing with a known detachment ID absent from rules.db
+- [ ] **Sync invalidation for new hooks:** After a sync, the Rules Browser and Game Day data refresh without requiring an app restart — verify by checking data updates after triggering sync with the Rules Browser already open
+- [ ] **User notes survive sync:** Notes written on a stratagem or detachment survive the next sync — verify by writing a note, syncing, and confirming the note is still visible
+- [ ] **Orphan note display:** A note on a stratagem removed by sync shows the stored `stratagem_name` copy and a "removed in last sync" indicator — verify by clearing the relevant rw_stratagems rows manually
+- [ ] **Copyright framing:** No UI element says "official rules" or "Warhammer 40K Rules" as an authoritative title — verify all section headings use neutral terminology ("Community Rules," "Stratagems," "Detachments")
+- [ ] **No auto-sync:** App does not fetch from Wahapedia on startup, on timer, or on Game Day open — verify by monitoring network calls at app start and Game Day mount
+- [ ] **Points display:** Army list total shown in Game Day and Army Lists 2.0 uses `effective_points` (3-level COALESCE), not raw `u.points` — verify with a unit that has a points override active
+- [ ] **Wahapedia faction ID translation:** Rules Browser and Game Day faction filter works for all seed factions — verify `useWahapediaFactionId` returns a non-null result for each faction in the DB
 
 ---
 
@@ -370,11 +289,12 @@ Phase 1 (Schema + data layer) for `reorderRecipeSections` design. Phase 3 (Form 
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Two nested DndContexts shipped (Pitfall 1) | HIGH — requires architectural refactor | Audit all recipe feature files for DndContext imports; lift to single DndContext; remove inner ones; retest all drag scenarios |
-| Integer ID collision in sortable (Pitfall 2) | MEDIUM | Add localId to DraftSection, update all SortableContext items arrays and useSortable calls; no DB change needed |
-| duplicateRecipe copies wrong section_ids (Pitfall 4) | MEDIUM — data corruption in existing duplicates | Write a migration that deletes duplicate recipe steps pointing to other recipe's sections and re-assigns them to the duplicate's default section; add section copy logic to duplicateRecipe |
-| Stale step count badges after section delete (Pitfall 7) | LOW | Add 4 missing invalidateQueries calls to useDeleteRecipeSection.onSuccess; takes effect immediately |
-| Order_index drift causing wrong section order (Pitfall 9) | LOW | Run a one-time SQL to normalize: `UPDATE recipe_sections SET order_index = (SELECT COUNT(*) FROM recipe_sections rs2 WHERE rs2.recipe_id = recipe_sections.recipe_id AND rs2.id < recipe_sections.id)` |
+| User data written to rules.db and lost after sync | HIGH | Add hobbyforge.db migration for the affected table; data cannot be automatically recovered — it was deleted by the sync DELETE pass |
+| Cross-DB JOIN attempted, runtime error | MEDIUM | Rewrite query as dual-query merge: two separate `db.select()` calls merged in TypeScript; no migration needed |
+| staleTime missing on rules hook | LOW | Add `staleTime: Infinity` to the hook options; add the query key to the sync invalidation list |
+| COALESCE chain diverged between two query sites | MEDIUM | Identify the correct chain; update both sites atomically in one commit; add comment at each site |
+| Orphaned user notes after sync removes rule | MEDIUM | Add `rule_name TEXT` column via migration with a one-time backfill SELECT from rules.db (must run before next sync erases the source names) |
+| N+1 queries in rules browser or Game Day | MEDIUM | Rewrite per-entity hooks to batch queries with `IN (...)` or `GROUP BY`; update hook signatures to accept ID arrays |
 
 ---
 
@@ -382,39 +302,31 @@ Phase 1 (Schema + data layer) for `reorderRecipeSections` design. Phase 3 (Form 
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Two nested DndContexts (Pitfall 1) | Phase 3 — single DndContext architectural decision before any drag code | Test: section drag + step drag both work in same form instance |
-| Integer ID namespace collision (Pitfall 2) | Phase 3 — localId convention on DraftSection before SortableContext wiring | Test: 3 sections × 3 steps — 12 unique UUID string IDs in DndContext |
-| Cascade chain missing sessions (Pitfall 3) | Phase 1 — cascade FK test in migration tests | Test: section delete cascades to sessions.recipe_step_id = NULL |
-| duplicateRecipe ignoring sections (Pitfall 4) | Phase 4 — first item in Phase 4 checklist | Test: duplicate → delete original → open copy → sections intact |
-| Batch helpers silently excluding sectionless steps (Pitfall 5) | Phase 1 — getStepCountsBySection design + submit path assertion in Phase 3 | Test: query both helpers for same recipe; totals match |
-| Two-phase draft initialization race (Pitfall 6) | Phase 3 — buildDraftSections pure function tested before component wiring | Test: open edit form; assert sections+steps populated atomically on first render |
-| Cache asymmetry on section delete (Pitfall 7) | Phase 1 — all 5 keys in useDeleteRecipeSection before any UI | Test: delete section → step count badge updates without navigation |
-| Section UI overwhelming simple recipes (Pitfall 8) | Phase 3 — progressive disclosure rule coded before RecipeSectionCard renders | Test: new recipe has no visible section card until "Add Section" is clicked |
-| Order index drift (Pitfall 9) | Phase 1 — reorderRecipeSections design; Phase 3 — draft array as source of truth | Test: add+delete+add sections; assert contiguous order_index values |
+| Writing user data to rules.db | v0.2.8 schema design phase | Zero `db.execute()` calls using `getRulesDb()` — all user writes use `getDb()` |
+| Cross-DB JOIN via ATTACH | Army Lists 2.0 detachment phase | No `ATTACH` keyword in any SQL string; detachment name display uses dual-query merge |
+| 3-level COALESCE broken | Any phase touching `armyLists.ts` | Both `getArmyListWithUnits` and `getArmyListReadiness` COALESCE expressions are identical |
+| Missing staleTime or sync invalidation | Rules Data Hub UI phase + every phase adding rules hooks | Every rules hook has `staleTime: Infinity`; every new key appears in `useRulesSync` invalidation |
+| Wahapedia faction ID bypassed | Rules Data Hub UI phase (standalone rules page) | Rules browser calls `useWahapediaFactionId` — never passes an integer `faction.id` |
+| User note orphan after sync | Playbook enhancements phase (user notes on rules) | Schema includes `rule_name TEXT` copy; orphan indicator renders when rule ID absent from rules.db |
+| Game Day checklist as component state | Game Day Mode architecture phase | Checklist state survives Sheet open/close; persistence contract documented |
+| Stale detachment after sync | Army Lists 2.0 phase + post-sync validation | Post-sync validation runs; stale detachment warning appears in Army List detail sheet |
+| Copyright framing | Rules Data Hub UI phase | No "official" or "Warhammer 40K Rules" labels in UI; Wahapedia attribution visible; no auto-sync |
+| N+1 queries in list views | Rules Data Hub UI + Game Day phases | React Query Devtools shows 1–3 queries on rules browser open; batch queries used for all list views |
 
 ---
 
 ## Sources
 
-- Direct inspection: `src/features/recipes/RecipeStepList.tsx` — confirmed DndContext + SortableContext + closestCenter; this DndContext must be lifted when adding section-level sort
-- Direct inspection: `src/features/recipes/recipeSteps.ts` — confirmed `localId: crypto.randomUUID()` pattern for DraftStep; must mirror for DraftSection
-- Direct inspection: `src/features/recipes/RecipeFormSheet.tsx` — confirmed single useEffect keyed on `[recipe?.id, existingSteps.length]`; two-query initialization adds race condition
-- Direct inspection: `src/db/queries/recipes.ts` — confirmed `duplicateRecipe` copies steps with `section_id` absent from INSERT (column doesn't exist yet but must be added correctly)
-- Direct inspection: `src/db/queries/recipePaints.ts` — confirmed `getStepCountsByRecipe` and `getRecipePaintAvailability` both use `GROUP BY recipe_id`; no section_id consideration
-- Direct inspection: `src/hooks/useRecipePaints.ts` — confirmed 5 exported cache keys that section delete mutations must also invalidate
-- Direct inspection: `src-tauri/migrations/014_session_recipe_link.sql` — confirmed `painting_sessions.recipe_step_id REFERENCES recipe_steps(id) ON DELETE SET NULL`; cascade chain risk confirmed
-- Direct inspection: `src-tauri/migrations/` — confirmed next hobbyforge.db migration is **018** (017 is latest: `017_unit_overrides.sql`)
-- Codebase pattern: `PROJECT.md` Key Decisions — "useFieldArray NOT used for step forms — Documented ID collision with @dnd-kit useSortable (RHF #10607)"
-- Codebase pattern: `PROJECT.md` Key Decisions — "Cache invalidation symmetry rule — If useCreate invalidates a key, useDelete must too"
-- Codebase pattern: `PROJECT.md` Key Decisions — "Sibling Sheet/Dialog portal pattern — Nested Radix portals cause z-index and context issues"
-- Research: @dnd-kit GitHub Discussion #766 — confirmed events are consumed by innermost DndContext, do not bubble to parent
-- Research: @dnd-kit GitHub Discussion #280 — "DndContext catches a drop event and doesn't pass it on" — architectural constraint confirmed
-- Research: @dnd-kit GitHub Issue #46 — "DndContext reducers all point to the same initial state variable, causing ID collisions across nested and sibling providers"
-- Research: @dnd-kit docs (docs.dndkit.com/presets/sortable/sortable-context) — confirmed multiple SortableContexts within single DndContext is the correct multi-container pattern
-- Research: RHF Discussion #10607 (github.com/orgs/react-hook-form/discussions/10607) — confirmed ID collision between useFieldArray numeric ids and @dnd-kit useSortable; this codebase already avoids useFieldArray for this reason
-- Research: SQLite ALTER TABLE docs (sqlite.org/lang_altertable.html) — `ADD COLUMN` with nullable FK is safe; no table rebuild required for nullable FK addition
-- Research: TanStack Query docs — invalidateQueries with exact:false covers hierarchical key trees; cross-file key imports required for cross-entity invalidation
+- `C:\Documents\Claude Apps\Warhammer App\.planning\PROJECT.md` — Key Decisions table (all established patterns: ATTACH not supported, overrides in hobbyforge.db, weapon_name TEXT copy, COALESCE chain, cache invalidation symmetry rule, local-first sync contract)
+- `src/db/queries/syncErrors.ts` — CRITICAL comment: "Uses getDb() (hobbyforge.db), NOT getRulesDb() (rules.db). rules.db is fully DELETEd on every sync"
+- `src/db/queries/rulesSnapshot.ts` — established dual-DB read/write pattern (reads rules.db, writes to hobbyforge.db)
+- `src/db/queries/armyLists.ts` — COALESCE chain duplicated in `getArmyListWithUnits` and `getArmyListReadiness`; full-replacement UPDATE contract for points_override
+- `src/db/queries/rulesExtended.ts` — `staleTime: Infinity` pattern for rules hooks; faction ID is string, not integer
+- `src/hooks/useRulesExtended.ts` — `staleTime: Infinity` on all four hooks; sync invalidation contract
+- `src/features/units/PlaybookTab.tsx` — `useWahapediaFactionId` translation call; dual-query merge pattern; sync-empty banner (`!syncMeta`); orphan-safe post-sync diff display; `stratagemsByPhase` Map grouping memo
+- `src-tauri/migrations/017_unit_overrides.sql` — canonical hobbyforge.db-only user data table with TEXT ID copy pattern
+- `src/types/datasheet.ts` — Wahapedia IDs are TEXT strings (zero-padded), not integers; stat fields are mixed TEXT/INTEGER types
 
 ---
-*Pitfalls research for: HobbyForge v0.2.7 — Hierarchical recipe sections added to flat-step recipe system*
-*Researched: 2026-05-08*
+*Pitfalls research for: HobbyForge v0.2.8 — Rules Data Hub UI, Army Lists 2.0, Game Day Mode, Playbook enhancements*
+*Researched: 2026-05-10*

@@ -1,3 +1,5 @@
+
+content = """\
 # Project Research Summary
 
 **Project:** HobbyForge v0.2.8 -- Rules Data Hub UI / Army Lists 2.0 / Game Day Mode
@@ -190,3 +192,9 @@ Phases with standard patterns (skip research-phase):
 ---
 *Research completed: 2026-05-10*
 *Ready for roadmap: yes*
+"""
+
+path = r"C:\Documents\Claude Apps\Warhammer App\.planning\research\SUMMARY.md"
+with open(path, "w", encoding="utf-8") as f:
+    f.write(content)
+print(f"Written {len(content)} bytes to {path}")

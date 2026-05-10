@@ -1,457 +1,563 @@
 # Architecture Research
 
-**Domain:** HobbyForge v0.2.7 — Recipe Sections integration with existing recipe architecture
-**Researched:** 2026-05-08
-**Confidence:** HIGH (based on full codebase reads of all affected source files)
+**Domain:** HobbyForge v0.2.8 — Rules Data Hub UI, Army Lists 2.0, Game Day Mode
+**Researched:** 2026-05-10
+**Confidence:** HIGH (based on full codebase reads of all directly affected source files)
 
 ---
 
-## Existing Architecture Summary
+## Existing Architecture Baseline
 
-The recipe subsystem follows the four-layer pattern established project-wide:
+The four-layer stack is established and will not change:
 
 ```
-UI (RecipeFormSheet, RecipeDetailSheet, RecipeSectionList...)
+UI (src/features/**/*)
       |
-React Query hooks (useRecipes.ts, useRecipePaints.ts, useRecipeSections.ts [NEW])
+React Query hooks (src/hooks/use*.ts)
       |
-Query modules (recipes.ts, recipePaints.ts, recipeSections.ts [NEW])
+Query modules (src/db/queries/*.ts)
       |
-getDb() -> SQLite (hobbyforge.db)
+getDb() → hobbyforge.db     /     getRulesDb() → rules.db
 ```
 
-Key structural facts that shape the integration:
+### Dual-DB Constraint (Non-Negotiable)
 
-- `DraftStep[]` in `RecipeFormSheet` is managed as a plain React `useState` array, NOT `useFieldArray`. This is a documented decision: `useFieldArray` injects its own `id` field that collides with `@dnd-kit/useSortable`'s `id` prop (RHF issue #10607). This constraint propagates: `DraftSection[]` containing `DraftStep[]` must follow the same manual-array pattern.
-- Cache invalidation follows the **symmetry rule**: every key invalidated by `useCreate*` must also be invalidated by `useDelete*`.
-- Batch queries (step counts, swatch colors, availability) use a single GROUP BY SQL query across all recipes. Sections must not break these.
-- `recipePaints.ts` and `useRecipePaints.ts` retain their legacy names despite operating on `recipe_steps`. The naming stays.
-- Steps with `paint_id = null` are already valid (unlinked steps exist). Steps with `section_id = null` after migration are equally valid — the nullable FK is the backward-compat mechanism.
+`tauri-plugin-sql` does not support `ATTACH DATABASE`. Cross-DB joins are impossible in SQL. The established pattern is:
+
+1. Query both databases independently in the same async function or parallel hooks
+2. Merge results in TypeScript (JavaScript Map lookups, array joins, etc.)
+3. Never attempt SQL-level joins across the two databases
+
+This constraint directly shapes how army list detachment selection works: the selected `detachment_id` is stored as a TEXT column in `hobbyforge.db`, and detachment data is loaded from `rules.db` in a parallel hook. The two rows are joined in the component via a Map lookup.
+
+### Rules.db Is Destructive on Sync
+
+Every sync performs a full DELETE + re-INSERT on all `rw_*` tables in `rules.db`. Therefore:
+
+- Any user data that must survive re-syncs MUST live in `hobbyforge.db` (unit overrides do this correctly)
+- Army list detachment selection, playbook favorites, and user notes on rules MUST all be stored in `hobbyforge.db` columns or tables, never in `rules.db`
 
 ---
 
-## Component Boundaries
+## New Feature Integration Points
 
-### Existing Components: What Changes
+### 1. Rules Data Hub UI
 
-| Component | Location | Change Required | Nature |
-|-----------|----------|----------------|--------|
-| `RecipeFormSheet.tsx` | `src/features/recipes/` | Replace flat `DraftStep[]` state with `DraftSection[]` each containing `DraftStep[]`; update submit to write sections then steps | Significant rewrite of draft state + submit logic |
-| `RecipeDetailSheet.tsx` | `src/features/recipes/` | Add `useRecipeSections(recipe?.id)` call; conditionally render `RecipeSectionedTimeline` vs existing fallback | Moderate: new hook + conditional render |
-| `RecipeStepTimeline.tsx` | `src/features/recipes/` | No change — retained as fallback for recipes with no sections | None |
-| `recipeSteps.ts` | `src/features/recipes/` | Add `DraftSection` interface, `makeDraftSection()`, `computeSectionOrderIndexes()` alongside existing exports | Small additive only |
-| `src/types/recipePaint.ts` | `src/types/` | Add `section_id: number \| null` to `RecipeStep` interface | One-line addition |
-| `src/db/queries/recipePaints.ts` | `src/db/queries/` | Add `section_id` parameter to `addRecipePaint` insert; add `getRecipeStepsBySection()`; add `moveStepToSection()` | Additive only |
-| `src/db/queries/recipes.ts` | `src/db/queries/` | Extend `duplicateRecipe()` to copy sections first, build old-to-new section ID map, remap `section_id` on each copied step | Moderate: section copy loop + ID remap |
-| `useRecipes.ts` | `src/hooks/` | `useDuplicateRecipe` must invalidate `["recipe-sections"]` prefix key | One-line addition |
+**What it does:** A dedicated page (or settings-adjacent panel) showing sync status, a browsable rules index (factions → datasheets → abilities, stratagems, detachments), and diff summary after sync.
+
+**Integration approach:**
+
+- New route `/rules-hub` added to `router.tsx` — new `RulesHubPage` component
+- Reuses all existing hooks: `useRulesSyncMeta`, `useRulesSyncErrors`, `useStratagemsByFaction`, `useDetachmentsByFaction`, `useSharedAbilitiesByFaction`, `useDatasheet`
+- Reuses `useRulesSync` mutation for the sync trigger
+- No new query functions needed for basic browsing — all read paths already exist in `rulesExtended.ts` and `datasheets.ts`
+- New query needed: `getAllFactions()` — reads `rw_factions` from `rules.db` to power the faction picker in the hub (distinct from `getFactions()` which reads `hobbyforge.db`)
+- The sync diff data (last post-sync diff) currently lives only in transient component state in `PlaybookTab`. For the hub to show a persistent diff summary, it needs to be stored. Two options: (a) persist the last diff JSON in a new `hobbyforge.db` column on `rules_sync_meta`, or (b) re-derive from the latest snapshot on page load. Option (a) is simpler — add a `last_diff_json TEXT` column to `rules_sync_meta` in a new migration, write it in `useRulesSync.onSuccess`
+
+**Sync status panel already built:** `PlaybookTab` already renders sync freshness dot, last sync date, row counts, error history, and post-sync diff. These sub-components should be extracted into shared components (`SyncStatusPanel`, `SyncDiffView`) in `src/components/common/` or `src/features/rules-hub/` so both `PlaybookTab` and `RulesHubPage` can render them without duplication.
+
+**Component extraction from PlaybookTab:**
+
+| Extract From PlaybookTab | To Location | Reason |
+|--------------------------|-------------|--------|
+| Sync status row (freshness dot + date + row counts) | `src/features/rules-hub/SyncStatusPanel.tsx` | Reused in RulesHubPage header |
+| Sync error collapsible | `src/features/rules-hub/SyncErrorList.tsx` | Reused in RulesHubPage |
+| Post-sync diff collapsible | `src/features/rules-hub/SyncDiffView.tsx` | Reused in RulesHubPage |
+| Stratagem entry display | `src/features/rules-hub/StratagemCard.tsx` | Reused in hub browser and Game Day |
+| Detachment section display | `src/features/rules-hub/DetachmentPanel.tsx` | Reused in hub browser and Army Lists 2.0 |
+
+### 2. Army Lists 2.0 — Detachment Selection
+
+**What it does:** An army list can have one selected detachment. Once selected, the list shows the detachment's stratagems and abilities alongside units.
+
+**Schema change required (hobbyforge.db):**
+
+```sql
+-- Migration 019
+ALTER TABLE army_lists ADD COLUMN detachment_id TEXT;
+-- TEXT matches rules.db rw_detachments.id (Wahapedia 9-digit string)
+-- NULL = no detachment selected
+-- No FK to rules.db possible — stored as plain TEXT
+```
+
+**Type change required:**
+
+```typescript
+// src/types/armyList.ts
+export interface ArmyList {
+  // ... existing fields ...
+  detachment_id: string | null;  // add this
+}
+```
+
+**Query change required:**
+
+```typescript
+// src/db/queries/armyLists.ts — update updateArmyList
+// Include detachment_id in the UPDATE SET clause
+// Full-replacement pattern (not COALESCE) so detachment can be cleared back to NULL
+```
+
+**New hook functions in useArmyLists.ts:**
+
+```typescript
+export function useArmyListDetachment(detachmentId: string | undefined) {
+  // Thin wrapper around useDetachmentsByFaction — but needs a by-ID query
+  // Problem: existing query is getDetachmentsByFaction(factionId), not getDetachmentById(id)
+  // New query needed: getDetachmentById(id) in rulesExtended.ts
+}
+```
+
+**New query needed in rulesExtended.ts:**
+
+```typescript
+export async function getDetachmentById(id: string): Promise<RwDetachment | null>
+export async function getStratagemsByDetachment(detachmentId: string): Promise<RwStratagem[]>
+```
+
+`getStratagemsByDetachment` is needed because `rw_stratagems.detachment_id` already exists — stratagems can be filtered to just those belonging to the active detachment.
+
+**Stale data warning:** When the army list has a `detachment_id` but the rules.db no longer contains that ID (after a sync), the UI must show a warning. The detachment hook returning `null` for a non-null `detachment_id` is the detection signal. No new infrastructure needed — the component checks `detachment_id !== null && detachmentData === null`.
+
+**ArmyListDetailSheet changes:**
+
+- Add detachment picker (a `Select` or `Command` popover) in the sheet header area
+- When a detachment is selected, load and render its abilities and filtered stratagems below the unit list
+- Picker uses `useDetachmentsByFaction(wahapediaFactionId)` — requires the army list's faction name to be resolved to a Wahapedia faction ID (same `useWahapediaFactionId(factionName)` call already used in PlaybookTab)
+- Sheet adds `useWahapediaFactionId` + `useDetachmentsByFaction` + `useDetachmentAbilitiesByDetachment` + `useStratagemsByDetachment` hooks — all with `staleTime: Infinity`
+
+**Cross-DB data flow for detachment selection:**
+
+```
+ArmyListDetailSheet
+  ├── useArmyListWithUnits(listId)        → hobbyforge.db: army_list_units + units
+  ├── useFactions()                       → hobbyforge.db: factions
+  ├── useWahapediaFactionId(factionName)  → rules.db: rw_factions (name lookup)
+  ├── useDetachmentsByFaction(rwFactionId)→ rules.db: rw_detachments
+  ├── [user picks a detachment]
+  ├── updateArmyList({detachment_id})     → hobbyforge.db: army_lists
+  └── useDetachmentAbilitiesByDetachment  → rules.db: rw_detachment_abilities
+      useStratagemsByDetachment           → rules.db: rw_stratagems (filtered)
+```
+
+### 3. Playbook Enhancements — Favorites and User Notes on Rules
+
+**What it does:** Users can star/favorite stratagems and detachments. Users can add personal notes to individual rules entries.
+
+**Schema change required (hobbyforge.db):**
+
+```sql
+-- Migration 019 or 020
+CREATE TABLE IF NOT EXISTS rules_favorites (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  entity_type  TEXT NOT NULL,  -- 'stratagem' | 'detachment' | 'ability'
+  entity_id    TEXT NOT NULL,  -- Wahapedia TEXT id
+  created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (entity_type, entity_id)
+);
+
+CREATE TABLE IF NOT EXISTS rules_notes (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  entity_type  TEXT NOT NULL,
+  entity_id    TEXT NOT NULL,
+  note_text    TEXT NOT NULL DEFAULT '',
+  updated_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (entity_type, entity_id)
+);
+```
+
+**Why a polymorphic table:** Stratagems, detachments, shared abilities, and detachment abilities all have TEXT IDs from Wahapedia. A single polymorphic table avoids four separate FK-less tables. The UNIQUE constraint on `(entity_type, entity_id)` enforces one note/favorite per entity.
+
+**Query modules needed:**
+
+- `src/db/queries/rulesFavorites.ts` — toggle (UPSERT/DELETE), getAll, getByType
+- `src/db/queries/rulesNotes.ts` — upsert, getByEntity
+
+**Hook modules needed:**
+
+- `src/hooks/useRulesFavorites.ts`
+- `src/hooks/useRulesNotes.ts`
+
+**PlaybookTab changes:** Minimal — add star icon button on each `StratagemEntry` and `ExtendedAbilityEntry` sub-component (after extraction to shared location). Favorites state comes from a single `useRulesFavorites('stratagem')` call that returns a Set of IDs.
+
+### 4. Game Day Mode
+
+**What it does:** A focused, distraction-free view for an active game: shows the selected army list's detachment stratagems grouped by phase, quick-reference abilities for units in the list, and a reminder checklist.
+
+**New route:** `/game-day` — new `GameDayPage` component
+
+**Data requirements:**
+
+```
+GameDayPage
+  ├── useArmyLists()                            → pick active list
+  ├── useArmyListWithUnits(selectedListId)      → units in list
+  ├── useWahapediaFactionId(factionName)        → rw faction lookup
+  ├── useDetachmentsByFaction(rwFactionId)      → if list.detachment_id set, filter to selected
+  ├── useDetachmentAbilitiesByDetachment(id)    → detachment abilities
+  ├── useStratagemsByDetachment(detachmentId)   → filtered stratagems for active detachment
+  ├── useStratagemsByFaction(rwFactionId)       → all stratagems (if no detachment selected)
+  └── useDatasheet(unitId) × N                 → per-unit quick stats (N+1, acceptable at personal scale)
+```
+
+**Reminder checklist:** A transient UI state (checkboxes for "Placed objectives?", "Checked strategic reserve?", etc.). These are session-state only, not persisted — `useState` at the `GameDayPage` level. No DB schema needed.
+
+**Phase-grouped stratagem view:** `stratagemsByPhase` grouping already implemented as `useMemo` in `PlaybookTab`. Extract this pure function to `src/lib/groupStratagemsByPhase.ts` for reuse in `GameDayPage` and any refactored `PlaybookTab`.
+
+---
+
+## System Overview: New Components in Context
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│                         UI Layer (React)                              │
+│                                                                        │
+│  RulesHubPage    ArmyListsPage    GameDayPage    PlaybookTab          │
+│      │               │                │              │                │
+│  [NEW]         [MODIFIED]          [NEW]         [MODIFIED]           │
+│                                                                        │
+│  SyncStatusPanel  DetachmentPicker  StratagemCard  SyncDiffView       │
+│  [EXTRACTED]     [NEW]             [EXTRACTED]    [EXTRACTED]         │
+├──────────────────────────────────────────────────────────────────────┤
+│                       React Query Hooks                                │
+│                                                                        │
+│  useRulesExtended (existing + 2 new fns)   useRulesFavorites [NEW]   │
+│  useArmyLists (extended)                   useRulesNotes [NEW]        │
+│  useRulesSync (extended for diff persist)                              │
+├──────────────────────────────────────────────────────────────────────┤
+│                        Query Modules                                   │
+│                                                                        │
+│  rulesExtended.ts (+ getDetachmentById, getStratagemsByDetachment)    │
+│  armyLists.ts (+ detachment_id column)                                │
+│  rulesFavorites.ts [NEW]    rulesNotes.ts [NEW]                       │
+├─────────────────────────────────┬────────────────────────────────────┤
+│         hobbyforge.db           │           rules.db                  │
+│                                 │                                      │
+│  army_lists.detachment_id [ADD] │  rw_detachments (existing)          │
+│  rules_favorites [NEW TABLE]    │  rw_stratagems (existing)           │
+│  rules_notes [NEW TABLE]        │  rw_detachment_abilities (existing) │
+│  rules_sync_meta.last_diff_json │  rw_abilities (existing)            │
+│    [NEW COLUMN, optional]       │                                      │
+└─────────────────────────────────┴────────────────────────────────────┘
+```
+
+---
+
+## Component Inventory
 
 ### New Components
 
 | Component | Location | Purpose |
 |-----------|----------|---------|
-| `src/types/recipeSection.ts` | `src/types/` | `RecipeSection`, `CreateRecipeSectionInput`, `UpdateRecipeSectionInput` |
-| `src/db/queries/recipeSections.ts` | `src/db/queries/` | `getRecipeSections`, `createRecipeSection`, `updateRecipeSection`, `deleteRecipeSection`, `reorderRecipeSections`, `getStepCountsBySection` |
-| `src/hooks/useRecipeSections.ts` | `src/hooks/` | `useRecipeSections`, `useCreateRecipeSection`, `useUpdateRecipeSection`, `useDeleteRecipeSection`, `useReorderRecipeSections` + cache keys |
-| `src/features/recipes/RecipeSectionList.tsx` | `src/features/recipes/` | Outer DnD container for section-level reorder; renders `RecipeSectionCard` list |
-| `src/features/recipes/RecipeSectionCard.tsx` | `src/features/recipes/` | Collapsible card: section name, surface badge, step count, optional badge; contains `RecipeStepList` |
-| `src/features/recipes/RecipeSectionForm.tsx` | `src/features/recipes/` | Inline name + surface editor used inside card header in form mode |
-| `src/features/recipes/RecipeSectionedTimeline.tsx` | `src/features/recipes/` | Read-only timeline with section headers; used in `RecipeDetailSheet` when sections exist |
+| `RulesHubPage` | `src/features/rules-hub/RulesHubPage.tsx` | New page: sync status, faction browser, diff summary |
+| `SyncStatusPanel` | `src/features/rules-hub/SyncStatusPanel.tsx` | Extracted from PlaybookTab — sync freshness + row counts |
+| `SyncErrorList` | `src/features/rules-hub/SyncErrorList.tsx` | Extracted from PlaybookTab — error history collapsible |
+| `SyncDiffView` | `src/features/rules-hub/SyncDiffView.tsx` | Extracted from PlaybookTab — post-sync diff collapsible |
+| `StratagemCard` | `src/features/rules-hub/StratagemCard.tsx` | Extracted from PlaybookTab — single stratagem display |
+| `DetachmentPanel` | `src/features/rules-hub/DetachmentPanel.tsx` | Extracted from PlaybookTab — detachment + abilities display |
+| `DetachmentPicker` | `src/features/army-lists/DetachmentPicker.tsx` | Select component for choosing active detachment on a list |
+| `GameDayPage` | `src/features/game-day/GameDayPage.tsx` | New page: game-focused view with phase-grouped stratagems |
+| `GameDayStratagemView` | `src/features/game-day/GameDayStratagemView.tsx` | Phase-grouped stratagem list with CP cost emphasis |
+| `GameDayChecklist` | `src/features/game-day/GameDayChecklist.tsx` | Transient reminder checklist (useState only, no DB) |
+| `GameDayUnitPanel` | `src/features/game-day/GameDayUnitPanel.tsx` | Per-unit quick stats + abilities for in-game reference |
+
+### Modified Components
+
+| Component | Change Type | What Changes |
+|-----------|-------------|--------------|
+| `PlaybookTab.tsx` | Moderate | Extract sub-components to shared location; add favorites star buttons |
+| `ArmyListDetailSheet.tsx` | Moderate | Add detachment picker, detachment abilities display, stratagem preview |
+| `ArmyListSheet.tsx` | Minor | Detachment field not in create form (set post-creation in detail sheet) |
+| `router.tsx` | Minor | Add `/rules-hub` and `/game-day` routes |
+| `AppSidebar` | Minor | Add nav items for Rules Hub and Game Day under Play group |
+| `useRulesSync.ts` | Minor | Persist last diff JSON to hobbyforge.db on success (if hub diff feature built) |
+| `src/types/armyList.ts` | Minor | Add `detachment_id: string \| null` to `ArmyList` interface |
+
+### Existing Components — Unchanged
+
+| Component | Why Unchanged |
+|-----------|---------------|
+| `ArmyListSummaryBar.tsx` | Points math unchanged; no detachment data involved |
+| `ArmyListUnitRow.tsx` | Unit display unchanged |
+| `UnitPickerDialog.tsx` | Unit selection unchanged |
+| `ArmyListCard.tsx` | Card display — could optionally show selected detachment name, but not required |
+| All recipe components | No recipe involvement in this milestone |
+| All dashboard components | Dashboard reads from existing hooks; no new queries exposed to dashboard |
 
 ---
 
-## Data Flow: Nested Draft State
+## Schema Changes
 
-### The Core Constraint
+### Migration 019 (hobbyforge.db)
 
-`RecipeFormSheet` currently manages a flat `DraftStep[]` via `useState`. Sections require a `DraftSection[]` where each section owns a `DraftStep[]`. The `useFieldArray` collision constraint applies to both levels: section IDs and step IDs must both come from `crypto.randomUUID()` stored as `localId`, not RHF field indices.
+```sql
+-- Army Lists 2.0: detachment selection
+ALTER TABLE army_lists ADD COLUMN detachment_id TEXT;
+-- NULL = no detachment selected
+-- TEXT matches rw_detachments.id (Wahapedia 9-digit string IDs)
+-- No FK possible — cross-DB reference stored as plain TEXT
 
-### Recommended Draft Types (additions to `recipeSteps.ts`)
+-- Playbook: rules favorites (starred stratagems, abilities, detachments)
+CREATE TABLE IF NOT EXISTS rules_favorites (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  entity_type  TEXT NOT NULL CHECK (entity_type IN ('stratagem', 'detachment', 'ability', 'detachment_ability')),
+  entity_id    TEXT NOT NULL,
+  created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (entity_type, entity_id)
+);
 
-```typescript
-export interface DraftSection {
-  localId: string;       // crypto.randomUUID() — @dnd-kit sortable ID for sections
-  name: string;
-  surface: string | null;
-  optional: 0 | 1;
-  notes: string | null;
-  steps: DraftStep[];    // steps are owned by their section
-}
-
-export function makeDraftSection(name = "General"): DraftSection {
-  return {
-    localId: crypto.randomUUID(),
-    name,
-    surface: null,
-    optional: 0,
-    notes: null,
-    steps: [],
-  };
-}
-
-export function computeSectionOrderIndexes(
-  sections: DraftSection[],
-): Array<DraftSection & { order_index: number }> {
-  return sections.map((sec, i) => ({ ...sec, order_index: i }));
-}
+-- Playbook: user notes on individual rules entries
+CREATE TABLE IF NOT EXISTS rules_notes (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  entity_type  TEXT NOT NULL CHECK (entity_type IN ('stratagem', 'detachment', 'ability', 'detachment_ability')),
+  entity_id    TEXT NOT NULL,
+  note_text    TEXT NOT NULL DEFAULT '',
+  updated_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (entity_type, entity_id)
+);
 ```
 
-### State in `RecipeFormSheet`
+**Notes:**
+- `detachment_id` is TEXT, not INTEGER — Wahapedia IDs are 9-digit zero-padded strings, consistent with all other cross-DB references in the codebase (`weapon_name as TEXT copy` decision in PROJECT.md)
+- Polymorphic tables avoid four separate tables with no FK enforcement
+- `UNIQUE` constraint enables simple UPSERT semantics for note saves
 
-Replace:
-```typescript
-const [steps, setSteps] = useState<DraftStep[]>([]);
-```
-With:
-```typescript
-const [sections, setSections] = useState<DraftSection[]>([]);
-```
+### No changes to rules.db schema
 
-All step mutations are scoped by `sectionLocalId`. The pattern is identical to existing step mutation functions, one level deeper:
-
-```typescript
-function addStepToSection(sectionLocalId: string) {
-  setSections(prev =>
-    prev.map(sec =>
-      sec.localId === sectionLocalId
-        ? { ...sec, steps: [...sec.steps, makeDraftStep()] }
-        : sec
-    )
-  );
-}
-
-function updateStepInSection(sectionLocalId: string, stepLocalId: string, next: DraftStep) {
-  setSections(prev =>
-    prev.map(sec =>
-      sec.localId === sectionLocalId
-        ? { ...sec, steps: sec.steps.map(s => s.localId === stepLocalId ? next : s) }
-        : sec
-    )
-  );
-}
-
-function removeStepFromSection(sectionLocalId: string, stepLocalId: string) {
-  setSections(prev =>
-    prev.map(sec =>
-      sec.localId === sectionLocalId
-        ? { ...sec, steps: sec.steps.filter(s => s.localId !== stepLocalId) }
-        : sec
-    )
-  );
-}
-```
-
-Section-level mutations are simpler (no nesting):
-
-```typescript
-function updateSection(sectionLocalId: string, patch: Partial<DraftSection>) {
-  setSections(prev =>
-    prev.map(sec => sec.localId === sectionLocalId ? { ...sec, ...patch } : sec)
-  );
-}
-
-function removeSection(sectionLocalId: string) {
-  setSections(prev => prev.filter(sec => sec.localId !== sectionLocalId));
-}
-```
-
-### Form Initialization (edit mode)
-
-The existing `useEffect` that seeds `steps` from `existingSteps` must be replaced. In edit mode, both `useRecipeSections(recipe?.id)` and `useRecipePaints(recipe?.id)` are needed. Build `DraftSection[]` by grouping steps under their section:
-
-```typescript
-const { data: existingSections = [] } = useRecipeSections(recipe?.id);
-const { data: existingSteps = [] } = useRecipePaints(recipe?.id);
-
-useEffect(() => {
-  form.reset(buildDefaults(recipe));
-  if (recipe && existingSections.length > 0) {
-    const stepsBySection = new Map<number, RecipeStep[]>();
-    for (const step of existingSteps) {
-      const key = step.section_id ?? -1;
-      stepsBySection.set(key, [...(stepsBySection.get(key) ?? []), step]);
-    }
-    setSections(
-      existingSections.map(sec => ({
-        localId: crypto.randomUUID(),
-        name: sec.name,
-        surface: sec.surface,
-        optional: sec.optional,
-        notes: sec.notes,
-        steps: (stepsBySection.get(sec.id) ?? []).map(s => ({
-          localId: crypto.randomUUID(),
-          step_name: s.step_name,
-          paint_id: s.paint_id,
-          notes: s.notes,
-          painting_phase: s.painting_phase ?? null,
-          tool: s.tool ?? null,
-          technique: s.technique ?? null,
-          dilution: s.dilution ?? null,
-          time_estimate_minutes: s.time_estimate_minutes ?? null,
-          step_photo_path: s.step_photo_path ?? null,
-          alt_paint_id: s.alt_paint_id ?? null,
-        })),
-      }))
-    );
-  } else if (!recipe) {
-    setSections([makeDraftSection("General")]);
-  }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [recipe?.id, existingSections.length, existingSteps.length]);
-```
-
-The dependency array uses `.length` sentinels on both — matching the established pattern from the existing `existingSteps.length` sentinel in the current `RecipeFormSheet` (line 163).
-
-### Submit Logic
-
-The existing submit removes all steps and re-adds them (immutable-link pattern). With sections, extend this with section delete-and-recreate:
-
-```
-1. Update recipe row (unchanged)
-2. Delete all existing sections for this recipe
-   ON DELETE CASCADE on recipe_steps.section_id removes steps automatically
-3. For each DraftSection (array order = order_index):
-   a. createRecipeSection -> get new section_id
-   b. For each DraftStep in section with paint_id != null:
-      addRecipePaint with section_id = new section_id
-4. Invalidate caches (see below)
-```
-
-This keeps the "remove all + re-add" pattern consistent with the existing step immutability decision. No surgical section update needed. The cascade from step 2 handles step deletion — do not manually call `removeRecipePaint` per step before deleting sections.
-
-**Critical:** `section_id: number | null` must be added to `CreateRecipeStepInput` in `recipePaint.ts`. The `addRecipePaint` insert in `recipePaints.ts` must include it as nullable positional parameter `$13`.
+All `rw_*` tables remain unchanged. The sync pipeline already handles all rules data.
 
 ---
 
-## Cache Invalidation Strategy
+## New Query Modules
 
-### New Cache Key
+### `src/db/queries/rulesExtended.ts` — Additions Only
 
 ```typescript
-// In useRecipeSections.ts
-export const RECIPE_SECTIONS_KEY = (recipeId: number) =>
-  ["recipe-sections", recipeId] as const;
+// Get a single detachment by its Wahapedia ID
+export async function getDetachmentById(id: string): Promise<RwDetachment | null>
+
+// Get stratagems filtered to a specific detachment (uses rw_stratagems.detachment_id)
+export async function getStratagemsByDetachment(detachmentId: string): Promise<RwStratagem[]>
+
+// Get all factions from rules.db (for hub faction browser)
+export async function getRulesFactions(): Promise<RwFaction[]>
 ```
 
-This is a per-recipe key, matching the `RECIPE_PAINTS_KEY(recipeId)` pattern. Sections are always fetched for a specific recipe, not globally, so a single top-level key is not appropriate here.
-
-### Symmetry Rule: Full Invalidation Map
-
-| Mutation | Keys to Invalidate |
-|----------|-------------------|
-| `useCreateRecipeSection` | `RECIPE_SECTIONS_KEY(recipeId)`, `STEP_COUNTS_KEY` |
-| `useUpdateRecipeSection` | `RECIPE_SECTIONS_KEY(recipeId)` |
-| `useDeleteRecipeSection` | `RECIPE_SECTIONS_KEY(recipeId)`, `RECIPE_PAINTS_KEY(recipeId)`, `STEP_COUNTS_KEY`, `RECIPE_SWATCH_KEY`, `RECIPE_AVAILABILITY_KEY` |
-| `useReorderRecipeSections` | `RECIPE_SECTIONS_KEY(recipeId)` |
-| `useDuplicateRecipe` (updated) | existing keys + `["recipe-sections"]` prefix |
-
-**Note on delete:** When `deleteRecipeSection` removes a section, the `ON DELETE CASCADE` on `recipe_steps.section_id` removes all steps in that section. This means `RECIPE_PAINTS_KEY`, `RECIPE_SWATCH_KEY`, `STEP_COUNTS_KEY`, and `RECIPE_AVAILABILITY_KEY` all become stale. Delete invalidates more keys than create — this asymmetry is correct, not a violation of the symmetry rule.
-
-### Form Submit Invalidation
-
-`RecipeFormSheet.onSubmit` currently has an explicit `qc.invalidateQueries({ queryKey: ["recipe-step-counts"] })` call after the mutation sequence (line 301 in current file). This belt-and-suspenders call must be extended to also cover `RECIPE_SECTIONS_KEY(recipeId)` and `RECIPE_AVAILABILITY_KEY`.
-
-### `useDuplicateRecipe` Update
-
-Use React Query prefix match for sections — the same pattern already used for `["recipes", "by-unit"]`:
+### `src/db/queries/rulesFavorites.ts` — New
 
 ```typescript
-qc.invalidateQueries({ queryKey: ["recipe-sections"] }); // prefix match, invalidates all
+export async function getRulesFavoriteIds(entityType: string): Promise<string[]>
+export async function toggleRulesFavorite(entityType: string, entityId: string): Promise<void>
+// Returns all IDs for a type as a string[] — component builds a Set for O(1) lookup
+```
+
+### `src/db/queries/rulesNotes.ts` — New
+
+```typescript
+export async function getRulesNote(entityType: string, entityId: string): Promise<string | null>
+export async function upsertRulesNote(entityType: string, entityId: string, noteText: string): Promise<void>
+```
+
+### `src/db/queries/armyLists.ts` — Modifications
+
+- `updateArmyList`: include `detachment_id` in SET clause with full-replacement semantics (not COALESCE — must be clearable to NULL)
+- `getArmyLists`: no change needed (SELECT * picks up new column automatically)
+
+---
+
+## New Hooks
+
+| Hook File | Exports | Cache Keys |
+|-----------|---------|------------|
+| `useRulesFavorites.ts` | `useRulesFavoriteIds`, `useToggleRulesFavorite` | `["rules-favorites", entityType]` |
+| `useRulesNotes.ts` | `useRulesNote`, `useUpsertRulesNote` | `["rules-notes", entityType, entityId]` |
+
+**Cache invalidation for favorites toggle:** `useToggleRulesFavorite` invalidates `["rules-favorites", entityType]` — fetches the full ID list for that type, component rebuilds Set. No per-entity key needed.
+
+**staleTime for favorites/notes:** `0` (default). These are user-written data, not rules content. Should be fresh on every mount.
+
+### Additions to `useRulesExtended.ts`
+
+```typescript
+export function useDetachmentById(id: string | undefined): UseQueryResult<RwDetachment | null>
+// staleTime: Infinity — rules data static until sync
+
+export function useStratagemsByDetachment(detachmentId: string | undefined): UseQueryResult<RwStratagem[]>
+// staleTime: Infinity
+```
+
+### Additions to `useArmyLists.ts`
+
+No new hook functions needed — `useUpdateArmyList` already accepts `UpdateArmyListInput`. Once `detachment_id` is added to `ArmyList` and `UpdateArmyListInput`, callers can pass it through the existing mutation.
+
+---
+
+## Data Flow: Cross-DB Army List with Detachment
+
+The critical cross-DB flow for the detachment feature:
+
+```
+1. User opens army list detail:
+   useArmyListWithUnits(listId) → hobbyforge.db
+   → ArmyList includes detachment_id (TEXT | null)
+
+2. Resolve faction name → Wahapedia faction ID:
+   factions = useFactions() → hobbyforge.db
+   faction = factions.find(f => f.id === list.faction_id)
+   useWahapediaFactionId(faction.name) → rules.db (rw_factions name match)
+
+3. Load detachment options:
+   useDetachmentsByFaction(rwFactionId) → rules.db (rw_detachments)
+
+4. Load currently selected detachment's data:
+   if (list.detachment_id):
+     useDetachmentAbilitiesByDetachment(list.detachment_id) → rules.db
+     useStratagemsByDetachment(list.detachment_id) → rules.db
+
+5. User selects detachment:
+   useUpdateArmyList({id: listId, detachment_id: rwDetachmentId})
+   → hobbyforge.db UPDATE army_lists SET detachment_id = ?
+   → invalidate ["army-lists"] and ["army-list-with-units", listId]
+
+6. Stale detection:
+   if (list.detachment_id !== null && detachmentData === null):
+     → show "Detachment data missing — re-sync rules" warning
 ```
 
 ---
 
-## `duplicateRecipe` Update
+## Build Order
 
-Current `duplicateRecipe` in `recipes.ts`:
-1. Reads original recipe
-2. Inserts copy
-3. Reads original steps
-4. Copies each step with `newRecipeId`
+### Phase A — Schema + Data Layer (foundation, no UI)
 
-With sections it becomes:
-1. Reads original recipe
-2. Inserts copy -> `newRecipeId`
-3. Reads original sections via `getRecipeSections(originalId)` (or raw SELECT)
-4. For each section: insert with `newRecipeId` -> `newSectionId`; build map `oldSectionId -> newSectionId`
-5. Reads original steps
-6. For each step: insert with `newRecipeId` and `section_id = sectionIdMap.get(step.section_id ?? -1) ?? null`
+1. Migration 019: `ALTER TABLE army_lists ADD COLUMN detachment_id TEXT`; create `rules_favorites`; create `rules_notes`
+2. Update `src/types/armyList.ts` — add `detachment_id: string | null`
+3. Update `UpdateArmyListInput` to include `detachment_id`
+4. Update `updateArmyList` query to handle `detachment_id` (full-replacement, not COALESCE)
+5. New query functions in `rulesExtended.ts`: `getDetachmentById`, `getStratagemsByDetachment`, `getRulesFactions`
+6. New hooks: `useDetachmentById`, `useStratagemsByDetachment` in `useRulesExtended.ts`
+7. New files: `rulesFavorites.ts`, `rulesNotes.ts` query modules
+8. New files: `useRulesFavorites.ts`, `useRulesNotes.ts` hooks
+9. Tests: migration round-trip, detachment_id update/clear, favorites toggle, notes upsert
 
-The ID remap (steps 4-6) is the only non-trivial addition. Without it, copied steps would reference old section IDs belonging to the source recipe, creating orphaned FK references or wrong section groupings.
+**Rationale:** Data layer first is the established project pattern. Schemas and queries are cheap to test and validate before any UI investment.
 
----
+### Phase B — Rules Data Hub UI
 
-## DnD Architecture: Two Independent Contexts
+1. Extract sub-components from `PlaybookTab`: `SyncStatusPanel`, `SyncErrorList`, `SyncDiffView`, `StratagemCard`, `DetachmentPanel`
+2. Update `PlaybookTab` to import from extracted locations (behavior unchanged)
+3. New `src/features/rules-hub/` folder and `RulesHubPage.tsx`
+4. Add `/rules-hub` route to `router.tsx`
+5. Add Rules Hub nav item to sidebar (Play group)
+6. Tests: hub renders sync status; faction picker loads factions; stratagem browser filters correctly
 
-Section-level DnD wraps step-level DnD. Both use `@dnd-kit`. The key constraint: **do not nest DndContext inside DndContext**. This is the known @dnd-kit anti-pattern where drag events bubble to both contexts.
+**Rationale:** Extraction before hub creation avoids duplication. PlaybookTab behavior is verified unchanged before building the new page.
 
-Correct structure:
-- `RecipeSectionList` owns one outer `DndContext` for section reordering (`items = section localIds`)
-- `RecipeStepList` owns one inner `DndContext` per section for step reordering (`items = step localIds`)
-- Each `DndContext` has its own `useSensors()` instance
-- The existing `RecipeStepList` component is reused unchanged inside `RecipeSectionCard` — it already handles its own `DndContext`
+**Dependency:** Requires Phase A (needs `getRulesFactions` for faction browser).
 
-`RecipeSectionList` renders:
-```
-<DndContext sensors={...} onDragEnd={handleSectionDragEnd}>
-  <SortableContext items={sections.map(s => s.localId)} strategy={verticalListSortingStrategy}>
-    {sections.map(sec => (
-      <RecipeSectionCard
-        key={sec.localId}
-        section={sec}
-        onStepChange={(steps) => updateSection(sec.localId, { steps })}
-        onSectionChange={(patch) => updateSection(sec.localId, patch)}
-        onRemove={() => removeSection(sec.localId)}
-        onCreateNewPaint={openInlinePaintCreate}
-      />
-    ))}
-  </SortableContext>
-</DndContext>
-```
+### Phase C — Army Lists 2.0 (detachment selection)
 
-`RecipeSectionCard` renders `RecipeStepList` with `steps={section.steps}` and `onChange={...}` — passing the section's step array and a handler that calls `updateSection(sec.localId, { steps: nextSteps })` on the parent. `RecipeStepList` is entirely unchanged.
+1. `DetachmentPicker` component in `src/features/army-lists/`
+2. Update `ArmyListDetailSheet` to add picker + detachment abilities/stratagems display
+3. Use `useWahapediaFactionId` (already exists in PlaybookTab — copy pattern)
+4. Show stale-data warning when `list.detachment_id` resolves to null detachment
+5. Tests: picker shows detachments for faction; selecting persists; clearing works; stale warning renders
 
----
+**Dependency:** Requires Phase A (migration + type changes + new query hooks).
 
-## `RecipeDetailSheet` and Timeline Update
+### Phase D — Playbook Enhancements (favorites + user notes)
 
-`RecipeDetailSheet` currently:
-- Calls `useRecipePaints(recipe?.id)` to get steps
-- Passes steps to `RecipeStepTimeline`
+1. Add star button to `StratagemCard` (after Phase B extraction)
+2. Add star button to `DetachmentPanel`
+3. Add inline note textarea to both (collapsed by default, expand on focus)
+4. Wire `useRulesFavorites` and `useRulesNotes` hooks
+5. Tests: toggle favorite persists; note saves; favorites render correctly in PlaybookTab and hub
 
-Updated behavior:
-- Also calls `useRecipeSections(recipe?.id)`
-- If `sections.length > 0`: render new `RecipeSectionedTimeline` component
-- If `sections.length === 0`: render existing `RecipeStepTimeline` as fallback (backward compat for edge cases where migration produced no sections)
+**Dependency:** Requires Phase A (schema) and Phase B (extracted components exist before adding star buttons to them).
 
-`RecipeSectionedTimeline` props:
-```typescript
-interface RecipeSectionedTimelineProps {
-  sections: RecipeSection[];
-  steps: RecipeStep[];        // all steps for the recipe; component groups by section_id
-  paintMap: Map<number, Paint>;
-  stepPhotoUrls?: Map<number, string>;
-}
-```
+### Phase E — Game Day Mode
 
-The component groups `steps` by `section_id` internally (a `Map<number, RecipeStep[]>` built with `useMemo`). This avoids requiring the parent to do the grouping and keeps `RecipeDetailSheet` simple.
+1. New `src/features/game-day/` folder
+2. `GameDayPage`, `GameDayStratagemView`, `GameDayUnitPanel`, `GameDayChecklist`
+3. Add `/game-day` route
+4. Add Game Day nav item to sidebar
+5. Tests: page loads with army list; stratagems grouped by phase; checklist items render; unit panel shows stats
 
-`RecipeStepTimeline` is unchanged. It continues to be the fallback and may also be reused inside `RecipeSectionedTimeline` for each section's step list if desired.
+**Dependency:** Requires Phase C (army list detachment selection is the primary data source for Game Day). Requires Phase B (extracted `StratagemCard` reused in `GameDayStratagemView`).
 
----
+### Phase F — Points Import Design Documentation (out-of-scope implementation)
 
-## Suggested Build Order
-
-### Phase 1 — Data Layer (foundation, no UI)
-
-1. Migration 016: `recipe_sections` table + `ALTER TABLE recipe_steps ADD COLUMN section_id INTEGER REFERENCES recipe_sections(id) ON DELETE CASCADE`
-2. Data migration SQL in same file: one default section per existing recipe (using `COALESCE(NULLIF(area, ''), 'General')`), backfill `section_id` on existing steps
-3. `src/types/recipeSection.ts` — new types file
-4. Add `section_id: number | null` to `RecipeStep` in `src/types/recipePaint.ts`
-5. Add `section_id` to `addRecipePaint` insert + update `CreateRecipeStepInput` in `recipePaints.ts`
-6. `src/db/queries/recipeSections.ts` — all 6 query functions
-7. `src/hooks/useRecipeSections.ts` — all hooks + cache keys
-8. Tests: migration data integrity, CRUD operations, `getStepCountsBySection` batch helper, verify existing `getStepCountsByRecipe` and `getRecipePaintAvailability` still work unchanged
-
-**Rationale:** Data layer first lets Phase 2 read sections without touching the complex form. Migration mistakes are caught before any UI investment.
-
-### Phase 2 — Read-Only UI
-
-1. New `RecipeSectionedTimeline` component
-2. Update `RecipeDetailSheet` to call `useRecipeSections(recipe?.id)` and conditionally render `RecipeSectionedTimeline` vs `RecipeStepTimeline`
-3. Tests: detail sheet renders section headers and steps grouped correctly; falls back to flat timeline when no sections
-
-**Rationale:** Read-only first is safer. No form submission path, no risk of data corruption during development. Validates query layer works before touching the complex form state.
-
-### Phase 3 — Form UI
-
-1. Add `DraftSection`, `makeDraftSection()`, `computeSectionOrderIndexes()` to `recipeSteps.ts`
-2. `RecipeSectionForm.tsx` — inline name/surface editor (simple controlled inputs, no RHF)
-3. `RecipeSectionCard.tsx` — collapsible card using `RecipeStepList` internally
-4. `RecipeSectionList.tsx` — outer DnD for section reorder
-5. Rewrite `RecipeFormSheet`: replace `DraftStep[]` state with `DraftSection[]`, update `useEffect` initialization, update `onSubmit` to delete-and-recreate sections
-6. Auto-create one default "General" section for new recipes
-7. Tests: add section, add step inside section, reorder sections, reorder steps within section, simple one-section recipe create round-trip, edit round-trip preserves sections and steps
-
-**Rationale:** `RecipeStepRow` and `RecipeStepList` are unchanged — they slot directly into `RecipeSectionCard` without modification. The form rewrite is isolated to `RecipeFormSheet` + new section components.
-
-### Phase 4 — Duplication + Regression
-
-1. Update `duplicateRecipe` in `recipes.ts` with section copy + section ID remap for steps
-2. Update `useDuplicateRecipe` to invalidate `["recipe-sections"]` prefix
-3. Verify `getStepCountsByRecipe` still works (no change needed)
-4. Verify `getRecipePaintAvailability` still works (no change needed)
-5. Verify `getRecipeSwatchColors` still works (no change needed)
-6. Verify `LogSessionSheet` step selector works (reads `useRecipePaints` — steps still have `recipe_id`, selector unaffected)
-7. Full regression pass
-8. Tests: duplicate copies sections + steps with correct `section_id` remapping; no orphaned section references
+- Write `.planning/research/POINTS_IMPORT.md` documenting the legal constraint (no GW points scraping) and the manual flow design (user enters points per unit per tier — already partially implemented via `unitPointTiers` table)
+- No code changes
 
 ---
 
 ## Anti-Patterns to Avoid
 
-### Nested DndContext
+### Storing Rules Data in hobbyforge.db
 
-**What people do:** Wrap `RecipeSectionList`'s `DndContext` around `RecipeStepList`'s `DndContext`
-**Why it breaks:** @dnd-kit `DndContext` is not designed for nesting — drag events bubble to both contexts causing incorrect collision detection and reordering bugs
-**Do this instead:** Two independent `DndContext` instances; step list `DndContext` lives entirely inside `RecipeSectionCard` as an independent context unrelated to the section-level one
+**What goes wrong:** Copying detachment names, stratagem descriptions, or any `rw_*` content into `hobbyforge.db` tables to avoid the dual-query pattern.
+**Why it's wrong:** rules.db is deleted and rebuilt on every sync. Any `rw_*` data copied to `hobbyforge.db` immediately becomes stale and the app has two conflicting versions of the same fact.
+**Do this instead:** Store only the TEXT ID reference (e.g., `detachment_id TEXT`). Load the actual display data from rules.db via hooks. Accept the dual-query pattern — it's the established and working approach.
 
-### useFieldArray for DraftSection
+### Nesting Portals in ArmyListDetailSheet
 
-**What people do:** Use RHF `useFieldArray` to get free add/remove/reorder for the sections array
-**Why it breaks:** RHF injects its own `id` field onto each item; `@dnd-kit/useSortable` also needs an `id` prop from the same object — they collide (documented as RHF issue #10607). This is the same reason the existing step form uses manual `useState` instead of `useFieldArray`.
-**Do this instead:** `useState<DraftSection[]>` with manual `addSection`, `removeSection`, `updateSection` handlers — exactly mirroring how steps are currently managed in `RecipeFormSheet`
+**What goes wrong:** Rendering the `DetachmentPicker` dialog inside `ArmyListDetailSheet`.
+**Why it's wrong:** The existing codebase has documented this as Pitfall 1 — nested Radix portals cause z-index and context issues. `ArmyListsPage` already owns all sibling portal state.
+**Do this instead:** Add `detachmentPickerOpen` state to `ArmyListsPage`. The `ArmyListDetailSheet` calls `onPickDetachment()` prop. The picker dialog is a sibling portal rendered at page root level.
 
-### Manually Deleting Steps Before Deleting a Section
+### Using COALESCE on detachment_id Updates
 
-**What people do:** On section delete, call `removeRecipePaint` for each step in the section, then `deleteRecipeSection`
-**Why it's wrong:** `ON DELETE CASCADE` on `recipe_steps.section_id` handles step deletion automatically. Manually deleting steps first creates N+1 mutations and leaves the cache partially stale if any individual mutation fails.
-**Do this instead:** Delete the section; trust the cascade; invalidate `RECIPE_PAINTS_KEY(recipeId)` in `useDeleteRecipeSection` so the step cache refreshes cleanly
+**What goes wrong:** Following the COALESCE pattern from `updateArmyList`'s other fields for `detachment_id`.
+**Why it's wrong:** COALESCE means "preserve existing value if input is NULL" — but the user must be able to clear the detachment selection back to NULL (deselect detachment). COALESCE prevents clearing.
+**Do this instead:** Full-replacement UPDATE for `detachment_id`. This is already the established pattern for nullable clearable fields (see `updateArmyListUnit` for precedent).
 
-### Adding Section Joins to Batch Queries
+### Calling N useDatasheet Hooks in a Loop
 
-**What people do:** Add a JOIN to `recipe_sections` inside `getStepCountsByRecipe`, `getRecipeSwatchColors`, or `getRecipePaintAvailability` to "support" sections
-**Why it's wrong:** All three batch queries operate at the recipe level (`GROUP BY recipe_id`). Adding section joins increases complexity, risks introducing bugs, and serves no use case — the recipe card UI still wants recipe-level totals.
-**Do this instead:** Keep existing batch queries unchanged. Add a separate `getStepCountsBySection()` only for the section card header "N steps" label.
+**What goes wrong:** `GameDayPage` maps over the army list's units and calls `useDatasheet(unit.unit_id)` inside the map — hooks cannot be called conditionally or in loops.
+**Why it's wrong:** Rules of Hooks violation. Also, the number of units is runtime-dynamic.
+**Do this instead:** Create a `GameDayUnitPanel` component that receives a single `unitId` prop and calls `useDatasheet(unitId)` unconditionally inside the component. Render N instances of `GameDayUnitPanel`. This is the same pattern already used in `DetachmentSection` inside `PlaybookTab` for per-detachment ability loading.
 
-### Forgetting the section_id Remap in duplicateRecipe
+### Querying All Stratagems for Game Day Without Detachment Filter
 
-**What people do:** Copy sections to the new recipe, then copy steps with `section_id = originalStep.section_id`
-**Why it breaks:** `originalStep.section_id` references a section belonging to the source recipe. The new recipe's sections have different IDs. Steps end up pointing at sections that belong to a different recipe — or, after the source recipe is deleted, orphaned FKs.
-**Do this instead:** Build a `Map<oldSectionId, newSectionId>` during the section copy loop. Use `sectionIdMap.get(step.section_id ?? -1) ?? null` when inserting each copied step.
+**What goes wrong:** Loading all stratagems for the faction and showing all of them in Game Day, unfiltered.
+**Why it's wrong:** A large faction like Space Marines has 40+ stratagems. Game Day should show only the active detachment's stratagems — a focused subset. Showing all creates cognitive overload during an actual game.
+**Do this instead:** If a detachment is selected, use `useStratagemsByDetachment(detachmentId)` which filters `rw_stratagems.detachment_id = ?`. Fall back to `useStratagemsByFaction` only when no detachment is selected. Display the fallback with a note "Select a detachment for filtered stratagems."
 
 ---
 
 ## Integration Boundaries: Unchanged Consumers
 
-These components read recipe data but require no changes for sections:
-
 | Component | Why Unchanged |
 |-----------|---------------|
-| `RecipeCard.tsx` / `RecipeCardGrid.tsx` | Reads recipe-level metadata and batch availability — both unchanged |
-| `RecipesPage.tsx` | 8-dimension filter operates on `PaintingRecipe[]` — no section data involved |
-| `LogSessionSheet` | Selects `recipe_id` + `recipe_step_id` — steps still exist and still have `recipe_id` |
-| `KanbanCard` enrichment | Shows recipe name only |
-| `CurrentFocusCard` | Shows recipe name only |
-| `usePaints.ts` mutations | Invalidate `RECIPE_AVAILABILITY_KEY` — no section awareness needed |
+| All recipe components | No intersection with rules data |
+| `BattleLogPage` / `BattleLogSheet` | Battle log references army list by ID only |
+| `DashboardPage` and all dashboard panels | No rules data in dashboard queries |
+| `CollectionPage` | Collection doesn't change; PlaybookTab changes are additive |
+| `SpendingPage`, `WishlistPage`, `GoalsPage` | No intersection |
+| `PaintsPage`, `PaintingProjectsPage` | No intersection |
 
 ---
 
 ## Sources
 
-- `src/features/recipes/RecipeFormSheet.tsx` (read 2026-05-08)
-- `src/features/recipes/recipeSteps.ts` (read 2026-05-08)
-- `src/features/recipes/RecipeStepList.tsx` (read 2026-05-08)
-- `src/features/recipes/RecipeDetailSheet.tsx` (read 2026-05-08)
-- `src/features/recipes/RecipeStepTimeline.tsx` (read 2026-05-08)
-- `src/db/queries/recipePaints.ts` (read 2026-05-08)
-- `src/db/queries/recipes.ts` (read 2026-05-08)
-- `src/hooks/useRecipePaints.ts` (read 2026-05-08)
-- `src/hooks/useRecipes.ts` (read 2026-05-08)
-- `src/types/recipePaint.ts` (read 2026-05-08)
-- `.planning/milestones/v0.2.7-hierarchical-workflows-context.md` (read 2026-05-08)
+- `src/features/units/PlaybookTab.tsx` (read 2026-05-10)
+- `src/features/army-lists/ArmyListDetailSheet.tsx` (read 2026-05-10)
+- `src/features/army-lists/ArmyListsPage.tsx` (read 2026-05-10)
+- `src/db/queries/armyLists.ts` (read 2026-05-10)
+- `src/db/queries/rulesExtended.ts` (read 2026-05-10)
+- `src/db/queries/rulesSnapshot.ts` (read 2026-05-10)
+- `src/hooks/useRulesExtended.ts` (read 2026-05-10)
+- `src/hooks/useRulesSync.ts` (read 2026-05-10)
+- `src/types/armyList.ts` (read 2026-05-10)
+- `src/types/datasheet.ts` (read 2026-05-10)
+- `src/app/router.tsx` (read 2026-05-10)
+- `src-tauri/migrations/001_core_schema.sql` (read 2026-05-10)
+- `src-tauri/migrations/rules_001_schema.sql` (read 2026-05-10)
+- `.planning/PROJECT.md` (read 2026-05-10)
 
 ---
 
-*Architecture research for: HobbyForge v0.2.7 Hierarchical Recipe Sections*
-*Researched: 2026-05-08*
+*Architecture research for: HobbyForge v0.2.8 Rules Data Hub UI / Army Lists 2.0 / Game Day Mode*
+*Researched: 2026-05-10*
 *Confidence: HIGH — all findings based on direct codebase reads, zero training-data assumptions*

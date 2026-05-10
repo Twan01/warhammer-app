@@ -1,266 +1,219 @@
 # Stack Research
 
-**Domain:** Hierarchical recipe sections — nested sortable containers with collapsible UI
-**Researched:** 2026-05-08
-**Confidence:** HIGH
+**Domain:** Rules Data Hub UI / Army Lists 2.0 / Game Day Mode — Tauri 2 desktop app addition
+**Researched:** 2026-05-10
+**Confidence:** HIGH (all additions verified against existing installed packages)
 
 ---
 
-## Summary Answer
+## What This Covers
 
-No new packages are needed. The existing `@dnd-kit/core 6.3.1` + `@dnd-kit/sortable 10.0.0`
-stack fully supports the two-level nested sortable pattern required (sections sortable, steps
-sortable within sections). The Radix-based `Collapsible` component is already installed and
-already used in the codebase. The manual array state pattern for form draft management (already
-chosen over `useFieldArray` in v2.5) extends naturally to two levels.
+This is a subsequent-milestone stack audit. The v0.2.8 features (Rules Data Hub UI, Army Lists 2.0 with detachment/stratagem integration, Game Day Mode, Playbook enhancements) build entirely on the validated v0.2.7 stack. The question is: what gaps exist, and what is needed for the new capabilities?
+
+**Conclusion: No new npm packages are required.** Every capability needed for v0.2.8 is already present in the installed dependency tree. The additions are architectural patterns, not new dependencies.
 
 ---
 
-## Recommended Stack
+## Existing Stack (Do Not Re-Research)
 
-### Core Technologies (all already installed)
+All validated and installed at v0.2.7:
 
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| @dnd-kit/core | 6.3.1 | DnD event context, sensors, collision detection | Already used; single `DndContext` wraps section-level and step-level `SortableContext` instances independently |
-| @dnd-kit/sortable | 10.0.0 | `SortableContext` + `useSortable` for both levels | Supports nested `SortableContext` providers; both sections and steps use `useSortable` — confirmed in official docs |
-| @dnd-kit/utilities | 3.2.2 | `arrayMove`, `CSS.Transform.toString` | Used in existing step reorder; unchanged |
-| shadcn/ui Collapsible | radix-ui 1.4.3 | Section collapse/expand toggle | Already installed at `src/components/ui/collapsible.tsx`; already used in `LoadoutSection`, `PlaybookTab`, `BattleLogRow` — no install needed |
-| React Hook Form | 7.74.x | Recipe-level fields only (name, faction, unit, etc.) | Sections and steps stay as manual `useState` arrays — same decision as v2.5 (avoids RHF #10607 id collision) |
-| Zod | 4.4.x | Recipe field validation only | No change; section names validated inline, not via RHF schema |
-
-### Supporting Libraries (no new additions)
-
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| React `useState` | 19.x | Draft sections array (`DraftSection[]`) | Top-level in `RecipeFormSheet` — same pattern as current `DraftStep[]`, extended one level |
-| `crypto.randomUUID()` | browser built-in | `localId` for draft sections and steps | Stable globally unique IDs for DnD and React keys — same as current step pattern |
-
----
-
-## Installation
-
-No new packages to install. All required capabilities are present in the current lockfile.
+| Technology | Version | Role |
+|------------|---------|------|
+| Tauri 2 + tauri-plugin-sql | ^2.0.0 | Desktop shell + SQLite bridge |
+| React 19 + TypeScript 5 | ^19.0.0 / ^5.6.3 | UI layer |
+| TailwindCSS 4 + shadcn/ui | 4.2.4 | Styling + primitive components |
+| TanStack Router | ^1.168.26 | File routing |
+| TanStack Query | ^5.100.6 | Server/DB state |
+| TanStack Table | ^8.21.3 | Filterable table primitives |
+| Zustand 5 | ^5.0.12 | Filter + ephemeral UI state |
+| @dnd-kit/core + sortable | 6.3.1 / 10.0.0 | Drag-and-drop |
+| Recharts | 3.8.0 | Charts |
+| Zod 4 | ^4.4.1 | Schema validation |
+| React Hook Form | ^7.74.0 | Forms |
+| Lucide React | ^0.460.0 | Icons |
+| Sonner | ^2.0.7 | Toast notifications |
+| cmdk | ^1.1.1 | Command palette primitives (used by shadcn Combobox) |
 
 ---
 
-## The Nested DnD Pattern in Detail
+## Stack Additions for v0.2.8
 
-### How @dnd-kit handles nested sortable containers
+### None Required
 
-`@dnd-kit/sortable` explicitly supports nesting multiple `SortableContext` instances. The
-official documentation states: "You may nest multiple SortableContext providers within the same
-parent DndContext provider, and you may also nest SortableContext providers within other
-SortableContext providers, either all under the same DndContext provider or each with their own
-individual DndContext providers."
+All three feature areas map cleanly onto existing primitives:
 
-### Architecture for this milestone
-
-The v0.2.7 milestone explicitly marks "moving steps between sections via drag-and-drop" as **out
-of scope**. This means sections only sort against other sections, and steps only sort within their
-own section. This simplifies the architecture: use two separate `DndContext` layers rather than
-one shared context with cross-container type detection.
-
-```tsx
-// RecipeSectionList: outer DndContext handles section reorder
-<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleSectionDragEnd}>
-  <SortableContext items={sections.map(s => s.localId)} strategy={verticalListSortingStrategy}>
-    {sections.map(section => (
-      // Each section card is itself sortable (useSortable on the card header/drag handle)
-      <RecipeSectionCard key={section.localId} section={section} ...>
-
-        {/* Inner DndContext: step reorder scoped to this section */}
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleStepDragEnd(section.localId)}>
-          <SortableContext items={section.steps.map(s => s.localId)} strategy={verticalListSortingStrategy}>
-            {section.steps.map(step => (
-              <RecipeStepRow key={step.localId} step={step} ... />
-            ))}
-          </SortableContext>
-        </DndContext>
-
-      </RecipeSectionCard>
-    ))}
-  </SortableContext>
-</DndContext>
-```
-
-### Why two separate DndContexts (not one shared)
-
-A single `DndContext` with type-based `onDragOver` is the pattern for cross-container item moves
-(Trello-style). It requires: a `type` discriminator on every draggable, a `findContainer` helper,
-`onDragOver` that rewrites the items array mid-drag, and a `DragOverlay` that renders different
-content depending on active type. This is 80+ additional lines of stateful logic.
-
-Since steps cannot move between sections in v1, this complexity adds zero value. Two nested
-`DndContext` instances gives clean isolation — section drag events never interfere with step drag
-events and vice versa.
-
-**Future upgrade path:** If cross-section step movement is added in v0.2.8+, the upgrade is:
-collapse to a single outer `DndContext`, add `data: { type: "section" | "step", sectionId }` to
-`useSortable` calls, implement `onDragOver` with type discrimination, and a `findContainer`
-helper. That is a contained refactor of `RecipeSectionList`, nothing else.
-
-### ID uniqueness requirement
-
-Each `localId` must be globally unique across all sections AND all steps within a single form
-session. `crypto.randomUUID()` guarantees this. Never reuse a section `localId` as a step
-`localId`.
+| Feature Area | Capability Needed | Existing Tool |
+|---|---|---|
+| Rules browser search/filter | Text filter + multi-select dropdowns | Zustand store + shadcn Combobox (cmdk-based) |
+| Rules browser table | Sortable, filterable columns | TanStack Table (already used in CollectionPage) |
+| Sync status dashboard | Stat cards + freshness badge | shadcn Card + Badge (pattern from PlaybookTab) |
+| Detachment selector | Single-select dropdown with search | shadcn Combobox |
+| Stratagem phase grouping | Group-by logic in JS + shadcn Tabs | TanStack Query + shadcn Tabs |
+| Stale data warnings | Query freshness check | getRulesSyncMeta hook (already built) |
+| Game Day checklist | Checkbox state + persistence | Zustand persist middleware (built-in, unused so far) |
+| Game Day phase tabs | Tab navigation | shadcn Tabs |
+| Playbook favorites | hobbyforge.db column + React Query | tauri-plugin-sql + existing query pattern |
+| Playbook user notes on rules | hobbyforge.db column | Same as above |
+| Reminder flagging | DB column + filter | Same pattern as override markers |
 
 ---
 
-## Form State Pattern
+## Recommended Patterns (No New Packages)
 
-### DraftSection extends the existing DraftStep pattern
+### Rules Browser Filter State
 
-```ts
-// New type in src/features/recipes/recipeSteps.ts (or new recipeSection.ts)
-export interface DraftSection {
-  localId: string;        // crypto.randomUUID()
-  name: string;
-  surface: string | null;
-  optional: boolean;
-  notes: string | null;
-  steps: DraftStep[];     // existing type, completely unchanged
+Use the existing Zustand pattern from PaintsPage and CollectionPage verbatim. Create `src/features/rules-hub/rulesHubFilters.ts` with a Zustand store for:
+- `search: string` — text filter across name + description
+- `factionId: string | null` — faction selector
+- `type: string | null` — stratagem/ability/detachment type filter
+
+Do NOT use TanStack Router search params for these filters. The project decision (see PROJECT.md) is ephemeral Zustand filters — filters reset on navigation, matching every other page in the app.
+
+### Game Day Mode Checklist Persistence
+
+Use Zustand `persist` middleware with `localStorage`. This is the only v0.2.8 feature that needs state surviving navigation, because a player leaving Game Day mid-game and returning should see their checklist intact.
+
+```typescript
+// src/features/game-day/gameDayStore.ts
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+interface GameDayStore {
+  checkedReminders: Record<string, boolean>;   // reminderId -> checked
+  selectedArmyListId: number | null;
+  selectedDetachmentId: string | null;
+  toggle: (reminderId: string) => void;
+  reset: () => void;
 }
 
-export function makeDraftSection(name = "General"): DraftSection {
-  return {
-    localId: crypto.randomUUID(),
-    name,
-    surface: null,
-    optional: false,
-    notes: null,
-    steps: [],
-  };
-}
+export const useGameDayStore = create<GameDayStore>()(
+  persist(
+    (set) => ({
+      checkedReminders: {},
+      selectedArmyListId: null,
+      selectedDetachmentId: null,
+      toggle: (id) => set((s) => ({
+        checkedReminders: { ...s.checkedReminders, [id]: !s.checkedReminders[id] }
+      })),
+      reset: () => set({ checkedReminders: {} }),
+    }),
+    { name: 'hobbyforge-game-day' }  // localStorage key
+  )
+);
 ```
 
-`RecipeFormSheet` currently holds `useState<DraftStep[]>`. This becomes
-`useState<DraftSection[]>`. React Hook Form continues to manage only the recipe-level
-fields (name, faction_id, unit_id, area, style, surface, effect, difficulty, etc.) — the
-RHF boundary does not change.
+The `persist` middleware ships with Zustand 5 — no additional installation needed.
 
-### Why NOT useFieldArray for sections or steps
+### Army Lists 2.0 Detachment Integration
 
-The existing codebase already documents this decision (CLAUDE.md key decisions, v2.5):
+The existing `army_lists` table in hobbyforge.db needs a `selected_detachment_id TEXT` column (new migration). The detachment data already exists in rules.db via `rw_detachments` and `useDetachmentsByFaction` hook (built in Phase 43). The pattern is:
 
-> "useFieldArray NOT used for step forms — Documented ID collision with @dnd-kit useSortable (RHF #10607)"
+1. Query `useDetachmentsByFaction(wahapediaFactionId)` — already works
+2. Add a Combobox selector in `ArmyListDetailSheet` — uses existing shadcn Combobox
+3. Save `selected_detachment_id` to hobbyforge.db via migration + query update
+4. Display related stratagems via existing `useStratagemsByFaction` filtered by `detachment_id`
 
-RHF's `useFieldArray` generates its own internal IDs (`id` field) for array items. When
-`useSortable` also assigns a draggable ID to those same items, you must choose between using
-the RHF-generated `id` (which changes on every mutation) or a separate stable `localId`. Using
-the RHF ID as the DnD ID causes stale-reference bugs after reorder. The fix used in v2.5 —
-manual `useState` with `localId: crypto.randomUUID()` — avoids the problem entirely and is
-already battle-tested across all step operations. Extend the same pattern one level up.
+No new hooks or query patterns needed — Phase 43 built exactly this read layer.
 
-Nested `useFieldArray` (sections containing step field arrays) is technically possible but
-adds significant RHF complexity (`useFieldArray({ name: \`sections.${i}.steps\` as 'sections.0.steps' })`)
-for zero benefit when manual state works and is already established.
+### Stale Rules Warning
 
----
+`getRulesSyncMeta` and `getSyncFreshness` (from `src/lib/syncFreshness.ts`) are already built. Display freshness badges in Army Lists using the same `FRESHNESS_DOT_CLASS` pattern from PlaybookTab. No new code required — reuse the existing utilities.
 
-## Collapsible Section Cards
+### Rules Hub Page Route
 
-### Already available — no installation needed
+Add a new `/rules` route to `src/app/router.tsx`. TanStack Router's flat route pattern means this is a 5-line addition matching the existing SettingsPage or GoalsPage pattern.
 
-`src/components/ui/collapsible.tsx` wraps `radix-ui` `CollapsiblePrimitive`. It is already
-used in three components:
+### Playbook Favorites and User Notes on Rules
 
-- `src/features/units/LoadoutSection.tsx` — collapsible loadout editing (most similar to section cards)
-- `src/features/units/PlaybookTab.tsx`
-- `src/features/battle-log/BattleLogRow.tsx`
+These require new hobbyforge.db columns only (SQLite migration). The query/hook/UI pattern is identical to `useUpsertStrategyNote`. Suggested table:
 
-### Usage pattern for RecipeSectionCard
-
-```tsx
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-
-<Collapsible open={isOpen} onOpenChange={setIsOpen}>
-  <div className="flex items-center gap-2">
-    {/* Drag handle — receives useSortable listeners/attributes, NOT inside CollapsibleTrigger */}
-    <GripVertical className="h-4 w-4 cursor-grab text-muted-foreground" {...listeners} {...attributes} />
-
-    <CollapsibleTrigger asChild>
-      <button className="flex flex-1 items-center gap-2 text-left">
-        {/* section name, surface badge, step count, optional badge */}
-        <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
-      </button>
-    </CollapsibleTrigger>
-  </div>
-
-  <CollapsibleContent>
-    {/* inner DndContext + SortableContext for steps */}
-    {/* + Add Step button */}
-  </CollapsibleContent>
-</Collapsible>
+```sql
+-- Migration: add user_rule_notes table
+CREATE TABLE IF NOT EXISTS user_rule_notes (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  entity_type TEXT NOT NULL,  -- 'stratagem' | 'ability' | 'detachment_ability'
+  entity_id   TEXT NOT NULL,  -- Wahapedia string ID
+  notes       TEXT,
+  is_favorite INTEGER NOT NULL DEFAULT 0,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(entity_type, entity_id)
+);
 ```
-
-Radix Collapsible handles `aria-expanded`, keyboard (Space/Enter), and `data-state="open|closed"`
-for CSS transition animations. No accessibility work needed beyond what Radix provides.
-
-### Drag handle + collapsible trigger coexistence
-
-The section card header contains two distinct interaction zones:
-
-1. **Drag handle** — a dedicated grip icon (`GripVertical` from lucide-react) wired to
-   `useSortable`'s `listeners` and `attributes`
-2. **Collapse toggle** — `CollapsibleTrigger` covering the rest of the header
-
-The drag handle must NOT be inside `CollapsibleTrigger` or the click-to-collapse action
-will fire on every drag start. This is the same approach used in `LoadoutSection.tsx`.
-
----
-
-## Alternatives Considered
-
-| Recommended | Alternative | Why Not |
-|-------------|-------------|---------|
-| Two separate `DndContext` (outer: sections, inner per-section: steps) | Single `DndContext` with type-based `onDragOver` | Cross-section step moves are out of scope for v1; single context adds 80+ lines of type-detection logic with no v1 benefit. Simpler two-context approach has zero known pitfalls for same-container sorting. |
-| Manual `useState<DraftSection[]>` | Nested `useFieldArray` for sections + steps | RHF #10607 ID collision; manual array already proven across all step operations in v2.5; nested useFieldArray requires casting hacks |
-| Existing `Collapsible` (radix-ui) | Custom accordion, `<details>/<summary>` HTML | Already installed and used; provides ARIA/keyboard for free; consistent with project component library |
-| `DragOverlay` on section cards | No overlay | Prevents ghost element during section drag; `DragOverlay` already used in `KanbanBoard.tsx` — extend same pattern |
-| Separate `DndContext` per section for step sorting | Shared inner `SortableContext` per section under outer `DndContext` | With two separate `DndContext` layers, the sensors and collision detection can be configured independently per level |
 
 ---
 
 ## What NOT to Add
 
-| Avoid | Why |
-|-------|-----|
-| `@dnd-kit/modifiers` | Not needed for simple vertical list sorting; no axis-locking or viewport-constraint requirements |
-| `react-beautiful-dnd` | Deprecated and unmaintained; `@dnd-kit` is the current standard and already installed |
-| shadcn `Accordion` | Accordion enforces XOR open (at most one section expanded). Recipe sections need independent collapse — each section can be open or closed independently. Use `Collapsible`. |
-| Cross-section step DnD in v1 | Milestone spec explicitly out of scope; adds `onDragOver` type-detection, `findContainer` helpers, and mid-drag state rebalancing |
-| `useFieldArray` for sections | Nested useFieldArray + DnD ID mismatch is a known documented bug in the project (RHF #10607); manual state is the project standard |
+| Library | Why Not | Use Instead |
+|---------|---------|-------------|
+| Fuse.js / flexsearch | Fuzzy search adds a dependency for a problem SQLite already solves | SQLite `LIKE '%term%'` on name + description. Fast enough for <10K rules rows — same pattern used everywhere in the app |
+| React Window / Virtuoso | List virtualization | Rules tables have <500 rows per faction. TanStack Table without virtualization is sufficient. Defer if perf problems appear. |
+| Immer | Immutable state | Zustand 5 handles immutable updates cleanly without Immer. The checklist toggle above shows the pattern. |
+| Redux / Jotai | Additional state manager | Zustand is established across 9 pages. Mixing state libraries creates inconsistency. |
+| Drizzle ORM | Type-safe query builder | Confirmed dead-end (PROJECT.md). tauri-plugin-sql direct parameterized queries continue. |
+| TanStack Virtual | Row virtualization | Unnecessary at this data scale; adds complexity. |
+| date-fns / dayjs | Date utilities | `src/lib/dates.ts` already covers all needs (todayISO, relativeDate, getSyncAgeLabel). |
+| React DnD | Alternative DnD library | @dnd-kit is already installed and proven for two use cases. |
 
 ---
 
-## Version Compatibility
+## Integration Points With Existing Architecture
 
-| Package | Version | Compat Note |
-|---------|---------|-------------|
-| @dnd-kit/core | 6.3.1 | Pairs with @dnd-kit/sortable 10.0.0; sortable 10.0.0 released as patch against core 6.3.0, no breaking changes |
-| @dnd-kit/sortable | 10.0.0 | Nested `SortableContext` confirmed supported in official docs and community patterns (dnd-kit discussions #821, #809) |
-| radix-ui (Collapsible) | 1.4.3 | Already installed as `radix-ui` umbrella; `CollapsiblePrimitive` accessible via `import { Collapsible as CollapsiblePrimitive } from "radix-ui"` |
-| react-hook-form | 7.74.x | Only used for recipe-level fields; sections and steps bypass RHF entirely via manual state |
+### Dual-DB Pattern Continuation
+
+Game Day and Rules Hub both read from rules.db via `getRulesDb()`. Favorites/notes write to hobbyforge.db via `getDb()`. This is the established dual-query merge pattern — no change to the architecture.
+
+### Cache Key Conventions
+
+Follow existing naming for new hooks:
+```typescript
+export const RULES_HUB_STRATAGEMS_KEY = (factionId: string) =>
+  ["rules-hub-stratagems", factionId] as const;
+export const USER_RULE_NOTES_KEY = (entityType: string, entityId: string) =>
+  ["user-rule-notes", entityType, entityId] as const;
+```
+
+Use `staleTime: Infinity` for rules.db reads (same as `useDatasheet`, `useRulesExtended`) — content only changes on explicit user-triggered sync.
+
+### Migration Numbering
+
+hobbyforge.db is at migration 017 after v0.2.7. v0.2.8 additions:
+- Migration 018: `selected_detachment_id TEXT` column on `army_lists`
+- Migration 019: `user_rule_notes` table (favorites + user notes on rules entities)
+
+Both follow the "never edit existing migrations" rule from PROJECT.md.
+
+### Cache Invalidation Symmetry
+
+When `useRulesSync` runs, it must also invalidate `["user-rule-notes"]` prefix if notes reference entities that may have changed. The symmetry rule from PROJECT.md: if `useCreate` invalidates a key, `useDelete` must too.
+
+---
+
+## Version Compatibility Verification
+
+All packages verified against package.json at v0.2.7:
+
+| Package | Installed | Capability for v0.2.8 | Status |
+|---------|-----------|----------------------|--------|
+| zustand ^5.0.12 | YES | `persist` middleware for Game Day checklist | Ships with Zustand 5, no extra install |
+| @tanstack/react-table ^8.21.3 | YES | Rules browser filterable/sortable table | Already used in CollectionPage |
+| cmdk ^1.1.1 | YES | Combobox search for detachment selector | shadcn Combobox depends on this |
+| radix-ui ^1.4.3 | YES | Tabs + Checkbox for Game Day mode | Already in component library |
+| lucide-react ^0.460.0 | YES | Star/bookmark icons for favorites | Already installed |
 
 ---
 
 ## Sources
 
-- [dnd-kit Sortable Context official docs](https://dndkit.com/presets/sortable/sortable-context) — nesting multiple SortableContext confirmed supported — HIGH confidence
-- [dnd-kit Nested Multiple Containers discussion #821](https://github.com/clauderic/dnd-kit/discussions/821) — type-based drag differentiation pattern for cross-container moves — MEDIUM confidence
-- [dnd-kit Complex Interactions discussion #809](https://github.com/clauderic/dnd-kit/discussions/809) — single DndContext production pattern for page builder with sections/rows/columns — MEDIUM confidence
-- [dnd-kit issue #735](https://github.com/clauderic/dnd-kit/issues/735) — known animation/loop issues when items cross container boundaries mid-drag (avoided by two-DndContext approach) — HIGH confidence
-- [RHF discussion #10607](https://github.com/orgs/react-hook-form/discussions/10607) — useFieldArray + useSortable ID collision, existing CLAUDE.md decision confirmed — HIGH confidence
-- [shadcn/ui Collapsible docs](https://ui.shadcn.com/docs/components/radix/collapsible) — Radix-based, keyboard/ARIA included — HIGH confidence
-- [@dnd-kit/sortable CHANGELOG](https://github.com/clauderic/dnd-kit/blob/master/packages/sortable/CHANGELOG.md) — v10.0.0 is patch-only against core 6.3.0, no breaking changes — HIGH confidence
-- `src/components/ui/collapsible.tsx` — Collapsible already installed and wired — HIGH confidence (code-verified)
-- `src/features/recipes/RecipeStepList.tsx` — existing DnD pattern for step reorder — HIGH confidence (code-verified)
-- `src/features/painting-projects/KanbanBoard.tsx` — DragOverlay pattern already in use — HIGH confidence (code-verified)
-- `package.json` — all package versions confirmed — HIGH confidence (code-verified)
+- `C:\Documents\Claude Apps\Warhammer App\.planning\PROJECT.md` — HIGH confidence (ground truth for decisions and installed stack)
+- `package.json` at v0.2.7 — HIGH confidence (definitive installed deps list)
+- `src/hooks/useRulesExtended.ts` — HIGH confidence (Phase 43 read layer already built for detachments/stratagems)
+- `src/hooks/useRulesSync.ts` — HIGH confidence (full sync pipeline with diff/snapshot built)
+- [Zustand persist middleware docs](https://zustand.docs.pmnd.rs/reference/integrations/persisting-store-data) — HIGH confidence
+- [TanStack Router search params guide](https://tanstack.com/router/latest/docs/guide/search-params) — HIGH confidence (confirms Zustand is correct choice for ephemeral filters vs URL params)
 
 ---
-
-*Stack research for: HobbyForge v0.2.7 — Hierarchical Painting Workflows*
-*Researched: 2026-05-08*
+*Stack research for: HobbyForge v0.2.8 — Rules Data Hub UI / Army Lists 2.0 / Game Day Mode*
+*Researched: 2026-05-10*
