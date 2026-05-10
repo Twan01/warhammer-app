@@ -174,7 +174,11 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
   3. Query functions getDetachmentById, getStratagemsByDetachment (rulesExtended.ts), getRulesFavorites, upsertRulesFavorite, deleteRulesFavorite (rulesFavorites.ts), getRulesNotes, upsertRulesNote (rulesNotes.ts) exist with correct parameterized SQL
   4. React Query hooks useDetachmentById, useStratagemsByDetachment, useRulesFavorites, useRulesNotes, and matching mutations are registered with staleTime: Infinity where reading from rules.db and registered for cache invalidation in useRulesSync.onSuccess
   5. Points import design document is written at `.planning/points-import-design.md` covering schema, versioning, deltas, manual override interaction, and army list impact
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 52-01-PLAN.md — Migration 019 + TypeScript types + army list query extensions
+- [ ] 52-02-PLAN.md — Points import design document (ARMY-06)
+- [ ] 52-03-PLAN.md — Query modules + hooks + sync invalidation
 
 ### Phase 53: Rules Data Hub UI
 **Goal**: Users can browse all synced Wahapedia rules data from a dedicated page — stratagems, detachments, and shared abilities — with faction filtering, text search, sync status, error history, and diff summary visible at a glance
@@ -186,7 +190,11 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
   3. User can browse stratagems filtered by phase (Command/Movement/Shooting/Charge/Fight) and CP cost; user can browse detachments and their abilities; user can browse shared abilities — each as a distinct, labeled section or tab
   4. User can view sync error history with timestamps and error messages; user can view a diff summary showing how many datasheets were added, removed, modified, or renamed since the last sync
   5. A visible disclaimer on the page identifies all data as community-sourced Wahapedia data, not official Games Workshop material
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 52-01-PLAN.md — Migration 019 + TypeScript types + army list query extensions
+- [ ] 52-02-PLAN.md — Points import design document (ARMY-06)
+- [ ] 52-03-PLAN.md — Query modules + hooks + sync invalidation
 
 ### Phase 54: Army Lists 2.0 — Detachment Selection
 **Goal**: Users can select a detachment for each army list and immediately see the detachment's ability and its filtered stratagems in the army list detail — closing the most-requested gap in the current army list builder
@@ -198,7 +206,11 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
   3. The user can see stratagems filtered to the selected detachment listed in the army list detail, using the same StratagemEntry display component as PlaybookTab
   4. When the last sync occurred more than 30 days ago, a visible stale-data warning appears in the army list detail (not a blocking error — just a banner)
   5. User-marked favorites from PlaybookTab (is_reminder = 1) appear as a "Reminders" section within the army list detail, so game-relevant rules are one place to check before play
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 52-01-PLAN.md — Migration 019 + TypeScript types + army list query extensions
+- [ ] 52-02-PLAN.md — Points import design document (ARMY-06)
+- [ ] 52-03-PLAN.md — Query modules + hooks + sync invalidation
 
 ### Phase 55: Playbook Enhancements — Favorites and Notes
 **Goal**: Users can mark any rule as a favorite or Game Day reminder and attach personal notes to any imported rule — with all user annotations visually distinct from synced Wahapedia data and surviving re-syncs
@@ -209,7 +221,11 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
   2. Every rule entry shows a "Game Day reminder" flag toggle (distinct from the favorite star); rules with is_reminder = 1 are the source for ARMY-05 (army list reminders) and GAME-07 (Game Day reminders)
   3. Every rule entry shows a note textarea; typing and saving a note persists a rules_notes row in hobbyforge.db using the rule_name TEXT copy; the note survives re-sync and reappears on rule re-display
   4. Favorited rules and user notes are visually distinct from imported Wahapedia data — different background, label, or icon — making it clear which content is user-generated vs. community-sourced
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 52-01-PLAN.md — Migration 019 + TypeScript types + army list query extensions
+- [ ] 52-02-PLAN.md — Points import design document (ARMY-06)
+- [ ] 52-03-PLAN.md — Query modules + hooks + sync invalidation
 
 ### Phase 56: Game Day Mode
 **Goal**: Users can launch a focused in-game reference view from any army list — with a CP tracker, phase-grouped stratagems for the selected detachment, a persistent pre-game checklist, per-unit ability cards, and painting status visible at a glance
@@ -221,7 +237,11 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
   3. A CP tracker shows current CP remaining (starts at user-set value); each tap on a stratagem card decrements CP by that stratagem's cost, with undo available; CP state persists across navigation using Zustand persist (localStorage)
   4. A pre-game checklist is displayed with user-defined setup steps; checked items remain checked until the user explicitly resets the checklist; checklist state persists using Zustand persist (localStorage)
   5. Each unit in the army list has a collapsible ability quick-reference card; abilities with an explicit once-per-game marker show a used/unused toggle; unit painting status (painted/unpainted) is visible on each card as a contextual readiness signal
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 52-01-PLAN.md — Migration 019 + TypeScript types + army list query extensions
+- [ ] 52-02-PLAN.md — Points import design document (ARMY-06)
+- [ ] 52-03-PLAN.md — Query modules + hooks + sync invalidation
 
 ## Progress
 
@@ -280,7 +300,7 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 | 49. Section Read UI | v0.2.7 | 1/1 | Complete | 2026-05-08 |
 | 50. Section Form UI | v0.2.7 | 3/3 | Complete | 2026-05-08 |
 | 51. Duplication + Integration Polish | v0.2.7 | 2/2 | Complete | 2026-05-08 |
-| 52. Schema + Data Layer Foundation | v0.2.8 | 0/TBD | Not started | - |
+| 52. Schema + Data Layer Foundation | v0.2.8 | 0/3 | In progress | - |
 | 53. Rules Data Hub UI | v0.2.8 | 0/TBD | Not started | - |
 | 54. Army Lists 2.0 — Detachment Selection | v0.2.8 | 0/TBD | Not started | - |
 | 55. Playbook Enhancements — Favorites and Notes | v0.2.8 | 0/TBD | Not started | - |
