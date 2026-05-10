@@ -26,7 +26,7 @@ Requirements for Rules Data Hub / Army Lists 2.0 / Game Day. Each maps to roadma
 - [ ] **ARMY-03**: User can view relevant stratagems for the selected detachment in the army list
 - [ ] **ARMY-04**: User sees a stale-data warning when army list uses rules data older than 30 days
 - [ ] **ARMY-05**: User can view list-level rules reminders (user-marked favorites from Playbook)
-- [ ] **ARMY-06**: Points import design is documented (schema, versioning, deltas, manual override, list impact)
+- [x] **ARMY-06**: Points import design is documented (schema, versioning, deltas, manual override, list impact)
 
 ### Game Day Mode
 
@@ -78,7 +78,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ARMY-06 | Phase 52 | Pending |
+| ARMY-06 | Phase 52 | Complete |
 | RULES-01 | Phase 53 | Pending |
 | RULES-02 | Phase 53 | Pending |
 | RULES-03 | Phase 53 | Pending |
