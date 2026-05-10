@@ -42,11 +42,11 @@ created: 2026-05-10
 | 53-01-02 | 01 | 1 | RULES-02 | unit | `pnpm test -- tests/rules-hub/RulesHubPage.test.tsx` | ❌ W0 | ⬜ pending |
 | 53-01-03 | 01 | 1 | RULES-03 | unit | `pnpm test -- tests/rules-hub/SyncStatusCard.test.tsx` | ❌ W0 | ⬜ pending |
 | 53-01-04 | 01 | 1 | RULES-04 | unit | `pnpm test -- tests/rules-hub/RulesHubPage.test.tsx` | ❌ W0 | ⬜ pending |
-| 53-02-01 | 02 | 1 | RULES-05 | unit | `pnpm test -- tests/rules-hub/applyRulesHubFilters.test.ts` | ❌ W0 | ⬜ pending |
-| 53-02-02 | 02 | 1 | RULES-06 | unit | `pnpm test -- tests/rules-hub/DetachmentCard.test.tsx` | ❌ W0 | ⬜ pending |
-| 53-02-03 | 02 | 1 | RULES-07 | unit | `pnpm test -- tests/rules-hub/RulesHubPage.test.tsx` | ❌ W0 | ⬜ pending |
-| 53-02-04 | 02 | 1 | RULES-08 | unit | `pnpm test -- tests/rules-hub/applyRulesHubFilters.test.ts` | ❌ W0 | ⬜ pending |
-| 53-03-01 | 03 | 1 | RULES-09 | unit | `pnpm test -- tests/rules-hub/RulesHubPage.test.tsx` | ❌ W0 | ⬜ pending |
+| 53-02-01 | 02 | 2 | RULES-05 | unit | `pnpm test -- tests/rules-hub/applyRulesHubFilters.test.ts` | ❌ W0 | ⬜ pending |
+| 53-03-01 | 03 | 3 | RULES-06 | unit | `pnpm test -- tests/rules-hub/DetachmentCard.test.tsx` | ❌ W0 | ⬜ pending |
+| 53-03-02 | 03 | 3 | RULES-07 | unit | `pnpm test -- tests/rules-hub/RulesHubPage.test.tsx` | ❌ W0 | ⬜ pending |
+| 53-02-02 | 02 | 2 | RULES-08 | unit | `pnpm test -- tests/rules-hub/applyRulesHubFilters.test.ts` | ❌ W0 | ⬜ pending |
+| 53-03-03 | 03 | 3 | RULES-09 | unit | `pnpm test -- tests/rules-hub/RulesHubPage.test.tsx` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
