@@ -52,3 +52,28 @@ export async function getSharedAbilitiesByFaction(factionId: string): Promise<Rw
     [factionId]
   );
 }
+
+/**
+ * Phase 52 — returns a single detachment by its Wahapedia string ID.
+ * Used by army list detail to display the selected detachment's info.
+ */
+export async function getDetachmentById(detachmentId: string): Promise<RwDetachment | null> {
+  const db = await getRulesDb();
+  const rows = await db.select<RwDetachment[]>(
+    "SELECT * FROM rw_detachments WHERE id = $1",
+    [detachmentId]
+  );
+  return rows[0] ?? null;
+}
+
+/**
+ * Phase 52 — returns stratagems filtered by detachment_id, ordered by name.
+ * Used by army list detail and Game Day mode to show detachment-specific stratagems.
+ */
+export async function getStratagemsByDetachment(detachmentId: string): Promise<RwStratagem[]> {
+  const db = await getRulesDb();
+  return db.select<RwStratagem[]>(
+    "SELECT * FROM rw_stratagems WHERE detachment_id = $1 ORDER BY name",
+    [detachmentId]
+  );
+}
