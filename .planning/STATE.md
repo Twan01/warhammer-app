@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
-status: planning
-stopped_at: Completed 52-02-PLAN.md
-last_updated: "2026-05-10T18:09:30Z"
-last_activity: 2026-05-10 — Plan 52-02 complete: points import design document (ARMY-06)
+status: executing
+stopped_at: Completed 52-03-PLAN.md
+last_updated: "2026-05-10T18:19:52.807Z"
+last_activity: "2026-05-10 — Plan 52-02 complete: points import design document (ARMY-06)"
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
-  percent: 0
+  completed_plans: 3
+  percent: 67
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-10 after v0.2.8 milestone started)
 ## Current Position
 
 Phase: 52 of 56 (Schema + Data Layer Foundation)
-Plan: 02 complete (2/3)
+Plan: 03 complete (3/3) — Phase 52 COMPLETE
 Status: In Progress
-Last activity: 2026-05-10 — Plan 52-02 complete: points import design document (ARMY-06)
+Last activity: 2026-05-10 — Plan 52-03 complete: query modules + hooks for favorites, notes, and detachment queries
 
-Progress: [██████░░░░] 67%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -65,6 +65,9 @@ Progress: [██████░░░░] 67%
 - COALESCE precedence for points: alu.points_override > pi.points > uo.points > u.points > 0 (52-02)
 - points_imports.faction_id uses Wahapedia text key (e.g. 'SM'), not integer factions.id — consistent with unit_overrides (52-02)
 - points tables live in hobbyforge.db (not rules.db) to survive rules re-syncs (52-02)
+- useRulesFavorites optimistic updates use placeholder id=-1 for new entries; onSettled refetch brings real server data (52-03)
+- useRulesSync.ts invalidates detachment-by-id and stratagems-by-detachment but NOT rules-favorites or rules-notes — hobbyforge.db survives rules wipe (52-03)
+- COALESCE on INSERT OR REPLACE preserves created_at when replacing existing row by composite UNIQUE key (52-03)
 
 ### Pending Todos
 
@@ -76,6 +79,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-10T18:09:30Z
-Stopped at: Completed 52-02-PLAN.md
+Last session: 2026-05-10T18:19:52.804Z
+Stopped at: Completed 52-03-PLAN.md
 Resume: Run /gsd:plan-phase 52
