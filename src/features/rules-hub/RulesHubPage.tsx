@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SyncStatusCard } from "./SyncStatusCard";
 import { useFactions } from "@/hooks/useFactions";
 import { useRulesSyncMeta, useWahapediaFactionId } from "@/hooks/useDatasheet";
@@ -20,6 +21,8 @@ import {
 } from "@/hooks/useRulesExtended";
 import { applyStratagemFilters, STRATAGEM_PHASES } from "./applyRulesHubFilters";
 import { StratagemCard } from "./StratagemCard";
+import { DetachmentCard } from "./DetachmentCard";
+import { SharedAbilityCard } from "./SharedAbilityCard";
 import { cn } from "@/lib/utils";
 import type { SyncDiff } from "@/lib/computeSyncDiff";
 
@@ -43,15 +46,31 @@ export function RulesHubPage() {
   const selectedFaction = factions.find((f) => f.id === selectedFactionId);
   const { data: wahapediaFactionId } = useWahapediaFactionId(selectedFaction?.name);
 
-  // Prefetch rules data for selected faction (tabs will use these)
-  const { data: stratagems = [] } = useStratagemsByFaction(wahapediaFactionId ?? undefined);
-  useDetachmentsByFaction(wahapediaFactionId ?? undefined);
-  useSharedAbilitiesByFaction(wahapediaFactionId ?? undefined);
+  // Rules data for selected faction
+  const { data: stratagems = [], isLoading: stratagemLoading } = useStratagemsByFaction(wahapediaFactionId ?? undefined);
+  const { data: detachments = [], isLoading: detachmentLoading } = useDetachmentsByFaction(wahapediaFactionId ?? undefined);
+  const { data: sharedAbilities = [], isLoading: sharedAbilitiesLoading } = useSharedAbilitiesByFaction(wahapediaFactionId ?? undefined);
 
   const filteredStratagems = useMemo(
     () => applyStratagemFilters(stratagems, { searchText, phaseFilter, cpFilter }),
     [stratagems, searchText, phaseFilter, cpFilter]
   );
+
+  const filteredDetachments = useMemo(() => {
+    if (!searchText) return detachments;
+    const lower = searchText.toLowerCase();
+    return detachments.filter((d) => d.name.toLowerCase().includes(lower));
+  }, [detachments, searchText]);
+
+  const filteredAbilities = useMemo(() => {
+    if (!searchText) return sharedAbilities;
+    const lower = searchText.toLowerCase();
+    return sharedAbilities.filter(
+      (a) =>
+        a.name.toLowerCase().includes(lower) ||
+        (a.legend ?? "").toLowerCase().includes(lower)
+    );
+  }, [sharedAbilities, searchText]);
 
   const noData = !syncMeta;
   const noFaction = !selectedFactionId;
@@ -143,34 +162,88 @@ export function RulesHubPage() {
                   ))}
                 </div>
 
-                {/* Count + card list */}
-                <p className="text-xs text-muted-foreground">
-                  {filteredStratagems.length} stratagem{filteredStratagems.length !== 1 ? "s" : ""}
-                </p>
-
-                {filteredStratagems.length === 0 ? (
-                  <p className={cn("text-sm text-muted-foreground italic")}>
-                    No stratagems match your filters.
-                  </p>
-                ) : (
+                {stratagemLoading ? (
                   <div className="flex flex-col gap-2">
-                    {filteredStratagems.map((s) => (
-                      <StratagemCard key={s.id} stratagem={s} />
+                    {[0, 1, 2].map((i) => (
+                      <Skeleton key={i} className="h-[80px] w-full rounded-lg" />
                     ))}
                   </div>
+                ) : (
+                  <>
+                    {/* Count + card list */}
+                    <p className="text-xs text-muted-foreground">
+                      {filteredStratagems.length} stratagem{filteredStratagems.length !== 1 ? "s" : ""}
+                    </p>
+
+                    {filteredStratagems.length === 0 ? (
+                      <p className={cn("text-sm text-muted-foreground italic")}>
+                        No stratagems match your filters.
+                      </p>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        {filteredStratagems.map((s) => (
+                          <StratagemCard key={s.id} stratagem={s} />
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
               </TabsContent>
 
-              <TabsContent value="detachments">
-                <p className="mt-4 text-sm text-muted-foreground">
-                  Detachments content
-                </p>
+              <TabsContent value="detachments" className="mt-4 space-y-4">
+                {detachmentLoading ? (
+                  <div className="flex flex-col gap-2">
+                    {[0, 1, 2].map((i) => (
+                      <Skeleton key={i} className="h-[80px] w-full rounded-lg" />
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-xs text-muted-foreground">
+                      {filteredDetachments.length} detachment{filteredDetachments.length !== 1 ? "s" : ""}
+                    </p>
+
+                    {filteredDetachments.length === 0 ? (
+                      <p className="text-sm text-muted-foreground italic">
+                        No detachments match your search.
+                      </p>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        {filteredDetachments.map((d) => (
+                          <DetachmentCard key={d.id} detachment={d} />
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
               </TabsContent>
 
-              <TabsContent value="shared-abilities">
-                <p className="mt-4 text-sm text-muted-foreground">
-                  Shared abilities content
-                </p>
+              <TabsContent value="shared-abilities" className="mt-4 space-y-4">
+                {sharedAbilitiesLoading ? (
+                  <div className="flex flex-col gap-2">
+                    {[0, 1, 2].map((i) => (
+                      <Skeleton key={i} className="h-[80px] w-full rounded-lg" />
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-xs text-muted-foreground">
+                      {filteredAbilities.length} {filteredAbilities.length === 1 ? "ability" : "abilities"}
+                    </p>
+
+                    {filteredAbilities.length === 0 ? (
+                      <p className="text-sm text-muted-foreground italic">
+                        No shared abilities match your search.
+                      </p>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        {filteredAbilities.map((a) => (
+                          <SharedAbilityCard key={a.id} ability={a} />
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
               </TabsContent>
             </Tabs>
           )}
