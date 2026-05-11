@@ -6,6 +6,18 @@ HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby 
 
 Shipped through v0.2.8 (56 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, paint availability, and DnD reorder), army list builder with detachment selection and inline rules context, battle log, spending tracker, hobby goals, photo journal, session-recipe linking, premium CSS grid dashboard, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, and a Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist).
 
+## Current Milestone: v0.2.9 Recipes 3.1 / Workflow Semantics & Integrations
+
+**Goal:** Make recipe sections semantically rich and actionable — extending workflow metadata into Log Session, Kanban, and Current Focus for real painting workflow guidance.
+
+**Target features:**
+- Section-level workflow metadata (section_type, technique, execution_mode, applies_to)
+- UI for editing workflow metadata under progressive disclosure
+- Compact metadata display in SectionedTimeline
+- Log Session section-aware flow (recipe → section → step cascading selectors)
+- Kanban card current workflow/next step display
+- Current Focus card section-aware next action guidance
+
 ## Core Value
 
 A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
@@ -114,7 +126,14 @@ A single personal command center that always answers "what do I own, what's pain
 
 ### Active
 
-(No active milestone — run `/gsd-new-milestone` to start next)
+*v0.2.9 — Recipes 3.1 / Workflow Semantics & Integrations*
+
+- [ ] Section-level workflow metadata (section_type, technique, execution_mode, applies_to)
+- [ ] Workflow metadata editing UI with progressive disclosure
+- [ ] Compact metadata display in SectionedTimeline
+- [ ] Log Session section-aware cascading selectors (recipe → section → step)
+- [ ] Kanban card current workflow/next step display
+- [ ] Current Focus card section-aware next action guidance
 
 ### Out of Scope
 
@@ -207,4 +226,4 @@ A single personal command center that always answers "what do I own, what's pain
 | staleTime: Infinity + sync invalidation for rules.db hooks | Rules data only changes on sync; Infinity prevents spurious refetches | ✓ Good — consistent with read-heavy, write-rare access pattern |
 
 ---
-*Last updated: 2026-05-11 after v0.2.8 milestone shipped*
+*Last updated: 2026-05-11 after v0.2.9 milestone started*

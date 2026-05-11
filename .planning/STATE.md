@@ -1,33 +1,34 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.2.8
-milestone_name: Rules Data Hub UI / Army Lists 2.0 / Game Day
-status: Milestone v0.2.8 Archived
-stopped_at: Milestone complete — archived to milestones/
-last_updated: "2026-05-11T22:00:00.000Z"
-last_activity: "2026-05-11 — Milestone v0.2.8 archived"
+milestone: v0.2.9
+milestone_name: Recipes 3.1 / Workflow Semantics & Integrations
+status: planning
+stopped_at: null
+last_updated: "2026-05-11T23:00:00.000Z"
+last_activity: "2026-05-11 — Milestone v0.2.9 started"
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 12
-  completed_plans: 12
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-11 after v0.2.8 milestone shipped)
+See: .planning/PROJECT.md (updated 2026-05-11 after v0.2.9 milestone started)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** Planning next milestone
+**Current focus:** Defining requirements for v0.2.9
 
 ## Current Position
 
-Phase: None — between milestones
-Status: v0.2.8 archived, ready for next milestone
-Last activity: 2026-05-11 — Milestone v0.2.8 archived
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-11 — Milestone v0.2.9 started
 
 ## Performance Metrics
 
@@ -69,5 +70,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-11
-Stopped at: Milestone v0.2.8 archived
-Resume: Run `/gsd-new-milestone` to start next milestone
+Stopped at: Defining requirements for v0.2.9
+Resume: Define requirements, then create roadmap
