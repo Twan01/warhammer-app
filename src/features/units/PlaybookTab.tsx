@@ -22,7 +22,7 @@ import {
   useSharedAbilitiesByFaction,
   useDetachmentAbilitiesByDetachment,
 } from "@/hooks/useRulesExtended";
-import type { RwDetachment, RwStratagem } from "@/types/datasheet";
+import type { RwDetachment, RwStratagem, RwDetachmentAbility } from "@/types/datasheet";
 import { useFactions } from "@/hooks/useFactions";
 import { useUnits } from "@/hooks/useUnits";
 import { useQueryClient } from "@tanstack/react-query";
@@ -32,6 +32,13 @@ import type { StrategyNote, UpsertStrategyNoteInput } from "@/types/strategyNote
 import { DatasheetPicker } from "@/features/units/DatasheetPicker";
 import { TierManager } from "@/features/units/TierManager";
 import { LoadoutSection } from "@/features/units/LoadoutSection";
+import { useRulesFavorites, useUpsertRulesFavorite, useDeleteRulesFavorite } from "@/hooks/useRulesFavorites";
+import { useRulesNotes } from "@/hooks/useRulesNotes";
+import { RuleAnnotationControls } from "@/features/rules-hub/RuleAnnotationControls";
+import { RuleNoteEditor } from "@/features/rules-hub/RuleNoteEditor";
+import type { RulesFavorite } from "@/types/rulesFavorite";
+import type { RulesNote } from "@/types/rulesNote";
+import { cn } from "@/lib/utils";
 
 interface PlaybookTabProps {
   unitId: number;
@@ -369,6 +376,21 @@ export function PlaybookTab({
   const { data: stratagems = [] } = useStratagemsByFaction(wahapediaFactionId ?? undefined);
   const { data: detachments = [] } = useDetachmentsByFaction(wahapediaFactionId ?? undefined);
   const { data: sharedAbilities = [] } = useSharedAbilitiesByFaction(wahapediaFactionId ?? undefined);
+
+  const { data: rulesFavorites = [] } = useRulesFavorites();
+  const { data: rulesNotes = [] } = useRulesNotes();
+
+  const favoritesMap = useMemo(() => {
+    const m = new Map<string, RulesFavorite>();
+    for (const f of rulesFavorites) m.set(`${f.rule_id}:${f.rule_type}`, f);
+    return m;
+  }, [rulesFavorites]);
+
+  const notesMap = useMemo(() => {
+    const m = new Map<string, RulesNote>();
+    for (const n of rulesNotes) m.set(`${n.rule_id}:${n.rule_type}`, n);
+    return m;
+  }, [rulesNotes]);
 
   const hasStratagems = stratagems.length > 0;
   const hasDetachments = detachments.length > 0;
@@ -1018,7 +1040,12 @@ export function PlaybookTab({
                   <div key={phaseName} className="flex flex-col gap-2">
                     <span className={SECTION_LABEL_CLASS}>{phaseName}</span>
                     {phaseStratagems.map((s) => (
-                      <StratagemEntry key={s.id} stratagem={s} />
+                      <StratagemEntry
+                        key={s.id}
+                        stratagem={s}
+                        favorite={favoritesMap.get(`${s.id}:stratagem`) ?? null}
+                        note={notesMap.get(`${s.id}:stratagem`) ?? null}
+                      />
                     ))}
                   </div>
                 ))}
@@ -1042,7 +1069,7 @@ export function PlaybookTab({
             <CollapsibleContent>
               <div className="flex flex-col gap-4">
                 {detachments.map((det) => (
-                  <DetachmentSection key={det.id} detachment={det} />
+                  <DetachmentSection key={det.id} detachment={det} favoritesMap={favoritesMap} notesMap={notesMap} />
                 ))}
               </div>
             </CollapsibleContent>
@@ -1064,7 +1091,14 @@ export function PlaybookTab({
             <CollapsibleContent>
               <div className="flex flex-col gap-2">
                 {sharedAbilities.map((a) => (
-                  <ExtendedAbilityEntry key={a.id} name={a.name} description={a.description} />
+                  <ExtendedAbilityEntry
+                    key={a.id}
+                    id={a.id}
+                    name={a.name}
+                    description={a.description}
+                    favorite={favoritesMap.get(`${a.id}:shared_ability`) ?? null}
+                    note={notesMap.get(`${a.id}:shared_ability`) ?? null}
+                  />
                 ))}
               </div>
             </CollapsibleContent>
@@ -1239,10 +1273,35 @@ function AbilityEntry({ ability }: { ability: import("@/types/datasheet").RwData
 }
 
 // StratagemEntry — displays one stratagem with CP cost, type, turn, and description.
-function StratagemEntry({ stratagem }: { stratagem: RwStratagem }) {
+function StratagemEntry({ stratagem, favorite, note }: { stratagem: RwStratagem; favorite: RulesFavorite | null; note: RulesNote | null }) {
+  const upsertFavorite = useUpsertRulesFavorite();
+  const deleteFavorite = useDeleteRulesFavorite();
+  const isAnnotated = favorite !== null || note !== null;
+
+  function handleToggleFavorite(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (favorite) {
+      deleteFavorite.mutate({ ruleId: stratagem.id, ruleType: 'stratagem' });
+    } else {
+      upsertFavorite.mutate({ rule_id: stratagem.id, rule_type: 'stratagem', rule_name: stratagem.name, is_reminder: 0 });
+    }
+  }
+
+  function handleToggleReminder(e: React.MouseEvent) {
+    e.stopPropagation();
+    upsertFavorite.mutate({ rule_id: stratagem.id, rule_type: 'stratagem', rule_name: stratagem.name, is_reminder: favorite?.is_reminder === 1 ? 0 : 1 });
+  }
+
   return (
-    <div className="flex flex-col gap-1 pl-2 border-l border-border">
+    <div className={cn("flex flex-col gap-1 pl-2 border-l", isAnnotated ? "border-l-2 border-l-primary bg-primary/5" : "border-border")}>
       <div className="flex items-center gap-2">
+        <RuleAnnotationControls
+          isFavorited={!!favorite}
+          isReminder={favorite?.is_reminder === 1}
+          hasNote={!!note}
+          onToggleFavorite={handleToggleFavorite}
+          onToggleReminder={handleToggleReminder}
+        />
         <span className="text-sm font-semibold text-foreground">{stratagem.name}</span>
         {stratagem.cp_cost && (
           <span className="text-xs font-medium text-muted-foreground">{stratagem.cp_cost} CP</span>
@@ -1257,13 +1316,52 @@ function StratagemEntry({ stratagem }: { stratagem: RwStratagem }) {
       {stratagem.description && (
         <p className="text-sm text-muted-foreground leading-relaxed">{stratagem.description}</p>
       )}
+      <RuleNoteEditor ruleId={stratagem.id} ruleType="stratagem" ruleName={stratagem.name} note={note} />
+    </div>
+  );
+}
+
+// DetachmentAbilityRow — per-ability sub-component satisfying Rules of Hooks (no hooks-in-loop).
+function DetachmentAbilityRow({ ability, favorite, note }: { ability: RwDetachmentAbility; favorite: RulesFavorite | null; note: RulesNote | null }) {
+  const upsertFavorite = useUpsertRulesFavorite();
+  const deleteFavorite = useDeleteRulesFavorite();
+  const isAnnotated = favorite !== null || note !== null;
+
+  function handleToggleFavorite(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (favorite) {
+      deleteFavorite.mutate({ ruleId: ability.id, ruleType: 'detachment_ability' });
+    } else {
+      upsertFavorite.mutate({ rule_id: ability.id, rule_type: 'detachment_ability', rule_name: ability.name, is_reminder: 0 });
+    }
+  }
+
+  function handleToggleReminder(e: React.MouseEvent) {
+    e.stopPropagation();
+    upsertFavorite.mutate({ rule_id: ability.id, rule_type: 'detachment_ability', rule_name: ability.name, is_reminder: favorite?.is_reminder === 1 ? 0 : 1 });
+  }
+
+  return (
+    <div className={cn("flex flex-col gap-1 pl-2 border-l", isAnnotated ? "border-l-2 border-l-primary bg-primary/5" : "border-border")}>
+      <div className="flex items-center gap-2">
+        <RuleAnnotationControls
+          isFavorited={!!favorite}
+          isReminder={favorite?.is_reminder === 1}
+          hasNote={!!note}
+          onToggleFavorite={handleToggleFavorite}
+          onToggleReminder={handleToggleReminder}
+        />
+        <span className="text-sm font-semibold text-foreground">{ability.name}</span>
+      </div>
+      {ability.description && <p className="text-sm text-muted-foreground leading-relaxed">{ability.description}</p>}
+      <RuleNoteEditor ruleId={ability.id} ruleType="detachment_ability" ruleName={ability.name} note={note} />
     </div>
   );
 }
 
 // DetachmentSection — resolves hooks-in-loop by being a proper component that calls
 // useDetachmentAbilitiesByDetachment unconditionally (no conditional hook call).
-function DetachmentSection({ detachment }: { detachment: RwDetachment }) {
+function DetachmentSection({ detachment, favoritesMap, notesMap }: { detachment: RwDetachment; favoritesMap: Map<string, RulesFavorite>; notesMap: Map<string, RulesNote> }) {
   const { data: abilities = [] } = useDetachmentAbilitiesByDetachment(detachment.id);
   return (
     <div className="flex flex-col gap-2">
@@ -1277,7 +1375,12 @@ function DetachmentSection({ detachment }: { detachment: RwDetachment }) {
       {abilities.length > 0 && (
         <div className="flex flex-col gap-1 pl-2">
           {abilities.map((a) => (
-            <ExtendedAbilityEntry key={a.id} name={a.name} description={a.description} />
+            <DetachmentAbilityRow
+              key={a.id}
+              ability={a}
+              favorite={favoritesMap.get(`${a.id}:detachment_ability`) ?? null}
+              note={notesMap.get(`${a.id}:detachment_ability`) ?? null}
+            />
           ))}
         </div>
       )}
@@ -1285,15 +1388,42 @@ function DetachmentSection({ detachment }: { detachment: RwDetachment }) {
   );
 }
 
-// ExtendedAbilityEntry — structural-typed sub-component for detachment abilities and shared
-// abilities (avoids widening AbilityEntry which is typed to RwDatasheetAbility).
-function ExtendedAbilityEntry({ name, description }: { name: string; description: string | null }) {
+// ExtendedAbilityEntry — structural-typed sub-component for shared faction abilities.
+function ExtendedAbilityEntry({ id, name, description, favorite, note }: { id: string; name: string; description: string | null; favorite: RulesFavorite | null; note: RulesNote | null }) {
+  const upsertFavorite = useUpsertRulesFavorite();
+  const deleteFavorite = useDeleteRulesFavorite();
+  const isAnnotated = favorite !== null || note !== null;
+
+  function handleToggleFavorite(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (favorite) {
+      deleteFavorite.mutate({ ruleId: id, ruleType: 'shared_ability' });
+    } else {
+      upsertFavorite.mutate({ rule_id: id, rule_type: 'shared_ability', rule_name: name, is_reminder: 0 });
+    }
+  }
+
+  function handleToggleReminder(e: React.MouseEvent) {
+    e.stopPropagation();
+    upsertFavorite.mutate({ rule_id: id, rule_type: 'shared_ability', rule_name: name, is_reminder: favorite?.is_reminder === 1 ? 0 : 1 });
+  }
+
   return (
-    <div className="flex flex-col gap-1 pl-2 border-l border-border">
-      <span className="text-sm font-semibold text-foreground">{name}</span>
+    <div className={cn("flex flex-col gap-1 pl-2 border-l", isAnnotated ? "border-l-2 border-l-primary bg-primary/5" : "border-border")}>
+      <div className="flex items-center gap-2">
+        <RuleAnnotationControls
+          isFavorited={!!favorite}
+          isReminder={favorite?.is_reminder === 1}
+          hasNote={!!note}
+          onToggleFavorite={handleToggleFavorite}
+          onToggleReminder={handleToggleReminder}
+        />
+        <span className="text-sm font-semibold text-foreground">{name}</span>
+      </div>
       {description && (
         <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
       )}
+      <RuleNoteEditor ruleId={id} ruleType="shared_ability" ruleName={name} note={note} />
     </div>
   );
 }
