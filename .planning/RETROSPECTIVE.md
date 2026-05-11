@@ -401,6 +401,55 @@
 
 ---
 
+## Milestone: v0.2.8 — Rules Data Hub UI / Army Lists 2.0 / Game Day
+
+**Shipped:** 2026-05-11
+**Phases:** 5 (52–56) | **Plans:** 12 | **Timeline:** 2 days (2026-05-10 → 2026-05-11)
+
+### What Was Built
+
+- Phase 52: Migration 019 (detachment_id on army_lists, rules_favorites and rules_notes tables in hobbyforge.db), typed query modules with optimistic updates, points import design document with 5-level COALESCE precedence
+- Phase 53: RulesHubPage at /rules-hub with sync status header, Zustand filter store, 3-tab browser (stratagems with phase/CP filter chips, detachments with abilities count, shared abilities with legend search), Wahapedia disclaimer
+- Phase 54: DetachmentPicker Combobox scoped to faction, StaleDataBanner for >30-day stale rules, DetachmentRulesSection (inline ability + filtered stratagems), RemindersSection (is_reminder=1 favorites)
+- Phase 55: RuleAnnotationControls (star + reminder flag), RuleNoteEditor (debounced auto-save textarea), page-level Map<compositeKey, T> pattern via useMemo for both RulesHubPage and PlaybookTab
+- Phase 56: GameDayPage with tabbed layout (Stratagems/Units/Checklist), Zustand persist store for CP/checklist/OPG toggles, phase-grouped stratagems with pinned reminders, UnitAbilityCard with OPG heuristic detection, ChecklistTab
+
+### What Worked
+
+- **Data layer foundation phase (Phase 52):** Consistent with v0.2.0/v0.2.5/v0.2.7 pattern — migration + types + queries + hooks isolated before UI work. Zero data-layer surprises in Phases 53–56.
+- **Page-level Map lookup pattern:** Loading favorites/notes once at page level and building Map<compositeKey, T> via useMemo prevented N+1 hook calls. Pattern discovered in Phase 55-01 and immediately reused in 55-02. Clean O(1) per-card lookup.
+- **Sub-component pattern for hooks-in-loop:** DetachmentAbilityRow wrapping per-item mutation hooks satisfied Rules of Hooks without awkward lifting. Used in both RulesHubPage and PlaybookTab.
+- **No gap closure phase needed:** All 27 requirements passed on first audit — third consecutive milestone (v0.2.5, v0.2.7, v0.2.8) with clean first-pass audit.
+- **Dual-DB separation discipline:** User annotations (favorites, notes, detachment_name) always in hobbyforge.db, never rules.db. Zero data loss on re-sync by design.
+- **StratagemCard reuse:** Component built in Phase 53-02 reused in Phase 54-02 (army list), Phase 56-01 (game day) without modification. True component reuse.
+
+### What Was Inefficient
+
+- **SUMMARY frontmatter gaps persist:** `requirements_completed` and `one_liner` still missing in most SUMMARY files. 5th consecutive milestone with this issue. Manual accomplishment extraction at milestone completion continues.
+- **Orphan hook/query exports:** useDetachmentById, getRulesFavoritesByType, getRulesNoteByKey were built proactively but never consumed. Consumers preferred different access patterns (full-list + client filter, Map lookup). Same lesson as v0.2.7 Phase 48.
+- **GameDayStratagemCard nested button:** Button inside CollapsibleTrigger creates an HTML validation warning. Should have used onClick on the card surface instead of a nested button.
+
+### Patterns Established
+
+- **Page-level Map lookup for cross-entity annotations:** Load all annotations for a page once, build Map<`${rule_type}:${rule_name}`, T>, pass relevant entry to each card as a prop. Eliminates N+1 hook anti-pattern.
+- **Sub-component per list item for hooks compliance:** When a mapped list item needs its own hooks (mutations, queries), extract it as a named component (e.g., DetachmentAbilityRow). Each component instance has its own hook call, satisfying Rules of Hooks.
+- **Zustand persist for game session state:** CP tracker, checklist, OPG toggles use Zustand persist with localStorage keyed by list ID. Appropriate for single-session ephemeral state that doesn't warrant SQLite.
+- **Heuristic keyword detection for ability properties:** Scanning ability text for "once per" to infer OPG status avoids schema changes to rules.db while covering common patterns.
+
+### Key Lessons
+
+1. **Component reuse works when the component is pure display.** StratagemCard from Phase 53 was reused in 3 contexts (rules hub, army list, game day) without modification because it takes data as props with no embedded state management.
+2. **Orphan export pattern is recurring.** Three milestones now have unused proactively-built hooks/queries. Planning should verify consumption sites exist before building speculative exports.
+3. **Clean audits continue to correlate with focused milestones.** v0.2.8 had clear dependency chain (52→53→54/55→56), well-scoped phases, and passed audit on first attempt.
+
+### Cost Observations
+
+- Model: Claude Opus 4.6 throughout
+- Sessions: 3 (schema + hub phases, army lists + playbook phases, game day + completion)
+- Notable: 12 plans across 5 phases in 2 days — 82 commits, 6,137 lines added; clean linear execution with Phase 52 foundation enabling parallel-ready Phases 53/54/55
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -416,6 +465,7 @@
 | v0.2.5 | 5 | 12 | Recipe restructure (rename migration); batch aggregate queries; session-recipe linking; no gap closure needed |
 | v0.2.6 | 6 | 11 | Architecture audit phase; dual-DB overrides; per-field diff; SUMMARY frontmatter standardization |
 | v0.2.7 | 4 | 8 | Hierarchical recipe sections; nested DnD; progressive disclosure; no gap closure needed |
+| v0.2.8 | 5 | 12 | Rules hub UI; army list detachment selection; annotation layer; Game Day mode; no gap closure needed |
 
 ### Cumulative Quality
 
@@ -430,6 +480,7 @@
 | v0.2.5 | ~900 | All passing (18 requirements, 42/42 observable truths verified, Nyquist compliant) |
 | v0.2.6 | 1,031 | All passing (27 requirements, Nyquist compliant, 1 test added by validation audit) |
 | v0.2.7 | 1,112 | All passing (19 requirements, 33/33 observable truths verified, Nyquist compliant, no gap closure) |
+| v0.2.8 | ~1,200 | All passing (27 requirements, Nyquist compliant, no gap closure, 3rd consecutive clean audit) |
 
 ### Top Lessons (Verified Across Milestones)
 

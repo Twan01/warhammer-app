@@ -1,4 +1,24 @@
 # Milestones
+## v0.2.8 Rules Data Hub UI / Army Lists 2.0 / Game Day (Shipped: 2026-05-11)
+
+**Phases completed:** 5 phases (52–56), 12 plans
+**Timeline:** 2026-05-10 → 2026-05-11 (2 days)
+**Stats:** 82 commits, 70 files changed, +6,137 / -28 lines, 27 requirements satisfied, ~87,660 total LOC
+
+**Key accomplishments:**
+- Schema + data layer foundation: Migration 019 adds detachment_id to army_lists, rules_favorites and rules_notes tables in hobbyforge.db; typed query modules with optimistic updates; points import design document with 5-level COALESCE precedence chain
+- Rules Data Hub UI: standalone RulesHubPage with sync status header, faction browser, 3-tab rules browser (stratagems/detachments/shared abilities) with phase/CP filtering and text search, sync error history, diff summary, and Wahapedia disclaimer
+- Army Lists 2.0 — Detachment Selection: DetachmentPicker Combobox scoped to faction, detachment ability and filtered stratagems display inline, StaleDataBanner for >30-day stale rules, favorites reminder section in army list detail
+- Playbook enhancements: star/favorite toggle and Game Day reminder flag on every rule entry across RulesHubPage and PlaybookTab, inline personal notes with debounced auto-save, page-level Map<compositeKey, T> pattern preventing N+1 hooks
+- Game Day Mode: GameDayPage launched from army list with CP tracker (spend/gain/undo), phase-grouped stratagems with pinned reminders, collapsible unit ability cards with once-per-game toggles, persistent pre-game checklist, painting status badges
+
+**Archived:**
+- Roadmap: `.planning/milestones/v0.2.8-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.2.8-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.2.8-MILESTONE-AUDIT.md`
+
+---
+
 ## v0.2.7 Recipes 3.0 / Hierarchical Painting Workflows (Shipped: 2026-05-08)
 
 **Phases completed:** 4 phases (48–51), 8 plans

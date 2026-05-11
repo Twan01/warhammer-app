@@ -4,7 +4,7 @@
 
 HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, structured painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play" — all without ever depending on copyrighted GW data.
 
-Shipped through v0.2.7 (51 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, paint availability, and DnD reorder), army list builder, battle log, spending tracker, hobby goals, photo journal, session-recipe linking, premium CSS grid dashboard, and a complete rules data hub — Wahapedia datasheet import with hardened sync pipeline, sync metadata/freshness tracking, persistent manual overrides, and per-field diff comparison after re-syncs.
+Shipped through v0.2.8 (56 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, paint availability, and DnD reorder), army list builder with detachment selection and inline rules context, battle log, spending tracker, hobby goals, photo journal, session-recipe linking, premium CSS grid dashboard, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, and a Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist).
 
 ## Core Value
 
@@ -104,18 +104,17 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ Section form UI: collapsible DnD section cards with progressive disclosure, section add/rename/delete, step reorder within sections — Phase 50 — v0.2.7
 - ✓ Section-aware duplication: recipe copy includes sections with Map<oldId, newId> remapping, section count on recipe cards — Phase 51 — v0.2.7
 
+*All v0.2.8 requirements verified and shipped 2026-05-11*
+
+- ✓ Rules Data Hub UI: standalone RulesHubPage with sync status, 3-tab browser (stratagems/detachments/shared abilities), faction filtering, text search, error history, diff summary, disclaimer — Phases 52–53 — v0.2.8
+- ✓ Army Lists 2.0: detachment selection with DetachmentPicker, inline detachment ability and filtered stratagems, StaleDataBanner, reminders section — Phase 54 — v0.2.8
+- ✓ Playbook annotations: star/favorite toggle, Game Day reminder flag, inline personal notes with debounced auto-save on every rule entry across RulesHubPage and PlaybookTab — Phase 55 — v0.2.8
+- ✓ Game Day Mode: GameDayPage with CP tracker, phase-grouped stratagems, pinned reminders, collapsible unit ability cards with OPG toggles, persistent pre-game checklist, painting status badges — Phase 56 — v0.2.8
+- ✓ Points import design: schema, versioning, deltas, manual override interaction, COALESCE precedence documented — Phase 52 — v0.2.8
+
 ### Active
 
-## Current Milestone: v0.2.8 Rules Data Hub / Army Lists 2.0 / Game Day
-
-**Goal:** Expose synced rules data in UI and connect to Army Lists and Game Day mode — making rules data visible, searchable, and useful for real game preparation.
-
-**Target features:**
-- Rules Data Hub UI (sync status, rules browser, diff summary)
-- Playbook enhancements (favorites, user notes on rules, reminders)
-- Army Lists 2.0 (detachment selection, stratagems, stale-data warnings)
-- Game Day Mode (phase-grouped reminders, unit abilities, checklists)
-- Points import design documentation
+(No active milestone — run `/gsd-new-milestone` to start next)
 
 ### Out of Scope
 
@@ -133,7 +132,7 @@ A single personal command center that always answers "what do I own, what's pain
 
 ## Context
 
-- **Current state:** v0.2.7 shipped. ~260 TypeScript source files. 1,112 automated tests passing. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 9 main pages. Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline. Hierarchical recipe sections with collapsible DnD form cards, sectioned timeline view, and section-aware duplication. 18 SQLite migrations (17 hobbyforge.db + 1 rules.db wargear extension).
+- **Current state:** v0.2.8 shipped. ~280 TypeScript source files. ~87,660 LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 11 main pages (added RulesHubPage, GameDayPage). Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline. 19 SQLite migrations (18 hobbyforge.db + 1 rules.db wargear extension). Rules annotation layer (favorites, notes, reminders) in hobbyforge.db surviving re-syncs.
 - **Personal tool** — single user (the owner), local-first, no accounts or sync
 - **Domain:** Warhammer 40K 10th edition, hobby management (collecting → painting → playing)
 - **User journey priority:** painter/collector → ready-to-play, *not* competitive optimization
@@ -199,6 +198,13 @@ A single personal command center that always answers "what do I own, what's pain
 | Progressive disclosure threshold (sections.length <= 1) | Single-section recipes show flat step list, 2+ shows section cards | ✓ Good — preserves simple UX for simple recipes |
 | sectionIdMap in duplicateRecipe | Map<oldId, newId> built during section copy loop, used for step section_id remapping | ✓ Excellent — O(1) remap per step, prevents structural corruption |
 | ON DELETE CASCADE for recipe_steps.section_id | Deleting a section automatically removes its steps — no manual cleanup | ✓ Good — consistent with recipe→section CASCADE |
+| User data in hobbyforge.db, never rules.db | rules.db is destroyed on every sync — favorites, notes, detachment selection survive | ✓ Good — zero data loss on re-sync |
+| detachment_name denormalized on army_lists | rules.db wipe removes detachment records; TEXT copy preserves display name | ✓ Good — consistent with weapon_name pattern |
+| Page-level Map<compositeKey, T> for annotations | Load favorites/notes once, build Map via useMemo, pass to cards — no N+1 hooks | ✓ Excellent — O(1) per-card lookup, single query |
+| Sub-component pattern for hooks-in-loop | DetachmentAbilityRow wraps per-item hook calls — satisfies Rules of Hooks | ✓ Good — clean pattern, reused in PlaybookTab and RulesHubPage |
+| Game Day state in Zustand persist (localStorage) | CP, checklist, OPG toggles persist across navigation; SQLite deferred | ✓ Good — simple, appropriate for single-session game tracking |
+| Heuristic OPG detection (keyword scan) | Detects "once per" in ability text for used/unused toggle; no rules.db schema change | ✓ Good — covers common patterns without brittle parsing |
+| staleTime: Infinity + sync invalidation for rules.db hooks | Rules data only changes on sync; Infinity prevents spurious refetches | ✓ Good — consistent with read-heavy, write-rare access pattern |
 
 ---
-*Last updated: 2026-05-10 after v0.2.8 milestone started*
+*Last updated: 2026-05-11 after v0.2.8 milestone shipped*
