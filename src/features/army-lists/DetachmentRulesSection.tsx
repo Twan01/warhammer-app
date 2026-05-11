@@ -66,7 +66,7 @@ export function DetachmentRulesSection({ detachmentId }: DetachmentRulesSectionP
         <div className="flex flex-col gap-2 px-4">
           <span className="text-sm font-semibold">Stratagems ({stratagemsList.length})</span>
           {stratagemsList.map((s) => (
-            <StratagemCard key={s.id} stratagem={s} />
+            <StratagemCard key={s.id} stratagem={s} favorite={null} note={null} />
           ))}
         </div>
       )}

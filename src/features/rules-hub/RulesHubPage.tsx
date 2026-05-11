@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import type { RulesFavorite } from "@/types/rulesFavorite";
+import type { RulesNote } from "@/types/rulesNote";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Select,
@@ -20,6 +22,8 @@ import {
   useSharedAbilitiesByFaction,
 } from "@/hooks/useRulesExtended";
 import { applyStratagemFilters, STRATAGEM_PHASES } from "./applyRulesHubFilters";
+import { useRulesFavorites } from "@/hooks/useRulesFavorites";
+import { useRulesNotes } from "@/hooks/useRulesNotes";
 import { StratagemCard } from "./StratagemCard";
 import { DetachmentCard } from "./DetachmentCard";
 import { SharedAbilityCard } from "./SharedAbilityCard";
@@ -50,6 +54,21 @@ export function RulesHubPage() {
   const { data: stratagems = [], isLoading: stratagemLoading } = useStratagemsByFaction(wahapediaFactionId ?? undefined);
   const { data: detachments = [], isLoading: detachmentLoading } = useDetachmentsByFaction(wahapediaFactionId ?? undefined);
   const { data: sharedAbilities = [], isLoading: sharedAbilitiesLoading } = useSharedAbilitiesByFaction(wahapediaFactionId ?? undefined);
+
+  const { data: favorites = [] } = useRulesFavorites();
+  const { data: rulesNotes = [] } = useRulesNotes();
+
+  const favoritesMap = useMemo(() => {
+    const m = new Map<string, RulesFavorite>();
+    for (const f of favorites) m.set(`${f.rule_id}:${f.rule_type}`, f);
+    return m;
+  }, [favorites]);
+
+  const notesMap = useMemo(() => {
+    const m = new Map<string, RulesNote>();
+    for (const n of rulesNotes) m.set(`${n.rule_id}:${n.rule_type}`, n);
+    return m;
+  }, [rulesNotes]);
 
   const filteredStratagems = useMemo(
     () => applyStratagemFilters(stratagems, { searchText, phaseFilter, cpFilter }),
@@ -182,7 +201,7 @@ export function RulesHubPage() {
                     ) : (
                       <div className="flex flex-col gap-2">
                         {filteredStratagems.map((s) => (
-                          <StratagemCard key={s.id} stratagem={s} />
+                          <StratagemCard key={s.id} stratagem={s} favorite={favoritesMap.get(s.id + ':stratagem') ?? null} note={notesMap.get(s.id + ':stratagem') ?? null} />
                         ))}
                       </div>
                     )}
@@ -210,7 +229,7 @@ export function RulesHubPage() {
                     ) : (
                       <div className="flex flex-col gap-2">
                         {filteredDetachments.map((d) => (
-                          <DetachmentCard key={d.id} detachment={d} />
+                          <DetachmentCard key={d.id} detachment={d} favoritesMap={favoritesMap} notesMap={notesMap} />
                         ))}
                       </div>
                     )}
@@ -238,7 +257,7 @@ export function RulesHubPage() {
                     ) : (
                       <div className="flex flex-col gap-2">
                         {filteredAbilities.map((a) => (
-                          <SharedAbilityCard key={a.id} ability={a} />
+                          <SharedAbilityCard key={a.id} ability={a} favorite={favoritesMap.get(a.id + ':shared_ability') ?? null} note={notesMap.get(a.id + ':shared_ability') ?? null} />
                         ))}
                       </div>
                     )}

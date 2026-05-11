@@ -62,6 +62,17 @@ vi.mock("@/hooks/useRulesExtended", () => ({
   useSharedAbilitiesByFaction: vi.fn(() => ({ data: [] })),
 }));
 
+vi.mock("@/hooks/useRulesFavorites", () => ({
+  useRulesFavorites: vi.fn(() => ({ data: [] })),
+  useUpsertRulesFavorite: () => ({ mutate: vi.fn() }),
+  useDeleteRulesFavorite: () => ({ mutate: vi.fn() }),
+}));
+
+vi.mock("@/hooks/useRulesNotes", () => ({
+  useRulesNotes: vi.fn(() => ({ data: [] })),
+  useUpsertRulesNote: () => ({ mutate: vi.fn() }),
+}));
+
 import { RulesHubPage } from "@/features/rules-hub/RulesHubPage";
 
 function makeWrapper() {

@@ -7,13 +7,22 @@
  *   - falls back to legend when no description
  *   - handles ability with neither description nor legend
  */
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import type { RwAbility } from "@/types/datasheet";
 import { SharedAbilityCard } from "@/features/rules-hub/SharedAbilityCard";
+
+vi.mock("@/hooks/useRulesFavorites", () => ({
+  useUpsertRulesFavorite: () => ({ mutate: vi.fn() }),
+  useDeleteRulesFavorite: () => ({ mutate: vi.fn() }),
+}));
+
+vi.mock("@/hooks/useRulesNotes", () => ({
+  useUpsertRulesNote: () => ({ mutate: vi.fn() }),
+}));
 
 function wrapper({ children }: { children: ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -46,20 +55,20 @@ const abilityWithNothing: RwAbility = {
 
 describe("SharedAbilityCard", () => {
   it("renders ability name in the card header", () => {
-    render(<SharedAbilityCard ability={abilityWithDescription} />, { wrapper });
+    render(<SharedAbilityCard ability={abilityWithDescription} favorite={null} note={null} />, { wrapper });
 
     expect(screen.getByText("And They Shall Know No Fear")).toBeInTheDocument();
   });
 
   it("shows legend badge in header when legend is present", () => {
-    render(<SharedAbilityCard ability={abilityWithDescription} />, { wrapper });
+    render(<SharedAbilityCard ability={abilityWithDescription} favorite={null} note={null} />, { wrapper });
 
     expect(screen.getByText("Astartes")).toBeInTheDocument();
   });
 
   it("reveals description text after expanding the card", async () => {
     const user = userEvent.setup();
-    render(<SharedAbilityCard ability={abilityWithDescription} />, { wrapper });
+    render(<SharedAbilityCard ability={abilityWithDescription} favorite={null} note={null} />, { wrapper });
 
     // Description should not be visible before expanding
     expect(
@@ -80,7 +89,7 @@ describe("SharedAbilityCard", () => {
 
   it("falls back to legend text when description is null", async () => {
     const user = userEvent.setup();
-    render(<SharedAbilityCard ability={abilityWithoutDescription} />, { wrapper });
+    render(<SharedAbilityCard ability={abilityWithoutDescription} favorite={null} note={null} />, { wrapper });
 
     await user.click(screen.getByText("Oath of Moment"));
 
@@ -91,7 +100,7 @@ describe("SharedAbilityCard", () => {
 
   it("shows fallback message when neither description nor legend is present", async () => {
     const user = userEvent.setup();
-    render(<SharedAbilityCard ability={abilityWithNothing} />, { wrapper });
+    render(<SharedAbilityCard ability={abilityWithNothing} favorite={null} note={null} />, { wrapper });
 
     await user.click(screen.getByText("Nameless Trait"));
 

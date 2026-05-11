@@ -18,6 +18,15 @@ vi.mock("@/hooks/useRulesExtended", () => ({
   useDetachmentAbilitiesByDetachment: vi.fn(),
 }));
 
+vi.mock("@/hooks/useRulesFavorites", () => ({
+  useUpsertRulesFavorite: () => ({ mutate: vi.fn() }),
+  useDeleteRulesFavorite: () => ({ mutate: vi.fn() }),
+}));
+
+vi.mock("@/hooks/useRulesNotes", () => ({
+  useUpsertRulesNote: () => ({ mutate: vi.fn() }),
+}));
+
 const mockUseDetachmentAbilitiesByDetachment = vi.mocked(useDetachmentAbilitiesByDetachment);
 
 function makeQueryResult<T>(data: T, isLoading = false): UseQueryResult<T> {
@@ -104,7 +113,7 @@ describe("DetachmentCard", () => {
       makeQueryResult(mockAbilities)
     );
 
-    render(<DetachmentCard detachment={mockDetachment} />, { wrapper });
+    render(<DetachmentCard detachment={mockDetachment} favoritesMap={new Map()} notesMap={new Map()} />, { wrapper });
 
     expect(screen.getByText("Gladius Task Force")).toBeInTheDocument();
     expect(screen.getByText("3 abilities")).toBeInTheDocument();
@@ -115,7 +124,7 @@ describe("DetachmentCard", () => {
       makeQueryResult([mockAbilities[0]])
     );
 
-    render(<DetachmentCard detachment={mockDetachment} />, { wrapper });
+    render(<DetachmentCard detachment={mockDetachment} favoritesMap={new Map()} notesMap={new Map()} />, { wrapper });
 
     expect(screen.getByText("1 ability")).toBeInTheDocument();
   });
@@ -125,7 +134,7 @@ describe("DetachmentCard", () => {
       makeQueryResult([])
     );
 
-    render(<DetachmentCard detachment={mockDetachment} />, { wrapper });
+    render(<DetachmentCard detachment={mockDetachment} favoritesMap={new Map()} notesMap={new Map()} />, { wrapper });
 
     expect(screen.getByText("0 abilities")).toBeInTheDocument();
   });
@@ -136,7 +145,7 @@ describe("DetachmentCard", () => {
     );
 
     const user = userEvent.setup();
-    render(<DetachmentCard detachment={mockDetachment} />, { wrapper });
+    render(<DetachmentCard detachment={mockDetachment} favoritesMap={new Map()} notesMap={new Map()} />, { wrapper });
 
     // Abilities not visible initially
     expect(screen.queryByText("Combat Doctrines")).not.toBeInTheDocument();
@@ -155,7 +164,7 @@ describe("DetachmentCard", () => {
     );
 
     const user = userEvent.setup();
-    render(<DetachmentCard detachment={mockDetachment} />, { wrapper });
+    render(<DetachmentCard detachment={mockDetachment} favoritesMap={new Map()} notesMap={new Map()} />, { wrapper });
 
     await user.click(screen.getByText("Gladius Task Force"));
 
@@ -168,7 +177,7 @@ describe("DetachmentCard", () => {
     );
 
     const user = userEvent.setup();
-    render(<DetachmentCard detachment={mockDetachment} />, { wrapper });
+    render(<DetachmentCard detachment={mockDetachment} favoritesMap={new Map()} notesMap={new Map()} />, { wrapper });
 
     await user.click(screen.getByText("Gladius Task Force"));
 

@@ -5,15 +5,100 @@ import {
   CollapsibleTrigger,
   CollapsibleContent,
 } from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
 import { useDetachmentAbilitiesByDetachment } from "@/hooks/useRulesExtended";
-import type { RwDetachment } from "@/types/datasheet";
+import { useUpsertRulesFavorite, useDeleteRulesFavorite } from "@/hooks/useRulesFavorites";
+import type { RwDetachment, RwDetachmentAbility } from "@/types/datasheet";
+import type { RulesFavorite } from "@/types/rulesFavorite";
+import type { RulesNote } from "@/types/rulesNote";
+import { RuleAnnotationControls } from "./RuleAnnotationControls";
+import { RuleNoteEditor } from "./RuleNoteEditor";
 
-export function DetachmentCard({ detachment }: { detachment: RwDetachment }) {
+interface DetachmentAbilityRowProps {
+  ability: RwDetachmentAbility;
+  favorite: RulesFavorite | null;
+  note: RulesNote | null;
+}
+
+function DetachmentAbilityRow({ ability, favorite, note }: DetachmentAbilityRowProps) {
+  const upsertFavorite = useUpsertRulesFavorite();
+  const deleteFavorite = useDeleteRulesFavorite();
+
+  function handleToggleFavorite(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (favorite) {
+      deleteFavorite.mutate({ ruleId: ability.id, ruleType: 'detachment_ability' });
+    } else {
+      upsertFavorite.mutate({
+        rule_id: ability.id,
+        rule_type: 'detachment_ability',
+        rule_name: ability.name,
+        is_reminder: 0,
+      });
+    }
+  }
+
+  function handleToggleReminder(e: React.MouseEvent) {
+    e.stopPropagation();
+    upsertFavorite.mutate({
+      rule_id: ability.id,
+      rule_type: 'detachment_ability',
+      rule_name: ability.name,
+      is_reminder: favorite?.is_reminder === 1 ? 0 : 1,
+    });
+  }
+
+  return (
+    <div className="text-sm">
+      <div className="flex items-center gap-1">
+        <RuleAnnotationControls
+          isFavorited={!!favorite}
+          isReminder={favorite?.is_reminder === 1}
+          hasNote={!!note}
+          onToggleFavorite={handleToggleFavorite}
+          onToggleReminder={handleToggleReminder}
+        />
+        <p className="font-semibold">{ability.name}</p>
+      </div>
+      {ability.description && (
+        <p className="text-muted-foreground mt-0.5">{ability.description}</p>
+      )}
+      {!ability.description && ability.legend && (
+        <p className="text-muted-foreground italic mt-0.5">{ability.legend}</p>
+      )}
+      <RuleNoteEditor
+        ruleId={ability.id}
+        ruleType="detachment_ability"
+        ruleName={ability.name}
+        note={note}
+      />
+    </div>
+  );
+}
+
+interface DetachmentCardProps {
+  detachment: RwDetachment;
+  favoritesMap: Map<string, RulesFavorite>;
+  notesMap: Map<string, RulesNote>;
+}
+
+export function DetachmentCard({ detachment, favoritesMap, notesMap }: DetachmentCardProps) {
   // Called unconditionally at component top level — each card is its own component instance
   const { data: abilities = [], isLoading } = useDetachmentAbilitiesByDetachment(detachment.id);
 
+  const hasAnyAnnotation = abilities.some(
+    (a) =>
+      favoritesMap.has(a.id + ':detachment_ability') ||
+      notesMap.has(a.id + ':detachment_ability')
+  );
+
   return (
-    <Collapsible className="rounded-lg border bg-card text-card-foreground shadow-sm">
+    <Collapsible
+      className={cn(
+        "rounded-lg border bg-card text-card-foreground shadow-sm",
+        hasAnyAnnotation && "border-l-2 border-l-primary bg-primary/5"
+      )}
+    >
       <CollapsibleTrigger className="flex w-full items-center gap-2 px-4 py-3 text-left [&[data-state=open]>svg:last-child]:rotate-180">
         <span className="flex-1 font-medium text-sm">{detachment.name}</span>
         <Badge
@@ -33,15 +118,12 @@ export function DetachmentCard({ detachment }: { detachment: RwDetachment }) {
         ) : (
           <div className="flex flex-col gap-3">
             {abilities.map((ability) => (
-              <div key={ability.id} className="text-sm">
-                <p className="font-semibold">{ability.name}</p>
-                {ability.description && (
-                  <p className="text-muted-foreground mt-0.5">{ability.description}</p>
-                )}
-                {!ability.description && ability.legend && (
-                  <p className="text-muted-foreground italic mt-0.5">{ability.legend}</p>
-                )}
-              </div>
+              <DetachmentAbilityRow
+                key={ability.id}
+                ability={ability}
+                favorite={favoritesMap.get(ability.id + ':detachment_ability') ?? null}
+                note={notesMap.get(ability.id + ':detachment_ability') ?? null}
+              />
             ))}
           </div>
         )}
