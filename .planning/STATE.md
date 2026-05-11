@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: executing
-stopped_at: Phase 55 context gathered
-last_updated: "2026-05-11T16:17:23.270Z"
-last_activity: "2026-05-11 — Plan 54-02 complete: DetachmentRulesSection, RemindersSection, wired into ArmyListDetailSheet"
+stopped_at: "Phase 55 Plan 01 complete: RuleAnnotationControls, RuleNoteEditor, card wiring"
+last_updated: "2026-05-11T16:41:15Z"
+last_activity: "2026-05-11 — Plan 55-01 complete: RuleAnnotationControls, RuleNoteEditor, StratagemCard/SharedAbilityCard/DetachmentCard wired"
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 10
+  completed_plans: 9
   percent: 100
 ---
 
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-10 after v0.2.8 milestone started)
 
 ## Current Position
 
-Phase: 54 of 56 (Army Lists 2.0 / Detachment Selection)
-Plan: 02 complete (2/2) — Phase Complete
+Phase: 55 of 56 (Playbook Enhancements — Favorites and Notes)
+Plan: 01 complete (1/2) — In Progress
 Status: In Progress
-Last activity: 2026-05-11 — Plan 54-02 complete: DetachmentRulesSection, RemindersSection, wired into ArmyListDetailSheet
+Last activity: 2026-05-11 — Plan 55-01 complete: RuleAnnotationControls, RuleNoteEditor, card wiring
 
-Progress: [██████████] 100%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -82,6 +82,10 @@ Progress: [██████████] 100%
 - ArmyListsPage.test.tsx mock must include clearArmyListDetachment, datasheets, and rulesExtended when ArmyListDetailSheet is rendered (54-01)
 - DetachmentRulesSection calls both hooks unconditionally — internal enabled guards satisfy Rules of Hooks (same pattern as DetachmentCard in 53-03) (54-02)
 - RemindersSection is self-contained (no props) — fetches all favorites and filters to is_reminder=1 internally (54-02)
+- DetachmentAbilityRow sub-component used inside DetachmentCard.map() to satisfy Rules of Hooks — avoids hooks-in-loop (55-01)
+- RulesHubPage loads favorites/notes once at page level, builds Map<compositeKey, T> via useMemo, passes to cards — no N+1 hook pattern (55-01)
+- DetachmentRulesSection passes favorite=null note=null to StratagemCard — no annotation context in army list sheet (55-01)
+- RuleNoteEditor debounce tests use fireEvent.change + vi.advanceTimersByTime — avoids async timing issues when combined with vi.useFakeTimers (55-01)
 
 ### Pending Todos
 
@@ -93,6 +97,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-11T16:17:23.267Z
-Stopped at: Phase 55 context gathered
-Resume: Run /gsd:execute-phase 55 (next phase)
+Last session: 2026-05-11T16:41:15Z
+Stopped at: Phase 55 Plan 01 complete
+Resume: Run /gsd:execute-phase 55 (plan 02 next)

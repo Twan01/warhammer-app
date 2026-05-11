@@ -298,5 +298,5 @@ Plans:
 | 52. Schema + Data Layer Foundation | 3/3 | Complete    | 2026-05-10 | - |
 | 53. Rules Data Hub UI | 3/3 | Complete    | 2026-05-11 | - |
 | 54. Army Lists 2.0 — Detachment Selection | 2/2 | Complete    | 2026-05-11 | - |
-| 55. Playbook Enhancements — Favorites and Notes | v0.2.8 | 0/2 | Not started | - |
+| 55. Playbook Enhancements — Favorites and Notes | 1/2 | In Progress|  | - |
 | 56. Game Day Mode | v0.2.8 | 0/TBD | Not started | - |

@@ -41,10 +41,10 @@ Requirements for Rules Data Hub / Army Lists 2.0 / Game Day. Each maps to roadma
 
 ### Playbook Enhancements
 
-- [ ] **PLAY-01**: User can mark any rule (stratagem, ability, detachment ability) as a favorite
-- [ ] **PLAY-02**: User can mark any rule as a "Game Day reminder"
-- [ ] **PLAY-03**: User can add personal notes to any imported rule without modifying source data
-- [ ] **PLAY-04**: Favorites and notes visually distinct from imported data in PlaybookTab
+- [x] **PLAY-01**: User can mark any rule (stratagem, ability, detachment ability) as a favorite
+- [x] **PLAY-02**: User can mark any rule as a "Game Day reminder"
+- [x] **PLAY-03**: User can add personal notes to any imported rule without modifying source data
+- [x] **PLAY-04**: Favorites and notes visually distinct from imported data in PlaybookTab
 
 ## Future Requirements
 
@@ -93,10 +93,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ARMY-03 | Phase 54 | Complete |
 | ARMY-04 | Phase 54 | Complete |
 | ARMY-05 | Phase 54 | Complete |
-| PLAY-01 | Phase 55 | Pending |
-| PLAY-02 | Phase 55 | Pending |
-| PLAY-03 | Phase 55 | Pending |
-| PLAY-04 | Phase 55 | Pending |
+| PLAY-01 | Phase 55 | Complete |
+| PLAY-02 | Phase 55 | Complete |
+| PLAY-03 | Phase 55 | Complete |
+| PLAY-04 | Phase 55 | Complete |
 | GAME-01 | Phase 56 | Pending |
 | GAME-02 | Phase 56 | Pending |
 | GAME-03 | Phase 56 | Pending |
