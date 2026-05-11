@@ -8,6 +8,8 @@ import { useArmyList, useArmyListWithUnits } from "@/hooks/useArmyLists";
 import { useFactions } from "@/hooks/useFactions";
 import { GameDayHeader } from "./GameDayHeader";
 import { StrategemsTab } from "./StrategemsTab";
+import { UnitsTab } from "./UnitsTab";
+import { ChecklistTab } from "./ChecklistTab";
 
 interface GameDayPageProps {
   listId: number;
@@ -16,7 +18,7 @@ interface GameDayPageProps {
 export function GameDayPage({ listId }: GameDayPageProps) {
   const navigate = useNavigate();
   const { data: list, isLoading: listLoading } = useArmyList(listId);
-  const { data: _units } = useArmyListWithUnits(listId);
+  const { data: units } = useArmyListWithUnits(listId);
   const { data: factions } = useFactions();
 
   const faction = useMemo(
@@ -85,15 +87,11 @@ export function GameDayPage({ listId }: GameDayPageProps) {
         </TabsContent>
 
         <TabsContent value="units" className="mt-3">
-          <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
-            Units tab coming soon
-          </div>
+          <UnitsTab units={units ?? []} listId={listId} />
         </TabsContent>
 
         <TabsContent value="checklist" className="mt-3">
-          <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
-            Checklist tab coming soon
-          </div>
+          <ChecklistTab listId={listId} />
         </TabsContent>
       </Tabs>
     </div>
