@@ -1,332 +1,244 @@
-# Pitfalls Research
+# Domain Pitfalls
 
-**Domain:** HobbyForge v0.2.8 — Adding Rules Data Hub UI, Army Lists 2.0, Game Day Mode, and Playbook enhancements to existing dual-DB Tauri 2 + React 19 + SQLite system
-**Researched:** 2026-05-10
-**Confidence:** HIGH (all findings derived from direct codebase inspection, shipped code decisions in PROJECT.md, and established patterns in the existing query/hook/component stack)
+**Domain:** Adding workflow metadata to existing recipe sections, section-aware session logging, and surfacing recipe workflow context in Kanban/Dashboard
+**Researched:** 2026-05-11
+**Confidence:** HIGH (all findings derived from direct codebase inspection of existing save patterns, cascade rules, cache invalidation contracts, and component data flow)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Writing User Annotations into rules.db
+### Pitfall 1: DELETE-all + re-INSERT Destroys New section_id FKs on painting_sessions
 
-**What goes wrong:**
-A new feature — favorites, user notes on rules, game day reminders, detachment selection — stores its data in rules.db by calling `getRulesDb()` for writes. Every sync calls `bulk_sync_rules` in Rust, which begins with a full `DELETE FROM rw_*` pass before re-inserting. All user data written to rules.db is silently destroyed at the next sync.
+**What goes wrong:** The existing RecipeFormSheet save pattern (lines 233-240) deletes ALL recipe_sections on edit, which cascades to recipe_steps via ON DELETE CASCADE. Migration 014 set `ON DELETE SET NULL` on `painting_sessions.recipe_step_id`, so every session's step link is NULLed on each recipe save. If a new `section_id` FK is added to `painting_sessions` referencing `recipe_sections(id)`, the same cascade NULLs it too -- every time the user edits and saves a recipe, all session-section links are permanently destroyed.
 
-**Why it happens:**
-The new feature reads from rules.db tables and the developer naturally co-locates the write alongside the reads in the same `rulesExtended.ts` query file. The DELETE-before-INSERT sync pattern is not obvious from the query layer alone — it is only visible in the Rust `lib.rs` command and the Phase 44 sync hardening code. The `syncErrors.ts` file explicitly warns about this with a CRITICAL comment, but developers reading only `rulesExtended.ts` will not see it.
+**Why it happens:** The DELETE-all + re-INSERT pattern was safe when sessions only linked to `recipe_id` (preserved across saves) and `recipe_step_id` (treated as ephemeral enrichment). Adding `section_id` to sessions elevates sections from "structural scaffolding destroyed on save" to "referenced data that should persist," but the save pattern treats them as disposable.
 
-**How to avoid:**
-Every table that holds user-generated content — favorites, personal notes, reminder flags, detachment_id selections, game day checklist state — MUST live in hobbyforge.db via `getDb()`. Use the pattern established in `unit_overrides` (017_unit_overrides.sql): a separate hobbyforge.db table with a `TEXT` column storing the Wahapedia ID as a copy, not a cross-DB reference. The sync-survival rule is stated in PROJECT.md Key Decisions: "Overrides in hobbyforge.db, not rules.db — rules.db is fully DELETEd on every sync."
+**Consequences:** Users log sessions against sections, edit the recipe, and all section links vanish silently. The "section-aware session history" feature becomes unreliable after the first recipe edit. No error is thrown -- SET NULL is silent.
 
-**Warning signs:**
-- Any `INSERT` or `UPDATE` that uses `getRulesDb()` instead of `getDb()`
-- A new table added via a `rules_00N_*.sql` migration file that stores anything user-editable
-- A query function in `rulesExtended.ts` that calls `db.execute()` rather than `db.select()`
+**Prevention:**
+- **Recommended:** Store section context on painting_sessions as a denormalized TEXT column (`section_name`) instead of a FK. Survives DELETE-all + re-INSERT because it carries no FK reference. Consistent with the `detachment_name` pattern on `army_lists` and `weapon_name` on `unit_loadout_wargear` (both documented in PROJECT.md Key Decisions).
+- **Alternative:** Add `section_id` FK with `ON DELETE SET NULL` and accept that recipe edits clear section links. Document this as expected behavior and make section_id a "best effort" enrichment, not a hard dependency for any UI display.
+- **High-risk alternative:** Refactor save to use UPDATE for existing sections + INSERT for new + DELETE for removed. This is the most correct but highest-complexity change and conflicts with the established project decision to use DELETE-all + re-INSERT for simplicity.
 
-**Phase to address:**
-Schema design phase (first phase of v0.2.8). Every new hobbyforge.db table must be designed and justified before a single query function is written. Each migration file for user data must use `getDb()`.
+**Detection:** After editing a recipe, check painting_sessions rows -- if section_id/section_name is NULL for sessions that previously had values, this pitfall is active.
+
+**Phase to address:** Schema migration phase (first phase). The column type decision (FK vs denormalized text) must be locked before any UI code references it.
 
 ---
 
-### Pitfall 2: Attempting Cross-DB JOINs via ATTACH DATABASE
+### Pitfall 2: Cascading Selector State Desync in LogSessionSheet
 
-**What goes wrong:**
-Army Lists 2.0 needs to show the selected detachment name alongside the list. The detachment name lives in `rw_detachments` (rules.db) and the selection lives in `army_lists` (hobbyforge.db). A developer writes a SQL JOIN across both databases using SQLite `ATTACH DATABASE` syntax. This compiles correctly in a standalone SQLite shell but tauri-plugin-sql opens each database as a separate isolated connection — `ATTACH` is not available between those connections and the query throws a runtime error with no compile-time warning.
+**What goes wrong:** Adding a section selector between recipe and step creates a 3-level cascade: recipe -> section -> step. The existing code (LogSessionSheet lines 133-135) clears step when recipe changes via a single useEffect. If the section selector is added but the reset chain is incomplete, selecting Recipe A -> Section X -> Step 3, then changing to Recipe B leaves `section_id` pointing at Section X (which belongs to Recipe A) -- a cross-recipe reference that is structurally invalid but NOT caught by any FK constraint.
 
-**Why it happens:**
-SQLite's `ATTACH DATABASE` is a well-known multi-file SQL pattern and works in most SQLite clients and ORMs. The constraint is specific to tauri-plugin-sql's connection model and is only documented in PROJECT.md's "Out of Scope" section. New contributors and AI-assisted code will naturally reach for ATTACH.
+**Why it happens:** Each `useEffect` reset watches one field. With 3 levels, two useEffects are needed: recipe change clears section AND step; section change clears step. Missing either leaves stale state. React's batched state updates can also cause a render where section is stale but recipe is new, producing a frame where the section dropdown shows options for the wrong recipe.
 
-**How to avoid:**
-Continue the dual-query merge pattern used throughout the existing codebase. Read from each DB separately and merge in TypeScript. For Army Lists 2.0 detachment display: store `detachment_id TEXT` in `army_lists` (hobbyforge.db), fetch the detachment name from `rw_detachments` via a separate `getRulesDb()` select, then merge by ID in the hook before returning. The `weapon_name as TEXT copy in unit_loadout_wargear` precedent in PROJECT.md Key Decisions is the canonical example of this pattern.
+**Consequences:** Submitting with a stale section_id writes a reference pointing at a section belonging to a different recipe. No FK violation occurs (painting_sessions.section_id references recipe_sections.id globally, not scoped by recipe). The session appears under the wrong recipe's section in any section-grouped view.
 
-**Warning signs:**
-- Any SQL string containing `ATTACH`, `DETACH`, or referencing two different database filenames
-- A query function that calls both `getDb()` and `getRulesDb()` and passes data from one as a parameter to the other within the same SQL string
-- A JOIN that references an `rw_` prefixed table inside a `getDb()` context
+**Prevention:**
+- Watch `recipe_id` changes: clear BOTH `section_id` and `recipe_step_id` in a single useEffect (extend the existing one on line 133).
+- Watch `section_id` changes: clear `recipe_step_id` in a second useEffect.
+- Filter steps by `section_id` (not just `recipe_id`) in the step selector's data source. Steps already carry `section_id` on the DB row -- use it.
+- Add a submit-time guard: if `section_id` is set, verify the selected section belongs to the selected recipe by checking against loaded section data.
 
-**Phase to address:**
-Army Lists 2.0 schema design phase. Establish `detachment_id TEXT` on `army_lists` and document the dual-query merge contract in the query file comment before any UI work.
+**Detection:** Log a session with all 3 fields set, then verify the session's `section_id` belongs to the session's `recipe_id` via a diagnostic query.
 
----
-
-### Pitfall 3: Breaking the 3-Level COALESCE Points Chain
-
-**What goes wrong:**
-Army Lists 2.0 adds detachment selection and the developer, believing detachments could affect unit costs, adds a fourth level to the COALESCE chain in `getArmyListWithUnits` but forgets to update `getArmyListReadiness`. The two query functions now disagree on what `effective_points` means. The ArmyListSummaryBar and ArmyReadinessCard show different totals for the same list. The bug is silent — both functions succeed, the values just differ.
-
-**Why it happens:**
-The COALESCE chain (`alu.points_override → uo.points → u.points → 0`) is duplicated verbatim in two separate query functions in `armyLists.ts`. There is no shared SQL constant for the expression. Modifying one without the other is a straightforward oversight since nothing enforces consistency between them.
-
-**How to avoid:**
-In 40K 10th edition, detachments do not modify individual unit point costs — they unlock stratagems and abilities. Do not add a fourth COALESCE level for detachment cost adjustments. If future rules require it, extract the COALESCE expression into a named SQL fragment or a SQL view, then reference it from both query functions. Update both sites atomically in a single commit and add a code comment at each site: "If you add a COALESCE level here, update the matching expression in [other function name]."
-
-**Warning signs:**
-- `getArmyListWithUnits` and `getArmyListReadiness` showing different total points for the same army list
-- A COALESCE chain that differs between the two functions
-- Tests for army list total points that cover only one of the two functions
-
-**Phase to address:**
-Army Lists 2.0 — any phase that modifies `armyLists.ts`. Code review checklist: both COALESCE expressions must match.
+**Phase to address:** LogSessionSheet enhancement phase. Must be implemented atomically with the section selector -- never ship the selector without the full reset chain.
 
 ---
 
-### Pitfall 4: Missing staleTime: Infinity or Sync Invalidation for New Rules Hooks
+### Pitfall 3: New Workflow Metadata Columns Lost During DELETE-all + re-INSERT Round-Trip
 
-**What goes wrong:**
-Two failure modes occur in combination. First, a new rules hook for the Rules Browser or Game Day Mode is written without `staleTime: Infinity` — the default 5-minute staleTime from QueryProvider triggers a background refetch during a game session, causing a jarring rerender. Second, the new hook's query key is not added to `useRulesSync`'s `onSuccess` invalidation block — after the user syncs, the browser or game day panel continues showing pre-sync data until the app is restarted.
+**What goes wrong:** The new columns (`section_type`, `technique`, `execution_mode`, `applies_to`) are added to `recipe_sections` via ALTER TABLE with nullable defaults. The DELETE-all + re-INSERT save pattern in RecipeFormSheet deletes all sections and re-creates them. If the `DraftSection` type and `buildDraftSections` function are not updated to carry the new fields through the draft round-trip, the re-INSERT writes NULLs for all new columns -- silently erasing metadata the user previously set.
 
-**Why it happens:**
-`staleTime: Infinity` is the correct setting for rules data (static until explicit sync) but it is not the QueryProvider default. Each new hook must opt in. The sync invalidation block in `useRulesSync` is a manual list that must be updated every time a new rules hook is introduced — there is no automated mechanism to enforce this.
+**Why it happens:** `DraftSection` (recipeSection.ts lines 18-27) is a manually maintained type separate from `RecipeSection`. Adding columns to the DB schema + `RecipeSection` type is necessary but not sufficient -- `DraftSection` must also be extended, `buildDraftSections` must copy the new fields from `RecipeSection` into `DraftSection`, `createRecipeSection` INSERT SQL must include the new columns, and `makeDraftSection` must set null defaults.
 
-**How to avoid:**
-Every hook that reads from rules.db must set `staleTime: Infinity`. New query keys must be added to the `useRulesSync` `onSuccess` invalidation list at the same time the hook is created (same PR, same commit). Treat the invalidation list as a required checklist item in every phase's success criteria.
+**Consequences:** User sets `section_type = "Basecoat"`, saves, re-opens the form, saves again without touching the section -> `section_type` is now NULL. Data loss on every recipe edit. No error, no warning.
 
-**Warning signs:**
-- A `useQuery` against `getRulesDb()` without `staleTime: Infinity` in its options
-- A new query key constant for rules data that does not appear in `useRulesSync`'s invalidation block
-- The Rules Browser or Game Day panel showing old data immediately after a successful sync
+**Prevention:**
+- Extend `DraftSection` interface with ALL new metadata fields.
+- Extend `buildDraftSections` to copy new fields from `RecipeSection` rows into `DraftSection`.
+- Extend `createRecipeSection` INSERT SQL and parameter array to include new columns.
+- Extend `makeDraftSection` factory to initialize new fields as `null`.
+- Add a code comment on `DraftSection`: "Keep in sync with RecipeSection -- every DB column that should survive save must round-trip through this type."
+- Implementation test: set metadata, save, reopen, save unchanged, reopen -- metadata must persist.
 
-**Phase to address:**
-Rules Data Hub UI phase (first to introduce new rules hooks) and every subsequent phase that adds a rules-reading hook.
+**Detection:** Set metadata on a section, save recipe, reopen, save again without changes, reopen -- if metadata is gone, this pitfall is active.
 
----
-
-### Pitfall 5: Bypassing the Wahapedia Faction ID Translation
-
-**What goes wrong:**
-The Rules Browser or Game Day Mode filters stratagems and detachments by the user's active faction. The developer passes `faction.id` (HobbyForge integer PK from hobbyforge.db) or `faction.name` directly to `getStratagemsByFaction`. Wahapedia faction IDs are opaque TEXT strings (e.g., `"SM"` for Space Marines) that do not match either. The query returns an empty array with no error — the empty list looks like "no data synced."
-
-**Why it happens:**
-The `useWahapediaFactionId(faction.name)` lookup hook is only called in `PlaybookTab` and is easy to overlook when building independent pages. There is no type-level enforcement preventing an integer from being passed as the `factionId: string` parameter — TypeScript accepts `String(faction.id)` which produces `"1"` rather than `"SM"`.
-
-**How to avoid:**
-`useWahapediaFactionId` must be the single source of truth for the HobbyForge-name → Wahapedia-ID translation. For every new context that needs rules.db faction-filtered data (Rules Browser page, Game Day header, any future rules feature), call `useWahapediaFactionId(faction.name)` and pass the resulting string to rules hooks. Document this requirement at the top of `rulesExtended.ts`.
-
-**Warning signs:**
-- Stratagems or detachments sections rendering empty even after a sync that reports non-zero stratagem/detachment row counts
-- A query function receiving a numeric faction ID (integer) rather than a Wahapedia string ID
-- A new hook typed as `factionId: number` rather than `factionId: string`
-
-**Phase to address:**
-Rules Data Hub UI phase (first phase to surface a standalone rules browser). Establish `useWahapediaFactionId` as a documented shared lookup, not a PlaybookTab-internal detail.
+**Phase to address:** Schema migration phase AND form UI phase. The `DraftSection` type MUST be extended in the same phase as the migration, not deferred to the form UI phase.
 
 ---
 
-### Pitfall 6: User Notes on Rules with No Orphan Handling After Sync
+## Moderate Pitfalls
 
-**What goes wrong:**
-The user saves a personal note on a stratagem (`stratagem_id = "SM-STR-001"`). Wahapedia re-releases data and that stratagem is renamed or removed. At the next sync, `rw_stratagems` no longer has that ID. The user note in hobbyforge.db has a `stratagem_id TEXT NOT NULL` column pointing at a now-absent ID. The UI joins to rules.db to get the stratagem name and gets NULL. The note silently disappears from view or triggers a display error.
+### Pitfall 4: Progressive Disclosure Threshold Collision with New Metadata
 
-**Why it happens:**
-Cross-DB orphan detection is impossible via SQLite FK constraints — the TEXT ID in hobbyforge.db references a row in rules.db, but SQLite can only enforce FKs within the same database. This is the same structural problem that motivated storing `weapon_name TEXT` as a copy in `unit_loadout_wargear`. Without the copy, the UI has no display data when the rules.db row vanishes.
+**What goes wrong:** The existing progressive disclosure rule (RecipeFormSheet line 654) shows flat step list when `sections.length <= 1`, section cards when 2+. New workflow metadata (section_type, technique, etc.) only appears in section card UI. A single-section recipe with workflow metadata set via the SectionedTimeline display never shows it in the form -- the form renders `RecipeStepList` (flat mode), which has no section metadata UI. On save, the DELETE-all + re-INSERT writes the single section back without preserving metadata the form never displayed.
 
-**How to avoid:**
-For all rules-linked user data (notes, favorites, reminders), store both the `rule_id TEXT` (for re-association after sync) and a `rule_name TEXT` copy (for display even when the rule no longer exists in rules.db). In the UI, detect orphan state by checking whether the rules.db row still exists and show a "This rule was removed in the last sync" indicator rather than hiding the note silently.
+**Why it happens:** The threshold was designed when sections only carried name/surface/optional. With workflow metadata, even a single section can have semantically important data that needs to be visible and editable in the form.
 
-**Warning signs:**
-- A user-note or favorite table schema with `stratagem_id TEXT NOT NULL` but no `stratagem_name TEXT` copy column
-- A component that JOINs to rules.db for the name display without a fallback when the join returns NULL
-- User notes or favorites silently disappearing from the UI after a sync that removes a stratagem or detachment
+**Prevention:**
+- Adjust the threshold: show section card UI whenever ANY section has non-null workflow metadata, regardless of count. Something like: `sections.length > 1 || sections.some(s => s.section_type || s.technique || s.execution_mode || s.applies_to)`.
+- Alternative: add a minimal metadata strip to `RecipeStepList` (flat mode) that displays and allows editing metadata for the implicit single section.
+- The first option is simpler and follows the existing pattern -- the threshold just becomes smarter.
 
-**Phase to address:**
-Playbook enhancements phase (user notes on rules). The schema must include `rule_name TEXT` as a denormalized copy from the start — retrofitting this requires a migration and data backfill.
+**Phase to address:** Form UI phase. Must be decided during UI design, not discovered during testing.
 
 ---
 
-### Pitfall 7: Game Day Checklist State Treated as Component State
+### Pitfall 5: Competing Hint Sources -- Status-Based vs Section-Aware
 
-**What goes wrong:**
-Game Day Mode has per-unit or per-phase checklists (mark stratagem as used, check reminder, confirm unit deployed). The developer stores checklist state in React `useState`. The user opens Game Day, ticks several boxes, switches to Army Lists to verify points, navigates back to Game Day — all state is gone because the Sheet or page component unmounted. The user must manually re-check completed items mid-game.
+**What goes wrong:** The existing `getNextActionHint` (getNextActionHint.ts) maps `PaintingStatus` to a static string like "Apply shade." Adding section-aware guidance ("Next: Shade the armour panels") creates two competing hint sources. If both are displayed simultaneously, the UI is noisy and contradictory. If section-aware replaces status-based, recipes without sections lose their hint entirely.
 
-**Why it happens:**
-Game Day checklists feel "temporary for a game session" so the developer reaches for `useState`. The Sheets-based navigation throughout the app means components unmount freely when the user switches context. For all prior features the project correctly uses React Query for persisted state and Zustand for ephemeral-but-navigation-stable state — but Game Day is new enough that the pattern choice is not obvious.
+**Why it happens:** The static hint is a pure synchronous function of status. Section-aware hints require recipe + section + step data (async, nullable, dependent on batch queries). Mixing sync and async hint sources in the same card position creates conditional rendering complexity and potential flicker during data loading.
 
-**How to avoid:**
-Game Day checklist state that must survive navigation must live in a Zustand store (persisted for the session, reset on app close) or in a `game_day_sessions` table in hobbyforge.db (persisted across restarts). The choice depends on whether the user would want to resume a game session after closing the app. Define this contract before writing any UI. If Zustand: document explicitly that state resets on app restart. If SQLite: add a migration in the schema phase.
+**Prevention:**
+- Layer hints with clear priority: section-aware hint takes precedence when available (recipe linked, sections loaded, next step identifiable). Fall back to status-based hint when no recipe/section data exists.
+- Single render slot: one line of hint text, never two competing lines. Implement via a `getEnrichedHint(status, sectionContext?)` wrapper function.
+- Handle loading state: while section data loads, show the status-based hint immediately. Never show "Loading..." in a Kanban card hint -- it flickers on every drag operation because DnD triggers re-renders.
 
-**Warning signs:**
-- Checklist tick state stored in `useState` within a Sheet or page component
-- A large `useState` object tracking N per-unit ability checkboxes
-- No Zustand store or migration added for game session state despite any requirement that the session should survive navigation
-
-**Phase to address:**
-Game Day Mode architecture phase. The checklist persistence contract (Zustand vs SQLite) must be decided and documented before any UI work begins.
+**Phase to address:** Kanban/Current Focus integration phase.
 
 ---
 
-### Pitfall 8: Army List Detachment Selection Not Validated After Sync
+### Pitfall 6: N+1 Query Explosion for Kanban Workflow Display
 
-**What goes wrong:**
-An army list stores `detachment_id TEXT` referencing a row in `rw_detachments`. After the next sync, Wahapedia renames or removes that detachment. The `army_lists.detachment_id` still holds the old ID. No stale-data warning is shown. The user opens Game Day Mode and receives stratagems filtered to a detachment that no longer exists — or receives all faction stratagems because the filter returns no match.
+**What goes wrong:** KanbanCard currently receives `recipeName` as a prop from the parent (via a batch query computed at page level). Adding "current section" or "next step" per card tempts a per-card hook pattern: `useRecipeSections(unit.recipeId)` inside KanbanCard. With 20 active projects, this fires 20 section queries on every Kanban render AND on every drag-and-drop operation.
 
-**Why it happens:**
-The existing stale-data warning system (sync diff, freshness badge, PlaybookTab "last synced") operates at the unit-datasheet level and has no concept of army list detachment references. The sync pipeline does not know to check `army_lists.detachment_id` values against the current `rw_detachments` table. This is a new dependency surface with no prior analog in the codebase.
+**Why it happens:** KanbanCard is a leaf component rendered inside a DnD context. Every drag event re-renders all visible cards. Hooks inside cards re-fire on each re-render. The existing pattern deliberately avoids this by computing data at page level and prop-drilling -- but the pattern is not enforced by any lint rule.
 
-**How to avoid:**
-Post-sync validation: after each successful sync, run a dual-query comparison (fetch `army_lists.detachment_id` values from hobbyforge.db, fetch current `rw_detachments.id` values from rules.db, compare in TypeScript). Surface any non-matching IDs as warnings in the Army Lists page detail sheet. Store `detachment_name TEXT` alongside `detachment_id` so the old name can be shown in the warning even after the row is gone from rules.db.
+**Consequences:** Drag-and-drop becomes sluggish. Each drag event re-renders all cards, each card refetches sections. React Query deduplication helps for cache hits but does not prevent 20 parallel SELECT round-trips on first mount.
 
-**Warning signs:**
-- `army_lists.detachment_id` contains a value but no matching row exists in `rw_detachments`
-- Game Day stratagem filter produces an empty list for a list that has a detachment selected
-- No validation step runs after `useRulesSync` completes
+**Prevention:**
+- Batch query at page level: single SQL query joining `recipe_sections` + `recipe_steps` for all active-project recipe IDs. Build a `Map<recipeId, { sectionName: string; nextStep: string }>` via `useMemo`.
+- Prop-drill the map into KanbanCard, identical to how `recipeName` and `photoCount` are passed today.
+- Hard rule: never put `useRecipeSections`, `useRecipePaints`, or any per-recipe hook inside KanbanCard.
 
-**Phase to address:**
-Army Lists 2.0 detachment selection phase (store the name copy) and the Rules Data Hub UI or sync hardening phase (add post-sync validation).
+**Phase to address:** Kanban integration phase. Design the batch query before touching KanbanCard.
 
 ---
 
-### Pitfall 9: Rules Browser Framing Implies Official GW Content
+### Pitfall 7: Existing painting_sessions Rows Have NULL section_id -- Join/Filter Hazards
 
-**What goes wrong:**
-The Rules Data Hub UI presents a page titled "Warhammer 40K Rules" or renders detachments and stratagems under a "Rules" heading without attribution. The framing implies the app bundles or distributes official GW content. GW's IP policy prohibits reproducing codex data. Even though data is fetched from Wahapedia by the user's own manual action, presenting it as authoritative rules without clear attribution creates copyright and trademark risk.
+**What goes wrong:** Adding `section_id` to `painting_sessions` via ALTER TABLE creates a nullable column. All existing sessions (potentially hundreds) have `section_id = NULL`. Any query that JOINs or filters on `section_id` with an INNER JOIN causes all historical sessions to vanish from results. A GROUP BY `section_id` without a NULL bucket silently drops unlinked sessions from counts.
 
-**Why it happens:**
-The UX instinct is to name things clearly. "Rules Browser" and "Warhammer 40K Rules" are the most descriptive names. The legal constraint is explicit in PROJECT.md but does not surface during day-to-day component development.
+**Why it happens:** This is the exact same pattern as migration 014 (adding `recipe_id`/`recipe_step_id` to sessions), but developers writing new queries may forget the "90% of rows are NULL" reality because only new sessions will have section data.
 
-**How to avoid:**
-Frame all content as "community-sourced data synced from Wahapedia" with a persistent attribution note visible in the UI. Use neutral labels ("Faction Rules," "Detachments," "Stratagems") rather than GW trademark names as section headers for rules content. Keep the sync trigger entirely user-initiated — no auto-fetch on startup, on a timer, or on Game Day open. Never display point values presented as GW-authoritative (points are user-entered or override-based).
+**Prevention:**
+- Always use LEFT JOIN when including section data in session queries.
+- Any GROUP BY `section_id` must include a NULL bucket labeled "General" or "Unlinked" for sessions without a section reference.
+- Never use `WHERE section_id IS NOT NULL` as a default filter -- it silently drops all pre-feature sessions.
+- `section_id` in LogSessionSheet must default to null (not required), consistent with `recipe_id` and `recipe_step_id` being optional.
 
-**Warning signs:**
-- A page or section header saying "Warhammer 40K Rules," "Official Datasheets," or "GW Rules"
-- An auto-sync call in `useEffect` on app start or Game Day mount
-- No Wahapedia attribution visible in the Rules Browser UI
-- Points values displayed as "from codex" or "official"
-
-**Phase to address:**
-Rules Data Hub UI phase. Copyright framing review must be a named success criterion in that phase's checklist.
+**Phase to address:** Schema migration phase. Document the NULL-handling contract in the migration file comments, same as the comment pattern in migration 018.
 
 ---
 
-### Pitfall 10: N+1 Queries in Rules Browser or Game Day Ability Display
+### Pitfall 8: Cross-Feature Import Creates Tight Coupling Between recipes/ and dashboard/
 
-**What goes wrong:**
-The Rules Browser renders all stratagems for a faction and for each stratagem fetches its detachment name to display a detachment badge. Game Day ability panel renders all units in the army list and for each unit calls a separate `useQuery` to fetch that unit's abilities. With 80 stratagems or 15 units, the app executes 80 or 15 sequential DB queries on page open. The UI renders noticeably slowly, React Query Devtools shows dozens of simultaneous queries.
+**What goes wrong:** CurrentFocusCard and KanbanCard need to display section/workflow data. Importing recipe types, section types, or recipe display-formatting helpers directly from `src/features/recipes/` into `src/features/dashboard/` or `src/features/painting-projects/` creates coupling between feature modules that the architecture intentionally keeps independent.
 
-**Why it happens:**
-The existing per-entity hook pattern (`useDetachmentAbilitiesByDetachment` called inside `DetachmentSection`) is correct for PlaybookTab's narrow context (one unit, one detachment at a time). Applied to a full list context — all stratagems, all units — the same pattern generates N queries. The N+1 pattern is not visible from the hook signature and existing components do not demonstrate the list-context version.
+**Why it happens:** The feature-folder convention keeps domain logic self-contained. Types in `src/types/recipeSection.ts` are shared and importable anywhere. But any display logic (e.g., formatting section_type as a badge label, determining "next step" from a section's steps) that lives in `src/features/recipes/` cannot be cleanly imported by dashboard components without violating the module boundary.
 
-**How to avoid:**
-For list-level displays, write batch queries (single SELECT with `WHERE id IN (...)` or `GROUP BY`) that return all needed data in one round trip. The existing precedents are `getArmyListReadiness` (batch readiness for multiple lists in one query) and the batch `getBatchStepCounts` pattern for recipe sections. For the Rules Browser: a single `getAllStratagemsByFaction` query. For Game Day units: either a batch abilities query or `Promise.all` for parallel (not sequential) fetches.
+**Prevention:**
+- Types in `src/types/` are fine to import from anywhere -- they are already shared by design.
+- Display helpers needed by multiple features go in `src/lib/` (pure functions) or `src/components/common/`.
+- Batch query hooks for cross-feature data (e.g., "workflow summary for active projects") belong in `src/hooks/`, not inside a feature folder.
+- Hard rule: never import from `src/features/recipes/*.tsx` in dashboard or painting-projects components. Import from `src/types/`, `src/hooks/`, or `src/lib/` only.
 
-**Warning signs:**
-- A `useQuery` hook called inside a `.map()` over a list (also violates Rules of Hooks if not wrapped in a proper component boundary)
-- React Query Devtools showing N queries loading simultaneously when the Rules Browser or Game Day panel mounts
-- UI noticeably slow to populate when the army list has more than 10 units or a faction has more than 20 stratagems
-
-**Phase to address:**
-Rules Data Hub UI phase (stratagems/detachment browser) and Game Day Mode phase (unit ability display). Query count must be part of each phase's success criteria.
+**Phase to address:** Kanban/Current Focus integration phase. Establish the data flow architecture before building any UI.
 
 ---
 
-## Technical Debt Patterns
+### Pitfall 9: Cache Invalidation Gap for New Workflow Summary Queries
 
-| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| Store `detachment_id` only, no name copy | Simpler schema (one column) | Orphan display breaks silently after sync removes detachment | Never — always store name copy alongside the TEXT ID |
-| useState for game day checklist | No migration needed | State lost on Sheet close or app restart | Only if checklist is explicitly documented as single-screen ephemeral with no resume requirement |
-| Show all faction stratagems without detachment filter | Faster to build the list | Unusable at the table — 80+ stratagems with no context for the selected detachment | Never for Game Day mode; acceptable for a "browse all" reference view |
-| Filter stratagems by detachment in JavaScript | No additional query | Re-runs on every render; wastes bandwidth for large stratagem sets | Never — filter with `WHERE detachment_id = $1` in SQL |
-| Hardcode Wahapedia faction IDs ("SM", "CSM") | Quick fix for Space Marines | Breaks for any faction not in the hardcoded list; not maintainable | Never — use `useWahapediaFactionId` for all faction lookups |
-| Invalidate all React Query keys after sync | Simplest invalidation logic | Forces refetch of all hobby data (collections, recipes, army lists) that did not change | Acceptable as a temporary shortcut; refine to rules-only keys in the same phase |
+**What goes wrong:** Updating section metadata (section_type, technique, etc.) via the form triggers a save that invalidates `RECIPE_SECTIONS_KEY`. But if Kanban or Dashboard components cache workflow summaries under a different query key (e.g., `["workflow-summary"]` or `["active-project-workflow"]`), those caches become stale. The user edits a section's technique in the recipe form, switches to Dashboard, and sees the old technique.
 
----
+**Why it happens:** The existing invalidation contract in `useDeleteRecipeSection` (useRecipeSections.ts lines 57-72) lists exactly 5 cache keys with a documented "CASCADE INVALIDATION CONTRACT" comment. Adding new query consumers that derive from section data adds new keys to invalidate. Missing one breaks UI consistency silently.
 
-## Integration Gotchas
+**Prevention:**
+- Document ALL cache keys that derive from `recipe_sections` data in a central comment.
+- When adding a new batch query for workflow summaries, add its key to the invalidation list in RecipeFormSheet's `onSubmit` (currently lines 309-315) AND in `useDeleteRecipeSection`.
+- Consider a broader prefix-based invalidation if multiple workflow-related keys exist: `qc.invalidateQueries({ queryKey: ["workflow"] })`.
+- Follow the existing "cascade invalidation contract" comment pattern -- add a comment block explaining why each key is invalidated.
+- Run the cache symmetry check: if key X is invalidated in create/update, it must also be invalidated in delete.
 
-| Integration | Common Mistake | Correct Approach |
-|-------------|----------------|------------------|
-| Detachment → Army List | Store `detachment_id` as a FK-referencing rules.db | Store `detachment_id TEXT` + `detachment_name TEXT` copy in `army_lists` (hobbyforge.db) |
-| Stratagem favorites / user notes | Write to `rw_stratagems` or a new table in rules.db | New hobbyforge.db table with `stratagem_id TEXT` + `stratagem_name TEXT` copy columns |
-| Game Day stratagems by phase | Derive grouping in JSX inline | Reuse the `stratagemsByPhase` Map memo pattern from PlaybookTab; do not duplicate the grouping logic |
-| Post-sync cache invalidation | Omit new hook key from `useRulesSync` invalidation list | Audit every new `useQuery` against rules.db and add its key to the sync invalidation block in the same commit |
-| Points in Game Day or Army Lists 2.0 | Show raw `u.points` from rules import as authoritative | Only show `effective_points` (3-level COALESCE result) — never raw Wahapedia-sourced points |
-| Rules Browser faction filter | Pass HobbyForge `faction.id` integer to rules queries | Always translate via `useWahapediaFactionId(faction.name)` first to get the Wahapedia string ID |
-| Sync trigger from Game Day | Auto-sync on Game Day open to guarantee fresh data | Never auto-sync — user-triggered only; show freshness badge + manual sync button |
-| Detachment stratagems | Show all faction stratagems in Game Day | Filter by `RwStratagem.detachment_id` when a detachment is selected on the army list |
+**Phase to address:** Every phase that adds a new query consuming section data. Mandatory invalidation audit at each phase boundary.
 
 ---
 
-## Performance Traps
+## Minor Pitfalls
 
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| N+1 detachment ability fetches | Game Day slow to open; React Query Devtools shows 10–40 sequential queries | Batch queries with `IN (...)` or `GROUP BY`; parallel `Promise.all` as fallback | Any army list with more than 5 units or 3 detachments |
-| Rendering all faction stratagems unfiltered | Rules Browser laggy scroll; 80+ React nodes visible at once | Filter by `detachment_id` or `phase` in SQL; virtualize long lists | Factions with more than 30 stratagems (Space Marines, Chaos Space Marines) |
-| Missing `staleTime: Infinity` on rules hooks | Background refetch triggers mid-game rerender | Set `staleTime: Infinity` on every `useQuery` against `getRulesDb()` | Immediately visible after the default 5-minute staleTime expires |
-| Snapshot capture adding latency to sync | Extra 200–500ms per sync as 11 tables are read sequentially before bulk insert | Do not add more sequential reads to the snapshot path; keep snapshot table count stable | Only noticeable if snapshot tables increase beyond current 11 |
+### Pitfall 10: LogSessionSheet Form Bloat with 4 Cascading Selectors
 
----
+**What goes wrong:** Adding `section_id` to `LogSessionFormValues` and the Zod schema introduces a fourth nullable selector (unit -> recipe -> section -> step). Each nullable field needs `z.number().nullable()` plus the `__none__` sentinel pattern. The form JSX grows significantly with 4 cascading selectors occupying the top half of the sheet, pushing Date and Duration fields below the fold.
 
-## UX Pitfalls
+**Prevention:** Extract a reusable `NullableSelectField` component that handles the `__none__` sentinel, the `Controller` wrapper, and the `FormField` boilerplate. The identical pattern is repeated 3 times in the current LogSessionSheet (lines 188-348) and would be 4 with `section_id`. Also consider collapsing recipe/section/step under progressive disclosure -- show section/step selectors only when a recipe is selected (extending the existing pattern on line 306).
 
-| Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| Rules Browser with no "sync required" empty state | User opens rules browser before first sync, sees a blank list with no explanation | Show "Sync community data to see rules" empty state with a sync button — same pattern as PlaybookTab `!syncMeta` banner |
-| Game Day showing all faction stratagems instead of detachment-filtered | User must scroll through 80+ stratagems to find the 10–15 relevant to their detachment | Filter stratagems by `detachment_id` when a detachment is selected; show all only in a "browse" mode |
-| Stale detachment warning with no acknowledgement | Warning badge persists after user intentionally keeps old detachment selection | Allow user to dismiss/acknowledge the stale warning; persist the acknowledgement in hobbyforge.db |
-| Favorites or notes gated behind unit-datasheet linkage | User wants to favorite a stratagem from the Rules Browser but has not linked any unit | Favorites must be accessible from the Rules Browser directly, not gated by unit datasheet state |
-| Game Day checklist resetting on Sheet close | User navigating away to check a unit's stats loses all in-game checklist progress | Persist game session state in Zustand store (not component state) so it survives Sheet unmount |
+**Phase to address:** LogSessionSheet enhancement phase.
 
 ---
 
-## "Looks Done But Isn't" Checklist
+### Pitfall 11: SectionedTimeline Header Visual Overflow with Metadata Badges
 
-- [ ] **Rules Browser empty state:** Rules page renders for a user who has never synced — verify a "sync required" empty state (not a blank page) appears and offers a sync button
-- [ ] **Detachment stratagem filter:** Game Day stratagem list is filtered by selected `detachment_id`, not showing all 80+ faction stratagems — verify with a faction that has multiple detachments (Space Marines has 6+)
-- [ ] **Post-sync stale detachment detection:** After syncing with a modified dataset, army lists referencing now-absent detachments show a warning — verify by testing with a known detachment ID absent from rules.db
-- [ ] **Sync invalidation for new hooks:** After a sync, the Rules Browser and Game Day data refresh without requiring an app restart — verify by checking data updates after triggering sync with the Rules Browser already open
-- [ ] **User notes survive sync:** Notes written on a stratagem or detachment survive the next sync — verify by writing a note, syncing, and confirming the note is still visible
-- [ ] **Orphan note display:** A note on a stratagem removed by sync shows the stored `stratagem_name` copy and a "removed in last sync" indicator — verify by clearing the relevant rw_stratagems rows manually
-- [ ] **Copyright framing:** No UI element says "official rules" or "Warhammer 40K Rules" as an authoritative title — verify all section headings use neutral terminology ("Community Rules," "Stratagems," "Detachments")
-- [ ] **No auto-sync:** App does not fetch from Wahapedia on startup, on timer, or on Game Day open — verify by monitoring network calls at app start and Game Day mount
-- [ ] **Points display:** Army list total shown in Game Day and Army Lists 2.0 uses `effective_points` (3-level COALESCE), not raw `u.points` — verify with a unit that has a points override active
-- [ ] **Wahapedia faction ID translation:** Rules Browser and Game Day faction filter works for all seed factions — verify `useWahapediaFactionId` returns a non-null result for each faction in the DB
+**What goes wrong:** Adding compact metadata badges (section_type, technique, execution_mode, applies_to) to each section header in SectionedTimeline creates visual clutter. The header already renders: name, surface badge, optional badge, step count, time estimate, and paint availability indicators. Adding 4 more badges forces the header to wrap to multiple lines in the narrow RecipeDetailSheet (`sm:max-w-xl` = 576px minus padding).
+
+**Prevention:**
+- Progressive disclosure in display: show `section_type` as the primary metadata badge; surface other metadata behind a hover tooltip or expandable row.
+- Use icon-only badges with tooltips for secondary metadata (technique, execution_mode).
+- Test at the narrowest Sheet width to verify the header does not wrap. The current header (SectionedTimeline.tsx lines 70-119) already uses `ml-auto` for right-aligned metadata -- additional badges must fit within that space.
+
+**Phase to address:** SectionedTimeline metadata display phase.
 
 ---
 
-## Recovery Strategies
+### Pitfall 12: applies_to Field Semantic Ambiguity
 
-| Pitfall | Recovery Cost | Recovery Steps |
-|---------|---------------|----------------|
-| User data written to rules.db and lost after sync | HIGH | Add hobbyforge.db migration for the affected table; data cannot be automatically recovered — it was deleted by the sync DELETE pass |
-| Cross-DB JOIN attempted, runtime error | MEDIUM | Rewrite query as dual-query merge: two separate `db.select()` calls merged in TypeScript; no migration needed |
-| staleTime missing on rules hook | LOW | Add `staleTime: Infinity` to the hook options; add the query key to the sync invalidation list |
-| COALESCE chain diverged between two query sites | MEDIUM | Identify the correct chain; update both sites atomically in one commit; add comment at each site |
-| Orphaned user notes after sync removes rule | MEDIUM | Add `rule_name TEXT` column via migration with a one-time backfill SELECT from rules.db (must run before next sync erases the source names) |
-| N+1 queries in rules browser or Game Day | MEDIUM | Rewrite per-entity hooks to batch queries with `IN (...)` or `GROUP BY`; update hook signatures to accept ID arrays |
+**What goes wrong:** The `applies_to` field (e.g., "all panels", "recessed areas", "raised edges") is free-text with no standard vocabulary. Different recipes use different terms for the same concept ("panels" vs "flat areas" vs "armour plates"). This makes filtering or grouping by `applies_to` unreliable, and the field degenerates into a second "notes" column with no structured utility.
+
+**Prevention:**
+- Define `applies_to` as a const array (like `PAINTING_STATUS_ORDER` or `RECIPE_SURFACES`) with a fixed vocabulary: "All surfaces", "Panels", "Recesses", "Edges", "Details", "Base trim", "Other".
+- Allow free-text notes via the existing section `notes` column -- do not create a second free-text field.
+- If free-text is preferred for flexibility, do NOT build any filtering or grouping features on `applies_to` -- treat it as display-only annotation.
+
+**Phase to address:** Schema design phase. Must decide enum vs free-text before writing the migration.
 
 ---
 
-## Pitfall-to-Phase Mapping
+## Phase-Specific Warnings
 
-| Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| Writing user data to rules.db | v0.2.8 schema design phase | Zero `db.execute()` calls using `getRulesDb()` — all user writes use `getDb()` |
-| Cross-DB JOIN via ATTACH | Army Lists 2.0 detachment phase | No `ATTACH` keyword in any SQL string; detachment name display uses dual-query merge |
-| 3-level COALESCE broken | Any phase touching `armyLists.ts` | Both `getArmyListWithUnits` and `getArmyListReadiness` COALESCE expressions are identical |
-| Missing staleTime or sync invalidation | Rules Data Hub UI phase + every phase adding rules hooks | Every rules hook has `staleTime: Infinity`; every new key appears in `useRulesSync` invalidation |
-| Wahapedia faction ID bypassed | Rules Data Hub UI phase (standalone rules page) | Rules browser calls `useWahapediaFactionId` — never passes an integer `faction.id` |
-| User note orphan after sync | Playbook enhancements phase (user notes on rules) | Schema includes `rule_name TEXT` copy; orphan indicator renders when rule ID absent from rules.db |
-| Game Day checklist as component state | Game Day Mode architecture phase | Checklist state survives Sheet open/close; persistence contract documented |
-| Stale detachment after sync | Army Lists 2.0 phase + post-sync validation | Post-sync validation runs; stale detachment warning appears in Army List detail sheet |
-| Copyright framing | Rules Data Hub UI phase | No "official" or "Warhammer 40K Rules" labels in UI; Wahapedia attribution visible; no auto-sync |
-| N+1 queries in list views | Rules Data Hub UI + Game Day phases | React Query Devtools shows 1–3 queries on rules browser open; batch queries used for all list views |
+| Phase Topic | Likely Pitfall | Mitigation |
+|-------------|---------------|------------|
+| Schema migration (add columns to recipe_sections) | Pitfall 3: DraftSection not extended, metadata lost on save | Extend DraftSection + buildDraftSections + createRecipeSection INSERT atomically with the migration |
+| Schema migration (add section_id to painting_sessions) | Pitfall 1: DELETE-all + re-INSERT clears session FKs | Use denormalized TEXT column (section_name) instead of FK, or accept SET NULL on recipe edit |
+| Schema migration (add section_id to painting_sessions) | Pitfall 7: existing sessions have NULL section_id | LEFT JOIN everywhere; NULL bucket in GROUP BY |
+| Schema design for applies_to | Pitfall 12: semantic ambiguity | Decide enum vs free-text before writing migration |
+| LogSessionSheet section selector | Pitfall 2: cascading selector 3-level desync | Two useEffects: recipe clears section+step; section clears step |
+| LogSessionSheet section selector | Pitfall 10: form bloat with 4 selectors | Extract NullableSelectField component; progressive disclosure |
+| SectionedTimeline metadata display | Pitfall 11: badge overflow at 576px | Icon badges + tooltips; test at narrowest sheet width |
+| Form UI (workflow metadata editing) | Pitfall 4: single-section recipes hide metadata | Adjust threshold to check for non-null metadata, not just section count |
+| Kanban workflow display | Pitfall 6: N+1 queries in KanbanCard | Batch query at page level; prop-drill Map |
+| Kanban / Current Focus hints | Pitfall 5: competing sync vs async hint sources | Layered hint with section-aware priority; status-based fallback |
+| Current Focus / Dashboard integration | Pitfall 8: cross-feature module coupling | Types from src/types/; hooks from src/hooks/; never import from src/features/recipes/ |
+| Any phase adding section-derived queries | Pitfall 9: cache invalidation gap | Add new key to invalidation contract in RecipeFormSheet and useDeleteRecipeSection |
 
 ---
 
 ## Sources
 
-- `C:\Documents\Claude Apps\Warhammer App\.planning\PROJECT.md` — Key Decisions table (all established patterns: ATTACH not supported, overrides in hobbyforge.db, weapon_name TEXT copy, COALESCE chain, cache invalidation symmetry rule, local-first sync contract)
-- `src/db/queries/syncErrors.ts` — CRITICAL comment: "Uses getDb() (hobbyforge.db), NOT getRulesDb() (rules.db). rules.db is fully DELETEd on every sync"
-- `src/db/queries/rulesSnapshot.ts` — established dual-DB read/write pattern (reads rules.db, writes to hobbyforge.db)
-- `src/db/queries/armyLists.ts` — COALESCE chain duplicated in `getArmyListWithUnits` and `getArmyListReadiness`; full-replacement UPDATE contract for points_override
-- `src/db/queries/rulesExtended.ts` — `staleTime: Infinity` pattern for rules hooks; faction ID is string, not integer
-- `src/hooks/useRulesExtended.ts` — `staleTime: Infinity` on all four hooks; sync invalidation contract
-- `src/features/units/PlaybookTab.tsx` — `useWahapediaFactionId` translation call; dual-query merge pattern; sync-empty banner (`!syncMeta`); orphan-safe post-sync diff display; `stratagemsByPhase` Map grouping memo
-- `src-tauri/migrations/017_unit_overrides.sql` — canonical hobbyforge.db-only user data table with TEXT ID copy pattern
-- `src/types/datasheet.ts` — Wahapedia IDs are TEXT strings (zero-padded), not integers; stat fields are mixed TEXT/INTEGER types
-
----
-*Pitfalls research for: HobbyForge v0.2.8 — Rules Data Hub UI, Army Lists 2.0, Game Day Mode, Playbook enhancements*
-*Researched: 2026-05-10*
+- Direct codebase analysis of existing patterns:
+  - `src/features/recipes/RecipeFormSheet.tsx` -- DELETE-all + re-INSERT pattern (lines 233-306), cache invalidation (lines 309-315), progressive disclosure threshold (line 654)
+  - `src/features/recipes/recipeSection.ts` -- DraftSection type (lines 18-27), buildDraftSections (lines 58-91), makeDraftSection factory (lines 33-42)
+  - `src/features/dashboard/LogSessionSheet.tsx` -- cascading selector pattern (lines 127-348), recipe_step_id clear on recipe change (lines 133-135)
+  - `src/features/dashboard/getNextActionHint.ts` -- static PaintingStatus-to-string mapping
+  - `src/features/dashboard/CurrentFocusCard.tsx` -- recipeName prop-drilling, no recipe hooks
+  - `src/features/painting-projects/KanbanCard.tsx` -- prop-drilled recipeName/photoCount, no per-card hooks
+  - `src/hooks/useRecipeSections.ts` -- CASCADE INVALIDATION CONTRACT comment (lines 57-72), 5 invalidated keys
+  - `src/hooks/useJournalSessions.ts` -- conditional recipe-session invalidation (line 64)
+  - `src/db/queries/recipeSections.ts` -- createRecipeSection INSERT columns (line 26), updateRecipeSection COALESCE vs direct assignment pattern
+  - `src/db/queries/paintingSessions.ts` -- createSession INSERT with recipe_id/recipe_step_id (line 22)
+  - `src-tauri/migrations/018_recipe_sections.sql` -- ON DELETE CASCADE chain, section_id nullable on recipe_steps
+  - `src-tauri/migrations/014_session_recipe_link.sql` -- ON DELETE SET NULL for session recipe/step FKs
+  - `src/types/recipeSection.ts` -- RecipeSection interface (9 columns)
+  - `src/types/paintingSession.ts` -- PaintingSession interface, CreateSessionInput
+  - `.planning/PROJECT.md` -- Key Decisions table (DELETE-all + re-INSERT, denormalized TEXT patterns, COALESCE, cache invalidation symmetry)

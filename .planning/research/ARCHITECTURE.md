@@ -1,563 +1,370 @@
-# Architecture Research
+# Architecture Patterns
 
-**Domain:** HobbyForge v0.2.8 — Rules Data Hub UI, Army Lists 2.0, Game Day Mode
-**Researched:** 2026-05-10
-**Confidence:** HIGH (based on full codebase reads of all directly affected source files)
+**Domain:** Recipe workflow semantics and section-aware integrations (v0.2.9)
+**Researched:** 2026-05-11
+**Confidence:** HIGH (all findings derived from codebase analysis -- no external dependencies)
 
----
+## Current State Summary
 
-## Existing Architecture Baseline
+The existing architecture has three relevant subsystems:
 
-The four-layer stack is established and will not change:
+1. **Recipe Sections** (`recipe_sections` table, 9 columns: id, recipe_id, name, surface, optional, order_index, notes, created_at, updated_at). Steps FK to sections via `section_id`. Sections are saved with DELETE-all + re-INSERT pattern. Progressive disclosure hides section UI when `sections.length <= 1`.
 
-```
-UI (src/features/**/*)
-      |
-React Query hooks (src/hooks/use*.ts)
-      |
-Query modules (src/db/queries/*.ts)
-      |
-getDb() → hobbyforge.db     /     getRulesDb() → rules.db
-```
+2. **Log Session** (`LogSessionSheet`) has recipe_id and recipe_step_id FKs on painting_sessions. Step selector is a flat list sorted by order_index -- no section awareness.
 
-### Dual-DB Constraint (Non-Negotiable)
-
-`tauri-plugin-sql` does not support `ATTACH DATABASE`. Cross-DB joins are impossible in SQL. The established pattern is:
-
-1. Query both databases independently in the same async function or parallel hooks
-2. Merge results in TypeScript (JavaScript Map lookups, array joins, etc.)
-3. Never attempt SQL-level joins across the two databases
-
-This constraint directly shapes how army list detachment selection works: the selected `detachment_id` is stored as a TEXT column in `hobbyforge.db`, and detachment data is loaded from `rules.db` in a parallel hook. The two rows are joined in the component via a Map lookup.
-
-### Rules.db Is Destructive on Sync
-
-Every sync performs a full DELETE + re-INSERT on all `rw_*` tables in `rules.db`. Therefore:
-
-- Any user data that must survive re-syncs MUST live in `hobbyforge.db` (unit overrides do this correctly)
-- Army list detachment selection, playbook favorites, and user notes on rules MUST all be stored in `hobbyforge.db` columns or tables, never in `rules.db`
+3. **Kanban/CurrentFocus** display recipe name only. KanbanCard gets recipe names via `useKanbanEnrichment` (batch query by unit_id). CurrentFocusCard gets recipe name via `getRecipeNamesByUnitIds`. Next-action hint is a static PaintingStatus-to-string map (`getNextActionHint`).
 
 ---
 
-## New Feature Integration Points
+## New Architecture: Integration Map
 
-### 1. Rules Data Hub UI
+### Feature 1: Section-Level Workflow Metadata
 
-**What it does:** A dedicated page (or settings-adjacent panel) showing sync status, a browsable rules index (factions → datasheets → abilities, stratagems, detachments), and diff summary after sync.
+**Schema change:** 4 new columns on `recipe_sections`:
 
-**Integration approach:**
+| Column | Type | Nullable | Purpose |
+|--------|------|----------|---------|
+| `section_type` | TEXT | YES | Workflow category: "prep", "basecoat", "shade", "layer", "highlight", "detail", "basing", "finishing", "custom" |
+| `technique` | TEXT | YES | Painting technique: "drybrush", "wetblend", "stipple", "glaze", "wash", "edge", "freehand", etc. |
+| `execution_mode` | TEXT | YES | "sequential" (default null = sequential) or "parallel" (can be done in any order relative to siblings) |
+| `applies_to` | TEXT | YES | Free-text target surface: "armour panels", "cloth", "skin", "weapon blade" |
 
-- New route `/rules-hub` added to `router.tsx` — new `RulesHubPage` component
-- Reuses all existing hooks: `useRulesSyncMeta`, `useRulesSyncErrors`, `useStratagemsByFaction`, `useDetachmentsByFaction`, `useSharedAbilitiesByFaction`, `useDatasheet`
-- Reuses `useRulesSync` mutation for the sync trigger
-- No new query functions needed for basic browsing — all read paths already exist in `rulesExtended.ts` and `datasheets.ts`
-- New query needed: `getAllFactions()` — reads `rw_factions` from `rules.db` to power the faction picker in the hub (distinct from `getFactions()` which reads `hobbyforge.db`)
-- The sync diff data (last post-sync diff) currently lives only in transient component state in `PlaybookTab`. For the hub to show a persistent diff summary, it needs to be stored. Two options: (a) persist the last diff JSON in a new `hobbyforge.db` column on `rules_sync_meta`, or (b) re-derive from the latest snapshot on page load. Option (a) is simpler — add a `last_diff_json TEXT` column to `rules_sync_meta` in a new migration, write it in `useRulesSync.onSuccess`
+**Migration file:** `020_section_workflow_metadata.sql` -- 4 ALTER TABLE ADD COLUMN statements. All nullable, no backfill needed (existing sections get NULL = no metadata, which is correct).
 
-**Sync status panel already built:** `PlaybookTab` already renders sync freshness dot, last sync date, row counts, error history, and post-sync diff. These sub-components should be extracted into shared components (`SyncStatusPanel`, `SyncDiffView`) in `src/components/common/` or `src/features/rules-hub/` so both `PlaybookTab` and `RulesHubPage` can render them without duplication.
+**Files modified:**
 
-**Component extraction from PlaybookTab:**
+| File | Change |
+|------|--------|
+| `src/types/recipeSection.ts` | Add 4 fields to `RecipeSection` interface |
+| `src/features/recipes/recipeSection.ts` | Add 4 fields to `DraftSection`, update `makeDraftSection` and `buildDraftSections` |
+| `src/db/queries/recipeSections.ts` | Add 4 params to `createRecipeSection` INSERT and `updateRecipeSection` UPDATE |
 
-| Extract From PlaybookTab | To Location | Reason |
-|--------------------------|-------------|--------|
-| Sync status row (freshness dot + date + row counts) | `src/features/rules-hub/SyncStatusPanel.tsx` | Reused in RulesHubPage header |
-| Sync error collapsible | `src/features/rules-hub/SyncErrorList.tsx` | Reused in RulesHubPage |
-| Post-sync diff collapsible | `src/features/rules-hub/SyncDiffView.tsx` | Reused in RulesHubPage |
-| Stratagem entry display | `src/features/rules-hub/StratagemCard.tsx` | Reused in hub browser and Game Day |
-| Detachment section display | `src/features/rules-hub/DetachmentPanel.tsx` | Reused in hub browser and Army Lists 2.0 |
+**No new files.** The workflow metadata fields are additive to existing types and queries.
 
-### 2. Army Lists 2.0 — Detachment Selection
+**Key decision:** Use direct assignment (not COALESCE) for all 4 new columns in UPDATE, consistent with the existing `surface` and `notes` pattern. Users must be able to clear fields to NULL.
 
-**What it does:** An army list can have one selected detachment. Once selected, the list shows the detachment's stratagems and abilities alongside units.
+### Feature 2: Workflow Metadata Editing UI
 
-**Schema change required (hobbyforge.db):**
+**Files modified:**
 
-```sql
--- Migration 019
-ALTER TABLE army_lists ADD COLUMN detachment_id TEXT;
--- TEXT matches rules.db rw_detachments.id (Wahapedia 9-digit string)
--- NULL = no detachment selected
--- No FK to rules.db possible — stored as plain TEXT
+| File | Change |
+|------|--------|
+| `src/features/recipes/RecipeSectionCard.tsx` | Add collapsible "Workflow" section below existing name/surface/optional fields. Show under progressive disclosure (collapsed by default). Contains 4 fields: section_type (Select), technique (Select), execution_mode (Select), applies_to (Input). |
+
+**No new files.** The metadata editing lives inside the existing section card form. Progressive disclosure pattern (Chevron toggle) already exists in RecipeSectionCard for notes.
+
+**Key decision:** Use const arrays in `src/types/recipeSection.ts` for section_type and technique values (same pattern as `PAINTING_STATUS_ORDER` for union types). execution_mode has only 2 values so a simple Select is sufficient.
+
+### Feature 3: Compact Metadata Display in SectionedTimeline
+
+**Files modified:**
+
+| File | Change |
+|------|--------|
+| `src/features/recipes/SectionedTimeline.tsx` | Add compact metadata badges after existing surface/optional badges in section header row. Show section_type as a colored badge, technique as text badge, execution_mode "parallel" as a distinct icon/badge (Shuffle icon from Lucide). applies_to as italic text. |
+
+**No new files.** Pure display change in existing component.
+
+**Data flow:** SectionedTimeline already receives `sections: RecipeSection[]` -- the 4 new fields flow through automatically once the type is extended. Zero prop changes needed.
+
+### Feature 4: Log Session Section-Aware Cascading Selectors
+
+**Schema change:** 1 new column on `painting_sessions`:
+
+| Column | Type | Nullable | Purpose |
+|--------|------|----------|---------|
+| `section_id` | INTEGER | YES | FK to recipe_sections(id) ON DELETE SET NULL |
+
+**Migration:** `020_section_workflow_metadata.sql` (same migration file) -- `ALTER TABLE painting_sessions ADD COLUMN section_id INTEGER REFERENCES recipe_sections(id) ON DELETE SET NULL`.
+
+**Files modified:**
+
+| File | Change |
+|------|--------|
+| `src/types/paintingSession.ts` | Add `section_id: number \| null` to `PaintingSession` and `CreateSessionInput` |
+| `src/db/queries/paintingSessions.ts` | Add `$7` param for section_id in `createSession` INSERT |
+| `src/features/dashboard/logSessionSchema.ts` | Add `section_id: z.number().int().positive().nullable().optional()` |
+| `src/features/dashboard/LogSessionSheet.tsx` | Add section selector between recipe and step selectors (cascading: recipe -> section -> step) |
+| `src/hooks/useJournalSessions.ts` | No change -- createSession already passes all CreateSessionInput fields |
+
+**Cascading selector logic in LogSessionSheet:**
+
+```
+Recipe selector (existing)
+  |-- when recipe selected, fetch sections via useRecipeSections(watchedRecipeId)
+       |-- Section selector (NEW -- only shown when recipe has 2+ sections)
+            |-- when section selected, filter steps to that section
+                 |-- Step selector (existing, now filtered by section_id)
 ```
 
-**Type change required:**
+**Key decisions:**
+- Section selector only appears when recipe has 2+ sections (progressive disclosure threshold, consistent with form UI).
+- Changing recipe resets both section_id and recipe_step_id (existing pattern already resets recipe_step_id).
+- Changing section resets recipe_step_id only.
+- Steps in the step selector are filtered by `section_id` when a section is selected, otherwise show all steps (backward compat for single-section recipes).
+
+**Cache invalidation:** No new invalidation keys needed. `useCreatePaintingSession` already invalidates `PAINTING_SESSIONS_KEY(unit_id)`, `hobby-analytics`, `recent-activity`, `goal-progress`, and conditionally `RECIPE_SESSIONS_KEY`.
+
+### Feature 5: Kanban Card Workflow Display
+
+**New query function** in `src/db/queries/recipes.ts`:
 
 ```typescript
-// src/types/armyList.ts
-export interface ArmyList {
-  // ... existing fields ...
-  detachment_id: string | null;  // add this
-}
+export async function getSectionSummaryByUnitIds(
+  unitIds: number[]
+): Promise<{ unit_id: number; section_name: string; section_type: string | null }[]>
 ```
 
-**Query change required:**
+This returns the first section (by order_index) for each unit's recipe. The Kanban card shows workflow context ("Basecoat -- Armour Panels"), not completion status.
 
-```typescript
-// src/db/queries/armyLists.ts — update updateArmyList
-// Include detachment_id in the UPDATE SET clause
-// Full-replacement pattern (not COALESCE) so detachment can be cleared back to NULL
-```
+**Files modified:**
 
-**New hook functions in useArmyLists.ts:**
+| File | Change |
+|------|--------|
+| `src/db/queries/recipes.ts` | Add `getSectionSummaryByUnitIds()` -- returns first section name + type per unit's recipe |
+| `src/hooks/useKanbanEnrichment.ts` | Add third parallel fetch for section summaries; extend `KanbanEnrichment` type |
+| `src/features/painting-projects/KanbanCard.tsx` | Show workflow metadata below recipe name (e.g., "Basecoat -- Armour Panels") |
+| `src/features/painting-projects/KanbanColumn.tsx` | Pass new enrichment data through |
 
-```typescript
-export function useArmyListDetachment(detachmentId: string | undefined) {
-  // Thin wrapper around useDetachmentsByFaction — but needs a by-ID query
-  // Problem: existing query is getDetachmentsByFaction(factionId), not getDetachmentById(id)
-  // New query needed: getDetachmentById(id) in rulesExtended.ts
-}
-```
+**Key decision:** Do NOT add session-based progress tracking to Kanban cards. The Kanban board is a drag-and-drop view; adding per-step progress would require N+1 session queries per card. Instead, show static workflow context from the recipe's sections. Progress tracking is a future milestone concern.
 
-**New query needed in rulesExtended.ts:**
+### Feature 6: CurrentFocus Section-Aware Next Action
 
-```typescript
-export async function getDetachmentById(id: string): Promise<RwDetachment | null>
-export async function getStratagemsByDetachment(detachmentId: string): Promise<RwStratagem[]>
-```
+**Files modified:**
 
-`getStratagemsByDetachment` is needed because `rw_stratagems.detachment_id` already exists — stratagems can be filtered to just those belonging to the active detachment.
+| File | Change |
+|------|--------|
+| `src/features/dashboard/DashboardPage.tsx` | Fetch sections for focus unit's recipe; compute section-aware hint |
+| `src/features/dashboard/CurrentFocusCard.tsx` | Add optional `workflowHint` prop for section-level guidance |
+| `src/features/dashboard/getNextActionHint.ts` | Add `getSectionAwareHint()` that combines PaintingStatus hint with section context |
 
-**Stale data warning:** When the army list has a `detachment_id` but the rules.db no longer contains that ID (after a sync), the UI must show a warning. The detachment hook returning `null` for a non-null `detachment_id` is the detection signal. No new infrastructure needed — the component checks `detachment_id !== null && detachmentData === null`.
-
-**ArmyListDetailSheet changes:**
-
-- Add detachment picker (a `Select` or `Command` popover) in the sheet header area
-- When a detachment is selected, load and render its abilities and filtered stratagems below the unit list
-- Picker uses `useDetachmentsByFaction(wahapediaFactionId)` — requires the army list's faction name to be resolved to a Wahapedia faction ID (same `useWahapediaFactionId(factionName)` call already used in PlaybookTab)
-- Sheet adds `useWahapediaFactionId` + `useDetachmentsByFaction` + `useDetachmentAbilitiesByDetachment` + `useStratagemsByDetachment` hooks — all with `staleTime: Infinity`
-
-**Cross-DB data flow for detachment selection:**
+**Data flow for CurrentFocusCard workflow hint:**
 
 ```
-ArmyListDetailSheet
-  ├── useArmyListWithUnits(listId)        → hobbyforge.db: army_list_units + units
-  ├── useFactions()                       → hobbyforge.db: factions
-  ├── useWahapediaFactionId(factionName)  → rules.db: rw_factions (name lookup)
-  ├── useDetachmentsByFaction(rwFactionId)→ rules.db: rw_detachments
-  ├── [user picks a detachment]
-  ├── updateArmyList({detachment_id})     → hobbyforge.db: army_lists
-  └── useDetachmentAbilitiesByDetachment  → rules.db: rw_detachment_abilities
-      useStratagemsByDetachment           → rules.db: rw_stratagems (filtered)
+DashboardPage mounts
+  |-- focusUnitId (from stats.activeProjects[0])
+  |-- focusRecipes (existing query by unit_id)
+  |-- NEW: focusSections = useRecipeSections(focusRecipes?.[0]?.id)
+  |-- Compute: first non-optional section name + type -> workflowHint string
+  |-- Pass workflowHint to CurrentFocusCard
 ```
 
-### 3. Playbook Enhancements — Favorites and User Notes on Rules
-
-**What it does:** Users can star/favorite stratagems and detachments. Users can add personal notes to individual rules entries.
-
-**Schema change required (hobbyforge.db):**
-
-```sql
--- Migration 019 or 020
-CREATE TABLE IF NOT EXISTS rules_favorites (
-  id           INTEGER PRIMARY KEY AUTOINCREMENT,
-  entity_type  TEXT NOT NULL,  -- 'stratagem' | 'detachment' | 'ability'
-  entity_id    TEXT NOT NULL,  -- Wahapedia TEXT id
-  created_at   TEXT NOT NULL DEFAULT (datetime('now')),
-  UNIQUE (entity_type, entity_id)
-);
-
-CREATE TABLE IF NOT EXISTS rules_notes (
-  id           INTEGER PRIMARY KEY AUTOINCREMENT,
-  entity_type  TEXT NOT NULL,
-  entity_id    TEXT NOT NULL,
-  note_text    TEXT NOT NULL DEFAULT '',
-  updated_at   TEXT NOT NULL DEFAULT (datetime('now')),
-  UNIQUE (entity_type, entity_id)
-);
-```
-
-**Why a polymorphic table:** Stratagems, detachments, shared abilities, and detachment abilities all have TEXT IDs from Wahapedia. A single polymorphic table avoids four separate FK-less tables. The UNIQUE constraint on `(entity_type, entity_id)` enforces one note/favorite per entity.
-
-**Query modules needed:**
-
-- `src/db/queries/rulesFavorites.ts` — toggle (UPSERT/DELETE), getAll, getByType
-- `src/db/queries/rulesNotes.ts` — upsert, getByEntity
-
-**Hook modules needed:**
-
-- `src/hooks/useRulesFavorites.ts`
-- `src/hooks/useRulesNotes.ts`
-
-**PlaybookTab changes:** Minimal — add star icon button on each `StratagemEntry` and `ExtendedAbilityEntry` sub-component (after extraction to shared location). Favorites state comes from a single `useRulesFavorites('stratagem')` call that returns a Set of IDs.
-
-### 4. Game Day Mode
-
-**What it does:** A focused, distraction-free view for an active game: shows the selected army list's detachment stratagems grouped by phase, quick-reference abilities for units in the list, and a reminder checklist.
-
-**New route:** `/game-day` — new `GameDayPage` component
-
-**Data requirements:**
-
-```
-GameDayPage
-  ├── useArmyLists()                            → pick active list
-  ├── useArmyListWithUnits(selectedListId)      → units in list
-  ├── useWahapediaFactionId(factionName)        → rw faction lookup
-  ├── useDetachmentsByFaction(rwFactionId)      → if list.detachment_id set, filter to selected
-  ├── useDetachmentAbilitiesByDetachment(id)    → detachment abilities
-  ├── useStratagemsByDetachment(detachmentId)   → filtered stratagems for active detachment
-  ├── useStratagemsByFaction(rwFactionId)       → all stratagems (if no detachment selected)
-  └── useDatasheet(unitId) × N                 → per-unit quick stats (N+1, acceptable at personal scale)
-```
-
-**Reminder checklist:** A transient UI state (checkboxes for "Placed objectives?", "Checked strategic reserve?", etc.). These are session-state only, not persisted — `useState` at the `GameDayPage` level. No DB schema needed.
-
-**Phase-grouped stratagem view:** `stratagemsByPhase` grouping already implemented as `useMemo` in `PlaybookTab`. Extract this pure function to `src/lib/groupStratagemsByPhase.ts` for reuse in `GameDayPage` and any refactored `PlaybookTab`.
+**Key decision:** The hint is informational only (e.g., "Next: Basecoat -- armour panels"). It does NOT track which steps are complete. Step-level progress tracking across sessions is a separate feature requiring a `completed_at` column on recipe_steps and is explicitly out of scope for v0.2.9.
 
 ---
 
-## System Overview: New Components in Context
+## Component Boundaries
+
+| Component | Responsibility | Communicates With |
+|-----------|---------------|-------------------|
+| `recipe_sections` (DB) | Stores section workflow metadata | Query modules |
+| `painting_sessions` (DB) | Stores section_id FK for session-section linking | Query modules |
+| `recipeSections.ts` (queries) | CRUD with 4 new workflow fields | useRecipeSections hook |
+| `paintingSessions.ts` (queries) | INSERT with section_id | useJournalSessions hook |
+| `RecipeSectionCard` (UI) | Workflow metadata editing form | DraftSection state |
+| `SectionedTimeline` (UI) | Compact metadata badge display | RecipeSection type |
+| `LogSessionSheet` (UI) | 3-level cascading selector | useRecipeSections, useRecipePaints |
+| `KanbanCard` (UI) | Workflow context display | useKanbanEnrichment |
+| `CurrentFocusCard` (UI) | Section-aware next action hint | DashboardPage prop drilling |
+
+---
+
+## Data Flow
+
+### Write Path (Section Metadata)
 
 ```
-┌──────────────────────────────────────────────────────────────────────┐
-│                         UI Layer (React)                              │
-│                                                                        │
-│  RulesHubPage    ArmyListsPage    GameDayPage    PlaybookTab          │
-│      │               │                │              │                │
-│  [NEW]         [MODIFIED]          [NEW]         [MODIFIED]           │
-│                                                                        │
-│  SyncStatusPanel  DetachmentPicker  StratagemCard  SyncDiffView       │
-│  [EXTRACTED]     [NEW]             [EXTRACTED]    [EXTRACTED]         │
-├──────────────────────────────────────────────────────────────────────┤
-│                       React Query Hooks                                │
-│                                                                        │
-│  useRulesExtended (existing + 2 new fns)   useRulesFavorites [NEW]   │
-│  useArmyLists (extended)                   useRulesNotes [NEW]        │
-│  useRulesSync (extended for diff persist)                              │
-├──────────────────────────────────────────────────────────────────────┤
-│                        Query Modules                                   │
-│                                                                        │
-│  rulesExtended.ts (+ getDetachmentById, getStratagemsByDetachment)    │
-│  armyLists.ts (+ detachment_id column)                                │
-│  rulesFavorites.ts [NEW]    rulesNotes.ts [NEW]                       │
-├─────────────────────────────────┬────────────────────────────────────┤
-│         hobbyforge.db           │           rules.db                  │
-│                                 │                                      │
-│  army_lists.detachment_id [ADD] │  rw_detachments (existing)          │
-│  rules_favorites [NEW TABLE]    │  rw_stratagems (existing)           │
-│  rules_notes [NEW TABLE]        │  rw_detachment_abilities (existing) │
-│  rules_sync_meta.last_diff_json │  rw_abilities (existing)            │
-│    [NEW COLUMN, optional]       │                                      │
-└─────────────────────────────────┴────────────────────────────────────┘
+RecipeSectionCard (form fields)
+  -> DraftSection state (useState in RecipeFormSheet)
+  -> onSubmit: DELETE-all + re-INSERT sections (existing pattern)
+  -> createRecipeSection() now includes 4 new params
+  -> SQLite recipe_sections table
+  -> Invalidate RECIPE_SECTIONS_KEY(recipeId)
+```
+
+### Write Path (Session with Section)
+
+```
+LogSessionSheet (cascading selectors)
+  -> logSessionSchema validation (includes section_id)
+  -> createSession() with section_id param
+  -> SQLite painting_sessions table
+  -> Invalidate PAINTING_SESSIONS_KEY(unit_id) + related keys
+```
+
+### Read Path (Kanban Enrichment)
+
+```
+KanbanBoard mounts
+  -> useKanbanEnrichment(unitIds)
+  -> Promise.all([getRecipeNamesByUnitIds, getPhotoCountsByUnitIds, getSectionSummaryByUnitIds])
+  -> Map<unitId, { recipeName, photoCount, sectionSummary }>
+  -> KanbanCard renders workflow context
+```
+
+### Read Path (CurrentFocus Hint)
+
+```
+DashboardPage mounts
+  -> focusRecipes query (existing)
+  -> useRecipeSections(focusRecipes[0].id) (NEW)
+  -> getSectionAwareHint(status, sections) (NEW pure function)
+  -> CurrentFocusCard.workflowHint prop
 ```
 
 ---
 
-## Component Inventory
+## Patterns to Follow
 
-### New Components
+### Pattern 1: Const Array Union Types for Workflow Enums
 
-| Component | Location | Purpose |
-|-----------|----------|---------|
-| `RulesHubPage` | `src/features/rules-hub/RulesHubPage.tsx` | New page: sync status, faction browser, diff summary |
-| `SyncStatusPanel` | `src/features/rules-hub/SyncStatusPanel.tsx` | Extracted from PlaybookTab — sync freshness + row counts |
-| `SyncErrorList` | `src/features/rules-hub/SyncErrorList.tsx` | Extracted from PlaybookTab — error history collapsible |
-| `SyncDiffView` | `src/features/rules-hub/SyncDiffView.tsx` | Extracted from PlaybookTab — post-sync diff collapsible |
-| `StratagemCard` | `src/features/rules-hub/StratagemCard.tsx` | Extracted from PlaybookTab — single stratagem display |
-| `DetachmentPanel` | `src/features/rules-hub/DetachmentPanel.tsx` | Extracted from PlaybookTab — detachment + abilities display |
-| `DetachmentPicker` | `src/features/army-lists/DetachmentPicker.tsx` | Select component for choosing active detachment on a list |
-| `GameDayPage` | `src/features/game-day/GameDayPage.tsx` | New page: game-focused view with phase-grouped stratagems |
-| `GameDayStratagemView` | `src/features/game-day/GameDayStratagemView.tsx` | Phase-grouped stratagem list with CP cost emphasis |
-| `GameDayChecklist` | `src/features/game-day/GameDayChecklist.tsx` | Transient reminder checklist (useState only, no DB) |
-| `GameDayUnitPanel` | `src/features/game-day/GameDayUnitPanel.tsx` | Per-unit quick stats + abilities for in-game reference |
-
-### Modified Components
-
-| Component | Change Type | What Changes |
-|-----------|-------------|--------------|
-| `PlaybookTab.tsx` | Moderate | Extract sub-components to shared location; add favorites star buttons |
-| `ArmyListDetailSheet.tsx` | Moderate | Add detachment picker, detachment abilities display, stratagem preview |
-| `ArmyListSheet.tsx` | Minor | Detachment field not in create form (set post-creation in detail sheet) |
-| `router.tsx` | Minor | Add `/rules-hub` and `/game-day` routes |
-| `AppSidebar` | Minor | Add nav items for Rules Hub and Game Day under Play group |
-| `useRulesSync.ts` | Minor | Persist last diff JSON to hobbyforge.db on success (if hub diff feature built) |
-| `src/types/armyList.ts` | Minor | Add `detachment_id: string \| null` to `ArmyList` interface |
-
-### Existing Components — Unchanged
-
-| Component | Why Unchanged |
-|-----------|---------------|
-| `ArmyListSummaryBar.tsx` | Points math unchanged; no detachment data involved |
-| `ArmyListUnitRow.tsx` | Unit display unchanged |
-| `UnitPickerDialog.tsx` | Unit selection unchanged |
-| `ArmyListCard.tsx` | Card display — could optionally show selected detachment name, but not required |
-| All recipe components | No recipe involvement in this milestone |
-| All dashboard components | Dashboard reads from existing hooks; no new queries exposed to dashboard |
-
----
-
-## Schema Changes
-
-### Migration 019 (hobbyforge.db)
-
-```sql
--- Army Lists 2.0: detachment selection
-ALTER TABLE army_lists ADD COLUMN detachment_id TEXT;
--- NULL = no detachment selected
--- TEXT matches rw_detachments.id (Wahapedia 9-digit string IDs)
--- No FK possible — cross-DB reference stored as plain TEXT
-
--- Playbook: rules favorites (starred stratagems, abilities, detachments)
-CREATE TABLE IF NOT EXISTS rules_favorites (
-  id           INTEGER PRIMARY KEY AUTOINCREMENT,
-  entity_type  TEXT NOT NULL CHECK (entity_type IN ('stratagem', 'detachment', 'ability', 'detachment_ability')),
-  entity_id    TEXT NOT NULL,
-  created_at   TEXT NOT NULL DEFAULT (datetime('now')),
-  UNIQUE (entity_type, entity_id)
-);
-
--- Playbook: user notes on individual rules entries
-CREATE TABLE IF NOT EXISTS rules_notes (
-  id           INTEGER PRIMARY KEY AUTOINCREMENT,
-  entity_type  TEXT NOT NULL CHECK (entity_type IN ('stratagem', 'detachment', 'ability', 'detachment_ability')),
-  entity_id    TEXT NOT NULL,
-  note_text    TEXT NOT NULL DEFAULT '',
-  updated_at   TEXT NOT NULL DEFAULT (datetime('now')),
-  UNIQUE (entity_type, entity_id)
-);
-```
-
-**Notes:**
-- `detachment_id` is TEXT, not INTEGER — Wahapedia IDs are 9-digit zero-padded strings, consistent with all other cross-DB references in the codebase (`weapon_name as TEXT copy` decision in PROJECT.md)
-- Polymorphic tables avoid four separate tables with no FK enforcement
-- `UNIQUE` constraint enables simple UPSERT semantics for note saves
-
-### No changes to rules.db schema
-
-All `rw_*` tables remain unchanged. The sync pipeline already handles all rules data.
-
----
-
-## New Query Modules
-
-### `src/db/queries/rulesExtended.ts` — Additions Only
+**What:** Define section_type and technique values as const arrays, derive TypeScript types.
+**When:** Any new TEXT column with a fixed set of valid values.
+**Example:**
 
 ```typescript
-// Get a single detachment by its Wahapedia ID
-export async function getDetachmentById(id: string): Promise<RwDetachment | null>
+// src/types/recipeSection.ts
+export const SECTION_TYPES = [
+  "prep", "basecoat", "shade", "layer", "highlight",
+  "detail", "basing", "finishing", "custom"
+] as const;
+export type SectionType = typeof SECTION_TYPES[number];
 
-// Get stratagems filtered to a specific detachment (uses rw_stratagems.detachment_id)
-export async function getStratagemsByDetachment(detachmentId: string): Promise<RwStratagem[]>
-
-// Get all factions from rules.db (for hub faction browser)
-export async function getRulesFactions(): Promise<RwFaction[]>
+export const SECTION_TECHNIQUES = [
+  "drybrush", "wetblend", "stipple", "glaze", "wash",
+  "edge", "layering", "feathering", "sponge", "airbrush",
+  "contrast", "freehand"
+] as const;
+export type SectionTechnique = typeof SECTION_TECHNIQUES[number];
 ```
 
-### `src/db/queries/rulesFavorites.ts` — New
+**Why:** Consistent with `PAINTING_STATUS_ORDER` pattern. Enables Select options and type safety without a separate enum.
 
-```typescript
-export async function getRulesFavoriteIds(entityType: string): Promise<string[]>
-export async function toggleRulesFavorite(entityType: string, entityId: string): Promise<void>
-// Returns all IDs for a type as a string[] — component builds a Set for O(1) lookup
-```
+### Pattern 2: Progressive Disclosure for Cascading Selectors
 
-### `src/db/queries/rulesNotes.ts` — New
+**What:** Show the section selector only when the selected recipe has 2+ sections.
+**When:** LogSessionSheet, anywhere a recipe-section-step cascade appears.
+**Why:** Single-section recipes should not show a redundant "Steps" selector. Consistent with the existing threshold (`sections.length <= 1` hides section UI in RecipeFormSheet and RecipeDetailSheet).
 
-```typescript
-export async function getRulesNote(entityType: string, entityId: string): Promise<string | null>
-export async function upsertRulesNote(entityType: string, entityId: string, noteText: string): Promise<void>
-```
+### Pattern 3: Batch Enrichment Extension (Not N+1)
 
-### `src/db/queries/armyLists.ts` — Modifications
-
-- `updateArmyList`: include `detachment_id` in SET clause with full-replacement semantics (not COALESCE — must be clearable to NULL)
-- `getArmyLists`: no change needed (SELECT * picks up new column automatically)
-
----
-
-## New Hooks
-
-| Hook File | Exports | Cache Keys |
-|-----------|---------|------------|
-| `useRulesFavorites.ts` | `useRulesFavoriteIds`, `useToggleRulesFavorite` | `["rules-favorites", entityType]` |
-| `useRulesNotes.ts` | `useRulesNote`, `useUpsertRulesNote` | `["rules-notes", entityType, entityId]` |
-
-**Cache invalidation for favorites toggle:** `useToggleRulesFavorite` invalidates `["rules-favorites", entityType]` — fetches the full ID list for that type, component rebuilds Set. No per-entity key needed.
-
-**staleTime for favorites/notes:** `0` (default). These are user-written data, not rules content. Should be fresh on every mount.
-
-### Additions to `useRulesExtended.ts`
-
-```typescript
-export function useDetachmentById(id: string | undefined): UseQueryResult<RwDetachment | null>
-// staleTime: Infinity — rules data static until sync
-
-export function useStratagemsByDetachment(detachmentId: string | undefined): UseQueryResult<RwStratagem[]>
-// staleTime: Infinity
-```
-
-### Additions to `useArmyLists.ts`
-
-No new hook functions needed — `useUpdateArmyList` already accepts `UpdateArmyListInput`. Once `detachment_id` is added to `ArmyList` and `UpdateArmyListInput`, callers can pass it through the existing mutation.
-
----
-
-## Data Flow: Cross-DB Army List with Detachment
-
-The critical cross-DB flow for the detachment feature:
-
-```
-1. User opens army list detail:
-   useArmyListWithUnits(listId) → hobbyforge.db
-   → ArmyList includes detachment_id (TEXT | null)
-
-2. Resolve faction name → Wahapedia faction ID:
-   factions = useFactions() → hobbyforge.db
-   faction = factions.find(f => f.id === list.faction_id)
-   useWahapediaFactionId(faction.name) → rules.db (rw_factions name match)
-
-3. Load detachment options:
-   useDetachmentsByFaction(rwFactionId) → rules.db (rw_detachments)
-
-4. Load currently selected detachment's data:
-   if (list.detachment_id):
-     useDetachmentAbilitiesByDetachment(list.detachment_id) → rules.db
-     useStratagemsByDetachment(list.detachment_id) → rules.db
-
-5. User selects detachment:
-   useUpdateArmyList({id: listId, detachment_id: rwDetachmentId})
-   → hobbyforge.db UPDATE army_lists SET detachment_id = ?
-   → invalidate ["army-lists"] and ["army-list-with-units", listId]
-
-6. Stale detection:
-   if (list.detachment_id !== null && detachmentData === null):
-     → show "Detachment data missing — re-sync rules" warning
-```
-
----
-
-## Build Order
-
-### Phase A — Schema + Data Layer (foundation, no UI)
-
-1. Migration 019: `ALTER TABLE army_lists ADD COLUMN detachment_id TEXT`; create `rules_favorites`; create `rules_notes`
-2. Update `src/types/armyList.ts` — add `detachment_id: string | null`
-3. Update `UpdateArmyListInput` to include `detachment_id`
-4. Update `updateArmyList` query to handle `detachment_id` (full-replacement, not COALESCE)
-5. New query functions in `rulesExtended.ts`: `getDetachmentById`, `getStratagemsByDetachment`, `getRulesFactions`
-6. New hooks: `useDetachmentById`, `useStratagemsByDetachment` in `useRulesExtended.ts`
-7. New files: `rulesFavorites.ts`, `rulesNotes.ts` query modules
-8. New files: `useRulesFavorites.ts`, `useRulesNotes.ts` hooks
-9. Tests: migration round-trip, detachment_id update/clear, favorites toggle, notes upsert
-
-**Rationale:** Data layer first is the established project pattern. Schemas and queries are cheap to test and validate before any UI investment.
-
-### Phase B — Rules Data Hub UI
-
-1. Extract sub-components from `PlaybookTab`: `SyncStatusPanel`, `SyncErrorList`, `SyncDiffView`, `StratagemCard`, `DetachmentPanel`
-2. Update `PlaybookTab` to import from extracted locations (behavior unchanged)
-3. New `src/features/rules-hub/` folder and `RulesHubPage.tsx`
-4. Add `/rules-hub` route to `router.tsx`
-5. Add Rules Hub nav item to sidebar (Play group)
-6. Tests: hub renders sync status; faction picker loads factions; stratagem browser filters correctly
-
-**Rationale:** Extraction before hub creation avoids duplication. PlaybookTab behavior is verified unchanged before building the new page.
-
-**Dependency:** Requires Phase A (needs `getRulesFactions` for faction browser).
-
-### Phase C — Army Lists 2.0 (detachment selection)
-
-1. `DetachmentPicker` component in `src/features/army-lists/`
-2. Update `ArmyListDetailSheet` to add picker + detachment abilities/stratagems display
-3. Use `useWahapediaFactionId` (already exists in PlaybookTab — copy pattern)
-4. Show stale-data warning when `list.detachment_id` resolves to null detachment
-5. Tests: picker shows detachments for faction; selecting persists; clearing works; stale warning renders
-
-**Dependency:** Requires Phase A (migration + type changes + new query hooks).
-
-### Phase D — Playbook Enhancements (favorites + user notes)
-
-1. Add star button to `StratagemCard` (after Phase B extraction)
-2. Add star button to `DetachmentPanel`
-3. Add inline note textarea to both (collapsed by default, expand on focus)
-4. Wire `useRulesFavorites` and `useRulesNotes` hooks
-5. Tests: toggle favorite persists; note saves; favorites render correctly in PlaybookTab and hub
-
-**Dependency:** Requires Phase A (schema) and Phase B (extracted components exist before adding star buttons to them).
-
-### Phase E — Game Day Mode
-
-1. New `src/features/game-day/` folder
-2. `GameDayPage`, `GameDayStratagemView`, `GameDayUnitPanel`, `GameDayChecklist`
-3. Add `/game-day` route
-4. Add Game Day nav item to sidebar
-5. Tests: page loads with army list; stratagems grouped by phase; checklist items render; unit panel shows stats
-
-**Dependency:** Requires Phase C (army list detachment selection is the primary data source for Game Day). Requires Phase B (extracted `StratagemCard` reused in `GameDayStratagemView`).
-
-### Phase F — Points Import Design Documentation (out-of-scope implementation)
-
-- Write `.planning/research/POINTS_IMPORT.md` documenting the legal constraint (no GW points scraping) and the manual flow design (user enters points per unit per tier — already partially implemented via `unitPointTiers` table)
-- No code changes
+**What:** Add the new section summary fetch to the existing `useKanbanEnrichment` Promise.all.
+**When:** Adding new per-card data to Kanban.
+**Why:** The existing pattern already batches recipe names and photo counts in one hook. Adding a third parallel query maintains O(1) queries regardless of card count.
 
 ---
 
 ## Anti-Patterns to Avoid
 
-### Storing Rules Data in hobbyforge.db
+### Anti-Pattern 1: Session-Based Step Progress Tracking
 
-**What goes wrong:** Copying detachment names, stratagem descriptions, or any `rw_*` content into `hobbyforge.db` tables to avoid the dual-query pattern.
-**Why it's wrong:** rules.db is deleted and rebuilt on every sync. Any `rw_*` data copied to `hobbyforge.db` immediately becomes stale and the app has two conflicting versions of the same fact.
-**Do this instead:** Store only the TEXT ID reference (e.g., `detachment_id TEXT`). Load the actual display data from rules.db via hooks. Accept the dual-query pattern — it's the established and working approach.
+**What:** Querying painting_sessions to determine which recipe steps are "complete" and computing progress percentages per section.
+**Why bad:** Requires N+1 session queries per recipe/section, complex aggregation logic, and a concept of "step completion" that does not exist in the schema (a step can be logged multiple times, there is no `completed_at` flag).
+**Instead:** Show static workflow context (section type, technique, applies_to). Progress tracking is a future milestone that requires schema additions (`completed_at` on recipe_steps or a separate step_completions table).
 
-### Nesting Portals in ArmyListDetailSheet
+### Anti-Pattern 2: Adding section_id to LogSessionSheet Without Cascade Reset
 
-**What goes wrong:** Rendering the `DetachmentPicker` dialog inside `ArmyListDetailSheet`.
-**Why it's wrong:** The existing codebase has documented this as Pitfall 1 — nested Radix portals cause z-index and context issues. `ArmyListsPage` already owns all sibling portal state.
-**Do this instead:** Add `detachmentPickerOpen` state to `ArmyListsPage`. The `ArmyListDetailSheet` calls `onPickDetachment()` prop. The picker dialog is a sibling portal rendered at page root level.
+**What:** Adding the section selector but not resetting dependent fields when the parent changes.
+**Why bad:** Stale FK references -- user selects Section A, picks a step from Section A, then changes to Section B. The step still points to a Section A step.
+**Instead:** Always reset `recipe_step_id` to null when `section_id` changes. Always reset both `section_id` and `recipe_step_id` when `recipe_id` changes. Use `useEffect` with watched field values (existing pattern for recipe_id -> step clearing).
 
-### Using COALESCE on detachment_id Updates
+### Anti-Pattern 3: Separate Enrichment Hooks per Kanban Card
 
-**What goes wrong:** Following the COALESCE pattern from `updateArmyList`'s other fields for `detachment_id`.
-**Why it's wrong:** COALESCE means "preserve existing value if input is NULL" — but the user must be able to clear the detachment selection back to NULL (deselect detachment). COALESCE prevents clearing.
-**Do this instead:** Full-replacement UPDATE for `detachment_id`. This is already the established pattern for nullable clearable fields (see `updateArmyListUnit` for precedent).
-
-### Calling N useDatasheet Hooks in a Loop
-
-**What goes wrong:** `GameDayPage` maps over the army list's units and calls `useDatasheet(unit.unit_id)` inside the map — hooks cannot be called conditionally or in loops.
-**Why it's wrong:** Rules of Hooks violation. Also, the number of units is runtime-dynamic.
-**Do this instead:** Create a `GameDayUnitPanel` component that receives a single `unitId` prop and calls `useDatasheet(unitId)` unconditionally inside the component. Render N instances of `GameDayUnitPanel`. This is the same pattern already used in `DetachmentSection` inside `PlaybookTab` for per-detachment ability loading.
-
-### Querying All Stratagems for Game Day Without Detachment Filter
-
-**What goes wrong:** Loading all stratagems for the faction and showing all of them in Game Day, unfiltered.
-**Why it's wrong:** A large faction like Space Marines has 40+ stratagems. Game Day should show only the active detachment's stratagems — a focused subset. Showing all creates cognitive overload during an actual game.
-**Do this instead:** If a detachment is selected, use `useStratagemsByDetachment(detachmentId)` which filters `rw_stratagems.detachment_id = ?`. Fall back to `useStratagemsByFaction` only when no detachment is selected. Display the fallback with a note "Select a detachment for filtered stratagems."
+**What:** Calling `useRecipeSections` inside each KanbanCard component.
+**Why bad:** N+1 queries. With 20 cards on the board, that is 20 section queries.
+**Instead:** Batch query in `useKanbanEnrichment` at the board level, pass data down via props.
 
 ---
 
-## Integration Boundaries: Unchanged Consumers
+## Recommended Build Order
 
-| Component | Why Unchanged |
-|-----------|---------------|
-| All recipe components | No intersection with rules data |
-| `BattleLogPage` / `BattleLogSheet` | Battle log references army list by ID only |
-| `DashboardPage` and all dashboard panels | No rules data in dashboard queries |
-| `CollectionPage` | Collection doesn't change; PlaybookTab changes are additive |
-| `SpendingPage`, `WishlistPage`, `GoalsPage` | No intersection |
-| `PaintsPage`, `PaintingProjectsPage` | No intersection |
+The build order follows dependency chains. Each phase builds on the previous.
+
+### Phase 1: Schema + Data Layer (foundation -- everything depends on this)
+
+1. Migration `020_section_workflow_metadata.sql`:
+   - 4 ALTER TABLE ADD COLUMN on recipe_sections (section_type, technique, execution_mode, applies_to)
+   - 1 ALTER TABLE ADD COLUMN on painting_sessions (section_id FK)
+2. Update `src/types/recipeSection.ts` -- add 4 fields + const arrays
+3. Update `src/types/paintingSession.ts` -- add section_id
+4. Update `src/db/queries/recipeSections.ts` -- extend CREATE/UPDATE with 4 new params
+5. Update `src/db/queries/paintingSessions.ts` -- add section_id to INSERT
+6. Update `src/features/recipes/recipeSection.ts` -- extend DraftSection + builders
+
+### Phase 2: Form UI + Timeline Display (recipe editing -- no cross-feature deps)
+
+1. Update `src/features/recipes/RecipeSectionCard.tsx` -- workflow metadata form fields
+2. Update `src/features/recipes/SectionedTimeline.tsx` -- compact metadata badges
+
+### Phase 3: Log Session Section-Aware Flow (depends on Phase 1 schema)
+
+1. Update `src/features/dashboard/logSessionSchema.ts` -- add section_id field
+2. Update `src/features/dashboard/LogSessionSheet.tsx` -- add cascading section selector
+
+### Phase 4: Kanban + CurrentFocus Integration (depends on Phase 1 schema)
+
+1. Add `getSectionSummaryByUnitIds()` to `src/db/queries/recipes.ts`
+2. Update `src/hooks/useKanbanEnrichment.ts` -- add section summary to enrichment
+3. Update `src/features/painting-projects/KanbanCard.tsx` -- display workflow context
+4. Update `src/features/dashboard/getNextActionHint.ts` -- add section-aware hint
+5. Update `src/features/dashboard/CurrentFocusCard.tsx` -- add workflowHint prop
+6. Update `src/features/dashboard/DashboardPage.tsx` -- fetch sections, compute hint
+
+### Phase ordering rationale:
+
+- **Phase 1 first:** All other phases depend on the schema and type changes. The migration must exist before any UI can reference the new fields.
+- **Phase 2 before 3/4:** The workflow metadata must be editable before it can be displayed elsewhere. Users need to populate section_type/technique before Kanban or CurrentFocus can show meaningful workflow context.
+- **Phase 3 and 4 are independent:** Log Session and Kanban/CurrentFocus do not depend on each other. They could be built in parallel or in either order. Phase 3 is listed first because it is smaller (2 files modified vs 6).
+
+---
+
+## Files Inventory: New vs Modified
+
+### New Files
+
+| File | Purpose |
+|------|---------|
+| `src-tauri/migrations/020_section_workflow_metadata.sql` | Schema migration |
+
+### Modified Files (15 total)
+
+| File | Nature of Change |
+|------|-----------------|
+| `src/types/recipeSection.ts` | Add 4 fields + 2 const arrays |
+| `src/types/paintingSession.ts` | Add section_id field |
+| `src/db/queries/recipeSections.ts` | Extend INSERT/UPDATE params |
+| `src/db/queries/paintingSessions.ts` | Add $7 to INSERT |
+| `src/db/queries/recipes.ts` | Add getSectionSummaryByUnitIds() |
+| `src/features/recipes/recipeSection.ts` | Extend DraftSection type + builders |
+| `src/features/recipes/RecipeSectionCard.tsx` | Workflow metadata form fields |
+| `src/features/recipes/SectionedTimeline.tsx` | Compact metadata badges |
+| `src/features/dashboard/logSessionSchema.ts` | Add section_id to schema |
+| `src/features/dashboard/LogSessionSheet.tsx` | Cascading section selector |
+| `src/features/dashboard/getNextActionHint.ts` | Section-aware hint function |
+| `src/features/dashboard/CurrentFocusCard.tsx` | workflowHint prop |
+| `src/features/dashboard/DashboardPage.tsx` | Fetch sections, compute hint |
+| `src/hooks/useKanbanEnrichment.ts` | Add section summary to enrichment |
+| `src/features/painting-projects/KanbanCard.tsx` | Display workflow context |
+
+---
+
+## Cache Invalidation Contract
+
+No new cache keys are needed. Existing invalidation contracts cover all changes:
+
+| Mutation | Keys Invalidated | Notes |
+|----------|-----------------|-------|
+| Section save (DELETE+re-INSERT) | RECIPE_SECTIONS_KEY, RECIPE_PAINTS_KEY, STEP_COUNTS_KEY, RECIPE_AVAILABILITY_KEY, RECIPE_SWATCH_KEY | Existing contract unchanged |
+| Session create with section_id | PAINTING_SESSIONS_KEY, hobby-analytics, recent-activity, goal-progress, conditionally RECIPE_SESSIONS_KEY | Existing contract unchanged -- section_id is just another column |
+| Kanban enrichment | KANBAN_ENRICHMENT_KEY | Existing key with sorted IDs; new section data included in same fetch |
 
 ---
 
 ## Sources
 
-- `src/features/units/PlaybookTab.tsx` (read 2026-05-10)
-- `src/features/army-lists/ArmyListDetailSheet.tsx` (read 2026-05-10)
-- `src/features/army-lists/ArmyListsPage.tsx` (read 2026-05-10)
-- `src/db/queries/armyLists.ts` (read 2026-05-10)
-- `src/db/queries/rulesExtended.ts` (read 2026-05-10)
-- `src/db/queries/rulesSnapshot.ts` (read 2026-05-10)
-- `src/hooks/useRulesExtended.ts` (read 2026-05-10)
-- `src/hooks/useRulesSync.ts` (read 2026-05-10)
-- `src/types/armyList.ts` (read 2026-05-10)
-- `src/types/datasheet.ts` (read 2026-05-10)
-- `src/app/router.tsx` (read 2026-05-10)
-- `src-tauri/migrations/001_core_schema.sql` (read 2026-05-10)
-- `src-tauri/migrations/rules_001_schema.sql` (read 2026-05-10)
-- `.planning/PROJECT.md` (read 2026-05-10)
-
----
-
-*Architecture research for: HobbyForge v0.2.8 Rules Data Hub UI / Army Lists 2.0 / Game Day Mode*
-*Researched: 2026-05-10*
-*Confidence: HIGH — all findings based on direct codebase reads, zero training-data assumptions*
+- All findings derived from direct codebase analysis (HIGH confidence)
+- Migration files: `src-tauri/migrations/005_hobby_journal.sql`, `014_session_recipe_link.sql`, `018_recipe_sections.sql`
+- Type definitions: `src/types/recipeSection.ts`, `src/types/paintingSession.ts`
+- Query modules: `src/db/queries/recipeSections.ts`, `src/db/queries/paintingSessions.ts`, `src/db/queries/recipes.ts`
+- UI components: `LogSessionSheet.tsx`, `CurrentFocusCard.tsx`, `KanbanCard.tsx`, `SectionedTimeline.tsx`, `RecipeSectionCard.tsx`
+- Hooks: `useRecipeSections.ts`, `useJournalSessions.ts`, `useKanbanEnrichment.ts`

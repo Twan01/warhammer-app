@@ -1,192 +1,142 @@
 # Project Research Summary
 
-**Project:** HobbyForge v0.2.8 -- Rules Data Hub UI / Army Lists 2.0 / Game Day Mode
-**Domain:** Wargaming companion desktop app -- rules reference and game preparation layer
-**Researched:** 2026-05-10
+**Project:** HobbyForge v0.2.9 -- Recipes 3.1 / Workflow Semantics & Integrations
+**Domain:** Warhammer miniature painting workflow management (desktop app extension)
+**Researched:** 2026-05-11
 **Confidence:** HIGH
 
 ## Executive Summary
 
-HobbyForge v0.2.8 adds the game-preparation layer on top of the existing v0.2.7 rules data foundation. The milestone covers three connected feature areas: a standalone Rules Data Hub browser (surfacing the Wahapedia data already synced in v0.2.6), Army Lists 2.0 with detachment selection (closing the most-requested gap versus competitors New Recruit, Warscribe, and BattleBase), and Game Day Mode (a focused in-game view with CP tracker, phase-grouped stratagems, and pre-game checklist). Every capability maps directly onto the installed v0.2.7 stack -- no new npm packages are required. The work is purely architectural: new pages, schema migrations, extracted components, and new query/hook files following established patterns.
+HobbyForge v0.2.9 is a pure extension milestone: adding workflow semantics (section_type, technique, execution_mode, applies_to) to the existing recipe sections model, then surfacing that metadata across the app key interaction points -- the recipe timeline, the session logging sheet, the Kanban board, and the dashboard focus card. No new libraries are required. Every UI pattern, query pattern, and data flow pattern already exists in the codebase. The work is integration-heavy but architecturally routine.
 
-The recommended approach is schema-first, sequenced to respect the dual-DB dependency chain. The army_lists.detachment_id migration must land first because it unlocks detachment stratagems in Army Lists 2.0, which Game Day Mode inherits as its primary data source. The Rules Data Hub browser is architecturally independent and can ship in parallel with Army Lists work, but benefits from the PlaybookTab component extraction that happens in Phase B. Playbook favorites and user notes are additive enhancements that bolt onto the extracted components after Phase B.
+The recommended approach is a strict 4-phase build following the dependency chain: schema + data layer first, then recipe form/display UI, then session logging cascade, then cross-feature integrations (Kanban + Dashboard). This order ensures each phase has stable foundations and avoids the primary risk: the DELETE-all + re-INSERT save pattern on recipe sections, which silently destroys any FK references from painting_sessions. The research strongly recommends using a denormalized TEXT column (section_name) on painting_sessions instead of a FK to recipe_sections, matching the established denormalization pattern used elsewhere in the codebase (detachment_name, weapon_name).
 
-The single highest-risk area is the dual-DB constraint: tauri-plugin-sql does not support ATTACH DATABASE, rules.db is fully deleted on every sync, and user annotations written to the wrong database are silently destroyed. Every schema decision must route user-generated data (favorites, notes, detachment selection, game day state) to hobbyforge.db, never to rules.db. A secondary risk is copyright framing -- all rules content must be presented as community-sourced Wahapedia data, never as official GW material, with no auto-sync behavior.
-
+The main risks are: (1) the DELETE-all + re-INSERT pattern destroying session-section links, (2) the DraftSection round-trip silently erasing new metadata fields if not extended atomically with the migration, and (3) N+1 query explosions if workflow data is fetched per-card in the Kanban board instead of batch-queried at page level. All three have clear prevention strategies documented in the pitfalls research. With disciplined implementation following existing patterns, this milestone carries low technical risk.
 ## Key Findings
 
 ### Recommended Stack
 
-No new dependencies are needed. All v0.2.8 capabilities are served by the validated v0.2.7 stack. Zustand 5 persist middleware (already shipped with the installed package) handles Game Day checklist state. TanStack Table handles the Rules Browser filterable list. shadcn Combobox (cmdk-based) handles the DetachmentPicker. The dual-DB pattern continues unchanged: reads from both databases, merge in TypeScript.
+No new dependencies. The existing stack (Tauri 2, React 19, TypeScript 5, shadcn/ui, React Query, React Hook Form, Zustand) handles every requirement. The milestone adds one SQL migration file (4 ALTER TABLE ADD COLUMN on recipe_sections, 1 on painting_sessions), extends existing TypeScript types with const arrays for new enum-like fields, and wires new Select/Badge components from shadcn/ui -- all already in use throughout the app.
 
-**Core technologies leveraged for v0.2.8:**
-- Zustand 5 persist middleware: Game Day checklist state surviving navigation -- zero extra install
-- TanStack Table ^8.21.3: Rules Browser sortable/filterable columns -- already used in CollectionPage
-- shadcn Combobox (cmdk ^1.1.1): DetachmentPicker search -- already powers existing pickers
-- tauri-plugin-sql: Migrations 018-019 for new hobbyforge.db schema additions
-- React Query staleTime Infinity: mandatory on all new rules.db hooks to prevent mid-game refetches
-
-**What NOT to add:** Fuse.js, React Window, Immer, Drizzle ORM, or any alternative state/routing library.
+**Core technologies (all existing):**
+- **tauri-plugin-sql**: Standard ALTER TABLE ADD COLUMN migration -- same pattern used 19 times already
+- **shadcn/ui Select + Collapsible**: Workflow metadata editing via progressive disclosure in RecipeSectionCard
+- **React Hook Form watch()**: 3-level cascading selector in LogSessionSheet (recipe -> section -> step)
+- **React Query batch enrichment**: Extend useKanbanEnrichment with workflow summary data -- no per-card hooks
 
 ### Expected Features
 
-**Must have (table stakes) -- v0.2.8 launch:**
-- Detachment selection on army list -- every 40K 10th edition builder requires exactly one detachment; requires Migration 019
-- Detachment stratagems and abilities shown in army list detail -- immediate payoff; reuses existing StratagemEntry and AbilityEntry components
-- Rules Data Hub browser with faction filter, name search, and sync status header -- replaces rules-only-via-PlaybookTab limitation
-- Game Day CP tracker and phase-grouped stratagems for chosen detachment -- Warscribe and BattleBase both validate this as baseline
-- Pre-game checklist in Game Day -- BattleBase standout feature; prevents forgetting setup steps before Turn 1
+**Must have (table stakes):**
+- Section-type metadata (section_type column) -- sections need semantic meaning beyond just grouping
+- Execution mode (sequential/batch/parallel) -- painters need to declare workflow intent
+- Section technique column -- dominant technique per section (distinct from step-level)
+- Applies-to column -- specific model area targeting complementing the broad surface field
+- Compact metadata badges in SectionedTimeline -- users scanning recipes need metadata at a glance
+- LogSession section-aware cascading selector -- Recipe -> Section -> Step (currently flat)
+- Workflow metadata editing UI with progressive disclosure -- must not clutter default experience
 
-**Should have (competitive) -- add when P1 stable:**
-- VP tracker and Turn counter (Turn 1-5) in Game Day -- low complexity; validates secondary objective timing
-- Playbook favorite flags on stratagems -- differentiator; no competitor offers favorites plus personal notes
-- Stale data warnings on army list units
+**Should have (differentiators):**
+- Kanban card section-aware next step -- "Armour: Shade with Nuln Oil" instead of generic "Apply shade"
+- CurrentFocus section-aware guidance -- transforms dashboard from status display to workflow navigator
+- Workflow-aware session duration estimates -- "estimated remaining: ~45 min (3 sections left)"
 
-**Defer (v0.2.9+):**
-- Stratagem used-this-turn indicator -- complex local state; validate Game Day Mode first
-- Owned units only filter in Rules Browser -- dual-DB merge query; useful but not blocking
-- Link game result to Battle Log from Game Day -- high value, high complexity
-
-**Anti-features (explicitly out of scope):**
-- Full offline Wahapedia mirror with lore/images -- copyright risk
-- Automatic list legality validation -- requires authoritative GW data not available in community CSVs
-- Dice roller -- outside hobby management focus
+**Defer to v0.3.0+:**
+- Explicit step-by-step completion checkboxes -- turns creative tool into checkbox app
+- Automated painting status advancement -- too rigid for multi-recipe units
+- Section templates / shared section library -- over-engineering for personal tool
+- Section progress tracking table -- high complexity, needs its own milestone
+- Section dependency graphs -- over-constraining for a hobby tool
 
 ### Architecture Approach
 
-The four-layer architecture (UI -> React Query hooks -> query modules -> DB clients) and dual-DB pattern are unchanged. v0.2.8 adds two new pages (RulesHubPage, GameDayPage), two new routes, four new query modules, four new hook files, and two new hobbyforge.db tables via Migration 019. The central architectural move is extracting sync-display sub-components from PlaybookTab into src/features/rules-hub/ so they can be shared across RulesHubPage, ArmyListDetailSheet, and GameDayPage without duplication.
+The architecture is purely additive: 4 new nullable columns on recipe_sections, 1 new nullable column on painting_sessions, 1 new batch query function, and UI extensions to 6 existing components. No new database tables, no new React contexts, no new Zustand stores. The critical architectural decision is the session-section link strategy: denormalized TEXT (section_name) on painting_sessions instead of FK, avoiding the DELETE-all + re-INSERT cascade destruction. Data flows through existing layers (UI -> React Query hooks -> query modules -> SQLite) with zero new architectural concepts.
 
 **Major components:**
-1. RulesHubPage -- new page: sync status header, faction browser, datasheets list with search and filter, diff summary
-2. ArmyListDetailSheet (modified) -- adds DetachmentPicker, detachment abilities display, and filtered stratagem preview
-3. GameDayPage -- new page: army list selector, CP tracker, phase-grouped stratagem view, pre-game checklist, per-unit quick reference
-4. SyncStatusPanel / SyncDiffView / StratagemCard / DetachmentPanel -- extracted from PlaybookTab; shared across hub and Game Day
-5. Schema additions: army_lists.detachment_id TEXT, rules_favorites table, rules_notes table in hobbyforge.db
-
-**New query functions:** getDetachmentById, getStratagemsByDetachment, getRulesFactions added to rulesExtended.ts; new files rulesFavorites.ts and rulesNotes.ts
-
-**New hooks:** useDetachmentById and useStratagemsByDetachment in useRulesExtended.ts; useRulesFavorites and useRulesNotes as standalone hook files
+1. **recipe_sections (DB)** -- Stores 4 new workflow metadata columns; feeds into form UI, timeline display, and cross-feature enrichment queries
+2. **painting_sessions (DB)** -- Stores section_name (denormalized) for session-section association that survives recipe edits
+3. **LogSessionSheet (UI)** -- 3-level cascading selector (recipe -> section -> step) with proper reset chain
+4. **useKanbanEnrichment (hook)** -- Extended batch query adding workflow summary data for all active-project cards in a single query
+5. **getNextActionHint (utility)** -- Layered hint system: section-aware when available, status-based fallback
 
 ### Critical Pitfalls
 
-1. **Writing user data to rules.db** -- rules.db is fully DELETEd on every sync; all user-generated content MUST live in hobbyforge.db via getDb(). Canonical pattern: Migration 017 unit_overrides.sql -- hobbyforge.db table with TEXT column storing Wahapedia ID as a copy.
-
-2. **Attempting cross-DB JOINs via ATTACH DATABASE** -- tauri-plugin-sql connection model does not support ATTACH; throws a runtime error with no compile-time warning. Always use the dual-query merge pattern.
-
-3. **Missing staleTime Infinity or sync invalidation on new rules hooks** -- 5-minute default triggers background refetch mid-game; missing key in useRulesSync onSuccess leaves data stale after sync. Both must be addressed in the same commit as the new hook.
-
-4. **Bypassing the Wahapedia faction ID translation** -- every new rules context must call useWahapediaFactionId(faction.name). Passing the integer produces a string like "1" which returns an empty array silently.
-
-5. **User notes with no orphan handling after sync** -- schema must include rule_name TEXT copy alongside rule_id TEXT from the start; retrofitting requires a migration and data backfill.
-
-6. **N+1 queries in list views** -- use component boundaries (N GameDayUnitPanel instances, each calling the hook unconditionally) and batch queries with WHERE id IN for list-level displays.
-
-7. **Game Day checklist as component state** -- ticks are lost on Sheet unmount. State must live in a Zustand persist store. Persistence contract (Zustand vs SQLite) must be decided before UI work begins.
-
+1. **DELETE-all + re-INSERT destroys session FKs** -- Use denormalized TEXT column (section_name) on painting_sessions instead of FK. The existing save pattern silently NULLs any FK referencing recipe_sections on every recipe save.
+2. **DraftSection round-trip erases new metadata** -- Extend DraftSection, buildDraftSections, makeDraftSection, and createRecipeSection INSERT atomically with the migration. If any link in the chain is missed, metadata is silently lost on every save.
+3. **Cascading selector 3-level desync** -- Two useEffects required: recipe change clears section AND step; section change clears step. Missing either allows cross-recipe section references that pass FK validation but are structurally invalid.
+4. **N+1 queries in Kanban cards** -- Never put per-recipe hooks inside KanbanCard. Batch query at page level via useKanbanEnrichment, prop-drill the Map.
+5. **Progressive disclosure threshold collision** -- Single-section recipes with workflow metadata must show section card UI. Adjust threshold to check for non-null metadata, not just section count.
 ## Implications for Roadmap
 
-Research establishes a clear dependency chain that dictates phase order. Detachment selection is the root dependency; Rules Hub browser is independent; Game Day Mode is terminal (depends on both). Playbook enhancements slot after component extraction.
+Based on research, suggested phase structure:
 
-### Phase A: Schema and Data Layer Foundation
+### Phase 1: Schema + Data Layer
+**Rationale:** Every other phase depends on the migration and type extensions. The column type decision for session-section linking (FK vs denormalized text) must be locked before any UI code references it.
+**Delivers:** Migration file, extended TypeScript types (RecipeSection, DraftSection, PaintingSession, CreateSessionInput), updated query modules (INSERT/UPDATE with new params), new const arrays for section_type and technique values.
+**Addresses:** Section-type metadata, execution mode, technique, applies_to columns.
+**Avoids:** Pitfall 1 (FK cascade destruction -- decide denormalized TEXT here), Pitfall 3 (DraftSection round-trip -- extend atomically), Pitfall 7 (NULL section_id handling -- document LEFT JOIN contract), Pitfall 12 (applies_to ambiguity -- decide enum vs free-text).
 
-**Rationale:** Data layer first is the established project pattern. Schema mistakes are cheap to fix before UI investment; fixing them after UI is written forces component rewrites.
-**Delivers:** Migration 019 (army_lists.detachment_id, rules_favorites, rules_notes); updated ArmyList type; new query functions in rulesExtended.ts, rulesFavorites.ts, rulesNotes.ts; new hooks useRulesFavorites, useRulesNotes, useDetachmentById, useStratagemsByDetachment; migration round-trip tests.
-**Addresses:** Detachment selection foundation; favorites and notes foundation.
-**Avoids:** Writing user data to rules.db (Pitfall 1); cross-DB JOIN (Pitfall 2); orphan note state (Pitfall 5).
-**Research flag:** Standard patterns -- no deeper research needed.
+### Phase 2: Recipe Form UI + Timeline Display
+**Rationale:** Workflow metadata must be editable and visible in recipe context before it can be surfaced elsewhere. This phase has zero cross-feature dependencies -- it modifies only recipe-domain components.
+**Delivers:** Workflow metadata editing in RecipeSectionCard (progressive disclosure), compact metadata badges in SectionedTimeline, adjusted progressive disclosure threshold for single-section recipes.
+**Addresses:** Workflow metadata editing UI, compact metadata badges in SectionedTimeline.
+**Avoids:** Pitfall 4 (progressive disclosure threshold collision -- adjust threshold based on metadata presence), Pitfall 11 (badge visual overflow -- icon badges + tooltips at narrow widths).
 
-### Phase B: Rules Data Hub UI
+### Phase 3: LogSession Section-Aware Cascade
+**Rationale:** The session logging flow is isolated from Kanban/Dashboard and smaller in scope (2 files vs 6). Building it before cross-feature integration ensures the section_name data starts accumulating on sessions, which enriches subsequent Kanban/Focus displays.
+**Delivers:** 3-level cascading selector in LogSessionSheet (recipe -> section -> step), section_name saved on painting_sessions, step filtering by selected section.
+**Addresses:** LogSession section-aware cascading selector, session-section linking.
+**Avoids:** Pitfall 2 (cascading selector desync -- two useEffects with proper reset chain), Pitfall 10 (form bloat -- progressive disclosure for section/step selectors).
 
-**Rationale:** Architecturally independent of Army Lists 2.0. Component extraction from PlaybookTab must happen exactly once before new consumers are built. Must precede Game Day because GameDayStratagemView reuses StratagemCard.
-**Delivers:** Extracted components (SyncStatusPanel, SyncErrorList, SyncDiffView, StratagemCard, DetachmentPanel) in src/features/rules-hub/; RulesHubPage with faction browser, name search, sync status, diff summary; /rules-hub route; sidebar nav item.
-**Addresses:** Rules Data Hub browser (P1); sync status dashboard; empty state for no-sync users.
-**Avoids:** Wahapedia faction ID translation bypass (Pitfall 4); N+1 queries (Pitfall 6); copyright framing (Pitfall 9 -- Wahapedia attribution as named success criterion).
-**Depends on:** Phase A.
-**Research flag:** Standard patterns -- TanStack Table plus Zustand filter store proven in CollectionPage.
-
-### Phase C: Army Lists 2.0 -- Detachment Selection
-
-**Rationale:** Gating dependency for Game Day Mode. Once migration (Phase A) and component extraction (Phase B) are done, this is primarily UI work.
-**Delivers:** DetachmentPicker component; ArmyListDetailSheet with detachment abilities and filtered stratagems; stale-data warning when list.detachment_id resolves to null after sync; detachment_name TEXT copy stored alongside detachment_id.
-**Addresses:** Detachment selection (P1); detachment stratagems and abilities in army list (P1); stale detachment warning.
-**Avoids:** Cross-DB JOIN (Pitfall 2); COALESCE chain divergence (Pitfall 3 -- no detachment cost adjustments in 10th edition); nested portal in Sheet; stale detachment not validated (Pitfall 8).
-**Depends on:** Phase A.
-**Research flag:** Standard patterns -- mirrors existing useWahapediaFactionId call in PlaybookTab.
-
-### Phase D: Playbook Enhancements -- Favorites and User Notes
-
-**Rationale:** Requires rules_favorites schema (Phase A) and extracted StratagemCard (Phase B). Favorites feed into Game Day Mode via is_reminder flag -- must be available before Game Day ships.
-**Delivers:** Star/favorite toggle on StratagemCard and DetachmentPanel; inline user note textarea; favorites in PlaybookTab and RulesHubPage; is_reminder flag for Game Day consumption.
-**Addresses:** Playbook stratagem favorites (P2); per-stratagem user notes (P2); reminder flag for Game Day (P2).
-**Avoids:** Writing notes to rules.db (Pitfall 1); orphan note display (Pitfall 5 -- rule_name TEXT copy in schema from Phase A).
-**Depends on:** Phase A (schema) and Phase B (extracted components).
-**Research flag:** Standard patterns -- identical UPSERT to useUpsertStrategyNote.
-
-### Phase E: Game Day Mode
-
-**Rationale:** Terminal phase -- depends on detachment selection (Phase C) for primary data source, extracted StratagemCard (Phase B) for stratagem view, and favorites (Phase D) for personalized surfacing. All dependencies must be stable before building this complex page.
-**Delivers:** GameDayPage with army list selector; CP tracker; phase-grouped stratagem view filtered to chosen detachment; pre-game checklist (Zustand persist store); per-unit ability quick reference via GameDayUnitPanel components; VP tracker; Turn counter.
-**Addresses:** Game Day CP tracker and phase stratagems (P1); pre-game checklist (P1); VP tracker (P2); Turn tracker (P2); favorited stratagems surfaced at top (P2).
-**Avoids:** Game Day checklist as component state (Pitfall 7 -- Zustand persist store decided before UI); loading all faction stratagems unfiltered; N+1 hooks in unit panel (Pitfall 6 -- GameDayUnitPanel boundary pattern); auto-sync on Game Day open (Pitfall 9).
-**Depends on:** Phase B (StratagemCard) and Phase C (detachment selection).
-**Research flag:** Standard patterns. stratagemsByPhase grouping from PlaybookTab -- extract to src/lib/groupStratagemsByPhase.ts and reuse.
+### Phase 4: Kanban + CurrentFocus Integration
+**Rationale:** Cross-feature integration comes last because it consumes data produced by all prior phases. The batch query pattern and hint layering strategy must be designed before touching any leaf components.
+**Delivers:** Section-aware workflow context on KanbanCard, section-aware next action hint on CurrentFocusCard, enriched getNextActionHint with section-based priority and status-based fallback.
+**Addresses:** Kanban card section-aware next step, CurrentFocus section-aware guidance.
+**Avoids:** Pitfall 5 (competing hint sources -- layered priority with fallback), Pitfall 6 (N+1 queries -- batch at page level), Pitfall 8 (cross-feature coupling), Pitfall 9 (cache invalidation gap -- add new keys to invalidation contract).
 
 ### Phase Ordering Rationale
 
-- Schema-first (Phase A) because migrations are irreversible and every phase depends on the new columns and tables.
-- Rules Hub before Army Lists (Phase B before C) because PlaybookTab component extraction must happen exactly once; deferring forces duplicate components.
-- Favorites before Game Day (Phase D before E) because the is_reminder flag feeds directly into Game Day personalized stratagem surfacing.
-- Game Day last (Phase E) because it has the most dependencies and highest UI complexity; all sub-patterns proven in earlier phases.
+- Schema first because every subsequent phase reads or writes the new columns. Building UI before migration creates compilation errors or requires stub types.
+- Form UI before integrations because users need to populate metadata before it can be displayed elsewhere.
+- LogSession before Kanban/Focus because session data with section_name enriches the "current position" heuristic used by Kanban/Focus hints.
+- Kanban and CurrentFocus together because they share the derivation logic (getSectionAwareHint) and the batch enrichment query pattern.
 
 ### Research Flags
 
-Phases needing deeper research during planning:
-- None identified. All patterns are extensions of proven codebase patterns with HIGH confidence sources.
+Phases likely needing deeper research during planning:
+- **Phase 3 (LogSession cascade):** The 3-level cascading selector with reset chain is the most complex UI interaction in this milestone. Worth a focused design pass.
+- **Phase 4 (Kanban + CurrentFocus):** The "current section" heuristic (first non-optional section by order_index) is a design decision with UX implications. May need validation during planning.
 
 Phases with standard patterns (skip research-phase):
-- **Phase A:** Established migration plus hook pattern from v0.2.6/v0.2.7 schema work.
-- **Phase B:** TanStack Table plus Zustand filter store proven in CollectionPage.
-- **Phase C:** PlaybookTab data flow pattern is the direct template.
-- **Phase D:** UPSERT pattern identical to useUpsertStrategyNote.
-- **Phase E:** All sub-patterns proven in earlier phases; combination work only.
-
+- **Phase 1 (Schema + Data Layer):** Pure migration + type extension. Pattern used 19 times. No research needed.
+- **Phase 2 (Form UI + Timeline):** Adding Select fields and Badge components to existing card/timeline components. Established patterns throughout the app.
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Verified against package.json at v0.2.7; all capabilities confirmed present; no new packages needed |
-| Features | HIGH | Grounded in v0.2.7 codebase audit and competitor analysis of New Recruit, Warscribe, BattleBase, Quartermaster |
-| Architecture | HIGH | All findings based on direct codebase reads of all affected source files; zero training-data assumptions |
-| Pitfalls | HIGH | Derived from direct codebase inspection, PROJECT.md Key Decisions, and established patterns |
+| Stack | HIGH | No new dependencies. Every technology confirmed via direct codebase inspection. |
+| Features | HIGH | Feature set derived from existing domain patterns and competitive analysis. Clear table stakes vs differentiators. |
+| Architecture | HIGH | All findings from codebase analysis. Every component, hook, query, and data flow path verified against existing code. |
+| Pitfalls | HIGH | All pitfalls derived from inspecting actual save patterns, cascade rules, and cache invalidation contracts. No speculative risks. |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **last_diff_json for persistent sync diff:** Two options -- persist JSON in rules_sync_meta vs. re-derive on page load. Default to re-derive unless hub page is slow; decide at Phase B kickoff.
-- **Game Day checklist persistence contract:** Zustand persist is recommended default (session-scoped, reset on restart); move to SQLite only if multi-session resumption is validated as a user requirement. Decide at Phase E kickoff.
-- **Stale detachment post-sync validation:** Candidate implementation location is useRulesSync.onSuccess. Finalize during Phase C or Phase E planning.
+- **Session-section link strategy:** Research recommends denormalized TEXT (section_name), but this precludes future JOIN-based queries. If section-level analytics are planned for v0.3.0+, the FK + SET NULL approach may be preferable. Decide during Phase 1 requirements.
+- **applies_to enum vs free-text:** STACK.md recommends free-text, PITFALLS.md warns it degenerates into a second notes field. Decide during Phase 1 requirements -- if any future filtering/grouping is planned, use a const array.
+- **"Current section" heuristic accuracy:** The first-non-optional-section-by-order-index heuristic is simple but may not match user expectations for partially-painted models. Validate during Phase 4 planning.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- .planning/PROJECT.md -- ground truth for stack, Key Decisions (ATTACH not supported, overrides in hobbyforge.db, weapon_name TEXT copy, COALESCE chain, cache invalidation symmetry)
-- package.json at v0.2.7 -- definitive installed dependency list
-- src/features/units/PlaybookTab.tsx -- template for all rules data patterns (faction ID translation, dual-query merge, staleTime Infinity, sync empty state, stratagemsByPhase grouping)
-- src/db/queries/armyLists.ts -- COALESCE chain; full-replacement UPDATE contract
-- src/db/queries/rulesExtended.ts -- staleTime Infinity pattern; faction ID as string
-- src/hooks/useRulesSync.ts -- sync invalidation contract
-- src-tauri/migrations/017_unit_overrides.sql -- canonical hobbyforge.db-only user data table with TEXT ID copy pattern
+- Direct codebase analysis of all referenced files (types, queries, hooks, components, migrations)
+- Existing pattern verification: DELETE-all + re-INSERT, cascading selectors, batch enrichment, cache invalidation contracts, progressive disclosure thresholds
 
 ### Secondary (MEDIUM confidence)
-- Competitor analysis: New Recruit, Warscribe, BattleBase, Quartermaster -- feature baseline and differentiation
-- Wargamer detachments guide and Spikeybits army list builder guide -- 10th edition detachment mechanics
-
-### Tertiary (reference only)
-- Zustand persist middleware docs -- confirmed persist ships with Zustand 5, no extra install
-- TanStack Router search params guide -- confirms Zustand is correct for ephemeral filters
-- Algolia search UX best practices and NN/g filter categories -- Rules Browser filter UX patterns
+- [PaintMyMinis](https://www.paintmyminis.de/) -- competitive analysis for recipe/workflow features
+- [Goonhammer Hobby 101: Batch Painting](https://www.goonhammer.com/hobby-101-batch-painting/) -- batch vs sequential workflow validation
+- [Gamer Grove Painting Guide](https://gamersgrove.com/blogs/front-page/warhammer-painting-how-to-use-base-shade-and-layer-paints) -- canonical basecoat/shade/layer workflow reference
 
 ---
-*Research completed: 2026-05-10*
+*Research completed: 2026-05-11*
 *Ready for roadmap: yes*

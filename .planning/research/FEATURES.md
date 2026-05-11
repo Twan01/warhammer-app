@@ -1,254 +1,182 @@
-# Feature Research
+# Feature Landscape
 
-**Domain:** Wargaming companion app — Rules Data Hub UI, Army Lists 2.0, Game Day Mode
-**Researched:** 2026-05-10
-**Confidence:** HIGH (grounded in codebase audit of v0.2.7 + competitor analysis of New Recruit, Warscribe, BattleBase, Quartermaster)
+**Domain:** Warhammer miniature painting workflow semantics and section-aware integrations
+**Researched:** 2026-05-11
+**Milestone:** v0.2.9 Recipes 3.1 / Workflow Semantics & Integrations
 
----
+## Existing Foundation (Already Built)
 
-## Context: What Already Exists
+Before feature classification, critical context on what exists:
 
-The existing app (v0.2.7) already ships:
+| Component | Current State | Key Files |
+|-----------|--------------|-----------|
+| Recipe sections | `recipe_sections` table with name, surface, optional, notes, order_index | `types/recipeSection.ts`, migration 018 |
+| Recipe steps | `recipe_steps` with painting_phase, tool, technique, dilution, time_estimate_minutes, step_photo_path, alt_paint_id, section_id FK | `types/recipePaint.ts` |
+| SectionedTimeline | Renders section headers (name, surface badge, optional badge, step count, time, paint availability) with per-section step timelines | `features/recipes/SectionedTimeline.tsx` |
+| LogSessionSheet | Recipe + Step selectors (flat, no section grouping). Step cleared on recipe change. Saves recipe_id + recipe_step_id on session | `features/dashboard/LogSessionSheet.tsx` |
+| KanbanCard | Shows recipe name, photo count, next-action hint via `getNextActionHint(status_painting)` -- status-based only, no recipe/section awareness | `features/painting-projects/KanbanCard.tsx` |
+| CurrentFocusCard | Shows recipe name + extra recipe count. Next action via painting status only, no section/step awareness | `features/dashboard/CurrentFocusCard.tsx` |
+| getNextActionHint | Pure status-to-string lookup (`PaintingStatus -> string`). Hardcoded hints like "Apply base coat", "Apply shade" | `features/dashboard/getNextActionHint.ts` |
+| DraftSection | Form-level representation with localId, name, surface, optional, notes, steps[] | `features/recipes/recipeSection.ts` |
+| Painting phases | `["prime", "basecoat", "shade", "layer", "highlight", "glaze", "weathering", "basing", "varnish", "other"]` | `features/recipes/recipeSchema.ts` |
+| Recipe surfaces | `["Armor", "Skin", "Cloth", "Metal", "Bone", "Leather", "Wood", "Stone", "Energy/Glow", "Fur/Hair", "Eyes/Lenses", "Base", "Weapon", "Other"]` | `features/recipes/recipeSchema.ts` |
 
-- `PlaybookTab` with stratagems grouped by phase, detachments with nested abilities, shared faction abilities, weapons table — all read from `rules.db` via `useRulesExtended` hooks
-- `RwStratagem` includes `phase`, `cp_cost`, `turn`, `detachment_id`, `description` fields
-- `RwDetachment` includes `id`, `faction_id`, `name`, `legend`, `type` fields
-- `army_lists` schema has `faction_id`, `name`, `points_limit`, `list_type`, `notes` — but NO `detachment_id` column
-- `army_list_units` has per-unit `points_override` and `notes` — no stale-data tracking
-- No standalone rules browser page — rules accessible only per-unit inside `PlaybookTab`
-- No game day mode, no CP tracker, no phase-by-phase workflow
+## Table Stakes
 
-This research covers only what is **not yet built**.
+Features users expect given the existing recipe section model. Missing = sections feel like dumb grouping with no workflow value.
 
----
+| Feature | Why Expected | Complexity | Dependencies | Notes |
+|---------|--------------|------------|--------------|-------|
+| **Section-type metadata** (`section_type` column) | Sections already have `surface` but no semantic meaning. Users need to know "is this a prep section, a painting section, or a finishing section?" to understand workflow intent | Low | Migration on `recipe_sections` | Use enum: `prep`, `basecoat`, `shade`, `layer`, `detail`, `effect`, `finishing`. Aligns with existing PAINTING_PHASES granularity but at the section level |
+| **Execution mode** (`execution_mode` column) | Hobbyists batch-paint (do all basecoats at once across all surfaces) vs sequential (finish one surface completely). Section must declare this so workflow guidance makes sense | Low | Migration on `recipe_sections` | Use enum: `sequential` (default), `batch`, `parallel`. Sequential = do steps in order; batch = do this section's step across all models; parallel = can interleave with other sections |
+| **Section `technique` column** | The dominant technique for a section (distinct from step-level technique). "This section is primarily drybrushing" vs "this section is primarily layering" | Low | Migration on `recipe_sections` | Reuse step-level technique values or similar set. Optional field, nullable |
+| **Section `applies_to` column** | "Which part of the model does this section target?" -- already partially covered by `surface` but `applies_to` is more specific ("left pauldron", "cloak interior", "weapon blade") | Low | Migration on `recipe_sections` | Free text, nullable. Complements `surface` (broad category) with specific area targeting |
+| **Compact metadata badges in SectionedTimeline** | Once sections have workflow metadata, the timeline must surface it compactly. Users scanning a recipe need to see section_type + execution_mode at a glance | Low | Section metadata columns exist | Small Badge additions to existing section header row. Pattern already established with surface + optional badges |
+| **LogSession section-aware cascading selector** | Currently: Recipe -> Step (flat list). With sections, users expect Recipe -> Section -> Step so they can locate where they are in a multi-section recipe | Medium | Sections query hook exists (`useRecipeSections` or equivalent) | Three-level cascading select: recipe clears section, section clears step. Each level filters the next. Existing pattern: recipe clears step already |
+| **Workflow metadata editing UI** | Users need to set section_type, technique, execution_mode, applies_to when creating/editing sections. Must not clutter the default experience | Low | Migration + DraftSection update | Progressive disclosure: show advanced fields under a "Workflow" collapsible in RecipeSectionCard. Same pattern as existing optional/notes fields |
 
-## Feature Area 1: Rules Data Hub UI
+## Differentiators
 
-### Table Stakes (Users Expect These)
+Features that set HobbyForge apart from PaintMyMinis, paintRack, Paint Pad, and other miniature painting apps. Not expected, but high value.
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Searchable datasheets list filtered by faction | Any rules tool (Wahapedia, New Recruit) filters by faction first | LOW | `rw_datasheets` + `rw_factions` already in DB; `DatasheetPicker` pattern is the template |
-| Full-text name search across datasheets | Wahapedia's search is the baseline; users expect to type a unit name and find it instantly | LOW | SQLite `LIKE` on `rw_datasheets.name`; fast for local DB |
-| Display datasheets with stats, abilities, keywords, wargear | PlaybookTab already renders this per-unit; users expect the same standalone | MEDIUM | Reuse `WargearTable`, `AbilityEntry`, `StratagemEntry` sub-components from PlaybookTab |
-| Filter by battlefield role (Infantry, Vehicle, Monster, etc.) | Wahapedia and GW app both group by battlefield role | LOW | `rw_datasheets.role` column exists |
-| Sync status prominently shown on hub page | Users need to know if data is fresh — stale data means wrong rules | LOW | `RulesSyncMeta` + freshness badge already in PlaybookTab; promote to hub page header |
-| Empty state when no sync has been run | Datasheets page with no data needs actionable prompt | LOW | Pattern exists in 5 other features; consistent with CollectionEmptyState approach |
+| Feature | Value Proposition | Complexity | Dependencies | Notes |
+|---------|-------------------|------------|--------------|-------|
+| **Kanban card section-aware next step** | Instead of generic "Apply base coat" from painting status, show the actual next recipe step: "Armour: Shade with Nuln Oil". No other miniature app does project-level recipe-aware guidance on a kanban board | Medium | Needs: a way to determine "current step" for a unit's recipe. Derive from last logged session's step + section | Key design decision: derive progress from session history (implicit) vs explicit "mark step done" (explicit). Implicit is lower friction but less accurate. Recommend implicit -- good enough for personal tool |
+| **CurrentFocus section-aware guidance** | CurrentFocusCard shows "Next: Armour section -- Layer Highlight (step 4/12)" instead of generic status hint. Transforms the dashboard from status display to workflow navigator | Medium | Same "current step" derivation as Kanban | Must handle: no recipe linked, recipe has no sections, section complete, all sections complete |
+| **Workflow-aware session duration estimates** | When logging a session, show "estimated remaining: ~45 min (3 sections left)" based on section time estimates | Low | Section time_estimate_minutes aggregation (already available in steps) | Can show total recipe remaining time even without progress tracking -- just sum all step time estimates |
+| **Section skip tracking** | Optional sections (optional=1) can be explicitly skipped in the workflow display, showing them as "skipped" rather than "pending" | Low | Minimal -- just a UI convention on optional sections | Small UX: greyed-out badge on optional sections in Kanban/Focus hints |
 
-### Differentiators (Competitive Advantage)
+## Anti-Features
 
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| "Owned units only" filter on datasheets browser | Shows only datasheets linked to units in the user's collection — unique to a hobby management app | MEDIUM | Requires JOIN between `hobbyforge.db` `unit_datasheet_links` and `rules.db` datasheets; dual-DB merge pattern already established in codebase |
-| Per-field override indicators in rules view | Shows when a displayed value is a manual override vs. imported value | LOW | `unit_overrides` already tracked; surface the pencil icon pattern from PlaybookTab |
-| Sync diff summary view (what changed last sync) | Post-sync diff already computed in `computeSyncDiff`; a dedicated persistent view adds value without extra computation | MEDIUM | `lastSyncDiff` state already in PlaybookTab; promote to a persistent collapsible in the hub |
+Features to explicitly NOT build in v0.2.9.
 
-### Anti-Features
-
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Full offline Wahapedia mirror with lore text and images | "All the rules in one place" | Copyright risk — reproducing GW rules text verbatim. App already navigates this via user-triggered sync of community CSV data only | Surface only data already imported via the user's own manual sync; never auto-scrape |
-| Rules legality validation ("your list is illegal") | Competitive builders do this | Requires authoritative GW points/restrictions data not in Wahapedia CSVs; legally fraught | Surface informational warnings only on data the user explicitly imported; never block saves |
-| Cross-faction comparison tables | Useful for research and meta analysis | Scope creep; adds UI complexity for marginal personal use | One faction at a time; defer cross-faction features |
-
----
-
-## Feature Area 2: Playbook Enhancements
-
-### Table Stakes
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Favorite/bookmark a stratagem | Power users memorize 5-6 key stratagems; quick access is expected in any modern rules reference | LOW | New `stratagem_annotations` table in `hobbyforge.db` keyed on `wahapedia_stratagem_id TEXT`; survives re-syncs because it's not in rules.db |
-| Per-stratagem user note ("only in Fight phase — don't forget") | Users annotate rules they frequently misremember | LOW | `user_note TEXT` column on the same `stratagem_annotations` table |
-
-### Differentiators
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| "Reminder" flag that surfaces a stratagem in Game Day | Marks stratagems the user explicitly wants reminded of during games | MEDIUM | Requires Game Day Mode to read `is_reminder` flag from `stratagem_annotations`; low-risk dependency |
-| Stratagem filter by chosen detachment in PlaybookTab | Currently shows ALL faction stratagems; filtering to the chosen detachment reduces noise significantly | MEDIUM | `RwStratagem.detachment_id` already in schema; requires detachment selection stored on army list |
-
-### Anti-Features
-
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Editable stratagem text ("house rules variants") | Players modify rules for casual play | Overwrites sync data; confusing after re-sync; diverges from source of truth | Use the user note field alongside the imported text; never mutate source data in rules.db |
-
----
-
-## Feature Area 3: Army Lists 2.0 — Detachment Integration
-
-### Table Stakes
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Detachment selection on an army list | Every 40K army has exactly one detachment in 10th edition; every builder (New Recruit, 40kList, Quartermaster) requires it | LOW | New `detachment_id TEXT` column on `army_lists` table; store as TEXT copy per the existing `weapon_name` decision (cross-DB FK enforcement unsupported by tauri-plugin-sql); new migration required |
-| Show chosen detachment's stratagems in army list detail | Users prep with their detachment's stratagems; this is the primary use case for detachment selection | MEDIUM | Filter `rw_stratagems` by `detachment_id`; reuse `StratagemEntry` component |
-| Show chosen detachment's abilities in army list detail | The detachment rule (army-wide special rule) is the most important rules card for any game | LOW | `getDetachmentAbilitiesByDetachment()` already exists; call it with selected `detachment_id` |
-| Visual indicator when no detachment is selected | Clear affordance that a detachment is expected for a complete army | LOW | Badge or placeholder in army list header; "Select detachment" prompt |
-| Stale data warning on army list units | If a unit's linked datasheet was modified since last sync, surface a warning so user knows to re-check | MEDIUM | New query joining `unit_datasheet_links` to last-sync diff snapshot in hobbyforge.db; flag modified units with amber indicator |
-
-### Differentiators
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Detachment stratagems auto-populate Game Day mode | Chosen detachment's stratagems become the Game Day stratagem list — no manual setup | MEDIUM | Straightforward once detachment selection and Game Day Mode both exist |
-| Stratagem quick-filter: only stratagems relevant to units in this list | New Recruit's supporters-only feature — filter by unit keywords | HIGH | Requires keyword matching between stratagem trigger text and unit keywords; fragile text parsing on CSV data; defer |
-
-### Anti-Features
-
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Automatic list legality validation (unit slot restrictions, detachment requirements) | Competitive builders like New Recruit enforce this | Requires authoritative GW restriction data not available in Wahapedia community CSVs; high maintenance burden with every GW FAQ | Surface informational points budget only; never block saves |
-| Multiple detachments per list (11th edition style) | 11th edition will support multi-detachment armies | 10th edition uses single detachment; multi-detachment adds schema complexity for zero current value | Schema `detachment_id` as single nullable TEXT column; multi-detachment can become a join table in a future milestone |
-| Enhancement tracking per army list | Part of competitive list building | Enhancement data not currently imported in sync pipeline; new Wahapedia CSV required | Defer to a future sync extension milestone |
-
----
-
-## Feature Area 4: Game Day Mode
-
-### Table Stakes
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Phase-grouped stratagem reference for the active list's detachment | Warscribe and BattleBase both organize stratagems by game phase; users consider this baseline for any 40K companion app | MEDIUM | `RwStratagem.phase` already populated; filter to chosen detachment; group by phase; reuse `StratagemEntry` |
-| CP (Command Points) tracker | Every 40K game uses CP; all companion apps track it | LOW | Local React state; no DB persistence needed; increment/decrement with reset; start at configurable value |
-| Pre-game checklist (deploy, scout moves, pre-battle abilities) | BattleBase's standout feature — prevents forgetting setup steps before turn 1 | LOW | Static checklist of standard 40K setup steps; checkboxes reset each game; content from 10th edition core rules structure |
-| Unit ability quick-reference during game | Users need to look up an ability mid-game without leaving the mode | MEDIUM | Searchable list of units in the chosen army list with their linked datasheet abilities inline; reuse existing hooks |
-
-### Differentiators
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Favorited stratagems surfaced at top of Game Day view | Personalized from Playbook favorite flags; reduces scroll during tense game moments | MEDIUM | Requires `stratagem_annotations` table from Playbook Enhancements area; dependency is low risk |
-| Turn tracker (Turn 1-5 counter) | 40K games run exactly 5 turns; tracking avoids disputes and helps with secondary objective timing | LOW | Simple counter; highlight "final turn" at Turn 5; pair with CP auto-gain reminder |
-| Stratagem used-this-turn indicator | Prevents accidentally using a once-per-turn stratagem twice (BattleBase differentiator) | MEDIUM | Per-stratagem toggle that auto-resets on "Next Turn" button; purely local React state |
-| VP (Victory Points) tracker | Standard for matched play; Warscribe's core feature | LOW | Simple counter local state; per-player (own side only); no persistence needed |
-
-### Anti-Features
-
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Persistent game state (save mid-game and resume) | Useful for multi-session games | Adding a transient game session to SQLite schema adds complexity for a rare use case; most games complete in one sitting | Keep game state in React component memory; offer "reset" button; let battle log serve as the persistent record |
-| Real-time opponent CP/VP tracking | Multiplayer transparency | Single-user local-first app; opponent data is not meaningful to persist | Track own side only; notes field on battle log for opponent info |
-| Phase-by-phase walkthrough with rules text reproduced | BattleBase does this with official rules text | Would require reproducing GW core rules verbatim — copyright constraint that the entire app is built to avoid | Show user's own custom reminders and their imported Wahapedia abilities only; never GW-authored text |
-| Dice roller | Requested by hobby enthusiasts | Marginal value; many dedicated dice apps exist; outside hobby management focus | Document as explicitly deferred |
-
----
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| **Explicit step-by-step completion checkboxes** | Turns a creative hobby tool into a checkbox app. Painters don't paint linearly -- they revisit, skip, improvise. Granular step tracking creates guilt and friction | Derive progress from session logs (implicit). Show "last worked on" not "steps remaining" |
+| **Automated painting status advancement** | Automatically moving a unit from "Basecoated" to "Shaded" based on recipe sections completing feels robotic and will be wrong for multi-recipe units | Keep status updates manual via LogSessionSheet's existing "Update Painting Status" dropdown |
+| **Section templates / shared section library** | Over-engineering for a personal tool. "Save this section as a template" adds significant schema complexity for a feature a single user won't use often | Recipe duplication (already built) handles reuse. Copy a recipe, modify sections |
+| **Real-time timer integration** | A painting timer embedded in the session log sounds useful but breaks flow -- painters don't start and stop cleanly. They paint while watching TV, take breaks, switch models | Keep duration_minutes as manual entry. Time estimates on sections serve planning, not tracking |
+| **Multi-recipe parallel progress** | Tracking progress across multiple recipes applied to one unit simultaneously (e.g., "Armour recipe" + "Weapons recipe") | Support one active recipe per unit for progress derivation. Additional recipes are reference-only |
+| **Section dependency graphs** | "You can't start the Highlight section until Shade section is complete" -- over-constraining for a hobby | execution_mode (sequential/batch/parallel) provides soft guidance without hard enforcement |
+| **Section progress tracking table** | A dedicated `unit_recipe_progress` table tracking per-step completion per unit -- high schema complexity for v0.2.9 | Derive "current position" from last logged session's step_id. Explicit progress tracking deferred to v0.3.0+ if needed |
 
 ## Feature Dependencies
 
 ```
-Detachment Selection (army_lists migration + new column)
-    └──enables──> Detachment Stratagems in Army List Detail View
-    └──enables──> Detachment Stratagems in Game Day Mode (auto-populated)
-    └──enables──> Stratagem Filter by Detachment in PlaybookTab
-
-Playbook stratagem_annotations table (new hobbyforge.db table)
-    └──enables──> Favorite Stratagems surfaced in Game Day Mode
-    └──enables──> Per-stratagem user notes in PlaybookTab
-
-Rules Data Hub Browser (new page)
-    └──reuses──> WargearTable, AbilityEntry, StratagemEntry from PlaybookTab
-    └──reuses──> DatasheetPicker pattern for faction filter
-    └──independent of Army Lists and Game Day changes
-
-Game Day Mode (new page or modal)
-    └──requires──> Army List with Detachment Selection
-    └──enhanced-by──> stratagem_annotations favorites
-    └──optionally-links-to──> Battle Log (record result post-game)
-
-Stale Data Warnings on Army List Units
-    └──requires──> rulesSnapshot diff data (already captured in v0.2.6)
-    └──requires──> unit_datasheet_links correlation (new query)
+Migration (section_type, technique, execution_mode, applies_to)
+    |
+    +---> DraftSection update (add new fields to form state)
+    |         |
+    |         +---> Workflow metadata editing UI (progressive disclosure in RecipeSectionCard)
+    |         |
+    |         +---> Compact metadata display in SectionedTimeline (badges)
+    |
+    +---> LogSession section-aware cascade
+    |         |
+    |         +---> Section selector between Recipe and Step selectors
+    |         |     (needs sections query filtered by recipe_id)
+    |         |
+    |         +---> Step selector filtered by section_id (not just recipe_id)
+    |
+    +---> Kanban card workflow display
+    |         |
+    |         +---> "Current section + step" derivation logic (pure function)
+    |         |     (needs: unit's recipe, recipe's sections+steps, unit's last session)
+    |         |
+    |         +---> KanbanCard UI update (replace generic hint with recipe-aware hint)
+    |
+    +---> CurrentFocus workflow display
+              |
+              +---> Same derivation logic as Kanban (shared utility)
+              |
+              +---> CurrentFocusCard UI update (section-aware next action line)
 ```
 
-### Dependency Notes
+**Critical path:** Migration -> DraftSection -> Form UI + Timeline display can proceed independently from LogSession cascade and Kanban/Focus integration. The latter two share a derivation function and can be built together.
 
-- **Detachment selection requires a migration.** `army_lists` needs a new `detachment_id TEXT` column. Store as TEXT (not a FK to rules.db — cross-DB FK enforcement is unsupported by tauri-plugin-sql). Follows the established `weapon_name as TEXT copy` decision documented in PROJECT.md.
-- **Game Day Mode requires detachment selection.** Without a chosen detachment, showing all 50+ faction stratagems is noise. The phase-grouped view only works when scoped to one detachment's stratagems.
-- **Playbook favorites require a new hobbyforge.db table.** A `stratagem_annotations` table keyed on `wahapedia_stratagem_id TEXT` with `is_favorite`, `is_reminder`, `user_note` columns. Survives re-syncs because it lives in hobbyforge.db, not rules.db (same reasoning as unit_overrides).
-- **Rules Hub browser is largely additive.** It reuses existing data, queries, and sub-components. Can ship independently of army list or game day changes.
+## MVP Recommendation
 
----
+**Phase 1 -- Schema + Form + Display (Low risk, foundational)**
+1. Migration adding 4 columns to recipe_sections
+2. DraftSection + RecipeSectionCard form updates (progressive disclosure)
+3. SectionedTimeline compact metadata badges
 
-## MVP Definition
+**Phase 2 -- LogSession Cascade (Medium risk, isolated)**
+4. Section-aware cascading selectors in LogSessionSheet
+5. Step list grouped/filtered by selected section
 
-### Launch With (v0.2.8)
+**Phase 3 -- Kanban + CurrentFocus Integration (Medium risk, shared logic)**
+6. "Current workflow position" derivation utility (pure function: given recipe sections, steps, and last session -> next section + step)
+7. KanbanCard section-aware next step display
+8. CurrentFocusCard section-aware guidance
 
-Core milestone deliverables — what makes rules data "visible, searchable, and useful for real game preparation."
+**Defer to v0.3.0+:**
+- Section progress tracking table (High complexity, needs its own milestone)
+- Section skip tracking (depends on progress tracking)
 
-- [ ] **Detachment selection on army list** — foundation for Game Day integration; requires one migration
-- [ ] **Detachment stratagems + abilities shown in army list detail** — immediate payoff once detachment is selected; reuses existing components
-- [ ] **Rules Data Hub browser page** — faction filter + name search + datasheets list + sync status header
-- [ ] **Game Day Mode: CP tracker + phase-grouped stratagems for chosen detachment** — core game-day utility; both Warscribe and BattleBase validate this as a must-have
-- [ ] **Game Day Mode: pre-game checklist** — low complexity, high value, BattleBase-proven pattern
+**Rationale:** The MVP adds semantic richness (metadata) and improves an existing interaction (LogSession) without requiring a new progress-tracking data model. The Kanban/Focus integration uses implicit derivation (last session) rather than explicit progress, keeping complexity contained.
 
-### Add After Core (v0.2.8.x)
+## Detailed Feature Notes
 
-- [ ] **VP tracker and Turn counter in Game Day** — low complexity; add when Game Day Mode is in use
-- [ ] **Playbook favorite flags on stratagems** — trigger: user actively uses Game Day and wants personalized view
-- [ ] **Stale data warnings on army list units** — trigger: user reports confusion after re-sync modifies a linked datasheet
+### Section Type Enum Values
 
-### Future Consideration (v0.2.9+)
+Based on the Warhammer painting workflow (prime -> basecoat -> shade -> layer -> highlight -> glaze -> weathering -> basing -> varnish) and how painters organize sections:
 
-- [ ] **Stratagem used-this-turn indicator** — complex local state with turn lifecycle; validate Game Day Mode first
-- [ ] **"Owned units" filter in rules browser** — useful differentiator; requires dual-DB merge query
-- [ ] **Link game result to battle log from Game Day** — high value but high complexity cross-feature flow
+| Value | Meaning | Example Section |
+|-------|---------|----------------|
+| `prep` | Surface preparation before painting | "Assembly Cleanup", "Priming" |
+| `basecoat` | Initial color application | "Armour Basecoats", "Skin Base" |
+| `shade` | Wash/shade application | "Recess Shading", "Panel Lining" |
+| `layer` | Building up color, layering/highlighting | "Armour Highlights", "Edge Highlights" |
+| `detail` | Fine detail work (eyes, gems, insignia) | "Face Details", "Chapter Markings" |
+| `effect` | Special effects (OSL, NMM, weathering, blood) | "Weathering", "Battle Damage" |
+| `finishing` | Final steps (basing, varnish, decals) | "Basing", "Varnish Coat" |
 
----
+This is intentionally coarser than step-level `painting_phase`. A section groups multiple steps; its type describes the workflow stage, not individual paint application.
 
-## Feature Prioritization Matrix
+### Execution Mode Values
 
-| Feature | User Value | Implementation Cost | Priority |
-|---------|------------|---------------------|----------|
-| Detachment selection on army list | HIGH | LOW | P1 |
-| Detachment stratagems shown in army list | HIGH | LOW | P1 |
-| Rules Data Hub browser (faction filter + search) | HIGH | MEDIUM | P1 |
-| Game Day CP tracker + phase stratagems | HIGH | MEDIUM | P1 |
-| Pre-game checklist in Game Day | MEDIUM | LOW | P1 |
-| VP tracker in Game Day | MEDIUM | LOW | P2 |
-| Turn tracker in Game Day | LOW | LOW | P2 |
-| Playbook stratagem favorites | MEDIUM | LOW | P2 |
-| Stale data warnings on army list units | MEDIUM | HIGH | P2 |
-| Stratagem used-this-turn indicator | MEDIUM | MEDIUM | P3 |
-| "Owned units" filter in rules browser | MEDIUM | MEDIUM | P3 |
-| Link game result to battle log from Game Day | MEDIUM | HIGH | P3 |
+| Value | Meaning | When Used |
+|-------|---------|-----------|
+| `sequential` | Complete this section's steps in order before moving on | Default. Most sections work this way |
+| `batch` | Apply this section's technique across all models before next section | Batch painting: "basecoat all armour on all 10 models" |
+| `parallel` | This section can be done alongside other sections | Independent areas: "you can do weapons while armour dries" |
 
-**Priority key:**
-- P1: Must have for v0.2.8 launch
-- P2: Should have; add when P1 stable or driven by validation
-- P3: Nice to have; future milestone
+### "Current Step" Derivation Logic
 
----
+The key design challenge for Kanban/Focus integration. Proposed algorithm:
 
-## Competitor Feature Analysis
+```
+Input: unit_id, recipe_id
+1. Get all sections (ordered) + steps (ordered within section)
+2. Get last painting_session where recipe_id matches and recipe_step_id is not null
+3. Find that step's position in the section/step tree
+4. Return next step (or next section's first step if section complete)
+5. Fallback: if no session logged with step, return first step of first non-optional section
+```
 
-| Feature | New Recruit | Warscribe | BattleBase | HobbyForge approach |
-|---------|-------------|-----------|------------|---------------------|
-| Detachment selection in list builder | Yes — required step | Via imported list | Yes | New `detachment_id TEXT` on `army_lists`; single select |
-| Stratagems organized by phase | Partial | Yes (core feature) | Yes | Yes — `RwStratagem.phase` already populated |
-| Stratagems filtered by unit (supporters-only) | Yes (limited) | No | No | Deferred — fragile text parsing; low ROI for personal tool |
-| CP tracking | Yes | Yes | Yes (automated) | Manual +/- counter; no automation needed |
-| VP tracking | No | Yes | Yes | Simple local counter |
-| Pre-game checklist | No | No | Yes (guided) | Static checklist; proven high-value by BattleBase |
-| Rules browser / datasheets | Full (faction-filtered) | Via imported list | Roster view | Dedicated hub page with faction filter + name search |
-| Favorites / personal notes on rules | No | No | No | Differentiator via `stratagem_annotations` table |
-| Hobby tracking integrated with game prep | No | No | No | HobbyForge's unique differentiator — knows which units are owned and painted |
+This is implicit progress -- derived from session history, not explicit checkboxes. It will be wrong sometimes (user painted step 5 but didn't log the session for steps 3-4), but it is zero-friction and good enough for a personal tool.
 
-**Key differentiation:** No competitor combines hobby tracking (collection, painting progress) with game-day rules reference. Game Day Mode in HobbyForge can surface which units in the army list are unpainted — a contextual signal no list-builder-only app can provide.
+### LogSession Cascade UX
 
----
+Current flow: Unit -> (Recipe) -> (Step) -> Date -> Duration -> Notes
+
+New flow: Unit -> (Recipe) -> **(Section)** -> (Step) -> Date -> Duration -> Notes
+
+- Section selector appears only when recipe is selected (same pattern as step selector)
+- Section selector shows: section name + section_type badge + step count
+- Step selector appears only when section is selected
+- Step selector filtered to selected section's steps only
+- Changing recipe clears section and step (existing pattern extended)
+- Changing section clears step
+- All three (recipe, section, step) remain optional -- user can log a session with just a recipe, or recipe+section, or full recipe+section+step
 
 ## Sources
 
-- Competitor analysis: [New Recruit news](https://www.newrecruit.eu/news), [Warscribe 40K](https://40k.warscribe.app/), [BattleBase](https://www.battlebase.app/)
-- Army builder patterns: [Quartermaster](https://quartermaster.app/), [40kList](https://40klist.com/)
-- Detachment mechanics: [Wargamer detachments guide](https://www.wargamer.com/warhammer-40k/detachments), [Spikeybits army list builder guide](https://spikeybits.com/10th-edition-40k/battlescribe-alternative-warhammer-40k-10th-edition-army-list-builder-apps/)
-- Search/filter UX: [Algolia search UX best practices](https://www.algolia.com/blog/ux/how-to-streamline-your-search-ux-design), [NN/g filter categories](https://www.nngroup.com/articles/filter-categories-values/)
-- Existing codebase: `PlaybookTab.tsx`, `rulesExtended.ts`, `armyLists.ts`, `datasheet.ts` (v0.2.7 — primary source)
-
----
-*Feature research for: HobbyForge v0.2.8 — Rules Data Hub UI, Army Lists 2.0, Game Day Mode*
-*Researched: 2026-05-10*
+- [PaintMyMinis](https://www.paintmyminis.de/) -- miniature painting recipe app with color planning and technique tracking
+- [Miniature Paint Recipe Manager](https://apps.apple.com/us/app/miniature-paint-recipe-manager/id6747835376) -- iOS recipe app with mixing percentages and paint scanning
+- [paintRack](https://play.google.com/store/apps/details?id=com.courageousoctopus.paintrack) -- paint inventory with custom recipe sets
+- [Paint Pad](https://paintpad.app/) -- recipe sharing platform with 6700+ paint database
+- [Gamer's Grove: Warhammer Painting Guide](https://gamersgrove.com/blogs/front-page/warhammer-painting-how-to-use-base-shade-and-layer-paints) -- canonical basecoat/shade/layer workflow
+- [Goonhammer Hobby 101: Batch Painting](https://www.goonhammer.com/hobby-101-batch-painting/) -- batch vs sequential workflow patterns
+- Existing codebase analysis (HIGH confidence -- direct code reading)

@@ -1,219 +1,189 @@
-# Stack Research
+# Technology Stack
 
-**Domain:** Rules Data Hub UI / Army Lists 2.0 / Game Day Mode — Tauri 2 desktop app addition
-**Researched:** 2026-05-10
-**Confidence:** HIGH (all additions verified against existing installed packages)
+**Project:** HobbyForge v0.2.9 — Recipes 3.1 / Workflow Semantics & Integrations
+**Researched:** 2026-05-11
+**Confidence:** HIGH
 
----
+## Verdict: No New Libraries Required
 
-## What This Covers
-
-This is a subsequent-milestone stack audit. The v0.2.8 features (Rules Data Hub UI, Army Lists 2.0 with detachment/stratagem integration, Game Day Mode, Playbook enhancements) build entirely on the validated v0.2.7 stack. The question is: what gaps exist, and what is needed for the new capabilities?
-
-**Conclusion: No new npm packages are required.** Every capability needed for v0.2.8 is already present in the installed dependency tree. The additions are architectural patterns, not new dependencies.
+This milestone extends existing patterns with new metadata columns and UI wiring. Every capability needed is already in the stack. Adding libraries would increase bundle size and maintenance burden for zero benefit.
 
 ---
 
-## Existing Stack (Do Not Re-Research)
+## Existing Stack (Confirmed Sufficient)
 
-All validated and installed at v0.2.7:
+### Schema Extension — SQLite Migration
 
-| Technology | Version | Role |
-|------------|---------|------|
-| Tauri 2 + tauri-plugin-sql | ^2.0.0 | Desktop shell + SQLite bridge |
-| React 19 + TypeScript 5 | ^19.0.0 / ^5.6.3 | UI layer |
-| TailwindCSS 4 + shadcn/ui | 4.2.4 | Styling + primitive components |
-| TanStack Router | ^1.168.26 | File routing |
-| TanStack Query | ^5.100.6 | Server/DB state |
-| TanStack Table | ^8.21.3 | Filterable table primitives |
-| Zustand 5 | ^5.0.12 | Filter + ephemeral UI state |
-| @dnd-kit/core + sortable | 6.3.1 / 10.0.0 | Drag-and-drop |
-| Recharts | 3.8.0 | Charts |
-| Zod 4 | ^4.4.1 | Schema validation |
-| React Hook Form | ^7.74.0 | Forms |
-| Lucide React | ^0.460.0 | Icons |
-| Sonner | ^2.0.7 | Toast notifications |
-| cmdk | ^1.1.1 | Command palette primitives (used by shadcn Combobox) |
+| Technology | Current | Purpose | Why Sufficient |
+|------------|---------|---------|----------------|
+| tauri-plugin-sql | Already in stack | 4 new nullable TEXT columns on `recipe_sections` | Standard `ALTER TABLE ADD COLUMN` migration. Same pattern used 19 times already. |
 
----
-
-## Stack Additions for v0.2.8
-
-### None Required
-
-All three feature areas map cleanly onto existing primitives:
-
-| Feature Area | Capability Needed | Existing Tool |
-|---|---|---|
-| Rules browser search/filter | Text filter + multi-select dropdowns | Zustand store + shadcn Combobox (cmdk-based) |
-| Rules browser table | Sortable, filterable columns | TanStack Table (already used in CollectionPage) |
-| Sync status dashboard | Stat cards + freshness badge | shadcn Card + Badge (pattern from PlaybookTab) |
-| Detachment selector | Single-select dropdown with search | shadcn Combobox |
-| Stratagem phase grouping | Group-by logic in JS + shadcn Tabs | TanStack Query + shadcn Tabs |
-| Stale data warnings | Query freshness check | getRulesSyncMeta hook (already built) |
-| Game Day checklist | Checkbox state + persistence | Zustand persist middleware (built-in, unused so far) |
-| Game Day phase tabs | Tab navigation | shadcn Tabs |
-| Playbook favorites | hobbyforge.db column + React Query | tauri-plugin-sql + existing query pattern |
-| Playbook user notes on rules | hobbyforge.db column | Same as above |
-| Reminder flagging | DB column + filter | Same pattern as override markers |
-
----
-
-## Recommended Patterns (No New Packages)
-
-### Rules Browser Filter State
-
-Use the existing Zustand pattern from PaintsPage and CollectionPage verbatim. Create `src/features/rules-hub/rulesHubFilters.ts` with a Zustand store for:
-- `search: string` — text filter across name + description
-- `factionId: string | null` — faction selector
-- `type: string | null` — stratagem/ability/detachment type filter
-
-Do NOT use TanStack Router search params for these filters. The project decision (see PROJECT.md) is ephemeral Zustand filters — filters reset on navigation, matching every other page in the app.
-
-### Game Day Mode Checklist Persistence
-
-Use Zustand `persist` middleware with `localStorage`. This is the only v0.2.8 feature that needs state surviving navigation, because a player leaving Game Day mid-game and returning should see their checklist intact.
-
-```typescript
-// src/features/game-day/gameDayStore.ts
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-
-interface GameDayStore {
-  checkedReminders: Record<string, boolean>;   // reminderId -> checked
-  selectedArmyListId: number | null;
-  selectedDetachmentId: string | null;
-  toggle: (reminderId: string) => void;
-  reset: () => void;
-}
-
-export const useGameDayStore = create<GameDayStore>()(
-  persist(
-    (set) => ({
-      checkedReminders: {},
-      selectedArmyListId: null,
-      selectedDetachmentId: null,
-      toggle: (id) => set((s) => ({
-        checkedReminders: { ...s.checkedReminders, [id]: !s.checkedReminders[id] }
-      })),
-      reset: () => set({ checkedReminders: {} }),
-    }),
-    { name: 'hobbyforge-game-day' }  // localStorage key
-  )
-);
-```
-
-The `persist` middleware ships with Zustand 5 — no additional installation needed.
-
-### Army Lists 2.0 Detachment Integration
-
-The existing `army_lists` table in hobbyforge.db needs a `selected_detachment_id TEXT` column (new migration). The detachment data already exists in rules.db via `rw_detachments` and `useDetachmentsByFaction` hook (built in Phase 43). The pattern is:
-
-1. Query `useDetachmentsByFaction(wahapediaFactionId)` — already works
-2. Add a Combobox selector in `ArmyListDetailSheet` — uses existing shadcn Combobox
-3. Save `selected_detachment_id` to hobbyforge.db via migration + query update
-4. Display related stratagems via existing `useStratagemsByFaction` filtered by `detachment_id`
-
-No new hooks or query patterns needed — Phase 43 built exactly this read layer.
-
-### Stale Rules Warning
-
-`getRulesSyncMeta` and `getSyncFreshness` (from `src/lib/syncFreshness.ts`) are already built. Display freshness badges in Army Lists using the same `FRESHNESS_DOT_CLASS` pattern from PlaybookTab. No new code required — reuse the existing utilities.
-
-### Rules Hub Page Route
-
-Add a new `/rules` route to `src/app/router.tsx`. TanStack Router's flat route pattern means this is a 5-line addition matching the existing SettingsPage or GoalsPage pattern.
-
-### Playbook Favorites and User Notes on Rules
-
-These require new hobbyforge.db columns only (SQLite migration). The query/hook/UI pattern is identical to `useUpsertStrategyNote`. Suggested table:
+**New columns on `recipe_sections`:**
 
 ```sql
--- Migration: add user_rule_notes table
-CREATE TABLE IF NOT EXISTS user_rule_notes (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
-  entity_type TEXT NOT NULL,  -- 'stratagem' | 'ability' | 'detachment_ability'
-  entity_id   TEXT NOT NULL,  -- Wahapedia string ID
-  notes       TEXT,
-  is_favorite INTEGER NOT NULL DEFAULT 0,
-  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
-  UNIQUE(entity_type, entity_id)
-);
+ALTER TABLE recipe_sections ADD COLUMN section_type TEXT;
+ALTER TABLE recipe_sections ADD COLUMN technique TEXT;
+ALTER TABLE recipe_sections ADD COLUMN execution_mode TEXT;
+ALTER TABLE recipe_sections ADD COLUMN applies_to TEXT;
 ```
+
+All nullable TEXT — consistent with every other optional metadata column in the app (surface, notes on sections; technique, tool, dilution on steps). No new column types or constraints needed.
+
+### Type Layer — TypeScript Const Arrays + Interface Extension
+
+| Technology | Current | Purpose | Why Sufficient |
+|------------|---------|---------|----------------|
+| TypeScript 5 | Already in stack | Const arrays for new enum-like fields | Same pattern as `PAINTING_PHASES`, `RECIPE_SURFACES`, `RECIPE_EFFECTS` |
+
+**New const arrays to define:**
+
+```typescript
+export const SECTION_TYPES = [
+  "prep", "basecoat", "shade", "layer", "detail", "highlight",
+  "weathering", "basing", "varnish", "finishing", "other",
+] as const;
+export type SectionType = typeof SECTION_TYPES[number];
+
+export const SECTION_TECHNIQUES = [
+  "brush", "airbrush", "drybrush", "wash", "contrast", "wet blend",
+  "stipple", "sponge", "oil wash", "enamel wash", "pigment", "decal", "other",
+] as const;
+export type SectionTechnique = typeof SECTION_TECHNIQUES[number];
+
+export const EXECUTION_MODES = [
+  "sequential", "parallel", "any_order",
+] as const;
+export type ExecutionMode = typeof EXECUTION_MODES[number];
+```
+
+`applies_to` is free-text (too domain-specific: "all models", "sergeant only", "weapons", "cloaks") — no const array, just a text Input with max length.
+
+**Integration points:**
+- Extend `RecipeSection` interface in `src/types/recipeSection.ts` with 4 new nullable fields
+- `CreateRecipeSectionInput` / `UpdateRecipeSectionInput` auto-derive via existing `Omit`/`Partial` pattern
+- Extend `DraftSection` in `src/features/recipes/recipeSection.ts` with the 4 fields
+- Update `buildDraftSections()` to map new fields from DB rows
+- Update `makeDraftSection()` factory with null defaults
+
+### Form UI — shadcn/ui Select + Collapsible (Progressive Disclosure)
+
+| Technology | Current | Purpose | Why Sufficient |
+|------------|---------|---------|----------------|
+| shadcn/ui Select | Already in stack | Dropdowns for section_type, technique, execution_mode | `RecipeSectionCard` already renders Surface `<Select>` and Optional checkbox. Add 3 more `<Select>` using identical pattern. |
+| Collapsible (shadcn/ui) | Already in stack | Progressive disclosure for workflow metadata | `RecipeSectionCard` already uses `<Collapsible>`. Workflow fields go in `CollapsibleContent` above step list, auto-shown when any field is set or user clicks a toggle. |
+
+**Progressive disclosure design:** The `RecipeSectionCard` header has name + surface + optional. Workflow metadata (section_type, technique, execution_mode, applies_to) renders in the `CollapsibleContent` area above the step list, in a compact row. Zero new components needed — just layout within existing card structure.
+
+### Cascading Selectors — React Hook Form `watch()` + Conditional Rendering
+
+| Technology | Current | Purpose | Why Sufficient |
+|------------|---------|---------|----------------|
+| React Hook Form `watch()` | Already in stack | Recipe -> Section -> Step cascading in LogSessionSheet | LogSessionSheet already implements recipe -> step cascading via `form.watch("recipe_id")` + `useRecipePaints()`. Adding section as an intermediate selector follows identical pattern. |
+| React Query hooks | Already in stack | `useRecipeSections(recipeId)` for section data | Query function exists at `getRecipeSections()` in `src/db/queries/recipeSections.ts`. Need a React Query wrapper hook. |
+
+**LogSessionSheet changes (no new deps):**
+1. Add `recipe_section_id: z.number().int().positive().nullable().optional()` to `logSessionSchema`
+2. Watch `recipe_id` -> render section selector (fetch via `useRecipeSections`)
+3. Watch `recipe_section_id` -> filter step list to only steps matching selected section
+4. Clear section when recipe changes; clear step when section changes (existing cascade pattern)
+5. Section selector shows section name + section_type badge for context
+6. When recipe has zero or one section, auto-select and skip the section selector (progressive disclosure threshold already established at sections.length <= 1)
+
+### Compact Metadata Display — Existing Badge Component
+
+| Technology | Current | Purpose | Why Sufficient |
+|------------|---------|---------|----------------|
+| shadcn/ui Badge | Already in stack | Display section_type, technique, execution_mode as compact badges | `SectionedTimeline` already renders `surface` and `optional` as `<Badge variant="outline">`. Add badges for new fields in same header row. |
+
+### Kanban/CurrentFocus Integration — Extended Enrichment Queries
+
+| Technology | Current | Purpose | Why Sufficient |
+|------------|---------|---------|----------------|
+| React Query | Already in stack | Extend `useKanbanEnrichment` with section workflow data | Hook already fetches recipe names + photo counts via `Promise.all`. Add a third query for current section context. |
+
+**Kanban card enhancement:**
+- `getNextActionHint()` currently returns generic status-based hints ("Apply primer", "Apply shade")
+- When a recipe with sections is linked, derive section-aware hints: "Armour: drybrush highlight" instead of generic "Apply layer highlights"
+- New query function: `getWorkflowContextByUnitIds(unitIds)` joins unit -> recipe -> first section for workflow metadata
+- "Current section" heuristic for v0.2.9: use the first section by `order_index`. Section-level completion tracking is a future milestone concern.
+
+**CurrentFocusCard enhancement:**
+- Add a workflow line below existing recipe name: e.g., "Next: Armour -- basecoat (sequential)"
+- Data from same enrichment query as Kanban
+- No new component — additional text rendering in existing card
+
+---
+
+## Database Query Additions
+
+| Query | Status | Pattern |
+|-------|--------|---------|
+| `getRecipeSections(recipeId)` | EXISTS | Used for LogSessionSheet section selector |
+| `getWorkflowContextByUnitIds(unitIds)` | NEW | Same batch pattern as `getRecipeNamesByUnitIds`. Returns `Map<unitId, SectionWorkflowContext>` |
+| `updateRecipeSection(input)` | EXISTS — needs 4 new columns in SET clause | Direct assignment (not COALESCE) for all 4 fields since null is a valid "clear" value |
+| `createRecipeSection(input)` | EXISTS — needs 4 new columns in INSERT | Nullable, default null |
+
+---
+
+## Hook Inventory
+
+| Hook | Status | Notes |
+|------|--------|-------|
+| `useRecipeSections(recipeId)` | NEEDS CREATION | Query function exists in `recipeSections.ts` but no React Query wrapper hook found in `src/hooks/`. Trivial to create following `useRecipePaints` pattern. |
+| `useKanbanEnrichment(unitIds)` | EXISTS — needs extension | Add `workflowContexts: Map<number, SectionWorkflowContext>` to return shape |
+| `useRecipePaints(recipeId)` | EXISTS | Already used in LogSessionSheet for step selector |
+
+---
+
+## Migration File
+
+One new migration: `019_section_workflow_metadata.sql`
+
+```sql
+ALTER TABLE recipe_sections ADD COLUMN section_type TEXT;
+ALTER TABLE recipe_sections ADD COLUMN technique TEXT;
+ALTER TABLE recipe_sections ADD COLUMN execution_mode TEXT;
+ALTER TABLE recipe_sections ADD COLUMN applies_to TEXT;
+```
+
+SQLite `ALTER TABLE ADD COLUMN` requires one column per statement. Same pattern as migration 004 (8 columns added to units) and migration 012 (6 columns added to recipes).
 
 ---
 
 ## What NOT to Add
 
-| Library | Why Not | Use Instead |
-|---------|---------|-------------|
-| Fuse.js / flexsearch | Fuzzy search adds a dependency for a problem SQLite already solves | SQLite `LIKE '%term%'` on name + description. Fast enough for <10K rules rows — same pattern used everywhere in the app |
-| React Window / Virtuoso | List virtualization | Rules tables have <500 rows per faction. TanStack Table without virtualization is sufficient. Defer if perf problems appear. |
-| Immer | Immutable state | Zustand 5 handles immutable updates cleanly without Immer. The checklist toggle above shows the pattern. |
-| Redux / Jotai | Additional state manager | Zustand is established across 9 pages. Mixing state libraries creates inconsistency. |
-| Drizzle ORM | Type-safe query builder | Confirmed dead-end (PROJECT.md). tauri-plugin-sql direct parameterized queries continue. |
-| TanStack Virtual | Row virtualization | Unnecessary at this data scale; adds complexity. |
-| date-fns / dayjs | Date utilities | `src/lib/dates.ts` already covers all needs (todayISO, relativeDate, getSyncAgeLabel). |
-| React DnD | Alternative DnD library | @dnd-kit is already installed and proven for two use cases. |
+| Temptation | Why Not | Use Instead |
+|------------|---------|-------------|
+| Combobox/autocomplete library | `applies_to` is simple free-text. Enum fields use shadcn Select. App already has `PaintCombobox` for complex search. | shadcn/ui Select + Input |
+| XState / state machine library | `execution_mode` is display metadata, not runtime state transitions. A string field + visual badges is sufficient. | Const array + Badge display |
+| react-select / downshift | React Hook Form + shadcn Select handle every selector pattern. Adding another creates inconsistency. | Existing Select components |
+| Animation library | Workflow display is badges and text, not animated diagrams. Tailwind transitions suffice. | Tailwind CSS transitions |
+| Progress tracking library | Per-section completion tracking is not in v0.2.9 scope. This milestone adds metadata and surfaces it. | Deferred to future milestone |
+| New Zustand stores | No new filter state needed. Workflow metadata is server state (React Query) and form state (RHF `watch()`). | Existing React Query + RHF patterns |
+| Drizzle ORM | Confirmed dead-end per PROJECT.md. Raw parameterized queries continue. | tauri-plugin-sql direct queries |
 
 ---
 
-## Integration Points With Existing Architecture
+## Key Design Decision: "Current Section" Heuristic
 
-### Dual-DB Pattern Continuation
+The Kanban and CurrentFocus integrations need to answer "what section should this unit work on next?" without per-section completion tracking (out of scope for v0.2.9).
 
-Game Day and Rules Hub both read from rules.db via `getRulesDb()`. Favorites/notes write to hobbyforge.db via `getDb()`. This is the established dual-query merge pattern — no change to the architecture.
+**Recommended heuristic:** First section by `order_index` that has `optional = 0`. This is simple, deterministic, and matches the workflow ordering the user defined. When section-level progress tracking arrives in a future milestone, the heuristic upgrades to "first incomplete non-optional section."
 
-### Cache Key Conventions
-
-Follow existing naming for new hooks:
-```typescript
-export const RULES_HUB_STRATAGEMS_KEY = (factionId: string) =>
-  ["rules-hub-stratagems", factionId] as const;
-export const USER_RULE_NOTES_KEY = (entityType: string, entityId: string) =>
-  ["user-rule-notes", entityType, entityId] as const;
-```
-
-Use `staleTime: Infinity` for rules.db reads (same as `useDatasheet`, `useRulesExtended`) — content only changes on explicit user-triggered sync.
-
-### Migration Numbering
-
-hobbyforge.db is at migration 017 after v0.2.7. v0.2.8 additions:
-- Migration 018: `selected_detachment_id TEXT` column on `army_lists`
-- Migration 019: `user_rule_notes` table (favorites + user notes on rules entities)
-
-Both follow the "never edit existing migrations" rule from PROJECT.md.
-
-### Cache Invalidation Symmetry
-
-When `useRulesSync` runs, it must also invalidate `["user-rule-notes"]` prefix if notes reference entities that may have changed. The symmetry rule from PROJECT.md: if `useCreate` invalidates a key, `useDelete` must too.
-
----
-
-## Version Compatibility Verification
-
-All packages verified against package.json at v0.2.7:
-
-| Package | Installed | Capability for v0.2.8 | Status |
-|---------|-----------|----------------------|--------|
-| zustand ^5.0.12 | YES | `persist` middleware for Game Day checklist | Ships with Zustand 5, no extra install |
-| @tanstack/react-table ^8.21.3 | YES | Rules browser filterable/sortable table | Already used in CollectionPage |
-| cmdk ^1.1.1 | YES | Combobox search for detachment selector | shadcn Combobox depends on this |
-| radix-ui ^1.4.3 | YES | Tabs + Checkbox for Game Day mode | Already in component library |
-| lucide-react ^0.460.0 | YES | Star/bookmark icons for favorites | Already installed |
+**Alternative rejected:** Using the painting_sessions table to infer which section was last worked on. This requires session-to-section FK (exists as `recipe_step_id` -> step -> section_id, but joining is fragile and assumes sessions are logged per-step). Too complex for v0.2.9.
 
 ---
 
 ## Sources
 
-- `C:\Documents\Claude Apps\Warhammer App\.planning\PROJECT.md` — HIGH confidence (ground truth for decisions and installed stack)
-- `package.json` at v0.2.7 — HIGH confidence (definitive installed deps list)
-- `src/hooks/useRulesExtended.ts` — HIGH confidence (Phase 43 read layer already built for detachments/stratagems)
-- `src/hooks/useRulesSync.ts` — HIGH confidence (full sync pipeline with diff/snapshot built)
-- [Zustand persist middleware docs](https://zustand.docs.pmnd.rs/reference/integrations/persisting-store-data) — HIGH confidence
-- [TanStack Router search params guide](https://tanstack.com/router/latest/docs/guide/search-params) — HIGH confidence (confirms Zustand is correct choice for ephemeral filters vs URL params)
-
----
-*Stack research for: HobbyForge v0.2.8 — Rules Data Hub UI / Army Lists 2.0 / Game Day Mode*
-*Researched: 2026-05-10*
+- Codebase analysis: all findings from direct inspection of existing files
+- `src/types/recipeSection.ts` — current RecipeSection interface (9 columns)
+- `src/features/recipes/recipeSection.ts` — DraftSection type and buildDraftSections()
+- `src/features/recipes/RecipeSectionCard.tsx` — existing section form UI with Select + Collapsible
+- `src/features/dashboard/LogSessionSheet.tsx` — existing recipe->step cascade pattern
+- `src/features/dashboard/CurrentFocusCard.tsx` — current card layout
+- `src/features/painting-projects/KanbanCard.tsx` — current card with getNextActionHint()
+- `src/hooks/useKanbanEnrichment.ts` — existing batch enrichment pattern
+- `src/features/recipes/recipeSchema.ts` — existing const arrays for enum-like fields
+- `src/db/queries/recipeSections.ts` — existing CRUD functions
+- Confidence: HIGH — every pattern referenced already works in the shipped codebase
