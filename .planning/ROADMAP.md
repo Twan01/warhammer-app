@@ -300,7 +300,7 @@ Plans:
 | 50. Section Form UI | v0.2.7 | 3/3 | Complete | 2026-05-08 |
 | 51. Duplication + Integration Polish | v0.2.7 | 2/2 | Complete | 2026-05-08 |
 | 52. Schema + Data Layer Foundation | 3/3 | Complete    | 2026-05-10 | - |
-| 53. Rules Data Hub UI | 3/3 | Complete   | 2026-05-11 | - |
+| 53. Rules Data Hub UI | 3/3 | Complete    | 2026-05-11 | - |
 | 54. Army Lists 2.0 — Detachment Selection | v0.2.8 | 0/TBD | Not started | - |
 | 55. Playbook Enhancements — Favorites and Notes | v0.2.8 | 0/TBD | Not started | - |
 | 56. Game Day Mode | v0.2.8 | 0/TBD | Not started | - |
