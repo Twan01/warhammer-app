@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Select,
@@ -8,6 +8,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { SyncStatusCard } from "./SyncStatusCard";
 import { useFactions } from "@/hooks/useFactions";
 import { useRulesSyncMeta, useWahapediaFactionId } from "@/hooks/useDatasheet";
@@ -17,6 +18,9 @@ import {
   useDetachmentsByFaction,
   useSharedAbilitiesByFaction,
 } from "@/hooks/useRulesExtended";
+import { applyStratagemFilters, STRATAGEM_PHASES } from "./applyRulesHubFilters";
+import { StratagemCard } from "./StratagemCard";
+import { cn } from "@/lib/utils";
 import type { SyncDiff } from "@/lib/computeSyncDiff";
 
 export function RulesHubPage() {
@@ -28,17 +32,26 @@ export function RulesHubPage() {
   const {
     selectedFactionId,
     searchText,
+    phaseFilter,
+    cpFilter,
     setSelectedFactionId,
     setSearchText,
+    setPhaseFilter,
+    setCpFilter,
   } = useRulesHubFilters();
 
   const selectedFaction = factions.find((f) => f.id === selectedFactionId);
   const { data: wahapediaFactionId } = useWahapediaFactionId(selectedFaction?.name);
 
   // Prefetch rules data for selected faction (tabs will use these)
-  useStratagemsByFaction(wahapediaFactionId ?? undefined);
+  const { data: stratagems = [] } = useStratagemsByFaction(wahapediaFactionId ?? undefined);
   useDetachmentsByFaction(wahapediaFactionId ?? undefined);
   useSharedAbilitiesByFaction(wahapediaFactionId ?? undefined);
+
+  const filteredStratagems = useMemo(
+    () => applyStratagemFilters(stratagems, { searchText, phaseFilter, cpFilter }),
+    [stratagems, searchText, phaseFilter, cpFilter]
+  );
 
   const noData = !syncMeta;
   const noFaction = !selectedFactionId;
@@ -97,10 +110,55 @@ export function RulesHubPage() {
                 <TabsTrigger value="shared-abilities">Shared Abilities</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="stratagems">
-                <p className="mt-4 text-sm text-muted-foreground">
-                  Stratagems content
+              <TabsContent value="stratagems" className="mt-4 space-y-4">
+                {/* Phase filter chips */}
+                <div className="flex flex-wrap gap-2">
+                  {STRATAGEM_PHASES.map((phase) => (
+                    <Button
+                      key={phase}
+                      size="sm"
+                      variant={phaseFilter === phase ? "default" : "outline"}
+                      onClick={() =>
+                        setPhaseFilter(phaseFilter === phase ? null : phase)
+                      }
+                    >
+                      {phase}
+                    </Button>
+                  ))}
+                </div>
+
+                {/* CP cost filter chips */}
+                <div className="flex flex-wrap gap-2">
+                  {(["1", "2", "3"] as const).map((cp) => (
+                    <Button
+                      key={cp}
+                      size="sm"
+                      variant={cpFilter === cp ? "default" : "outline"}
+                      onClick={() =>
+                        setCpFilter(cpFilter === cp ? null : cp)
+                      }
+                    >
+                      {cp} CP
+                    </Button>
+                  ))}
+                </div>
+
+                {/* Count + card list */}
+                <p className="text-xs text-muted-foreground">
+                  {filteredStratagems.length} stratagem{filteredStratagems.length !== 1 ? "s" : ""}
                 </p>
+
+                {filteredStratagems.length === 0 ? (
+                  <p className={cn("text-sm text-muted-foreground italic")}>
+                    No stratagems match your filters.
+                  </p>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {filteredStratagems.map((s) => (
+                      <StratagemCard key={s.id} stratagem={s} />
+                    ))}
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="detachments">
