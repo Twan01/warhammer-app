@@ -1,10 +1,11 @@
 ---
 phase: 54
 slug: army-lists-2-0-detachment-selection
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-11
+validated: 2026-05-11
 ---
 
 # Phase 54 — Validation Strategy
@@ -21,7 +22,7 @@ created: 2026-05-11
 | **Config file** | `vitest.config.ts` |
 | **Quick run command** | `pnpm test -- tests/army-list/` |
 | **Full suite command** | `pnpm test` |
-| **Estimated runtime** | ~15 seconds |
+| **Estimated runtime** | ~6 seconds |
 
 ---
 
@@ -30,7 +31,7 @@ created: 2026-05-11
 - **After every task commit:** Run `pnpm test -- tests/army-list/`
 - **After every plan wave:** Run `pnpm test`
 - **Before `/gsd:verify-work`:** Full suite must be green
-- **Max feedback latency:** 15 seconds
+- **Max feedback latency:** 6 seconds
 
 ---
 
@@ -38,25 +39,25 @@ created: 2026-05-11
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 54-01-01 | 01 | 1 | ARMY-01 | unit | `pnpm test -- tests/army-list/DetachmentPicker.test.tsx` | ❌ W0 | ⬜ pending |
-| 54-01-02 | 01 | 1 | ARMY-01 | unit | `pnpm test -- tests/army-list/ArmyListDetailSheet.test.tsx` | ❌ W0 | ⬜ pending |
-| 54-02-01 | 02 | 1 | ARMY-02 | unit | `pnpm test -- tests/army-list/DetachmentRulesSection.test.tsx` | ❌ W0 | ⬜ pending |
-| 54-02-02 | 02 | 1 | ARMY-03 | unit | `pnpm test -- tests/army-list/DetachmentRulesSection.test.tsx` | ❌ W0 | ⬜ pending |
-| 54-02-03 | 02 | 1 | ARMY-04 | unit | `pnpm test -- tests/army-list/StaleDataBanner.test.tsx` | ❌ W0 | ⬜ pending |
-| 54-03-01 | 03 | 1 | ARMY-05 | unit | `pnpm test -- tests/army-list/RemindersSection.test.tsx` | ❌ W0 | ⬜ pending |
+| 54-01-01 | 01 | 1 | ARMY-01 | unit | `pnpm test -- tests/army-list/DetachmentPicker.test.tsx` | ✅ | ✅ green |
+| 54-01-02 | 01 | 1 | ARMY-01 | unit | `pnpm test -- tests/army-list/ArmyListsPage.test.tsx` | ✅ | ✅ green |
+| 54-02-01 | 02 | 1 | ARMY-02 | unit | `pnpm test -- tests/army-list/DetachmentRulesSection.test.tsx` | ✅ | ✅ green |
+| 54-02-02 | 02 | 1 | ARMY-03 | unit | `pnpm test -- tests/army-list/DetachmentRulesSection.test.tsx` | ✅ | ✅ green |
+| 54-02-03 | 02 | 1 | ARMY-04 | unit | `pnpm test -- tests/army-list/StaleDataBanner.test.tsx` | ✅ | ✅ green |
+| 54-03-01 | 02 | 1 | ARMY-05 | unit | `pnpm test -- tests/army-list/RemindersSection.test.tsx` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
 ---
 
-## Wave 0 Requirements
+## Additional Test Coverage
 
-- [ ] `tests/army-list/DetachmentPicker.test.tsx` — stubs for ARMY-01 (picker UX, disabled state, selection persistence)
-- [ ] `tests/army-list/DetachmentRulesSection.test.tsx` — stubs for ARMY-02, ARMY-03 (ability display, stratagems list)
-- [ ] `tests/army-list/StaleDataBanner.test.tsx` — stubs for ARMY-04 (30-day threshold, null sync date, fresh data)
-- [ ] `tests/army-list/RemindersSection.test.tsx` — stubs for ARMY-05 (reminder display, hidden when empty)
-
-*Existing test files `tests/army-list/ArmyListsPage.test.tsx` and `tests/army-list/UnitDeleteDialog.test.tsx` need no changes.*
+| Test File | Tests | Covers |
+|-----------|-------|--------|
+| `tests/army-list/clearArmyListDetachment.test.ts` | 3 | ARMY-01 (clear mutation SQL correctness) |
+| `tests/army-list/UnitDeleteDialog.test.tsx` | 2 | ARMY-05 (army list membership warnings) |
+| `tests/army-list/armyListQueries.test.ts` | 2 | ARMY-05 (getArmyListsByUnitId query) |
+| `tests/army-list/deltaPreview.test.ts` | 3 | Points delta computation |
 
 ---
 
@@ -71,11 +72,24 @@ created: 2026-05-11
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s (actual: ~6s)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** validated 2026-05-11
+
+---
+
+## Validation Audit 2026-05-11
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+| Total tests | 32 |
+| Test files | 9 |
+| All green | yes |
