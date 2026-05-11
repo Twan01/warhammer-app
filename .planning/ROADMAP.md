@@ -157,7 +157,7 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 **Milestone Goal:** Expose synced Wahapedia rules data in a standalone browser, connect detachment selection to army lists, and deliver a focused Game Day mode for in-game reference — making rules data visible, searchable, and useful for real game preparation.
 
 - [x] **Phase 52: Schema + Data Layer Foundation** — Migration 019: detachment_id on army_lists, rules_favorites and rules_notes tables in hobbyforge.db; typed query modules and hooks for all new tables; points import design documentation (completed 2026-05-10)
-- [ ] **Phase 53: Rules Data Hub UI** — Standalone RulesHubPage with sync status header, faction browser, rules browser (stratagems/detachments/shared abilities) with filtering and search, sync error history, diff summary, and Wahapedia disclaimer
+- [x] **Phase 53: Rules Data Hub UI** — Standalone RulesHubPage with sync status header, faction browser, rules browser (stratagems/detachments/shared abilities) with filtering and search, sync error history, diff summary, and Wahapedia disclaimer (completed 2026-05-11)
 - [ ] **Phase 54: Army Lists 2.0 — Detachment Selection** — DetachmentPicker in ArmyListDetailSheet, detachment ability and filtered stratagems display, stale-data warning, favorites summary; user can see all rules-data context for their list in one place
 - [ ] **Phase 55: Playbook Enhancements — Favorites and Notes** — Star/favorite toggle and Game Day reminder flag on any rule entry; inline personal notes on any rule; visual distinction between imported data and user annotations throughout PlaybookTab and RulesHubPage
 - [ ] **Phase 56: Game Day Mode** — GameDayPage launched from army list: CP tracker, phase-grouped stratagem view, pre-game checklist (Zustand persist), per-unit ability quick reference, once-per-game ability toggles, painting status of units in list, favorited reminders surfaced at top
@@ -300,7 +300,7 @@ Plans:
 | 50. Section Form UI | v0.2.7 | 3/3 | Complete | 2026-05-08 |
 | 51. Duplication + Integration Polish | v0.2.7 | 2/2 | Complete | 2026-05-08 |
 | 52. Schema + Data Layer Foundation | 3/3 | Complete    | 2026-05-10 | - |
-| 53. Rules Data Hub UI | 2/3 | In Progress|  | - |
+| 53. Rules Data Hub UI | 3/3 | Complete   | 2026-05-11 | - |
 | 54. Army Lists 2.0 — Detachment Selection | v0.2.8 | 0/TBD | Not started | - |
 | 55. Playbook Enhancements — Favorites and Notes | v0.2.8 | 0/TBD | Not started | - |
 | 56. Game Day Mode | v0.2.8 | 0/TBD | Not started | - |

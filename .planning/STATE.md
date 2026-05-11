@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: executing
-stopped_at: 53-02-PLAN.md complete
-last_updated: "2026-05-11T05:58:29.085Z"
-last_activity: "2026-05-11 — Plan 53-02 complete: Stratagems tab with StratagemCard, filter chips, search, and 9 passing tests"
+stopped_at: 53-03-PLAN.md complete
+last_updated: "2026-05-11T06:10:00.000Z"
+last_activity: "2026-05-11 — Plan 53-03 complete: DetachmentCard, SharedAbilityCard, Detachments and Shared Abilities tabs wired"
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 6
-  completed_plans: 5
-  percent: 83
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-10 after v0.2.8 milestone started)
 ## Current Position
 
 Phase: 53 of 56 (Rules Data Hub UI)
-Plan: 02 complete (2/3)
+Plan: 03 complete (3/3) — Phase Complete
 Status: In Progress
-Last activity: 2026-05-11 — Plan 53-02 complete: Stratagems tab with StratagemCard, filter chips, search, and 9 passing tests
+Last activity: 2026-05-11 — Plan 53-03 complete: DetachmentCard, SharedAbilityCard, Detachments and Shared Abilities tabs wired with search, loading skeletons, count labels
 
-Progress: [████████░░] 83%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -74,6 +74,9 @@ Progress: [████████░░] 83%
 - cp_cost comparison uses string equality (s.cp_cost === options.cpFilter) — TEXT in SQLite, never parse to number (53-02)
 - Phase badge pattern: Badge variant=outline + border-transparent + custom Tailwind bg/text classes for color-coded phase chips (53-02)
 - Filter chip toggle pattern: setFilter(activeFilter === chip ? null : chip) — clicking active chip deselects it (53-02)
+- useDetachmentAbilitiesByDetachment called unconditionally inside DetachmentCard — each card is its own component instance, Rules of Hooks satisfied (53-03)
+- Shared abilities search filters both name and legend fields — legend often contains category/type text users naturally search for (53-03)
+- Loading skeleton applied uniformly to all three Rules Hub tabs for consistent UX (53-03)
 
 ### Pending Todos
 
