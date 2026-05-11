@@ -205,11 +205,10 @@ Plans:
   3. The user can see stratagems filtered to the selected detachment listed in the army list detail, using the same StratagemEntry display component as PlaybookTab
   4. When the last sync occurred more than 30 days ago, a visible stale-data warning appears in the army list detail (not a blocking error — just a banner)
   5. User-marked favorites from PlaybookTab (is_reminder = 1) appear as a "Reminders" section within the army list detail, so game-relevant rules are one place to check before play
-**Plans**: 3 plans
+**Plans**: 2 plans
 Plans:
-- [ ] 52-01-PLAN.md — Migration 019 + TypeScript types + army list query extensions
-- [ ] 52-02-PLAN.md — Points import design document (ARMY-06)
-- [ ] 52-03-PLAN.md — Query modules + hooks + sync invalidation
+- [ ] 54-01-PLAN.md — DetachmentPicker Combobox + StaleDataBanner + sheet wiring
+- [ ] 54-02-PLAN.md — DetachmentRulesSection + RemindersSection + sheet wiring
 
 ### Phase 55: Playbook Enhancements — Favorites and Notes
 **Goal**: Users can mark any rule as a favorite or Game Day reminder and attach personal notes to any imported rule — with all user annotations visually distinct from synced Wahapedia data and surviving re-syncs
@@ -301,6 +300,6 @@ Plans:
 | 51. Duplication + Integration Polish | v0.2.7 | 2/2 | Complete | 2026-05-08 |
 | 52. Schema + Data Layer Foundation | 3/3 | Complete    | 2026-05-10 | - |
 | 53. Rules Data Hub UI | 3/3 | Complete    | 2026-05-11 | - |
-| 54. Army Lists 2.0 — Detachment Selection | v0.2.8 | 0/TBD | Not started | - |
+| 54. Army Lists 2.0 — Detachment Selection | v0.2.8 | 0/2 | Not started | - |
 | 55. Playbook Enhancements — Favorites and Notes | v0.2.8 | 0/TBD | Not started | - |
 | 56. Game Day Mode | v0.2.8 | 0/TBD | Not started | - |
