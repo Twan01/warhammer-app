@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 54, Plan 01 complete"
-last_updated: "2026-05-11T08:50:00.000Z"
-last_activity: "2026-05-11 — Plan 54-01 complete: DetachmentPicker Combobox, StaleDataBanner, wired into ArmyListDetailSheet"
+stopped_at: Phase 54, Plan 02 complete
+last_updated: "2026-05-11T06:57:26.486Z"
+last_activity: "2026-05-11 — Plan 54-02 complete: DetachmentRulesSection, RemindersSection, wired into ArmyListDetailSheet"
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  completed_phases: 3
+  total_plans: 8
+  completed_plans: 8
   percent: 100
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-05-10 after v0.2.8 milestone started)
 ## Current Position
 
 Phase: 54 of 56 (Army Lists 2.0 / Detachment Selection)
-Plan: 01 complete (1/?) — In Progress
+Plan: 02 complete (2/2) — Phase Complete
 Status: In Progress
-Last activity: 2026-05-11 — Plan 54-01 complete: DetachmentPicker Combobox, StaleDataBanner, wired into ArmyListDetailSheet
+Last activity: 2026-05-11 — Plan 54-02 complete: DetachmentRulesSection, RemindersSection, wired into ArmyListDetailSheet
 
 Progress: [██████████] 100%
 
@@ -80,6 +80,8 @@ Progress: [██████████] 100%
 - useWahapediaFactionId placed after faction useMemo in ArmyListDetailSheet to avoid temporal dead zone reference (54-01)
 - StaleDataBanner uses inline ageDays > 30 check (not getSyncFreshness which uses 14-day threshold) (54-01)
 - ArmyListsPage.test.tsx mock must include clearArmyListDetachment, datasheets, and rulesExtended when ArmyListDetailSheet is rendered (54-01)
+- DetachmentRulesSection calls both hooks unconditionally — internal enabled guards satisfy Rules of Hooks (same pattern as DetachmentCard in 53-03) (54-02)
+- RemindersSection is self-contained (no props) — fetches all favorites and filters to is_reminder=1 internally (54-02)
 
 ### Pending Todos
 
@@ -91,6 +93,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-11T08:50:00.000Z
-Stopped at: Phase 54, Plan 01 complete
-Resume: Run /gsd:execute-phase 54 (plan 02 next)
+Last session: 2026-05-11T06:57:26.482Z
+Stopped at: Phase 54, Plan 02 complete
+Resume: Run /gsd:execute-phase 55 (next phase)
