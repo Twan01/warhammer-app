@@ -21,10 +21,10 @@ Requirements for Rules Data Hub / Army Lists 2.0 / Game Day. Each maps to roadma
 
 ### Army Lists 2.0
 
-- [ ] **ARMY-01**: User can select a detachment for an army list
+- [x] **ARMY-01**: User can select a detachment for an army list
 - [ ] **ARMY-02**: User can view the selected detachment's ability in the army list detail
 - [ ] **ARMY-03**: User can view relevant stratagems for the selected detachment in the army list
-- [ ] **ARMY-04**: User sees a stale-data warning when army list uses rules data older than 30 days
+- [x] **ARMY-04**: User sees a stale-data warning when army list uses rules data older than 30 days
 - [ ] **ARMY-05**: User can view list-level rules reminders (user-marked favorites from Playbook)
 - [x] **ARMY-06**: Points import design is documented (schema, versioning, deltas, manual override, list impact)
 
@@ -88,10 +88,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RULES-07 | Phase 53 | Complete |
 | RULES-08 | Phase 53 | Complete |
 | RULES-09 | Phase 53 | Complete |
-| ARMY-01 | Phase 54 | Pending |
+| ARMY-01 | Phase 54 | Complete |
 | ARMY-02 | Phase 54 | Pending |
 | ARMY-03 | Phase 54 | Pending |
-| ARMY-04 | Phase 54 | Pending |
+| ARMY-04 | Phase 54 | Complete |
 | ARMY-05 | Phase 54 | Pending |
 | PLAY-01 | Phase 55 | Pending |
 | PLAY-02 | Phase 55 | Pending |

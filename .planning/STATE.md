@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: executing
-stopped_at: Phase 54 context gathered
-last_updated: "2026-05-11T06:19:59.131Z"
-last_activity: "2026-05-11 — Plan 53-03 complete: DetachmentCard, SharedAbilityCard, Detachments and Shared Abilities tabs wired with search, loading skeletons, count labels"
+stopped_at: "Phase 54, Plan 01 complete"
+last_updated: "2026-05-11T08:50:00.000Z"
+last_activity: "2026-05-11 — Plan 54-01 complete: DetachmentPicker Combobox, StaleDataBanner, wired into ArmyListDetailSheet"
 progress:
   total_phases: 5
   completed_phases: 2
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-10 after v0.2.8 milestone started)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** Phase 53 — Rules Data Hub UI
+**Current focus:** Phase 54 — Army Lists 2.0 / Detachment Selection
 
 ## Current Position
 
-Phase: 53 of 56 (Rules Data Hub UI)
-Plan: 03 complete (3/3) — Phase Complete
+Phase: 54 of 56 (Army Lists 2.0 / Detachment Selection)
+Plan: 01 complete (1/?) — In Progress
 Status: In Progress
-Last activity: 2026-05-11 — Plan 53-03 complete: DetachmentCard, SharedAbilityCard, Detachments and Shared Abilities tabs wired with search, loading skeletons, count labels
+Last activity: 2026-05-11 — Plan 54-01 complete: DetachmentPicker Combobox, StaleDataBanner, wired into ArmyListDetailSheet
 
 Progress: [██████████] 100%
 
@@ -77,6 +77,9 @@ Progress: [██████████] 100%
 - useDetachmentAbilitiesByDetachment called unconditionally inside DetachmentCard — each card is its own component instance, Rules of Hooks satisfied (53-03)
 - Shared abilities search filters both name and legend fields — legend often contains category/type text users naturally search for (53-03)
 - Loading skeleton applied uniformly to all three Rules Hub tabs for consistent UX (53-03)
+- useWahapediaFactionId placed after faction useMemo in ArmyListDetailSheet to avoid temporal dead zone reference (54-01)
+- StaleDataBanner uses inline ageDays > 30 check (not getSyncFreshness which uses 14-day threshold) (54-01)
+- ArmyListsPage.test.tsx mock must include clearArmyListDetachment, datasheets, and rulesExtended when ArmyListDetailSheet is rendered (54-01)
 
 ### Pending Todos
 
@@ -88,6 +91,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-11T06:19:59.128Z
-Stopped at: Phase 54 context gathered
-Resume: Run /gsd:execute-phase 53 (plan 03 next)
+Last session: 2026-05-11T08:50:00.000Z
+Stopped at: Phase 54, Plan 01 complete
+Resume: Run /gsd:execute-phase 54 (plan 02 next)
