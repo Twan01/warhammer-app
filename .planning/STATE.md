@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 55 Plan 01 complete: RuleAnnotationControls, RuleNoteEditor, card wiring"
-last_updated: "2026-05-11T16:41:15Z"
-last_activity: "2026-05-11 — Plan 55-01 complete: RuleAnnotationControls, RuleNoteEditor, StratagemCard/SharedAbilityCard/DetachmentCard wired"
+stopped_at: "Completed 55-02-PLAN.md: PlaybookTab full annotation coverage"
+last_updated: "2026-05-11T16:50:11.420Z"
+last_activity: "2026-05-11 — Plan 55-02 complete: PlaybookTab full annotation coverage"
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 5
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
   percent: 100
 ---
 
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-10 after v0.2.8 milestone started)
 
 ## Current Position
 
-Phase: 55 of 56 (Playbook Enhancements — Favorites and Notes)
-Plan: 01 complete (1/2) — In Progress
-Status: In Progress
-Last activity: 2026-05-11 — Plan 55-01 complete: RuleAnnotationControls, RuleNoteEditor, card wiring
+Phase: 55 of 56 (Playbook Enhancements — Favorites and Notes) — COMPLETE
+Plan: 02 complete (2/2) — Phase Complete
+Status: Ready for Phase 56
+Last activity: 2026-05-11 — Plan 55-02 complete: PlaybookTab full annotation coverage
 
-Progress: [█████████░] 90%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -86,6 +86,9 @@ Progress: [█████████░] 90%
 - RulesHubPage loads favorites/notes once at page level, builds Map<compositeKey, T> via useMemo, passes to cards — no N+1 hook pattern (55-01)
 - DetachmentRulesSection passes favorite=null note=null to StratagemCard — no annotation context in army list sheet (55-01)
 - RuleNoteEditor debounce tests use fireEvent.change + vi.advanceTimersByTime — avoids async timing issues when combined with vi.useFakeTimers (55-01)
+- PlaybookTab loads rulesFavorites and rulesNotes once at page level, builds Map<compositeKey, T> via useMemo, passes to sub-components — identical pattern to RulesHubPage (55-02)
+- DetachmentAbilityRow added as a named sub-component inside DetachmentSection to call mutation hooks per-item without violating Rules of Hooks (55-02)
+- ExtendedAbilityEntry extended with id prop (string) as composite key for shared_ability Map lookup (55-02)
 
 ### Pending Todos
 
@@ -97,6 +100,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-11T16:41:15Z
-Stopped at: Phase 55 Plan 01 complete
-Resume: Run /gsd:execute-phase 55 (plan 02 next)
+Last session: 2026-05-11T16:50:11.417Z
+Stopped at: Completed 55-02-PLAN.md: PlaybookTab full annotation coverage
+Resume: Run /gsd:execute-phase 56 (next phase)

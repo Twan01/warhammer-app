@@ -159,7 +159,7 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 - [x] **Phase 52: Schema + Data Layer Foundation** — Migration 019: detachment_id on army_lists, rules_favorites and rules_notes tables in hobbyforge.db; typed query modules and hooks for all new tables; points import design documentation (completed 2026-05-10)
 - [x] **Phase 53: Rules Data Hub UI** — Standalone RulesHubPage with sync status header, faction browser, rules browser (stratagems/detachments/shared abilities) with filtering and search, sync error history, diff summary, and Wahapedia disclaimer (completed 2026-05-11)
 - [x] **Phase 54: Army Lists 2.0 — Detachment Selection** — DetachmentPicker in ArmyListDetailSheet, detachment ability and filtered stratagems display, stale-data warning, favorites summary; user can see all rules-data context for their list in one place (completed 2026-05-11)
-- [ ] **Phase 55: Playbook Enhancements — Favorites and Notes** — Star/favorite toggle and Game Day reminder flag on any rule entry; inline personal notes on any rule; visual distinction between imported data and user annotations throughout PlaybookTab and RulesHubPage
+- [x] **Phase 55: Playbook Enhancements — Favorites and Notes** — Star/favorite toggle and Game Day reminder flag on any rule entry; inline personal notes on any rule; visual distinction between imported data and user annotations throughout PlaybookTab and RulesHubPage (completed 2026-05-11)
 - [ ] **Phase 56: Game Day Mode** — GameDayPage launched from army list: CP tracker, phase-grouped stratagem view, pre-game checklist (Zustand persist), per-unit ability quick reference, once-per-game ability toggles, painting status of units in list, favorited reminders surfaced at top
 
 ## Phase Details
@@ -298,5 +298,5 @@ Plans:
 | 52. Schema + Data Layer Foundation | 3/3 | Complete    | 2026-05-10 | - |
 | 53. Rules Data Hub UI | 3/3 | Complete    | 2026-05-11 | - |
 | 54. Army Lists 2.0 — Detachment Selection | 2/2 | Complete    | 2026-05-11 | - |
-| 55. Playbook Enhancements — Favorites and Notes | 1/2 | In Progress|  | - |
+| 55. Playbook Enhancements — Favorites and Notes | 2/2 | Complete   | 2026-05-11 | - |
 | 56. Game Day Mode | v0.2.8 | 0/TBD | Not started | - |
