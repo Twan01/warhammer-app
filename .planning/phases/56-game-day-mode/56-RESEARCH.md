@@ -445,22 +445,16 @@ export function UnitAbilityCard({ unit, listId }: { unit: ArmyListUnitRow; listI
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Once-per-game ability text format in real Wahapedia data**
-   - What we know: `RwDatasheetAbility.type` does not encode once-per-game. Detection requires heuristic text search on `name`, `description`, `parameter`.
-   - What's unclear: Whether Wahapedia consistently uses "once per battle" or uses variant phrasing. The `parameter` field may carry structured info.
-   - Recommendation: Implement heuristic on `description + name + parameter`, guard with `oncePerGameAbilities.length > 0`. Log matches during testing.
+1. **Once-per-game ability text format in real Wahapedia data** — RESOLVED
+   - Resolution: Implement heuristic on `description + name + parameter` searching for "once per battle" and "once per game". Guard with `oncePerGameAbilities.length > 0`. Accepted as LOW confidence — may miss variant phrasing but covers standard 10th edition wording.
 
-2. **StratagemCard in Game Day — simplified variant or reuse with null props**
-   - What we know: Passing `favorite={null} note={null}` to StratagemCard renders annotation controls as inactive buttons (visible but non-highlighted). DetachmentRulesSection already does this.
-   - What's unclear: Whether the annotation control buttons (star, flag icons) are visually distracting in a gameplay context.
-   - Recommendation: Start with `favorite={null} note={null}` reuse. If UX review shows annotation icons are distracting, extract `GameDayStratagemCard` that strips them.
+2. **StratagemCard in Game Day — simplified variant or reuse with null props** — RESOLVED
+   - Resolution: Create a stripped `GameDayStratagemCard` variant that omits annotation controls entirely and adds a "Spend CP" tap action. Game Day context prioritizes clean gameplay UX over reuse.
 
-3. **CP tracker starting value UX**
-   - What we know: Default CP is 0 (10th edition starts at 0, gains 1 per Command Phase). User must tap +1 each Command Phase.
-   - What's unclear: Whether a "set starting CP" number input should appear on first visit or always be in header.
-   - Recommendation: Show a small input field in the header alongside the CP display. Label "Starting CP" with default 0. CP display shows current value prominently.
+3. **CP tracker starting value UX** — RESOLVED
+   - Resolution: Small "Starting CP" number input always visible in header alongside the CP display. Default 0. Setting starting CP also resets current CP to that value.
 
 ---
 

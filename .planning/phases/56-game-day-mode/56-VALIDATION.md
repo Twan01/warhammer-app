@@ -2,7 +2,7 @@
 phase: 56
 slug: game-day-mode
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-05-11
 ---
@@ -38,18 +38,18 @@ created: 2026-05-11
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 56-01-01 | 01 | 1 | GAME-03 | unit | `pnpm test -- tests/game-day/gameDayStore.test.ts` | ❌ W0 | ⬜ pending |
-| 56-01-02 | 01 | 1 | GAME-01 | unit | `pnpm test -- tests/game-day/GameDayPage.test.tsx` | ❌ W0 | ⬜ pending |
-| 56-02-01 | 02 | 1 | GAME-02, GAME-07 | unit | `pnpm test -- tests/game-day/StratagemsByPhase.test.tsx` | ❌ W0 | ⬜ pending |
-| 56-02-02 | 02 | 1 | GAME-03 | unit | `pnpm test -- tests/game-day/CpTracker.test.tsx` | ❌ W0 | ⬜ pending |
-| 56-03-01 | 03 | 2 | GAME-04 | unit | `pnpm test -- tests/game-day/PreGameChecklist.test.tsx` | ❌ W0 | ⬜ pending |
-| 56-03-02 | 03 | 2 | GAME-05, GAME-06, GAME-08 | unit | `pnpm test -- tests/game-day/UnitAbilityCards.test.tsx` | ❌ W0 | ⬜ pending |
+| 56-01-T1 | 01 | 1 | GAME-01, GAME-03 | unit | `pnpm test -- tests/game-day/gameDayStore.test.ts tests/game-day/GameDayPage.test.tsx` | W0 | pending |
+| 56-01-T2 | 01 | 1 | GAME-02, GAME-07 | unit | `pnpm test -- tests/game-day/StratagemsByPhase.test.tsx tests/game-day/CpTracker.test.tsx` | W0 | pending |
+| 56-02-T1 | 02 | 2 | GAME-05, GAME-06, GAME-08 | unit | `pnpm test -- tests/game-day/UnitAbilityCards.test.tsx` | W0 | pending |
+| 56-02-T2 | 02 | 2 | GAME-04 | unit | `pnpm test -- tests/game-day/PreGameChecklist.test.tsx` | W0 | pending |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+*Status: pending / green / red / flaky*
 
 ---
 
 ## Wave 0 Requirements
+
+Test stubs are created inline within plan tasks (each task creates its own test file alongside the implementation). No separate Wave 0 plan needed — Vitest stubs are co-created with the components they test.
 
 - [ ] `tests/game-day/gameDayStore.test.ts` — Zustand persist store tests for CP, checklist, OPG toggles
 - [ ] `tests/game-day/GameDayPage.test.tsx` — Route rendering, header display, tab navigation
@@ -64,10 +64,10 @@ created: 2026-05-11
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Game Day button navigates correctly from ArmyListDetailSheet | GAME-01 | E2E navigation requires Tauri runtime | Open army list detail → click Game Day → verify route |
-| CP tracker persists across navigation | GAME-03 | localStorage persistence requires browser | Spend CP → navigate away → return → verify CP preserved |
-| Checklist persists across navigation | GAME-04 | localStorage persistence requires browser | Check items → navigate away → return → verify checked state |
-| Once-per-game toggle persists | GAME-06 | localStorage persistence requires browser | Toggle ability → navigate away → return → verify toggle state |
+| Game Day button navigates correctly from ArmyListDetailSheet | GAME-01 | E2E navigation requires Tauri runtime | Open army list detail, click Game Day, verify route |
+| CP tracker persists across navigation | GAME-03 | localStorage persistence requires browser | Spend CP, navigate away, return, verify CP preserved |
+| Checklist persists across navigation | GAME-04 | localStorage persistence requires browser | Check items, navigate away, return, verify checked state |
+| Once-per-game toggle persists | GAME-06 | localStorage persistence requires browser | Toggle ability, navigate away, return, verify toggle state |
 
 ---
 
