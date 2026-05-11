@@ -219,11 +219,10 @@ Plans:
   2. Every rule entry shows a "Game Day reminder" flag toggle (distinct from the favorite star); rules with is_reminder = 1 are the source for ARMY-05 (army list reminders) and GAME-07 (Game Day reminders)
   3. Every rule entry shows a note textarea; typing and saving a note persists a rules_notes row in hobbyforge.db using the rule_name TEXT copy; the note survives re-sync and reappears on rule re-display
   4. Favorited rules and user notes are visually distinct from imported Wahapedia data — different background, label, or icon — making it clear which content is user-generated vs. community-sourced
-**Plans**: 3 plans
+**Plans**: 2 plans
 Plans:
-- [ ] 52-01-PLAN.md — Migration 019 + TypeScript types + army list query extensions
-- [ ] 52-02-PLAN.md — Points import design document (ARMY-06)
-- [ ] 52-03-PLAN.md — Query modules + hooks + sync invalidation
+- [ ] 55-01-PLAN.md — Shared annotation components + RulesHubPage card wiring
+- [ ] 55-02-PLAN.md — PlaybookTab entry annotation wiring
 
 ### Phase 56: Game Day Mode
 **Goal**: Users can launch a focused in-game reference view from any army list — with a CP tracker, phase-grouped stratagems for the selected detachment, a persistent pre-game checklist, per-unit ability cards, and painting status visible at a glance
@@ -235,11 +234,9 @@ Plans:
   3. A CP tracker shows current CP remaining (starts at user-set value); each tap on a stratagem card decrements CP by that stratagem's cost, with undo available; CP state persists across navigation using Zustand persist (localStorage)
   4. A pre-game checklist is displayed with user-defined setup steps; checked items remain checked until the user explicitly resets the checklist; checklist state persists using Zustand persist (localStorage)
   5. Each unit in the army list has a collapsible ability quick-reference card; abilities with an explicit once-per-game marker show a used/unused toggle; unit painting status (painted/unpainted) is visible on each card as a contextual readiness signal
-**Plans**: 3 plans
+**Plans**: TBD
 Plans:
-- [ ] 52-01-PLAN.md — Migration 019 + TypeScript types + army list query extensions
-- [ ] 52-02-PLAN.md — Points import design document (ARMY-06)
-- [ ] 52-03-PLAN.md — Query modules + hooks + sync invalidation
+- [ ] TBD
 
 ## Progress
 
@@ -301,5 +298,5 @@ Plans:
 | 52. Schema + Data Layer Foundation | 3/3 | Complete    | 2026-05-10 | - |
 | 53. Rules Data Hub UI | 3/3 | Complete    | 2026-05-11 | - |
 | 54. Army Lists 2.0 — Detachment Selection | 2/2 | Complete    | 2026-05-11 | - |
-| 55. Playbook Enhancements — Favorites and Notes | v0.2.8 | 0/TBD | Not started | - |
+| 55. Playbook Enhancements — Favorites and Notes | v0.2.8 | 0/2 | Not started | - |
 | 56. Game Day Mode | v0.2.8 | 0/TBD | Not started | - |
