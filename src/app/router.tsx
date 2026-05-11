@@ -21,6 +21,7 @@ import { BattleLogPage } from "./battle-log/page";
 import { WishlistPage } from "./wishlist/page";
 import { GoalsPage } from "./goals/page";
 import { RulesHubPageShell } from "./rules-hub/page";
+import { GameDayPageShell } from "./game-day/page";
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -114,6 +115,12 @@ const rulesHubRoute = createRoute({
   component: RulesHubPageShell,
 });
 
+const gameDayRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/game-day/$listId",
+  component: GameDayPageShell,
+});
+
 const routeTree = rootRoute.addChildren([
   dashboardRoute,
   factionsRoute,
@@ -128,6 +135,7 @@ const routeTree = rootRoute.addChildren([
   battleLogRoute,
   settingsRoute,
   rulesHubRoute,
+  gameDayRoute,
 ]);
 
 export const router = createRouter({ routeTree });

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { Plus, Swords } from "lucide-react";
 import { toast } from "sonner";
 import {
   Sheet,
@@ -51,6 +52,7 @@ export function ArmyListDetailSheet({
 }: ArmyListDetailSheetProps) {
   const { data: units, isLoading } = useArmyListWithUnits(list?.id);
   const { data: factions } = useFactions();
+  const navigate = useNavigate();
   const removeUnitFromList = useRemoveUnitFromList();
   const updateArmyList = useUpdateArmyList();
   const clearDetachment = useClearArmyListDetachment();
@@ -240,6 +242,17 @@ export function ArmyListDetailSheet({
             </div>
 
             <SheetFooter className="mt-6 gap-2 sm:gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  onClose();
+                  navigate({ to: "/game-day/$listId", params: { listId: String(list.id) } });
+                }}
+              >
+                <Swords className="mr-2 h-4 w-4" />
+                Game Day
+              </Button>
               <Button
                 variant="ghost"
                 className="text-destructive hover:text-destructive"
