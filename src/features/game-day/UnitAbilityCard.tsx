@@ -46,7 +46,7 @@ export function UnitAbilityCard({ unit, listId }: UnitAbilityCardProps) {
       .filter(isOncePerGame)
       .map((ability) => ({
         ability,
-        key: ability.ability_id ?? ability.name,
+        key: `${unit.unit_id}::${ability.ability_id ?? ability.name}`,
       }));
   }, [datasheet?.abilities]);
 

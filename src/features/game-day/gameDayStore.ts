@@ -72,9 +72,10 @@ export const useGameDayStore = create<GameDayStore>()(
       spendCp: (listId, cost) =>
         set((s) => {
           const cur = getListState(s, listId);
+          const safeCost = Math.max(0, cost);
           return setListState(s, listId, {
             prevCp: cur.cp,
-            cp: Math.max(0, cur.cp - cost),
+            cp: Math.max(0, cur.cp - safeCost),
           });
         }),
 
@@ -148,7 +149,7 @@ const DEFAULT_STATE: GameDayListState = {
   cp: 0,
   prevCp: null,
   startingCp: 0,
-  checklistItems: DEFAULT_CHECKLIST,
+  checklistItems: DEFAULT_CHECKLIST.map((item) => ({ ...item })),
   usedAbilities: [],
 };
 
