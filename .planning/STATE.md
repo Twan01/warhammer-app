@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
-status: Ready for Phase 56
-stopped_at: Phase 56 context gathered
-last_updated: "2026-05-11T17:03:11.122Z"
-last_activity: "2026-05-11 — Plan 55-02 complete: PlaybookTab full annotation coverage"
+status: Milestone v0.2.8 Complete
+stopped_at: Phase 56 complete — v0.2.8 shipped
+last_updated: "2026-05-11T21:30:00.000Z"
+last_activity: "2026-05-11 — Phase 56 complete: Game Day Mode with CP tracker, stratagems, checklist, unit cards"
 progress:
   total_phases: 5
-  completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
+  completed_phases: 5
+  total_plans: 12
+  completed_plans: 12
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-10 after v0.2.8 milestone started)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
-**Current focus:** Phase 54 — Army Lists 2.0 / Detachment Selection
+**Current focus:** Milestone v0.2.8 complete — all 5 phases shipped
 
 ## Current Position
 
-Phase: 55 of 56 (Playbook Enhancements — Favorites and Notes) — COMPLETE
+Phase: 56 of 56 (Game Day Mode) — COMPLETE
 Plan: 02 complete (2/2) — Phase Complete
-Status: Ready for Phase 56
-Last activity: 2026-05-11 — Plan 55-02 complete: PlaybookTab full annotation coverage
+Status: Milestone v0.2.8 Complete
+Last activity: 2026-05-11 — Phase 56 complete: Game Day Mode
 
 Progress: [██████████] 100%
 

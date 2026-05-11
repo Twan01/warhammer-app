@@ -11,7 +11,7 @@
 - ✅ **v0.2.5 Recipes 2.0 / Painting Studio** — Phases 37–41 (shipped 2026-05-07)
 - ✅ **v0.2.6 Rules Sync 2.0 / Rules Data Hub** — Phases 42–47 (shipped 2026-05-08)
 - ✅ **v0.2.7 Recipes 3.0 / Hierarchical Painting Workflows** — Phases 48–51 (shipped 2026-05-08)
-- 🚧 **v0.2.8 Rules Data Hub UI / Army Lists 2.0 / Game Day** — Phases 52–56 (in progress)
+- ✅ **v0.2.8 Rules Data Hub UI / Army Lists 2.0 / Game Day** — Phases 52–56 (shipped 2026-05-11)
 
 ## Phases
 
@@ -152,7 +152,7 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 
 ---
 
-### 🚧 v0.2.8 Rules Data Hub UI / Army Lists 2.0 / Game Day (In Progress)
+### ✅ v0.2.8 Rules Data Hub UI / Army Lists 2.0 / Game Day (Shipped 2026-05-11)
 
 **Milestone Goal:** Expose synced Wahapedia rules data in a standalone browser, connect detachment selection to army lists, and deliver a focused Game Day mode for in-game reference — making rules data visible, searchable, and useful for real game preparation.
 
@@ -160,7 +160,7 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 - [x] **Phase 53: Rules Data Hub UI** — Standalone RulesHubPage with sync status header, faction browser, rules browser (stratagems/detachments/shared abilities) with filtering and search, sync error history, diff summary, and Wahapedia disclaimer (completed 2026-05-11)
 - [x] **Phase 54: Army Lists 2.0 — Detachment Selection** — DetachmentPicker in ArmyListDetailSheet, detachment ability and filtered stratagems display, stale-data warning, favorites summary; user can see all rules-data context for their list in one place (completed 2026-05-11)
 - [x] **Phase 55: Playbook Enhancements — Favorites and Notes** — Star/favorite toggle and Game Day reminder flag on any rule entry; inline personal notes on any rule; visual distinction between imported data and user annotations throughout PlaybookTab and RulesHubPage (completed 2026-05-11)
-- [ ] **Phase 56: Game Day Mode** — GameDayPage launched from army list: CP tracker, phase-grouped stratagem view, pre-game checklist (Zustand persist), per-unit ability quick reference, once-per-game ability toggles, painting status of units in list, favorited reminders surfaced at top
+- [x] **Phase 56: Game Day Mode** — GameDayPage launched from army list: CP tracker, phase-grouped stratagem view, pre-game checklist (Zustand persist), per-unit ability quick reference, once-per-game ability toggles, painting status of units in list, favorited reminders surfaced at top (completed 2026-05-11)
 
 ## Phase Details
 
@@ -234,9 +234,10 @@ Plans:
   3. A CP tracker shows current CP remaining (starts at user-set value); each tap on a stratagem card decrements CP by that stratagem's cost, with undo available; CP state persists across navigation using Zustand persist (localStorage)
   4. A pre-game checklist is displayed with user-defined setup steps; checked items remain checked until the user explicitly resets the checklist; checklist state persists using Zustand persist (localStorage)
   5. Each unit in the army list has a collapsible ability quick-reference card; abilities with an explicit once-per-game marker show a used/unused toggle; unit painting status (painted/unpainted) is visible on each card as a contextual readiness signal
-**Plans**: TBD
+**Plans**: 2 plans
 Plans:
-- [ ] TBD
+- [x] 56-01-PLAN.md — Core infrastructure: Zustand store, route, page shell, CP tracker, Stratagems tab
+- [x] 56-02-PLAN.md — Units tab with ability cards + OPG toggles, Checklist tab
 
 ## Progress
 
@@ -299,4 +300,4 @@ Plans:
 | 53. Rules Data Hub UI | 3/3 | Complete    | 2026-05-11 | - |
 | 54. Army Lists 2.0 — Detachment Selection | 2/2 | Complete    | 2026-05-11 | - |
 | 55. Playbook Enhancements — Favorites and Notes | 2/2 | Complete    | 2026-05-11 | - |
-| 56. Game Day Mode | v0.2.8 | 0/TBD | Not started | - |
+| 56. Game Day Mode | v0.2.8 | 2/2 | Complete | 2026-05-11 |
