@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: executing
-stopped_at: 53-01-PLAN.md complete
-last_updated: "2026-05-10T19:27:13.543Z"
-last_activity: "2026-05-10 — Plan 52-03 complete: query modules + hooks for favorites, notes, and detachment queries"
+stopped_at: 53-02-PLAN.md complete
+last_updated: "2026-05-11T05:58:29.085Z"
+last_activity: "2026-05-11 — Plan 53-02 complete: Stratagems tab with StratagemCard, filter chips, search, and 9 passing tests"
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 6
-  completed_plans: 4
-  percent: 100
+  completed_plans: 5
+  percent: 83
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-10 after v0.2.8 milestone started)
 ## Current Position
 
 Phase: 53 of 56 (Rules Data Hub UI)
-Plan: 01 complete (1/3)
+Plan: 02 complete (2/3)
 Status: In Progress
-Last activity: 2026-05-10 — Plan 53-01 complete: Rules Hub page scaffold with sync status card, faction picker, tab shell, sidebar nav
+Last activity: 2026-05-11 — Plan 53-02 complete: Stratagems tab with StratagemCard, filter chips, search, and 9 passing tests
 
-Progress: [███████░░░] 67%
+Progress: [████████░░] 83%
 
 ## Performance Metrics
 
@@ -71,6 +71,9 @@ Progress: [███████░░░] 67%
 - SyncDiff summary uses array .length counts (not scalar integers) since SyncDiff stores item arrays, not numeric totals (53-01)
 - TooltipProvider must be included in test wrappers for any component using Radix Tooltip — jsdom throws without it (53-01)
 - unknown cast required for UseQueryResult partial mocks: `as unknown as ReturnType<typeof hook>` (53-01)
+- cp_cost comparison uses string equality (s.cp_cost === options.cpFilter) — TEXT in SQLite, never parse to number (53-02)
+- Phase badge pattern: Badge variant=outline + border-transparent + custom Tailwind bg/text classes for color-coded phase chips (53-02)
+- Filter chip toggle pattern: setFilter(activeFilter === chip ? null : chip) — clicking active chip deselects it (53-02)
 
 ### Pending Todos
 
@@ -82,6 +85,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-10T19:27:13.540Z
-Stopped at: 53-01-PLAN.md complete
-Resume: Run /gsd:plan-phase 52
+Last session: 2026-05-11T05:58:29.085Z
+Stopped at: 53-02-PLAN.md complete
+Resume: Run /gsd:execute-phase 53 (plan 03 next)
