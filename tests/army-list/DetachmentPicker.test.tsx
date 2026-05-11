@@ -7,7 +7,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { DetachmentPicker } from "@/features/army-lists/DetachmentPicker";
 import type { RwDetachment } from "@/types/datasheet";
 import { useDetachmentsByFaction } from "@/hooks/useRulesExtended";
-import type { UseQueryResult } from "@tanstack/react-query";
 
 vi.mock("@/hooks/useRulesExtended", () => ({
   useDetachmentsByFaction: vi.fn(),
@@ -87,7 +86,7 @@ describe("DetachmentPicker", () => {
       isLoading: false,
     } as unknown as ReturnType<typeof useDetachmentsByFaction>);
 
-    const { onClear } = renderPicker({ value: "DET001", valueName: "Gladius Task Force" });
+    renderPicker({ value: "DET001", valueName: "Gladius Task Force" });
     // Clear button has aria-label or is an icon button — find by role
     const clearBtn = screen.getByRole("button", { name: /clear/i });
     expect(clearBtn).toBeInTheDocument();

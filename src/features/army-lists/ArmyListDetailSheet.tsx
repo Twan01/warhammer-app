@@ -20,11 +20,15 @@ import {
   useArmyListWithUnits,
   useRemoveUnitFromList,
   useUpdateArmyList,
+  useClearArmyListDetachment,
 } from "@/hooks/useArmyLists";
+import { useWahapediaFactionId, useRulesSyncMeta } from "@/hooks/useDatasheet";
 import { useFactions } from "@/hooks/useFactions";
 import type { ArmyList } from "@/types/armyList";
 import { ArmyListSummaryBar } from "./ArmyListSummaryBar";
 import { ArmyListUnitRow } from "./ArmyListUnitRow";
+import { DetachmentPicker } from "./DetachmentPicker";
+import { StaleDataBanner } from "./StaleDataBanner";
 
 interface ArmyListDetailSheetProps {
   open: boolean;
@@ -47,11 +51,15 @@ export function ArmyListDetailSheet({
   const { data: factions } = useFactions();
   const removeUnitFromList = useRemoveUnitFromList();
   const updateArmyList = useUpdateArmyList();
+  const clearDetachment = useClearArmyListDetachment();
+  const { data: syncMeta } = useRulesSyncMeta();
 
   const faction = useMemo(
     () => (list?.faction_id ? (factions ?? []).find((f) => f.id === list.faction_id) ?? null : null),
     [factions, list?.faction_id],
   );
+
+  const { data: wahapediaFactionId } = useWahapediaFactionId(faction?.name);
 
   // Local draft for the list-level notes textarea.
   const [notesDraft, setNotesDraft] = useState(list?.notes ?? "");
@@ -94,6 +102,21 @@ export function ArmyListDetailSheet({
     );
   }
 
+  function handleDetachmentSelect(detachmentId: string, detachmentName: string) {
+    if (!list) return;
+    updateArmyList.mutate(
+      { id: list.id, detachment_id: detachmentId, detachment_name: detachmentName },
+      { onSuccess: () => toast.success("Detachment selected.") },
+    );
+  }
+
+  function handleDetachmentClear() {
+    if (!list) return;
+    clearDetachment.mutate(list.id, {
+      onSuccess: () => toast.success("Detachment cleared."),
+    });
+  }
+
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <SheetContent
@@ -121,6 +144,21 @@ export function ArmyListDetailSheet({
             </SheetHeader>
 
             <ArmyListSummaryBar units={units ?? []} />
+
+            <div className="flex flex-col gap-3 px-4 py-2">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold">Detachment</label>
+                <DetachmentPicker
+                  factionWahapediaId={wahapediaFactionId ?? undefined}
+                  value={list.detachment_id}
+                  valueName={list.detachment_name}
+                  disabled={!faction}
+                  onChange={handleDetachmentSelect}
+                  onClear={handleDetachmentClear}
+                />
+              </div>
+              <StaleDataBanner lastSyncAt={syncMeta?.last_sync_at} />
+            </div>
 
             <div className="flex items-center justify-between px-4 py-2">
               <span className="text-sm font-semibold">Units</span>

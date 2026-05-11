@@ -31,6 +31,8 @@ vi.mock("@/db/queries/armyLists", () => ({
   addUnitToList: vi.fn(),
   removeUnitFromList: vi.fn(),
   updateArmyListUnit: vi.fn(),
+  clearArmyListDetachment: vi.fn().mockResolvedValue(undefined),
+  getArmyListReadiness: vi.fn().mockResolvedValue([]),
 }));
 vi.mock("@/db/queries/factions", () => ({
   getFactions: vi.fn().mockResolvedValue([] as Faction[]),
@@ -45,6 +47,21 @@ vi.mock("@/db/queries/units", () => ({
   createUnit: vi.fn(),
   updateUnit: vi.fn(),
   deleteUnit: vi.fn(),
+}));
+vi.mock("@/db/queries/datasheets", () => ({
+  getRulesSyncMeta: vi.fn().mockResolvedValue(null),
+  resolveWahapediaFactionIdByName: vi.fn().mockResolvedValue(null),
+  getDatasheetsByFaction: vi.fn().mockResolvedValue([]),
+  getDatasheetIdForUnit: vi.fn().mockResolvedValue(null),
+  getFullDatasheet: vi.fn().mockResolvedValue(null),
+}));
+vi.mock("@/db/queries/rulesExtended", () => ({
+  getDetachmentsByFaction: vi.fn().mockResolvedValue([]),
+  getStratagemsByFaction: vi.fn().mockResolvedValue([]),
+  getDetachmentAbilitiesByDetachment: vi.fn().mockResolvedValue([]),
+  getSharedAbilitiesByFaction: vi.fn().mockResolvedValue([]),
+  getDetachmentById: vi.fn().mockResolvedValue(null),
+  getStratagemsByDetachment: vi.fn().mockResolvedValue([]),
 }));
 
 import { getArmyLists } from "@/db/queries/armyLists";
