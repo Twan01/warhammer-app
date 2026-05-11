@@ -62,6 +62,17 @@ vi.mock("@/features/units/DatasheetPicker", () => ({
   DatasheetPicker: () => null, // render nothing — picker is tested separately
 }));
 
+vi.mock("@/hooks/useRulesFavorites", () => ({
+  useRulesFavorites: vi.fn(() => ({ data: [] })),
+  useUpsertRulesFavorite: vi.fn(() => ({ mutate: vi.fn() })),
+  useDeleteRulesFavorite: vi.fn(() => ({ mutate: vi.fn() })),
+}));
+
+vi.mock("@/hooks/useRulesNotes", () => ({
+  useRulesNotes: vi.fn(() => ({ data: [] })),
+  useUpsertRulesNote: vi.fn(() => ({ mutate: vi.fn() })),
+}));
+
 const useStratagemsByFactionMock = vi.fn();
 const useDetachmentsByFactionMock = vi.fn();
 const useSharedAbilitiesByFactionMock = vi.fn();
@@ -76,8 +87,12 @@ vi.mock("@/hooks/useRulesExtended", () => ({
 
 import * as queries from "@/db/queries/strategyNotes";
 import * as datasheetHooks from "@/hooks/useDatasheet";
+import * as rulesFavoritesHooks from "@/hooks/useRulesFavorites";
+import * as rulesNotesHooks from "@/hooks/useRulesNotes";
 import { PlaybookTab } from "@/features/units/PlaybookTab";
 import type { StrategyNote } from "@/types/strategyNote";
+import type { RulesFavorite } from "@/types/rulesFavorite";
+import type { RulesNote } from "@/types/rulesNote";
 
 const getStrategyNoteMock = queries.getStrategyNote as unknown as ReturnType<typeof vi.fn>;
 const upsertStrategyNoteMock = queries.upsertStrategyNote as unknown as ReturnType<typeof vi.fn>;
@@ -625,5 +640,271 @@ describe("PlaybookTab — combined absence of extended sections", () => {
     expect(screen.queryByText("Stratagems")).toBeNull();
     expect(screen.queryByText("Detachments")).toBeNull();
     expect(screen.queryByText("Shared Faction Abilities")).toBeNull();
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// Phase 55 Plan 02 — Annotation controls in PlaybookTab sub-components
+// PLAY-01: Star toggle visible on all rule entries
+// PLAY-02: Flag toggle visible on all rule entries
+// PLAY-04: Annotation styling (border-l-primary bg-primary/5) on annotated entries
+// ────────────────────────────────────────────────────────────────────────────
+
+const sampleStratagemAnnotation = {
+  id: "s-ann",
+  faction_id: "SM",
+  name: "Transhuman Physiology",
+  type: "Battle Tactic",
+  cp_cost: "1",
+  legend: null,
+  turn: null,
+  phase: "Fight phase",
+  detachment: null,
+  detachment_id: null,
+  description: "Ignore wound modifiers.",
+};
+
+const sampleDetachmentAnnotation = {
+  id: "d-ann",
+  faction_id: "SM",
+  name: "Ironstorm Spearhead",
+  legend: null,
+  type: "Vehicle",
+};
+
+const sampleAbilityAnnotation = {
+  id: "a-ann",
+  faction_id: "SM",
+  name: "And They Shall Know No Fear",
+  detachment: "Ironstorm Spearhead",
+  detachment_id: "d-ann",
+  legend: null,
+  description: "Ignore morale modifiers.",
+};
+
+const sampleSharedAbilityAnnotation = {
+  id: "sa-ann",
+  name: "Oath of Moment",
+  legend: null,
+  faction_id: "SM",
+  description: "Re-roll hit rolls of 1.",
+};
+
+describe("PlaybookTab — PLAY-01/02 StratagemEntry annotation controls", () => {
+  it("PLAY-01: shows star button (Add to favorites) for each stratagem", async () => {
+    useStratagemsByFactionMock.mockReturnValue({ data: [sampleStratagemAnnotation] });
+    renderInsideTabs(42);
+    await screen.findByText("Transhuman Physiology");
+    expect(screen.getByRole("button", { name: "Add to favorites" })).toBeInTheDocument();
+  });
+
+  it("PLAY-02: shows flag button (Set as Game Day reminder) for each stratagem", async () => {
+    useStratagemsByFactionMock.mockReturnValue({ data: [sampleStratagemAnnotation] });
+    renderInsideTabs(42);
+    await screen.findByText("Transhuman Physiology");
+    expect(screen.getByRole("button", { name: "Set as Game Day reminder" })).toBeInTheDocument();
+  });
+
+  it("PLAY-01: shows filled yellow star when stratagem is in favorites (PLAY-01)", async () => {
+    const mockFav: RulesFavorite = {
+      id: 1,
+      rule_id: "s-ann",
+      rule_type: "stratagem",
+      rule_name: "Transhuman Physiology",
+      is_reminder: 0,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+    };
+
+    vi.mocked(rulesFavoritesHooks.useRulesFavorites).mockReturnValueOnce(
+      { data: [mockFav] } as unknown as ReturnType<typeof rulesFavoritesHooks.useRulesFavorites>
+    );
+
+    useStratagemsByFactionMock.mockReturnValue({ data: [sampleStratagemAnnotation] });
+    renderInsideTabs(42);
+    await screen.findByText("Transhuman Physiology");
+
+    const starBtn = screen.getByRole("button", { name: "Remove from favorites" });
+    expect(starBtn.querySelector("svg")).toHaveClass("fill-yellow-500");
+  });
+
+  it("PLAY-04: applies border-l-primary and bg-primary/5 to annotated stratagem entry", async () => {
+    const mockFav: RulesFavorite = {
+      id: 1,
+      rule_id: "s-ann",
+      rule_type: "stratagem",
+      rule_name: "Transhuman Physiology",
+      is_reminder: 0,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+    };
+
+    vi.mocked(rulesFavoritesHooks.useRulesFavorites).mockReturnValueOnce(
+      { data: [mockFav] } as unknown as ReturnType<typeof rulesFavoritesHooks.useRulesFavorites>
+    );
+
+    useStratagemsByFactionMock.mockReturnValue({ data: [sampleStratagemAnnotation] });
+    const { container } = renderInsideTabs(42);
+    await screen.findByText("Transhuman Physiology");
+
+    // The annotated entry div should have border-l-primary and bg-primary/5
+    const annotatedDiv = container.querySelector(".border-l-primary");
+    expect(annotatedDiv).toBeInTheDocument();
+    expect(annotatedDiv).toHaveClass("bg-primary/5");
+  });
+});
+
+describe("PlaybookTab — PLAY-01/02 DetachmentAbilityRow annotation controls", () => {
+  it("PLAY-01: shows star button for each detachment ability when rendered", async () => {
+    useDetachmentsByFactionMock.mockReturnValue({ data: [sampleDetachmentAnnotation] });
+    useDetachmentAbilitiesByDetachmentMock.mockReturnValue({ data: [sampleAbilityAnnotation] });
+    renderInsideTabs(42);
+    await screen.findByText("And They Shall Know No Fear");
+    expect(screen.getByRole("button", { name: "Add to favorites" })).toBeInTheDocument();
+  });
+
+  it("PLAY-02: shows flag button for each detachment ability when rendered", async () => {
+    useDetachmentsByFactionMock.mockReturnValue({ data: [sampleDetachmentAnnotation] });
+    useDetachmentAbilitiesByDetachmentMock.mockReturnValue({ data: [sampleAbilityAnnotation] });
+    renderInsideTabs(42);
+    await screen.findByText("And They Shall Know No Fear");
+    expect(screen.getByRole("button", { name: "Set as Game Day reminder" })).toBeInTheDocument();
+  });
+
+  it("PLAY-01: shows filled yellow star when detachment ability is in favorites", async () => {
+    const mockFav: RulesFavorite = {
+      id: 1,
+      rule_id: "a-ann",
+      rule_type: "detachment_ability",
+      rule_name: "And They Shall Know No Fear",
+      is_reminder: 0,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+    };
+
+    vi.mocked(rulesFavoritesHooks.useRulesFavorites).mockReturnValueOnce(
+      { data: [mockFav] } as unknown as ReturnType<typeof rulesFavoritesHooks.useRulesFavorites>
+    );
+
+    useDetachmentsByFactionMock.mockReturnValue({ data: [sampleDetachmentAnnotation] });
+    useDetachmentAbilitiesByDetachmentMock.mockReturnValue({ data: [sampleAbilityAnnotation] });
+    renderInsideTabs(42);
+    await screen.findByText("And They Shall Know No Fear");
+
+    const starBtn = screen.getByRole("button", { name: "Remove from favorites" });
+    expect(starBtn.querySelector("svg")).toHaveClass("fill-yellow-500");
+  });
+
+  it("PLAY-04: applies border-l-primary to annotated detachment ability entry", async () => {
+    const mockFav: RulesFavorite = {
+      id: 1,
+      rule_id: "a-ann",
+      rule_type: "detachment_ability",
+      rule_name: "And They Shall Know No Fear",
+      is_reminder: 0,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+    };
+
+    vi.mocked(rulesFavoritesHooks.useRulesFavorites).mockReturnValueOnce(
+      { data: [mockFav] } as unknown as ReturnType<typeof rulesFavoritesHooks.useRulesFavorites>
+    );
+
+    useDetachmentsByFactionMock.mockReturnValue({ data: [sampleDetachmentAnnotation] });
+    useDetachmentAbilitiesByDetachmentMock.mockReturnValue({ data: [sampleAbilityAnnotation] });
+    const { container } = renderInsideTabs(42);
+    await screen.findByText("And They Shall Know No Fear");
+
+    const annotatedDiv = container.querySelector(".border-l-primary");
+    expect(annotatedDiv).toBeInTheDocument();
+    expect(annotatedDiv).toHaveClass("bg-primary/5");
+  });
+});
+
+describe("PlaybookTab — PLAY-01/02 ExtendedAbilityEntry annotation controls (shared abilities)", () => {
+  it("PLAY-01: shows star button for each shared faction ability", async () => {
+    useSharedAbilitiesByFactionMock.mockReturnValue({ data: [sampleSharedAbilityAnnotation] });
+    renderInsideTabs(42);
+    await screen.findByText("Oath of Moment");
+    expect(screen.getByRole("button", { name: "Add to favorites" })).toBeInTheDocument();
+  });
+
+  it("PLAY-02: shows flag button for each shared faction ability", async () => {
+    useSharedAbilitiesByFactionMock.mockReturnValue({ data: [sampleSharedAbilityAnnotation] });
+    renderInsideTabs(42);
+    await screen.findByText("Oath of Moment");
+    expect(screen.getByRole("button", { name: "Set as Game Day reminder" })).toBeInTheDocument();
+  });
+
+  it("PLAY-01: shows filled yellow star when shared ability is in favorites", async () => {
+    const mockFav: RulesFavorite = {
+      id: 1,
+      rule_id: "sa-ann",
+      rule_type: "shared_ability",
+      rule_name: "Oath of Moment",
+      is_reminder: 0,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+    };
+
+    vi.mocked(rulesFavoritesHooks.useRulesFavorites).mockReturnValueOnce(
+      { data: [mockFav] } as unknown as ReturnType<typeof rulesFavoritesHooks.useRulesFavorites>
+    );
+
+    useSharedAbilitiesByFactionMock.mockReturnValue({ data: [sampleSharedAbilityAnnotation] });
+    renderInsideTabs(42);
+    await screen.findByText("Oath of Moment");
+
+    const starBtn = screen.getByRole("button", { name: "Remove from favorites" });
+    expect(starBtn.querySelector("svg")).toHaveClass("fill-yellow-500");
+  });
+
+  it("PLAY-04: applies border-l-primary and bg-primary/5 to annotated shared ability entry", async () => {
+    const mockFav: RulesFavorite = {
+      id: 1,
+      rule_id: "sa-ann",
+      rule_type: "shared_ability",
+      rule_name: "Oath of Moment",
+      is_reminder: 0,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+    };
+
+    vi.mocked(rulesFavoritesHooks.useRulesFavorites).mockReturnValueOnce(
+      { data: [mockFav] } as unknown as ReturnType<typeof rulesFavoritesHooks.useRulesFavorites>
+    );
+
+    useSharedAbilitiesByFactionMock.mockReturnValue({ data: [sampleSharedAbilityAnnotation] });
+    const { container } = renderInsideTabs(42);
+    await screen.findByText("Oath of Moment");
+
+    const annotatedDiv = container.querySelector(".border-l-primary");
+    expect(annotatedDiv).toBeInTheDocument();
+    expect(annotatedDiv).toHaveClass("bg-primary/5");
+  });
+
+  it("PLAY-03: shows StickyNote indicator on shared ability when note exists", async () => {
+    const mockNote: RulesNote = {
+      id: 1,
+      rule_id: "sa-ann",
+      rule_type: "shared_ability",
+      rule_name: "Oath of Moment",
+      note_text: "High priority target",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+    };
+
+    vi.mocked(rulesNotesHooks.useRulesNotes).mockReturnValueOnce(
+      { data: [mockNote] } as unknown as ReturnType<typeof rulesNotesHooks.useRulesNotes>
+    );
+
+    useSharedAbilitiesByFactionMock.mockReturnValue({ data: [sampleSharedAbilityAnnotation] });
+    renderInsideTabs(42);
+    await screen.findByText("Oath of Moment");
+
+    // StickyNote renders as third SVG in the annotation controls div
+    const starBtn = screen.getByRole("button", { name: "Add to favorites" });
+    const controlsDiv = starBtn.parentElement;
+    expect(controlsDiv?.querySelectorAll("svg").length).toBeGreaterThanOrEqual(3);
   });
 });
