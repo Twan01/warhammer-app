@@ -10,6 +10,7 @@ import {
 import { useStratagemsByDetachment } from "@/hooks/useRulesExtended";
 import { useRulesFavorites } from "@/hooks/useRulesFavorites";
 import { useGameDayStore } from "./gameDayStore";
+import { GameDayStratagemCard } from "./GameDayStratagemCard";
 import type { RwStratagem } from "@/types/datasheet";
 
 const PHASE_ORDER = ["Command", "Movement", "Shooting", "Charge", "Fight"] as const;
@@ -128,7 +129,7 @@ export function StrategemsTab({ detachmentId, listId }: StrategemsTabProps) {
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2 flex flex-col gap-2">
               {items.map((s) => (
-                <StratagemRow
+                <GameDayStratagemCard
                   key={s.id}
                   stratagem={s}
                   onSpendCp={(cost) => spendCp(listId, cost)}
@@ -142,46 +143,3 @@ export function StrategemsTab({ detachmentId, listId }: StrategemsTabProps) {
   );
 }
 
-/* Inline stratagem row — will be replaced by GameDayStratagemCard in Task 2 */
-function StratagemRow({
-  stratagem,
-  onSpendCp,
-}: {
-  stratagem: RwStratagem;
-  onSpendCp: (cost: number) => void;
-}) {
-  const cost = parseInt(stratagem.cp_cost ?? "0", 10) || 0;
-  const isFree = cost === 0;
-
-  return (
-    <div className="flex items-center gap-2 rounded-md border px-3 py-2">
-      <span className="flex-1 text-sm font-medium">{stratagem.name}</span>
-      {stratagem.phase && (
-        <Badge
-          variant="outline"
-          className={`shrink-0 border-transparent ${PHASE_STYLES[stratagem.phase] ?? "bg-muted text-muted-foreground"}`}
-        >
-          {stratagem.phase}
-        </Badge>
-      )}
-      <Badge
-        variant="outline"
-        className="shrink-0 border-transparent bg-muted text-muted-foreground"
-      >
-        {isFree ? "Free" : `${cost} CP`}
-      </Badge>
-      {!isFree && (
-        <button
-          type="button"
-          className="text-xs text-primary hover:underline"
-          onClick={(e) => {
-            e.stopPropagation();
-            onSpendCp(cost);
-          }}
-        >
-          Spend
-        </button>
-      )}
-    </div>
-  );
-}
