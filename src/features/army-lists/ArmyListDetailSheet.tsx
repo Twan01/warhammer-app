@@ -29,6 +29,8 @@ import { ArmyListSummaryBar } from "./ArmyListSummaryBar";
 import { ArmyListUnitRow } from "./ArmyListUnitRow";
 import { DetachmentPicker } from "./DetachmentPicker";
 import { StaleDataBanner } from "./StaleDataBanner";
+import { DetachmentRulesSection } from "./DetachmentRulesSection";
+import { RemindersSection } from "./RemindersSection";
 
 interface ArmyListDetailSheetProps {
   open: boolean;
@@ -159,6 +161,11 @@ export function ArmyListDetailSheet({
               </div>
               <StaleDataBanner lastSyncAt={syncMeta?.last_sync_at} />
             </div>
+
+            <DetachmentRulesSection detachmentId={list.detachment_id} />
+            <RemindersSection />
+
+            <Separator className="my-2" />
 
             <div className="flex items-center justify-between px-4 py-2">
               <span className="text-sm font-semibold">Units</span>
