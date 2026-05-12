@@ -64,10 +64,17 @@ export function SectionedTimeline({
 
         const availability = sectionAvailability.get(section.id);
 
+        const workflowParts = [section.technique, section.execution_mode, section.applies_to].filter(Boolean) as string[];
+
         return (
           <div key={section.id} className="flex flex-col gap-2">
             {/* Section header */}
-            <div className="flex items-center gap-2" data-testid="section-header">
+            <div className="flex items-center gap-2 flex-wrap" data-testid="section-header">
+              {section.section_type && (
+                <Badge variant="outline" className="text-xs capitalize">
+                  {section.section_type}
+                </Badge>
+              )}
               <span className="text-sm font-semibold">{section.name}</span>
               {section.surface && (
                 <Badge variant="outline" className="text-xs">
@@ -78,6 +85,11 @@ export function SectionedTimeline({
                 <Badge variant="outline" className="text-xs">
                   Optional
                 </Badge>
+              )}
+              {workflowParts.length > 0 && (
+                <span className="text-xs text-muted-foreground capitalize">
+                  {workflowParts.join(" · ")}
+                </span>
               )}
 
               {/* Right-side metadata */}
