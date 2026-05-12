@@ -33,7 +33,7 @@ Full details: `.planning/milestones/v0.2.8-ROADMAP.md`
 
 **Milestone Goal:** Make recipe sections semantically rich and actionable — extending workflow metadata into Log Session, Kanban, and Current Focus for real painting workflow guidance.
 
-- [ ] **Phase 57: Schema & Data Layer** - Migration + types + queries for workflow metadata columns and session section linking
+- [x] **Phase 57: Schema & Data Layer** - Migration + types + queries for workflow metadata columns and session section linking
 - [ ] **Phase 58: Recipe Form & Timeline Display** - Workflow metadata editing with progressive disclosure and compact timeline badges
 - [ ] **Phase 59: Session Section Cascade** - LogSessionSheet 3-level cascading selector (recipe -> section -> step)
 - [ ] **Phase 60: Kanban & CurrentFocus Integration** - Section-aware workflow display on project cards and dashboard focus
@@ -179,7 +179,7 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 
 Plans:
 - [x] 57-01-PLAN.md — Migration + TypeScript types + const arrays
-- [ ] 57-02-PLAN.md — Query functions + DraftSection + save path + tests
+- [x] 57-02-PLAN.md — Query functions + DraftSection + save path + tests
 
 ### Phase 58: Recipe Form & Timeline Display
 **Goal**: Users can edit workflow metadata on recipe sections and see it at a glance in the timeline view
@@ -295,7 +295,7 @@ Phases execute in numeric order: 57 -> 58 -> 59 -> 60
 | 54. Army Lists 2.0 — Detachment Selection | v0.2.8 | 2/2 | Complete | 2026-05-11 |
 | 55. Playbook Enhancements — Favorites and Notes | v0.2.8 | 2/2 | Complete | 2026-05-11 |
 | 56. Game Day Mode | v0.2.8 | 2/2 | Complete | 2026-05-11 |
-| 57. Schema & Data Layer | v0.2.9 | 1/2 | In progress | - |
+| 57. Schema & Data Layer | v0.2.9 | 2/2 | Complete | 2026-05-12 |
 | 58. Recipe Form & Timeline Display | v0.2.9 | 0/? | Not started | - |
 | 59. Session Section Cascade | v0.2.9 | 0/? | Not started | - |
 | 60. Kanban & CurrentFocus Integration | v0.2.9 | 0/? | Not started | - |
