@@ -29,6 +29,7 @@ import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useHobbyAnalytics } from "@/hooks/useHobbyAnalytics";
 import { useRecentActivity } from "@/hooks/useRecentActivity";
 import { getRecipeNamesByUnitIds } from "@/db/queries/recipes";
+import { useWorkflowPositions } from "@/hooks/useWorkflowPositions";
 import { UnitDetailSheet } from "@/features/units/UnitDetailSheet";
 import { UnitSheet } from "@/features/units/UnitSheet";
 import { UnitDeleteDialog } from "@/features/units/UnitDeleteDialog";
@@ -85,6 +86,9 @@ export function DashboardPage() {
     queryFn: () => getRecipeNamesByUnitIds([focusUnitId!]),
     enabled: focusUnitId !== null,
   });
+  const { data: focusWorkflowPositions } = useWorkflowPositions(
+    focusUnitId !== null ? [focusUnitId] : [],
+  );
 
   // DS-08 — conflict-resolution dialog state
   const [conflictPayload, setConflictPayload] = useState<DatasheetImportPayload | null>(null);
@@ -324,6 +328,7 @@ export function DashboardPage() {
             }}
             recipeName={focusRecipes?.[0]?.name ?? null}
             extraRecipeCount={Math.max(0, (focusRecipes?.length ?? 0) - 1)}
+            workflowPosition={focusWorkflowPositions?.get(focusUnit?.id ?? -1)}
           />
         </div>
 

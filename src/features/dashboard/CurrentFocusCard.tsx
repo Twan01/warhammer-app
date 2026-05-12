@@ -14,11 +14,12 @@
  */
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Target, ExternalLink, Paintbrush, Palette } from "lucide-react";
+import { Target, ExternalLink, Paintbrush, Palette, Layers } from "lucide-react";
 import { UnitThumbnail } from "@/components/common/UnitThumbnail";
 import type { Unit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
 import type { UnitPhotoWithUrl } from "@/hooks/useUnitPhotos";
+import type { WorkflowPosition } from "@/lib/computeWorkflowPosition";
 
 export interface CurrentFocusCardProps {
   unit: Unit | null;
@@ -28,9 +29,10 @@ export interface CurrentFocusCardProps {
   onLog: () => void;
   recipeName?: string | null;
   extraRecipeCount?: number;
+  workflowPosition?: WorkflowPosition | null;
 }
 
-export function CurrentFocusCard({ unit, faction, photo, onOpen, onLog, recipeName, extraRecipeCount = 0 }: CurrentFocusCardProps) {
+export function CurrentFocusCard({ unit, faction, photo, onOpen, onLog, recipeName, extraRecipeCount = 0, workflowPosition }: CurrentFocusCardProps) {
   if (!unit) {
     return (
       <Card className="bg-card border border-border/60 shadow-sm px-6 py-6 transition-shadow duration-150 hover:shadow-md">
@@ -67,6 +69,25 @@ export function CurrentFocusCard({ unit, faction, photo, onOpen, onLog, recipeNa
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
               <Palette size={12} aria-hidden />
               {recipeName}{extraRecipeCount > 0 ? ` (+${extraRecipeCount} more)` : ""}
+            </span>
+          )}
+          {workflowPosition && (
+            <span className="flex items-center gap-1 truncate text-xs text-muted-foreground">
+              <Layers size={12} aria-hidden className="shrink-0" />
+              {workflowPosition.isComplete
+                ? "Recipe complete"
+                : workflowPosition.sectionName
+                  ? <>
+                      {workflowPosition.sectionName}
+                      {workflowPosition.technique ? `: ${workflowPosition.technique}` : ""}
+                      {workflowPosition.stepIndex !== null && (
+                        <>{" — "}<span className="tabular-nums">step {workflowPosition.stepIndex + 1}/{workflowPosition.totalSteps}</span></>
+                      )}
+                    </>
+                  : workflowPosition.stepIndex !== null
+                    ? <span className="tabular-nums">Step {workflowPosition.stepIndex + 1}/{workflowPosition.totalSteps}</span>
+                    : null
+              }
             </span>
           )}
           <div className="text-sm text-muted-foreground tabular-nums">

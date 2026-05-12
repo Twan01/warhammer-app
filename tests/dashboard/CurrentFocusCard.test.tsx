@@ -13,6 +13,7 @@ import { CurrentFocusCard } from "@/features/dashboard/CurrentFocusCard";
 import type { Unit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
 import type { UnitPhotoWithUrl } from "@/hooks/useUnitPhotos";
+import type { WorkflowPosition } from "@/lib/computeWorkflowPosition";
 
 // CurrentFocusCard renders UnitThumbnail which imports from @/hooks/useUnitPhotos.
 // Prevent the real hook from firing (it calls Tauri APIs).
@@ -457,6 +458,132 @@ describe("CurrentFocusCard", () => {
 
       expect(screen.getByText("Recipe A")).toBeInTheDocument();
       expect(screen.queryByText(/\+/)).toBeNull();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // PROJ-02: workflow position display
+  // ---------------------------------------------------------------------------
+
+  describe("PROJ-02: workflow position display", () => {
+    function makePosition(over: Partial<WorkflowPosition> = {}): WorkflowPosition {
+      return {
+        sectionName: "Armour",
+        sectionIndex: 0,
+        totalSections: 3,
+        stepName: "Base Coat",
+        stepIndex: 3,
+        totalSteps: 12,
+        technique: "Drybrush",
+        isComplete: false,
+        nextStepName: "Layer Highlight",
+        ...over,
+      };
+    }
+
+    it("PROJ-02: renders workflow guidance with section, technique, and step count", () => {
+      render(
+        <CurrentFocusCard
+          unit={makeUnit()}
+          faction={makeFaction()}
+          photo={undefined}
+          onOpen={vi.fn()}
+          onLog={vi.fn()}
+          workflowPosition={makePosition()}
+        />
+      );
+
+      expect(screen.getByText(/Armour/)).toBeInTheDocument();
+      expect(screen.getByText(/Drybrush/)).toBeInTheDocument();
+      expect(screen.getByText(/step 4\/12/)).toBeInTheDocument();
+    });
+
+    it("PROJ-02: renders workflow guidance without technique", () => {
+      render(
+        <CurrentFocusCard
+          unit={makeUnit()}
+          faction={makeFaction()}
+          photo={undefined}
+          onOpen={vi.fn()}
+          onLog={vi.fn()}
+          workflowPosition={makePosition({ technique: null })}
+        />
+      );
+
+      expect(screen.getByText(/Armour/)).toBeInTheDocument();
+      expect(screen.getByText(/step 4\/12/)).toBeInTheDocument();
+      // No colon between section name and step when no technique
+      const workflowLine = screen.getByText(/Armour/).closest("span");
+      expect(workflowLine?.textContent).not.toContain(": ");
+    });
+
+    it("PROJ-02: renders Recipe complete when isComplete", () => {
+      render(
+        <CurrentFocusCard
+          unit={makeUnit()}
+          faction={makeFaction()}
+          photo={undefined}
+          onOpen={vi.fn()}
+          onLog={vi.fn()}
+          workflowPosition={makePosition({ isComplete: true })}
+        />
+      );
+
+      expect(screen.getByText(/Recipe complete/)).toBeInTheDocument();
+    });
+
+    it("PROJ-05: does not render workflow line when workflowPosition is null", () => {
+      const { container } = render(
+        <CurrentFocusCard
+          unit={makeUnit()}
+          faction={makeFaction()}
+          photo={undefined}
+          onOpen={vi.fn()}
+          onLog={vi.fn()}
+        />
+      );
+
+      // No Layers icon or step count
+      expect(screen.queryByText(/step \d+\/\d+/)).toBeNull();
+      expect(screen.queryByText(/Recipe complete/)).toBeNull();
+    });
+
+    it("PROJ-02: renders flat recipe step count", () => {
+      render(
+        <CurrentFocusCard
+          unit={makeUnit()}
+          faction={makeFaction()}
+          photo={undefined}
+          onOpen={vi.fn()}
+          onLog={vi.fn()}
+          workflowPosition={makePosition({
+            sectionName: null,
+            sectionIndex: null,
+            totalSections: 0,
+            technique: null,
+            stepIndex: 5,
+            totalSteps: 20,
+          })}
+        />
+      );
+
+      expect(screen.getByText(/Step 6\/20/)).toBeInTheDocument();
+    });
+
+    it("renders unit name and faction", () => {
+      render(
+        <CurrentFocusCard
+          unit={makeUnit({ name: "Riptide" })}
+          faction={makeFaction({ name: "Tau Empire" })}
+          photo={undefined}
+          onOpen={vi.fn()}
+          onLog={vi.fn()}
+          workflowPosition={makePosition()}
+        />
+      );
+
+      expect(screen.getByText("Riptide")).toBeInTheDocument();
+      expect(screen.getByText("Tau Empire")).toBeInTheDocument();
     });
   });
 });
