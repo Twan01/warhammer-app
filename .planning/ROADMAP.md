@@ -178,7 +178,7 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 **Plans**: 2 plans
 
 Plans:
-- [ ] 57-01-PLAN.md — Migration + TypeScript types + const arrays
+- [x] 57-01-PLAN.md — Migration + TypeScript types + const arrays
 - [ ] 57-02-PLAN.md — Query functions + DraftSection + save path + tests
 
 ### Phase 58: Recipe Form & Timeline Display
@@ -295,7 +295,7 @@ Phases execute in numeric order: 57 -> 58 -> 59 -> 60
 | 54. Army Lists 2.0 — Detachment Selection | v0.2.8 | 2/2 | Complete | 2026-05-11 |
 | 55. Playbook Enhancements — Favorites and Notes | v0.2.8 | 2/2 | Complete | 2026-05-11 |
 | 56. Game Day Mode | v0.2.8 | 2/2 | Complete | 2026-05-11 |
-| 57. Schema & Data Layer | v0.2.9 | 0/2 | Not started | - |
+| 57. Schema & Data Layer | v0.2.9 | 1/2 | In progress | - |
 | 58. Recipe Form & Timeline Display | v0.2.9 | 0/? | Not started | - |
 | 59. Session Section Cascade | v0.2.9 | 0/? | Not started | - |
 | 60. Kanban & CurrentFocus Integration | v0.2.9 | 0/? | Not started | - |

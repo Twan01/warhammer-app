@@ -13,7 +13,7 @@ Requirements for Recipes 3.1 / Workflow Semantics & Integrations. Each maps to r
 - [ ] **WF-02**: User can set a section-level technique (brush/sponge/drybrush/airbrush/oil-enamel/pigment/decal/mixed/other) on any recipe section
 - [ ] **WF-03**: User can set an execution mode (sequential/batch/parallel) on any recipe section
 - [ ] **WF-04**: User can set a free-text applies_to field on any recipe section describing which model area the section targets
-- [ ] **WF-05**: All workflow metadata fields are nullable and additive -- existing recipes unchanged after migration
+- [x] **WF-05**: All workflow metadata fields are nullable and additive -- existing recipes unchanged after migration
 
 ### Recipe UI
 
@@ -75,7 +75,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WF-02 | Phase 57 | Pending |
 | WF-03 | Phase 57 | Pending |
 | WF-04 | Phase 57 | Pending |
-| WF-05 | Phase 57 | Pending |
+| WF-05 | Phase 57 | Complete |
 | RUI-01 | Phase 58 | Pending |
 | RUI-02 | Phase 58 | Pending |
 | RUI-03 | Phase 58 | Pending |
