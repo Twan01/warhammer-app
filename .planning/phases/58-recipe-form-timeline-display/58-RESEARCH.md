@@ -356,17 +356,17 @@ export interface DraftSection {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Workflow collapsible initial open state when metadata already exists**
    - What we know: New sections have no metadata → closed. D-04 only controls visibility, not initial open state.
    - What's unclear: When editing a recipe that already has `section_type` set, should the Workflow collapsible auto-expand to show the existing values?
-   - Recommendation: Default to closed (`useState(false)`) — the metadata is visible in the timeline, not in the form collapsible. The user can open it if they need to edit. This keeps the form uncluttered on load.
+   - RESOLVED: Default to closed (`useState(false)`) — the metadata is visible in the timeline, not in the form collapsible. The user can open it if they need to edit. This keeps the form uncluttered on load.
 
 2. **sections count prop name and propagation path**
    - What we know: RecipeSectionCard needs to know `sections.length` to implement D-04. RecipeSectionList passes sections to cards individually.
    - What's unclear: Whether to name the prop `sectionsCount: number` or `totalSections: number`, and whether RecipeFormSheet's direct render path (`sections.length <= 1`) passes it.
-   - Recommendation: Name it `sectionsCount`. Pass `sections.length` from both RecipeSectionList and from RecipeFormSheet's inline step list path. The inline path (single-section) always passes `1` — the collapsible will be hidden unless metadata is set, matching D-04.
+   - RESOLVED: Name it `sectionsCount`. Pass `sections.length` from RecipeSectionList only. RecipeFormSheet's `sections.length <= 1` path renders `RecipeStepList` directly (not `RecipeSectionCard`), so no propagation is needed there.
 
 ---
 
