@@ -302,6 +302,104 @@ describe("SectionedTimeline — VIEW-03 (per-section paint availability)", () =>
 });
 
 // ---------------------------------------------------------------------------
+// RUI-03 — section_type badge
+// ---------------------------------------------------------------------------
+
+describe("SectionedTimeline — RUI-03 (section_type badge)", () => {
+  it("renders section_type badge when section_type is set", () => {
+    const sections = [makeSection({ id: 1, name: "Section A", section_type: "basecoat" })];
+    render(
+      <SectionedTimeline sections={sections} steps={[]} paintMap={new Map()} />
+    );
+    expect(screen.getByText("basecoat")).toBeInTheDocument();
+  });
+
+  it("does not render section_type badge when section_type is null", () => {
+    const sections = [makeSection({ id: 1, name: "Section A", section_type: null })];
+    render(
+      <SectionedTimeline sections={sections} steps={[]} paintMap={new Map()} />
+    );
+    for (const val of ["basecoat", "layer", "detail", "effect", "cleanup"]) {
+      expect(screen.queryByText(val)).not.toBeInTheDocument();
+    }
+  });
+
+  it("renders section_type badge before section name in DOM order", () => {
+    const sections = [makeSection({ id: 1, name: "Section A", section_type: "layer" })];
+    render(
+      <SectionedTimeline sections={sections} steps={[]} paintMap={new Map()} />
+    );
+    const header = screen.getByTestId("section-header");
+    const badge = screen.getByText("layer");
+    const name = screen.getByText("Section A");
+    const children = Array.from(header.childNodes);
+    expect(children.indexOf(badge.closest("[data-testid='section-header'] > *")!))
+      .toBeLessThan(children.indexOf(name));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// RUI-04 — dot-separated metadata
+// ---------------------------------------------------------------------------
+
+describe("SectionedTimeline — RUI-04 (dot-separated metadata)", () => {
+  it("shows dot-separated string with technique and execution_mode", () => {
+    const sections = [makeSection({
+      id: 1,
+      name: "Section A",
+      technique: "drybrush",
+      execution_mode: "sequential",
+    })];
+    render(
+      <SectionedTimeline sections={sections} steps={[]} paintMap={new Map()} />
+    );
+    expect(screen.getByText("drybrush · sequential")).toBeInTheDocument();
+  });
+
+  it("shows applies_to in dot string when set", () => {
+    const sections = [makeSection({
+      id: 1,
+      name: "Section A",
+      applies_to: "shoulder pad",
+    })];
+    render(
+      <SectionedTimeline sections={sections} steps={[]} paintMap={new Map()} />
+    );
+    expect(screen.getByText("shoulder pad")).toBeInTheDocument();
+  });
+
+  it("omits null fields from dot string", () => {
+    const sections = [makeSection({
+      id: 1,
+      name: "Section A",
+      technique: "drybrush",
+      execution_mode: null,
+    })];
+    render(
+      <SectionedTimeline sections={sections} steps={[]} paintMap={new Map()} />
+    );
+    expect(screen.getByText("drybrush")).toBeInTheDocument();
+    expect(screen.queryByText(/·/)).not.toBeInTheDocument();
+  });
+
+  it("renders no metadata span when all workflow fields are null", () => {
+    const sections = [makeSection({
+      id: 1,
+      name: "Section A",
+      technique: null,
+      execution_mode: null,
+      applies_to: null,
+    })];
+    render(
+      <SectionedTimeline sections={sections} steps={[]} paintMap={new Map()} />
+    );
+    const header = screen.getByTestId("section-header");
+    const metaSpan = header.querySelector(".text-muted-foreground.capitalize");
+    expect(metaSpan).not.toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // VIEW-04 — Empty sections guard
 // ---------------------------------------------------------------------------
 
