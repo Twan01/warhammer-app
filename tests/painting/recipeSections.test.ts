@@ -113,7 +113,7 @@ describe("createRecipeSection — SECT-04 create", () => {
     applies_to: null,
   };
 
-  it("INSERT contains all 6 column names and $1 through $6 placeholders", async () => {
+  it("INSERT contains all 10 column names and $1 through $10 placeholders", async () => {
     await createRecipeSection(input);
     const [sql] = executeMock.mock.calls[0];
     expect(sql).toContain("recipe_id");
@@ -122,15 +122,23 @@ describe("createRecipeSection — SECT-04 create", () => {
     expect(sql).toContain("optional");
     expect(sql).toContain("order_index");
     expect(sql).toContain("notes");
+    expect(sql).toContain("section_type");
+    expect(sql).toContain("technique");
+    expect(sql).toContain("execution_mode");
+    expect(sql).toContain("applies_to");
     expect(sql).toContain("$1");
     expect(sql).toContain("$2");
     expect(sql).toContain("$3");
     expect(sql).toContain("$4");
     expect(sql).toContain("$5");
     expect(sql).toContain("$6");
+    expect(sql).toContain("$7");
+    expect(sql).toContain("$8");
+    expect(sql).toContain("$9");
+    expect(sql).toContain("$10");
   });
 
-  it("passes params in the correct positional order", async () => {
+  it("passes params in the correct positional order (10 params)", async () => {
     await createRecipeSection(input);
     const [, params] = executeMock.mock.calls[0];
     expect(params[0]).toBe(1);          // $1 recipe_id
@@ -139,6 +147,11 @@ describe("createRecipeSection — SECT-04 create", () => {
     expect(params[3]).toBe(0);          // $4 optional
     expect(params[4]).toBe(0);          // $5 order_index
     expect(params[5]).toBe("First pass"); // $6 notes
+    expect(params[6]).toBeNull();       // $7 section_type
+    expect(params[7]).toBeNull();       // $8 technique
+    expect(params[8]).toBeNull();       // $9 execution_mode
+    expect(params[9]).toBeNull();       // $10 applies_to
+    expect(params).toHaveLength(10);
   });
 
   it("applies null guards — surface and notes become null when not provided", async () => {
@@ -146,6 +159,23 @@ describe("createRecipeSection — SECT-04 create", () => {
     const [, params] = executeMock.mock.calls[0];
     expect(params[2]).toBeNull(); // $3 surface
     expect(params[5]).toBeNull(); // $6 notes
+  });
+
+  it("passes non-null workflow metadata as $7-$10 when provided", async () => {
+    const inputWithMeta: CreateRecipeSectionInput = {
+      ...input,
+      section_type: "basecoat",
+      technique: "airbrush",
+      execution_mode: "sequential",
+      applies_to: "armor panels",
+    };
+    await createRecipeSection(inputWithMeta);
+    const [, params] = executeMock.mock.calls[0];
+    expect(params[6]).toBe("basecoat");     // $7 section_type
+    expect(params[7]).toBe("airbrush");     // $8 technique
+    expect(params[8]).toBe("sequential");   // $9 execution_mode
+    expect(params[9]).toBe("armor panels"); // $10 applies_to
+    expect(params).toHaveLength(10);
   });
 
   it("returns lastInsertId from db.execute result", async () => {
@@ -169,6 +199,28 @@ describe("updateRecipeSection — SECT-04 update", () => {
     expect(sql).toContain("WHERE id = $1");
     expect(sql).toContain("updated_at = datetime('now')");
     expect(params[0]).toBe(5);
+  });
+
+  it("UPDATE uses COALESCE for workflow metadata $7-$10 and has 10 params total", async () => {
+    const input: UpdateRecipeSectionInput = {
+      id: 5,
+      name: "Cloth",
+      section_type: "shade",
+      technique: "brush",
+      execution_mode: "batch",
+      applies_to: "cloak",
+    };
+    await updateRecipeSection(input);
+    const [sql, params] = executeMock.mock.calls[0];
+    expect(sql).toContain("COALESCE($7, section_type)");
+    expect(sql).toContain("COALESCE($8, technique)");
+    expect(sql).toContain("COALESCE($9, execution_mode)");
+    expect(sql).toContain("COALESCE($10, applies_to)");
+    expect(params[6]).toBe("shade");     // $7
+    expect(params[7]).toBe("brush");     // $8
+    expect(params[8]).toBe("batch");     // $9
+    expect(params[9]).toBe("cloak");     // $10
+    expect(params).toHaveLength(10);
   });
 
   it("surface and notes use direct assignment (not COALESCE) to allow clearing", async () => {

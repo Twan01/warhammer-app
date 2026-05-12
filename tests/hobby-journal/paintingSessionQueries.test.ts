@@ -25,7 +25,7 @@ beforeEach(() => {
 });
 
 describe("paintingSessions queries", () => {
-  it("JOUR-01: createSession runs INSERT INTO painting_sessions with (unit_id, session_date, duration_minutes, notes, recipe_id, recipe_step_id) and 6 positional params", async () => {
+  it("JOUR-01: createSession runs INSERT INTO painting_sessions with 7 columns including section_name", async () => {
     executeMock.mockResolvedValueOnce(undefined);
 
     await createSession({
@@ -37,12 +37,12 @@ describe("paintingSessions queries", () => {
 
     expect(executeMock).toHaveBeenCalledTimes(1);
     const [sql, params] = executeMock.mock.calls[0];
-    expect(sql).toMatch(/INSERT INTO painting_sessions \(unit_id, session_date, duration_minutes, notes, recipe_id, recipe_step_id\)/);
-    expect(sql).toMatch(/VALUES \(\$1, \$2, \$3, \$4, \$5, \$6\)/);
-    expect(params).toEqual([7, "2026-05-03", 45, "Layered shoulder pads", null, null]);
+    expect(sql).toMatch(/INSERT INTO painting_sessions \(unit_id, session_date, duration_minutes, notes, recipe_id, recipe_step_id, section_name\)/);
+    expect(sql).toMatch(/VALUES \(\$1, \$2, \$3, \$4, \$5, \$6, \$7\)/);
+    expect(params).toEqual([7, "2026-05-03", 45, "Layered shoulder pads", null, null, null]);
   });
 
-  it("JOUR-01: createSession passes null when notes field omitted (input.notes ?? null)", async () => {
+  it("JOUR-01: createSession passes null when optional fields omitted (7 params total)", async () => {
     executeMock.mockResolvedValueOnce(undefined);
 
     await createSession({
@@ -52,13 +52,14 @@ describe("paintingSessions queries", () => {
     });
 
     const params = executeMock.mock.calls[0][1] as unknown[];
-    expect(params).toHaveLength(6);
-    expect(params[3]).toBeNull();
-    expect(params[4]).toBeNull();
-    expect(params[5]).toBeNull();
+    expect(params).toHaveLength(7);
+    expect(params[3]).toBeNull();  // notes
+    expect(params[4]).toBeNull();  // recipe_id
+    expect(params[5]).toBeNull();  // recipe_step_id
+    expect(params[6]).toBeNull();  // section_name
   });
 
-  it("INTEG-01: createSession includes recipe_id and recipe_step_id as $5 and $6 when provided", async () => {
+  it("INTEG-01: createSession includes recipe_id, recipe_step_id, and section_name when provided", async () => {
     executeMock.mockResolvedValueOnce(undefined);
 
     await createSession({
@@ -68,12 +69,13 @@ describe("paintingSessions queries", () => {
       notes: null,
       recipe_id: 3,
       recipe_step_id: 15,
+      section_name: "Armor",
     });
 
     const [sql, params] = executeMock.mock.calls[0];
-    expect(sql).toMatch(/recipe_id, recipe_step_id/);
-    expect(sql).toMatch(/VALUES \(\$1, \$2, \$3, \$4, \$5, \$6\)/);
-    expect(params).toEqual([7, "2026-05-07", 60, null, 3, 15]);
+    expect(sql).toMatch(/recipe_id, recipe_step_id, section_name/);
+    expect(sql).toMatch(/VALUES \(\$1, \$2, \$3, \$4, \$5, \$6, \$7\)/);
+    expect(params).toEqual([7, "2026-05-07", 60, null, 3, 15, "Armor"]);
   });
 
   it("INTEG-02: getSessionsByRecipe issues SELECT * WHERE recipe_id=$1 ORDER BY session_date DESC, id DESC", async () => {

@@ -122,6 +122,14 @@ describe("recipeSection pure functions — makeDraftSection", () => {
     expect(result.name).toBe("Armor");
     expect(result.localId).toHaveLength(36);
   });
+
+  it("Test 2b: returns null for all four workflow metadata fields", () => {
+    const result = makeDraftSection();
+    expect(result.section_type).toBeNull();
+    expect(result.technique).toBeNull();
+    expect(result.execution_mode).toBeNull();
+    expect(result.applies_to).toBeNull();
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -185,5 +193,43 @@ describe("recipeSection pure functions — buildDraftSections", () => {
     expect(stepA.localId).toHaveLength(36);
     expect(stepB.localId).toHaveLength(36);
     expect(stepA.localId).not.toBe(stepB.localId);
+  });
+
+  it("Test 7: maps non-null workflow metadata fields from DB rows", () => {
+    const sectionWithMetadata: RecipeSection = {
+      ...SECTION_1,
+      section_type: "basecoat",
+      technique: "airbrush",
+      execution_mode: "sequential",
+      applies_to: "armor panels",
+    };
+    const result = buildDraftSections([sectionWithMetadata], []);
+    expect(result[0].section_type).toBe("basecoat");
+    expect(result[0].technique).toBe("airbrush");
+    expect(result[0].execution_mode).toBe("sequential");
+    expect(result[0].applies_to).toBe("armor panels");
+  });
+
+  it("Test 8: maps null workflow metadata fields from DB rows (null stays null)", () => {
+    const result = buildDraftSections([SECTION_1], []);
+    expect(result[0].section_type).toBeNull();
+    expect(result[0].technique).toBeNull();
+    expect(result[0].execution_mode).toBeNull();
+    expect(result[0].applies_to).toBeNull();
+  });
+
+  it("Test 9: maps undefined workflow metadata to null (undefined → null fallback)", () => {
+    const sectionWithUndefined = {
+      ...SECTION_1,
+      section_type: undefined as unknown as null,
+      technique: undefined as unknown as null,
+      execution_mode: undefined as unknown as null,
+      applies_to: undefined as unknown as null,
+    };
+    const result = buildDraftSections([sectionWithUndefined], []);
+    expect(result[0].section_type).toBeNull();
+    expect(result[0].technique).toBeNull();
+    expect(result[0].execution_mode).toBeNull();
+    expect(result[0].applies_to).toBeNull();
   });
 });
