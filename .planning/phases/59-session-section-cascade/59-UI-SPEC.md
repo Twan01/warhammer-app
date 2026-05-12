@@ -1,7 +1,7 @@
 ---
 phase: 59
 slug: session-section-cascade
-status: draft
+status: approved
 shadcn_initialized: true
 preset: "new-york / zinc / css-variables"
 created: 2026-05-12
@@ -57,7 +57,7 @@ identical to all other form fields in LogSessionSheet.
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px | 400 | 1.5 |
-| Label | 14px | 500 | 1.5 |
+| Label | 14px | 400 | 1.5 |
 | Heading | 16px | 600 | 1.2 |
 | Display | 20px | 600 | 1.2 |
 
@@ -234,11 +234,11 @@ No third-party registries. All blocks already installed in the project.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS (revised — 2 weights: 400 regular, 600 semibold)
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved
