@@ -4,19 +4,11 @@
 
 HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, structured painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play" — all without ever depending on copyrighted GW data.
 
-Shipped through v0.2.8 (56 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, paint availability, and DnD reorder), army list builder with detachment selection and inline rules context, battle log, spending tracker, hobby goals, photo journal, session-recipe linking, premium CSS grid dashboard, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, and a Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist).
+Shipped through v0.2.9 (60 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, and DnD reorder), army list builder with detachment selection and inline rules context, battle log, spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors, premium CSS grid dashboard with workflow-aware CurrentFocusCard and KanbanCards, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, and a Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist).
 
-## Current Milestone: v0.2.9 Recipes 3.1 / Workflow Semantics & Integrations
+## Current State
 
-**Goal:** Make recipe sections semantically rich and actionable — extending workflow metadata into Log Session, Kanban, and Current Focus for real painting workflow guidance.
-
-**Target features:**
-- Section-level workflow metadata (section_type, technique, execution_mode, applies_to)
-- UI for editing workflow metadata under progressive disclosure
-- Compact metadata display in SectionedTimeline
-- Log Session section-aware flow (recipe → section → step cascading selectors)
-- Kanban card current workflow/next step display
-- Current Focus card section-aware next action guidance
+v0.2.9 shipped 2026-05-12. Planning next milestone.
 
 ## Core Value
 
@@ -124,16 +116,18 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ Game Day Mode: GameDayPage with CP tracker, phase-grouped stratagems, pinned reminders, collapsible unit ability cards with OPG toggles, persistent pre-game checklist, painting status badges — Phase 56 — v0.2.8
 - ✓ Points import design: schema, versioning, deltas, manual override interaction, COALESCE precedence documented — Phase 52 — v0.2.8
 
+*All v0.2.9 requirements verified and shipped 2026-05-12*
+
+- ✓ Section-level workflow metadata (section_type, technique, execution_mode, applies_to) — Phase 57 — v0.2.9
+- ✓ Workflow metadata editing UI with progressive disclosure — Phase 58 — v0.2.9
+- ✓ Compact metadata display in SectionedTimeline (section_type Badge, technique/execution_mode dot-separated) — Phase 58 — v0.2.9
+- ✓ Log Session section-aware cascading selectors (recipe → section → step) — Phase 59 — v0.2.9
+- ✓ Kanban card current workflow/next step display — Phase 60 — v0.2.9
+- ✓ Current Focus card section-aware next action guidance — Phase 60 — v0.2.9
+
 ### Active
 
-*v0.2.9 — Recipes 3.1 / Workflow Semantics & Integrations*
-
-- [ ] Section-level workflow metadata (section_type, technique, execution_mode, applies_to)
-- [ ] Workflow metadata editing UI with progressive disclosure
-- [ ] Compact metadata display in SectionedTimeline
-- [ ] Log Session section-aware cascading selectors (recipe → section → step)
-- [ ] Kanban card current workflow/next step display
-- [ ] Current Focus card section-aware next action guidance
+*Next milestone — to be defined with `/gsd-new-milestone`*
 
 ### Out of Scope
 
@@ -151,7 +145,7 @@ A single personal command center that always answers "what do I own, what's pain
 
 ## Context
 
-- **Current state:** v0.2.8 shipped. ~280 TypeScript source files. ~87,660 LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 11 main pages (added RulesHubPage, GameDayPage). Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline. 19 SQLite migrations (18 hobbyforge.db + 1 rules.db wargear extension). Rules annotation layer (favorites, notes, reminders) in hobbyforge.db surviving re-syncs.
+- **Current state:** v0.2.9 shipped. ~290 TypeScript source files. ~96,000 LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 11 main pages. Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline. 20 SQLite migrations (19 hobbyforge.db + 1 rules.db wargear extension). Workflow-aware painting recipes with section metadata, cascading session logging, and Kanban/CurrentFocus integration.
 - **Personal tool** — single user (the owner), local-first, no accounts or sync
 - **Domain:** Warhammer 40K 10th edition, hobby management (collecting → painting → playing)
 - **User journey priority:** painter/collector → ready-to-play, *not* competitive optimization
@@ -224,6 +218,11 @@ A single personal command center that always answers "what do I own, what's pain
 | Game Day state in Zustand persist (localStorage) | CP, checklist, OPG toggles persist across navigation; SQLite deferred | ✓ Good — simple, appropriate for single-session game tracking |
 | Heuristic OPG detection (keyword scan) | Detects "once per" in ability text for used/unused toggle; no rules.db schema change | ✓ Good — covers common patterns without brittle parsing |
 | staleTime: Infinity + sync invalidation for rules.db hooks | Rules data only changes on sync; Infinity prevents spurious refetches | ✓ Good — consistent with read-heavy, write-rare access pattern |
+| Denormalized section_name on painting_sessions | DELETE-all + re-INSERT save pattern destroys FK links; derive section from step's section_id instead | ✓ Good — matches detachment_name, weapon_name pattern |
+| computeWorkflowPosition as pure function in src/lib/ | No React/DB deps; testable in isolation; usable by both Kanban and CurrentFocus | ✓ Excellent — 12 unit tests, zero coupling |
+| useWorkflowPositions batch enrichment pattern | Sorted ID key for cache stability, Map result, 5min staleTime; follows useKanbanEnrichment exactly | ✓ Good — consistent with established hook patterns |
+| Workflow progressive disclosure threshold | Check metadata presence, not just section count; hide when no data set | ✓ Good — simple recipes stay uncluttered |
+| Design deviation D-08: execution_mode as text not Badge | Dot-separated string more compact than Badge for metadata-heavy timelines | — Accepted design trade-off (RUI-03 partial) |
 
 ---
-*Last updated: 2026-05-11 after v0.2.9 milestone started*
+*Last updated: 2026-05-12 after v0.2.9 milestone complete*

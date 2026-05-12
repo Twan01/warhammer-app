@@ -18,19 +18,16 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-11 after v0.2.9 milestone started)
+See: .planning/PROJECT.md (updated 2026-05-12)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" -- without ever depending on copyrighted GW data.
-**Current focus:** Milestone v0.2.9 complete — ready for next milestone
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 60 (final)
-Plan: 2/2 complete
-Status: Milestone complete
+Phase: v0.2.9 archived
+Status: Between milestones
 Last activity: 2026-05-12
-
-Progress: [██████████] 100%
 
 ## Performance Metrics
 

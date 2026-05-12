@@ -1,4 +1,26 @@
 # Milestones
+## v0.2.9 Recipes 3.1 / Workflow Semantics & Integrations (Shipped: 2026-05-12)
+
+**Phases completed:** 4 phases (57–60), 8 plans
+**Timeline:** 2026-05-12 (single day)
+**Stats:** 16 feat/test commits, 68 files changed, +8,458 / -83 lines, 18/19 requirements satisfied (1 partial)
+
+**Key accomplishments:**
+- Schema & data layer: migration 020 adds 4 workflow metadata columns (section_type, technique, execution_mode, applies_to) to recipe_sections + section_name on painting_sessions; const arrays as single sources of truth for dropdowns
+- Recipe form & timeline display: Workflow collapsible with progressive disclosure on RecipeSectionCard (4 Select controls); compact badges and dot-separated metadata in SectionedTimeline
+- Session section cascade: 3-level cascading selector (recipe → section → step) in LogSessionSheet with dual reset chains and filtered step dropdown
+- Kanban & CurrentFocus integration: pure `computeWorkflowPosition` function (12 unit tests) + `useWorkflowPositions` batch hook; section-aware workflow display on KanbanCard and CurrentFocusCard with 5 graceful degradation paths
+- Cache fix: workflow-positions invalidation added to useCreatePaintingSession for real-time position updates after session logging
+
+**Known gap:** RUI-03 partial — execution_mode as dot-separated text instead of Badge (intentional design deviation D-08)
+
+**Archived:**
+- Roadmap: `.planning/milestones/v0.2.9-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.2.9-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.2.9-MILESTONE-AUDIT.md`
+
+---
+
 ## v0.2.8 Rules Data Hub UI / Army Lists 2.0 / Game Day (Shipped: 2026-05-11)
 
 **Phases completed:** 5 phases (52–56), 12 plans

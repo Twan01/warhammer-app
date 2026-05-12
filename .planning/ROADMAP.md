@@ -198,7 +198,7 @@ Plans:
 
 Plans:
 - [x] 58-01-PLAN.md — Workflow collapsible form controls in RecipeSectionCard (RUI-01, RUI-02)
-- [ ] 58-02-PLAN.md — Timeline workflow metadata display in SectionedTimeline (RUI-03, RUI-04)
+- [x] 58-02-PLAN.md — Timeline workflow metadata display in SectionedTimeline (RUI-03, RUI-04)
 
 ### Phase 59: Session Section Cascade
 **Goal**: Users can log painting sessions with section-level granularity through a natural cascading selector flow
@@ -235,10 +235,10 @@ Plans:
 
 Plans:
 **Wave 1**
-- [ ] 60-01-PLAN.md — Pure function computeWorkflowPosition + batch hook useWorkflowPositions + tests (PROJ-03, PROJ-04, PROJ-05)
+- [x] 60-01-PLAN.md — Pure function computeWorkflowPosition + batch hook useWorkflowPositions + tests (PROJ-03, PROJ-04, PROJ-05)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 60-02-PLAN.md — KanbanCard + CurrentFocusCard workflow display integration + component tests (PROJ-01, PROJ-02)
+- [x] 60-02-PLAN.md — KanbanCard + CurrentFocusCard workflow display integration + component tests (PROJ-01, PROJ-02)
 
 ## Progress
 
@@ -305,6 +305,6 @@ Phases execute in numeric order: 57 -> 58 -> 59 -> 60
 | 55. Playbook Enhancements — Favorites and Notes | v0.2.8 | 2/2 | Complete | 2026-05-11 |
 | 56. Game Day Mode | v0.2.8 | 2/2 | Complete | 2026-05-11 |
 | 57. Schema & Data Layer | v0.2.9 | 2/2 | Complete | 2026-05-12 |
-| 58. Recipe Form & Timeline Display | v0.2.9 | 1/2 | In Progress|  |
-| 59. Session Section Cascade | v0.2.9 | 2/2 | Complete    | 2026-05-12 |
-| 60. Kanban & CurrentFocus Integration | v0.2.9 | 0/2 | Not started | - |
+| 58. Recipe Form & Timeline Display | v0.2.9 | 2/2 | Complete | 2026-05-12 |
+| 59. Session Section Cascade | v0.2.9 | 2/2 | Complete | 2026-05-12 |
+| 60. Kanban & CurrentFocus Integration | v0.2.9 | 2/2 | Complete | 2026-05-12 |
