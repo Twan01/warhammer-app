@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v0.2.10
 milestone_name: Applied Recipes, Points Import & List Validation
 status: planning
-stopped_at: Defining requirements
-last_updated: "2026-05-12T14:00:00.000Z"
+stopped_at: Roadmap created, ready to plan Phase 61
+last_updated: "2026-05-12T15:00:00.000Z"
 last_activity: 2026-05-12
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,20 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-12)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" -- without ever depending on copyrighted GW data.
-**Current focus:** v0.2.10 — Applied Recipes, Points Import & List Validation
+**Current focus:** v0.2.10 Phase 61 — Recipe Workflow Hardening
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 61 of 67 (Recipe Workflow Hardening)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-12 — Milestone v0.2.10 started
+Status: Ready to plan
+Last activity: 2026-05-12 — Roadmap created for v0.2.10 (7 phases, 20 requirements)
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- v0.2.9: 8 plans across 4 phases (2 days)
+- v0.2.9: 8 plans across 4 phases (single day)
 - v0.2.8: 12 plans across 5 phases (2 days)
 - v0.2.7: 8 plans across 4 phases (single day)
 - v0.2.6: 11 plans across 6 phases (single day)
@@ -46,14 +48,11 @@ Last activity: 2026-05-12 — Milestone v0.2.10 started
 
 - DELETE-all + re-INSERT save pattern on recipe sections -- NO section_id FK on painting_sessions
 - Denormalized section_name TEXT on painting_sessions (matches detachment_name, weapon_name pattern)
-- DraftSection must extend atomically with migration to prevent silent NULL erasure on save
-- LogSession 3-level cascade needs two useEffect reset chains (recipe->clear both; section->clear step)
-- Kanban/CurrentFocus share a pure derivation function for workflow position
-- Progressive disclosure threshold: check metadata presence, not just section count
-- computeWorkflowPosition is pure (no React/DB deps) — handles orphaned step IDs gracefully
+- Applied recipe step progress keyed by composite (recipe_id, order_index), NOT recipe_step_id FK
+- 5-level COALESCE: list override > loadout override > imported > unit default > unknown
+- PI-05 COALESCE update must touch ALL 3 query sites atomically
+- computeWorkflowPosition is pure (no React/DB deps) -- handles orphaned step IDs gracefully
 - useWorkflowPositions follows batch enrichment pattern (sorted IDs, Map result, 5min staleTime)
-- All queries via `tauri-plugin-sql` directly -- no ORM
-- Migrations are append-only and immutable -- new numbered file per change
 - Cache invalidation symmetry: if useCreate invalidates a key, useDelete must too
 - Page-level Map<compositeKey, T> pattern for annotations -- no N+1 hooks
 
@@ -67,6 +66,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-12T14:00:00.000Z
-Stopped at: Milestone v0.2.10 started — defining requirements
-Resume: Define requirements then create roadmap
+Last session: 2026-05-12T15:00:00.000Z
+Stopped at: Roadmap created for v0.2.10 -- 7 phases (61-67), 20 requirements mapped
+Resume: `/gsd-plan-phase 61`
