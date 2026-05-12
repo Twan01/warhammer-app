@@ -128,3 +128,40 @@ describe("logSessionSchema — INTEG-01 (recipe_id + recipe_step_id fields)", ()
     expect(result.success).toBe(true);
   });
 });
+
+describe("logSessionSchema — SESS-05 (section_name field)", () => {
+  it("parses successfully when section_name is omitted (field is optional)", () => {
+    const result = logSessionSchema.safeParse(BASE_VALID);
+    expect(result.success).toBe(true);
+  });
+
+  it("parses successfully when section_name is null (field is nullable)", () => {
+    const result = logSessionSchema.safeParse({ ...BASE_VALID, section_name: null });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.section_name).toBeNull();
+    }
+  });
+
+  it("parses successfully when section_name is a non-empty string", () => {
+    const result = logSessionSchema.safeParse({ ...BASE_VALID, section_name: "Base Coat" });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.section_name).toBe("Base Coat");
+    }
+  });
+
+  it("buildDefaultValues shape with section_name: null parses successfully", () => {
+    const result = logSessionSchema.safeParse({
+      unit_id: 1,
+      session_date: "2026-01-01",
+      duration_minutes: 30,
+      notes: null,
+      new_status: null,
+      recipe_id: null,
+      recipe_step_id: null,
+      section_name: null,
+    });
+    expect(result.success).toBe(true);
+  });
+});
