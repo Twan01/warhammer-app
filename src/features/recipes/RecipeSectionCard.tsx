@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { GripVertical, Trash2, ChevronDown } from "lucide-react";
+import { GripVertical, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
@@ -26,12 +26,20 @@ import { cn } from "@/lib/utils";
 import { RECIPE_SURFACES } from "./recipeSchema";
 import { type DraftSection } from "./recipeSection";
 import { RecipeStepList } from "./RecipeStepList";
+import { SECTION_TYPES, TECHNIQUES, EXECUTION_MODES } from "@/types/recipeSection";
 
 interface RecipeSectionCardProps {
   section: DraftSection;
   onChange: (updated: DraftSection) => void;
   onRemove: () => void;
   onCreateNewPaint: (stepLocalId: string) => void;
+  sectionsCount: number;
+}
+
+function hasAnyWorkflowMetadata(section: DraftSection): boolean {
+  return Boolean(
+    section.section_type || section.technique || section.execution_mode || section.applies_to,
+  );
 }
 
 export function RecipeSectionCard({
@@ -39,6 +47,7 @@ export function RecipeSectionCard({
   onChange,
   onRemove,
   onCreateNewPaint,
+  sectionsCount,
 }: RecipeSectionCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: section.localId,
@@ -46,12 +55,15 @@ export function RecipeSectionCard({
 
   const [open, setOpen] = useState(true);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [workflowOpen, setWorkflowOpen] = useState(false);
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+
+  const showWorkflowCollapsible = sectionsCount > 1 || hasAnyWorkflowMetadata(section);
 
   function handleDelete() {
     if (section.steps.length === 0) {
@@ -141,6 +153,99 @@ export function RecipeSectionCard({
 
         <CollapsibleContent>
           <div className="px-3 pb-3">
+            {/* Workflow nested collapsible — shown for multi-section or metadata-present recipes */}
+            {showWorkflowCollapsible && (
+              <Collapsible open={workflowOpen} onOpenChange={setWorkflowOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-7 gap-1 text-xs text-muted-foreground w-full justify-start px-0 mb-1"
+                  >
+                    <ChevronRight
+                      className={cn("h-3 w-3 transition-transform", workflowOpen && "rotate-90")}
+                      aria-hidden="true"
+                    />
+                    Workflow
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="grid grid-cols-2 gap-2 pt-1 pb-2">
+                    {/* section_type Select */}
+                    <Select
+                      value={section.section_type ?? "__none__"}
+                      onValueChange={(v) =>
+                        onChange({ ...section, section_type: v === "__none__" ? null : v })
+                      }
+                    >
+                      <SelectTrigger className="h-7 w-full text-xs">
+                        <SelectValue placeholder="Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">-- type --</SelectItem>
+                        {SECTION_TYPES.map((t) => (
+                          <SelectItem key={t} value={t}>
+                            {t}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {/* technique Select */}
+                    <Select
+                      value={section.technique ?? "__none__"}
+                      onValueChange={(v) =>
+                        onChange({ ...section, technique: v === "__none__" ? null : v })
+                      }
+                    >
+                      <SelectTrigger className="h-7 w-full text-xs">
+                        <SelectValue placeholder="Technique" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">-- technique --</SelectItem>
+                        {TECHNIQUES.map((t) => (
+                          <SelectItem key={t} value={t}>
+                            {t}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {/* execution_mode Select */}
+                    <Select
+                      value={section.execution_mode ?? "__none__"}
+                      onValueChange={(v) =>
+                        onChange({ ...section, execution_mode: v === "__none__" ? null : v })
+                      }
+                    >
+                      <SelectTrigger className="h-7 w-full text-xs">
+                        <SelectValue placeholder="Mode" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">-- mode --</SelectItem>
+                        {EXECUTION_MODES.map((m) => (
+                          <SelectItem key={m} value={m}>
+                            {m}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {/* applies_to Input */}
+                    <Input
+                      className="h-7 text-xs"
+                      placeholder="Applies to..."
+                      value={section.applies_to ?? ""}
+                      onChange={(e) =>
+                        onChange({ ...section, applies_to: e.target.value || null })
+                      }
+                      aria-label="Applies to (model area)"
+                    />
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+
             <RecipeStepList
               steps={section.steps}
               onChange={(next) => onChange({ ...section, steps: next })}

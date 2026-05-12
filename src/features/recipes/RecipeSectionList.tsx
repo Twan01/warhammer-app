@@ -56,6 +56,7 @@ export function RecipeSectionList({ sections, onChange, onCreateNewPaint }: Reci
               onChange={(updated) => updateSection(section.localId, updated)}
               onRemove={() => removeSection(section.localId)}
               onCreateNewPaint={onCreateNewPaint}
+              sectionsCount={sections.length}
             />
           ))}
         </div>
