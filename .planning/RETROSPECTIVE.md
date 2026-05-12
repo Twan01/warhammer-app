@@ -450,6 +450,50 @@
 
 ---
 
+## Milestone: v0.2.9 — Recipes 3.1 / Workflow Semantics & Integrations
+
+**Shipped:** 2026-05-12
+**Phases:** 4 | **Plans:** 8 | **Timeline:** 1 day (2026-05-12)
+
+### What Was Built
+
+- Schema & data layer: migration 020 adds 4 workflow metadata columns to recipe_sections + section_name on painting_sessions; const arrays as single sources of truth
+- Recipe form & timeline display: Workflow collapsible with progressive disclosure; compact badges and dot-separated metadata in SectionedTimeline
+- Session section cascade: 3-level cascading selector (recipe → section → step) in LogSessionSheet with dual reset chains
+- Kanban & CurrentFocus integration: pure computeWorkflowPosition + batch useWorkflowPositions hook; section-aware display on KanbanCard and CurrentFocusCard with 5 degradation paths
+
+### What Worked
+
+- **Pure function derivation pattern:** `computeWorkflowPosition` in src/lib/ with 12 unit tests made the complex position logic trivially testable and shareable between KanbanCard and CurrentFocusCard.
+- **Batch enrichment hook pattern:** `useWorkflowPositions` followed the exact `useKanbanEnrichment` pattern — sorted ID key, Map result, Promise.all parallel fetch. Pattern reuse eliminated design decisions.
+- **Denormalized section_name:** Matching the established weapon_name/detachment_name pattern avoided cross-FK complexity with the DELETE-all + re-INSERT save pattern.
+- **TDD gate on Phase 60 Plan 01:** RED commit (12 failing tests) → GREEN commit (all pass) — caught implementation edge cases before any UI wiring.
+
+### What Was Inefficient
+
+- **Missing verification docs caught at audit:** Phases 59 and 60 completed without VERIFICATION.md files. The milestone audit surfaced this as "gaps_found" — requiring a fix pass before milestone close. Adding verification as a standard executor step would prevent this.
+- **REQUIREMENTS.md checkbox drift:** 5 boxes not checked despite implementation being verified. Manual checkbox tracking doesn't scale — the traceability table should be the single source of truth.
+- **ROADMAP progress table inconsistency:** Phase 58 showed "1/2 In Progress" and Phase 60 showed "0/2 Not started" despite all summaries existing. Same drift problem as prior milestones.
+
+### Patterns Established
+
+- **Workflow position derivation:** Pure function handles sectioned/flat/section-only/complete/orphaned scenarios — reusable for any future recipe progress features.
+- **3-level cascade selector:** useState local filter + useMemo filtered list + dual useEffect reset chain — pattern for any cascading form selector.
+- **Design deviation documentation:** CONTEXT D-08 pattern for documenting intentional deviations from requirements during implementation.
+
+### Key Lessons
+
+- Verification docs should be created as part of phase execution, not retroactively at milestone close.
+- The batch enrichment hook pattern (sorted ID key, Map result, page-level prop drill) is now proven across 3 use cases — it's a project-wide standard.
+- Cache invalidation additions need cross-phase review — the workflow-positions key was missed in useCreatePaintingSession because it was added in a later phase than the mutation hook.
+
+### Cost Observations
+
+- Sessions: 1 milestone in a single day
+- Notable: 8 plans across 4 phases — clean linear execution with Phase 57 foundation enabling all downstream work
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -466,6 +510,7 @@
 | v0.2.6 | 6 | 11 | Architecture audit phase; dual-DB overrides; per-field diff; SUMMARY frontmatter standardization |
 | v0.2.7 | 4 | 8 | Hierarchical recipe sections; nested DnD; progressive disclosure; no gap closure needed |
 | v0.2.8 | 5 | 12 | Rules hub UI; army list detachment selection; annotation layer; Game Day mode; no gap closure needed |
+| v0.2.9 | 4 | 8 | Workflow metadata; cascade selector; pure derivation function; batch enrichment pattern; no gap closure needed |
 
 ### Cumulative Quality
 
@@ -481,6 +526,7 @@
 | v0.2.6 | 1,031 | All passing (27 requirements, Nyquist compliant, 1 test added by validation audit) |
 | v0.2.7 | 1,112 | All passing (19 requirements, 33/33 observable truths verified, Nyquist compliant, no gap closure) |
 | v0.2.8 | ~1,200 | All passing (27 requirements, Nyquist compliant, no gap closure, 3rd consecutive clean audit) |
+| v0.2.9 | ~1,240 | All passing (18/19 requirements satisfied, 1 partial design deviation, Nyquist compliant, gaps resolved inline) |
 
 ### Top Lessons (Verified Across Milestones)
 
