@@ -17,8 +17,8 @@ Requirements for Recipes 3.1 / Workflow Semantics & Integrations. Each maps to r
 
 ### Recipe UI
 
-- [ ] **RUI-01**: RecipeSectionCard shows workflow metadata fields under a progressive disclosure "Workflow" collapsible
-- [ ] **RUI-02**: Simple recipes (single section, no metadata) remain visually uncluttered -- workflow collapsible hidden
+- [x] **RUI-01**: RecipeSectionCard shows workflow metadata fields under a progressive disclosure "Workflow" collapsible
+- [x] **RUI-02**: Simple recipes (single section, no metadata) remain visually uncluttered -- workflow collapsible hidden
 - [ ] **RUI-03**: SectionedTimeline displays section_type and execution_mode as compact badges alongside existing surface badge
 - [ ] **RUI-04**: SectionedTimeline displays technique inline when set (e.g., "Armor Blue . Armor . Drybrush . Sequential")
 
@@ -76,8 +76,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WF-03 | Phase 57 | Pending |
 | WF-04 | Phase 57 | Pending |
 | WF-05 | Phase 57 | Complete |
-| RUI-01 | Phase 58 | Pending |
-| RUI-02 | Phase 58 | Pending |
+| RUI-01 | Phase 58 | Complete |
+| RUI-02 | Phase 58 | Complete |
 | RUI-03 | Phase 58 | Pending |
 | RUI-04 | Phase 58 | Pending |
 | SESS-01 | Phase 59 | Pending |
