@@ -24,10 +24,10 @@ Requirements for Recipes 3.1 / Workflow Semantics & Integrations. Each maps to r
 
 ### Session Integration
 
-- [ ] **SESS-01**: LogSessionSheet shows a section selector between recipe and step selectors when a recipe with 2+ sections is selected
-- [ ] **SESS-02**: Selecting a section filters the step selector to only that section's steps
-- [ ] **SESS-03**: Changing recipe clears both section and step selections
-- [ ] **SESS-04**: Changing section clears step selection
+- [x] **SESS-01**: LogSessionSheet shows a section selector between recipe and step selectors when a recipe with 2+ sections is selected
+- [x] **SESS-02**: Selecting a section filters the step selector to only that section's steps
+- [x] **SESS-03**: Changing recipe clears both section and step selections
+- [x] **SESS-04**: Changing section clears step selection
 - [x] **SESS-05**: All three selectors (recipe, section, step) remain optional -- user can log with any combination
 
 ### Project Integration
@@ -80,10 +80,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RUI-02 | Phase 58 | Complete |
 | RUI-03 | Phase 58 | Pending |
 | RUI-04 | Phase 58 | Pending |
-| SESS-01 | Phase 59 | Pending |
-| SESS-02 | Phase 59 | Pending |
-| SESS-03 | Phase 59 | Pending |
-| SESS-04 | Phase 59 | Pending |
+| SESS-01 | Phase 59 | Complete |
+| SESS-02 | Phase 59 | Complete |
+| SESS-03 | Phase 59 | Complete |
+| SESS-04 | Phase 59 | Complete |
 | SESS-05 | Phase 59 | Complete |
 | PROJ-01 | Phase 60 | Pending |
 | PROJ-02 | Phase 60 | Pending |

@@ -215,7 +215,7 @@ Plans:
 - [x] 59-01-PLAN.md — Schema extension: section_name field + SESS-05 schema tests
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 59-02-PLAN.md — LogSessionSheet cascade selector + component tests (SESS-01 through SESS-05)
+- [x] 59-02-PLAN.md — LogSessionSheet cascade selector + component tests (SESS-01 through SESS-05)
 
 ### Phase 60: Kanban & CurrentFocus Integration
 **Goal**: Users see section-aware workflow context on project cards and dashboard, knowing exactly where they are in a recipe
@@ -300,5 +300,5 @@ Phases execute in numeric order: 57 -> 58 -> 59 -> 60
 | 56. Game Day Mode | v0.2.8 | 2/2 | Complete | 2026-05-11 |
 | 57. Schema & Data Layer | v0.2.9 | 2/2 | Complete | 2026-05-12 |
 | 58. Recipe Form & Timeline Display | v0.2.9 | 1/2 | In Progress|  |
-| 59. Session Section Cascade | v0.2.9 | 1/2 | In Progress|  |
+| 59. Session Section Cascade | v0.2.9 | 2/2 | Complete   | 2026-05-12 |
 | 60. Kanban & CurrentFocus Integration | v0.2.9 | 0/? | Not started | - |
