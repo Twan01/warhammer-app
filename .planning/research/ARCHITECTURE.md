@@ -1,370 +1,413 @@
-# Architecture Patterns
+# Architecture Research
 
-**Domain:** Recipe workflow semantics and section-aware integrations (v0.2.9)
-**Researched:** 2026-05-11
-**Confidence:** HIGH (all findings derived from codebase analysis -- no external dependencies)
-
-## Current State Summary
-
-The existing architecture has three relevant subsystems:
-
-1. **Recipe Sections** (`recipe_sections` table, 9 columns: id, recipe_id, name, surface, optional, order_index, notes, created_at, updated_at). Steps FK to sections via `section_id`. Sections are saved with DELETE-all + re-INSERT pattern. Progressive disclosure hides section UI when `sections.length <= 1`.
-
-2. **Log Session** (`LogSessionSheet`) has recipe_id and recipe_step_id FKs on painting_sessions. Step selector is a flat list sorted by order_index -- no section awareness.
-
-3. **Kanban/CurrentFocus** display recipe name only. KanbanCard gets recipe names via `useKanbanEnrichment` (batch query by unit_id). CurrentFocusCard gets recipe name via `getRecipeNamesByUnitIds`. Next-action hint is a static PaintingStatus-to-string map (`getNextActionHint`).
+**Domain:** Warhammer hobby management — applied recipes, points import, list validation
+**Researched:** 2026-05-12
+**Confidence:** HIGH (all findings derived from direct codebase inspection of 290 TypeScript files and 20 migrations; no training-data assumptions)
 
 ---
 
-## New Architecture: Integration Map
+## Existing Architecture Snapshot
 
-### Feature 1: Section-Level Workflow Metadata
+Confirmed facts from codebase analysis (not training-data assumptions):
 
-**Schema change:** 4 new columns on `recipe_sections`:
-
-| Column | Type | Nullable | Purpose |
-|--------|------|----------|---------|
-| `section_type` | TEXT | YES | Workflow category: "prep", "basecoat", "shade", "layer", "highlight", "detail", "basing", "finishing", "custom" |
-| `technique` | TEXT | YES | Painting technique: "drybrush", "wetblend", "stipple", "glaze", "wash", "edge", "freehand", etc. |
-| `execution_mode` | TEXT | YES | "sequential" (default null = sequential) or "parallel" (can be done in any order relative to siblings) |
-| `applies_to` | TEXT | YES | Free-text target surface: "armour panels", "cloth", "skin", "weapon blade" |
-
-**Migration file:** `020_section_workflow_metadata.sql` -- 4 ALTER TABLE ADD COLUMN statements. All nullable, no backfill needed (existing sections get NULL = no metadata, which is correct).
-
-**Files modified:**
-
-| File | Change |
-|------|--------|
-| `src/types/recipeSection.ts` | Add 4 fields to `RecipeSection` interface |
-| `src/features/recipes/recipeSection.ts` | Add 4 fields to `DraftSection`, update `makeDraftSection` and `buildDraftSections` |
-| `src/db/queries/recipeSections.ts` | Add 4 params to `createRecipeSection` INSERT and `updateRecipeSection` UPDATE |
-
-**No new files.** The workflow metadata fields are additive to existing types and queries.
-
-**Key decision:** Use direct assignment (not COALESCE) for all 4 new columns in UPDATE, consistent with the existing `surface` and `notes` pattern. Users must be able to clear fields to NULL.
-
-### Feature 2: Workflow Metadata Editing UI
-
-**Files modified:**
-
-| File | Change |
-|------|--------|
-| `src/features/recipes/RecipeSectionCard.tsx` | Add collapsible "Workflow" section below existing name/surface/optional fields. Show under progressive disclosure (collapsed by default). Contains 4 fields: section_type (Select), technique (Select), execution_mode (Select), applies_to (Input). |
-
-**No new files.** The metadata editing lives inside the existing section card form. Progressive disclosure pattern (Chevron toggle) already exists in RecipeSectionCard for notes.
-
-**Key decision:** Use const arrays in `src/types/recipeSection.ts` for section_type and technique values (same pattern as `PAINTING_STATUS_ORDER` for union types). execution_mode has only 2 values so a simple Select is sufficient.
-
-### Feature 3: Compact Metadata Display in SectionedTimeline
-
-**Files modified:**
-
-| File | Change |
-|------|--------|
-| `src/features/recipes/SectionedTimeline.tsx` | Add compact metadata badges after existing surface/optional badges in section header row. Show section_type as a colored badge, technique as text badge, execution_mode "parallel" as a distinct icon/badge (Shuffle icon from Lucide). applies_to as italic text. |
-
-**No new files.** Pure display change in existing component.
-
-**Data flow:** SectionedTimeline already receives `sections: RecipeSection[]` -- the 4 new fields flow through automatically once the type is extended. Zero prop changes needed.
-
-### Feature 4: Log Session Section-Aware Cascading Selectors
-
-**Schema change:** 1 new column on `painting_sessions`:
-
-| Column | Type | Nullable | Purpose |
-|--------|------|----------|---------|
-| `section_id` | INTEGER | YES | FK to recipe_sections(id) ON DELETE SET NULL |
-
-**Migration:** `020_section_workflow_metadata.sql` (same migration file) -- `ALTER TABLE painting_sessions ADD COLUMN section_id INTEGER REFERENCES recipe_sections(id) ON DELETE SET NULL`.
-
-**Files modified:**
-
-| File | Change |
-|------|--------|
-| `src/types/paintingSession.ts` | Add `section_id: number \| null` to `PaintingSession` and `CreateSessionInput` |
-| `src/db/queries/paintingSessions.ts` | Add `$7` param for section_id in `createSession` INSERT |
-| `src/features/dashboard/logSessionSchema.ts` | Add `section_id: z.number().int().positive().nullable().optional()` |
-| `src/features/dashboard/LogSessionSheet.tsx` | Add section selector between recipe and step selectors (cascading: recipe -> section -> step) |
-| `src/hooks/useJournalSessions.ts` | No change -- createSession already passes all CreateSessionInput fields |
-
-**Cascading selector logic in LogSessionSheet:**
-
-```
-Recipe selector (existing)
-  |-- when recipe selected, fetch sections via useRecipeSections(watchedRecipeId)
-       |-- Section selector (NEW -- only shown when recipe has 2+ sections)
-            |-- when section selected, filter steps to that section
-                 |-- Step selector (existing, now filtered by section_id)
-```
-
-**Key decisions:**
-- Section selector only appears when recipe has 2+ sections (progressive disclosure threshold, consistent with form UI).
-- Changing recipe resets both section_id and recipe_step_id (existing pattern already resets recipe_step_id).
-- Changing section resets recipe_step_id only.
-- Steps in the step selector are filtered by `section_id` when a section is selected, otherwise show all steps (backward compat for single-section recipes).
-
-**Cache invalidation:** No new invalidation keys needed. `useCreatePaintingSession` already invalidates `PAINTING_SESSIONS_KEY(unit_id)`, `hobby-analytics`, `recent-activity`, `goal-progress`, and conditionally `RECIPE_SESSIONS_KEY`.
-
-### Feature 5: Kanban Card Workflow Display
-
-**New query function** in `src/db/queries/recipes.ts`:
-
-```typescript
-export async function getSectionSummaryByUnitIds(
-  unitIds: number[]
-): Promise<{ unit_id: number; section_name: string; section_type: string | null }[]>
-```
-
-This returns the first section (by order_index) for each unit's recipe. The Kanban card shows workflow context ("Basecoat -- Armour Panels"), not completion status.
-
-**Files modified:**
-
-| File | Change |
-|------|--------|
-| `src/db/queries/recipes.ts` | Add `getSectionSummaryByUnitIds()` -- returns first section name + type per unit's recipe |
-| `src/hooks/useKanbanEnrichment.ts` | Add third parallel fetch for section summaries; extend `KanbanEnrichment` type |
-| `src/features/painting-projects/KanbanCard.tsx` | Show workflow metadata below recipe name (e.g., "Basecoat -- Armour Panels") |
-| `src/features/painting-projects/KanbanColumn.tsx` | Pass new enrichment data through |
-
-**Key decision:** Do NOT add session-based progress tracking to Kanban cards. The Kanban board is a drag-and-drop view; adding per-step progress would require N+1 session queries per card. Instead, show static workflow context from the recipe's sections. Progress tracking is a future milestone concern.
-
-### Feature 6: CurrentFocus Section-Aware Next Action
-
-**Files modified:**
-
-| File | Change |
-|------|--------|
-| `src/features/dashboard/DashboardPage.tsx` | Fetch sections for focus unit's recipe; compute section-aware hint |
-| `src/features/dashboard/CurrentFocusCard.tsx` | Add optional `workflowHint` prop for section-level guidance |
-| `src/features/dashboard/getNextActionHint.ts` | Add `getSectionAwareHint()` that combines PaintingStatus hint with section context |
-
-**Data flow for CurrentFocusCard workflow hint:**
-
-```
-DashboardPage mounts
-  |-- focusUnitId (from stats.activeProjects[0])
-  |-- focusRecipes (existing query by unit_id)
-  |-- NEW: focusSections = useRecipeSections(focusRecipes?.[0]?.id)
-  |-- Compute: first non-optional section name + type -> workflowHint string
-  |-- Pass workflowHint to CurrentFocusCard
-```
-
-**Key decision:** The hint is informational only (e.g., "Next: Basecoat -- armour panels"). It does NOT track which steps are complete. Step-level progress tracking across sessions is a separate feature requiring a `completed_at` column on recipe_steps and is explicitly out of scope for v0.2.9.
+- **Dual DB**: `hobbyforge.db` (all user/app data, 20 migrations applied) + `rules.db` (Wahapedia rules, wiped on every sync). Cross-DB FKs are impossible in SQLite; text-copy denormalization is the established pattern (`detachment_name`, `weapon_name`, `section_name`).
+- **Data layer**: `src/db/queries/*.ts` — raw SQL, positional `$1,$2` params, no ORM. 24 query modules.
+- **Hook layer**: `src/hooks/use*.ts` — React Query wrappers. Mutation `onSuccess` drives all cache invalidation. Symmetry rule: if `useCreate` invalidates a key, `useDelete` must too.
+- **Points COALESCE (current, 3-level)**: `COALESCE(alu.points_override, uo.points, u.points, 0)` — appears in both `getArmyListWithUnits` and `getArmyListReadiness` in `src/db/queries/armyLists.ts`.
+- **Recipe structure**: `painting_recipes` → `recipe_sections` (with workflow metadata columns: section_type, technique, execution_mode, applies_to) → `recipe_steps`. Save pattern: DELETE-all + re-INSERT per section. Sessions link to recipe/step via nullable FK (ON DELETE SET NULL).
+- **Workflow position**: `computeWorkflowPosition` pure function in `src/lib/`. Consumed by `useWorkflowPositions` batch enrichment hook. Currently derives position from session history (last session with `recipe_step_id` or `section_name`).
+- **Annotations pattern**: Page-level `Map<compositeKey, T>` built once via `useMemo`; prop-drilled. No N+1 hooks.
+- **Boolean discipline**: SQLite booleans stored as `0 | 1` integers.
+- **Points import design**: Pre-designed in `.planning/points-import-design.md`. Schema, COALESCE chain, delta algorithm, and JOIN additions are fully documented and ready to implement.
+- **Next available migration number**: `021` (020 was `workflow_metadata.sql`).
 
 ---
 
-## Component Boundaries
+## New Components
 
-| Component | Responsibility | Communicates With |
-|-----------|---------------|-------------------|
-| `recipe_sections` (DB) | Stores section workflow metadata | Query modules |
-| `painting_sessions` (DB) | Stores section_id FK for session-section linking | Query modules |
-| `recipeSections.ts` (queries) | CRUD with 4 new workflow fields | useRecipeSections hook |
-| `paintingSessions.ts` (queries) | INSERT with section_id | useJournalSessions hook |
-| `RecipeSectionCard` (UI) | Workflow metadata editing form | DraftSection state |
-| `SectionedTimeline` (UI) | Compact metadata badge display | RecipeSection type |
-| `LogSessionSheet` (UI) | 3-level cascading selector | useRecipeSections, useRecipePaints |
-| `KanbanCard` (UI) | Workflow context display | useKanbanEnrichment |
-| `CurrentFocusCard` (UI) | Section-aware next action hint | DashboardPage prop drilling |
+### 1. Applied Recipes — Two New Tables in hobbyforge.db
+
+Migration `021_applied_recipes.sql`:
+
+```sql
+-- One assignment per (unit, recipe) pair.
+-- unit_id: RESTRICT — delete unit must remove assignment first
+-- recipe_id: SET NULL — recipe delete orphans assignment; recipe_name TEXT copy preserves display
+CREATE TABLE IF NOT EXISTS unit_recipe_assignments (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    unit_id     INTEGER NOT NULL REFERENCES units(id) ON DELETE RESTRICT,
+    recipe_id   INTEGER REFERENCES painting_recipes(id) ON DELETE SET NULL,
+    recipe_name TEXT    NOT NULL,
+    assigned_at TEXT    NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (unit_id, recipe_id)
+);
+
+-- Per-step completion. One row per (assignment, step).
+-- assignment_id: CASCADE — removing assignment removes all progress
+-- step_id: SET NULL — step delete preserves completion record; exclude NULL step_id from counts
+-- section_id: denormalized for efficient section-level completion queries
+CREATE TABLE IF NOT EXISTS unit_recipe_step_progress (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    assignment_id INTEGER NOT NULL REFERENCES unit_recipe_assignments(id) ON DELETE CASCADE,
+    step_id       INTEGER REFERENCES recipe_steps(id) ON DELETE SET NULL,
+    section_id    INTEGER REFERENCES recipe_sections(id) ON DELETE SET NULL,
+    completed     INTEGER NOT NULL DEFAULT 0,
+    completed_at  TEXT,
+    UNIQUE (assignment_id, step_id)
+);
+```
+
+Design rationale:
+- `recipe_name` TEXT copy mirrors `detachment_name` and `section_name` patterns — recipe deletion sets `recipe_id = NULL` but preserves display.
+- `section_id` denormalized on progress rows enables section-level completion queries (e.g., "Basecoat section: 3/5 steps") without joining through `recipe_steps`.
+- `UNIQUE (unit_id, recipe_id)` allows one unit to have multiple assigned recipes (e.g., one for armour, one for basing) — there is no artificial "one recipe per unit" restriction.
+- Do NOT use `INSERT OR REPLACE` for progress toggle — it changes the row `id`, breaking any future FK references. Use `INSERT ... ON CONFLICT (assignment_id, step_id) DO UPDATE SET completed = $3, completed_at = $4`.
+
+### 2. Points Import — Two New Tables in hobbyforge.db
+
+Migration `022_points_imports.sql` (pre-designed schema from `.planning/points-import-design.md`):
+
+```sql
+CREATE TABLE IF NOT EXISTS points_imports (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    unit_name   TEXT    NOT NULL,
+    faction_id  TEXT,                              -- Wahapedia text key (e.g. "SM"), NOT factions.id integer
+    points      INTEGER NOT NULL,
+    source      TEXT    NOT NULL DEFAULT 'csv',
+    imported_at TEXT    NOT NULL DEFAULT (datetime('now')),
+    version     TEXT,
+    UNIQUE (unit_name, faction_id)
+);
+
+CREATE TABLE IF NOT EXISTS points_import_history (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    imported_at   TEXT    NOT NULL DEFAULT (datetime('now')),
+    source_file   TEXT,
+    version       TEXT,
+    row_count     INTEGER NOT NULL DEFAULT 0,
+    delta_added   INTEGER NOT NULL DEFAULT 0,
+    delta_removed INTEGER NOT NULL DEFAULT 0,
+    delta_changed INTEGER NOT NULL DEFAULT 0
+);
+```
+
+### 3. Tactical Tags — One New Table in hobbyforge.db
+
+Can be part of migration `022_points_imports.sql` or a separate `023_tactical_tags.sql`:
+
+```sql
+-- Per-unit role tags for list coverage analysis (LV-02, LV-03).
+-- Individual rows (not JSON array) for efficient GROUP BY aggregation.
+CREATE TABLE IF NOT EXISTS unit_tactical_tags (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    unit_id    INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+    tag        TEXT    NOT NULL,
+    created_at TEXT    NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (unit_id, tag)
+);
+```
+
+### 4. New Query Modules
+
+| File | Contents |
+|------|----------|
+| `src/db/queries/recipeAssignments.ts` | CRUD for `unit_recipe_assignments`; batch fetch by unit IDs; `bulkAssignRecipe(recipeId, unitIds[])` transaction |
+| `src/db/queries/recipeProgress.ts` | Toggle step completion via upsert; get completion summary by assignment; get section-level completion counts |
+| `src/db/queries/pointsImports.ts` | Import transaction (snapshot → upsert → delete removals → delta → history); `getLatestImport()`; `getImportHistory()` |
+| `src/db/queries/listValidation.ts` | Aggregation queries: points totals with 5-level COALESCE, freshness check, ownership/readiness warnings, tactical tag coverage |
+| `src/db/queries/tacticalTags.ts` | CRUD for `unit_tactical_tags`; batch fetch by unit IDs; batch fetch by list (joins through army_list_units) |
+
+### 5. New Hooks
+
+| File | Cache Keys | Invalidated By |
+|------|-----------|----------------|
+| `src/hooks/useRecipeAssignments.ts` | `["recipe-assignments", unitId]` | useCreateAssignment, useDeleteAssignment |
+| `src/hooks/useRecipeProgress.ts` | `["recipe-progress", assignmentId]` | useToggleStepProgress, useCreateAssignment |
+| `src/hooks/usePointsImports.ts` | `["points-imports"]`, `["points-import-history"]` | useImportPoints |
+| `src/hooks/useListValidation.ts` | `["list-validation", listId]` | useImportPoints, useUpdateArmyListUnit, useAddUnitToList, useRemoveUnitFromList, useCreateTag, useDeleteTag |
+| `src/hooks/useTacticalTags.ts` | `["tactical-tags", unitId]` | useCreateTag, useDeleteTag |
+
+### 6. New Pure Functions
+
+| File | Purpose |
+|------|---------|
+| `src/lib/computeAppliedRecipePosition.ts` | Given assignment + progress rows + sections + steps, returns next incomplete step. Companion to existing `computeWorkflowPosition`. TDD wave 0. |
+| `src/lib/pointsDeltaCompute.ts` | Given before-snapshot Map and CSV rows, returns `{added, removed, changed}` counts. Pure function — testable in isolation before the import transaction is wired up. |
+
+### 7. New UI Components
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| `ApplyRecipeSheet.tsx` | `src/features/recipes/` | Recipe-to-unit assignment; recipe preview; unit multi-selector for bulk apply |
+| `AppliedRecipeChecklist.tsx` | `src/features/units/` | Section/step completion checklist; tick steps; show section progress bars |
+| `AppliedRecipeProgressBadge.tsx` | `src/components/common/` | Compact "X/N steps" badge; shared by Collection rows, Kanban cards, Unit Detail header |
+| `PointsImportSheet.tsx` | `src/features/army-lists/` | File picker (Tauri dialog.open) + CSV parse + delta summary display |
+| `PointsFreshnessBadge.tsx` | `src/components/common/` | Fresh/stale/no_import status badge; shared by Army List card and ListValidationPanel |
+| `ListValidationPanel.tsx` | `src/features/army-lists/` | Health summary: points bar, ownership warnings, readiness %, freshness, tactical coverage |
+| `TacticalTagsEditor.tsx` | `src/features/units/` | Add/remove tactical role tags on a unit (multi-select or free-text) |
+| `TacticalCoverageBar.tsx` | `src/features/army-lists/` | Tag presence/absence visual for a list (anti-tank, screening, objective holders, etc.) |
+| `GameDayWarningBanner.tsx` | `src/features/game-day/` | Pre-game warnings: points exceeded, stale data, unbuilt/unpainted units |
 
 ---
 
-## Data Flow
+## Data Flow Changes
 
-### Write Path (Section Metadata)
-
-```
-RecipeSectionCard (form fields)
-  -> DraftSection state (useState in RecipeFormSheet)
-  -> onSubmit: DELETE-all + re-INSERT sections (existing pattern)
-  -> createRecipeSection() now includes 4 new params
-  -> SQLite recipe_sections table
-  -> Invalidate RECIPE_SECTIONS_KEY(recipeId)
-```
-
-### Write Path (Session with Section)
+### Applied Recipes Write Path
 
 ```
-LogSessionSheet (cascading selectors)
-  -> logSessionSchema validation (includes section_id)
-  -> createSession() with section_id param
-  -> SQLite painting_sessions table
-  -> Invalidate PAINTING_SESSIONS_KEY(unit_id) + related keys
+Collection page / Unit Detail
+    "Apply Recipe" button
+    → ApplyRecipeSheet (recipe selector + unit multi-selector)
+    → useCreateAssignment (or useBulkAssignRecipe for multi-unit)
+        → INSERT INTO unit_recipe_assignments
+        → INSERT INTO unit_recipe_step_progress (one row per step, completed=0)
+        → invalidate ["recipe-assignments", unitId]
+        → invalidate ["workflow-positions"] prefix  ← Kanban/CurrentFocus must update
+
+AppliedRecipeChecklist
+    user ticks a step
+    → useToggleStepProgress
+        → INSERT ... ON CONFLICT ... DO UPDATE (upsert, preserves row id)
+        → invalidate ["recipe-progress", assignmentId]
+        → invalidate ["workflow-positions"] prefix
+        → invalidate ["kanban-enrichment"] prefix  ← progress badge on Kanban card
+
+LogSessionSheet (existing, extended for AR-05)
+    user checks "Mark step complete" while logging session
+    → on session save: writes painting_sessions row AND calls useToggleStepProgress
+    → single save action, two mutations, one cache invalidation pass
 ```
 
-### Read Path (Kanban Enrichment)
+### Applied Recipes Read Path
 
 ```
 KanbanBoard mounts
-  -> useKanbanEnrichment(unitIds)
-  -> Promise.all([getRecipeNamesByUnitIds, getPhotoCountsByUnitIds, getSectionSummaryByUnitIds])
-  -> Map<unitId, { recipeName, photoCount, sectionSummary }>
-  -> KanbanCard renders workflow context
+    → useKanbanEnrichment(unitIds)  ← EXTENDED with 4th parallel query
+        → Promise.all([
+            getRecipeNamesByUnitIds,
+            getPhotoCountsByUnitIds,
+            getSectionSummaryByUnitIds,          ← existing (v0.2.9)
+            getAssignmentProgressByUnitIds,      ← NEW
+          ])
+        → KanbanEnrichment now includes Map<unitId, {completed: number, total: number}>
+    → KanbanCard renders AppliedRecipeProgressBadge
+
+Unit Detail page
+    → useRecipeAssignments(unitId) → list of assignments
+    → useRecipeProgress(assignmentId) → per-step completion
+    → AppliedRecipeChecklist renders sectioned view with ticks
 ```
 
-### Read Path (CurrentFocus Hint)
+### Points Import Write Path
 
 ```
-DashboardPage mounts
-  -> focusRecipes query (existing)
-  -> useRecipeSections(focusRecipes[0].id) (NEW)
-  -> getSectionAwareHint(status, sections) (NEW pure function)
-  -> CurrentFocusCard.workflowHint prop
+PointsImportSheet
+    → Tauri dialog.open() file picker
+    → Tauri fs plugin reads file bytes
+    → src/lib/csv.ts parses rows (reuse existing utilities)
+    → importPointsTransaction() in pointsImports.ts:
+        BEGIN TRANSACTION
+        snapshot = SELECT unit_name, faction_id, points FROM points_imports WHERE ...
+        for each CSV row: INSERT OR REPLACE INTO points_imports
+        for each removed row: DELETE FROM points_imports WHERE ...
+        {added, removed, changed} = pointsDeltaCompute(snapshot, csvRows)
+        INSERT INTO points_import_history (source_file, version, row_count, ...)
+        COMMIT
+    → useImportPoints onSuccess:
+        invalidate ["points-imports"]
+        invalidate ["points-import-history"]
+        invalidate ["army-list-readiness"]     ← totals now include pi.points
+        invalidate ["list-validation"]          ← freshness + warnings change
+        invalidate ["dashboard-stats"]          ← forward-compat
+        invalidate ["army-lists", id, "units"]  ← all open list detail views
+```
+
+### Points Import Read Path (COALESCE chain update)
+
+Two existing query functions in `src/db/queries/armyLists.ts` gain an identical JOIN addition:
+
+```sql
+-- Add to both getArmyListWithUnits AND getArmyListReadiness:
+LEFT JOIN points_imports pi
+  ON pi.unit_name = u.name
+ AND (pi.faction_id IS NULL OR pi.faction_id = u.faction_id)
+```
+
+COALESCE updates from 3-level to 5-level in both:
+```sql
+-- Before:
+COALESCE(alu.points_override, uo.points, u.points, 0) AS effective_points
+-- After:
+COALESCE(alu.points_override, pi.points, uo.points, u.points, 0) AS effective_points
+```
+
+### List Validation Read Path
+
+```
+ArmyListDetailPage
+    → useListValidation(listId)
+        → listValidation.ts fires 5 parallel queries:
+            1. getListPointsSummary(listId)       — 5-level COALESCE sum vs limit
+            2. getListOwnershipWarnings(listId)   — units where status_assembly = 0
+            3. getListReadinessWarnings(listId)   — units where status_painting != 'Completed'
+            4. getListFreshnessStatus(listId)     — join to points_import_history, julianday diff
+            5. getListTacticalCoverage(listId)    — GROUP BY tag, count per tag
+        → ListValidationPanel renders health summary
+        → individual ArmyListUnitRow gets inline warning icon via prop
+
+GameDayPage
+    → GameDayWarningBanner reads useListValidation(activeListId)
+    → surfaces top-N actionable warnings before play begins
 ```
 
 ---
 
-## Patterns to Follow
+## Integration Points with Existing Architecture
 
-### Pattern 1: Const Array Union Types for Workflow Enums
+### Integration Point 1: COALESCE Update (highest risk, must be atomic)
 
-**What:** Define section_type and technique values as const arrays, derive TypeScript types.
-**When:** Any new TEXT column with a fixed set of valid values.
-**Example:**
+**Files**: `src/db/queries/armyLists.ts` — two functions: `getArmyListWithUnits` and `getArmyListReadiness`
 
-```typescript
-// src/types/recipeSection.ts
-export const SECTION_TYPES = [
-  "prep", "basecoat", "shade", "layer", "highlight",
-  "detail", "basing", "finishing", "custom"
-] as const;
-export type SectionType = typeof SECTION_TYPES[number];
+Both functions must gain the identical `LEFT JOIN points_imports` and updated COALESCE in the same commit. If only one is updated, `ArmyListDetailPage` and `ArmyReadinessCard` (on Dashboard) show different totals — a visible split-brain bug.
 
-export const SECTION_TECHNIQUES = [
-  "drybrush", "wetblend", "stipple", "glaze", "wash",
-  "edge", "layering", "feathering", "sponge", "airbrush",
-  "contrast", "freehand"
-] as const;
-export type SectionTechnique = typeof SECTION_TECHNIQUES[number];
-```
+The `ArmyListUnitRow` TypeScript interface in `src/types/armyList.ts` does not need to change — `effective_points: number` remains; the COALESCE just resolves differently.
 
-**Why:** Consistent with `PAINTING_STATUS_ORDER` pattern. Enables Select options and type safety without a separate enum.
+### Integration Point 2: useWorkflowPositions — Applied Progress as Primary Source
 
-### Pattern 2: Progressive Disclosure for Cascading Selectors
+`src/hooks/useWorkflowPositions.ts` currently queries sessions to derive workflow position. After applied recipes ship, progress rows are the authoritative source.
 
-**What:** Show the section selector only when the selected recipe has 2+ sections.
-**When:** LogSessionSheet, anywhere a recipe-section-step cascade appears.
-**Why:** Single-section recipes should not show a redundant "Steps" selector. Consistent with the existing threshold (`sections.length <= 1` hides section UI in RecipeFormSheet and RecipeDetailSheet).
+Recommended approach: `useWorkflowPositions` calls a new `getAssignmentProgressByUnitIds(unitIds[])` batch query. For each unit that has an assignment, call `computeAppliedRecipePosition(assignment, progressRows, sections, steps)`. For units without an assignment, fall back to the existing session-derived logic. This is additive — no existing behavior breaks.
 
-### Pattern 3: Batch Enrichment Extension (Not N+1)
+### Integration Point 3: useKanbanEnrichment — 4th Parallel Query
 
-**What:** Add the new section summary fetch to the existing `useKanbanEnrichment` Promise.all.
-**When:** Adding new per-card data to Kanban.
-**Why:** The existing pattern already batches recipe names and photo counts in one hook. Adding a third parallel query maintains O(1) queries regardless of card count.
+`src/hooks/useKanbanEnrichment.ts` uses `Promise.all` for batch enrichment. Adding `getAssignmentProgressByUnitIds` as a 4th parallel query follows the established pattern exactly. The `KanbanEnrichment` interface gains `appliedProgress: Map<number, {completed: number, total: number}>`.
+
+`KanbanCard` renders `AppliedRecipeProgressBadge` only when `appliedProgress.has(unit.id)`.
+
+### Integration Point 4: LogSessionSheet — Step Completion Checkbox
+
+`src/features/dashboard/LogSessionSheet.tsx` already has `recipe_id`, `recipe_step_id`, and `section_name` fields. For AR-05, add:
+- A read from `useRecipeAssignments(unitId)` to find the active assignment for the session's unit
+- A checkbox "Mark step complete in recipe" — only shown when `recipe_step_id` is set and an assignment exists
+- On submit: if checkbox checked, call `useToggleStepProgress` after the session write succeeds
+- Cache invalidation: existing session keys unchanged; add `["recipe-progress", assignmentId]` and `["workflow-positions"]` prefix
+
+### Integration Point 5: UnitDeleteDialog — RESTRICT FK Guard
+
+`unit_recipe_assignments.unit_id` uses ON DELETE RESTRICT (same as `army_list_units.unit_id`). The existing `UnitDeleteDialog` in `src/features/units/` already guards against army list membership. It must also check for recipe assignments. Add a `getAssignmentsByUnitId(unitId)` call to the dialog's pre-delete check — display assignment count if > 0 and block deletion.
+
+### Integration Point 6: Points Import — CSV Parsing Reuse
+
+`src/lib/csv.ts` contains the CSV parsing utilities built for the Wahapedia sync. The points import pipeline should reuse these utilities. The CSV format for points import (unit_name, faction_id, points) is simpler than the Wahapedia format. If `csv.ts` has typed generics, a new `parsePointsCSV` function can be added there; otherwise a thin wrapper in `pointsImports.ts` is acceptable.
+
+### Integration Point 7: Tauri File Picker
+
+The points import sheet needs a file picker. Use `@tauri-apps/plugin-dialog`'s `open()` function (already available — Tauri 2 dialog plugin is in the dependency set). No new Rust commands needed. Read the file with `@tauri-apps/plugin-fs`'s `readTextFile()`.
+
+### Integration Point 8: GameDayPage — Warning Banner Slot
+
+`src/features/game-day/GameDayPage.tsx` has an existing pre-game checklist. `GameDayWarningBanner` slots above or alongside this checklist. It reads from `useListValidation(activeListId)` where `activeListId` is already available via the page's existing state. No new routing or data fetching infrastructure needed.
+
+---
+
+## Suggested Build Order
+
+### Phase 1: Recipe Workflow Hardening (RH-01, RH-02, RH-03)
+No new tables. Verify migration order, fix section-aware log session stability, polish section_type values. Build first — hardens the recipe foundation before the applied recipe layer is added on top.
+
+### Phase 2: Applied Recipe Data Layer (AR-01)
+1. Migration `021_applied_recipes.sql`
+2. `src/types/recipeAssignment.ts` (RecipeAssignment, StepProgress, CreateAssignmentInput types)
+3. `src/db/queries/recipeAssignments.ts` + `src/db/queries/recipeProgress.ts`
+4. `src/hooks/useRecipeAssignments.ts` + `src/hooks/useRecipeProgress.ts`
+5. `src/lib/computeAppliedRecipePosition.ts` + unit tests (TDD wave 0)
+
+### Phase 3: Applied Recipe UX (AR-02, AR-03, AR-04, AR-07)
+1. `ApplyRecipeSheet` (assign from Collection/Unit Detail; bulk apply toggle)
+2. `AppliedRecipeChecklist` on Unit Detail
+3. `AppliedRecipeProgressBadge` shared component
+4. Extend `useKanbanEnrichment` with 4th parallel query
+5. `KanbanCard` renders progress badge
+6. `UnitDeleteDialog` gains recipe assignment guard
+
+### Phase 4: Applied Recipe Log + Kanban/CurrentFocus Integration (AR-05, AR-06)
+1. Extend `LogSessionSheet` with step-completion checkbox
+2. Update `useWorkflowPositions` to prefer applied progress, fall back to session-derived
+3. Update `CurrentFocusCard` to show applied recipe progress when available
+
+### Phase 5: Points Import Data Layer (PI-01, PI-02, PI-03, PI-04)
+1. Migration `022_points_imports.sql`
+2. `src/types/pointsImport.ts`
+3. `src/lib/pointsDeltaCompute.ts` + unit tests
+4. `src/db/queries/pointsImports.ts`
+5. `src/hooks/usePointsImports.ts`
+6. **Critical**: Update `getArmyListWithUnits` + `getArmyListReadiness` with JOIN + 5-level COALESCE (both in same commit)
+7. `PointsImportSheet` with file picker, CSV parsing, delta summary
+8. `PointsFreshnessBadge` shared component
+
+### Phase 6: Army List Validation (PI-05, LV-01, LV-02, LV-03, LV-04)
+1. Migration addendum for `unit_tactical_tags` (part of 022 or separate 023)
+2. `src/db/queries/tacticalTags.ts` + `src/hooks/useTacticalTags.ts`
+3. `TacticalTagsEditor` on Unit Detail / PlaybookTab
+4. `src/db/queries/listValidation.ts` (5 aggregation queries)
+5. `src/hooks/useListValidation.ts`
+6. `ListValidationPanel` in Army List detail
+7. `TacticalCoverageBar` in Army List detail
+
+### Phase 7: Game Day Integration (GD-01)
+1. `GameDayWarningBanner` component
+2. Wire into `GameDayPage` above pre-game checklist
+
+**Ordering rationale:**
+- Applied recipes (Phases 2–4) come before points import (Phase 5) — they are independent data layers, and applied recipes close a visible gap in the painting workflow quickly.
+- The COALESCE update in Phase 5 is the most structurally dangerous change (two places, must be atomic). Isolating it in Phase 5 means it can be reviewed/tested in isolation without applied recipe changes complicating the diff.
+- Validation (Phase 6) requires both `points_imports` (freshness queries) and `unit_tactical_tags` (coverage queries) — both must exist first.
+- Game Day (Phase 7) is additive and purely dependent on `useListValidation` being stable.
 
 ---
 
 ## Anti-Patterns to Avoid
 
-### Anti-Pattern 1: Session-Based Step Progress Tracking
+### 1. User Data in rules.db
+Applied recipe assignments, progress, points imports, tactical tags — all go in `hobbyforge.db`. `rules.db` is wiped on every sync. This is not a preference; it is a data loss guarantee.
 
-**What:** Querying painting_sessions to determine which recipe steps are "complete" and computing progress percentages per section.
-**Why bad:** Requires N+1 session queries per recipe/section, complex aggregation logic, and a concept of "step completion" that does not exist in the schema (a step can be logged multiple times, there is no `completed_at` flag).
-**Instead:** Show static workflow context (section type, technique, applies_to). Progress tracking is a future milestone that requires schema additions (`completed_at` on recipe_steps or a separate step_completions table).
+### 2. effective_points Computed in JavaScript
+The 5-level COALESCE must live in SQL in both `getArmyListWithUnits` and `getArmyListReadiness`. After the JOIN addition, the JS side still just sums `effective_points` — no arithmetic. Adding a points import layer will create pressure to "compute it in JS for the validation panel." Resist: add the JOIN to `listValidation.ts` queries too.
 
-### Anti-Pattern 2: Adding section_id to LogSessionSheet Without Cascade Reset
+### 3. INSERT OR REPLACE for Step Progress Toggle
+`INSERT OR REPLACE` deletes the old row and inserts a new one — the `id` changes. Any future FK on `unit_recipe_step_progress.id` breaks silently. Use `INSERT ... ON CONFLICT (assignment_id, step_id) DO UPDATE SET completed = excluded.completed, completed_at = excluded.completed_at` instead.
 
-**What:** Adding the section selector but not resetting dependent fields when the parent changes.
-**Why bad:** Stale FK references -- user selects Section A, picks a step from Section A, then changes to Section B. The step still points to a Section A step.
-**Instead:** Always reset `recipe_step_id` to null when `section_id` changes. Always reset both `section_id` and `recipe_step_id` when `recipe_id` changes. Use `useEffect` with watched field values (existing pattern for recipe_id -> step clearing).
+### 4. points_imports.faction_id as Foreign Key to factions.id
+`faction_id` in `points_imports` is the Wahapedia text key (e.g., `"SM"`), not the integer primary key of the `factions` table in `hobbyforge.db`. The text keys are stable across rules re-syncs; integer IDs in `hobbyforge.db` are user-created and may differ. No FK — text copy, exactly like `weapon_name` and `detachment_name`.
 
-### Anti-Pattern 3: Separate Enrichment Hooks per Kanban Card
+### 5. N+1 Progress Queries per Kanban Card
+Do not call `useRecipeProgress(assignmentId)` inside `KanbanCard`. Follow `useKanbanEnrichment` pattern: one `getAssignmentProgressByUnitIds(unitIds[])` batch query at board level returning `Map<unitId, {completed, total}>`, prop-drilled to cards.
 
-**What:** Calling `useRecipeSections` inside each KanbanCard component.
-**Why bad:** N+1 queries. With 20 cards on the board, that is 20 section queries.
-**Instead:** Batch query in `useKanbanEnrichment` at the board level, pass data down via props.
+### 6. Asymmetric COALESCE Update
+Updating only `getArmyListWithUnits` but not `getArmyListReadiness` (or vice versa) creates split-brain: Army List detail shows different totals from `ArmyReadinessCard` on the dashboard. Both functions share a JOIN and COALESCE — they must be updated atomically in the same commit.
 
----
+### 7. Skipping the computeAppliedRecipePosition Pure Function
+`useWorkflowPositions` should not contain the position logic inline. Create `computeAppliedRecipePosition` as a pure function in `src/lib/`, write unit tests first (TDD wave 0). This follows the established `computeWorkflowPosition` pattern (12 existing tests) and ensures the logic is verifiable before any UI depends on it.
 
-## Recommended Build Order
-
-The build order follows dependency chains. Each phase builds on the previous.
-
-### Phase 1: Schema + Data Layer (foundation -- everything depends on this)
-
-1. Migration `020_section_workflow_metadata.sql`:
-   - 4 ALTER TABLE ADD COLUMN on recipe_sections (section_type, technique, execution_mode, applies_to)
-   - 1 ALTER TABLE ADD COLUMN on painting_sessions (section_id FK)
-2. Update `src/types/recipeSection.ts` -- add 4 fields + const arrays
-3. Update `src/types/paintingSession.ts` -- add section_id
-4. Update `src/db/queries/recipeSections.ts` -- extend CREATE/UPDATE with 4 new params
-5. Update `src/db/queries/paintingSessions.ts` -- add section_id to INSERT
-6. Update `src/features/recipes/recipeSection.ts` -- extend DraftSection + builders
-
-### Phase 2: Form UI + Timeline Display (recipe editing -- no cross-feature deps)
-
-1. Update `src/features/recipes/RecipeSectionCard.tsx` -- workflow metadata form fields
-2. Update `src/features/recipes/SectionedTimeline.tsx` -- compact metadata badges
-
-### Phase 3: Log Session Section-Aware Flow (depends on Phase 1 schema)
-
-1. Update `src/features/dashboard/logSessionSchema.ts` -- add section_id field
-2. Update `src/features/dashboard/LogSessionSheet.tsx` -- add cascading section selector
-
-### Phase 4: Kanban + CurrentFocus Integration (depends on Phase 1 schema)
-
-1. Add `getSectionSummaryByUnitIds()` to `src/db/queries/recipes.ts`
-2. Update `src/hooks/useKanbanEnrichment.ts` -- add section summary to enrichment
-3. Update `src/features/painting-projects/KanbanCard.tsx` -- display workflow context
-4. Update `src/features/dashboard/getNextActionHint.ts` -- add section-aware hint
-5. Update `src/features/dashboard/CurrentFocusCard.tsx` -- add workflowHint prop
-6. Update `src/features/dashboard/DashboardPage.tsx` -- fetch sections, compute hint
-
-### Phase ordering rationale:
-
-- **Phase 1 first:** All other phases depend on the schema and type changes. The migration must exist before any UI can reference the new fields.
-- **Phase 2 before 3/4:** The workflow metadata must be editable before it can be displayed elsewhere. Users need to populate section_type/technique before Kanban or CurrentFocus can show meaningful workflow context.
-- **Phase 3 and 4 are independent:** Log Session and Kanban/CurrentFocus do not depend on each other. They could be built in parallel or in either order. Phase 3 is listed first because it is smaller (2 files modified vs 6).
-
----
-
-## Files Inventory: New vs Modified
-
-### New Files
-
-| File | Purpose |
-|------|---------|
-| `src-tauri/migrations/020_section_workflow_metadata.sql` | Schema migration |
-
-### Modified Files (15 total)
-
-| File | Nature of Change |
-|------|-----------------|
-| `src/types/recipeSection.ts` | Add 4 fields + 2 const arrays |
-| `src/types/paintingSession.ts` | Add section_id field |
-| `src/db/queries/recipeSections.ts` | Extend INSERT/UPDATE params |
-| `src/db/queries/paintingSessions.ts` | Add $7 to INSERT |
-| `src/db/queries/recipes.ts` | Add getSectionSummaryByUnitIds() |
-| `src/features/recipes/recipeSection.ts` | Extend DraftSection type + builders |
-| `src/features/recipes/RecipeSectionCard.tsx` | Workflow metadata form fields |
-| `src/features/recipes/SectionedTimeline.tsx` | Compact metadata badges |
-| `src/features/dashboard/logSessionSchema.ts` | Add section_id to schema |
-| `src/features/dashboard/LogSessionSheet.tsx` | Cascading section selector |
-| `src/features/dashboard/getNextActionHint.ts` | Section-aware hint function |
-| `src/features/dashboard/CurrentFocusCard.tsx` | workflowHint prop |
-| `src/features/dashboard/DashboardPage.tsx` | Fetch sections, compute hint |
-| `src/hooks/useKanbanEnrichment.ts` | Add section summary to enrichment |
-| `src/features/painting-projects/KanbanCard.tsx` | Display workflow context |
-
----
-
-## Cache Invalidation Contract
-
-No new cache keys are needed. Existing invalidation contracts cover all changes:
-
-| Mutation | Keys Invalidated | Notes |
-|----------|-----------------|-------|
-| Section save (DELETE+re-INSERT) | RECIPE_SECTIONS_KEY, RECIPE_PAINTS_KEY, STEP_COUNTS_KEY, RECIPE_AVAILABILITY_KEY, RECIPE_SWATCH_KEY | Existing contract unchanged |
-| Session create with section_id | PAINTING_SESSIONS_KEY, hobby-analytics, recent-activity, goal-progress, conditionally RECIPE_SESSIONS_KEY | Existing contract unchanged -- section_id is just another column |
-| Kanban enrichment | KANBAN_ENRICHMENT_KEY | Existing key with sorted IDs; new section data included in same fetch |
+### 8. Using useFieldArray for the Step Completion Checklist
+The applied recipe checklist does not use DnD, but for consistency, do not introduce `useFieldArray`. The existing recipe form avoids it due to ID collision with `@dnd-kit/sortable` (RHF #10607). Use manual array state from the `useRecipeProgress` query result — the checklist is a display + toggle pattern, not a form.
 
 ---
 
 ## Sources
 
-- All findings derived from direct codebase analysis (HIGH confidence)
-- Migration files: `src-tauri/migrations/005_hobby_journal.sql`, `014_session_recipe_link.sql`, `018_recipe_sections.sql`
-- Type definitions: `src/types/recipeSection.ts`, `src/types/paintingSession.ts`
-- Query modules: `src/db/queries/recipeSections.ts`, `src/db/queries/paintingSessions.ts`, `src/db/queries/recipes.ts`
-- UI components: `LogSessionSheet.tsx`, `CurrentFocusCard.tsx`, `KanbanCard.tsx`, `SectionedTimeline.tsx`, `RecipeSectionCard.tsx`
-- Hooks: `useRecipeSections.ts`, `useJournalSessions.ts`, `useKanbanEnrichment.ts`
+All findings from direct codebase analysis (HIGH confidence — no WebSearch needed):
+
+- `src-tauri/migrations/001_core_schema.sql` through `020_workflow_metadata.sql` — confirmed table structure, FK policies, boolean discipline, migration numbering
+- `src/db/queries/armyLists.ts` — confirmed exact 3-level COALESCE text in `getArmyListWithUnits` and `getArmyListReadiness`; confirmed `detachment_name` TEXT-copy pattern
+- `src/db/queries/unitOverrides.ts` — confirmed upsert-not-replace pattern; `unit_overrides` as the `uo` alias precedent
+- `src/db/queries/recipes.ts` — confirmed `duplicateRecipe` sectionIdMap pattern; `getRecipeNamesByUnitIds` batch query
+- `src/db/queries/recipeSections.ts` — confirmed DELETE-all + re-INSERT save pattern; batch GROUP BY pattern
+- `src/db/queries/paintingSessions.ts` — confirmed `section_name` denormalization, ON DELETE SET NULL chain
+- `src/hooks/useWorkflowPositions.ts` — confirmed session-derived position logic; sorted-ID key; Promise.all pattern
+- `src/hooks/useKanbanEnrichment.ts` — confirmed batch enrichment + sorted-ID cache key + Promise.all pattern
+- `src/hooks/useArmyLists.ts` — confirmed cache key constants; invalidation symmetry in all 6 mutations
+- `src/types/armyList.ts` — confirmed `ArmyListUnitRow` shape and `effective_points: number` type
+- `src/types/recipeSection.ts` — confirmed workflow metadata fields and const-array union type pattern
+- `.planning/points-import-design.md` — pre-designed schema, COALESCE precedence, delta algorithm, freshness SQL, JOIN additions
+- `.planning/PROJECT.md` — AR-01..AR-07, PI-01..PI-05, LV-01..LV-04, GD-01 requirements; Key Decisions log (cross-referencing 40+ architectural decisions)

@@ -1,182 +1,174 @@
-# Feature Landscape
+# Feature Research
 
-**Domain:** Warhammer miniature painting workflow semantics and section-aware integrations
-**Researched:** 2026-05-11
-**Milestone:** v0.2.9 Recipes 3.1 / Workflow Semantics & Integrations
+**Domain:** Warhammer hobby management — applied recipes, points import, list validation
+**Researched:** 2026-05-12
+**Milestone:** v0.2.10 Applied Recipes, Points Import & List Validation
+**Confidence:** MEDIUM-HIGH (ecosystem research verified via multiple community tools; some UX patterns inferred from analogous domains due to niche specificity)
 
-## Existing Foundation (Already Built)
+---
 
-Before feature classification, critical context on what exists:
+## Context: What Is Already Built (v0.2.9)
 
-| Component | Current State | Key Files |
-|-----------|--------------|-----------|
-| Recipe sections | `recipe_sections` table with name, surface, optional, notes, order_index | `types/recipeSection.ts`, migration 018 |
-| Recipe steps | `recipe_steps` with painting_phase, tool, technique, dilution, time_estimate_minutes, step_photo_path, alt_paint_id, section_id FK | `types/recipePaint.ts` |
-| SectionedTimeline | Renders section headers (name, surface badge, optional badge, step count, time, paint availability) with per-section step timelines | `features/recipes/SectionedTimeline.tsx` |
-| LogSessionSheet | Recipe + Step selectors (flat, no section grouping). Step cleared on recipe change. Saves recipe_id + recipe_step_id on session | `features/dashboard/LogSessionSheet.tsx` |
-| KanbanCard | Shows recipe name, photo count, next-action hint via `getNextActionHint(status_painting)` -- status-based only, no recipe/section awareness | `features/painting-projects/KanbanCard.tsx` |
-| CurrentFocusCard | Shows recipe name + extra recipe count. Next action via painting status only, no section/step awareness | `features/dashboard/CurrentFocusCard.tsx` |
-| getNextActionHint | Pure status-to-string lookup (`PaintingStatus -> string`). Hardcoded hints like "Apply base coat", "Apply shade" | `features/dashboard/getNextActionHint.ts` |
-| DraftSection | Form-level representation with localId, name, surface, optional, notes, steps[] | `features/recipes/recipeSection.ts` |
-| Painting phases | `["prime", "basecoat", "shade", "layer", "highlight", "glaze", "weathering", "basing", "varnish", "other"]` | `features/recipes/recipeSchema.ts` |
-| Recipe surfaces | `["Armor", "Skin", "Cloth", "Metal", "Bone", "Leather", "Wood", "Stone", "Energy/Glow", "Fur/Hair", "Eyes/Lenses", "Base", "Weapon", "Other"]` | `features/recipes/recipeSchema.ts` |
+| Component | Current State |
+|-----------|--------------|
+| Recipe sections | `recipe_sections` with section_type, technique, execution_mode, applies_to (shipped v0.2.9) |
+| Recipe steps | `recipe_steps` with painting_phase, tool, technique, dilution, time_estimate, step_photo_path, alt_paint_id, section_id FK |
+| SectionedTimeline | Section headers with metadata badges, per-section step timelines |
+| LogSessionSheet | Recipe → Section → Step cascade (section-aware, shipped v0.2.9) |
+| KanbanCard | Section-aware next step via computeWorkflowPosition (shipped v0.2.9) |
+| CurrentFocusCard | Section-aware next action guidance (shipped v0.2.9) |
+| Army lists | Detachment selection, COALESCE points chain, inline rules context |
+| Rules Hub | Stratagems/detachments/shared abilities browser, annotations |
+| Game Day | CP tracker, phase-grouped stratagems, pre-game checklist |
+| Points import design | Schema, versioning, deltas, COALESCE precedence documented (v0.2.8 Phase 52) |
 
-## Table Stakes
+The v0.2.9 anti-feature "Section progress tracking table — high complexity, defer to v0.3.0+" is now the primary AR feature for v0.2.10. It was explicitly deferred here, not an unknown scope.
 
-Features users expect given the existing recipe section model. Missing = sections feel like dumb grouping with no workflow value.
+---
 
-| Feature | Why Expected | Complexity | Dependencies | Notes |
-|---------|--------------|------------|--------------|-------|
-| **Section-type metadata** (`section_type` column) | Sections already have `surface` but no semantic meaning. Users need to know "is this a prep section, a painting section, or a finishing section?" to understand workflow intent | Low | Migration on `recipe_sections` | Use enum: `prep`, `basecoat`, `shade`, `layer`, `detail`, `effect`, `finishing`. Aligns with existing PAINTING_PHASES granularity but at the section level |
-| **Execution mode** (`execution_mode` column) | Hobbyists batch-paint (do all basecoats at once across all surfaces) vs sequential (finish one surface completely). Section must declare this so workflow guidance makes sense | Low | Migration on `recipe_sections` | Use enum: `sequential` (default), `batch`, `parallel`. Sequential = do steps in order; batch = do this section's step across all models; parallel = can interleave with other sections |
-| **Section `technique` column** | The dominant technique for a section (distinct from step-level technique). "This section is primarily drybrushing" vs "this section is primarily layering" | Low | Migration on `recipe_sections` | Reuse step-level technique values or similar set. Optional field, nullable |
-| **Section `applies_to` column** | "Which part of the model does this section target?" -- already partially covered by `surface` but `applies_to` is more specific ("left pauldron", "cloak interior", "weapon blade") | Low | Migration on `recipe_sections` | Free text, nullable. Complements `surface` (broad category) with specific area targeting |
-| **Compact metadata badges in SectionedTimeline** | Once sections have workflow metadata, the timeline must surface it compactly. Users scanning a recipe need to see section_type + execution_mode at a glance | Low | Section metadata columns exist | Small Badge additions to existing section header row. Pattern already established with surface + optional badges |
-| **LogSession section-aware cascading selector** | Currently: Recipe -> Step (flat list). With sections, users expect Recipe -> Section -> Step so they can locate where they are in a multi-section recipe | Medium | Sections query hook exists (`useRecipeSections` or equivalent) | Three-level cascading select: recipe clears section, section clears step. Each level filters the next. Existing pattern: recipe clears step already |
-| **Workflow metadata editing UI** | Users need to set section_type, technique, execution_mode, applies_to when creating/editing sections. Must not clutter the default experience | Low | Migration + DraftSection update | Progressive disclosure: show advanced fields under a "Workflow" collapsible in RecipeSectionCard. Same pattern as existing optional/notes fields |
+## Feature Landscape
 
-## Differentiators
+### Table Stakes (Users Expect These)
 
-Features that set HobbyForge apart from PaintMyMinis, paintRack, Paint Pad, and other miniature painting apps. Not expected, but high value.
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Per-unit recipe assignment | Painters ask "which recipe am I using for these marines?" immediately when viewing a unit. Pile of Potential, Figure Case, and PaintGolf all track per-unit status; recipe assignment is the next logical step | Low | Data model: `unit_recipe_assignments`. One active recipe per unit. Template steps never mutated by assignment |
+| Per-unit step completion tracking | Recipe as checklist: tick each step as done. Community users already do this manually in Notion templates and Google Sheets. The hierarchy (section → step) makes this more granular than any competitor | Medium | Progress stored in `unit_recipe_step_progress`, keyed per assignment. Section-level rollup = completed_steps / total_steps. Template recipe is immutable |
+| Progress visible on unit cards | "How far along is this unit?" expected on Collection cards, Kanban cards. Pile of Potential shows per-unit % complete; Figure Case shows stage progress. Users will feel progress is "missing" without this | Low-Med | Percentage bar (completed_steps / total_steps). Already have KanbanCard and UnitThumbnail components to extend |
+| Applied recipe display in unit detail | When opening a unit's Sheet, the applied recipe and its checklist should be the primary painting view. Currently shows recipe name only (bidirectional nav shipped v0.2.4) | Medium | Checklist-like section/step view with tick boxes. Reuses SectionedTimeline as the base component |
+| Points import with source attribution | Users need to record where points came from (Wahapedia CSV, manual entry) to know if the value is trustworthy. A number without provenance is meaningless | Low | `imported_unit_points` table: unit_id, points_value, source_name, source_version, imported_at. Already designed in v0.2.8 Phase 52 |
+| Freshness indicator on points | Wahapedia updates within 15 minutes of GW changes; community tools (New Recruit) update within hours. A stale points value is worse than no value — it gives false confidence | Low | Badge: "Fresh (7d)" / "Stale (45d)". Threshold: 14–30 days appropriate for quarterly GW FAQ cadence. Inline icon + tooltip for rows; banner for high-stakes contexts |
+| Points resolution chain (5-level COALESCE) | Users need to override individual loadout, unit cost, or imported value without losing the baseline. COALESCE hierarchy is the established pattern in the existing army list SQL | Medium | Chain: list override > loadout override > imported > unit default > NULL/unknown. Already designed v0.2.8 Phase 52, PI-05 requirement |
+| Hard validation: points exceeded | "Am I over the limit?" is the most fundamental check. All army list tools (New Recruit, BattleScribe, 40kList) show this prominently | Low | Already surfaced in ArmyListSummaryBar; must now account for unknown points as a distinct state from 0 |
+| Hard validation: unknown points | Units with no points value make the total meaningless. Silently treating null as 0 is a correctness bug. Must call this out | Low | Flag units where effective_points resolves to NULL with no known source. Show count of "unknown points" units in validation panel |
+| Hard validation: stale points | If any unit's imported points exceed the staleness threshold, the list total is suspect. Surfacing this at the list level, not just the unit level | Low | Inline banner on ArmyListPage (pattern: existing StaleDataBanner from v0.2.8). Propagate to Game Day pre-game check |
 
-| Feature | Value Proposition | Complexity | Dependencies | Notes |
-|---------|-------------------|------------|--------------|-------|
-| **Kanban card section-aware next step** | Instead of generic "Apply base coat" from painting status, show the actual next recipe step: "Armour: Shade with Nuln Oil". No other miniature app does project-level recipe-aware guidance on a kanban board | Medium | Needs: a way to determine "current step" for a unit's recipe. Derive from last logged session's step + section | Key design decision: derive progress from session history (implicit) vs explicit "mark step done" (explicit). Implicit is lower friction but less accurate. Recommend implicit -- good enough for personal tool |
-| **CurrentFocus section-aware guidance** | CurrentFocusCard shows "Next: Armour section -- Layer Highlight (step 4/12)" instead of generic status hint. Transforms the dashboard from status display to workflow navigator | Medium | Same "current step" derivation as Kanban | Must handle: no recipe linked, recipe has no sections, section complete, all sections complete |
-| **Workflow-aware session duration estimates** | When logging a session, show "estimated remaining: ~45 min (3 sections left)" based on section time estimates | Low | Section time_estimate_minutes aggregation (already available in steps) | Can show total recipe remaining time even without progress tracking -- just sum all step time estimates |
-| **Section skip tracking** | Optional sections (optional=1) can be explicitly skipped in the workflow display, showing them as "skipped" rather than "pending" | Low | Minimal -- just a UI convention on optional sections | Small UX: greyed-out badge on optional sections in Kanban/Focus hints |
+### Differentiators (Competitive Advantage)
 
-## Anti-Features
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Log Session completion of applied recipe steps | While logging a hobby session, mark which applied recipe steps were completed — no context switching. No competitor combines session logging + recipe step completion in one action. Brushrage gets close (per-step notes) but lacks the recipe template model | Medium | Extends existing LogSessionSheet. When session has recipe + section + step selected, show "Mark step complete on [unit]?" checkbox. Requires AR-03 data model |
+| Bulk apply recipe to multiple units | Applying a recipe one-by-one to 30 marines is tedious. Bulk apply with independent per-unit progress is highly valued for army batch painters | Medium | Selection modal on Collection page. Creates N independent `unit_recipe_assignments` rows. Each gets its own progress tracking. First seen in community spreadsheets |
+| Points delta detection post-import | After importing a new points file, show which units changed and by how much. Critical for players updating after GW FAQs (quarterly). No other personal hobby tool does this — New Recruit just shows current values | High | Requires prior snapshot. Delta: new_points - previous_points per unit. First import has no delta — expected and acceptable. Show delta as +3 / -5 badges next to freshness |
+| Applied recipe preview before apply | Show the recipe's full section/step structure before committing the assignment. Reduces "I applied the wrong recipe" regret — important when bulk applying | Low | Read-only modal using existing SectionedTimeline. Confirmation step in the apply flow |
+| Tactical role tags on units | User-defined tags (anti_tank, screening, objective_holder, character, fast_attack, etc.) that aggregate to list-level coverage gaps. HobbyForge is unique in tying this to painted/owned status — "you have 2 anti-tank units but neither is painted" | Medium | Tags stored in `unit_tactical_tags` or as a column. List-level aggregation is pure SQL COUNT GROUP BY tag. Vocabulary sourced from 10th edition community guides |
+| Tactical role coverage panel | "My list has no anti-tank coverage" — list-level view showing role distribution, with painted/owned context. No competitor does this without requiring rules data | Medium | Summary: role → tagged unit count → painted count. Weakness: roles with 0 coverage. Descriptive only — never "rate" a list |
+| Game Day pre-game health gate | Before playing, surface all pending warnings as a blocking checklist: stale points, unknown points, points exceeded, unbuilt units, unpainted units. No competitor integrates collection readiness with game-day launch | Medium | Extends existing GameDayPage pre-game checklist. Reads from validation summary. Non-blocking (user can dismiss and play) |
 
-Features to explicitly NOT build in v0.2.9.
+### Anti-Features (Commonly Requested, Often Problematic)
 
 | Anti-Feature | Why Avoid | What to Do Instead |
 |--------------|-----------|-------------------|
-| **Explicit step-by-step completion checkboxes** | Turns a creative hobby tool into a checkbox app. Painters don't paint linearly -- they revisit, skip, improvise. Granular step tracking creates guilt and friction | Derive progress from session logs (implicit). Show "last worked on" not "steps remaining" |
-| **Automated painting status advancement** | Automatically moving a unit from "Basecoated" to "Shaded" based on recipe sections completing feels robotic and will be wrong for multi-recipe units | Keep status updates manual via LogSessionSheet's existing "Update Painting Status" dropdown |
-| **Section templates / shared section library** | Over-engineering for a personal tool. "Save this section as a template" adds significant schema complexity for a feature a single user won't use often | Recipe duplication (already built) handles reuse. Copy a recipe, modify sections |
-| **Real-time timer integration** | A painting timer embedded in the session log sounds useful but breaks flow -- painters don't start and stop cleanly. They paint while watching TV, take breaks, switch models | Keep duration_minutes as manual entry. Time estimates on sections serve planning, not tracking |
-| **Multi-recipe parallel progress** | Tracking progress across multiple recipes applied to one unit simultaneously (e.g., "Armour recipe" + "Weapons recipe") | Support one active recipe per unit for progress derivation. Additional recipes are reference-only |
-| **Section dependency graphs** | "You can't start the Highlight section until Shade section is complete" -- over-constraining for a hobby | execution_mode (sequential/batch/parallel) provides soft guidance without hard enforcement |
-| **Section progress tracking table** | A dedicated `unit_recipe_progress` table tracking per-step completion per unit -- high schema complexity for v0.2.9 | Derive "current position" from last logged session's step_id. Explicit progress tracking deferred to v0.3.0+ if needed |
+| Auto-advancing painting status when all steps complete | Painting status (Not Started → Painted) is authoritative user state. Auto-advancing creates ghost updates users didn't intend — they may finish all recipe steps but still consider the model "in progress" for basing | Show a "Mark unit as Painted?" prompt when 100% recipe progress is reached. User decides |
+| Shared step progress across units with the same recipe | "Tick once for all 10 marines" sounds useful but breaks individual tracking. Unit 3 may be at Step 7 while Unit 7 is at Step 2 | Always store progress per assignment row, never per template step |
+| Points auto-sync / scheduled Wahapedia fetch | Would require network access, background jobs, and assumes Wahapedia is always reachable. Violates local-first constraint. Also: Wahapedia CSV has no unit name → unit_id mapping — manual mapping required | Manual import triggered by user. Freshness badge communicates when action is needed |
+| Competitive optimization scoring | "Rate my list" or "this list is X% optimized" requires current meta knowledge that changes weekly and cannot be derived from user data alone. HobbyForge explicitly avoids competitive optimization | Tactical role coverage is descriptive: "0 units tagged anti_tank." Never prescriptive: "you need more anti-tank" |
+| Rules-legal validation (slot limits, enhancement rules) | Requires current detachment rules that HobbyForge cannot legally distribute. New Recruit and BattleScribe own this space. HobbyForge's legal constraint is non-negotiable | Surface data-driven warnings only (points, ownership, freshness, readiness). Link to Rules Hub for detachment context. This boundary is explicit and shipped |
+| Global "sync all unit points from Wahapedia" one-click | Wahapedia CSV has no stable unit_id column mapping directly to hobbyforge.db unit IDs. Auto-mapping is brittle, will misfire on renamed units | User-driven import with explicit field mapping per row. Same pattern as existing CSV import for rules sync |
+| Points history timeline / full audit log | Interesting but high complexity. Users don't need a full changelog of every points change since app install | Points delta per import (last snapshot vs current) is sufficient. No full history |
+| Prevent playing in Game Day if validation fails | A hobby app should never block its user from doing the hobby. Pre-game warnings are advisory | Non-blocking warning panel. User can acknowledge and proceed |
+
+---
 
 ## Feature Dependencies
 
 ```
-Migration (section_type, technique, execution_mode, applies_to)
-    |
-    +---> DraftSection update (add new fields to form state)
-    |         |
-    |         +---> Workflow metadata editing UI (progressive disclosure in RecipeSectionCard)
-    |         |
-    |         +---> Compact metadata display in SectionedTimeline (badges)
-    |
-    +---> LogSession section-aware cascade
-    |         |
-    |         +---> Section selector between Recipe and Step selectors
-    |         |     (needs sections query filtered by recipe_id)
-    |         |
-    |         +---> Step selector filtered by section_id (not just recipe_id)
-    |
-    +---> Kanban card workflow display
-    |         |
-    |         +---> "Current section + step" derivation logic (pure function)
-    |         |     (needs: unit's recipe, recipe's sections+steps, unit's last session)
-    |         |
-    |         +---> KanbanCard UI update (replace generic hint with recipe-aware hint)
-    |
-    +---> CurrentFocus workflow display
-              |
-              +---> Same derivation logic as Kanban (shared utility)
-              |
-              +---> CurrentFocusCard UI update (section-aware next action line)
+Applied Recipes (AR-01 through AR-07):
+  AR-01 data model (unit_recipe_assignments + unit_recipe_step_progress)
+    → AR-02 assignment UX (apply from collection/unit detail, preview before apply)
+    → AR-03 per-unit step completion (tick steps, progress stored per assignment)
+    → AR-04 applied recipe display (checklist view on unit, % progress on cards)
+    → AR-05 Log Session integration (complete steps while logging — needs AR-03)
+    → AR-06 Kanban/CurrentFocus progress (extend existing useWorkflowPositions — needs AR-03)
+    → AR-07 bulk apply (UX extension of AR-02, independent progress per unit)
+
+Points Import (PI-01 through PI-05):
+  PI-01 data layer (imported_unit_points table)
+    → PI-02 import pipeline (CSV/manual, validation, error logging)
+    → PI-03 freshness tracking (badges, threshold-based stale detection)
+    → PI-04 delta detection (snapshot before import, diff after — first import no delta)
+    → PI-05 resolution chain (5-level COALESCE uses imported table as tier 3)
+
+List Validation (LV-01 through LV-04):
+  PI-01 (imported_unit_points) → LV-01 hard validation (unknown/stale/exceeded)
+  LV-02 tactical tags (independent, can ship before or after PI work)
+    → LV-03 role coverage (needs LV-02 data populated)
+  LV-01 + LV-03 → LV-04 army list health UI panel
+
+Game Day (GD-01):
+  LV-01 + LV-04 → GD-01 pre-game warnings in GameDayPage
+
+Cross-feature dependencies:
+  AR-03 step completion data → AR-06 needs useWorkflowPositions hook extension
+  PI-04 delta detection → first import gracefully returns no delta (not an error)
+  LV-02 tactical tags → independent of all points features
+  AR-05 Log Session → needs both AR-03 (data model) and existing LogSessionSheet structure
 ```
 
-**Critical path:** Migration -> DraftSection -> Form UI + Timeline display can proceed independently from LogSession cascade and Kanban/Focus integration. The latter two share a derivation function and can be built together.
+---
 
-## MVP Recommendation
+## Feature Prioritization Matrix
 
-**Phase 1 -- Schema + Form + Display (Low risk, foundational)**
-1. Migration adding 4 columns to recipe_sections
-2. DraftSection + RecipeSectionCard form updates (progressive disclosure)
-3. SectionedTimeline compact metadata badges
+Ordered by impact vs complexity, with dependency order enforced:
 
-**Phase 2 -- LogSession Cascade (Medium risk, isolated)**
-4. Section-aware cascading selectors in LogSessionSheet
-5. Step list grouped/filtered by selected section
+| Priority | Feature | Rationale | Complexity |
+|----------|---------|-----------|------------|
+| 1 | Recipe workflow hardening (RH-01/02/03) | Unblocks AR features; migration stability and section reference stability | Low |
+| 2 | Applied recipe data model (AR-01) | Foundation for all AR features. Schema + typed queries only, no UI | Low |
+| 3 | Recipe assignment + preview UX (AR-02) | First user-visible AR feature; validates data model with real interaction | Medium |
+| 4 | Per-unit step completion + display (AR-03/04) | Core value: recipe as actual checklist. Checklist UX on unit detail | Medium |
+| 5 | Points data layer + import pipeline (PI-01/02) | Foundation for all validation. Mirrors existing bulk_sync_rules pattern | Medium-High |
+| 6 | Points freshness + delta badges (PI-03/04) | High value add once data exists; relatively low implementation complexity | Low-Med |
+| 7 | Points resolution chain (PI-05) | COALESCE SQL work; already designed in v0.2.8 Phase 52 | Medium |
+| 8 | Hard validation warnings (LV-01) | Quick wins from PI-01 data; unknown/stale/exceeded flags | Low |
+| 9 | Log Session applied recipe step completion (AR-05) | Differentiator; extends existing LogSessionSheet, needs AR-03 | Medium |
+| 10 | Kanban/CurrentFocus applied recipe progress (AR-06) | Extends existing useWorkflowPositions hook; replaces implicit derivation | Medium |
+| 11 | Bulk apply recipe (AR-07) | UX convenience; depends on AR-02 working cleanly | Medium |
+| 12 | Tactical role tags (LV-02) | Independent; parallelizable with PI work | Low |
+| 13 | Tactical role coverage panel (LV-03) | Depends on LV-02 having data; pure aggregation | Low |
+| 14 | Army list health UI panel (LV-04) | Aggregates LV-01 + LV-03 into one panel | Medium |
+| 15 | Game Day pre-game warnings (GD-01) | Capstone integration; depends on LV-04 | Low |
 
-**Phase 3 -- Kanban + CurrentFocus Integration (Medium risk, shared logic)**
-6. "Current workflow position" derivation utility (pure function: given recipe sections, steps, and last session -> next section + step)
-7. KanbanCard section-aware next step display
-8. CurrentFocusCard section-aware guidance
+**MVP boundary:** Items 1–8 form the solid core (hardening + AR data model + assignment UX + checklist + points layer). Items 9–15 are the enrichment layer. GD-01 is a low-complexity capstone that can ship with the enrichment layer.
 
-**Defer to v0.3.0+:**
-- Section progress tracking table (High complexity, needs its own milestone)
-- Section skip tracking (depends on progress tracking)
+---
 
-**Rationale:** The MVP adds semantic richness (metadata) and improves an existing interaction (LogSession) without requiring a new progress-tracking data model. The Kanban/Focus integration uses implicit derivation (last session) rather than explicit progress, keeping complexity contained.
+## Ecosystem Observations
 
-## Detailed Feature Notes
+### Applied Recipes as Painting Plans
 
-### Section Type Enum Values
+Community tools (Figure Case, PaintGolf, Brushrage, Pile of Potential) track per-unit progress as a percentage or coarse status (Not Started / In Progress / Done). None use a step-level checklist model — they use status buckets. HobbyForge's section/step model is a genuine differentiator: it provides "what is the next concrete step?" rather than just a status.
 
-Based on the Warhammer painting workflow (prime -> basecoat -> shade -> layer -> highlight -> glaze -> weathering -> basing -> varnish) and how painters organize sections:
+Pile of Potential is the closest analog: it shows per-unit points value alongside painting status, confirming users expect painting progress and points together in the same view. The v0.2.10 AR + PI combination maps directly to this expectation.
 
-| Value | Meaning | Example Section |
-|-------|---------|----------------|
-| `prep` | Surface preparation before painting | "Assembly Cleanup", "Priming" |
-| `basecoat` | Initial color application | "Armour Basecoats", "Skin Base" |
-| `shade` | Wash/shade application | "Recess Shading", "Panel Lining" |
-| `layer` | Building up color, layering/highlighting | "Armour Highlights", "Edge Highlights" |
-| `detail` | Fine detail work (eyes, gems, insignia) | "Face Details", "Chapter Markings" |
-| `effect` | Special effects (OSL, NMM, weathering, blood) | "Weathering", "Battle Damage" |
-| `finishing` | Final steps (basing, varnish, decals) | "Basing", "Varnish Coat" |
+Brushrage captures per-step paint notes and session timing. HobbyForge already does session timing; linking session completion to applied recipe steps is the natural extension and covers ground no competitor has.
 
-This is intentionally coarser than step-level `painting_phase`. A section groups multiple steps; its type describes the workflow stage, not individual paint application.
+The v0.2.9 decision to defer "explicit step-by-step completion checkboxes" was correct at the time — the section metadata and session cascade needed to ship first. v0.2.10's AR features now build on that stable foundation rather than bolting progress tracking onto unstructured sections.
 
-### Execution Mode Values
+### Points Import Freshness
 
-| Value | Meaning | When Used |
-|-------|---------|-----------|
-| `sequential` | Complete this section's steps in order before moving on | Default. Most sections work this way |
-| `batch` | Apply this section's technique across all models before next section | Batch painting: "basecoat all armour on all 10 models" |
-| `parallel` | This section can be done alongside other sections | Independent areas: "you can do weapons while armour dries" |
+Wahapedia updates within 15 minutes of any rule correction. New Recruit is updated within hours of GW releases. The "stale" threshold in the Warhammer context is measured in days to weeks, not months — most GW FAQs are quarterly, making 14–30 days a sensible default.
 
-### "Current Step" Derivation Logic
+The PatternFly stale data pattern confirms: inline icon + tooltip for compact row-level display; banner/callout for high-stakes contexts (army list summary page, Game Day). HobbyForge already uses StaleDataBanner (shipped v0.2.8) — the same component applies to points freshness.
 
-The key design challenge for Kanban/Focus integration. Proposed algorithm:
+### Army List Validation
 
-```
-Input: unit_id, recipe_id
-1. Get all sections (ordered) + steps (ordered within section)
-2. Get last painting_session where recipe_id matches and recipe_step_id is not null
-3. Find that step's position in the section/step tree
-4. Return next step (or next section's first step if section complete)
-5. Fallback: if no session logged with step, return first step of first non-optional section
-```
+Ecosystem tools (New Recruit, BattleScribe, 40kList) focus entirely on rules-legal validation: slot limits, enhancement restrictions, detachment rules. HobbyForge explicitly cannot do this. The uncovered gap is "is this list playable with what I own and have painted?" — New Recruit partially covers ownership but does not combine freshness, painting readiness, and tactical coverage.
 
-This is implicit progress -- derived from session history, not explicit checkboxes. It will be wrong sometimes (user painted step 5 but didn't log the session for steps 3-4), but it is zero-friction and good enough for a personal tool.
+10th edition tactical role vocabulary from the community: anti-tank, anti-infantry, objective holder (tied to OC stat already in unit stats block from v0.2.0), screening, character/support, and mobility. These map well to user-defined tags. OC is already captured; the other roles are player judgment, not algorithmic detection — user-defined tags are the correct model.
 
-### LogSession Cascade UX
-
-Current flow: Unit -> (Recipe) -> (Step) -> Date -> Duration -> Notes
-
-New flow: Unit -> (Recipe) -> **(Section)** -> (Step) -> Date -> Duration -> Notes
-
-- Section selector appears only when recipe is selected (same pattern as step selector)
-- Section selector shows: section name + section_type badge + step count
-- Step selector appears only when section is selected
-- Step selector filtered to selected section's steps only
-- Changing recipe clears section and step (existing pattern extended)
-- Changing section clears step
-- All three (recipe, section, step) remain optional -- user can log a session with just a recipe, or recipe+section, or full recipe+section+step
+---
 
 ## Sources
 
-- [PaintMyMinis](https://www.paintmyminis.de/) -- miniature painting recipe app with color planning and technique tracking
-- [Miniature Paint Recipe Manager](https://apps.apple.com/us/app/miniature-paint-recipe-manager/id6747835376) -- iOS recipe app with mixing percentages and paint scanning
-- [paintRack](https://play.google.com/store/apps/details?id=com.courageousoctopus.paintrack) -- paint inventory with custom recipe sets
-- [Paint Pad](https://paintpad.app/) -- recipe sharing platform with 6700+ paint database
-- [Gamer's Grove: Warhammer Painting Guide](https://gamersgrove.com/blogs/front-page/warhammer-painting-how-to-use-base-shade-and-layer-paints) -- canonical basecoat/shade/layer workflow
-- [Goonhammer Hobby 101: Batch Painting](https://www.goonhammer.com/hobby-101-batch-painting/) -- batch vs sequential workflow patterns
-- Existing codebase analysis (HIGH confidence -- direct code reading)
+- [Figure Case - App Store](https://apps.apple.com/us/app/figure-case-hobby-progress/id1487460834) — per-unit stage tracking, wishlist/assembled/primed/painted stages (MEDIUM confidence)
+- [Pile of Potential - Bolter and Chainsword](https://bolterandchainsword.com/topic/379121-pile-of-potential-the-best-painting-tracker-ive-found/) — per-unit points + painting status in one view (MEDIUM)
+- [Brushrage - Google Play](https://play.google.com/store/apps/details?id=de.game_coding.trackmytime&hl=en_US) — per-step paint notes + session time tracking (MEDIUM)
+- [PaintGolf](https://paint-golf.com/) — acquisition-to-completion tracking with analytics (MEDIUM)
+- [Wahapedia Data Export](https://wahapedia.ru/wh40k10ed/the-rules/data-export/) — CSV export format, 15-minute update cadence (HIGH)
+- [New Recruit](https://www.newrecruit.eu/) — owned model validation, painting status, community-maintained points freshness (HIGH)
+- [PatternFly Stale Data Warning](https://www.patternfly.org/component-groups/status-and-state-indicators/stale-data-warning/) — inline icon vs banner UX pattern (HIGH)
+- [How to Build a Balanced 40k Army List - grimslate](https://grimslate.com/blog/how-to-build-2000-point-army-list) — tactical role vocabulary (MEDIUM)
+- [Warhammer 40k Tactica - Analysing Army Lists](https://www.warhammer-community.com/en-gb/articles/kgaibzwo/warhammer-40000-tactica-analysing-your-army-lists/) — official GW community list analysis guidance (HIGH)
+- [BSData/wh40k-10e GitHub](https://github.com/BSData/wh40k-10e) — community data maintenance model, CSV/XML update patterns (HIGH)
+- Existing codebase and PROJECT.md (HIGH confidence — direct reading of shipped code and design decisions)

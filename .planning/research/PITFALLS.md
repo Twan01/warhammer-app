@@ -1,244 +1,271 @@
-# Domain Pitfalls
+# Pitfalls Research
 
-**Domain:** Adding workflow metadata to existing recipe sections, section-aware session logging, and surfacing recipe workflow context in Kanban/Dashboard
-**Researched:** 2026-05-11
-**Confidence:** HIGH (all findings derived from direct codebase inspection of existing save patterns, cascade rules, cache invalidation contracts, and component data flow)
+**Domain:** Warhammer hobby management — applied recipes, points import, list validation
+**Researched:** 2026-05-12
+**Confidence:** HIGH (all findings grounded in direct codebase inspection of migrations, query modules, Key Decisions table, and established patterns)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: DELETE-all + re-INSERT Destroys New section_id FKs on painting_sessions
+### 1. Template-Instance Confusion: Progress Rows Reference Step IDs That No Longer Exist
 
-**What goes wrong:** The existing RecipeFormSheet save pattern (lines 233-240) deletes ALL recipe_sections on edit, which cascades to recipe_steps via ON DELETE CASCADE. Migration 014 set `ON DELETE SET NULL` on `painting_sessions.recipe_step_id`, so every session's step link is NULLed on each recipe save. If a new `section_id` FK is added to `painting_sessions` referencing `recipe_sections(id)`, the same cascade NULLs it too -- every time the user edits and saves a recipe, all session-section links are permanently destroyed.
+**What goes wrong:**
+`unit_recipe_step_progress` stores `recipe_step_id` FKs. The recipe editor uses DELETE-all + re-INSERT for saves (confirmed in migration 018 and the `duplicateRecipe` pattern in `recipes.ts`). If the user edits a recipe after assigning it to units, every step row is destroyed and recreated with new `lastInsertId` values. All progress FK rows then point at orphaned IDs — or if ON DELETE CASCADE is applied, all progress is silently wiped.
 
-**Why it happens:** The DELETE-all + re-INSERT pattern was safe when sessions only linked to `recipe_id` (preserved across saves) and `recipe_step_id` (treated as ephemeral enrichment). Adding `section_id` to sessions elevates sections from "structural scaffolding destroyed on save" to "referenced data that should persist," but the save pattern treats them as disposable.
+**Why it happens:**
+The DELETE-all + re-INSERT pattern was the correct choice for recipe sections (ordering is clean, no diff algorithm needed). But it becomes a landmine the moment any other table stores FKs to `recipe_steps.id`, because those IDs change on every save, not just on explicit step deletion. The `painting_sessions` table already encountered this and solved it with denormalization (`section_name TEXT` copy instead of `section_id FK` — migration 020 comment).
 
-**Consequences:** Users log sessions against sections, edit the recipe, and all section links vanish silently. The "section-aware session history" feature becomes unreliable after the first recipe edit. No error is thrown -- SET NULL is silent.
+**How to avoid:**
+Two options — pick one before writing migration 021:
+- Option A (recommended): Progress rows reference `(recipe_id, order_index)` as a stable composite key, not `recipe_step_id`. Order-index is stable across edits unless the user reorders. A reorder clears only the steps whose index changed (acceptable). This mirrors the `section_name` denormalization already used in `painting_sessions`.
+- Option B: When `unit_recipe_assignments` exist for a recipe, gate the DELETE-all + re-INSERT path and switch to update-in-place + orphan-cleanup. Adds complexity; only warranted if step_name lookup by progress row is required at query time.
 
-**Prevention:**
-- **Recommended:** Store section context on painting_sessions as a denormalized TEXT column (`section_name`) instead of a FK. Survives DELETE-all + re-INSERT because it carries no FK reference. Consistent with the `detachment_name` pattern on `army_lists` and `weapon_name` on `unit_loadout_wargear` (both documented in PROJECT.md Key Decisions).
-- **Alternative:** Add `section_id` FK with `ON DELETE SET NULL` and accept that recipe edits clear section links. Document this as expected behavior and make section_id a "best effort" enrichment, not a hard dependency for any UI display.
-- **High-risk alternative:** Refactor save to use UPDATE for existing sections + INSERT for new + DELETE for removed. This is the most correct but highest-complexity change and conflicts with the established project decision to use DELETE-all + re-INSERT for simplicity.
+**Warning signs:**
+- Progress disappears silently after recipe edits without any step being explicitly deleted.
+- `unit_recipe_step_progress` rows exist for `recipe_step_id` values not present in `recipe_steps`.
+- Completed-step count shows 0 after a recipe is renamed or reordered.
 
-**Detection:** After editing a recipe, check painting_sessions rows -- if section_id/section_name is NULL for sessions that previously had values, this pitfall is active.
-
-**Phase to address:** Schema migration phase (first phase). The column type decision (FK vs denormalized text) must be locked before any UI code references it.
-
----
-
-### Pitfall 2: Cascading Selector State Desync in LogSessionSheet
-
-**What goes wrong:** Adding a section selector between recipe and step creates a 3-level cascade: recipe -> section -> step. The existing code (LogSessionSheet lines 133-135) clears step when recipe changes via a single useEffect. If the section selector is added but the reset chain is incomplete, selecting Recipe A -> Section X -> Step 3, then changing to Recipe B leaves `section_id` pointing at Section X (which belongs to Recipe A) -- a cross-recipe reference that is structurally invalid but NOT caught by any FK constraint.
-
-**Why it happens:** Each `useEffect` reset watches one field. With 3 levels, two useEffects are needed: recipe change clears section AND step; section change clears step. Missing either leaves stale state. React's batched state updates can also cause a render where section is stale but recipe is new, producing a frame where the section dropdown shows options for the wrong recipe.
-
-**Consequences:** Submitting with a stale section_id writes a reference pointing at a section belonging to a different recipe. No FK violation occurs (painting_sessions.section_id references recipe_sections.id globally, not scoped by recipe). The session appears under the wrong recipe's section in any section-grouped view.
-
-**Prevention:**
-- Watch `recipe_id` changes: clear BOTH `section_id` and `recipe_step_id` in a single useEffect (extend the existing one on line 133).
-- Watch `section_id` changes: clear `recipe_step_id` in a second useEffect.
-- Filter steps by `section_id` (not just `recipe_id`) in the step selector's data source. Steps already carry `section_id` on the DB row -- use it.
-- Add a submit-time guard: if `section_id` is set, verify the selected section belongs to the selected recipe by checking against loaded section data.
-
-**Detection:** Log a session with all 3 fields set, then verify the session's `section_id` belongs to the session's `recipe_id` via a diagnostic query.
-
-**Phase to address:** LogSessionSheet enhancement phase. Must be implemented atomically with the section selector -- never ship the selector without the full reset chain.
+**Phase to address:** AR-01 — the schema decision locks in; changing it after requires a migration and data backfill.
 
 ---
 
-### Pitfall 3: New Workflow Metadata Columns Lost During DELETE-all + re-INSERT Round-Trip
+### 2. Points Data Written to the Wrong Database
 
-**What goes wrong:** The new columns (`section_type`, `technique`, `execution_mode`, `applies_to`) are added to `recipe_sections` via ALTER TABLE with nullable defaults. The DELETE-all + re-INSERT save pattern in RecipeFormSheet deletes all sections and re-creates them. If the `DraftSection` type and `buildDraftSections` function are not updated to carry the new fields through the draft round-trip, the re-INSERT writes NULLs for all new columns -- silently erasing metadata the user previously set.
+**What goes wrong:**
+`imported_unit_points` (PI-01) is written to `rules.db`. The Rust `bulk_sync_rules` command runs DELETE + re-INSERT in a single transaction. Any table in `rules.db` is completely destroyed on every sync. All user-imported points data is permanently lost on every Wahapedia sync.
 
-**Why it happens:** `DraftSection` (recipeSection.ts lines 18-27) is a manually maintained type separate from `RecipeSection`. Adding columns to the DB schema + `RecipeSection` type is necessary but not sufficient -- `DraftSection` must also be extended, `buildDraftSections` must copy the new fields from `RecipeSection` into `DraftSection`, `createRecipeSection` INSERT SQL must include the new columns, and `makeDraftSection` must set null defaults.
+**Why it happens:**
+`rules.db` feels like the right home for "game rules data." But the project's Key Decisions table states explicitly: "User data in hobbyforge.db, never rules.db — rules.db is destroyed on every sync." Migration 017 comment repeats this: "CRITICAL: Lives in hobbyforge.db." `imported_unit_points` is user-curated data (manually imported, versioned, with freshness metadata). It belongs in hobbyforge.db alongside `unit_overrides`.
 
-**Consequences:** User sets `section_type = "Basecoat"`, saves, re-opens the form, saves again without touching the section -> `section_type` is now NULL. Data loss on every recipe edit. No error, no warning.
+Cross-DB references are handled via TEXT denormalization (`detachment_name`, `weapon_name`, `section_name` — all TEXT copies in hobbyforge.db). The same pattern applies: store `datasheet_name TEXT` or link to `units.id` (FK into hobbyforge.db) in `imported_unit_points`.
 
-**Prevention:**
-- Extend `DraftSection` interface with ALL new metadata fields.
-- Extend `buildDraftSections` to copy new fields from `RecipeSection` rows into `DraftSection`.
-- Extend `createRecipeSection` INSERT SQL and parameter array to include new columns.
-- Extend `makeDraftSection` factory to initialize new fields as `null`.
-- Add a code comment on `DraftSection`: "Keep in sync with RecipeSection -- every DB column that should survive save must round-trip through this type."
-- Implementation test: set metadata, save, reopen, save unchanged, reopen -- metadata must persist.
+**How to avoid:**
+Migration 021+ must CREATE TABLE `imported_unit_points` in hobbyforge.db. Verify by checking which `getDb()` call the query module uses — `src/db/client.ts` import for hobbyforge.db, `src/db/rules-client.ts` for rules.db.
 
-**Detection:** Set metadata on a section, save recipe, reopen, save again without changes, reopen -- if metadata is gone, this pitfall is active.
+**Warning signs:**
+- Points data vanishes after any sync operation.
+- PI-03 freshness badges stop showing history after a re-sync.
+- PI-04 deltas show all units as "new" on every import cycle.
+- The query module imports from `rules-client.ts` instead of `client.ts`.
 
-**Phase to address:** Schema migration phase AND form UI phase. The `DraftSection` type MUST be extended in the same phase as the migration, not deferred to the form UI phase.
-
----
-
-## Moderate Pitfalls
-
-### Pitfall 4: Progressive Disclosure Threshold Collision with New Metadata
-
-**What goes wrong:** The existing progressive disclosure rule (RecipeFormSheet line 654) shows flat step list when `sections.length <= 1`, section cards when 2+. New workflow metadata (section_type, technique, etc.) only appears in section card UI. A single-section recipe with workflow metadata set via the SectionedTimeline display never shows it in the form -- the form renders `RecipeStepList` (flat mode), which has no section metadata UI. On save, the DELETE-all + re-INSERT writes the single section back without preserving metadata the form never displayed.
-
-**Why it happens:** The threshold was designed when sections only carried name/surface/optional. With workflow metadata, even a single section can have semantically important data that needs to be visible and editable in the form.
-
-**Prevention:**
-- Adjust the threshold: show section card UI whenever ANY section has non-null workflow metadata, regardless of count. Something like: `sections.length > 1 || sections.some(s => s.section_type || s.technique || s.execution_mode || s.applies_to)`.
-- Alternative: add a minimal metadata strip to `RecipeStepList` (flat mode) that displays and allows editing metadata for the implicit single section.
-- The first option is simpler and follows the existing pattern -- the threshold just becomes smarter.
-
-**Phase to address:** Form UI phase. Must be decided during UI design, not discovered during testing.
+**Phase to address:** PI-01 — wrong DB choice here requires a migration to move the table and rewrite all query modules.
 
 ---
 
-### Pitfall 5: Competing Hint Sources -- Status-Based vs Section-Aware
+### 3. COALESCE Chain Extension Breaking Consistency Across Query Modules
 
-**What goes wrong:** The existing `getNextActionHint` (getNextActionHint.ts) maps `PaintingStatus` to a static string like "Apply shade." Adding section-aware guidance ("Next: Shade the armour panels") creates two competing hint sources. If both are displayed simultaneously, the UI is noisy and contradictory. If section-aware replaces status-based, recipes without sections lose their hint entirely.
+**What goes wrong:**
+The new PI-05 requirement defines a 5-level chain: `list override > loadout override > imported > unit default > unknown`. The existing chain in `getArmyListWithUnits` is: `COALESCE(alu.points_override, uo.points, u.points, 0)`. Adding `imported_unit_points` as a third tier requires a LEFT JOIN to the new table. If the JOIN is INNER instead of LEFT, units without imported points are excluded from results entirely.
 
-**Why it happens:** The static hint is a pure synchronous function of status. Section-aware hints require recipe + section + step data (async, nullable, dependent on batch queries). Mixing sync and async hint sources in the same card position creates conditional rendering complexity and potential flicker during data loading.
+A related risk: `getArmyListReadiness` in `armyLists.ts` duplicates the COALESCE expression at line 197. When the chain is extended, both queries must be updated atomically. Missing one produces inconsistent totals between the army list detail view and the readiness card.
 
-**Prevention:**
-- Layer hints with clear priority: section-aware hint takes precedence when available (recipe linked, sections loaded, next step identifiable). Fall back to status-based hint when no recipe/section data exists.
-- Single render slot: one line of hint text, never two competing lines. Implement via a `getEnrichedHint(status, sectionContext?)` wrapper function.
-- Handle loading state: while section data loads, show the status-based hint immediately. Never show "Loading..." in a Kanban card hint -- it flickers on every drag operation because DnD triggers re-renders.
+A third location: `getArmyReadinessByFaction` in `dashboard.ts` uses `COALESCE(u.points, 0)` directly — no override tier at all. This query may or may not need the full 5-level chain (dashboard simplification may be intentional), but the decision must be made explicitly.
 
-**Phase to address:** Kanban/Current Focus integration phase.
+**How to avoid:**
+- Search the codebase for ALL occurrences of `COALESCE(alu.points_override` before shipping PI-05 — every hit must be updated or explicitly documented as intentionally omitting the new tier.
+- Write the new COALESCE expression in a SQL comment at the top of `armyLists.ts` as a canonical reference, then copy it to all affected queries.
+- LEFT JOIN the new `imported_unit_points` table: `LEFT JOIN imported_unit_points iup ON iup.unit_id = u.id`.
 
----
+**Warning signs:**
+- Army list total differs from dashboard readiness total for the same list.
+- Units with imported points show 0 in some views and correct values in others.
+- Grep reveals the old `COALESCE(alu.points_override, uo.points, u.points` expression still present in any query after PI-05 ships.
 
-### Pitfall 6: N+1 Query Explosion for Kanban Workflow Display
-
-**What goes wrong:** KanbanCard currently receives `recipeName` as a prop from the parent (via a batch query computed at page level). Adding "current section" or "next step" per card tempts a per-card hook pattern: `useRecipeSections(unit.recipeId)` inside KanbanCard. With 20 active projects, this fires 20 section queries on every Kanban render AND on every drag-and-drop operation.
-
-**Why it happens:** KanbanCard is a leaf component rendered inside a DnD context. Every drag event re-renders all visible cards. Hooks inside cards re-fire on each re-render. The existing pattern deliberately avoids this by computing data at page level and prop-drilling -- but the pattern is not enforced by any lint rule.
-
-**Consequences:** Drag-and-drop becomes sluggish. Each drag event re-renders all cards, each card refetches sections. React Query deduplication helps for cache hits but does not prevent 20 parallel SELECT round-trips on first mount.
-
-**Prevention:**
-- Batch query at page level: single SQL query joining `recipe_sections` + `recipe_steps` for all active-project recipe IDs. Build a `Map<recipeId, { sectionName: string; nextStep: string }>` via `useMemo`.
-- Prop-drill the map into KanbanCard, identical to how `recipeName` and `photoCount` are passed today.
-- Hard rule: never put `useRecipeSections`, `useRecipePaints`, or any per-recipe hook inside KanbanCard.
-
-**Phase to address:** Kanban integration phase. Design the batch query before touching KanbanCard.
+**Phase to address:** PI-05, with a pre-ship audit pass across `armyLists.ts` and `dashboard.ts`.
 
 ---
 
-### Pitfall 7: Existing painting_sessions Rows Have NULL section_id -- Join/Filter Hazards
+### 4. N+1 Query Trap on Tactical Tag Aggregation
 
-**What goes wrong:** Adding `section_id` to `painting_sessions` via ALTER TABLE creates a nullable column. All existing sessions (potentially hundreds) have `section_id = NULL`. Any query that JOINs or filters on `section_id` with an INNER JOIN causes all historical sessions to vanish from results. A GROUP BY `section_id` without a NULL bucket silently drops unlinked sessions from counts.
+**What goes wrong:**
+LV-02 adds per-unit tactical role tags. LV-03 aggregates them to list level. The naive implementation reads `unit_tactical_tags` per unit inside a map/forEach over `army_list_units` — this fires one query per unit. A 2000pt list with 15 units fires 15 queries for tag lookup alone.
 
-**Why it happens:** This is the exact same pattern as migration 014 (adding `recipe_id`/`recipe_step_id` to sessions), but developers writing new queries may forget the "90% of rows are NULL" reality because only new sessions will have section data.
+This pattern has been explicitly avoided in this codebase: `useLatestUnitPhotos` was moved to page-level (documented in Key Decisions); `getStepCountsBySection()` uses GROUP BY; the annotations page uses `Map<compositeKey, T>` built via useMemo for O(1) per-card lookup; `getRecipeNamesByUnitIds` uses dynamic IN placeholders.
 
-**Prevention:**
-- Always use LEFT JOIN when including section data in session queries.
-- Any GROUP BY `section_id` must include a NULL bucket labeled "General" or "Unlinked" for sessions without a section reference.
-- Never use `WHERE section_id IS NOT NULL` as a default filter -- it silently drops all pre-feature sessions.
-- `section_id` in LogSessionSheet must default to null (not required), consistent with `recipe_id` and `recipe_step_id` being optional.
+**How to avoid:**
+- Batch query: `SELECT unit_id, tag FROM unit_tactical_tags WHERE unit_id IN ($1, $2, ...)` with dynamic positional placeholders (established pattern in `getArmyListReadiness` lines 192–194).
+- Build a `Map<unit_id, string[]>` in the hook, not the component.
+- Do not define a `useTacticalTags(unitId)` hook called inside a list-rendering loop.
 
-**Phase to address:** Schema migration phase. Document the NULL-handling contract in the migration file comments, same as the comment pattern in migration 018.
+**Warning signs:**
+- Army list validation panel is slow to appear for lists with 10+ units.
+- A `getTacticalTagsByUnit` function exists and is called inside a `.map()`.
+- The `useTacticalTags` hook accepts a single `unitId` parameter.
 
----
-
-### Pitfall 8: Cross-Feature Import Creates Tight Coupling Between recipes/ and dashboard/
-
-**What goes wrong:** CurrentFocusCard and KanbanCard need to display section/workflow data. Importing recipe types, section types, or recipe display-formatting helpers directly from `src/features/recipes/` into `src/features/dashboard/` or `src/features/painting-projects/` creates coupling between feature modules that the architecture intentionally keeps independent.
-
-**Why it happens:** The feature-folder convention keeps domain logic self-contained. Types in `src/types/recipeSection.ts` are shared and importable anywhere. But any display logic (e.g., formatting section_type as a badge label, determining "next step" from a section's steps) that lives in `src/features/recipes/` cannot be cleanly imported by dashboard components without violating the module boundary.
-
-**Prevention:**
-- Types in `src/types/` are fine to import from anywhere -- they are already shared by design.
-- Display helpers needed by multiple features go in `src/lib/` (pure functions) or `src/components/common/`.
-- Batch query hooks for cross-feature data (e.g., "workflow summary for active projects") belong in `src/hooks/`, not inside a feature folder.
-- Hard rule: never import from `src/features/recipes/*.tsx` in dashboard or painting-projects components. Import from `src/types/`, `src/hooks/`, or `src/lib/` only.
-
-**Phase to address:** Kanban/Current Focus integration phase. Establish the data flow architecture before building any UI.
+**Phase to address:** LV-02 — design the batch query interface before building the UI layer.
 
 ---
 
-### Pitfall 9: Cache Invalidation Gap for New Workflow Summary Queries
+### 5. Applied Recipe Delete/Edit Leaves Orphaned Progress With Stale Cache
 
-**What goes wrong:** Updating section metadata (section_type, technique, etc.) via the form triggers a save that invalidates `RECIPE_SECTIONS_KEY`. But if Kanban or Dashboard components cache workflow summaries under a different query key (e.g., `["workflow-summary"]` or `["active-project-workflow"]`), those caches become stale. The user edits a section's technique in the recipe form, switches to Dashboard, and sees the old technique.
+**What goes wrong:**
+When a user deletes a recipe that has active `unit_recipe_assignments`, the assignments and progress rows are removed via CASCADE. But the Kanban card and CurrentFocusCard still display "In Progress" / "Next Step" badges until the cache is invalidated. If `useDeleteRecipe` only invalidates `["recipes"]` and not `["applied-recipes"]` / `["unit-recipe-progress"]`, the Kanban shows stale progress — including a next-step prompt for a step that no longer exists.
 
-**Why it happens:** The existing invalidation contract in `useDeleteRecipeSection` (useRecipeSections.ts lines 57-72) lists exactly 5 cache keys with a documented "CASCADE INVALIDATION CONTRACT" comment. Adding new query consumers that derive from section data adds new keys to invalidate. Missing one breaks UI consistency silently.
+This is the cache invalidation symmetry rule violation, documented in Key Decisions: "If useCreate invalidates a key, useDelete must too."
 
-**Prevention:**
-- Document ALL cache keys that derive from `recipe_sections` data in a central comment.
-- When adding a new batch query for workflow summaries, add its key to the invalidation list in RecipeFormSheet's `onSubmit` (currently lines 309-315) AND in `useDeleteRecipeSection`.
-- Consider a broader prefix-based invalidation if multiple workflow-related keys exist: `qc.invalidateQueries({ queryKey: ["workflow"] })`.
-- Follow the existing "cascade invalidation contract" comment pattern -- add a comment block explaining why each key is invalidated.
-- Run the cache symmetry check: if key X is invalidated in create/update, it must also be invalidated in delete.
+Similarly, `useDeleteRecipeSection` must invalidate progress keys because section delete cascades to steps, which cascades to progress rows.
 
-**Phase to address:** Every phase that adds a new query consuming section data. Mandatory invalidation audit at each phase boundary.
+**How to avoid:**
+- In `useDeleteRecipe`, invalidate `["applied-recipes"]` and `["unit-recipe-progress"]` keys alongside `["recipes"]`.
+- In `useDeleteRecipeSection`, also invalidate progress keys.
+- Add a comment to the hook's `onSuccess` block documenting the full invalidation contract, mirroring the `RECIPE_SESSIONS_KEY` conditional invalidation comment in the session hooks.
 
----
+**Warning signs:**
+- Kanban card shows next-step prompt from a deleted recipe.
+- CurrentFocusCard progress bar shows nonzero after recipe deletion.
+- `useDeleteRecipe` onSuccess only invalidates `RECIPES_KEY` with no mention of applied recipe keys.
 
-## Minor Pitfalls
-
-### Pitfall 10: LogSessionSheet Form Bloat with 4 Cascading Selectors
-
-**What goes wrong:** Adding `section_id` to `LogSessionFormValues` and the Zod schema introduces a fourth nullable selector (unit -> recipe -> section -> step). Each nullable field needs `z.number().nullable()` plus the `__none__` sentinel pattern. The form JSX grows significantly with 4 cascading selectors occupying the top half of the sheet, pushing Date and Duration fields below the fold.
-
-**Prevention:** Extract a reusable `NullableSelectField` component that handles the `__none__` sentinel, the `Controller` wrapper, and the `FormField` boilerplate. The identical pattern is repeated 3 times in the current LogSessionSheet (lines 188-348) and would be 4 with `section_id`. Also consider collapsing recipe/section/step under progressive disclosure -- show section/step selectors only when a recipe is selected (extending the existing pattern on line 306).
-
-**Phase to address:** LogSessionSheet enhancement phase.
+**Phase to address:** AR-01 (define CASCADE contract), AR-05/AR-06 (wire cache invalidation when Kanban integration is built).
 
 ---
 
-### Pitfall 11: SectionedTimeline Header Visual Overflow with Metadata Badges
+### 6. Bulk Apply Creates Shared Progress Rows Instead of Per-Unit Instances
 
-**What goes wrong:** Adding compact metadata badges (section_type, technique, execution_mode, applies_to) to each section header in SectionedTimeline creates visual clutter. The header already renders: name, surface badge, optional badge, step count, time estimate, and paint availability indicators. Adding 4 more badges forces the header to wrap to multiple lines in the narrow RecipeDetailSheet (`sm:max-w-xl` = 576px minus padding).
+**What goes wrong:**
+AR-07 (bulk apply) assigns the same recipe to multiple selected units. The mistake is inserting one `unit_recipe_assignments` row and one set of `unit_recipe_step_progress` rows shared by all units via a single `assignment_id`. Marking step 3 complete for "Intercessors Squad A" then shows step 3 complete for "Intercessors Squad B" — because they share the same progress row.
 
-**Prevention:**
-- Progressive disclosure in display: show `section_type` as the primary metadata badge; surface other metadata behind a hover tooltip or expandable row.
-- Use icon-only badges with tooltips for secondary metadata (technique, execution_mode).
-- Test at the narrowest Sheet width to verify the header does not wrap. The current header (SectionedTimeline.tsx lines 70-119) already uses `ml-auto` for right-aligned metadata -- additional badges must fit within that space.
+The army list builder already documents the precedent: "addUnitToList allows the same unit_id multiple times in one list — no UNIQUE constraint on (list_id, unit_id) — intentional." Applied recipe assignments must use the same per-instance logic: each unit gets its own assignment row with its own progress rows.
 
-**Phase to address:** SectionedTimeline metadata display phase.
+**How to avoid:**
+- Schema: each `unit_recipe_assignments` row is fully independent. Progress rows FK on `assignment_id`, not `recipe_id`.
+- Bulk apply: INSERT one `unit_recipe_assignments` row per selected unit in a sequential loop (consistent with the bulk wishlist add pattern: sequential `mutateAsync`, not `Promise.all`).
+- No UNIQUE constraint on `(unit_id, recipe_id)` unless "one active recipe per unit" is the intended design — and if so, document that constraint explicitly.
 
----
+**Warning signs:**
+- Completing a step on one unit automatically marks it complete on other units assigned the same recipe.
+- `unit_recipe_step_progress` has `recipe_step_id` but no `assignment_id` column.
+- Bulk apply uses a single INSERT for assignments instead of a loop.
 
-### Pitfall 12: applies_to Field Semantic Ambiguity
-
-**What goes wrong:** The `applies_to` field (e.g., "all panels", "recessed areas", "raised edges") is free-text with no standard vocabulary. Different recipes use different terms for the same concept ("panels" vs "flat areas" vs "armour plates"). This makes filtering or grouping by `applies_to` unreliable, and the field degenerates into a second "notes" column with no structured utility.
-
-**Prevention:**
-- Define `applies_to` as a const array (like `PAINTING_STATUS_ORDER` or `RECIPE_SURFACES`) with a fixed vocabulary: "All surfaces", "Panels", "Recesses", "Edges", "Details", "Base trim", "Other".
-- Allow free-text notes via the existing section `notes` column -- do not create a second free-text field.
-- If free-text is preferred for flexibility, do NOT build any filtering or grouping features on `applies_to` -- treat it as display-only annotation.
-
-**Phase to address:** Schema design phase. Must decide enum vs free-text before writing the migration.
+**Phase to address:** AR-01 (schema design) — structural constraint; cannot be retrofitted without a migration.
 
 ---
 
-## Phase-Specific Warnings
+### 7. Stale Points Detection Firing False Positives After Every Sync
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|-------------|---------------|------------|
-| Schema migration (add columns to recipe_sections) | Pitfall 3: DraftSection not extended, metadata lost on save | Extend DraftSection + buildDraftSections + createRecipeSection INSERT atomically with the migration |
-| Schema migration (add section_id to painting_sessions) | Pitfall 1: DELETE-all + re-INSERT clears session FKs | Use denormalized TEXT column (section_name) instead of FK, or accept SET NULL on recipe edit |
-| Schema migration (add section_id to painting_sessions) | Pitfall 7: existing sessions have NULL section_id | LEFT JOIN everywhere; NULL bucket in GROUP BY |
-| Schema design for applies_to | Pitfall 12: semantic ambiguity | Decide enum vs free-text before writing migration |
-| LogSessionSheet section selector | Pitfall 2: cascading selector 3-level desync | Two useEffects: recipe clears section+step; section clears step |
-| LogSessionSheet section selector | Pitfall 10: form bloat with 4 selectors | Extract NullableSelectField component; progressive disclosure |
-| SectionedTimeline metadata display | Pitfall 11: badge overflow at 576px | Icon badges + tooltips; test at narrowest sheet width |
-| Form UI (workflow metadata editing) | Pitfall 4: single-section recipes hide metadata | Adjust threshold to check for non-null metadata, not just section count |
-| Kanban workflow display | Pitfall 6: N+1 queries in KanbanCard | Batch query at page level; prop-drill Map |
-| Kanban / Current Focus hints | Pitfall 5: competing sync vs async hint sources | Layered hint with section-aware priority; status-based fallback |
-| Current Focus / Dashboard integration | Pitfall 8: cross-feature module coupling | Types from src/types/; hooks from src/hooks/; never import from src/features/recipes/ |
-| Any phase adding section-derived queries | Pitfall 9: cache invalidation gap | Add new key to invalidation contract in RecipeFormSheet and useDeleteRecipeSection |
+**What goes wrong:**
+LV-01 includes "stale source" as a hard warning. If stale detection compares `imported_unit_points.import_date` against `sync_meta.last_synced_at` from `rules.db`, a freshly synced rules set will show all user-imported points as stale — the Wahapedia sync timestamp always post-dates the last points import. This triggers the stale warning on every army list immediately after any sync, even when points were imported last week.
+
+The `StaleDataBanner` in Army Lists 2.0 (Phase 54) already uses Wahapedia sync metadata. Applying the same time-comparison logic to points freshness will cause it to misfire on the same cadence as syncs.
+
+**How to avoid:**
+- Stale threshold: compare `imported_unit_points.source_version` (a string like "Balance Dataslate 2025-Q1") against a user-set "current edition identifier" — a mismatch, not a time comparison.
+- Or: stale = user has explicitly signaled a new edition is in effect (an import with a different `source_version`), which generates a delta.
+- The freshness badge (PI-03) should display "points last updated [date] · [source version]" so the user can judge freshness contextually, without the system making the stale/fresh judgment automatically.
+
+**Warning signs:**
+- Every army list shows a stale-points warning immediately after a Wahapedia sync.
+- PI-03 badge is always red/amber regardless of recent import date.
+- Stale logic contains a comparison like `import_date < last_synced_at`.
+
+**Phase to address:** PI-03 (freshness semantics must be defined before PI-01 schema, because `source_version` and staleness columns depend on it).
+
+---
+
+### 8. Migration Backfill Omissions Causing "Never Imported" Confusion
+
+**What goes wrong:**
+New tables for applied recipes and points have no existing rows for current users — which is correct. But if `unit_tactical_tags` (LV-02) uses INNER JOIN in the coverage aggregation, it silently excludes untagged units from the role coverage analysis. A list of 10 units where 7 have no tags appears to have coverage for only 3 units, which looks like a data bug.
+
+Additionally, PI-04 delta detection will show all units as "no import" rather than "unchanged" on first use. If the UI displays this as a warning delta badge, every unit appears to need attention even though nothing has changed.
+
+**How to avoid:**
+- All LV-03 aggregation queries: LEFT JOIN `unit_tactical_tags`, not INNER JOIN.
+- PI-04 first-use state: distinguish "never imported" (grey/neutral, no action needed) from "changed since last import" (yellow/delta). Store a `first_import_at` timestamp in a metadata row to detect the first-use case.
+- Document in migration SQL comments whether a backfill is intentionally absent (e.g.: "no backfill: users start with no imported points; existing u.points fallback in COALESCE chain is correct").
+
+**Warning signs:**
+- Coverage analysis shows 0 units with any role on first load of a populated list.
+- Every unit shows a delta badge on first import despite no points change.
+- LV-03 query uses `JOIN unit_tactical_tags` without `LEFT`.
+
+**Phase to address:** PI-01 and LV-02 schema migrations.
+
+---
+
+## Technical Debt Patterns
+
+### TD-1: Progress Stored as Booleans Must Follow the 0|1 Cast Convention
+
+SQLite stores booleans as `0 | 1` integers. `unit_recipe_step_progress.completed` will return as a number from tauri-plugin-sql. The project convention is to cast on read (Key Decisions: "0|1 literal types for SQLite booleans"). Every component or hook reading progress must cast: `Boolean(row.completed)` or `!!row.completed`. The bug is subtle: 1 reads as truthy correctly, but 0 reads as falsy — so uncompleted steps display correctly, and the bug only manifests when testing "mark complete / then unmark," which is the less common path in early testing.
+
+### TD-2: Duplicate COALESCE Expressions Across Query Modules
+
+The points COALESCE expression already appears in `getArmyListWithUnits`, `getArmyListReadiness`, and `getArmyReadinessByFaction`. Adding the 5-level variant creates a fourth occurrence. There is no SQL fragment-sharing mechanism (no ORM). A comment in each query module referencing the canonical COALESCE contract — as `armyLists.ts` already does — is the only mitigation. Mark each site with a `// POINTS-CHAIN:` comment for grepping.
+
+### TD-3: Bulk Apply Section Save Loop Is Not Transactional
+
+`duplicateRecipe` and the section-save path use sequential `db.execute()` calls without an explicit transaction. If the Tauri window closes mid-bulk-apply, partial progress rows are written. For 1–3 unit bulk apply this risk is low. For 10+ units selected, consider wrapping in BEGIN/COMMIT if tauri-plugin-sql exposes transaction control. If not, document the partial-write risk and add a cleanup query on app startup that removes orphaned `unit_recipe_step_progress` rows with no matching `unit_recipe_assignments` parent.
+
+---
+
+## UX Pitfalls
+
+### UX-1: Kanban Card Shows Both Template Hint and Applied Progress Simultaneously
+
+Kanban cards (Phase 60) show "current workflow / next step" from workflow metadata. After AR-06, the same card must conditionally show either (a) template-level workflow position hint, or (b) applied recipe progress position, depending on whether an active assignment exists. Displaying both creates visual noise and confuses the user about whether the badge reflects actual completion or just template metadata. The card needs an explicit render branch: `hasAppliedRecipe ? <ProgressBadge /> : <WorkflowHint />`.
+
+### UX-2: Validation Warnings That Fire on Every List Cause Warning Fatigue
+
+LV-01 hard validation warnings include "unknown points" — units with `u.points = 0` and no imported row. Many players intentionally omit points from proxy or WIP entries. If every list with any 0-point unit shows a red hard warning, the validation panel becomes noise that users learn to dismiss reflexively. Reserve red/hard warnings for: points limit exceeded, stale source version detected. Use yellow/soft warnings for: unknown points, unbuilt/unpainted units below readiness threshold.
+
+### UX-3: Recipe Picker for Apply Shows All Recipes Without Faction Filtering
+
+AR-02 offers a recipe picker when assigning to a unit. Without filtering, the picker lists every recipe in the system — faction-wide, other-faction, unrelated miniatures. With 40+ recipes, the picker is unusable. Pre-filter by `painting_recipes.faction_id = unit.faction_id`, or show a "Suggested" group (faction-matched) before an "All Recipes" expansion toggle. The `getRecipeNamesByUnitIds` batch query already filters by `unit_id` — a faction-filtered variant is a small SQL extension.
+
+### UX-4: Points Delta Detection Running on Every Army List Load
+
+PI-04 (delta detection) compares current imported points against a prior snapshot. Running this comparison on every `ArmyListPage` mount is wasteful — most loads have no new import. The delta is only meaningful after a new points import event. Trigger delta detection only on: (a) first mount after a new import (store `last_import_id` in Zustand or a query key), or (b) explicit user request. Cache the delta result with React Query keyed on `["points-delta", lastImportId]`.
+
+---
+
+## "Looks Done But Isn't" Checklist
+
+- [ ] Applied recipe progress persists across recipe edits (not silently wiped by DELETE-all + re-INSERT on recipe_steps)
+- [ ] Bulk-applied recipes have independent progress rows per unit (not shared via single assignment_id)
+- [ ] `imported_unit_points` migration uses `getDb()` from `src/db/client.ts`, not `rules-client.ts`
+- [ ] All COALESCE chain occurrences updated atomically when 5-level chain is added (grep: `COALESCE(alu.points_override`)
+- [ ] `getArmyListReadiness` and `getArmyListWithUnits` return consistent totals for the same list with the same chain
+- [ ] `getArmyReadinessByFaction` on dashboard: explicitly decided whether it uses simplified or full 5-level chain
+- [ ] Stale-points badge does NOT fire after a Wahapedia sync if points source_version has not changed
+- [ ] Tactical tag aggregation uses a batch IN query, not per-unit hook calls in a list-rendering loop
+- [ ] `useDeleteRecipe` onSuccess invalidates `["applied-recipes"]` and `["unit-recipe-progress"]` keys
+- [ ] `unit_recipe_step_progress.completed` is cast to boolean on read (`!!row.completed` or `Boolean(row.completed)`)
+- [ ] Untagged units appear in LV-03 coverage analysis (LEFT JOIN on unit_tactical_tags, not INNER JOIN)
+- [ ] PI-04 "never imported" state displays differently from "changed since last import"
+- [ ] Migration SQL files include a comment explaining whether backfill is intentionally absent
+
+---
+
+## Pitfall-to-Phase Mapping
+
+| Phase / Requirement | Pitfall to Watch | Mitigation |
+|---|---|---|
+| AR-01 (applied recipe data model) | #1 Template-instance confusion, #6 Shared progress on bulk apply | Stable composite key (recipe_id, order_index) for progress; one assignment row per unit |
+| AR-02 (assignment UX) | UX-3 Recipe picker lists all recipes | Pre-filter by faction_id; "Suggested" group first |
+| AR-03 (per-unit step completion) | #5 Orphaned progress after recipe edit, TD-1 Boolean cast | Cache invalidation in useDeleteRecipe; cast completed on read |
+| AR-05/AR-06 (Kanban/CurrentFocus) | #5 Stale cache, UX-1 Template vs instance display mode | Symmetry rule in useDeleteRecipe; explicit render branch per mode |
+| AR-07 (bulk apply) | #6 Shared progress rows, TD-3 Non-transactional loop | Sequential mutateAsync loop; one assignment row per unit |
+| PI-01 (points data layer) | #2 Wrong database | CREATE TABLE in migration using client.ts (hobbyforge.db) |
+| PI-03 (freshness tracking) | #7 False positive stale after sync | Staleness = source_version mismatch, not time comparison against last_synced_at |
+| PI-04 (delta detection) | UX-4 Eager delta on every load, #8 "never imported" confusion | Event-triggered detection keyed on lastImportId; neutral badge for never-imported |
+| PI-05 (points resolution chain) | #3 COALESCE inconsistency across query modules | Grep all occurrences; update atomically; LEFT JOIN imported_unit_points |
+| LV-01 (hard validation warnings) | #7 False positive stale, UX-2 Warning fatigue | Red = exceeded/stale only; yellow = unknown points |
+| LV-02 (tactical tags) | #4 N+1 query trap | Batch IN query; Map<unit_id, string[]> built in hook |
+| LV-03 (role coverage) | #4 N+1, #8 Untagged units excluded | LEFT JOIN; GROUP BY in SQL not JS reduce |
+| Migration 021+ | #2 Wrong DB, #8 Missing backfill | Verify getDb() import; comment intentional no-backfill in SQL |
 
 ---
 
 ## Sources
 
-- Direct codebase analysis of existing patterns:
-  - `src/features/recipes/RecipeFormSheet.tsx` -- DELETE-all + re-INSERT pattern (lines 233-306), cache invalidation (lines 309-315), progressive disclosure threshold (line 654)
-  - `src/features/recipes/recipeSection.ts` -- DraftSection type (lines 18-27), buildDraftSections (lines 58-91), makeDraftSection factory (lines 33-42)
-  - `src/features/dashboard/LogSessionSheet.tsx` -- cascading selector pattern (lines 127-348), recipe_step_id clear on recipe change (lines 133-135)
-  - `src/features/dashboard/getNextActionHint.ts` -- static PaintingStatus-to-string mapping
-  - `src/features/dashboard/CurrentFocusCard.tsx` -- recipeName prop-drilling, no recipe hooks
-  - `src/features/painting-projects/KanbanCard.tsx` -- prop-drilled recipeName/photoCount, no per-card hooks
-  - `src/hooks/useRecipeSections.ts` -- CASCADE INVALIDATION CONTRACT comment (lines 57-72), 5 invalidated keys
-  - `src/hooks/useJournalSessions.ts` -- conditional recipe-session invalidation (line 64)
-  - `src/db/queries/recipeSections.ts` -- createRecipeSection INSERT columns (line 26), updateRecipeSection COALESCE vs direct assignment pattern
-  - `src/db/queries/paintingSessions.ts` -- createSession INSERT with recipe_id/recipe_step_id (line 22)
-  - `src-tauri/migrations/018_recipe_sections.sql` -- ON DELETE CASCADE chain, section_id nullable on recipe_steps
-  - `src-tauri/migrations/014_session_recipe_link.sql` -- ON DELETE SET NULL for session recipe/step FKs
-  - `src/types/recipeSection.ts` -- RecipeSection interface (9 columns)
-  - `src/types/paintingSession.ts` -- PaintingSession interface, CreateSessionInput
-  - `.planning/PROJECT.md` -- Key Decisions table (DELETE-all + re-INSERT, denormalized TEXT patterns, COALESCE, cache invalidation symmetry)
+- `src/db/queries/armyLists.ts` — Existing 3-level COALESCE chain, full-replacement UPDATE pattern, N+1 avoidance via IN placeholders and GROUP BY
+- `src/db/queries/recipeSections.ts` — DELETE-all + re-INSERT save pattern, ON DELETE CASCADE chain documentation
+- `src/db/queries/recipes.ts` — duplicateRecipe sectionIdMap pattern, recipe_steps CASCADE on delete
+- `src/db/queries/paintingSessions.ts` — ON DELETE SET NULL for session-recipe FKs, section_name denormalization as the established FK-avoidance pattern
+- `src/db/queries/unitOverrides.ts` — hobbyforge.db placement decision for user-curated data surviving syncs
+- `src/db/queries/dashboard.ts` — `getArmyReadinessByFaction` uses simplified COALESCE (u.points only) — diverges from army list chain
+- `src-tauri/migrations/017_unit_overrides.sql` — "CRITICAL: Lives in hobbyforge.db" comment
+- `src-tauri/migrations/018_recipe_sections.sql` — DELETE-all + re-INSERT save pattern, CASCADE chain documented
+- `src-tauri/migrations/020_workflow_metadata.sql` — section_name denormalization rationale
+- `.planning/PROJECT.md` — Key Decisions table (COALESCE chain evolution, cache invalidation symmetry rule, Boolean 0|1 discipline, wrong-DB history), v0.2.10 requirement list (AR-01 through GD-01)
