@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.2.9
-milestone_name: Recipes 3.1 / Workflow Semantics & Integrations
-status: completed
-stopped_at: Milestone v0.2.9 complete — all 4 phases shipped
-last_updated: "2026-05-12T13:00:00.000Z"
+milestone: v0.2.10
+milestone_name: Applied Recipes, Points Import & List Validation
+status: planning
+stopped_at: Defining requirements
+last_updated: "2026-05-12T14:00:00.000Z"
 last_activity: 2026-05-12
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,13 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-12)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" -- without ever depending on copyrighted GW data.
-**Current focus:** Planning next milestone
+**Current focus:** v0.2.10 — Applied Recipes, Points Import & List Validation
 
 ## Current Position
 
-Phase: v0.2.9 archived
-Status: Between milestones
-Last activity: 2026-05-12
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-12 — Milestone v0.2.10 started
 
 ## Performance Metrics
 
@@ -66,6 +67,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-12T13:00:00.000Z
-Stopped at: Milestone v0.2.9 complete — all 4 phases shipped
-Resume: Next milestone planning with `/gsd-new-milestone`
+Last session: 2026-05-12T14:00:00.000Z
+Stopped at: Milestone v0.2.10 started — defining requirements
+Resume: Define requirements then create roadmap

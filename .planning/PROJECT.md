@@ -4,11 +4,22 @@
 
 HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, structured painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play" — all without ever depending on copyrighted GW data.
 
-Shipped through v0.2.9 (60 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, and DnD reorder), army list builder with detachment selection and inline rules context, battle log, spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors, premium CSS grid dashboard with workflow-aware CurrentFocusCard and KanbanCards, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, and a Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist).
+Shipped through v0.2.9 (60 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, and DnD reorder), army list builder with detachment selection and inline rules context, battle log, spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors, premium CSS grid dashboard with workflow-aware CurrentFocusCard and KanbanCards, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, and a Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist). Now building v0.2.10: applied recipes (recipe-as-painting-plan with per-unit step progress), points import with freshness tracking, and advanced army list validation with tactical role coverage.
+
+## Current Milestone: v0.2.10 Applied Recipes, Points Import & List Validation
+
+**Goal:** Turn recipes into actionable painting plans with per-unit progress, add a points import data layer with freshness tracking, and harden army list validation with tactical role coverage.
+
+**Target features:**
+- Recipe workflow hardening (migration verification, section-aware log session stability, metadata polish)
+- Applied recipes (recipe-to-unit assignments, per-unit step completion, Kanban/CurrentFocus progress, Log Session integration, bulk apply)
+- Points import (points data layer with source/version tracking, import pipeline, freshness badges, points deltas)
+- Army list validation (5-level points resolution, hard/data warnings, tactical tags & role coverage)
+- Game Day integration (pre-game points/readiness warnings)
 
 ## Current State
 
-v0.2.9 shipped 2026-05-12. Planning next milestone.
+v0.2.10 in progress. v0.2.9 shipped 2026-05-12.
 
 ## Core Value
 
@@ -127,7 +138,28 @@ A single personal command center that always answers "what do I own, what's pain
 
 ### Active
 
-*Next milestone — to be defined with `/gsd-new-milestone`*
+*v0.2.10 — Applied Recipes, Points Import & List Validation*
+
+- [ ] **RH-01**: Migration verification — fresh install creates recipe_sections with all workflow metadata columns
+- [ ] **RH-02**: Section-aware log session stability — stable section reference, rename-safe
+- [ ] **RH-03**: Workflow metadata UX polish — section_type values match user mental model, progressive disclosure maintained
+- [ ] **AR-01**: Applied recipe data model — unit_recipe_assignments + unit_recipe_step_progress tables
+- [ ] **AR-02**: Recipe-to-unit assignment UX — apply recipe from Collection/Unit Detail, preview before applying
+- [ ] **AR-03**: Per-unit step completion — tick sections/steps as completed, progress stored separately from template
+- [ ] **AR-04**: Applied recipe display — completion progress visible on unit, checklist-like section/step view
+- [ ] **AR-05**: Log Session integration — complete applied recipe step while logging session
+- [ ] **AR-06**: Kanban/CurrentFocus progress — show applied recipe progress and next step
+- [ ] **AR-07**: Bulk apply — apply same recipe to multiple selected units with separate progress per unit
+- [ ] **PI-01**: Points data layer — imported_unit_points table with source/version metadata
+- [ ] **PI-02**: Points import pipeline — CSV/manual import with validation, versioning, error logging
+- [ ] **PI-03**: Points freshness tracking — source name, version, import date, stale/fresh badges
+- [ ] **PI-04**: Points delta detection — after import, detect per-unit and per-list points changes
+- [ ] **PI-05**: Points resolution chain — 5-level COALESCE (list override > loadout override > imported > unit default > unknown)
+- [ ] **LV-01**: Hard validation warnings — points exceeded, unknown points, stale source, unowned/unpainted/unbuilt units
+- [ ] **LV-02**: Tactical tags — per-unit tactical role tags (anti_tank, screening, objective_holder, etc.)
+- [ ] **LV-03**: Tactical role coverage — list-level tag aggregation showing strengths/weaknesses
+- [ ] **LV-04**: Army list health UI — validation summary panel (points, ownership, readiness, freshness, warnings)
+- [ ] **GD-01**: Game Day pre-game warnings — surface points/readiness/tactical warnings before playing
 
 ### Out of Scope
 
@@ -225,4 +257,22 @@ A single personal command center that always answers "what do I own, what's pain
 | Design deviation D-08: execution_mode as text not Badge | Dot-separated string more compact than Badge for metadata-heavy timelines | — Accepted design trade-off (RUI-03 partial) |
 
 ---
-*Last updated: 2026-05-12 after v0.2.9 milestone complete*
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd-transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
+---
+*Last updated: 2026-05-12 after v0.2.10 milestone started*
