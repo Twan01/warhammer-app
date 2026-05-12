@@ -34,7 +34,7 @@ Full details: `.planning/milestones/v0.2.8-ROADMAP.md`
 **Milestone Goal:** Make recipe sections semantically rich and actionable — extending workflow metadata into Log Session, Kanban, and Current Focus for real painting workflow guidance.
 
 - [x] **Phase 57: Schema & Data Layer** - Migration + types + queries for workflow metadata columns and session section linking
-- [ ] **Phase 58: Recipe Form & Timeline Display** - Workflow metadata editing with progressive disclosure and compact timeline badges
+- [x] **Phase 58: Recipe Form & Timeline Display** - Workflow metadata editing with progressive disclosure and compact timeline badges (2/2 plans) — completed 2026-05-12
 - [ ] **Phase 59: Session Section Cascade** - LogSessionSheet 3-level cascading selector (recipe -> section -> step)
 - [ ] **Phase 60: Kanban & CurrentFocus Integration** - Section-aware workflow display on project cards and dashboard focus
 
