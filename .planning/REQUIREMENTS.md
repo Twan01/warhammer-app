@@ -23,8 +23,8 @@
 
 ### Points Import
 
-- [ ] **PI-01**: Schema: points import tables in hobbyforge.db with source_name, source_version, import_date, row_count
-- [ ] **PI-02**: User can import points from CSV file — validation, versioning, error logging, import history
+- [ ] **PI-01**: Schema: extend rules.db with points data (via Wahapedia sync); user overrides remain in hobbyforge.db
+- [ ] **PI-02**: Wahapedia sync pipeline extended to import official points data — points land in rules.db, refreshed on every sync
 - [ ] **PI-03**: Points freshness visible — source name, version, import date, stale/fresh/unknown badges on army lists and rules hub
 - [ ] **PI-04**: After import, user can see per-unit points deltas (increased/decreased/new/removed) and affected army lists
 - [ ] **PI-05**: 5-level points resolution: list override > loadout override > imported points > unit default > unknown — applied atomically across all COALESCE sites
@@ -61,8 +61,7 @@
 
 | Feature | Reason |
 |---------|--------|
-| Official points bundled in app source | Copyright constraint — never in scope |
-| Auto-fetch/scrape points from external sources | Local-first constraint; user triggers import manually |
+| Auto-fetch/scrape points from non-Wahapedia sources | Local-first; Wahapedia sync is the single points source |
 | Complex dependency graphs between recipe steps | Over-engineering; deferred |
 | Rules-legal validation (detachment slots, army composition) | New Recruit/BattleScribe territory; not our differentiator |
 | Auto-advance painting status from recipe completion | Anti-feature per research; creates ghost updates |
@@ -74,32 +73,32 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RH-01 | — | Pending |
-| RH-02 | — | Pending |
-| RH-03 | — | Pending |
-| AR-01 | — | Pending |
-| AR-02 | — | Pending |
-| AR-03 | — | Pending |
-| AR-04 | — | Pending |
-| AR-05 | — | Pending |
-| AR-06 | — | Pending |
-| AR-07 | — | Pending |
-| PI-01 | — | Pending |
-| PI-02 | — | Pending |
-| PI-03 | — | Pending |
-| PI-04 | — | Pending |
-| PI-05 | — | Pending |
-| LV-01 | — | Pending |
-| LV-02 | — | Pending |
-| LV-03 | — | Pending |
-| LV-04 | — | Pending |
-| GD-01 | — | Pending |
+| RH-01 | Phase 61 | Pending |
+| RH-02 | Phase 61 | Pending |
+| RH-03 | Phase 61 | Pending |
+| AR-01 | Phase 62 | Pending |
+| AR-02 | Phase 63 | Pending |
+| AR-03 | Phase 63 | Pending |
+| AR-04 | Phase 63 | Pending |
+| AR-05 | Phase 64 | Pending |
+| AR-06 | Phase 64 | Pending |
+| AR-07 | Phase 63 | Pending |
+| PI-01 | Phase 65 | Pending |
+| PI-02 | Phase 65 | Pending |
+| PI-03 | Phase 65 | Pending |
+| PI-04 | Phase 65 | Pending |
+| PI-05 | Phase 65 | Pending |
+| LV-01 | Phase 66 | Pending |
+| LV-02 | Phase 66 | Pending |
+| LV-03 | Phase 66 | Pending |
+| LV-04 | Phase 66 | Pending |
+| GD-01 | Phase 67 | Pending |
 
 **Coverage:**
 - v1 requirements: 20 total
-- Mapped to phases: 0
-- Unmapped: 20 ⚠️ (awaiting roadmap)
+- Mapped to phases: 20
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-05-12*
-*Last updated: 2026-05-12 after initial definition*
+*Last updated: 2026-05-12 after roadmap creation*

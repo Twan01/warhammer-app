@@ -2,7 +2,7 @@
 
 ## What This Is
 
-HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, structured painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play" — all without ever depending on copyrighted GW data.
+HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, structured painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play." Official points and rules data are imported via Wahapedia sync for personal use.
 
 Shipped through v0.2.9 (60 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, and DnD reorder), army list builder with detachment selection and inline rules context, battle log, spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors, premium CSS grid dashboard with workflow-aware CurrentFocusCard and KanbanCards, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, and a Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist). Now building v0.2.10: applied recipes (recipe-as-painting-plan with per-unit step progress), points import with freshness tracking, and advanced army list validation with tactical role coverage.
 
@@ -13,7 +13,7 @@ Shipped through v0.2.9 (60 phases): full hobby command center with collection ma
 **Target features:**
 - Recipe workflow hardening (migration verification, section-aware log session stability, metadata polish)
 - Applied recipes (recipe-to-unit assignments, per-unit step completion, Kanban/CurrentFocus progress, Log Session integration, bulk apply)
-- Points import (points data layer with source/version tracking, import pipeline, freshness badges, points deltas)
+- Points import (official points via Wahapedia sync extension, freshness badges, points deltas)
 - Army list validation (5-level points resolution, hard/data warnings, tactical tags & role coverage)
 - Game Day integration (pre-game points/readiness warnings)
 
@@ -23,7 +23,7 @@ v0.2.10 in progress. v0.2.9 shipped 2026-05-12.
 
 ## Core Value
 
-A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — without ever depending on copyrighted GW data.
+A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with official points via Wahapedia sync for personal use.
 
 ## Requirements
 
@@ -150,8 +150,8 @@ A single personal command center that always answers "what do I own, what's pain
 - [ ] **AR-05**: Log Session integration — complete applied recipe step while logging session
 - [ ] **AR-06**: Kanban/CurrentFocus progress — show applied recipe progress and next step
 - [ ] **AR-07**: Bulk apply — apply same recipe to multiple selected units with separate progress per unit
-- [ ] **PI-01**: Points data layer — imported_unit_points table with source/version metadata
-- [ ] **PI-02**: Points import pipeline — CSV/manual import with validation, versioning, error logging
+- [ ] **PI-01**: Points data layer — extend rules.db with points data via Wahapedia sync; user overrides in hobbyforge.db
+- [ ] **PI-02**: Wahapedia sync pipeline extended to import official points — refreshed on every sync
 - [ ] **PI-03**: Points freshness tracking — source name, version, import date, stale/fresh badges
 - [ ] **PI-04**: Points delta detection — after import, detect per-unit and per-list points changes
 - [ ] **PI-05**: Points resolution chain — 5-level COALESCE (list override > loadout override > imported > unit default > unknown)
@@ -169,7 +169,6 @@ A single personal command center that always answers "what do I own, what's pain
 - macOS / Linux builds — Windows-only
 - Mobile companion app — desktop only
 - AI features (recipe generator, battle summarizer, recommendations) — deferred
-- Official rules, codexes, datasheets, GW point values — legal/copyright constraint, never in scope
 - Competitive list optimization or rules validation — explicitly not the goal
 - Real-time multiplayer / cloud sync / accounts — local-first by design
 - Real-time auto-sync (scheduled Wahapedia fetch) — local-first, user triggers manually
@@ -188,7 +187,7 @@ A single personal command center that always answers "what do I own, what's pain
 - **Tech stack**: Tauri 2 (desktop shell) + React 19 + TypeScript + Tailwind v4 CSS + shadcn/ui + SQLite — chosen for local-first desktop with modern web UI
 - **ORM**: `tauri-plugin-sql` directly (no ORM). Prisma confirmed dead-end in Tauri production builds. Drizzle is a v3 escape hatch only if raw typed queries become unmanageable.
 - **Platform**: Windows only for v0.2.0 — matches user's dev environment
-- **Legal**: No scraping, reproducing, or distributing GW rules / codexes / datasheets / points. User manually enters all points and rules notes — non-negotiable copyright constraint
+- **Legal**: Private personal tool — official points imported via Wahapedia sync for personal use only. Not distributed publicly.
 - **Local-first**: All data on local disk (SQLite + filesystem). No network calls, no cloud, no telemetry
 - **Code organization**: Database access lives in `src/db/queries/*`. Feature-folder structure under `src/features/*`. Components only call hooks, never query functions directly.
 
