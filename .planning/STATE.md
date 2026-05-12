@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.2.9
 milestone_name: Recipes 3.1 / Workflow Semantics & Integrations
 status: Ready to discuss
-stopped_at: Phase 58 context gathered
-last_updated: "2026-05-12T07:27:27.257Z"
+stopped_at: Phase 58 UI-SPEC approved
+last_updated: "2026-05-12T07:35:44.871Z"
 last_activity: 2026-05-12 — Phase 57 verified and complete (5/5 must-haves passed)
 progress:
   total_phases: 4
@@ -66,6 +66,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-12T07:27:27.253Z
-Stopped at: Phase 58 context gathered
+Last session: 2026-05-12T07:35:44.867Z
+Stopped at: Phase 58 UI-SPEC approved
 Resume: `/gsd-discuss-phase 58`
