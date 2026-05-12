@@ -35,7 +35,7 @@ Full details: `.planning/milestones/v0.2.8-ROADMAP.md`
 
 - [x] **Phase 57: Schema & Data Layer** - Migration + types + queries for workflow metadata columns and session section linking
 - [x] **Phase 58: Recipe Form & Timeline Display** - Workflow metadata editing with progressive disclosure and compact timeline badges (2/2 plans) — completed 2026-05-12
-- [ ] **Phase 59: Session Section Cascade** - LogSessionSheet 3-level cascading selector (recipe -> section -> step)
+- [x] **Phase 59: Session Section Cascade** - LogSessionSheet 3-level cascading selector (recipe -> section -> step) (completed 2026-05-12)
 - [ ] **Phase 60: Kanban & CurrentFocus Integration** - Section-aware workflow display on project cards and dashboard focus
 
 ---
@@ -227,12 +227,15 @@ Plans:
   3. Workflow position is derived from the last logged session step with no explicit completion tracking required
   4. A shared pure function computes workflow position, usable by both Kanban and CurrentFocus without duplication
   5. Cards degrade gracefully when no recipe is linked, no sessions exist, or the recipe has no sections -- showing existing fallback hints
-**Plans**: TBD
+**Plans**: 2 plans
 **UI hint**: yes
 
 Plans:
-- [ ] 60-01: TBD
-- [ ] 60-02: TBD
+**Wave 1**
+- [ ] 60-01-PLAN.md — Pure function computeWorkflowPosition + batch hook useWorkflowPositions + tests (PROJ-03, PROJ-04, PROJ-05)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 60-02-PLAN.md — KanbanCard + CurrentFocusCard workflow display integration + component tests (PROJ-01, PROJ-02)
 
 ## Progress
 
@@ -300,5 +303,5 @@ Phases execute in numeric order: 57 -> 58 -> 59 -> 60
 | 56. Game Day Mode | v0.2.8 | 2/2 | Complete | 2026-05-11 |
 | 57. Schema & Data Layer | v0.2.9 | 2/2 | Complete | 2026-05-12 |
 | 58. Recipe Form & Timeline Display | v0.2.9 | 1/2 | In Progress|  |
-| 59. Session Section Cascade | v0.2.9 | 2/2 | Complete   | 2026-05-12 |
-| 60. Kanban & CurrentFocus Integration | v0.2.9 | 0/? | Not started | - |
+| 59. Session Section Cascade | v0.2.9 | 2/2 | Complete    | 2026-05-12 |
+| 60. Kanban & CurrentFocus Integration | v0.2.9 | 0/2 | Not started | - |
