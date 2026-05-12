@@ -12,7 +12,7 @@
 - ✅ **v0.2.6 Rules Sync 2.0 / Rules Data Hub** — Phases 42-47 (shipped 2026-05-08)
 - ✅ **v0.2.7 Recipes 3.0 / Hierarchical Painting Workflows** — Phases 48-51 (shipped 2026-05-08)
 - ✅ **v0.2.8 Rules Data Hub UI / Army Lists 2.0 / Game Day** — Phases 52-56 (shipped 2026-05-11)
-- 🚧 **v0.2.9 Recipes 3.1 / Workflow Semantics & Integrations** — Phases 57-60 (in progress)
+- ✅ **v0.2.9 Recipes 3.1 / Workflow Semantics & Integrations** — Phases 57-60 (shipped 2026-05-12)
 
 ## Phases
 
@@ -29,14 +29,17 @@ Full details: `.planning/milestones/v0.2.8-ROADMAP.md`
 
 </details>
 
-### 🚧 v0.2.9 Recipes 3.1 / Workflow Semantics & Integrations (In Progress)
+<details>
+<summary>✅ v0.2.9 Recipes 3.1 / Workflow Semantics & Integrations (Phases 57-60) — SHIPPED 2026-05-12</summary>
 
-**Milestone Goal:** Make recipe sections semantically rich and actionable — extending workflow metadata into Log Session, Kanban, and Current Focus for real painting workflow guidance.
+- [x] Phase 57: Schema & Data Layer - Migration + types + queries for workflow metadata columns and session section linking
+- [x] Phase 58: Recipe Form & Timeline Display - Workflow metadata editing with progressive disclosure and compact timeline badges (2/2 plans) — completed 2026-05-12
+- [x] Phase 59: Session Section Cascade - LogSessionSheet 3-level cascading selector (recipe -> section -> step) (2/2 plans) — completed 2026-05-12
+- [x] Phase 60: Kanban & CurrentFocus Integration - Section-aware workflow display on project cards and dashboard focus (2/2 plans) — completed 2026-05-12
 
-- [x] **Phase 57: Schema & Data Layer** - Migration + types + queries for workflow metadata columns and session section linking
-- [x] **Phase 58: Recipe Form & Timeline Display** - Workflow metadata editing with progressive disclosure and compact timeline badges (2/2 plans) — completed 2026-05-12
-- [x] **Phase 59: Session Section Cascade** - LogSessionSheet 3-level cascading selector (recipe -> section -> step) (completed 2026-05-12)
-- [ ] **Phase 60: Kanban & CurrentFocus Integration** - Section-aware workflow display on project cards and dashboard focus
+Full details: `.planning/milestones/v0.2.9-ROADMAP.md`
+
+</details>
 
 ---
 

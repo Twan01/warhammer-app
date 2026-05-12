@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.2.9
 milestone_name: Recipes 3.1 / Workflow Semantics & Integrations
 status: completed
-stopped_at: Phase 60 planned — ready to execute
-last_updated: "2026-05-12T12:30:00.000Z"
+stopped_at: Milestone v0.2.9 complete — all 4 phases shipped
+last_updated: "2026-05-12T13:00:00.000Z"
 last_activity: 2026-05-12
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 8
-  completed_plans: 6
-  percent: 75
+  completed_plans: 8
+  percent: 100
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-11 after v0.2.9 milestone started)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" -- without ever depending on copyrighted GW data.
-**Current focus:** Phase 60 — Kanban & CurrentFocus Integration
+**Current focus:** Milestone v0.2.9 complete — ready for next milestone
 
 ## Current Position
 
-Phase: 60
-Plan: 2 plans in 2 waves
-Status: Ready to execute
+Phase: 60 (final)
+Plan: 2/2 complete
+Status: Milestone complete
 Last activity: 2026-05-12
 
 Progress: [██████████] 100%
@@ -36,6 +36,7 @@ Progress: [██████████] 100%
 
 **Velocity:**
 
+- v0.2.9: 8 plans across 4 phases (2 days)
 - v0.2.8: 12 plans across 5 phases (2 days)
 - v0.2.7: 8 plans across 4 phases (single day)
 - v0.2.6: 11 plans across 6 phases (single day)
@@ -51,6 +52,8 @@ Progress: [██████████] 100%
 - LogSession 3-level cascade needs two useEffect reset chains (recipe->clear both; section->clear step)
 - Kanban/CurrentFocus share a pure derivation function for workflow position
 - Progressive disclosure threshold: check metadata presence, not just section count
+- computeWorkflowPosition is pure (no React/DB deps) — handles orphaned step IDs gracefully
+- useWorkflowPositions follows batch enrichment pattern (sorted IDs, Map result, 5min staleTime)
 - All queries via `tauri-plugin-sql` directly -- no ORM
 - Migrations are append-only and immutable -- new numbered file per change
 - Cache invalidation symmetry: if useCreate invalidates a key, useDelete must too
@@ -66,6 +69,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-12T12:30:00.000Z
-Stopped at: Phase 60 planned — ready to execute
-Resume: `/gsd-execute-phase 60`
+Last session: 2026-05-12T13:00:00.000Z
+Stopped at: Milestone v0.2.9 complete — all 4 phases shipped
+Resume: Next milestone planning with `/gsd-new-milestone`
