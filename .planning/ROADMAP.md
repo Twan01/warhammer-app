@@ -175,11 +175,11 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
   3. DraftSection type extends atomically with migration -- saving a recipe with metadata round-trips all four new fields without silent NULL erasure
   4. PaintingSession type includes a nullable section_name text field for denormalized section association
   5. Const arrays for section_type and technique values exist as single sources of truth for dropdowns
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 57-01: TBD
-- [ ] 57-02: TBD
+- [ ] 57-01-PLAN.md — Migration + TypeScript types + const arrays
+- [ ] 57-02-PLAN.md — Query functions + DraftSection + save path + tests
 
 ### Phase 58: Recipe Form & Timeline Display
 **Goal**: Users can edit workflow metadata on recipe sections and see it at a glance in the timeline view
@@ -295,7 +295,7 @@ Phases execute in numeric order: 57 -> 58 -> 59 -> 60
 | 54. Army Lists 2.0 — Detachment Selection | v0.2.8 | 2/2 | Complete | 2026-05-11 |
 | 55. Playbook Enhancements — Favorites and Notes | v0.2.8 | 2/2 | Complete | 2026-05-11 |
 | 56. Game Day Mode | v0.2.8 | 2/2 | Complete | 2026-05-11 |
-| 57. Schema & Data Layer | v0.2.9 | 0/? | Not started | - |
+| 57. Schema & Data Layer | v0.2.9 | 0/2 | Not started | - |
 | 58. Recipe Form & Timeline Display | v0.2.9 | 0/? | Not started | - |
 | 59. Session Section Cascade | v0.2.9 | 0/? | Not started | - |
 | 60. Kanban & CurrentFocus Integration | v0.2.9 | 0/? | Not started | - |
