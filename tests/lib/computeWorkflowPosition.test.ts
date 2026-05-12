@@ -5,10 +5,7 @@
  * and edge cases (orphaned step IDs, section_name-only, flat recipes).
  */
 import { describe, it, expect } from "vitest";
-import {
-  computeWorkflowPosition,
-  type WorkflowPosition,
-} from "@/lib/computeWorkflowPosition";
+import { computeWorkflowPosition } from "@/lib/computeWorkflowPosition";
 import type { RecipeSection } from "@/types/recipeSection";
 import type { RecipeStep } from "@/types/recipePaint";
 

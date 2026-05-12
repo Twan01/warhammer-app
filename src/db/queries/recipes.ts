@@ -95,12 +95,12 @@ export async function deleteRecipe(id: number): Promise<void> {
  */
 export async function getRecipeNamesByUnitIds(
   unitIds: number[]
-): Promise<{ unit_id: number; name: string }[]> {
+): Promise<{ id: number; unit_id: number; name: string }[]> {
   if (unitIds.length === 0) return [];
   const db = await getDb();
   const placeholders = unitIds.map((_, i) => `$${i + 1}`).join(", ");
   return db.select(
-    `SELECT unit_id, name FROM painting_recipes WHERE unit_id IN (${placeholders})`,
+    `SELECT id, unit_id, name FROM painting_recipes WHERE unit_id IN (${placeholders})`,
     unitIds
   );
 }
