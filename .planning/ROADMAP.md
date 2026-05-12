@@ -207,12 +207,12 @@ Plans:
   3. Changing the recipe clears both section and step selections; changing section clears step selection
   4. All three selectors remain optional -- user can log a session with any combination (recipe only, recipe+section, recipe+section+step, or none)
   5. The selected section_name is saved on the painting_session record
-**Plans**: TBD
+**Plans**: 2 plans
 **UI hint**: yes
 
 Plans:
-- [ ] 59-01: TBD
-- [ ] 59-02: TBD
+- [ ] 59-01-PLAN.md — Schema extension: section_name field + SESS-05 schema tests
+- [ ] 59-02-PLAN.md — LogSessionSheet cascade selector + component tests (SESS-01 through SESS-05)
 
 ### Phase 60: Kanban & CurrentFocus Integration
 **Goal**: Users see section-aware workflow context on project cards and dashboard, knowing exactly where they are in a recipe
@@ -297,5 +297,5 @@ Phases execute in numeric order: 57 -> 58 -> 59 -> 60
 | 56. Game Day Mode | v0.2.8 | 2/2 | Complete | 2026-05-11 |
 | 57. Schema & Data Layer | v0.2.9 | 2/2 | Complete | 2026-05-12 |
 | 58. Recipe Form & Timeline Display | v0.2.9 | 1/2 | In Progress|  |
-| 59. Session Section Cascade | v0.2.9 | 0/? | Not started | - |
+| 59. Session Section Cascade | v0.2.9 | 0/2 | Not started | - |
 | 60. Kanban & CurrentFocus Integration | v0.2.9 | 0/? | Not started | - |
