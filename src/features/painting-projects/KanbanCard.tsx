@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import type { Unit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
+import type { WorkflowPosition } from "@/lib/computeWorkflowPosition";
 import { KanbanCardActions } from "./KanbanCardActions";
 import { formatRelativeTime } from "@/features/dashboard/relativeTime";
 import { getNextActionHint } from "@/features/dashboard/getNextActionHint";
@@ -30,6 +31,7 @@ export interface KanbanCardProps {
   onLogSession: (unitId: number) => void;
   recipeName?: string;
   photoCount?: number;
+  workflowPosition?: WorkflowPosition | null;
 }
 
 export function KanbanCard({
@@ -40,6 +42,7 @@ export function KanbanCard({
   onLogSession,
   recipeName,
   photoCount,
+  workflowPosition,
 }: KanbanCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: `unit-${unit.id}`,
@@ -106,11 +109,24 @@ export function KanbanCard({
           </span>
         )}
       </div>
-      {unit.status_painting !== "Completed" && (
+      {workflowPosition ? (
+        <p className="mt-1 truncate text-xs italic text-muted-foreground/70">
+          {"→"}{" "}
+          {workflowPosition.isComplete
+            ? "Complete"
+            : workflowPosition.sectionName
+              ? workflowPosition.nextStepName
+                ? `${workflowPosition.sectionName}: ${workflowPosition.nextStepName}`
+                : workflowPosition.sectionName
+              : workflowPosition.stepIndex !== null
+                ? `step ${workflowPosition.stepIndex + 1}/${workflowPosition.totalSteps}`
+                : ""}
+        </p>
+      ) : unit.status_painting !== "Completed" ? (
         <p className="mt-1 text-xs italic text-muted-foreground/70">
           {"→"} {getNextActionHint(unit.status_painting)}
         </p>
-      )}
+      ) : null}
       {(unit.priority !== null || unit.target_completion_date !== null) && (
         <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
           {unit.priority !== null && (

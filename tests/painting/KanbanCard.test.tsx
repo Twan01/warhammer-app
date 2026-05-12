@@ -8,6 +8,7 @@ import { SortableContext } from "@dnd-kit/sortable";
 import { KanbanCard } from "@/features/painting-projects/KanbanCard";
 import type { Unit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
+import type { WorkflowPosition } from "@/lib/computeWorkflowPosition";
 
 function makeUnit(over: Partial<Unit> = {}): Unit {
   return {
@@ -55,7 +56,11 @@ function makeFaction(over: Partial<Faction> = {}): Faction {
   };
 }
 
-function renderCard(unit: Unit, faction: Faction | undefined = makeFaction()) {
+function renderCard(
+  unit: Unit,
+  faction: Faction | undefined = makeFaction(),
+  workflowPosition?: WorkflowPosition | null,
+) {
   return render(
     <DndContext>
       <SortableContext items={[`unit-${unit.id}`]}>
@@ -65,6 +70,7 @@ function renderCard(unit: Unit, faction: Faction | undefined = makeFaction()) {
           onRemoveFromBoard={vi.fn()}
           onEditUnit={vi.fn()}
           onLogSession={vi.fn()}
+          workflowPosition={workflowPosition}
         />
       </SortableContext>
     </DndContext>,
@@ -92,5 +98,58 @@ describe("KanbanCard", () => {
     // No date span at all
     const dateSpan = document.querySelector('[aria-label^="Target date overdue"]');
     expect(dateSpan).toBeNull();
+  });
+
+  it("PROJ-01: renders workflow section and next step when workflowPosition provided", () => {
+    const pos: WorkflowPosition = {
+      sectionName: "Armour",
+      sectionIndex: 0,
+      totalSections: 3,
+      stepName: "Base Coat",
+      stepIndex: 0,
+      totalSteps: 4,
+      technique: "Drybrush",
+      isComplete: false,
+      nextStepName: "Layer Highlight",
+    };
+    renderCard(makeUnit(), undefined, pos);
+    expect(screen.getByText(/Armour: Layer Highlight/)).toBeInTheDocument();
+  });
+
+  it("PROJ-01: renders Complete when isComplete is true", () => {
+    const pos: WorkflowPosition = {
+      sectionName: "Details",
+      sectionIndex: 2,
+      totalSections: 3,
+      stepName: "Final Touch",
+      stepIndex: 3,
+      totalSteps: 4,
+      technique: null,
+      isComplete: true,
+      nextStepName: null,
+    };
+    renderCard(makeUnit(), undefined, pos);
+    expect(screen.getByText(/Complete/)).toBeInTheDocument();
+  });
+
+  it("PROJ-05: falls back to getNextActionHint when no workflowPosition", () => {
+    renderCard(makeUnit({ status_painting: "Built" }));
+    expect(screen.getByText(/Apply primer/)).toBeInTheDocument();
+  });
+
+  it("PROJ-01: renders step N/M for flat recipe", () => {
+    const pos: WorkflowPosition = {
+      sectionName: null,
+      sectionIndex: null,
+      totalSections: 0,
+      stepName: "Some Step",
+      stepIndex: 3,
+      totalSteps: 12,
+      technique: null,
+      isComplete: false,
+      nextStepName: "Next Step",
+    };
+    renderCard(makeUnit(), undefined, pos);
+    expect(screen.getByText(/step 4\/12/)).toBeInTheDocument();
   });
 });

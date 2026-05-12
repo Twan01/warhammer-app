@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import type { PaintingStatus, Unit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
 import type { KanbanEnrichment } from "@/hooks/useKanbanEnrichment";
+import type { WorkflowPosition } from "@/lib/computeWorkflowPosition";
 import { KanbanCard } from "./KanbanCard";
 
 export interface KanbanColumnProps {
@@ -15,6 +16,7 @@ export interface KanbanColumnProps {
   onEditUnit: (unit: Unit) => void;
   onLogSession: (unitId: number) => void;
   enrichment?: KanbanEnrichment;
+  workflowPositions?: Map<number, WorkflowPosition>;
 }
 
 export function KanbanColumn({
@@ -25,6 +27,7 @@ export function KanbanColumn({
   onEditUnit,
   onLogSession,
   enrichment,
+  workflowPositions,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: `column-${status}`,
@@ -58,6 +61,7 @@ export function KanbanColumn({
               onLogSession={onLogSession}
               recipeName={enrichment?.recipeNames.get(u.id)}
               photoCount={enrichment?.photoCounts.get(u.id)}
+              workflowPosition={workflowPositions?.get(u.id)}
             />
           ))}
         </SortableContext>

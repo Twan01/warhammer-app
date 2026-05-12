@@ -18,6 +18,7 @@ import { PAINTING_STATUS_ORDER } from "@/types/unit";
 import { useUnits, useUpdateUnit, UNITS_KEY } from "@/hooks/useUnits";
 import { useFactions } from "@/hooks/useFactions";
 import { useKanbanEnrichment } from "@/hooks/useKanbanEnrichment";
+import { useWorkflowPositions } from "@/hooks/useWorkflowPositions";
 import {
   applyActiveFilter,
   groupByStatus,
@@ -51,6 +52,7 @@ export function KanbanBoard({ onEditUnit, onAddProject, onLogSession }: KanbanBo
     [units],
   );
   const { data: enrichment } = useKanbanEnrichment(activeUnitIds);
+  const { data: workflowPositions } = useWorkflowPositions(activeUnitIds);
 
   const { grouped } = useMemo(() => {
     const active = applyActiveFilter(units);
@@ -159,6 +161,7 @@ export function KanbanBoard({ onEditUnit, onAddProject, onLogSession }: KanbanBo
             onEditUnit={onEditUnit}
             onLogSession={onLogSession}
             enrichment={enrichment}
+            workflowPositions={workflowPositions}
           />
         ))}
       </div>
