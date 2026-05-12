@@ -1,10 +1,11 @@
 ---
 phase: 60
 slug: kanban-currentfocus-integration
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-12
+validated: 2026-05-12
 ---
 
 # Phase 60 — Validation Strategy
@@ -21,7 +22,7 @@ created: 2026-05-12
 | **Config file** | vitest.config.ts (project root) |
 | **Quick run command** | `pnpm test -- tests/lib/computeWorkflowPosition.test.ts` |
 | **Full suite command** | `pnpm test` |
-| **Estimated runtime** | ~15 seconds |
+| **Estimated runtime** | ~3 seconds (phase tests), ~15 seconds (full suite) |
 
 ---
 
@@ -38,10 +39,10 @@ created: 2026-05-12
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 60-01-01 | 01 | 1 | PROJ-03, PROJ-04 | unit | `pnpm test -- tests/lib/computeWorkflowPosition.test.ts` | ❌ W0 | ⬜ pending |
-| 60-01-02 | 01 | 1 | PROJ-05 | unit | `pnpm test -- tests/lib/computeWorkflowPosition.test.ts` | ❌ W0 | ⬜ pending |
-| 60-02-01 | 02 | 2 | PROJ-01 | unit | `pnpm test -- tests/painting/KanbanCard.test.tsx` | ✅ (extend) | ⬜ pending |
-| 60-02-02 | 02 | 2 | PROJ-02 | unit | `pnpm test -- tests/dashboard/CurrentFocusCard.test.tsx` | ❌ W0 | ⬜ pending |
+| 60-01-01 | 01 | 1 | PROJ-03, PROJ-04 | unit | `pnpm test -- tests/lib/computeWorkflowPosition.test.ts` | ✅ | ✅ green |
+| 60-01-02 | 01 | 1 | PROJ-05 | unit | `pnpm test -- tests/lib/computeWorkflowPosition.test.ts` | ✅ | ✅ green |
+| 60-02-01 | 02 | 2 | PROJ-01 | unit | `pnpm test -- tests/painting/KanbanCard.test.tsx` | ✅ | ✅ green |
+| 60-02-02 | 02 | 2 | PROJ-02 | unit | `pnpm test -- tests/dashboard/CurrentFocusCard.test.tsx` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -49,8 +50,8 @@ created: 2026-05-12
 
 ## Wave 0 Requirements
 
-- [ ] `tests/lib/computeWorkflowPosition.test.ts` — pure function tests covering PROJ-03, PROJ-04, PROJ-05 (all edge cases: sectioned, flat, section-name-only, complete, null fallback, orphaned step IDs)
-- [ ] `tests/dashboard/CurrentFocusCard.test.tsx` — workflow display rendering for PROJ-02
+- [x] `tests/lib/computeWorkflowPosition.test.ts` — 12 pure function tests covering PROJ-03, PROJ-04, PROJ-05 (sectioned, flat, section-name-only, complete, null fallback, orphaned step IDs)
+- [x] `tests/dashboard/CurrentFocusCard.test.tsx` — 6 workflow display tests for PROJ-02 (section+technique, no-technique, complete, null, flat, basic)
 
 *Existing infrastructure covers test framework setup.*
 
@@ -67,11 +68,23 @@ created: 2026-05-12
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** validated 2026-05-12
+
+---
+
+## Validation Audit 2026-05-12
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+**Test coverage:** 43 tests across 3 files — all green (12 pure function + 7 KanbanCard + 22 CurrentFocusCard + 2 hook/integration).
