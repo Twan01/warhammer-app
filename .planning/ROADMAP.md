@@ -2,21 +2,22 @@
 
 ## Milestones
 
-- ✅ **v0.1.1 HobbyForge MVP** — Phases 1–5 (shipped 2024-05-01)
-- ✅ **v0.2.0 Utility Layer** — Phases 6–9 (shipped 2024-05-03)
-- ✅ **v0.2.1 Visual Command** — Phases 10–16 + 20 (shipped 2026-05-04)
-- ✅ **v0.2.2 Full Circle** — Phases 17–19, 21–24, 35 (shipped 2026-05-05)
-- ✅ **v0.2.3 Hobby Command Center** — Phases 25–29 (shipped 2026-05-05)
-- ✅ **v0.2.4 Premium Dashboard UX & Visual Polish** — Phases 30–34, 36 (shipped 2026-05-06)
-- ✅ **v0.2.5 Recipes 2.0 / Painting Studio** — Phases 37–41 (shipped 2026-05-07)
-- ✅ **v0.2.6 Rules Sync 2.0 / Rules Data Hub** — Phases 42–47 (shipped 2026-05-08)
-- ✅ **v0.2.7 Recipes 3.0 / Hierarchical Painting Workflows** — Phases 48–51 (shipped 2026-05-08)
-- ✅ **v0.2.8 Rules Data Hub UI / Army Lists 2.0 / Game Day** — Phases 52–56 (shipped 2026-05-11)
+- ✅ **v0.1.1 HobbyForge MVP** — Phases 1-5 (shipped 2024-05-01)
+- ✅ **v0.2.0 Utility Layer** — Phases 6-9 (shipped 2024-05-03)
+- ✅ **v0.2.1 Visual Command** — Phases 10-16 + 20 (shipped 2026-05-04)
+- ✅ **v0.2.2 Full Circle** — Phases 17-19, 21-24, 35 (shipped 2026-05-05)
+- ✅ **v0.2.3 Hobby Command Center** — Phases 25-29 (shipped 2026-05-05)
+- ✅ **v0.2.4 Premium Dashboard UX & Visual Polish** — Phases 30-34, 36 (shipped 2026-05-06)
+- ✅ **v0.2.5 Recipes 2.0 / Painting Studio** — Phases 37-41 (shipped 2026-05-07)
+- ✅ **v0.2.6 Rules Sync 2.0 / Rules Data Hub** — Phases 42-47 (shipped 2026-05-08)
+- ✅ **v0.2.7 Recipes 3.0 / Hierarchical Painting Workflows** — Phases 48-51 (shipped 2026-05-08)
+- ✅ **v0.2.8 Rules Data Hub UI / Army Lists 2.0 / Game Day** — Phases 52-56 (shipped 2026-05-11)
+- 🚧 **v0.2.9 Recipes 3.1 / Workflow Semantics & Integrations** — Phases 57-60 (in progress)
 
 ## Phases
 
 <details>
-<summary>✅ v0.2.8 Rules Data Hub UI / Army Lists 2.0 / Game Day (Phases 52–56) — SHIPPED 2026-05-11</summary>
+<summary>✅ v0.2.8 Rules Data Hub UI / Army Lists 2.0 / Game Day (Phases 52-56) — SHIPPED 2026-05-11</summary>
 
 - [x] Phase 52: Schema + Data Layer Foundation (3/3 plans) — completed 2026-05-10
 - [x] Phase 53: Rules Data Hub UI (3/3 plans) — completed 2026-05-11
@@ -28,10 +29,19 @@ Full details: `.planning/milestones/v0.2.8-ROADMAP.md`
 
 </details>
 
+### 🚧 v0.2.9 Recipes 3.1 / Workflow Semantics & Integrations (In Progress)
+
+**Milestone Goal:** Make recipe sections semantically rich and actionable — extending workflow metadata into Log Session, Kanban, and Current Focus for real painting workflow guidance.
+
+- [ ] **Phase 57: Schema & Data Layer** - Migration + types + queries for workflow metadata columns and session section linking
+- [ ] **Phase 58: Recipe Form & Timeline Display** - Workflow metadata editing with progressive disclosure and compact timeline badges
+- [ ] **Phase 59: Session Section Cascade** - LogSessionSheet 3-level cascading selector (recipe -> section -> step)
+- [ ] **Phase 60: Kanban & CurrentFocus Integration** - Section-aware workflow display on project cards and dashboard focus
+
 ---
 
 <details>
-<summary>✅ v0.1.1 HobbyForge MVP (Phases 1–5) — SHIPPED 2024-05-01</summary>
+<summary>✅ v0.1.1 HobbyForge MVP (Phases 1-5) — SHIPPED 2024-05-01</summary>
 
 - [x] Phase 1: App Shell — Tauri + React desktop app launches with sidebar, routing, SQLite plumbing, dark mode, and all shadcn components installed (completed 2024-04-30)
 - [x] Phase 2: Data Layer + Entity CRUD — Full 10-table schema, FK enforcement, seed data, and CRUD for factions / units / paints (completed 2024-04-30)
@@ -44,55 +54,51 @@ Full details: `.planning/milestones/v0.1.1-ROADMAP.md`
 </details>
 
 <details>
-<summary>✅ v0.2.0 Utility Layer (Phases 6–9) — SHIPPED 2024-05-03</summary>
+<summary>✅ v0.2.0 Utility Layer (Phases 6-9) — SHIPPED 2024-05-03</summary>
 
-- [x] **Phase 6: Foundation** — Schema migration 004, TypeScript types for all v0.2.0 features, query modules (armyLists.ts, strategyNotes.ts), hook modules, and cross-invalidation patch to usePaints.ts (completed 2024-05-01)
-- [x] **Phase 7: Paint Inventory** — PaintInventoryPage with brand/type/color-family filters, running-low and wishlist preset views, color swatch, "used in N recipes" badge, inline owned toggle, sidebar nav and route (completed 2024-05-02)
-- [x] **Phase 8: Army List Builder** — ArmyListsPage, ArmyListDetailSheet, unit picker, COALESCE-in-SQL points calculation, battle-ready %, pre-delete unit check, sidebar nav and route (completed 2024-05-03)
-- [x] **Phase 9: Unit Playbook** — PlaybookTab (stats block grid + abilities/keywords + strategy notes + inline save), UnitDetailSheet wrapped in shadcn Tabs (completed 2024-05-02)
+- [x] **Phase 6: Foundation** — Schema migration 004, TypeScript types for all v0.2.0 features, query modules (armyLists.ts, strategyNotes.ts), hook modules with DATA-09 forward-compat invalidation, 38 automated tests
+- [x] **Phase 7: Paint Inventory** — PaintsPage at `/paints` with brand/type/color-family multi-select filters, running-low and wishlist preset views, color swatch, "used in N recipes" badge with navigation to `/recipes?paintId=X`, inline owned toggle with optimistic update
+- [x] **Phase 8: Army List Builder** — ArmyListsPage, ArmyListDetailSheet, unit picker, COALESCE-in-SQL points calculation, battle-ready %, pre-delete unit check, sibling portal architecture confirmed
+- [x] **Phase 9: Unit Playbook** — PlaybookTab inside shadcn Tabs with 6-field stats block (M/T/Sv/W/Ld/OC, suffix display, pencil edit mode), abilities/keywords, 8 strategy note fields in fixed order, dirty-state Save with toasts, SQLite persistence round-tripped in live app
 
 Full details: `.planning/milestones/v0.2.0-ROADMAP.md`
 
 </details>
 
 <details>
-<summary>✅ v0.2.1 Visual Command (Phases 10–16 + 20) — SHIPPED 2026-05-04</summary>
+<summary>✅ v0.2.1 Visual Command (Phases 10-16 + 20) — SHIPPED 2026-05-04</summary>
 
-- [x] Phase 10: Theming Foundation — CSS `@theme` faction-accent system, `ActiveFactionContext`, collapsible sidebar with icon-only mode, Radix Tooltip labels, localStorage persistence (completed 2026-05-03)
-- [x] Phase 11: Dashboard Command Center — `useCountUp` rAF animated stat counters, `FactionSummaryCard` with `ring-faction-accent` highlight (completed 2026-05-03)
-- [x] Phase 12: Collection Gallery View — `UnitGallery` card grid + `PaintingRing` SVG, `useCollectionViewMode` localStorage toggle, filter preservation (completed 2026-05-04)
-- [x] Phase 13: Hobby Journal — `painting_sessions` table, `tauri-plugin-fs/dialog`, session log + photo timeline with lightbox, JOUR-06 disk cleanup on unit delete (completed 2026-05-04)
-- [x] Phase 14: Spending Tracker — Integer-pence discipline, `formatCurrency`, `SpendingPage` with per-faction breakdown, 6-mutation cache invalidation (completed 2026-05-04)
-- [x] Phase 15: Warhammer 40K Datasheet Integration — Dual-DB architecture, `bulk_sync_rules` Rust command, `useRulesSync` 7-CSV parallel fetch, `DatasheetPicker`, `DatasheetImportDialog`, full PlaybookTab (DS-01..12) (completed 2026-05-04)
-- [x] Phase 16: Design Overhaul — Geist Variable font, text-3xl page headers, icon-pill empty states across all 7 pages, tabular-nums everywhere, card elevation system (completed 2026-05-04)
-- [x] Phase 20: v0.2.1 Polish & Gap Closure — DS-08 secondary path (DashboardPage conflict dialog), FactionsEmptyState Shield icon-pill, PaintingProjectsPage controlled-props CTA, upsertSyncMeta dead export removed (completed 2026-05-04)
+- [x] Phase 10: Theming Foundation (completed 2026-05-03)
+- [x] Phase 11: Dashboard Command Center (completed 2026-05-03)
+- [x] Phase 12: Collection Gallery View (completed 2026-05-04)
+- [x] Phase 13: Hobby Journal (completed 2026-05-04)
+- [x] Phase 14: Spending Tracker (completed 2026-05-04)
+- [x] Phase 15: 40K Datasheet Integration (completed 2026-05-04)
+- [x] Phase 16: Design Overhaul (completed 2026-05-04)
+- [x] Phase 20: v0.2.1 Polish & Gap Closure (completed 2026-05-04)
 
 Full details: `.planning/milestones/v0.2.1-ROADMAP.md`
 
 </details>
 
----
-
 <details>
-<summary>✅ v0.2.2 Full Circle (Phases 17–19, 21–24, 35) — SHIPPED 2026-05-05</summary>
+<summary>✅ v0.2.2 Full Circle (Phases 17-19, 21-24, 35) — SHIPPED 2026-05-05</summary>
 
-- [x] Phase 17: Schema Foundation + Enrichment — Migration 008 (lore_notes + undercoat on units, lore_notes on factions, purchase_date on paints), dates.ts UTC utility (completed 2026-05-04)
-- [x] Phase 18: Battle Log — Battle log CRUD page with opponent faction, mission, result, army list linkage, notes (completed 2026-05-04)
-- [x] Phase 19: Analytics Core — Recharts/shadcn chart, hobby velocity and painting streak on Dashboard, monthly spend trend chart (completed 2026-05-04)
-- [x] Phase 21: Wishlist — wishlist_items table (migration 009), full CRUD Wishlist page with cost/notes (completed 2026-05-05)
-- [x] Phase 22: Hobby Goals — hobby_goals table (migration 010), goal CRUD with target unit count, progress from session history (completed 2026-05-05)
-- [x] Phase 23: Display Features — Battle Ready quick-filter, Showcase Mode full-screen gallery via Tauri window API (completed 2026-05-05)
-- [x] Phase 24: Unit Point Calculator — Point tiers, wargear loadout management, swap delta preview in army list builder (completed 2026-05-05)
-- [x] Phase 35: v0.2.2 Gap Closure — BattleLogSheet timezone fix, PaintSheet purchase_date wiring, cache invalidation patches (completed 2026-05-05)
+- [x] Phase 17: Schema Foundation + Enrichment (completed 2026-05-04)
+- [x] Phase 18: Battle Log (completed 2026-05-04)
+- [x] Phase 19: Analytics Core (completed 2026-05-04)
+- [x] Phase 21: Wishlist (completed 2026-05-05)
+- [x] Phase 22: Hobby Goals (completed 2026-05-05)
+- [x] Phase 23: Display Features (completed 2026-05-05)
+- [x] Phase 24: Unit Point Calculator (completed 2026-05-05)
+- [x] Phase 35: v0.2.2 Gap Closure (completed 2026-05-05)
 
 Full details: `.planning/milestones/v0.2.2-ROADMAP.md`
 
 </details>
 
----
-
 <details>
-<summary>✅ v0.2.3 Hobby Command Center (Phases 25–29) — SHIPPED 2026-05-05</summary>
+<summary>✅ v0.2.3 Hobby Command Center (Phases 25-29) — SHIPPED 2026-05-05</summary>
 
 - [x] Phase 25: Design Foundation (2/2 plans) — completed 2026-05-04
 - [x] Phase 26: Dashboard Redesign (5/5 plans) — completed 2026-05-05
@@ -104,26 +110,22 @@ Full details: `.planning/milestones/v0.2.3-ROADMAP.md`
 
 </details>
 
----
-
 <details>
-<summary>✅ v0.2.4 Premium Dashboard UX & Visual Polish (Phases 30–34, 36) — SHIPPED 2026-05-06</summary>
+<summary>✅ v0.2.4 Premium Dashboard UX & Visual Polish (Phases 30-34, 36) — SHIPPED 2026-05-06</summary>
 
-- [x] Phase 30: Grid Layout Foundation — Dashboard CSS grid (asymmetric 2-column bento), clickable StatCards, 5-bucket pipeline grouping (completed 2026-05-06)
-- [x] Phase 31: Focus & Projects Panels — UnitThumbnail, CurrentFocusCard v2 (photo, metadata, actions), ActiveProjectsPanel (completed 2026-05-06)
-- [x] Phase 32: Army Readiness Card — ArmyReadinessCard with target point selector and per-faction progress bars (completed 2026-05-06)
-- [x] Phase 33: Data Intelligence — LogSession status updates, spending metrics, recipe-unit navigation (completed 2026-05-06)
-- [x] Phase 34: Visual Polish — FactionSummaryCard v2, hero radial gradient, hover shadow hierarchy (completed 2026-05-06)
-- [x] Phase 36: v0.2.4 Gap Closure — Recipe cache invalidation fix, stale doc updates (completed 2026-05-06)
+- [x] Phase 30: Grid Layout Foundation (completed 2026-05-06)
+- [x] Phase 31: Focus & Projects Panels (completed 2026-05-06)
+- [x] Phase 32: Army Readiness Card (completed 2026-05-06)
+- [x] Phase 33: Data Intelligence (completed 2026-05-06)
+- [x] Phase 34: Visual Polish (completed 2026-05-06)
+- [x] Phase 36: v0.2.4 Gap Closure (completed 2026-05-06)
 
 Full details: `.planning/milestones/v0.2.4-ROADMAP.md`
 
 </details>
 
----
-
 <details>
-<summary>✅ v0.2.5 Recipes 2.0 / Painting Studio (Phases 37–41) — SHIPPED 2026-05-07</summary>
+<summary>✅ v0.2.5 Recipes 2.0 / Painting Studio (Phases 37-41) — SHIPPED 2026-05-07</summary>
 
 - [x] Phase 37: Schema Foundation + Pre-flight Fixes (2/2 plans) — completed 2026-05-07
 - [x] Phase 38: Structured Step Input (2/2 plans) — completed 2026-05-07
@@ -135,10 +137,8 @@ Full details: `.planning/milestones/v0.2.5-ROADMAP.md`
 
 </details>
 
----
-
 <details>
-<summary>✅ v0.2.6 Rules Sync 2.0 / Rules Data Hub (Phases 42–47) — SHIPPED 2026-05-08</summary>
+<summary>✅ v0.2.6 Rules Sync 2.0 / Rules Data Hub (Phases 42-47) — SHIPPED 2026-05-08</summary>
 
 - [x] Phase 42: Architecture Audit (1/1 plans) — completed 2026-05-08
 - [x] Phase 43: Extended Rules Read Layer (2/2 plans) — completed 2026-05-08
@@ -151,25 +151,91 @@ Full details: `.planning/milestones/v0.2.6-ROADMAP.md`
 
 </details>
 
----
-
 <details>
-<summary>✅ v0.2.7 Recipes 3.0 / Hierarchical Painting Workflows (Phases 48–51) — SHIPPED 2026-05-08</summary>
+<summary>✅ v0.2.7 Recipes 3.0 / Hierarchical Painting Workflows (Phases 48-51) — SHIPPED 2026-05-08</summary>
 
-- [x] Phase 48: Section Data Layer (2/2 plans) — Migration 018, recipe_sections table, typed CRUD queries + hooks (completed 2026-05-08)
-- [x] Phase 49: Section Read UI (1/1 plans) — SectionedTimeline component with section headers and flat fallback (completed 2026-05-08)
-- [x] Phase 50: Section Form UI (3/3 plans) — Collapsible DnD section cards, progressive disclosure, RecipeFormSheet rewrite (completed 2026-05-08)
-- [x] Phase 51: Duplication + Integration Polish (2/2 plans) — Section-aware duplication, section count badges, regression verification (completed 2026-05-08)
+- [x] Phase 48: Section Data Layer (2/2 plans) — completed 2026-05-08
+- [x] Phase 49: Section Read UI (1/1 plans) — completed 2026-05-08
+- [x] Phase 50: Section Form UI (3/3 plans) — completed 2026-05-08
+- [x] Phase 51: Duplication + Integration Polish (2/2 plans) — completed 2026-05-08
 
 Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 
 </details>
 
----
+## Phase Details
+
+### Phase 57: Schema & Data Layer
+**Goal**: Recipe sections carry workflow semantics and painting sessions can reference which section was worked on
+**Depends on**: Phase 56 (v0.2.8 complete)
+**Requirements**: WF-01, WF-02, WF-03, WF-04, WF-05
+**Success Criteria** (what must be TRUE):
+  1. User can open the app after migration with all existing recipes and sections intact and unchanged
+  2. The RecipeSection TypeScript type includes section_type, technique, execution_mode, and applies_to as nullable fields
+  3. DraftSection type extends atomically with migration -- saving a recipe with metadata round-trips all four new fields without silent NULL erasure
+  4. PaintingSession type includes a nullable section_name text field for denormalized section association
+  5. Const arrays for section_type and technique values exist as single sources of truth for dropdowns
+**Plans**: TBD
+
+Plans:
+- [ ] 57-01: TBD
+- [ ] 57-02: TBD
+
+### Phase 58: Recipe Form & Timeline Display
+**Goal**: Users can edit workflow metadata on recipe sections and see it at a glance in the timeline view
+**Depends on**: Phase 57
+**Requirements**: RUI-01, RUI-02, RUI-03, RUI-04
+**Success Criteria** (what must be TRUE):
+  1. User can expand a "Workflow" collapsible on any RecipeSectionCard and set section_type, technique, execution_mode, and applies_to
+  2. Simple recipes (single section, no metadata set) show no workflow collapsible -- the UI remains uncluttered
+  3. SectionedTimeline displays section_type and execution_mode as compact badges next to the existing surface badge
+  4. SectionedTimeline shows technique inline when set (e.g., "Armor Blue . Armor . Drybrush . Sequential")
+**Plans**: TBD
+**UI hint**: yes
+
+Plans:
+- [ ] 58-01: TBD
+- [ ] 58-02: TBD
+
+### Phase 59: Session Section Cascade
+**Goal**: Users can log painting sessions with section-level granularity through a natural cascading selector flow
+**Depends on**: Phase 57
+**Requirements**: SESS-01, SESS-02, SESS-03, SESS-04, SESS-05
+**Success Criteria** (what must be TRUE):
+  1. When a recipe with 2+ sections is selected in LogSessionSheet, a section selector appears between recipe and step selectors
+  2. Selecting a section filters the step dropdown to only that section's steps
+  3. Changing the recipe clears both section and step selections; changing section clears step selection
+  4. All three selectors remain optional -- user can log a session with any combination (recipe only, recipe+section, recipe+section+step, or none)
+  5. The selected section_name is saved on the painting_session record
+**Plans**: TBD
+**UI hint**: yes
+
+Plans:
+- [ ] 59-01: TBD
+- [ ] 59-02: TBD
+
+### Phase 60: Kanban & CurrentFocus Integration
+**Goal**: Users see section-aware workflow context on project cards and dashboard, knowing exactly where they are in a recipe
+**Depends on**: Phase 57, Phase 58, Phase 59
+**Requirements**: PROJ-01, PROJ-02, PROJ-03, PROJ-04, PROJ-05
+**Success Criteria** (what must be TRUE):
+  1. KanbanCard shows the current workflow section name and next step name when a recipe is linked to the unit
+  2. CurrentFocusCard shows section-aware next action guidance (e.g., "Armour: Layer Highlight -- step 4/12")
+  3. Workflow position is derived from the last logged session step with no explicit completion tracking required
+  4. A shared pure function computes workflow position, usable by both Kanban and CurrentFocus without duplication
+  5. Cards degrade gracefully when no recipe is linked, no sessions exist, or the recipe has no sections -- showing existing fallback hints
+**Plans**: TBD
+**UI hint**: yes
+
+Plans:
+- [ ] 60-01: TBD
+- [ ] 60-02: TBD
 
 ## Progress
 
-**Execution Order:** 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 35 → 25 → 26 → 27 → 28 → 29 → 30 → 31 → 32 → 33 → 34 → 36 → 37 → 38 → 39 → 40 → 41 → 42 → 43 → 44 → 45 → 46 → 47 → 48 → 49 → 50 → 51 → 52 → 53 → 54 → 55 → 56
+**Execution Order:**
+Phases execute in numeric order: 57 -> 58 -> 59 -> 60
+(Note: Phase 59 depends on 57 only, not 58 -- but sequenced after 58 so metadata exists to display)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -229,3 +295,7 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 | 54. Army Lists 2.0 — Detachment Selection | v0.2.8 | 2/2 | Complete | 2026-05-11 |
 | 55. Playbook Enhancements — Favorites and Notes | v0.2.8 | 2/2 | Complete | 2026-05-11 |
 | 56. Game Day Mode | v0.2.8 | 2/2 | Complete | 2026-05-11 |
+| 57. Schema & Data Layer | v0.2.9 | 0/? | Not started | - |
+| 58. Recipe Form & Timeline Display | v0.2.9 | 0/? | Not started | - |
+| 59. Session Section Cascade | v0.2.9 | 0/? | Not started | - |
+| 60. Kanban & CurrentFocus Integration | v0.2.9 | 0/? | Not started | - |
