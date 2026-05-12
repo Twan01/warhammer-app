@@ -19,7 +19,7 @@
  * Pattern source: src/features/units/UnitSheet.tsx (form + sheet),
  *                 src/features/units/JournalTab.tsx (mutation field semantics).
  */
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -52,6 +52,7 @@ import { useUnits, useUpdateUnit } from "@/hooks/useUnits";
 import { useCreatePaintingSession } from "@/hooks/useJournalSessions";
 import { useRecipes } from "@/hooks/useRecipes";
 import { useRecipePaints } from "@/hooks/useRecipePaints";
+import { useRecipeSections } from "@/hooks/useRecipeSections";
 import { useFactions } from "@/hooks/useFactions";
 import { todayISO } from "@/lib/dates";
 import type { Unit } from "@/types/unit";
@@ -75,6 +76,7 @@ function buildDefaultValues(defaultUnitId?: number): LogSessionFormValues {
     new_status: null,
     recipe_id: null,
     recipe_step_id: null,
+    section_name: null,
   };
 }
 
@@ -115,7 +117,10 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
   // Reset form on each open so leftover values from a previous open do not persist.
   // Include defaultUnitId in deps so re-opening for a different unit pre-populates correctly (Pitfall 4).
   useEffect(() => {
-    if (open) form.reset(buildDefaultValues(defaultUnitId));
+    if (open) {
+      form.reset(buildDefaultValues(defaultUnitId));
+      setWatchedSectionId(null);
+    }
   }, [open, form, defaultUnitId]);
 
   const orderedUnits = useMemo(
@@ -129,10 +134,28 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
     watchedRecipeId != null ? watchedRecipeId : undefined
   );
 
-  // Clear step selection when recipe changes (prevents stale FK reference)
+  const [watchedSectionId, setWatchedSectionId] = useState<number | null>(null);
+
+  const { data: sections = [] } = useRecipeSections(
+    watchedRecipeId != null ? watchedRecipeId : undefined
+  );
+
+  const filteredSteps = useMemo(() => {
+    if (watchedSectionId == null) return recipeSteps;
+    return recipeSteps.filter((s) => s.section_id === watchedSectionId);
+  }, [recipeSteps, watchedSectionId]);
+
+  // Reset chain 1: recipe changes → clear section AND step
   useEffect(() => {
     form.setValue("recipe_step_id", null);
+    form.setValue("section_name", null);
+    setWatchedSectionId(null);
   }, [watchedRecipeId, form]);
+
+  // Reset chain 2: section changes → clear step only
+  useEffect(() => {
+    form.setValue("recipe_step_id", null);
+  }, [watchedSectionId, form]);
 
   const orderedRecipes = useMemo(
     () => sortRecipesForPicker(recipes, factions),
@@ -148,6 +171,7 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
         notes: values.notes && values.notes.trim() !== "" ? values.notes.trim() : null,
         recipe_id: values.recipe_id ?? null,
         recipe_step_id: values.recipe_step_id ?? null,
+        section_name: values.section_name ?? null,
       });
     } catch {
       toast.error("Failed to log session — try again.");
@@ -303,6 +327,56 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
               )}
             />
 
+            {watchedRecipeId != null && sections.length >= 2 && (
+              <FormField
+                name="section_name"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Section</FormLabel>
+                    <Controller
+                      name="section_name"
+                      control={form.control}
+                      render={({ field: ctrl }) => (
+                        <Select
+                          value={watchedSectionId != null ? String(watchedSectionId) : "__none__"}
+                          onValueChange={(v) => {
+                            const numId = v === "__none__" ? null : Number(v);
+                            setWatchedSectionId(numId);
+                            ctrl.onChange(
+                              v === "__none__"
+                                ? null
+                                : sections.find((s) => s.id === numId)?.name ?? null
+                            );
+                          }}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="No section" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="__none__">No section</SelectItem>
+                            {sections
+                              .slice()
+                              .sort((a, b) => a.order_index - b.order_index)
+                              .map((s) => (
+                                <SelectItem key={s.id} value={String(s.id)}>
+                                  {s.name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    <FormMessage />
+                    {/* unused render arg silenced */}
+                    <input type="hidden" value={field.value ?? ""} readOnly />
+                  </FormItem>
+                )}
+              />
+            )}
+
             {watchedRecipeId != null && (
               <FormField
                 name="recipe_step_id"
@@ -327,7 +401,7 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="__none__">No step</SelectItem>
-                            {recipeSteps
+                            {filteredSteps
                               .slice()
                               .sort((a, b) => a.order_index - b.order_index)
                               .map((s) => (
