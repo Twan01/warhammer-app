@@ -211,7 +211,10 @@ Plans:
 **UI hint**: yes
 
 Plans:
+**Wave 1**
 - [ ] 59-01-PLAN.md — Schema extension: section_name field + SESS-05 schema tests
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 59-02-PLAN.md — LogSessionSheet cascade selector + component tests (SESS-01 through SESS-05)
 
 ### Phase 60: Kanban & CurrentFocus Integration
