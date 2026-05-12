@@ -60,6 +60,7 @@ export function useCreatePaintingSession() {
       qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
       qc.invalidateQueries({ queryKey: ["recent-activity"] });
       qc.invalidateQueries({ queryKey: ["goal-progress"] });
+      qc.invalidateQueries({ queryKey: ["workflow-positions"] });
       // Phase 41 — invalidate recipe-sessions cache if session linked to a recipe
       if (variables.recipe_id != null) {
         qc.invalidateQueries({ queryKey: RECIPE_SESSIONS_KEY(variables.recipe_id) });

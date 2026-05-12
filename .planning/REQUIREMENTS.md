@@ -9,10 +9,10 @@ Requirements for Recipes 3.1 / Workflow Semantics & Integrations. Each maps to r
 
 ### Workflow Metadata
 
-- [ ] **WF-01**: User can set a section type (prep/basecoat/shade/layer/detail/effect/finishing) on any recipe section
-- [ ] **WF-02**: User can set a section-level technique (brush/sponge/drybrush/airbrush/oil-enamel/pigment/decal/mixed/other) on any recipe section
-- [ ] **WF-03**: User can set an execution mode (sequential/batch/parallel) on any recipe section
-- [ ] **WF-04**: User can set a free-text applies_to field on any recipe section describing which model area the section targets
+- [x] **WF-01**: User can set a section type (prep/basecoat/shade/layer/detail/effect/finishing) on any recipe section
+- [x] **WF-02**: User can set a section-level technique (brush/sponge/drybrush/airbrush/oil-enamel/pigment/decal/mixed/other) on any recipe section
+- [x] **WF-03**: User can set an execution mode (sequential/batch/parallel) on any recipe section
+- [x] **WF-04**: User can set a free-text applies_to field on any recipe section describing which model area the section targets
 - [x] **WF-05**: All workflow metadata fields are nullable and additive -- existing recipes unchanged after migration
 
 ### Recipe UI
@@ -20,7 +20,7 @@ Requirements for Recipes 3.1 / Workflow Semantics & Integrations. Each maps to r
 - [x] **RUI-01**: RecipeSectionCard shows workflow metadata fields under a progressive disclosure "Workflow" collapsible
 - [x] **RUI-02**: Simple recipes (single section, no metadata) remain visually uncluttered -- workflow collapsible hidden
 - [ ] **RUI-03**: SectionedTimeline displays section_type and execution_mode as compact badges alongside existing surface badge
-- [ ] **RUI-04**: SectionedTimeline displays technique inline when set (e.g., "Armor Blue . Armor . Drybrush . Sequential")
+- [x] **RUI-04**: SectionedTimeline displays technique inline when set (e.g., "Armor Blue . Armor . Drybrush . Sequential")
 
 ### Session Integration
 
@@ -32,11 +32,11 @@ Requirements for Recipes 3.1 / Workflow Semantics & Integrations. Each maps to r
 
 ### Project Integration
 
-- [ ] **PROJ-01**: KanbanCard shows current workflow section name and next step name when a recipe is linked to the unit
-- [ ] **PROJ-02**: CurrentFocusCard shows section-aware next action guidance (e.g., "Armour: Layer Highlight -- step 4/12")
-- [ ] **PROJ-03**: Workflow position is derived implicitly from last logged session step -- no explicit completion tracking
-- [ ] **PROJ-04**: Derivation logic is a shared pure function usable by both Kanban and CurrentFocus
-- [ ] **PROJ-05**: Graceful fallback when no recipe linked, no sessions logged, or recipe has no sections
+- [x] **PROJ-01**: KanbanCard shows current workflow section name and next step name when a recipe is linked to the unit
+- [x] **PROJ-02**: CurrentFocusCard shows section-aware next action guidance (e.g., "Armour: Layer Highlight -- step 4/12")
+- [x] **PROJ-03**: Workflow position is derived implicitly from last logged session step -- no explicit completion tracking
+- [x] **PROJ-04**: Derivation logic is a shared pure function usable by both Kanban and CurrentFocus
+- [x] **PROJ-05**: Graceful fallback when no recipe linked, no sessions logged, or recipe has no sections
 
 ## Future Requirements
 
@@ -71,25 +71,25 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| WF-01 | Phase 57 | Pending |
-| WF-02 | Phase 57 | Pending |
-| WF-03 | Phase 57 | Pending |
-| WF-04 | Phase 57 | Pending |
+| WF-01 | Phase 57 | Complete |
+| WF-02 | Phase 57 | Complete |
+| WF-03 | Phase 57 | Complete |
+| WF-04 | Phase 57 | Complete |
 | WF-05 | Phase 57 | Complete |
 | RUI-01 | Phase 58 | Complete |
 | RUI-02 | Phase 58 | Complete |
-| RUI-03 | Phase 58 | Pending |
-| RUI-04 | Phase 58 | Pending |
+| RUI-03 | Phase 58 | Partial |
+| RUI-04 | Phase 58 | Complete |
 | SESS-01 | Phase 59 | Complete |
 | SESS-02 | Phase 59 | Complete |
 | SESS-03 | Phase 59 | Complete |
 | SESS-04 | Phase 59 | Complete |
 | SESS-05 | Phase 59 | Complete |
-| PROJ-01 | Phase 60 | Pending |
-| PROJ-02 | Phase 60 | Pending |
-| PROJ-03 | Phase 60 | Pending |
-| PROJ-04 | Phase 60 | Pending |
-| PROJ-05 | Phase 60 | Pending |
+| PROJ-01 | Phase 60 | Complete |
+| PROJ-02 | Phase 60 | Complete |
+| PROJ-03 | Phase 60 | Complete |
+| PROJ-04 | Phase 60 | Complete |
+| PROJ-05 | Phase 60 | Complete |
 
 **Coverage:**
 - v0.2.9 requirements: 19 total
