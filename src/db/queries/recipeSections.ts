@@ -23,8 +23,8 @@ export async function getRecipeSections(recipeId: number): Promise<RecipeSection
 export async function createRecipeSection(input: CreateRecipeSectionInput): Promise<number> {
   const db = await getDb();
   const result = await db.execute(
-    `INSERT INTO recipe_sections (recipe_id, name, surface, optional, order_index, notes)
-     VALUES ($1, $2, $3, $4, $5, $6)`,
+    `INSERT INTO recipe_sections (recipe_id, name, surface, optional, order_index, notes, section_type, technique, execution_mode, applies_to)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
     [
       input.recipe_id,
       input.name,
@@ -32,6 +32,10 @@ export async function createRecipeSection(input: CreateRecipeSectionInput): Prom
       input.optional,
       input.order_index,
       input.notes ?? null,
+      input.section_type ?? null,
+      input.technique ?? null,
+      input.execution_mode ?? null,
+      input.applies_to ?? null,
     ],
   );
   return result.lastInsertId ?? 0;
@@ -52,6 +56,10 @@ export async function updateRecipeSection(input: UpdateRecipeSectionInput): Prom
          optional = COALESCE($4, optional),
          order_index = COALESCE($5, order_index),
          notes = $6,
+         section_type = COALESCE($7, section_type),
+         technique = COALESCE($8, technique),
+         execution_mode = COALESCE($9, execution_mode),
+         applies_to = COALESCE($10, applies_to),
          updated_at = datetime('now')
      WHERE id = $1`,
     [
@@ -61,6 +69,10 @@ export async function updateRecipeSection(input: UpdateRecipeSectionInput): Prom
       input.optional ?? null,
       input.order_index ?? null,
       input.notes ?? null,
+      input.section_type ?? null,
+      input.technique ?? null,
+      input.execution_mode ?? null,
+      input.applies_to ?? null,
     ],
   );
 }
