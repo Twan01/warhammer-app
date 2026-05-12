@@ -190,12 +190,12 @@ Plans:
   2. Simple recipes (single section, no metadata set) show no workflow collapsible -- the UI remains uncluttered
   3. SectionedTimeline displays section_type and execution_mode as compact badges next to the existing surface badge
   4. SectionedTimeline shows technique inline when set (e.g., "Armor Blue . Armor . Drybrush . Sequential")
-**Plans**: TBD
+**Plans**: 2 plans
 **UI hint**: yes
 
 Plans:
-- [ ] 58-01: TBD
-- [ ] 58-02: TBD
+- [ ] 58-01-PLAN.md — Workflow collapsible form controls in RecipeSectionCard (RUI-01, RUI-02)
+- [ ] 58-02-PLAN.md — Timeline workflow metadata display in SectionedTimeline (RUI-03, RUI-04)
 
 ### Phase 59: Session Section Cascade
 **Goal**: Users can log painting sessions with section-level granularity through a natural cascading selector flow
@@ -296,6 +296,6 @@ Phases execute in numeric order: 57 -> 58 -> 59 -> 60
 | 55. Playbook Enhancements — Favorites and Notes | v0.2.8 | 2/2 | Complete | 2026-05-11 |
 | 56. Game Day Mode | v0.2.8 | 2/2 | Complete | 2026-05-11 |
 | 57. Schema & Data Layer | v0.2.9 | 2/2 | Complete | 2026-05-12 |
-| 58. Recipe Form & Timeline Display | v0.2.9 | 0/? | Not started | - |
+| 58. Recipe Form & Timeline Display | v0.2.9 | 0/2 | Not started | - |
 | 59. Session Section Cascade | v0.2.9 | 0/? | Not started | - |
 | 60. Kanban & CurrentFocus Integration | v0.2.9 | 0/? | Not started | - |
