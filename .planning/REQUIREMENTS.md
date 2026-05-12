@@ -28,7 +28,7 @@ Requirements for Recipes 3.1 / Workflow Semantics & Integrations. Each maps to r
 - [ ] **SESS-02**: Selecting a section filters the step selector to only that section's steps
 - [ ] **SESS-03**: Changing recipe clears both section and step selections
 - [ ] **SESS-04**: Changing section clears step selection
-- [ ] **SESS-05**: All three selectors (recipe, section, step) remain optional -- user can log with any combination
+- [x] **SESS-05**: All three selectors (recipe, section, step) remain optional -- user can log with any combination
 
 ### Project Integration
 
@@ -84,7 +84,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SESS-02 | Phase 59 | Pending |
 | SESS-03 | Phase 59 | Pending |
 | SESS-04 | Phase 59 | Pending |
-| SESS-05 | Phase 59 | Pending |
+| SESS-05 | Phase 59 | Complete |
 | PROJ-01 | Phase 60 | Pending |
 | PROJ-02 | Phase 60 | Pending |
 | PROJ-03 | Phase 60 | Pending |
