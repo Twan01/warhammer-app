@@ -276,6 +276,10 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
           optional: sec.optional,
           order_index: i,
           notes: sec.notes,
+          section_type: sec.section_type,
+          technique: sec.technique,
+          execution_mode: sec.execution_mode,
+          applies_to: sec.applies_to,
         });
         sectionIdMap.set(sec.localId, newSectionId);
       }

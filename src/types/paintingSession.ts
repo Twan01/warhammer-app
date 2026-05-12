@@ -18,6 +18,8 @@ export interface PaintingSession {
   // Phase 41 — session-recipe linking (INTEG-01/02)
   recipe_id: number | null;
   recipe_step_id: number | null;
+  // Phase 57 — workflow section association (WF-04)
+  section_name: string | null;
 }
 
 /**
@@ -32,4 +34,6 @@ export interface CreateSessionInput {
   // Phase 41 — session-recipe linking (INTEG-01/02)
   recipe_id?: number | null;
   recipe_step_id?: number | null;
+  // Phase 57 — workflow section association
+  section_name?: string | null;
 }

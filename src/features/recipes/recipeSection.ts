@@ -23,6 +23,11 @@ export interface DraftSection {
   /** 0 = required, 1 = skippable */
   optional: number;
   notes: string | null;
+  // Phase 57 — workflow metadata (WF-01..04)
+  section_type: string | null;
+  technique: string | null;
+  execution_mode: string | null;
+  applies_to: string | null;
   steps: DraftStep[];
 }
 
@@ -37,6 +42,10 @@ export function makeDraftSection(name = "Steps"): DraftSection {
     surface: null,
     optional: 0,
     notes: null,
+    section_type: null,
+    technique: null,
+    execution_mode: null,
+    applies_to: null,
     steps: [],
   };
 }
@@ -85,6 +94,10 @@ export function buildDraftSections(
       surface: s.surface,
       optional: s.optional,
       notes: s.notes,
+      section_type: s.section_type ?? null,
+      technique: s.technique ?? null,
+      execution_mode: s.execution_mode ?? null,
+      applies_to: s.applies_to ?? null,
       steps: sectionSteps,
     };
   });

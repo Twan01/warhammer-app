@@ -24,6 +24,10 @@ const SECTION_1: RecipeSection = {
   optional: 0,
   order_index: 0,
   notes: null,
+  section_type: null,
+  technique: null,
+  execution_mode: null,
+  applies_to: null,
   created_at: "2026-01-01",
   updated_at: "2026-01-01",
 };
@@ -36,6 +40,10 @@ const SECTION_2: RecipeSection = {
   optional: 1,
   order_index: 1,
   notes: "Optional section",
+  section_type: null,
+  technique: null,
+  execution_mode: null,
+  applies_to: null,
   created_at: "2026-01-01",
   updated_at: "2026-01-01",
 };

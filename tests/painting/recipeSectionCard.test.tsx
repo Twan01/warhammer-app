@@ -79,6 +79,10 @@ function makeSection(over: Partial<DraftSection> = {}): DraftSection {
     surface: null,
     optional: 0,
     notes: null,
+    section_type: null,
+    technique: null,
+    execution_mode: null,
+    applies_to: null,
     steps: [],
     ...over,
   };

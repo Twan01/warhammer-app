@@ -107,6 +107,10 @@ describe("createRecipeSection — SECT-04 create", () => {
     optional: 0,
     order_index: 0,
     notes: "First pass",
+    section_type: null,
+    technique: null,
+    execution_mode: null,
+    applies_to: null,
   };
 
   it("INSERT contains all 6 column names and $1 through $6 placeholders", async () => {
@@ -274,7 +278,7 @@ function makeWrapper() {
 // Group 8 — RecipeSection type shape (SECT-01)
 // ---------------------------------------------------------------------------
 describe("RecipeSection type shape — SECT-01", () => {
-  it("interface has all 9 expected keys", () => {
+  it("interface has all 13 expected keys", () => {
     const section: RecipeSection = {
       id: 1,
       recipe_id: 2,
@@ -283,6 +287,10 @@ describe("RecipeSection type shape — SECT-01", () => {
       optional: 0,
       order_index: 0,
       notes: null,
+      section_type: null,
+      technique: null,
+      execution_mode: null,
+      applies_to: null,
       created_at: "2026-01-01T00:00:00Z",
       updated_at: "2026-01-01T00:00:00Z",
     };
@@ -294,9 +302,13 @@ describe("RecipeSection type shape — SECT-01", () => {
     expect(keys).toContain("optional");
     expect(keys).toContain("order_index");
     expect(keys).toContain("notes");
+    expect(keys).toContain("section_type");
+    expect(keys).toContain("technique");
+    expect(keys).toContain("execution_mode");
+    expect(keys).toContain("applies_to");
     expect(keys).toContain("created_at");
     expect(keys).toContain("updated_at");
-    expect(keys).toHaveLength(9);
+    expect(keys).toHaveLength(13);
   });
 });
 
@@ -449,6 +461,10 @@ describe("useCreateRecipeSection — invalidates RECIPE_SECTIONS_KEY only", () =
       optional: 0,
       order_index: 0,
       notes: null,
+      section_type: null,
+      technique: null,
+      execution_mode: null,
+      applies_to: null,
     };
     await act(async () => {
       await result.current.mutateAsync(input);
@@ -470,6 +486,10 @@ describe("useCreateRecipeSection — invalidates RECIPE_SECTIONS_KEY only", () =
       optional: 0,
       order_index: 0,
       notes: null,
+      section_type: null,
+      technique: null,
+      execution_mode: null,
+      applies_to: null,
     };
     await act(async () => {
       await result.current.mutateAsync(input);
