@@ -47,7 +47,7 @@ Full details: `.planning/milestones/v0.2.9-ROADMAP.md`
 **Milestone Goal:** Turn recipes into actionable painting plans with per-unit progress, add a points import data layer with freshness tracking, and harden army list validation with tactical role coverage.
 
 - [ ] **Phase 61: Recipe Workflow Hardening** - Verify migration integrity, stabilize section-aware log sessions, polish workflow metadata UX
-- [ ] **Phase 62: Applied Recipe Data Layer** - Schema, types, queries, hooks for unit_recipe_assignments + unit_recipe_step_progress
+- [x] **Phase 62: Applied Recipe Data Layer** - Schema, types, queries, hooks for unit_recipe_assignments + unit_recipe_step_progress
 - [ ] **Phase 63: Applied Recipe UX** - Assignment sheet, per-unit step checklist, progress display, bulk apply
 - [ ] **Phase 64: Applied Recipe Integrations** - Log Session step completion, Kanban/CurrentFocus applied recipe progress
 - [ ] **Phase 65: Points Import Pipeline** - Extend Wahapedia sync with official points, freshness badges, delta detection, 5-level COALESCE update
@@ -223,8 +223,14 @@ Plans:
   2. User can tick individual steps (and entire sections) as completed for a specific unit assignment, with progress stored independently from the recipe template
   3. Unit detail shows applied recipe progress as a checklist with completion percentage per assignment
   4. User can select multiple units and apply the same recipe to all of them, each getting independent progress tracking
-**Plans**: TBD
-**UI hint**: yes
+**Plans:** 3 plans
+Plans:
+**Wave 1**
+- [ ] 63-01-PLAN.md — Accordion primitive + AssignmentChecklist component (AR-03)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 63-02-PLAN.md — ApplyRecipeDialog + AppliedRecipesTab + UnitDetailSheet wiring (AR-02, AR-04)
+- [ ] 63-03-PLAN.md — ApplyToUnitsDialog + RecipeDetailSheet bulk apply button (AR-07)
 
 ### Phase 64: Applied Recipe Integrations
 **Goal**: Applied recipe progress flows into existing painting workflow surfaces (Log Session, Kanban, Dashboard)
@@ -341,7 +347,7 @@ Plans:
 | 60. Kanban & CurrentFocus Integration | v0.2.9 | 2/2 | Complete | 2026-05-12 |
 | 61. Recipe Workflow Hardening | v0.2.10 | 0/2 | Not started | - |
 | 62. Applied Recipe Data Layer | v0.2.10 | 0/2 | Not started | - |
-| 63. Applied Recipe UX | v0.2.10 | 0/TBD | Not started | - |
+| 63. Applied Recipe UX | v0.2.10 | 0/3 | Not started | - |
 | 64. Applied Recipe Integrations | v0.2.10 | 0/TBD | Not started | - |
 | 65. Points Import Pipeline | v0.2.10 | 0/TBD | Not started | - |
 | 66. Army List Validation | v0.2.10 | 0/TBD | Not started | - |
