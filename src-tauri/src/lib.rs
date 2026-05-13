@@ -142,6 +142,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/023_session_section_fk.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 24,
+            description: "points_import_history",
+            sql: include_str!("../migrations/024_points_import_history.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
@@ -163,6 +169,12 @@ fn get_rules_migrations() -> Vec<Migration> {
             version: 3,
             description: "sync_meta_counts",
             sql: include_str!("../migrations/rules_003_sync_meta_counts.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 4,
+            description: "datasheet_points",
+            sql: include_str!("../migrations/rules_004_datasheet_points.sql"),
             kind: MigrationKind::Up,
         },
     ]

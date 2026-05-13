@@ -80,6 +80,8 @@ export interface RulesSyncMeta {
   stratagems_count: number | null;
   detachments_count: number | null;
   detachment_abilities_count: number | null;
+  // Phase 65 — points row count (null before first post-migration sync)
+  points_count: number | null;
 }
 
 /** Weapon stat line from Datasheets_wargear.csv. */

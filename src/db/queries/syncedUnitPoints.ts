@@ -16,17 +16,38 @@ export interface SyncedUnitPointsRow {
   points: number;
 }
 
-// Stub — TDD RED
+/**
+ * Replace all synced unit points with fresh data from the latest sync.
+ * DELETEs all existing rows, then INSERTs the new set.
+ * Small table (hundreds of rows), so a loop is fine.
+ */
 export async function replaceSyncedUnitPoints(
-  _rows: SyncedUnitPointsRow[],
-  _syncedAt: string,
+  rows: SyncedUnitPointsRow[],
+  syncedAt: string,
 ): Promise<void> {
-  const _db = await getDb();
-  // Not implemented yet
+  const db = await getDb();
+  await db.execute("DELETE FROM synced_unit_points", []);
+  for (const row of rows) {
+    await db.execute(
+      `INSERT INTO synced_unit_points (unit_name, faction_id, points, synced_at)
+       VALUES ($1, $2, $3, $4)`,
+      [row.unit_name, row.faction_id, row.points, syncedAt],
+    );
+  }
 }
 
-// Stub — TDD RED
+/**
+ * Read all synced unit points into a Map keyed by "unit_name:faction_id".
+ * Used by computePointsDelta to build before/after snapshots.
+ */
 export async function getSyncedUnitPointsMap(): Promise<Map<string, number>> {
-  const _db = await getDb();
-  return new Map();
+  const db = await getDb();
+  const rows = await db.select<{ unit_name: string; faction_id: string | null; points: number }[]>(
+    "SELECT unit_name, faction_id, points FROM synced_unit_points",
+  );
+  const map = new Map<string, number>();
+  for (const row of rows) {
+    map.set(`${row.unit_name}:${row.faction_id}`, row.points);
+  }
+  return map;
 }

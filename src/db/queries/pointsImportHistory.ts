@@ -27,16 +27,23 @@ export interface InsertPointsImportHistoryInput {
   delta_changed: number;
 }
 
-// Stub — TDD RED
 export async function insertPointsImportHistory(
-  _input: InsertPointsImportHistoryInput,
+  input: InsertPointsImportHistoryInput,
 ): Promise<void> {
-  const _db = await getDb();
-  // Not implemented yet
+  const db = await getDb();
+  await db.execute(
+    `INSERT INTO points_import_history
+       (source_file, version, row_count, delta_added, delta_removed, delta_changed)
+     VALUES ($1, $2, $3, $4, $5, $6)`,
+    [input.source_file, input.version, input.row_count,
+     input.delta_added, input.delta_removed, input.delta_changed],
+  );
 }
 
-// Stub — TDD RED
 export async function getLatestPointsImportHistory(): Promise<PointsImportHistoryRow | null> {
-  const _db = await getDb();
-  return null;
+  const db = await getDb();
+  const rows = await db.select<PointsImportHistoryRow[]>(
+    "SELECT * FROM points_import_history ORDER BY imported_at DESC LIMIT 1",
+  );
+  return rows[0] ?? null;
 }
