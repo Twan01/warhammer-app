@@ -50,7 +50,7 @@ Full details: `.planning/milestones/v0.2.9-ROADMAP.md`
 - [x] **Phase 61: Recipe Workflow Hardening** - Verify migration integrity, stabilize section-aware log sessions, polish workflow metadata UX
 - [x] **Phase 62: Applied Recipe Data Layer** - Schema, types, queries, hooks for unit_recipe_assignments + unit_recipe_step_progress
 - [x] **Phase 63: Applied Recipe UX** - Assignment sheet, per-unit step checklist, progress display, bulk apply
-- [ ] **Phase 64: Applied Recipe Integrations** - Log Session step completion, Kanban/CurrentFocus applied recipe progress
+- [x] **Phase 64: Applied Recipe Integrations** - Log Session step completion, Kanban/CurrentFocus applied recipe progress
 - [ ] **Phase 65: Points Import Pipeline** - Extend Wahapedia sync with official points, freshness badges, delta detection, 5-level COALESCE update
 - [ ] **Phase 66: Army List Validation** - Hard warnings, tactical tags, role coverage, health summary panel
 - [ ] **Phase 67: Game Day Integration** - Pre-game points/readiness/tactical warnings capstone
