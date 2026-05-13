@@ -78,6 +78,7 @@ import { RecipeSectionList } from "@/features/recipes/RecipeSectionList";
 function makeSection(over: Partial<DraftSection> = {}): DraftSection {
   return {
     localId: "local-sec-001",
+    dbId: null,
     name: "Armor",
     surface: null,
     optional: 0,
@@ -94,6 +95,7 @@ function makeSection(over: Partial<DraftSection> = {}): DraftSection {
 function makeDraftStep(localId: string) {
   return {
     localId,
+    dbId: null,
     step_name: "Base coat",
     paint_id: 1,
     notes: null,

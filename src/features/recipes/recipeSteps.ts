@@ -2,6 +2,7 @@ import type { Paint } from "@/types/paint";
 
 export interface DraftStep {
   localId: string;
+  dbId: number | null;
   step_name: string;
   paint_id: number | null;
   notes: string | null;
@@ -17,6 +18,7 @@ export interface DraftStep {
 export function makeDraftStep(): DraftStep {
   return {
     localId: crypto.randomUUID(),
+    dbId: null,
     step_name: "",
     paint_id: null,
     notes: null,

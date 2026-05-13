@@ -37,7 +37,7 @@ import {
 } from "@/hooks/useRecipes";
 import {
   useAddRecipePaint,
-  useRemoveRecipePaint,
+
   useRecipePaints,
   RECIPE_PAINTS_KEY,
   STEP_COUNTS_KEY,
@@ -63,7 +63,8 @@ import {
 import { type DraftSection, makeDraftSection, buildDraftSections } from "./recipeSection";
 import { RecipeStepList } from "./RecipeStepList";
 import { RecipeSectionList } from "./RecipeSectionList";
-import { createRecipeSection, deleteRecipeSection } from "@/db/queries/recipeSections";
+import { createRecipeSection, deleteRecipeSection, updateRecipeSection } from "@/db/queries/recipeSections";
+import { updateRecipeStep, removeRecipePaint as removeRecipeStep } from "@/db/queries/recipePaints";
 import { PaintSheet } from "@/features/paints/PaintSheet";
 
 export interface RecipeFormSheetProps {
@@ -119,7 +120,7 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
   const createRecipe = useCreateRecipe();
   const updateRecipe = useUpdateRecipe();
   const addRecipePaint = useAddRecipePaint();
-  const removeRecipePaint = useRemoveRecipePaint();
+
 
   const { data: factions = [] } = useFactions();
   const { data: units = [] } = useUnits();
@@ -230,13 +231,115 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
           result_photo_path: values.result_photo_path,
         });
         recipeId = recipe.id;
-        // Delete all existing sections — CASCADE handles step cleanup
+
+        // Phase 1 — Collect surviving section dbIds
+        const draftSectionDbIds = new Set(
+          sections.map((s) => s.dbId).filter((id): id is number => id !== null),
+        );
+
+        // Phase 2 — DELETE removed sections (CASCADE handles child steps)
         for (const existing of existingSections) {
-          await deleteRecipeSection(existing.id);
+          if (!draftSectionDbIds.has(existing.id)) {
+            await deleteRecipeSection(existing.id);
+          }
         }
-        // Remove any orphaned steps without section_id (legacy data)
+
+        // Phase 3 — UPDATE existing sections
+        for (let i = 0; i < sections.length; i++) {
+          const sec = sections[i];
+          if (sec.dbId !== null) {
+            await updateRecipeSection({
+              id: sec.dbId,
+              name: sec.name,
+              surface: sec.surface,
+              optional: sec.optional,
+              order_index: i,
+              notes: sec.notes,
+              section_type: sec.section_type,
+              technique: sec.technique,
+              execution_mode: sec.execution_mode,
+              applies_to: sec.applies_to,
+            });
+          }
+        }
+
+        // Phase 4 — INSERT new sections + build sectionIdMap
+        const sectionIdMap = new Map<string, number>();
+        for (let i = 0; i < sections.length; i++) {
+          const sec = sections[i];
+          if (sec.dbId !== null) {
+            sectionIdMap.set(sec.localId, sec.dbId);
+          } else {
+            const newSectionId = await createRecipeSection({
+              recipe_id: recipeId,
+              name: sec.name,
+              surface: sec.surface,
+              optional: sec.optional,
+              order_index: i,
+              notes: sec.notes,
+              section_type: sec.section_type,
+              technique: sec.technique,
+              execution_mode: sec.execution_mode,
+              applies_to: sec.applies_to,
+            });
+            sectionIdMap.set(sec.localId, newSectionId);
+          }
+        }
+
+        // Phase 5 — Step diff
+        // 5a. Collect ALL surviving step dbIds globally
+        const draftStepDbIds = new Set(
+          sections.flatMap((s) => s.steps)
+            .map((st) => st.dbId)
+            .filter((id): id is number => id !== null),
+        );
+
+        // 5b. DELETE removed steps
         for (const existing of existingSteps) {
-          await removeRecipePaint.mutateAsync({ id: existing.id, recipeId });
+          if (!draftStepDbIds.has(existing.id)) {
+            await removeRecipeStep(existing.id);
+          }
+        }
+
+        // 5c. UPDATE/INSERT steps per section
+        for (const sec of sections) {
+          const dbSectionId = sectionIdMap.get(sec.localId) ?? null;
+          const indexedSteps = computeOrderIndex(sec.steps);
+          for (const s of indexedSteps) {
+            if (s.dbId !== null) {
+              await updateRecipeStep({
+                id: s.dbId,
+                paint_id: s.paint_id,
+                step_name: s.step_name,
+                order_index: s.order_index,
+                notes: s.notes,
+                painting_phase: s.painting_phase,
+                tool: s.tool,
+                technique: s.technique,
+                dilution: s.dilution,
+                time_estimate_minutes: s.time_estimate_minutes,
+                step_photo_path: s.step_photo_path ?? null,
+                alt_paint_id: s.alt_paint_id ?? null,
+                section_id: dbSectionId,
+              });
+            } else {
+              await addRecipePaint.mutateAsync({
+                recipe_id: recipeId,
+                paint_id: s.paint_id,
+                step_name: s.step_name,
+                order_index: s.order_index,
+                notes: s.notes,
+                painting_phase: s.painting_phase,
+                tool: s.tool,
+                technique: s.technique,
+                dilution: s.dilution,
+                time_estimate_minutes: s.time_estimate_minutes,
+                step_photo_path: s.step_photo_path ?? null,
+                alt_paint_id: s.alt_paint_id ?? null,
+                section_id: dbSectionId,
+              });
+            }
+          }
         }
       } else {
         recipeId = await createRecipe.mutateAsync({
@@ -263,47 +366,47 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
           estimated_minutes: values.estimated_minutes,
           result_photo_path: values.result_photo_path,
         });
-      }
 
-      // Create sections in array order, build localId -> dbId map
-      const sectionIdMap = new Map<string, number>();
-      for (let i = 0; i < sections.length; i++) {
-        const sec = sections[i];
-        const newSectionId = await createRecipeSection({
-          recipe_id: recipeId,
-          name: sec.name,
-          surface: sec.surface,
-          optional: sec.optional,
-          order_index: i,
-          notes: sec.notes,
-          section_type: sec.section_type,
-          technique: sec.technique,
-          execution_mode: sec.execution_mode,
-          applies_to: sec.applies_to,
-        });
-        sectionIdMap.set(sec.localId, newSectionId);
-      }
-
-      // Create steps with mapped section_id
-      for (const sec of sections) {
-        const dbSectionId = sectionIdMap.get(sec.localId) ?? null;
-        const indexedSteps = computeOrderIndex(sec.steps);
-        for (const s of indexedSteps) {
-          await addRecipePaint.mutateAsync({
+        // Create sections in array order, build localId -> dbId map
+        const sectionIdMap = new Map<string, number>();
+        for (let i = 0; i < sections.length; i++) {
+          const sec = sections[i];
+          const newSectionId = await createRecipeSection({
             recipe_id: recipeId,
-            paint_id: s.paint_id,
-            step_name: s.step_name,
-            order_index: s.order_index,
-            notes: s.notes,
-            painting_phase: s.painting_phase,
-            tool: s.tool,
-            technique: s.technique,
-            dilution: s.dilution,
-            time_estimate_minutes: s.time_estimate_minutes,
-            step_photo_path: s.step_photo_path ?? null,
-            alt_paint_id: s.alt_paint_id ?? null,
-            section_id: dbSectionId,
+            name: sec.name,
+            surface: sec.surface,
+            optional: sec.optional,
+            order_index: i,
+            notes: sec.notes,
+            section_type: sec.section_type,
+            technique: sec.technique,
+            execution_mode: sec.execution_mode,
+            applies_to: sec.applies_to,
           });
+          sectionIdMap.set(sec.localId, newSectionId);
+        }
+
+        // Create steps with mapped section_id
+        for (const sec of sections) {
+          const dbSectionId = sectionIdMap.get(sec.localId) ?? null;
+          const indexedSteps = computeOrderIndex(sec.steps);
+          for (const s of indexedSteps) {
+            await addRecipePaint.mutateAsync({
+              recipe_id: recipeId,
+              paint_id: s.paint_id,
+              step_name: s.step_name,
+              order_index: s.order_index,
+              notes: s.notes,
+              painting_phase: s.painting_phase,
+              tool: s.tool,
+              technique: s.technique,
+              dilution: s.dilution,
+              time_estimate_minutes: s.time_estimate_minutes,
+              step_photo_path: s.step_photo_path ?? null,
+              alt_paint_id: s.alt_paint_id ?? null,
+              section_id: dbSectionId,
+            });
+          }
         }
       }
 

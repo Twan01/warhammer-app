@@ -29,3 +29,5 @@ export type RecipePaint = RecipeStep;
 export type CreateRecipeStepInput = Omit<RecipeStep, "id" | "created_at">;
 /** @deprecated Use CreateRecipeStepInput instead */
 export type CreateRecipePaintInput = CreateRecipeStepInput;
+
+export type UpdateRecipeStepInput = Partial<Omit<CreateRecipeStepInput, "recipe_id">> & { id: number };

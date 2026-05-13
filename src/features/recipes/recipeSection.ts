@@ -18,6 +18,7 @@ import type { RecipeStep } from "@/types/recipePaint";
 export interface DraftSection {
   /** UUID assigned at draft creation; never stored in DB */
   localId: string;
+  dbId: number | null;
   name: string;
   surface: string | null;
   /** 0 = required, 1 = skippable */
@@ -38,6 +39,7 @@ export interface DraftSection {
 export function makeDraftSection(name = "Steps"): DraftSection {
   return {
     localId: crypto.randomUUID(),
+    dbId: null,
     name,
     surface: null,
     optional: 0,
@@ -75,6 +77,7 @@ export function buildDraftSections(
       .map(
         (st): DraftStep => ({
           localId: crypto.randomUUID(),
+          dbId: st.id,
           step_name: st.step_name,
           paint_id: st.paint_id,
           notes: st.notes,
@@ -90,6 +93,7 @@ export function buildDraftSections(
 
     return {
       localId: crypto.randomUUID(),
+      dbId: s.id,
       name: s.name,
       surface: s.surface,
       optional: s.optional,

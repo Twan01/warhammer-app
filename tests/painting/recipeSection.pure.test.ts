@@ -115,6 +115,7 @@ describe("recipeSection pure functions — makeDraftSection", () => {
     expect(result.notes).toBeNull();
     expect(result.steps).toEqual([]);
     expect(result.localId).toHaveLength(36);
+    expect(result.dbId).toBeNull();
   });
 
   it("Test 2: accepts a custom name and uses it", () => {
@@ -142,6 +143,18 @@ describe("recipeSection pure functions — buildDraftSections", () => {
     expect(result).toHaveLength(2);
     expect(result[0].steps).toHaveLength(2);
     expect(result[1].steps).toHaveLength(1);
+  });
+
+  it("populates dbId from section.id on each DraftSection", () => {
+    const result = buildDraftSections([SECTION_1, SECTION_2], []);
+    expect(result[0].dbId).toBe(1);
+    expect(result[1].dbId).toBe(2);
+  });
+
+  it("populates dbId from step.id on each nested DraftStep", () => {
+    const result = buildDraftSections([SECTION_1], [STEP_A, STEP_B]);
+    expect(result[0].steps[0].dbId).toBe(101);
+    expect(result[0].steps[1].dbId).toBe(102);
   });
 
   it("Test 4: sorts steps within a section by order_index ascending", () => {

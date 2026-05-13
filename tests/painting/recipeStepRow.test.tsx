@@ -50,6 +50,7 @@ vi.mock("@/features/recipes/PaintCombobox", () => ({
 function makeDraftStep(over: Partial<DraftStep> = {}): DraftStep {
   return {
     localId: "test-local-id",
+    dbId: null,
     step_name: "",
     paint_id: null,
     notes: null,

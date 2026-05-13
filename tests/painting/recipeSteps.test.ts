@@ -8,6 +8,7 @@ import type { Paint } from "@/types/paint";
 function step(over: Partial<DraftStep> = {}): DraftStep {
   return {
     localId: "x",
+    dbId: null,
     step_name: "",
     paint_id: null,
     notes: null,
@@ -81,6 +82,9 @@ describe("makeDraftStep", () => {
     expect(a.painting_phase).toBeNull();
     expect(a.time_estimate_minutes).toBeNull();
   });
+  it("initializes dbId to null", () => {
+    expect(makeDraftStep().dbId).toBeNull();
+  });
 });
 
 describe("STEP-01/03/04 DraftStep new fields", () => {
@@ -121,5 +125,10 @@ describe("STEP-01/03/04 DraftStep new fields", () => {
     expect(result[0].step_photo_path).toBe("uuid.jpg");
     expect(result[0].alt_paint_id).toBe(5);
     expect(result[0].order_index).toBe(0);
+  });
+  it("computeOrderIndex preserves dbId through spread", () => {
+    const input = step({ dbId: 42 });
+    const result = computeOrderIndex([input]);
+    expect(result[0].dbId).toBe(42);
   });
 });

@@ -1,5 +1,5 @@
 import { getDb } from "@/db/client";
-import type { RecipeStep, CreateRecipeStepInput } from "@/types/recipePaint";
+import type { RecipeStep, CreateRecipeStepInput, UpdateRecipeStepInput } from "@/types/recipePaint";
 
 export async function getRecipePaintsByRecipe(recipeId: number): Promise<RecipeStep[]> {
   const db = await getDb();
@@ -35,7 +35,32 @@ export async function removeRecipePaint(id: number): Promise<void> {
   const db = await getDb();
   await db.execute("DELETE FROM recipe_steps WHERE id = $1", [id]);
 }
-// No updateRecipePaint — links are immutable; to change, remove + re-add.
+export async function updateRecipeStep(input: UpdateRecipeStepInput): Promise<void> {
+  const db = await getDb();
+  await db.execute(
+    `UPDATE recipe_steps
+     SET paint_id = $2, step_name = $3, order_index = $4, notes = $5,
+         painting_phase = $6, tool = $7, technique = $8, dilution = $9,
+         time_estimate_minutes = $10, step_photo_path = $11, alt_paint_id = $12,
+         section_id = $13
+     WHERE id = $1`,
+    [
+      input.id,
+      input.paint_id ?? null,
+      input.step_name,
+      input.order_index,
+      input.notes ?? null,
+      input.painting_phase ?? null,
+      input.tool ?? null,
+      input.technique ?? null,
+      input.dilution ?? null,
+      input.time_estimate_minutes ?? null,
+      input.step_photo_path ?? null,
+      input.alt_paint_id ?? null,
+      input.section_id ?? null,
+    ],
+  );
+}
 
 /**
  * Returns the distinct recipe IDs that reference a given paint via recipe_steps.
