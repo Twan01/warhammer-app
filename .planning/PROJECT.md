@@ -6,20 +6,23 @@ HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby 
 
 Shipped through v0.2.9 (60 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, and DnD reorder), army list builder with detachment selection and inline rules context, battle log, spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors, premium CSS grid dashboard with workflow-aware CurrentFocusCard and KanbanCards, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, and a Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist). Now building v0.2.10: applied recipes (recipe-as-painting-plan with per-unit step progress), points import with freshness tracking, and advanced army list validation with tactical role coverage.
 
-## Current Milestone: v0.2.10 Applied Recipes, Points Import & List Validation
+## Current Milestone: v0.2.11 Foundation Hardening
 
-**Goal:** Turn recipes into actionable painting plans with per-unit progress, add a points import data layer with freshness tracking, and harden army list validation with tactical role coverage.
+**Goal:** Stabilize the technical foundation — migrations, recipe data integrity, version hygiene — so future features are built on reliable data structures.
 
 **Target features:**
-- Recipe workflow hardening (migration verification, section-aware log session stability, metadata polish)
-- Applied recipes (recipe-to-unit assignments, per-unit step completion, Kanban/CurrentFocus progress, Log Session integration, bulk apply)
-- Points import (official points via Wahapedia sync extension, freshness badges, points deltas)
-- Army list validation (5-level points resolution, hard/data warnings, tactical tags & role coverage)
-- Game Day integration (pre-game points/readiness warnings)
+- Migration registration & clean DB validation (register 018/019/020, verify fresh install)
+- Paintless recipe step support (persist steps without paint, exclude from availability)
+- Non-destructive recipe edits (preserve section/step IDs instead of delete-all + re-insert)
+- Section metadata clearing (fix COALESCE preventing null assignment)
+- Version number hygiene (align package.json and tauri.conf.json)
+- Stable recipe_section_id on painting sessions (FK alongside denormalized name)
+- Section-aware step ordering (order by section then step in recipe-level queries)
+- Data-layer tests (migration, recipe persistence, session links, army list schema)
 
 ## Current State
 
-v0.2.10 in progress. v0.2.9 shipped 2026-05-12.
+v0.2.11 in progress. v0.2.10 in progress. v0.2.9 shipped 2026-05-12.
 
 ## Core Value
 
@@ -138,28 +141,17 @@ A single personal command center that always answers "what do I own, what's pain
 
 ### Active
 
-*v0.2.10 — Applied Recipes, Points Import & List Validation*
+*v0.2.11 — Foundation Hardening*
 
-- [ ] **RH-01**: Migration verification — fresh install creates recipe_sections with all workflow metadata columns
-- [ ] **RH-02**: Section-aware log session stability — stable section reference, rename-safe
-- [ ] **RH-03**: Workflow metadata UX polish — section_type values match user mental model, progressive disclosure maintained
-- [ ] **AR-01**: Applied recipe data model — unit_recipe_assignments + unit_recipe_step_progress tables
-- [ ] **AR-02**: Recipe-to-unit assignment UX — apply recipe from Collection/Unit Detail, preview before applying
-- [ ] **AR-03**: Per-unit step completion — tick sections/steps as completed, progress stored separately from template
-- [ ] **AR-04**: Applied recipe display — completion progress visible on unit, checklist-like section/step view
-- [ ] **AR-05**: Log Session integration — complete applied recipe step while logging session
-- [ ] **AR-06**: Kanban/CurrentFocus progress — show applied recipe progress and next step
-- [ ] **AR-07**: Bulk apply — apply same recipe to multiple selected units with separate progress per unit
-- [ ] **PI-01**: Points data layer — extend rules.db with points data via Wahapedia sync; user overrides in hobbyforge.db
-- [ ] **PI-02**: Wahapedia sync pipeline extended to import official points — refreshed on every sync
-- [ ] **PI-03**: Points freshness tracking — source name, version, import date, stale/fresh badges
-- [ ] **PI-04**: Points delta detection — after import, detect per-unit and per-list points changes
-- [ ] **PI-05**: Points resolution chain — 5-level COALESCE (list override > loadout override > imported > unit default > unknown)
-- [ ] **LV-01**: Hard validation warnings — points exceeded, unknown points, stale source, unowned/unpainted/unbuilt units
-- [ ] **LV-02**: Tactical tags — per-unit tactical role tags (anti_tank, screening, objective_holder, etc.)
-- [ ] **LV-03**: Tactical role coverage — list-level tag aggregation showing strengths/weaknesses
-- [ ] **LV-04**: Army list health UI — validation summary panel (points, ownership, readiness, freshness, warnings)
-- [ ] **GD-01**: Game Day pre-game warnings — surface points/readiness/tactical warnings before playing
+- [ ] **MIG-01**: Register migrations 018/019/020 in lib.rs — fresh install creates all required tables/columns
+- [ ] **MIG-02**: Clean DB validation — fresh app launch from empty app data directory succeeds without errors
+- [ ] **REC-01**: Paintless recipe steps — persist steps without paint_id, exclude from availability calculations
+- [ ] **REC-02**: Non-destructive recipe edits — preserve section/step IDs, update in place, delete only removed items
+- [ ] **REC-03**: Section metadata clearing — direct assignment instead of COALESCE for nullable metadata fields
+- [ ] **REC-04**: Stable recipe_section_id on painting sessions — FK reference alongside denormalized section_name
+- [ ] **REC-05**: Section-aware step ordering — recipe-level queries order by section index then step index
+- [ ] **VER-01**: Version number hygiene — package.json and tauri.conf.json match current release
+- [ ] **TST-01**: Data-layer tests — migration registration, recipe persistence, session links, schema validation
 
 ### Out of Scope
 
@@ -274,4 +266,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-12 after v0.2.10 milestone started*
+*Last updated: 2026-05-13 after v0.2.11 milestone started*
