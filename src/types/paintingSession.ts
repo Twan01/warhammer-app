@@ -20,6 +20,8 @@ export interface PaintingSession {
   recipe_step_id: number | null;
   // Phase 57 — workflow section association (WF-04)
   section_name: string | null;
+  // Phase 71 — stable section FK (REC-04)
+  recipe_section_id: number | null;
 }
 
 /**
@@ -36,4 +38,6 @@ export interface CreateSessionInput {
   recipe_step_id?: number | null;
   // Phase 57 — workflow section association
   section_name?: string | null;
+  // Phase 71 — stable section FK (REC-04)
+  recipe_section_id?: number | null;
 }
