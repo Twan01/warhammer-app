@@ -19,6 +19,7 @@ import {
   getDatasheetsByFaction,
   getFullDatasheet,
   getRulesSyncMeta,
+  getWahapediaFactions,
   resolveWahapediaFactionIdByName,
 } from "@/db/queries/datasheets";
 
@@ -71,6 +72,16 @@ export function useRulesSyncMeta() {
   return useQuery({
     queryKey: RULES_SYNC_META_KEY,
     queryFn: getRulesSyncMeta,
+    staleTime: Infinity,
+  });
+}
+
+export const WAHAPEDIA_FACTIONS_KEY = ["wahapedia-factions"] as const;
+
+export function useWahapediaFactions() {
+  return useQuery({
+    queryKey: WAHAPEDIA_FACTIONS_KEY,
+    queryFn: getWahapediaFactions,
     staleTime: Infinity,
   });
 }

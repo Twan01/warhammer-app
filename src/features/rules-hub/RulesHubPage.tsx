@@ -13,8 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SyncStatusCard } from "./SyncStatusCard";
-import { useFactions } from "@/hooks/useFactions";
-import { useRulesSyncMeta, useWahapediaFactionId } from "@/hooks/useDatasheet";
+import { useRulesSyncMeta, useWahapediaFactions } from "@/hooks/useDatasheet";
 import { useRulesHubFilters } from "./rulesHubFilters";
 import {
   useStratagemsByFaction,
@@ -33,7 +32,7 @@ import type { SyncDiff } from "@/lib/computeSyncDiff";
 export function RulesHubPage() {
   const [lastSyncDiff, setLastSyncDiff] = useState<SyncDiff | null>(null);
 
-  const { data: factions = [] } = useFactions();
+  const { data: wahapediaFactions = [] } = useWahapediaFactions();
   const { data: syncMeta } = useRulesSyncMeta();
 
   const {
@@ -47,13 +46,10 @@ export function RulesHubPage() {
     setCpFilter,
   } = useRulesHubFilters();
 
-  const selectedFaction = factions.find((f) => f.id === selectedFactionId);
-  const { data: wahapediaFactionId } = useWahapediaFactionId(selectedFaction?.name);
-
   // Rules data for selected faction
-  const { data: stratagems = [], isLoading: stratagemLoading } = useStratagemsByFaction(wahapediaFactionId ?? undefined);
-  const { data: detachments = [], isLoading: detachmentLoading } = useDetachmentsByFaction(wahapediaFactionId ?? undefined);
-  const { data: sharedAbilities = [], isLoading: sharedAbilitiesLoading } = useSharedAbilitiesByFaction(wahapediaFactionId ?? undefined);
+  const { data: stratagems = [], isLoading: stratagemLoading } = useStratagemsByFaction(selectedFactionId ?? undefined);
+  const { data: detachments = [], isLoading: detachmentLoading } = useDetachmentsByFaction(selectedFactionId ?? undefined);
+  const { data: sharedAbilities = [], isLoading: sharedAbilitiesLoading } = useSharedAbilitiesByFaction(selectedFactionId ?? undefined);
 
   const { data: favorites = [] } = useRulesFavorites();
   const { data: rulesNotes = [] } = useRulesNotes();
@@ -111,17 +107,17 @@ export function RulesHubPage() {
         <>
           <div className="flex flex-wrap items-center gap-3">
             <Select
-              value={selectedFactionId !== null ? String(selectedFactionId) : ""}
+              value={selectedFactionId ?? ""}
               onValueChange={(val) =>
-                setSelectedFactionId(val ? Number(val) : null)
+                setSelectedFactionId(val || null)
               }
             >
               <SelectTrigger className="w-56">
-                <SelectValue placeholder="Select faction…" />
+                <SelectValue placeholder="Select army…" />
               </SelectTrigger>
               <SelectContent>
-                {factions.map((f) => (
-                  <SelectItem key={f.id} value={String(f.id)}>
+                {wahapediaFactions.map((f) => (
+                  <SelectItem key={f.id} value={f.id}>
                     {f.name}
                   </SelectItem>
                 ))}
@@ -138,7 +134,7 @@ export function RulesHubPage() {
 
           {noFaction ? (
             <p className="text-sm text-muted-foreground">
-              Select a faction to browse rules.
+              Select an army to browse rules.
             </p>
           ) : (
             <Tabs defaultValue="stratagems">

@@ -159,6 +159,83 @@ export async function upsertDatasheetLink(input: {
 }
 
 /**
+ * Alias map: local faction names that don't match any Wahapedia faction name
+ * directly. Maps LOWERCASE local name → LOWERCASE Wahapedia rw_factions.name.
+ *
+ * Covers two categories:
+ *  1. Subfactions (Space Marines chapters, Astra Militarum regiments, etc.)
+ *  2. Spelling variants (Tau vs T'au, Grey Knights vs Gray Knights, etc.)
+ *
+ * This list is intentionally kept small and static — only names known to cause
+ * mismatch are included. Users with truly custom faction names will still get
+ * the null-branch fallback (empty state or full-text search).
+ */
+const FACTION_ALIAS_MAP: Record<string, string> = {
+  // Space Marines chapters → parent faction
+  "ultramarines": "space marines",
+  "blood angels": "space marines",
+  "dark angels": "space marines",
+  "space wolves": "space marines",
+  "black templars": "space marines",
+  "imperial fists": "space marines",
+  "iron hands": "space marines",
+  "salamanders": "space marines",
+  "raven guard": "space marines",
+  "white scars": "space marines",
+  "deathwatch": "space marines",
+  "crimson fists": "space marines",
+  // Chaos Space Marines warbands
+  "world eaters": "world eaters",
+  "death guard": "death guard",
+  "thousand sons": "thousand sons",
+  "emperor's children": "chaos space marines",
+  "black legion": "chaos space marines",
+  "iron warriors": "chaos space marines",
+  "night lords": "chaos space marines",
+  "word bearers": "chaos space marines",
+  "alpha legion": "chaos space marines",
+  // T'au spelling variants
+  "tau empire": "t'au empire",
+  "tau": "t'au empire",
+  "t'au": "t'au empire",
+  // Astra Militarum aliases
+  "imperial guard": "astra militarum",
+  "astra militarum": "astra militarum",
+  // Aeldari aliases
+  "craftworlds": "aeldari",
+  "craftworld eldar": "aeldari",
+  "eldar": "aeldari",
+  "ynnari": "aeldari",
+  // Drukhari aliases
+  "dark eldar": "drukhari",
+  // Orks aliases
+  "orks": "orks",
+  // Grey Knights
+  "gray knights": "grey knights",
+  // Adeptus Custodes
+  "custodes": "adeptus custodes",
+  // Adeptus Mechanicus
+  "ad mech": "adeptus mechanicus",
+  "admech": "adeptus mechanicus",
+  // Sisters of Battle
+  "sisters of battle": "adepta sororitas",
+  "sororitas": "adepta sororitas",
+};
+
+/**
+ * Strip apostrophes, dashes, and extra whitespace for normalized comparison.
+ * "T'au Empire" → "tau empire", "Chaos Space Marines" → "chaos space marines"
+ */
+function normalizeFactionName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/['‘’′]/g, "") // strip curly/straight apostrophes
+    .replace(/[-]/g, " ")                    // dash to space
+    .replace(/\s+/g, " ")                    // collapse whitespace
+    .trim();
+}
+
+/**
  * DS-04 cross-DB faction lookup.
  *
  * HobbyForge factions store full names ("Space Marines", "Necrons") while Wahapedia
@@ -168,18 +245,32 @@ export async function upsertDatasheetLink(input: {
  * then either falls back to "all factions" or surfaces a friendly empty state
  * (PlaybookTab handles the null branch).
  *
- * Per Pitfall 5: this is the simplest correct strategy without forcing the user
- * to maintain an explicit mapping table. If the user has unconventional faction
- * names, the no-match branch keeps the app usable.
+ * Resolution strategy (tried in order):
+ *  1. Direct SQL match (exact, contains, or contained-by — case insensitive)
+ *  2. Alias map lookup → re-query with the canonical Wahapedia faction name
+ *  3. Normalized match (strip apostrophes/dashes) via REPLACE in SQL
+ *
+ * Returns null when no match — the caller falls back gracefully.
  */
+export interface WahapediaFaction {
+  id: string;
+  name: string;
+}
+
+export async function getWahapediaFactions(): Promise<WahapediaFaction[]> {
+  const db = await getRulesDb();
+  return db.select<WahapediaFaction[]>(
+    "SELECT id, name FROM rw_factions ORDER BY name ASC"
+  );
+}
+
 export async function resolveWahapediaFactionIdByName(
   name: string
 ): Promise<string | null> {
   const db = await getRulesDb();
-  // Try exact match first, then contains match (e.g. "Ultramarines" → no
-  // direct Wahapedia faction, but "Space Marines" contains neither — caller
-  // falls back to searchAllDatasheets when this returns null).
-  const rows = await db.select<{ id: string }[]>(
+
+  // Step 1: Direct SQL match (exact or substring-contains, case-insensitive)
+  const directRows = await db.select<{ id: string }[]>(
     `SELECT id FROM rw_factions
      WHERE LOWER(name) = LOWER($1)
         OR LOWER($1) LIKE '%' || LOWER(name) || '%'
@@ -187,7 +278,32 @@ export async function resolveWahapediaFactionIdByName(
      LIMIT 1`,
     [name]
   );
-  return rows[0]?.id ?? null;
+  if (directRows[0]) return directRows[0].id;
+
+  // Step 2: Alias map — resolve known subfaction/variant names to parent faction
+  const aliasTarget = FACTION_ALIAS_MAP[name.toLowerCase()];
+  if (aliasTarget) {
+    const aliasRows = await db.select<{ id: string }[]>(
+      `SELECT id FROM rw_factions
+       WHERE LOWER(name) = $1
+       LIMIT 1`,
+      [aliasTarget]
+    );
+    if (aliasRows[0]) return aliasRows[0].id;
+  }
+
+  // Step 3: Normalized match — strip apostrophes and compare
+  // Handles "Tau Empire" matching "T'au Empire" even without alias entry
+  const normalized = normalizeFactionName(name);
+  const normalizedRows = await db.select<{ id: string }[]>(
+    `SELECT id FROM rw_factions
+     WHERE LOWER(REPLACE(REPLACE(REPLACE(name, '''', ''), '’', ''), '-', ' ')) = $1
+     LIMIT 1`,
+    [normalized]
+  );
+  if (normalizedRows[0]) return normalizedRows[0].id;
+
+  return null;
 }
 
 /**

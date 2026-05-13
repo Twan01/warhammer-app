@@ -152,12 +152,17 @@ export function RecipeDetailSheet({
 
   const [stepPhotoUrls, setStepPhotoUrls] = useState<Map<number, string>>(new Map());
 
+  const stepsKey = useMemo(
+    () => steps.map((s) => `${s.id}:${s.step_photo_path ?? ""}`).join(","),
+    [steps],
+  );
+
   useEffect(() => {
     let cancelled = false;
     async function resolve() {
       const stepsWithPhotos = steps.filter((s) => s.step_photo_path);
       if (stepsWithPhotos.length === 0) {
-        setStepPhotoUrls(new Map());
+        setStepPhotoUrls((prev) => (prev.size === 0 ? prev : new Map()));
         return;
       }
       const appDir = await appDataDir();
@@ -170,7 +175,7 @@ export function RecipeDetailSheet({
     }
     resolve();
     return () => { cancelled = true; };
-  }, [steps]);
+  }, [stepsKey]);
 
   const navigate = useNavigate();
 

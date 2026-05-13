@@ -1,5 +1,5 @@
 ---
-status: awaiting_human_verify
+status: resolved
 trigger: "Bug 1 — React error #185 on recipe click; Bug 2 — Windows desktop shortcut doesn't launch app"
 created: 2026-05-07T00:00:00Z
 updated: 2026-05-07T00:01:00Z
