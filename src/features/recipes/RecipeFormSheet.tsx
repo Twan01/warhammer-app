@@ -61,6 +61,7 @@ import {
   computeOrderIndex,
 } from "./recipeSteps";
 import { type DraftSection, makeDraftSection, buildDraftSections } from "./recipeSection";
+import { computeSectionDiff, computeStepDiff, buildSectionIdMap } from "./recipeDiff";
 import { RecipeStepList } from "./RecipeStepList";
 import { RecipeSectionList } from "./RecipeSectionList";
 import { createRecipeSection, deleteRecipeSection, updateRecipeSection } from "@/db/queries/recipeSections";
@@ -232,16 +233,13 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
         });
         recipeId = recipe.id;
 
-        // Phase 1 — Collect surviving section dbIds
-        const draftSectionDbIds = new Set(
-          sections.map((s) => s.dbId).filter((id): id is number => id !== null),
-        );
+        // Phase 1-4 — Section diff
+        const { toDelete: sectionsToDelete } =
+          computeSectionDiff(sections, existingSections);
 
         // Phase 2 — DELETE removed sections (CASCADE handles child steps)
-        for (const existing of existingSections) {
-          if (!draftSectionDbIds.has(existing.id)) {
-            await deleteRecipeSection(existing.id);
-          }
+        for (const id of sectionsToDelete) {
+          await deleteRecipeSection(id);
         }
 
         // Phase 3 — UPDATE existing sections
@@ -263,13 +261,11 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
           }
         }
 
-        // Phase 4 — INSERT new sections + build sectionIdMap
-        const sectionIdMap = new Map<string, number>();
+        // Phase 4 — INSERT new sections + build sectionIdMap (seed from survivors first)
+        const sectionIdMap = buildSectionIdMap(sections);
         for (let i = 0; i < sections.length; i++) {
           const sec = sections[i];
-          if (sec.dbId !== null) {
-            sectionIdMap.set(sec.localId, sec.dbId);
-          } else {
+          if (sec.dbId === null) {
             const newSectionId = await createRecipeSection({
               recipe_id: recipeId,
               name: sec.name,
@@ -286,19 +282,12 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
           }
         }
 
-        // Phase 5 — Step diff
-        // 5a. Collect ALL surviving step dbIds globally
-        const draftStepDbIds = new Set(
-          sections.flatMap((s) => s.steps)
-            .map((st) => st.dbId)
-            .filter((id): id is number => id !== null),
-        );
+        // Phase 5 — Step diff (computeStepDiff uses global scan across ALL sections)
+        const { toDelete: stepsToDelete } = computeStepDiff(sections, existingSteps);
 
         // 5b. DELETE removed steps
-        for (const existing of existingSteps) {
-          if (!draftStepDbIds.has(existing.id)) {
-            await removeRecipeStep(existing.id);
-          }
+        for (const id of stepsToDelete) {
+          await removeRecipeStep(id);
         }
 
         // 5c. UPDATE/INSERT steps per section
