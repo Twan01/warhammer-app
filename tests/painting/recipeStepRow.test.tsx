@@ -243,6 +243,38 @@ describe("RecipeStepRow — STEP-01/03 structured step inputs", () => {
     });
   });
 
+  describe("paintless step rendering — PAINTLESS-01", () => {
+    it("renders without throwing when paint_id is null", () => {
+      expect(() => renderRow(makeDraftStep({ paint_id: null }))).not.toThrow();
+    });
+
+    it("renders the PaintCombobox (paint selection widget) when paint_id is null", () => {
+      renderRow(makeDraftStep({ paint_id: null }));
+      // The primary PaintCombobox must still be present so the user can pick a paint
+      const comboboxes = screen.getAllByTestId("paint-combobox");
+      expect(comboboxes.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("does not render a color swatch element when paint_id is null", () => {
+      // RecipeStepRow is a form input — it never shows a paint color swatch dot.
+      // Asserting its absence guards against regressions that might add an inline swatch.
+      const { container } = renderRow(makeDraftStep({ paint_id: null }));
+      const swatch = container.querySelector("[data-testid='timeline-node']");
+      expect(swatch).not.toBeInTheDocument();
+    });
+
+    it("renders all standard input fields when paint_id is null", () => {
+      // All structural inputs must be present regardless of paintless state
+      renderRow(makeDraftStep({ paint_id: null }));
+      expect(screen.getByPlaceholderText("e.g. Edge highlight on pauldrons")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Tool")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Technique")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Dilution")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Min")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Notes…")).toBeInTheDocument();
+    });
+  });
+
   describe("alt paint combobox — PAINT-02", () => {
     it("renders an alt paint combobox container on the second row", () => {
       const { container } = renderRow();

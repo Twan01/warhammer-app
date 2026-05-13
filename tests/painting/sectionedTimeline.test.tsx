@@ -299,6 +299,39 @@ describe("SectionedTimeline — VIEW-03 (per-section paint availability)", () =>
     expect(screen.queryByText(/owned/)).not.toBeInTheDocument();
     expect(screen.queryByText(/missing/)).not.toBeInTheDocument();
   });
+
+  it("excludes steps with paint_id: null from per-section availability counts", () => {
+    // A section with one owned paint step and one paintless step (null paint_id).
+    // The paintless step must not contribute to owned or missing tallies.
+    const ownedPaint = makePaint({ id: 10, owned: 1 });
+    const paintMap = new Map([[10, ownedPaint]]);
+    const sections = [makeSection({ id: 1, name: "Section A" })];
+    const steps = [
+      makeStep({ id: 1, section_id: 1, paint_id: 10 }),         // owned paint
+      makeStep({ id: 2, section_id: 1, paint_id: null, order_index: 1 }), // paintless
+    ];
+    render(
+      <SectionedTimeline sections={sections} steps={steps} paintMap={paintMap} />
+    );
+    // Only the paint-linked step should be counted: 1 owned, 0 missing.
+    // If null were NOT excluded the count would be wrong (e.g. 1 owned + 1 missing).
+    expect(screen.getByText(/1 owned/)).toBeInTheDocument();
+    expect(screen.queryByText(/missing/)).not.toBeInTheDocument();
+  });
+
+  it("shows no availability info when ALL section steps have paint_id: null", () => {
+    // A section where every step is paintless — availability badge must be absent entirely.
+    const sections = [makeSection({ id: 1, name: "Section A" })];
+    const steps = [
+      makeStep({ id: 1, section_id: 1, paint_id: null }),
+      makeStep({ id: 2, section_id: 1, paint_id: null, order_index: 1 }),
+    ];
+    render(
+      <SectionedTimeline sections={sections} steps={steps} paintMap={new Map()} />
+    );
+    expect(screen.queryByText(/owned/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/missing/)).not.toBeInTheDocument();
+  });
 });
 
 // ---------------------------------------------------------------------------
