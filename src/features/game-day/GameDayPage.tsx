@@ -6,7 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useArmyList, useArmyListWithUnits } from "@/hooks/useArmyLists";
 import { useFactions } from "@/hooks/useFactions";
+import { useRulesSyncMeta } from "@/hooks/useDatasheet";
+import { getSyncFreshness } from "@/lib/syncFreshness";
 import { GameDayHeader } from "./GameDayHeader";
+import { GameDayReadinessPanel } from "./GameDayReadinessPanel";
 import { StrategemsTab } from "./StrategemsTab";
 import { UnitsTab } from "./UnitsTab";
 import { ChecklistTab } from "./ChecklistTab";
@@ -20,6 +23,8 @@ export function GameDayPage({ listId }: GameDayPageProps) {
   const { data: list, isLoading: listLoading } = useArmyList(listId);
   const { data: units } = useArmyListWithUnits(listId);
   const { data: factions } = useFactions();
+  const { data: syncMeta } = useRulesSyncMeta();
+  const freshness = getSyncFreshness(syncMeta?.last_sync_at ?? null);
 
   const faction = useMemo(
     () =>
@@ -61,6 +66,12 @@ export function GameDayPage({ listId }: GameDayPageProps) {
         factionName={faction?.name ?? null}
         detachmentName={list.detachment_name}
         listId={listId}
+      />
+
+      <GameDayReadinessPanel
+        units={units ?? []}
+        pointsLimit={list.points_limit}
+        freshness={freshness}
       />
 
       <Tabs defaultValue="stratagems" className="flex-1 px-4 py-3">

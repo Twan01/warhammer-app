@@ -40,9 +40,11 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
   };
 }
 
+import type { SyncFreshness } from "@/lib/syncFreshness";
+
 const defaultProps = {
   pointsLimit: null as number | null,
-  freshness: "fresh" as const,
+  freshness: "fresh" as SyncFreshness,
 };
 
 function renderPanel(
