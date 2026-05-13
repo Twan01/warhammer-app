@@ -315,7 +315,7 @@ Plans:
   3. Game Day pre-game view shows tactical coverage warnings (missing key roles) and stale data alerts
 **Plans**: 1 plan
 Plans:
-- [ ] 67-01-PLAN.md — GameDayReadinessPanel component + GameDayPage wiring (GD-01)
+- [x] 67-01-PLAN.md — GameDayReadinessPanel component + GameDayPage wiring (GD-01) — completed 2026-05-13
 **UI hint**: yes
 
 
@@ -391,7 +391,7 @@ Plans:
 | 64. Applied Recipe Integrations | v0.2.10 | 2/3 | In Progress|  |
 | 65. Points Import Pipeline | v0.2.10 | 3/3 | Complete | 2026-05-13 |
 | 66. Army List Validation | v0.2.10 | 3/3 | Complete | 2026-05-13 |
-| 67. Game Day Integration | v0.2.10 | 0/1 | Not started | - |
+| 67. Game Day Integration | v0.2.10 | 1/1 | Complete | 2026-05-13 |
 | 68. Infrastructure Quick Wins | v0.2.11 | 2/2 | Complete | 2026-05-13 | ✅ |
 | 69. Paintless Recipe Steps | v0.2.11 | 1/1 | Complete | 2026-05-13 | ✅ |
 | 70. Non-Destructive Recipe Save | v0.2.11 | 2/2 | Complete | 2026-05-13 | ✅ |

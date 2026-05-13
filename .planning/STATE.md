@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.2.10
 milestone_name: Applied Recipes, Points Import & List Validation
 status: executing
-stopped_at: Phase 67 planned — ready for execution
-last_updated: "2026-05-13T14:00:00.000Z"
-last_activity: 2026-05-13
+stopped_at: Phase 67 plan 01 complete
+last_updated: "2026-05-13T13:54:00.000Z"
+last_activity: 2026-05-13 -- Phase 67-01 executed (GameDayReadinessPanel)
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 13
-  completed_plans: 12
-  percent: 92
+  completed_plans: 13
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-13)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play"
-**Current focus:** Phase 67 — next in milestone
+**Current focus:** Phase 67 — game-day-integration
 
 ## Current Position
 
-Phase: 67 (Game Day Integration) — PLANNED
-Plan: 1 plan, 0 of 1 executed
-Next: Execute 67-01
-Last activity: 2026-05-13
+Phase: 67 (game-day-integration) — COMPLETE
+Plan: 1 of 1 (complete)
+Next: Verify phase 67 / milestone v0.2.10 complete
+Last activity: 2026-05-13 -- Phase 67-01 executed (GameDayReadinessPanel)
 
-Progress: [█████████░] 86%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -54,6 +54,8 @@ Progress: [█████████░] 86%
 - Migration 025: tactical_role TEXT column on army_list_units
 - clearArmyListPointsLimit solves COALESCE-blocks-NULL pitfall for points_limit
 - Full-replacement UPDATE on army_list_units must pass all fields (points_override, notes, tactical_role)
+- GameDayReadinessPanel is a new presentation component (not ArmyListSummaryBar reuse) per D-02
+- Freshness acquired in GameDayPage via useRulesSyncMeta + getSyncFreshness, passed as prop to panel
 
 ### Pending Todos
 
@@ -65,6 +67,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-13T14:00:00.000Z
-Stopped at: Phase 67 planned — ready for execution
-Resume: Execute 67-01 (GameDayReadinessPanel + wire into GameDayPage)
+Last session: 2026-05-13T13:54:00.000Z
+Stopped at: Phase 67 plan 01 complete
+Resume: Verify phase 67 / milestone v0.2.10 complete
