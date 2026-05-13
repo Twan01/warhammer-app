@@ -242,7 +242,7 @@ Plans:
 - [ ] 63-01-PLAN.md — Accordion primitive + AssignmentChecklist component (AR-03)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 63-02-PLAN.md — ApplyRecipeDialog + AppliedRecipesTab + UnitDetailSheet wiring (AR-02, AR-04)
+- [x] 63-02-PLAN.md — ApplyRecipeDialog + AppliedRecipesTab + UnitDetailSheet wiring (AR-02, AR-04)
 - [ ] 63-03-PLAN.md — ApplyToUnitsDialog + RecipeDetailSheet bulk apply button (AR-07)
 
 ### Phase 64: Applied Recipe Integrations
