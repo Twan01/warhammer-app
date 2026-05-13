@@ -6,15 +6,9 @@ HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby 
 
 Shipped through v0.2.11 (72 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps), army list builder with detachment selection and inline rules context, battle log, spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard and KanbanCards, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist, pre-game readiness panel with points/freshness/warnings/role coverage), and a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK).
 
-## Current Milestone: v0.2.10 Applied Recipes, Points Import & List Validation — COMPLETE
-
-**Goal:** Deliver applied recipes, points import pipeline, and advanced army list validation.
-
-**Status:** Complete — all 7 phases (61-67) shipped 2026-05-13.
-
 ## Current State
 
-v0.2.11 shipped 2026-05-13. v0.2.10 shipped 2026-05-13. v0.2.9 shipped 2026-05-12.
+v0.2.11 shipped 2026-05-13. v0.2.10 archived 2026-05-13. Planning next milestone.
 
 ## Core Value
 
@@ -130,6 +124,29 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ Log Session section-aware cascading selectors (recipe → section → step) — Phase 59 — v0.2.9
 - ✓ Kanban card current workflow/next step display — Phase 60 — v0.2.9
 - ✓ Current Focus card section-aware next action guidance — Phase 60 — v0.2.9
+
+*All v0.2.10 requirements verified and shipped 2026-05-13*
+
+- ✓ RH-01: Migration integrity — fresh install creates recipe_sections with all 4 workflow metadata columns — Phase 61 — v0.2.10
+- ✓ RH-02: Workflow position degradation safety — renaming sections doesn't break sessions — Phase 61 — v0.2.10
+- ✓ RH-03: Progressive disclosure for simple recipes preserved — Phase 61 — v0.2.10
+- ✓ AR-01: Applied recipe data model with composite key surviving DELETE-all + re-INSERT — Phase 62 — v0.2.10
+- ✓ AR-02: Apply recipe with section/step preview from Collection/Unit Detail — Phase 63 — v0.2.10
+- ✓ AR-03: Step-by-step checklist with independent progress per assignment — Phase 63 — v0.2.10
+- ✓ AR-04: Unit detail applied recipe progress display with completion percentage — Phase 63 — v0.2.10
+- ✓ AR-05: Log Session auto-marks applied recipe step on session creation — Phase 64 — v0.2.10
+- ✓ AR-06: Kanban cards and CurrentFocusCard show applied recipe progress — Phase 64 — v0.2.10
+- ✓ AR-07: Bulk apply recipe to multiple units with independent progress — Phase 63 — v0.2.10
+- ✓ PI-01: Points import schema with synced_unit_points cache in hobbyforge.db — Phase 65 — v0.2.10
+- ✓ PI-02: Wahapedia sync pipeline extended with points CSV import — Phase 65 — v0.2.10
+- ✓ PI-03: Points freshness badges (stale/fresh/unknown) on army lists and rules hub — Phase 65 — v0.2.10
+- ✓ PI-04: Per-unit points deltas with army list impact after sync — Phase 65 — v0.2.10
+- ✓ PI-05: 5-level COALESCE chain applied atomically across all 3 query sites — Phase 65 — v0.2.10
+- ✓ LV-01: Hard validation warnings on army lists (points, freshness, ownership, readiness) — Phase 66 — v0.2.10
+- ✓ LV-02: Tactical role tags assignable to units — Phase 66 — v0.2.10
+- ✓ LV-03: Tactical role coverage visualization with strengths/weaknesses — Phase 66 — v0.2.10
+- ✓ LV-04: Health summary panel (points, ownership %, readiness %, freshness, warnings) — Phase 66 — v0.2.10
+- ✓ GD-01: Game Day pre-game readiness panel with points/freshness/warnings/role coverage — Phase 67 — v0.2.10
 
 *All v0.2.11 requirements verified and shipped 2026-05-13*
 
@@ -263,4 +280,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-13 after v0.2.11 milestone shipped*
+*Last updated: 2026-05-13 after v0.2.10 milestone archived*

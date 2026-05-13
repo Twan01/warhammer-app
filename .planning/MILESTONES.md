@@ -19,6 +19,28 @@
 
 ---
 
+## v0.2.10 Applied Recipes, Points Import & List Validation (Shipped: 2026-05-13)
+
+**Phases completed:** 7 phases (61–67), 17 plans
+**Timeline:** 2026-05-13 (single day)
+**Stats:** 166 commits, 57 files changed, +2,506 / -114 lines, 20/20 requirements satisfied
+
+**Key accomplishments:**
+- Applied recipe workflow: users apply recipes to units with step-by-step checklist, section/step toggle, bulk multi-unit apply — each unit gets independent progress tracking via unit_recipe_assignments + unit_recipe_step_progress tables
+- Painting session bridge: logging a session auto-marks the corresponding applied recipe step as completed; progress flows into Kanban cards and Dashboard CurrentFocusCard, superseding session-derived workflow position
+- Points import pipeline: Wahapedia sync extended with official points CSV, synced_unit_points cache solving cross-DB JOIN, 5-level COALESCE chain (list override > loadout override > synced > unit default > unknown), PointsFreshnessBadge and per-unit delta detection with army list impact
+- Army list validation: pure warning engine with 5-level COALESCE-aware categorization, TACTICAL_ROLES 7-role tags with coverage visualization, health summary panel (points total, ownership %, readiness %, freshness, warning count)
+- Game Day readiness: GameDayReadinessPanel surfacing points freshness, readiness gaps, tactical coverage warnings, and stale data alerts in pre-game view
+
+**Known gap:** Phases 61-64 lack VERIFICATION.md files (procedural gap; integration checker confirmed all requirements wired and working)
+
+**Archived:**
+- Roadmap: `.planning/milestones/v0.2.10-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.2.10-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.2.10-MILESTONE-AUDIT.md`
+
+---
+
 ## v0.2.9 Recipes 3.1 / Workflow Semantics & Integrations (Shipped: 2026-05-12)
 
 **Phases completed:** 4 phases (57–60), 8 plans

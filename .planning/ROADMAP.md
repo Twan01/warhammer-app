@@ -13,7 +13,7 @@
 - ✅ **v0.2.7 Recipes 3.0 / Hierarchical Painting Workflows** — Phases 48-51 (shipped 2026-05-08)
 - ✅ **v0.2.8 Rules Data Hub UI / Army Lists 2.0 / Game Day** — Phases 52-56 (shipped 2026-05-11)
 - ✅ **v0.2.9 Recipes 3.1 / Workflow Semantics & Integrations** — Phases 57-60 (shipped 2026-05-12)
-- 🚧 **v0.2.10 Applied Recipes, Points Import & List Validation** — Phases 61-67 (in progress)
+- ✅ **v0.2.10 Applied Recipes, Points Import & List Validation** — Phases 61-67 (shipped 2026-05-13)
 - ✅ **v0.2.11 Foundation Hardening** — Phases 68-72 (shipped 2026-05-13)
 
 ## Phases
@@ -43,17 +43,20 @@ Full details: `.planning/milestones/v0.2.9-ROADMAP.md`
 
 </details>
 
-### 🚧 v0.2.10 Applied Recipes, Points Import & List Validation (In Progress)
+<details>
+<summary>✅ v0.2.10 Applied Recipes, Points Import & List Validation (Phases 61-67) — SHIPPED 2026-05-13</summary>
 
-**Milestone Goal:** Turn recipes into actionable painting plans with per-unit progress, add a points import data layer with freshness tracking, and harden army list validation with tactical role coverage.
+- [x] Phase 61: Recipe Workflow Hardening (2/2 plans) — completed 2026-05-13
+- [x] Phase 62: Applied Recipe Data Layer (2/2 plans) — completed 2026-05-13
+- [x] Phase 63: Applied Recipe UX (3/3 plans) — completed 2026-05-13
+- [x] Phase 64: Applied Recipe Integrations (3/3 plans) — completed 2026-05-13
+- [x] Phase 65: Points Import Pipeline (3/3 plans) — completed 2026-05-13
+- [x] Phase 66: Army List Validation (3/3 plans) — completed 2026-05-13
+- [x] Phase 67: Game Day Integration (1/1 plan) — completed 2026-05-13
 
-- [x] **Phase 61: Recipe Workflow Hardening** - Verify migration integrity, stabilize section-aware log sessions, polish workflow metadata UX
-- [x] **Phase 62: Applied Recipe Data Layer** - Schema, types, queries, hooks for unit_recipe_assignments + unit_recipe_step_progress
-- [x] **Phase 63: Applied Recipe UX** - Assignment sheet, per-unit step checklist, progress display, bulk apply
-- [x] **Phase 64: Applied Recipe Integrations** - Log Session step completion, Kanban/CurrentFocus applied recipe progress
-- [x] **Phase 65: Points Import Pipeline** (3/3 plans) - Extend Wahapedia sync with official points, freshness badges, delta detection, 5-level COALESCE update
-- [x] **Phase 66: Army List Validation** (3/3 plans) - Hard warnings, tactical tags, role coverage, health summary panel
-- [ ] **Phase 67: Game Day Integration** - Pre-game points/readiness/tactical warnings capstone
+Full details: `.planning/milestones/v0.2.10-ROADMAP.md`
+
+</details>
 
 ---
 
@@ -193,133 +196,9 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 
 </details>
 
-## Phase Details
-
-### Phase 61: Recipe Workflow Hardening
-**Goal**: Existing recipe workflow is rock-solid before building applied recipes on top of it
-**Depends on**: Nothing (first phase of v0.2.10)
-**Requirements**: RH-01, RH-02, RH-03
-**Success Criteria** (what must be TRUE):
-  1. Fresh install creates recipe_sections table with all 4 workflow metadata columns (section_type, technique, execution_mode, applies_to) without errors
-  2. Renaming a recipe section does not break or orphan any painting session records that reference that section
-  3. Section_type dropdown values match the user's mental model of painting workflow stages, and simple recipes (single section, no metadata) show no unnecessary workflow UI
-**Plans**: 2 plans
-Plans:
-**Wave 1**
-- [ ] 61-01-PLAN.md — Commit pre-existing bug fixes (D-11) + verify migration build integrity (RH-01)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 61-02-PLAN.md — Write tests for workflow position degradation (RH-02) + progressive disclosure (RH-03)
-
-### Phase 62: Applied Recipe Data Layer
-**Goal**: Applied recipe data model exists and is exercised via TDD pure functions before any UI work
-**Depends on**: Phase 61
-**Requirements**: AR-01
-**Success Criteria** (what must be TRUE):
-  1. unit_recipe_assignments table stores recipe-to-unit mappings with created_at timestamp
-  2. unit_recipe_step_progress table tracks per-step completion using composite key (recipe_id, order_index) that survives DELETE-all + re-INSERT recipe saves
-  3. Typed query functions for create/read/update/delete assignments and step progress exist with React Query hooks
-  4. Pure function computing completion percentage from step progress data passes unit tests
-**Plans:** 2 plans
-Plans:
-**Wave 1**
-- [ ] 62-01-PLAN.md — Migration 021 + types + TDD pure functions (computeCompletionPercentage, computeAssignmentProgress)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 62-02-PLAN.md — Query module (8 CRUD functions) + React Query hooks (7 hooks, 4 cache keys) + tests
-
-### Phase 63: Applied Recipe UX
-**Goal**: Users can apply recipes to units and track painting progress step-by-step
-**Depends on**: Phase 62
-**Requirements**: AR-02, AR-03, AR-04, AR-07
-**Success Criteria** (what must be TRUE):
-  1. User can apply a recipe to a unit from Collection or Unit Detail, with section/step preview shown before confirming
-  2. User can tick individual steps (and entire sections) as completed for a specific unit assignment, with progress stored independently from the recipe template
-  3. Unit detail shows applied recipe progress as a checklist with completion percentage per assignment
-  4. User can select multiple units and apply the same recipe to all of them, each getting independent progress tracking
-**Plans:** 3 plans
-Plans:
-**Wave 1**
-- [ ] 63-01-PLAN.md — Accordion primitive + AssignmentChecklist component (AR-03)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-- [x] 63-02-PLAN.md — ApplyRecipeDialog + AppliedRecipesTab + UnitDetailSheet wiring (AR-02, AR-04)
-- [ ] 63-03-PLAN.md — ApplyToUnitsDialog + RecipeDetailSheet bulk apply button (AR-07)
-
-### Phase 64: Applied Recipe Integrations
-**Goal**: Applied recipe progress flows into existing painting workflow surfaces (Log Session, Kanban, Dashboard)
-**Depends on**: Phase 63
-**Requirements**: AR-05, AR-06
-**Success Criteria** (what must be TRUE):
-  1. When creating a Log Session, user can optionally mark an applied recipe step as completed during that session
-  2. Kanban cards show applied recipe progress (e.g., "3/12 steps") and next step name when an applied recipe exists
-  3. CurrentFocusCard shows applied recipe progress and next step, replacing session-derived workflow position when applied recipe data is available
-**Plans**: 3 plans
-Plans:
-**Wave 1**
-- [x] 64-01-PLAN.md — LogSessionSheet step auto-completion bridge (AR-05)
-- [x] 64-02-PLAN.md — AppliedRecipeProgress type + useKanbanEnrichment + Kanban card display (AR-06)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 64-03-PLAN.md — DashboardPage + CurrentFocusCard applied progress display (AR-06)
-**UI hint**: yes
-
-### Phase 65: Points Import Pipeline
-**Goal**: Official points flow through Wahapedia sync with provenance tracking, and point changes ripple visibly across army lists
-**Depends on**: Phase 61 (independent of AR phases; sequenced after Phase 64 for focus)
-**Requirements**: PI-01, PI-02, PI-03, PI-04, PI-05
-**Success Criteria** (what must be TRUE):
-  1. Rules.db schema extended with points data columns/table populated via Wahapedia sync; user overrides remain in hobbyforge.db
-  2. Wahapedia sync pipeline imports official points data alongside existing rules data, with sync metadata tracked
-  3. Points freshness is visible on army lists and rules hub via stale/fresh/unknown badges showing source version and sync date
-  4. After sync, user sees per-unit points deltas (increased/decreased/new/removed) and which army lists are affected
-  5. All 3 COALESCE query sites are updated atomically to the 5-level chain: list override > loadout override > synced points > unit default > unknown
-**Plans:** 3 plans
-Plans:
-**Wave 1**
-- [x] 65-01-PLAN.md — Migrations (rules_004, 024) + types + COALESCE 5-level chain + computePointsDelta TDD (PI-01, PI-05, PI-04) — completed 2026-05-13
-
-**Wave 2** *(blocked on Wave 1 completion)*
-- [x] 65-02-PLAN.md — Rust bulk_sync_rules extension + useRulesSync points pipeline + delta/cache/invalidation (PI-02, PI-04) — completed 2026-05-13
-
-**Wave 3** *(blocked on Wave 2 completion)*
-- [x] 65-03-PLAN.md — PointsFreshnessBadge + PointsDeltaSection + army list/rules hub integration (PI-03, PI-04) — completed 2026-05-13
-**UI hint**: yes
-
-### Phase 66: Army List Validation
-**Goal**: Army lists surface comprehensive health information so users know exactly what needs attention before playing
-**Depends on**: Phase 65
-**Requirements**: LV-01, LV-02, LV-03, LV-04
-**Success Criteria** (what must be TRUE):
-  1. Army list shows hard validation warnings: points exceeded, unknown/stale points, manual override in use, unowned/unbuilt/unpainted/not-battle-ready units
-  2. User can assign tactical role tags (anti_tank, screening, objective_holder, etc.) to units
-  3. Army list shows aggregated tactical role coverage with visual indicators of strengths and weaknesses
-  4. Army list detail displays a health summary panel showing points total, ownership percentage, readiness percentage, freshness status, and warning count
-**Plans:** 2/3 plans executed
-Plans:
-**Wave 1**
-- [x] 66-01-PLAN.md — Pure warning function + TACTICAL_ROLES types + unit tests (LV-01, LV-03, LV-04) — completed 2026-05-13
-- [x] 66-02-PLAN.md — Migration 025 (tactical_role) + query/hook extensions (LV-02, LV-04)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 66-03-PLAN.md — Health summary panel + warning icons + tactical role dropdown UI (LV-01, LV-02, LV-03, LV-04)
-**UI hint**: yes
-
-### Phase 67: Game Day Integration
-**Goal**: Game Day mode surfaces all validation warnings before a game so the user walks in fully informed
-**Depends on**: Phase 66
-**Requirements**: GD-01
-**Success Criteria** (what must be TRUE):
-  1. Game Day pre-game view shows points freshness warnings (stale source, unknown points)
-  2. Game Day pre-game view shows readiness gaps (unpainted/unbuilt units in the army list)
-  3. Game Day pre-game view shows tactical coverage warnings (missing key roles) and stale data alerts
-**Plans**: 1 plan
-Plans:
-- [x] 67-01-PLAN.md — GameDayReadinessPanel component + GameDayPage wiring (GD-01) — completed 2026-05-13
-**UI hint**: yes
-
-
 ## Progress
+
+**Note:** Phase details for v0.2.10 archived to `.planning/milestones/v0.2.10-ROADMAP.md`
 
 **Execution Order:** 61 > 62 > 63 > 64 > 65 > 66 > 67 > 68 > 69 > 70 > 71 > 72
 
@@ -387,8 +266,8 @@ Plans:
 | 60. Kanban & CurrentFocus Integration | v0.2.9 | 2/2 | Complete | 2026-05-12 |
 | 61. Recipe Workflow Hardening | v0.2.10 | 2/2 | Complete | 2026-05-13 |
 | 62. Applied Recipe Data Layer | v0.2.10 | 2/2 | Complete | 2026-05-13 |
-| 63. Applied Recipe UX | v0.2.10 | 0/3 | Not started | - |
-| 64. Applied Recipe Integrations | v0.2.10 | 2/3 | In Progress|  |
+| 63. Applied Recipe UX | v0.2.10 | 3/3 | Complete | 2026-05-13 |
+| 64. Applied Recipe Integrations | v0.2.10 | 3/3 | Complete | 2026-05-13 |
 | 65. Points Import Pipeline | v0.2.10 | 3/3 | Complete | 2026-05-13 |
 | 66. Army List Validation | v0.2.10 | 3/3 | Complete | 2026-05-13 |
 | 67. Game Day Integration | v0.2.10 | 1/1 | Complete    | 2026-05-13 |

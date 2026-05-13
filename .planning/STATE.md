@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-13)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play"
-**Current focus:** Phase 67 — game-day-integration
+**Current focus:** Planning next milestone
 
 ## Current Position
 
