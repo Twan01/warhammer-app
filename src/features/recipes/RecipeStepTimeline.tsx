@@ -18,7 +18,7 @@ export function RecipeStepTimeline({ steps, paintMap, stepPhotoUrls }: RecipeSte
   return (
     <div className="flex flex-col" data-testid="step-timeline">
       {steps.map((step, i) => {
-        const paint = paintMap.get(step.paint_id);
+        const paint = step.paint_id != null ? paintMap.get(step.paint_id) : undefined;
         const missing = isPaintMissing(paint);
         const isLast = i === steps.length - 1;
 

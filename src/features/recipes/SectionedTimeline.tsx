@@ -38,7 +38,7 @@ export function SectionedTimeline({
   const sectionAvailability = useMemo(() => {
     const map = new Map<number, { owned: number; missing: number }>();
     for (const step of steps) {
-      if (step.section_id === null || step.paint_id === 0) continue;
+      if (step.section_id === null || step.paint_id === null || step.paint_id === 0) continue;
       const paint = paintMap.get(step.paint_id);
       const current = map.get(step.section_id) ?? { owned: 0, missing: 0 };
       if (isPaintMissing(paint)) {

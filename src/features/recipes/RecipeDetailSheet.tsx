@@ -93,7 +93,7 @@ export function RecipeDetailSheet({
 
   const missingPaints = useMemo(() => {
     return steps
-      .filter((s) => s.paint_id != null && s.paint_id !== 0)
+      .filter((s): s is typeof s & { paint_id: number } => s.paint_id != null && s.paint_id !== 0)
       .map((s) => paintMap.get(s.paint_id))
       .filter((p): p is NonNullable<typeof p> => p !== undefined && isPaintMissing(p));
   }, [steps, paintMap]);

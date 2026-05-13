@@ -5,7 +5,7 @@
 export interface RecipeStep {
   id: number;
   recipe_id: number;
-  paint_id: number;
+  paint_id: number | null;
   step_name: string;
   order_index: number;
   notes: string | null;
