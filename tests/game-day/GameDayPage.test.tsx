@@ -51,7 +51,7 @@ vi.mock("@/hooks/useArmyLists", () => ({
         effective_points: 80,
         faction_id: 10,
         status_assembly: 1,
-        status_painting: "Painted",
+        status_painting: "Completed",
         painting_percentage: 100,
         tactical_role: null,
       },

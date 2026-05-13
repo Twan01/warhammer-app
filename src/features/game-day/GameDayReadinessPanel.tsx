@@ -101,7 +101,10 @@ export function GameDayReadinessPanel({
     return counts;
   }, [units]);
 
-  const hasAnyRole = units.some((u) => u.tactical_role !== null);
+  const hasAnyRole = useMemo(
+    () => units.some((u) => u.tactical_role !== null),
+    [units],
+  );
 
   const pointsValue =
     pointsLimit !== null
@@ -168,18 +171,18 @@ export function GameDayReadinessPanel({
                 {unitsWithWarnings.map(({ unit, warnings }) => (
                   <div key={unit.id} className="flex flex-col gap-0.5">
                     <span className="text-sm font-medium">{unit.unit_name}</span>
-                    {warnings.hard.map((w) => (
+                    {warnings.hard.map((w, i) => (
                       <span
-                        key={w}
+                        key={`hard-${i}`}
                         className="flex items-center gap-1 text-xs text-destructive"
                       >
                         <AlertCircle className="h-3 w-3" />
                         {w}
                       </span>
                     ))}
-                    {warnings.soft.map((w) => (
+                    {warnings.soft.map((w, i) => (
                       <span
-                        key={w}
+                        key={`soft-${i}`}
                         className="flex items-center gap-1 text-xs text-amber-500"
                       >
                         <AlertTriangle className="h-3 w-3" />
