@@ -14,7 +14,7 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
     id: 1, list_id: 1, unit_id: 1, points_override: null, notes: null,
     created_at: "2024-01-01", unit_name: "Intercessors", unit_points: 100,
     faction_id: 1, status_assembly: 1, status_painting: "Completed",
-    painting_percentage: 100, effective_points: 100,
+    painting_percentage: 100, effective_points: 100, tactical_role: null,
     ...overrides,
   };
 }

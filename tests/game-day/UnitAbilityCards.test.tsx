@@ -34,6 +34,7 @@ const mockUnit: ArmyListUnitRow = {
   status_assembly: 1,
   status_painting: "Battle Ready",
   painting_percentage: 100,
+  tactical_role: null,
 };
 
 const opgAbility: RwDatasheetAbility = {

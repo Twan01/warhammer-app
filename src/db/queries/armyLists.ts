@@ -155,8 +155,8 @@ export async function removeUnitFromList(armyListUnitId: number): Promise<void> 
 export async function updateArmyListUnit(input: UpdateArmyListUnitInput): Promise<void> {
   const db = await getDb();
   await db.execute(
-    "UPDATE army_list_units SET points_override=$2, notes=$3 WHERE id=$1",
-    [input.id, input.points_override, input.notes]
+    "UPDATE army_list_units SET points_override=$2, notes=$3, tactical_role=$4 WHERE id=$1",
+    [input.id, input.points_override, input.notes, input.tactical_role]
   );
 }
 

@@ -17,6 +17,7 @@ vi.mock("@/db/client", () => ({
 import {
   getArmyLists,
   getArmyListWithUnits,
+  getArmyListUnitNames,
   createArmyList,
   updateArmyList,
   deleteArmyList,
@@ -49,6 +50,43 @@ describe("armyLists queries — getArmyLists / getArmyListWithUnits", () => {
     expect(sql).toMatch(/WHERE alu\.list_id = \$1/);
     expect(sql).toMatch(/ORDER BY alu\.created_at ASC/);
     expect(params).toEqual([7]);
+  });
+});
+
+describe("armyLists queries — getArmyListUnitNames (PI-03 deviation)", () => {
+  it("getArmyListUnitNames() JOINs army_lists, army_list_units, and units to return list_id, list_name, unit_name", async () => {
+    const mockRows = [
+      { list_id: 1, list_name: "Alpha Strike", unit_name: "Intercessors" },
+      { list_id: 1, list_name: "Alpha Strike", unit_name: "Hellblasters" },
+      { list_id: 2, list_name: "Krush Brigade", unit_name: "Intercessors" },
+    ];
+    selectMock.mockResolvedValueOnce(mockRows);
+
+    const result = await getArmyListUnitNames();
+
+    expect(result).toEqual(mockRows);
+    const [sql] = selectMock.mock.calls[0];
+    expect(sql).toMatch(/JOIN army_list_units alu ON alu\.list_id = al\.id/);
+    expect(sql).toMatch(/JOIN units u ON u\.id = alu\.unit_id/);
+    expect(sql).toMatch(/al\.id AS list_id/);
+    expect(sql).toMatch(/al\.name AS list_name/);
+    expect(sql).toMatch(/u\.name AS unit_name/);
+    expect(sql).toMatch(/ORDER BY al\.id/);
+  });
+
+  it("getArmyListUnitNames() takes no parameters (no WHERE clause filtering)", async () => {
+    selectMock.mockResolvedValueOnce([]);
+    await getArmyListUnitNames();
+
+    // Should be called with just the SQL string, no params array
+    expect(selectMock).toHaveBeenCalledTimes(1);
+    expect(selectMock.mock.calls[0]).toHaveLength(1);
+  });
+
+  it("getArmyListUnitNames() returns empty array when no army lists have units", async () => {
+    selectMock.mockResolvedValueOnce([]);
+    const result = await getArmyListUnitNames();
+    expect(result).toEqual([]);
   });
 });
 
@@ -110,19 +148,19 @@ describe("armyLists queries — addUnitToList / removeUnitFromList", () => {
 describe("armyLists queries — updateArmyListUnit (NULL-passthrough)", () => {
   it("UPDATE statement is 'SET points_override=$2, notes=$3' — NOT COALESCE — so points_override can be cleared to NULL", async () => {
     executeMock.mockResolvedValueOnce(undefined);
-    await updateArmyListUnit({ id: 7, points_override: 250, notes: "v2" });
+    await updateArmyListUnit({ id: 7, points_override: 250, notes: "v2", tactical_role: null });
 
     const [sql, params] = executeMock.mock.calls[0];
-    expect(sql).toBe("UPDATE army_list_units SET points_override=$2, notes=$3 WHERE id=$1");
+    expect(sql).toBe("UPDATE army_list_units SET points_override=$2, notes=$3, tactical_role=$4 WHERE id=$1");
     expect(sql).not.toMatch(/COALESCE/i);
-    expect(params).toEqual([7, 250, "v2"]);
+    expect(params).toEqual([7, 250, "v2", null]);
   });
 
   it("passing { id, points_override: null, notes: null } sets both columns to NULL in the DB", async () => {
     executeMock.mockResolvedValueOnce(undefined);
-    await updateArmyListUnit({ id: 7, points_override: null, notes: null });
+    await updateArmyListUnit({ id: 7, points_override: null, notes: null, tactical_role: null });
 
     const [, params] = executeMock.mock.calls[0];
-    expect(params).toEqual([7, null, null]);
+    expect(params).toEqual([7, null, null, null]);
   });
 });

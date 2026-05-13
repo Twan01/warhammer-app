@@ -78,6 +78,7 @@ export function ArmyListUnitRow({ unit, onRemove }: ArmyListUnitRowProps) {
         list_id: unit.list_id,
         points_override: numeric,
         notes: unit.notes,           // Pitfall 2 — preserve current notes
+        tactical_role: unit.tactical_role, // Pitfall 2 — preserve current role
       },
       {
         onError: () => toast.error("Failed to update points. Please try again."),
@@ -97,6 +98,7 @@ export function ArmyListUnitRow({ unit, onRemove }: ArmyListUnitRowProps) {
         list_id: unit.list_id,
         points_override: unit.points_override, // Pitfall 2 — preserve current override
         notes: notesDraft === "" ? null : notesDraft,
+        tactical_role: unit.tactical_role, // Pitfall 2 — preserve current role
       },
       {
         onSuccess: () => {

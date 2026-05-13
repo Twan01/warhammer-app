@@ -48,6 +48,7 @@ export interface ArmyListUnitRow extends ArmyListUnit {
   status_assembly: number;
   status_painting: string;
   painting_percentage: number;
+  tactical_role: string | null;
 }
 
 export interface ArmyListWithUnits {
@@ -74,4 +75,33 @@ export interface UpdateArmyListUnitInput {
   id: number;
   points_override: number | null;
   notes: string | null;
+  tactical_role: string | null;
 }
+
+/**
+ * Phase 66 — Tactical role tags (LV-02, D-07/D-08).
+ *
+ * Fixed enum of 7 roles. Single role per unit (TEXT column on army_list_units).
+ * Follows the PAINTING_STATUS_ORDER const-array pattern from src/types/unit.ts.
+ */
+export const TACTICAL_ROLES = [
+  "anti_tank",
+  "screening",
+  "objective_holder",
+  "fire_support",
+  "melee_threat",
+  "utility",
+  "transport",
+] as const;
+
+export type TacticalRole = typeof TACTICAL_ROLES[number];
+
+export const TACTICAL_ROLES_DISPLAY: Record<TacticalRole, string> = {
+  anti_tank: "Anti-Tank",
+  screening: "Screening",
+  objective_holder: "Obj. Holder",
+  fire_support: "Fire Support",
+  melee_threat: "Melee Threat",
+  utility: "Utility",
+  transport: "Transport",
+};
