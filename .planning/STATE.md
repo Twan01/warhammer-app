@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.2.10
 milestone_name: Applied Recipes, Points Import & List Validation
 status: executing
-stopped_at: v0.2.11 archived — resume Phase 66
+stopped_at: Completed 66-01-PLAN.md — warning functions + types
 last_updated: "2026-05-13T16:00:00.000Z"
 last_activity: 2026-05-13
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 14
-  completed_plans: 7
-  percent: 50
+  completed_plans: 8
+  percent: 57
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-13)
 
 ## Current Position
 
-Phase: 66 (Army List Validation) — PLANNED
-Plan: 0 of 3 complete
-Next: Execute Phase 66
+Phase: 66 (Army List Validation) — EXECUTING
+Plan: 1 of 3 complete
+Next: Execute 66-02-PLAN.md (migration + query extensions)
 Last activity: 2026-05-13
 
-Progress: [█████░░░░░] 50%
+Progress: [██████░░░░] 57%
 
 ## Performance Metrics
 
@@ -62,6 +62,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-13T16:00:00.000Z
-Stopped at: v0.2.11 archived — Phase 66 planned with 3 plans in 2 waves
-Resume: .planning/phases/66-army-list-validation/
+Last session: 2026-05-13T12:43:00.000Z
+Stopped at: Completed 66-01-PLAN.md — warning functions + tactical role types
+Resume: .planning/phases/66-army-list-validation/66-02-PLAN.md

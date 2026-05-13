@@ -298,7 +298,7 @@ Plans:
 **Plans:** 3 plans
 Plans:
 **Wave 1**
-- [ ] 66-01-PLAN.md — Pure warning function + TACTICAL_ROLES types + unit tests (LV-01, LV-03, LV-04)
+- [x] 66-01-PLAN.md — Pure warning function + TACTICAL_ROLES types + unit tests (LV-01, LV-03, LV-04) — completed 2026-05-13
 - [ ] 66-02-PLAN.md — Migration 025 (tactical_role) + query/hook extensions (LV-02, LV-04)
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -388,7 +388,7 @@ Plans:
 | 63. Applied Recipe UX | v0.2.10 | 0/3 | Not started | - |
 | 64. Applied Recipe Integrations | v0.2.10 | 2/3 | In Progress|  |
 | 65. Points Import Pipeline | v0.2.10 | 3/3 | Complete | 2026-05-13 |
-| 66. Army List Validation | v0.2.10 | 0/3 | Not started | - |
+| 66. Army List Validation | v0.2.10 | 1/3 | In Progress | - |
 | 67. Game Day Integration | v0.2.10 | 0/TBD | Not started | - |
 | 68. Infrastructure Quick Wins | v0.2.11 | 2/2 | Complete | 2026-05-13 | ✅ |
 | 69. Paintless Recipe Steps | v0.2.11 | 1/1 | Complete | 2026-05-13 | ✅ |
