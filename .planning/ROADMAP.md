@@ -311,7 +311,9 @@ Plans:
   1. User can save a recipe step form without selecting a paint; the step persists in the database with a null paint_id
   2. After closing and reopening the recipe, the paintless step appears in the step list with no paint shown
   3. Paint availability percentage on the recipe card and timeline view excludes paintless steps from both numerator and denominator
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 69-01-PLAN.md — Migration 022 (nullable paint_id) + guard removal + type update + SectionedTimeline null fix
 
 ### Phase 70: Non-Destructive Recipe Save
 **Goal**: Editing a recipe preserves all existing section and step database IDs; only genuinely changed fields are updated, only genuinely removed items are deleted
@@ -419,7 +421,7 @@ Plans:
 | 66. Army List Validation | v0.2.10 | 0/TBD | Not started | - |
 | 67. Game Day Integration | v0.2.10 | 0/TBD | Not started | - |
 | 68. Infrastructure Quick Wins | v0.2.11 | 0/TBD | Not started | - |
-| 69. Paintless Recipe Steps | v0.2.11 | 0/TBD | Not started | - |
+| 69. Paintless Recipe Steps | v0.2.11 | 0/1 | Not started | - |
 | 70. Non-Destructive Recipe Save | v0.2.11 | 0/TBD | Not started | - |
 | 71. Stable Session Section FK | v0.2.11 | 0/TBD | Not started | - |
 | 72. Data-Layer Test Suite | v0.2.11 | 0/TBD | Not started | - |
