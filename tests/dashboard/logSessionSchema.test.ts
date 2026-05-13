@@ -165,3 +165,51 @@ describe("logSessionSchema — SESS-05 (section_name field)", () => {
     expect(result.success).toBe(true);
   });
 });
+
+describe("logSessionSchema — REC-04 (recipe_section_id field)", () => {
+  it("parses successfully when recipe_section_id is omitted (field is optional)", () => {
+    const result = logSessionSchema.safeParse(BASE_VALID);
+    expect(result.success).toBe(true);
+  });
+
+  it("parses successfully when recipe_section_id is null (field is nullable)", () => {
+    const result = logSessionSchema.safeParse({ ...BASE_VALID, recipe_section_id: null });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.recipe_section_id).toBeNull();
+    }
+  });
+
+  it("parses successfully when recipe_section_id is a positive integer", () => {
+    const result = logSessionSchema.safeParse({ ...BASE_VALID, recipe_section_id: 9 });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.recipe_section_id).toBe(9);
+    }
+  });
+
+  it("fails when recipe_section_id is 0 (not positive)", () => {
+    const result = logSessionSchema.safeParse({ ...BASE_VALID, recipe_section_id: 0 });
+    expect(result.success).toBe(false);
+  });
+
+  it("fails when recipe_section_id is a negative number", () => {
+    const result = logSessionSchema.safeParse({ ...BASE_VALID, recipe_section_id: -1 });
+    expect(result.success).toBe(false);
+  });
+
+  it("buildDefaultValues shape with recipe_section_id: null parses successfully", () => {
+    const result = logSessionSchema.safeParse({
+      unit_id: 1,
+      session_date: "2026-01-01",
+      duration_minutes: 30,
+      notes: null,
+      new_status: null,
+      recipe_id: null,
+      recipe_step_id: null,
+      section_name: null,
+      recipe_section_id: null,
+    });
+    expect(result.success).toBe(true);
+  });
+});
