@@ -289,23 +289,21 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
         const dbSectionId = sectionIdMap.get(sec.localId) ?? null;
         const indexedSteps = computeOrderIndex(sec.steps);
         for (const s of indexedSteps) {
-          if (s.paint_id !== null) {
-            await addRecipePaint.mutateAsync({
-              recipe_id: recipeId,
-              paint_id: s.paint_id,
-              step_name: s.step_name,
-              order_index: s.order_index,
-              notes: s.notes,
-              painting_phase: s.painting_phase,
-              tool: s.tool,
-              technique: s.technique,
-              dilution: s.dilution,
-              time_estimate_minutes: s.time_estimate_minutes,
-              step_photo_path: s.step_photo_path ?? null,
-              alt_paint_id: s.alt_paint_id ?? null,
-              section_id: dbSectionId,
-            });
-          }
+          await addRecipePaint.mutateAsync({
+            recipe_id: recipeId,
+            paint_id: s.paint_id,
+            step_name: s.step_name,
+            order_index: s.order_index,
+            notes: s.notes,
+            painting_phase: s.painting_phase,
+            tool: s.tool,
+            technique: s.technique,
+            dilution: s.dilution,
+            time_estimate_minutes: s.time_estimate_minutes,
+            step_photo_path: s.step_photo_path ?? null,
+            alt_paint_id: s.alt_paint_id ?? null,
+            section_id: dbSectionId,
+          });
         }
       }
 
