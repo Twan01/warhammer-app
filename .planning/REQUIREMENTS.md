@@ -14,7 +14,7 @@ Requirements for the foundation hardening milestone. Each maps to roadmap phases
 
 ### Recipe Data Integrity
 
-- [ ] **REC-01**: User can create and save a recipe step without selecting a paint; paintless steps persist across edit/reopen and are excluded from paint availability calculations
+- [x] **REC-01**: User can create and save a recipe step without selecting a paint; paintless steps persist across edit/reopen and are excluded from paint availability calculations
 - [ ] **REC-02**: Editing a recipe preserves existing section/step IDs — only changed fields are updated in place, only user-removed sections/steps are deleted
 - [ ] **REC-03**: User can set and clear section workflow metadata (section_type, technique, execution_mode, applies_to); clearing persists after save/reopen
 - [ ] **REC-04**: Painting sessions store a stable recipe_section_id FK alongside denormalized section_name; renaming a section does not break session analytics
@@ -67,7 +67,7 @@ Deferred to post-v0.2.11.
 | VER-01 | Phase 68 | Pending |
 | REC-03 | Phase 68 | Pending |
 | REC-05 | Phase 68 | Pending |
-| REC-01 | Phase 69 | Pending |
+| REC-01 | Phase 69 | Complete |
 | REC-02 | Phase 70 | Pending |
 | REC-04 | Phase 71 | Pending |
 | TST-01 | Phase 72 | Pending |

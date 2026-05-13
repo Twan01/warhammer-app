@@ -62,7 +62,7 @@ Full details: `.planning/milestones/v0.2.9-ROADMAP.md`
 **Milestone Goal:** Stabilize the technical foundation — migrations, recipe data integrity, version hygiene — so future features are built on reliable data structures.
 
 - [ ] **Phase 68: Infrastructure Quick Wins** - Register migrations, validate fresh install, fix COALESCE null-clearing, fix section-aware ordering, align version numbers
-- [ ] **Phase 69: Paintless Recipe Steps** - Guard removal to persist steps without paint_id, exclude paintless steps from availability counts
+- [x] **Phase 69: Paintless Recipe Steps** - Guard removal to persist steps without paint_id, exclude paintless steps from availability counts
 - [ ] **Phase 70: Non-Destructive Recipe Save** - Three-way diff replaces DELETE-all + re-INSERT, preserving section/step IDs across edits
 - [ ] **Phase 71: Stable Session Section FK** - Migration 022 adds recipe_section_id FK to painting_sessions alongside denormalized section_name
 - [ ] **Phase 72: Data-Layer Test Suite** - Vitest + better-sqlite3 tests asserting migration parity, recipe persistence, session FK, schema shape
@@ -317,7 +317,7 @@ Plans:
   3. Paint availability percentage on the recipe card and timeline view excludes paintless steps from both numerator and denominator
 **Plans:** 1 plan
 Plans:
-- [ ] 69-01-PLAN.md — Migration 022 (nullable paint_id) + guard removal + type update + SectionedTimeline null fix
+- [x] 69-01-PLAN.md — Migration 022 (nullable paint_id) + guard removal + type update + SectionedTimeline null fix
 
 ### Phase 70: Non-Destructive Recipe Save
 **Goal**: Editing a recipe preserves all existing section and step database IDs; only genuinely changed fields are updated, only genuinely removed items are deleted
