@@ -81,12 +81,15 @@ describe("SyncStatusCard — RULES-01: freshness and row counts", () => {
   });
 
   it("renders the age label text", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-10T12:00:00Z"));
     render(
       <SyncStatusCard lastSyncDiff={noopDiff} onSyncComplete={noop} pointsDelta={null} affectedLists={[]} />,
       { wrapper: makeWrapper() },
     );
-    // The mock last_sync_at is 2026-05-09, current date is 2026-05-10 → 1 day ago
+    // The mock last_sync_at is 2026-05-09, pinned date is 2026-05-10 → 1 day ago
     expect(screen.getByText(/synced yesterday/i)).toBeDefined();
+    vi.useRealTimers();
   });
 
   it("renders row counts: datasheets, stratagems, detachments", () => {

@@ -32,7 +32,7 @@ beforeEach(() => {
 });
 
 describe("rulesSnapshot — capturePreSyncSnapshot", () => {
-  it("META-06: calls getRulesDb().select for each of the 11 SNAPSHOT_TABLES entries", async () => {
+  it("META-06: calls getRulesDb().select for each of the 12 SNAPSHOT_TABLES entries", async () => {
     // For tables with query: supply [{id, name}] rows; for null query supply [{cnt}]
     rulesSelectMock.mockImplementation((sql: string) => {
       if (sql.includes("COUNT(*)")) return Promise.resolve([{ cnt: 5 }]);
@@ -44,12 +44,12 @@ describe("rulesSnapshot — capturePreSyncSnapshot", () => {
 
     await capturePreSyncSnapshot("v1.0");
 
-    // 7 tables have a real query (SELECT id, name), 4 have null (COUNT)
-    // Total rulesDb select calls = 11
-    expect(rulesSelectMock).toHaveBeenCalledTimes(11);
+    // 8 tables have a real query (SELECT id, name), 4 have null (COUNT)
+    // Total rulesDb select calls = 12
+    expect(rulesSelectMock).toHaveBeenCalledTimes(12);
   });
 
-  it("META-06: calls getDb().execute 11 times with INSERT INTO rules_snapshot", async () => {
+  it("META-06: calls getDb().execute 12 times with INSERT INTO rules_snapshot", async () => {
     rulesSelectMock.mockImplementation((sql: string) => {
       if (sql.includes("COUNT(*)")) return Promise.resolve([{ cnt: 3 }]);
       return Promise.resolve([]);
@@ -59,11 +59,11 @@ describe("rulesSnapshot — capturePreSyncSnapshot", () => {
 
     await capturePreSyncSnapshot(null);
 
-    // 11 INSERT calls (one per table)
+    // 12 INSERT calls (one per table)
     const insertCalls = hobbyExecuteMock.mock.calls.filter((c: unknown[]) =>
       (c[0] as string).includes("INSERT INTO rules_snapshot"),
     );
-    expect(insertCalls).toHaveLength(11);
+    expect(insertCalls).toHaveLength(12);
   });
 
   it("META-06: passes wahapediaVersion to each INSERT", async () => {

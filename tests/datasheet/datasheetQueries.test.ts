@@ -148,6 +148,7 @@ describe("resolveWahapediaFactionIdByName", () => {
 
   it("G-1: returns null when no faction row matches", async () => {
     rulesSelectMock.mockResolvedValueOnce([]);
+    rulesSelectMock.mockResolvedValueOnce([]);
     const result = await resolveWahapediaFactionIdByName("Unknown Faction");
     expect(result).toBeNull();
   });

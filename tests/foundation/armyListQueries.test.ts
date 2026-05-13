@@ -37,14 +37,15 @@ describe("armyLists queries — getArmyLists / getArmyListWithUnits", () => {
     expect(selectMock).toHaveBeenCalledWith("SELECT * FROM army_lists ORDER BY name ASC");
   });
 
-  it("getArmyListWithUnits(listId) JOINs units + unit_overrides and computes 3-level COALESCE effective_points", async () => {
+  it("getArmyListWithUnits(listId) JOINs units + unit_overrides + synced_unit_points and computes 5-level COALESCE effective_points", async () => {
     selectMock.mockResolvedValueOnce([]);
     await getArmyListWithUnits(7);
 
     const [sql, params] = selectMock.mock.calls[0];
     expect(sql).toMatch(/JOIN units u ON u\.id = alu\.unit_id/);
     expect(sql).toMatch(/LEFT JOIN unit_overrides uo ON uo\.unit_id = u\.id/);
-    expect(sql).toMatch(/COALESCE\(alu\.points_override, uo\.points, u\.points, 0\) AS effective_points/);
+    expect(sql).toMatch(/LEFT JOIN synced_unit_points sup ON sup\.unit_name = u\.name/);
+    expect(sql).toMatch(/COALESCE\(alu\.points_override, sup\.points, uo\.points, u\.points, 0\) AS effective_points/);
     expect(sql).toMatch(/WHERE alu\.list_id = \$1/);
     expect(sql).toMatch(/ORDER BY alu\.created_at ASC/);
     expect(params).toEqual([7]);
