@@ -189,7 +189,10 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
   1. Fresh install creates recipe_sections table with all 4 workflow metadata columns (section_type, technique, execution_mode, applies_to) without errors
   2. Renaming a recipe section does not break or orphan any painting session records that reference that section
   3. Section_type dropdown values match the user's mental model of painting workflow stages, and simple recipes (single section, no metadata) show no unnecessary workflow UI
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 61-01-PLAN.md — Commit pre-existing bug fixes (D-11) + verify migration build integrity (RH-01)
+- [ ] 61-02-PLAN.md — Write tests for workflow position degradation (RH-02) + progressive disclosure (RH-03)
 
 ### Phase 62: Applied Recipe Data Layer
 **Goal**: Applied recipe data model exists and is exercised via TDD pure functions before any UI work
@@ -327,7 +330,7 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 | 58. Recipe Form & Timeline Display | v0.2.9 | 2/2 | Complete | 2026-05-12 |
 | 59. Session Section Cascade | v0.2.9 | 2/2 | Complete | 2026-05-12 |
 | 60. Kanban & CurrentFocus Integration | v0.2.9 | 2/2 | Complete | 2026-05-12 |
-| 61. Recipe Workflow Hardening | v0.2.10 | 0/TBD | Not started | - |
+| 61. Recipe Workflow Hardening | v0.2.10 | 0/2 | Not started | - |
 | 62. Applied Recipe Data Layer | v0.2.10 | 0/TBD | Not started | - |
 | 63. Applied Recipe UX | v0.2.10 | 0/TBD | Not started | - |
 | 64. Applied Recipe Integrations | v0.2.10 | 0/TBD | Not started | - |
