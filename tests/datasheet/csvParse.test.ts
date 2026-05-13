@@ -23,8 +23,8 @@ describe("parseWahapediaCsv", () => {
     expect(rows[0].name).toBe("Intercessors");
     expect(rows[1].id).toBe("002");
     expect(rows[1].name).toBe("Terminators");
-    // The trailing empty header is tolerated — value at empty key is empty string.
-    expect(rows[0][""]).toBe("");
+    // Trailing empty header is filtered out — no ghost "" key.
+    expect("" in rows[0]).toBe(false);
   });
 
   it("DS-01: returns [] when the input is empty or contains only the header line", () => {

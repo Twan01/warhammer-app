@@ -152,9 +152,10 @@ export function DashboardPage() {
     setDeleteDialogOpen(true);
   };
   const handleCloseDelete = () => {
+    const wasDeleting = deletingUnit;
     setDeleteDialogOpen(false);
     setDeletingUnit(null);
-    if (selectedUnit && deletingUnit && selectedUnit.id === deletingUnit.id) {
+    if (wasDeleting && selectedUnitId === wasDeleting.id) {
       setSelectedUnitId(null);
     }
   };

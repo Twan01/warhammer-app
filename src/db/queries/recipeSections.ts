@@ -94,11 +94,18 @@ export async function reorderRecipeSections(
   sections: { id: number; order_index: number }[],
 ): Promise<void> {
   const db = await getDb();
-  for (const { id, order_index } of sections) {
-    await db.execute(
-      "UPDATE recipe_sections SET order_index = $1, updated_at = datetime('now') WHERE id = $2",
-      [order_index, id],
-    );
+  await db.execute("BEGIN TRANSACTION", []);
+  try {
+    for (const { id, order_index } of sections) {
+      await db.execute(
+        "UPDATE recipe_sections SET order_index = $1, updated_at = datetime('now') WHERE id = $2",
+        [order_index, id],
+      );
+    }
+    await db.execute("COMMIT", []);
+  } catch (e) {
+    await db.execute("ROLLBACK", []);
+    throw e;
   }
 }
 

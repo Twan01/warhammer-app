@@ -68,12 +68,11 @@ export async function deleteLoadout(id: number): Promise<void> {
 export async function activateLoadout(loadoutId: number, unitId: number): Promise<void> {
   const db = await getDb();
   await db.execute(
-    "UPDATE unit_loadouts SET is_active = 0, updated_at = datetime('now') WHERE unit_id = $1",
-    [unitId],
-  );
-  await db.execute(
-    "UPDATE unit_loadouts SET is_active = 1, updated_at = datetime('now') WHERE id = $1",
-    [loadoutId],
+    `UPDATE unit_loadouts
+     SET is_active = CASE WHEN id = $1 THEN 1 ELSE 0 END,
+         updated_at = datetime('now')
+     WHERE unit_id = $2`,
+    [loadoutId, unitId],
   );
 }
 

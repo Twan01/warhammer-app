@@ -48,7 +48,7 @@ export function UnitAbilityCard({ unit, listId }: UnitAbilityCardProps) {
         ability,
         key: `${unit.unit_id}::${ability.ability_id ?? ability.name}`,
       }));
-  }, [datasheet?.abilities]);
+  }, [datasheet?.abilities, unit.unit_id]);
 
   const regularAbilities = useMemo(() => {
     const abilities = datasheet?.abilities ?? [];

@@ -84,19 +84,23 @@ describe("syncedUnitPoints schema contract", () => {
       ],
       "2026-05-13T12:00:00Z",
     );
-    // First call is DELETE, subsequent calls are INSERTs
-    expect(executeMock).toHaveBeenCalledTimes(3);
-    const [deleteSql] = executeMock.mock.calls[0];
+    // BEGIN + DELETE + 2 INSERTs + COMMIT = 5 calls
+    expect(executeMock).toHaveBeenCalledTimes(5);
+    const [beginSql] = executeMock.mock.calls[0];
+    expect(beginSql).toContain("BEGIN TRANSACTION");
+    const [deleteSql] = executeMock.mock.calls[1];
     expect(deleteSql).toContain("DELETE FROM synced_unit_points");
-    const [insertSql1, params1] = executeMock.mock.calls[1];
+    const [insertSql1, params1] = executeMock.mock.calls[2];
     expect(insertSql1).toContain("INSERT INTO synced_unit_points");
     expect(insertSql1).toContain("unit_name");
     expect(insertSql1).toContain("faction_id");
     expect(insertSql1).toContain("points");
     expect(insertSql1).toContain("synced_at");
     expect(params1).toEqual(["Intercessors", "SM", 80, "2026-05-13T12:00:00Z"]);
-    const [, params2] = executeMock.mock.calls[2];
+    const [, params2] = executeMock.mock.calls[3];
     expect(params2).toEqual(["Boyz", null, 70, "2026-05-13T12:00:00Z"]);
+    const [commitSql] = executeMock.mock.calls[4];
+    expect(commitSql).toContain("COMMIT");
   });
 
   it("getSyncedUnitPointsMap returns Map keyed by unit_name:faction_id", async () => {

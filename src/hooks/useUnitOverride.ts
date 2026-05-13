@@ -40,7 +40,8 @@ export function useUpsertUnitOverride() {
       qc.invalidateQueries({ queryKey: UNIT_OVERRIDE_KEY(variables.unit_id) });
       // Cache invalidation symmetry: override points feed into army list
       // effective_points — any army list query showing this unit must refetch.
-      qc.invalidateQueries({ queryKey: ["army-list"], exact: false });
+      qc.invalidateQueries({ queryKey: ["army-lists"], exact: false });
+      qc.invalidateQueries({ queryKey: ["army-list-readiness"], exact: false });
     },
   });
 }
@@ -51,7 +52,8 @@ export function useDeleteUnitOverride() {
     mutationFn: deleteUnitOverride,
     onSuccess: (_, unitId) => {
       qc.invalidateQueries({ queryKey: UNIT_OVERRIDE_KEY(unitId) });
-      qc.invalidateQueries({ queryKey: ["army-list"], exact: false });
+      qc.invalidateQueries({ queryKey: ["army-lists"], exact: false });
+      qc.invalidateQueries({ queryKey: ["army-list-readiness"], exact: false });
     },
   });
 }

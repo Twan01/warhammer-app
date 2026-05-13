@@ -109,10 +109,17 @@ export async function bulkCreateAssignments(
   recipeId: number,
 ): Promise<void> {
   const db = await getDb();
-  for (const unitId of unitIds) {
-    await db.execute(
-      "INSERT OR IGNORE INTO unit_recipe_assignments (unit_id, recipe_id) VALUES ($1, $2)",
-      [unitId, recipeId],
-    );
+  await db.execute("BEGIN TRANSACTION", []);
+  try {
+    for (const unitId of unitIds) {
+      await db.execute(
+        "INSERT OR IGNORE INTO unit_recipe_assignments (unit_id, recipe_id) VALUES ($1, $2)",
+        [unitId, recipeId],
+      );
+    }
+    await db.execute("COMMIT", []);
+  } catch (e) {
+    await db.execute("ROLLBACK", []);
+    throw e;
   }
 }

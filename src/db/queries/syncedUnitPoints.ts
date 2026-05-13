@@ -26,13 +26,20 @@ export async function replaceSyncedUnitPoints(
   syncedAt: string,
 ): Promise<void> {
   const db = await getDb();
-  await db.execute("DELETE FROM synced_unit_points", []);
-  for (const row of rows) {
-    await db.execute(
-      `INSERT INTO synced_unit_points (unit_name, faction_id, points, synced_at)
-       VALUES ($1, $2, $3, $4)`,
-      [row.unit_name, row.faction_id, row.points, syncedAt],
-    );
+  await db.execute("BEGIN TRANSACTION", []);
+  try {
+    await db.execute("DELETE FROM synced_unit_points", []);
+    for (const row of rows) {
+      await db.execute(
+        `INSERT INTO synced_unit_points (unit_name, faction_id, points, synced_at)
+         VALUES ($1, $2, $3, $4)`,
+        [row.unit_name, row.faction_id, row.points, syncedAt],
+      );
+    }
+    await db.execute("COMMIT", []);
+  } catch (e) {
+    await db.execute("ROLLBACK", []);
+    throw e;
   }
 }
 

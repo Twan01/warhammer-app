@@ -124,6 +124,9 @@ export async function duplicateRecipe(originalId: number, newName: string): Prom
   const original = rows[0];
   if (!original) throw new Error("Recipe not found");
 
+  await db.execute("BEGIN TRANSACTION", []);
+  try {
+
   // 2. Insert recipe copy (all 21 metadata fields copied, new name)
   const result = await db.execute(
     `INSERT INTO painting_recipes (
@@ -192,5 +195,11 @@ export async function duplicateRecipe(originalId: number, newName: string): Prom
     );
   }
 
+  await db.execute("COMMIT", []);
   return newRecipeId;
+
+  } catch (e) {
+    await db.execute("ROLLBACK", []);
+    throw e;
+  }
 }

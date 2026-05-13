@@ -209,21 +209,24 @@ describe("upsertStepProgress — SQL assertions", () => {
 describe("bulkCreateAssignments — SQL assertions", () => {
   it("uses INSERT OR IGNORE to silently skip duplicates", async () => {
     await bulkCreateAssignments([1, 2], 5);
-    const [sql] = executeMock.mock.calls[0];
+    // calls[0] is BEGIN TRANSACTION; calls[1] is first INSERT
+    const [sql] = executeMock.mock.calls[1];
     expect(sql).toContain("INSERT OR IGNORE INTO unit_recipe_assignments");
   });
 
-  it("calls db.execute once per unitId with correct params", async () => {
+  it("calls db.execute for BEGIN + once per unitId + COMMIT", async () => {
     await bulkCreateAssignments([10, 20, 30], 7);
-    expect(executeMock).toHaveBeenCalledTimes(3);
-    expect(executeMock.mock.calls[0][1]).toEqual([10, 7]);
-    expect(executeMock.mock.calls[1][1]).toEqual([20, 7]);
-    expect(executeMock.mock.calls[2][1]).toEqual([30, 7]);
+    // BEGIN + 3 INSERTs + COMMIT = 5 calls
+    expect(executeMock).toHaveBeenCalledTimes(5);
+    expect(executeMock.mock.calls[1][1]).toEqual([10, 7]);
+    expect(executeMock.mock.calls[2][1]).toEqual([20, 7]);
+    expect(executeMock.mock.calls[3][1]).toEqual([30, 7]);
   });
 
-  it("handles empty unitIds array without calling db.execute", async () => {
+  it("handles empty unitIds array with only BEGIN + COMMIT", async () => {
     await bulkCreateAssignments([], 5);
-    expect(executeMock).not.toHaveBeenCalled();
+    // BEGIN + COMMIT = 2 calls
+    expect(executeMock).toHaveBeenCalledTimes(2);
   });
 });
 

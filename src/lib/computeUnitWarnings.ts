@@ -100,11 +100,11 @@ export function computeListHealthStats(
 
   const context: WarningContext = { totalPoints, pointsLimit, freshness };
 
-  let hardWarningCount = 0;
+  let hardWarningCount = pointsExceeded ? 1 : 0;
   let softWarningCount = 0;
   for (const unit of units) {
     const warnings = computeUnitWarnings(unit, context);
-    hardWarningCount += warnings.hard.length;
+    hardWarningCount += warnings.hard.filter((w) => w !== "Points exceeded").length;
     softWarningCount += warnings.soft.length;
   }
 

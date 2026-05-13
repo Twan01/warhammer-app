@@ -11,4 +11,4 @@ export interface HobbyGoal {
 }
 
 export type CreateGoalInput = Omit<HobbyGoal, "id" | "created_at">;
-export type UpdateGoalInput = Partial<CreateGoalInput> & { id: number };
+export type UpdateGoalInput = CreateGoalInput & { id: number };

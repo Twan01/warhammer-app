@@ -35,6 +35,11 @@ export function useCountUp(
       return;
     }
 
+    if (duration <= 0) {
+      setValue(target);
+      return;
+    }
+
     // Reset to 0 on every new target / duration / delay
     setValue(0);
     startTimeRef.current = null;

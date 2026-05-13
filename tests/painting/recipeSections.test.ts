@@ -251,29 +251,31 @@ describe("deleteRecipeSection — SECT-04 delete", () => {
 // Group 5 — reorderRecipeSections (SECT-05)
 // ---------------------------------------------------------------------------
 describe("reorderRecipeSections — SECT-05", () => {
-  it("calls db.execute once per section with correct order_index ($1) and id ($2)", async () => {
+  it("calls db.execute with BEGIN + once per section + COMMIT", async () => {
     const sections = [
       { id: 3, order_index: 0 },
       { id: 1, order_index: 1 },
       { id: 2, order_index: 2 },
     ];
     await reorderRecipeSections(sections);
-    expect(executeMock).toHaveBeenCalledTimes(3);
+    // BEGIN + 3 UPDATEs + COMMIT = 5 calls
+    expect(executeMock).toHaveBeenCalledTimes(5);
 
-    const [sql0, params0] = executeMock.mock.calls[0];
-    expect(sql0).toContain("UPDATE recipe_sections SET order_index = $1");
+    const [sql1, params0] = executeMock.mock.calls[1];
+    expect(sql1).toContain("UPDATE recipe_sections SET order_index = $1");
     expect(params0).toEqual([0, 3]);
 
-    const [, params1] = executeMock.mock.calls[1];
+    const [, params1] = executeMock.mock.calls[2];
     expect(params1).toEqual([1, 1]);
 
-    const [, params2] = executeMock.mock.calls[2];
+    const [, params2] = executeMock.mock.calls[3];
     expect(params2).toEqual([2, 2]);
   });
 
   it("includes updated_at = datetime('now') in each UPDATE", async () => {
     await reorderRecipeSections([{ id: 1, order_index: 0 }]);
-    const [sql] = executeMock.mock.calls[0];
+    // calls[0] is BEGIN; calls[1] is the UPDATE
+    const [sql] = executeMock.mock.calls[1];
     expect(sql).toContain("updated_at = datetime('now')");
   });
 });

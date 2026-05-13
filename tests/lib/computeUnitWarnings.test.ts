@@ -233,12 +233,12 @@ describe("computeListHealthStats", () => {
     expect(stats.pointsExceeded).toBe(false);
   });
 
-  it("counts hardWarnings across all units", () => {
+  it("counts hardWarnings — points exceeded counted once at list level", () => {
     const units = [makeUnit(), makeUnit()];
-    // Points exceeded is list-level, flagged on every unit
+    // Points exceeded is list-level, counted once (not per-unit)
     const stats = computeListHealthStats(units, 100, "fresh");
-    // totalPoints = 200 > 100, so both units get a hard warning
-    expect(stats.hardWarningCount).toBe(2);
+    // totalPoints = 200 > 100, but points exceeded is deduplicated to 1
+    expect(stats.hardWarningCount).toBe(1);
   });
 
   it("counts softWarnings across all units", () => {

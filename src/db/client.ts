@@ -17,17 +17,17 @@
  */
 import Database from "@tauri-apps/plugin-sql";
 
-let _db: Database | null = null;
+let _dbPromise: Promise<Database> | null = null;
 
 export async function getDb(): Promise<Database> {
-  if (!_db) {
-    _db = await Database.load("sqlite:hobbyforge.db");
-    // Pitfall 2: FK enforcement is per-connection and OFF by default.
-    // Run this immediately on first load so every subsequent query has
-    // FK constraints active.
-    await _db.execute("PRAGMA foreign_keys = ON");
+  if (!_dbPromise) {
+    _dbPromise = (async () => {
+      const db = await Database.load("sqlite:hobbyforge.db");
+      await db.execute("PRAGMA foreign_keys = ON");
+      return db;
+    })();
   }
-  return _db;
+  return _dbPromise;
 }
 
 /**
@@ -36,5 +36,5 @@ export async function getDb(): Promise<Database> {
  * production code.
  */
 export function __resetDbForTesting(): void {
-  _db = null;
+  _dbPromise = null;
 }

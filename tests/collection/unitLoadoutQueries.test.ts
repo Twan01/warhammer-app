@@ -56,21 +56,13 @@ describe("unitLoadoutQueries", () => {
 
   // LOAD-02: activateLoadout sets is_active=1 on target and 0 on all others
   describe("activateLoadout", () => {
-    it("deactivates all loadouts for unit then activates the target", async () => {
-      mockDb.execute.mockResolvedValue({ rowsAffected: 1 });
+    it("atomically sets is_active via CASE expression in a single UPDATE", async () => {
+      mockDb.execute.mockResolvedValue({ rowsAffected: 2 });
       await activateLoadout(2, 1);
-      expect(mockDb.execute).toHaveBeenCalledTimes(2);
-      // First call: deactivate all for unit
-      expect(mockDb.execute).toHaveBeenNthCalledWith(
-        1,
-        expect.stringContaining("SET is_active = 0"),
-        [1],
-      );
-      // Second call: activate target loadout
-      expect(mockDb.execute).toHaveBeenNthCalledWith(
-        2,
-        expect.stringContaining("SET is_active = 1"),
-        [2],
+      expect(mockDb.execute).toHaveBeenCalledTimes(1);
+      expect(mockDb.execute).toHaveBeenCalledWith(
+        expect.stringContaining("CASE WHEN id = $1 THEN 1 ELSE 0 END"),
+        [2, 1],
       );
     });
   });

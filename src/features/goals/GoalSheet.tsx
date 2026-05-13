@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
@@ -91,6 +92,9 @@ export function GoalSheet({ open, onOpenChange, editingGoal }: GoalSheetProps) {
       <SheetContent className="overflow-y-auto">
         <SheetHeader>
           <SheetTitle>{isEdit ? "Edit Goal" : "New Goal"}</SheetTitle>
+          <SheetDescription>
+            {isEdit ? "Update your painting target." : "Set a painting target for this period."}
+          </SheetDescription>
         </SheetHeader>
 
         <Form {...form}>

@@ -64,6 +64,9 @@ export async function capturePreSyncSnapshot(wahapediaVersion?: string | null): 
       rowCount = rows.length;
       snapshotData = JSON.stringify(rows);
     } else {
+      if (!SNAPSHOT_TABLES.some((s) => s.table === table)) {
+        throw new Error(`Unknown snapshot table: ${table}`);
+      }
       const countRows = await rulesDb.select<{ cnt: number }[]>(
         `SELECT COUNT(*) as cnt FROM ${table}`,
         [],

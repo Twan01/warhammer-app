@@ -248,7 +248,7 @@ export function PlaybookTab({
             await upsertOverride.mutateAsync(overridePayload);
           } catch {
             // Override save failure is non-critical — strategy note already saved
-            console.warn("[PlaybookTab] override save failed");
+            // override save failure is non-critical — strategy note already saved
           }
         }
       }
@@ -468,11 +468,11 @@ export function PlaybookTab({
   function applyIncomingOrRouteConflicts(fresh: FullDatasheet) {
     const m0 = fresh.models[0] ?? null;
     const incomingM = m0 ? coerceStatToNumber(m0.M) : null;
-    const incomingT = m0 ? m0.T : null;
+    const incomingT = m0 ? coerceStatToNumber(m0.T as unknown as string) : null;
     const incomingSv = m0 ? coerceStatToNumber(m0.Sv) : null;
-    const incomingW = m0 ? m0.W : null;
+    const incomingW = m0 ? coerceStatToNumber(m0.W as unknown as string) : null;
     const incomingLd = m0 ? coerceStatToNumber(m0.Ld) : null;
-    const incomingOC = m0 ? m0.OC : null;
+    const incomingOC = m0 ? coerceStatToNumber(m0.OC as unknown as string) : null;
     const incomingAbilities = formatDatasheetAbilitiesAsText(fresh.abilities);
     const incomingKeywords = fresh.keywords.map((k) => k.keyword).join(", ");
 
@@ -537,11 +537,11 @@ export function PlaybookTab({
     const incomingAbilitiesText = formatDatasheetAbilitiesAsText(payload.datasheet.abilities);
     const incomingKeywordsText = payload.datasheet.keywords.map((k) => k.keyword).join(", ");
     if (resolution.M === "use" && m0) setMove(coerceStatToNumber(m0.M));
-    if (resolution.T === "use" && m0) setToughness(m0.T);
+    if (resolution.T === "use" && m0) setToughness(coerceStatToNumber(m0.T as unknown as string));
     if (resolution.Sv === "use" && m0) setSaveStat(coerceStatToNumber(m0.Sv));
-    if (resolution.W === "use" && m0) setWounds(m0.W);
+    if (resolution.W === "use" && m0) setWounds(coerceStatToNumber(m0.W as unknown as string));
     if (resolution.Ld === "use" && m0) setLeadership(coerceStatToNumber(m0.Ld));
-    if (resolution.OC === "use" && m0) setObjectiveControl(m0.OC);
+    if (resolution.OC === "use" && m0) setObjectiveControl(coerceStatToNumber(m0.OC as unknown as string));
     if (resolution.abilities === "use") setAbilities(incomingAbilitiesText);
     if (resolution.keywords === "use") setKeywords(incomingKeywordsText);
     onClearImportResolution?.();

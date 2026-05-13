@@ -75,7 +75,7 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
   const warnings = useMemo(() => {
     const ctx: WarningContext = { totalPoints, pointsLimit, freshness };
     return computeUnitWarnings(unit, ctx);
-  }, [unit.effective_points, unit.points_override, unit.status_painting, unit.status_assembly, totalPoints, pointsLimit, freshness]);
+  }, [unit, totalPoints, pointsLimit, freshness]);
 
   const candidatePoints = useMemo(() => {
     if (pendingTierId === null) return null;

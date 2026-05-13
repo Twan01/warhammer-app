@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { toast } from "sonner";
 import { Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -63,11 +64,14 @@ export function GoalsPage() {
     setDeleteDialogOpen(true);
   }
 
-  function handleDeleteConfirm() {
-    if (deletingGoal) {
-      deleteGoalMutation.mutate(deletingGoal.id);
+  async function handleDeleteConfirm() {
+    if (!deletingGoal) return;
+    try {
+      await deleteGoalMutation.mutateAsync(deletingGoal.id);
       setDeleteDialogOpen(false);
       setDeletingGoal(null);
+    } catch {
+      toast.error("Failed to delete goal.");
     }
   }
 

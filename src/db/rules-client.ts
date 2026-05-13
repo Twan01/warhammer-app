@@ -12,16 +12,17 @@
  */
 import Database from "@tauri-apps/plugin-sql";
 
-let _rulesDb: Database | null = null;
+let _rulesDbPromise: Promise<Database> | null = null;
 
 export async function getRulesDb(): Promise<Database> {
-  if (!_rulesDb) {
-    _rulesDb = await Database.load("sqlite:rules.db");
-    // FK enforcement is per-connection. rules.db FKs (e.g. rw_datasheet_models
-    // → rw_datasheets) need this same pragma as hobbyforge.db.
-    await _rulesDb.execute("PRAGMA foreign_keys = ON");
+  if (!_rulesDbPromise) {
+    _rulesDbPromise = (async () => {
+      const db = await Database.load("sqlite:rules.db");
+      await db.execute("PRAGMA foreign_keys = ON");
+      return db;
+    })();
   }
-  return _rulesDb;
+  return _rulesDbPromise;
 }
 
 /**
@@ -29,5 +30,5 @@ export async function getRulesDb(): Promise<Database> {
  * to force a fresh connection. NOT used in production code.
  */
 export function __resetRulesDbForTesting(): void {
-  _rulesDb = null;
+  _rulesDbPromise = null;
 }

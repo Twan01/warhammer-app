@@ -63,12 +63,12 @@ export function ShowcaseMode({ units, photos, factions, onClose }: ShowcaseModeP
   // Keyboard navigation
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      if (units.length === 0) return;
       if (e.key === "Escape") {
         handleClose();
       } else if (e.key === "ArrowRight") {
         setIndex((i) => (i + 1) % units.length);
       } else if (e.key === "ArrowLeft") {
-        // Pitfall 6: signed modulo fix — ensure non-negative index
         setIndex((i) => (i - 1 + units.length) % units.length);
       }
     }
@@ -79,6 +79,8 @@ export function ShowcaseMode({ units, photos, factions, onClose }: ShowcaseModeP
 
   const handlePrev = () => setIndex((i) => (i - 1 + units.length) % units.length);
   const handleNext = () => setIndex((i) => (i + 1) % units.length);
+
+  if (!unit) return null;
 
   return (
     <div
