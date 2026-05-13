@@ -1,271 +1,291 @@
 # Pitfalls Research
 
-**Domain:** Warhammer hobby management — applied recipes, points import, list validation
-**Researched:** 2026-05-12
-**Confidence:** HIGH (all findings grounded in direct codebase inspection of migrations, query modules, Key Decisions table, and established patterns)
+**Domain:** Foundation hardening — migration registration, recipe data integrity, non-destructive saves, stable FK references, section-aware ordering
+**Researched:** 2026-05-13
+**Confidence:** HIGH (all findings grounded in direct inspection of `src-tauri/src/lib.rs`, `src-tauri/migrations/*.sql`, `src/db/queries/*.ts`, `src/features/recipes/RecipeFormSheet.tsx`, and `.planning/PROJECT.md` Key Decisions table)
 
 ---
 
 ## Critical Pitfalls
 
-### 1. Template-Instance Confusion: Progress Rows Reference Step IDs That No Longer Exist
+### 1. Migration Registration / File Parity Gap Closes But Re-Opens Silently
 
 **What goes wrong:**
-`unit_recipe_step_progress` stores `recipe_step_id` FKs. The recipe editor uses DELETE-all + re-INSERT for saves (confirmed in migration 018 and the `duplicateRecipe` pattern in `recipes.ts`). If the user edits a recipe after assigning it to units, every step row is destroyed and recreated with new `lastInsertId` values. All progress FK rows then point at orphaned IDs — or if ON DELETE CASCADE is applied, all progress is silently wiped.
+A migration `.sql` file exists on disk but is not registered in `get_migrations()` in `lib.rs`. The app compiles, existing users never see an error (their DB already has the table from a previous run), and the gap is invisible until a fresh install fails with "no such table" at runtime.
+
+The inverse also happens: a migration is registered in `lib.rs` but the `.sql` file is renamed or deleted. Rust's `include_str!()` is a compile-time macro — a missing file is a compile error, which is good. But a file present with the wrong name (e.g., `021_applied_recipe_assignments.sql` registered as version 22) silently runs in the wrong order against a versioned migration table that expects sequential integers.
+
+Current state: as of 2026-05-13, migrations 018/019/020/021 are all registered correctly in `lib.rs`. The pitfall is that future migrations added as `.sql` files without a corresponding `lib.rs` entry will reproduce the gap.
 
 **Why it happens:**
-The DELETE-all + re-INSERT pattern was the correct choice for recipe sections (ordering is clean, no diff algorithm needed). But it becomes a landmine the moment any other table stores FKs to `recipe_steps.id`, because those IDs change on every save, not just on explicit step deletion. The `painting_sessions` table already encountered this and solved it with denormalization (`section_name TEXT` copy instead of `section_id FK` — migration 020 comment).
+The two-step process (write SQL file, then add Rust struct) requires remembering both steps. When phases are under time pressure, the SQL file is created (often during Wave 1 TDD) but the `lib.rs` registration is deferred. An existing dev DB never triggers the error.
 
 **How to avoid:**
-Two options — pick one before writing migration 021:
-- Option A (recommended): Progress rows reference `(recipe_id, order_index)` as a stable composite key, not `recipe_step_id`. Order-index is stable across edits unless the user reorders. A reorder clears only the steps whose index changed (acceptable). This mirrors the `section_name` denormalization already used in `painting_sessions`.
-- Option B: When `unit_recipe_assignments` exist for a recipe, gate the DELETE-all + re-INSERT path and switch to update-in-place + orphan-cleanup. Adds complexity; only warranted if step_name lookup by progress row is required at query time.
+- MIG-01 must include a verification step: count `.sql` files matching `NNN_*.sql` (excluding `rules_*`) and compare against the count of `Migration { version: N }` entries in `get_migrations()`. They must be equal.
+- Add a comment block at the top of `lib.rs` listing the highest registered version: `// LAST REGISTERED: v21 — update this when adding a migration`.
+- TST-01 data-layer tests must include a "migration count parity" test: read all `.sql` files in the migrations dir and assert the count matches the registered vec length.
 
 **Warning signs:**
-- Progress disappears silently after recipe edits without any step being explicitly deleted.
-- `unit_recipe_step_progress` rows exist for `recipe_step_id` values not present in `recipe_steps`.
-- Completed-step count shows 0 after a recipe is renamed or reordered.
+- Fresh install via empty `app_data_dir` crashes with "no such table: recipe_sections" or "no such column: section_type".
+- `tauri-plugin-sql` emits a panic at startup because the migration table's highest applied version exceeds the registered vec length.
+- A new `.sql` file appears in `src-tauri/migrations/` with no corresponding entry added to `lib.rs` in the same commit.
 
-**Phase to address:** AR-01 — the schema decision locks in; changing it after requires a migration and data backfill.
+**Phase to address:** MIG-01 — the fix and verification test belong in the same wave.
 
 ---
 
-### 2. Points Data Written to the Wrong Database
+### 2. Non-Destructive Save: Partial Writes Leave a Corrupt Recipe State
 
 **What goes wrong:**
-`imported_unit_points` (PI-01) is written to `rules.db`. The Rust `bulk_sync_rules` command runs DELETE + re-INSERT in a single transaction. Any table in `rules.db` is completely destroyed on every sync. All user-imported points data is permanently lost on every Wahapedia sync.
+The current recipe save path in `RecipeFormSheet.tsx` (confirmed at lines 234–308) does:
+1. DELETE all existing sections (CASCADE removes their steps)
+2. Re-INSERT sections
+3. Re-INSERT steps with new `lastInsertId` values
+
+When retrofitting to a non-destructive (update-in-place) path, the typical failure is a partial update: sections present in DB but absent in the form draft are not deleted, leaving orphaned sections. Steps reassigned to a different section in the form keep their old `section_id` from before the save. The visual result is a recipe that looks correct in the form but renders with phantom sections and misrouted steps in the timeline view.
+
+A second common failure: the diff algorithm matches sections by `localId` (a client-side UUID), not by `id` (the DB primary key). On re-open, `buildDraftSections` must restore `dbId` from the existing DB rows. If `localId` and `dbId` are confused, every save treats all sections as new, silently deleting and re-creating them — identical behavior to the current DELETE-all pattern, defeating the entire purpose of the hardening.
 
 **Why it happens:**
-`rules.db` feels like the right home for "game rules data." But the project's Key Decisions table states explicitly: "User data in hobbyforge.db, never rules.db — rules.db is destroyed on every sync." Migration 017 comment repeats this: "CRITICAL: Lives in hobbyforge.db." `imported_unit_points` is user-curated data (manually imported, versioned, with freshness metadata). It belongs in hobbyforge.db alongside `unit_overrides`.
-
-Cross-DB references are handled via TEXT denormalization (`detachment_name`, `weapon_name`, `section_name` — all TEXT copies in hobbyforge.db). The same pattern applies: store `datasheet_name TEXT` or link to `units.id` (FK into hobbyforge.db) in `imported_unit_points`.
+Non-destructive saves require a three-way reconciliation: (A) sections/steps in the DB but not the draft → DELETE, (B) sections/steps in both → UPDATE, (C) sections/steps in the draft but not the DB → INSERT. The simpler DELETE-all + re-INSERT sidesteps all three cases at the cost of ID stability. When retrofitting, developers often implement case (C) correctly (INSERT new items) but forget case (A) (DELETE removed items), leaving orphaned rows.
 
 **How to avoid:**
-Migration 021+ must CREATE TABLE `imported_unit_points` in hobbyforge.db. Verify by checking which `getDb()` call the query module uses — `src/db/client.ts` import for hobbyforge.db, `src/db/rules-client.ts` for rules.db.
+- `buildDraftSections` must preserve `dbId` on each draft section and step when loading from existing DB data. The diff on save uses `dbId` to route rows to UPDATE vs INSERT.
+- Deletion pass first: for each DB section/step not present in the draft (by `dbId`), issue DELETE before any INSERT or UPDATE.
+- Only after the deletion pass: UPDATE existing rows, then INSERT new rows.
+- The form's `key={recipe?.id ?? "new"}` on `SheetContent` forces a re-mount when switching recipes — this is correct and must be preserved; the non-destructive save path must not break the re-mount contract.
+- Write a round-trip test: create recipe → open form → save without changes → assert section/step IDs are identical before and after save.
 
 **Warning signs:**
-- Points data vanishes after any sync operation.
-- PI-03 freshness badges stop showing history after a re-sync.
-- PI-04 deltas show all units as "new" on every import cycle.
-- The query module imports from `rules-client.ts` instead of `client.ts`.
+- Painting session records with `recipe_step_id` are orphaned (point to deleted step IDs) after a recipe is saved without changes to its steps.
+- `unit_recipe_step_progress` rows are wiped on every recipe save because the CASCADE on `recipe_steps` deletes them.
+- `buildDraftSections` returns draft objects where `localId` is a fresh UUID even in edit mode (instead of the DB id serialized as a string).
+- After saving, a second open of the same recipe shows a "Steps" default section that was not there before — a sign the backfill migration re-ran.
 
-**Phase to address:** PI-01 — wrong DB choice here requires a migration to move the table and rewrite all query modules.
+**Phase to address:** REC-02 — the draft data model change (`dbId` field on `DraftSection` and `DraftStep`) must land before the form submit path is touched.
 
 ---
 
-### 3. COALESCE Chain Extension Breaking Consistency Across Query Modules
+### 3. COALESCE Blocking Null Assignment — The Clearing Problem
 
 **What goes wrong:**
-The new PI-05 requirement defines a 5-level chain: `list override > loadout override > imported > unit default > unknown`. The existing chain in `getArmyListWithUnits` is: `COALESCE(alu.points_override, uo.points, u.points, 0)`. Adding `imported_unit_points` as a third tier requires a LEFT JOIN to the new table. If the JOIN is INNER instead of LEFT, units without imported points are excluded from results entirely.
+`updateRecipeSection` in `recipeSections.ts` (confirmed at lines 50–78) uses:
+```sql
+SET section_type = COALESCE($7, section_type)
+```
+When the user clears the `section_type` dropdown (sets it to null), the form passes `null` for `$7`. `COALESCE(null, section_type)` returns the old value. The field is never cleared. The UI shows "cleared" but the DB retains the stale value. On next open, the form re-populates the field from the DB — the clear was silently lost.
 
-A related risk: `getArmyListReadiness` in `armyLists.ts` duplicates the COALESCE expression at line 197. When the chain is extended, both queries must be updated atomically. Missing one produces inconsistent totals between the army list detail view and the readiness card.
+The same COALESCE is applied to `technique`, `execution_mode`, and `applies_to` — all four workflow metadata fields added in migration 020. All four cannot be cleared.
 
-A third location: `getArmyReadinessByFaction` in `dashboard.ts` uses `COALESCE(u.points, 0)` directly — no override tier at all. This query may or may not need the full 5-level chain (dashboard simplification may be intentional), but the decision must be made explicitly.
+The confusion arises from a legitimate COALESCE use elsewhere: `updateRecipe` in `recipes.ts` (lines 44–82) uses COALESCE for `name`, `faction_id`, `unit_id`, `area` and similar non-optional identity fields, while using direct assignment for `style`, `surface`, `effect`, `difficulty` which are genuinely nullable. The section metadata fields were mistakenly placed in the COALESCE group.
+
+**Why it happens:**
+The COALESCE pattern was designed for partial-update APIs: pass only the fields you want to change, leave others as `null` to signal "unchanged." This works when null is not a valid domain value. For workflow metadata (`section_type` etc.), null is explicitly a valid value meaning "not configured." The two semantics conflict. The bug is easy to miss in testing because most testers set values but rarely clear them.
 
 **How to avoid:**
-- Search the codebase for ALL occurrences of `COALESCE(alu.points_override` before shipping PI-05 — every hit must be updated or explicitly documented as intentionally omitting the new tier.
-- Write the new COALESCE expression in a SQL comment at the top of `armyLists.ts` as a canonical reference, then copy it to all affected queries.
-- LEFT JOIN the new `imported_unit_points` table: `LEFT JOIN imported_unit_points iup ON iup.unit_id = u.id`.
+- REC-03 must change `section_type`, `technique`, `execution_mode`, and `applies_to` to direct assignment (same as `surface` and `notes` already are in the same UPDATE).
+- The rule: use COALESCE only for fields where null is not a meaningful domain value (e.g., a required name field where null means "caller didn't provide it"). Use direct assignment for every nullable field where null means "intentionally empty."
+- Add a test: set `section_type` to a value, then call `updateRecipeSection` with `section_type: null` and assert the DB row has `section_type IS NULL`.
 
 **Warning signs:**
-- Army list total differs from dashboard readiness total for the same list.
-- Units with imported points show 0 in some views and correct values in others.
-- Grep reveals the old `COALESCE(alu.points_override, uo.points, u.points` expression still present in any query after PI-05 ships.
+- User sets section metadata, clears it, saves — next open still shows the old value.
+- `updateRecipeSection` test only covers setting a value, not clearing one.
+- The UPDATE statement for any nullable field reads `SET field = COALESCE($N, field)`.
 
-**Phase to address:** PI-05, with a pre-ship audit pass across `armyLists.ts` and `dashboard.ts`.
+**Phase to address:** REC-03. Self-contained SQL change; no schema migration needed.
 
 ---
 
-### 4. N+1 Query Trap on Tactical Tag Aggregation
+### 4. Stable Section Reference: Denormalized Name Drifts Out of Sync With Renamed Sections
 
 **What goes wrong:**
-LV-02 adds per-unit tactical role tags. LV-03 aggregates them to list level. The naive implementation reads `unit_tactical_tags` per unit inside a map/forEach over `army_list_units` — this fires one query per unit. A 2000pt list with 15 units fires 15 queries for tag lookup alone.
+`painting_sessions` stores `section_name TEXT` (migration 020, line 10) as a denormalized copy to survive the DELETE-all + re-INSERT save pattern. REC-04 adds a `recipe_section_id INTEGER` FK column alongside it. But if both columns are written independently and the section is later renamed, `section_name` becomes stale while `recipe_section_id` remains valid. UI code that displays `section_name` will show the old name even though the section still exists under its new name.
 
-This pattern has been explicitly avoided in this codebase: `useLatestUnitPhotos` was moved to page-level (documented in Key Decisions); `getStepCountsBySection()` uses GROUP BY; the annotations page uses `Map<compositeKey, T>` built via useMemo for O(1) per-card lookup; `getRecipeNamesByUnitIds` uses dynamic IN placeholders.
+The FK column is the authoritative source; the name is a display fallback for deleted sections (where the FK is SET NULL by CASCADE). Code that reads `section_name` for live sections (where `recipe_section_id IS NOT NULL`) is reading stale data.
+
+**Why it happens:**
+The same problem exists for `detachment_name` on `army_lists` (confirmed in Key Decisions), but that pattern is intentionally read-only after sync — detachments don't get renamed by users. Recipe sections DO get renamed. The denormalization pattern was correct for the DELETE-all save (no stable FK existed), but becomes a maintenance hazard once a stable FK is added.
 
 **How to avoid:**
-- Batch query: `SELECT unit_id, tag FROM unit_tactical_tags WHERE unit_id IN ($1, $2, ...)` with dynamic positional placeholders (established pattern in `getArmyListReadiness` lines 192–194).
-- Build a `Map<unit_id, string[]>` in the hook, not the component.
-- Do not define a `useTacticalTags(unitId)` hook called inside a list-rendering loop.
+- After adding `recipe_section_id FK`, update `updateRecipeSection` (or a wrapper) to also update `painting_sessions.section_name` for all sessions referencing that `section_id`. A single UPDATE: `UPDATE painting_sessions SET section_name = $1 WHERE recipe_section_id = $2`.
+- In read queries for sessions: JOIN on `recipe_sections.name` when `recipe_section_id IS NOT NULL`, fall back to `section_name` only when `recipe_section_id IS NULL` (section was deleted). Document this read pattern in a comment.
+- Never use `section_name` as the primary display value when `recipe_section_id` is available and the section still exists.
 
 **Warning signs:**
-- Army list validation panel is slow to appear for lists with 10+ units.
-- A `getTacticalTagsByUnit` function exists and is called inside a `.map()`.
-- The `useTacticalTags` hook accepts a single `unitId` parameter.
+- Session log shows old section name after a section rename.
+- `getSessionsByUnit` query reads `section_name` directly without a JOIN to `recipe_sections`.
+- `updateRecipeSection` only updates `recipe_sections` rows, not the denormalized copies in `painting_sessions`.
 
-**Phase to address:** LV-02 — design the batch query interface before building the UI layer.
+**Phase to address:** REC-04. The migration adding `recipe_section_id` and the `updateRecipeSection` name-propagation update must land in the same wave.
 
 ---
 
-### 5. Applied Recipe Delete/Edit Leaves Orphaned Progress With Stale Cache
+### 5. Section-Aware Step Ordering: Recipe-Level Query Returns Steps From Correct Sections in Wrong Order
 
 **What goes wrong:**
-When a user deletes a recipe that has active `unit_recipe_assignments`, the assignments and progress rows are removed via CASCADE. But the Kanban card and CurrentFocusCard still display "In Progress" / "Next Step" badges until the cache is invalidated. If `useDeleteRecipe` only invalidates `["recipes"]` and not `["applied-recipes"]` / `["unit-recipe-progress"]`, the Kanban shows stale progress — including a next-step prompt for a step that no longer exists.
+`getRecipePaintsByRecipe` in `recipePaints.ts` (line 7) orders by `order_index ASC` only. Within a recipe, step `order_index` values are set per-section by the form (each section's steps start from 0). Two steps in different sections can have the same `order_index`. The result: `ORDER BY order_index ASC` on a multi-section recipe returns steps interleaved — section B step 0 before section A step 1 — because the order is computed flat across all sections.
 
-This is the cache invalidation symmetry rule violation, documented in Key Decisions: "If useCreate invalidates a key, useDelete must too."
+The `SectionedTimeline` component avoids this because it reads sections and steps separately (one query per section effectively). But `duplicateRecipe` in `recipes.ts` (line 168) uses `getRecipePaintsByRecipe`-style ordering (`ORDER BY order_index ASC` alone) and would duplicate steps in the wrong section-interleaved order if steps were fetched globally for duplication.
 
-Similarly, `useDeleteRecipeSection` must invalidate progress keys because section delete cascades to steps, which cascades to progress rows.
+Applied recipe progress calculations will have the same issue: `computeCompletionPercentage` takes a list of steps and checks `order_index` for matching. If steps arrive in the wrong order, progress mapped by index position is misattributed.
+
+**Why it happens:**
+When recipes had no sections, global `order_index` was unique and monotonically increasing per recipe. After section support was added (migration 018), `order_index` became per-section. The old queries were not updated because the `SectionedTimeline` component already worked around them. The flat queries still "work" for display (steps appear in some order) but produce incorrect orderings for programmatic uses.
 
 **How to avoid:**
-- In `useDeleteRecipe`, invalidate `["applied-recipes"]` and `["unit-recipe-progress"]` keys alongside `["recipes"]`.
-- In `useDeleteRecipeSection`, also invalidate progress keys.
-- Add a comment to the hook's `onSuccess` block documenting the full invalidation contract, mirroring the `RECIPE_SESSIONS_KEY` conditional invalidation comment in the session hooks.
+- REC-05 must update `getRecipePaintsByRecipe` (and the `duplicateRecipe` step fetch) to `ORDER BY section.order_index ASC, step.order_index ASC` via a JOIN: `SELECT rs.* FROM recipe_steps rs LEFT JOIN recipe_sections sec ON sec.id = rs.section_id WHERE rs.recipe_id = $1 ORDER BY sec.order_index ASC, rs.order_index ASC`.
+- The LEFT JOIN handles steps with `section_id IS NULL` (legacy flat recipes) gracefully — NULL sorts last in SQLite's default collation, preserving backward compat.
+- TST-01 must include a test with a 2-section recipe and assert the returned step order is section-0 steps first, then section-1 steps.
 
 **Warning signs:**
-- Kanban card shows next-step prompt from a deleted recipe.
-- CurrentFocusCard progress bar shows nonzero after recipe deletion.
-- `useDeleteRecipe` onSuccess only invalidates `RECIPES_KEY` with no mention of applied recipe keys.
+- Steps from section B appear between steps of section A in the `SectionedTimeline` after duplication (the copy has reordered steps).
+- `computeCompletionPercentage` returns wrong percentages for multi-section recipes.
+- `getRecipePaintsByRecipe` SQL has `ORDER BY order_index ASC` with no JOIN to `recipe_sections`.
 
-**Phase to address:** AR-01 (define CASCADE contract), AR-05/AR-06 (wire cache invalidation when Kanban integration is built).
+**Phase to address:** REC-05. Must be fixed before Phase 62 (Applied Recipe Data Layer) consumes step ordering for progress tracking.
 
 ---
 
-### 6. Bulk Apply Creates Shared Progress Rows Instead of Per-Unit Instances
+### 6. Paintless Step Silently Excluded From All Recipe Operations
 
 **What goes wrong:**
-AR-07 (bulk apply) assigns the same recipe to multiple selected units. The mistake is inserting one `unit_recipe_assignments` row and one set of `unit_recipe_step_progress` rows shared by all units via a single `assignment_id`. Marking step 3 complete for "Intercessors Squad A" then shows step 3 complete for "Intercessors Squad B" — because they share the same progress row.
+`getRecipePaintsByRecipe` uses `SELECT * FROM recipe_steps WHERE recipe_id = $1` — this is fine. But `getRecipeSwatchColors` (line 73) does `JOIN paints p ON p.id = rp.paint_id` (not LEFT JOIN). Steps with `paint_id IS NULL` are excluded from the swatch. This is documented as intentional for swatches.
 
-The army list builder already documents the precedent: "addUnitToList allows the same unit_id multiple times in one list — no UNIQUE constraint on (list_id, unit_id) — intentional." Applied recipe assignments must use the same per-instance logic: each unit gets its own assignment row with its own progress rows.
+The undocumented problem: `getRecipePaintAvailability` (line 128) also uses `JOIN paints p` (not LEFT JOIN) with a `WHERE rs.paint_id IS NOT NULL AND rs.paint_id != 0` guard. Steps without paint are excluded from availability counts. If a recipe has 5 steps where 2 are paintless technique steps, the availability count shows "3/3 owned" rather than "3/5 steps have paints, 3 owned." The recipe appears 100% paint-ready when two steps still require execution (just no paint).
+
+Additionally, the `RecipeFormSheet.tsx` save path (lines 292–309) skips steps with `paint_id === null`: `if (s.paint_id !== null)`. Paintless steps are silently dropped on every save and never persisted.
+
+**Why it happens:**
+The original recipe model was built around paint linkage — every step was a paint application step. Paintless steps (dry brushing with no specific paint, physical assembly steps) were not in scope. The form's conditional insert was a quick fix to avoid FK violations with null paint_id. But as the data model matured, this left a category of legitimate workflow steps unrepresented.
 
 **How to avoid:**
-- Schema: each `unit_recipe_assignments` row is fully independent. Progress rows FK on `assignment_id`, not `recipe_id`.
-- Bulk apply: INSERT one `unit_recipe_assignments` row per selected unit in a sequential loop (consistent with the bulk wishlist add pattern: sequential `mutateAsync`, not `Promise.all`).
-- No UNIQUE constraint on `(unit_id, recipe_id)` unless "one active recipe per unit" is the intended design — and if so, document that constraint explicitly.
+- REC-01 must remove the `if (s.paint_id !== null)` guard in the save path, allowing steps with null paint_id to be inserted.
+- The `recipe_steps` table already allows `paint_id` to be NULL (the FK column is nullable). No schema migration is needed — just a query-layer fix.
+- `getRecipePaintAvailability` must document in a comment that it counts only paint-linked steps by design, and the count represents "paints available" not "steps covered."
+- The availability badge in the UI must label itself accurately: "N paints available" not "N steps ready."
 
 **Warning signs:**
-- Completing a step on one unit automatically marks it complete on other units assigned the same recipe.
-- `unit_recipe_step_progress` has `recipe_step_id` but no `assignment_id` column.
-- Bulk apply uses a single INSERT for assignments instead of a loop.
+- A paintless step is added to a recipe in the form, the form is saved, the recipe is reopened — the step is gone.
+- `getStepCountsByRecipe` shows a lower step count than the user sees in the form editor.
+- The availability badge shows "all owned" on a recipe that has unmixed / unspecified technique steps.
 
-**Phase to address:** AR-01 (schema design) — structural constraint; cannot be retrofitted without a migration.
+**Phase to address:** REC-01. The form save guard removal is a one-line change; the availability label fix is a UI-layer correction.
 
 ---
 
-### 7. Stale Points Detection Firing False Positives After Every Sync
+### 7. Version Hygiene Mismatch Causing Stale Version Displays and Build Confusion
 
 **What goes wrong:**
-LV-01 includes "stale source" as a hard warning. If stale detection compares `imported_unit_points.import_date` against `sync_meta.last_synced_at` from `rules.db`, a freshly synced rules set will show all user-imported points as stale — the Wahapedia sync timestamp always post-dates the last points import. This triggers the stale warning on every army list immediately after any sync, even when points were imported last week.
+`package.json` and `tauri.conf.json` can drift independently. `tauri.conf.json` is the authoritative source for the app's display version (shown in the OS title bar and About panel). `package.json` drives `npm` / `pnpm` version tooling. When they differ, `pnpm version` commands bump `package.json` but leave `tauri.conf.json` untouched. The OS shows the old version. Any CI or build script that reads `package.json` for the release tag produces a mismatched artifact.
 
-The `StaleDataBanner` in Army Lists 2.0 (Phase 54) already uses Wahapedia sync metadata. Applying the same time-comparison logic to points freshness will cause it to misfire on the same cadence as syncs.
+Current state per PROJECT.md: VER-01 is an open requirement. The installed app shows v0.2.6 (from `tauri.conf.json`) while the codebase is at v0.2.11 level.
 
-**How to avoid:**
-- Stale threshold: compare `imported_unit_points.source_version` (a string like "Balance Dataslate 2025-Q1") against a user-set "current edition identifier" — a mismatch, not a time comparison.
-- Or: stale = user has explicitly signaled a new edition is in effect (an import with a different `source_version`), which generates a delta.
-- The freshness badge (PI-03) should display "points last updated [date] · [source version]" so the user can judge freshness contextually, without the system making the stale/fresh judgment automatically.
-
-**Warning signs:**
-- Every army list shows a stale-points warning immediately after a Wahapedia sync.
-- PI-03 badge is always red/amber regardless of recent import date.
-- Stale logic contains a comparison like `import_date < last_synced_at`.
-
-**Phase to address:** PI-03 (freshness semantics must be defined before PI-01 schema, because `source_version` and staleness columns depend on it).
-
----
-
-### 8. Migration Backfill Omissions Causing "Never Imported" Confusion
-
-**What goes wrong:**
-New tables for applied recipes and points have no existing rows for current users — which is correct. But if `unit_tactical_tags` (LV-02) uses INNER JOIN in the coverage aggregation, it silently excludes untagged units from the role coverage analysis. A list of 10 units where 7 have no tags appears to have coverage for only 3 units, which looks like a data bug.
-
-Additionally, PI-04 delta detection will show all units as "no import" rather than "unchanged" on first use. If the UI displays this as a warning delta badge, every unit appears to need attention even though nothing has changed.
+**Why it happens:**
+Two canonical sources for one logical value is always a maintenance hazard. Tauri's tooling does not auto-sync them. The workflow "bump package.json, forget tauri.conf.json" (or vice versa) is the natural path of least resistance.
 
 **How to avoid:**
-- All LV-03 aggregation queries: LEFT JOIN `unit_tactical_tags`, not INNER JOIN.
-- PI-04 first-use state: distinguish "never imported" (grey/neutral, no action needed) from "changed since last import" (yellow/delta). Store a `first_import_at` timestamp in a metadata row to detect the first-use case.
-- Document in migration SQL comments whether a backfill is intentionally absent (e.g.: "no backfill: users start with no imported points; existing u.points fallback in COALESCE chain is correct").
+- VER-01: align both files to the current release version in a single commit.
+- Document the update procedure in a comment in `tauri.conf.json`: `// version must match package.json — bump both together`.
+- A TST-01 test can read both files and assert they have identical `version` strings.
 
 **Warning signs:**
-- Coverage analysis shows 0 units with any role on first load of a populated list.
-- Every unit shows a delta badge on first import despite no points change.
-- LV-03 query uses `JOIN unit_tactical_tags` without `LEFT`.
+- `tauri.conf.json` `"version"` field differs from `package.json` `"version"` field.
+- The Tauri window title or About dialog shows a version number from a prior milestone.
 
-**Phase to address:** PI-01 and LV-02 schema migrations.
+**Phase to address:** VER-01. Trivial fix; do it in the same wave as migration registration verification to consolidate foundation fixes.
 
 ---
 
 ## Technical Debt Patterns
 
-### TD-1: Progress Stored as Booleans Must Follow the 0|1 Cast Convention
-
-SQLite stores booleans as `0 | 1` integers. `unit_recipe_step_progress.completed` will return as a number from tauri-plugin-sql. The project convention is to cast on read (Key Decisions: "0|1 literal types for SQLite booleans"). Every component or hook reading progress must cast: `Boolean(row.completed)` or `!!row.completed`. The bug is subtle: 1 reads as truthy correctly, but 0 reads as falsy — so uncompleted steps display correctly, and the bug only manifests when testing "mark complete / then unmark," which is the less common path in early testing.
-
-### TD-2: Duplicate COALESCE Expressions Across Query Modules
-
-The points COALESCE expression already appears in `getArmyListWithUnits`, `getArmyListReadiness`, and `getArmyReadinessByFaction`. Adding the 5-level variant creates a fourth occurrence. There is no SQL fragment-sharing mechanism (no ORM). A comment in each query module referencing the canonical COALESCE contract — as `armyLists.ts` already does — is the only mitigation. Mark each site with a `// POINTS-CHAIN:` comment for grepping.
-
-### TD-3: Bulk Apply Section Save Loop Is Not Transactional
-
-`duplicateRecipe` and the section-save path use sequential `db.execute()` calls without an explicit transaction. If the Tauri window closes mid-bulk-apply, partial progress rows are written. For 1–3 unit bulk apply this risk is low. For 10+ units selected, consider wrapping in BEGIN/COMMIT if tauri-plugin-sql exposes transaction control. If not, document the partial-write risk and add a cleanup query on app startup that removes orphaned `unit_recipe_step_progress` rows with no matching `unit_recipe_assignments` parent.
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| DELETE-all + re-INSERT for recipe saves | No diff algorithm; clean ordering; no orphan risk for the recipe itself | Every save destroys step and section PKs; any downstream FK (progress, session links) breaks or must be denormalized | Never acceptable once `unit_recipe_step_progress` is in production — all progress is wiped on every recipe edit |
+| `COALESCE($N, field)` for nullable metadata fields | Enables partial-update callers to omit fields they don't change | Null (intentional clear) is indistinguishable from null (caller didn't provide value) — the field can never be cleared | Acceptable only for fields where null is not a valid domain value (e.g., a required name field) |
+| Denormalized `section_name TEXT` on sessions | Survives FK destruction from DELETE-all saves; no JOIN needed for display | Drifts out of sync when section is renamed; requires propagation logic when stable FK is added | Acceptable as a read-only display fallback for deleted sections; not acceptable as the primary value when the FK is live |
+| `ORDER BY order_index ASC` without section JOIN | Simple; worked when order_index was globally unique per recipe | Returns steps in undefined interleaved order for multi-section recipes; breaks progress calculations | Never acceptable after migration 018 (recipe_sections) — all recipe-level step queries must include section ordering |
+| Skip paintless steps on form save | Avoids FK violation on `paint_id NOT NULL` (before the column was nullable) | Steps with no paint are silently dropped; recipe step count drifts; paintless workflow steps are unrepresentable | Never acceptable — the FK column is already nullable; the guard has been unnecessary since migration 012 |
 
 ---
 
-## UX Pitfalls
+## Integration Gotchas
 
-### UX-1: Kanban Card Shows Both Template Hint and Applied Progress Simultaneously
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| `tauri-plugin-sql` migrations | Registering migrations out of version order (version: 3 before version: 2 in the vec) | The vec must be in ascending version order; `tauri-plugin-sql` applies them in vec order, not by the `version` field |
+| `tauri-plugin-sql` migrations | Editing an already-applied migration file | `tauri-plugin-sql` applies each version only once (tracked in `_sqlx_migrations`); editing an applied file has no effect on existing DBs; create a new migration file for any schema change |
+| `include_str!()` in lib.rs | Registering the wrong filename string | `include_str!()` resolves at compile time relative to the file; a typo compiles silently only if the referenced path exists but has wrong content |
+| `ON DELETE CASCADE` with non-destructive saves | Assuming CASCADE still fires when using UPDATE-in-place | CASCADE only fires on DELETE; UPDATE-in-place that changes `section_id` on a step does NOT trigger cascade cleanup on the old parent section |
+| React Query invalidation after non-destructive save | Invalidating only the recipe key, not the sections/steps key | Non-destructive save must still invalidate `RECIPE_SECTIONS_KEY(id)`, `RECIPE_PAINTS_KEY(id)`, and progress keys if assignments exist |
+| SQLite `NULL` in COALESCE | Passing TypeScript `undefined` instead of `null` to a parameterized query | `tauri-plugin-sql` serializes `undefined` differently from `null`; always pass explicit `null` for empty optional fields |
 
-Kanban cards (Phase 60) show "current workflow / next step" from workflow metadata. After AR-06, the same card must conditionally show either (a) template-level workflow position hint, or (b) applied recipe progress position, depending on whether an active assignment exists. Displaying both creates visual noise and confuses the user about whether the badge reflects actual completion or just template metadata. The card needs an explicit render branch: `hasAppliedRecipe ? <ProgressBadge /> : <WorkflowHint />`.
+---
 
-### UX-2: Validation Warnings That Fire on Every List Cause Warning Fatigue
+## Performance Traps
 
-LV-01 hard validation warnings include "unknown points" — units with `u.points = 0` and no imported row. Many players intentionally omit points from proxy or WIP entries. If every list with any 0-point unit shows a red hard warning, the validation panel becomes noise that users learn to dismiss reflexively. Reserve red/hard warnings for: points limit exceeded, stale source version detected. Use yellow/soft warnings for: unknown points, unbuilt/unpainted units below readiness threshold.
-
-### UX-3: Recipe Picker for Apply Shows All Recipes Without Faction Filtering
-
-AR-02 offers a recipe picker when assigning to a unit. Without filtering, the picker lists every recipe in the system — faction-wide, other-faction, unrelated miniatures. With 40+ recipes, the picker is unusable. Pre-filter by `painting_recipes.faction_id = unit.faction_id`, or show a "Suggested" group (faction-matched) before an "All Recipes" expansion toggle. The `getRecipeNamesByUnitIds` batch query already filters by `unit_id` — a faction-filtered variant is a small SQL extension.
-
-### UX-4: Points Delta Detection Running on Every Army List Load
-
-PI-04 (delta detection) compares current imported points against a prior snapshot. Running this comparison on every `ArmyListPage` mount is wasteful — most loads have no new import. The delta is only meaningful after a new points import event. Trigger delta detection only on: (a) first mount after a new import (store `last_import_id` in Zustand or a query key), or (b) explicit user request. Cache the delta result with React Query keyed on `["points-delta", lastImportId]`.
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Non-transactional multi-step save (DELETE sections → INSERT sections → INSERT steps) | Partial recipe state on window close mid-save; step photo paths orphaned | Wrap in explicit `BEGIN / COMMIT` if `tauri-plugin-sql` exposes it; otherwise accept the risk for a personal desktop tool | Any save interrupted mid-way; low frequency but real on a slow disk |
+| Section metadata rename propagation: UPDATE painting_sessions per renamed section | Fires one UPDATE per section rename; acceptable for 1–10 sections | Use batch UPDATE with `WHERE recipe_section_id = $1` — single SQL statement regardless of session count | Not a performance issue at current data scale; document as O(sessions) but constant factor is tiny |
+| `getRecipePaintsByRecipe` without section JOIN | No performance impact today; the query returns all steps | After adding `ORDER BY sec.order_index, rs.order_index`, the LEFT JOIN adds one indexed scan | Never degrades below current performance — section index is small |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] Applied recipe progress persists across recipe edits (not silently wiped by DELETE-all + re-INSERT on recipe_steps)
-- [ ] Bulk-applied recipes have independent progress rows per unit (not shared via single assignment_id)
-- [ ] `imported_unit_points` migration uses `getDb()` from `src/db/client.ts`, not `rules-client.ts`
-- [ ] All COALESCE chain occurrences updated atomically when 5-level chain is added (grep: `COALESCE(alu.points_override`)
-- [ ] `getArmyListReadiness` and `getArmyListWithUnits` return consistent totals for the same list with the same chain
-- [ ] `getArmyReadinessByFaction` on dashboard: explicitly decided whether it uses simplified or full 5-level chain
-- [ ] Stale-points badge does NOT fire after a Wahapedia sync if points source_version has not changed
-- [ ] Tactical tag aggregation uses a batch IN query, not per-unit hook calls in a list-rendering loop
-- [ ] `useDeleteRecipe` onSuccess invalidates `["applied-recipes"]` and `["unit-recipe-progress"]` keys
-- [ ] `unit_recipe_step_progress.completed` is cast to boolean on read (`!!row.completed` or `Boolean(row.completed)`)
-- [ ] Untagged units appear in LV-03 coverage analysis (LEFT JOIN on unit_tactical_tags, not INNER JOIN)
-- [ ] PI-04 "never imported" state displays differently from "changed since last import"
-- [ ] Migration SQL files include a comment explaining whether backfill is intentionally absent
+- [ ] **MIG-01 verification:** Count of `NNN_*.sql` files (non-rules) matches count of `get_migrations()` entries in `lib.rs` — not just "latest migration file exists"
+- [ ] **REC-01 paintless steps:** A step with `paint_id: null` saved in the form is retrievable on next open — not silently dropped
+- [ ] **REC-02 non-destructive save:** Section and step DB IDs are unchanged after a save that modifies only the recipe name — confirmed by comparing IDs before and after
+- [ ] **REC-02 orphan cleanup:** Sections removed in the form editor are actually DELETEd from DB, not just absent from the INSERT pass
+- [ ] **REC-03 null clearing:** Setting `section_type` to null in the form and saving results in `section_type IS NULL` in DB — confirmed by opening the recipe again and seeing an empty dropdown
+- [ ] **REC-04 FK column:** `painting_sessions` has a `recipe_section_id` column AND a `section_name` column — both written on session create
+- [ ] **REC-04 name propagation:** Renaming a section updates `painting_sessions.section_name` for all existing sessions linked to that section
+- [ ] **REC-05 section ordering:** `getRecipePaintsByRecipe` returns steps ordered by `section.order_index ASC, step.order_index ASC` — not just `step.order_index ASC`
+- [ ] **VER-01:** `package.json` `"version"` and `tauri.conf.json` `"version"` are identical strings
+- [ ] **Fresh install:** Launching the app with an empty `app_data_dir` succeeds — all tables and columns expected by current query modules are present
+- [ ] **TST-01 migration parity:** A test exists that reads the migrations directory and asserts file count matches `get_migrations()` length
+
+---
+
+## Recovery Strategies
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| Unregistered migration on fresh install | MEDIUM | Add migration entry to `lib.rs`, rebuild Tauri, re-distribute; existing users unaffected (they have the table already from a prior run when a workaround existed or the dev DB was pre-seeded) |
+| DELETE-all save wiped `unit_recipe_step_progress` | HIGH | No recovery without a backup; the progress data is gone; users must re-mark completed steps; prevention is the only real answer |
+| COALESCE blocked a null clear | LOW | Fix the SQL to direct assignment; no data migration needed; fields that were "stuck" can now be cleared normally |
+| `section_name` drifted from renamed section | LOW | One-time UPDATE: `UPDATE painting_sessions SET section_name = (SELECT name FROM recipe_sections WHERE id = painting_sessions.recipe_section_id) WHERE recipe_section_id IS NOT NULL` |
+| Steps returned in wrong order for multi-section recipes | LOW | SQL fix only; existing data is correct, only the query order was wrong |
+| Version mismatch visible to user | LOW | Update the lagging file to match; rebuild and re-run |
 
 ---
 
 ## Pitfall-to-Phase Mapping
 
-| Phase / Requirement | Pitfall to Watch | Mitigation |
-|---|---|---|
-| AR-01 (applied recipe data model) | #1 Template-instance confusion, #6 Shared progress on bulk apply | Stable composite key (recipe_id, order_index) for progress; one assignment row per unit |
-| AR-02 (assignment UX) | UX-3 Recipe picker lists all recipes | Pre-filter by faction_id; "Suggested" group first |
-| AR-03 (per-unit step completion) | #5 Orphaned progress after recipe edit, TD-1 Boolean cast | Cache invalidation in useDeleteRecipe; cast completed on read |
-| AR-05/AR-06 (Kanban/CurrentFocus) | #5 Stale cache, UX-1 Template vs instance display mode | Symmetry rule in useDeleteRecipe; explicit render branch per mode |
-| AR-07 (bulk apply) | #6 Shared progress rows, TD-3 Non-transactional loop | Sequential mutateAsync loop; one assignment row per unit |
-| PI-01 (points data layer) | #2 Wrong database | CREATE TABLE in migration using client.ts (hobbyforge.db) |
-| PI-03 (freshness tracking) | #7 False positive stale after sync | Staleness = source_version mismatch, not time comparison against last_synced_at |
-| PI-04 (delta detection) | UX-4 Eager delta on every load, #8 "never imported" confusion | Event-triggered detection keyed on lastImportId; neutral badge for never-imported |
-| PI-05 (points resolution chain) | #3 COALESCE inconsistency across query modules | Grep all occurrences; update atomically; LEFT JOIN imported_unit_points |
-| LV-01 (hard validation warnings) | #7 False positive stale, UX-2 Warning fatigue | Red = exceeded/stale only; yellow = unknown points |
-| LV-02 (tactical tags) | #4 N+1 query trap | Batch IN query; Map<unit_id, string[]> built in hook |
-| LV-03 (role coverage) | #4 N+1, #8 Untagged units excluded | LEFT JOIN; GROUP BY in SQL not JS reduce |
-| Migration 021+ | #2 Wrong DB, #8 Missing backfill | Verify getDb() import; comment intentional no-backfill in SQL |
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| #1 Migration registration gap | MIG-01 | TST-01 migration-parity test passes; fresh launch from empty app_data_dir succeeds with no "no such table" errors |
+| #2 Non-destructive save partial writes | REC-02 | Round-trip test: save recipe without changes, assert section/step IDs unchanged; save with one step removed, assert that step is deleted from DB |
+| #3 COALESCE blocking null clear | REC-03 | Unit test: set section_type, then updateRecipeSection with section_type: null, assert DB row has NULL |
+| #4 Section name drift after rename | REC-04 | Test: rename section, assert painting_sessions.section_name updated for linked sessions |
+| #5 Section-aware step ordering | REC-05 | Test: 2-section recipe, assert getRecipePaintsByRecipe returns section-0 steps before section-1 steps |
+| #6 Paintless step dropped on save | REC-01 | Test: create step with paint_id: null, save, reload, assert step exists in DB |
+| #7 Version mismatch | VER-01 | Automated check: read both files, assert version strings are equal |
 
 ---
 
 ## Sources
 
-- `src/db/queries/armyLists.ts` — Existing 3-level COALESCE chain, full-replacement UPDATE pattern, N+1 avoidance via IN placeholders and GROUP BY
-- `src/db/queries/recipeSections.ts` — DELETE-all + re-INSERT save pattern, ON DELETE CASCADE chain documentation
-- `src/db/queries/recipes.ts` — duplicateRecipe sectionIdMap pattern, recipe_steps CASCADE on delete
-- `src/db/queries/paintingSessions.ts` — ON DELETE SET NULL for session-recipe FKs, section_name denormalization as the established FK-avoidance pattern
-- `src/db/queries/unitOverrides.ts` — hobbyforge.db placement decision for user-curated data surviving syncs
-- `src/db/queries/dashboard.ts` — `getArmyReadinessByFaction` uses simplified COALESCE (u.points only) — diverges from army list chain
-- `src-tauri/migrations/017_unit_overrides.sql` — "CRITICAL: Lives in hobbyforge.db" comment
-- `src-tauri/migrations/018_recipe_sections.sql` — DELETE-all + re-INSERT save pattern, CASCADE chain documented
-- `src-tauri/migrations/020_workflow_metadata.sql` — section_name denormalization rationale
-- `.planning/PROJECT.md` — Key Decisions table (COALESCE chain evolution, cache invalidation symmetry rule, Boolean 0|1 discipline, wrong-DB history), v0.2.10 requirement list (AR-01 through GD-01)
+- `src-tauri/src/lib.rs` — `get_migrations()` vec (versions 1–21 confirmed registered); `include_str!()` compile-time path resolution
+- `src-tauri/migrations/018_recipe_sections.sql` — DELETE-all + re-INSERT pattern documentation; CASCADE chain
+- `src-tauri/migrations/020_workflow_metadata.sql` — workflow metadata columns (section_type, technique, execution_mode, applies_to); section_name on painting_sessions
+- `src/db/queries/recipeSections.ts` — COALESCE on section metadata fields (the bug); direct assignment on surface/notes (the correct pattern); confirmed at lines 54–77
+- `src/db/queries/recipePaints.ts` — `ORDER BY order_index ASC` without section JOIN (lines 7–9); JOIN (not LEFT JOIN) on paints for availability (line 128); swatch exclusion of paintless steps
+- `src/db/queries/recipes.ts` — `ORDER BY order_index ASC` in duplicateRecipe step fetch (line 168); COALESCE for required fields, direct assignment for nullable fields (lines 44–82 — the correct model)
+- `src/db/queries/paintingSessions.ts` — `section_name TEXT` denormalized column on insert (line 22); absence of `recipe_section_id` FK column
+- `src/features/recipes/RecipeFormSheet.tsx` — DELETE-all save path (lines 234–240); paintless step guard (line 292); `if (s.paint_id !== null)` silently drops steps
+- `.planning/PROJECT.md` — Key Decisions table (COALESCE for recipe metadata; raw assignment for nullable fields; ON DELETE SET NULL for session-recipe FKs; denormalized section_name rationale); v0.2.11 active requirements (MIG-01, MIG-02, REC-01 through REC-05, VER-01, TST-01)
+
+---
+*Pitfalls research for: v0.2.11 Foundation Hardening — migration registration, recipe data integrity, non-destructive saves, stable FK references, section-aware ordering*
+*Researched: 2026-05-13*
