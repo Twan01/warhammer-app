@@ -276,7 +276,7 @@ Plans:
 **Plans:** 3 plans
 Plans:
 **Wave 1**
-- [ ] 65-01-PLAN.md — Migrations (rules_004, 024) + types + COALESCE 5-level chain + computePointsDelta TDD (PI-01, PI-05, PI-04)
+- [x] 65-01-PLAN.md — Migrations (rules_004, 024) + types + COALESCE 5-level chain + computePointsDelta TDD (PI-01, PI-05, PI-04) — completed 2026-05-13
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 65-02-PLAN.md — Rust bulk_sync_rules extension + useRulesSync points pipeline + delta/cache/invalidation (PI-02, PI-04)
