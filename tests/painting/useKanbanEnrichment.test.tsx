@@ -27,6 +27,28 @@ vi.mock("@/db/queries/unitPhotos", () => ({
   getPhotoCountsByUnitIds: (ids: number[]) => getPhotoCountsByUnitIdsMock(ids),
 }));
 
+vi.mock("@/db/queries/recipeAssignments", () => ({
+  getAssignmentsByUnit: vi.fn().mockResolvedValue([]),
+  getStepProgress: vi.fn().mockResolvedValue([]),
+  createAssignment: vi.fn(),
+  deleteAssignment: vi.fn(),
+  getAssignment: vi.fn(),
+  getAssignmentsByRecipe: vi.fn(),
+  upsertStepProgress: vi.fn(),
+  bulkCreateAssignments: vi.fn(),
+}));
+
+vi.mock("@/db/queries/recipePaints", () => ({
+  getRecipePaintsByRecipe: vi.fn().mockResolvedValue([]),
+  addRecipePaint: vi.fn(),
+  updateRecipePaint: vi.fn(),
+  removeRecipePaint: vi.fn(),
+}));
+
+vi.mock("@/lib/computeAssignmentProgress", () => ({
+  computeAssignmentProgress: vi.fn().mockReturnValue({ total: 0, completed: 0, percentage: 0, bySectionId: new Map() }),
+}));
+
 import { useKanbanEnrichment, KANBAN_ENRICHMENT_KEY } from "@/hooks/useKanbanEnrichment";
 
 beforeEach(() => {
