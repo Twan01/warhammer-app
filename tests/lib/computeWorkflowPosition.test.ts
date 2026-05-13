@@ -6,6 +6,7 @@
  */
 import { describe, it, expect } from "vitest";
 import { computeWorkflowPosition } from "@/lib/computeWorkflowPosition";
+import { SECTION_TYPES } from "@/types/recipeSection";
 import type { RecipeSection } from "@/types/recipeSection";
 import type { RecipeStep } from "@/types/recipePaint";
 
@@ -192,5 +193,28 @@ describe("computeWorkflowPosition", () => {
   it("section_name that does not match any section returns null", () => {
     const result = computeWorkflowPosition(null, "Nonexistent", sections, sectionedSteps);
     expect(result).toBeNull();
+  });
+
+  // Test 13 (RH-02 core): stale section name after rename returns null
+  it("stale section name after rename returns null (RH-02 degradation)", () => {
+    const renamedSections = [makeSection({ id: 1, name: "New Name", order_index: 0 })];
+    const result = computeWorkflowPosition(null, "Old Name", renamedSections, sectionedSteps);
+    expect(result).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// D-08: SECTION_TYPES const array verification
+// ---------------------------------------------------------------------------
+
+describe("SECTION_TYPES const array", () => {
+  it("has exactly 7 values", () => {
+    expect(SECTION_TYPES).toHaveLength(7);
+  });
+
+  it("contains the expected workflow phase types", () => {
+    expect(SECTION_TYPES).toEqual(
+      ["prep", "basecoat", "shade", "layer", "detail", "effect", "finishing"],
+    );
   });
 });

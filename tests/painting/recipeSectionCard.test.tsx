@@ -440,4 +440,14 @@ describe("RecipeSectionCard -- RUI-02 workflow collapsible hidden", () => {
     renderCard(makeSection({ technique: "drybrush" }), { sectionsCount: 1 });
     expect(screen.getByText("Workflow")).toBeInTheDocument();
   });
+
+  it("shows Workflow trigger when sectionsCount === 1 but applies_to is set", () => {
+    renderCard(makeSection({ applies_to: "armor panels" }), { sectionsCount: 1 });
+    expect(screen.getByText("Workflow")).toBeInTheDocument();
+  });
+
+  it("shows Workflow trigger when sectionsCount === 1 but execution_mode is set", () => {
+    renderCard(makeSection({ execution_mode: "batch" }), { sectionsCount: 1 });
+    expect(screen.getByText("Workflow")).toBeInTheDocument();
+  });
 });
