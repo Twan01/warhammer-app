@@ -46,10 +46,12 @@ export async function getArmyListWithUnits(listId: number): Promise<ArmyListUnit
        u.status_assembly,
        u.status_painting,
        u.painting_percentage,
-       COALESCE(alu.points_override, uo.points, u.points, 0) AS effective_points
+       COALESCE(alu.points_override, sup.points, uo.points, u.points, 0) AS effective_points
      FROM army_list_units alu
      JOIN units u ON u.id = alu.unit_id
      LEFT JOIN unit_overrides uo ON uo.unit_id = u.id
+     LEFT JOIN synced_unit_points sup ON sup.unit_name = u.name
+       AND (sup.faction_id IS NULL OR sup.faction_id = CAST(u.faction_id AS TEXT))
      WHERE alu.list_id = $1
      ORDER BY alu.created_at ASC`,
     [listId]
@@ -194,14 +196,16 @@ export async function getArmyListReadiness(
   const placeholders = ids.map((_, i) => `$${i + 1}`).join(", ");
   return db.select<ArmyListReadiness[]>(
     `SELECT al.id,
-       SUM(COALESCE(alu.points_override, uo.points, u.points, 0)) AS total_points,
+       SUM(COALESCE(alu.points_override, sup.points, uo.points, u.points, 0)) AS total_points,
        SUM(CASE WHEN u.status_painting = 'Completed'
-                THEN COALESCE(alu.points_override, uo.points, u.points, 0)
+                THEN COALESCE(alu.points_override, sup.points, uo.points, u.points, 0)
                 ELSE 0 END) AS battle_ready_points
      FROM army_lists al
      JOIN army_list_units alu ON alu.list_id = al.id
      JOIN units u ON u.id = alu.unit_id
      LEFT JOIN unit_overrides uo ON uo.unit_id = u.id
+     LEFT JOIN synced_unit_points sup ON sup.unit_name = u.name
+       AND (sup.faction_id IS NULL OR sup.faction_id = CAST(u.faction_id AS TEXT))
      WHERE al.id IN (${placeholders})
      GROUP BY al.id`,
     ids,
