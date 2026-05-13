@@ -50,6 +50,8 @@ import {
 } from "@/components/ui/select";
 import { useUnits, useUpdateUnit } from "@/hooks/useUnits";
 import { useCreatePaintingSession } from "@/hooks/useJournalSessions";
+import { useAssignmentsByUnit, useCreateAssignment, useToggleStepProgress, ASSIGNMENTS_KEY } from "@/hooks/useRecipeAssignments";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRecipes } from "@/hooks/useRecipes";
 import { useRecipePaints } from "@/hooks/useRecipePaints";
 import { useRecipeSections } from "@/hooks/useRecipeSections";
@@ -129,6 +131,11 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
   );
 
   const watchedRecipeId = form.watch("recipe_id");
+  const watchedUnitId = form.watch("unit_id");
+  const { data: unitAssignments = [] } = useAssignmentsByUnit(watchedUnitId > 0 ? watchedUnitId : undefined);
+  const createAssignment = useCreateAssignment();
+  const toggleStepProgress = useToggleStepProgress();
+  const qc = useQueryClient();
 
   const { data: recipeSteps = [] } = useRecipePaints(
     watchedRecipeId != null ? watchedRecipeId : undefined
@@ -177,6 +184,37 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
       toast.error("Failed to log session — try again.");
       // Sheet stays open so user can retry
       return;
+    }
+
+    // AR-05: Bridge — auto-mark the selected recipe step as completed in the
+    // applied recipe assignment when logging a session with a recipe step.
+    if (values.recipe_id != null && values.recipe_step_id != null) {
+      try {
+        const step = recipeSteps.find((s) => s.id === values.recipe_step_id);
+        if (step) {
+          let existingAssignment = unitAssignments.find((a) => a.recipe_id === values.recipe_id);
+          let assignmentId: number;
+          if (existingAssignment) {
+            assignmentId = existingAssignment.id;
+          } else {
+            assignmentId = await createAssignment.mutateAsync({
+              unit_id: values.unit_id,
+              recipe_id: values.recipe_id!,
+            });
+          }
+          await toggleStepProgress.mutateAsync({
+            assignmentId,
+            orderIndex: step.order_index,
+            completed: true,
+          });
+          qc.invalidateQueries({ queryKey: [...ASSIGNMENTS_KEY] });
+          qc.invalidateQueries({ queryKey: ["kanban-enrichment"] });
+        }
+      } catch {
+        toast.warning("Session logged but step progress update failed.");
+        onClose();
+        return;
+      }
     }
 
     if (values.new_status) {
