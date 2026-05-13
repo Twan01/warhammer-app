@@ -61,7 +61,7 @@ Full details: `.planning/milestones/v0.2.9-ROADMAP.md`
 
 **Milestone Goal:** Stabilize the technical foundation — migrations, recipe data integrity, version hygiene — so future features are built on reliable data structures.
 
-- [ ] **Phase 68: Infrastructure Quick Wins** - Register migrations, validate fresh install, fix COALESCE null-clearing, fix section-aware ordering, align version numbers
+- [x] **Phase 68: Infrastructure Quick Wins** - Register migrations, validate fresh install, fix COALESCE null-clearing, fix section-aware ordering, align version numbers
 - [x] **Phase 69: Paintless Recipe Steps** - Guard removal to persist steps without paint_id, exclude paintless steps from availability counts
 - [ ] **Phase 70: Non-Destructive Recipe Save** - Three-way diff replaces DELETE-all + re-INSERT, preserving section/step IDs across edits
 - [ ] **Phase 71: Stable Session Section FK** - Migration 022 adds recipe_section_id FK to painting_sessions alongside denormalized section_name

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.2.11
 milestone_name: Foundation Hardening
 status: executing
-stopped_at: Phase 69 Plan 01 complete
-last_updated: "2026-05-13T08:20:19.885Z"
-last_activity: 2026-05-13 -- Phase 68 planning complete
+stopped_at: Phase 68 complete
+last_updated: "2026-05-13T10:26:00.000Z"
+last_activity: 2026-05-13 -- Phase 68 executed (COALESCE fix, section ordering, version bump)
 progress:
   total_phases: 12
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 3
-  percent: 50
+  completed_plans: 5
+  percent: 83
 ---
 
 # Project State
@@ -21,16 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-13)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play"
-**Current focus:** v0.2.11 Phase 69 — Paintless Recipe Steps
+**Current focus:** v0.2.11 Phase 69 — Paintless Recipe Steps (already shipped)
 
 ## Current Position
 
-Phase: 69 of 72 (Paintless Recipe Steps)
-Plan: 1 of 1 in current phase (COMPLETE)
-Status: Ready to execute
-Last activity: 2026-05-13 -- Phase 68 planning complete
+Phase: 68 of 72 (Infrastructure Quick Wins — COMPLETE)
+Next: Phase 70 (Non-Destructive Recipe Save)
+Last activity: 2026-05-13 -- Phase 68 executed
 
-Progress: [█░░░░░░░░░] 8%
+Progress: [████████░░] 83%
 
 ## Performance Metrics
 
