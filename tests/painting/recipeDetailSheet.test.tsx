@@ -88,6 +88,11 @@ vi.mock("@/hooks/useJournalSessions", () => ({
   useSessionsByRecipe: () => ({ data: mockSessions }),
 }));
 
+vi.mock("@/hooks/useRecipeAssignments", () => ({
+  useAssignmentsByRecipe: () => ({ data: [] }),
+  useBulkCreateAssignments: () => ({ mutate: vi.fn(), isPending: false }),
+}));
+
 // ---------------------------------------------------------------------------
 // Test fixtures
 // ---------------------------------------------------------------------------
