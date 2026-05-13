@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronUp, Info, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -12,15 +12,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import { useUpdateArmyListUnit } from "@/hooks/useArmyLists";
 import { useUnitPointTiers } from "@/hooks/useUnitPointTiers";
 import { useUnitLoadouts } from "@/hooks/useUnitLoadouts";
 import { useUpdateUnit } from "@/hooks/useUnits";
 import { computeDelta } from "@/lib/computeDelta";
+import { computeUnitWarnings } from "@/lib/computeUnitWarnings";
+import type { WarningContext } from "@/lib/computeUnitWarnings";
+import type { SyncFreshness } from "@/lib/syncFreshness";
 import type { ArmyListUnitRow as ArmyListUnitRowType } from "@/types/armyList";
+import { TACTICAL_ROLES, TACTICAL_ROLES_DISPLAY } from "@/types/armyList";
 
 interface ArmyListUnitRowProps {
   unit: ArmyListUnitRowType;
+  totalPoints: number;
+  pointsLimit: number | null;
+  freshness: SyncFreshness;
   onRemove: () => void;
 }
 
@@ -46,7 +58,7 @@ interface ArmyListUnitRowProps {
  * - Active loadout name displayed below unit name (subtle muted text)
  * - Pitfall 5: setPendingTierId(null) on confirm clears badge immediately
  */
-export function ArmyListUnitRow({ unit, onRemove }: ArmyListUnitRowProps) {
+export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onRemove }: ArmyListUnitRowProps) {
   const updateArmyListUnit = useUpdateArmyListUnit();
   const updateUnit = useUpdateUnit();
   const [expanded, setExpanded] = useState(false);
@@ -58,6 +70,12 @@ export function ArmyListUnitRow({ unit, onRemove }: ArmyListUnitRowProps) {
 
   const hasTiers = (tiers?.length ?? 0) > 0;
   const activeLoadout = loadouts?.find((l) => l.is_active === 1);
+
+  // Phase 66 — per-unit warning computation
+  const warnings = useMemo(() => {
+    const ctx: WarningContext = { totalPoints, pointsLimit, freshness };
+    return computeUnitWarnings(unit, ctx);
+  }, [unit.effective_points, unit.points_override, unit.status_painting, unit.status_assembly, totalPoints, pointsLimit, freshness]);
 
   const candidatePoints = useMemo(() => {
     if (pendingTierId === null) return null;
@@ -114,12 +132,63 @@ export function ArmyListUnitRow({ unit, onRemove }: ArmyListUnitRowProps) {
     <>
       <TableRow>
         <TableCell className="font-medium">
-          {unit.unit_name}
+          <div className="flex items-center">
+            {warnings.hard.length > 0 ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex mr-1">
+                    <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>{[...warnings.hard, ...warnings.soft].join(", ")}</TooltipContent>
+              </Tooltip>
+            ) : warnings.soft.length > 0 ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex mr-1">
+                    <Info className="h-3.5 w-3.5 text-amber-500" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>{warnings.soft.join(", ")}</TooltipContent>
+              </Tooltip>
+            ) : null}
+            <span>{unit.unit_name}</span>
+          </div>
           {activeLoadout && (
             <span className="text-xs text-muted-foreground block">
               {activeLoadout.name}
             </span>
           )}
+          <Select
+            value={unit.tactical_role ?? ""}
+            onValueChange={(val) => {
+              const newRole = val === "__none__" ? null : val;
+              updateArmyListUnit.mutate(
+                {
+                  id: unit.id,
+                  list_id: unit.list_id,
+                  points_override: unit.points_override,
+                  notes: unit.notes,
+                  tactical_role: newRole,
+                },
+                {
+                  onError: () => toast.error("Failed to update role. Please try again."),
+                },
+              );
+            }}
+          >
+            <SelectTrigger className="w-28 h-6 text-xs mt-0.5">
+              <SelectValue placeholder="Role..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">None</SelectItem>
+              {TACTICAL_ROLES.map((role) => (
+                <SelectItem key={role} value={role}>
+                  {TACTICAL_ROLES_DISPLAY[role]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </TableCell>
 
         <TableCell className="space-x-1">
