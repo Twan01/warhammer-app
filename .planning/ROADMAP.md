@@ -63,7 +63,7 @@ Full details: `.planning/milestones/v0.2.9-ROADMAP.md`
 
 - [x] **Phase 68: Infrastructure Quick Wins** - Register migrations, validate fresh install, fix COALESCE null-clearing, fix section-aware ordering, align version numbers
 - [x] **Phase 69: Paintless Recipe Steps** - Guard removal to persist steps without paint_id, exclude paintless steps from availability counts
-- [ ] **Phase 70: Non-Destructive Recipe Save** - Three-way diff replaces DELETE-all + re-INSERT, preserving section/step IDs across edits
+- [x] **Phase 70: Non-Destructive Recipe Save** - Three-way diff replaces DELETE-all + re-INSERT, preserving section/step IDs across edits
 - [ ] **Phase 71: Stable Session Section FK** - Migration 022 adds recipe_section_id FK to painting_sessions alongside denormalized section_name
 - [ ] **Phase 72: Data-Layer Test Suite** - Vitest + better-sqlite3 tests asserting migration parity, recipe persistence, session FK, schema shape
 
@@ -338,10 +338,10 @@ Plans:
 **Plans:** 2 plans
 Plans:
 **Wave 1**
-- [ ] 70-01-PLAN.md — Add dbId to DraftStep/DraftSection, UpdateRecipeStepInput type, updateRecipeStep query, extend tests
+- [x] 70-01-PLAN.md — Add dbId to DraftStep/DraftSection, UpdateRecipeStepInput type, updateRecipeStep query, extend tests
 
-**Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 70-02-PLAN.md — Replace DELETE-all with three-way diff in RecipeFormSheet.onSubmit
+**Wave 2**
+- [x] 70-02-PLAN.md — Replace DELETE-all with three-way diff in RecipeFormSheet.onSubmit
 
 ### Phase 71: Stable Session Section FK
 **Goal**: Painting sessions store a durable recipe_section_id FK so section analytics survive section renames
