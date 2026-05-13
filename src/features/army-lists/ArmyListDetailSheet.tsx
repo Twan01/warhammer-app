@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Plus, Swords } from "lucide-react";
 import { toast } from "sonner";
+import { getSyncFreshness } from "@/lib/syncFreshness";
 import {
   Sheet,
   SheetContent,
@@ -32,7 +33,6 @@ import { DetachmentPicker } from "./DetachmentPicker";
 import { StaleDataBanner } from "./StaleDataBanner";
 import { DetachmentRulesSection } from "./DetachmentRulesSection";
 import { RemindersSection } from "./RemindersSection";
-import { PointsFreshnessBadge } from "./PointsFreshnessBadge";
 
 interface ArmyListDetailSheetProps {
   open: boolean;
@@ -65,6 +65,11 @@ export function ArmyListDetailSheet({
   );
 
   const { data: wahapediaFactionId } = useWahapediaFactionId(faction?.name);
+
+  const freshness = useMemo(
+    () => getSyncFreshness(syncMeta?.last_sync_at ?? null),
+    [syncMeta?.last_sync_at],
+  );
 
   // Local draft for the list-level notes textarea.
   const [notesDraft, setNotesDraft] = useState(list?.notes ?? "");
@@ -148,11 +153,7 @@ export function ArmyListDetailSheet({
               </SheetDescription>
             </SheetHeader>
 
-            <ArmyListSummaryBar units={units ?? []} />
-
-            <div className="flex items-center gap-2 px-4 pt-2">
-              <PointsFreshnessBadge />
-            </div>
+            <ArmyListSummaryBar units={units ?? []} pointsLimit={list.points_limit} freshness={freshness} />
 
             <div className="flex flex-col gap-3 px-4 py-2">
               <div className="flex flex-col gap-1.5">

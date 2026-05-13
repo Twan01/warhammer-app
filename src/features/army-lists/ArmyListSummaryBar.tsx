@@ -1,68 +1,141 @@
 import { useMemo } from "react";
-import type { ArmyListUnitRow } from "@/types/armyList";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { computeListHealthStats } from "@/lib/computeUnitWarnings";
+import { PointsFreshnessBadge } from "./PointsFreshnessBadge";
+import type { ArmyListUnitRow } from "@/types/armyList";
+import {
+  TACTICAL_ROLES,
+  TACTICAL_ROLES_DISPLAY,
+} from "@/types/armyList";
+import type { TacticalRole } from "@/types/armyList";
+import type { SyncFreshness } from "@/lib/syncFreshness";
 import type { PaintingStatus } from "@/types/unit";
 
 interface ArmyListSummaryBarProps {
   units: ArmyListUnitRow[];
+  pointsLimit: number | null;
+  freshness: SyncFreshness;
 }
 
 /**
- * ARMY-03 + PLAY-01 — Pinned summary band inside ArmyListDetailSheet.
+ * Phase 66 — Full health summary panel (D-12, D-13, D-09, D-10, D-11).
  *
- * Three stats:
- *   - Total: SUM(effective_points) — effective_points is SQL-computed by
- *     getArmyListWithUnits via COALESCE(points_override, u.points, 0).
- *     NEVER reimplement COALESCE in JS (Pitfall 2 / RESEARCH Pattern 4).
- *   - Painted: SUM(effective_points WHERE status_painting === "Completed").
- *     "Completed" is the canonical fully-painted string from PAINTING_STATUS_ORDER
- *     (NOT "Complete" — that string does not exist in the enum). Verified against
- *     src/types/unit.ts PAINTING_STATUS_ORDER.
- *   - Battle-ready: round((painted / total) * 100). Returns 0 when total is 0.
- *
- * PLAY-01 additions: progress bar (bg-battle-gold fill) + not-ready unit list
- * with StatusBadge per unit, or gold "All units battle-ready" message at 100%.
+ * Stats: points total (X/Y when limit set), ownership %, readiness %,
+ * freshness badge, warning count with tooltip. Role coverage pills when
+ * at least one unit has a tactical role assigned.
  */
-export function ArmyListSummaryBar({ units }: ArmyListSummaryBarProps) {
-  const totalPoints = useMemo(
-    () => units.reduce((sum, u) => sum + u.effective_points, 0),
-    [units],
+export function ArmyListSummaryBar({ units, pointsLimit, freshness }: ArmyListSummaryBarProps) {
+  const stats = useMemo(
+    () => computeListHealthStats(units, pointsLimit, freshness),
+    [units, pointsLimit, freshness],
   );
 
-  const paintedPoints = useMemo(
-    () =>
-      units.reduce(
-        (sum, u) => (u.status_painting === "Completed" ? sum + u.effective_points : sum),
-        0,
-      ),
-    [units],
-  );
-
-  const battleReadyPct = totalPoints > 0
-    ? Math.round((paintedPoints / totalPoints) * 100)
-    : 0;
+  const totalWarnings = stats.hardWarningCount + stats.softWarningCount;
 
   const notReadyUnits = useMemo(
     () => units.filter((u) => u.status_painting !== "Completed"),
     [units],
   );
 
+  // Role coverage: count how many units are assigned to each role
+  const roleCounts = useMemo(() => {
+    const counts: Record<TacticalRole, number> = {
+      anti_tank: 0,
+      screening: 0,
+      objective_holder: 0,
+      fire_support: 0,
+      melee_threat: 0,
+      utility: 0,
+      transport: 0,
+    };
+    for (const u of units) {
+      if (u.tactical_role && u.tactical_role in counts) {
+        counts[u.tactical_role as TacticalRole] += 1;
+      }
+    }
+    return counts;
+  }, [units]);
+
+  const hasAnyRole = units.some((u) => u.tactical_role !== null);
+
+  // Points display: "X / Y pts" when limit set, "X pts" otherwise
+  const pointsValue = pointsLimit !== null
+    ? `${stats.totalPoints} / ${pointsLimit} pts`
+    : `${stats.totalPoints} pts`;
+
   return (
     <div className="flex flex-col gap-3 px-4 py-3 bg-muted/30 border-b">
-      {/* Existing stat row */}
+      {/* Stat row */}
       <div className="flex items-center gap-6">
-        <Stat label="Total" value={`${totalPoints} pts`} />
-        <Stat label="Painted" value={`${paintedPoints} pts`} />
-        <Stat label="Battle-ready" value={`${battleReadyPct}%`} />
+        <Stat
+          label="Total"
+          value={pointsValue}
+          valueClassName={stats.pointsExceeded ? "text-destructive" : undefined}
+        />
+        <Stat label="Owned" value={`${stats.ownershipPct}%`} />
+        <Stat label="Ready" value={`${stats.battleReadyPct}%`} />
       </div>
 
-      {/* Progress bar — 2px height, battle-gold fill */}
+      {/* Progress bar */}
       <div className="h-0.5 w-full bg-muted rounded-full overflow-hidden">
         <div
           className="h-full bg-battle-gold transition-all duration-300"
-          style={{ width: `${battleReadyPct}%` }}
+          style={{ width: `${stats.battleReadyPct}%` }}
         />
       </div>
+
+      {/* Freshness + warnings row */}
+      <div className="flex items-center justify-between">
+        <PointsFreshnessBadge />
+        {totalWarnings > 0 && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span
+                className={`text-xs font-medium cursor-default ${
+                  stats.hardWarningCount > 0 ? "text-destructive" : "text-amber-500"
+                }`}
+              >
+                Warnings: {totalWarnings}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              {stats.hardWarningCount} critical, {stats.softWarningCount} informational
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+
+      {/* Role coverage — only when at least one unit has a role */}
+      {hasAnyRole && (
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Role Coverage
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {TACTICAL_ROLES.map((role) => {
+              const count = roleCounts[role];
+              const isCovered = count >= 1;
+              return (
+                <span
+                  key={role}
+                  className={
+                    isCovered
+                      ? "bg-secondary text-secondary-foreground rounded-full px-2 py-1 text-xs"
+                      : "bg-transparent border border-dashed border-muted-foreground/40 text-muted-foreground rounded-full px-2 py-1 text-xs"
+                  }
+                >
+                  {TACTICAL_ROLES_DISPLAY[role]} {count}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Readiness section */}
       {notReadyUnits.length === 0 ? (
@@ -86,11 +159,11 @@ export function ArmyListSummaryBar({ units }: ArmyListSummaryBarProps) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, valueClassName }: { label: string; value: string; valueClassName?: string }) {
   return (
     <span className="text-sm">
       <span className="text-muted-foreground">{label}: </span>
-      <span className="font-semibold">{value}</span>
+      <span className={`font-semibold ${valueClassName ?? ""}`}>{value}</span>
     </span>
   );
 }

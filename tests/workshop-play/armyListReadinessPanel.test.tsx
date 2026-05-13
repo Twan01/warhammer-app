@@ -1,4 +1,5 @@
-/** Wave 1 — PLAY-01 ArmyListSummaryBar readiness panel upgrade. All 6 stubs activated. */
+/** Wave 1 — PLAY-01 ArmyListSummaryBar readiness panel upgrade. All 6 stubs activated.
+ * Updated for Phase 66: new props (pointsLimit, freshness) and stat labels. */
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { ArmyListSummaryBar } from "@/features/army-lists/ArmyListSummaryBar";
@@ -8,6 +9,11 @@ import type { ArmyListUnitRow } from "@/types/armyList";
 vi.mock("@/components/ui/status-badge", async (importOriginal) => {
   return importOriginal();
 });
+
+// PointsFreshnessBadge is self-contained (calls hooks internally) — mock it
+vi.mock("@/features/army-lists/PointsFreshnessBadge", () => ({
+  PointsFreshnessBadge: () => <span data-testid="freshness-badge">Fresh</span>,
+}));
 
 function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
   return {
@@ -19,13 +25,16 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
   };
 }
 
+/** Default props for convenience */
+const defaultProps = { pointsLimit: null as number | null, freshness: "fresh" as const };
+
 describe("ArmyListSummaryBar readiness panel (PLAY-01)", () => {
   it("renders a progress bar with width matching battleReadyPct", () => {
     const units = [
       makeUnit({ id: 1, status_painting: "Completed", effective_points: 100 }),
       makeUnit({ id: 2, status_painting: "Primed", effective_points: 100 }),
     ];
-    render(<ArmyListSummaryBar units={units} />);
+    render(<ArmyListSummaryBar units={units} {...defaultProps} />);
 
     // The inner progress bar div has class bg-battle-gold
     const progressBar = document.querySelector(".bg-battle-gold");
@@ -37,7 +46,7 @@ describe("ArmyListSummaryBar readiness panel (PLAY-01)", () => {
     const units = [
       makeUnit({ id: 1, status_painting: "Completed", effective_points: 200 }),
     ];
-    render(<ArmyListSummaryBar units={units} />);
+    render(<ArmyListSummaryBar units={units} {...defaultProps} />);
 
     const progressBar = document.querySelector(".bg-battle-gold");
     expect(progressBar).not.toBeNull();
@@ -49,7 +58,7 @@ describe("ArmyListSummaryBar readiness panel (PLAY-01)", () => {
       makeUnit({ id: 1, unit_name: "Intercessors", status_painting: "Completed", effective_points: 100 }),
       makeUnit({ id: 2, unit_name: "Hellblaster", status_painting: "Primed", effective_points: 100 }),
     ];
-    render(<ArmyListSummaryBar units={units} />);
+    render(<ArmyListSummaryBar units={units} {...defaultProps} />);
 
     expect(screen.getByText("Hellblaster")).toBeInTheDocument();
     expect(screen.getByText("Primed")).toBeInTheDocument();
@@ -61,7 +70,7 @@ describe("ArmyListSummaryBar readiness panel (PLAY-01)", () => {
       makeUnit({ id: 1, status_painting: "Completed", effective_points: 100 }),
       makeUnit({ id: 2, status_painting: "Completed", effective_points: 150 }),
     ];
-    render(<ArmyListSummaryBar units={units} />);
+    render(<ArmyListSummaryBar units={units} {...defaultProps} />);
 
     expect(screen.getByText("All units battle-ready")).toBeInTheDocument();
     expect(screen.queryByText(/Not ready/)).not.toBeInTheDocument();
@@ -71,20 +80,20 @@ describe("ArmyListSummaryBar readiness panel (PLAY-01)", () => {
     const units = [
       makeUnit({ id: 1, status_painting: "Completed", effective_points: 100 }),
     ];
-    render(<ArmyListSummaryBar units={units} />);
+    render(<ArmyListSummaryBar units={units} {...defaultProps} />);
 
     const msg = screen.getByText("All units battle-ready");
     expect(msg).toHaveClass("text-battle-gold");
   });
 
-  it("still renders existing stat row (Total, Painted, Battle-ready)", () => {
+  it("renders stat row with Total, Owned, and Ready labels", () => {
     const units = [
       makeUnit({ id: 1, status_painting: "Completed", effective_points: 100 }),
     ];
-    render(<ArmyListSummaryBar units={units} />);
+    render(<ArmyListSummaryBar units={units} {...defaultProps} />);
 
     expect(screen.getByText(/Total:/)).toBeInTheDocument();
-    expect(screen.getByText(/Painted:/)).toBeInTheDocument();
-    expect(screen.getByText(/Battle-ready:/)).toBeInTheDocument();
+    expect(screen.getByText(/Owned:/)).toBeInTheDocument();
+    expect(screen.getByText(/Ready:/)).toBeInTheDocument();
   });
 });
