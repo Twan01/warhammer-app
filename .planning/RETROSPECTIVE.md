@@ -494,6 +494,54 @@
 
 ---
 
+## Milestone: v0.2.11 — Foundation Hardening
+
+**Shipped:** 2026-05-13
+**Phases:** 5 (68–72) | **Plans:** 9 | **Timeline:** 1 day (2026-05-13)
+
+### What Was Built
+
+- Infrastructure quick wins: COALESCE null-clearing fix, migration registration for 018-021, section-aware step ordering via LEFT JOIN, version alignment, duplicateRecipe section metadata copy
+- Paintless recipe steps: migration 022 (table rebuild for nullable paint_id), RecipeFormSheet guard removal, SectionedTimeline null-safe availability
+- Non-destructive recipe save: dbId tracking on DraftStep/DraftSection, UpdateRecipeStepInput with 13 columns, five-phase diff algorithm (collect surviving IDs → DELETE removed → UPDATE existing → INSERT new → step diff)
+- Stable session section FK: migration 023 (recipe_section_id ON DELETE SET NULL), 8-column createSession INSERT, LogSessionSheet dual-write from watchedSectionId
+- Data-layer test suite: better-sqlite3 devDep, db-helpers.ts factory, 14 tests (migration parity, schema shape, recipe persistence, session FK)
+
+### What Worked
+
+- **Non-destructive save preceded session FK (dependency ordering):** The decision to ship REC-02 (Phase 70) before REC-04 (Phase 71) was critical — the old DELETE-all pattern would fire ON DELETE SET NULL on every save, making the session FK useless. Correct dependency ordering meant the FK worked from day one.
+- **Five-phase diff algorithm isolation:** The diff logic is entirely in RecipeFormSheet.onSubmit — no new hooks, no new query functions beyond updateRecipeStep. The create-new-recipe path is completely untouched, reducing regression risk.
+- **Data-layer tests caught real contracts:** The 14 tests in Phase 72 verify actual SQLite behavior (ON DELETE CASCADE, ON DELETE SET NULL, FK pragma) that can't be tested through React Testing Library. These are load-bearing for migration confidence.
+- **No gap closure phase needed:** All 9 requirements passed on first completion — 4th consecutive milestone (v0.2.7, v0.2.8, v0.2.9, v0.2.11) with clean first-pass. Well-scoped foundation work with clear dependency chain.
+
+### What Was Inefficient
+
+- **Verification docs missing for 2 of 5 phases:** Phases 68 and 70 had no VERIFICATION.md despite having VALIDATION.md and UAT.md. The milestone audit flagged `gaps_found` due to the missing formal verification — requiring manual assessment that the UATs covered the same ground. VERIFICATION.md should be generated as part of phase completion.
+- **Audit ran before requirements checkboxes were updated:** REQUIREMENTS.md showed 3/9 checked when the audit ran, but all 9 were code-complete. The audit's `requirements: 3/9` score was misleading. Checkboxes should be updated at phase completion, not after audit.
+- **v0.2.11 phases executed out-of-milestone-order:** These phases were v0.2.11 scope but executed while v0.2.10 was in progress (Phases 63, 64, 66, 67 still remaining). This created a confusing state where v0.2.11 shipped before v0.2.10. The dependency (Phase 70's non-destructive save enabling safe FK work) justified the sequencing, but the milestone numbering is counterintuitive.
+
+### Patterns Established
+
+- **dbId tracking in form state for diff saves:** Adding `dbId: number | null` to draft types enables diff-based saves without querying the DB for "what existed before." The form state is the single source of truth for what to update vs insert.
+- **Five-phase diff algorithm:** Collect surviving IDs → DELETE removed parents (CASCADE children) → UPDATE existing parents → INSERT new parents + build ID map → per-parent child diff. Reusable for any hierarchical form save.
+- **better-sqlite3 for data-layer tests:** In-memory SQLite via better-sqlite3 with `// @vitest-environment node` override enables testing real SQLite behavior (FK constraints, cascades, schema shape) without Tauri runtime.
+- **Dual-write for FK + denormalized text:** Store both the FK (for analytics/querying) and a text copy (for display after parent deletion). Pattern now used for weapon_name, detachment_name, and section_name.
+
+### Key Lessons
+
+1. **Update REQUIREMENTS.md checkboxes at phase completion, not after audit.** The 3/9 score was misleading and created unnecessary audit remediation work.
+2. **VERIFICATION.md should be a standard phase completion artifact.** UAT covers functional testing, but VERIFICATION.md provides the formal cross-reference that the milestone audit depends on.
+3. **Out-of-order milestone execution works when dependency-justified.** v0.2.11 shipped before v0.2.10 because the foundation fixes were prerequisites for safe v0.2.10 feature work. Document the reasoning clearly.
+4. **Data-layer tests are most valuable for SQLite-specific behavior.** FK cascades, pragma enforcement, and schema shape can't be tested through the React layer. The better-sqlite3 approach fills a real gap.
+
+### Cost Observations
+
+- Model: Claude Opus 4.6 throughout
+- Sessions: 1 (all 5 phases in a single day)
+- Notable: 9 plans across 5 phases in 1 day — foundation/data-layer work is fast when well-scoped with clear dependency chain (68→69→70→71→72)
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -511,6 +559,7 @@
 | v0.2.7 | 4 | 8 | Hierarchical recipe sections; nested DnD; progressive disclosure; no gap closure needed |
 | v0.2.8 | 5 | 12 | Rules hub UI; army list detachment selection; annotation layer; Game Day mode; no gap closure needed |
 | v0.2.9 | 4 | 8 | Workflow metadata; cascade selector; pure derivation function; batch enrichment pattern; no gap closure needed |
+| v0.2.11 | 5 | 9 | Foundation hardening; non-destructive save; data-layer tests; paintless steps; session FK; no gap closure needed |
 
 ### Cumulative Quality
 
@@ -527,6 +576,7 @@
 | v0.2.7 | 1,112 | All passing (19 requirements, 33/33 observable truths verified, Nyquist compliant, no gap closure) |
 | v0.2.8 | ~1,200 | All passing (27 requirements, Nyquist compliant, no gap closure, 3rd consecutive clean audit) |
 | v0.2.9 | ~1,240 | All passing (18/19 requirements satisfied, 1 partial design deviation, Nyquist compliant, gaps resolved inline) |
+| v0.2.11 | ~1,260 | All passing (9/9 requirements satisfied, 14 data-layer tests added, Nyquist 4/5 compliant, no gap closure) |
 
 ### Top Lessons (Verified Across Milestones)
 

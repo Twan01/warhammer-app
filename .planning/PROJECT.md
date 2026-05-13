@@ -4,17 +4,17 @@
 
 HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, structured painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play." Official points and rules data are imported via Wahapedia sync for personal use.
 
-Shipped through v0.2.9 (60 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, and DnD reorder), army list builder with detachment selection and inline rules context, battle log, spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors, premium CSS grid dashboard with workflow-aware CurrentFocusCard and KanbanCards, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, and a Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist). v0.2.11 Foundation Hardening shipped 2026-05-13: migration registration, paintless steps, non-destructive recipe saves, session section FK, data-layer test suite (14 tests via better-sqlite3). Now building v0.2.10: applied recipes (recipe-as-painting-plan with per-unit step progress), points import with freshness tracking, and advanced army list validation with tactical role coverage.
+Shipped through v0.2.11 (72 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps), army list builder with detachment selection and inline rules context, battle log, spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard and KanbanCards, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist), and a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK). Now resuming v0.2.10: applied recipes (recipe-as-painting-plan with per-unit step progress), points import with freshness tracking, and advanced army list validation with tactical role coverage.
 
 ## Current Milestone: v0.2.10 Applied Recipes, Points Import & List Validation
 
 **Goal:** Deliver applied recipes, points import pipeline, and advanced army list validation.
 
-**Status:** In progress — Phase 65 (Points Import Pipeline) executing.
+**Status:** In progress — Phase 65 complete, Phase 66 planned, Phases 63/64/67 remaining.
 
 ## Current State
 
-v0.2.11 shipped 2026-05-13. v0.2.10 in progress. v0.2.9 shipped 2026-05-12.
+v0.2.11 shipped 2026-05-13. v0.2.10 in progress (Phases 61-62, 65 complete; Phases 63, 64, 66, 67 remaining). v0.2.9 shipped 2026-05-12.
 
 ## Core Value
 
@@ -131,19 +131,19 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ Kanban card current workflow/next step display — Phase 60 — v0.2.9
 - ✓ Current Focus card section-aware next action guidance — Phase 60 — v0.2.9
 
+*All v0.2.11 requirements verified and shipped 2026-05-13*
+
+- ✓ MIG-01: All migrations (018-021) registered in lib.rs — fresh install creates all tables/columns — Phase 68 — v0.2.11
+- ✓ MIG-02: Fresh app launch from empty data directory succeeds without errors — Phase 68 — v0.2.11
+- ✓ REC-01: Paintless recipe steps persist without paint_id, excluded from availability calculations — Phase 69 — v0.2.11
+- ✓ REC-02: Non-destructive recipe save preserves section/step IDs via five-phase diff — Phase 70 — v0.2.11
+- ✓ REC-03: Section metadata clearing via direct assignment (not COALESCE) — Phase 68 — v0.2.11
+- ✓ REC-04: Stable recipe_section_id FK on painting sessions with denormalized section_name — Phase 71 — v0.2.11
+- ✓ REC-05: Section-aware step ordering via LEFT JOIN + COALESCE ORDER BY — Phase 68 — v0.2.11
+- ✓ VER-01: package.json and tauri.conf.json version numbers aligned — Phase 68 — v0.2.11
+- ✓ TST-01: 14 data-layer tests via better-sqlite3 covering migration parity, recipe persistence, session FK, schema shape — Phase 72 — v0.2.11
+
 ### Active
-
-*v0.2.11 — Foundation Hardening*
-
-- [ ] **MIG-01**: Register migrations 018/019/020 in lib.rs — fresh install creates all required tables/columns
-- [ ] **MIG-02**: Clean DB validation — fresh app launch from empty app data directory succeeds without errors
-- [ ] **REC-01**: Paintless recipe steps — persist steps without paint_id, exclude from availability calculations
-- [ ] **REC-02**: Non-destructive recipe edits — preserve section/step IDs, update in place, delete only removed items
-- [ ] **REC-03**: Section metadata clearing — direct assignment instead of COALESCE for nullable metadata fields
-- [ ] **REC-04**: Stable recipe_section_id on painting sessions — FK reference alongside denormalized section_name
-- [ ] **REC-05**: Section-aware step ordering — recipe-level queries order by section index then step index
-- [ ] **VER-01**: Version number hygiene — package.json and tauri.conf.json match current release
-- [ ] **TST-01**: Data-layer tests — migration registration, recipe persistence, session links, schema validation
 
 ### Out of Scope
 
@@ -160,7 +160,7 @@ A single personal command center that always answers "what do I own, what's pain
 
 ## Context
 
-- **Current state:** v0.2.9 shipped. ~290 TypeScript source files. ~96,000 LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 11 main pages. Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline. 20 SQLite migrations (19 hobbyforge.db + 1 rules.db wargear extension). Workflow-aware painting recipes with section metadata, cascading session logging, and Kanban/CurrentFocus integration.
+- **Current state:** v0.2.11 shipped. ~290 TypeScript source files. ~96,000 LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 11 main pages. Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline. 24 SQLite migrations (23 hobbyforge.db + 1 rules.db wargear extension). Non-destructive recipe saves preserving section/step IDs, paintless steps, stable session section FK, 14 data-layer tests via better-sqlite3.
 - **Personal tool** — single user (the owner), local-first, no accounts or sync
 - **Domain:** Warhammer 40K 10th edition, hobby management (collecting → painting → playing)
 - **User journey priority:** painter/collector → ready-to-play, *not* competitive optimization
@@ -238,6 +238,11 @@ A single personal command center that always answers "what do I own, what's pain
 | useWorkflowPositions batch enrichment pattern | Sorted ID key for cache stability, Map result, 5min staleTime; follows useKanbanEnrichment exactly | ✓ Good — consistent with established hook patterns |
 | Workflow progressive disclosure threshold | Check metadata presence, not just section count; hide when no data set | ✓ Good — simple recipes stay uncluttered |
 | Design deviation D-08: execution_mode as text not Badge | Dot-separated string more compact than Badge for metadata-heavy timelines | — Accepted design trade-off (RUI-03 partial) |
+| better-sqlite3 for data-layer tests (not node:sqlite) | Vitest 4.x import-stripping bug (#7177) breaks node:sqlite; better-sqlite3 is battle-tested | ✓ Good — 14 tests running reliably in CI-ready setup |
+| Five-phase diff for non-destructive save | Preserves section/step IDs; avoids UPDATE complexity of row-by-row comparison | ✓ Good — clean separation (delete removed → update existing → insert new) |
+| Direct assignment (not COALESCE) for nullable metadata updates | Users need to clear fields to NULL; COALESCE($N, column) prevents clearing | ✓ Good — consistent with recipe metadata pattern from v0.2.6 |
+| ON DELETE SET NULL for session → section FK | Session survives section deletion; link cleared not orphaned | ✓ Good — consistent with session → recipe FK pattern |
+| Dual-write (FK + denormalized text) for session sections | recipe_section_id for analytics, section_name for display after section delete | ✓ Good — follows weapon_name/detachment_name pattern |
 
 ---
 ## Evolution
@@ -258,4 +263,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-13 after v0.2.11 milestone started*
+*Last updated: 2026-05-13 after v0.2.11 milestone shipped*

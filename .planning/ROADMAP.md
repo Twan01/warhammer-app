@@ -14,7 +14,7 @@
 - ✅ **v0.2.8 Rules Data Hub UI / Army Lists 2.0 / Game Day** — Phases 52-56 (shipped 2026-05-11)
 - ✅ **v0.2.9 Recipes 3.1 / Workflow Semantics & Integrations** — Phases 57-60 (shipped 2026-05-12)
 - 🚧 **v0.2.10 Applied Recipes, Points Import & List Validation** — Phases 61-67 (in progress)
-- 📋 **v0.2.11 Foundation Hardening** — Phases 68-72 (planned)
+- ✅ **v0.2.11 Foundation Hardening** — Phases 68-72 (shipped 2026-05-13)
 
 ## Phases
 
@@ -57,17 +57,18 @@ Full details: `.planning/milestones/v0.2.9-ROADMAP.md`
 
 ---
 
-### 📋 v0.2.11 Foundation Hardening (Planned)
+<details>
+<summary>✅ v0.2.11 Foundation Hardening (Phases 68-72) — SHIPPED 2026-05-13</summary>
 
-**Milestone Goal:** Stabilize the technical foundation — migrations, recipe data integrity, version hygiene — so future features are built on reliable data structures.
+- [x] Phase 68: Infrastructure Quick Wins (2/2 plans) — completed 2026-05-13
+- [x] Phase 69: Paintless Recipe Steps (1/1 plan) — completed 2026-05-13
+- [x] Phase 70: Non-Destructive Recipe Save (2/2 plans) — completed 2026-05-13
+- [x] Phase 71: Stable Session Section FK (2/2 plans) — completed 2026-05-13
+- [x] Phase 72: Data-Layer Test Suite (2/2 plans) — completed 2026-05-13
 
-- [x] **Phase 68: Infrastructure Quick Wins** - Register migrations, validate fresh install, fix COALESCE null-clearing, fix section-aware ordering, align version numbers
-- [x] **Phase 69: Paintless Recipe Steps** - Guard removal to persist steps without paint_id, exclude paintless steps from availability counts
-- [x] **Phase 70: Non-Destructive Recipe Save** - Three-way diff replaces DELETE-all + re-INSERT, preserving section/step IDs across edits
-- [x] **Phase 71: Stable Session Section FK** - Migration 023 adds recipe_section_id FK to painting_sessions alongside denormalized section_name (completed 2026-05-13)
-- [x] **Phase 72: Data-Layer Test Suite** - Vitest + better-sqlite3 tests asserting migration parity, recipe persistence, session FK, schema shape (completed 2026-05-13)
+Full details: `.planning/milestones/v0.2.11-ROADMAP.md`
 
----
+</details>
 
 <details>
 <summary>✅ v0.1.1 HobbyForge MVP (Phases 1-5) — SHIPPED 2024-05-01</summary>
@@ -315,82 +316,6 @@ Plans:
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 68: Infrastructure Quick Wins
-**Goal**: All migrations are registered and applied on fresh install, COALESCE null-clearing bug is fixed, step ordering is section-aware, and version numbers are aligned
-**Depends on**: Phase 67 (first phase of v0.2.11)
-**Requirements**: MIG-01, MIG-02, VER-01, REC-03, REC-05
-**Success Criteria** (what must be TRUE):
-  1. A fresh app launch from an empty app data directory creates all required tables and columns without any errors or missing schema
-  2. User can set a section metadata field (section_type, technique, execution_mode, applies_to) to a value and then clear it back to empty; the cleared state persists after save and reopen
-  3. Recipe-level step queries return steps grouped by section in section order; steps from different sections never interleave regardless of step insertion order
-  4. package.json and tauri.conf.json both show the same version string matching the current release
-**Plans:** 2 plans
-Plans:
-**Wave 1**
-- [ ] 68-01-PLAN.md — COALESCE null-clearing fix (REC-03) + version alignment (VER-01) + migration verification (MIG-01, MIG-02)
-- [ ] 68-02-PLAN.md — Section-aware step ordering (REC-05) + duplicateRecipe section metadata copy (D-09)
-
-### Phase 69: Paintless Recipe Steps
-**Goal**: Recipe steps can exist without a paint selection, and paintless steps are excluded from availability calculations
-**Depends on**: Phase 68
-**Requirements**: REC-01
-**Success Criteria** (what must be TRUE):
-  1. User can save a recipe step form without selecting a paint; the step persists in the database with a null paint_id
-  2. After closing and reopening the recipe, the paintless step appears in the step list with no paint shown
-  3. Paint availability percentage on the recipe card and timeline view excludes paintless steps from both numerator and denominator
-**Plans:** 1 plan
-Plans:
-- [x] 69-01-PLAN.md — Migration 022 (nullable paint_id) + guard removal + type update + SectionedTimeline null fix
-
-### Phase 70: Non-Destructive Recipe Save
-**Goal**: Editing a recipe preserves all existing section and step database IDs; only genuinely changed fields are updated, only genuinely removed items are deleted
-**Depends on**: Phase 69
-**Requirements**: REC-02
-**Success Criteria** (what must be TRUE):
-  1. After editing a recipe (rename a step, reorder steps, change a field), the section and step rows in the database retain their original IDs — no new IDs are assigned to unchanged items
-  2. Removing a step from the form deletes only that step's database row; all other step rows are untouched
-  3. Adding a new step during an edit inserts exactly one new row; existing step rows are not deleted and re-inserted
-  4. Duplicate recipe produces a full copy with new IDs for all sections and steps, unaffected by the non-destructive save logic
-**Plans:** 2 plans
-Plans:
-**Wave 1**
-- [x] 70-01-PLAN.md — Add dbId to DraftStep/DraftSection, UpdateRecipeStepInput type, updateRecipeStep query, extend tests
-
-**Wave 2**
-- [x] 70-02-PLAN.md — Replace DELETE-all with three-way diff in RecipeFormSheet.onSubmit
-
-### Phase 71: Stable Session Section FK
-**Goal**: Painting sessions store a durable recipe_section_id FK so section analytics survive section renames
-**Depends on**: Phase 70
-**Requirements**: REC-04
-**Success Criteria** (what must be TRUE):
-  1. Migration 022 runs on app start and adds a recipe_section_id column to the painting_sessions table with an ON DELETE SET NULL FK
-  2. When logging a session against a recipe section, the session row stores both the section's database ID and its denormalized name
-  3. Renaming a recipe section updates the section row's name but does not break or orphan any painting session records — existing sessions still display their original section name
-**Plans:** 2/2 plans complete
-Plans:
-**Wave 1**
-- [x] 71-01-PLAN.md — Migration 023 + lib.rs registration + types + query + query tests (REC-04)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-- [x] 71-02-PLAN.md — Zod schema + LogSessionSheet onSubmit wiring + schema tests (REC-04)
-
-### Phase 72: Data-Layer Test Suite
-**Goal**: Automated tests verify the contracts delivered by Phases 68-71 and prevent regression
-**Depends on**: Phase 71
-**Requirements**: TST-01
-**Success Criteria** (what must be TRUE):
-  1. A Vitest test using better-sqlite3 verifies that all migration files registered in lib.rs produce the expected tables and columns on a fresh in-memory database
-  2. A test round-trips a recipe save with paintless steps and confirms null paint_id rows are stored and retrieved correctly
-  3. A test exercises the non-destructive save path and asserts that unchanged section/step IDs are preserved across an edit cycle
-  4. A test inserts a painting session with a recipe_section_id FK and confirms ON DELETE SET NULL fires correctly when the section is deleted
-**Plans**: 2 plans
-Plans:
-**Wave 1**
-- [x] 72-01-PLAN.md — Install better-sqlite3 + db-helpers.ts + migration parity tests + schema shape tests (D-01 through D-06, D-12 through D-14)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-- [x] 72-02-PLAN.md — Recipe persistence tests + session section FK tests (D-07 through D-11)
 
 ## Progress
 
@@ -465,8 +390,8 @@ Plans:
 | 65. Points Import Pipeline | v0.2.10 | 3/3 | Complete | 2026-05-13 |
 | 66. Army List Validation | v0.2.10 | 0/3 | Not started | - |
 | 67. Game Day Integration | v0.2.10 | 0/TBD | Not started | - |
-| 68. Infrastructure Quick Wins | v0.2.11 | 2/2 | Complete | 2026-05-13 |
-| 69. Paintless Recipe Steps | v0.2.11 | 1/1 | Complete | 2026-05-13 |
-| 70. Non-Destructive Recipe Save | v0.2.11 | 2/2 | Complete | 2026-05-13 |
-| 71. Stable Session Section FK | v0.2.11 | 2/2 | Complete | 2026-05-13 |
-| 72. Data-Layer Test Suite | v0.2.11 | 2/2 | Complete | 2026-05-13 |
+| 68. Infrastructure Quick Wins | v0.2.11 | 2/2 | Complete | 2026-05-13 | ✅ |
+| 69. Paintless Recipe Steps | v0.2.11 | 1/1 | Complete | 2026-05-13 | ✅ |
+| 70. Non-Destructive Recipe Save | v0.2.11 | 2/2 | Complete | 2026-05-13 | ✅ |
+| 71. Stable Session Section FK | v0.2.11 | 2/2 | Complete | 2026-05-13 | ✅ |
+| 72. Data-Layer Test Suite | v0.2.11 | 2/2 | Complete | 2026-05-13 | ✅ |

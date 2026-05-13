@@ -1,4 +1,24 @@
 # Milestones
+## v0.2.11 Foundation Hardening (Shipped: 2026-05-13)
+
+**Phases completed:** 5 phases (68–72), 9 plans
+**Timeline:** 2026-05-13 (single day)
+**Stats:** 13 feat/test commits, 156 files changed, +16,688 / -229 lines, 9/9 requirements satisfied
+
+**Key accomplishments:**
+- Infrastructure quick wins: COALESCE null-clearing fix for 4 workflow metadata fields, migration registration for 018-021, section-aware step ordering via LEFT JOIN + COALESCE ORDER BY, version alignment to 0.2.11
+- Paintless recipe steps: migration 022 makes paint_id nullable via table rebuild, guard removal in RecipeFormSheet, SectionedTimeline null-safe availability rendering
+- Non-destructive recipe save: dbId tracking on DraftStep/DraftSection, updateRecipeStep query with 13 mutable columns, five-phase diff algorithm replacing DELETE-all + re-INSERT in RecipeFormSheet.onSubmit
+- Stable session section FK: migration 023 adds recipe_section_id (ON DELETE SET NULL) to painting_sessions, 8-column createSession INSERT, LogSessionSheet dual-write wiring
+- Data-layer test suite: better-sqlite3 devDep with in-memory SQLite, 14 tests covering migration parity, schema shape, recipe persistence (paintless steps, ID preservation), session FK (ON DELETE SET NULL, dual-write independence)
+
+**Archived:**
+- Roadmap: `.planning/milestones/v0.2.11-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.2.11-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.2.11-MILESTONE-AUDIT.md`
+
+---
+
 ## v0.2.9 Recipes 3.1 / Workflow Semantics & Integrations (Shipped: 2026-05-12)
 
 **Phases completed:** 4 phases (57–60), 8 plans
