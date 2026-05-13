@@ -465,8 +465,8 @@ Plans:
 | 65. Points Import Pipeline | v0.2.10 | 3/3 | Complete | 2026-05-13 |
 | 66. Army List Validation | v0.2.10 | 0/3 | Not started | - |
 | 67. Game Day Integration | v0.2.10 | 0/TBD | Not started | - |
-| 68. Infrastructure Quick Wins | v0.2.11 | 0/2 | Not started | - |
-| 69. Paintless Recipe Steps | v0.2.11 | 0/1 | Not started | - |
-| 70. Non-Destructive Recipe Save | v0.2.11 | 0/2 | Not started | - |
-| 71. Stable Session Section FK | v0.2.11 | 2/2 | Complete   | 2026-05-13 |
-| 72. Data-Layer Test Suite | v0.2.11 | 1/2 | In Progress | - |
+| 68. Infrastructure Quick Wins | v0.2.11 | 2/2 | Complete | 2026-05-13 |
+| 69. Paintless Recipe Steps | v0.2.11 | 1/1 | Complete | 2026-05-13 |
+| 70. Non-Destructive Recipe Save | v0.2.11 | 2/2 | Complete | 2026-05-13 |
+| 71. Stable Session Section FK | v0.2.11 | 2/2 | Complete | 2026-05-13 |
+| 72. Data-Layer Test Suite | v0.2.11 | 2/2 | Complete | 2026-05-13 |
