@@ -1,10 +1,11 @@
 ---
 phase: 63
 slug: applied-recipe-ux
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-13
+validated: 2026-05-13
 ---
 
 # Phase 63 — Validation Strategy
@@ -19,15 +20,15 @@ created: 2026-05-13
 |----------|-------|
 | **Framework** | Vitest 4 + React Testing Library 16 (jsdom) |
 | **Config file** | vitest.config.ts |
-| **Quick run command** | `pnpm test -- tests/collection/` |
+| **Quick run command** | `pnpm test -- tests/applied-recipes/` |
 | **Full suite command** | `pnpm test` |
-| **Estimated runtime** | ~15 seconds |
+| **Estimated runtime** | ~10 seconds |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run `pnpm test -- tests/collection/`
+- **After every task commit:** Run `pnpm test -- tests/applied-recipes/`
 - **After every plan wave:** Run `pnpm test`
 - **Before `/gsd-verify-work`:** Full suite must be green
 - **Max feedback latency:** 15 seconds
@@ -36,26 +37,29 @@ created: 2026-05-13
 
 ## Per-Task Verification Map
 
-| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 63-01-01 | 01 | 1 | — | — | N/A | setup | `npx shadcn add accordion` | ❌ W0 | ⬜ pending |
-| 63-01-02 | 01 | 1 | AR-03 | — | N/A | component | `pnpm test -- tests/collection/AssignmentChecklist.test.ts` | ❌ W0 | ⬜ pending |
-| 63-02-01 | 02 | 2 | AR-02 | — | N/A | component | `pnpm test -- tests/collection/ApplyRecipeDialog.test.ts` | ❌ W0 | ⬜ pending |
-| 63-02-02 | 02 | 2 | AR-04 | — | N/A | component | `pnpm test -- tests/collection/AppliedRecipesTab.test.ts` | ❌ W0 | ⬜ pending |
-| 63-03-01 | 03 | 2 | AR-07 | — | N/A | component | `pnpm test -- tests/collection/ApplyToUnitsDialog.test.ts` | ❌ W0 | ⬜ pending |
-| 63-03-02 | 03 | 2 | AR-07 | — | N/A | integration | `pnpm test -- tests/painting/RecipeDetailSheet.test.ts` | ✅ | ⬜ pending |
+| Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
+|---------|------|------|-------------|-----------|-------------------|-------------|--------|
+| 63-01-01 | 01 | 1 | — | setup | `npx tsc --noEmit` | ✅ | ✅ green |
+| 63-01-02 | 01 | 1 | AR-03 | component | `pnpm test -- tests/applied-recipes/assignmentChecklist.test.tsx` | ✅ | ✅ green |
+| 63-02-01 | 02 | 2 | AR-02 | component | `pnpm test -- tests/applied-recipes/applyRecipeDialog.test.tsx` | ✅ | ✅ green |
+| 63-02-02 | 02 | 2 | AR-04 | component | `pnpm test -- tests/applied-recipes/appliedRecipesTab.test.tsx` | ✅ | ✅ green |
+| 63-03-01 | 03 | 2 | AR-07 | component | `pnpm test -- tests/applied-recipes/applyToUnitsDialog.test.tsx` | ✅ | ✅ green |
+| 63-03-02 | 03 | 2 | AR-07 | integration | `pnpm test -- tests/painting/recipeDetailSheet.test.tsx` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
 ---
 
-## Wave 0 Requirements
+## Test Coverage Summary
 
-- [ ] `npx shadcn add accordion` — install accordion component
-- [ ] `tests/collection/AssignmentChecklist.test.ts` — stubs for AR-03
-- [ ] `tests/collection/ApplyRecipeDialog.test.ts` — stubs for AR-02
-- [ ] `tests/collection/AppliedRecipesTab.test.ts` — stubs for AR-04
-- [ ] `tests/collection/ApplyToUnitsDialog.test.ts` — stubs for AR-07
+| Test File | Tests | Pass | Fail |
+|-----------|-------|------|------|
+| tests/applied-recipes/assignmentChecklist.test.tsx | 5 | 5 | 0 |
+| tests/applied-recipes/applyRecipeDialog.test.tsx | 4 | 4 | 0 |
+| tests/applied-recipes/appliedRecipesTab.test.tsx | 4 | 4 | 0 |
+| tests/applied-recipes/applyToUnitsDialog.test.tsx | 5 | 5 | 0 |
+| tests/painting/recipeDetailSheet.test.tsx | 32 | 32 | 0 |
+| **Total** | **50** | **50** | **0** |
 
 ---
 
@@ -69,13 +73,23 @@ created: 2026-05-13
 
 ---
 
+## Validation Audit 2026-05-13
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+---
+
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have automated verify commands
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] All test files exist on disk
+- [x] All 50 tests pass (18 applied-recipes + 32 RecipeDetailSheet)
+- [x] Feedback latency < 15s (~10s actual)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** validated
