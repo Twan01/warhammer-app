@@ -328,7 +328,13 @@ Plans:
   2. Removing a step from the form deletes only that step's database row; all other step rows are untouched
   3. Adding a new step during an edit inserts exactly one new row; existing step rows are not deleted and re-inserted
   4. Duplicate recipe produces a full copy with new IDs for all sections and steps, unaffected by the non-destructive save logic
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+**Wave 1**
+- [ ] 70-01-PLAN.md — Add dbId to DraftStep/DraftSection, UpdateRecipeStepInput type, updateRecipeStep query, extend tests
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 70-02-PLAN.md — Replace DELETE-all with three-way diff in RecipeFormSheet.onSubmit
 
 ### Phase 71: Stable Session Section FK
 **Goal**: Painting sessions store a durable recipe_section_id FK so section analytics survive section renames
@@ -426,6 +432,6 @@ Plans:
 | 67. Game Day Integration | v0.2.10 | 0/TBD | Not started | - |
 | 68. Infrastructure Quick Wins | v0.2.11 | 0/2 | Not started | - |
 | 69. Paintless Recipe Steps | v0.2.11 | 0/1 | Not started | - |
-| 70. Non-Destructive Recipe Save | v0.2.11 | 0/TBD | Not started | - |
+| 70. Non-Destructive Recipe Save | v0.2.11 | 0/2 | Not started | - |
 | 71. Stable Session Section FK | v0.2.11 | 0/TBD | Not started | - |
 | 72. Data-Layer Test Suite | v0.2.11 | 0/TBD | Not started | - |
