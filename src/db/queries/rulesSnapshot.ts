@@ -39,6 +39,8 @@ const SNAPSHOT_TABLES: Array<{ table: string; query: string | null }> = [
   { table: "rw_stratagems",           query: "SELECT id, name FROM rw_stratagems ORDER BY id" },
   { table: "rw_detachments",          query: "SELECT id, name FROM rw_detachments ORDER BY id" },
   { table: "rw_detachment_abilities", query: "SELECT id, name FROM rw_detachment_abilities ORDER BY id" },
+  { table: "rw_datasheet_points",
+    query: "SELECT datasheet_name, faction_id, points FROM rw_datasheet_points ORDER BY datasheet_name" },
 ];
 
 /**

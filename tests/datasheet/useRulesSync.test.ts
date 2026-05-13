@@ -11,13 +11,15 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 // NOTE: vi.mock factories are hoisted to the top of the file by Vitest.
 // Variables used inside factory functions must be declared with vi.hoisted()
 // to ensure they are initialized before the factory runs.
-const { invalidateQueriesMock, insertSyncErrorMock, capturePreSyncSnapshotMock, getRulesSyncMetaMock, getLatestSnapshotMock, getRulesDbSelectMock } = vi.hoisted(() => ({
+const { invalidateQueriesMock, insertSyncErrorMock, capturePreSyncSnapshotMock, getRulesSyncMetaMock, getLatestSnapshotMock, getRulesDbSelectMock, replaceSyncedUnitPointsMock, insertPointsImportHistoryMock } = vi.hoisted(() => ({
   invalidateQueriesMock: vi.fn(),
   insertSyncErrorMock: vi.fn(),
   capturePreSyncSnapshotMock: vi.fn(),
   getRulesSyncMetaMock: vi.fn(),
   getLatestSnapshotMock: vi.fn(),
   getRulesDbSelectMock: vi.fn(),
+  replaceSyncedUnitPointsMock: vi.fn(),
+  insertPointsImportHistoryMock: vi.fn(),
 }));
 
 vi.mock("@tanstack/react-query", () => ({
@@ -72,6 +74,18 @@ vi.mock("@/hooks/useSyncErrors", () => ({
   SYNC_ERRORS_KEY: ["sync-errors"],
 }));
 
+vi.mock("@/lib/computePointsDelta", () => ({
+  computePointsDelta: vi.fn(() => ({ added: 0, removed: 0, changed: 0, details: [] })),
+}));
+
+vi.mock("@/db/queries/syncedUnitPoints", () => ({
+  replaceSyncedUnitPoints: replaceSyncedUnitPointsMock,
+}));
+
+vi.mock("@/db/queries/pointsImportHistory", () => ({
+  insertPointsImportHistory: insertPointsImportHistoryMock,
+}));
+
 import { useRulesSync } from "@/hooks/useRulesSync";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { invoke } from "@tauri-apps/api/core";
@@ -83,16 +97,18 @@ beforeEach(() => {
   vi.mocked(invoke).mockReset();
   getLatestSnapshotMock.mockReset();
   getRulesDbSelectMock.mockReset();
+  replaceSyncedUnitPointsMock.mockReset();
+  insertPointsImportHistoryMock.mockReset();
 });
 
 describe("useRulesSync", () => {
-  it("SYNC-05: onSuccess invalidates all 10 query keys (8 original + 2 Phase 52)", () => {
+  it("SYNC-05: onSuccess invalidates all 12 query keys (8 original + 2 Phase 52 + 2 Phase 65 army lists)", () => {
     const opts = useRulesSync() as unknown as {
       onSuccess: () => void;
     };
     opts.onSuccess();
 
-    expect(invalidateQueriesMock).toHaveBeenCalledTimes(10);
+    expect(invalidateQueriesMock).toHaveBeenCalledTimes(12);
 
     const calls = invalidateQueriesMock.mock.calls.map(
       (c: { queryKey: string[] }[]) => c[0].queryKey[0],
@@ -108,6 +124,9 @@ describe("useRulesSync", () => {
     // Phase 52 — new rules.db query keys
     expect(calls).toContain("detachment-by-id");
     expect(calls).toContain("stratagems-by-detachment");
+    // Phase 65 — army list invalidation after points sync (D-20)
+    expect(calls).toContain("army-lists");
+    expect(calls).toContain("army-list-readiness");
   });
 
   it("SYNC-05: Phase 43 invalidation calls use exact: false", () => {
@@ -186,6 +205,7 @@ describe("useRulesSync", () => {
       stratagems: 80,
       detachments: 30,
       detachment_abilities: 70,
+      points: 150,
     };
     vi.mocked(invoke).mockResolvedValue(mockRustResult);
 
@@ -207,6 +227,7 @@ describe("useRulesSync", () => {
     expect(result.rowCounts.stratagems).toBe(80);
     expect(result.rowCounts.detachments).toBe(30);
     expect(result.rowCounts.detachment_abilities).toBe(70);
+    expect(result.rowCounts.points).toBe(150);
 
     // Also assert invoke was called with the Tauri command name
     expect(vi.mocked(invoke)).toHaveBeenCalledWith("bulk_sync_rules", expect.any(Object));
@@ -220,7 +241,7 @@ describe("useRulesSync", () => {
     const mockRustResult = {
       factions: 1, sources: 1, datasheets: 1, models: 1, abilities: 1,
       keywords: 1, wargear: 1, shared_abilities: 1, stratagems: 1,
-      detachments: 1, detachment_abilities: 1,
+      detachments: 1, detachment_abilities: 1, points: 0,
     };
     vi.mocked(invoke).mockResolvedValue(mockRustResult);
 
@@ -256,7 +277,7 @@ describe("useRulesSync", () => {
     const mockRustResult = {
       factions: 5, sources: 2, datasheets: 100, models: 400, abilities: 150,
       keywords: 200, wargear: 80, shared_abilities: 30, stratagems: 25,
-      detachments: 10, detachment_abilities: 20,
+      detachments: 10, detachment_abilities: 20, points: 0,
     };
     vi.mocked(invoke).mockResolvedValue(mockRustResult);
 
@@ -308,7 +329,7 @@ describe("useRulesSync — extended snapshot data wiring (Phase 47)", () => {
     const mockRustResult = {
       factions: 1, sources: 1, datasheets: 1, models: 1, abilities: 1,
       keywords: 1, wargear: 1, shared_abilities: 1, stratagems: 1,
-      detachments: 1, detachment_abilities: 1,
+      detachments: 1, detachment_abilities: 1, points: 0,
     };
     vi.mocked(invoke).mockResolvedValue(mockRustResult);
 

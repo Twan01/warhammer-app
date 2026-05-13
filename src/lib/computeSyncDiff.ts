@@ -70,6 +70,9 @@ export interface ExtendedSnapshotData {
   models?: { before: string | null; after: string | null };
   keywords?: { before: string | null; after: string | null };
   abilities?: { before: string | null; after: string | null };
+  /** Points delta is computed separately via computePointsDelta — this field
+   *  exists for type completeness but is not processed by computeSyncDiff. */
+  points?: { before: string | null; after: string | null };
 }
 
 export interface SyncDiff {

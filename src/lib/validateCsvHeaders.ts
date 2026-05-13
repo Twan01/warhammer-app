@@ -20,6 +20,7 @@ const REQUIRED_HEADERS: Record<string, string[]> = {
   "Stratagems.csv":            ["id", "name"],
   "Detachments.csv":           ["id", "name"],
   "Detachment_abilities.csv":  ["id", "name"],
+  "Datasheets_points.csv":     ["datasheet_name", "points"],
 };
 
 export function validateCsvHeaders(

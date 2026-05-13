@@ -21,6 +21,10 @@ import { getRulesSyncMeta } from "@/db/queries/datasheets";
 import { computeSyncDiff } from "@/lib/computeSyncDiff";
 import type { SyncDiff, ExtendedSnapshotData } from "@/lib/computeSyncDiff";
 import { getRulesDb } from "@/db/rules-client";
+import { computePointsDelta } from "@/lib/computePointsDelta";
+import type { PointsDelta } from "@/types/pointsDelta";
+import { replaceSyncedUnitPoints } from "@/db/queries/syncedUnitPoints";
+import { insertPointsImportHistory } from "@/db/queries/pointsImportHistory";
 
 /** Mirrors the Rust SyncResult struct returned by bulk_sync_rules via Tauri IPC. */
 interface RustSyncResult {
@@ -35,6 +39,7 @@ interface RustSyncResult {
   stratagems: number;
   detachments: number;
   detachment_abilities: number;
+  points: number;
 }
 
 const WAHAPEDIA_BASE = "https://wahapedia.ru/wh40k10ed";
@@ -77,7 +82,7 @@ function parseLastUpdate(raw: string): string {
 export function useRulesSync() {
   const qc = useQueryClient();
 
-  return useMutation<{ wahapediaVersion: string; rowCounts: Record<string, number>; diff: SyncDiff }, Error, void>({
+  return useMutation<{ wahapediaVersion: string; rowCounts: Record<string, number>; diff: SyncDiff; pointsDelta: PointsDelta }, Error, void>({
     mutationFn: async () => {
       const [
         factionsRaw, sourcesRaw, dsRaw, modelsRaw, abilitiesRaw, keywordsRaw,
@@ -97,6 +102,21 @@ export function useRulesSync() {
       const detachments    = parseWahapediaCsv(detachmentsRaw);
       const detachAbils    = parseWahapediaCsv(detachmentAbilitiesRaw);
       const wahapediaVersion = parseLastUpdate(lastUpdateRaw);
+
+      // Graceful points CSV fetch — separate from Promise.all so 404 does not
+      // fail the entire sync (D-18, T-65-04). Wahapedia may not have this file.
+      let pointsRows: Record<string, string>[] = [];
+      try {
+        const pointsRaw = await fetchCsv("Datasheets_points.csv");
+        const parsed = parseWahapediaCsv(pointsRaw);
+        if (parsed.length > 0) {
+          validateCsvHeaders("Datasheets_points.csv", parsed);
+          pointsRows = parsed;
+        }
+      } catch {
+        // Points CSV unavailable (404 or parse error) — sync proceeds without points
+        console.warn("[useRulesSync] Datasheets_points.csv not available — skipping points import");
+      }
 
       // Validate CSV headers before any data transformation (SYNC-03)
       validateCsvHeaders("Factions.csv", factions);
@@ -155,6 +175,21 @@ export function useRulesSync() {
         // First sync ever — no snapshot exists yet
       }
 
+      // Pre-sync points snapshot for delta computation (D-14)
+      let preSyncPointsMap: Record<string, number> = {};
+      try {
+        const rulesDb = await getRulesDb();
+        const pointsSnap = await rulesDb.select<{ datasheet_name: string; faction_id: string | null; points: number }[]>(
+          "SELECT datasheet_name, faction_id, points FROM rw_datasheet_points ORDER BY datasheet_name",
+          [],
+        );
+        for (const row of pointsSnap) {
+          preSyncPointsMap[`${row.datasheet_name}:${row.faction_id}`] = row.points;
+        }
+      } catch {
+        // First sync or table doesn't exist yet — empty map is correct
+      }
+
       // META-06: Capture pre-sync snapshot before Rust deletes all rows
       try {
         const currentMeta = await getRulesSyncMeta();
@@ -177,6 +212,7 @@ export function useRulesSync() {
           stratagems: stratagemRows,
           detachments,
           detachment_abilities: detachAbilRows,
+          points: pointsRows,
           last_sync_at: new Date().toISOString(),
           wahapedia_version: wahapediaVersion,
         },
@@ -219,6 +255,43 @@ export function useRulesSync() {
         console.warn("[useRulesSync] diff computation failed");
       }
 
+      // Post-sync points: read new state, compute delta, populate cache, log history (PI-02, PI-04)
+      let pointsDelta: PointsDelta = { added: 0, removed: 0, changed: 0, details: [] };
+      try {
+        const rulesDb = await getRulesDb();
+        const afterPointsRows = await rulesDb.select<{ datasheet_name: string; faction_id: string | null; points: number }[]>(
+          "SELECT datasheet_name, faction_id, points FROM rw_datasheet_points ORDER BY datasheet_name",
+          [],
+        );
+
+        // Build afterPointsMap
+        const afterPointsMap: Record<string, number> = {};
+        const cacheRows: Array<{ unit_name: string; faction_id: string | null; points: number }> = [];
+        for (const row of afterPointsRows) {
+          afterPointsMap[`${row.datasheet_name}:${row.faction_id}`] = row.points;
+          cacheRows.push({ unit_name: row.datasheet_name, faction_id: row.faction_id, points: row.points });
+        }
+
+        // Compute delta
+        pointsDelta = computePointsDelta(preSyncPointsMap, afterPointsMap);
+
+        // Populate synced_unit_points cache in hobbyforge.db
+        await replaceSyncedUnitPoints(cacheRows, new Date().toISOString());
+
+        // Store delta in points_import_history
+        await insertPointsImportHistory({
+          source_file: "Datasheets_points.csv",
+          version: wahapediaVersion,
+          row_count: afterPointsRows.length,
+          delta_added: pointsDelta.added,
+          delta_removed: pointsDelta.removed,
+          delta_changed: pointsDelta.changed,
+        });
+      } catch {
+        // Points processing is best-effort — sync itself succeeded
+        console.warn("[useRulesSync] points post-processing failed");
+      }
+
       return {
         wahapediaVersion,
         rowCounts: {
@@ -233,8 +306,10 @@ export function useRulesSync() {
           stratagems: rustResult.stratagems,
           detachments: rustResult.detachments,
           detachment_abilities: rustResult.detachment_abilities,
+          points: rustResult.points,
         },
         diff,
+        pointsDelta,
       };
     },
     onSuccess: () => {
@@ -250,6 +325,9 @@ export function useRulesSync() {
       // Phase 52 — new rules.db query keys
       qc.invalidateQueries({ queryKey: ["detachment-by-id"], exact: false });
       qc.invalidateQueries({ queryKey: ["stratagems-by-detachment"], exact: false });
+      // Phase 65 — invalidate army list caches since effective_points may change (D-20)
+      qc.invalidateQueries({ queryKey: ["army-lists"], exact: false });
+      qc.invalidateQueries({ queryKey: ["army-list-readiness"], exact: false });
       // NOTE: do NOT add rules-favorites or rules-notes here —
       // they live in hobbyforge.db and survive sync unchanged.
     },
