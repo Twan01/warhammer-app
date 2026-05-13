@@ -35,6 +35,8 @@ export const logSessionSchema = z.object({
   recipe_step_id: z.number().int().positive().nullable().optional(),
   // Phase 59 — SESS-01/05 (section cascade)
   section_name: z.string().nullable().optional(),
+  // Phase 71 — REC-04 (stable section FK)
+  recipe_section_id: z.number().int().positive().nullable().optional(),
 });
 
 export type LogSessionFormValues = z.infer<typeof logSessionSchema>;

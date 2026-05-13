@@ -179,6 +179,7 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
         recipe_id: values.recipe_id ?? null,
         recipe_step_id: values.recipe_step_id ?? null,
         section_name: values.section_name ?? null,
+        recipe_section_id: watchedSectionId ?? null,
       });
     } catch {
       toast.error("Failed to log session — try again.");
