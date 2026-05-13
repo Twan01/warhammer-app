@@ -205,7 +205,10 @@ Plans:
   4. Pure function computing completion percentage from step progress data passes unit tests
 **Plans:** 2 plans
 Plans:
+**Wave 1**
 - [ ] 62-01-PLAN.md — Migration 021 + types + TDD pure functions (computeCompletionPercentage, computeAssignmentProgress)
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 62-02-PLAN.md — Query module (8 CRUD functions) + React Query hooks (7 hooks, 4 cache keys) + tests
 
 ### Phase 63: Applied Recipe UX
