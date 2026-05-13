@@ -62,6 +62,7 @@ export function KanbanColumn({
               recipeName={enrichment?.recipeNames.get(u.id)}
               photoCount={enrichment?.photoCounts.get(u.id)}
               workflowPosition={workflowPositions?.get(u.id)}
+              appliedProgress={enrichment?.appliedProgress?.get(u.id)}
             />
           ))}
         </SortableContext>

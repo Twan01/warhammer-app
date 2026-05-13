@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import type { Unit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
 import type { WorkflowPosition } from "@/lib/computeWorkflowPosition";
+import type { AppliedRecipeProgress } from "@/types/recipeAssignment";
 import { KanbanCardActions } from "./KanbanCardActions";
 import { formatRelativeTime } from "@/features/dashboard/relativeTime";
 import { getNextActionHint } from "@/features/dashboard/getNextActionHint";
@@ -32,6 +33,7 @@ export interface KanbanCardProps {
   recipeName?: string;
   photoCount?: number;
   workflowPosition?: WorkflowPosition | null;
+  appliedProgress?: AppliedRecipeProgress | null;
 }
 
 export function KanbanCard({
@@ -43,6 +45,7 @@ export function KanbanCard({
   recipeName,
   photoCount,
   workflowPosition,
+  appliedProgress,
 }: KanbanCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: `unit-${unit.id}`,
@@ -109,7 +112,12 @@ export function KanbanCard({
           </span>
         )}
       </div>
-      {workflowPosition ? (
+      {appliedProgress ? (
+        <p className="mt-1 truncate text-xs text-muted-foreground/70">
+          {appliedProgress.recipeName}: {appliedProgress.completed}/{appliedProgress.total} steps
+          {appliedProgress.assignmentCount > 1 ? ` (+${appliedProgress.assignmentCount - 1} more)` : ""}
+        </p>
+      ) : workflowPosition ? (
         <p className="mt-1 truncate text-xs italic text-muted-foreground/70">
           {"→"}{" "}
           {workflowPosition.isComplete
