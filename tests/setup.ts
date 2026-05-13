@@ -16,7 +16,8 @@ if (typeof globalThis.ResizeObserver === "undefined") {
 // Polyfill scrollIntoView — jsdom does not implement it but cmdk uses it when
 // the highlighted item changes. Without this, clicking a CommandItem throws:
 // "TypeError: e.scrollIntoView is not a function"
-if (typeof Element.prototype.scrollIntoView === "undefined") {
+// Guard with typeof Element check so data-layer tests (node environment) skip this.
+if (typeof Element !== "undefined" && typeof Element.prototype.scrollIntoView === "undefined") {
   Element.prototype.scrollIntoView = function () {};
 }
 
@@ -24,15 +25,16 @@ if (typeof Element.prototype.scrollIntoView === "undefined") {
 // but Radix UI components (Select, etc.) call them when receiving pointer events.
 // Without this polyfill, any test that userEvent-clicks a Radix Select trigger throws:
 // "TypeError: target.hasPointerCapture is not a function"
-if (typeof Element.prototype.hasPointerCapture === "undefined") {
+// Guard with typeof Element check so data-layer tests (node environment) skip this.
+if (typeof Element !== "undefined" && typeof Element.prototype.hasPointerCapture === "undefined") {
   Element.prototype.hasPointerCapture = function (_pointerId: number): boolean {
     return false;
   };
 }
-if (typeof Element.prototype.setPointerCapture === "undefined") {
+if (typeof Element !== "undefined" && typeof Element.prototype.setPointerCapture === "undefined") {
   Element.prototype.setPointerCapture = function (_pointerId: number): void {};
 }
-if (typeof Element.prototype.releasePointerCapture === "undefined") {
+if (typeof Element !== "undefined" && typeof Element.prototype.releasePointerCapture === "undefined") {
   Element.prototype.releasePointerCapture = function (_pointerId: number): void {};
 }
 
