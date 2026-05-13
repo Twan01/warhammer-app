@@ -476,7 +476,7 @@ Step 2.6: SKIPPED — phase is pure code/config changes targeting existing datab
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **[BLOCKING for PI-01, PI-02] What Wahapedia CSV file contains 10th edition unit points?**
    - What we know: The standard wh40k10ed export (confirmed via HTTP fetch of actual CSVs) does NOT include a unit points CSV at any tested URL (Datasheets_points.csv, Points.csv, etc.). The `Datasheets.csv` (10th ed) has 14 columns — none are cost/points. The `Enhancements.csv` has a `cost` column for enhancement costs (not unit costs). The 9th edition had `cost` in `Datasheets_models.csv` but 10th ed does not.
