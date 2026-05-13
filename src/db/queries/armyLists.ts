@@ -26,6 +26,20 @@ export async function getArmyLists(): Promise<ArmyList[]> {
   return db.select<ArmyList[]>("SELECT * FROM army_lists ORDER BY name ASC");
 }
 
+/** Lightweight projection: army list id/name + unit names for delta impact analysis. */
+export async function getArmyListUnitNames(): Promise<
+  Array<{ list_id: number; list_name: string; unit_name: string }>
+> {
+  const db = await getDb();
+  return db.select(
+    `SELECT al.id AS list_id, al.name AS list_name, u.name AS unit_name
+     FROM army_lists al
+     JOIN army_list_units alu ON alu.list_id = al.id
+     JOIN units u ON u.id = alu.unit_id
+     ORDER BY al.id`,
+  );
+}
+
 export async function getArmyListById(id: number): Promise<ArmyList | null> {
   const db = await getDb();
   const rows = await db.select<ArmyList[]>(

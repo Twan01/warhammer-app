@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { ArmyList, ArmyListUnitRow } from "@/types/armyList";
 import type { Faction } from "@/types/faction";
+import { PointsFreshnessBadge } from "./PointsFreshnessBadge";
 
 interface ArmyListCardProps {
   list: ArmyList;
@@ -76,6 +77,7 @@ export function ArmyListCard({ list, faction, units, onClick }: ArmyListCardProp
           <span className="text-muted-foreground">Battle-ready: </span>
           <span className="font-semibold tabular-nums">{battleReadyPct}%</span>
         </span>
+        <PointsFreshnessBadge />
       </CardContent>
     </Card>
   );

@@ -28,9 +28,13 @@ import { DetachmentCard } from "./DetachmentCard";
 import { SharedAbilityCard } from "./SharedAbilityCard";
 import { cn } from "@/lib/utils";
 import type { SyncDiff } from "@/lib/computeSyncDiff";
+import type { PointsDelta } from "@/types/pointsDelta";
+import { getArmyListUnitNames } from "@/db/queries/armyLists";
 
 export function RulesHubPage() {
   const [lastSyncDiff, setLastSyncDiff] = useState<SyncDiff | null>(null);
+  const [lastPointsDelta, setLastPointsDelta] = useState<PointsDelta | null>(null);
+  const [affectedLists, setAffectedLists] = useState<Array<{ id: number; name: string }>>([]);
 
   const { data: wahapediaFactions = [] } = useWahapediaFactions();
   const { data: syncMeta } = useRulesSyncMeta();
@@ -87,6 +91,35 @@ export function RulesHubPage() {
     );
   }, [sharedAbilities, searchText]);
 
+  async function handleSyncComplete(diff: SyncDiff, pointsDelta: PointsDelta) {
+    setLastSyncDiff(diff);
+    setLastPointsDelta(pointsDelta);
+
+    // Compute affected army lists: find lists containing units that had point changes
+    if (pointsDelta.details.length > 0) {
+      try {
+        const changedUnitNames = new Set(
+          pointsDelta.details.map((d) => d.unitName),
+        );
+        const allListUnits = await getArmyListUnitNames();
+        const affected = new Map<number, string>();
+        for (const row of allListUnits) {
+          if (changedUnitNames.has(row.unit_name)) {
+            affected.set(row.list_id, row.list_name);
+          }
+        }
+        setAffectedLists(
+          Array.from(affected, ([id, name]) => ({ id, name })),
+        );
+      } catch {
+        // Best-effort: affected lists display is non-critical
+        setAffectedLists([]);
+      }
+    } else {
+      setAffectedLists([]);
+    }
+  }
+
   const noData = !syncMeta;
   const noFaction = !selectedFactionId;
 
@@ -96,7 +129,9 @@ export function RulesHubPage() {
 
       <SyncStatusCard
         lastSyncDiff={lastSyncDiff}
-        onSyncComplete={setLastSyncDiff}
+        onSyncComplete={handleSyncComplete}
+        pointsDelta={lastPointsDelta}
+        affectedLists={affectedLists}
       />
 
       {noData ? (

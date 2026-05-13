@@ -32,6 +32,7 @@ import { DetachmentPicker } from "./DetachmentPicker";
 import { StaleDataBanner } from "./StaleDataBanner";
 import { DetachmentRulesSection } from "./DetachmentRulesSection";
 import { RemindersSection } from "./RemindersSection";
+import { PointsFreshnessBadge } from "./PointsFreshnessBadge";
 
 interface ArmyListDetailSheetProps {
   open: boolean;
@@ -148,6 +149,10 @@ export function ArmyListDetailSheet({
             </SheetHeader>
 
             <ArmyListSummaryBar units={units ?? []} />
+
+            <div className="flex items-center gap-2 px-4 pt-2">
+              <PointsFreshnessBadge />
+            </div>
 
             <div className="flex flex-col gap-3 px-4 py-2">
               <div className="flex flex-col gap-1.5">

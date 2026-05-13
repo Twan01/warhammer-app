@@ -42,6 +42,7 @@ vi.mock("@/hooks/useDatasheet", () => ({
     },
   })),
   useWahapediaFactionId: vi.fn(() => ({ data: "SM" })),
+  useWahapediaFactions: vi.fn(() => ({ data: [] })),
   RULES_SYNC_META_KEY: ["rules-sync-meta"],
 }));
 
@@ -71,6 +72,10 @@ vi.mock("@/hooks/useRulesFavorites", () => ({
 vi.mock("@/hooks/useRulesNotes", () => ({
   useRulesNotes: vi.fn(() => ({ data: [] })),
   useUpsertRulesNote: () => ({ mutate: vi.fn() }),
+}));
+
+vi.mock("@/db/queries/armyLists", () => ({
+  getArmyListUnitNames: vi.fn(async () => []),
 }));
 
 import { RulesHubPage } from "@/features/rules-hub/RulesHubPage";
@@ -111,6 +116,7 @@ describe("RulesHubPage — RULES-04: diff summary after sync", () => {
         wahapediaVersion: "20260510",
         rowCounts: {},
         diff: { added: [{ id: "a", name: "A" }], removed: [], modified: [], renamed: [], total_changed: 1 },
+        pointsDelta: { added: 0, removed: 0, changed: 0, details: [] },
       });
     });
 

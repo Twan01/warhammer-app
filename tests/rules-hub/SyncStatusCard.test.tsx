@@ -72,7 +72,7 @@ beforeEach(() => {
 describe("SyncStatusCard — RULES-01: freshness and row counts", () => {
   it("renders the freshness dot element", () => {
     render(
-      <SyncStatusCard lastSyncDiff={noopDiff} onSyncComplete={noop} />,
+      <SyncStatusCard lastSyncDiff={noopDiff} onSyncComplete={noop} pointsDelta={null} affectedLists={[]} />,
       { wrapper: makeWrapper() },
     );
     // Freshness dot is a span with rounded-full class
@@ -82,7 +82,7 @@ describe("SyncStatusCard — RULES-01: freshness and row counts", () => {
 
   it("renders the age label text", () => {
     render(
-      <SyncStatusCard lastSyncDiff={noopDiff} onSyncComplete={noop} />,
+      <SyncStatusCard lastSyncDiff={noopDiff} onSyncComplete={noop} pointsDelta={null} affectedLists={[]} />,
       { wrapper: makeWrapper() },
     );
     // The mock last_sync_at is 2026-05-09, current date is 2026-05-10 → 1 day ago
@@ -91,7 +91,7 @@ describe("SyncStatusCard — RULES-01: freshness and row counts", () => {
 
   it("renders row counts: datasheets, stratagems, detachments", () => {
     render(
-      <SyncStatusCard lastSyncDiff={noopDiff} onSyncComplete={noop} />,
+      <SyncStatusCard lastSyncDiff={noopDiff} onSyncComplete={noop} pointsDelta={null} affectedLists={[]} />,
       { wrapper: makeWrapper() },
     );
     expect(screen.getByText("1200")).toBeDefined();
@@ -104,7 +104,7 @@ describe("SyncStatusCard — RULES-01: freshness and row counts", () => {
 
   it("renders the wahapedia version badge", () => {
     render(
-      <SyncStatusCard lastSyncDiff={noopDiff} onSyncComplete={noop} />,
+      <SyncStatusCard lastSyncDiff={noopDiff} onSyncComplete={noop} pointsDelta={null} affectedLists={[]} />,
       { wrapper: makeWrapper() },
     );
     expect(screen.getByText(/20260509/)).toBeDefined();
@@ -114,7 +114,7 @@ describe("SyncStatusCard — RULES-01: freshness and row counts", () => {
 describe("SyncStatusCard — RULES-03: error history collapsible", () => {
   it("shows zero error count when no errors", () => {
     render(
-      <SyncStatusCard lastSyncDiff={noopDiff} onSyncComplete={noop} />,
+      <SyncStatusCard lastSyncDiff={noopDiff} onSyncComplete={noop} pointsDelta={null} affectedLists={[]} />,
       { wrapper: makeWrapper() },
     );
     expect(screen.getByText(/sync errors \(0\)/i)).toBeDefined();
@@ -134,7 +134,7 @@ describe("SyncStatusCard — RULES-03: error history collapsible", () => {
     } as unknown as ReturnType<typeof useRulesSyncErrors>);
 
     render(
-      <SyncStatusCard lastSyncDiff={noopDiff} onSyncComplete={noop} />,
+      <SyncStatusCard lastSyncDiff={noopDiff} onSyncComplete={noop} pointsDelta={null} affectedLists={[]} />,
       { wrapper: makeWrapper() },
     );
     expect(screen.getByText(/sync errors \(1\)/i)).toBeDefined();
@@ -155,7 +155,7 @@ describe("SyncStatusCard — RULES-03: error history collapsible", () => {
     } as unknown as ReturnType<typeof useRulesSyncErrors>);
 
     render(
-      <SyncStatusCard lastSyncDiff={noopDiff} onSyncComplete={noop} />,
+      <SyncStatusCard lastSyncDiff={noopDiff} onSyncComplete={noop} pointsDelta={null} affectedLists={[]} />,
       { wrapper: makeWrapper() },
     );
 

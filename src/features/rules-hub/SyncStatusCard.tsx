@@ -24,15 +24,21 @@ import {
   FRESHNESS_DOT_CLASS,
 } from "@/lib/syncFreshness";
 import type { SyncDiff } from "@/lib/computeSyncDiff";
+import type { PointsDelta } from "@/types/pointsDelta";
+import { PointsDeltaSection } from "./PointsDeltaSection";
 
 interface SyncStatusCardProps {
   lastSyncDiff: SyncDiff | null;
-  onSyncComplete: (diff: SyncDiff) => void;
+  onSyncComplete: (diff: SyncDiff, pointsDelta: PointsDelta) => void;
+  pointsDelta: PointsDelta | null;
+  affectedLists: Array<{ id: number; name: string }>;
 }
 
 export function SyncStatusCard({
   lastSyncDiff,
   onSyncComplete,
+  pointsDelta,
+  affectedLists,
 }: SyncStatusCardProps) {
   const { data: syncMeta } = useRulesSyncMeta();
   const rulesSync = useRulesSync();
@@ -45,7 +51,7 @@ export function SyncStatusCard({
   function handleSyncClick() {
     rulesSync.mutate(undefined, {
       onSuccess: (data) => {
-        onSyncComplete(data.diff);
+        onSyncComplete(data.diff, data.pointsDelta);
         toast.success("Rules synced successfully");
       },
       onError: (err) => {
@@ -118,6 +124,14 @@ export function SyncStatusCard({
                 detachments
               </span>
             )}
+            {syncMeta.points_count !== null && syncMeta.points_count > 0 && (
+              <span>
+                <span className="font-semibold text-foreground">
+                  {syncMeta.points_count}
+                </span>{" "}
+                point entries
+              </span>
+            )}
           </div>
         )}
 
@@ -140,6 +154,13 @@ export function SyncStatusCard({
               {lastSyncDiff.renamed.length} renamed
             </span>
           </p>
+        )}
+
+        {pointsDelta !== null && (
+          <PointsDeltaSection
+            pointsDelta={pointsDelta}
+            affectedLists={affectedLists}
+          />
         )}
 
         <Collapsible open={errorsOpen} onOpenChange={setErrorsOpen}>
