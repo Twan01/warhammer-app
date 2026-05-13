@@ -154,23 +154,28 @@ describe("duplicateRecipe — SQL coverage (STUDIO-03 + INTG-01)", () => {
     expect(params[0]).toBe(1);
   });
 
-  it("inserts section copies with new recipe_id and all 6 columns", async () => {
+  it("inserts section copies with new recipe_id and all 10 columns including workflow metadata", async () => {
     await duplicateRecipe(1, "Copy of Space Marine Blue");
     // executeMock.calls[1] = section 1 INSERT; calls[2] = section 2 INSERT
     const [sql1, params1] = executeMock.mock.calls[1];
     expect(sql1).toContain("INSERT INTO recipe_sections");
-    expect(params1).toEqual([100, "Armour", "smooth", 0, 0, null]);
+    expect(sql1).toContain("section_type");
+    expect(sql1).toContain("technique");
+    expect(sql1).toContain("execution_mode");
+    expect(sql1).toContain("applies_to");
+    expect(params1).toEqual([100, "Armour", "smooth", 0, 0, null, null, null, null, null]);
 
     const [, params2] = executeMock.mock.calls[2];
-    expect(params2).toEqual([100, "Cloth", null, 1, 1, "optional block"]);
+    expect(params2).toEqual([100, "Cloth", null, 1, 1, "optional block", null, null, null, null]);
   });
 
-  it("reads original steps via SELECT WHERE recipe_id = $1", async () => {
+  it("reads original steps with section-aware ordering via LEFT JOIN", async () => {
     await duplicateRecipe(1, "Copy of Space Marine Blue");
-    // selectMock.calls[2] = steps (index shifted from [1] to [2] due to section SELECT)
     const [sql, params] = selectMock.mock.calls[2];
     expect(sql).toContain("recipe_steps");
-    expect(sql).toContain("recipe_id = $1");
+    expect(sql).toContain("LEFT JOIN recipe_sections s ON s.id = rs.section_id");
+    expect(sql).toContain("COALESCE(s.order_index, 999999)");
+    expect(sql).toContain("rs.recipe_id = $1");
     expect(params[0]).toBe(1);
   });
 

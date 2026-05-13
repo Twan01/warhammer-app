@@ -156,16 +156,20 @@ export async function duplicateRecipe(originalId: number, newName: string): Prom
   const sectionIdMap = new Map<number, number>();
   for (const section of sections) {
     const sectionResult = await db.execute(
-      `INSERT INTO recipe_sections (recipe_id, name, surface, optional, order_index, notes)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [newRecipeId, section.name, section.surface, section.optional, section.order_index, section.notes ?? null]
+      `INSERT INTO recipe_sections (recipe_id, name, surface, optional, order_index, notes, section_type, technique, execution_mode, applies_to)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [newRecipeId, section.name, section.surface, section.optional, section.order_index, section.notes ?? null,
+       section.section_type ?? null, section.technique ?? null, section.execution_mode ?? null, section.applies_to ?? null]
     );
     sectionIdMap.set(section.id, sectionResult.lastInsertId ?? 0);
   }
 
   // 5. Read original steps
   const steps = await db.select<RecipeStep[]>(
-    "SELECT * FROM recipe_steps WHERE recipe_id = $1 ORDER BY order_index ASC",
+    `SELECT rs.* FROM recipe_steps rs
+     LEFT JOIN recipe_sections s ON s.id = rs.section_id
+     WHERE rs.recipe_id = $1
+     ORDER BY COALESCE(s.order_index, 999999) ASC, rs.order_index ASC`,
     [originalId]
   );
 

@@ -4,7 +4,10 @@ import type { RecipeStep, CreateRecipeStepInput } from "@/types/recipePaint";
 export async function getRecipePaintsByRecipe(recipeId: number): Promise<RecipeStep[]> {
   const db = await getDb();
   return db.select<RecipeStep[]>(
-    "SELECT * FROM recipe_steps WHERE recipe_id = $1 ORDER BY order_index ASC",
+    `SELECT rs.* FROM recipe_steps rs
+     LEFT JOIN recipe_sections s ON s.id = rs.section_id
+     WHERE rs.recipe_id = $1
+     ORDER BY COALESCE(s.order_index, 999999) ASC, rs.order_index ASC`,
     [recipeId]
   );
 }

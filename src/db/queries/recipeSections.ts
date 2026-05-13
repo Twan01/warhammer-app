@@ -56,10 +56,10 @@ export async function updateRecipeSection(input: UpdateRecipeSectionInput): Prom
          optional = COALESCE($4, optional),
          order_index = COALESCE($5, order_index),
          notes = $6,
-         section_type = COALESCE($7, section_type),
-         technique = COALESCE($8, technique),
-         execution_mode = COALESCE($9, execution_mode),
-         applies_to = COALESCE($10, applies_to),
+         section_type = $7,
+         technique = $8,
+         execution_mode = $9,
+         applies_to = $10,
          updated_at = datetime('now')
      WHERE id = $1`,
     [

@@ -28,7 +28,7 @@ import {
   reorderRecipeSections,
   getStepCountsBySection,
 } from "@/db/queries/recipeSections";
-import { addRecipePaint } from "@/db/queries/recipePaints";
+import { addRecipePaint, getRecipePaintsByRecipe } from "@/db/queries/recipePaints";
 import type { CreateRecipeSectionInput, UpdateRecipeSectionInput, RecipeSection } from "@/types/recipeSection";
 import type { RecipeStep, CreateRecipeStepInput } from "@/types/recipePaint";
 
@@ -201,25 +201,24 @@ describe("updateRecipeSection — SECT-04 update", () => {
     expect(params[0]).toBe(5);
   });
 
-  it("UPDATE uses COALESCE for workflow metadata $7-$10 and has 10 params total", async () => {
+  it("workflow metadata fields use direct assignment (not COALESCE) to allow clearing", async () => {
     const input: UpdateRecipeSectionInput = {
       id: 5,
-      name: "Cloth",
-      section_type: "shade",
-      technique: "brush",
-      execution_mode: "batch",
-      applies_to: "cloak",
+      section_type: null,
+      technique: null,
+      execution_mode: null,
+      applies_to: null,
     };
     await updateRecipeSection(input);
     const [sql, params] = executeMock.mock.calls[0];
-    expect(sql).toContain("COALESCE($7, section_type)");
-    expect(sql).toContain("COALESCE($8, technique)");
-    expect(sql).toContain("COALESCE($9, execution_mode)");
-    expect(sql).toContain("COALESCE($10, applies_to)");
-    expect(params[6]).toBe("shade");     // $7
-    expect(params[7]).toBe("brush");     // $8
-    expect(params[8]).toBe("batch");     // $9
-    expect(params[9]).toBe("cloak");     // $10
+    expect(sql).not.toContain("COALESCE($7");
+    expect(sql).not.toContain("COALESCE($8");
+    expect(sql).not.toContain("COALESCE($9");
+    expect(sql).not.toContain("COALESCE($10");
+    expect(sql).toContain("section_type = $7");
+    expect(sql).toContain("technique = $8");
+    expect(sql).toContain("execution_mode = $9");
+    expect(sql).toContain("applies_to = $10");
     expect(params).toHaveLength(10);
   });
 
@@ -680,5 +679,25 @@ describe("useSectionStepCounts — queryFn transforms rows into Map<number, numb
     expect(map.has(99)).toBe(true);
     expect(map.has(0)).toBe(false);
     expect(map.get(99)).toBe(5);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Group 15 — getRecipePaintsByRecipe section-aware ordering (REC-05)
+// ---------------------------------------------------------------------------
+describe("getRecipePaintsByRecipe — section-aware ordering (REC-05)", () => {
+  it("uses LEFT JOIN recipe_sections for section-aware step ordering", async () => {
+    await getRecipePaintsByRecipe(1);
+    const [sql, params] = selectMock.mock.calls[0];
+    expect(sql).toContain("LEFT JOIN recipe_sections s ON s.id = rs.section_id");
+    expect(sql).toContain("COALESCE(s.order_index, 999999)");
+    expect(sql).toContain("rs.order_index ASC");
+    expect(params).toEqual([1]);
+  });
+
+  it("does not use the old non-section-aware ORDER BY pattern", async () => {
+    await getRecipePaintsByRecipe(1);
+    const [sql] = selectMock.mock.calls[0];
+    expect(sql).not.toMatch(/ORDER BY order_index ASC$/m);
   });
 });
