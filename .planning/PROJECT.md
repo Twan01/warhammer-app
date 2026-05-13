@@ -4,17 +4,17 @@
 
 HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, structured painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play." Official points and rules data are imported via Wahapedia sync for personal use.
 
-Shipped through v0.2.11 (72 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps), army list builder with detachment selection and inline rules context, battle log, spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard and KanbanCards, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist), and a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK). Now resuming v0.2.10: applied recipes (recipe-as-painting-plan with per-unit step progress), points import with freshness tracking, and advanced army list validation with tactical role coverage.
+Shipped through v0.2.11 (72 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps), army list builder with detachment selection and inline rules context, battle log, spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard and KanbanCards, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist, pre-game readiness panel with points/freshness/warnings/role coverage), and a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK).
 
-## Current Milestone: v0.2.10 Applied Recipes, Points Import & List Validation
+## Current Milestone: v0.2.10 Applied Recipes, Points Import & List Validation — COMPLETE
 
 **Goal:** Deliver applied recipes, points import pipeline, and advanced army list validation.
 
-**Status:** In progress — Phase 65 complete, Phase 66 planned, Phases 63/64/67 remaining.
+**Status:** Complete — all 7 phases (61-67) shipped 2026-05-13.
 
 ## Current State
 
-v0.2.11 shipped 2026-05-13. v0.2.10 in progress (Phases 61-62, 65 complete; Phases 63, 64, 66, 67 remaining). v0.2.9 shipped 2026-05-12.
+v0.2.11 shipped 2026-05-13. v0.2.10 shipped 2026-05-13. v0.2.9 shipped 2026-05-12.
 
 ## Core Value
 
