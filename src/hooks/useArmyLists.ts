@@ -12,6 +12,7 @@ import {
   updateArmyListUnit,
   getArmyListReadiness,
   clearArmyListDetachment,
+  clearArmyListPointsLimit,
 } from "@/db/queries/armyLists";
 import type {
   CreateArmyListInput,
@@ -93,6 +94,24 @@ export function useClearArmyListDetachment() {
   const qc = useQueryClient();
   return useMutation<void, Error, number>({
     mutationFn: clearArmyListDetachment,
+    onSuccess: (_, id) => {
+      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
+      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(id) });
+      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(id) });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+    },
+  });
+}
+
+/**
+ * Phase 66 — explicit NULL-clearing for points_limit.
+ * Follows useClearArmyListDetachment pattern. Solves the COALESCE-blocks-NULL
+ * pitfall for points_limit (Pitfall 1 in RESEARCH).
+ */
+export function useClearArmyListPointsLimit() {
+  const qc = useQueryClient();
+  return useMutation<void, Error, number>({
+    mutationFn: clearArmyListPointsLimit,
     onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
       qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(id) });
