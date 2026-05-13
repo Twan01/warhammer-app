@@ -2,14 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.2.11
 milestone_name: Foundation Hardening
-status: executing
-stopped_at: Phase 63 context gathered
-last_updated: "2026-05-13T07:49:00.198Z"
-last_activity: 2026-05-13 -- Phase 63 planning complete
+status: planning
+last_updated: "2026-05-13T08:00:00.000Z"
+last_activity: 2026-05-13 -- Roadmap created for v0.2.11
 progress:
-  total_phases: 7
+  total_phases: 5
   completed_phases: 0
-  total_plans: 3
+  total_plans: 0
   completed_plans: 0
   percent: 0
 ---
@@ -18,17 +17,19 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-12)
+See: .planning/PROJECT.md (updated 2026-05-13)
 
-**Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" -- without ever depending on copyrighted GW data.
-**Current focus:** v0.2.10 Phase 63 — Applied Recipe UX
+**Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play"
+**Current focus:** v0.2.11 Phase 68 — Infrastructure Quick Wins
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Ready to execute
-Last activity: 2026-05-13 -- Phase 63 planning complete
+Phase: 68 of 72 (Infrastructure Quick Wins)
+Plan: — of — in current phase
+Status: Ready to plan
+Last activity: 2026-05-13 — Roadmap created for v0.2.11 Foundation Hardening (5 phases, 9/9 requirements mapped)
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -44,16 +45,12 @@ Last activity: 2026-05-13 -- Phase 63 planning complete
 
 ### Decisions Carried Forward
 
-- DELETE-all + re-INSERT save pattern on recipe sections -- NO section_id FK on painting_sessions
-- Denormalized section_name TEXT on painting_sessions (matches detachment_name, weapon_name pattern)
-- Applied recipe step progress keyed by composite (assignment_id, order_index), NOT recipe_step_id FK
-- AssignmentProgress.bySectionId uses Map<number|null, {total, completed}> — null key = flat recipe
-- 5-level COALESCE: list override > loadout override > imported > unit default > unknown
-- PI-05 COALESCE update must touch ALL 3 query sites atomically
-- computeWorkflowPosition is pure (no React/DB deps) -- handles orphaned step IDs gracefully
-- useWorkflowPositions follows batch enrichment pattern (sorted IDs, Map result, 5min staleTime)
-- Cache invalidation symmetry: if useCreate invalidates a key, useDelete must too
-- Page-level Map<compositeKey, T> pattern for annotations -- no N+1 hooks
+- Non-destructive recipe save (REC-02/Phase 70) must precede session FK (REC-04/Phase 71) — FK is pointless while DELETE-all fires ON DELETE SET NULL on every edit
+- COALESCE blocks null-clearing on 4 workflow metadata fields in recipeSections.ts — direct assignment fix in Phase 68
+- better-sqlite3 (devDep) chosen over node:sqlite for tests — Vitest 4.x import-stripping bug (#7177)
+- duplicateRecipe step fetch has same section-ordering bug as REC-05 — included in Phase 68 scope
+- Paintless step guard is a single removal in RecipeFormSheet.tsx line 292 (Phase 69 is LOW risk)
+- Three-way diff for non-destructive save requires dbId tracking in form state (Phase 70 is HIGH risk)
 
 ### Pending Todos
 
@@ -65,6 +62,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-13T07:21:18.865Z
-Stopped at: Phase 63 context gathered
-Resume: Discuss/plan/execute Phase 63
+Last session: 2026-05-13
+Stopped at: Roadmap for v0.2.11 created — phases 68-72, all 9 requirements mapped
+Resume: Plan Phase 68 (Infrastructure Quick Wins)

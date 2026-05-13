@@ -62,21 +62,21 @@ Deferred to post-v0.2.11.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MIG-01 | TBD | Pending |
-| MIG-02 | TBD | Pending |
-| REC-01 | TBD | Pending |
-| REC-02 | TBD | Pending |
-| REC-03 | TBD | Pending |
-| REC-04 | TBD | Pending |
-| REC-05 | TBD | Pending |
-| VER-01 | TBD | Pending |
-| TST-01 | TBD | Pending |
+| MIG-01 | Phase 68 | Pending |
+| MIG-02 | Phase 68 | Pending |
+| VER-01 | Phase 68 | Pending |
+| REC-03 | Phase 68 | Pending |
+| REC-05 | Phase 68 | Pending |
+| REC-01 | Phase 69 | Pending |
+| REC-02 | Phase 70 | Pending |
+| REC-04 | Phase 71 | Pending |
+| TST-01 | Phase 72 | Pending |
 
 **Coverage:**
 - v0.2.11 requirements: 9 total
-- Mapped to phases: 0
-- Unmapped: 9
+- Mapped to phases: 9
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-05-13*
-*Last updated: 2026-05-13 after initial definition*
+*Last updated: 2026-05-13 — traceability mapped to phases 68-72*

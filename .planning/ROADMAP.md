@@ -14,6 +14,7 @@
 - ✅ **v0.2.8 Rules Data Hub UI / Army Lists 2.0 / Game Day** — Phases 52-56 (shipped 2026-05-11)
 - ✅ **v0.2.9 Recipes 3.1 / Workflow Semantics & Integrations** — Phases 57-60 (shipped 2026-05-12)
 - 🚧 **v0.2.10 Applied Recipes, Points Import & List Validation** — Phases 61-67 (in progress)
+- 📋 **v0.2.11 Foundation Hardening** — Phases 68-72 (planned)
 
 ## Phases
 
@@ -46,13 +47,25 @@ Full details: `.planning/milestones/v0.2.9-ROADMAP.md`
 
 **Milestone Goal:** Turn recipes into actionable painting plans with per-unit progress, add a points import data layer with freshness tracking, and harden army list validation with tactical role coverage.
 
-- [ ] **Phase 61: Recipe Workflow Hardening** - Verify migration integrity, stabilize section-aware log sessions, polish workflow metadata UX
+- [x] **Phase 61: Recipe Workflow Hardening** - Verify migration integrity, stabilize section-aware log sessions, polish workflow metadata UX
 - [x] **Phase 62: Applied Recipe Data Layer** - Schema, types, queries, hooks for unit_recipe_assignments + unit_recipe_step_progress
 - [ ] **Phase 63: Applied Recipe UX** - Assignment sheet, per-unit step checklist, progress display, bulk apply
 - [ ] **Phase 64: Applied Recipe Integrations** - Log Session step completion, Kanban/CurrentFocus applied recipe progress
 - [ ] **Phase 65: Points Import Pipeline** - Extend Wahapedia sync with official points, freshness badges, delta detection, 5-level COALESCE update
 - [ ] **Phase 66: Army List Validation** - Hard warnings, tactical tags, role coverage, health summary panel
 - [ ] **Phase 67: Game Day Integration** - Pre-game points/readiness/tactical warnings capstone
+
+---
+
+### 📋 v0.2.11 Foundation Hardening (Planned)
+
+**Milestone Goal:** Stabilize the technical foundation — migrations, recipe data integrity, version hygiene — so future features are built on reliable data structures.
+
+- [ ] **Phase 68: Infrastructure Quick Wins** - Register migrations, validate fresh install, fix COALESCE null-clearing, fix section-aware ordering, align version numbers
+- [ ] **Phase 69: Paintless Recipe Steps** - Guard removal to persist steps without paint_id, exclude paintless steps from availability counts
+- [ ] **Phase 70: Non-Destructive Recipe Save** - Three-way diff replaces DELETE-all + re-INSERT, preserving section/step IDs across edits
+- [ ] **Phase 71: Stable Session Section FK** - Migration 022 adds recipe_section_id FK to painting_sessions alongside denormalized section_name
+- [ ] **Phase 72: Data-Layer Test Suite** - Vitest + better-sqlite3 tests asserting migration parity, recipe persistence, session FK, schema shape
 
 ---
 
@@ -279,9 +292,62 @@ Plans:
 **Plans**: TBD
 **UI hint**: yes
 
+### Phase 68: Infrastructure Quick Wins
+**Goal**: All migrations are registered and applied on fresh install, COALESCE null-clearing bug is fixed, step ordering is section-aware, and version numbers are aligned
+**Depends on**: Phase 67 (first phase of v0.2.11)
+**Requirements**: MIG-01, MIG-02, VER-01, REC-03, REC-05
+**Success Criteria** (what must be TRUE):
+  1. A fresh app launch from an empty app data directory creates all required tables and columns without any errors or missing schema
+  2. User can set a section metadata field (section_type, technique, execution_mode, applies_to) to a value and then clear it back to empty; the cleared state persists after save and reopen
+  3. Recipe-level step queries return steps grouped by section in section order; steps from different sections never interleave regardless of step insertion order
+  4. package.json and tauri.conf.json both show the same version string matching the current release
+**Plans**: TBD
+
+### Phase 69: Paintless Recipe Steps
+**Goal**: Recipe steps can exist without a paint selection, and paintless steps are excluded from availability calculations
+**Depends on**: Phase 68
+**Requirements**: REC-01
+**Success Criteria** (what must be TRUE):
+  1. User can save a recipe step form without selecting a paint; the step persists in the database with a null paint_id
+  2. After closing and reopening the recipe, the paintless step appears in the step list with no paint shown
+  3. Paint availability percentage on the recipe card and timeline view excludes paintless steps from both numerator and denominator
+**Plans**: TBD
+
+### Phase 70: Non-Destructive Recipe Save
+**Goal**: Editing a recipe preserves all existing section and step database IDs; only genuinely changed fields are updated, only genuinely removed items are deleted
+**Depends on**: Phase 69
+**Requirements**: REC-02
+**Success Criteria** (what must be TRUE):
+  1. After editing a recipe (rename a step, reorder steps, change a field), the section and step rows in the database retain their original IDs — no new IDs are assigned to unchanged items
+  2. Removing a step from the form deletes only that step's database row; all other step rows are untouched
+  3. Adding a new step during an edit inserts exactly one new row; existing step rows are not deleted and re-inserted
+  4. Duplicate recipe produces a full copy with new IDs for all sections and steps, unaffected by the non-destructive save logic
+**Plans**: TBD
+
+### Phase 71: Stable Session Section FK
+**Goal**: Painting sessions store a durable recipe_section_id FK so section analytics survive section renames
+**Depends on**: Phase 70
+**Requirements**: REC-04
+**Success Criteria** (what must be TRUE):
+  1. Migration 022 runs on app start and adds a recipe_section_id column to the painting_sessions table with an ON DELETE SET NULL FK
+  2. When logging a session against a recipe section, the session row stores both the section's database ID and its denormalized name
+  3. Renaming a recipe section updates the section row's name but does not break or orphan any painting session records — existing sessions still display their original section name
+**Plans**: TBD
+
+### Phase 72: Data-Layer Test Suite
+**Goal**: Automated tests verify the contracts delivered by Phases 68-71 and prevent regression
+**Depends on**: Phase 71
+**Requirements**: TST-01
+**Success Criteria** (what must be TRUE):
+  1. A Vitest test using better-sqlite3 verifies that all migration files registered in lib.rs produce the expected tables and columns on a fresh in-memory database
+  2. A test round-trips a recipe save with paintless steps and confirms null paint_id rows are stored and retrieved correctly
+  3. A test exercises the non-destructive save path and asserts that unchanged section/step IDs are preserved across an edit cycle
+  4. A test inserts a painting session with a recipe_section_id FK and confirms ON DELETE SET NULL fires correctly when the section is deleted
+**Plans**: TBD
+
 ## Progress
 
-**Execution Order:** 61 > 62 > 63 > 64 > 65 > 66 > 67
+**Execution Order:** 61 > 62 > 63 > 64 > 65 > 66 > 67 > 68 > 69 > 70 > 71 > 72
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -345,10 +411,15 @@ Plans:
 | 58. Recipe Form & Timeline Display | v0.2.9 | 2/2 | Complete | 2026-05-12 |
 | 59. Session Section Cascade | v0.2.9 | 2/2 | Complete | 2026-05-12 |
 | 60. Kanban & CurrentFocus Integration | v0.2.9 | 2/2 | Complete | 2026-05-12 |
-| 61. Recipe Workflow Hardening | v0.2.10 | 0/2 | Not started | - |
-| 62. Applied Recipe Data Layer | v0.2.10 | 0/2 | Not started | - |
+| 61. Recipe Workflow Hardening | v0.2.10 | 2/2 | Complete | 2026-05-13 |
+| 62. Applied Recipe Data Layer | v0.2.10 | 2/2 | Complete | 2026-05-13 |
 | 63. Applied Recipe UX | v0.2.10 | 0/3 | Not started | - |
 | 64. Applied Recipe Integrations | v0.2.10 | 0/TBD | Not started | - |
 | 65. Points Import Pipeline | v0.2.10 | 0/TBD | Not started | - |
 | 66. Army List Validation | v0.2.10 | 0/TBD | Not started | - |
 | 67. Game Day Integration | v0.2.10 | 0/TBD | Not started | - |
+| 68. Infrastructure Quick Wins | v0.2.11 | 0/TBD | Not started | - |
+| 69. Paintless Recipe Steps | v0.2.11 | 0/TBD | Not started | - |
+| 70. Non-Destructive Recipe Save | v0.2.11 | 0/TBD | Not started | - |
+| 71. Stable Session Section FK | v0.2.11 | 0/TBD | Not started | - |
+| 72. Data-Layer Test Suite | v0.2.11 | 0/TBD | Not started | - |
