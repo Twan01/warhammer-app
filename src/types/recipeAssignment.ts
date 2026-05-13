@@ -36,3 +36,11 @@ export interface AssignmentProgress {
   /** Per-section breakdown. Key is section_id (null for flat/unsectioned recipes). */
   bySectionId: Map<number | null, { total: number; completed: number }>;
 }
+
+/** Derived display type for Kanban/CurrentFocusCard progress. */
+export interface AppliedRecipeProgress {
+  recipeName: string;
+  completed: number;
+  total: number;
+  assignmentCount: number;
+}
