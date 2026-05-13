@@ -363,7 +363,7 @@ const hasAnyRole = units.some((u) => u.tactical_role !== null);
 
 All other claims verified against codebase source code.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Points-limit NULL-clearing strategy**
    - What we know: updateArmyList uses COALESCE which blocks NULL passthrough for points_limit
