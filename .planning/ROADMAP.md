@@ -51,7 +51,7 @@ Full details: `.planning/milestones/v0.2.9-ROADMAP.md`
 - [x] **Phase 62: Applied Recipe Data Layer** - Schema, types, queries, hooks for unit_recipe_assignments + unit_recipe_step_progress
 - [x] **Phase 63: Applied Recipe UX** - Assignment sheet, per-unit step checklist, progress display, bulk apply
 - [x] **Phase 64: Applied Recipe Integrations** - Log Session step completion, Kanban/CurrentFocus applied recipe progress
-- [ ] **Phase 65: Points Import Pipeline** (2/3 plans) - Extend Wahapedia sync with official points, freshness badges, delta detection, 5-level COALESCE update
+- [x] **Phase 65: Points Import Pipeline** (3/3 plans) - Extend Wahapedia sync with official points, freshness badges, delta detection, 5-level COALESCE update
 - [ ] **Phase 66: Army List Validation** - Hard warnings, tactical tags, role coverage, health summary panel
 - [ ] **Phase 67: Game Day Integration** - Pre-game points/readiness/tactical warnings capstone
 
@@ -279,10 +279,10 @@ Plans:
 - [x] 65-01-PLAN.md — Migrations (rules_004, 024) + types + COALESCE 5-level chain + computePointsDelta TDD (PI-01, PI-05, PI-04) — completed 2026-05-13
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 65-02-PLAN.md — Rust bulk_sync_rules extension + useRulesSync points pipeline + delta/cache/invalidation (PI-02, PI-04)
+- [x] 65-02-PLAN.md — Rust bulk_sync_rules extension + useRulesSync points pipeline + delta/cache/invalidation (PI-02, PI-04) — completed 2026-05-13
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 65-03-PLAN.md — PointsFreshnessBadge + PointsDeltaSection + army list/rules hub integration (PI-03, PI-04)
+- [x] 65-03-PLAN.md — PointsFreshnessBadge + PointsDeltaSection + army list/rules hub integration (PI-03, PI-04) — completed 2026-05-13
 **UI hint**: yes
 
 ### Phase 66: Army List Validation
@@ -455,7 +455,7 @@ Plans:
 | 62. Applied Recipe Data Layer | v0.2.10 | 2/2 | Complete | 2026-05-13 |
 | 63. Applied Recipe UX | v0.2.10 | 0/3 | Not started | - |
 | 64. Applied Recipe Integrations | v0.2.10 | 2/3 | In Progress|  |
-| 65. Points Import Pipeline | v0.2.10 | 0/3 | Not started | - |
+| 65. Points Import Pipeline | v0.2.10 | 3/3 | Complete | 2026-05-13 |
 | 66. Army List Validation | v0.2.10 | 0/TBD | Not started | - |
 | 67. Game Day Integration | v0.2.10 | 0/TBD | Not started | - |
 | 68. Infrastructure Quick Wins | v0.2.11 | 0/2 | Not started | - |

@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.2.11
 milestone_name: Foundation Hardening
-status: phase-complete
-stopped_at: Completed 72-02, Phase 72 complete
-last_updated: "2026-05-13T13:06:00.000Z"
+status: executing
+stopped_at: Completed 65-03, continue with 65-04
+last_updated: "2026-05-13T11:17:36.000Z"
 last_activity: 2026-05-13
 progress:
   total_phases: 12
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-13)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play"
-**Current focus:** Phase 72 — Data-Layer Test Suite
+**Current focus:** Phase 65 — Points Import Pipeline
 
 ## Current Position
 
-Phase: 72 (Data-Layer Test Suite) — COMPLETE
-Plan: 2 of 2 complete
-Next: Phase 72 complete, milestone v0.2.11 finalization
+Phase: 65 (Points Import Pipeline) — EXECUTING
+Plan: 3 of 5 complete
+Next: Execute 65-04
 Last activity: 2026-05-13
 
 Progress: [██████████] 100%
@@ -56,6 +56,8 @@ Progress: [██████████] 100%
 - Paintless step guard is a single removal in RecipeFormSheet.tsx line 292 (Phase 69 is LOW risk)
 - Three-way diff for non-destructive save requires dbId tracking in form state (Phase 70 — DONE)
 - removeRecipePaint hook removed from RecipeFormSheet — edit path now uses direct removeRecipeStep query function
+- PointsFreshnessBadge is self-contained (no props) — queries useRulesSyncMeta internally, shares React Query cache
+- getArmyListUnitNames lightweight query added for delta impact analysis
 
 ### Pending Todos
 
@@ -67,6 +69,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-13T13:06:00.000Z
-Stopped at: Completed 72-02 (recipe persistence + session section FK tests)
-Resume: Phase 72 complete
+Last session: 2026-05-13T11:17:36.000Z
+Stopped at: Completed 65-03 (points freshness badges + delta display UI)
+Resume: .planning/phases/65-points-import-pipeline/
