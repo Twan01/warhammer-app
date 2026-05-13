@@ -1,7 +1,7 @@
 ---
 phase: 66
 slug: army-list-validation
-status: draft
+status: approved
 shadcn_initialized: true
 preset: new-york
 created: 2026-05-13
@@ -120,10 +120,10 @@ Current layout (3 stats + progress bar + not-ready list) extends to:
 **New role coverage section:**
 - Section label: `text-xs font-semibold text-muted-foreground uppercase tracking-wide` reading "Role Coverage"
 - Only rendered when at least 1 unit in the list has a non-null `tactical_role` (progressive disclosure per D-11)
-- 7 pill badges in a `flex flex-wrap gap-1.5` container
+- 7 pill badges in a `flex flex-wrap gap-2` container
 - Each pill shows: role display label + count of assigned units
-- Covered roles (count >= 1): `bg-secondary text-secondary-foreground rounded-full px-2 py-0.5 text-xs`
-- Gap roles (count === 0): `bg-transparent border border-dashed border-muted-foreground/40 text-muted-foreground rounded-full px-2 py-0.5 text-xs`
+- Covered roles (count >= 1): `bg-secondary text-secondary-foreground rounded-full px-2 py-1 text-xs`
+- Gap roles (count === 0): `bg-transparent border border-dashed border-muted-foreground/40 text-muted-foreground rounded-full px-2 py-1 text-xs`
 
 **Props change:** Add `pointsLimit: number | null` and `armyListId: number` to props (units array already passed).
 
@@ -286,11 +286,11 @@ No third-party registries used in this phase.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS (revised: gap-1.5→gap-2, py-0.5→py-1)
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved (revision 1 — spacing fix)
