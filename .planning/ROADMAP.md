@@ -273,7 +273,16 @@ Plans:
   3. Points freshness is visible on army lists and rules hub via stale/fresh/unknown badges showing source version and sync date
   4. After sync, user sees per-unit points deltas (increased/decreased/new/removed) and which army lists are affected
   5. All 3 COALESCE query sites are updated atomically to the 5-level chain: list override > loadout override > synced points > unit default > unknown
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+**Wave 1**
+- [ ] 65-01-PLAN.md — Migrations (rules_004, 024) + types + COALESCE 5-level chain + computePointsDelta TDD (PI-01, PI-05, PI-04)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 65-02-PLAN.md — Rust bulk_sync_rules extension + useRulesSync points pipeline + delta/cache/invalidation (PI-02, PI-04)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 65-03-PLAN.md — PointsFreshnessBadge + PointsDeltaSection + army list/rules hub integration (PI-03, PI-04)
 **UI hint**: yes
 
 ### Phase 66: Army List Validation
@@ -440,7 +449,7 @@ Plans:
 | 62. Applied Recipe Data Layer | v0.2.10 | 2/2 | Complete | 2026-05-13 |
 | 63. Applied Recipe UX | v0.2.10 | 0/3 | Not started | - |
 | 64. Applied Recipe Integrations | v0.2.10 | 2/3 | In Progress|  |
-| 65. Points Import Pipeline | v0.2.10 | 0/TBD | Not started | - |
+| 65. Points Import Pipeline | v0.2.10 | 0/3 | Not started | - |
 | 66. Army List Validation | v0.2.10 | 0/TBD | Not started | - |
 | 67. Game Day Integration | v0.2.10 | 0/TBD | Not started | - |
 | 68. Infrastructure Quick Wins | v0.2.11 | 0/2 | Not started | - |
