@@ -351,10 +351,10 @@ Plans:
   1. Migration 022 runs on app start and adds a recipe_section_id column to the painting_sessions table with an ON DELETE SET NULL FK
   2. When logging a session against a recipe section, the session row stores both the section's database ID and its denormalized name
   3. Renaming a recipe section updates the section row's name but does not break or orphan any painting session records — existing sessions still display their original section name
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 **Wave 1**
-- [ ] 71-01-PLAN.md — Migration 023 + lib.rs registration + types + query + query tests (REC-04)
+- [x] 71-01-PLAN.md — Migration 023 + lib.rs registration + types + query + query tests (REC-04)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 71-02-PLAN.md — Zod schema + LogSessionSheet onSubmit wiring + schema tests (REC-04)
@@ -446,5 +446,5 @@ Plans:
 | 68. Infrastructure Quick Wins | v0.2.11 | 0/2 | Not started | - |
 | 69. Paintless Recipe Steps | v0.2.11 | 0/1 | Not started | - |
 | 70. Non-Destructive Recipe Save | v0.2.11 | 0/2 | Not started | - |
-| 71. Stable Session Section FK | v0.2.11 | 0/2 | Not started | - |
+| 71. Stable Session Section FK | v0.2.11 | 1/2 | In Progress|  |
 | 72. Data-Layer Test Suite | v0.2.11 | 0/TBD | Not started | - |
