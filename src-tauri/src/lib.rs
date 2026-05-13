@@ -136,6 +136,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/022_paintless_steps.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 23,
+            description: "session_section_fk",
+            sql: include_str!("../migrations/023_session_section_fk.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
