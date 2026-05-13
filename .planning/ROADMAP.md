@@ -256,8 +256,8 @@ Plans:
 **Plans**: 3 plans
 Plans:
 **Wave 1**
-- [ ] 64-01-PLAN.md — LogSessionSheet step auto-completion bridge (AR-05)
-- [ ] 64-02-PLAN.md — AppliedRecipeProgress type + useKanbanEnrichment + Kanban card display (AR-06)
+- [x] 64-01-PLAN.md — LogSessionSheet step auto-completion bridge (AR-05)
+- [x] 64-02-PLAN.md — AppliedRecipeProgress type + useKanbanEnrichment + Kanban card display (AR-06)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 64-03-PLAN.md — DashboardPage + CurrentFocusCard applied progress display (AR-06)
@@ -433,7 +433,7 @@ Plans:
 | 61. Recipe Workflow Hardening | v0.2.10 | 2/2 | Complete | 2026-05-13 |
 | 62. Applied Recipe Data Layer | v0.2.10 | 2/2 | Complete | 2026-05-13 |
 | 63. Applied Recipe UX | v0.2.10 | 0/3 | Not started | - |
-| 64. Applied Recipe Integrations | v0.2.10 | 0/3 | Not started | - |
+| 64. Applied Recipe Integrations | v0.2.10 | 2/3 | In Progress|  |
 | 65. Points Import Pipeline | v0.2.10 | 0/TBD | Not started | - |
 | 66. Army List Validation | v0.2.10 | 0/TBD | Not started | - |
 | 67. Game Day Integration | v0.2.10 | 0/TBD | Not started | - |
