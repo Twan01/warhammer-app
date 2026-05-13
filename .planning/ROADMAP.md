@@ -301,7 +301,11 @@ Plans:
   2. User can set a section metadata field (section_type, technique, execution_mode, applies_to) to a value and then clear it back to empty; the cleared state persists after save and reopen
   3. Recipe-level step queries return steps grouped by section in section order; steps from different sections never interleave regardless of step insertion order
   4. package.json and tauri.conf.json both show the same version string matching the current release
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+**Wave 1**
+- [ ] 68-01-PLAN.md — COALESCE null-clearing fix (REC-03) + version alignment (VER-01) + migration verification (MIG-01, MIG-02)
+- [ ] 68-02-PLAN.md — Section-aware step ordering (REC-05) + duplicateRecipe section metadata copy (D-09)
 
 ### Phase 69: Paintless Recipe Steps
 **Goal**: Recipe steps can exist without a paint selection, and paintless steps are excluded from availability calculations
@@ -420,7 +424,7 @@ Plans:
 | 65. Points Import Pipeline | v0.2.10 | 0/TBD | Not started | - |
 | 66. Army List Validation | v0.2.10 | 0/TBD | Not started | - |
 | 67. Game Day Integration | v0.2.10 | 0/TBD | Not started | - |
-| 68. Infrastructure Quick Wins | v0.2.11 | 0/TBD | Not started | - |
+| 68. Infrastructure Quick Wins | v0.2.11 | 0/2 | Not started | - |
 | 69. Paintless Recipe Steps | v0.2.11 | 0/1 | Not started | - |
 | 70. Non-Destructive Recipe Save | v0.2.11 | 0/TBD | Not started | - |
 | 71. Stable Session Section FK | v0.2.11 | 0/TBD | Not started | - |
