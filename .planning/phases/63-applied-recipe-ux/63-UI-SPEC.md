@@ -57,8 +57,8 @@ Declared values (multiples of 4, 8-point scale):
 | 3xl | 64px | Not used in this phase |
 
 Exceptions:
-- Accordion trigger minimum height: 44px (touch target for section collapse toggle)
-- Checkbox touch target: 44px × 44px via padding on the row wrapper
+- Accordion trigger minimum height: 48px (`min-h-12`) — touch target for section collapse toggle
+- Checkbox touch target: 48px × 48px via padding on the row wrapper (`min-h-12`)
 
 ---
 
@@ -67,11 +67,13 @@ Exceptions:
 | Role | Size | Weight | Line Height | Usage |
 |------|------|--------|-------------|-------|
 | Body | 14px | 400 (regular) | 1.5 | Step description text, dialog body copy, picker list items |
-| Label | 12px | 500 (medium) | 1.4 | Field labels, section metadata badges, "X/Y completed" badge text |
+| Label | 12px | 400 (regular) | 1.4 | Field labels, section metadata badges, "X/Y completed" badge text |
 | Heading | 16px | 600 (semibold) | 1.3 | Dialog titles, section accordion trigger label, applied recipe card title |
 | Display | 20px | 600 (semibold) | 1.2 | SheetTitle when shown inside UnitDetailSheet tab header |
 
 Font: `'Geist Variable', ui-sans-serif, system-ui, sans-serif` (from `--font-sans` token)
+
+Size difference (12px Label vs 14px Body) provides sufficient visual distinction without a third weight.
 
 ---
 
@@ -132,7 +134,7 @@ Accent reserved for: progress bar fill (`<Progress>`), checked `<Checkbox>` stat
 | Success | Dialog closes; toast "Recipe applied to [unit name]" |
 | Error | Toast "Failed to apply recipe. Please try again." Dialog stays open. |
 
-**Footer buttons:** "Cancel" (outline) left, "Apply Recipe" (default) right — disabled until recipe selected.
+**Footer buttons:** "Discard" (outline) left, "Apply Recipe" (default) right — disabled until recipe selected.
 
 ### ApplyToUnitsDialog (Recipe → Units, bulk)
 
@@ -153,15 +155,16 @@ Accent reserved for: progress bar fill (`<Progress>`), checked `<Checkbox>` stat
 | Success | Dialog closes; toast "Recipe applied to 3 units" |
 | Error | Toast "Failed to apply recipe to some units. Please try again." |
 
-**Footer buttons:** "Cancel" (outline) left, "Apply to N units" (default) right — disabled until at least 1 unit selected.
+**Footer buttons:** "Keep browsing" (outline) left, "Apply to N units" (default) right — disabled until at least 1 unit selected.
 
 ### AssignmentChecklist
 
 **Sectioned recipe (has sections):**
-- Overall `<Progress>` bar at top, with "X% complete" label right-aligned in 12px/medium
+- Overall `<Progress>` bar at top, with "X% complete" label right-aligned in 12px/regular
 - `<Accordion type="multiple">` — all sections collapsed by default, user expands individually
-- Each `<AccordionTrigger>`: section name (16px/semibold) + `<Badge variant="outline">` showing "X/Y" at right edge
+- Each `<AccordionTrigger>`: section name (16px/semibold) + `<Badge variant="outline">` showing "X/Y" at right edge; minimum height 48px (`min-h-12`)
 - Each `<AccordionContent>`: list of `<Checkbox>` rows, one per step
+  - Checkbox row wrapper: `min-h-12` (48px) touch target
   - Checkbox row: `[checkbox] [step order_index]. [step description]` — 14px/regular at 1.5 line-height
   - Checked state: text gets `line-through text-muted-foreground`
   - Toggle calls `useToggleStepProgress(assignmentId, step.order_index)`
@@ -173,6 +176,8 @@ Accent reserved for: progress bar fill (`<Progress>`), checked `<Checkbox>` stat
 
 ### AppliedRecipesTab
 
+**Focal point:** The progress bar on each applied recipe card is the primary visual anchor — it communicates completion state at a glance before the user expands the checklist.
+
 **Empty state (D-14):**
 - Centered layout, `ClipboardList` icon (Lucide, 32px, `text-muted-foreground`)
 - Heading: "No recipes applied yet" (16px/semibold)
@@ -181,7 +186,7 @@ Accent reserved for: progress bar fill (`<Progress>`), checked `<Checkbox>` stat
 
 **With assignments:**
 - List of applied recipe cards (Card component, `bg-panel-elevated`)
-- Each card header: recipe name (16px/semibold) + trash icon button (destructive, size="icon")
+- Each card header: recipe name (16px/semibold) + trash icon button (destructive, size="icon", `aria-label="Remove [recipe name] assignment"`)
 - Each card body: `<Progress>` bar + "X% complete" label + "X/Y steps" badge
 - Click anywhere on card body (not the trash icon) expands inline `<AssignmentChecklist>`
 - Expanded state: card grows in place, checklist rendered below progress bar
@@ -192,7 +197,7 @@ Accent reserved for: progress bar fill (`<Progress>`), checked `<Checkbox>` stat
 **Pattern:** `<AlertDialog>` confirmation (reuses existing `alert-dialog` component)
 **Title:** "Remove recipe assignment?"
 **Body:** "This will delete all step progress for [Recipe Name] on this unit. This cannot be undone."
-**Actions:** "Cancel" (outline) + "Remove" (destructive)
+**Actions:** "Keep Assignment" (outline) + "Remove Assignment" (destructive)
 **On confirm:** calls `useDeleteAssignment`, invalidates cache, toast "Recipe assignment removed"
 
 ---
@@ -216,7 +221,10 @@ Accent reserved for: progress bar fill (`<Progress>`), checked `<Checkbox>` stat
 | Step toggle error toast | "Failed to update step progress. Please try again." |
 | Remove assignment title | "Remove recipe assignment?" |
 | Remove assignment body | "This will delete all step progress for [Recipe Name] on this unit. This cannot be undone." |
-| Remove assignment confirm | "Remove" (destructive variant) |
+| Remove assignment confirm | "Remove Assignment" (destructive variant) |
+| Remove assignment dismiss | "Keep Assignment" (outline variant) |
+| ApplyRecipeDialog dismiss | "Discard" (outline variant) |
+| ApplyToUnitsDialog dismiss | "Keep browsing" (outline variant) |
 | Remove success toast | "Recipe assignment removed" |
 
 ---
@@ -249,6 +257,12 @@ No third-party registries declared for this phase.
 | Toast for all mutation feedback | code_context (established pattern) |
 | 8-point spacing scale | Project default (all previous phases) |
 | Typography scale (14/16/20px) | Established by Phase 16 design overhaul |
+| 2-weight type system (400 + 600) | checker revision — 500/medium removed |
+| 48px touch targets (not 44px) | checker revision — nearest standard value |
+| Context-specific dismissal labels | checker revision — "Cancel" blocked label |
+| "Remove Assignment" confirm label | checker revision — specificity recommendation |
+| Focal point declaration (AppliedRecipesTab) | checker revision — recommendation |
+| aria-label on trash icon button | checker revision — accessibility recommendation |
 
 ---
 
