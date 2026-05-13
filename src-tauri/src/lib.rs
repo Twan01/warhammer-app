@@ -148,6 +148,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/024_points_import_history.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 25,
+            description: "tactical_role",
+            sql: include_str!("../migrations/025_tactical_role.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

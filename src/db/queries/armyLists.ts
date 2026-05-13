@@ -53,7 +53,7 @@ export async function getArmyListWithUnits(listId: number): Promise<ArmyListUnit
   const db = await getDb();
   return db.select<ArmyListUnitRow[]>(
     `SELECT
-       alu.id, alu.list_id, alu.unit_id, alu.points_override, alu.notes, alu.created_at,
+       alu.id, alu.list_id, alu.unit_id, alu.points_override, alu.notes, alu.tactical_role, alu.created_at,
        u.name AS unit_name,
        u.points AS unit_points,
        u.faction_id,
@@ -119,6 +119,22 @@ export async function clearArmyListDetachment(id: number): Promise<void> {
     `UPDATE army_lists
         SET detachment_id = NULL,
             detachment_name = NULL,
+            updated_at = datetime('now')
+      WHERE id = $1`,
+    [id]
+  );
+}
+
+/**
+ * Phase 66 — explicit NULL-clearing for points_limit.
+ * Separate from updateArmyList because COALESCE blocks NULL passthrough.
+ * Called when user removes the points limit from an army list.
+ */
+export async function clearArmyListPointsLimit(id: number): Promise<void> {
+  const db = await getDb();
+  await db.execute(
+    `UPDATE army_lists
+        SET points_limit = NULL,
             updated_at = datetime('now')
       WHERE id = $1`,
     [id]
