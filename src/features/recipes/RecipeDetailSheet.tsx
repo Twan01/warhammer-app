@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ApplyToUnitsDialog } from "./ApplyToUnitsDialog";
 import { useNavigate } from "@tanstack/react-router";
 import {
   Sheet,
@@ -177,9 +178,11 @@ export function RecipeDetailSheet({
     return () => { cancelled = true; };
   }, [stepsKey]);
 
+  const [applyToUnitsOpen, setApplyToUnitsOpen] = useState(false);
   const navigate = useNavigate();
 
   return (
+    <>
     <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <SheetContent
         side="right"
@@ -337,12 +340,23 @@ export function RecipeDetailSheet({
                 <Copy className="mr-2 h-4 w-4" />
                 Duplicate
               </Button>
+              <Button variant="outline" onClick={() => setApplyToUnitsOpen(true)}>
+                Apply to Unit(s)
+              </Button>
               <Button onClick={() => onEdit(recipe)}>Edit Recipe</Button>
             </SheetFooter>
           </>
         )}
       </SheetContent>
     </Sheet>
+    {recipe && (
+      <ApplyToUnitsDialog
+        open={applyToUnitsOpen}
+        recipe={recipe}
+        onClose={() => setApplyToUnitsOpen(false)}
+      />
+    )}
+    </>
   );
 }
 
