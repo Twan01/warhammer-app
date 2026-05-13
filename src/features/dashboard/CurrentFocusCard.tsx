@@ -20,6 +20,7 @@ import type { Unit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
 import type { UnitPhotoWithUrl } from "@/hooks/useUnitPhotos";
 import type { WorkflowPosition } from "@/lib/computeWorkflowPosition";
+import type { AppliedRecipeProgress } from "@/types/recipeAssignment";
 
 export interface CurrentFocusCardProps {
   unit: Unit | null;
@@ -30,9 +31,10 @@ export interface CurrentFocusCardProps {
   recipeName?: string | null;
   extraRecipeCount?: number;
   workflowPosition?: WorkflowPosition | null;
+  appliedProgress?: AppliedRecipeProgress | null;
 }
 
-export function CurrentFocusCard({ unit, faction, photo, onOpen, onLog, recipeName, extraRecipeCount = 0, workflowPosition }: CurrentFocusCardProps) {
+export function CurrentFocusCard({ unit, faction, photo, onOpen, onLog, recipeName, extraRecipeCount = 0, workflowPosition, appliedProgress }: CurrentFocusCardProps) {
   if (!unit) {
     return (
       <Card className="bg-card border border-border/60 shadow-sm px-6 py-6 transition-shadow duration-150 hover:shadow-md">
@@ -71,7 +73,13 @@ export function CurrentFocusCard({ unit, faction, photo, onOpen, onLog, recipeNa
               {recipeName}{extraRecipeCount > 0 ? ` (+${extraRecipeCount} more)` : ""}
             </span>
           )}
-          {workflowPosition && (
+          {appliedProgress ? (
+            <span className="flex items-center gap-1 truncate text-xs text-muted-foreground">
+              <Layers size={12} aria-hidden className="shrink-0" />
+              {appliedProgress.recipeName}: {appliedProgress.completed}/{appliedProgress.total} steps
+              {appliedProgress.assignmentCount > 1 ? ` (+${appliedProgress.assignmentCount - 1} more)` : ""}
+            </span>
+          ) : workflowPosition ? (
             <span className="flex items-center gap-1 truncate text-xs text-muted-foreground">
               <Layers size={12} aria-hidden className="shrink-0" />
               {workflowPosition.isComplete
@@ -89,7 +97,7 @@ export function CurrentFocusCard({ unit, faction, photo, onOpen, onLog, recipeNa
                     : null
               }
             </span>
-          )}
+          ) : null}
           <div className="text-sm text-muted-foreground tabular-nums">
             {unit.model_count ?? "---"} models · {unit.points ?? "---"} pts
           </div>

@@ -28,8 +28,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useHobbyAnalytics } from "@/hooks/useHobbyAnalytics";
 import { useRecentActivity } from "@/hooks/useRecentActivity";
-import { getRecipeNamesByUnitIds } from "@/db/queries/recipes";
+import { getRecipeNamesByUnitIds, getRecipeById } from "@/db/queries/recipes";
 import { useWorkflowPositions } from "@/hooks/useWorkflowPositions";
+import { useAssignmentsByUnit, useStepProgress } from "@/hooks/useRecipeAssignments";
+import { useRecipePaints } from "@/hooks/useRecipePaints";
+import { computeAssignmentProgress } from "@/lib/computeAssignmentProgress";
+import type { AppliedRecipeProgress } from "@/types/recipeAssignment";
 import { UnitDetailSheet } from "@/features/units/UnitDetailSheet";
 import { UnitSheet } from "@/features/units/UnitSheet";
 import { UnitDeleteDialog } from "@/features/units/UnitDeleteDialog";
@@ -89,6 +93,31 @@ export function DashboardPage() {
   const { data: focusWorkflowPositions } = useWorkflowPositions(
     focusUnitId !== null ? [focusUnitId] : [],
   );
+
+  // Phase 64 — applied recipe progress for focus unit
+  const { data: focusAssignments = [] } = useAssignmentsByUnit(
+    focusUnitId ?? undefined,
+  );
+  const primaryAssignment = focusAssignments.length > 0
+    ? focusAssignments[focusAssignments.length - 1]
+    : undefined;
+  const { data: focusStepProgress = [] } = useStepProgress(primaryAssignment?.id);
+  const { data: focusRecipeSteps = [] } = useRecipePaints(primaryAssignment?.recipe_id);
+  const { data: primaryRecipe } = useQuery({
+    queryKey: ["recipes", primaryAssignment?.recipe_id],
+    queryFn: () => getRecipeById(primaryAssignment!.recipe_id),
+    enabled: primaryAssignment !== undefined,
+  });
+  const focusAppliedProgress = useMemo<AppliedRecipeProgress | null>(() => {
+    if (!primaryAssignment || focusRecipeSteps.length === 0) return null;
+    const progress = computeAssignmentProgress(focusRecipeSteps, focusStepProgress);
+    return {
+      recipeName: primaryRecipe?.name ?? "",
+      completed: progress.completed,
+      total: progress.total,
+      assignmentCount: focusAssignments.length,
+    };
+  }, [primaryAssignment, focusRecipeSteps, focusStepProgress, primaryRecipe, focusAssignments.length]);
 
   // DS-08 — conflict-resolution dialog state
   const [conflictPayload, setConflictPayload] = useState<DatasheetImportPayload | null>(null);
@@ -329,6 +358,7 @@ export function DashboardPage() {
             recipeName={focusRecipes?.[0]?.name ?? null}
             extraRecipeCount={Math.max(0, (focusRecipes?.length ?? 0) - 1)}
             workflowPosition={focusWorkflowPositions?.get(focusUnit?.id ?? -1)}
+            appliedProgress={focusAppliedProgress}
           />
         </div>
 
