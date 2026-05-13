@@ -501,12 +501,11 @@ Check whether this file asserts SQL patterns in `updateRecipeSection` — if so,
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Version: should it be 0.2.10 or 0.2.11?**
+1. **Version: should it be 0.2.10 or 0.2.11?** RESOLVED: 0.2.11 per CONTEXT.md D-06 and Version Target Analysis above.
    - What we know: The codebase currently shows 0.2.7. v0.2.8 and v0.2.9 shipped without a version bump. v0.2.10 is in progress simultaneously with v0.2.11.
-   - What's unclear: Whether the intended version reflects "work currently being shipped" (0.2.11) or "last completed milestone" (0.2.9 = bump to 0.2.9, then 0.2.10 later).
-   - Recommendation: Jump to 0.2.11 to reflect the active milestone. The in-between milestones never had version bumps, so catching up to the current milestone is the most informative signal. This is the assumption in A1.
+   - Resolution: Jump to 0.2.11 to reflect the active milestone. The in-between milestones never had version bumps, so catching up to the current milestone is the most informative signal.
 
 ---
 
