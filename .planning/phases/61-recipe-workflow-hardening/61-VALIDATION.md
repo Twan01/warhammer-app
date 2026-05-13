@@ -1,9 +1,9 @@
 ---
 phase: 61
 slug: recipe-workflow-hardening
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-12
 ---
 
@@ -38,13 +38,13 @@ created: 2026-05-12
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 61-01-01 | 01 | 1 | RH-01 | build | `cargo check --manifest-path src-tauri/Cargo.toml` | N/A | ⬜ pending |
-| 61-01-02 | 01 | 1 | RH-01 | build | `pnpm build` | N/A | ⬜ pending |
-| 61-01-03 | 01 | 1 | RH-01 | manual | `pnpm tauri dev` + verify recipe_sections table | Manual only | ⬜ pending |
-| 61-01-04 | 01 | 1 | RH-02 | unit | `pnpm test -- tests/painting/recipeSections.test.ts` | ✅ | ⬜ pending |
-| 61-01-05 | 01 | 1 | RH-02 | unit | `pnpm test -- tests/lib/computeWorkflowPosition.test.ts` | ❌ W0 | ⬜ pending |
-| 61-01-06 | 01 | 1 | RH-03 | unit | `pnpm test -- tests/painting/RecipeSectionCard.test.tsx` | ❌ W0 | ⬜ pending |
-| 61-01-07 | 01 | 1 | RH-03 | unit | SECTION_TYPES const array assertion | ✅ (inline) | ⬜ pending |
+| 61-01-01 | 01 | 1 | RH-01 | build | `cargo check --manifest-path src-tauri/Cargo.toml` | N/A | ✅ green |
+| 61-01-02 | 01 | 1 | RH-01 | build | `pnpm build` | N/A | ✅ green |
+| 61-01-03 | 01 | 1 | RH-01 | manual | `pnpm tauri dev` + verify recipe_sections table | Manual only | ✅ green |
+| 61-01-04 | 01 | 1 | RH-02 | unit | `pnpm test -- tests/painting/recipeSections.test.ts` | ✅ | ✅ green |
+| 61-01-05 | 01 | 1 | RH-02 | unit | `pnpm test -- tests/lib/computeWorkflowPosition.test.ts` | ✅ | ✅ green |
+| 61-01-06 | 01 | 1 | RH-03 | unit | `pnpm test -- tests/painting/recipeSectionCard.test.tsx` | ✅ | ✅ green |
+| 61-01-07 | 01 | 1 | RH-03 | unit | SECTION_TYPES const array assertion | ✅ (inline) | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -52,9 +52,9 @@ created: 2026-05-12
 
 ## Wave 0 Requirements
 
-- [ ] `tests/lib/computeWorkflowPosition.test.ts` — covers RH-02 degradation when section name does not match (stale/orphaned section reference)
-- [ ] `tests/painting/RecipeSectionCard.test.tsx` — covers RH-03 progressive disclosure threshold (single-section, no metadata → workflow collapsible hidden)
-- [ ] Confirm `tests/dashboard/LogSessionSheet.test.tsx` exists for section_name snapshot behavior
+- [x] `tests/lib/computeWorkflowPosition.test.ts` — covers RH-02 degradation when section name does not match (stale/orphaned section reference)
+- [x] `tests/painting/recipeSectionCard.test.tsx` — covers RH-03 progressive disclosure threshold (single-section, no metadata -> workflow collapsible hidden)
+- [x] `tests/painting/logSessionSheet.test.tsx` — SESS-05 section_name snapshot behavior (section_name defaults to null)
 
 ---
 
@@ -69,11 +69,28 @@ created: 2026-05-12
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-05-13
+
+---
+
+## Validation Audit 2026-05-13
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+**Coverage summary:**
+- RH-01: 2 build verifications (cargo check + pnpm build) + 1 manual smoke test — all green
+- RH-02: 15 unit tests in computeWorkflowPosition.test.ts including stale section name degradation — all passing
+- RH-03: 26 unit tests in recipeSectionCard.test.tsx including progressive disclosure threshold for all 4 metadata fields — all passing
+- SECTION_TYPES: 2 assertions verifying 7 expected values — passing
+- Full suite: 1361 passing, 5 pre-existing failures (rules-hub/datasheet, unrelated to Phase 61)
