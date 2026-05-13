@@ -377,7 +377,13 @@ Plans:
   2. A test round-trips a recipe save with paintless steps and confirms null paint_id rows are stored and retrieved correctly
   3. A test exercises the non-destructive save path and asserts that unchanged section/step IDs are preserved across an edit cycle
   4. A test inserts a painting session with a recipe_section_id FK and confirms ON DELETE SET NULL fires correctly when the section is deleted
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+**Wave 1**
+- [ ] 72-01-PLAN.md — Install better-sqlite3 + db-helpers.ts + migration parity tests + schema shape tests (D-01 through D-06, D-12 through D-14)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 72-02-PLAN.md — Recipe persistence tests + session section FK tests (D-07 through D-11)
 
 ## Progress
 
@@ -456,4 +462,4 @@ Plans:
 | 69. Paintless Recipe Steps | v0.2.11 | 0/1 | Not started | - |
 | 70. Non-Destructive Recipe Save | v0.2.11 | 0/2 | Not started | - |
 | 71. Stable Session Section FK | v0.2.11 | 2/2 | Complete   | 2026-05-13 |
-| 72. Data-Layer Test Suite | v0.2.11 | 0/TBD | Not started | - |
+| 72. Data-Layer Test Suite | v0.2.11 | 0/2 | Not started | - |
