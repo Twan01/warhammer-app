@@ -4,25 +4,17 @@
 
 HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, structured painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play." Official points and rules data are imported via Wahapedia sync for personal use.
 
-Shipped through v0.2.9 (60 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, and DnD reorder), army list builder with detachment selection and inline rules context, battle log, spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors, premium CSS grid dashboard with workflow-aware CurrentFocusCard and KanbanCards, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, and a Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist). Now building v0.2.10: applied recipes (recipe-as-painting-plan with per-unit step progress), points import with freshness tracking, and advanced army list validation with tactical role coverage.
+Shipped through v0.2.9 (60 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, and DnD reorder), army list builder with detachment selection and inline rules context, battle log, spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors, premium CSS grid dashboard with workflow-aware CurrentFocusCard and KanbanCards, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, and a Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist). v0.2.11 Foundation Hardening shipped 2026-05-13: migration registration, paintless steps, non-destructive recipe saves, session section FK, data-layer test suite (14 tests via better-sqlite3). Now building v0.2.10: applied recipes (recipe-as-painting-plan with per-unit step progress), points import with freshness tracking, and advanced army list validation with tactical role coverage.
 
-## Current Milestone: v0.2.11 Foundation Hardening
+## Current Milestone: v0.2.10 Applied Recipes, Points Import & List Validation
 
-**Goal:** Stabilize the technical foundation — migrations, recipe data integrity, version hygiene — so future features are built on reliable data structures.
+**Goal:** Deliver applied recipes, points import pipeline, and advanced army list validation.
 
-**Target features:**
-- Migration registration & clean DB validation (register 018/019/020, verify fresh install)
-- Paintless recipe step support (persist steps without paint, exclude from availability)
-- Non-destructive recipe edits (preserve section/step IDs instead of delete-all + re-insert)
-- Section metadata clearing (fix COALESCE preventing null assignment)
-- Version number hygiene (align package.json and tauri.conf.json)
-- Stable recipe_section_id on painting sessions (FK alongside denormalized name)
-- Section-aware step ordering (order by section then step in recipe-level queries)
-- Data-layer tests (migration, recipe persistence, session links, army list schema)
+**Status:** In progress — Phase 65 (Points Import Pipeline) executing.
 
 ## Current State
 
-v0.2.11 in progress. v0.2.10 in progress. v0.2.9 shipped 2026-05-12.
+v0.2.11 shipped 2026-05-13. v0.2.10 in progress. v0.2.9 shipped 2026-05-12.
 
 ## Core Value
 
