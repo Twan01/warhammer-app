@@ -106,6 +106,30 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/017_unit_overrides.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 18,
+            description: "recipe_sections",
+            sql: include_str!("../migrations/018_recipe_sections.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 19,
+            description: "rules_favorites_notes",
+            sql: include_str!("../migrations/019_rules_favorites_notes.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 20,
+            description: "workflow_metadata",
+            sql: include_str!("../migrations/020_workflow_metadata.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 21,
+            description: "applied_recipe_assignments",
+            sql: include_str!("../migrations/021_applied_recipe_assignments.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
