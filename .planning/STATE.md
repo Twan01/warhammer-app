@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.2.11
 milestone_name: Foundation Hardening
 status: executing
-stopped_at: Completed 65-02, continue with 65-03
-last_updated: "2026-05-13T10:46:00.000Z"
+stopped_at: Completed 72-01, continue with 72-02
+last_updated: "2026-05-13T10:57:00.000Z"
 last_activity: 2026-05-13
 progress:
   total_phases: 12
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-13)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play"
-**Current focus:** Phase 65 — Points Import Pipeline
+**Current focus:** Phase 72 — Data-Layer Test Suite
 
 ## Current Position
 
-Phase: 65 (Points Import Pipeline) — EXECUTING
-Plan: 2 of 3 complete
-Next: Execute 65-03 (freshness badges + delta UI)
+Phase: 72 (Data-Layer Test Suite) — EXECUTING
+Plan: 1 of 2 complete
+Next: Execute 72-02 (recipe persistence + session section FK tests)
 Last activity: 2026-05-13
 
 Progress: [██████████] 100%
@@ -67,6 +67,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-13T10:46:00.000Z
-Stopped at: Completed 65-02 (sync pipeline extension), continue 65-03
-Resume: .planning/phases/65-points-import-pipeline/
+Last session: 2026-05-13T10:57:00.000Z
+Stopped at: Completed 72-01 (test infrastructure + migration validation)
+Resume: .planning/phases/72-data-layer-test-suite/

@@ -380,7 +380,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 **Wave 1**
-- [ ] 72-01-PLAN.md — Install better-sqlite3 + db-helpers.ts + migration parity tests + schema shape tests (D-01 through D-06, D-12 through D-14)
+- [x] 72-01-PLAN.md — Install better-sqlite3 + db-helpers.ts + migration parity tests + schema shape tests (D-01 through D-06, D-12 through D-14)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 72-02-PLAN.md — Recipe persistence tests + session section FK tests (D-07 through D-11)
@@ -462,4 +462,4 @@ Plans:
 | 69. Paintless Recipe Steps | v0.2.11 | 0/1 | Not started | - |
 | 70. Non-Destructive Recipe Save | v0.2.11 | 0/2 | Not started | - |
 | 71. Stable Session Section FK | v0.2.11 | 2/2 | Complete   | 2026-05-13 |
-| 72. Data-Layer Test Suite | v0.2.11 | 0/2 | Not started | - |
+| 72. Data-Layer Test Suite | v0.2.11 | 1/2 | In Progress | - |
