@@ -193,7 +193,7 @@ export async function getArmyListsByUnitId(
  *
  * Battle-ready = units with status_painting = 'Completed' (canonical value from
  * PAINTING_STATUS_ORDER — NOT 'Complete', Pitfall 1).
- * Effective points = COALESCE(alu.points_override, uo.points, u.points, 0) — never computed in JS.
+ * Effective points = COALESCE(alu.points_override, sup.points, uo.points, u.points, 0) — never computed in JS.
  * Returns empty array immediately for empty ids — avoids SQL IN () error (Pitfall 2).
  */
 export interface ArmyListReadiness {
