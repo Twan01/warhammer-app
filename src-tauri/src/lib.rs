@@ -212,6 +212,8 @@ pub struct BulkSyncPayload {
     stratagems: Vec<JsRow>,
     detachments: Vec<JsRow>,
     detachment_abilities: Vec<JsRow>,
+    #[serde(default)]
+    points: Vec<JsRow>,
     last_sync_at: String,
     wahapedia_version: String,
 }
@@ -229,6 +231,7 @@ pub struct SyncResult {
     pub stratagems: u64,
     pub detachments: u64,
     pub detachment_abilities: u64,
+    pub points: u64,
 }
 
 /// Bulk-insert all Wahapedia CSV data into rules.db inside a single native
@@ -268,7 +271,7 @@ async fn bulk_sync_rules(
     let mut counts = SyncResult {
         factions: 0, sources: 0, datasheets: 0, models: 0,
         abilities: 0, keywords: 0, wargear: 0, shared_abilities: 0,
-        stratagems: 0, detachments: 0, detachment_abilities: 0,
+        stratagems: 0, detachments: 0, detachment_abilities: 0, points: 0,
     };
 
     // Delete all tables (FK checks OFF so order doesn't matter)
@@ -284,6 +287,7 @@ async fn bulk_sync_rules(
         "rw_stratagems",
         "rw_detachment_abilities",
         "rw_detachments",
+        "rw_datasheet_points",
     ] {
         sqlx::query(&format!("DELETE FROM {table}"))
             .execute(&mut *tx)
@@ -499,13 +503,28 @@ async fn bulk_sync_rules(
         counts.detachment_abilities += res.rows_affected();
     }
 
+    for row in &payload.points {
+        let ds_name = str_val(row, "datasheet_name").unwrap_or_default();
+        if ds_name.is_empty() { continue; }
+        let res = sqlx::query(
+            "INSERT INTO rw_datasheet_points (datasheet_name, faction_id, points) VALUES (?, ?, ?)",
+        )
+        .bind(&ds_name)
+        .bind(str_val(row, "faction_id"))
+        .bind(i64_val(row, "points").unwrap_or(0))
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert points {ds_name}: {e}"))?;
+        counts.points += res.rows_affected();
+    }
+
     // Write sync meta inside the same transaction — includes all 11 per-table
     // row counts populated during the insert loops above.
     sqlx::query(
         "INSERT OR REPLACE INTO rw_sync_meta (id, last_sync_at, wahapedia_version,
          factions_count, sources_count, datasheets_count, models_count, abilities_count,
          keywords_count, wargear_count, shared_abilities_count, stratagems_count,
-         detachments_count, detachment_abilities_count) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+         detachments_count, detachment_abilities_count, points_count) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     )
     .bind(&payload.last_sync_at)
     .bind(&payload.wahapedia_version)
@@ -520,6 +539,7 @@ async fn bulk_sync_rules(
     .bind(counts.stratagems as i64)
     .bind(counts.detachments as i64)
     .bind(counts.detachment_abilities as i64)
+    .bind(counts.points as i64)
     .execute(&mut *tx)
     .await
     .map_err(|e| format!("insert sync_meta: {e}"))?;
