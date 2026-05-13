@@ -23,6 +23,8 @@
       "allow": [
         { "url": "https://wahapedia.ru/**" }
       ]
-    }
+    },
+    "updater:default",
+    "process:default"
   ]
 }

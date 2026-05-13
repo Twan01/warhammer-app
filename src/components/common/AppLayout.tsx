@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { AppSidebar } from "./AppSidebar";
+import { UpdateBanner } from "./UpdateBanner";
 import { useQuickAdd } from "@/context/QuickAddContext";
 import { UnitSheet } from "@/features/units/UnitSheet";
 import { FactionSheet } from "@/features/factions/FactionSheet";
@@ -18,7 +19,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <TooltipProvider delayDuration={200}>
       <div className="flex h-screen bg-background text-foreground">
         <AppSidebar />
-        <main className="flex-1 overflow-auto">{children}</main>
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <UpdateBanner />
+          <main className="flex-1 overflow-auto">{children}</main>
+        </div>
       </div>
       {/* Global Quick Add Sheet siblings — sibling portal contract (NAV-03) */}
       <UnitSheet
