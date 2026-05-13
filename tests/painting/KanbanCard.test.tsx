@@ -9,6 +9,7 @@ import { KanbanCard } from "@/features/painting-projects/KanbanCard";
 import type { Unit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
 import type { WorkflowPosition } from "@/lib/computeWorkflowPosition";
+import type { AppliedRecipeProgress } from "@/types/recipeAssignment";
 
 function makeUnit(over: Partial<Unit> = {}): Unit {
   return {
@@ -151,5 +152,132 @@ describe("KanbanCard", () => {
     };
     renderCard(makeUnit(), undefined, pos);
     expect(screen.getByText(/step 4\/12/)).toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AR-06: Applied recipe progress display on KanbanCard
+// ---------------------------------------------------------------------------
+
+function renderCardWithProgress(
+  unit: Unit,
+  appliedProgress?: AppliedRecipeProgress | null,
+  workflowPosition?: WorkflowPosition | null,
+  faction: Faction | undefined = makeFaction(),
+) {
+  return render(
+    <DndContext>
+      <SortableContext items={[`unit-${unit.id}`]}>
+        <KanbanCard
+          unit={unit}
+          faction={faction}
+          onRemoveFromBoard={vi.fn()}
+          onEditUnit={vi.fn()}
+          onLogSession={vi.fn()}
+          appliedProgress={appliedProgress}
+          workflowPosition={workflowPosition}
+        />
+      </SortableContext>
+    </DndContext>,
+  );
+}
+
+describe("KanbanCard — AR-06: appliedProgress display", () => {
+  it("renders recipeName: completed/total steps when appliedProgress is provided", () => {
+    const progress: AppliedRecipeProgress = {
+      recipeName: "NMM Gold",
+      completed: 5,
+      total: 12,
+      assignmentCount: 1,
+    };
+    renderCardWithProgress(makeUnit(), progress);
+    expect(screen.getByText(/NMM Gold: 5\/12 steps/)).toBeInTheDocument();
+  });
+
+  it("renders +N more suffix when assignmentCount > 1", () => {
+    const progress: AppliedRecipeProgress = {
+      recipeName: "Red Gore",
+      completed: 3,
+      total: 8,
+      assignmentCount: 3,
+    };
+    renderCardWithProgress(makeUnit(), progress);
+    expect(screen.getByText(/Red Gore: 3\/8 steps/)).toBeInTheDocument();
+    expect(screen.getByText(/\(\+2 more\)/)).toBeInTheDocument();
+  });
+
+  it("does not render +N more suffix when assignmentCount is 1", () => {
+    const progress: AppliedRecipeProgress = {
+      recipeName: "Blue Armor",
+      completed: 1,
+      total: 6,
+      assignmentCount: 1,
+    };
+    renderCardWithProgress(makeUnit(), progress);
+    expect(screen.getByText(/Blue Armor: 1\/6 steps/)).toBeInTheDocument();
+    expect(screen.queryByText(/more/)).toBeNull();
+  });
+
+  it("falls back to workflowPosition when appliedProgress is null", () => {
+    const pos: WorkflowPosition = {
+      sectionName: "Armour",
+      sectionIndex: 0,
+      totalSections: 3,
+      stepName: "Base Coat",
+      stepIndex: 0,
+      totalSteps: 4,
+      technique: null,
+      isComplete: false,
+      nextStepName: "Layer Highlight",
+    };
+    renderCardWithProgress(makeUnit(), null, pos);
+    expect(screen.getByText(/Armour: Layer Highlight/)).toBeInTheDocument();
+    // No applied progress text
+    expect(screen.queryByText(/steps/)).toBeNull();
+  });
+
+  it("falls back to workflowPosition when appliedProgress is undefined", () => {
+    const pos: WorkflowPosition = {
+      sectionName: "Details",
+      sectionIndex: 1,
+      totalSections: 2,
+      stepName: "Wash",
+      stepIndex: 2,
+      totalSteps: 6,
+      technique: null,
+      isComplete: false,
+      nextStepName: "Edge Highlight",
+    };
+    renderCardWithProgress(makeUnit(), undefined, pos);
+    expect(screen.getByText(/Details: Edge Highlight/)).toBeInTheDocument();
+  });
+
+  it("falls back to getNextActionHint when both appliedProgress and workflowPosition are absent", () => {
+    renderCardWithProgress(makeUnit({ status_painting: "Primed" }), undefined, undefined);
+    expect(screen.getByText(/Apply base coat/)).toBeInTheDocument();
+  });
+
+  it("appliedProgress supersedes workflowPosition when both are provided", () => {
+    const progress: AppliedRecipeProgress = {
+      recipeName: "Test Recipe",
+      completed: 2,
+      total: 10,
+      assignmentCount: 1,
+    };
+    const pos: WorkflowPosition = {
+      sectionName: "Armour",
+      sectionIndex: 0,
+      totalSections: 1,
+      stepName: "Base",
+      stepIndex: 0,
+      totalSteps: 3,
+      technique: null,
+      isComplete: false,
+      nextStepName: "Wash",
+    };
+    renderCardWithProgress(makeUnit(), progress, pos);
+    expect(screen.getByText(/Test Recipe: 2\/10 steps/)).toBeInTheDocument();
+    // workflowPosition text should NOT appear
+    expect(screen.queryByText(/Armour/)).toBeNull();
   });
 });

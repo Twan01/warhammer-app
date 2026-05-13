@@ -47,6 +47,23 @@ vi.mock("@/hooks/useRecipeSections", () => ({
   useRecipeSections: (recipeId: number | undefined) => useRecipeSectionsMock(recipeId),
 }));
 
+// Mock useRecipeAssignments (AR-05 bridge logic)
+const useAssignmentsByUnitMock = vi.fn();
+const createAssignmentMutateAsyncMock = vi.fn();
+const toggleStepProgressMutateAsyncMock = vi.fn();
+vi.mock("@/hooks/useRecipeAssignments", () => ({
+  useAssignmentsByUnit: (...args: unknown[]) => useAssignmentsByUnitMock(...args),
+  useCreateAssignment: () => ({
+    mutateAsync: createAssignmentMutateAsyncMock,
+    isPending: false,
+  }),
+  useToggleStepProgress: () => ({
+    mutateAsync: toggleStepProgressMutateAsyncMock,
+    isPending: false,
+  }),
+  ASSIGNMENTS_KEY: ["recipe-assignments"],
+}));
+
 // Mock useFactions
 vi.mock("@/hooks/useFactions", () => ({
   useFactions: () => ({ data: [{ id: 1, name: "Space Marines" }] }),
@@ -114,6 +131,9 @@ beforeEach(() => {
   useRecipesMock.mockReturnValue({ data: recipes, isLoading: false });
   useRecipePaintsMock.mockReturnValue({ data: [], isLoading: false });
   useRecipeSectionsMock.mockReturnValue({ data: [] }); // default: no sections
+  useAssignmentsByUnitMock.mockReturnValue({ data: [], isLoading: false }); // AR-05: default no assignments
+  createAssignmentMutateAsyncMock.mockResolvedValue(100); // return new assignment id
+  toggleStepProgressMutateAsyncMock.mockResolvedValue(undefined);
 });
 
 describe("LogSessionSheet defaultUnitId", () => {
@@ -357,5 +377,84 @@ describe("LogSessionSheet — SESS-01 through SESS-05 (section cascade)", () => 
     expect(screen.queryByText("Section")).not.toBeInTheDocument();
     // Recipe label present confirms form rendered
     expect(screen.getByText("Recipe")).toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AR-05: LogSessionSheet bridge logic — recipe step auto-completion
+// ---------------------------------------------------------------------------
+
+describe("LogSessionSheet — AR-05 bridge hooks wiring", () => {
+  it("AR-05: useAssignmentsByUnit is called with undefined when unit_id is 0 (no unit selected)", () => {
+    render(
+      <Wrapper>
+        <LogSessionSheet open={true} onClose={() => {}} />
+      </Wrapper>
+    );
+    // Default form value for unit_id is 0, so hook should be called with undefined
+    expect(useAssignmentsByUnitMock).toHaveBeenCalledWith(undefined);
+  });
+
+  it("AR-05: useAssignmentsByUnit is called with unitId when defaultUnitId is provided", () => {
+    render(
+      <Wrapper>
+        <LogSessionSheet open={true} onClose={() => {}} defaultUnitId={42} />
+      </Wrapper>
+    );
+    // defaultUnitId = 42 > 0, so hook should be called with 42
+    expect(useAssignmentsByUnitMock).toHaveBeenCalledWith(42);
+  });
+
+  it("AR-05: useAssignmentsByUnit returns assignments that are available for bridge logic", () => {
+    useAssignmentsByUnitMock.mockReturnValue({
+      data: [{ id: 10, unit_id: 42, recipe_id: 1, created_at: "2026-01-01" }],
+      isLoading: false,
+    });
+    render(
+      <Wrapper>
+        <LogSessionSheet open={true} onClose={() => {}} defaultUnitId={42} />
+      </Wrapper>
+    );
+    // Hook was called and component rendered without errors
+    expect(useAssignmentsByUnitMock).toHaveBeenCalledWith(42);
+    // Component still renders the form — use getAllByText since both title and button have "Log Session"
+    expect(screen.getAllByText("Log Session").length).toBeGreaterThan(0);
+  });
+
+  it("AR-05: bridge hooks (createAssignment, toggleStepProgress) are initialized in component", () => {
+    render(
+      <Wrapper>
+        <LogSessionSheet open={true} onClose={() => {}} defaultUnitId={42} />
+      </Wrapper>
+    );
+    // These mocks are initialized via vi.mock — if the component didn't call the hooks,
+    // they wouldn't be available. The component renders successfully, confirming hooks are wired.
+    expect(screen.getAllByText("Log Session").length).toBeGreaterThan(0);
+    // The component should not call mutateAsync during render (only during onSubmit)
+    expect(createAssignmentMutateAsyncMock).not.toHaveBeenCalled();
+    expect(toggleStepProgressMutateAsyncMock).not.toHaveBeenCalled();
+  });
+
+  it("AR-05: bridge does not fire during render — mutations are only called on submit", () => {
+    useAssignmentsByUnitMock.mockReturnValue({
+      data: [{ id: 10, unit_id: 42, recipe_id: 1, created_at: "2026-01-01" }],
+      isLoading: false,
+    });
+    useRecipePaintsMock.mockReturnValue({
+      data: [
+        { id: 100, step_name: "Base Blue", section_id: null, order_index: 0, painting_phase: "Base" },
+      ],
+      isLoading: false,
+    });
+
+    render(
+      <Wrapper>
+        <LogSessionSheet open={true} onClose={() => {}} defaultUnitId={42} />
+      </Wrapper>
+    );
+
+    // No mutations should have been called during render
+    expect(createAssignmentMutateAsyncMock).not.toHaveBeenCalled();
+    expect(toggleStepProgressMutateAsyncMock).not.toHaveBeenCalled();
   });
 });

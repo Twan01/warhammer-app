@@ -14,6 +14,7 @@ import type { Unit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
 import type { UnitPhotoWithUrl } from "@/hooks/useUnitPhotos";
 import type { WorkflowPosition } from "@/lib/computeWorkflowPosition";
+import type { AppliedRecipeProgress } from "@/types/recipeAssignment";
 
 // CurrentFocusCard renders UnitThumbnail which imports from @/hooks/useUnitPhotos.
 // Prevent the real hook from firing (it calls Tauri APIs).
@@ -584,6 +585,158 @@ describe("CurrentFocusCard", () => {
 
       expect(screen.getByText("Riptide")).toBeInTheDocument();
       expect(screen.getByText("Tau Empire")).toBeInTheDocument();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // AR-06: Applied recipe progress display on CurrentFocusCard
+  // ---------------------------------------------------------------------------
+
+  describe("AR-06: appliedProgress display", () => {
+    function makeProgress(over: Partial<AppliedRecipeProgress> = {}): AppliedRecipeProgress {
+      return {
+        recipeName: "NMM Gold",
+        completed: 5,
+        total: 12,
+        assignmentCount: 1,
+        ...over,
+      };
+    }
+
+    function makePosition(over: Partial<WorkflowPosition> = {}): WorkflowPosition {
+      return {
+        sectionName: "Armour",
+        sectionIndex: 0,
+        totalSections: 3,
+        stepName: "Base Coat",
+        stepIndex: 3,
+        totalSteps: 12,
+        technique: "Drybrush",
+        isComplete: false,
+        nextStepName: "Layer Highlight",
+        ...over,
+      };
+    }
+
+    it("renders recipeName: completed/total steps with Layers icon when appliedProgress is provided", () => {
+      const { container } = render(
+        <CurrentFocusCard
+          unit={makeUnit()}
+          faction={makeFaction()}
+          photo={undefined}
+          onOpen={vi.fn()}
+          onLog={vi.fn()}
+          appliedProgress={makeProgress({ recipeName: "Ultra Blue", completed: 8, total: 12 })}
+        />
+      );
+
+      expect(screen.getByText(/Ultra Blue: 8\/12 steps/)).toBeInTheDocument();
+      // The span containing the progress text should have a Layers SVG icon
+      const progressSpan = screen.getByText(/Ultra Blue: 8\/12 steps/).closest("span");
+      expect(progressSpan).not.toBeNull();
+      const svg = progressSpan?.querySelector("svg");
+      expect(svg).toBeInTheDocument();
+    });
+
+    it("renders +N more suffix when assignmentCount > 1", () => {
+      render(
+        <CurrentFocusCard
+          unit={makeUnit()}
+          faction={makeFaction()}
+          photo={undefined}
+          onOpen={vi.fn()}
+          onLog={vi.fn()}
+          appliedProgress={makeProgress({ recipeName: "Red Armor", completed: 3, total: 8, assignmentCount: 4 })}
+        />
+      );
+
+      expect(screen.getByText(/Red Armor: 3\/8 steps/)).toBeInTheDocument();
+      expect(screen.getByText(/\(\+3 more\)/)).toBeInTheDocument();
+    });
+
+    it("does not render +N more suffix when assignmentCount is 1", () => {
+      render(
+        <CurrentFocusCard
+          unit={makeUnit()}
+          faction={makeFaction()}
+          photo={undefined}
+          onOpen={vi.fn()}
+          onLog={vi.fn()}
+          appliedProgress={makeProgress({ assignmentCount: 1 })}
+        />
+      );
+
+      expect(screen.getByText(/NMM Gold: 5\/12 steps/)).toBeInTheDocument();
+      expect(screen.queryByText(/more/)).toBeNull();
+    });
+
+    it("falls back to workflowPosition when appliedProgress is null", () => {
+      render(
+        <CurrentFocusCard
+          unit={makeUnit()}
+          faction={makeFaction()}
+          photo={undefined}
+          onOpen={vi.fn()}
+          onLog={vi.fn()}
+          appliedProgress={null}
+          workflowPosition={makePosition()}
+        />
+      );
+
+      expect(screen.getByText(/Armour/)).toBeInTheDocument();
+      expect(screen.getByText(/Drybrush/)).toBeInTheDocument();
+      expect(screen.queryByText(/steps$/)).toBeNull();
+    });
+
+    it("falls back to workflowPosition when appliedProgress is undefined (prop omitted)", () => {
+      render(
+        <CurrentFocusCard
+          unit={makeUnit()}
+          faction={makeFaction()}
+          photo={undefined}
+          onOpen={vi.fn()}
+          onLog={vi.fn()}
+          workflowPosition={makePosition({ sectionName: "Details", technique: null, stepIndex: 1, totalSteps: 5 })}
+        />
+      );
+
+      expect(screen.getByText(/Details/)).toBeInTheDocument();
+      expect(screen.getByText(/step 2\/5/)).toBeInTheDocument();
+    });
+
+    it("appliedProgress supersedes workflowPosition when both are provided", () => {
+      render(
+        <CurrentFocusCard
+          unit={makeUnit()}
+          faction={makeFaction()}
+          photo={undefined}
+          onOpen={vi.fn()}
+          onLog={vi.fn()}
+          appliedProgress={makeProgress({ recipeName: "My Recipe", completed: 1, total: 3 })}
+          workflowPosition={makePosition()}
+        />
+      );
+
+      expect(screen.getByText(/My Recipe: 1\/3 steps/)).toBeInTheDocument();
+      // workflowPosition "Drybrush" technique text should NOT appear
+      expect(screen.queryByText(/Drybrush/)).toBeNull();
+    });
+
+    it("renders nothing for workflow line when both appliedProgress and workflowPosition are null", () => {
+      render(
+        <CurrentFocusCard
+          unit={makeUnit()}
+          faction={makeFaction()}
+          photo={undefined}
+          onOpen={vi.fn()}
+          onLog={vi.fn()}
+          appliedProgress={null}
+          workflowPosition={null}
+        />
+      );
+
+      expect(screen.queryByText(/steps/)).toBeNull();
+      expect(screen.queryByText(/Recipe complete/)).toBeNull();
     });
   });
 });
