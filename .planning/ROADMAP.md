@@ -65,7 +65,7 @@ Full details: `.planning/milestones/v0.2.9-ROADMAP.md`
 - [x] **Phase 69: Paintless Recipe Steps** - Guard removal to persist steps without paint_id, exclude paintless steps from availability counts
 - [x] **Phase 70: Non-Destructive Recipe Save** - Three-way diff replaces DELETE-all + re-INSERT, preserving section/step IDs across edits
 - [x] **Phase 71: Stable Session Section FK** - Migration 023 adds recipe_section_id FK to painting_sessions alongside denormalized section_name (completed 2026-05-13)
-- [ ] **Phase 72: Data-Layer Test Suite** - Vitest + better-sqlite3 tests asserting migration parity, recipe persistence, session FK, schema shape
+- [x] **Phase 72: Data-Layer Test Suite** - Vitest + better-sqlite3 tests asserting migration parity, recipe persistence, session FK, schema shape (completed 2026-05-13)
 
 ---
 
@@ -383,7 +383,7 @@ Plans:
 - [x] 72-01-PLAN.md — Install better-sqlite3 + db-helpers.ts + migration parity tests + schema shape tests (D-01 through D-06, D-12 through D-14)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 72-02-PLAN.md — Recipe persistence tests + session section FK tests (D-07 through D-11)
+- [x] 72-02-PLAN.md — Recipe persistence tests + session section FK tests (D-07 through D-11)
 
 ## Progress
 

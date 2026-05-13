@@ -26,7 +26,7 @@ Requirements for the foundation hardening milestone. Each maps to roadmap phases
 
 ### Testing
 
-- [ ] **TST-01**: Data-layer tests cover migration parity, recipe persistence (paintless steps, non-destructive save round-trip), session section FK, and schema shape validation
+- [x] **TST-01**: Data-layer tests cover migration parity, recipe persistence (paintless steps, non-destructive save round-trip), session section FK, and schema shape validation
 
 ## Future Requirements
 
@@ -70,7 +70,7 @@ Deferred to post-v0.2.11.
 | REC-01 | Phase 69 | Complete |
 | REC-02 | Phase 70 | Pending |
 | REC-04 | Phase 71 | Complete |
-| TST-01 | Phase 72 | Pending |
+| TST-01 | Phase 72 | Complete |
 
 **Coverage:**
 - v0.2.11 requirements: 9 total
