@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Flame, Check, Minus } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { useNavigate } from "@tanstack/react-router";
@@ -24,6 +24,8 @@ import type { Unit } from "@/types/unit";
 import { StatusPopover } from "./StatusPopover";
 import { PlaybookTab } from "./PlaybookTab";
 import { JournalTab } from "./JournalTab";
+import { AppliedRecipesTab } from "./AppliedRecipesTab";
+import { ApplyRecipeDialog } from "@/features/recipes/ApplyRecipeDialog";
 import type { UnitPhotoWithUrl } from "@/hooks/useUnitPhotos";
 
 interface UnitDetailSheetProps {
@@ -49,6 +51,7 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhoto
   const navigate = useNavigate();
   const qc = useQueryClient();
   const updateUnit = useUpdateUnit();
+  const [applyDialogOpen, setApplyDialogOpen] = useState(false);
   const { data: recipes = [] } = useRecipes();
   const linkedRecipes = useMemo(
     () => (unit ? recipes.filter((r) => r.unit_id === unit.id) : []),
@@ -74,6 +77,7 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhoto
   }
 
   return (
+    <>
     <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <SheetContent
         side="right"
@@ -104,6 +108,7 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhoto
                 <TabsTrigger value="details">Details</TabsTrigger>
                 <TabsTrigger value="playbook">Playbook</TabsTrigger>
                 <TabsTrigger value="journal">Journal</TabsTrigger>
+                <TabsTrigger value="recipes">Recipes</TabsTrigger>
               </TabsList>
 
               <TabsContent value="details">
@@ -242,6 +247,13 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhoto
               <TabsContent value="journal">
                 <JournalTab unitId={unit.id} onPhotoClick={onPhotoClick} />
               </TabsContent>
+
+              <TabsContent value="recipes">
+                <AppliedRecipesTab
+                  unitId={unit.id}
+                  onApplyRecipe={() => setApplyDialogOpen(true)}
+                />
+              </TabsContent>
             </Tabs>
 
             <SheetFooter className="mt-6 gap-2 sm:gap-2">
@@ -260,6 +272,14 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhoto
         )}
       </SheetContent>
     </Sheet>
+    {unit && (
+      <ApplyRecipeDialog
+        open={applyDialogOpen}
+        unitId={unit.id}
+        onClose={() => setApplyDialogOpen(false)}
+      />
+    )}
+    </>
   );
 }
 
