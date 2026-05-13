@@ -191,7 +191,10 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
   3. Section_type dropdown values match the user's mental model of painting workflow stages, and simple recipes (single section, no metadata) show no unnecessary workflow UI
 **Plans**: 2 plans
 Plans:
+**Wave 1**
 - [ ] 61-01-PLAN.md — Commit pre-existing bug fixes (D-11) + verify migration build integrity (RH-01)
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 61-02-PLAN.md — Write tests for workflow position degradation (RH-02) + progressive disclosure (RH-03)
 
 ### Phase 62: Applied Recipe Data Layer
