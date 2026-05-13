@@ -203,7 +203,10 @@ Plans:
   2. unit_recipe_step_progress table tracks per-step completion using composite key (recipe_id, order_index) that survives DELETE-all + re-INSERT recipe saves
   3. Typed query functions for create/read/update/delete assignments and step progress exist with React Query hooks
   4. Pure function computing completion percentage from step progress data passes unit tests
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 62-01-PLAN.md — Migration 021 + types + TDD pure functions (computeCompletionPercentage, computeAssignmentProgress)
+- [ ] 62-02-PLAN.md — Query module (8 CRUD functions) + React Query hooks (7 hooks, 4 cache keys) + tests
 
 ### Phase 63: Applied Recipe UX
 **Goal**: Users can apply recipes to units and track painting progress step-by-step
@@ -331,7 +334,7 @@ Plans:
 | 59. Session Section Cascade | v0.2.9 | 2/2 | Complete | 2026-05-12 |
 | 60. Kanban & CurrentFocus Integration | v0.2.9 | 2/2 | Complete | 2026-05-12 |
 | 61. Recipe Workflow Hardening | v0.2.10 | 0/2 | Not started | - |
-| 62. Applied Recipe Data Layer | v0.2.10 | 0/TBD | Not started | - |
+| 62. Applied Recipe Data Layer | v0.2.10 | 0/2 | Not started | - |
 | 63. Applied Recipe UX | v0.2.10 | 0/TBD | Not started | - |
 | 64. Applied Recipe Integrations | v0.2.10 | 0/TBD | Not started | - |
 | 65. Points Import Pipeline | v0.2.10 | 0/TBD | Not started | - |
