@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-14)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play"
-**Current focus:** Phase 73 — Schema Foundation + Version Parity
+**Current focus:** Phase 74 — Applied Recipe Identity Hardening
 
 ## Current Position
 
-Phase: 73 of 78 (Schema Foundation + Version Parity)
-Plan: 73-02 (done) — phase 73 complete
-Status: Ready for Phase 74
-Last activity: 2026-05-14 — Completed 73-02 (version parity script + bump to 0.2.13)
+Phase: 74 of 78 (Applied Recipe Identity Hardening)
+Plan: Context gathered, ready for planning
+Status: Planning Phase 74
+Last activity: 2026-05-14 — Phase 74 context gathered (auto mode)
 
 Progress: [██░░░░░░░░] 17%
 
@@ -65,6 +65,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-14
-Stopped at: Completed 73-02-PLAN.md (phase 73 complete)
-Resume file: .planning/phases/74-applied-recipe-identity-hardening/
-Resume: Run /gsd-execute-phase 74
+Stopped at: Phase 74 context gathered
+Resume file: .planning/phases/74-applied-recipe-identity-hardening/74-CONTEXT.md
+Resume: Run /gsd-plan-phase 74
