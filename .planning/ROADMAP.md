@@ -220,7 +220,10 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
   1. Migration 026 creates the unit_rules_mapping table; migration 027 adds game day after-action columns to battle_log
   2. Both migrations are registered in lib.rs and run automatically on app launch
   3. Running `pnpm check:version` exits 0 when package.json and tauri.conf.json agree, exits non-zero with a clear message when they diverge
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 73-01-PLAN.md â€” Migrations 026+027 and lib.rs registration
+- [ ] 73-02-PLAN.md â€” Version parity script + version bumps to 0.2.13
 
 ### Phase 74: Applied Recipe Identity Hardening
 **Goal**: Applied recipe step progress is keyed by recipe_step_id so reordering steps never moves completion markers
@@ -231,7 +234,10 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
   2. Reordering steps in a recipe does not alter which steps show as completed on any existing assignment
   3. Existing progress rows are migrated safely: the back-fill SQL joins through recipe_sections to resolve per-section order_index values without ambiguity across multi-section recipes
   4. Units that had zero progress recorded continue to show zero completed steps after migration
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 73-01-PLAN.md — Migrations 026+027 and lib.rs registration
+- [ ] 73-02-PLAN.md — Version parity script + version bumps to 0.2.13
 
 ### Phase 75: Transactional Recipe Graph Save
 **Goal**: Saving a recipe always completes fully or not at all â€” partial saves are structurally impossible
@@ -242,7 +248,10 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
   2. An error mid-save (e.g. DB constraint violation) leaves the recipe in its previous state with no orphaned sections or steps
   3. Existing section and step IDs are preserved on save â€” the five-phase diff (delete removed, update existing, insert new) is maintained inside the single transaction
   4. The save function uses flat inline SQL with no nested BEGIN calls (no helper delegation that opens its own transaction)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 73-01-PLAN.md — Migrations 026+027 and lib.rs registration
+- [ ] 73-02-PLAN.md — Version parity script + version bumps to 0.2.13
 
 ### Phase 76: Points Resolver + Unit Rules Mapping + Split Warnings
 **Goal**: Every surface that shows points reads from a single resolver function; users can see where each value came from and confirm or override the unit-to-rules mapping; list vs unit warnings are no longer mixed
@@ -257,7 +266,10 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
   6. List-level warnings (total points exceeded, stale data source) appear once in the army list summary panel, not repeated for every unit
   7. Unit-level warnings (no points data, not battle-ready) remain attached to their individual unit rows
   8. The COALESCE site-3 divergence in dashboard.ts (2-level chain vs the 5-level standard) is resolved or explicitly documented as intentional
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 73-01-PLAN.md — Migrations 026+027 and lib.rs registration
+- [ ] 73-02-PLAN.md — Version parity script + version bumps to 0.2.13
 **UI hint**: yes
 
 ### Phase 77: Data Health Page + Backup/Export
@@ -271,7 +283,10 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
   4. Diagnostics load lazily â€” the page is immediately interactive while counts and flags populate asynchronously; the UI never blocks
   5. A "Create Backup" button opens a file picker and writes a safe copy of hobbyforge.db using VACUUM INTO (not raw file copy)
   6. The page shows the last backup date and success status after backup completes
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 73-01-PLAN.md — Migrations 026+027 and lib.rs registration
+- [ ] 73-02-PLAN.md — Version parity script + version bumps to 0.2.13
 **UI hint**: yes
 
 ### Phase 78: Dashboard Command Center + Game Day After-Action
@@ -286,7 +301,10 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
   5. The after-action sheet lets the user record which rules were forgotten and tag MVP or underperformer units
   6. Forgotten rules captured in after-action can be promoted to Game Day reminders with one action
   7. Unit notes and army list notes can be edited directly from the after-action sheet without navigating away
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 73-01-PLAN.md — Migrations 026+027 and lib.rs registration
+- [ ] 73-02-PLAN.md — Version parity script + version bumps to 0.2.13
 **UI hint**: yes
 
 ## Progress
