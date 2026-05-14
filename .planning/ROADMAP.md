@@ -271,8 +271,11 @@ Plans:
   8. The COALESCE site-3 divergence in dashboard.ts (2-level chain vs the 5-level standard) is resolved or explicitly documented as intentional
 **Plans**: 2 plans
 Plans:
-- [ ] 76-01-PLAN.md — TBD
-- [ ] 76-02-PLAN.md — TBD
+**Wave 1**
+- [ ] 76-01-PLAN.md — Resolver function, types, SQL exposure, dashboard COALESCE fix, warning split, mapping CRUD layer
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 76-02-PLAN.md — PointsSourceChip, MatchStatusIndicator, RulesMappingSheet + ArmyListUnitRow/SummaryBar integration
 **UI hint**: yes
 
 ### Phase 77: Data Health Page + Backup/Export
@@ -389,8 +392,8 @@ Plans:
 | 71. Stable Session Section FK | v0.2.11 | 2/2 | Complete | 2026-05-13 |
 | 72. Data-Layer Test Suite | v0.2.11 | 2/2 | Complete | 2026-05-13 |
 | 73. Schema Foundation + Version Parity | v0.2.13 | 2/2 | Complete | 2026-05-14 |
-| 74. Applied Recipe Identity Hardening | v0.2.13 | 0/TBD | Not started | - |
+| 74. Applied Recipe Identity Hardening | v0.2.13 | 0/2 | Not started | - |
 | 75. Transactional Recipe Graph Save | v0.2.13 | 0/2 | Not started | - |
-| 76. Points Resolver + Unit Rules Mapping + Split Warnings | v0.2.13 | 0/TBD | Not started | - |
+| 76. Points Resolver + Unit Rules Mapping + Split Warnings | v0.2.13 | 0/2 | Not started | - |
 | 77. Data Health Page + Backup/Export | v0.2.13 | 0/TBD | Not started | - |
 | 78. Dashboard Command Center + Game Day After-Action | v0.2.13 | 0/TBD | Not started | - |
