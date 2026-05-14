@@ -154,6 +154,18 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/025_tactical_role.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 26,
+            description: "unit_rules_mapping",
+            sql: include_str!("../migrations/026_unit_rules_mapping.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 27,
+            description: "battle_log_after_action",
+            sql: include_str!("../migrations/027_battle_log_after_action.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
