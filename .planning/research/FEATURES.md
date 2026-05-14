@@ -1,32 +1,26 @@
 # Feature Research
 
-**Domain:** SQLite desktop app foundation hardening (Tauri 2 + React 19 + TypeScript)
-**Researched:** 2026-05-13
-**Milestone:** v0.2.11 Foundation Hardening
-**Confidence:** HIGH — all findings drawn directly from codebase inspection of ~290 source files; no ecosystem guessing required for an internal hardening milestone
+**Domain:** Local-first hobby management desktop app (Warhammer 40K) — data integrity, diagnostics, backup, next-action dashboard, post-game review
+**Researched:** 2026-05-14
+**Milestone:** v0.2.13 Data Integrity, Diagnostics & Product Coherence
+**Confidence:** HIGH (grounded in existing codebase inspection + competitor app research)
 
 ---
 
-## Context for This Hardening Milestone
+## Context: What Is Already Built
 
-v0.2.11 is not a user-facing feature release. The value proposition for each item is
-correctness and future-feature enablement, not UX novelty. Every item maps to a named
-requirement in PROJECT.md (MIG-*, REC-*, VER-*, TST-*). The "users" of these features
-are the developer and the codebase itself.
+This is a subsequent milestone. The following are already shipped and must not be re-scoped here:
 
-### What Is Already Built and Working (v0.2.9/v0.2.10 in progress)
+- Battle log with fields: date, opponent faction, mission, result, VP scores, army list link, MVP unit, underperforming unit, lessons learned, changes next time, notes
+- BattleLogSummaryBar: total games, W/L/D counts, win rate
+- Game Day mode: CP tracker, phase-grouped stratagems, OPG toggles, pre-game checklist (Zustand/localStorage), pre-game readiness panel (points, freshness, warnings, role coverage)
+- Dashboard: CurrentFocusCard with workflow position and step index, ActiveProjectsPanel, ArmyReadinessCard, KanbanCards, FactionSummaryCards, HobbyPipeline, RecentActivityFeed
+- Army list validation: health summary panel with hard warnings, points freshness badges, ownership %, readiness %, tactical role coverage
+- Points system: 5-level COALESCE chain (army-list override > unit override > synced > manual > 0), PointsFreshnessBadge, per-unit delta previews
+- Applied recipe progress: per-unit step-by-step checklist, recipe assignment system, AppliedRecipesTab
+- Data-layer tests: 14 tests via better-sqlite3
 
-| Component | Relevant State |
-|-----------|---------------|
-| `lib.rs` migration registration | Versions 1–21 registered as of v0.2.11 start; includes `021_applied_recipe_assignments` (Phase 62) |
-| `recipe_sections` table | Shipped v0.2.7 (migration 018); workflow metadata columns added v0.2.9 (migration 020) |
-| `recipe_steps.paint_id` | `NOT NULL REFERENCES paints(id)` from migration 001 — blocks paintless steps |
-| `RecipeFormSheet.tsx` save | Delete-all sections + CASCADE-steps on every edit save (line 234); destroys step/section IDs |
-| `updateRecipeSection` COALESCE | `section_type`, `technique`, `execution_mode`, `applies_to` use COALESCE — cannot be cleared to NULL |
-| `painting_sessions` section link | `section_name TEXT` (migration 020) only; no FK to `recipe_sections.id` |
-| `getRecipePaintsByRecipe` ordering | `ORDER BY order_index ASC` — global, not section-aware |
-| Version strings | `tauri.conf.json` shows v0.2.6; `package.json` is the current value |
-| Test coverage | 90+ tests; none cover migration registration completeness or non-destructive save contract |
+The features below are NEW for v0.2.13.
 
 ---
 
@@ -34,225 +28,301 @@ are the developer and the codebase itself.
 
 ### Table Stakes (Users Expect These)
 
-Features any correctly-functioning app must have. Missing these means the app is broken
-for new installs or introduces silent data corruption.
+Features users assume exist in a personal data app at this maturity. Missing these makes the app feel fragile or incomplete.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| **Migration registration completeness (MIG-01)** | Fresh install is the primary install path; unregistered migrations mean tables never exist on a clean DB. lib.rs is confirmed complete (versions 1–21) as of v0.2.11 start — but formal verification is still required | LOW | Pattern: readFileSync on lib.rs and assert version 1–21 each present with matching `include_str!` path. Existing precedent: `tests/foundation/migration004.test.ts` |
-| **Clean DB validation (MIG-02)** | Fresh app launch from an empty `app_data_dir` must succeed without JS errors, missing-table panics, or undefined reference crashes. Currently untested by any automated check | LOW | Smoke test: delete `hobbyforge.db`, relaunch, confirm all page loads return empty arrays not throws. Validates MIG-01 in a real runtime context |
-| **Version number alignment (VER-01)** | `package.json` and `tauri.conf.json` must match; mismatch causes window title / about dialog to show wrong version. `tauri.conf.json` currently shows v0.2.6 | LOW | Pure text edit; zero logic change. No code dependencies |
-| **Nullable metadata clearing (REC-03)** | `section_type`, `technique`, `execution_mode`, `applies_to` were designed as optional workflow metadata. Users set them, then decide a section is simpler than they thought and want to clear them. The current COALESCE on these four fields silently ignores null input — clearing is impossible | LOW | Fix: replace `COALESCE($7, section_type)` with `$7` (direct assignment) for the four workflow fields. `surface` and `notes` already use direct assignment in the same query — consistent pattern. Zero migration needed |
-| **Paintless recipe step support (REC-01)** | Structured painting steps like "let dry 24h", "score surface", "prime with grey" have no paint but are valid workflow steps. The current `NOT NULL` constraint on `recipe_steps.paint_id` (migration 001) prevents creating them. Any recipe with technique-only steps is currently unbuildable | MEDIUM | Requires: (a) migration to make `paint_id` nullable (SQLite workaround: create-new-table, insert-select, drop, rename), (b) `addRecipePaint` to accept `paint_id: null`, (c) `getRecipeSwatchColors` JOIN → LEFT JOIN so paintless steps are included in step lists, (d) `getRecipePaintAvailability` already has `WHERE paint_id IS NOT NULL` — no change needed |
+| Manual backup — export DB to user-chosen path | Personal data apps must not trap your data. A single "Export Backup" action is the minimum expectation for any app that stores irreplaceable personal data locally. | LOW | Tauri `dialog.save()` + Rust `fs::copy` for hobbyforge.db. No schema change. SQLite WAL mode makes a concurrent file copy safe. |
+| Post-game logging from Game Day context | Any tabletop game tracker (Tabletop Battles, BattleBase) lets you log a result immediately after a game. HobbyForge's Game Day mode has no "End Game" exit that carries context to the battle log. The gap makes Game Day a dead end rather than a loop. | MEDIUM | Pre-fill BattleLogSheet from Game Day context: army list ID from gameDayStore, date = todayISO(). BattleLogSheet already exists and accepts all fields. New work: an "End Game" button in GameDayHeader + Sheet portal from GameDayPage. |
+| Data health summary — category-level counts of broken or incomplete records | Power users and anyone who has done multiple syncs expect to audit data coherence. Personal finance apps (Quicken, Lunch Money) surface import errors and orphaned references as table stakes for data-heavy tools. | MEDIUM | Pure SQL read queries, no new schema. New read-only Diagnostics page surfacing issue categories with counts. |
+| Points source labeling — which source is active per unit | The existing 5-level COALESCE chain and freshness badge system implies this level of transparency. Showing `450 pts` with no attribution is incomplete once a freshness/stale system already exists. | LOW | Source classification is fully derivable from existing tables (unit_overrides, synced_unit_points, army_list_units). Display-only PointsSourceChip component. No new queries beyond reading existing columns. |
+| Split list-level vs unit-level warnings | Army list validation currently mixes structural list issues (no detachment, over limit) with per-unit issues (unit stale, not owned). These are distinct concern levels. Mixing them produces noise and makes the warnings panel hard to act on. | LOW | UI refactor of the existing health panel. No data changes. No query changes. |
+| Applied recipe progress identity hardening (order_index → recipe_step_id) | Applied recipe progress is keyed on order_index, which is unstable when steps are reordered or re-inserted. As soon as the non-destructive save (REC-02 from v0.2.11) allows in-place step updates, the keying must be stable or progress records silently mistrack. | MEDIUM | Migration: add recipe_step_id FK column to applied_recipe_progress, backfill from order_index join, drop order_index key column. Query updates to use step ID as identity. |
+| Transactional recipe graph save (atomic sections + steps) | With non-destructive save (REC-02) now shipped, the delete-phase/insert-phase sequence can fail halfway, leaving a partially saved recipe. A transaction wrapper prevents partial writes. | LOW | Wrap the existing five-phase diff save in a single SQLite transaction. Tauri plugin-sql supports `BEGIN`/`COMMIT` via raw queries. No schema change. |
 
 ### Differentiators (Competitive Advantage)
 
-Features that raise data integrity and developer confidence above "just works."
+Features that go beyond the minimum and give HobbyForge its "command center" identity.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| **Non-destructive recipe edits — ID preservation (REC-02)** | Current `RecipeFormSheet.tsx` `onSubmit` deletes ALL sections (line 234) and CASCADE-deletes all steps on every edit save. This destroys: (a) `painting_sessions.recipe_step_id` FK links (ON DELETE SET NULL fires silently), (b) `unit_recipe_step_progress.order_index` references in applied recipe assignments (Phase 62), (c) any future FK pointing at a step or section ID. Preserving IDs is a prerequisite for applied recipes to function correctly | HIGH | Requires a three-way diff between form state and DB state. Form section state must carry an optional `dbId` field populated when editing an existing section. Algorithm: matched by dbId → UPDATE in place; absent from DB → INSERT; removed from form → DELETE. Step diff mirrors section diff. This is the highest-complexity item in the milestone |
-| **Stable recipe_section_id on painting sessions (REC-04)** | Sessions store `section_name` (TEXT copy, migration 020) but no FK to `recipe_sections.id`. After a section rename or delete, the link is cosmetic text with no structural integrity. Adding `recipe_section_id INTEGER REFERENCES recipe_sections(id) ON DELETE SET NULL` gives the same FK-safe pattern already used for `recipe_step_id` (migration 014). The denormalized `section_name` stays as display fallback — same rationale as `detachment_name` on army lists | MEDIUM | New migration (022): `ALTER TABLE painting_sessions ADD COLUMN recipe_section_id INTEGER REFERENCES recipe_sections(id) ON DELETE SET NULL`. Update `createSession` to accept and persist it. Update `LogSessionSheet` cascading selector to populate it |
-| **Section-aware step ordering (REC-05)** | `getRecipePaintsByRecipe` orders by global `order_index ASC`. Steps from section B with lower `order_index` values than section A steps will sort interleaved — sections appear jumbled in any caller that processes steps as a flat list. Correct order: section's `order_index` first, then step's `order_index` within section | LOW | Single query change. `LEFT JOIN recipe_sections rs ON rs.id = rsp.section_id`. `ORDER BY COALESCE(rs.order_index, 999) ASC, rsp.order_index ASC`. No migration needed |
-| **Data-layer tests (TST-01)** | 90+ existing tests cover pure functions, hooks, and query shape — but none verify migration registration completeness, the REC-02 preserve-IDs contract, session-section FK column presence, or army list schema shape. These are exactly the bugs that slip through UI testing. Each of the above fixes needs a regression test to prevent future regressions | MEDIUM | Four test files, all using the `readFileSync` + regex pattern established by `tests/foundation/migration004.test.ts`: (a) migration registration completeness for versions 1–21, (b) recipe non-destructive save diff algorithm, (c) session section FK column presence in migration 022 SQL, (d) army list schema shape for detachment/section FK patterns |
+| Dashboard next-action card — current step description on CurrentFocusCard | GTD research identifies the most effective productivity UX as giving one concrete physical action, not a category. CurrentFocusCard already shows step index and section name but not step text. Adding the actual step description ("Apply Agrax Earthshade to recesses") transforms the card from status display to directive instruction. | LOW | One JOIN added to the workflow position query to fetch current step name from recipe_steps. One text line added to CurrentFocusCard. Existing workflowPosition type extended with optional stepName field. |
+| Data Health page — actionable issue list with inline fix shortcuts | CMS health dashboards (Umbraco Health Check, Vincere Data Integrity Dashboard) show category grouping, severity levels, and an inline "Fix" action per issue. For HobbyForge: fix shortcuts for safe automated repairs (delete orphaned progress rows, unlink cleared session FKs) differentiate from a purely read-only diagnostic list. | HIGH | Most complex feature in the milestone. Requires identifying all broken FK references, stale progress records, and orphaned assignments. Fix actions call existing mutations. Must not auto-fix on load. |
+| After-action review analytics — per-mission and per-faction win rates on the battle log page | Tabletop Battles (Goonhammer) exposes stats filterable by mission and faction. This is the competitive baseline for any 40K battle tracker. HobbyForge's existing summary bar shows aggregate W/L/D only. Adding per-mission and per-opponent-faction breakdowns closes the analytics gap and surfaces patterns a hobbyist can act on (e.g. consistently losing on specific missions). | MEDIUM | New SQL aggregation queries on battle_logs. No schema change. Renders as a collapsible "Performance breakdown" panel below the existing BattleLogSummaryBar. |
+| Centralized points resolver — extracted pure function with source classification | The 5-level COALESCE logic currently lives inside SQL strings scattered across three query sites. Extracting it to a typed TypeScript function makes it testable, ensures consistent behavior across army lists, diagnostics, and game day, and enables source labeling without duplicating classification logic. | MEDIUM | New `resolvePoints(unit, overrides, syncedPoints)` pure function in src/lib/. Returns `{ value: number, source: PointsSource }`. All three query sites use the same function. Enables PointsSourceChip as a downstream display consumer. |
+| Unit-to-rules mapping confirmation layer — surface units with no Wahapedia match | Units created manually may have names that don't match Wahapedia's exact unit names, causing the rules sync to never populate their stats/abilities. There is currently no way to discover which units are orphaned from rules data. A confirmation layer surfaces unmapped units and lets the user accept the mapping via the existing datasheet import flow. | MEDIUM | New query: JOIN units against synced rules data to identify units with no matched stats. List displayed on Diagnostics page or Unit collection page as a filter preset. Leverages existing DatasheetPicker and DatasheetImportDialog. |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| **Full ORM migration (Prisma/Drizzle)** | Typed schema diffs, autocomplete on queries | Prisma is a confirmed dead-end for Tauri production (PROJECT.md). Drizzle adds proxy complexity. Neither provides schema-level safety that typed query functions don't already give. Mid-project ORM introduction creates migration path complexity for zero single-user benefit | Continue typed query functions; Drizzle is the documented v3 escape hatch only if raw queries become unmanageable |
-| **Automatic migration repair at startup** | Self-healing database sounds robust | `tauri-plugin-sql` already tracks applied migrations via version numbers. Custom repair logic risks corrupting the migration log. Repair is the wrong answer — correctness assertions are | Write content-assertion tests (migration004 pattern) to catch registration gaps before they reach a running install |
-| **Rewrite recipe form state as fully DB-backed** | Would eliminate the form-vs-DB diff problem entirely by removing the form intermediary | Breaks optimistic UX. Every step/section add during editing requires a DB round-trip mid-form. For a 20-step recipe this means 20+ sequential async calls before the user saves | Keep the form-state model. Add the three-way diff algorithm only in `onSubmit`. Cost is isolated to the save path, not the edit experience |
-| **Generic schema validation at startup (`PRAGMA integrity_check`)** | Detect corruption on every launch | Adds 50–100ms cold start latency. `integrity_check` is corruption detection, not schema validation. Silently passing is not the same as "schema is correct" | Validate schema via migration file content tests and migration 004-pattern assertions, not at runtime |
-| **Global order_index renumbering on every save** | Clean order_index sequences (0, 1, 2, ...) | Unnecessary write load. `order_index` is for sort ordering, not identity. Gaps (0, 2, 5) are harmless and can arise from deletions. Renumbering creates spurious UPDATE rows in tests | Accept gaps; rely on ORDER BY rather than consecutive numbering |
+| Auto-backup on schedule | Users worry about data loss | Tauri has no background daemon API. Scheduled backups on Windows require OS-level Task Scheduler integration — out of scope and introduces silent failure modes with no feedback surface. | Manual "Export Backup" button on the Diagnostics/Settings page. Clear guidance to back up before syncs. |
+| Cloud backup / sync to Dropbox or OneDrive via API | Users want off-site safety | Contradicts local-first, no-accounts design. Adds auth surface, network dependency, and privacy exposure for a personal tool containing purchase data and game history. | Export to any local folder. Users whose local folder is inside OneDrive/Dropbox get cloud backup automatically — HobbyForge does nothing extra. |
+| Automatic data integrity repair on startup | Self-healing sounds robust | Silently modifying user data without consent is a trust violation. Auto-fixes can cascade (deleting "orphaned" progress that the user simply hasn't acted on yet). | Show issues on the Diagnostics page. User initiates each fix explicitly. Startup is read-only. |
+| Per-round VP tracking in Game Day (turn-by-turn score) | Competitive players want granular reconstruction | Requires in-game manual entry per turn — disruptive to play. Tabletop Battles' CP-per-round feature is the ceiling for casual tools. This is out of scope for a hobby management app. | Final VP scores in the existing BattleLogSheet my_score / opponent_score fields are sufficient for the target user (hobbyist, not competitive). |
+| Army list snapshot versioning for per-list-version analysis | Users want to compare "list A from March" vs "list B from April" performance | Requires versioning army lists (immutable snapshots at game time). The current schema links battle_log to a mutable army_list_id. Adding versioning is a major schema change. | Use the existing "notes" field in BattleLogSheet to note list version or key changes. Versioning is a v0.3+ concern. |
+| AI-generated next-action or coaching suggestions | Seems natural for a "what to do next" card | Requires LLM API calls (network, API keys, cost), contradicts local-first design, and LLM training data on Warhammer hobby workflows is thin. | Deterministic rule-based next-action derivation from workflow position + step description. Already sufficient, zero latency, zero cost. |
+| Restore from backup (v0.2.13 scope) | Natural complement to export | Restore requires closing the DB connection, replacing the file, and restarting the app. Tauri plugin-sql does not expose a disconnect API from the frontend — the Rust command must manage the connection lifecycle. This is non-trivial and carries data loss risk if done wrong. | Ship export in v0.2.13. Flag restore as v0.2.14 follow-up once the export format and file path conventions are proven. |
 
 ---
 
 ## Feature Dependencies
 
 ```
-MIG-01 (migration registration audit)
-    └──enables──> MIG-02 (clean DB validation smoke test)
+Applied recipe identity hardening (order_index → recipe_step_id)
+    └──required-before──> Transactional recipe graph save
+          (transaction must write to stable identity columns)
+    └──required-before──> Data Health diagnostics page
+          (diagnostics audits progress records; unstable keys produce false positives)
+    └──required-before──> any future recipe analytics
 
-VER-01 (version string alignment) ── independent
+Transactional recipe graph save
+    └──required-before──> Data Health diagnostics page
+          (partial saves would produce spurious orphan counts)
+    └──independent-of──> all user-facing feature changes
 
-REC-03 (metadata clearing fix) ── independent ── no schema change, no form change
+Centralized points resolver (pure TypeScript function)
+    └──required-before──> Points source labeling (PointsSourceChip)
+          (chip is a display consumer of the resolver's source output)
+    └──enhances──> Army list health panel, diagnostics page, game day readiness panel
+    └──independent-of──> backup, next-action card, after-action analytics
 
-REC-05 (section-aware ordering) ── independent ── single query change
+Points source labeling (PointsSourceChip)
+    └──requires──> Centralized points resolver
+    └──enhances──> ArmyListSheet unit rows, army list health summary panel
+    └──independent-of──> all other v0.2.13 features
 
-REC-01 (paintless steps — nullable paint_id migration)
-    └──required-before──> REC-02 (non-destructive edits)
-          because the diff-apply INSERT must handle paint_id = null steps
-          without hitting the NOT NULL constraint
+Split warnings (list-level vs unit-level)
+    └──refactors──> Existing ArmyListHealthPanel rendering
+    └──independent-of──> all data changes
+    └──dependency-of──> Game Day readiness panel (GD-01 already reads warnings)
 
-REC-02 (non-destructive edits — ID preservation)
-    └──required-before──> REC-04 (stable session section FK)
-          because session section links are only durable once section IDs
-          survive recipe saves; ON DELETE SET NULL fires on every save
-          under the current delete-all pattern, making the FK pointless
+Dashboard next-action card (step description on CurrentFocusCard)
+    └──requires──> Recipe step query returning step name for current step index
+    └──enhances──> CurrentFocusCard (existing component)
+    └──independent-of──> all other v0.2.13 features
 
-REC-04 (stable session section FK — migration 022)
-    └──enables──> TST-01 (c) session section link test
-          test can assert FK column presence once migration exists
+Game Day End Game flow
+    └──requires──> BattleLogSheet (existing — accepts army_list_id pre-fill)
+    └──requires──> New GameDayHeader action button
+    └──enhances──> Post-game review loop (closes Game Day → Battle Log gap)
+    └──independent-of──> Data Health, Backup, points resolver
 
-TST-01 (data-layer tests)
-    └──depends-on──> MIG-01, REC-01, REC-02, REC-04
-          tests assert the contracts these features deliver
+Data Health / Diagnostics page
+    └──requires──> Applied recipe identity hardening (stable progress records)
+    └──requires──> Transactional recipe save (no partial write artifacts)
+    └──reads──> All tables: units, army_list_units, recipe_steps, applied_recipe_progress,
+                painting_sessions, synced_unit_points, unit_overrides
+    └──calls──> Existing mutations for fix shortcuts (useDeleteAppliedProgress, etc.)
+    └──independent-of──> Backup / restore
+
+Unit-to-rules mapping confirmation
+    └──reads──> units table + synced rules data (rules.db or synced_unit_points)
+    └──leverages──> Existing DatasheetPicker and DatasheetImportDialog
+    └──can-surface-on──> Diagnostics page OR Collection page filter preset
+    └──independent-of──> all other v0.2.13 features
+
+After-action review analytics
+    └──reads──> battle_logs table (existing)
+    └──enhances──> BattleLogPage (collapsible panel below summary bar)
+    └──independent-of──> all other v0.2.13 features
+
+Manual backup / export
+    └──requires──> New Rust Tauri command: copy hobbyforge.db to user path
+    └──requires──> Tauri Dialog plugin save() (already available)
+    └──independent-of──> all feature changes (pure infrastructure)
+    └──dependency-of──> Restore (restore requires a backup to exist, ships later)
 ```
 
 ### Dependency Notes
 
-- **REC-01 before REC-02:** The diff algorithm will encounter steps with `paint_id = null`. The migration to make the column nullable must land before any code path attempts to INSERT such a step, or the constraint violation fails silently in tests and loudly in the running app.
-- **REC-02 before REC-04:** A session `recipe_section_id` FK only has durable meaning after sections survive saves. Without REC-02, ON DELETE SET NULL fires on every recipe edit, clearing all session section links regardless of whether the section was actually removed.
-- **MIG-01 and MIG-02 as sequential pair:** Verify registration first, then smoke-test runtime. Running MIG-02 before MIG-01 wastes effort if registration is incomplete.
-- **Independent items (VER-01, REC-03, REC-05):** These can be batched into any phase. Low cost, no risk. Good candidates for a "quick wins" phase that builds momentum before the complex REC-02 work.
+- **Identity hardening before diagnostics:** The diagnostics page audits `applied_recipe_progress` for orphaned step references. If progress is still keyed on unstable order_index values, many records will appear broken when they are merely miskeyed. Fix the identity first so diagnostics results are trustworthy.
+- **Transactional save before diagnostics:** A partial recipe save leaves the DB in a state where orphan counts are inflated. The transaction wrapper is a prerequisite for the diagnostics page to report meaningful numbers.
+- **Centralized resolver before source chip:** The PointsSourceChip is a display consumer. The resolver must exist as a typed function before the chip can render its output. This is a clean dependency: resolver ships in a query/lib phase, chip ships in a UI phase.
+- **Game Day End Game is self-contained:** BattleLogSheet already accepts all fields including army_list_id. The only work is a new button in GameDayHeader and the Sheet portal plumbing. This can ship in any phase after the overall app structure is stable.
+- **Backup is infrastructure, not a feature dependency:** The export Rust command does not depend on any schema or query changes. It can ship in any phase.
 
 ---
 
-## Implementation Notes by Feature
+## MVP Definition for v0.2.13
 
-### REC-01: Paintless steps — nullable paint_id migration
+### Ship in v0.2.13 Core (P1)
 
-SQLite does not support `ALTER COLUMN` to drop NOT NULL constraints. The migration
-must use the standard five-step workaround:
+- [ ] Applied recipe progress identity hardening (order_index → recipe_step_id) — data correctness prerequisite for diagnostics
+- [ ] Transactional recipe graph save — prevents partial-write artifacts in diagnostics
+- [ ] Centralized points resolver extracted as pure TypeScript function — enables source labeling and consistent behavior
+- [ ] Points source labeling (PointsSourceChip on army list unit rows) — transparency for daily-use feature
+- [ ] Split list-level vs unit-level warnings — low cost, high signal clarity improvement
+- [ ] Dashboard next-action step text on CurrentFocusCard — single highest-impact UX improvement
+- [ ] Game Day End Game flow → BattleLogSheet pre-fill — closes the play loop
+- [ ] Data Health / Diagnostics page (read-only tier + fix shortcuts for common issues) — trust and power-user feature
+- [ ] Manual backup / export (hobbyforge.db to user-chosen path) — baseline data safety
 
-```sql
--- 1. Create replacement table with nullable paint_id
-CREATE TABLE recipe_steps_new (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  recipe_id INTEGER NOT NULL REFERENCES painting_recipes(id) ON DELETE CASCADE,
-  paint_id INTEGER REFERENCES paints(id) ON DELETE RESTRICT,  -- nullable
-  step_name TEXT NOT NULL DEFAULT '',
-  order_index INTEGER NOT NULL DEFAULT 0,
-  -- ... remaining columns unchanged
-  section_id INTEGER REFERENCES recipe_sections(id) ON DELETE CASCADE
-);
--- 2. Copy all existing data
-INSERT INTO recipe_steps_new SELECT * FROM recipe_steps;
--- 3. Drop original
-DROP TABLE recipe_steps;
--- 4. Rename replacement
-ALTER TABLE recipe_steps_new RENAME TO recipe_steps;
-```
+### Add After Core is Stable (P2)
 
-Query impact after migration:
-- `addRecipePaint`: allow `paint_id: null` in the INSERT
-- `getRecipeSwatchColors`: `JOIN paints` → `LEFT JOIN paints` (paintless steps must appear in step lists, just without a swatch color)
-- `getRecipePaintAvailability`: already has `WHERE rs.paint_id IS NOT NULL AND rs.paint_id != 0` — correctly excludes paintless steps, no change needed
-- `getStepCountsByRecipe`: counts all steps regardless of paint — no change needed
+- [ ] After-action review analytics (per-mission / per-faction win rates) — no data changes, can ship any time
+- [ ] Unit-to-rules mapping confirmation layer — surfaces unmapped units for re-linking
+- [ ] Version parity check script — developer quality-of-life
 
-### REC-02: Non-destructive edits — three-way diff algorithm
+### Future Consideration (v0.3+)
 
-Current code at `RecipeFormSheet.tsx` line 234:
-```ts
-for (const existing of existingSections) {
-  await deleteRecipeSection(existing.id);  // CASCADE wipes all steps
-}
-```
-
-Replacement: form section objects must carry an optional `dbId?: number` field, populated
-from the DB when the form is opened for an existing recipe. The diff at save time:
-
-```
-toDelete  = existingSections.filter(s => !formSections.find(fs => fs.dbId === s.id))
-toUpdate  = formSections.filter(s => s.dbId !== undefined)
-toInsert  = formSections.filter(s => s.dbId === undefined)
-```
-
-For sections: UPDATE matched rows (order_index, name, metadata), INSERT new rows,
-DELETE removed rows. The same three-way diff applies to steps within each section,
-matching on `step.dbId` (the DB `recipe_steps.id`). Steps that survive the diff
-retain their `id` — all FK references remain valid.
-
-### REC-04: Stable session section FK
-
-Migration 022:
-```sql
-ALTER TABLE painting_sessions
-  ADD COLUMN recipe_section_id INTEGER REFERENCES recipe_sections(id) ON DELETE SET NULL;
-```
-
-ON DELETE SET NULL matches the existing `recipe_step_id` pattern from migration 014.
-`section_name` TEXT stays in place as the display fallback after section deletion —
-same pattern as `detachment_name` on army lists and `weapon_name` on loadouts.
-
-`createSession` call signature gains `recipe_section_id?: number | null`.
-`LogSessionSheet` cascading selector (recipe → section → step) populates `recipe_section_id`
-alongside the existing `section_name`.
-
-### TST-01: Test file plan
-
-All four test files use `readFileSync` + regex assertions (no Tauri IPC required):
-
-| File | Assertions |
-|------|-----------|
-| `tests/foundation/migrationRegistration.test.ts` | lib.rs contains version 1–21 entries; each `include_str!` path matches a file that exists; rules migrations contain versions 1–3 |
-| `tests/painting/recipeNonDestructiveSave.test.ts` | Pure diff algorithm: given existingSections + formSections, output has correct toDelete/toUpdate/toInsert sets |
-| `tests/hobby-journal/sessionSectionLink.test.ts` | Migration 022 SQL contains `recipe_section_id` column; `ON DELETE SET NULL` present; column is nullable (no NOT NULL) |
-| `tests/foundation/armyListSchema.test.ts` | army_lists migration SQL contains `detachment_name` denormalized column; unit_recipe_assignments SQL contains `recipe_section_id` references (or confirms its absence as expected) |
-
----
-
-## MVP Definition for v0.2.11
-
-All 9 requirements are in scope. No deferral candidates. The milestone is a hardening
-pass — each item is already scoped to minimum viable correction.
-
-### Phase 1: Zero-Risk Quick Wins (no schema change, no form logic change)
-
-- [ ] MIG-01 — Verify migration registration completeness (audit + test)
-- [ ] MIG-02 — Clean DB validation (smoke test fresh install)
-- [ ] VER-01 — Align version strings in package.json and tauri.conf.json
-- [ ] REC-03 — Replace COALESCE with direct assignment for 4 nullable metadata fields in `updateRecipeSection`
-- [ ] REC-05 — Section-aware step ordering (JOIN + ORDER BY fix in `getRecipePaintsByRecipe`)
-
-### Phase 2: Schema Extension (additive migrations, backward-compatible)
-
-- [ ] REC-01 — Paintless steps: nullable `paint_id` migration + query updates
-- [ ] REC-04 — Stable session section FK: migration 022 + session insert update + LogSessionSheet wiring
-
-### Phase 3: Form Logic (highest complexity, REC-01 must be complete first)
-
-- [ ] REC-02 — Non-destructive recipe edits: three-way diff in `onSubmit`
-
-### Phase 4: Verification Layer
-
-- [ ] TST-01 — Four data-layer test files covering all of the above
+- [ ] Restore from backup — requires safe DB connection lifecycle management in Rust
+- [ ] Auto-backup on schedule — requires OS-level scheduler integration
+- [ ] Army list snapshot versioning — major schema change for per-version performance analysis
+- [ ] Per-round VP tracking in Game Day — out of scope for hobbyist target user
 
 ---
 
 ## Feature Prioritization Matrix
 
-| Feature | Developer Value | Implementation Cost | Priority | Phase |
-|---------|----------------|---------------------|----------|-------|
-| MIG-01 migration registration | HIGH (install correctness) | LOW | P1 | 1 |
-| MIG-02 clean DB validation | HIGH (install correctness) | LOW | P1 | 1 |
-| VER-01 version hygiene | LOW (cosmetic) | LOW | P2 | 1 (batch) |
-| REC-03 metadata clearing | MEDIUM (prevents stuck UI state) | LOW | P1 | 1 |
-| REC-05 section-aware ordering | MEDIUM (display correctness) | LOW | P1 | 1 |
-| REC-01 paintless steps | HIGH (schema correctness, enables new step types) | MEDIUM | P1 | 2 |
-| REC-04 stable session section FK | HIGH (data integrity, future-proof) | MEDIUM | P1 | 2 |
-| REC-02 non-destructive edits | HIGH (prevents silent data loss, enables AR) | HIGH | P1 | 3 |
-| TST-01 data-layer tests | HIGH (regression prevention) | MEDIUM | P1 | 4 |
+| Feature | User Value | Implementation Cost | Priority |
+|---------|------------|---------------------|----------|
+| Applied recipe identity hardening | HIGH (data correctness prerequisite) | MEDIUM | P1 |
+| Transactional recipe save | HIGH (data loss prevention) | LOW | P1 |
+| Centralized points resolver | HIGH (enables multiple downstream features) | MEDIUM | P1 |
+| Points source labeling | HIGH (transparency, daily use on army lists) | LOW | P1 |
+| Split list/unit warnings | HIGH (signal clarity, daily use) | LOW | P1 |
+| Dashboard next-action step text | HIGH (command center UX payoff) | LOW | P1 |
+| Game Day End Game flow | HIGH (closes play loop, zero new schema) | MEDIUM | P1 |
+| Data Health / Diagnostics page | HIGH (trust, power-user feature) | HIGH | P1 |
+| Manual backup / export | HIGH (data safety expectation) | LOW-MEDIUM | P1 |
+| After-action review analytics | MEDIUM (pattern analysis for hobbyist) | MEDIUM | P2 |
+| Unit-to-rules mapping confirmation | MEDIUM (sync accuracy surface) | MEDIUM | P2 |
+| Version parity check script | LOW (developer tool) | LOW | P2 |
+| Restore from backup | MEDIUM (complement to export) | MEDIUM | P2/v0.3 |
 
-**All items are P1 except VER-01 (cosmetic, batch with Phase 1).**
+---
+
+## Competitor Feature Analysis
+
+| Feature Area | Tabletop Battles (Goonhammer) | BattleBase | HobbyForge v0.2.13 target |
+|---|---|---|---|
+| Post-game logging | In-game VP tracking + after-game stats entry; Greg-Bot prompts photos | Real-time dual-player score + post-game stats | BattleLogSheet pre-filled from Game Day End Game action; existing MVP/underperforming/lessons fields |
+| Game stats / analytics | Win rate, avg VP, streaks, filter by mission/faction | Win/loss ratio, avg scores, livestream overlay | Per-mission and per-faction win rates added to BattleLogPage |
+| Data backup | Cloud sync (requires account, network) | Cloud sync (requires account) | Manual export to local file (local-first constraint); no cloud |
+| Data health | No diagnostics page | No diagnostics page | New Diagnostics page: category-grouped issues, severity levels, inline fix shortcuts |
+| Points attribution | No source labeling | No source labeling | PointsSourceChip: synced/override/manual/fallback label inline on army list rows |
+| Next action | No workflow guidance | No workflow guidance | CurrentFocusCard shows current recipe step description as concrete action |
+
+---
+
+## Implementation Notes by Feature Area
+
+### Applied Recipe Identity Hardening
+
+The `applied_recipe_progress` table is currently keyed on `(recipe_assignment_id, order_index)`. When steps are reordered or re-inserted, the order_index values change, causing progress records to track the wrong steps silently.
+
+**Migration approach:** Add `recipe_step_id INTEGER REFERENCES recipe_steps(id) ON DELETE CASCADE` to `applied_recipe_progress`. Backfill by joining against `recipe_steps.order_index` for existing records. Drop the order_index key column (requires SQLite table-recreation workaround). Update query functions to write and read by step ID.
+
+**Downstream benefit:** Diagnostics page can now reliably detect truly orphaned progress (step was deleted) vs miskeyed progress (step was reordered but still exists).
+
+### Data Health / Diagnostics Page
+
+**Issue categories and queries (all pure SQL on existing tables):**
+
+*Errors (data is broken):*
+- Orphaned applied_recipe_progress: steps whose recipe_step_id no longer exists in recipe_steps
+- Orphaned painting_sessions: sessions whose recipe_id no longer exists in painting_recipes
+- Army list units referencing units not in the collection
+
+*Warnings (data is incomplete or stale):*
+- Units with no faction assigned (faction_id IS NULL)
+- Units in army lists with effective_points = 0 and no override set (invisible zero-point entries)
+- Units with stale synced points (is_fresh = 0) and no manual override
+
+*Info (suggestions):*
+- Recipe steps with a paint_id referencing a paint that no longer exists
+- Units with no Wahapedia rules mapping (no entry in synced stats tables)
+
+**UI pattern:** Category grouping with severity color coding. Each issue type shows count. Expandable list of affected records. Inline "Fix" button for safe automated repairs only (e.g. delete orphaned progress rows). No auto-fix on page load.
+
+**Complexity: HIGH** — Multiple aggregation queries across all tables, fix actions touching multiple React Query cache keys. This is the most complex feature in the milestone.
+
+### Dashboard Next-Action Step Text
+
+CurrentFocusCard already receives `workflowPosition` which includes `stepIndex` and `sectionName` but not the step text. The workflow position hook queries the recipe steps by index. Adding a `stepName?: string` field to the `WorkflowPosition` type requires one JOIN in the position computation query: `LEFT JOIN recipe_steps rs ON rs.section_id = ... AND rs.order_index = stepIndex`.
+
+The card renders: `"Next: [stepName]"` as a single line below the workflow section/step count display. This turns the card from "you are at step 3 of 7 in Shading" to "Next: Apply Agrax Earthshade to recesses."
+
+**Complexity: LOW** — One query JOIN, one type field, one text line in the card.
+
+### Game Day End Game Flow
+
+The `gameDayStore` already holds `listId` (the army list in use for the current Game Day session). The new "End Game" button in `GameDayHeader` triggers opening `BattleLogSheet` with:
+- `army_list_id = gameDayStore.listId`
+- `battle_date = todayISO()`
+- All other fields blank (user fills in VP, opponent, result)
+
+After saving, optionally prompt to reset Game Day CP and checklist state (the existing `resetGameDay` action in the store).
+
+The BattleLogSheet sibling portal pattern (Sheet owned by the parent page, not a nested child) is already established across the codebase. GameDayPage or its containing route component needs to own the Sheet open state.
+
+**Complexity: MEDIUM** — New button + routing state plumbing. No new schema or queries.
+
+### Manual Backup / Export
+
+**Rust Tauri command implementation:**
+```rust
+#[tauri::command]
+async fn export_backup(app: tauri::AppHandle, destination: String) -> Result<(), String> {
+    let db_path = app.path().app_data_dir()
+        .map_err(|e| e.to_string())?
+        .join("hobbyforge.db");
+    std::fs::copy(&db_path, &destination)
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+```
+
+**Frontend flow:** "Export Backup" button → `dialog.save({ defaultPath: "hobbyforge_backup_YYYY-MM-DD.db", filters: [{ name: "SQLite", extensions: ["db"] }] })` → call Rust command with selected path → toast success with file path.
+
+**SQLite WAL safety:** In WAL mode (already set on rules.db; hobbyforge.db uses default journal mode), a file copy captures a consistent snapshot. If hobbyforge.db is using the default rollback journal mode, the copy is still safe during normal operation (no concurrent writers in a single-user desktop app), but a WAL checkpoint would be cleaner. The Rust command can run `PRAGMA wal_checkpoint(FULL)` via sqlx before copying if needed.
+
+**Complexity: LOW-MEDIUM** — Mostly Rust plumbing. The Tauri Dialog plugin is already in use.
+
+### After-Action Review Analytics
+
+New SQL aggregation on `battle_logs`:
+
+```sql
+-- Per-mission win rates
+SELECT mission,
+       COUNT(*) as games,
+       SUM(CASE WHEN result = 'Win' THEN 1 ELSE 0 END) as wins
+FROM battle_logs
+GROUP BY mission
+ORDER BY games DESC
+
+-- Per-opponent-faction win rates
+SELECT opponent_faction,
+       COUNT(*) as games,
+       SUM(CASE WHEN result = 'Win' THEN 1 ELSE 0 END) as wins
+FROM battle_logs
+GROUP BY opponent_faction
+ORDER BY games DESC
+```
+
+Displayed as a collapsible "Performance Breakdown" panel below the existing BattleLogSummaryBar. Only shown when there are 3+ games (below that, percentages are misleading).
+
+**Complexity: MEDIUM** — Two new query functions, one new hook, one new collapsible panel component.
 
 ---
 
 ## Sources
 
-- Direct codebase inspection: `src-tauri/src/lib.rs` (migration registration, confirmed versions 1–21)
-- Direct codebase inspection: `src-tauri/migrations/001_core_schema.sql` (paint_id NOT NULL constraint)
-- Direct codebase inspection: `src-tauri/migrations/018_recipe_sections.sql` (section schema, CASCADE chain)
-- Direct codebase inspection: `src-tauri/migrations/020_workflow_metadata.sql` (section_name on sessions)
-- Direct codebase inspection: `src-tauri/migrations/021_applied_recipe_assignments.sql` (order_index-keyed progress)
-- Direct codebase inspection: `src/db/queries/recipeSections.ts` (COALESCE vs direct assignment pattern)
-- Direct codebase inspection: `src/db/queries/recipePaints.ts` (JOIN assumptions, availability query)
-- Direct codebase inspection: `src/db/queries/paintingSessions.ts` (section_name present, section_id absent)
-- Direct codebase inspection: `src/features/recipes/RecipeFormSheet.tsx` line 234 (delete-all pattern)
-- Direct codebase inspection: `tests/foundation/migration004.test.ts` (readFileSync test pattern)
-- PROJECT.md: all MIG-*, REC-*, VER-*, TST-* requirement definitions and key decisions log
+- Codebase: `src/features/battle-log/BattleLogSheet.tsx` — confirms existing post-game fields (MVP unit, underperforming unit, lessons learned, changes next time); battle_date, army_list_id pre-fill points
+- Codebase: `src/features/dashboard/CurrentFocusCard.tsx` — confirms workflowPosition has stepIndex but not step text; recipe name display
+- Codebase: `src/features/game-day/ChecklistTab.tsx` — confirms Game Day uses Zustand/localStorage; gameDayStore holds listId
+- Codebase: `src/features/battle-log/BattleLogSummaryBar.tsx` — confirms existing aggregate summary bar (W/L/D + win rate only, no per-mission breakdown)
+- Tabletop Battles (Goonhammer) — post-game stats, per-mission/faction filtering, avg VP, Greg-Bot photo prompts confirmed at https://www.goonhammer.com/the-official-launch-of-tabletop-battles/ (HIGH confidence)
+- BattleBase — win/loss ratio, avg scores, real-time dual-player tracking confirmed at https://www.battlebase.app/ (MEDIUM confidence)
+- Umbraco Health Check + Vincere Data Integrity Dashboard — category grouping, severity levels, inline fix pattern (MEDIUM confidence — WebSearch)
+- Obsidian Local Backup plugin / Notion export — manual export to user path is the standard local-first backup UX (MEDIUM confidence — WebSearch)
+- Tauri Dialog plugin `save()` confirmed at https://v2.tauri.app/plugin/dialog/ (HIGH confidence)
+- GTD next-action research (Super Productivity, Notion GTD patterns) — one concrete physical action per context, not a list (MEDIUM confidence — multiple sources)
+- SQLite backup strategies — WAL-mode file copy is safe for single-writer desktop apps (MEDIUM confidence — Sling Academy, SQLite docs)
 
 ---
-*Feature research for: v0.2.11 Foundation Hardening (HobbyForge)*
-*Researched: 2026-05-13*
+
+*Feature research for: HobbyForge v0.2.13 — Data Integrity, Diagnostics & Product Coherence*
+*Researched: 2026-05-14*

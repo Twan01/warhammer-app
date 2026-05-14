@@ -1,68 +1,90 @@
-# Project Research Summary
+# Research Summary: HobbyForge v0.2.13
 
-**Project:** HobbyForge v0.2.11 — Foundation Hardening
-**Domain:** Data integrity hardening for Tauri 2 + SQLite desktop app
-**Researched:** 2026-05-13
+**Project:** HobbyForge v0.2.13 — Data Integrity, Diagnostics & Product Coherence
+**Researched:** 2026-05-14
 
 ## Executive Summary
 
-v0.2.11 is an internal hardening milestone. The goal is to close seven categories of data integrity debt accumulated across v0.2.7–v0.2.10: unregistered migrations, a destructive DELETE-all recipe save, a COALESCE bug preventing null-clearing, silent dropping of paintless steps, incorrect cross-section step ordering, missing session-to-section FK, and version string drift. Every requirement maps to a named defect discovered through direct codebase inspection.
+v0.2.13 is a hardening and coherence milestone built entirely on the existing stack. No new npm or Cargo dependencies are required. The key architectural work is restructuring three brittle patterns: the sequential recipe save in `RecipeFormSheet.tsx`, the triplicated 5-level COALESCE chain across query files, and the order_index-keyed progress records that become unreliable after step reordering.
+
+The recommended approach is schema-first, then data-layer corrections, then query/lib consolidation, then diagnostics, then Rust-side backup, then UX features. Two hard architectural constraints must be enforced throughout: no nested `BEGIN TRANSACTION` calls (tauri-plugin-sql does not support savepoints), and `VACUUM INTO` rather than raw file copy for backup (file copy is unsafe without explicit WAL checkpoint).
+
+The single highest-risk item is the order_index → recipe_step_id migration back-fill. The SQL must join through `recipe_sections` to disambiguate per-section `order_index` values — without this, multi-section recipes will have progress silently re-attributed to the wrong steps.
 
 ## Stack Additions
 
-| Addition | Version | Purpose | Risk |
-|----------|---------|---------|------|
-| `better-sqlite3` (devDep) | ^12.10.0 | In-memory SQLite for DDL behavioral tests | LOW — devDep only, no production impact |
-
-No production dependencies added. `node:sqlite` rejected due to Vitest 4.x import-stripping bug (#7177).
+**None required.** All capabilities implementable with existing Tauri 2 + React 19 + SQLite toolkit:
+- Transactions: `BEGIN/COMMIT/ROLLBACK` via `db.execute()` (already proven in `duplicateRecipe`, `bulkCreateAssignments`, `replaceSyncedUnitPoints`)
+- Backup: New Rust command using `VACUUM INTO` (not raw file copy — unsafe without WAL checkpoint)
+- Diagnostics: SQLite PRAGMAs + `SELECT COUNT(*)` via existing `db.select()`
+- Points resolver: Pure TypeScript function in `src/lib/`
 
 ## Feature Assessment
 
-### Table Stakes (must fix)
-- **MIG-01/02**: Migration registration completeness + fresh install validation
-- **REC-01**: Paintless recipe steps — guard removal in RecipeFormSheet.tsx line 292
-- **REC-03**: Section metadata clearing — 4× COALESCE → direct assignment in recipeSections.ts
+### Table Stakes (P1 — must ship)
+- Applied recipe identity hardening (order_index → recipe_step_id)
+- Transactional recipe graph save (`saveRecipeGraph()`)
+- Centralized points resolver + PointsSourceChip UI
+- Split list/unit warnings
+- Dashboard next-action step text
+- Game Day End Game flow (close the loop to BattleLogSheet)
+- Data Health/Diagnostics page
+- Manual backup/export
+- Version parity check script
 
-### Differentiators (high-value hardening)
-- **REC-02**: Non-destructive recipe save — replace DELETE-all + re-INSERT with three-way diff
-- **REC-04**: Stable recipe_section_id FK on painting_sessions (migration 022)
-- **REC-05**: Section-aware step ordering — LEFT JOIN + double-column ORDER BY
-- **TST-01**: Data-layer test suite covering all fixes
+### Differentiators
+- Points source labeling ("95 pts · synced" vs "100 pts · manual override") — no competitor does this
+- Data Health diagnostics page — neither Tabletop Battles nor BattleBase have one
+- After-action review analytics (per-mission/faction win rates)
+- Unit-to-rules mapping confirmation layer
 
-### Cosmetic
-- **VER-01**: Version number alignment in package.json and tauri.conf.json
+### Defer to v0.3+
+- Restore from backup (connection lifecycle complexity)
+- Auto-backup on schedule
+- Army list snapshot versioning
+- Per-round VP tracking
 
 ## Architecture Impact
 
 - Four-layer stack unchanged (UI → hooks → queries → DB client)
-- All work is at query layer (SQL fixes), form layer (REC-02 diff), and migration layer (022)
-- New query function: `updateRecipeStep()` in recipePaints.ts
-- No new cache keys, routes, or Rust commands
+- Two new migrations: 026 (unit_rules_mapping), 027 (battle_log_game_day columns)
+- Three new pure functions in `src/lib/`: `resolveUnitPoints()`, `splitWarnings()`, points SQL constant
+- Key new query: `saveRecipeGraph()` — flat inlined SQL transaction (no helper delegation)
+- New Rust command: `backup_database` using `VACUUM INTO`
+- New pages/components: DataHealthPage, BackupSection, AfterActionSheet, NextActionsPanel, PointsSourceChip
 
 ## Key Pitfalls
 
-1. **Non-destructive save partial writes** — deletion pass omitted → orphaned DB rows. Fix: delete-first ordering.
-2. **COALESCE blocking null** — four workflow metadata fields treat null as "keep old." Fix: direct assignment.
-3. **Migration parity gap** — fresh installs silently fail on unregistered migrations. Fix: parity test.
-4. **REC-04 FK pointless without REC-02** — ON DELETE SET NULL fires on every edit under DELETE-all save. Hard dependency.
-5. **Section ordering absent from flat consumers** — steps interleave across sections. Fix: LEFT JOIN + ORDER BY.
+1. **order_index back-fill must join through recipe_sections** to disambiguate per-section values — hardest SQL in milestone
+2. **saveRecipeGraph must inline all SQL** — tauri-plugin-sql does not support nested transactions
+3. **Backup must use VACUUM INTO**, not std::fs::copy — raw copy unsafe without WAL checkpoint
+4. **COALESCE site-3 divergence** in `dashboard.ts` uses only 2-level chain — must resolve or document
+5. **gameDayStore has no version/migrate** in persist config — must add before any new nested fields
 
 ## Suggested Phase Order
 
-| Phase | Requirements | Risk | Notes |
-|-------|-------------|------|-------|
-| 1 | MIG-01, MIG-02, VER-01, REC-03, REC-05 | LOW | Independent quick wins, no form changes |
-| 2 | REC-01 | LOW | Guard removal, must precede REC-02 |
-| 3 | REC-02 | HIGH | Three-way diff, dbId tracking, highest complexity |
-| 4 | REC-04 | MEDIUM | Migration 022, FK wiring, gated on Phase 3 |
-| 5 | TST-01 | LOW | Verification layer asserting Phases 1–4 |
+| Phase | Focus | Risk | Dependencies |
+|-------|-------|------|--------------|
+| 1 | Schema Foundation (migrations 026+027, version parity) | LOW | None |
+| 2 | Applied Recipe Identity Hardening | HIGH | Phase 1 |
+| 3 | Transactional Recipe Graph Save | MEDIUM | Phase 1 |
+| 4 | Points Resolver + Unit Rules Mapping + Split Warnings | MEDIUM | Phase 1 |
+| 5 | Data Health Page + Backup/Export | MEDIUM | Phases 1-2 (clean data for diagnostics) |
+| 6 | Dashboard Command Center + Game Day After-Action | LOW-MEDIUM | Phases 1-4 |
 
 ## Research Confidence
 
-**Overall: HIGH** — all findings from direct inspection of ~290 source files. No inference or assumption.
+**Overall: HIGH** — all findings from direct codebase inspection (~290 source files). Key confirmed patterns:
+- Transaction pattern proven in 3 existing query functions
+- COALESCE divergence at site-3 directly verified
+- gameDayStore persist config inspected (no version/migrate)
+- Migration numbers confirmed (last is 025_tactical_role)
 
 ## Open Questions
 
-- Whether `// @vitest-environment node` suffices for `better-sqlite3` or `pool: 'forks'` is needed — confirmed by running first test.
-- `duplicateRecipe` step fetch has same ordering bug as REC-05 — include in Phase 1 scope.
-- `unit_recipe_step_progress` FK upgrade (replace order_index key with real recipe_step_id FK) deferred to post-v0.2.11.
+- Whether `VACUUM INTO` works through the tauri-plugin-sql JS bridge — recommended early spike in Phase 5
+- COALESCE site-3 semantic decision: `getArmyReadinessByFaction` cannot use `alu.points_override` (no army_list_units join) — decide during Phase 4 planning
+- Whether restore from backup is deferred to v0.2.14 or included as stretch goal
+
+---
+*Synthesized: 2026-05-14*
