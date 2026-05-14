@@ -203,7 +203,7 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 
 **Milestone Goal:** Make HobbyForge trustworthy and guided — stable data identity, transactional writes, centralized points resolution, data health visibility, backup/export, and an actionable dashboard that tells the user what to do next.
 
-- [ ] **Phase 73: Schema Foundation + Version Parity** - Migrations 026+027, version parity check script
+- [x] **Phase 73: Schema Foundation + Version Parity** - Migrations 026+027, version parity check script
 - [ ] **Phase 74: Applied Recipe Identity Hardening** - Switch progress tracking from order_index to recipe_step_id
 - [ ] **Phase 75: Transactional Recipe Graph Save** - Atomic section+step persistence, no partial saves
 - [ ] **Phase 76: Points Resolver + Unit Rules Mapping + Split Warnings** - Centralized resolver, source labeling, unit confirmation, warning split
