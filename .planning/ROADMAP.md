@@ -250,7 +250,10 @@ Plans:
   4. The save function uses flat inline SQL with no nested BEGIN calls (no helper delegation that opens its own transaction)
 **Plans**: 2 plans
 Plans:
+**Wave 1**
 - [ ] 75-01-PLAN.md — saveRecipeGraph() transactional function + unit tests
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 75-02-PLAN.md — Wire RecipeFormSheet onSubmit to saveRecipeGraph + batch invalidation
 
 ### Phase 76: Points Resolver + Unit Rules Mapping + Split Warnings
