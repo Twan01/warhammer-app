@@ -236,8 +236,8 @@ Plans:
   4. Units that had zero progress recorded continue to show zero completed steps after migration
 **Plans**: 2 plans
 Plans:
-- [ ] 73-01-PLAN.md � Migrations 026+027 and lib.rs registration
-- [ ] 73-02-PLAN.md � Version parity script + version bumps to 0.2.13
+- [ ] 74-01-PLAN.md — Migration 028 + type/query/function layer updates
+- [ ] 74-02-PLAN.md — Hook/UI consumer + test updates
 
 ### Phase 75: Transactional Recipe Graph Save
 **Goal**: Saving a recipe always completes fully or not at all — partial saves are structurally impossible
