@@ -20,7 +20,7 @@ export type CreateRecipeAssignmentInput = Omit<RecipeAssignment, "id" | "created
 export interface StepProgress {
   id: number;
   assignment_id: number;
-  order_index: number;
+  recipe_step_id: number;
   completed: number;   // 0 | 1 SQLite boolean
   completed_at: string | null;
 }

@@ -90,9 +90,9 @@ export function useDeleteAssignment() {
 
 export function useToggleStepProgress() {
   const qc = useQueryClient();
-  return useMutation<void, Error, { assignmentId: number; orderIndex: number; completed: boolean }>({
-    mutationFn: ({ assignmentId, orderIndex, completed }) =>
-      upsertStepProgress(assignmentId, orderIndex, completed),
+  return useMutation<void, Error, { assignmentId: number; recipeStepId: number; completed: boolean }>({
+    mutationFn: ({ assignmentId, recipeStepId, completed }) =>
+      upsertStepProgress(assignmentId, recipeStepId, completed),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: STEP_PROGRESS_KEY(variables.assignmentId) });
     },

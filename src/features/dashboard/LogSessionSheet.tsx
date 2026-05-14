@@ -205,7 +205,7 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
           }
           await toggleStepProgress.mutateAsync({
             assignmentId,
-            orderIndex: step.order_index,
+            recipeStepId: step.id,
             completed: true,
           });
           qc.invalidateQueries({ queryKey: [...ASSIGNMENTS_KEY] });

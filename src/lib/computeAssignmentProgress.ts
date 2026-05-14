@@ -22,25 +22,25 @@ export function computeCompletionPercentage(
 /**
  * Compute overall and per-section progress for a recipe assignment.
  *
- * @param steps - Recipe steps with order_index and section_id (from query join)
- * @param progress - Step progress records with order_index and completed flag
+ * @param steps - Recipe steps with id (stable PK) and section_id (from query join)
+ * @param progress - Step progress records with recipe_step_id and completed flag
  * @returns AssignmentProgress with total, completed, percentage, and bySectionId breakdown
  *
- * Progress records whose order_index doesn't match any step are ignored
- * (stale records from before a step reorder — D-06 accepted edge case).
+ * Progress records whose recipe_step_id doesn't match any step are ignored
+ * (stale records from before a step deletion — D-06 accepted edge case).
  */
 export function computeAssignmentProgress(
-  steps: ReadonlyArray<{ order_index: number; section_id: number | null }>,
-  progress: ReadonlyArray<{ order_index: number; completed: number }>,
+  steps: ReadonlyArray<{ id: number; section_id: number | null }>,
+  progress: ReadonlyArray<{ recipe_step_id: number; completed: number }>,
 ): AssignmentProgress {
   if (steps.length === 0) {
     return { total: 0, completed: 0, percentage: 0, bySectionId: new Map() };
   }
 
-  // Build lookup: order_index -> completed (0 | 1)
+  // Build lookup: recipe_step_id -> completed (0 | 1)
   const progressMap = new Map<number, number>();
   for (const p of progress) {
-    progressMap.set(p.order_index, p.completed);
+    progressMap.set(p.recipe_step_id, p.completed);
   }
 
   let total = 0;
@@ -49,7 +49,7 @@ export function computeAssignmentProgress(
 
   for (const step of steps) {
     total += 1;
-    const isCompleted = progressMap.get(step.order_index) === 1;
+    const isCompleted = progressMap.get(step.id) === 1;
     if (isCompleted) completed += 1;
 
     // Update per-section bucket

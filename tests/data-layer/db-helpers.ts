@@ -35,6 +35,9 @@ export const HOBBYFORGE_MIGRATIONS = [
   "023_session_section_fk.sql",
   "024_points_import_history.sql",
   "025_tactical_role.sql",
+  "026_unit_rules_mapping.sql",
+  "027_battle_log_after_action.sql",
+  "028_step_progress_identity.sql",
 ] as const;
 
 // Authoritative rules migration order — must match lib.rs get_rules_migrations()
@@ -45,7 +48,7 @@ export const RULES_MIGRATIONS = [
   "rules_004_datasheet_points.sql",
 ] as const;
 
-export const HOBBYFORGE_MIGRATION_COUNT = HOBBYFORGE_MIGRATIONS.length; // 25
+export const HOBBYFORGE_MIGRATION_COUNT = HOBBYFORGE_MIGRATIONS.length; // 28
 export const RULES_MIGRATION_COUNT = RULES_MIGRATIONS.length; // 4
 
 /**

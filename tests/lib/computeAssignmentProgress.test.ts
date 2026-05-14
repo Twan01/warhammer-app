@@ -16,12 +16,12 @@ import {
 // ---------------------------------------------------------------------------
 
 interface TestStep {
-  order_index: number;
+  id: number;
   section_id: number | null;
 }
 
 interface TestProgress {
-  order_index: number;
+  recipe_step_id: number;
   completed: number; // 0 | 1
 }
 
@@ -66,16 +66,16 @@ describe("computeAssignmentProgress", () => {
 
   it("computes correct totals for 4 steps with 2 completed", () => {
     const steps: TestStep[] = [
-      { order_index: 0, section_id: null },
-      { order_index: 1, section_id: null },
-      { order_index: 2, section_id: null },
-      { order_index: 3, section_id: null },
+      { id: 100, section_id: null },
+      { id: 101, section_id: null },
+      { id: 102, section_id: null },
+      { id: 103, section_id: null },
     ];
     const progress: TestProgress[] = [
-      { order_index: 0, completed: 1 },
-      { order_index: 1, completed: 1 },
-      { order_index: 2, completed: 0 },
-      { order_index: 3, completed: 0 },
+      { recipe_step_id: 100, completed: 1 },
+      { recipe_step_id: 101, completed: 1 },
+      { recipe_step_id: 102, completed: 0 },
+      { recipe_step_id: 103, completed: 0 },
     ];
     const result = computeAssignmentProgress(steps, progress);
     expect(result.total).toBe(4);
@@ -85,16 +85,16 @@ describe("computeAssignmentProgress", () => {
 
   it("groups steps by section_id in bySectionId map", () => {
     const steps: TestStep[] = [
-      { order_index: 0, section_id: 10 },
-      { order_index: 1, section_id: 10 },
-      { order_index: 2, section_id: 20 },
-      { order_index: 3, section_id: 20 },
+      { id: 100, section_id: 10 },
+      { id: 101, section_id: 10 },
+      { id: 102, section_id: 20 },
+      { id: 103, section_id: 20 },
     ];
     const progress: TestProgress[] = [
-      { order_index: 0, completed: 1 },
-      { order_index: 1, completed: 0 },
-      { order_index: 2, completed: 1 },
-      { order_index: 3, completed: 1 },
+      { recipe_step_id: 100, completed: 1 },
+      { recipe_step_id: 101, completed: 0 },
+      { recipe_step_id: 102, completed: 1 },
+      { recipe_step_id: 103, completed: 1 },
     ];
     const result = computeAssignmentProgress(steps, progress);
 
@@ -113,12 +113,12 @@ describe("computeAssignmentProgress", () => {
 
   it("handles null section_id (flat recipe) as valid Map key", () => {
     const steps: TestStep[] = [
-      { order_index: 0, section_id: null },
-      { order_index: 1, section_id: null },
+      { id: 100, section_id: null },
+      { id: 101, section_id: null },
     ];
     const progress: TestProgress[] = [
-      { order_index: 0, completed: 1 },
-      { order_index: 1, completed: 0 },
+      { recipe_step_id: 100, completed: 1 },
+      { recipe_step_id: 101, completed: 0 },
     ];
     const result = computeAssignmentProgress(steps, progress);
 
@@ -129,16 +129,16 @@ describe("computeAssignmentProgress", () => {
     expect(flat!.completed).toBe(1);
   });
 
-  it("ignores progress records for order_index values not in steps", () => {
+  it("ignores progress records for recipe_step_id values not in steps", () => {
     const steps: TestStep[] = [
-      { order_index: 0, section_id: null },
-      { order_index: 1, section_id: null },
+      { id: 100, section_id: null },
+      { id: 101, section_id: null },
     ];
     const progress: TestProgress[] = [
-      { order_index: 0, completed: 1 },
-      { order_index: 1, completed: 1 },
-      { order_index: 5, completed: 1 }, // stale — no matching step
-      { order_index: 9, completed: 1 }, // stale — no matching step
+      { recipe_step_id: 100, completed: 1 },
+      { recipe_step_id: 101, completed: 1 },
+      { recipe_step_id: 500, completed: 1 }, // stale — no matching step
+      { recipe_step_id: 900, completed: 1 }, // stale — no matching step
     ];
     const result = computeAssignmentProgress(steps, progress);
     expect(result.total).toBe(2);
@@ -148,14 +148,14 @@ describe("computeAssignmentProgress", () => {
 
   it("returns percentage 100 when all steps are completed", () => {
     const steps: TestStep[] = [
-      { order_index: 0, section_id: 1 },
-      { order_index: 1, section_id: 1 },
-      { order_index: 2, section_id: 2 },
+      { id: 100, section_id: 1 },
+      { id: 101, section_id: 1 },
+      { id: 102, section_id: 2 },
     ];
     const progress: TestProgress[] = [
-      { order_index: 0, completed: 1 },
-      { order_index: 1, completed: 1 },
-      { order_index: 2, completed: 1 },
+      { recipe_step_id: 100, completed: 1 },
+      { recipe_step_id: 101, completed: 1 },
+      { recipe_step_id: 102, completed: 1 },
     ];
     const result = computeAssignmentProgress(steps, progress);
     expect(result.total).toBe(3);

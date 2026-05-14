@@ -74,12 +74,12 @@ describe("migration 027 — lib.rs registration", () => {
     expect(libRs).toMatch(/027_battle_log_after_action\.sql/);
   });
 
-  it("version 27 is the highest version in get_migrations()", () => {
+  it("version 28 is the highest version in get_migrations()", () => {
     // Extract all version numbers from get_migrations() vec (before get_rules_migrations)
     const getMigrationsBlock = libRs.split("fn get_rules_migrations")[0];
     const versions = [...getMigrationsBlock.matchAll(/version:\s*(\d+)\s*,/g)].map(m =>
       parseInt(m[1], 10)
     );
-    expect(Math.max(...versions)).toBe(27);
+    expect(Math.max(...versions)).toBe(28);
   });
 });

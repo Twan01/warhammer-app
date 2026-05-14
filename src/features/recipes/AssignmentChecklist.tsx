@@ -26,9 +26,9 @@ export function AssignmentChecklist({ assignment, recipeId }: AssignmentChecklis
   const { data: stepProgressRows = [] } = useStepProgress(assignment.id);
   const toggleStep = useToggleStepProgress();
 
-  // Derived: set of completed order_index values (no local state)
+  // Derived: set of completed recipe_step_id values (no local state)
   const completedSet = useMemo(
-    () => new Set(stepProgressRows.filter((p) => p.completed === 1).map((p) => p.order_index)),
+    () => new Set(stepProgressRows.filter((p) => p.completed === 1).map((p) => p.recipe_step_id)),
     [stepProgressRows],
   );
 
@@ -50,10 +50,10 @@ export function AssignmentChecklist({ assignment, recipeId }: AssignmentChecklis
     [steps, stepProgressRows],
   );
 
-  function handleToggle(orderIndex: number, checked: boolean) {
+  function handleToggle(recipeStepId: number, checked: boolean) {
     toggleStep.mutate({
       assignmentId: assignment.id,
-      orderIndex,
+      recipeStepId,
       completed: checked,
     });
   }
@@ -85,18 +85,18 @@ export function AssignmentChecklist({ assignment, recipeId }: AssignmentChecklis
                 <AccordionContent>
                   {sectionSteps.map((step) => (
                     <div
-                      key={step.order_index}
+                      key={step.id}
                       className="min-h-12 flex items-center gap-2"
                     >
                       <Checkbox
-                        checked={completedSet.has(step.order_index)}
+                        checked={completedSet.has(step.id)}
                         onCheckedChange={(checked) =>
-                          handleToggle(step.order_index, !!checked)
+                          handleToggle(step.id, !!checked)
                         }
                       />
                       <span
                         className={
-                          completedSet.has(step.order_index)
+                          completedSet.has(step.id)
                             ? "line-through text-muted-foreground"
                             : ""
                         }
@@ -114,18 +114,18 @@ export function AssignmentChecklist({ assignment, recipeId }: AssignmentChecklis
         <ul className="flex flex-col gap-2">
           {steps.map((step) => (
             <li
-              key={step.order_index}
+              key={step.id}
               className="min-h-12 flex items-center gap-2"
             >
               <Checkbox
-                checked={completedSet.has(step.order_index)}
+                checked={completedSet.has(step.id)}
                 onCheckedChange={(checked) =>
-                  handleToggle(step.order_index, !!checked)
+                  handleToggle(step.id, !!checked)
                 }
               />
               <span
                 className={
-                  completedSet.has(step.order_index)
+                  completedSet.has(step.id)
                     ? "line-through text-muted-foreground"
                     : ""
                 }

@@ -160,7 +160,7 @@ describe("getStepProgress — SQL assertions", () => {
     await getStepProgress(15);
     const [sql, params] = selectMock.mock.calls[0];
     expect(sql).toContain("FROM unit_recipe_step_progress WHERE assignment_id = $1");
-    expect(sql).toContain("ORDER BY order_index ASC");
+    expect(sql).toContain("ORDER BY recipe_step_id ASC");
     expect(params).toEqual([15]);
   });
 });
@@ -172,7 +172,7 @@ describe("upsertStepProgress — SQL assertions", () => {
   it("uses ON CONFLICT(assignment_id, order_index) DO UPDATE SET (not INSERT OR REPLACE)", async () => {
     await upsertStepProgress(1, 0, true);
     const [sql] = executeMock.mock.calls[0];
-    expect(sql).toContain("ON CONFLICT(assignment_id, order_index) DO UPDATE SET");
+    expect(sql).toContain("ON CONFLICT(assignment_id, recipe_step_id) DO UPDATE SET");
     expect(sql).not.toContain("INSERT OR REPLACE");
   });
 
@@ -180,7 +180,7 @@ describe("upsertStepProgress — SQL assertions", () => {
     await upsertStepProgress(1, 0, true);
     const [, params] = executeMock.mock.calls[0];
     expect(params[0]).toBe(1);    // assignmentId
-    expect(params[1]).toBe(0);    // orderIndex
+    expect(params[1]).toBe(0);    // recipeStepId
     expect(params[2]).toBe(1);    // completed = true -> 1
     expect(typeof params[3]).toBe("string"); // completed_at ISO string
     expect(params[3]).toMatch(/^\d{4}-\d{2}-\d{2}T/); // ISO format
@@ -354,7 +354,7 @@ describe("useToggleStepProgress — cache invalidation", () => {
     const { result } = renderHook(() => useToggleStepProgress(), { wrapper });
 
     await act(async () => {
-      await result.current.mutateAsync({ assignmentId: 5, orderIndex: 2, completed: true });
+      await result.current.mutateAsync({ assignmentId: 5, recipeStepId: 2, completed: true });
     });
     await waitFor(() => expect(spy).toHaveBeenCalled());
 
@@ -367,7 +367,7 @@ describe("useToggleStepProgress — cache invalidation", () => {
     const { result } = renderHook(() => useToggleStepProgress(), { wrapper });
 
     await act(async () => {
-      await result.current.mutateAsync({ assignmentId: 5, orderIndex: 2, completed: true });
+      await result.current.mutateAsync({ assignmentId: 5, recipeStepId: 2, completed: true });
     });
     await waitFor(() => expect(spy).toHaveBeenCalled());
 

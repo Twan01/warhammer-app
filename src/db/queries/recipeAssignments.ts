@@ -65,12 +65,12 @@ export async function deleteAssignment(id: number): Promise<void> {
 }
 
 /**
- * Returns all step progress records for an assignment, ordered by step index.
+ * Returns all step progress records for an assignment, ordered by recipe_step_id.
  */
 export async function getStepProgress(assignmentId: number): Promise<StepProgress[]> {
   const db = await getDb();
   return db.select<StepProgress[]>(
-    "SELECT * FROM unit_recipe_step_progress WHERE assignment_id = $1 ORDER BY order_index ASC",
+    "SELECT * FROM unit_recipe_step_progress WHERE assignment_id = $1 ORDER BY recipe_step_id ASC",
     [assignmentId],
   );
 }
@@ -81,19 +81,19 @@ export async function getStepProgress(assignmentId: number): Promise<StepProgres
  */
 export async function upsertStepProgress(
   assignmentId: number,
-  orderIndex: number,
+  recipeStepId: number,
   completed: boolean,
 ): Promise<void> {
   const db = await getDb();
   await db.execute(
-    `INSERT INTO unit_recipe_step_progress (assignment_id, order_index, completed, completed_at)
+    `INSERT INTO unit_recipe_step_progress (assignment_id, recipe_step_id, completed, completed_at)
      VALUES ($1, $2, $3, $4)
-     ON CONFLICT(assignment_id, order_index) DO UPDATE SET
+     ON CONFLICT(assignment_id, recipe_step_id) DO UPDATE SET
        completed = excluded.completed,
        completed_at = excluded.completed_at`,
     [
       assignmentId,
-      orderIndex,
+      recipeStepId,
       completed ? 1 : 0,
       completed ? new Date().toISOString() : null,
     ],

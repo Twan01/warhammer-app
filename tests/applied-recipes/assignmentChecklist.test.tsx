@@ -21,7 +21,7 @@ import type { RecipeAssignment, StepProgress } from "@/types/recipeAssignment";
 const mockToggleMutate = vi.fn();
 let mockStepProgress: StepProgress[] = [];
 let mockSections: { id: number; name: string }[] = [];
-let mockSteps: { order_index: number; section_id: number | null; step_name: string }[] = [];
+let mockSteps: { id: number; order_index: number; section_id: number | null; step_name: string }[] = [];
 let mockProgress = {
   total: 3,
   completed: 1,
@@ -80,7 +80,7 @@ function makeStepProgress(over: Partial<StepProgress> = {}): StepProgress {
   return {
     id: 1,
     assignment_id: 1,
-    order_index: 0,
+    recipe_step_id: 0,
     completed: 0,
     completed_at: null,
     ...over,
@@ -96,9 +96,9 @@ beforeEach(() => {
 
   // Default: 3 steps, 2 in section 1, 1 in section 2
   mockSteps = [
-    { order_index: 0, section_id: 1, step_name: "Base Silver" },
-    { order_index: 1, section_id: 1, step_name: "Wash Nuln Oil" },
-    { order_index: 2, section_id: 2, step_name: "Edge Highlight" },
+    { id: 100, order_index: 0, section_id: 1, step_name: "Base Silver" },
+    { id: 101, order_index: 1, section_id: 1, step_name: "Wash Nuln Oil" },
+    { id: 102, order_index: 2, section_id: 2, step_name: "Edge Highlight" },
   ];
 
   mockSections = [
@@ -107,9 +107,9 @@ beforeEach(() => {
   ];
 
   mockStepProgress = [
-    makeStepProgress({ id: 1, order_index: 0, completed: 1 }),
-    makeStepProgress({ id: 2, order_index: 1, completed: 0 }),
-    makeStepProgress({ id: 3, order_index: 2, completed: 0 }),
+    makeStepProgress({ id: 1, recipe_step_id: 100, completed: 1 }),
+    makeStepProgress({ id: 2, recipe_step_id: 101, completed: 0 }),
+    makeStepProgress({ id: 3, recipe_step_id: 102, completed: 0 }),
   ];
 
   mockProgress = {
@@ -164,7 +164,7 @@ describe("AssignmentChecklist", () => {
 
     expect(mockToggleMutate).toHaveBeenCalledWith({
       assignmentId: 1,
-      orderIndex: 0,
+      recipeStepId: 100,
       completed: false,
     });
   });
@@ -182,9 +182,9 @@ describe("AssignmentChecklist", () => {
     };
     // Steps without section_id for flat render
     mockSteps = [
-      { order_index: 0, section_id: null, step_name: "Flat Step 1" },
-      { order_index: 1, section_id: null, step_name: "Flat Step 2" },
-      { order_index: 2, section_id: null, step_name: "Flat Step 3" },
+      { id: 200, order_index: 0, section_id: null, step_name: "Flat Step 1" },
+      { id: 201, order_index: 1, section_id: null, step_name: "Flat Step 2" },
+      { id: 202, order_index: 2, section_id: null, step_name: "Flat Step 3" },
     ];
 
     const { container } = render(
