@@ -166,6 +166,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/027_battle_log_after_action.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 28,
+            description: "step_progress_identity",
+            sql: include_str!("../migrations/028_step_progress_identity.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
