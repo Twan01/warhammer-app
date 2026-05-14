@@ -222,7 +222,7 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
   3. Running `pnpm check:version` exits 0 when package.json and tauri.conf.json agree, exits non-zero with a clear message when they diverge
 **Plans**: 2 plans
 Plans:
-- [ ] 73-01-PLAN.md â€” Migrations 026+027 and lib.rs registration
+- [x] 73-01-PLAN.md â€” Migrations 026+027 and lib.rs registration
 - [ ] 73-02-PLAN.md â€” Version parity script + version bumps to 0.2.13
 
 ### Phase 74: Applied Recipe Identity Hardening
@@ -236,8 +236,8 @@ Plans:
   4. Units that had zero progress recorded continue to show zero completed steps after migration
 **Plans**: 2 plans
 Plans:
-- [ ] 73-01-PLAN.md — Migrations 026+027 and lib.rs registration
-- [ ] 73-02-PLAN.md — Version parity script + version bumps to 0.2.13
+- [ ] 73-01-PLAN.md ï¿½ Migrations 026+027 and lib.rs registration
+- [ ] 73-02-PLAN.md ï¿½ Version parity script + version bumps to 0.2.13
 
 ### Phase 75: Transactional Recipe Graph Save
 **Goal**: Saving a recipe always completes fully or not at all â€” partial saves are structurally impossible
@@ -250,8 +250,8 @@ Plans:
   4. The save function uses flat inline SQL with no nested BEGIN calls (no helper delegation that opens its own transaction)
 **Plans**: 2 plans
 Plans:
-- [ ] 73-01-PLAN.md — Migrations 026+027 and lib.rs registration
-- [ ] 73-02-PLAN.md — Version parity script + version bumps to 0.2.13
+- [ ] 73-01-PLAN.md ï¿½ Migrations 026+027 and lib.rs registration
+- [ ] 73-02-PLAN.md ï¿½ Version parity script + version bumps to 0.2.13
 
 ### Phase 76: Points Resolver + Unit Rules Mapping + Split Warnings
 **Goal**: Every surface that shows points reads from a single resolver function; users can see where each value came from and confirm or override the unit-to-rules mapping; list vs unit warnings are no longer mixed
@@ -268,8 +268,8 @@ Plans:
   8. The COALESCE site-3 divergence in dashboard.ts (2-level chain vs the 5-level standard) is resolved or explicitly documented as intentional
 **Plans**: 2 plans
 Plans:
-- [ ] 73-01-PLAN.md — Migrations 026+027 and lib.rs registration
-- [ ] 73-02-PLAN.md — Version parity script + version bumps to 0.2.13
+- [ ] 73-01-PLAN.md ï¿½ Migrations 026+027 and lib.rs registration
+- [ ] 73-02-PLAN.md ï¿½ Version parity script + version bumps to 0.2.13
 **UI hint**: yes
 
 ### Phase 77: Data Health Page + Backup/Export
@@ -285,8 +285,8 @@ Plans:
   6. The page shows the last backup date and success status after backup completes
 **Plans**: 2 plans
 Plans:
-- [ ] 73-01-PLAN.md — Migrations 026+027 and lib.rs registration
-- [ ] 73-02-PLAN.md — Version parity script + version bumps to 0.2.13
+- [ ] 73-01-PLAN.md ï¿½ Migrations 026+027 and lib.rs registration
+- [ ] 73-02-PLAN.md ï¿½ Version parity script + version bumps to 0.2.13
 **UI hint**: yes
 
 ### Phase 78: Dashboard Command Center + Game Day After-Action
@@ -303,8 +303,8 @@ Plans:
   7. Unit notes and army list notes can be edited directly from the after-action sheet without navigating away
 **Plans**: 2 plans
 Plans:
-- [ ] 73-01-PLAN.md — Migrations 026+027 and lib.rs registration
-- [ ] 73-02-PLAN.md — Version parity script + version bumps to 0.2.13
+- [ ] 73-01-PLAN.md ï¿½ Migrations 026+027 and lib.rs registration
+- [ ] 73-02-PLAN.md ï¿½ Version parity script + version bumps to 0.2.13
 **UI hint**: yes
 
 ## Progress
@@ -385,7 +385,7 @@ Plans:
 | 70. Non-Destructive Recipe Save | v0.2.11 | 2/2 | Complete | 2026-05-13 |
 | 71. Stable Session Section FK | v0.2.11 | 2/2 | Complete | 2026-05-13 |
 | 72. Data-Layer Test Suite | v0.2.11 | 2/2 | Complete | 2026-05-13 |
-| 73. Schema Foundation + Version Parity | v0.2.13 | 0/TBD | Not started | - |
+| 73. Schema Foundation + Version Parity | v0.2.13 | 1/2 | In progress | - |
 | 74. Applied Recipe Identity Hardening | v0.2.13 | 0/TBD | Not started | - |
 | 75. Transactional Recipe Graph Save | v0.2.13 | 0/TBD | Not started | - |
 | 76. Points Resolver + Unit Rules Mapping + Split Warnings | v0.2.13 | 0/TBD | Not started | - |
