@@ -4,11 +4,27 @@
 
 HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, structured painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play." Official points and rules data are imported via Wahapedia sync for personal use.
 
-Shipped through v0.2.11 (72 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps), army list builder with detachment selection and inline rules context, battle log, spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard and KanbanCards, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist, pre-game readiness panel with points/freshness/warnings/role coverage), and a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK).
+Shipped through v0.2.12 (72 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps), army list builder with detachment selection and inline rules context, battle log, spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard and KanbanCards, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist, pre-game readiness panel with points/freshness/warnings/role coverage), a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK), and auto-update via GitHub Releases with in-app banner.
+
+## Current Milestone: v0.2.13 Data Integrity, Diagnostics & Product Coherence
+
+**Goal:** Make HobbyForge trustworthy and guided — stable data identity, transactional writes, centralized points resolution, data health visibility, backup/export, and an actionable dashboard that tells the user what to do next.
+
+**Target features:**
+- Applied recipe progress identity hardening (order_index → recipe_step_id)
+- Version parity check script
+- Transactional recipe graph save (atomic sections + steps)
+- Centralized points resolver with source/freshness labeling
+- Unit-to-rules mapping/confirmation layer
+- Data Health / Diagnostics page
+- Backup / export / restore
+- Split list-level vs unit-level warnings
+- Dashboard command center / next action UX
+- Game Day 2.0 after-action loop
 
 ## Current State
 
-v0.2.11 shipped 2026-05-13. v0.2.10 archived 2026-05-13. Planning next milestone.
+v0.2.12 shipped. Planning v0.2.13 milestone.
 
 ## Core Value
 
@@ -177,7 +193,7 @@ A single personal command center that always answers "what do I own, what's pain
 
 ## Context
 
-- **Current state:** v0.2.11 shipped. ~290 TypeScript source files. ~96,000 LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 11 main pages. Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline. 24 SQLite migrations (23 hobbyforge.db + 1 rules.db wargear extension). Non-destructive recipe saves preserving section/step IDs, paintless steps, stable session section FK, 14 data-layer tests via better-sqlite3.
+- **Current state:** v0.2.12 shipped. ~290 TypeScript source files. ~96,000 LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 11 main pages. Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline. 24 SQLite migrations (23 hobbyforge.db + 1 rules.db wargear extension). Non-destructive recipe saves preserving section/step IDs, paintless steps, stable session section FK, 14 data-layer tests via better-sqlite3. Auto-update via GitHub Releases.
 - **Personal tool** — single user (the owner), local-first, no accounts or sync
 - **Domain:** Warhammer 40K 10th edition, hobby management (collecting → painting → playing)
 - **User journey priority:** painter/collector → ready-to-play, *not* competitive optimization
@@ -280,4 +296,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-13 after v0.2.10 milestone archived*
+*Last updated: 2026-05-14 after v0.2.13 milestone started*
