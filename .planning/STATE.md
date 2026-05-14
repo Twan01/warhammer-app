@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.2.13
 milestone_name: Data Integrity, Diagnostics & Product Coherence
 status: planning
-stopped_at: Phase 75 context gathered
-last_updated: "2026-05-14T18:43:06.421Z"
-last_activity: 2026-05-14 — Phase 74 context gathered (auto mode)
+stopped_at: Phase 76 context gathered
+last_updated: "2026-05-14"
+last_activity: 2026-05-14 — Phase 76 context gathered (auto mode)
 progress:
   total_phases: 6
   completed_phases: 1
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-14)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play"
-**Current focus:** Phase 74 — Applied Recipe Identity Hardening
+**Current focus:** Phase 76 — Points Resolver + Unit Rules Mapping + Split Warnings
 
 ## Current Position
 
-Phase: 74 of 78 (Applied Recipe Identity Hardening)
+Phase: 76 of 78 (Points Resolver + Unit Rules Mapping + Split Warnings)
 Plan: Context gathered, ready for planning
-Status: Planning Phase 74
-Last activity: 2026-05-14 — Phase 74 context gathered (auto mode)
+Status: Planning Phase 76
+Last activity: 2026-05-14 — Phase 76 context gathered (auto mode)
 
 Progress: [██░░░░░░░░] 17%
 
@@ -65,7 +65,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-14T18:43:06.414Z
-Stopped at: Phase 75 context gathered
-Resume file: .planning/phases/75-transactional-recipe-graph-save/75-CONTEXT.md
-Resume: Run /gsd-plan-phase 74
+Last session: 2026-05-14
+Stopped at: Phase 76 context gathered
+Resume file: .planning/phases/76-points-resolver-unit-rules-mapping-split-warnings/76-CONTEXT.md
+Resume: Run /gsd-plan-phase 76
