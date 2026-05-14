@@ -223,7 +223,7 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 **Plans**: 2 plans
 Plans:
 - [x] 73-01-PLAN.md — Migrations 026+027 and lib.rs registration
-- [ ] 73-02-PLAN.md — Version parity script + version bumps to 0.2.13
+- [x] 73-02-PLAN.md — Version parity script + version bumps to 0.2.13
 
 ### Phase 74: Applied Recipe Identity Hardening
 **Goal**: Applied recipe step progress is keyed by recipe_step_id so reordering steps never moves completion markers
@@ -385,7 +385,7 @@ Plans:
 | 70. Non-Destructive Recipe Save | v0.2.11 | 2/2 | Complete | 2026-05-13 |
 | 71. Stable Session Section FK | v0.2.11 | 2/2 | Complete | 2026-05-13 |
 | 72. Data-Layer Test Suite | v0.2.11 | 2/2 | Complete | 2026-05-13 |
-| 73. Schema Foundation + Version Parity | v0.2.13 | 1/2 | In progress | - |
+| 73. Schema Foundation + Version Parity | v0.2.13 | 2/2 | Complete | 2026-05-14 |
 | 74. Applied Recipe Identity Hardening | v0.2.13 | 0/TBD | Not started | - |
 | 75. Transactional Recipe Graph Save | v0.2.13 | 0/TBD | Not started | - |
 | 76. Points Resolver + Unit Rules Mapping + Split Warnings | v0.2.13 | 0/TBD | Not started | - |
