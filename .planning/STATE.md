@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v0.2.13
 milestone_name: Data Integrity, Diagnostics & Product Coherence
-status: planning
-last_updated: "2026-05-14T15:30:06.575Z"
+status: ready_to_plan
+last_updated: "2026-05-14"
 last_activity: 2026-05-14
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,42 +17,41 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-13)
+See: .planning/PROJECT.md (updated 2026-05-14)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play"
-**Current focus:** Planning next milestone
+**Current focus:** Phase 73 — Schema Foundation + Version Parity
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-05-14 — Milestone v0.2.13 started
+Phase: 73 of 78 (Schema Foundation + Version Parity)
+Plan: — (not yet planned)
+Status: Ready to plan
+Last activity: 2026-05-14 — Roadmap created for v0.2.13
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Velocity:**
 
 - v0.2.11: 9 plans across 5 phases (single day)
+- v0.2.10: 17 plans across 7 phases (single day)
 - v0.2.9: 8 plans across 4 phases (single day)
 - v0.2.8: 12 plans across 5 phases (2 days)
-- v0.2.7: 8 plans across 4 phases (single day)
 - v0.2.6: 11 plans across 6 phases (single day)
 
 ## Accumulated Context
 
 ### Decisions Carried Forward
 
-- synced_unit_points cache in hobbyforge.db solves cross-DB JOIN problem (Research Pitfall 1 Option B) — rw_datasheet_points in rules.db cannot be JOINed directly from hobbyforge.db queries
-- 5-level COALESCE: alu.points_override > sup.points > uo.points > u.points > 0 (D-06)
-- Dashboard queries intentionally NOT updated with synced points (D-09: different concern)
-- PointsFreshnessBadge is self-contained (no props) — queries useRulesSyncMeta internally, shares React Query cache
-- getArmyListUnitNames lightweight query added for delta impact analysis
-- Migration 025: tactical_role TEXT column on army_list_units
-- clearArmyListPointsLimit solves COALESCE-blocks-NULL pitfall for points_limit
-- Full-replacement UPDATE on army_list_units must pass all fields (points_override, notes, tactical_role)
-- GameDayReadinessPanel is a new presentation component (not ArmyListSummaryBar reuse) per D-02
-- Freshness acquired in GameDayPage via useRulesSyncMeta + getSyncFreshness, passed as prop to panel
+- Transactions: flat inline SQL only — tauri-plugin-sql cannot nest BEGIN/COMMIT (no helper delegation)
+- Backup must use VACUUM INTO, not std::fs::copy — raw copy is unsafe without explicit WAL checkpoint
+- order_index back-fill SQL must JOIN through recipe_sections to disambiguate per-section values (multi-section recipes)
+- COALESCE site-3 divergence: dashboard.ts uses 2-level chain — Phase 76 must resolve or document
+- gameDayStore persist config has no version/migrate — must add before adding new nested fields in Phase 78
+- Points resolver: pure function in src/lib/ consumed by all three query sites
+- unit_rules_mapping table: migration 026; battle_log game day columns: migration 027
 
 ### Pending Todos
 
@@ -60,10 +59,11 @@ None.
 
 ### Open Blockers
 
-None.
+- VACUUM INTO via tauri-plugin-sql JS bridge: needs early spike in Phase 77 — may require new Rust command
+- COALESCE site-3 semantic decision for getArmyReadinessByFaction (no army_list_units join available) — decide during Phase 76 planning
 
 ## Session Continuity
 
-Last session: 2026-05-13T13:54:00.000Z
-Stopped at: Phase 67 plan 01 complete
-Resume: Verify phase 67 / milestone v0.2.10 complete
+Last session: 2026-05-14
+Stopped at: Roadmap created, requirements mapped, ready to plan Phase 73
+Resume: Run /gsd-plan-phase 73

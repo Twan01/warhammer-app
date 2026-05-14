@@ -15,6 +15,7 @@
 - ✅ **v0.2.9 Recipes 3.1 / Workflow Semantics & Integrations** — Phases 57-60 (shipped 2026-05-12)
 - ✅ **v0.2.10 Applied Recipes, Points Import & List Validation** — Phases 61-67 (shipped 2026-05-13)
 - ✅ **v0.2.11 Foundation Hardening** — Phases 68-72 (shipped 2026-05-13)
+- 🚧 **v0.2.13 Data Integrity, Diagnostics & Product Coherence** — Phases 73-78 (in progress)
 
 ## Phases
 
@@ -196,11 +197,101 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 
 </details>
 
+---
+
+### v0.2.13 Data Integrity, Diagnostics & Product Coherence (In Progress)
+
+**Milestone Goal:** Make HobbyForge trustworthy and guided — stable data identity, transactional writes, centralized points resolution, data health visibility, backup/export, and an actionable dashboard that tells the user what to do next.
+
+- [ ] **Phase 73: Schema Foundation + Version Parity** - Migrations 026+027, version parity check script
+- [ ] **Phase 74: Applied Recipe Identity Hardening** - Switch progress tracking from order_index to recipe_step_id
+- [ ] **Phase 75: Transactional Recipe Graph Save** - Atomic section+step persistence, no partial saves
+- [ ] **Phase 76: Points Resolver + Unit Rules Mapping + Split Warnings** - Centralized resolver, source labeling, unit confirmation, warning split
+- [ ] **Phase 77: Data Health Page + Backup/Export** - Diagnostics page, VACUUM INTO backup
+- [ ] **Phase 78: Dashboard Command Center + Game Day After-Action** - Next action UX, ready-to-play summary, end-game loop
+
+## Phase Details
+
+### Phase 73: Schema Foundation + Version Parity
+**Goal**: The schema is extended with two new tables and a CI-friendly version parity script guards against version drift
+**Depends on**: Nothing (first phase of milestone)
+**Requirements**: DI-05
+**Success Criteria** (what must be TRUE):
+  1. Migration 026 creates the unit_rules_mapping table; migration 027 adds game day after-action columns to battle_log
+  2. Both migrations are registered in lib.rs and run automatically on app launch
+  3. Running `pnpm check:version` exits 0 when package.json and tauri.conf.json agree, exits non-zero with a clear message when they diverge
+**Plans**: TBD
+
+### Phase 74: Applied Recipe Identity Hardening
+**Goal**: Applied recipe step progress is keyed by recipe_step_id so reordering steps never moves completion markers
+**Depends on**: Phase 73
+**Requirements**: DI-01, DI-02
+**Success Criteria** (what must be TRUE):
+  1. Checking off a step on a unit's applied recipe checklist persists using recipe_step_id as the key, not order_index
+  2. Reordering steps in a recipe does not alter which steps show as completed on any existing assignment
+  3. Existing progress rows are migrated safely: the back-fill SQL joins through recipe_sections to resolve per-section order_index values without ambiguity across multi-section recipes
+  4. Units that had zero progress recorded continue to show zero completed steps after migration
+**Plans**: TBD
+
+### Phase 75: Transactional Recipe Graph Save
+**Goal**: Saving a recipe always completes fully or not at all — partial saves are structurally impossible
+**Depends on**: Phase 73
+**Requirements**: DI-03, DI-04
+**Success Criteria** (what must be TRUE):
+  1. Saving a recipe with sections and steps either succeeds completely or rolls back with no rows changed
+  2. An error mid-save (e.g. DB constraint violation) leaves the recipe in its previous state with no orphaned sections or steps
+  3. Existing section and step IDs are preserved on save — the five-phase diff (delete removed, update existing, insert new) is maintained inside the single transaction
+  4. The save function uses flat inline SQL with no nested BEGIN calls (no helper delegation that opens its own transaction)
+**Plans**: TBD
+
+### Phase 76: Points Resolver + Unit Rules Mapping + Split Warnings
+**Goal**: Every surface that shows points reads from a single resolver function; users can see where each value came from and confirm or override the unit-to-rules mapping; list vs unit warnings are no longer mixed
+**Depends on**: Phase 73
+**Requirements**: PV-01, PV-02, PV-03, PV-04, PV-05, PV-06, PV-07
+**Success Criteria** (what must be TRUE):
+  1. Army list, Game Day, and validation surfaces all display point values computed by a single `resolveUnitPoints()` function in `src/lib/`
+  2. Each unit row shows a source chip ("95 pts · synced", "100 pts · manual override", "— unknown · needs review") with no extra queries
+  3. A unit that has been auto-matched to rules shows a "Confirmed" state; a unit with an ambiguous or missing match shows a prompt the user can act on
+  4. The user can open a unit's rules mapping, confirm the auto-match, or select a different rules entry
+  5. Duplicate or ambiguous matches are flagged with a visible indicator on the unit row
+  6. List-level warnings (total points exceeded, stale data source) appear once in the army list summary panel, not repeated for every unit
+  7. Unit-level warnings (no points data, not battle-ready) remain attached to their individual unit rows
+  8. The COALESCE site-3 divergence in dashboard.ts (2-level chain vs the 5-level standard) is resolved or explicitly documented as intentional
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 77: Data Health Page + Backup/Export
+**Goal**: The user can inspect the health of their data at a glance and create a safe backup of hobbyforge.db from the UI
+**Depends on**: Phase 73, Phase 74
+**Requirements**: DX-01, DX-02, DX-03, DX-04, BK-01, BK-02, BK-03
+**Success Criteria** (what must be TRUE):
+  1. A Data Health page (reachable from the sidebar or settings) shows app version, schema migration versions for both databases, last sync date, and sync error count
+  2. The page shows row counts for key tables: units, recipes, unit_recipe_assignments, unit_recipe_step_progress, synced_unit_points
+  3. The page flags orphaned progress rows (progress with no matching step), ambiguous point matches, and stale sync data with actionable descriptions
+  4. Diagnostics load lazily — the page is immediately interactive while counts and flags populate asynchronously; the UI never blocks
+  5. A "Create Backup" button opens a file picker and writes a safe copy of hobbyforge.db using VACUUM INTO (not raw file copy)
+  6. The page shows the last backup date and success status after backup completes
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 78: Dashboard Command Center + Game Day After-Action
+**Goal**: The dashboard tells the user exactly what to do next; Game Day closes the loop to the battle log with pre-filled after-action capture
+**Depends on**: Phase 73, Phase 74, Phase 76
+**Requirements**: DB-01, DB-02, DB-03, GD-01, GD-02, GD-03, GD-04
+**Success Criteria** (what must be TRUE):
+  1. The Dashboard displays a "Next Painting Action" card showing the specific step description, estimated time, and paint availability for the user's current applied recipe assignment
+  2. The Dashboard displays a "Ready to Play" summary showing points total, unpainted unit count, and sync freshness for the primary army list
+  3. The Dashboard displays a "Data Health" summary showing sync age, total warning count, and last backup status
+  4. The "End Game" button in Game Day mode opens an after-action sheet pre-filled with the active army list, today's date, and opponent field ready to complete
+  5. The after-action sheet lets the user record which rules were forgotten and tag MVP or underperformer units
+  6. Forgotten rules captured in after-action can be promoted to Game Day reminders with one action
+  7. Unit notes and army list notes can be edited directly from the after-action sheet without navigating away
+**Plans**: TBD
+**UI hint**: yes
+
 ## Progress
 
-**Note:** Phase details for v0.2.10 archived to `.planning/milestones/v0.2.10-ROADMAP.md`
-
-**Execution Order:** 61 > 62 > 63 > 64 > 65 > 66 > 67 > 68 > 69 > 70 > 71 > 72
+**Execution Order:** 73 > 74 > 75 > 76 > 77 > 78
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -271,8 +362,14 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 | 65. Points Import Pipeline | v0.2.10 | 3/3 | Complete | 2026-05-13 |
 | 66. Army List Validation | v0.2.10 | 3/3 | Complete | 2026-05-13 |
 | 67. Game Day Integration | v0.2.10 | 1/1 | Complete    | 2026-05-13 |
-| 68. Infrastructure Quick Wins | v0.2.11 | 2/2 | Complete | 2026-05-13 | ✅ |
-| 69. Paintless Recipe Steps | v0.2.11 | 1/1 | Complete | 2026-05-13 | ✅ |
-| 70. Non-Destructive Recipe Save | v0.2.11 | 2/2 | Complete | 2026-05-13 | ✅ |
-| 71. Stable Session Section FK | v0.2.11 | 2/2 | Complete | 2026-05-13 | ✅ |
-| 72. Data-Layer Test Suite | v0.2.11 | 2/2 | Complete | 2026-05-13 | ✅ |
+| 68. Infrastructure Quick Wins | v0.2.11 | 2/2 | Complete | 2026-05-13 |
+| 69. Paintless Recipe Steps | v0.2.11 | 1/1 | Complete | 2026-05-13 |
+| 70. Non-Destructive Recipe Save | v0.2.11 | 2/2 | Complete | 2026-05-13 |
+| 71. Stable Session Section FK | v0.2.11 | 2/2 | Complete | 2026-05-13 |
+| 72. Data-Layer Test Suite | v0.2.11 | 2/2 | Complete | 2026-05-13 |
+| 73. Schema Foundation + Version Parity | v0.2.13 | 0/TBD | Not started | - |
+| 74. Applied Recipe Identity Hardening | v0.2.13 | 0/TBD | Not started | - |
+| 75. Transactional Recipe Graph Save | v0.2.13 | 0/TBD | Not started | - |
+| 76. Points Resolver + Unit Rules Mapping + Split Warnings | v0.2.13 | 0/TBD | Not started | - |
+| 77. Data Health Page + Backup/Export | v0.2.13 | 0/TBD | Not started | - |
+| 78. Dashboard Command Center + Game Day After-Action | v0.2.13 | 0/TBD | Not started | - |

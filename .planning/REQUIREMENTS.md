@@ -75,42 +75,40 @@ Deferred to v0.3+:
 
 ## Traceability
 
-Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DI-01 | — | Pending |
-| DI-02 | — | Pending |
-| DI-03 | — | Pending |
-| DI-04 | — | Pending |
-| DI-05 | — | Pending |
-| PV-01 | — | Pending |
-| PV-02 | — | Pending |
-| PV-03 | — | Pending |
-| PV-04 | — | Pending |
-| PV-05 | — | Pending |
-| PV-06 | — | Pending |
-| PV-07 | — | Pending |
-| DX-01 | — | Pending |
-| DX-02 | — | Pending |
-| DX-03 | — | Pending |
-| DX-04 | — | Pending |
-| BK-01 | — | Pending |
-| BK-02 | — | Pending |
-| BK-03 | — | Pending |
-| DB-01 | — | Pending |
-| DB-02 | — | Pending |
-| DB-03 | — | Pending |
-| GD-01 | — | Pending |
-| GD-02 | — | Pending |
-| GD-03 | — | Pending |
-| GD-04 | — | Pending |
+| DI-01 | Phase 74 | Pending |
+| DI-02 | Phase 74 | Pending |
+| DI-03 | Phase 75 | Pending |
+| DI-04 | Phase 75 | Pending |
+| DI-05 | Phase 73 | Pending |
+| PV-01 | Phase 76 | Pending |
+| PV-02 | Phase 76 | Pending |
+| PV-03 | Phase 76 | Pending |
+| PV-04 | Phase 76 | Pending |
+| PV-05 | Phase 76 | Pending |
+| PV-06 | Phase 76 | Pending |
+| PV-07 | Phase 76 | Pending |
+| DX-01 | Phase 77 | Pending |
+| DX-02 | Phase 77 | Pending |
+| DX-03 | Phase 77 | Pending |
+| DX-04 | Phase 77 | Pending |
+| BK-01 | Phase 77 | Pending |
+| BK-02 | Phase 77 | Pending |
+| BK-03 | Phase 77 | Pending |
+| DB-01 | Phase 78 | Pending |
+| DB-02 | Phase 78 | Pending |
+| DB-03 | Phase 78 | Pending |
+| GD-01 | Phase 78 | Pending |
+| GD-02 | Phase 78 | Pending |
+| GD-03 | Phase 78 | Pending |
+| GD-04 | Phase 78 | Pending |
 
 **Coverage:**
 - v0.2.13 requirements: 26 total
-- Mapped to phases: 0
-- Unmapped: 26
+- Mapped to phases: 26
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-05-14*
-*Last updated: 2026-05-14 after initial definition*
+*Last updated: 2026-05-14 — traceability mapped during roadmap creation*
