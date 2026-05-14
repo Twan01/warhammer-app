@@ -4,14 +4,14 @@ milestone: v0.2.13
 milestone_name: Data Integrity, Diagnostics & Product Coherence
 status: executing
 stopped_at: Phase 74 planned (2 plans, verification passed)
-last_updated: "2026-05-14T19:02:37.074Z"
-last_activity: 2026-05-14 -- Phase 75 planning complete
+last_updated: "2026-05-14T19:12:00.002Z"
+last_activity: 2026-05-14
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 6
-  completed_plans: 2
-  percent: 33
+  total_plans: 8
+  completed_plans: 3
+  percent: 38
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-14)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play"
-**Current focus:** Phase 74 — Applied Recipe Identity Hardening
+**Current focus:** Phase 75 — Transactional Recipe Graph Save
 
 ## Current Position
 
-Phase: 74 of 78 (Applied Recipe Identity Hardening)
-Plan: 2 plans in 2 waves, verified
+Phase: 75 (Transactional Recipe Graph Save) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-05-14 -- Phase 75 planning complete
+Last activity: 2026-05-14
 
-Progress: [██░░░░░░░░] 17%
+Progress: [████░░░░░░] 38%
 
 ## Performance Metrics
 
@@ -65,7 +65,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-14
+Last session: 2026-05-14T19:11:59.996Z
 Stopped at: Phase 74 planned (2 plans, verification passed)
-Resume file: .planning/phases/74-applied-recipe-identity-hardening/
+Resume file: None
 Resume: Run /gsd-execute-phase 74

@@ -251,7 +251,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 **Wave 1**
-- [ ] 75-01-PLAN.md — saveRecipeGraph() transactional function + unit tests
+- [x] 75-01-PLAN.md — saveRecipeGraph() transactional function + unit tests
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 75-02-PLAN.md — Wire RecipeFormSheet onSubmit to saveRecipeGraph + batch invalidation
@@ -393,7 +393,7 @@ Plans:
 | 72. Data-Layer Test Suite | v0.2.11 | 2/2 | Complete | 2026-05-13 |
 | 73. Schema Foundation + Version Parity | v0.2.13 | 2/2 | Complete | 2026-05-14 |
 | 74. Applied Recipe Identity Hardening | v0.2.13 | 0/2 | Not started | - |
-| 75. Transactional Recipe Graph Save | v0.2.13 | 0/2 | Not started | - |
+| 75. Transactional Recipe Graph Save | v0.2.13 | 1/2 | In Progress|  |
 | 76. Points Resolver + Unit Rules Mapping + Split Warnings | v0.2.13 | 0/2 | Not started | - |
 | 77. Data Health Page + Backup/Export | v0.2.13 | 0/TBD | Not started | - |
 | 78. Dashboard Command Center + Game Day After-Action | v0.2.13 | 0/TBD | Not started | - |
