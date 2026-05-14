@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-14)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play"
-**Current focus:** Phase 76 — Points Resolver + Unit Rules Mapping + Split Warnings
+**Current focus:** Phase 74 — Applied Recipe Identity Hardening
 
 ## Current Position
 
-Phase: 76 of 78 (Points Resolver + Unit Rules Mapping + Split Warnings)
-Plan: Context gathered, ready for planning
-Status: Planning Phase 76
-Last activity: 2026-05-14 — Phase 76 context gathered (auto mode)
+Phase: 74 of 78 (Applied Recipe Identity Hardening)
+Plan: 2 plans in 2 waves, verified
+Status: Ready to execute Phase 74
+Last activity: 2026-05-14 — Phase 74 planned (2 plans, verification passed)
 
 Progress: [██░░░░░░░░] 17%
 
@@ -66,6 +66,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-14
-Stopped at: Phase 76 context gathered
-Resume file: .planning/phases/76-points-resolver-unit-rules-mapping-split-warnings/76-CONTEXT.md
-Resume: Run /gsd-plan-phase 76
+Stopped at: Phase 74 planned (2 plans, verification passed)
+Resume file: .planning/phases/74-applied-recipe-identity-hardening/
+Resume: Run /gsd-execute-phase 74
