@@ -32,7 +32,7 @@ Declared values (must be multiples of 4):
 | Token | Value | Usage |
 |-------|-------|-------|
 | xs | 4px | Icon gaps, inline badge padding |
-| sm | 8px | Compact element spacing, card internal gaps |
+| sm | 8px | Compact element spacing, card internal gaps, diagnostic row padding |
 | md | 16px | Default element spacing, card padding |
 | lg | 24px | Section padding, card content spacing |
 | xl | 32px | Layout gaps between card sections |
@@ -45,14 +45,18 @@ Exceptions: none
 
 ## Typography
 
-| Role | Size | Weight | Line Height |
-|------|------|--------|-------------|
-| Body | 14px | 400 (regular) | 1.5 |
-| Label | 14px | 500 (medium) | 1.4 |
-| Heading | 20px | 600 (semibold) | 1.2 |
-| Display | 28px | 600 (semibold) | 1.2 |
+| Role | Size | Weight | Line Height | Differentiation |
+|------|------|--------|-------------|-----------------|
+| Caption | 12px (`text-xs`) | 400 (regular) | 1.5 | Used for metadata labels (`text-muted-foreground uppercase tracking-wider`) |
+| Body | 14px (`text-sm`) | 400 (regular) | 1.5 | Default text, descriptions, diagnostic messages |
+| Heading | 20px (`text-xl`) | 600 (semibold) | 1.2 | Section titles |
+| Display | 28px (`text-3xl`) | 600 (semibold) | 1.2 | Large metric values in StatCards |
 
-Display (28px) is used for the large metric values in row-count cards (matching existing `StatCard` `text-3xl font-semibold`). Heading (20px) is used for section titles ("Version Info", "Table Counts", "Diagnostics", "Backup"). Body (14px) is used for descriptions and diagnostic messages.
+**Focal point:** The 28px display numbers on StatCards in the Table Counts grid are the primary focal point of the page, drawing the eye to row counts as the key data health indicator.
+
+**Weight constraint:** Only 2 weights used: 400 (regular) and 600 (semibold). Labels and captions are differentiated from body text via size (12px vs 14px), color (`text-muted-foreground`), and letter-spacing (`uppercase tracking-wider`) rather than a separate font weight.
+
+Display (28px) is used for the large metric values in row-count cards (matching existing `StatCard` `text-3xl font-semibold`). Heading (20px) is used for section titles ("Version Info", "Table Counts", "Diagnostics", "Backup"). Body (14px) is used for descriptions and diagnostic messages. Caption (12px) is used for metadata labels in the Version & Schema Info section.
 
 ---
 
@@ -112,7 +116,7 @@ A single `Card` containing a horizontal flex row of key-value pairs:
 | Last Sync | `rw_sync_meta.last_sync_at` | Relative date via `getSyncAgeLabel()` + freshness dot |
 | Sync Errors | `useRulesSyncErrors` count | Badge with count, `variant="destructive"` if > 0, `variant="secondary"` if 0 |
 
-Layout: Horizontal flex with `gap-8`, items wrap on narrow windows. Each item is a vertical stack: label (`text-xs text-muted-foreground uppercase tracking-wider`) over value (`text-sm font-medium`).
+Layout: Horizontal flex with `gap-8`, items wrap on narrow windows. Each item is a vertical stack: label (`text-xs text-muted-foreground uppercase tracking-wider`) over value (`text-sm font-semibold`).
 
 Loading state: Each value slot shows `Skeleton` (w-16 h-4) independently.
 
@@ -148,7 +152,7 @@ A `Card` containing a vertical list of diagnostic results. Each diagnostic is a 
 - Description: 14px regular, `text-foreground`
 - Count: 14px semibold tabular-nums, right-aligned
 - Each row separated by `border-b border-border/40` (last row no border)
-- Row padding: `py-3`
+- Row padding: `py-2` (8px from declared spacing scale)
 
 Diagnostic items:
 
@@ -170,10 +174,10 @@ Empty state: Not applicable (diagnostics always return results even if all healt
 A `Card` with:
 
 **Top row (flex between):**
-- Left: "Database Backup" label (14px medium) + last backup status below
+- Left: "Database Backup" heading (14px semibold) + last backup status below
 - Right: "Create Backup" button (primary variant, `Download` icon from Lucide)
 
-**Last backup status** (below label):
+**Last backup status** (below heading):
 - If backup exists in localStorage: `text-sm text-muted-foreground` -- "Last backup: {date} -- {filename}"
 - If no backup recorded: `text-sm text-muted-foreground` -- "No backups yet"
 
