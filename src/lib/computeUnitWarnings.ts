@@ -1,5 +1,5 @@
 /**
- * Phase 66 — Warning classification (LV-01) and list health aggregation (LV-04).
+ * Phase 66/76 — Warning classification (LV-01) and list health aggregation (LV-04).
  *
  * Pure functions: no DB, no hooks, no React imports. Takes data in, returns
  * typed result, no side effects. Follows the computeWorkflowPosition pattern.
@@ -7,6 +7,11 @@
  * Two severity levels per D-02:
  * - Hard: points exceeded (list can't legally be played as-is)
  * - Soft: informational (unpainted, not assembled, override, unknown pts, stale)
+ *
+ * Phase 76 split (D-11/D-12):
+ * - computeUnitWarnings: unit-level conditions only (not painted, not assembled,
+ *   manual override, unknown points)
+ * - computeListWarnings: list-level conditions only (points exceeded, stale data)
  */
 import type { SyncFreshness } from "@/lib/syncFreshness";
 import type { ArmyListUnitRow } from "@/types/armyList";
@@ -37,19 +42,40 @@ export interface ListHealthStats {
 }
 
 // ---------------------------------------------------------------------------
-// computeUnitWarnings
+// computeUnitWarnings (unit-level only)
 // ---------------------------------------------------------------------------
 
 /**
  * Classifies warnings for a single unit in an army list.
- *
- * Points-exceeded is a list-level condition (D-04, Pitfall 4) — it uses
- * the totalPoints/pointsLimit from WarningContext, not per-unit data.
+ * After Phase 76 split, contains ONLY unit-level conditions.
+ * List-level conditions (points exceeded, stale data) are in computeListWarnings.
  */
 export function computeUnitWarnings(
   unit: Pick<ArmyListUnitRow, "effective_points" | "points_override" | "status_painting" | "status_assembly">,
-  context: WarningContext,
+  _context: WarningContext,
 ): UnitWarnings {
+  const hard: string[] = [];
+  const soft: string[] = [];
+
+  // Soft warnings (unit-level only)
+  if (unit.status_painting !== "Completed") soft.push("Not painted");
+  if (unit.status_assembly === 0) soft.push("Not assembled");
+  if (unit.points_override !== null) soft.push("Manual override");
+  if (unit.effective_points === 0) soft.push("Unknown points");
+
+  return { hard, soft };
+}
+
+// ---------------------------------------------------------------------------
+// computeListWarnings (list-level only)
+// ---------------------------------------------------------------------------
+
+/**
+ * Classifies warnings at the list level — conditions that apply once to the
+ * entire army list, not per-unit. Separated from computeUnitWarnings in Phase 76
+ * per D-11 to avoid duplicating "Points exceeded" across every unit row.
+ */
+export function computeListWarnings(context: WarningContext): UnitWarnings {
   const hard: string[] = [];
   const soft: string[] = [];
 
@@ -58,13 +84,9 @@ export function computeUnitWarnings(
     hard.push("Points exceeded");
   }
 
-  // Soft warnings
-  if (unit.status_painting !== "Completed") soft.push("Not painted");
-  if (unit.status_assembly === 0) soft.push("Not assembled");
-  if (unit.points_override !== null) soft.push("Manual override");
-  if (unit.effective_points === 0) soft.push("Unknown points");
+  // Soft: stale or never-synced points data
   if (context.freshness === "stale" || context.freshness === "never") {
-    soft.push("Stale points");
+    soft.push("Stale points data");
   }
 
   return { hard, soft };
@@ -79,7 +101,7 @@ export function computeUnitWarnings(
  *
  * - ownershipPct is always 100 per D-15 (FK constraint means all units are owned)
  * - battleReadyPct = round((paintedPoints / totalPoints) * 100) or 0
- * - Warning counts iterate computeUnitWarnings per unit
+ * - Warning counts: list-level from computeListWarnings, unit-level per unit
  */
 export function computeListHealthStats(
   units: ArmyListUnitRow[],
@@ -100,11 +122,15 @@ export function computeListHealthStats(
 
   const context: WarningContext = { totalPoints, pointsLimit, freshness };
 
-  let hardWarningCount = pointsExceeded ? 1 : 0;
-  let softWarningCount = 0;
+  // List-level warnings (counted once)
+  const listWarnings = computeListWarnings(context);
+  let hardWarningCount = listWarnings.hard.length;
+  let softWarningCount = listWarnings.soft.length;
+
+  // Unit-level warnings (accumulated across all units)
   for (const unit of units) {
     const warnings = computeUnitWarnings(unit, context);
-    hardWarningCount += warnings.hard.filter((w) => w !== "Points exceeded").length;
+    hardWarningCount += warnings.hard.length;
     softWarningCount += warnings.soft.length;
   }
 
