@@ -291,8 +291,9 @@ Plans:
   6. The page shows the last backup date and success status after backup completes
 **Plans**: 2 plans
 Plans:
-- [ ] 77-01-PLAN.md — TBD
-- [ ] 77-02-PLAN.md — TBD
+- [ ] 77-01-PLAN.md — Rust backup command + diagnostics query module + hooks + route/nav wiring
+- [ ] 77-02-PLAN.md — Data Health page UI (all 5 sections wired up + backup interaction)
+
 **UI hint**: yes
 
 ### Phase 78: Dashboard Command Center + Game Day After-Action
