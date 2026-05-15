@@ -32,19 +32,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  useCreateRecipe,
-  useUpdateRecipe,
+  RECIPES_KEY,
+  RECIPE_KEY,
 } from "@/hooks/useRecipes";
 import {
-  useAddRecipePaint,
-
   useRecipePaints,
   RECIPE_PAINTS_KEY,
   STEP_COUNTS_KEY,
   RECIPE_AVAILABILITY_KEY,
   RECIPE_SWATCH_KEY,
 } from "@/hooks/useRecipePaints";
-import { useRecipeSections, RECIPE_SECTIONS_KEY } from "@/hooks/useRecipeSections";
+import { useRecipeSections, RECIPE_SECTIONS_KEY, SECTION_COUNTS_KEY } from "@/hooks/useRecipeSections";
 import { useFactions } from "@/hooks/useFactions";
 import { useUnits } from "@/hooks/useUnits";
 import { usePaints } from "@/hooks/usePaints";
@@ -57,15 +55,10 @@ import {
   RECIPE_EFFECTS,
   RECIPE_DIFFICULTIES,
 } from "./recipeSchema";
-import {
-  computeOrderIndex,
-} from "./recipeSteps";
 import { type DraftSection, makeDraftSection, buildDraftSections } from "./recipeSection";
-import { computeSectionDiff, computeStepDiff, buildSectionIdMap } from "./recipeDiff";
 import { RecipeStepList } from "./RecipeStepList";
 import { RecipeSectionList } from "./RecipeSectionList";
-import { createRecipeSection, deleteRecipeSection, updateRecipeSection } from "@/db/queries/recipeSections";
-import { updateRecipeStep, removeRecipePaint as removeRecipeStep } from "@/db/queries/recipePaints";
+import { saveRecipeGraph } from "@/db/queries/recipes";
 import { PaintSheet } from "@/features/paints/PaintSheet";
 
 export interface RecipeFormSheetProps {
@@ -118,9 +111,6 @@ function formatMinutes(total: number): string {
 export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps) {
   const isEdit = recipe !== null;
   const qc = useQueryClient();
-  const createRecipe = useCreateRecipe();
-  const updateRecipe = useUpdateRecipe();
-  const addRecipePaint = useAddRecipePaint();
 
 
   const { data: factions = [] } = useFactions();
@@ -214,198 +204,24 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
 
   async function onSubmit(values: RecipeFormValues) {
     try {
-      let recipeId: number;
-      if (isEdit && recipe) {
-        await updateRecipe.mutateAsync({
-          id: recipe.id,
-          name: values.name,
-          faction_id: values.faction_id,
-          unit_id: values.unit_id,
-          area: values.area,
-          notes: values.notes,
-          tutorial_link: values.tutorial_link || null,
-          style: values.style,
-          surface: values.surface,
-          effect: values.effect,
-          difficulty: values.difficulty,
-          estimated_minutes: values.estimated_minutes,
-          result_photo_path: values.result_photo_path,
-        });
-        recipeId = recipe.id;
+      const finalRecipeId = await saveRecipeGraph(
+        recipe?.id ?? null,
+        values,
+        sections,
+        existingSections,
+        existingSteps,
+      );
 
-        // Phase 1-4 — Section diff
-        const { toDelete: sectionsToDelete } =
-          computeSectionDiff(sections, existingSections);
-
-        // Phase 2 — DELETE removed sections (CASCADE handles child steps)
-        for (const id of sectionsToDelete) {
-          await deleteRecipeSection(id);
-        }
-
-        // Phase 3 — UPDATE existing sections
-        for (let i = 0; i < sections.length; i++) {
-          const sec = sections[i];
-          if (sec.dbId !== null) {
-            await updateRecipeSection({
-              id: sec.dbId,
-              name: sec.name,
-              surface: sec.surface,
-              optional: sec.optional,
-              order_index: i,
-              notes: sec.notes,
-              section_type: sec.section_type,
-              technique: sec.technique,
-              execution_mode: sec.execution_mode,
-              applies_to: sec.applies_to,
-            });
-          }
-        }
-
-        // Phase 4 — INSERT new sections + build sectionIdMap (seed from survivors first)
-        const sectionIdMap = buildSectionIdMap(sections);
-        for (let i = 0; i < sections.length; i++) {
-          const sec = sections[i];
-          if (sec.dbId === null) {
-            const newSectionId = await createRecipeSection({
-              recipe_id: recipeId,
-              name: sec.name,
-              surface: sec.surface,
-              optional: sec.optional,
-              order_index: i,
-              notes: sec.notes,
-              section_type: sec.section_type,
-              technique: sec.technique,
-              execution_mode: sec.execution_mode,
-              applies_to: sec.applies_to,
-            });
-            sectionIdMap.set(sec.localId, newSectionId);
-          }
-        }
-
-        // Phase 5 — Step diff (computeStepDiff uses global scan across ALL sections)
-        const { toDelete: stepsToDelete } = computeStepDiff(sections, existingSteps);
-
-        // 5b. DELETE removed steps
-        for (const id of stepsToDelete) {
-          await removeRecipeStep(id);
-        }
-
-        // 5c. UPDATE/INSERT steps per section
-        for (const sec of sections) {
-          const dbSectionId = sectionIdMap.get(sec.localId) ?? null;
-          const indexedSteps = computeOrderIndex(sec.steps);
-          for (const s of indexedSteps) {
-            if (s.dbId !== null) {
-              await updateRecipeStep({
-                id: s.dbId,
-                paint_id: s.paint_id,
-                step_name: s.step_name,
-                order_index: s.order_index,
-                notes: s.notes,
-                painting_phase: s.painting_phase,
-                tool: s.tool,
-                technique: s.technique,
-                dilution: s.dilution,
-                time_estimate_minutes: s.time_estimate_minutes,
-                step_photo_path: s.step_photo_path ?? null,
-                alt_paint_id: s.alt_paint_id ?? null,
-                section_id: dbSectionId,
-              });
-            } else {
-              await addRecipePaint.mutateAsync({
-                recipe_id: recipeId,
-                paint_id: s.paint_id,
-                step_name: s.step_name,
-                order_index: s.order_index,
-                notes: s.notes,
-                painting_phase: s.painting_phase,
-                tool: s.tool,
-                technique: s.technique,
-                dilution: s.dilution,
-                time_estimate_minutes: s.time_estimate_minutes,
-                step_photo_path: s.step_photo_path ?? null,
-                alt_paint_id: s.alt_paint_id ?? null,
-                section_id: dbSectionId,
-              });
-            }
-          }
-        }
-      } else {
-        recipeId = await createRecipe.mutateAsync({
-          name: values.name,
-          faction_id: values.faction_id,
-          unit_id: values.unit_id,
-          area: values.area,
-          // Fixed text columns left empty — CONTEXT.md decision
-          primer: null,
-          basecoat: null,
-          shade: null,
-          layer: null,
-          highlight: null,
-          glaze_filter: null,
-          weathering: null,
-          technical: null,
-          basing: null,
-          notes: values.notes,
-          tutorial_link: values.tutorial_link || null,
-          style: values.style,
-          surface: values.surface,
-          effect: values.effect,
-          difficulty: values.difficulty,
-          estimated_minutes: values.estimated_minutes,
-          result_photo_path: values.result_photo_path,
-        });
-
-        // Create sections in array order, build localId -> dbId map
-        const sectionIdMap = new Map<string, number>();
-        for (let i = 0; i < sections.length; i++) {
-          const sec = sections[i];
-          const newSectionId = await createRecipeSection({
-            recipe_id: recipeId,
-            name: sec.name,
-            surface: sec.surface,
-            optional: sec.optional,
-            order_index: i,
-            notes: sec.notes,
-            section_type: sec.section_type,
-            technique: sec.technique,
-            execution_mode: sec.execution_mode,
-            applies_to: sec.applies_to,
-          });
-          sectionIdMap.set(sec.localId, newSectionId);
-        }
-
-        // Create steps with mapped section_id
-        for (const sec of sections) {
-          const dbSectionId = sectionIdMap.get(sec.localId) ?? null;
-          const indexedSteps = computeOrderIndex(sec.steps);
-          for (const s of indexedSteps) {
-            await addRecipePaint.mutateAsync({
-              recipe_id: recipeId,
-              paint_id: s.paint_id,
-              step_name: s.step_name,
-              order_index: s.order_index,
-              notes: s.notes,
-              painting_phase: s.painting_phase,
-              tool: s.tool,
-              technique: s.technique,
-              dilution: s.dilution,
-              time_estimate_minutes: s.time_estimate_minutes,
-              step_photo_path: s.step_photo_path ?? null,
-              alt_paint_id: s.alt_paint_id ?? null,
-              section_id: dbSectionId,
-            });
-          }
-        }
-      }
-
-      // Invalidate all 6 cache keys
-      qc.invalidateQueries({ queryKey: RECIPE_SECTIONS_KEY(recipeId) });
-      qc.invalidateQueries({ queryKey: RECIPE_PAINTS_KEY(recipeId) });
+      qc.invalidateQueries({ queryKey: RECIPES_KEY });
+      qc.invalidateQueries({ queryKey: RECIPE_KEY(finalRecipeId) });
+      qc.invalidateQueries({ queryKey: RECIPE_SECTIONS_KEY(finalRecipeId) });
+      qc.invalidateQueries({ queryKey: RECIPE_PAINTS_KEY(finalRecipeId) });
       qc.invalidateQueries({ queryKey: STEP_COUNTS_KEY });
       qc.invalidateQueries({ queryKey: RECIPE_AVAILABILITY_KEY });
       qc.invalidateQueries({ queryKey: RECIPE_SWATCH_KEY });
-      qc.invalidateQueries({ queryKey: ["recipe-step-counts"] });
+      qc.invalidateQueries({ queryKey: SECTION_COUNTS_KEY });
+      qc.invalidateQueries({ queryKey: ["kanban-enrichment"] });
+      qc.invalidateQueries({ queryKey: ["recipes", "by-unit"] });
 
       toast.success(isEdit ? "Recipe saved." : "Recipe created.");
       onClose();
