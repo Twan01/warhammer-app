@@ -207,7 +207,7 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 - [x] **Phase 74: Applied Recipe Identity Hardening** - Switch progress tracking from order_index to recipe_step_id
 - [x] **Phase 75: Transactional Recipe Graph Save** - Atomic section+step persistence, no partial saves
 - [x] **Phase 76: Points Resolver + Unit Rules Mapping + Split Warnings** - Centralized resolver, source labeling, unit confirmation, warning split
-- [ ] **Phase 77: Data Health Page + Backup/Export** - Diagnostics page, VACUUM INTO backup
+- [x] **Phase 77: Data Health Page + Backup/Export** - Diagnostics page, VACUUM INTO backup (completed 2026-05-15)
 - [ ] **Phase 78: Dashboard Command Center + Game Day After-Action** - Next action UX, ready-to-play summary, end-game loop
 
 ## Phase Details
@@ -292,7 +292,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 77-01-PLAN.md — Rust backup command + diagnostics query module + hooks + route/nav wiring
-- [ ] 77-02-PLAN.md — Data Health page UI (all 5 sections wired up + backup interaction)
+- [x] 77-02-PLAN.md — Data Health page UI (all 5 sections wired up + backup interaction)
 
 **UI hint**: yes
 
@@ -396,5 +396,5 @@ Plans:
 | 74. Applied Recipe Identity Hardening | v0.2.13 | 0/2 | Not started | - |
 | 75. Transactional Recipe Graph Save | v0.2.13 | 2/2 | Complete | 2026-05-15 |
 | 76. Points Resolver + Unit Rules Mapping + Split Warnings | v0.2.13 | 0/2 | Not started | - |
-| 77. Data Health Page + Backup/Export | v0.2.13 | 1/2 | In Progress|  |
+| 77. Data Health Page + Backup/Export | v0.2.13 | 2/2 | Complete   | 2026-05-15 |
 | 78. Dashboard Command Center + Game Day After-Action | v0.2.13 | 0/TBD | Not started | - |
