@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v0.2.13
 milestone_name: Data Integrity, Diagnostics & Product Coherence
-status: complete
-stopped_at: Completed 78-03-PLAN.md
-last_updated: "2026-05-15T09:00:00.000Z"
-last_activity: 2026-05-15 -- Phase 78 execution complete (all 3 plans)
+status: shipped
+stopped_at: Milestone archived
+last_updated: "2026-05-15T14:00:00.000Z"
+last_activity: 2026-05-15 -- Milestone v0.2.13 archived and tagged
 progress:
   total_phases: 6
   completed_phases: 6
@@ -18,15 +18,14 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-14)
+See: .planning/PROJECT.md (updated 2026-05-15)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play"
-**Current focus:** v0.2.13 milestone complete
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase 78 (Dashboard Command Center + Game Day After-Action) — COMPLETE
-Last activity: 2026-05-15 -- Phase 78 execution complete (all 3 plans)
+Milestone v0.2.13 shipped and archived. 78 phases complete across 14 milestones.
 
 Progress: [██████████] 100%
 
@@ -34,6 +33,7 @@ Progress: [██████████] 100%
 
 **Velocity:**
 
+- v0.2.13: 13 plans across 6 phases (2 days)
 - v0.2.11: 9 plans across 5 phases (single day)
 - v0.2.10: 17 plans across 7 phases (single day)
 - v0.2.9: 8 plans across 4 phases (single day)
@@ -44,13 +44,7 @@ Progress: [██████████] 100%
 
 ### Decisions Carried Forward
 
-- Transactions: flat inline SQL only — tauri-plugin-sql cannot nest BEGIN/COMMIT (no helper delegation)
-- Backup must use VACUUM INTO, not std::fs::copy — raw copy is unsafe without explicit WAL checkpoint
-- order_index back-fill SQL must JOIN through recipe_sections to disambiguate per-section values (multi-section recipes)
-- COALESCE site-3 divergence: RESOLVED in Phase 76 — dashboard.ts upgraded to 4-level chain
-- gameDayStore persist config has no version/migrate — must add before adding new nested fields in Phase 78
-- Points resolver: pure function in src/lib/ consumed by all three query sites
-- unit_rules_mapping table: migration 026; battle_log game day columns: migration 027
+None — clean slate for next milestone.
 
 ### Pending Todos
 
@@ -58,12 +52,11 @@ None.
 
 ### Open Blockers
 
-- VACUUM INTO via tauri-plugin-sql JS bridge: RESOLVED in Phase 77 — backup_database Rust command created
-- COALESCE site-3 semantic decision: RESOLVED in Phase 76 — 4-level chain (sup.points, uo.points, u.points, 0)
+None.
 
 ## Session Continuity
 
-Last session: 2026-05-15T06:20:05Z
-Stopped at: Completed 77-02-PLAN.md
+Last session: 2026-05-15
+Stopped at: Milestone v0.2.13 archived
 Resume file: None
-Resume: Phase 77 complete
+Resume: Start next milestone with /gsd-new-milestone

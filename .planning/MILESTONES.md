@@ -1,4 +1,27 @@
 # Milestones
+## v0.2.13 Data Integrity, Diagnostics & Product Coherence (Shipped: 2026-05-15)
+
+**Phases completed:** 6 phases (73–78), 13 plans
+**Timeline:** 2026-05-14 → 2026-05-15 (2 days)
+**Stats:** 86 commits, 26/26 requirements satisfied, Nyquist 6/6 compliant
+
+**Key accomplishments:**
+- Data identity hardening: applied recipe progress keyed by recipe_step_id (not order_index) with section-disambiguated back-fill migration; transactional recipe graph save with BEGIN/COMMIT/ROLLBACK — partial saves structurally impossible
+- Centralized points resolver: single resolveUnitPoints() function consumed by all surfaces; PointsSourceChip labels (synced/override/unknown); MatchStatusIndicator for confirmed/ambiguous/unmatched; RulesMappingSheet for user confirmation/override
+- Warning split: computeListWarnings() for summary panel (points exceeded, stale data), computeUnitWarnings() per row (no points, not battle-ready); dashboard COALESCE site-3 divergence resolved
+- Data Health page: VersionInfoCard, TableCountsGrid (5 key tables), DiagnosticsCard (orphans/ambiguous/stale), BackupCard with VACUUM INTO via Rust command; all diagnostics lazy-loaded
+- Dashboard Command Center: NextPaintingActionCard (step + time + paint availability), ReadyToPlayCard (points + unpainted + sync freshness), DataHealthSummaryCard (sync age + warnings + backup status)
+- Game Day after-action loop: End Game pre-fills BattleLogSheet with army list + date; forgotten rules + MVP/underperformer capture; forgotten rules surface as Game Day reminders
+
+**Tech debt accepted:** Dead column (promoted_to_reminder never written), ReadyToPlayCard uses SQL COALESCE instead of resolveUnitPoints()
+
+**Archived:**
+- Roadmap: `.planning/milestones/v0.2.13-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.2.13-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.2.13-MILESTONE-AUDIT.md`
+
+---
+
 ## v0.2.11 Foundation Hardening (Shipped: 2026-05-13)
 
 **Phases completed:** 5 phases (68–72), 9 plans

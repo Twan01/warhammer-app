@@ -542,6 +542,59 @@
 
 ---
 
+## Milestone: v0.2.13 — Data Integrity, Diagnostics & Product Coherence
+
+**Shipped:** 2026-05-15
+**Phases:** 6 (73–78) | **Plans:** 13 | **Timeline:** 2 days (2026-05-14 → 2026-05-15)
+
+### What Was Built
+
+- Schema foundation: migrations 026 (unit_rules_mapping) + 027 (battle_log after-action columns) + 028 (step_progress identity rebuild); version parity script
+- Applied recipe identity hardening: progress keyed by recipe_step_id with CTE-based section-disambiguated back-fill migration
+- Transactional recipe graph save: saveRecipeGraph() with BEGIN/COMMIT/ROLLBACK, five-phase diff inside single transaction, 10 cache keys invalidated
+- Centralized points resolver: resolveUnitPoints() pure function, PointsSourceChip, MatchStatusIndicator, RulesMappingSheet, warning split (computeListWarnings vs computeUnitWarnings)
+- Data Health page: VersionInfoCard, TableCountsGrid, DiagnosticsCard (orphans/ambiguous/stale), BackupCard with VACUUM INTO via Rust command
+- Dashboard Command Center: NextPaintingActionCard, ReadyToPlayCard, DataHealthSummaryCard — dashboard now tells user exactly what to do next
+- Game Day after-action: End Game button pre-fills BattleLogSheet, forgotten rules + MVP/underperformer capture, forgotten-rules-to-reminders pipeline
+
+### What Worked
+
+- **Milestone audit before completion:** Running `/gsd-audit-milestone` before `/gsd-complete-milestone` caught 2 ROADMAP drift issues and a missing cache invalidation key (forgotten-rules) — all fixed before shipping. The pre-completion audit is now a hard prerequisite.
+- **Pure function resolver pattern:** resolveUnitPoints() in src/lib/ with typed PointsSource return enables both data display (source chip) and business logic (warning computation) from a single computation. Consumed by 3 query sites with zero divergence.
+- **Rust command for VACUUM INTO:** When tauri-plugin-sql JS bridge couldn't execute VACUUM INTO, creating a dedicated Rust command (`backup_database`) was the clean solution. No workarounds, no unsafe file copies.
+- **Wave-based parallel execution:** Phase 78 Plans 02 and 03 executed in parallel (no file overlap) — dashboard cards and game day after-action built simultaneously. Clean wave dependency modeling.
+- **No gap closure phase needed:** All 26 requirements passed on first audit — 5th consecutive milestone with clean first-pass audit. The pre-audit caught issues that would have required a gap closure phase in earlier milestones.
+
+### What Was Inefficient
+
+- **ROADMAP progress table drift (again):** Phases 74 and 76 showed "0/2 Not started" in the progress table despite being complete. 7th consecutive milestone with this issue. The audit caught and fixed it, but this is the most persistent process problem.
+- **REQUIREMENTS.md checkbox updates delayed:** Several PV-* and DB-* and GD-* requirements weren't checked off until the audit pass. The pattern of updating checkboxes at audit time instead of phase completion continues.
+- **promoted_to_reminder column vestigial:** Migration 027 added the column, BattleLog interface types it, but no query writes or reads it. The design decision to auto-promote all forgotten rules made the column unnecessary. Schema cleanup deferred.
+
+### Patterns Established
+
+- **Transactional graph save:** BEGIN → five-phase diff (delete/update/insert sections, then per-section step diff) → COMMIT/ROLLBACK. Reusable for any hierarchical form save that needs atomicity.
+- **Pure function resolver for business rules:** When multiple surfaces compute the same value (points), extract to a pure function in src/lib/ with typed return (value + source metadata). Prevents COALESCE divergence.
+- **Warning split architecture:** Separate computeListWarnings() (summary-level) from computeUnitWarnings() (row-level). Each returns typed arrays. UI consumes each independently.
+- **VACUUM INTO via Rust command:** When tauri-plugin-sql can't execute a SQLite statement, create a dedicated Rust command. The pattern is: JS calls invoke("command_name"), Rust opens raw connection, executes, returns result.
+- **Dashboard command cards:** Each card is a self-contained component with its own hook (useNextPaintingAction, useArmyReadiness, useDiagnosticFlags). Page-level composition, no shared state between cards.
+
+### Key Lessons
+
+1. **Pre-completion audit is load-bearing.** The v0.2.13 audit caught cache invalidation, ROADMAP drift, and checkbox gaps — all fixable before shipping. Without the audit, these would have been carried as silent tech debt.
+2. **ROADMAP progress table needs automated validation.** 7th consecutive milestone with column drift. Manual editing will never fix this. Should either automate or remove the table in favor of phase-level `<details>` blocks.
+3. **Update REQUIREMENTS.md checkboxes at phase completion.** The pattern of delaying to audit time creates misleading audit scores and extra remediation work.
+4. **Rust commands are the escape hatch for tauri-plugin-sql limitations.** VACUUM INTO, ATTACH DATABASE, and other advanced SQLite features need direct Rust access.
+5. **Vestigial columns should be caught during planning, not after shipping.** The promoted_to_reminder column was designed for a feature (manual promotion) that was replaced by auto-promotion during Phase 78 execution.
+
+### Cost Observations
+
+- Model: Claude Opus 4.6 throughout
+- Sessions: 3 (schema + identity phases, resolver + data health phases, dashboard + after-action + audit + completion)
+- Notable: 6 phases with 13 plans and 26 requirements in 2 days — clean dependency chain (73→74/75/76→77→78) with wave parallelism in Phase 78
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -560,6 +613,7 @@
 | v0.2.8 | 5 | 12 | Rules hub UI; army list detachment selection; annotation layer; Game Day mode; no gap closure needed |
 | v0.2.9 | 4 | 8 | Workflow metadata; cascade selector; pure derivation function; batch enrichment pattern; no gap closure needed |
 | v0.2.11 | 5 | 9 | Foundation hardening; non-destructive save; data-layer tests; paintless steps; session FK; no gap closure needed |
+| v0.2.13 | 6 | 13 | Data identity hardening; transactional save; centralized points resolver; Data Health + backup; dashboard command center; game day after-action; no gap closure needed |
 
 ### Cumulative Quality
 
@@ -577,6 +631,7 @@
 | v0.2.8 | ~1,200 | All passing (27 requirements, Nyquist compliant, no gap closure, 3rd consecutive clean audit) |
 | v0.2.9 | ~1,240 | All passing (18/19 requirements satisfied, 1 partial design deviation, Nyquist compliant, gaps resolved inline) |
 | v0.2.11 | ~1,260 | All passing (9/9 requirements satisfied, 14 data-layer tests added, Nyquist 4/5 compliant, no gap closure) |
+| v0.2.13 | ~1,300 | All passing (26/26 requirements satisfied, Nyquist 6/6 compliant, no gap closure, 5th consecutive clean audit) |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -594,3 +649,5 @@
 12. `one_liner` in SUMMARY frontmatter must be enforced — milestone completion depends on it for accomplishment extraction (all 12 v0.2.5 SUMMARYs missing)
 13. Anticipate hook consumption patterns during planning — speculative hooks that don't match the UI's actual data flow become dead code (learned in v0.2.7 Phase 48)
 14. Clean first-pass audits correlate with well-scoped milestones — focused work (4–5 phases, clear dependency chain) ships without gap closure
+15. Pre-completion milestone audit is load-bearing — catches cache invalidation gaps, ROADMAP drift, and checkbox issues before they become silent tech debt (confirmed in v0.2.13)
+16. Rust commands are the escape hatch for tauri-plugin-sql limitations — VACUUM INTO, and potentially ATTACH DATABASE, need direct Rust access (learned in v0.2.13 Phase 77)

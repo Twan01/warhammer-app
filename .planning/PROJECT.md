@@ -4,27 +4,11 @@
 
 HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, structured painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play." Official points and rules data are imported via Wahapedia sync for personal use.
 
-Shipped through v0.2.12 (72 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps), army list builder with detachment selection and inline rules context, battle log, spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard and KanbanCards, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist, pre-game readiness panel with points/freshness/warnings/role coverage), a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK), and auto-update via GitHub Releases with in-app banner.
-
-## Current Milestone: v0.2.13 Data Integrity, Diagnostics & Product Coherence
-
-**Goal:** Make HobbyForge trustworthy and guided — stable data identity, transactional writes, centralized points resolution, data health visibility, backup/export, and an actionable dashboard that tells the user what to do next.
-
-**Target features:**
-- Applied recipe progress identity hardening (order_index → recipe_step_id)
-- Version parity check script
-- Transactional recipe graph save (atomic sections + steps)
-- Centralized points resolver with source/freshness labeling
-- Unit-to-rules mapping/confirmation layer
-- Data Health / Diagnostics page
-- Backup / export / restore
-- Split list-level vs unit-level warnings
-- Dashboard command center / next action UX
-- Game Day 2.0 after-action loop
+Shipped through v0.2.13 (78 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps, transactional graph save, recipe_step_id-keyed progress), army list builder with detachment selection, centralized points resolver with source labeling and user-confirmable unit-to-rules mapping, battle log with after-action capture (forgotten rules, MVP/underperformer notes), spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard, KanbanCards, NextPaintingActionCard, ReadyToPlayCard, and DataHealthSummaryCard, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist, pre-game readiness panel, end-game after-action with forgotten-rules-to-reminders pipeline), Data Health page with diagnostics and VACUUM INTO backup, a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK), version parity enforcement, and auto-update via GitHub Releases with in-app banner.
 
 ## Current State
 
-v0.2.13 milestone in progress. Phase 73 (schema foundation), Phase 74 (recipe identity hardening), and Phase 75 (transactional recipe save) complete. Next: Phase 76 (points resolver + unit rules mapping).
+v0.2.13 shipped 2026-05-15. 78 phases complete across 14 milestones. ~300+ TypeScript source files. 28 SQLite migrations (26 hobbyforge.db + 2 rules.db). Planning next milestone.
 
 ## Core Value
 
@@ -176,11 +160,41 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ VER-01: package.json and tauri.conf.json version numbers aligned — Phase 68 — v0.2.11
 - ✓ TST-01: 14 data-layer tests via better-sqlite3 covering migration parity, recipe persistence, session FK, schema shape — Phase 72 — v0.2.11
 
+*All v0.2.13 requirements verified and shipped 2026-05-15*
+
+- ✓ DI-01: Applied recipe step progress keyed by recipe_step_id — reordering steps does not move completion — Phase 74 — v0.2.13
+- ✓ DI-02: Existing progress rows migrated safely from order_index to recipe_step_id with section-disambiguated back-fill — Phase 74 — v0.2.13
+- ✓ DI-03: Recipe metadata, sections, and steps save atomically in a single transaction — Phase 75 — v0.2.13
+- ✓ DI-04: Recipe graph save preserves existing section/step IDs (non-destructive five-phase diff) — Phase 75 — v0.2.13
+- ✓ DI-05: package.json and tauri.conf.json versions match, enforced by pnpm check:version — Phase 73 — v0.2.13
+- ✓ PV-01: All army list / Game Day / validation surfaces use centralized resolveUnitPoints() — Phase 76 — v0.2.13
+- ✓ PV-02: Points source labeled in UI (synced / manual override / unknown) — Phase 76 — v0.2.13
+- ✓ PV-03: Auto-matched vs manually confirmed visible per unit — Phase 76 — v0.2.13
+- ✓ PV-04: User can confirm or override unit-to-rules mapping — Phase 76 — v0.2.13
+- ✓ PV-05: Duplicate or ambiguous matches flagged — Phase 76 — v0.2.13
+- ✓ PV-06: List-level warnings shown once in summary panel — Phase 76 — v0.2.13
+- ✓ PV-07: Unit-level warnings attached to individual unit rows — Phase 76 — v0.2.13
+- ✓ DX-01: Data Health shows versions, sync date, sync error count — Phase 77 — v0.2.13
+- ✓ DX-02: Data Health shows table counts for key tables — Phase 77 — v0.2.13
+- ✓ DX-03: Data Health flags orphans, ambiguous matches, stale data — Phase 77 — v0.2.13
+- ✓ DX-04: Diagnostics async/lazy — Phase 77 — v0.2.13
+- ✓ BK-01: Backup via file picker — Phase 77 — v0.2.13
+- ✓ BK-02: VACUUM INTO backup — Phase 77 — v0.2.13
+- ✓ BK-03: Backup status displayed — Phase 77 — v0.2.13
+- ✓ DB-01: Dashboard Next Painting Action card — Phase 78 — v0.2.13
+- ✓ DB-02: Dashboard Ready to Play summary — Phase 78 — v0.2.13
+- ✓ DB-03: Dashboard Data Health summary — Phase 78 — v0.2.13
+- ✓ GD-01: End Game pre-filled battle log — Phase 78 — v0.2.13
+- ✓ GD-02: After-action learnings capture (forgotten rules, MVP/underperformer) — Phase 78 — v0.2.13
+- ✓ GD-03: Forgotten rules become Game Day reminders — Phase 78 — v0.2.13
+- ✓ GD-04: Notes editable from after-action — Phase 78 — v0.2.13
+
 ### Active
 
 ### Out of Scope
 
-- Backup / export / import — deferred
+- Restore from backup — connection lifecycle complexity, deferred to v0.3+
+- Auto-backup on schedule — manual backup sufficient for now
 - Settings page — deferred
 - Multi-game-system support (AoS, Horus Heresy, etc.) — 40K 10th edition only
 - macOS / Linux builds — Windows-only
@@ -193,7 +207,7 @@ A single personal command center that always answers "what do I own, what's pain
 
 ## Context
 
-- **Current state:** v0.2.12 shipped. ~290 TypeScript source files. ~96,000 LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 11 main pages. Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline. 24 SQLite migrations (23 hobbyforge.db + 1 rules.db wargear extension). Non-destructive recipe saves preserving section/step IDs, paintless steps, stable session section FK, 14 data-layer tests via better-sqlite3. Auto-update via GitHub Releases.
+- **Current state:** v0.2.13 shipped. ~300+ TypeScript source files. ~100,000+ LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 12 main pages. Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline. 28 SQLite migrations (26 hobbyforge.db + 2 rules.db). Transactional recipe graph save, recipe_step_id-keyed progress, centralized points resolver with source labeling, unit-to-rules mapping layer, Data Health page with diagnostics and VACUUM INTO backup, dashboard command center (NextPaintingAction, ReadyToPlay, DataHealthSummary), Game Day after-action loop with forgotten-rules-to-reminders. 14 data-layer tests via better-sqlite3. Version parity enforcement. Auto-update via GitHub Releases.
 - **Personal tool** — single user (the owner), local-first, no accounts or sync
 - **Domain:** Warhammer 40K 10th edition, hobby management (collecting → painting → playing)
 - **User journey priority:** painter/collector → ready-to-play, *not* competitive optimization
@@ -276,6 +290,14 @@ A single personal command center that always answers "what do I own, what's pain
 | Direct assignment (not COALESCE) for nullable metadata updates | Users need to clear fields to NULL; COALESCE($N, column) prevents clearing | ✓ Good — consistent with recipe metadata pattern from v0.2.6 |
 | ON DELETE SET NULL for session → section FK | Session survives section deletion; link cleared not orphaned | ✓ Good — consistent with session → recipe FK pattern |
 | Dual-write (FK + denormalized text) for session sections | recipe_section_id for analytics, section_name for display after section delete | ✓ Good — follows weapon_name/detachment_name pattern |
+| recipe_step_id as progress key (not order_index) | Reordering steps must not move completion markers | ✓ Excellent — identity-safe progress tracking across any recipe edit |
+| Flat inline SQL for transactions (no nested BEGIN) | tauri-plugin-sql cannot nest transactions; helper delegation with own BEGIN crashes | ✓ Good — saveRecipeGraph proven stable |
+| VACUUM INTO via Rust command (not JS bridge) | tauri-plugin-sql JS bridge cannot execute VACUUM INTO; Rust command bypasses this | ✓ Good — safe SQLite backup without raw file copy |
+| resolveUnitPoints() pure function in src/lib/ | Single computation point for all surfaces; prevents COALESCE divergence | ✓ Good — consumed by 3 query sites |
+| ReadyToPlayCard uses SQL COALESCE directly | Summary card doesn't need per-unit source labeling; resolveUnitPoints() would add complexity for no user value | — Accepted architectural divergence |
+| promoted_to_reminder column vestigial | Design chose automatic promotion (all forgotten rules become reminders); column typed but never written | — Accepted tech debt; column removable if schema changes |
+| Warning split: computeListWarnings vs computeUnitWarnings | List-level warnings (points exceeded, stale) in summary panel; unit-level (no points, not ready) on rows | ✓ Good — clean separation, no duplicate warnings |
+| localStorage for backup status | Backup metadata (date, path) persists across sessions without SQLite schema change | ✓ Good — appropriate for single-value persistence |
 
 ---
 ## Evolution
@@ -296,4 +318,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-14 after v0.2.13 milestone started*
+*Last updated: 2026-05-15 after v0.2.13 milestone shipped*
