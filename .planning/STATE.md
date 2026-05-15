@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.2.13
 milestone_name: Data Integrity, Diagnostics & Product Coherence
 status: executing
-stopped_at: Phase 74 planned (2 plans, verification passed)
-last_updated: "2026-05-14T19:12:00.002Z"
-last_activity: 2026-05-14
+stopped_at: Phase 75 complete (2/2 plans, verified)
+last_updated: "2026-05-15T07:30:00.000Z"
+last_activity: 2026-05-15
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 3
-  percent: 38
+  completed_plans: 5
+  percent: 63
 ---
 
 # Project State
@@ -21,16 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-14)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play"
-**Current focus:** Phase 75 — Transactional Recipe Graph Save
+**Current focus:** Phase 76 — Points Resolver + Unit Rules Mapping + Split Warnings
 
 ## Current Position
 
-Phase: 75 (Transactional Recipe Graph Save) — EXECUTING
-Plan: 2 of 2
-Status: Ready to execute
-Last activity: 2026-05-14
+Phase: 75 (Transactional Recipe Graph Save) — COMPLETE
+Next: Phase 76 (Points Resolver + Unit Rules Mapping + Split Warnings)
+Last activity: 2026-05-15
 
-Progress: [████░░░░░░] 38%
+Progress: [██████░░░░] 63%
 
 ## Performance Metrics
 

@@ -205,7 +205,7 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 
 - [x] **Phase 73: Schema Foundation + Version Parity** - Migrations 026+027, version parity check script
 - [ ] **Phase 74: Applied Recipe Identity Hardening** - Switch progress tracking from order_index to recipe_step_id
-- [ ] **Phase 75: Transactional Recipe Graph Save** - Atomic section+step persistence, no partial saves
+- [x] **Phase 75: Transactional Recipe Graph Save** - Atomic section+step persistence, no partial saves
 - [ ] **Phase 76: Points Resolver + Unit Rules Mapping + Split Warnings** - Centralized resolver, source labeling, unit confirmation, warning split
 - [ ] **Phase 77: Data Health Page + Backup/Export** - Diagnostics page, VACUUM INTO backup
 - [ ] **Phase 78: Dashboard Command Center + Game Day After-Action** - Next action UX, ready-to-play summary, end-game loop
@@ -253,8 +253,8 @@ Plans:
 **Wave 1**
 - [x] 75-01-PLAN.md — saveRecipeGraph() transactional function + unit tests
 
-**Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 75-02-PLAN.md — Wire RecipeFormSheet onSubmit to saveRecipeGraph + batch invalidation
+**Wave 2**
+- [x] 75-02-PLAN.md — Wire RecipeFormSheet onSubmit to saveRecipeGraph + batch invalidation
 
 ### Phase 76: Points Resolver + Unit Rules Mapping + Split Warnings
 **Goal**: Every surface that shows points reads from a single resolver function; users can see where each value came from and confirm or override the unit-to-rules mapping; list vs unit warnings are no longer mixed
@@ -393,7 +393,7 @@ Plans:
 | 72. Data-Layer Test Suite | v0.2.11 | 2/2 | Complete | 2026-05-13 |
 | 73. Schema Foundation + Version Parity | v0.2.13 | 2/2 | Complete | 2026-05-14 |
 | 74. Applied Recipe Identity Hardening | v0.2.13 | 0/2 | Not started | - |
-| 75. Transactional Recipe Graph Save | v0.2.13 | 1/2 | In Progress|  |
+| 75. Transactional Recipe Graph Save | v0.2.13 | 2/2 | Complete | 2026-05-15 |
 | 76. Points Resolver + Unit Rules Mapping + Split Warnings | v0.2.13 | 0/2 | Not started | - |
 | 77. Data Health Page + Backup/Export | v0.2.13 | 0/TBD | Not started | - |
 | 78. Dashboard Command Center + Game Day After-Action | v0.2.13 | 0/TBD | Not started | - |
