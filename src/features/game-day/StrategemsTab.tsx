@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Star, ChevronDown } from "lucide-react";
+import { Star, ChevronDown, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/collapsible";
 import { useStratagemsByDetachment } from "@/hooks/useRulesExtended";
 import { useRulesFavorites } from "@/hooks/useRulesFavorites";
+import { useForgottenRules } from "@/hooks/useBattleLogs";
 import { useGameDayStore } from "./gameDayStore";
 import { GameDayStratagemCard } from "./GameDayStratagemCard";
 import type { RwStratagem } from "@/types/datasheet";
@@ -39,6 +40,7 @@ export function StrategemsTab({ detachmentId, listId }: StrategemsTabProps) {
     detachmentId ?? undefined,
   );
   const { data: favorites } = useRulesFavorites();
+  const { data: forgottenRules } = useForgottenRules(listId);
   const spendCp = useGameDayStore((s) => s.spendCp);
 
   const reminders = useMemo(
@@ -105,6 +107,26 @@ export function StrategemsTab({ detachmentId, listId }: StrategemsTabProps) {
                 <Badge variant="outline" className="shrink-0 text-xs">
                   {RULE_TYPE_LABELS[r.rule_type] ?? r.rule_type}
                 </Badge>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Forgotten rules from recent games */}
+      {(forgottenRules ?? []).length > 0 && (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <span className="text-sm font-semibold">Rules You Forgot Recently</span>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            {(forgottenRules ?? []).map((rule) => (
+              <div
+                key={rule}
+                className="flex items-center gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2"
+              >
+                <span className="flex-1 text-sm">{rule}</span>
               </div>
             ))}
           </div>

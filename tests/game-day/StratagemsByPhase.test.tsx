@@ -104,6 +104,13 @@ vi.mock("@/hooks/useRulesFavorites", () => ({
   }),
 }));
 
+vi.mock("@/hooks/useBattleLogs", () => ({
+  useForgottenRules: () => ({
+    data: ["Invulnerable saves", "Overwatch"],
+    isLoading: false,
+  }),
+}));
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------

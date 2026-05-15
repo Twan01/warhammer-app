@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getStrategyNote, upsertStrategyNote } from "@/db/queries/strategyNotes";
+import { getStrategyNote, upsertStrategyNote, appendStrategyNotes } from "@/db/queries/strategyNotes";
 import type { UpsertStrategyNoteInput } from "@/types/strategyNote";
 
 /**
@@ -25,6 +25,16 @@ export function useStrategyNote(unitId: number | undefined) {
     queryFn: () => (unitId !== undefined ? getStrategyNote(unitId) : Promise.resolve(null)),
     enabled: unitId !== undefined,
     staleTime: Infinity,
+  });
+}
+
+export function useAppendStrategyNotes() {
+  const qc = useQueryClient();
+  return useMutation<void, Error, { unit_id: number; text: string }>({
+    mutationFn: ({ unit_id, text }) => appendStrategyNotes(unit_id, text),
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: STRATEGY_NOTE_KEY(variables.unit_id) });
+    },
   });
 }
 

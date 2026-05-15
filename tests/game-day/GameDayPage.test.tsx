@@ -24,6 +24,7 @@ vi.mock("@tanstack/react-router", () => ({
 vi.mock("@/hooks/useBattleLogs", () => ({
   useCreateBattleLog: () => ({ mutateAsync: vi.fn() }),
   useUpdateBattleLog: () => ({ mutateAsync: vi.fn() }),
+  useForgottenRules: () => ({ data: [], isLoading: false }),
 }));
 
 vi.mock("@/hooks/useUnits", () => ({

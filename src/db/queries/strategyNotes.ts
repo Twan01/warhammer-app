@@ -22,6 +22,30 @@ export async function getStrategyNote(unitId: number): Promise<StrategyNote | nu
   return rows[0] ?? null;
 }
 
+export async function appendStrategyNotes(
+  unitId: number,
+  appendText: string,
+): Promise<void> {
+  const db = await getDb();
+  const existing = await db.select<{ id: number; notes: string | null }[]>(
+    "SELECT id, notes FROM unit_strategy_notes WHERE unit_id = $1",
+    [unitId],
+  );
+  if (existing.length > 0) {
+    const current = existing[0].notes;
+    const merged = current ? `${current}\n\n${appendText}` : appendText;
+    await db.execute(
+      "UPDATE unit_strategy_notes SET notes = $2, updated_at = datetime('now') WHERE unit_id = $1",
+      [unitId, merged],
+    );
+  } else {
+    await db.execute(
+      "INSERT INTO unit_strategy_notes (unit_id, notes) VALUES ($1, $2)",
+      [unitId, appendText],
+    );
+  }
+}
+
 export async function upsertStrategyNote(input: UpsertStrategyNoteInput): Promise<void> {
   const db = await getDb();
   const existing = await db.select<{ id: number }[]>(

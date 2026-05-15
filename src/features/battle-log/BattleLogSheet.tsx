@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateBattleLog, useUpdateBattleLog } from "@/hooks/useBattleLogs";
+import { useAppendStrategyNotes } from "@/hooks/useStrategyNote";
 import { useArmyLists } from "@/hooks/useArmyLists";
 import { useUnits } from "@/hooks/useUnits";
 import {
@@ -129,6 +130,7 @@ export function BattleLogSheet({
   const isPrefilled = prefill !== undefined && log === null;
   const createBattleLog = useCreateBattleLog();
   const updateBattleLog = useUpdateBattleLog();
+  const appendNotes = useAppendStrategyNotes();
   const { data: armyLists, isLoading: armyListsLoading } = useArmyLists();
   const { data: units, isLoading: unitsLoading } = useUnits();
 
@@ -171,6 +173,20 @@ export function BattleLogSheet({
         await createBattleLog.mutateAsync(payload);
         toast.success("Game logged.");
       }
+
+      if (values.mvp_unit_id && values.mvp_notes) {
+        appendNotes.mutate({
+          unit_id: values.mvp_unit_id,
+          text: `[MVP ${values.battle_date}] ${values.mvp_notes}`,
+        });
+      }
+      if (values.underperforming_unit_id && values.underperformer_notes) {
+        appendNotes.mutate({
+          unit_id: values.underperforming_unit_id,
+          text: `[Underperformed ${values.battle_date}] ${values.underperformer_notes}`,
+        });
+      }
+
       onClose();
     } catch {
       toast.error("Something went wrong. Please try again.");
