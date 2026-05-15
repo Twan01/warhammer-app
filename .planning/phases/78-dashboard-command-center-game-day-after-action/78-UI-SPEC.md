@@ -1,7 +1,7 @@
 ---
 phase: 78
 slug: dashboard-command-center-game-day-after-action
-status: draft
+status: approved
 shadcn_initialized: true
 preset: "style=new-york, baseColor=zinc, cssVariables=true"
 created: 2026-05-15
@@ -43,7 +43,7 @@ Declared values (multiples of 4 — matches existing dashboard `gap-6` / `p-6` p
 | 3xl | 64px | Page-level spacing (not used in this phase) |
 
 Exceptions:
-- Collapsible after-action section header: `px-4 py-3` (12px vertical) — matches existing ChecklistTab pattern
+- Collapsible after-action section header: `px-4 py-2` (8px vertical) — compact trigger, consistent with standard set
 - CP tracker pill: `px-4 py-2` (8px vertical) — inherits from GameDayHeader existing pattern
 - Section label (uppercase tracking): `text-sm font-semibold uppercase tracking-widest` — matches all existing dashboard section labels
 
@@ -56,7 +56,7 @@ Exceptions:
 | Body | 14px (`text-sm`) | 400 (regular) | 1.5 |
 | Label | 12px (`text-xs`) | 600 (semibold) | 1.4 |
 | Heading | 18px (`text-lg`) | 600 (semibold) | 1.25 |
-| Display | 20px (`text-xl`) | 700 (bold) | 1.2 |
+| Display | 20px (`text-xl`) | 600 (semibold) | 1.2 |
 
 Notes:
 - Section labels (e.g., "Next Painting Action", "Ready to Play"): 14px / semibold / uppercase / `tracking-widest` — matches `ArmyReadinessCard`, `DashboardPage` section pattern
@@ -280,11 +280,11 @@ No third-party registries declared. Registry vetting gate: not applicable.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved (2026-05-15)
