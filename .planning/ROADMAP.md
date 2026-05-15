@@ -308,10 +308,14 @@ Plans:
   5. The after-action sheet lets the user record which rules were forgotten and tag MVP or underperformer units
   6. Forgotten rules captured in after-action can be promoted to Game Day reminders with one action
   7. Unit notes and army list notes can be edited directly from the after-action sheet without navigating away
-**Plans**: 2 plans
+**Plans**: 3 plans
 Plans:
-- [ ] 78-01-PLAN.md — TBD
-- [ ] 78-02-PLAN.md — TBD
+**Wave 1**
+- [ ] 78-01-PLAN.md — BattleLog type + schema + query extension, useNextPaintingAction hook, getRecentForgottenRules query
+
+**Wave 2** *(parallel — no file overlap)*
+- [ ] 78-02-PLAN.md — Dashboard cards (NextPaintingAction, ReadyToPlay, DataHealthSummary) + DashboardPage wiring
+- [ ] 78-03-PLAN.md — Game Day after-action (BattleLogSheet extension, End Game button, forgotten rules reminders)
 **UI hint**: yes
 
 ## Progress
@@ -397,4 +401,4 @@ Plans:
 | 75. Transactional Recipe Graph Save | v0.2.13 | 2/2 | Complete | 2026-05-15 |
 | 76. Points Resolver + Unit Rules Mapping + Split Warnings | v0.2.13 | 0/2 | Not started | - |
 | 77. Data Health Page + Backup/Export | v0.2.13 | 2/2 | Complete   | 2026-05-15 |
-| 78. Dashboard Command Center + Game Day After-Action | v0.2.13 | 0/TBD | Not started | - |
+| 78. Dashboard Command Center + Game Day After-Action | v0.2.13 | 0/3 | Not started | - |
