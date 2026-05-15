@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   computeUnitWarnings,
+  computeListWarnings,
   computeListHealthStats,
 } from "@/lib/computeUnitWarnings";
 import type { WarningContext } from "@/lib/computeUnitWarnings";
@@ -41,26 +42,19 @@ function makeContext(overrides: Partial<WarningContext> = {}): WarningContext {
 }
 
 // ---------------------------------------------------------------------------
-// computeUnitWarnings
+// computeUnitWarnings (unit-level only after split)
 // ---------------------------------------------------------------------------
 describe("computeUnitWarnings", () => {
-  it("returns hard 'Points exceeded' when totalPoints > pointsLimit", () => {
+  it("does NOT return 'Points exceeded' even when totalPoints > pointsLimit (list-level)", () => {
     const unit = makeUnit();
     const ctx = makeContext({ totalPoints: 2100, pointsLimit: 2000 });
     const result = computeUnitWarnings(unit, ctx);
-    expect(result.hard).toContain("Points exceeded");
+    expect(result.hard).not.toContain("Points exceeded");
   });
 
   it("does NOT return 'Points exceeded' when pointsLimit is null", () => {
     const unit = makeUnit();
     const ctx = makeContext({ totalPoints: 9999, pointsLimit: null });
-    const result = computeUnitWarnings(unit, ctx);
-    expect(result.hard).not.toContain("Points exceeded");
-  });
-
-  it("does NOT return 'Points exceeded' when totalPoints <= pointsLimit", () => {
-    const unit = makeUnit();
-    const ctx = makeContext({ totalPoints: 2000, pointsLimit: 2000 });
     const result = computeUnitWarnings(unit, ctx);
     expect(result.hard).not.toContain("Points exceeded");
   });
@@ -121,18 +115,20 @@ describe("computeUnitWarnings", () => {
     expect(result.soft).not.toContain("Unknown points");
   });
 
-  it("returns soft 'Stale points' when freshness is 'stale'", () => {
+  it("does NOT return 'Stale points' (moved to list-level)", () => {
     const unit = makeUnit();
     const ctx = makeContext({ freshness: "stale" });
     const result = computeUnitWarnings(unit, ctx);
-    expect(result.soft).toContain("Stale points");
+    expect(result.soft).not.toContain("Stale points");
+    expect(result.soft).not.toContain("Stale points data");
   });
 
-  it("returns soft 'Stale points' when freshness is 'never'", () => {
+  it("does NOT return 'Stale points' for freshness 'never' (moved to list-level)", () => {
     const unit = makeUnit();
     const ctx = makeContext({ freshness: "never" });
     const result = computeUnitWarnings(unit, ctx);
-    expect(result.soft).toContain("Stale points");
+    expect(result.soft).not.toContain("Stale points");
+    expect(result.soft).not.toContain("Stale points data");
   });
 
   it("does NOT return 'Stale points' when freshness is 'fresh'", () => {
@@ -157,7 +153,7 @@ describe("computeUnitWarnings", () => {
     expect(result.soft).toEqual([]);
   });
 
-  it("can accumulate multiple soft warnings", () => {
+  it("can accumulate multiple soft warnings (unit-level only)", () => {
     const unit = makeUnit({
       status_painting: "Not Started",
       status_assembly: 0,
@@ -170,8 +166,62 @@ describe("computeUnitWarnings", () => {
     expect(result.soft).toContain("Not assembled");
     expect(result.soft).toContain("Manual override");
     expect(result.soft).toContain("Unknown points");
-    expect(result.soft).toContain("Stale points");
-    expect(result.soft).toHaveLength(5);
+    // Stale points moved to list-level, so only 4 unit-level warnings
+    expect(result.soft).toHaveLength(4);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeListWarnings (list-level only)
+// ---------------------------------------------------------------------------
+describe("computeListWarnings", () => {
+  it("returns hard 'Points exceeded' when totalPoints > pointsLimit", () => {
+    const ctx = makeContext({ totalPoints: 2100, pointsLimit: 2000 });
+    const result = computeListWarnings(ctx);
+    expect(result.hard).toContain("Points exceeded");
+  });
+
+  it("does NOT return 'Points exceeded' when pointsLimit is null", () => {
+    const ctx = makeContext({ totalPoints: 9999, pointsLimit: null });
+    const result = computeListWarnings(ctx);
+    expect(result.hard).not.toContain("Points exceeded");
+  });
+
+  it("does NOT return 'Points exceeded' when totalPoints <= pointsLimit", () => {
+    const ctx = makeContext({ totalPoints: 2000, pointsLimit: 2000 });
+    const result = computeListWarnings(ctx);
+    expect(result.hard).not.toContain("Points exceeded");
+  });
+
+  it("returns soft 'Stale points data' when freshness is 'stale'", () => {
+    const ctx = makeContext({ freshness: "stale" });
+    const result = computeListWarnings(ctx);
+    expect(result.soft).toContain("Stale points data");
+  });
+
+  it("returns soft 'Stale points data' when freshness is 'never'", () => {
+    const ctx = makeContext({ freshness: "never" });
+    const result = computeListWarnings(ctx);
+    expect(result.soft).toContain("Stale points data");
+  });
+
+  it("does NOT return 'Stale points data' when freshness is 'fresh'", () => {
+    const ctx = makeContext({ freshness: "fresh" });
+    const result = computeListWarnings(ctx);
+    expect(result.soft).not.toContain("Stale points data");
+  });
+
+  it("does NOT return 'Stale points data' when freshness is 'aging'", () => {
+    const ctx = makeContext({ freshness: "aging" });
+    const result = computeListWarnings(ctx);
+    expect(result.soft).not.toContain("Stale points data");
+  });
+
+  it("returns empty hard and soft for a healthy list", () => {
+    const ctx = makeContext({ totalPoints: 1500, pointsLimit: 2000, freshness: "fresh" });
+    const result = computeListWarnings(ctx);
+    expect(result.hard).toEqual([]);
+    expect(result.soft).toEqual([]);
   });
 });
 
@@ -239,16 +289,25 @@ describe("computeListHealthStats", () => {
     const units = [makeUnit(), makeUnit()];
     // Points exceeded is list-level, counted once (not per-unit)
     const stats = computeListHealthStats(units, 100, "fresh");
-    // totalPoints = 200 > 100, but points exceeded is deduplicated to 1
+    // totalPoints = 200 > 100, list-level hard warning counted once
     expect(stats.hardWarningCount).toBe(1);
   });
 
-  it("counts softWarnings across all units", () => {
+  it("counts softWarnings across all units plus list-level", () => {
     const units = [
-      makeUnit({ status_painting: "Not Started" }), // 1 soft
-      makeUnit({ status_assembly: 0 }), // 1 soft
+      makeUnit({ status_painting: "Not Started" }), // 1 soft (unit)
+      makeUnit({ status_assembly: 0 }), // 1 soft (unit)
     ];
     const stats = computeListHealthStats(units, 2000, "fresh");
+    expect(stats.softWarningCount).toBe(2);
+  });
+
+  it("counts list-level soft warnings (stale) in addition to unit-level", () => {
+    const units = [
+      makeUnit({ status_painting: "Not Started" }), // 1 soft (unit)
+    ];
+    const stats = computeListHealthStats(units, 2000, "stale");
+    // 1 unit-level (Not painted) + 1 list-level (Stale points data)
     expect(stats.softWarningCount).toBe(2);
   });
 
