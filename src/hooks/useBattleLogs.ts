@@ -5,6 +5,7 @@ import {
   createBattleLog,
   updateBattleLog,
   deleteBattleLog,
+  getRecentForgottenRules,
 } from "@/db/queries/battleLogs";
 import { computeBattleLogSummary, type BattleLogSummary }
   from "@/features/battle-log/computeBattleLogSummary";
@@ -25,6 +26,8 @@ import type {
  */
 export const BATTLE_LOGS_KEY = ["battle-logs"] as const;
 export const BATTLE_LOG_SUMMARY_KEY = ["battle-logs", "summary"] as const;
+export const FORGOTTEN_RULES_KEY = (armyListId: number) =>
+  ["forgotten-rules", armyListId] as const;
 
 export function useBattleLogs() {
   return useQuery({ queryKey: BATTLE_LOGS_KEY, queryFn: getBattleLogs });
@@ -73,5 +76,13 @@ export function useDeleteBattleLog() {
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
       qc.invalidateQueries({ queryKey: ["recent-activity"] });
     },
+  });
+}
+
+export function useForgottenRules(armyListId: number | undefined) {
+  return useQuery({
+    queryKey: armyListId !== undefined ? FORGOTTEN_RULES_KEY(armyListId) : ["forgotten-rules"],
+    queryFn: () => (armyListId !== undefined ? getRecentForgottenRules(armyListId) : Promise.resolve([])),
+    enabled: armyListId !== undefined,
   });
 }

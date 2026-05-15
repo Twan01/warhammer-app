@@ -60,6 +60,9 @@ const DEFAULT_VALUES: BattleLogFormValues = {
   lessons_learned: null,
   changes_next_time: null,
   notes: null,
+  forgotten_rules: null,
+  mvp_notes: null,
+  underperformer_notes: null,
 };
 
 function buildDefaultValues(log: BattleLog | null): BattleLogFormValues {
@@ -79,6 +82,9 @@ function buildDefaultValues(log: BattleLog | null): BattleLogFormValues {
       lessons_learned: log.lessons_learned,
       changes_next_time: log.changes_next_time,
       notes: log.notes,
+      forgotten_rules: log.forgotten_rules,
+      mvp_notes: log.mvp_notes,
+      underperformer_notes: log.underperformer_notes,
     };
   }
   return { ...DEFAULT_VALUES, battle_date: todayISO() };
@@ -126,6 +132,10 @@ export function BattleLogSheet({
         lessons_learned: values.lessons_learned ?? null,
         changes_next_time: values.changes_next_time ?? null,
         notes: values.notes ?? null,
+        forgotten_rules: values.forgotten_rules ?? null,
+        mvp_notes: values.mvp_notes ?? null,
+        underperformer_notes: values.underperformer_notes ?? null,
+        promoted_to_reminder: 0,
       };
 
       if (isEdit && log) {

@@ -40,8 +40,9 @@ export async function createBattleLog(input: CreateBattleLogInput): Promise<numb
        (army_list_id, battle_date, opponent, opponent_faction, mission,
         points_played, result, my_score, opponent_score,
         mvp_unit_id, underperforming_unit_id,
-        lessons_learned, changes_next_time, notes)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+        lessons_learned, changes_next_time, notes,
+        forgotten_rules, mvp_notes, underperformer_notes)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)`,
     [
       input.army_list_id ?? null,
       input.battle_date,
@@ -57,6 +58,9 @@ export async function createBattleLog(input: CreateBattleLogInput): Promise<numb
       input.lessons_learned ?? null,
       input.changes_next_time ?? null,
       input.notes ?? null,
+      input.forgotten_rules ?? null,
+      input.mvp_notes ?? null,
+      input.underperformer_notes ?? null,
     ]
   );
   return result.lastInsertId ?? 0;
@@ -75,7 +79,8 @@ export async function updateBattleLog(input: UpdateBattleLogInput): Promise<void
        opponent_faction = $5, mission = $6, points_played = $7,
        result = $8, my_score = $9, opponent_score = $10,
        mvp_unit_id = $11, underperforming_unit_id = $12,
-       lessons_learned = $13, changes_next_time = $14, notes = $15
+       lessons_learned = $13, changes_next_time = $14, notes = $15,
+       forgotten_rules = $16, mvp_notes = $17, underperformer_notes = $18
      WHERE id = $1`,
     [
       input.id,
@@ -93,8 +98,38 @@ export async function updateBattleLog(input: UpdateBattleLogInput): Promise<void
       input.lessons_learned ?? null,
       input.changes_next_time ?? null,
       input.notes ?? null,
+      input.forgotten_rules ?? null,
+      input.mvp_notes ?? null,
+      input.underperformer_notes ?? null,
     ]
   );
+}
+
+export async function getRecentForgottenRules(armyListId: number): Promise<string[]> {
+  const db = await getDb();
+  const rows = await db.select<{ forgotten_rules: string }[]>(
+    `SELECT forgotten_rules FROM battle_logs
+     WHERE army_list_id = $1 AND forgotten_rules IS NOT NULL
+     ORDER BY battle_date DESC, created_at DESC
+     LIMIT 3`,
+    [armyListId],
+  );
+  const seen = new Set<string>();
+  for (const row of rows) {
+    try {
+      const parsed = JSON.parse(row.forgotten_rules);
+      if (Array.isArray(parsed)) {
+        for (const rule of parsed) {
+          if (typeof rule === "string" && rule.length > 0) {
+            seen.add(rule);
+          }
+        }
+      }
+    } catch {
+      console.warn("Malformed forgotten_rules JSON:", row.forgotten_rules);
+    }
+  }
+  return [...seen];
 }
 
 export async function deleteBattleLog(id: number): Promise<void> {

@@ -64,13 +64,17 @@ describe("battleLogs queries — createBattleLog (BATTLE-01, BATTLE-02, BATTLE-0
       lessons_learned: "Deploy better",
       changes_next_time: "More scouts",
       notes: "Great game",
+      forgotten_rules: null,
+      mvp_notes: null,
+      underperformer_notes: null,
+      promoted_to_reminder: 0,
     };
     const id = await createBattleLog(input);
     expect(id).toBe(42);
     const [sql, params] = executeMock.mock.calls[0];
     expect(sql).toMatch(/INSERT INTO battle_logs/);
-    expect(sql).toMatch(/\$14\)/);
-    expect(params).toHaveLength(14);
+    expect(sql).toMatch(/\$17\)/);
+    expect(params).toHaveLength(17);
   });
 
   it("passes null for nullable fields when input properties are undefined (army_list_id, opponent, points_played, my_score, opponent_score, mvp_unit_id, underperforming_unit_id, lessons_learned, changes_next_time, notes)", async () => {
@@ -129,6 +133,10 @@ describe("battleLogs queries — updateBattleLog (BATTLE-02 — Pitfall 5: full-
       lessons_learned: null,
       changes_next_time: null,
       notes: null,
+      forgotten_rules: null,
+      mvp_notes: null,
+      underperformer_notes: null,
+      promoted_to_reminder: 0,
     };
     await updateBattleLog(input);
     const [sql] = executeMock.mock.calls[0];
@@ -156,6 +164,10 @@ describe("battleLogs queries — updateBattleLog (BATTLE-02 — Pitfall 5: full-
       lessons_learned: null,
       changes_next_time: null,
       notes: null,
+      forgotten_rules: null,
+      mvp_notes: null,
+      underperformer_notes: null,
+      promoted_to_reminder: 0,
     };
     await updateBattleLog(input);
     const [sql, params] = executeMock.mock.calls[0];
@@ -181,6 +193,10 @@ describe("battleLogs queries — updateBattleLog (BATTLE-02 — Pitfall 5: full-
       lessons_learned: null,
       changes_next_time: null,
       notes: null,
+      forgotten_rules: null,
+      mvp_notes: null,
+      underperformer_notes: null,
+      promoted_to_reminder: 0,
     };
     await updateBattleLog(input);
     const [sql] = executeMock.mock.calls[0];

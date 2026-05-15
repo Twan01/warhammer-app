@@ -28,6 +28,10 @@ export interface BattleLog {
   lessons_learned: string | null;
   changes_next_time: string | null;
   notes: string | null;
+  forgotten_rules: string | null;
+  mvp_notes: string | null;
+  underperformer_notes: string | null;
+  promoted_to_reminder: number;
   created_at: string;
   // NO updated_at — schema does not have one
 }

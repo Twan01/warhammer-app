@@ -5,6 +5,52 @@ import type {
   StepProgress,
 } from "@/types/recipeAssignment";
 
+export interface FirstIncompleteStep {
+  assignment_id: number;
+  unit_id: number;
+  unit_name: string;
+  recipe_id: number;
+  recipe_name: string;
+  recipe_step_id: number;
+  description: string;
+  section_name: string | null;
+  section_id: number | null;
+  order_index: number;
+  time_estimate_minutes: number | null;
+  created_at: string;
+}
+
+export async function getMostRecentAssignmentWithIncompleteStep(): Promise<FirstIncompleteStep | null> {
+  const db = await getDb();
+  const rows = await db.select<FirstIncompleteStep[]>(
+    `SELECT
+       a.id AS assignment_id,
+       a.unit_id,
+       u.name AS unit_name,
+       a.recipe_id,
+       r.name AS recipe_name,
+       rs.id AS recipe_step_id,
+       rs.step_name AS description,
+       sec.name AS section_name,
+       rs.section_id,
+       rs.order_index,
+       rs.time_estimate_minutes,
+       a.created_at
+     FROM unit_recipe_assignments a
+     JOIN units u ON u.id = a.unit_id
+     JOIN painting_recipes r ON r.id = a.recipe_id
+     JOIN recipe_steps rs ON rs.recipe_id = a.recipe_id
+     LEFT JOIN recipe_sections sec ON sec.id = rs.section_id
+     LEFT JOIN unit_recipe_step_progress p
+       ON p.assignment_id = a.id AND p.recipe_step_id = rs.id
+     WHERE p.id IS NULL
+     ORDER BY a.created_at DESC, rs.order_index ASC
+     LIMIT 1`,
+    [],
+  );
+  return rows[0] ?? null;
+}
+
 /**
  * Returns all recipe assignments for a given unit, ordered by creation date.
  */

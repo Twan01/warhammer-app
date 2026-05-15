@@ -57,12 +57,12 @@ beforeEach(() => {
   mockUseRulesSyncMeta.mockReturnValue({
     data: { last_sync_at: "2026-05-15T10:00:00Z", total_datasheets: 100 },
     isLoading: false,
-  } as ReturnType<typeof useRulesSyncMeta>);
+  } as unknown as ReturnType<typeof useRulesSyncMeta>);
 
   mockUseRulesSyncErrors.mockReturnValue({
     data: [],
     isLoading: false,
-  } as ReturnType<typeof useRulesSyncErrors>);
+  } as unknown as ReturnType<typeof useRulesSyncErrors>);
 });
 
 describe("VersionInfoCard", () => {
@@ -111,7 +111,7 @@ describe("VersionInfoCard", () => {
         { id: 2, table_name: "test2", error_message: "fail2", created_at: "2026-01-01" },
       ],
       isLoading: false,
-    } as ReturnType<typeof useRulesSyncErrors>);
+    } as unknown as ReturnType<typeof useRulesSyncErrors>);
 
     render(<VersionInfoCard />);
 
@@ -124,7 +124,7 @@ describe("VersionInfoCard", () => {
       isLoading: true,
     } as ReturnType<typeof useSchemaVersions>);
 
-    const { container } = render(<VersionInfoCard />);
+    render(<VersionInfoCard />);
 
     // Labels should still be present
     expect(screen.getByText("DB Schema")).toBeInTheDocument();

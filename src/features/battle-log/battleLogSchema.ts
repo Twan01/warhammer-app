@@ -42,6 +42,9 @@ export const battleLogSchema = z.object({
   lessons_learned: z.string().max(2000).nullable(),
   changes_next_time: z.string().max(2000).nullable(),
   notes: z.string().max(2000).nullable(),
+  forgotten_rules: z.string().max(5000).nullable(),
+  mvp_notes: z.string().max(2000).nullable(),
+  underperformer_notes: z.string().max(2000).nullable(),
 });
 
 export type BattleLogFormValues = z.infer<typeof battleLogSchema>;
