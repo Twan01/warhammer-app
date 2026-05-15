@@ -206,7 +206,7 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 - [x] **Phase 73: Schema Foundation + Version Parity** - Migrations 026+027, version parity check script
 - [x] **Phase 74: Applied Recipe Identity Hardening** - Switch progress tracking from order_index to recipe_step_id
 - [x] **Phase 75: Transactional Recipe Graph Save** - Atomic section+step persistence, no partial saves
-- [ ] **Phase 76: Points Resolver + Unit Rules Mapping + Split Warnings** - Centralized resolver, source labeling, unit confirmation, warning split
+- [x] **Phase 76: Points Resolver + Unit Rules Mapping + Split Warnings** - Centralized resolver, source labeling, unit confirmation, warning split
 - [ ] **Phase 77: Data Health Page + Backup/Export** - Diagnostics page, VACUUM INTO backup
 - [ ] **Phase 78: Dashboard Command Center + Game Day After-Action** - Next action UX, ready-to-play summary, end-game loop
 
