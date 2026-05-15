@@ -4,8 +4,9 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { computeListHealthStats } from "@/lib/computeUnitWarnings";
+import { computeListHealthStats, computeListWarnings } from "@/lib/computeUnitWarnings";
 import { PointsFreshnessBadge } from "./PointsFreshnessBadge";
 import type { ArmyListUnitRow } from "@/types/armyList";
 import {
@@ -35,6 +36,14 @@ export function ArmyListSummaryBar({ units, pointsLimit, freshness }: ArmyListSu
     [units, pointsLimit, freshness],
   );
 
+  const listWarnings = useMemo(
+    () => computeListWarnings({ totalPoints: stats.totalPoints, pointsLimit, freshness }),
+    [stats.totalPoints, pointsLimit, freshness],
+  );
+
+  const listWarningCount = listWarnings.hard.length + listWarnings.soft.length;
+  const unitWarningCount =
+    stats.hardWarningCount + stats.softWarningCount - listWarningCount;
   const totalWarnings = stats.hardWarningCount + stats.softWarningCount;
 
   const notReadyUnits = useMemo(
@@ -104,11 +113,23 @@ export function ArmyListSummaryBar({ units, pointsLimit, freshness }: ArmyListSu
               </span>
             </TooltipTrigger>
             <TooltipContent>
-              {stats.hardWarningCount} critical, {stats.softWarningCount} informational
+              {listWarningCount} list warnings, {unitWarningCount} unit warnings
             </TooltipContent>
           </Tooltip>
         )}
       </div>
+
+      {/* List-level warning badges (Phase 76 D-13) */}
+      {(listWarnings.hard.length > 0 || listWarnings.soft.length > 0) && (
+        <div className="flex flex-wrap gap-2" role="status">
+          {listWarnings.hard.map((w) => (
+            <Badge key={w} variant="destructive">{w}</Badge>
+          ))}
+          {listWarnings.soft.map((w) => (
+            <Badge key={w} variant="outline">{w}</Badge>
+          ))}
+        </div>
+      )}
 
       {/* Role coverage — only when at least one unit has a role */}
       {hasAnyRole && (

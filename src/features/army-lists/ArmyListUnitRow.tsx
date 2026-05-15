@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { AlertTriangle, ChevronDown, ChevronUp, Info, Trash2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -21,12 +22,18 @@ import { useUpdateArmyListUnit } from "@/hooks/useArmyLists";
 import { useUnitPointTiers } from "@/hooks/useUnitPointTiers";
 import { useUnitLoadouts } from "@/hooks/useUnitLoadouts";
 import { useUpdateUnit } from "@/hooks/useUnits";
+import { useUnitRulesMapping } from "@/hooks/useUnitRulesMapping";
 import { computeDelta } from "@/lib/computeDelta";
 import { computeUnitWarnings } from "@/lib/computeUnitWarnings";
 import type { WarningContext } from "@/lib/computeUnitWarnings";
+import { resolveUnitPoints } from "@/lib/resolveUnitPoints";
 import type { SyncFreshness } from "@/lib/syncFreshness";
 import type { ArmyListUnitRow as ArmyListUnitRowType } from "@/types/armyList";
 import { TACTICAL_ROLES, TACTICAL_ROLES_DISPLAY } from "@/types/armyList";
+import { findMatchingDatasheets } from "@/db/queries/unitRulesMapping";
+import { PointsSourceChip } from "./PointsSourceChip";
+import { MatchStatusIndicator } from "./MatchStatusIndicator";
+import { RulesMappingSheet } from "./RulesMappingSheet";
 
 interface ArmyListUnitRowProps {
   unit: ArmyListUnitRowType;
@@ -64,9 +71,31 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
   const [expanded, setExpanded] = useState(false);
   const [notesDraft, setNotesDraft] = useState(unit.notes ?? "");
   const [pendingTierId, setPendingTierId] = useState<number | null>(null);
+  const [mappingSheetOpen, setMappingSheetOpen] = useState(false);
 
   const { data: tiers } = useUnitPointTiers(unit.unit_id);
   const { data: loadouts } = useUnitLoadouts(unit.unit_id);
+  const { data: rulesMapping } = useUnitRulesMapping(unit.unit_id);
+
+  // Phase 76 — points source resolution
+  const resolved = useMemo(
+    () =>
+      resolveUnitPoints({
+        points_override: unit.points_override,
+        synced_points: unit.synced_points,
+        override_points: unit.override_points,
+        unit_points: unit.unit_points,
+      }),
+    [unit.points_override, unit.synced_points, unit.override_points, unit.unit_points],
+  );
+
+  // Phase 76 — ambiguity detection (T-76-05: cached by React Query)
+  const { data: matchingDatasheets } = useQuery({
+    queryKey: ["matching-datasheets", unit.unit_name, unit.faction_id],
+    queryFn: () => findMatchingDatasheets(unit.unit_name, unit.faction_id),
+    staleTime: 5 * 60 * 1000,
+  });
+  const ambiguousCount = matchingDatasheets?.length ?? 0;
 
   const hasTiers = (tiers?.length ?? 0) > 0;
   const activeLoadout = loadouts?.find((l) => l.is_active === 1);
@@ -152,6 +181,12 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
                 <TooltipContent>{warnings.soft.join(", ")}</TooltipContent>
               </Tooltip>
             ) : null}
+            <MatchStatusIndicator
+              unitId={unit.unit_id}
+              matchStatus={rulesMapping?.match_status ?? null}
+              ambiguousCount={ambiguousCount}
+              onClick={() => setMappingSheetOpen(true)}
+            />
             <span>{unit.unit_name}</span>
           </div>
           {activeLoadout && (
@@ -225,6 +260,7 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
               </Badge>
             )}
           </div>
+          <PointsSourceChip points={resolved.points} source={resolved.source} />
           {hasTiers && (
             <div className="flex items-center gap-1.5 mt-1">
               <Select
@@ -320,6 +356,16 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
             </div>
           </TableCell>
         </TableRow>
+      )}
+
+      {mappingSheetOpen && (
+        <RulesMappingSheet
+          open={mappingSheetOpen}
+          unitId={unit.unit_id}
+          unitName={unit.unit_name}
+          factionId={unit.faction_id}
+          onClose={() => setMappingSheetOpen(false)}
+        />
       )}
     </>
   );
