@@ -204,7 +204,7 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 **Milestone Goal:** Make HobbyForge trustworthy and guided — stable data identity, transactional writes, centralized points resolution, data health visibility, backup/export, and an actionable dashboard that tells the user what to do next.
 
 - [x] **Phase 73: Schema Foundation + Version Parity** - Migrations 026+027, version parity check script
-- [ ] **Phase 74: Applied Recipe Identity Hardening** - Switch progress tracking from order_index to recipe_step_id
+- [x] **Phase 74: Applied Recipe Identity Hardening** - Switch progress tracking from order_index to recipe_step_id
 - [x] **Phase 75: Transactional Recipe Graph Save** - Atomic section+step persistence, no partial saves
 - [ ] **Phase 76: Points Resolver + Unit Rules Mapping + Split Warnings** - Centralized resolver, source labeling, unit confirmation, warning split
 - [ ] **Phase 77: Data Health Page + Backup/Export** - Diagnostics page, VACUUM INTO backup
@@ -236,8 +236,8 @@ Plans:
   4. Units that had zero progress recorded continue to show zero completed steps after migration
 **Plans**: 2 plans
 Plans:
-- [ ] 74-01-PLAN.md — Migration 028 + type/query/function layer updates
-- [ ] 74-02-PLAN.md — Hook/UI consumer + test updates
+- [x] 74-01-PLAN.md — Migration 028 + type/query/function layer updates
+- [x] 74-02-PLAN.md — Hook/UI consumer + test updates
 
 ### Phase 75: Transactional Recipe Graph Save
 **Goal**: Saving a recipe always completes fully or not at all — partial saves are structurally impossible

@@ -10,8 +10,8 @@ Requirements for Data Integrity, Diagnostics & Product Coherence milestone.
 
 ### Data Integrity
 
-- [ ] **DI-01**: Applied recipe step progress is keyed by recipe_step_id (not order_index) — reordering steps does not move completion
-- [ ] **DI-02**: Existing progress rows are migrated safely from order_index to recipe_step_id with section-disambiguated back-fill
+- [x] **DI-01**: Applied recipe step progress is keyed by recipe_step_id (not order_index) — reordering steps does not move completion
+- [x] **DI-02**: Existing progress rows are migrated safely from order_index to recipe_step_id with section-disambiguated back-fill
 - [x] **DI-03**: Recipe metadata, sections, and steps save atomically in a single transaction — partial saves are impossible
 - [x] **DI-04**: Recipe graph save preserves existing section/step IDs (non-destructive, same as current five-phase diff)
 - [x] **DI-05**: package.json and tauri.conf.json versions match, enforced by a `pnpm check:version` script

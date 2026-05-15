@@ -24,7 +24,7 @@ Shipped through v0.2.12 (72 phases): full hobby command center with collection m
 
 ## Current State
 
-v0.2.12 shipped. Planning v0.2.13 milestone.
+v0.2.13 milestone in progress. Phase 73 (schema foundation), Phase 74 (recipe identity hardening), and Phase 75 (transactional recipe save) complete. Next: Phase 76 (points resolver + unit rules mapping).
 
 ## Core Value
 
