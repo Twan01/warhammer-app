@@ -22,6 +22,7 @@ import { WishlistPage } from "./wishlist/page";
 import { GoalsPage } from "./goals/page";
 import { RulesHubPageShell } from "./rules-hub/page";
 import { GameDayPageShell } from "./game-day/page";
+import { DataHealthPage } from "./data-health/page";
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -121,6 +122,12 @@ const gameDayRoute = createRoute({
   component: GameDayPageShell,
 });
 
+const dataHealthRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/data-health",
+  component: DataHealthPage,
+});
+
 const routeTree = rootRoute.addChildren([
   dashboardRoute,
   factionsRoute,
@@ -136,6 +143,7 @@ const routeTree = rootRoute.addChildren([
   settingsRoute,
   rulesHubRoute,
   gameDayRoute,
+  dataHealthRoute,
 ]);
 
 export const router = createRouter({ routeTree });
