@@ -66,6 +66,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-15
-Stopped at: Phase 74 complete (2/2 plans, verified). Phase 75 also complete.
-Resume file: .planning/phases/76-points-resolver-unit-rules-mapping-split-warnings/
-Resume: Run /gsd-discuss-phase 76
+Stopped at: Phase 77 context gathered
+Resume file: .planning/phases/77-data-health-page-backup-export/77-CONTEXT.md
+Resume: Run /gsd-plan-phase 77
