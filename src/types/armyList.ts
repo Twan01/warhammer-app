@@ -49,6 +49,8 @@ export interface ArmyListUnitRow extends ArmyListUnit {
   status_painting: string;
   painting_percentage: number;
   tactical_role: string | null;
+  synced_points: number | null;
+  override_points: number | null;
 }
 
 export interface ArmyListWithUnits {

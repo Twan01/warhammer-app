@@ -33,6 +33,8 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
     faction_id: 1,
     status_assembly: 1,
     status_painting: "Completed",
+    synced_points: null,
+    override_points: null,
     painting_percentage: 100,
     effective_points: 100,
     tactical_role: null,

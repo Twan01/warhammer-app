@@ -60,6 +60,8 @@ describe("ArmyListUnitRow type", () => {
       status_painting: "Completed",
       painting_percentage: 100,
       tactical_role: "anti_tank",
+      synced_points: null,
+      override_points: null,
     } satisfies ArmyListUnitRow;
     expect(row.tactical_role).toBe("anti_tank");
 

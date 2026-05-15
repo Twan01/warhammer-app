@@ -25,6 +25,8 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
     status_painting: "Completed",
     painting_percentage: 100,
     tactical_role: null,
+    synced_points: null,
+    override_points: null,
     ...overrides,
   };
 }
