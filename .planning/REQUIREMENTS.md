@@ -28,15 +28,15 @@ Requirements for Data Integrity, Diagnostics & Product Coherence milestone.
 
 ### Diagnostics
 
-- [ ] **DX-01**: Data Health page shows app version, schema versions, last sync date, and sync error count
-- [ ] **DX-02**: Data Health page shows row counts for key tables (units, recipes, assignments, progress, points)
-- [ ] **DX-03**: Data Health page flags orphaned progress rows, ambiguous point matches, and stale sync data
+- [x] **DX-01**: Data Health page shows app version, schema versions, last sync date, and sync error count
+- [x] **DX-02**: Data Health page shows row counts for key tables (units, recipes, assignments, progress, points)
+- [x] **DX-03**: Data Health page flags orphaned progress rows, ambiguous point matches, and stale sync data
 - [ ] **DX-04**: Data Health page runs diagnostics without blocking UI (async/lazy)
 
 ### Backup
 
-- [ ] **BK-01**: User can create a backup of hobbyforge.db from the UI via file picker
-- [ ] **BK-02**: Backup uses VACUUM INTO for safe SQLite copy (not raw file copy)
+- [x] **BK-01**: User can create a backup of hobbyforge.db from the UI via file picker
+- [x] **BK-02**: Backup uses VACUUM INTO for safe SQLite copy (not raw file copy)
 - [ ] **BK-03**: Backup status and last backup date are displayed on Data Health page
 
 ### Dashboard
@@ -89,12 +89,12 @@ Deferred to v0.3+:
 | PV-05 | Phase 76 | Pending |
 | PV-06 | Phase 76 | Pending |
 | PV-07 | Phase 76 | Pending |
-| DX-01 | Phase 77 | Pending |
-| DX-02 | Phase 77 | Pending |
-| DX-03 | Phase 77 | Pending |
+| DX-01 | Phase 77 | Complete |
+| DX-02 | Phase 77 | Complete |
+| DX-03 | Phase 77 | Complete |
 | DX-04 | Phase 77 | Pending |
-| BK-01 | Phase 77 | Pending |
-| BK-02 | Phase 77 | Pending |
+| BK-01 | Phase 77 | Complete |
+| BK-02 | Phase 77 | Complete |
 | BK-03 | Phase 77 | Pending |
 | DB-01 | Phase 78 | Pending |
 | DB-02 | Phase 78 | Pending |
