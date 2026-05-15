@@ -208,7 +208,7 @@ Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 - [x] **Phase 75: Transactional Recipe Graph Save** - Atomic section+step persistence, no partial saves
 - [x] **Phase 76: Points Resolver + Unit Rules Mapping + Split Warnings** - Centralized resolver, source labeling, unit confirmation, warning split
 - [x] **Phase 77: Data Health Page + Backup/Export** - Diagnostics page, VACUUM INTO backup (completed 2026-05-15)
-- [ ] **Phase 78: Dashboard Command Center + Game Day After-Action** - Next action UX, ready-to-play summary, end-game loop
+- [x] **Phase 78: Dashboard Command Center + Game Day After-Action** - Next action UX, ready-to-play summary, end-game loop (completed 2026-05-15)
 
 ## Phase Details
 
@@ -311,11 +311,11 @@ Plans:
 **Plans**: 3 plans
 Plans:
 **Wave 1**
-- [ ] 78-01-PLAN.md — BattleLog type + schema + query extension, useNextPaintingAction hook, getRecentForgottenRules query
+- [x] 78-01-PLAN.md — BattleLog type + schema + query extension, useNextPaintingAction hook, getRecentForgottenRules query
 
 **Wave 2** *(parallel — no file overlap)*
-- [ ] 78-02-PLAN.md — Dashboard cards (NextPaintingAction, ReadyToPlay, DataHealthSummary) + DashboardPage wiring
-- [ ] 78-03-PLAN.md — Game Day after-action (BattleLogSheet extension, End Game button, forgotten rules reminders)
+- [x] 78-02-PLAN.md — Dashboard cards (NextPaintingAction, ReadyToPlay, DataHealthSummary) + DashboardPage wiring
+- [x] 78-03-PLAN.md — Game Day after-action (BattleLogSheet extension, End Game button, forgotten rules reminders)
 **UI hint**: yes
 
 ## Progress
@@ -401,4 +401,4 @@ Plans:
 | 75. Transactional Recipe Graph Save | v0.2.13 | 2/2 | Complete | 2026-05-15 |
 | 76. Points Resolver + Unit Rules Mapping + Split Warnings | v0.2.13 | 0/2 | Not started | - |
 | 77. Data Health Page + Backup/Export | v0.2.13 | 2/2 | Complete   | 2026-05-15 |
-| 78. Dashboard Command Center + Game Day After-Action | v0.2.13 | 0/3 | Not started | - |
+| 78. Dashboard Command Center + Game Day After-Action | v0.2.13 | 3/3 | Complete   | 2026-05-15 |
