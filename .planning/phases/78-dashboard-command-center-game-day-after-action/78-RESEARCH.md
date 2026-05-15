@@ -438,22 +438,16 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/component
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does `recipe_steps` have `time_estimate`?**
-   - What we know: DB-01 requires time estimate display; `computeAssignmentProgress` accepts `{ id, section_id }` steps
-   - What's unclear: whether `time_estimate` column exists on `recipe_steps`
-   - Recommendation: Verify `src/db/queries/recipePaints.ts` and `src/types/recipePaint.ts` in Wave 0; if absent, omit from card or show "—"
+   - RESOLVED: The column is `time_estimate_minutes` per migration 012. Plans use this field name.
 
 2. **Sort assignments by `created_at` or add `updated_at` migration?**
-   - What we know: D-01 says `updated_at DESC`; migration 021 only has `created_at`
-   - What's unclear: whether the intent was to track when step progress was last updated (which is on `unit_recipe_step_progress`, not the assignment)
-   - Recommendation: Use `created_at DESC` for simplicity; or better, sort by latest `completed_at` in `unit_recipe_step_progress` for the assignment — this is truly "most recently worked on"
+   - RESOLVED: Sort by `created_at DESC`. No migration needed — simplest approach.
 
 3. **Migration 029 scope?**
-   - What we know: D-14 says "migration 029 adds `forgotten_rules`"; migration 027 already added it
-   - What's unclear: whether 029 should add a truly new column, or whether it's a no-op
-   - Recommendation: Migration 029 can be: (a) omitted entirely, or (b) used to add any OTHER columns not yet in the schema (e.g., `opponent_faction` FK linkage if desired). Most likely: omit 029 and use the existing column.
+   - RESOLVED: Migration 029 omitted entirely. Migration 027 already added `forgotten_rules`, `mvp_notes`, `underperformer_notes`, `promoted_to_reminder` columns.
 
 ---
 
