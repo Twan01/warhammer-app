@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Plus, Minus, Undo2 } from "lucide-react";
+import { ArrowLeft, Plus, Minus, Undo2, Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ interface GameDayHeaderProps {
   factionName: string | null;
   detachmentName: string | null;
   listId: number;
+  onEndGame: () => void;
 }
 
 export function GameDayHeader({
@@ -17,6 +18,7 @@ export function GameDayHeader({
   factionName,
   detachmentName,
   listId,
+  onEndGame,
 }: GameDayHeaderProps) {
   const navigate = useNavigate();
   const listState = useGameDayListState(listId);
@@ -48,6 +50,16 @@ export function GameDayHeader({
             )}
           </div>
         </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-battle-gold text-battle-gold hover:bg-battle-gold/10 shrink-0"
+          onClick={onEndGame}
+        >
+          <Flag size={14} className="mr-1.5" aria-hidden />
+          End Game
+        </Button>
       </div>
 
       {/* CP tracker row */}

@@ -21,6 +21,10 @@ const mockResetChecklist = vi.fn();
 
 let mockChecklistItems: ChecklistItem[] = [];
 
+vi.mock("@/hooks/useBattleLogs", () => ({
+  useForgottenRules: () => ({ data: [], isLoading: false }),
+}));
+
 vi.mock("@/features/game-day/gameDayStore", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/game-day/gameDayStore")>();
   return {

@@ -58,6 +58,9 @@ import { HobbyPipeline } from "./HobbyPipeline";
 import { RecentActivityFeed } from "./RecentActivityFeed";
 import { ArmyReadinessCard } from "./ArmyReadinessCard";
 import { ActiveProjectsPanel } from "./ActiveProjectsPanel";
+import { NextPaintingActionCard } from "./NextPaintingActionCard";
+import { ReadyToPlayCard } from "./ReadyToPlayCard";
+import { DataHealthSummaryCard } from "./DataHealthSummaryCard";
 import { LogSessionSheet } from "./LogSessionSheet";
 import { PageHeader } from "@/components/common/PageHeader";
 
@@ -368,8 +371,20 @@ export function DashboardPage() {
           <HobbyPipeline units={stats.units} />
         </div>
 
-        {/* Left column: Hobby Health + By Faction stacked */}
+        {/* Left column: Command Center + Hobby Health + By Faction stacked */}
         <div className="flex flex-col gap-6">
+          {/* Command Center section (Phase 78) */}
+          <section className="flex flex-col gap-4">
+            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+              Command Center
+            </p>
+            <div className="flex flex-col gap-4">
+              <NextPaintingActionCard />
+              <ReadyToPlayCard />
+              <DataHealthSummaryCard />
+            </div>
+          </section>
+
           {/* HOBBY HEALTH section (Phase 19) — Hobby Health StatCards have NO to prop */}
           <section className="flex flex-col gap-4">
             <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">

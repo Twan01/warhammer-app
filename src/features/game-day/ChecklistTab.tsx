@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Plus, RotateCcw } from "lucide-react";
+import { Plus, RotateCcw, BookOpen } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useGameDayStore, useGameDayListState } from "./gameDayStore";
+import { useForgottenRules } from "@/hooks/useBattleLogs";
 
 interface ChecklistTabProps {
   listId: number;
@@ -15,6 +16,7 @@ export function ChecklistTab({ listId }: ChecklistTabProps) {
   const { toggleChecklistItem, addChecklistItem, resetChecklist } =
     useGameDayStore();
   const [newItemText, setNewItemText] = useState("");
+  const { data: forgottenRules } = useForgottenRules(listId);
 
   function handleAddItem() {
     const trimmed = newItemText.trim();
@@ -34,6 +36,24 @@ export function ChecklistTab({ listId }: ChecklistTabProps) {
           {checked}/{total} complete
         </span>
       </div>
+
+      {forgottenRules && forgottenRules.length > 0 && (
+        <div className="flex flex-col gap-1 px-4 pt-4">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Reminders from last games
+          </p>
+          {forgottenRules.map((rule, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-3 rounded-md border px-3 py-2 bg-amber-500/10"
+            >
+              <BookOpen size={14} className="text-amber-500 shrink-0" />
+              <span className="text-sm">{rule}</span>
+              <span className="text-xs text-amber-600 font-semibold ml-auto">Reminder</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="flex flex-col gap-1 p-4">
         {listState.checklistItems.map((item) => (

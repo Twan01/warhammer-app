@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Swords, Users, ClipboardList } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -13,6 +13,8 @@ import { GameDayReadinessPanel } from "./GameDayReadinessPanel";
 import { StrategemsTab } from "./StrategemsTab";
 import { UnitsTab } from "./UnitsTab";
 import { ChecklistTab } from "./ChecklistTab";
+import { BattleLogSheet } from "@/features/battle-log/BattleLogSheet";
+import { todayISO } from "@/lib/dates";
 
 interface GameDayPageProps {
   listId: number;
@@ -20,6 +22,7 @@ interface GameDayPageProps {
 
 export function GameDayPage({ listId }: GameDayPageProps) {
   const navigate = useNavigate();
+  const [endGameOpen, setEndGameOpen] = useState(false);
   const { data: list, isLoading: listLoading } = useArmyList(listId);
   const { data: units } = useArmyListWithUnits(listId);
   const { data: factions } = useFactions();
@@ -66,6 +69,7 @@ export function GameDayPage({ listId }: GameDayPageProps) {
         factionName={faction?.name ?? null}
         detachmentName={list.detachment_name}
         listId={listId}
+        onEndGame={() => setEndGameOpen(true)}
       />
 
       <GameDayReadinessPanel
@@ -105,6 +109,13 @@ export function GameDayPage({ listId }: GameDayPageProps) {
           <ChecklistTab listId={listId} />
         </TabsContent>
       </Tabs>
+
+      <BattleLogSheet
+        open={endGameOpen}
+        log={null}
+        prefill={{ army_list_id: listId, battle_date: todayISO() }}
+        onClose={() => setEndGameOpen(false)}
+      />
     </div>
   );
 }

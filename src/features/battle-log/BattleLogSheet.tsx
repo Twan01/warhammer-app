@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { ChevronDown } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -21,6 +22,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/components/ui/collapsible";
 import {
   Select,
   SelectContent,
@@ -65,10 +71,28 @@ const DEFAULT_VALUES: BattleLogFormValues = {
   underperformer_notes: null,
 };
 
-function buildDefaultValues(log: BattleLog | null): BattleLogFormValues {
+function parseForgottenRules(raw: string | null): string | null {
+  if (!raw) return null;
+  try {
+    const arr = JSON.parse(raw);
+    if (Array.isArray(arr)) return arr.join("\n");
+  } catch { /* malformed JSON */ }
+  return null;
+}
+
+function serializeForgottenRules(text: string | null): string | null {
+  if (!text) return null;
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  return lines.length > 0 ? JSON.stringify(lines) : null;
+}
+
+function buildDefaultValues(
+  log: BattleLog | null,
+  prefill?: Partial<BattleLogFormValues>,
+): BattleLogFormValues {
   if (log) {
     return {
-      battle_date: log.battle_date.slice(0, 10), // strip any time component
+      battle_date: log.battle_date.slice(0, 10),
       opponent_faction: log.opponent_faction,
       mission: log.mission,
       result: log.result,
@@ -82,24 +106,27 @@ function buildDefaultValues(log: BattleLog | null): BattleLogFormValues {
       lessons_learned: log.lessons_learned,
       changes_next_time: log.changes_next_time,
       notes: log.notes,
-      forgotten_rules: log.forgotten_rules,
+      forgotten_rules: parseForgottenRules(log.forgotten_rules),
       mvp_notes: log.mvp_notes,
       underperformer_notes: log.underperformer_notes,
     };
   }
-  return { ...DEFAULT_VALUES, battle_date: todayISO() };
+  return { ...DEFAULT_VALUES, battle_date: todayISO(), ...prefill };
 }
 
 export function BattleLogSheet({
   open,
   log,
   onClose,
+  prefill,
 }: {
   open: boolean;
   log: BattleLog | null;
   onClose: () => void;
+  prefill?: Partial<BattleLogFormValues>;
 }) {
   const isEdit = log !== null;
+  const isPrefilled = prefill !== undefined && log === null;
   const createBattleLog = useCreateBattleLog();
   const updateBattleLog = useUpdateBattleLog();
   const { data: armyLists, isLoading: armyListsLoading } = useArmyLists();
@@ -107,13 +134,12 @@ export function BattleLogSheet({
 
   const form = useForm<BattleLogFormValues>({
     resolver: zodResolver(battleLogSchema),
-    defaultValues: buildDefaultValues(log),
+    defaultValues: buildDefaultValues(log, prefill),
   });
 
-  // Pitfall 3 belt-and-braces: reset form when log prop changes
   useEffect(() => {
-    form.reset(buildDefaultValues(log));
-  }, [log, form]);
+    form.reset(buildDefaultValues(log, prefill));
+  }, [log, prefill, form]);
 
   async function onSubmit(values: BattleLogFormValues) {
     try {
@@ -132,7 +158,7 @@ export function BattleLogSheet({
         lessons_learned: values.lessons_learned ?? null,
         changes_next_time: values.changes_next_time ?? null,
         notes: values.notes ?? null,
-        forgotten_rules: values.forgotten_rules ?? null,
+        forgotten_rules: serializeForgottenRules(values.forgotten_rules ?? null),
         mvp_notes: values.mvp_notes ?? null,
         underperformer_notes: values.underperformer_notes ?? null,
         promoted_to_reminder: 0,
@@ -148,7 +174,6 @@ export function BattleLogSheet({
       onClose();
     } catch {
       toast.error("Something went wrong. Please try again.");
-      // Sheet stays open so user can retry
     }
   }
 
@@ -156,11 +181,15 @@ export function BattleLogSheet({
     <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <SheetContent className="overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>{isEdit ? "Edit Game" : "Log Game"}</SheetTitle>
+          <SheetTitle>
+            {isEdit ? "Edit Game" : isPrefilled ? "End Game" : "Log Game"}
+          </SheetTitle>
           <SheetDescription>
             {isEdit
               ? "Update this game log entry."
-              : "Record a new game — result, opponent, mission, and notes."}
+              : isPrefilled
+                ? "Record your game result and after-action notes."
+                : "Record a new game — result, opponent, mission, and notes."}
           </SheetDescription>
         </SheetHeader>
 
@@ -349,7 +378,7 @@ export function BattleLogSheet({
               />
             </div>
 
-            {/* Group 3 — Linked Records */}
+            {/* Group 3 — Linked Records (army list only; MVP/underperformer moved to After-Action) */}
             <Separator />
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               Linked Records
@@ -385,120 +414,211 @@ export function BattleLogSheet({
               )}
             />
 
+            {/* Notes field */}
             <FormField
-              name="mvp_unit_id"
+              name="notes"
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>MVP Unit</FormLabel>
-                  <Select
-                    disabled={unitsLoading}
-                    value={field.value !== null ? String(field.value) : NO_UNIT}
-                    onValueChange={(v) => field.onChange(v === NO_UNIT ? null : Number(v))}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select unit (optional)" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value={NO_UNIT}>None</SelectItem>
-                      {(units ?? []).map((u) => (
-                        <SelectItem key={u.id} value={String(u.id)}>
-                          {u.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Notes</FormLabel>
+                  <FormControl>
+                    <textarea
+                      className={TEXTAREA_CLASS}
+                      rows={3}
+                      placeholder="General notes about the game…"
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value || null)}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <FormField
-              name="underperforming_unit_id"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Underperformed</FormLabel>
-                  <Select
-                    disabled={unitsLoading}
-                    value={field.value !== null ? String(field.value) : NO_UNIT}
-                    onValueChange={(v) => field.onChange(v === NO_UNIT ? null : Number(v))}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select unit (optional)" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value={NO_UNIT}>None</SelectItem>
-                      {(units ?? []).map((u) => (
-                        <SelectItem key={u.id} value={String(u.id)}>
-                          {u.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Group 4 — Post-Game Notes */}
+            {/* After-Action collapsible section */}
             <Separator />
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              Post-Game Notes
-            </p>
+            <Collapsible defaultOpen={false}>
+              <CollapsibleTrigger className="flex w-full items-center gap-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  After-Action
+                </span>
+                <ChevronDown size={12} className="ml-auto text-muted-foreground" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="flex flex-col gap-4 pt-2">
+                <FormField
+                  name="forgotten_rules"
+                  control={form.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Forgotten Rules</FormLabel>
+                      <FormControl>
+                        <textarea
+                          className={TEXTAREA_CLASS}
+                          rows={4}
+                          placeholder="Rules you forgot this game — one per line"
+                          {...field}
+                          value={field.value ?? ""}
+                          onChange={(e) => field.onChange(e.target.value || null)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              name="lessons_learned"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Lessons Learned</FormLabel>
-                  <FormControl>
-                    <textarea
-                      className={TEXTAREA_CLASS}
-                      rows={3}
-                      placeholder="What worked, what didn't…"
-                      {...field}
-                      value={field.value ?? ""}
-                      onChange={(e) => field.onChange(e.target.value || null)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  name="mvp_unit_id"
+                  control={form.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>MVP Unit</FormLabel>
+                      <Select
+                        disabled={unitsLoading}
+                        value={field.value !== null ? String(field.value) : NO_UNIT}
+                        onValueChange={(v) => field.onChange(v === NO_UNIT ? null : Number(v))}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select unit (optional)" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value={NO_UNIT}>None</SelectItem>
+                          {(units ?? []).map((u) => (
+                            <SelectItem key={u.id} value={String(u.id)}>
+                              {u.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              name="changes_next_time"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Changes Next Time</FormLabel>
-                  <FormControl>
-                    <textarea
-                      className={TEXTAREA_CLASS}
-                      rows={3}
-                      placeholder="Tactics or list adjustments to try…"
-                      {...field}
-                      value={field.value ?? ""}
-                      onChange={(e) => field.onChange(e.target.value || null)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  name="mvp_notes"
+                  control={form.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>MVP Notes</FormLabel>
+                      <FormControl>
+                        <textarea
+                          className={TEXTAREA_CLASS}
+                          rows={2}
+                          placeholder="Notes on MVP unit"
+                          {...field}
+                          value={field.value ?? ""}
+                          onChange={(e) => field.onChange(e.target.value || null)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  name="underperforming_unit_id"
+                  control={form.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Underperformed</FormLabel>
+                      <Select
+                        disabled={unitsLoading}
+                        value={field.value !== null ? String(field.value) : NO_UNIT}
+                        onValueChange={(v) => field.onChange(v === NO_UNIT ? null : Number(v))}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select unit (optional)" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value={NO_UNIT}>None</SelectItem>
+                          {(units ?? []).map((u) => (
+                            <SelectItem key={u.id} value={String(u.id)}>
+                              {u.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  name="underperformer_notes"
+                  control={form.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Underperformer Notes</FormLabel>
+                      <FormControl>
+                        <textarea
+                          className={TEXTAREA_CLASS}
+                          rows={2}
+                          placeholder="Notes on underperformer"
+                          {...field}
+                          value={field.value ?? ""}
+                          onChange={(e) => field.onChange(e.target.value || null)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  name="lessons_learned"
+                  control={form.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Lessons Learned</FormLabel>
+                      <FormControl>
+                        <textarea
+                          className={TEXTAREA_CLASS}
+                          rows={3}
+                          placeholder="What worked, what didn't…"
+                          {...field}
+                          value={field.value ?? ""}
+                          onChange={(e) => field.onChange(e.target.value || null)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  name="changes_next_time"
+                  control={form.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Changes Next Time</FormLabel>
+                      <FormControl>
+                        <textarea
+                          className={TEXTAREA_CLASS}
+                          rows={3}
+                          placeholder="Tactics or list adjustments to try…"
+                          {...field}
+                          value={field.value ?? ""}
+                          onChange={(e) => field.onChange(e.target.value || null)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CollapsibleContent>
+            </Collapsible>
 
             <SheetFooter className="mt-6 gap-2 sm:gap-2">
               <Button type="button" variant="outline" onClick={onClose}>
                 Discard changes
               </Button>
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                {isEdit ? "Update Game" : "Log Game"}
+                {isEdit ? "Update Game" : isPrefilled ? "Log Game" : "Log Game"}
               </Button>
             </SheetFooter>
           </form>

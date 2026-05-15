@@ -21,7 +21,17 @@ vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
 }));
 
+vi.mock("@/hooks/useBattleLogs", () => ({
+  useCreateBattleLog: () => ({ mutateAsync: vi.fn() }),
+  useUpdateBattleLog: () => ({ mutateAsync: vi.fn() }),
+}));
+
+vi.mock("@/hooks/useUnits", () => ({
+  useUnits: () => ({ data: [], isLoading: false }),
+}));
+
 vi.mock("@/hooks/useArmyLists", () => ({
+  useArmyLists: () => ({ data: [], isLoading: false }),
   useArmyList: () => ({
     data: {
       id: 1,
