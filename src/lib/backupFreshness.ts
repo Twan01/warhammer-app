@@ -15,6 +15,7 @@ export type BackupFreshness = "healthy" | "recommended" | "overdue" | "never";
 export function getBackupFreshness(date: string | null): BackupFreshness {
   if (!date) return "never";
   const ageMs = Date.now() - new Date(date).getTime();
+  if (Number.isNaN(ageMs)) return "never";
   const ageDays = ageMs / (1000 * 60 * 60 * 24);
   if (ageDays <= 7) return "healthy";
   if (ageDays <= 30) return "recommended";
@@ -25,7 +26,8 @@ export function getBackupFreshness(date: string | null): BackupFreshness {
 export function getBackupAgeLabel(date: string | null): string {
   if (!date) return "No backup";
   const ageMs = Date.now() - new Date(date).getTime();
-  const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24));
+  if (Number.isNaN(ageMs)) return "No backup";
+  const ageDays = Math.max(0, Math.floor(ageMs / (1000 * 60 * 60 * 24)));
   if (ageDays === 0) return "Backed up today";
   if (ageDays === 1) return "Backed up yesterday";
   return `Backed up ${ageDays} days ago`;
