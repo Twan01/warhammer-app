@@ -93,7 +93,7 @@ Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
 
 **Milestone Goal:** Make HobbyForge safe to use long-term by giving the user a reliable way to export, restore, and protect their local data.
 
-- [ ] **Phase 79: Rust Backup Foundation** - zip crate + structured export command + validate command + safety backup command (Rust-first; unlocks all UI)
+- [x] **Phase 79: Rust Backup Foundation** - zip crate + structured export command + validate command + safety backup command (Rust-first; unlocks all UI)
 - [ ] **Phase 80: Export UI + Backup Status** - BackupCard upgrade, status indicators, export flow, dashboard integration
 - [ ] **Phase 81: Restore Preview + Validation** - file picker, manifest validation, schema version checks, preview modal (non-destructive)
 - [ ] **Phase 82: Restore Execution + Safety Backups** - atomic file swap, process restart, pre-sync safety backup, safety backup listing
@@ -114,7 +114,7 @@ Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
 **Plans**: 2 plans
 Plans:
 - [x] 79-01-PLAN.md — Dependencies + BackupManifest struct + shared helpers
-- [ ] 79-02-PLAN.md — Three Tauri commands + registration + smoke test
+- [x] 79-02-PLAN.md — Three Tauri commands + registration + smoke test
 **UI hint**: no
 
 ### Phase 80: Export UI + Backup Status
@@ -263,7 +263,7 @@ Plans:
 | 76. Points Resolver + Unit Rules Mapping | v0.2.13 | 2/2 | Complete | 2026-05-15 |
 | 77. Data Health Page + Backup/Export | v0.2.13 | 2/2 | Complete | 2026-05-15 |
 | 78. Dashboard Command Center + After-Action | v0.2.13 | 3/3 | Complete | 2026-05-15 |
-| 79. Rust Backup Foundation | v0.2.14 | 1/2 | In progress | - |
+| 79. Rust Backup Foundation | v0.2.14 | 2/2 | Complete | 2026-05-18 |
 | 80. Export UI + Backup Status | v0.2.14 | 0/TBD | Not started | - |
 | 81. Restore Preview + Validation | v0.2.14 | 0/TBD | Not started | - |
 | 82. Restore Execution + Safety Backups | v0.2.14 | 0/TBD | Not started | - |
