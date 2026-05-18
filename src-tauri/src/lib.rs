@@ -837,6 +837,14 @@ async fn create_safety_backup(app: tauri::AppHandle) -> Result<String, String> {
     Ok(safety_path.display().to_string())
 }
 
+/// Return the app's expected schema version (migration count).
+/// Used by the frontend to compare against a backup manifest's schema_version
+/// for restore compatibility checks (RST-04 / RST-05).
+#[tauri::command]
+fn get_schema_version() -> u32 {
+    get_migrations().len() as u32
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -867,6 +875,7 @@ pub fn run() {
             export_backup,
             validate_backup,
             create_safety_backup,
+            get_schema_version,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
