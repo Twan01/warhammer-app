@@ -1,7 +1,7 @@
 ---
 phase: 80
 slug: export-ui-backup-status
-status: draft
+status: approved
 shadcn_initialized: true
 preset: new-york / zinc / css-variables
 created: 2026-05-18
@@ -33,7 +33,7 @@ Declared values (multiples of 4 — standard 8-point scale):
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| xs | 4px | Icon gaps (`gap-1`, `gap-1.5`), inline dot spacing |
+| xs | 4px | Icon gaps (`gap-1`), inline dot spacing |
 | sm | 8px | Compact element spacing (`gap-2`) |
 | md | 16px | Default element spacing (`gap-4`), card horizontal padding unit |
 | lg | 24px | Card content padding (`p-6` = 24px) |
@@ -43,6 +43,7 @@ Declared values (multiples of 4 — standard 8-point scale):
 
 Exceptions:
 - Status dot size: `h-2 w-2` (8px) — matches existing sync freshness dot in DataHealthSummaryCard
+- Dot-to-label inline gap: 6px (`gap-1.5`) — matches existing DataHealthSummaryCard sync row pattern (line 32: `flex items-center gap-1.5`). Not a multiple of 4 but locked by existing codebase convention for tight inline dot + text rows.
 - Dashboard summary row text: `text-xs`, icon size `12px` — matches existing DataHealthSummaryCard pattern (line 37, 46)
 
 ---
@@ -88,7 +89,7 @@ export const BACKUP_FRESHNESS_DOT_CLASS: Record<BackupFreshness, string> = {
 };
 ```
 
-Rationale for `bg-orange-500` (not `bg-red-500`) for Overdue: four tiers require visual distinction; red is reserved for "never" severity parity with sync freshness "stale" state. Orange communicates urgency without alarm equivalence.
+Rationale for `bg-orange-500` (not `bg-red-500`) for Overdue: orange communicates urgency without alarm. Rationale for `bg-muted-foreground` (not red) for Never: grey signals "not yet started" rather than alarming a first-time user — consistent with sync freshness "never synced" using a neutral dot.
 
 ---
 
@@ -282,11 +283,11 @@ No third-party registry blocks are used or introduced in this phase.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: FLAG (Never tier uses grey not red — intentional, matches sync freshness pattern)
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: FLAG (gap-1.5 6px exception — matches existing codebase pattern)
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved (2026-05-18)
