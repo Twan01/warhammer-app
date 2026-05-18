@@ -162,7 +162,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 
-- [ ] 81-01-PLAN.md — Rust get_schema_version command + BackupManifest TS type + formatBytes utility
+- [x] 81-01-PLAN.md — Rust get_schema_version command + BackupManifest TS type + formatBytes utility
 - [ ] 81-02-PLAN.md — BackupCard restore button + RestorePreviewDialog + tests
 
 **UI hint**: yes

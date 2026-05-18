@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.2.14
 milestone_name: Backup 2.0 — Structured Export, Restore & Safety Backups
 status: executing
-stopped_at: Phase 81 planned (2 plans, verified)
-last_updated: "2026-05-18T19:14:58.766Z"
-last_activity: 2026-05-18 -- Phase 80 planning complete
+stopped_at: Phase 81 Plan 01 complete, Plan 02 next
+last_updated: "2026-05-18T19:17:32Z"
+last_activity: 2026-05-18 -- Phase 81 Plan 01 executed (foundation types)
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 6
-  completed_plans: 2
-  percent: 20
+  completed_plans: 3
+  percent: 30
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-18)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play"
-**Current focus:** v0.2.14 Backup 2.0 — Phases 79-83
+**Current focus:** Phase 81 — Restore Preview + Validation
 
 ## Current Position
 
-Phase: Phase 81 — Restore Preview + Validation (planned)
-Plan: 2 plans in 2 waves (ready to execute)
-Status: Ready to execute
-Last activity: 2026-05-18 -- Phase 80 planning complete
+Phase: 81 (Restore Preview + Validation) — EXECUTING
+Plan: 1 of 2 complete
+Status: Plan 01 done, Plan 02 next
+Last activity: 2026-05-18 -- Phase 81 Plan 01 executed (foundation types)
 
 ## Performance Metrics
 
@@ -66,6 +66,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-18
-Stopped at: Phase 81 planned (2 plans, verified)
-Resume file: .planning/phases/81-restore-preview-validation/81-01-PLAN.md
-Resume: Execute Phase 81 (Restore Preview + Validation)
+Stopped at: Completed 81-01 (foundation types)
+Resume file: .planning/phases/81-restore-preview-validation/81-02-PLAN.md
+Resume: Execute Phase 81 Plan 02 (Restore Preview Dialog)
