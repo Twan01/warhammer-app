@@ -871,3 +871,171 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// EXP-03: BackupManifest serialize/deserialize roundtrip — all 5 fields survive
+    #[test]
+    fn backup_manifest_serde_roundtrip() {
+        let original = BackupManifest {
+            app_version: "0.2.7".to_string(),
+            schema_version: 28,
+            created_at: "2026-05-18T12:00:00Z".to_string(),
+            platform: "windows".to_string(),
+            db_size_bytes: 1_048_576,
+        };
+
+        let json = serde_json::to_string(&original).expect("serialize failed");
+        let deserialized: BackupManifest =
+            serde_json::from_str(&json).expect("deserialize failed");
+
+        assert_eq!(deserialized.app_version, original.app_version);
+        assert_eq!(deserialized.schema_version, original.schema_version);
+        assert_eq!(deserialized.created_at, original.created_at);
+        assert_eq!(deserialized.platform, original.platform);
+        assert_eq!(deserialized.db_size_bytes, original.db_size_bytes);
+    }
+
+    /// EXP-03: format_iso8601_now() returns a valid RFC 3339 timestamp
+    #[test]
+    fn format_iso8601_now_returns_valid_rfc3339() {
+        let ts = format_iso8601_now();
+
+        // Must not be the fallback value
+        assert_ne!(ts, "unknown", "format_iso8601_now returned fallback 'unknown'");
+
+        // Must parse back as a valid RFC 3339 datetime
+        let parsed = time::OffsetDateTime::parse(
+            &ts,
+            &time::format_description::well_known::Rfc3339,
+        );
+        assert!(
+            parsed.is_ok(),
+            "format_iso8601_now produced '{}' which is not valid RFC 3339: {:?}",
+            ts,
+            parsed.err()
+        );
+    }
+
+    /// EXP-04: format_filename_timestamp() returns YYYY-MM-DD-HHMM pattern
+    #[test]
+    fn format_filename_timestamp_matches_pattern() {
+        let ts = format_filename_timestamp();
+
+        // Must be exactly 15 chars: YYYY-MM-DD-HHMM
+        assert_eq!(
+            ts.len(),
+            15,
+            "Expected 15-char timestamp, got '{}' (len={})",
+            ts,
+            ts.len()
+        );
+
+        // Check structure: digits and dashes in correct positions
+        let chars: Vec<char> = ts.chars().collect();
+        // YYYY
+        assert!(chars[0].is_ascii_digit());
+        assert!(chars[1].is_ascii_digit());
+        assert!(chars[2].is_ascii_digit());
+        assert!(chars[3].is_ascii_digit());
+        // -
+        assert_eq!(chars[4], '-');
+        // MM
+        assert!(chars[5].is_ascii_digit());
+        assert!(chars[6].is_ascii_digit());
+        // -
+        assert_eq!(chars[7], '-');
+        // DD
+        assert!(chars[8].is_ascii_digit());
+        assert!(chars[9].is_ascii_digit());
+        // -
+        assert_eq!(chars[10], '-');
+        // HHMM
+        assert!(chars[11].is_ascii_digit());
+        assert!(chars[12].is_ascii_digit());
+        assert!(chars[13].is_ascii_digit());
+        assert!(chars[14].is_ascii_digit());
+
+        // Validate month is 01-12
+        let month: u8 = ts[5..7].parse().unwrap();
+        assert!((1..=12).contains(&month), "Month {} out of range", month);
+
+        // Validate day is 01-31
+        let day: u8 = ts[8..10].parse().unwrap();
+        assert!((1..=31).contains(&day), "Day {} out of range", day);
+
+        // Validate hour is 00-23
+        let hour: u8 = ts[11..13].parse().unwrap();
+        assert!((0..=23).contains(&hour), "Hour {} out of range", hour);
+
+        // Validate minute is 00-59
+        let minute: u8 = ts[13..15].parse().unwrap();
+        assert!((0..=59).contains(&minute), "Minute {} out of range", minute);
+    }
+
+    /// EXP-03 partial: create_backup_zip + ZipArchive read roundtrip
+    #[test]
+    fn create_backup_zip_roundtrip() {
+        use std::io::Read;
+
+        let temp_dir = std::env::temp_dir().join("hobbyforge_test_backup");
+        let _ = std::fs::create_dir_all(&temp_dir);
+
+        let fake_db_path = temp_dir.join("test_hobbyforge.db");
+        let zip_path = temp_dir.join("test_backup.zip");
+
+        // Create a fake db file with known content
+        let db_content = b"SQLite format 3\x00fake database content for testing";
+        std::fs::write(&fake_db_path, db_content).expect("write fake db");
+
+        let manifest = BackupManifest {
+            app_version: "0.2.7".to_string(),
+            schema_version: 28,
+            created_at: "2026-05-18T14:30:00Z".to_string(),
+            platform: "windows".to_string(),
+            db_size_bytes: db_content.len() as u64,
+        };
+
+        // Create the zip
+        create_backup_zip(&fake_db_path, &manifest, &zip_path)
+            .expect("create_backup_zip failed");
+
+        // Verify the zip exists and has nonzero size
+        let zip_meta = std::fs::metadata(&zip_path).expect("zip file missing");
+        assert!(zip_meta.len() > 0, "zip file is empty");
+
+        // Open and verify zip contents
+        let file = std::fs::File::open(&zip_path).expect("open zip");
+        let mut archive = zip::ZipArchive::new(file).expect("parse zip");
+
+        // Must have exactly 2 entries
+        assert_eq!(archive.len(), 2, "Expected 2 entries in zip, got {}", archive.len());
+
+        // Verify hobbyforge.db entry
+        {
+            let mut entry = archive.by_name("hobbyforge.db").expect("missing hobbyforge.db entry");
+            let mut buf = Vec::new();
+            entry.read_to_end(&mut buf).expect("read hobbyforge.db");
+            assert_eq!(buf, db_content, "hobbyforge.db content mismatch");
+        }
+
+        // Verify metadata.json entry deserializes back to original manifest
+        {
+            let mut entry = archive.by_name("metadata.json").expect("missing metadata.json entry");
+            let mut json_str = String::new();
+            entry.read_to_string(&mut json_str).expect("read metadata.json");
+            let parsed: BackupManifest =
+                serde_json::from_str(&json_str).expect("parse metadata.json");
+            assert_eq!(parsed.app_version, manifest.app_version);
+            assert_eq!(parsed.schema_version, manifest.schema_version);
+            assert_eq!(parsed.created_at, manifest.created_at);
+            assert_eq!(parsed.platform, manifest.platform);
+            assert_eq!(parsed.db_size_bytes, manifest.db_size_bytes);
+        }
+
+        // Clean up
+        let _ = std::fs::remove_dir_all(&temp_dir);
+    }
+}
