@@ -31,8 +31,8 @@ Requirements for Backup 2.0 milestone. Each maps to roadmap phases.
 
 - [x] **STS-01**: Data Health shows last backup date and age (e.g., "2 days ago")
 - [x] **STS-02**: Backup health indicator (healthy / recommended / overdue / never backed up)
-- [ ] **STS-03**: BackupCard links to export and restore actions
-- [ ] **STS-04**: Dashboard DataHealthSummaryCard reflects backup status
+- [x] **STS-03**: BackupCard links to export and restore actions
+- [x] **STS-04**: Dashboard DataHealthSummaryCard reflects backup status
 
 ### Safety Backups
 
@@ -89,8 +89,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RST-09 | Phase 81 | Pending |
 | STS-01 | Phase 80 | Complete |
 | STS-02 | Phase 80 | Complete |
-| STS-03 | Phase 80 | Pending |
-| STS-04 | Phase 80 | Pending |
+| STS-03 | Phase 80 | Complete |
+| STS-04 | Phase 80 | Complete |
 | SAF-01 | Phase 79 | Pending |
 | SAF-02 | Phase 82 | Pending |
 | SAF-03 | Phase 79 | Pending |
