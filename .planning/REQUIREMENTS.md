@@ -17,15 +17,15 @@ Requirements for Backup 2.0 milestone. Each maps to roadmap phases.
 
 ### Restore / Import
 
-- [ ] **RST-01**: User can select a backup .zip file to restore from Data Health page
-- [ ] **RST-02**: App validates backup manifest and metadata before restore
-- [ ] **RST-03**: User sees a preview of what will be restored (app version, schema version, date, size)
-- [ ] **RST-04**: App rejects backups with schema version newer than current app
-- [ ] **RST-05**: App warns if backup schema is older (but allows restore)
+- [x] **RST-01**: User can select a backup .zip file to restore from Data Health page
+- [x] **RST-02**: App validates backup manifest and metadata before restore
+- [x] **RST-03**: User sees a preview of what will be restored (app version, schema version, date, size)
+- [x] **RST-04**: App rejects backups with schema version newer than current app
+- [x] **RST-05**: App warns if backup schema is older (but allows restore)
 - [ ] **RST-06**: Automatic safety backup is created before any restore
 - [ ] **RST-07**: Restore replaces hobbyforge.db atomically (sidecar cleanup + file swap)
 - [ ] **RST-08**: App restarts after successful restore to reinitialize DB connections
-- [ ] **RST-09**: Restore does not proceed without explicit user confirmation
+- [x] **RST-09**: Restore does not proceed without explicit user confirmation
 
 ### Backup Status
 
@@ -78,15 +78,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXP-03 | Phase 79 | Pending |
 | EXP-04 | Phase 79 | Pending |
 | EXP-05 | Phase 79 | Pending |
-| RST-01 | Phase 81 | Pending |
-| RST-02 | Phase 81 | Pending |
-| RST-03 | Phase 81 | Pending |
-| RST-04 | Phase 81 | Pending |
-| RST-05 | Phase 81 | Pending |
+| RST-01 | Phase 81 | Complete |
+| RST-02 | Phase 81 | Complete |
+| RST-03 | Phase 81 | Complete |
+| RST-04 | Phase 81 | Complete |
+| RST-05 | Phase 81 | Complete |
 | RST-06 | Phase 82 | Pending |
 | RST-07 | Phase 82 | Pending |
 | RST-08 | Phase 82 | Pending |
-| RST-09 | Phase 81 | Pending |
+| RST-09 | Phase 81 | Complete |
 | STS-01 | Phase 80 | Complete |
 | STS-02 | Phase 80 | Complete |
 | STS-03 | Phase 80 | Complete |

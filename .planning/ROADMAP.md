@@ -95,7 +95,7 @@ Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
 
 - [x] **Phase 79: Rust Backup Foundation** - zip crate + structured export command + validate command + safety backup command (Rust-first; unlocks all UI)
 - [ ] **Phase 80: Export UI + Backup Status** - BackupCard upgrade, status indicators, export flow, dashboard integration
-- [ ] **Phase 81: Restore Preview + Validation** - file picker, manifest validation, schema version checks, preview modal (non-destructive)
+- [x] **Phase 81: Restore Preview + Validation** - file picker, manifest validation, schema version checks, preview modal (non-destructive)
 - [ ] **Phase 82: Restore Execution + Safety Backups** - atomic file swap, process restart, pre-sync safety backup, safety backup listing
 - [ ] **Phase 83: Backup Diagnostics** - never-backed-up flag, staleness threshold, version mismatch detection, diagnostic detail disclosure
 
@@ -163,7 +163,7 @@ Plans:
 Plans:
 
 - [x] 81-01-PLAN.md — Rust get_schema_version command + BackupManifest TS type + formatBytes utility
-- [ ] 81-02-PLAN.md — BackupCard restore button + RestorePreviewDialog + tests
+- [x] 81-02-PLAN.md — BackupCard restore button + RestorePreviewDialog + tests
 
 **UI hint**: yes
 
@@ -294,7 +294,7 @@ Plans:
 | 78. Dashboard Command Center + After-Action | v0.2.13 | 3/3 | Complete | 2026-05-15 |
 | 79. Rust Backup Foundation | v0.2.14 | 2/2 | Complete | 2026-05-18 |
 | 80. Export UI + Backup Status | v0.2.14 | 2/2 | Complete   | 2026-05-18 |
-| 81. Restore Preview + Validation | v0.2.14 | 0/2 | Not started | - |
+| 81. Restore Preview + Validation | v0.2.14 | 2/2 | Complete | - |
 | 82. Restore Execution + Safety Backups | v0.2.14 | 0/TBD | Not started | - |
 | 83. Backup Diagnostics | v0.2.14 | 0/TBD | Not started | - |
 
