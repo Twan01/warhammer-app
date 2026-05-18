@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-18)
 
 ## Current Position
 
-Phase: Phase 81 — Restore Preview + Validation (context gathered)
-Plan: Not yet planned
-Status: Phase 81 context gathered, ready for planning
-Last activity: 2026-05-18 — Phase 81 context captured (auto mode)
+Phase: Phase 81 — Restore Preview + Validation (planned)
+Plan: 2 plans in 2 waves (ready to execute)
+Status: Phase 81 planned, ready to execute
+Last activity: 2026-05-18 — Phase 81 plans created and verified
 
 ## Performance Metrics
 
@@ -65,7 +65,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-18T19:01:28.858Z
-Stopped at: Phase 80 UI-SPEC approved
-Resume file: .planning/phases/80-export-ui-backup-status/80-UI-SPEC.md
-Resume: Plan Phase 81 (Restore Preview + Validation)
+Last session: 2026-05-18
+Stopped at: Phase 81 planned (2 plans, verified)
+Resume file: .planning/phases/81-restore-preview-validation/81-01-PLAN.md
+Resume: Execute Phase 81 (Restore Preview + Validation)
