@@ -724,6 +724,119 @@ fn create_backup_zip(
     Ok(())
 }
 
+// ── Backup commands ─────────────────────────────────────────────────────────
+
+/// Export a structured backup (.zip) containing hobbyforge.db and metadata.json
+/// to the caller-provided destination path. Returns the destination path on
+/// success. The frontend provides the full path (via a save dialog in Phase 80).
+#[tauri::command]
+async fn export_backup(
+    app: tauri::AppHandle,
+    destination: String,
+) -> Result<String, String> {
+    // 1. VACUUM INTO a temp file for a consistent snapshot
+    let temp_path = vacuum_to_temp(&app).await?;
+
+    // 2. Build metadata from runtime values
+    let db_size = std::fs::metadata(&temp_path)
+        .map_err(|e| format!("read temp size: {e}"))?
+        .len();
+
+    let metadata = BackupManifest {
+        app_version: env!("CARGO_PKG_VERSION").to_string(),
+        schema_version: get_migrations().len() as u32,
+        created_at: format_iso8601_now(),
+        platform: std::env::consts::OS.to_string(),
+        db_size_bytes: db_size,
+    };
+
+    // 3. Create the zip archive
+    let dest = std::path::PathBuf::from(&destination);
+    let result = create_backup_zip(&temp_path, &metadata, &dest);
+
+    // 4. Always clean up temp file before propagating any error
+    let _ = std::fs::remove_file(&temp_path);
+
+    result?;
+    Ok(destination)
+}
+
+/// Open a user-provided .zip file and validate it contains a valid backup.
+/// Returns the parsed BackupManifest without modifying any files on disk.
+/// This is a read-only inspection command used for restore preview (Phase 81).
+#[tauri::command]
+async fn validate_backup(path: String) -> Result<BackupManifest, String> {
+    use std::io::Read;
+
+    let file = std::fs::File::open(&path)
+        .map_err(|e| format!("open zip: {e}"))?;
+    let mut archive = zip::ZipArchive::new(file)
+        .map_err(|e| format!("invalid zip archive: {e}"))?;
+
+    // Check hobbyforge.db entry exists (read by exact name — no path traversal)
+    archive
+        .by_name("hobbyforge.db")
+        .map_err(|_| "backup missing hobbyforge.db".to_string())?;
+
+    // Read and parse metadata.json
+    let mut meta_file = archive
+        .by_name("metadata.json")
+        .map_err(|_| "backup missing metadata.json".to_string())?;
+
+    let mut meta_str = String::new();
+    meta_file
+        .read_to_string(&mut meta_str)
+        .map_err(|e| format!("read metadata.json: {e}"))?;
+
+    let manifest: BackupManifest = serde_json::from_str(&meta_str)
+        .map_err(|e| format!("parse metadata.json: {e}"))?;
+
+    Ok(manifest)
+}
+
+/// Create a safety backup in app_data_dir/backups/ with an auto-generated
+/// filename. Returns the full path to the created zip. Called by restore
+/// (Phase 82) and pre-sync safety backup flows.
+#[tauri::command]
+async fn create_safety_backup(app: tauri::AppHandle) -> Result<String, String> {
+    // 1. Resolve and ensure backups directory exists
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("app_data_dir: {e}"))?;
+    let backups_dir = app_data_dir.join("backups");
+    std::fs::create_dir_all(&backups_dir)
+        .map_err(|e| format!("create backups dir: {e}"))?;
+
+    // 2. Generate the safety backup path
+    let safety_path = backups_dir.join(format!("safety-{}.zip", format_filename_timestamp()));
+
+    // 3. VACUUM INTO a temp file for a consistent snapshot
+    let temp_path = vacuum_to_temp(&app).await?;
+
+    // 4. Build metadata
+    let db_size = std::fs::metadata(&temp_path)
+        .map_err(|e| format!("read temp size: {e}"))?
+        .len();
+
+    let metadata = BackupManifest {
+        app_version: env!("CARGO_PKG_VERSION").to_string(),
+        schema_version: get_migrations().len() as u32,
+        created_at: format_iso8601_now(),
+        platform: std::env::consts::OS.to_string(),
+        db_size_bytes: db_size,
+    };
+
+    // 5. Create the zip archive
+    let result = create_backup_zip(&temp_path, &metadata, &safety_path);
+
+    // 6. Always clean up temp file before propagating any error
+    let _ = std::fs::remove_file(&temp_path);
+
+    result?;
+    Ok(safety_path.display().to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -748,7 +861,13 @@ pub fn run() {
                 .add_migrations("sqlite:rules.db", get_rules_migrations())
                 .build(),
         )
-        .invoke_handler(tauri::generate_handler![bulk_sync_rules, backup_database])
+        .invoke_handler(tauri::generate_handler![
+            bulk_sync_rules,
+            backup_database,
+            export_backup,
+            validate_backup,
+            create_safety_backup,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
