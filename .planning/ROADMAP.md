@@ -128,8 +128,8 @@ Plans:
   4. The DataHealthSummaryCard on the Dashboard reflects current backup status (healthy / needs attention)
 **Plans**: 2 plans
 Plans:
-- [ ] 79-01-PLAN.md — Dependencies + BackupManifest struct + shared helpers
-- [ ] 79-02-PLAN.md — Three Tauri commands + registration + smoke test
+- [ ] 80-01-PLAN.md — Backup freshness utility + unit tests
+- [ ] 80-02-PLAN.md — BackupCard migration + DataHealthSummaryCard update + test updates
 **UI hint**: yes
 
 ### Phase 81: Restore Preview + Validation
@@ -160,8 +160,8 @@ Plans:
   5. The Data Health page lists available safety backups with their timestamps and sizes
 **Plans**: 2 plans
 Plans:
-- [ ] 79-01-PLAN.md — Dependencies + BackupManifest struct + shared helpers
-- [ ] 79-02-PLAN.md — Three Tauri commands + registration + smoke test
+- [ ] 80-01-PLAN.md — Backup freshness utility + unit tests
+- [ ] 80-02-PLAN.md — BackupCard migration + DataHealthSummaryCard update + test updates
 **UI hint**: yes
 
 ### Phase 83: Backup Diagnostics
@@ -175,8 +175,8 @@ Plans:
   4. Diagnostic detail (exact age, version numbers) is available on expansion but not displayed by default — users with a healthy backup see a clean green state
 **Plans**: 2 plans
 Plans:
-- [ ] 79-01-PLAN.md — Dependencies + BackupManifest struct + shared helpers
-- [ ] 79-02-PLAN.md — Three Tauri commands + registration + smoke test
+- [ ] 80-01-PLAN.md — Backup freshness utility + unit tests
+- [ ] 80-02-PLAN.md — BackupCard migration + DataHealthSummaryCard update + test updates
 **UI hint**: yes
 
 ---
