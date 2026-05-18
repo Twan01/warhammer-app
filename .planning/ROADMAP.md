@@ -113,7 +113,7 @@ Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
   5. A JS-triggered export returns success or a typed error message that the UI can display
 **Plans**: 2 plans
 Plans:
-- [ ] 79-01-PLAN.md — Dependencies + BackupManifest struct + shared helpers
+- [x] 79-01-PLAN.md — Dependencies + BackupManifest struct + shared helpers
 - [ ] 79-02-PLAN.md — Three Tauri commands + registration + smoke test
 **UI hint**: no
 
@@ -263,7 +263,7 @@ Plans:
 | 76. Points Resolver + Unit Rules Mapping | v0.2.13 | 2/2 | Complete | 2026-05-15 |
 | 77. Data Health Page + Backup/Export | v0.2.13 | 2/2 | Complete | 2026-05-15 |
 | 78. Dashboard Command Center + After-Action | v0.2.13 | 3/3 | Complete | 2026-05-15 |
-| 79. Rust Backup Foundation | v0.2.14 | 0/2 | Not started | - |
+| 79. Rust Backup Foundation | v0.2.14 | 1/2 | In progress | - |
 | 80. Export UI + Backup Status | v0.2.14 | 0/TBD | Not started | - |
 | 81. Restore Preview + Validation | v0.2.14 | 0/TBD | Not started | - |
 | 82. Restore Execution + Safety Backups | v0.2.14 | 0/TBD | Not started | - |
