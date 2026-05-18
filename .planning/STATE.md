@@ -56,8 +56,7 @@ Last activity: 2026-05-18 — Completed 79-02 (three Tauri backup commands + reg
 
 ### Pending Todos
 
-- Add `zip = "2"` to src-tauri/Cargo.toml during Phase 79
-- Count current migration files to establish baseline schema version integer
+None. (Phase 79 completed both: zip dep added, schema_version uses get_migrations().len() at runtime)
 
 ### Open Blockers
 
