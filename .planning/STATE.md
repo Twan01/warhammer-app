@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.2.13
-milestone_name: Data Integrity, Diagnostics & Product Coherence
-status: shipped
-stopped_at: Milestone archived
-last_updated: "2026-05-15T14:00:00.000Z"
-last_activity: 2026-05-15 -- Milestone v0.2.13 archived and tagged
+milestone: v0.2.14
+milestone_name: Backup 2.0 — Structured Export, Restore & Safety Backups
+status: planning
+last_updated: "2026-05-18T17:30:23.213Z"
+last_activity: 2026-05-18
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 13
-  completed_plans: 13
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,9 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-15)
 
 ## Current Position
 
-Milestone v0.2.13 shipped and archived. 78 phases complete across 14 milestones.
-
-Progress: [██████████] 100%
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-18 — Milestone v0.2.14 started
 
 ## Performance Metrics
 

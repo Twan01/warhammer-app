@@ -189,12 +189,22 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ GD-03: Forgotten rules become Game Day reminders — Phase 78 — v0.2.13
 - ✓ GD-04: Notes editable from after-action — Phase 78 — v0.2.13
 
+## Current Milestone: v0.2.14 Backup 2.0 — Structured Export, Restore & Safety Backups
+
+**Goal:** Make HobbyForge safer to use long term by giving the user a reliable way to export, restore and protect their local data.
+
+**Target features:**
+- Structured backup export (timestamped .zip with hobbyforge.db + metadata.json + manifest)
+- Restore / import backup (validate, preview, safety backup before restore, reload)
+- Backup status in Data Health (last backup date, health status, links to export/restore)
+- Automatic safety backups (pre-restore, optionally before sync/migration)
+- Backup diagnostics (never backed up, failed, too old, version mismatch, schema compatibility)
+
 ### Active
 
 ### Out of Scope
 
-- Restore from backup — connection lifecycle complexity, deferred to v0.3+
-- Auto-backup on schedule — manual backup sufficient for now
+- Auto-backup on schedule — manual backup + safety backups before risky operations sufficient for now
 - Settings page — deferred
 - Multi-game-system support (AoS, Horus Heresy, etc.) — 40K 10th edition only
 - macOS / Linux builds — Windows-only
@@ -318,4 +328,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-15 after v0.2.13 milestone shipped*
+*Last updated: 2026-05-18 after v0.2.14 milestone started*
