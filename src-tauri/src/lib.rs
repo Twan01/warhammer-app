@@ -572,49 +572,6 @@ async fn bulk_sync_rules(
     Ok(counts)
 }
 
-/// Create a consistent backup of hobbyforge.db using VACUUM INTO.
-/// Uses a direct sqlx connection (same pattern as bulk_sync_rules) so the
-/// backup is an atomic, consistent snapshot even if the app is running.
-#[tauri::command]
-async fn backup_database(
-    app: tauri::AppHandle,
-    destination: String,
-) -> Result<(), String> {
-    use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions};
-    use std::str::FromStr;
-
-    let app_data_dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| format!("app_data_dir: {e}"))?;
-    let db_url = format!("sqlite:{}", app_data_dir.join("hobbyforge.db").display());
-
-    let opts = SqliteConnectOptions::from_str(&db_url)
-        .map_err(|e| format!("opts: {e}"))?
-        .create_if_missing(false);
-
-    let mut conn = opts.connect().await.map_err(|e| format!("connect: {e}"))?;
-
-    // Remove existing file at destination to avoid VACUUM INTO's
-    // "output file already exists" error (save dialog confirms overwrite).
-    if let Err(e) = std::fs::remove_file(&destination) {
-        if e.kind() != std::io::ErrorKind::NotFound {
-            return Err(format!("remove existing backup: {e}"));
-        }
-    }
-
-    // VACUUM INTO creates a consistent, defragmented copy of the database.
-    // The destination path is interpolated with single-quote escaping since
-    // sqlx parameterized binding does not work for VACUUM INTO's filename arg.
-    let sql = format!("VACUUM INTO '{}'", destination.replace('\'', "''"));
-    sqlx::query(&sql)
-        .execute(&mut conn)
-        .await
-        .map_err(|e| format!("VACUUM INTO: {e}"))?;
-
-    Ok(())
-}
-
 // ── Backup helpers ──────────────────────────────────────────────────────────
 
 #[derive(serde::Serialize, serde::Deserialize, Clone)]
@@ -871,7 +828,6 @@ pub fn run() {
         )
         .invoke_handler(tauri::generate_handler![
             bulk_sync_rules,
-            backup_database,
             export_backup,
             validate_backup,
             create_safety_backup,

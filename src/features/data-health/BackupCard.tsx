@@ -1,14 +1,14 @@
 /**
- * Phase 77 -- Backup action card (UI-SPEC Section 5).
+ * Phase 80 -- Backup action card (UI-SPEC Section 5).
  *
  * Opens a native save dialog via @tauri-apps/plugin-dialog, invokes the
- * Rust `backup_database` command (VACUUM INTO), and persists the result
- * to localStorage. Shows last backup date and filename when available.
+ * Rust `export_backup` command (structured ZIP export), and persists the
+ * result to localStorage. Shows health tier dot + age label when available.
  */
 import { useState } from "react";
-import { save } from "@tauri-apps/plugin-dialog";
+import { save, open as openDialog } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,19 +17,13 @@ import {
   BACKUP_STORAGE_KEY,
   type BackupStatus,
 } from "@/hooks/useDiagnostics";
-
-function formatRelativeDate(isoDate: string): string {
-  const ms = Date.now() - new Date(isoDate).getTime();
-  const days = Math.floor(ms / (1000 * 60 * 60 * 24));
-  if (days === 0) return "today";
-  if (days === 1) return "yesterday";
-  return `${days} days ago`;
-}
-
-function extractFilename(path: string): string {
-  const parts = path.replace(/\\/g, "/").split("/");
-  return parts[parts.length - 1] || path;
-}
+import {
+  getBackupFreshness,
+  getBackupAgeLabel,
+  BACKUP_FRESHNESS_DOT_CLASS,
+} from "@/lib/backupFreshness";
+import type { BackupManifest } from "@/types/backup";
+import { RestorePreviewDialog } from "./RestorePreviewDialog";
 
 export function BackupCard() {
   const initialStatus = useBackupStatus();
@@ -37,21 +31,34 @@ export function BackupCard() {
     initialStatus,
   );
   const [isBackingUp, setIsBackingUp] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [manifest, setManifest] = useState<BackupManifest | null>(null);
+  const [currentSchemaVersion, setCurrentSchemaVersion] = useState<
+    number | null
+  >(null);
 
   async function handleBackup() {
-    const defaultFilename = `hobbyforge-backup-${new Date().toISOString().slice(0, 10)}.db`;
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const year = now.getUTCFullYear();
+    const month = pad(now.getUTCMonth() + 1);
+    const day = pad(now.getUTCDate());
+    const hours = pad(now.getUTCHours());
+    const minutes = pad(now.getUTCMinutes());
+    const defaultFilename = `hobbyforge-backup-${year}-${month}-${day}-${hours}${minutes}.zip`;
 
     const destination = await save({
-      title: "Save Database Backup",
+      title: "Save Backup",
       defaultPath: defaultFilename,
-      filters: [{ name: "SQLite Database", extensions: ["db"] }],
+      filters: [{ name: "HobbyForge Backup", extensions: ["zip"] }],
     });
 
     if (!destination) return;
 
     setIsBackingUp(true);
     try {
-      await invoke("backup_database", { destination });
+      await invoke("export_backup", { destination });
       const status: BackupStatus = {
         date: new Date().toISOString(),
         path: destination,
@@ -69,31 +76,98 @@ export function BackupCard() {
     }
   }
 
+  async function handleRestore() {
+    const result = (await openDialog({
+      multiple: false,
+      directory: false,
+      filters: [{ name: "Backup Archive", extensions: ["zip"] }],
+    })) as string | null;
+
+    if (result === null) return;
+
+    setIsValidating(true);
+    try {
+      const validatedManifest = await invoke<BackupManifest>(
+        "validate_backup",
+        { path: result },
+      );
+      const schemaVersion = await invoke<number>("get_schema_version");
+      setManifest(validatedManifest);
+      setCurrentSchemaVersion(schemaVersion);
+      setPreviewOpen(true);
+    } catch (error) {
+      toast.error(
+        `Invalid backup file: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    } finally {
+      setIsValidating(false);
+    }
+  }
+
+  function handleConfirmRestore() {
+    toast.info("Restore execution coming in a future update");
+    setPreviewOpen(false);
+    setManifest(null);
+  }
+
+  const tier = getBackupFreshness(backupStatus?.date ?? null);
+  const tierLabel = tier.charAt(0).toUpperCase() + tier.slice(1);
+  const ageLabel = getBackupAgeLabel(backupStatus?.date ?? null);
+
   return (
+    <>
     <Card>
       <CardContent className="flex items-center justify-between gap-4 p-6">
         <div className="flex flex-col gap-1">
           <span className="text-sm font-semibold">Database Backup</span>
-          <span className="text-sm text-muted-foreground">
-            {backupStatus
-              ? `Last backup: ${formatRelativeDate(backupStatus.date)} -- ${extractFilename(backupStatus.path)}`
-              : "No backups yet"}
-          </span>
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <span className={`inline-block h-2 w-2 rounded-full ${BACKUP_FRESHNESS_DOT_CLASS[tier]}`} />
+            <span>{tier === "never" ? "Never — No backup yet" : `${tierLabel} — ${ageLabel}`}</span>
+          </div>
         </div>
-        <Button onClick={handleBackup} disabled={isBackingUp}>
-          {isBackingUp ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creating backup...
-            </>
-          ) : (
-            <>
-              <Download className="mr-2 h-4 w-4" />
-              Create Backup
-            </>
-          )}
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleBackup} disabled={isBackingUp}>
+            {isBackingUp ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating backup...
+              </>
+            ) : (
+              <>
+                <Download className="mr-2 h-4 w-4" />
+                Create Backup
+              </>
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleRestore}
+            disabled={isValidating}
+          >
+            {isValidating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Validating...
+              </>
+            ) : (
+              <>
+                <Upload className="mr-2 h-4 w-4" />
+                Restore from Backup
+              </>
+            )}
+          </Button>
+        </div>
       </CardContent>
     </Card>
+    {manifest !== null && currentSchemaVersion !== null && (
+      <RestorePreviewDialog
+        manifest={manifest}
+        currentSchemaVersion={currentSchemaVersion}
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        onConfirm={handleConfirmRestore}
+      />
+    )}
+    </>
   );
 }

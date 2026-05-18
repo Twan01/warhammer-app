@@ -1,9 +1,10 @@
-import { Database, HardDrive } from "lucide-react";
+import { Database } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRulesSyncMeta } from "@/hooks/useDatasheet";
 import { useDiagnosticFlags, useBackupStatus } from "@/hooks/useDiagnostics";
 import { getSyncFreshness, getSyncAgeLabel, FRESHNESS_DOT_CLASS } from "@/lib/syncFreshness";
+import { getBackupFreshness, getBackupAgeLabel, BACKUP_FRESHNESS_DOT_CLASS } from "@/lib/backupFreshness";
 
 export function DataHealthSummaryCard() {
   const { data: syncMeta, isLoading: syncLoading } = useRulesSyncMeta();
@@ -17,14 +18,8 @@ export function DataHealthSummaryCard() {
     ? flags.reduce((sum, f) => sum + f.count, 0)
     : 0;
 
-  const backupLabel = (() => {
-    if (!backup) return "No backup";
-    const ageMs = Date.now() - new Date(backup.date).getTime();
-    const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24));
-    if (ageDays === 0) return "Backed up today";
-    if (ageDays === 1) return "Backed up yesterday";
-    return `Backed up ${ageDays} days ago`;
-  })();
+  const backupTier = getBackupFreshness(backup?.date ?? null);
+  const backupLabel = getBackupAgeLabel(backup?.date ?? null);
 
   return (
     <div className="rounded-lg border border-border/60 bg-card p-4 shadow-sm transition-shadow duration-150 hover:shadow-md">
@@ -55,7 +50,7 @@ export function DataHealthSummaryCard() {
           )}
 
           <div className="flex items-center gap-1.5">
-            <HardDrive size={12} />
+            <span className={`inline-block h-2 w-2 rounded-full ${BACKUP_FRESHNESS_DOT_CLASS[backupTier]}`} />
             <span className="text-muted-foreground">{backupLabel}</span>
           </div>
         </div>
