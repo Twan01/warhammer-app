@@ -138,7 +138,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 80-01-PLAN.md — Backup freshness utility + unit tests
+- [x] 80-01-PLAN.md — Backup freshness utility + unit tests
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -293,7 +293,7 @@ Plans:
 | 77. Data Health Page + Backup/Export | v0.2.13 | 2/2 | Complete | 2026-05-15 |
 | 78. Dashboard Command Center + After-Action | v0.2.13 | 3/3 | Complete | 2026-05-15 |
 | 79. Rust Backup Foundation | v0.2.14 | 2/2 | Complete | 2026-05-18 |
-| 80. Export UI + Backup Status | v0.2.14 | 0/TBD | Not started | - |
+| 80. Export UI + Backup Status | v0.2.14 | 1/2 | In Progress|  |
 | 81. Restore Preview + Validation | v0.2.14 | 0/2 | Not started | - |
 | 82. Restore Execution + Safety Backups | v0.2.14 | 0/TBD | Not started | - |
 | 83. Backup Diagnostics | v0.2.14 | 0/TBD | Not started | - |
