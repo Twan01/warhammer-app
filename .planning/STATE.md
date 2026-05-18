@@ -2,9 +2,10 @@
 gsd_state_version: 1.0
 milestone: v0.2.14
 milestone_name: Backup 2.0 — Structured Export, Restore & Safety Backups
-status: roadmap_ready
-last_updated: "2026-05-18"
-last_activity: 2026-05-18
+status: planning
+stopped_at: Phase 80 context gathered
+last_updated: "2026-05-18T18:55:03.967Z"
+last_activity: 2026-05-18 — Phase 81 context captured (auto mode)
 progress:
   total_phases: 5
   completed_phases: 1
@@ -64,7 +65,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-18
-Stopped at: Phase 81 context gathered
-Resume file: .planning/phases/81-restore-preview-validation/81-CONTEXT.md
+Last session: 2026-05-18T18:55:03.962Z
+Stopped at: Phase 80 context gathered
+Resume file: .planning/phases/80-export-ui-backup-status/80-CONTEXT.md
 Resume: Plan Phase 81 (Restore Preview + Validation)
