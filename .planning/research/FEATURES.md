@@ -1,26 +1,26 @@
 # Feature Research
 
-**Domain:** Local-first hobby management desktop app (Warhammer 40K) — data integrity, diagnostics, backup, next-action dashboard, post-game review
-**Researched:** 2026-05-14
-**Milestone:** v0.2.13 Data Integrity, Diagnostics & Product Coherence
-**Confidence:** HIGH (grounded in existing codebase inspection + competitor app research)
+**Domain:** Backup/restore for a local-first SQLite desktop app (Tauri 2 + Windows)
+**Researched:** 2026-05-18
+**Milestone:** v0.2.14 Backup 2.0 — Structured Export, Restore & Safety Backups
+**Confidence:** HIGH (grounded in existing codebase inspection + comparable app research)
 
 ---
 
-## Context: What Is Already Built
+## Context: What Already Exists (v0.2.13)
 
-This is a subsequent milestone. The following are already shipped and must not be re-scoped here:
+This is a subsequent milestone. The following backup infrastructure is already shipped and must not be re-scoped here:
 
-- Battle log with fields: date, opponent faction, mission, result, VP scores, army list link, MVP unit, underperforming unit, lessons learned, changes next time, notes
-- BattleLogSummaryBar: total games, W/L/D counts, win rate
-- Game Day mode: CP tracker, phase-grouped stratagems, OPG toggles, pre-game checklist (Zustand/localStorage), pre-game readiness panel (points, freshness, warnings, role coverage)
-- Dashboard: CurrentFocusCard with workflow position and step index, ActiveProjectsPanel, ArmyReadinessCard, KanbanCards, FactionSummaryCards, HobbyPipeline, RecentActivityFeed
-- Army list validation: health summary panel with hard warnings, points freshness badges, ownership %, readiness %, tactical role coverage
-- Points system: 5-level COALESCE chain (army-list override > unit override > synced > manual > 0), PointsFreshnessBadge, per-unit delta previews
-- Applied recipe progress: per-unit step-by-step checklist, recipe assignment system, AppliedRecipesTab
-- Data-layer tests: 14 tests via better-sqlite3
+| Existing capability | Implementation | Notes |
+|---------------------|---------------|-------|
+| `backup_database` Rust command (VACUUM INTO) | `src-tauri/src/lib.rs` | Works; only exports hobbyforge.db as raw `.db` file |
+| Native save dialog filtered to `.db` | `BackupCard.tsx` via `@tauri-apps/plugin-dialog` | File picker already wired |
+| Last backup date + path in localStorage | `useDiagnostics.ts` → `BACKUP_STORAGE_KEY` | `{ date, path, success }` shape |
+| BackupCard on DataHealthPage | Phase 77 (BK-01/02/03) | Shows "last backup: N days ago — filename" |
+| `tauri_plugin_fs` registered in builder | `lib.rs` | Available for zip/file ops in new Rust commands |
+| `tauri_plugin_process` registered | `lib.rs` | Available for app restart after restore |
 
-The features below are NEW for v0.2.13.
+The v0.2.14 milestone builds on this. The existing `backup_database` command is not modified — new commands are additive.
 
 ---
 
@@ -28,148 +28,116 @@ The features below are NEW for v0.2.13.
 
 ### Table Stakes (Users Expect These)
 
-Features users assume exist in a personal data app at this maturity. Missing these makes the app feel fragile or incomplete.
+Features users assume exist in a serious local-first data app once basic export is shipped. Missing any of these leaves the backup system feeling incomplete or unsafe.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| Manual backup — export DB to user-chosen path | Personal data apps must not trap your data. A single "Export Backup" action is the minimum expectation for any app that stores irreplaceable personal data locally. | LOW | Tauri `dialog.save()` + Rust `fs::copy` for hobbyforge.db. No schema change. SQLite WAL mode makes a concurrent file copy safe. |
-| Post-game logging from Game Day context | Any tabletop game tracker (Tabletop Battles, BattleBase) lets you log a result immediately after a game. HobbyForge's Game Day mode has no "End Game" exit that carries context to the battle log. The gap makes Game Day a dead end rather than a loop. | MEDIUM | Pre-fill BattleLogSheet from Game Day context: army list ID from gameDayStore, date = todayISO(). BattleLogSheet already exists and accepts all fields. New work: an "End Game" button in GameDayHeader + Sheet portal from GameDayPage. |
-| Data health summary — category-level counts of broken or incomplete records | Power users and anyone who has done multiple syncs expect to audit data coherence. Personal finance apps (Quicken, Lunch Money) surface import errors and orphaned references as table stakes for data-heavy tools. | MEDIUM | Pure SQL read queries, no new schema. New read-only Diagnostics page surfacing issue categories with counts. |
-| Points source labeling — which source is active per unit | The existing 5-level COALESCE chain and freshness badge system implies this level of transparency. Showing `450 pts` with no attribution is incomplete once a freshness/stale system already exists. | LOW | Source classification is fully derivable from existing tables (unit_overrides, synced_unit_points, army_list_units). Display-only PointsSourceChip component. No new queries beyond reading existing columns. |
-| Split list-level vs unit-level warnings | Army list validation currently mixes structural list issues (no detachment, over limit) with per-unit issues (unit stale, not owned). These are distinct concern levels. Mixing them produces noise and makes the warnings panel hard to act on. | LOW | UI refactor of the existing health panel. No data changes. No query changes. |
-| Applied recipe progress identity hardening (order_index → recipe_step_id) | Applied recipe progress is keyed on order_index, which is unstable when steps are reordered or re-inserted. As soon as the non-destructive save (REC-02 from v0.2.11) allows in-place step updates, the keying must be stable or progress records silently mistrack. | MEDIUM | Migration: add recipe_step_id FK column to applied_recipe_progress, backfill from order_index join, drop order_index key column. Query updates to use step ID as identity. |
-| Transactional recipe graph save (atomic sections + steps) | With non-destructive save (REC-02) now shipped, the delete-phase/insert-phase sequence can fail halfway, leaving a partially saved recipe. A transaction wrapper prevents partial writes. | LOW | Wrap the existing five-phase diff save in a single SQLite transaction. Tauri plugin-sql supports `BEGIN`/`COMMIT` via raw queries. No schema change. |
+| Structured backup export (.zip with DB + metadata.json) | Raw `.db` files are opaque and non-self-describing. Any app that competes for trust (Bear, Obsidian, Stash) packages backups as named archives with version context. A `.zip` that can be opened in Explorer and understood is the expected format for personal data export. | MEDIUM | Zip must contain: `hobbyforge.db` (VACUUM INTO copy), `metadata.json` (app version, schema version, export timestamp, table row counts). Filename: `hobbyforge-backup-YYYY-MM-DD-v{semver}.zip`. New Rust command handles zip assembly. |
+| Restore / import from backup file | Any export without restore is a trap. Users back up data expecting to be able to recover. Once export exists, restore is the implied contract. Comparable apps (Bear, Stash) support in-app restore. | HIGH | Sequence: open `.zip` picker → validate zip structure → read metadata.json → show preview → auto-create safety backup → replace hobbyforge.db → trigger app relaunch. The safety-backup-before-replace step is the critical gate — never skip it. |
+| Pre-restore safety backup (automatic) | Data-loss is irreversible. The restore operation replaces the live database. Users expect the app to protect them from a bad restore. Bear warns but provides no protection; Stash requires manual pre-backup. The HobbyForge standard is higher: do it automatically. | MEDIUM | No user action needed. New Rust command `safety_backup_database` writes to `app_data_dir/safety-backups/hobbyforge-safety-{timestamp}.db` using VACUUM INTO. Path shown to user in the restore confirmation dialog. Auto-generated filename — no file picker. |
+| Schema/version compatibility check on restore | Restoring a backup from a newer schema version onto an older app silently corrupts the database (migrations 29-30 would be missing). Stash has reported bugs from exactly this pattern. This must be a hard block, not an advisory. | MEDIUM | Read `app_version` and `schema_version` from `metadata.json` before restore. Block if backup schema_version > current app migration count. Warn (with override) if versions differ but schema_version <= current. Allow same-or-older schema restores after user confirmation. |
+| Restore preview from metadata | Users should know what they are restoring before data is replaced. The `metadata.json` table row counts give enough information for a meaningful preview without opening the DB. | LOW | Display in confirmation dialog: "This backup contains: 42 units, 12 recipes, 8 army lists, 5 factions. Created 2026-05-10 with app v0.2.13." Read from `metadata.json` — no DB access required at this step. |
+| Clear success/failure feedback | Users need to know if export/restore worked. Silent failures are unacceptable for a backup system. | LOW | Toast on success with file path (export) or safety backup path (restore). Inline error with actionable copy on failure. Never swallow errors. |
+| Backup status staleness in BackupCard | "Last backup: 14 days ago" is more actionable than a bare date. Users should see a visual indication that their backup is stale before something goes wrong. | LOW | Extend existing BackupCard. Compute `backupAgeDays` from localStorage date. Show: green (backed up today/yesterday), amber (3-7 days), red (>7 days or never). Feeds into DataHealthSummaryCard on Dashboard. |
 
-### Differentiators (Competitive Advantage)
+### Differentiators (What Makes This Better Than Raw .db Backup)
 
-Features that go beyond the minimum and give HobbyForge its "command center" identity.
+Features that separate the v0.2.14 structured backup from the BK-01/02/03 raw `.db` approach and from comparable apps like Bear and Stash.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| Dashboard next-action card — current step description on CurrentFocusCard | GTD research identifies the most effective productivity UX as giving one concrete physical action, not a category. CurrentFocusCard already shows step index and section name but not step text. Adding the actual step description ("Apply Agrax Earthshade to recesses") transforms the card from status display to directive instruction. | LOW | One JOIN added to the workflow position query to fetch current step name from recipe_steps. One text line added to CurrentFocusCard. Existing workflowPosition type extended with optional stepName field. |
-| Data Health page — actionable issue list with inline fix shortcuts | CMS health dashboards (Umbraco Health Check, Vincere Data Integrity Dashboard) show category grouping, severity levels, and an inline "Fix" action per issue. For HobbyForge: fix shortcuts for safe automated repairs (delete orphaned progress rows, unlink cleared session FKs) differentiate from a purely read-only diagnostic list. | HIGH | Most complex feature in the milestone. Requires identifying all broken FK references, stale progress records, and orphaned assignments. Fix actions call existing mutations. Must not auto-fix on load. |
-| After-action review analytics — per-mission and per-faction win rates on the battle log page | Tabletop Battles (Goonhammer) exposes stats filterable by mission and faction. This is the competitive baseline for any 40K battle tracker. HobbyForge's existing summary bar shows aggregate W/L/D only. Adding per-mission and per-opponent-faction breakdowns closes the analytics gap and surfaces patterns a hobbyist can act on (e.g. consistently losing on specific missions). | MEDIUM | New SQL aggregation queries on battle_logs. No schema change. Renders as a collapsible "Performance breakdown" panel below the existing BattleLogSummaryBar. |
-| Centralized points resolver — extracted pure function with source classification | The 5-level COALESCE logic currently lives inside SQL strings scattered across three query sites. Extracting it to a typed TypeScript function makes it testable, ensures consistent behavior across army lists, diagnostics, and game day, and enables source labeling without duplicating classification logic. | MEDIUM | New `resolvePoints(unit, overrides, syncedPoints)` pure function in src/lib/. Returns `{ value: number, source: PointsSource }`. All three query sites use the same function. Enables PointsSourceChip as a downstream display consumer. |
-| Unit-to-rules mapping confirmation layer — surface units with no Wahapedia match | Units created manually may have names that don't match Wahapedia's exact unit names, causing the rules sync to never populate their stats/abilities. There is currently no way to discover which units are orphaned from rules data. A confirmation layer surfaces unmapped units and lets the user accept the mapping via the existing datasheet import flow. | MEDIUM | New query: JOIN units against synced rules data to identify units with no matched stats. List displayed on Diagnostics page or Unit collection page as a filter preset. Leverages existing DatasheetPicker and DatasheetImportDialog. |
+| Timestamped zip filename with app version | Self-documenting archive in Explorer: `hobbyforge-backup-2026-05-18-v0.2.14.zip` tells the user exactly when and from which version without opening anything. Raw `.db` files have no such context. | LOW | Generated at export time from current semver and `todayISO()`. Constructed in the Rust export command. |
+| metadata.json with schema version | Machine-readable provenance: enables version compatibility check on restore without opening the DB, and provides human-readable summary of what the backup contains. | LOW | Fields: `app_version` (string semver), `schema_version` (integer = migration count, currently 28), `export_timestamp` (ISO-8601), `db_size_bytes`, `table_row_counts` (object with key tables: units, painting_recipes, army_lists, factions, paints, battle_logs). |
+| Automatic pre-restore safety backup | The single biggest trust differentiator. Bear requires users to export first. Stash requires manual pre-backup. HobbyForge does it silently before every restore — users cannot accidentally destroy unrecoverable data. | MEDIUM | Reuses VACUUM INTO logic from existing `backup_database` command. New command: auto-path, no dialog. Path surfaced in confirmation dialog so user knows where the safety net is. |
+| Backup age diagnostic in Data Health | "Never backed up" and "Last backup: 23 days ago" are actionable diagnostics, not just informational. Surfaces in DiagnosticsCard alongside orphan and stale-data flags. | LOW | Extends `DiagnosticsCard` with a backup-status check: reads localStorage backup record, checks age, checks if format is structured zip or legacy raw db. Feeds severity badge (none/warn/error). |
+| Backup format field in localStorage status | Distinguishes structured zip exports (restorable via the new flow) from legacy raw `.db` exports (not restorable via the new flow). Prevents user confusion when they try to restore an old backup. | LOW | Add `format: "zip" | "raw"` to the `BackupStatus` type in `useDiagnostics.ts`. Old records without `format` are treated as `"raw"`. |
 
-### Anti-Features (Commonly Requested, Often Problematic)
+### Anti-Features (Avoid These)
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Auto-backup on schedule | Users worry about data loss | Tauri has no background daemon API. Scheduled backups on Windows require OS-level Task Scheduler integration — out of scope and introduces silent failure modes with no feedback surface. | Manual "Export Backup" button on the Diagnostics/Settings page. Clear guidance to back up before syncs. |
-| Cloud backup / sync to Dropbox or OneDrive via API | Users want off-site safety | Contradicts local-first, no-accounts design. Adds auth surface, network dependency, and privacy exposure for a personal tool containing purchase data and game history. | Export to any local folder. Users whose local folder is inside OneDrive/Dropbox get cloud backup automatically — HobbyForge does nothing extra. |
-| Automatic data integrity repair on startup | Self-healing sounds robust | Silently modifying user data without consent is a trust violation. Auto-fixes can cascade (deleting "orphaned" progress that the user simply hasn't acted on yet). | Show issues on the Diagnostics page. User initiates each fix explicitly. Startup is read-only. |
-| Per-round VP tracking in Game Day (turn-by-turn score) | Competitive players want granular reconstruction | Requires in-game manual entry per turn — disruptive to play. Tabletop Battles' CP-per-round feature is the ceiling for casual tools. This is out of scope for a hobby management app. | Final VP scores in the existing BattleLogSheet my_score / opponent_score fields are sufficient for the target user (hobbyist, not competitive). |
-| Army list snapshot versioning for per-list-version analysis | Users want to compare "list A from March" vs "list B from April" performance | Requires versioning army lists (immutable snapshots at game time). The current schema links battle_log to a mutable army_list_id. Adding versioning is a major schema change. | Use the existing "notes" field in BattleLogSheet to note list version or key changes. Versioning is a v0.3+ concern. |
-| AI-generated next-action or coaching suggestions | Seems natural for a "what to do next" card | Requires LLM API calls (network, API keys, cost), contradicts local-first design, and LLM training data on Warhammer hobby workflows is thin. | Deterministic rule-based next-action derivation from workflow position + step description. Already sufficient, zero latency, zero cost. |
-| Restore from backup (v0.2.13 scope) | Natural complement to export | Restore requires closing the DB connection, replacing the file, and restarting the app. Tauri plugin-sql does not expose a disconnect API from the frontend — the Rust command must manage the connection lifecycle. This is non-trivial and carries data loss risk if done wrong. | Ship export in v0.2.13. Flag restore as v0.2.14 follow-up once the export format and file path conventions are proven. |
+| Scheduled / automatic backup on timer | "Set and forget" safety | Single-user personal tool — scheduled tasks add background process complexity, Windows wake/power issues, and notification spam. Explicitly out of scope per PROJECT.md. | Manual export + automatic pre-restore safety backup + optional pre-sync safety backup covers the real risk windows without background processes |
+| rules.db in the backup archive | "Complete backup" appeal | rules.db is fully reconstructible from Wahapedia sync at any time. It is destroyed and rebuilt on every sync. Including it doubles the archive size (~2-5 MB of rules data) for zero recovery value. | Document in export UI: "Your personal data is backed up. Rules data is re-synced separately." |
+| Backup history list managed in-app | "Restore any version" appeal | Requires in-app storage management, delete UI, and disk space accounting — large scope for single-user marginal value. | Timestamped filenames in Explorer. User manages their own backup history. App tracks only the most recent backup status. |
+| Export to CSV or JSON (human-readable) | Data portability appeal | CSV/JSON export of 28-table schema with FK relationships is a distinct "data portability" feature, not a backup. A backup must be restorable; a CSV export is not. | Defer CSV/JSON export to a separate "Export Data" feature under Data Health if requested. |
+| Differential / incremental backup | "Faster backup" appeal | SQLite VACUUM INTO already produces a compact consistent snapshot. The DB is typically <5 MB. Full snapshot is fast and simple to validate on restore. Differential adds complexity for no measurable user benefit. | Full VACUUM INTO is the correct approach. |
+| Restore from raw .db file (v0.2.14 scope) | Backward compat for BK-01/02/03 backups | Requires a separate restore code path that skips metadata validation. Adds branching complexity to the restore flow. The number of raw .db backups in the wild is low (one user). | Document: "Legacy .db backups cannot be restored in-app. To restore a .db backup, close HobbyForge, replace hobbyforge.db in AppData manually, and relaunch." Revisit in v0.2.15 if needed. |
+| Auto-backup before every sync | "Maximum safety" appeal | Wahapedia sync already takes 2-10 seconds for network + DB operations. Adding VACUUM INTO before every sync adds 0.5-1s and silent file accumulation in AppData. Pre-restore safety backup covers the meaningful risk. | Offer pre-sync safety backup as an explicit user toggle in a future settings page, not as a default. |
 
 ---
 
 ## Feature Dependencies
 
 ```
-Applied recipe identity hardening (order_index → recipe_step_id)
-    └──required-before──> Transactional recipe graph save
-          (transaction must write to stable identity columns)
-    └──required-before──> Data Health diagnostics page
-          (diagnostics audits progress records; unstable keys produce false positives)
-    └──required-before──> any future recipe analytics
+[Structured Export .zip]
+    └──requires──> New Rust command: export_backup (zip assembly + metadata.json)
+    └──requires──> metadata.json schema definition (app_version, schema_version, etc.)
+    └──dependency-of──> Restore (restore reads metadata.json from the zip)
 
-Transactional recipe graph save
-    └──required-before──> Data Health diagnostics page
-          (partial saves would produce spurious orphan counts)
-    └──independent-of──> all user-facing feature changes
+[Restore / Import]
+    └──requires──> Structured Export format (zip + metadata.json — must exist to read)
+    └──requires──> Safety backup before replace (never skip this gate)
+    └──requires──> Schema version compatibility check (block downgrade restore)
+    └──requires──> App relaunch after DB replace (plugin-sql pool holds stale handles)
+    └──requires──> Restore preview (from metadata.json — no DB access needed)
 
-Centralized points resolver (pure TypeScript function)
-    └──required-before──> Points source labeling (PointsSourceChip)
-          (chip is a display consumer of the resolver's source output)
-    └──enhances──> Army list health panel, diagnostics page, game day readiness panel
-    └──independent-of──> backup, next-action card, after-action analytics
+[Safety backup (automatic)]
+    └──requires──> backup_database Rust command pattern (VACUUM INTO — already exists)
+    └──new command──> safety_backup_database (auto-path, no dialog)
+    └──called-by──> Restore flow (pre-replace step)
+    └──enhances──> Restore (turns destructive operation into recoverable operation)
 
-Points source labeling (PointsSourceChip)
-    └──requires──> Centralized points resolver
-    └──enhances──> ArmyListSheet unit rows, army list health summary panel
-    └──independent-of──> all other v0.2.13 features
+[Schema version compatibility check]
+    └──reads──> metadata.json schema_version from zip
+    └──compares-against──> Current migration count (get_migrations().len() in lib.rs)
+    └──called-by──> Restore flow (before safety backup and replace)
 
-Split warnings (list-level vs unit-level)
-    └──refactors──> Existing ArmyListHealthPanel rendering
-    └──independent-of──> all data changes
-    └──dependency-of──> Game Day readiness panel (GD-01 already reads warnings)
+[App relaunch after restore]
+    └──uses──> tauri_plugin_process restart() (already registered in lib.rs)
+    └──called-by──> Restore flow (final step after DB replace)
 
-Dashboard next-action card (step description on CurrentFocusCard)
-    └──requires──> Recipe step query returning step name for current step index
-    └──enhances──> CurrentFocusCard (existing component)
-    └──independent-of──> all other v0.2.13 features
+[Backup status staleness]
+    └──reads──> localStorage BackupStatus (already exists)
+    └──extends──> BackupCard (existing component)
+    └──enhances──> DataHealthSummaryCard on Dashboard (staleness signal)
 
-Game Day End Game flow
-    └──requires──> BattleLogSheet (existing — accepts army_list_id pre-fill)
-    └──requires──> New GameDayHeader action button
-    └──enhances──> Post-game review loop (closes Game Day → Battle Log gap)
-    └──independent-of──> Data Health, Backup, points resolver
-
-Data Health / Diagnostics page
-    └──requires──> Applied recipe identity hardening (stable progress records)
-    └──requires──> Transactional recipe save (no partial write artifacts)
-    └──reads──> All tables: units, army_list_units, recipe_steps, applied_recipe_progress,
-                painting_sessions, synced_unit_points, unit_overrides
-    └──calls──> Existing mutations for fix shortcuts (useDeleteAppliedProgress, etc.)
-    └──independent-of──> Backup / restore
-
-Unit-to-rules mapping confirmation
-    └──reads──> units table + synced rules data (rules.db or synced_unit_points)
-    └──leverages──> Existing DatasheetPicker and DatasheetImportDialog
-    └──can-surface-on──> Diagnostics page OR Collection page filter preset
-    └──independent-of──> all other v0.2.13 features
-
-After-action review analytics
-    └──reads──> battle_logs table (existing)
-    └──enhances──> BattleLogPage (collapsible panel below summary bar)
-    └──independent-of──> all other v0.2.13 features
-
-Manual backup / export
-    └──requires──> New Rust Tauri command: copy hobbyforge.db to user path
-    └──requires──> Tauri Dialog plugin save() (already available)
-    └──independent-of──> all feature changes (pure infrastructure)
-    └──dependency-of──> Restore (restore requires a backup to exist, ships later)
+[Backup diagnostics]
+    └──reads──> localStorage BackupStatus
+    └──extends──> DiagnosticsCard (existing component) or new BackupDiagnosticsCard
+    └──enhances──> DataHealthPage (existing page — no new route needed)
 ```
 
 ### Dependency Notes
 
-- **Identity hardening before diagnostics:** The diagnostics page audits `applied_recipe_progress` for orphaned step references. If progress is still keyed on unstable order_index values, many records will appear broken when they are merely miskeyed. Fix the identity first so diagnostics results are trustworthy.
-- **Transactional save before diagnostics:** A partial recipe save leaves the DB in a state where orphan counts are inflated. The transaction wrapper is a prerequisite for the diagnostics page to report meaningful numbers.
-- **Centralized resolver before source chip:** The PointsSourceChip is a display consumer. The resolver must exist as a typed function before the chip can render its output. This is a clean dependency: resolver ships in a query/lib phase, chip ships in a UI phase.
-- **Game Day End Game is self-contained:** BattleLogSheet already accepts all fields including army_list_id. The only work is a new button in GameDayHeader and the Sheet portal plumbing. This can ship in any phase after the overall app structure is stable.
-- **Backup is infrastructure, not a feature dependency:** The export Rust command does not depend on any schema or query changes. It can ship in any phase.
+- **Restore requires safety backup — always, no exceptions:** The replace-DB step is irreversible. The safety backup is the only recovery path if the user restores a bad file. This must be executed before the replace, not offered as an option.
+- **Restore requires app relaunch, not cache invalidation:** After replacing `hobbyforge.db` on disk, the tauri-plugin-sql connection pool holds file handles to the old file. React Query cache invalidation is insufficient — it will re-query against the old, now-replaced file. `invoke("plugin:process|restart")` is the only clean path. This is already in `lib.rs` via `tauri_plugin_process`.
+- **Schema version uses migration count, not semver:** The `schema_version` field in `metadata.json` should be the count of migrations in `get_migrations()` (currently 28), not the app semver. Migration count is the true DB compatibility signal. App semver can change without schema changes. Read via `PRAGMA user_version` at export time or hardcode migration count.
+- **Structured export must precede restore in phasing:** Restore reads metadata.json from the zip. If the export command doesn't produce a zip yet, restore has nothing to read. These two features ship together or export ships one phase before restore.
+- **Backup diagnostics has no hard dependencies:** Reads only localStorage and does not touch the DB. Can ship in any phase.
 
 ---
 
-## MVP Definition for v0.2.13
+## MVP Definition for v0.2.14
 
-### Ship in v0.2.13 Core (P1)
+### Launch With (P1 — core scope)
 
-- [ ] Applied recipe progress identity hardening (order_index → recipe_step_id) — data correctness prerequisite for diagnostics
-- [ ] Transactional recipe graph save — prevents partial-write artifacts in diagnostics
-- [ ] Centralized points resolver extracted as pure TypeScript function — enables source labeling and consistent behavior
-- [ ] Points source labeling (PointsSourceChip on army list unit rows) — transparency for daily-use feature
-- [ ] Split list-level vs unit-level warnings — low cost, high signal clarity improvement
-- [ ] Dashboard next-action step text on CurrentFocusCard — single highest-impact UX improvement
-- [ ] Game Day End Game flow → BattleLogSheet pre-fill — closes the play loop
-- [ ] Data Health / Diagnostics page (read-only tier + fix shortcuts for common issues) — trust and power-user feature
-- [ ] Manual backup / export (hobbyforge.db to user-chosen path) — baseline data safety
+- [x] Structured backup export — zip containing `hobbyforge.db` + `metadata.json` (app version, schema version, timestamp, table row counts)
+- [x] Restore / import from structured backup zip — validate zip, check schema version, show preview, auto-create safety backup, replace DB, relaunch
+- [x] Pre-restore safety backup — automatic, no user action, written to `app_data_dir/safety-backups/`, path surfaced in confirmation dialog
+- [x] Schema version compatibility check — hard block on downgrade restore; warn with override for version difference on same schema
+- [x] Backup status staleness in BackupCard — age-based color indicator (green/amber/red), feeds Dashboard DataHealthSummaryCard
 
 ### Add After Core is Stable (P2)
 
-- [ ] After-action review analytics (per-mission / per-faction win rates) — no data changes, can ship any time
-- [ ] Unit-to-rules mapping confirmation layer — surfaces unmapped units for re-linking
-- [ ] Version parity check script — developer quality-of-life
+- [ ] Backup diagnostics in DiagnosticsCard — never backed up / format is legacy raw .db / backup too old flags
+- [ ] `format` field in localStorage BackupStatus — distinguishes structured zip from legacy raw exports
+- [ ] Safety backup before Wahapedia sync — triggered in the sync hook before `invoke("bulk_sync_rules")`; reuses `safety_backup_database` command
 
 ### Future Consideration (v0.3+)
 
-- [ ] Restore from backup — requires safe DB connection lifecycle management in Rust
-- [ ] Auto-backup on schedule — requires OS-level scheduler integration
-- [ ] Army list snapshot versioning — major schema change for per-version performance analysis
-- [ ] Per-round VP tracking in Game Day — out of scope for hobbyist target user
+- [ ] Restore from legacy raw .db files — separate code path, document manual workaround for now
+- [ ] Scheduled auto-backup — explicitly out of scope per PROJECT.md
+- [ ] Backup history management — out of scope (timestamped filenames + Explorer is sufficient)
 
 ---
 
@@ -177,152 +145,86 @@ Manual backup / export
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Applied recipe identity hardening | HIGH (data correctness prerequisite) | MEDIUM | P1 |
-| Transactional recipe save | HIGH (data loss prevention) | LOW | P1 |
-| Centralized points resolver | HIGH (enables multiple downstream features) | MEDIUM | P1 |
-| Points source labeling | HIGH (transparency, daily use on army lists) | LOW | P1 |
-| Split list/unit warnings | HIGH (signal clarity, daily use) | LOW | P1 |
-| Dashboard next-action step text | HIGH (command center UX payoff) | LOW | P1 |
-| Game Day End Game flow | HIGH (closes play loop, zero new schema) | MEDIUM | P1 |
-| Data Health / Diagnostics page | HIGH (trust, power-user feature) | HIGH | P1 |
-| Manual backup / export | HIGH (data safety expectation) | LOW-MEDIUM | P1 |
-| After-action review analytics | MEDIUM (pattern analysis for hobbyist) | MEDIUM | P2 |
-| Unit-to-rules mapping confirmation | MEDIUM (sync accuracy surface) | MEDIUM | P2 |
-| Version parity check script | LOW (developer tool) | LOW | P2 |
-| Restore from backup | MEDIUM (complement to export) | MEDIUM | P2/v0.3 |
+| Structured backup export (.zip + metadata.json) | HIGH | MEDIUM | P1 |
+| Pre-restore safety backup (automatic) | HIGH | MEDIUM | P1 — gate on restore flow |
+| Schema version compatibility check | HIGH | LOW | P1 — hard block, not optional |
+| Restore / import with preview + safety backup | HIGH | HIGH | P1 |
+| Backup status staleness in BackupCard | MEDIUM | LOW | P1 — extends existing component |
+| Backup diagnostics in DiagnosticsCard | MEDIUM | MEDIUM | P2 |
+| `format` field in BackupStatus | LOW | LOW | P2 — correctness improvement |
+| Safety backup before sync | MEDIUM | LOW | P2 — add after core restore works |
+| Restore from legacy raw .db | LOW | MEDIUM | P3 |
+
+**Priority key:** P1 = must have for v0.2.14 launch / P2 = add once core works / P3 = future
 
 ---
 
-## Competitor Feature Analysis
+## Comparable App Patterns
 
-| Feature Area | Tabletop Battles (Goonhammer) | BattleBase | HobbyForge v0.2.13 target |
-|---|---|---|---|
-| Post-game logging | In-game VP tracking + after-game stats entry; Greg-Bot prompts photos | Real-time dual-player score + post-game stats | BattleLogSheet pre-filled from Game Day End Game action; existing MVP/underperforming/lessons fields |
-| Game stats / analytics | Win rate, avg VP, streaks, filter by mission/faction | Win/loss ratio, avg scores, livestream overlay | Per-mission and per-faction win rates added to BattleLogPage |
-| Data backup | Cloud sync (requires account, network) | Cloud sync (requires account) | Manual export to local file (local-first constraint); no cloud |
-| Data health | No diagnostics page | No diagnostics page | New Diagnostics page: category-grouped issues, severity levels, inline fix shortcuts |
-| Points attribution | No source labeling | No source labeling | PointsSourceChip: synced/override/manual/fallback label inline on army list rows |
-| Next action | No workflow guidance | No workflow guidance | CurrentFocusCard shows current recipe step description as concrete action |
+| App | Backup format | Restore UX | Safety pattern | Lessons for HobbyForge |
+|-----|--------------|------------|---------------|------------------------|
+| Bear (notes, SQLite) | `.bear2bk` = ZIP of TextBundles | Replaces all notes; warns that current notes are lost | None — user must export first | HobbyForge improves on Bear by auto-creating safety backup before replace |
+| Stash (media, SQLite + Go) | Raw SQLite file download from web UI | Manual: stop app, delete old .db + WAL files, copy backup, restart | None — user must manually back up first. Schema version mismatch bugs reported. | HobbyForge improves: in-app replace + relaunch, schema version gate |
+| Obsidian (markdown vault) | Raw folder / zip; no in-app backup | Not in-app — user manages files externally | None (plain files, no DB) | Not comparable — file-based, not DB |
+| HobbyForge v0.2.13 | Raw `.db` via VACUUM INTO | None | None | Current baseline |
+| **HobbyForge v0.2.14 target** | `.zip` with DB + metadata.json | In-app: validate → preview → auto-safety-backup → replace → relaunch | Automatic pre-restore safety backup | Meaningfully ahead of all comparable apps on restore safety |
 
 ---
 
-## Implementation Notes by Feature Area
+## Implementation Notes for Roadmap Phasing
 
-### Applied Recipe Identity Hardening
+### New Rust commands needed
 
-The `applied_recipe_progress` table is currently keyed on `(recipe_assignment_id, order_index)`. When steps are reordered or re-inserted, the order_index values change, causing progress records to track the wrong steps silently.
+Three new commands in `src-tauri/src/lib.rs`:
 
-**Migration approach:** Add `recipe_step_id INTEGER REFERENCES recipe_steps(id) ON DELETE CASCADE` to `applied_recipe_progress`. Backfill by joining against `recipe_steps.order_index` for existing records. Drop the order_index key column (requires SQLite table-recreation workaround). Update query functions to write and read by step ID.
+1. **`export_backup(destination: String)`** — VACUUM INTO temp `.db`, build `metadata.json`, zip both into `destination`, delete temp file. Returns `ExportResult { path, size_bytes }`.
+2. **`import_backup(source: String)`** — extract zip, read and return `metadata.json` contents for frontend preview + version check. Does NOT replace DB yet — frontend confirms first. Returns `ImportMetadata`.
+3. **`restore_backup(source: String)`** — called after user confirms: auto-create safety backup (reuses VACUUM INTO), extract DB from zip, replace `hobbyforge.db`, return safety backup path. Frontend calls `plugin:process|restart` after success.
+4. **`safety_backup_database()`** — no args; auto-generates path in `app_data_dir/safety-backups/hobbyforge-safety-{timestamp}.db`; VACUUM INTO. Returns the path written.
 
-**Downstream benefit:** Diagnostics page can now reliably detect truly orphaned progress (step was deleted) vs miskeyed progress (step was reordered but still exists).
+Splitting import into validate-step (`import_backup`) and commit-step (`restore_backup`) avoids a half-committed restore if the user cancels during the confirmation dialog.
 
-### Data Health / Diagnostics Page
+### BackupStatus type extension
 
-**Issue categories and queries (all pure SQL on existing tables):**
-
-*Errors (data is broken):*
-- Orphaned applied_recipe_progress: steps whose recipe_step_id no longer exists in recipe_steps
-- Orphaned painting_sessions: sessions whose recipe_id no longer exists in painting_recipes
-- Army list units referencing units not in the collection
-
-*Warnings (data is incomplete or stale):*
-- Units with no faction assigned (faction_id IS NULL)
-- Units in army lists with effective_points = 0 and no override set (invisible zero-point entries)
-- Units with stale synced points (is_fresh = 0) and no manual override
-
-*Info (suggestions):*
-- Recipe steps with a paint_id referencing a paint that no longer exists
-- Units with no Wahapedia rules mapping (no entry in synced stats tables)
-
-**UI pattern:** Category grouping with severity color coding. Each issue type shows count. Expandable list of affected records. Inline "Fix" button for safe automated repairs only (e.g. delete orphaned progress rows). No auto-fix on page load.
-
-**Complexity: HIGH** — Multiple aggregation queries across all tables, fix actions touching multiple React Query cache keys. This is the most complex feature in the milestone.
-
-### Dashboard Next-Action Step Text
-
-CurrentFocusCard already receives `workflowPosition` which includes `stepIndex` and `sectionName` but not the step text. The workflow position hook queries the recipe steps by index. Adding a `stepName?: string` field to the `WorkflowPosition` type requires one JOIN in the position computation query: `LEFT JOIN recipe_steps rs ON rs.section_id = ... AND rs.order_index = stepIndex`.
-
-The card renders: `"Next: [stepName]"` as a single line below the workflow section/step count display. This turns the card from "you are at step 3 of 7 in Shading" to "Next: Apply Agrax Earthshade to recesses."
-
-**Complexity: LOW** — One query JOIN, one type field, one text line in the card.
-
-### Game Day End Game Flow
-
-The `gameDayStore` already holds `listId` (the army list in use for the current Game Day session). The new "End Game" button in `GameDayHeader` triggers opening `BattleLogSheet` with:
-- `army_list_id = gameDayStore.listId`
-- `battle_date = todayISO()`
-- All other fields blank (user fills in VP, opponent, result)
-
-After saving, optionally prompt to reset Game Day CP and checklist state (the existing `resetGameDay` action in the store).
-
-The BattleLogSheet sibling portal pattern (Sheet owned by the parent page, not a nested child) is already established across the codebase. GameDayPage or its containing route component needs to own the Sheet open state.
-
-**Complexity: MEDIUM** — New button + routing state plumbing. No new schema or queries.
-
-### Manual Backup / Export
-
-**Rust Tauri command implementation:**
-```rust
-#[tauri::command]
-async fn export_backup(app: tauri::AppHandle, destination: String) -> Result<(), String> {
-    let db_path = app.path().app_data_dir()
-        .map_err(|e| e.to_string())?
-        .join("hobbyforge.db");
-    std::fs::copy(&db_path, &destination)
-        .map_err(|e| e.to_string())?;
-    Ok(())
+```ts
+// src/hooks/useDiagnostics.ts — extend existing type
+export interface BackupStatus {
+  date: string;        // existing
+  path: string;        // existing
+  success: boolean;    // existing
+  format?: "zip" | "raw";  // new — absent in legacy records = "raw"
 }
 ```
 
-**Frontend flow:** "Export Backup" button → `dialog.save({ defaultPath: "hobbyforge_backup_YYYY-MM-DD.db", filters: [{ name: "SQLite", extensions: ["db"] }] })` → call Rust command with selected path → toast success with file path.
+### Restore flow component
 
-**SQLite WAL safety:** In WAL mode (already set on rules.db; hobbyforge.db uses default journal mode), a file copy captures a consistent snapshot. If hobbyforge.db is using the default rollback journal mode, the copy is still safe during normal operation (no concurrent writers in a single-user desktop app), but a WAL checkpoint would be cleaner. The Rust command can run `PRAGMA wal_checkpoint(FULL)` via sqlx before copying if needed.
+`RestoreBackupDialog.tsx` in `src/features/data-health/` — multi-step dialog:
+1. Open file picker (`.zip` only)
+2. Call `import_backup` → receive `ImportMetadata`
+3. Run schema version check in JS
+4. Render confirmation step: preview counts + safety backup will be created at [auto-path] + version warning if applicable
+5. User confirms → call `restore_backup` → receive safety backup path
+6. Show "Restore complete. Safety backup at [path]." toast → `invoke("plugin:process|restart")`
 
-**Complexity: LOW-MEDIUM** — Mostly Rust plumbing. The Tauri Dialog plugin is already in use.
+### DataHealthSummaryCard backup signal
 
-### After-Action Review Analytics
-
-New SQL aggregation on `battle_logs`:
-
-```sql
--- Per-mission win rates
-SELECT mission,
-       COUNT(*) as games,
-       SUM(CASE WHEN result = 'Win' THEN 1 ELSE 0 END) as wins
-FROM battle_logs
-GROUP BY mission
-ORDER BY games DESC
-
--- Per-opponent-faction win rates
-SELECT opponent_faction,
-       COUNT(*) as games,
-       SUM(CASE WHEN result = 'Win' THEN 1 ELSE 0 END) as wins
-FROM battle_logs
-GROUP BY opponent_faction
-ORDER BY games DESC
-```
-
-Displayed as a collapsible "Performance Breakdown" panel below the existing BattleLogSummaryBar. Only shown when there are 3+ games (below that, percentages are misleading).
-
-**Complexity: MEDIUM** — Two new query functions, one new hook, one new collapsible panel component.
+The Dashboard's `DataHealthSummaryCard` already exists (DB-03, Phase 78). It should surface the backup staleness signal from `useBackupStatus`. Add a "Backup: N days ago" line or a colored dot to the card's existing health indicators. No new hook needed — reads from localStorage directly.
 
 ---
 
 ## Sources
 
-- Codebase: `src/features/battle-log/BattleLogSheet.tsx` — confirms existing post-game fields (MVP unit, underperforming unit, lessons learned, changes next time); battle_date, army_list_id pre-fill points
-- Codebase: `src/features/dashboard/CurrentFocusCard.tsx` — confirms workflowPosition has stepIndex but not step text; recipe name display
-- Codebase: `src/features/game-day/ChecklistTab.tsx` — confirms Game Day uses Zustand/localStorage; gameDayStore holds listId
-- Codebase: `src/features/battle-log/BattleLogSummaryBar.tsx` — confirms existing aggregate summary bar (W/L/D + win rate only, no per-mission breakdown)
-- Tabletop Battles (Goonhammer) — post-game stats, per-mission/faction filtering, avg VP, Greg-Bot photo prompts confirmed at https://www.goonhammer.com/the-official-launch-of-tabletop-battles/ (HIGH confidence)
-- BattleBase — win/loss ratio, avg scores, real-time dual-player tracking confirmed at https://www.battlebase.app/ (MEDIUM confidence)
-- Umbraco Health Check + Vincere Data Integrity Dashboard — category grouping, severity levels, inline fix pattern (MEDIUM confidence — WebSearch)
-- Obsidian Local Backup plugin / Notion export — manual export to user path is the standard local-first backup UX (MEDIUM confidence — WebSearch)
-- Tauri Dialog plugin `save()` confirmed at https://v2.tauri.app/plugin/dialog/ (HIGH confidence)
-- GTD next-action research (Super Productivity, Notion GTD patterns) — one concrete physical action per context, not a list (MEDIUM confidence — multiple sources)
-- SQLite backup strategies — WAL-mode file copy is safe for single-writer desktop apps (MEDIUM confidence — Sling Academy, SQLite docs)
+- Existing codebase: `src-tauri/src/lib.rs` — `backup_database` command (VACUUM INTO), `tauri_plugin_process` registration
+- Existing codebase: `src/features/data-health/BackupCard.tsx`, `src/hooks/useDiagnostics.ts` — `BackupStatus` type, `BACKUP_STORAGE_KEY`
+- Existing codebase: `src/features/data-health/DataHealthPage.tsx` — existing page structure; restore UI slots in here
+- Comparable app: [Bear backup & restore](https://bear.app/faq/backup-restore/) — zip format, replace-all restore, no safety net
+- Comparable app: [Stash backup & restore wiki](https://github.com/stashapp/stash/wiki/Backup-&-Restore-Database) — WAL file caveats, schema version mismatch risk, manual restore procedure
+- Comparable app: [Stash schema downgrade discussion](https://github.com/stashapp/stash/discussions/3688) — real-world schema version mismatch failure mode
+- SQLite backup strategies: [Backup strategies for SQLite in production](https://oldmoe.blog/2024/04/30/backup-strategies-for-sqlite-in-production/) — VACUUM INTO vs file copy, WAL safety
+- Tauri FS plugin: [tauri-plugin-fs docs](https://v2.tauri.app/plugin/file-system/) — available for zip assembly in Rust
+- Confirmation dialog UX: [LogRocket — double-check user actions](https://blog.logrocket.com/ux-design/double-check-user-actions-confirmation-dialog/) — when to require explicit confirmation
 
 ---
 
-*Feature research for: HobbyForge v0.2.13 — Data Integrity, Diagnostics & Product Coherence*
-*Researched: 2026-05-14*
+*Feature research for: HobbyForge v0.2.14 — Backup 2.0 (Structured Export, Restore & Safety Backups)*
+*Researched: 2026-05-18*

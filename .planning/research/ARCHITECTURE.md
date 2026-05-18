@@ -1,505 +1,437 @@
 # Architecture Research
 
-**Domain:** Tauri 2 desktop app — data integrity hardening, diagnostics, backup, and UX improvements for existing Warhammer hobby management app
-**Researched:** 2026-05-14
-**Confidence:** HIGH (codebase directly inspected)
+**Domain:** Tauri 2 desktop app — structured backup export, restore/import, and safety backups for v0.2.14
+**Researched:** 2026-05-18
+**Confidence:** HIGH (codebase directly inspected, existing patterns verified)
 
 ---
 
 ## Existing Architecture (Baseline)
 
-```
-UI components  (src/features/**/*)
-      ↓
-React Query hooks  (src/hooks/use*.ts)
-      ↓
-Query modules  (src/db/queries/*.ts)
-      ↓
-DB client singleton  (src/db/client.ts)
-      ↓
-tauri-plugin-sql → SQLite (hobbyforge.db)
+The app already ships two backup-related capabilities:
 
-Pure functions  (src/lib/*.ts)
-      ↑↓  (called from hooks/components; no DB/React deps)
+1. **`backup_database` Rust command** — VACUUM INTO to a user-chosen `.db` path via `save()` dialog. Raw SQLite file, no metadata, no compression.
+2. **`BackupCard` component** — UI wrapper in `DataHealthPage`. Calls the command, writes `{ date, path, success }` to `localStorage["lastBackup"]`. Reads back via `useBackupStatus()` (plain function, not a React Query hook).
 
-Rust backend  (src-tauri/src/lib.rs)
-      → bulk_sync_rules Tauri command → SQLite (rules.db via sqlx)
-```
-
-Key invariants to preserve:
-- `src/db/queries/*.ts` are the only callers of `getDb()` / `getRulesDb()`
-- Components never call query functions directly — hooks only (RecipeFormSheet is a narrow, accepted exception for write orchestration)
-- Pure functions in `src/lib/` have no React or DB dependencies
-- Cache invalidation symmetry rule: if `useCreate` invalidates key K, `useDelete` must also invalidate K
-- Tauri plugin-sql uses `$1, $2` positional syntax; no TypeScript-accessible transaction rollback; no ATTACH DATABASE
+The existing pattern establishes: file operations must go through Rust commands (not the JS plugin bridge), and `tauri-plugin-dialog` + `tauri-plugin-fs` are already registered and used throughout the app.
 
 ---
 
-## v0.2.13 Feature Integration Map
+## System Overview: Backup 2.0 Data Flow
 
-### 1. Transactional Recipe Graph Save
-
-**Current state:** Five-phase diff logic lives entirely inside `RecipeFormSheet.tsx::onSubmit()`. Each section/step operation is an individual `await db.execute(...)` call at the component level with no wrapping transaction. Failure mid-save leaves the recipe in a partial state (e.g. some sections deleted, new ones not yet inserted).
-
-**Integration approach:** Move the entire diff execution into a new query function `saveRecipeGraph(recipeId, sections, existingSteps, existingSections)` in `src/db/queries/recipes.ts`. The function wraps all five phases in a single `BEGIN TRANSACTION / COMMIT / ROLLBACK`. `RecipeFormSheet` calls this one function instead of orchestrating the sequential await chain.
-
-**Transaction pattern already proven in the codebase:** `duplicateRecipe`, `bulkCreateAssignments`, and `replaceSyncedUnitPoints` all use the `await db.execute("BEGIN TRANSACTION", [])` pattern — no new API surface required.
-
-**What changes:**
-- `src/db/queries/recipes.ts` — add `saveRecipeGraph(recipeId, draftSections, existingSteps, existingSections)` (new export)
-- `src/features/recipes/RecipeFormSheet.tsx` — `onSubmit` builds `DraftSection[]` (unchanged), then calls `saveRecipeGraph()`, then fires React Query invalidation on success
-- `src/db/queries/recipeSections.ts` and `src/db/queries/recipePaints.ts` — no change; `saveRecipeGraph` imports from them internally
-
-**Data flow:**
 ```
-RecipeFormSheet.onSubmit
-    → build DraftSection[] from form state (unchanged)
-    → saveRecipeGraph(recipeId, sections, existingSteps, existingSections)
-        BEGIN TRANSACTION
-          phase 1: updateRecipe metadata
-          phase 2: deleteRecipeSection for removed sections (CASCADE removes steps)
-          phase 3: updateRecipeSection for existing sections
-          phase 4: createRecipeSection for new sections (build sectionIdMap)
-          phase 5: delete/update/insert steps with mapped section_id
-        COMMIT on success / ROLLBACK on any error (rethrows)
-    → invalidate RECIPE_PAINTS_KEY, RECIPE_SECTIONS_KEY, etc. (unchanged)
+┌─────────────────────────────────────────────────────────────┐
+│  UI Layer (React)                                            │
+│  ┌──────────────┐  ┌──────────────┐  ┌───────────────────┐  │
+│  │ BackupCard   │  │ RestoreSheet │  │ BackupStatusBadge │  │
+│  │ (enhanced)   │  │ (new)        │  │ (new)             │  │
+│  └──────┬───────┘  └──────┬───────┘  └────────┬──────────┘  │
+│         │                 │                   │              │
+├─────────┼─────────────────┼───────────────────┼──────────────┤
+│  Hook Layer                                                  │
+│  useBackupStatus()  ←─ localStorage (existing)               │
+│  useBackupHistory() ←─ localStorage array (new)              │
+├─────────┼─────────────────┼───────────────────┼──────────────┤
+│  invoke() boundary — Tauri IPC                               │
+├─────────▼─────────────────▼───────────────────▼──────────────┤
+│  Rust Commands (src-tauri/src/lib.rs)                        │
+│  ┌───────────────────┐  ┌────────────────────────────────┐   │
+│  │ export_backup     │  │ restore_backup                 │   │
+│  │ (zip + metadata)  │  │ (validate, safety-bkp, replace)│   │
+│  └───────────────────┘  └────────────────────────────────┘   │
+│  ┌───────────────────┐  ┌────────────────────────────────┐   │
+│  │ backup_database   │  │ validate_backup_zip            │   │
+│  │ (existing VACUUM) │  │ (inspect zip, return manifest) │   │
+│  └───────────────────┘  └────────────────────────────────┘   │
+├─────────────────────────────────────────────────────────────┤
+│  SQLite / File System                                        │
+│  hobbyforge.db  ←─ sqlx direct connection (not plugin pool) │
+│  %APPDATA%\com.hobbyforge.app\                              │
+│    ├── hobbyforge.db                                         │
+│    ├── rules.db                                              │
+│    └── safety_backups\          (new — auto-created)        │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### 2. Centralized Points Resolver
+## Rust vs TypeScript Boundary
 
-**Current state:** The 5-level COALESCE chain is duplicated in three SQL query sites:
-- `armyLists.ts::getArmyListWithUnits` — per-unit effective_points
-- `armyLists.ts::getArmyListReadiness` — SUM for readiness aggregate
-- `dashboard.ts::getArmyReadinessByFaction` — uses `u.points` only (simplified, no synced/override chain)
+This is the most critical architectural decision for Backup 2.0.
 
-The chain is: `COALESCE(alu.points_override, sup.points, uo.points, u.points, 0)` where `sup` is `synced_unit_points` and `uo` is `unit_overrides`.
+**Must be in Rust:**
 
-**Integration approach:** Two components — a SQL snippet constant for aggregate queries + a TypeScript pure function for per-unit display with source labeling.
+| Operation | Why |
+|-----------|-----|
+| VACUUM INTO (existing) | tauri-plugin-sql JS bridge cannot execute VACUUM INTO — proven in v0.2.13 |
+| ZIP archive creation | Requires writing to arbitrary filesystem paths; `zip` crate handles binary safely |
+| ZIP extraction | Same — file writes outside AppData scope need Rust's `tauri_plugin_fs` ACL bypass |
+| Safety backup creation | Happens before restore — must be atomic with the restore path logic |
+| File copy for safety backups | Rust `std::fs::copy` is synchronous and atomic; JS equivalent would add race risk |
+| DB file replacement during restore | The plugin pool holds the DB open; only Rust can close the pool and replace the file |
+| manifest.json write inside zip | Part of ZIP creation — bundled with it |
 
-**A. SQL constant** in `src/db/queries/_pointsHelper.ts` (new, underscore = internal module):
+**Can stay in TypeScript:**
+
+| Operation | Why |
+|-----------|-----|
+| File picker dialogs | `tauri-plugin-dialog` already used in BackupCard |
+| Reading manifest from zip (preview) | Rust command returns parsed manifest as JSON; TS just renders it |
+| React Query cache invalidation after restore | Must happen client-side post-invoke |
+| localStorage backup history writes | Same as existing backup status pattern |
+| Backup staleness/health computation | Pure function, same pattern as `getSyncFreshness()` |
+| Diagnostic flag for "never backed up" | Read-only check of localStorage — no Rust needed |
+
+---
+
+## New Rust Commands Required
+
+### 1. `export_backup` (new — replaces/extends `backup_database`)
+
+```
+Input:  { destination: String }  // .zip path from save() dialog
+Output: Result<BackupManifest, String>
+```
+
+Steps:
+1. Resolve `app_data_dir` → get `hobbyforge.db` path
+2. `VACUUM INTO` to a temp file in `app_data_dir/tmp_backup.db`
+3. Build `metadata.json` (app version, schema version, timestamp, row counts)
+4. Open a zip writer at `destination`
+5. Add `hobbyforge.db` (from temp file) + `metadata.json` to zip
+6. Remove temp file
+7. Return `BackupManifest` as JSON (TS side stores to localStorage)
+
+The `zip` crate (`zip = "2"`) must be added to `src-tauri/Cargo.toml`.
+
+### 2. `validate_backup_zip` (new)
+
+```
+Input:  { source: String }  // path to .zip file from open() dialog
+Output: Result<BackupManifest, String>
+```
+
+Steps:
+1. Open zip, verify it contains `hobbyforge.db` + `metadata.json`
+2. Parse `metadata.json` → return as `BackupManifest`
+3. Return error string if corrupt/unrecognized format
+
+Used to power the "preview before restore" UI without doing a restore yet.
+
+### 3. `restore_backup` (new)
+
+```
+Input:  { source: String, safety_backup_path: String }
+Output: Result<RestoreResult, String>
+```
+
+Steps (order is critical):
+1. Create safety backup via `VACUUM INTO safety_backup_path`
+2. Extract `hobbyforge.db` from zip to a temp file
+3. **Close the sqlx connection** to `hobbyforge.db`
+4. Replace `app_data_dir/hobbyforge.db` with temp file via `std::fs::rename`
+5. **Restart** the Tauri process via `tauri_plugin_process::restart()`
+
+**DB connection lifecycle note:** `tauri-plugin-sql` holds a connection pool to `hobbyforge.db`. You cannot replace a file that is open. The only safe approach for a Tauri app is:
+- Use `tauri_plugin_process::restart()` after the file swap — the app restarts, migrations run on the restored DB, and the pool is fresh.
+- Do NOT try to close the pool mid-session — no public API for it in tauri-plugin-sql v2.
+
+The `restore_backup` command therefore never returns to the JS caller on success — the process restarts instead. The TS caller should handle this with a `try/catch` that expects either an error (show it) or no response (process is restarting).
+
+### 4. `create_safety_backup` (new helper or merged into restore_backup)
+
+Can be a standalone command OR merged as a pre-step inside `restore_backup`. Standalone is preferable for the "pre-sync safety backup" use case.
+
+```
+Input:  {} (no args — path auto-computed)
+Output: Result<String, String>  // returns the backup path on success
+```
+
+Path: `%APPDATA%\com.hobbyforge.app\safety_backups\safety-{timestamp}.db`
+
+---
+
+## BackupManifest Type (shared Rust + TS)
+
 ```typescript
-export const EFFECTIVE_POINTS_EXPR =
-  `COALESCE(alu.points_override, sup.points, uo.points, u.points, 0)`;
-export const POINTS_JOINS = `
-  LEFT JOIN unit_overrides uo ON uo.unit_id = u.id
-  LEFT JOIN synced_unit_points sup ON sup.unit_name = u.name
-    AND (sup.faction_id IS NULL OR sup.faction_id = CAST(u.faction_id AS TEXT))`;
-```
-
-Aggregate queries (`getArmyListReadiness`, `getArmyReadinessByFaction`) import and interpolate the constant — single source of truth, no behavior change.
-
-**B. TypeScript resolver** in `src/lib/resolveUnitPoints.ts` (new pure function):
-```typescript
-export type PointsSource = "list_override" | "synced" | "unit_override" | "unit" | "unknown";
-export interface ResolvedPoints { points: number; source: PointsSource; synced_at: string | null; }
-export function resolveUnitPoints(row: {
-  points_override: number | null;
-  sup_points: number | null;
-  sup_synced_at: string | null;
-  uo_points: number | null;
-  u_points: number | null;
-}): ResolvedPoints { ... }
-```
-
-**What changes:**
-- New: `src/db/queries/_pointsHelper.ts`, `src/lib/resolveUnitPoints.ts`
-- Modified: `src/db/queries/armyLists.ts` — `getArmyListWithUnits` SELECTs `sup.points AS sup_points`, `uo.points AS uo_points`, `sup.synced_at AS sup_synced_at` in addition to the computed `effective_points` (backward compatible — existing callers still read `effective_points`)
-- Modified: `src/features/army-lists/ArmyListSheet.tsx` — per-unit row passes extra columns to `resolveUnitPoints()` to drive freshness/source badge
-- No change to aggregate queries beyond importing the SQL constant
-
----
-
-### 3. Unit-to-Rules Mapping Layer
-
-**Current state:** Units have a `datasheet_id` TEXT column (migration 007) holding a denormalized copy of `rw_datasheets.id`. This was established for the DatasheetImportDialog auto-populate flow. No explicit "this unit is confirmed as datasheet X" table exists. The mapping is implicit and unconfirmable.
-
-**Integration approach:** New table + new query module + new UI section. Follows the established denormalized-name pattern.
-
-**New migration (`026_unit_rules_mapping.sql`):**
-```sql
-CREATE TABLE IF NOT EXISTS unit_rules_mappings (
-    id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    unit_id         INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,
-    datasheet_id    TEXT NOT NULL,   -- copy of rw_datasheets.id (rules.db, destroyed on sync)
-    datasheet_name  TEXT NOT NULL,   -- copy of rw_datasheets.name for display after sync wipe
-    confirmed_at    TEXT NOT NULL DEFAULT (datetime('now')),
-    UNIQUE(unit_id)                  -- one confirmed mapping per unit
-);
-```
-
-Denormalization rationale: `rw_datasheets` lives in rules.db which is destroyed on re-sync. This follows `detachment_name` on `army_lists`, `weapon_name` on `unit_loadout_wargear`, `section_name` on `painting_sessions`.
-
-**New files:**
-- `src-tauri/migrations/026_unit_rules_mapping.sql`
-- `src/db/queries/unitRulesMapping.ts` — `getMappingByUnit(unitId)`, `upsertMapping(unitId, datasheetId, datasheetName)`, `deleteMapping(unitId)`
-- `src/hooks/useUnitRulesMapping.ts` — React Query key `["unit-rules-mapping", unitId]`; exports `useUnitRulesMapping(unitId)`, `useSetMapping()`, `useDeleteMapping()`
-
-**Modified files:**
-- `src/features/units/UnitDetailSheet.tsx` — add Rules Link section (or tab) showing current mapping + DatasheetPicker for change/confirm; `useUnitRulesMapping(unit.id)` drives the display
-- `src/features/units/DatasheetImportDialog.tsx` — on successful import, call `upsertMapping()` to auto-confirm the link (user just chose the datasheet; intent is clear)
-- `src-tauri/src/lib.rs` — register migration 026
-
-**Data flow:**
-```
-UnitDetailSheet (Rules section)
-    → useUnitRulesMapping(unitId) → getMappingByUnit
-    → unlinked: shows DatasheetPicker + "Confirm" button
-    → linked: shows datasheet_name, "Change" (re-opens picker), "Clear" button
-    → on confirm: upsertMapping() → invalidate ["unit-rules-mapping", unitId]
-    → on clear: deleteMapping() → invalidate
-
-DatasheetImportDialog (on success)
-    → upsertMapping(unitId, datasheetId, datasheetName)
-    → invalidate ["unit-rules-mapping", unitId]
-```
-
----
-
-### 4. Data Health Page
-
-**Current state:** No diagnostics UI. Schema version is readable via `SELECT max(version) FROM __tauri_plugin_sql_migrations` (tauri-plugin-sql internal table, confirmed accessible via getDb()). Orphan detection requires hand-crafted queries. Sync status is already aggregated in `useRulesSyncMeta` (rules.db hook). Data counts are scattered across feature hooks.
-
-**Integration approach:** New page + new query module. All queries are read-only SELECTs. No schema changes needed.
-
-**New files:**
-- `src/db/queries/dataHealth.ts` — diagnostic read queries:
-  - `getSchemaVersion()` — `SELECT max(version) FROM __tauri_plugin_sql_migrations`
-  - `getOrphanCounts()` — returns `{ orphanedSteps, orphanedSessions, brokenAssignments }` via three COUNT queries in Promise.all; orphaned = FK target missing (defends against future migration gaps)
-  - `getTableRowCounts()` — single query returning per-table counts for the 8 main tables (units, factions, recipes, paints, army_lists, battle_logs, painting_sessions, recipe_steps)
-  - `getPointsFreshness()` — reads `synced_at` from `synced_unit_points` to derive stale/fresh/never
-- `src/hooks/useDataHealth.ts` — React Query key `["data-health"]`, `staleTime: 0` (always re-fetches on navigate so results are live)
-- `src/features/data-health/DataHealthPage.tsx` — new page, expandable sections: Schema Version / Collection Health / Recipe Integrity / Rules Sync Status
-
-**Modified files:**
-- `src/app/router.tsx` — add `/data-health` route
-- Sidebar navigation — add entry under Management group
-
-**Data flow:**
-```
-DataHealthPage
-    → useDataHealth() runs parallel Promise.all([
-        getSchemaVersion(),
-        getOrphanCounts(),
-        getTableRowCounts(),
-        getPointsFreshness(),
-        getRulesSyncMeta()         // existing hook, reused
-      ])
-    → renders 4 sections with status badges (OK / Warning / Error)
-    → each section expandable to show raw counts and fix guidance
-```
-
-**No new Rust command.** All queries run via the existing `getDb()` tauri-plugin-sql connection. The `__tauri_plugin_sql_migrations` table is a standard internal table accessible from the same DB connection.
-
----
-
-### 5. Backup / Export / Restore
-
-**Current state:** `hobbyforge.db` lives at `%APPDATA%\com.hobbyforge.app\hobbyforge.db`. `tauri-plugin-fs` and `tauri-plugin-dialog` are both already registered in `lib.rs`. `tauri-plugin-process` is already registered (used by auto-update). No backup logic exists — noted as "deferred" in PROJECT.md Out of Scope.
-
-**Integration approach:** New Rust command for atomic file copy + TypeScript UI orchestration. SQL dump is rejected — fragile against schema changes, requires DDL reconstruction, no benefit over binary copy for a local-only app.
-
-**New Rust command:**
-```rust
-#[tauri::command]
-async fn backup_database(app: tauri::AppHandle, dest_path: String) -> Result<(), String> {
-    let app_data_dir = app.path().app_data_dir()
-        .map_err(|e| format!("app_data_dir: {e}"))?;
-    let src = app_data_dir.join("hobbyforge.db");
-    std::fs::copy(&src, &dest_path)
-        .map_err(|e| format!("copy failed: {e}"))?;
-    Ok(())
+// src/types/backup.ts (new)
+export interface BackupManifest {
+  app_version: string;        // from tauri.conf.json at backup time
+  schema_version: number;     // PRAGMA user_version at backup time
+  created_at: string;         // ISO 8601
+  hobbyforge_db_size_bytes: number;
+  row_counts: {               // for preview display
+    units: number;
+    painting_recipes: number;
+    painting_sessions: number;
+    army_lists: number;
+    battle_logs: number;
+  };
+  format_version: number;     // 1 — for future format evolution
 }
 ```
 
-rules.db is excluded from backup by default — reconstructable from re-sync. A separate `backup_rules_database` command can be added if needed, but is not required for v0.2.13.
-
-**Restore:** User selects a `.db` file → TypeScript copies it to `appDataDir/hobbyforge.db` using `tauri-plugin-fs` (already has write permission) → calls `relaunch()` via `tauri-plugin-process`. The DB is only read at startup so replacing the file before relaunch is safe.
-
-**New files:**
-- `src/db/queries/backup.ts` — thin `invoke` wrapper: `backupDatabase(destPath: string)`, `restoreDatabase(srcPath: string)` (restore uses fs.copyFile from TypeScript side)
-- `src/features/settings/BackupSection.tsx` — "Backup Now" button (opens save dialog, calls backupDatabase), "Restore" button (opens open dialog, confirm destructive warning, copies file, calls relaunch), last backup timestamp from localStorage
-
-**Modified files:**
-- `src-tauri/src/lib.rs` — add `backup_database` command to `invoke_handler!`, no new plugins needed
-- `src/app/router.tsx` — add `/settings` route (or embed `BackupSection` in `DataHealthPage` if a full settings page is out of scope)
-
-**Data flow:**
-```
-BackupSection
-    → "Backup" → openDialog(save, .db filter)
-    → backupDatabase(destPath) [Rust: std::fs::copy]
-    → toast("Backup saved") + set lastBackupAt in localStorage
-
-BackupSection
-    → "Restore" → openDialog(open, .db filter)
-    → confirm dialog ("This will replace all data. Restart required.")
-    → fs.copyFile(srcPath, appDataDir/hobbyforge.db)  [TypeScript fs plugin]
-    → relaunch()
-```
+Rust serializes this via `serde::Serialize` → JSON in the zip manifest + return value.
 
 ---
 
-### 6. Dashboard Command Center (Next-Action Aggregation)
+## React Query Cache Invalidation After Restore
 
-**Current state:** `DashboardPage` fetches units, factions, army readiness, recent activity, photos, workflow positions, and applied recipe progress for the active-project unit. `CurrentFocusCard` shows one unit's applied recipe progress. No cross-unit "what to do next" signal exists — the user must mentally aggregate across Kanban + army lists + recipes.
+Since restore causes a process restart, cache invalidation is implicit — the React Query cache is entirely fresh on restart. No explicit invalidation is needed for the restore path.
 
-**Integration approach:** New pure function + one new query, no new tables. Builds on existing data already in the query layer.
+However, for any future "hot reload" approach (not recommended for v0.2.14), the invalidation would be:
 
-**New query in `src/db/queries/dashboard.ts`** — `getAppliedProgressSummary()`:
-```sql
-SELECT
-  ura.unit_id,
-  u.name AS unit_name,
-  pr.name AS recipe_name,
-  COUNT(rs.id) AS total_steps,
-  SUM(CASE WHEN COALESCE(p.completed, 0) = 1 THEN 1 ELSE 0 END) AS completed_steps
-FROM unit_recipe_assignments ura
-JOIN painting_recipes pr ON pr.id = ura.recipe_id
-JOIN units u ON u.id = ura.unit_id
-JOIN recipe_steps rs ON rs.recipe_id = ura.recipe_id
-LEFT JOIN unit_recipe_step_progress p
-  ON p.assignment_id = ura.id AND p.order_index = rs.order_index
-GROUP BY ura.id, ura.unit_id, u.name, pr.name
-HAVING completed_steps < total_steps   -- only incomplete assignments
-ORDER BY completed_steps DESC           -- most progress first (near-completion)
-```
-
-**New pure function `src/lib/computeNextActions.ts`:**
 ```typescript
-export type NextActionType = "finish_recipe" | "army_near_ready" | "sync_stale" | "log_overdue";
-export interface NextAction { type: NextActionType; priority: number; label: string; unitId?: number; listId?: number; }
-export function computeNextActions(data: { ... }): NextAction[]
+// Nuke everything
+queryClient.clear();
+// Then force remount of the router
 ```
 
-**New UI component `src/features/dashboard/NextActionsPanel.tsx`** — renders top 3-5 prioritized actions as interactive cards with primary CTA buttons (e.g. "Open Unit", "View List", "Sync Rules").
+The restart approach is simpler and safer.
 
-**Modified files:**
-- `src/hooks/useDashboardStats.ts` — add `useAppliedProgressSummary()` hook with key `["applied-progress-summary"]`
-- `src/features/dashboard/DashboardPage.tsx` — calls `useAppliedProgressSummary`, passes result through `computeNextActions`, renders `NextActionsPanel`
+---
 
-**Data flow:**
+## localStorage Backup State Evolution
+
+Existing:
+```typescript
+// Single entry
+BACKUP_STORAGE_KEY = "lastBackup"
+{ date, path, success }: BackupStatus
 ```
-DashboardPage
-    → existing hooks (unchanged)
-    → useAppliedProgressSummary() → getAppliedProgressSummary()
-    → computeNextActions({ units, progressSummary, armyReadiness, syncFreshness, lastSessionDate })
-    → NextActionsPanel renders top actions with CTA buttons
+
+Extended for v0.2.14:
+```typescript
+// Key stays the same for backward compat with existing BackupCard
+BACKUP_STORAGE_KEY = "lastBackup"
+{ date, path, success, manifest?: BackupManifest }: BackupStatus  // add manifest field
+
+// New key for history
+BACKUP_HISTORY_KEY = "backupHistory"
+BackupStatus[]  // last N backups (cap at 10)
+```
+
+This extends existing types without breaking the existing `useBackupStatus()` hook.
+
+---
+
+## Backup Diagnostics: Pure Function Pattern
+
+Follow the `getSyncFreshness()` pattern — pure function in `src/lib/`:
+
+```typescript
+// src/lib/backupHealth.ts (new)
+export type BackupHealth = "healthy" | "stale" | "old" | "never" | "failed";
+
+export function getBackupHealth(status: BackupStatus | null): BackupHealth {
+  if (!status) return "never";
+  if (!status.success) return "failed";
+  const ageDays = (Date.now() - new Date(status.date).getTime()) / 86_400_000;
+  if (ageDays < 7) return "healthy";
+  if (ageDays < 30) return "stale";
+  return "old";
+}
+```
+
+Consumed by the enhanced `BackupCard` and `DataHealthSummaryCard` without any backend calls.
+
+---
+
+## Component Boundaries
+
+| Component | New/Modified | Responsibility |
+|-----------|-------------|----------------|
+| `BackupCard` | Modified | Add export format selector (zip vs raw db), show manifest details, link to restore |
+| `RestoreSheet` | New | File picker → validate_backup_zip → preview manifest → confirm → invoke restore_backup |
+| `BackupStatusBadge` | New | Compact badge (healthy/stale/never) for DataHealthSummaryCard dashboard widget |
+| `SafetyBackupNotice` | New (inline) | Small notice shown before destructive ops (restore, sync if opted in) |
+| `BackupHistoryList` | New (inside BackupCard) | Last N backups from localStorage history |
+
+---
+
+## Data Flow: Export Backup
+
+```
+User clicks "Export Backup"
+    ↓
+save() dialog (tauri-plugin-dialog) → user picks .zip path
+    ↓
+invoke("export_backup", { destination })
+    ↓ [Rust]
+VACUUM INTO temp.db → build metadata.json → zip both → return BackupManifest
+    ↓ [back to TS]
+Write BackupStatus + manifest to localStorage
+Update backup history array
+Toast: "Backup saved to [filename]"
+```
+
+## Data Flow: Restore Backup
+
+```
+User clicks "Restore from Backup"
+    ↓
+open() dialog → user picks .zip path
+    ↓
+invoke("validate_backup_zip", { source }) → BackupManifest
+    ↓
+RestoreSheet shows preview (version, date, row counts, schema compatibility check)
+    ↓
+User confirms → invoke("restore_backup", { source, safety_backup_path })
+    ↓ [Rust]
+1. VACUUM INTO safety_backup_path   ← safety net
+2. Extract hobbyforge.db from zip to temp file
+3. std::fs::rename temp → hobbyforge.db
+4. tauri_plugin_process::restart()  ← process exits here
+    ↓ [App restarts]
+tauri-plugin-sql runs migrations on restored DB (no-op if schema matches)
+App loads fresh — all React Query cache empty
+```
+
+## Data Flow: Safety Backup (pre-restore, optional pre-sync)
+
+```
+Auto-triggered before restore (no dialog)
+Auto-path: %APPDATA%\com.hobbyforge.app\safety_backups\safety-{YYYYMMDD-HHmmss}.db
+invoke("create_safety_backup") → path string → stored in safety backup log
 ```
 
 ---
 
-### 7. Game Day After-Action Loop
+## Architectural Patterns to Follow
 
-**Current state:** `gameDayStore` (Zustand + localStorage persist) holds `cp`, `prevCp`, `startingCp`, `checklistItems`, `usedAbilities` per list ID. All state is ephemeral — no game record is created. Battle log exists but is disconnected from Game Day. The user must manually create a battle log entry after a game.
+### Pattern 1: Direct sqlx Connection (Not Plugin Pool)
 
-**Integration approach:** Extend `battle_logs` table via new migration + new sheet component. No new table needed — all game day data fits in new nullable columns on `battle_logs`.
+The existing `backup_database` and `bulk_sync_rules` both use a direct `sqlx` connection, bypassing the plugin pool. This is the established pattern for all Rust DB operations. All new Rust backup commands follow this pattern.
 
-**New migration (`027_battle_log_game_day.sql`):**
-```sql
-ALTER TABLE battle_logs ADD COLUMN army_list_id     INTEGER REFERENCES army_lists(id) ON DELETE SET NULL;
-ALTER TABLE battle_logs ADD COLUMN starting_cp      INTEGER;
-ALTER TABLE battle_logs ADD COLUMN ending_cp        INTEGER;
-ALTER TABLE battle_logs ADD COLUMN stratagems_used  TEXT;   -- JSON array of stratagem names
-ALTER TABLE battle_logs ADD COLUMN game_notes       TEXT;   -- post-game reflections
-```
+**Why:** The plugin pool is managed by tauri-plugin-sql. Direct connections avoid pool contention and allow operations the pool interface doesn't expose (VACUUM INTO, write access outside the plugin's API).
 
-`army_list_id` links the game day session to a specific list — the key connection. All columns nullable for backward compatibility with existing battle log rows and manual entry flow.
+### Pattern 2: Rust Returns Structured Data, TS Stores It
 
-**New files:**
-- `src-tauri/migrations/027_battle_log_game_day.sql`
-- `src/features/game-day/AfterActionSheet.tsx` — form pre-filled from gameDayStore; captures result, opponent faction, game_notes; submits via `useCreateBattleLog`
+`export_backup` returns a `BackupManifest` struct (serialized as JSON). TypeScript stores it in localStorage. This follows the `bulk_sync_rules` → `SyncResult` pattern already established.
 
-**Modified files:**
-- `src/db/queries/battleLogs.ts` — extend `CreateBattleLogInput` to accept `army_list_id`, `starting_cp`, `ending_cp`, `stratagems_used`, `game_notes`; extend `createBattleLog` INSERT
-- `src/hooks/useBattleLogs.ts` — extend `useCreateBattleLog` mutation input type (additive, all new fields optional)
-- `src/features/game-day/GameDayHeader.tsx` — add "End Game" button that opens `AfterActionSheet`; passes gameDayStore values as props
-- `src/features/game-day/gameDayStore.ts` — add `resetGameDay(listId)` action to clear CP/checklist after recording
-- `src-tauri/src/lib.rs` — register migration 027
+### Pattern 3: Diagnostic Staleness as Pure Function
 
-**Data flow:**
-```
-GameDayHeader
-    → "End Game" button clicked
-    → AfterActionSheet opens, pre-filled with:
-        starting_cp: listState.startingCp
-        ending_cp: listState.cp
-        stratagems_used: JSON.stringify(listState.usedAbilities)
-        army_list_id: listId (from route param)
-    → user fills: result (Win/Loss/Draw), opponent_faction, game_notes
-    → submit → createBattleLog({ ..., all game_day fields })
-    → toast("Game recorded") → resetGameDay(listId) → navigate("/battle-log")
-```
+`getBackupHealth()` follows `getSyncFreshness()` exactly — pure function, no hooks, testable in isolation, no backend calls.
 
----
+### Pattern 4: Process Restart for Restore
 
-## Suggested Build Order
-
-```
-Phase 1 — Schema Foundation (unblocks all)
-  026_unit_rules_mapping.sql
-  027_battle_log_game_day.sql
-  lib.rs: register migrations 26-27
-  Update migration parity test to cover 26, 27
-
-Phase 2 — Transactional Recipe Graph Save (self-contained refactor, high correctness value)
-  recipes.ts: saveRecipeGraph() with BEGIN/COMMIT/ROLLBACK
-  RecipeFormSheet.tsx: call saveRecipeGraph() instead of sequential awaits
-  Add/extend test: saveRecipeGraph round-trip, atomic failure case
-
-Phase 3 — Points Resolver + Unit Rules Mapping (same data domain, ship together)
-  _pointsHelper.ts: SQL constant
-  resolveUnitPoints.ts: TypeScript pure function
-  armyLists.ts: getArmyListWithUnits adds sup_points, uo_points columns
-  ArmyListSheet.tsx: per-unit freshness label
-  unitRulesMapping.ts + useUnitRulesMapping.ts: mapping CRUD
-  UnitDetailSheet.tsx: Rules Link section
-  DatasheetImportDialog.tsx: auto-create mapping on import
-
-Phase 4 — Data Health Page (all reads, no schema changes)
-  dataHealth.ts: orphan/version/count queries
-  useDataHealth.ts: React Query wrapper
-  DataHealthPage.tsx: diagnostics UI
-  router.tsx + sidebar: new route
-
-Phase 5 — Backup / Export / Restore (Rust command, requires Tauri rebuild)
-  backup_database Rust command in lib.rs
-  backup.ts: invoke wrapper
-  BackupSection.tsx: backup + restore UI
-  router.tsx: /settings route (or embed in DataHealthPage)
-
-Phase 6 — Dashboard Next-Action + Game Day After-Action (builds on Phases 1-5)
-  getAppliedProgressSummary() query
-  useAppliedProgressSummary() hook
-  computeNextActions.ts: pure function
-  NextActionsPanel.tsx: dashboard UI
-  DashboardPage.tsx: wire in next-actions
-  AfterActionSheet.tsx: end-of-game form
-  GameDayHeader.tsx: "End Game" button
-  gameDayStore.ts: resetGameDay()
-  battleLogs.ts + useBattleLogs.ts: accept game_day columns
-```
-
-**Ordering rationale:**
-- Phase 1 first: both migrations must be registered before any code that reads those columns is deployed; doing migrations early means no Tauri rebuild mid-feature
-- Phase 2 before Phase 6: `saveRecipeGraph` must be proven stable before the dashboard reads recipe assignment progress (trust in the write path)
-- Phase 5 last-ish: requires Tauri rebuild; cleanest to batch it with no unrelated Tauri changes pending
-- Phase 6 last: depends on Phase 1 (migration 027 for after-action) and benefits from Phase 2 write integrity
-
----
-
-## Component Boundaries for New Work
-
-| New Component | Layer | Responsibility |
-|---------------|-------|---------------|
-| `saveRecipeGraph()` | `src/db/queries/recipes.ts` | Atomic multi-table recipe persistence — single call site for all section+step writes |
-| `_pointsHelper.ts` | `src/db/queries/` | SQL constant for COALESCE chain — shared by query files only |
-| `resolveUnitPoints()` | `src/lib/` | TypeScript-side points resolution with source metadata — pure function |
-| `computeNextActions()` | `src/lib/` | Pure aggregation of next-action signals from existing data shapes |
-| `dataHealth.ts` | `src/db/queries/` | All diagnostic read queries — schema version, orphan counts, table row counts |
-| `unitRulesMapping.ts` | `src/db/queries/` | CRUD for unit-to-datasheet confirmation mapping |
-| `useDataHealth.ts` | `src/hooks/` | React Query wrapper, staleTime: 0 |
-| `useUnitRulesMapping.ts` | `src/hooks/` | React Query wrapper for mapping CRUD |
-| `backup.ts` | `src/db/queries/` | Thin invoke wrapper for backup_database Rust command |
-| `DataHealthPage.tsx` | `src/features/data-health/` | Read-only diagnostics UI |
-| `AfterActionSheet.tsx` | `src/features/game-day/` | End-of-game capture form, pre-fills from gameDayStore |
-| `NextActionsPanel.tsx` | `src/features/dashboard/` | Next-action rendering with CTA buttons |
-| `BackupSection.tsx` | `src/features/settings/` | Backup/restore UI |
-| `backup_database` (Rust) | `src-tauri/src/lib.rs` | OS-level file copy to user-chosen path |
-
----
-
-## Architectural Patterns Reused
-
-**Denormalized text copy for cross-DB references** — `unit_rules_mappings.datasheet_name` follows `detachment_name` on `army_lists`, `weapon_name` on `unit_loadout_wargear`, `section_name` on `painting_sessions`. rules.db destroyed on re-sync; display names must be copied to hobbyforge.db at link time.
-
-**Pure functions in src/lib/** — `resolveUnitPoints` and `computeNextActions` follow `computeWorkflowPosition`, `computeUnitWarnings`, `computeAssignmentProgress`. No React, no DB, unit-testable in isolation.
-
-**BEGIN/COMMIT/ROLLBACK via db.execute string** — used in `duplicateRecipe`, `bulkCreateAssignments`, `replaceSyncedUnitPoints`. `saveRecipeGraph` follows exactly this pattern.
-
-**Parallel Promise.all in query modules** — used in `getDashboardStats`, `getRecentActivity`. `useDataHealth` wraps multiple diagnostic SELECTs in `Promise.all` for minimal load time.
-
-**staleTime: 0 for live-state data** — `useDataHealth` re-fetches on every navigate; mirrors the pattern justified for sync status hooks.
-
-**Page-level hook aggregation, prop-drilled to panels** — `DashboardPage` calls all hooks once, props drill to `NextActionsPanel`. Prevents N+1 hook instances.
+For restore specifically, `tauri_plugin_process::restart()` is the only safe approach given the plugin pool holds the DB open. This is simpler than attempting pool teardown and avoids a class of race conditions. The TS caller wraps the invoke in try/catch but does not await a response — if no error, the app restarts.
 
 ---
 
 ## Anti-Patterns to Avoid
 
-**Five-phase diff as UI layer orchestration without a transaction.**
-Current: `RecipeFormSheet.onSubmit` calls individual query functions sequentially. Partial failure corrupts recipe state. Fix: `saveRecipeGraph()` in query layer — one transaction, one call site.
+### Anti-Pattern 1: Restoring via JS File Write + Pool Reconnect
 
-**COALESCE chain duplicated across query files.**
-Current: Three SQL strings in `armyLists.ts` and `dashboard.ts` contain the same 5-level COALESCE expression. Fix: SQL constant in `_pointsHelper.ts`; aggregate queries import and interpolate.
+**What it looks like:** Writing the extracted `.db` bytes via `tauri-plugin-fs` `writeFile()` to the AppData path, then calling `Database.load()` again.
 
-**Game Day state never persisting to battle log.**
-Current: CP delta, stratagems used, OPG toggles live only in localStorage. No game record created automatically. Fix: `AfterActionSheet` pre-fills from gameDayStore and writes to `battle_logs` on submit.
+**Why wrong:** `tauri-plugin-sql` holds the DB file open with a connection pool. `writeFile` will either fail (Windows file lock) or corrupt the DB mid-write if the pool is still active. There is no public API to close the pool in v2.
 
-**Backup via SQL dump.**
-Why rejected: Requires iterating all tables and reconstructing DDL. Fragile against schema changes. No benefit over binary copy for a local-only single-file SQLite app. Fix: `std::fs::copy` in Rust — atomic, exact, format-stable.
+**Instead:** Rust command does the file replacement, then `tauri_plugin_process::restart()`.
 
-**Calling query functions from React components.**
-The existing narrow exception (RecipeFormSheet write orchestration) is acceptable. Do not expand this pattern to new features — new features use hooks.
+### Anti-Pattern 2: Zip Operations in TypeScript
+
+**What it looks like:** Using a JS zip library (e.g., `jszip`) to create the archive client-side.
+
+**Why wrong:** The DB file (`hobbyforge.db`) is not accessible via `tauri-plugin-fs` `readFile()` because the plugin pool holds it open. Rust must create the zip using the VACUUM INTO temp file approach.
+
+**Instead:** `export_backup` Rust command handles all zip operations.
+
+### Anti-Pattern 3: Storing Safety Backups Outside AppData
+
+**What it looks like:** Prompting the user for a safety backup location before every restore.
+
+**Why wrong:** Adds friction to restore. Safety backups are automatic, not user-visible by default.
+
+**Instead:** Fixed subdirectory `%APPDATA%\com.hobbyforge.app\safety_backups\` with timestamped filenames. Mention the path in the post-restore success screen only.
+
+### Anti-Pattern 4: Schema Version Mismatch Silent Restore
+
+**What it looks like:** Restoring a backup without checking if its `schema_version` is compatible.
+
+**Why wrong:** Restoring a backup from v0.2.10 (schema v21) into v0.2.14 (schema v28) will cause migrations to re-run. If any migration is not idempotent, data loss or errors follow.
+
+**Instead:** `validate_backup_zip` returns `schema_version`. The RestoreSheet shows a warning if `backup.schema_version < current.schema_version` ("This backup is from an older version. Migrations will be re-applied on restore."). If `backup.schema_version > current.schema_version`, block with error ("This backup requires a newer app version").
 
 ---
 
-## New vs Modified: Complete File List
+## File System Scope: AppData Directory
 
-| File | Status | Change |
-|------|--------|--------|
-| `src/db/queries/recipes.ts` | Modified | Add `saveRecipeGraph()` |
-| `src/features/recipes/RecipeFormSheet.tsx` | Modified | `onSubmit` calls `saveRecipeGraph()` instead of sequential awaits |
-| `src/db/queries/_pointsHelper.ts` | New | SQL COALESCE constant + joins snippet |
-| `src/lib/resolveUnitPoints.ts` | New | Pure TypeScript points resolver with source metadata |
-| `src/db/queries/armyLists.ts` | Modified | `getArmyListWithUnits` adds `sup_points`, `uo_points`, `sup_synced_at` SELECTs |
-| `src/features/army-lists/ArmyListSheet.tsx` | Modified | Per-unit freshness/source label via `resolveUnitPoints` |
-| `src-tauri/migrations/026_unit_rules_mapping.sql` | New | Unit-to-datasheet confirmation mapping table |
-| `src/db/queries/unitRulesMapping.ts` | New | Mapping CRUD |
-| `src/hooks/useUnitRulesMapping.ts` | New | React Query wrapper |
-| `src/features/units/UnitDetailSheet.tsx` | Modified | Rules Link section showing current mapping + picker |
-| `src/features/units/DatasheetImportDialog.tsx` | Modified | Auto-create mapping row on successful import |
-| `src/db/queries/dataHealth.ts` | New | Orphan counts, schema version, table row counts, points freshness |
-| `src/hooks/useDataHealth.ts` | New | React Query wrapper, staleTime: 0 |
-| `src/features/data-health/DataHealthPage.tsx` | New | Diagnostics page |
-| `src/app/router.tsx` | Modified | Add `/data-health` and `/settings` routes |
-| `src/db/queries/backup.ts` | New | Thin invoke wrapper for backup_database Rust command |
-| `src/features/settings/BackupSection.tsx` | New | Backup/restore UI with dialog integration |
-| `src-tauri/migrations/027_battle_log_game_day.sql` | New | Extend battle_logs with game_day columns (all nullable) |
-| `src/db/queries/battleLogs.ts` | Modified | Accept `army_list_id`, `starting_cp`, `ending_cp`, `stratagems_used`, `game_notes` |
-| `src/hooks/useBattleLogs.ts` | Modified | Extend `useCreateBattleLog` mutation input type (additive) |
-| `src/features/game-day/AfterActionSheet.tsx` | New | End-of-game capture form |
-| `src/features/game-day/GameDayHeader.tsx` | Modified | Add "End Game" button |
-| `src/features/game-day/gameDayStore.ts` | Modified | Add `resetGameDay(listId)` action |
-| `src/lib/computeNextActions.ts` | New | Pure next-action aggregation |
-| `src/features/dashboard/NextActionsPanel.tsx` | New | Next-action display with CTA buttons |
-| `src/features/dashboard/DashboardPage.tsx` | Modified | Add next-action data fetch and panel |
-| `src-tauri/src/lib.rs` | Modified | Register migrations 026-027, add `backup_database` to invoke_handler |
+Established pattern from `src-tauri/src/lib.rs`:
 
-**Unchanged (verified):**
-- `src/db/client.ts` — singleton + FK pragma pattern is correct and stable
-- `src/db/queries/recipeSections.ts` — no changes required for v0.2.13 scope (REC-03 was fixed in v0.2.11)
-- `src/features/game-day/gameDayStore.ts` read selectors — additive only (new `resetGameDay` action)
-- All rules.db query files — read-only for this milestone
-- `unit_recipe_step_progress` keying on `order_index` — deliberate design from migration 021; not changed by v0.2.13 work
+```rust
+let app_data_dir = app.path().app_data_dir()
+    .map_err(|e| format!("app_data_dir: {e}"))?;
+// Windows: C:\Users\{user}\AppData\Roaming\com.hobbyforge.app\
+```
+
+New paths created by Backup 2.0:
+```
+%APPDATA%\com.hobbyforge.app\
+  hobbyforge.db           ← existing
+  rules.db                ← existing
+  safety_backups\         ← new, auto-created by create_safety_backup
+    safety-20260518-143022.db
+    safety-20260521-091540.db
+```
+
+The `safety_backups` subdirectory is created via `std::fs::create_dir_all` inside the Rust command (same as `app_data_dir` creation in `run()`).
+
+---
+
+## Cargo Dependencies Required
+
+```toml
+# src-tauri/Cargo.toml additions
+zip = "2"          # zip archive read/write — crates.io top result, 70M+ downloads
+```
+
+No other new Rust dependencies. `serde_json` and `sqlx` already present.
+
+---
+
+## Suggested Build Order (Phase Dependencies)
+
+1. **Rust foundation first** — `export_backup`, `validate_backup_zip`, `create_safety_backup` commands + `BackupManifest` type. These have no TypeScript dependencies and unblock all UI work. Register in `invoke_handler!`.
+
+2. **TypeScript types** — `src/types/backup.ts` with `BackupManifest`, extended `BackupStatus`. Used by all subsequent UI components.
+
+3. **Enhanced BackupCard + export flow** — Replaces existing `.db` export with `.zip` export. `useBackupStatus()` extended with `manifest`. Existing localStorage key preserved.
+
+4. **`validate_backup_zip` + RestoreSheet** — Preview modal using the validate command. No restore yet — safe to ship independently.
+
+5. **`restore_backup` + confirm flow** — Full restore with safety backup + process restart. Depends on RestoreSheet from step 4.
+
+6. **Backup diagnostics** — `getBackupHealth()` pure function + `BackupStatusBadge` + enhanced `DataHealthPage` backup section. No Rust dependencies — can be built in parallel with step 3+.
+
+---
+
+## Integration Points with Existing Components
+
+| Existing Component | Change Required |
+|-------------------|-----------------|
+| `BackupCard` | Replace `.db` save dialog with `.zip` save dialog; invoke `export_backup` instead of `backup_database`; show manifest details on success |
+| `DataHealthPage` | Add RestoreSheet trigger; add backup history list; replace BackupCard inline |
+| `DataHealthSummaryCard` (dashboard) | Add `BackupStatusBadge` using `getBackupHealth()` |
+| `src-tauri/src/lib.rs` | Add 3 new commands to `invoke_handler!`; add `zip` import |
+| `src-tauri/Cargo.toml` | Add `zip = "2"` |
+| `src/hooks/useDiagnostics.ts` | Extend `BackupStatus` interface; add `useBackupHistory()` |
+| `src/types/backup.ts` | New file — `BackupManifest`, extended `BackupStatus` |
+| `src/lib/backupHealth.ts` | New file — `getBackupHealth()` pure function |
 
 ---
 
 ## Sources
 
-- Direct inspection: `src-tauri/src/lib.rs` — migration list (versions 1-25), `bulk_sync_rules` Rust command structure
-- Direct inspection: `src/db/queries/recipes.ts` — `duplicateRecipe` transaction pattern; `createRecipe`, `updateRecipe`
-- Direct inspection: `src/db/queries/armyLists.ts` — 5-level COALESCE at lines 63, 229; `getArmyListWithUnits` JOIN structure
-- Direct inspection: `src/db/queries/recipeAssignments.ts` — `unit_recipe_step_progress` keying on `order_index`
-- Direct inspection: `src/db/queries/syncedUnitPoints.ts` — `replaceSyncedUnitPoints` transaction pattern
-- Direct inspection: `src/features/recipes/RecipeFormSheet.tsx` — five-phase diff orchestration in `onSubmit` (lines 237-332)
-- Direct inspection: `src/features/game-day/gameDayStore.ts` — Zustand persist structure, listStates shape
-- Direct inspection: `src/lib/computeUnitWarnings.ts` — pure function pattern for domain computations
-- Direct inspection: `src-tauri/migrations/021_applied_recipe_assignments.sql` — composite key design rationale
-- Confidence: HIGH — all findings from direct code analysis of v0.2.12 codebase
+- `src-tauri/src/lib.rs` — existing `backup_database` pattern (VACUUM INTO via direct sqlx)
+- `src/features/data-health/BackupCard.tsx` — existing UI + localStorage pattern
+- `src/hooks/useDiagnostics.ts` — existing `BackupStatus` type + `useBackupStatus()`
+- `src/db/client.ts` — plugin pool singleton (why it cannot be closed mid-session)
+- `src-tauri/Cargo.toml` — existing dependencies; no zip crate yet
+- `src-tauri/tauri.conf.json` — plugin registrations including `tauri-plugin-process`
+- [zip crate on crates.io](https://crates.io/crates/zip) — standard Rust zip library
+- [Tauri plugin-sql docs](https://v2.tauri.app/plugin/sql/) — confirms pool model
 
 ---
-
-*Architecture research for: HobbyForge v0.2.13 Data Integrity, Diagnostics & Product Coherence*
-*Researched: 2026-05-14*
+*Architecture research for: v0.2.14 Backup 2.0 — Structured Export, Restore & Safety Backups*
+*Researched: 2026-05-18*

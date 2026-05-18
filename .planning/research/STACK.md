@@ -1,269 +1,150 @@
 # Stack Research
 
-**Domain:** Data integrity hardening, backup/export, diagnostics, points resolution, after-action loop — v0.2.13 additions to Tauri 2 + React 19 + SQLite desktop app
-**Researched:** 2026-05-14
+**Domain:** Tauri 2 desktop app — structured backup export / restore / safety backups (v0.2.14)
+**Researched:** 2026-05-18
 **Confidence:** HIGH
 
 ---
 
-## Executive Summary
+## Summary
 
-v0.2.13 adds five capability areas to an existing, stable stack. The research
-question is whether any of them require new libraries. The answer is almost no:
-
-- **Transactional recipe saves** — `BEGIN TRANSACTION` / `COMMIT` / `ROLLBACK`
-  already works via `db.execute()` on the existing single-connection singleton.
-  Confirmed in production code (`syncedUnitPoints.ts`). No new library needed.
-- **Backup / export / restore** — Requires one custom Rust Tauri command using
-  `std::fs::copy()`. The TypeScript side uses the already-installed
-  `@tauri-apps/plugin-dialog` (save/open dialogs) and `@tauri-apps/plugin-fs`
-  (writeTextFile for JSON export). No new npm or Cargo dependency needed.
-- **SQLite file zip wrapping** — If zipping the backup `.db` file for distribution,
-  add `fflate` (11.5 kB gzipped). This is optional; bare `.db` copy is simpler
-  and sufficient for a single-user local tool.
-- **Data health diagnostics** — `PRAGMA integrity_check`, `PRAGMA foreign_key_check`,
-  and `SELECT` from `sqlite_master` all work through existing `db.select()`. No new
-  library needed.
-- **Centralized points resolver** — A pure TypeScript function in `src/lib/`. No
-  library. The 5-level COALESCE already lives in SQL; the resolver is a JS wrapper
-  that labels the winning source.
+This is an **additive** milestone. The existing stack already contains every plugin needed.
+The only new Rust dependency is the `zip` crate for archive creation and extraction.
+No new JS/npm packages are required. All orchestration and DB operations belong in Rust;
+the JS layer only invokes commands and calls the already-wired `relaunch()`.
 
 ---
 
-## Existing Stack (No Changes Needed)
+## Recommended Stack
 
-| Layer | Technology | Relevant to v0.2.13 |
-|-------|------------|---------------------|
-| Desktop shell | Tauri 2 | Rust commands for backup |
-| Frontend | React 19 + TypeScript 5 + Vite 6 | All UI |
-| Styling | Tailwind v4 + shadcn/ui new-york/zinc | Diagnostics page UI |
-| State | React Query 5 + Zustand 5 | Diagnostics queries, Game Day state |
-| DB access | @tauri-apps/plugin-sql ^2.4.0 | Transactions, PRAGMA queries |
-| File system | @tauri-apps/plugin-fs ^2.5.1 | JSON export writeTextFile |
-| Dialog | @tauri-apps/plugin-dialog ^2.7.1 | save() / open() for file picker |
-| Rust async | sqlx ^0.8 (already in Cargo.toml) | Not needed for backup; std::fs is synchronous and fine |
-| Forms | React Hook Form 7 + Zod 4 | Restore confirmation form |
-| Charts | Recharts 3.8.0 | Diagnostics summary panel |
-| Test infra | Vitest 4 + better-sqlite3 ^12.10.0 | Extend existing test suite |
+### New Rust Dependency (the only addition)
+
+| Crate | Version | Purpose | Why Recommended |
+|-------|---------|---------|-----------------|
+| `zip` | `"2"` (crates.io: 8.6.0 as of May 2026) | Create and extract `.zip` archives from Rust Tauri commands | Pure-Rust, no system dependency, supports Stored + Deflate. ZipWriter/ZipArchive APIs are stable. Preferred over JS zip libs because all file I/O stays in the Rust process, avoids Tauri IPC size limits for binary blobs, and leverages the same pattern as the existing sqlx direct connection in `lib.rs`. |
+
+> **Version note:** The crate's crates.io identifier is `zip` (maintained at `zip-rs/zip2`), currently at version 8.6.0. Pin as `zip = "2"` in Cargo.toml to accept any compatible release, or pin exact for reproducibility. The `deflate` feature is needed for compressed archives.
+
+### Existing Capabilities Already in Place (no changes needed)
+
+| Technology | Already in Stack | Role in This Milestone |
+|------------|-----------------|------------------------|
+| `sqlx 0.8` | Cargo.toml | Direct SQLite connection for VACUUM INTO — already used by `backup_database` command |
+| `tauri-plugin-fs 2` | Cargo.toml + capabilities | Read/write files in app_data_dir; temp file staging during restore |
+| `tauri-plugin-dialog 2` | Cargo.toml + capabilities | `save()` for export destination, `open()` for restore file picker |
+| `tauri-plugin-process 2.3.1` | Cargo.toml + `capabilities/default.json` | `relaunch()` already imported and working in `UpdateBanner.tsx`; `process:default` grants `allow-restart` |
+| `serde / serde_json 1` | Cargo.toml | Serialize metadata.json and manifest inside zip |
+| `std::fs` | Rust stdlib | File rename for atomic DB swap during restore |
+| `tauri-plugin-sql 2` | Cargo.toml | Existing pool — restore flow uses `relaunch()` to reinitialize rather than closing mid-session |
 
 ---
 
-## Capability-by-Capability Stack Decisions
+## Architecture Boundary: Rust vs JavaScript
 
-### 1. Transactional Recipe Graph Save
+**All zip I/O and file operations live in Rust commands.** JavaScript only:
+1. Calls `save()` / `open()` dialog to get a user-chosen path.
+2. Invokes a Rust command with that path string.
+3. Calls `relaunch()` after a successful restore (or Rust calls `app_handle.restart()` directly).
 
-**Decision: Use existing `db.execute('BEGIN TRANSACTION')` / `COMMIT` / `ROLLBACK` pattern.**
+**Why not a JS zip library (JSZip, ADM-ZIP, fflate)?**
+- Tauri IPC transfers binary through JSON serialization — a 50+ MB db file as base64 across the bridge is impractical.
+- `tauri-plugin-fs` can read/write from JS, but constructing a multi-file zip in JS means reading each binary file into a JS buffer, zipping in JS, writing back — three IPC round trips for large binary data.
+- Rust has direct filesystem access with no IPC overhead; the zip crate runs in-process alongside the DB file.
 
-The app already does this in production. `syncedUnitPoints.ts` (Phase 65) uses
-`BEGIN TRANSACTION` → loop of `db.execute()` → `COMMIT` / `ROLLBACK on catch`.
-This works because `client.ts` maintains a singleton connection — all `execute()`
-calls share the same SQLite connection handle, so the transaction is real and the
-rollback actually reverts.
+---
 
-The GitHub issue #886 (tauri-apps/plugins-workspace) reporting that ROLLBACK
-"doesn't take place" is a connection-pool problem: when `Database.load()` is called
-multiple times or the plugin uses a pool, BEGIN and subsequent statements may land
-on different connections. The singleton pattern in `client.ts` avoids this entirely.
+## Zip Archive Structure
 
-**Pattern to reuse for recipe graph save:**
-
-```typescript
-const db = await getDb();
-await db.execute("BEGIN TRANSACTION", []);
-try {
-  // DELETE removed sections
-  // UPDATE existing sections
-  // INSERT new sections
-  // DELETE removed steps  
-  // UPDATE existing steps
-  // INSERT new steps
-  await db.execute("COMMIT", []);
-} catch (e) {
-  await db.execute("ROLLBACK", []);
-  throw e;
-}
+```
+hobbyforge-backup-2026-05-18.zip
+├── hobbyforge.db          (VACUUM INTO consistent snapshot)
+├── metadata.json          (app version, schema version, created_at, db_size_bytes)
+└── manifest.json          (file list + checksums for integrity verification on restore)
 ```
 
-No new library. No Rust changes. Follows the established pattern exactly.
-
-### 2. Backup / Export / Restore
-
-**Decision: Custom Rust Tauri command for `.db` file copy; TypeScript handles JSON export.**
-
-Three backup formats are in scope:
-
-#### 2a. SQLite File Copy (primary backup)
-
-Use a new `backup_database` Tauri command in `lib.rs`. The command:
-1. Receives a destination path string from TypeScript (from the dialog picker)
-2. Calls `std::fs::copy(src_path, dst_path)` — synchronous, OS-level copy
-
-**Why custom Rust command over `tauri-plugin-fs`:**
-- `tauri-plugin-fs` `copyFile()` requires a `BaseDirectory` enum for both source
-  and destination. Copying from `AppLocalData` to an arbitrary user-chosen path
-  (e.g., Desktop, Documents, a USB drive) does not map cleanly to a single base
-  directory and requires capability scope entries that are overly broad.
-- A dedicated Rust command takes the full resolved path from the dialog, which
-  already has OS-level access granted by the file picker. This is the pattern
-  used by `bulk_sync_rules` and is consistent with the codebase's approach of
-  putting Tauri-native operations in `lib.rs`.
-- `std::fs::copy()` is a one-liner, safe, and handles Windows paths correctly.
-
-**Why not VACUUM INTO:**
-`VACUUM INTO 'path'` produces a smaller, defragmented copy but rewrites every page.
-For a desktop hobby app with a ~5 MB database, compaction is irrelevant. A straight
-`std::fs::copy()` is byte-faithful (includes WAL if flushed) and runs in
-milliseconds. Use `VACUUM INTO` if storage size becomes a concern (unlikely for
-this domain).
-
-**TypeScript side (no new library):**
-
-```typescript
-import { save } from '@tauri-apps/plugin-dialog';
-import { invoke } from '@tauri-apps/api/core';
-
-const destPath = await save({
-  title: 'Save HobbyForge Backup',
-  defaultPath: `hobbyforge-backup-${todayISO()}.db`,
-  filters: [{ name: 'SQLite Database', extensions: ['db'] }],
-});
-if (!destPath) return; // user cancelled
-await invoke('backup_database', { destPath });
-```
-
-**Rust side (add to `lib.rs`, no new Cargo dep):**
-
+ZipWriter pattern (Rust):
 ```rust
-#[tauri::command]
-async fn backup_database(app: tauri::AppHandle, dest_path: String) -> Result<(), String> {
-    let app_data_dir = app.path().app_data_dir()
-        .map_err(|e| format!("app_data_dir: {e}"))?;
-    let src = app_data_dir.join("hobbyforge.db");
-    std::fs::copy(&src, &dest_path)
-        .map(|_| ())
-        .map_err(|e| format!("copy failed: {e}"))
-}
+use zip::{ZipWriter, write::SimpleFileOptions, CompressionMethod};
+use std::io::Write;
+
+let file = File::create(&destination)?;
+let mut zip = ZipWriter::new(file);
+let opts = SimpleFileOptions::default()
+    .compression_method(CompressionMethod::Deflated);
+
+zip.start_file("hobbyforge.db", opts)?;
+zip.write_all(&db_bytes)?;
+
+zip.start_file("metadata.json", opts)?;
+zip.write_all(metadata_json.as_bytes())?;
+
+zip.finish()?;
 ```
 
-Register with `tauri::generate_handler![bulk_sync_rules, backup_database]`.
-
-#### 2b. JSON Export (data portability)
-
-Read all tables via existing `db.select()` hooks, serialize to JSON, write with
-`writeTextFile` from `@tauri-apps/plugin-fs` (already installed). The save dialog
-path comes from `@tauri-apps/plugin-dialog` (already installed).
-
-No new library. The JSON export is a React Query + hooks operation in TypeScript.
-
-#### 2c. Restore
-
-Restore from a `.db` file backup requires:
-1. `open()` dialog to pick the backup file
-2. A `restore_database` Rust command that copies the picked file over `hobbyforge.db`
-
-**Critical:** The app must close the existing DB connection before overwriting the
-file, then reinitialize. Use `__resetDbForTesting()`'s approach: `_dbPromise = null`
-then call `getDb()` again. This requires exposing a `resetDb()` function from
-`client.ts` for production use (rename from test-only).
-
-**No new library.** Pattern follows backup in reverse.
-
-### 3. Data Health Diagnostics Page
-
-**Decision: SQLite PRAGMAs and sqlite_master queries via existing `db.select()`.**
-
-All diagnostic queries use standard SQLite introspection — no library needed:
-
-| Diagnostic | Query |
-|-----------|-------|
-| File integrity | `PRAGMA integrity_check` |
-| FK violations | `PRAGMA foreign_key_check` |
-| Table list | `SELECT name, type FROM sqlite_master WHERE type='table'` |
-| Row counts | `SELECT COUNT(*) FROM <table>` per table (loop) |
-| Orphaned applied_recipe_steps | `SELECT ... WHERE recipe_step_id NOT IN (SELECT id FROM recipe_steps)` |
-| Sessions with dead section FK | `SELECT ... WHERE recipe_section_id IS NOT NULL AND recipe_section_id NOT IN (SELECT id FROM recipe_sections)` |
-
-These run through the existing `db.select<T[]>()` pattern. Wire them as React Query
-queries with a "Run Diagnostics" button trigger (not auto-run on mount — integrity
-check has measurable cost on larger databases).
-
-Results display via existing shadcn/ui components (Table, Badge, Alert). No new UI
-library needed. If a summary chart is wanted, Recharts is already installed.
-
-### 4. Centralized Points Resolver
-
-**Decision: Pure TypeScript function in `src/lib/resolvePoints.ts`. No library.**
-
-The existing 5-level COALESCE is in SQL (army list queries). The centralized
-resolver is a JavaScript function that mirrors that precedence chain for display
-contexts where SQL isn't being called (unit detail headers, diagnostics panel,
-Game Day readiness).
-
-```typescript
-// src/lib/resolvePoints.ts
-export type PointsSource =
-  | 'army-list-override'
-  | 'user-override'
-  | 'synced-wahapedia'
-  | 'manual-unit'
-  | 'zero';
-
-export interface ResolvedPoints {
-  points: number;
-  source: PointsSource;
-  isFresh: boolean;
-}
-
-export function resolvePoints(opts: {
-  armyListOverride?: number | null;
-  userOverride?: number | null;
-  syncedPoints?: number | null;
-  unitPoints?: number | null;
-  syncedAt?: string | null;
-}): ResolvedPoints { ... }
+ZipArchive pattern for restore validation (Rust):
+```rust
+use zip::ZipArchive;
+let file = File::open(&source)?;
+let mut archive = ZipArchive::new(file)?;
+let mut db_entry = archive.by_name("hobbyforge.db")?;
+// stream to temp path, then rename to app_data_dir/hobbyforge.db
 ```
-
-This is a pure function — testable with Vitest without any DB or Tauri involvement.
-Follows the `computeWorkflowPosition` pattern (pure lib function, tested in
-isolation).
-
-### 5. Game Day After-Action Loop
-
-**Decision: Zustand persist (localStorage) for session state; new `battle_log` form fields via existing query/hook/mutation pattern. No new library.**
-
-The after-action loop is:
-- End-of-game result entry form: React Hook Form + Zod (existing)
-- Auto-populate army list, CP spent from Game Day state: read from Zustand store
-- Insert into `battle_logs`: existing `createBattleLog` mutation
-- Session recap screen: existing React Query hooks
-
-No new library. Schema may need 1-2 new nullable columns on `battle_logs`
-(e.g., `cp_spent INTEGER`, `total_rounds INTEGER`) via an additive migration.
 
 ---
 
-## New Dependencies (Summary)
+## SQLite Safety: VACUUM INTO Is the Only Safe Backup Method
 
-### Production: None Required
+**Problem:** `std::fs::copy` on a live WAL-mode SQLite file copies only the `.db` while `-wal` and `-shm` sidecar files are being written — produces an instantly-corrupt backup. This is documented in SQLite's official "How to Corrupt" guide.
 
-No new npm packages needed for any v0.2.13 feature. All capabilities are available
-through the existing stack.
+**Rule:** Every backup (structured export, safety backup before restore, safety backup before sync) must use VACUUM INTO via a direct sqlx connection. The existing `backup_database` Rust command already implements this correctly and is the template for all backup paths in this milestone.
 
-**Optional addition: `fflate` for ZIP backup format**
+---
 
-| Property | Value |
-|----------|-------|
-| Package | `fflate` |
-| Version | `^0.8.2` |
-| Bundle size | 11.5 kB gzipped |
-| Purpose | ZIP the `.db` file for backup distribution |
-| Verdict | Defer — a bare `.db` copy is simpler and sufficient for single-user use. Add only if the user explicitly wants zipped backups. |
+## Restore Flow: Pool Constraint and Relaunch
 
-### Rust: No New Cargo Dependencies
+tauri-plugin-sql holds a connection pool open for the entire app lifetime. There is no public API to reinitialize it mid-session. The only clean restore path:
 
-`std::fs::copy()` is in the standard library. The existing `sqlx` in Cargo.toml
-is not needed for backup (that's for `bulk_sync_rules`). The new Rust commands
-use only `tauri::AppHandle` and `std::fs`.
+1. VACUUM INTO safety backup to a temp path (same pattern as `backup_database`).
+2. Validate the zip: open archive, check manifest, verify `hobbyforge.db` entry exists and checksum matches.
+3. Extract `hobbyforge.db` from zip to a staging path (e.g., `app_data_dir/hobbyforge.db.incoming`).
+4. Rust command calls `app_handle.restart()` — or returns success to JS which calls `await relaunch()`.
+5. On startup, a Rust startup hook in `run()` checks for a pending restore flag file. If found: `std::fs::rename("hobbyforge.db.incoming", "hobbyforge.db")`, delete flag, proceed. The plugin pool then opens the restored file normally and migrations run.
+
+This pending-restore pattern avoids trying to close the pool mid-session. The process fully exits before any file rename happens.
+
+**`relaunch()` is already proven working** in `UpdateBanner.tsx` (same import, same Tauri version, same capability grant). No new setup needed.
+
+---
+
+## Installation
+
+```toml
+# src-tauri/Cargo.toml — add ONE line under [dependencies]
+zip = { version = "2", features = ["deflate"] }
+```
+
+No npm installs needed. No capabilities changes needed (`process:default` already grants `allow-restart`).
+
+---
+
+## Supporting Libraries
+
+| Library | Version | Purpose | When to Use |
+|---------|---------|---------|-------------|
+| `zip` | `"2"` | Zip archive creation + extraction | All structured export and restore commands |
+| `serde_json` (already present) | `"1"` | Serialize metadata.json / manifest.json inside zip | Same crate, no new dependency |
+
+---
+
+## Alternatives Considered
+
+| Recommended | Alternative | When Alternative Makes Sense |
+|-------------|-------------|------------------------------|
+| Rust `zip` crate | JS `JSZip` / `fflate` | Only if archive contains only small text files with no binary blobs |
+| Rust `zip` crate | `async_zip` crate | If async streaming of very large archives is needed (not the case here) |
+| VACUUM INTO for safety backups | `std::fs::copy` | Never — unsafe for WAL-mode SQLite |
+| Pending-restore flag + startup hook | Close pool mid-session and swap file | Only if tauri-plugin-sql exposed a `reinitialize()` API (it does not) |
+| `.zip` format | `.tar.gz` | On Linux/macOS where users have native tar tooling; Windows users expect zip |
 
 ---
 
@@ -271,13 +152,11 @@ use only `tauri::AppHandle` and `std::fs`.
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| Third-party transaction library for tauri-plugin-sql | Not needed — `BEGIN TRANSACTION` / `COMMIT` / `ROLLBACK` via `db.execute()` already works in the singleton pattern (confirmed in `syncedUnitPoints.ts`) | Existing `db.execute('BEGIN TRANSACTION')` pattern |
-| `@bspeckco/tauri-plugin-sqlite` | A fork with explicit transaction methods — unnecessary since the current plugin works for single-connection transactions, and switching plugins would break all existing query code | Existing plugin + BEGIN/COMMIT pattern |
-| `tauri-plugin-store` for diagnostics state | Overkill — diagnostics state is ephemeral (run on demand, not persisted) | React Query with `staleTime: 0` for force-refresh on demand |
-| `jszip` | 36x larger than `fflate` for equivalent ZIP functionality; main-thread blocking in some scenarios | `fflate` if ZIP is needed |
-| `VACUUM INTO` for backup | Rewrites all pages — slower, produces different byte content than the live DB. For a ~5 MB hobby app, the size benefit is irrelevant. | `std::fs::copy()` via Rust command |
-| Cross-database JOIN for diagnostics | `ATTACH DATABASE` is documented as a `tauri-plugin-sql` limitation in `PROJECT.md` | Dual-query merge pattern (already established) |
-| Drizzle ORM | PROJECT.md Key Decisions: escape hatch only if raw queries become unmanageable. At 28 typed query files, still manageable. | Existing `$1, $2` parameterized queries |
+| JS zip library (JSZip, ADM-ZIP, fflate) | Binary IPC overhead for DB-sized files; splits backup logic between JS and Rust | Rust `zip` crate in a Tauri command |
+| `async_zip` crate | Async overhead unnecessary for a one-shot backup; more complex error handling | Synchronous `zip` crate (use `spawn_blocking` if needed for tokio compatibility) |
+| Additional Tauri plugins | `fs`, `dialog`, `process` already registered | No new plugins needed |
+| New SQLite schema for backup metadata | Backup metadata already lives in `localStorage` per existing `BackupStatus` / `BACKUP_STORAGE_KEY` pattern | Extend the existing `BackupStatus` interface in `useDiagnostics.ts` |
+| Auto-scheduled backups | Explicitly out of scope per PROJECT.md | Manual backup + safety backups before risky operations is sufficient |
 
 ---
 
@@ -285,44 +164,22 @@ use only `tauri::AppHandle` and `std::fs`.
 
 | Package | Version | Compatible With | Notes |
 |---------|---------|-----------------|-------|
-| `@tauri-apps/plugin-sql` | ^2.4.0 (current) | `BEGIN TRANSACTION` via `execute()` | Works on single-connection singleton; confirm in `syncedUnitPoints.ts` |
-| `@tauri-apps/plugin-dialog` | ^2.7.1 (current) | `save()` with `defaultPath` + `filters` | Returns `string \| null`; null = user cancelled |
-| `@tauri-apps/plugin-fs` | ^2.5.1 (current) | `writeTextFile` for JSON export | Requires `fs:default` capability (already granted) |
-| `tauri` Rust | 2.x (current) | `std::fs::copy()` | Standard library, no version constraint |
-| `sqlx` | 0.8 (current) | Existing `bulk_sync_rules` only | Not used for backup commands |
-
----
-
-## Tauri Capability Changes Needed
-
-The `backup_database` and `restore_database` Rust commands invoke `std::fs::copy()`
-with a user-provided path. The Tauri capability scope does not restrict Rust-side
-`std::fs` operations — only frontend JS APIs are scoped. No capability changes are
-needed for the Rust backup commands.
-
-The `save()` / `open()` dialog calls are already in use for the sync file picker
-(or will be). If not yet present, add to `src-tauri/capabilities/default.json`:
-
-```json
-"dialog:default"
-```
+| `zip` | `"2"` | `serde_json "1"`, `std::fs`, `tokio` runtime | Pure-Rust, no system deps, compiles on Windows MSVC without issues |
+| `tauri-plugin-process` | `2.3.1` (already pinned) | `relaunch()` from `@tauri-apps/plugin-process` | Working in `UpdateBanner.tsx`; no version change needed |
+| `sqlx` | `0.8` (already in use) | VACUUM INTO backup commands | Existing pattern validated in `backup_database` command |
 
 ---
 
 ## Sources
 
-- `src/db/queries/syncedUnitPoints.ts` (direct codebase inspection) — confirms `BEGIN TRANSACTION` / `COMMIT` / `ROLLBACK` via `db.execute()` works in production on the singleton connection. HIGH confidence.
-- `package.json` (direct codebase inspection) — current installed versions of all plugins. HIGH confidence.
-- `src-tauri/Cargo.toml` (direct codebase inspection) — `sqlx 0.8`, `tauri-plugin-fs 2`, `tauri-plugin-dialog 2` already present. HIGH confidence.
-- [tauri-apps/plugins-workspace issue #886](https://github.com/tauri-apps/plugins-workspace/issues/886) — Transaction rollback failure traced to connection pool (not single-connection) scenario. MEDIUM confidence (issue thread, no official resolution doc).
-- [Tauri SQL Plugin docs](https://v2.tauri.app/plugin/sql/) — `execute()`, `select()`, `close()` are the three TypeScript methods. No native transaction API. HIGH confidence.
-- [Tauri Dialog reference](https://v2.tauri.app/reference/javascript/dialog/) — `save(options): Promise<string | null>` with `defaultPath`, `filters`, `title`. HIGH confidence.
-- [Tauri File System plugin](https://v2.tauri.app/plugin/file-system/) — `copyFile` requires `BaseDirectory` enum for both paths; `writeTextFile` works for JSON export. HIGH confidence.
-- [SQLite Backup API](https://sqlite.org/backup.html) — `VACUUM INTO` vs `std::fs::copy()` tradeoffs. `copy()` is byte-faithful; `VACUUM INTO` is compacted. HIGH confidence.
-- [fflate npm](https://www.npmjs.com/package/fflate) — 11.5 kB gzipped, TypeScript support, faster than JSZip. HIGH confidence (deferred as optional).
-- [SQLite PRAGMA docs](https://sqlite.org/pragma.html) — `integrity_check`, `foreign_key_check`, `quick_check` behavior and performance characteristics. HIGH confidence.
+- `crates.io/crates/zip` — current version 8.6.0, updated May 2026 (HIGH confidence — crates.io registry)
+- `sqlite.org/howtocorrupt.html` — WAL-mode safe copy rules (HIGH confidence — SQLite official docs)
+- `v2.tauri.app/plugin/process/` — process plugin relaunch API and permissions (HIGH confidence — Tauri official docs)
+- `src-tauri/capabilities/default.json` — `process:default` already granted (verified in codebase)
+- `src/components/common/UpdateBanner.tsx` — `relaunch()` already imported and proven working (verified in codebase)
+- `src-tauri/src/lib.rs` — `backup_database` VACUUM INTO command (verified in codebase)
+- `src-tauri/Cargo.toml` — existing dependencies confirmed (verified in codebase)
 
 ---
-
-*Stack research for: v0.2.13 Data Integrity, Diagnostics & Product Coherence*
-*Researched: 2026-05-14*
+*Stack research for: HobbyForge v0.2.14 Backup 2.0 — Structured Export, Restore & Safety Backups*
+*Researched: 2026-05-18*
