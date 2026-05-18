@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.2.14
 milestone_name: Backup 2.0 — Structured Export, Restore & Safety Backups
-status: planning
-stopped_at: Phase 80 UI-SPEC approved
-last_updated: "2026-05-18T19:01:28.870Z"
-last_activity: 2026-05-18 — Phase 81 context captured (auto mode)
+status: executing
+stopped_at: Phase 81 planned (2 plans, verified)
+last_updated: "2026-05-18T19:14:58.766Z"
+last_activity: 2026-05-18 -- Phase 80 planning complete
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 2
+  total_plans: 6
   completed_plans: 2
   percent: 20
 ---
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-05-18)
 
 Phase: Phase 81 — Restore Preview + Validation (planned)
 Plan: 2 plans in 2 waves (ready to execute)
-Status: Phase 81 planned, ready to execute
-Last activity: 2026-05-18 — Phase 81 plans created and verified
+Status: Ready to execute
+Last activity: 2026-05-18 -- Phase 80 planning complete
 
 ## Performance Metrics
 

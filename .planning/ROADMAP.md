@@ -102,81 +102,110 @@ Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
 ## Phase Details
 
 ### Phase 79: Rust Backup Foundation
+
 **Goal**: The Rust backend can create structured backup zips, validate existing backups, and create safety backups — enabling all UI phases that follow
 **Depends on**: Phase 78 (v0.2.13 complete)
 **Requirements**: EXP-01, EXP-02, EXP-03, EXP-04, EXP-05, SAF-01, SAF-03
 **Success Criteria** (what must be TRUE):
+
   1. Calling `create_structured_backup` from JS produces a .zip file at the chosen path containing hobbyforge.db (via VACUUM INTO) and metadata.json with app version, migration count, timestamp, and platform
   2. Backup filename defaults to `hobbyforge-backup-YYYY-MM-DD-HHMM.zip` format
   3. Calling `create_safety_backup` produces a .zip in the app data directory with an auto-generated timestamped name
   4. Calling `validate_backup` on a valid .zip returns parsed metadata without modifying any file
   5. A JS-triggered export returns success or a typed error message that the UI can display
+
 **Plans**: 2 plans
 Plans:
+
 - [x] 79-01-PLAN.md — Dependencies + BackupManifest struct + shared helpers
 - [x] 79-02-PLAN.md — Three Tauri commands + registration + smoke test
+
 **UI hint**: no
 
 ### Phase 80: Export UI + Backup Status
+
 **Goal**: Users can export a structured backup from the Data Health page and see live backup health status across the app
 **Depends on**: Phase 79
 **Requirements**: STS-01, STS-02, STS-03, STS-04
 **Success Criteria** (what must be TRUE):
+
   1. The BackupCard on Data Health shows the last backup date as a human-readable age (e.g., "2 days ago") or "Never backed up"
   2. A health indicator (Healthy / Recommended / Overdue / Never) is visible on the BackupCard with appropriate color coding
   3. Clicking the export action opens a save dialog, runs the backup, and shows a success or error toast
   4. The DataHealthSummaryCard on the Dashboard reflects current backup status (healthy / needs attention)
+
 **Plans**: 2 plans
 Plans:
+**Wave 1**
+
 - [ ] 80-01-PLAN.md — Backup freshness utility + unit tests
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 80-02-PLAN.md — BackupCard migration + DataHealthSummaryCard update + test updates
+
 **UI hint**: yes
 
 ### Phase 81: Restore Preview + Validation
+
 **Goal**: Users can select a backup file and see a safe, informative preview of what will be restored before committing to anything destructive
 **Depends on**: Phase 79
 **Requirements**: RST-01, RST-02, RST-03, RST-04, RST-05, RST-09
 **Success Criteria** (what must be TRUE):
+
   1. Clicking "Restore from backup" on Data Health opens a file picker filtered to .zip files
   2. After selecting a file, the app shows a preview card: backup date, app version, schema version, file size — no data has changed yet
   3. A backup with a schema version newer than the running app is rejected with a clear error message
   4. A backup with an older schema version shows a warning but allows the user to continue
   5. The restore cannot proceed past the preview without explicit user confirmation (e.g., a confirm button that names the destructive action)
+
 **Plans**: 2 plans
 Plans:
+
 - [ ] 81-01-PLAN.md — Rust get_schema_version command + BackupManifest TS type + formatBytes utility
 - [ ] 81-02-PLAN.md — BackupCard restore button + RestorePreviewDialog + tests
+
 **UI hint**: yes
 
 ### Phase 82: Restore Execution + Safety Backups
+
 **Goal**: Users can complete a restore that atomically replaces the database and restarts the app, with automatic safety backups protecting against data loss before any risky operation
 **Depends on**: Phase 81
 **Requirements**: RST-06, RST-07, RST-08, SAF-02, SAF-04
 **Success Criteria** (what must be TRUE):
+
   1. Confirming a restore automatically creates a safety backup of the current database before any file is touched
   2. The restore replaces hobbyforge.db atomically: WAL/SHM/journal sidecars are deleted, then the extracted db file is swapped in
   3. The app restarts after a successful restore and the Data Health page reflects the restored database state
   4. A safety backup is automatically created before every Wahapedia rules sync
   5. The Data Health page lists available safety backups with their timestamps and sizes
+
 **Plans**: 2 plans
 Plans:
+
 - [ ] 80-01-PLAN.md — Backup freshness utility + unit tests
 - [ ] 80-02-PLAN.md — BackupCard migration + DataHealthSummaryCard update + test updates
+
 **UI hint**: yes
 
 ### Phase 83: Backup Diagnostics
+
 **Goal**: The Data Health page surfaces actionable backup health problems without overwhelming users who have a recent backup
 **Depends on**: Phase 80, Phase 82
 **Requirements**: DGN-01, DGN-02, DGN-03, DGN-04
 **Success Criteria** (what must be TRUE):
+
   1. A user who has never exported a backup sees a "Never backed up" diagnostic flag on Data Health
   2. A user whose last backup is older than the staleness threshold sees an "Overdue" flag with the backup age
   3. A user whose backup was created with a different app version sees a version mismatch warning
   4. Diagnostic detail (exact age, version numbers) is available on expansion but not displayed by default — users with a healthy backup see a clean green state
+
 **Plans**: 2 plans
 Plans:
+
 - [ ] 80-01-PLAN.md — Backup freshness utility + unit tests
 - [ ] 80-02-PLAN.md — BackupCard migration + DataHealthSummaryCard update + test updates
+
 **UI hint**: yes
 
 ---
