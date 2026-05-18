@@ -615,6 +615,115 @@ async fn backup_database(
     Ok(())
 }
 
+// ── Backup helpers ──────────────────────────────────────────────────────────
+
+#[derive(serde::Serialize, serde::Deserialize, Clone)]
+pub struct BackupManifest {
+    pub app_version: String,
+    pub schema_version: u32,
+    pub created_at: String,
+    pub platform: String,
+    pub db_size_bytes: u64,
+}
+
+/// Return the current UTC time formatted as an ISO 8601 / RFC 3339 string.
+fn format_iso8601_now() -> String {
+    time::OffsetDateTime::now_utc()
+        .format(&time::format_description::well_known::Rfc3339)
+        .unwrap_or_else(|_| "unknown".to_string())
+}
+
+/// Return a filename-safe timestamp in `YYYY-MM-DD-HHMM` format (UTC).
+/// Uses UTC to avoid the `local-offset` feature gate complexity on
+/// multi-threaded Tauri apps where local offset detection is unsound.
+fn format_filename_timestamp() -> String {
+    let now = time::OffsetDateTime::now_utc();
+    format!(
+        "{:04}-{:02}-{:02}-{:02}{:02}",
+        now.year(),
+        now.month() as u8,
+        now.day(),
+        now.hour(),
+        now.minute(),
+    )
+}
+
+/// Create a consistent VACUUM INTO snapshot of hobbyforge.db into a temp file
+/// inside app_data_dir. Returns the path to the temp file on success.
+async fn vacuum_to_temp(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
+    use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions};
+    use std::str::FromStr;
+
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("app_data_dir: {e}"))?;
+    let db_url = format!("sqlite:{}", app_data_dir.join("hobbyforge.db").display());
+
+    let opts = SqliteConnectOptions::from_str(&db_url)
+        .map_err(|e| format!("opts: {e}"))?
+        .create_if_missing(false);
+
+    let mut conn = opts.connect().await.map_err(|e| format!("connect: {e}"))?;
+
+    let temp_path = app_data_dir.join("hobbyforge_backup_temp.db");
+
+    // Remove existing temp file if present (guard against prior failed attempt)
+    if let Err(e) = std::fs::remove_file(&temp_path) {
+        if e.kind() != std::io::ErrorKind::NotFound {
+            return Err(format!("remove temp file: {e}"));
+        }
+    }
+
+    let sql = format!(
+        "VACUUM INTO '{}'",
+        temp_path.display().to_string().replace('\'', "''")
+    );
+    sqlx::query(&sql)
+        .execute(&mut conn)
+        .await
+        .map_err(|e| format!("VACUUM INTO: {e}"))?;
+
+    Ok(temp_path)
+}
+
+/// Create a zip archive at `dest_path` containing `hobbyforge.db` (from
+/// `db_path`) and a pretty-printed `metadata.json` (from `metadata`).
+/// Uses `Stored` compression — SQLite data does not compress well.
+fn create_backup_zip(
+    db_path: &std::path::Path,
+    metadata: &BackupManifest,
+    dest_path: &std::path::Path,
+) -> Result<(), String> {
+    use std::io::Write;
+    use zip::write::{SimpleFileOptions, ZipWriter};
+
+    let file = std::fs::File::create(dest_path)
+        .map_err(|e| format!("create zip file: {e}"))?;
+    let mut zip = ZipWriter::new(file);
+    let options = SimpleFileOptions::default()
+        .compression_method(zip::CompressionMethod::Stored);
+
+    // Add hobbyforge.db
+    zip.start_file("hobbyforge.db", options)
+        .map_err(|e| format!("start db entry: {e}"))?;
+    let db_bytes = std::fs::read(db_path)
+        .map_err(|e| format!("read temp db: {e}"))?;
+    zip.write_all(&db_bytes)
+        .map_err(|e| format!("write db to zip: {e}"))?;
+
+    // Add metadata.json (pretty-printed for human readability)
+    zip.start_file("metadata.json", options)
+        .map_err(|e| format!("start metadata entry: {e}"))?;
+    let meta_json = serde_json::to_string_pretty(metadata)
+        .map_err(|e| format!("serialize metadata: {e}"))?;
+    zip.write_all(meta_json.as_bytes())
+        .map_err(|e| format!("write metadata to zip: {e}"))?;
+
+    zip.finish().map_err(|e| format!("finalize zip: {e}"))?;
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
