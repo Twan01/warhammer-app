@@ -111,7 +111,10 @@ Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
   3. Calling `create_safety_backup` produces a .zip in the app data directory with an auto-generated timestamped name
   4. Calling `validate_backup` on a valid .zip returns parsed metadata without modifying any file
   5. A JS-triggered export returns success or a typed error message that the UI can display
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 79-01-PLAN.md — Dependencies + BackupManifest struct + shared helpers
+- [ ] 79-02-PLAN.md — Three Tauri commands + registration + smoke test
 **UI hint**: no
 
 ### Phase 80: Export UI + Backup Status
@@ -123,7 +126,10 @@ Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
   2. A health indicator (Healthy / Recommended / Overdue / Never) is visible on the BackupCard with appropriate color coding
   3. Clicking the export action opens a save dialog, runs the backup, and shows a success or error toast
   4. The DataHealthSummaryCard on the Dashboard reflects current backup status (healthy / needs attention)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 79-01-PLAN.md — Dependencies + BackupManifest struct + shared helpers
+- [ ] 79-02-PLAN.md — Three Tauri commands + registration + smoke test
 **UI hint**: yes
 
 ### Phase 81: Restore Preview + Validation
@@ -136,7 +142,10 @@ Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
   3. A backup with a schema version newer than the running app is rejected with a clear error message
   4. A backup with an older schema version shows a warning but allows the user to continue
   5. The restore cannot proceed past the preview without explicit user confirmation (e.g., a confirm button that names the destructive action)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 79-01-PLAN.md — Dependencies + BackupManifest struct + shared helpers
+- [ ] 79-02-PLAN.md — Three Tauri commands + registration + smoke test
 **UI hint**: yes
 
 ### Phase 82: Restore Execution + Safety Backups
@@ -149,7 +158,10 @@ Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
   3. The app restarts after a successful restore and the Data Health page reflects the restored database state
   4. A safety backup is automatically created before every Wahapedia rules sync
   5. The Data Health page lists available safety backups with their timestamps and sizes
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 79-01-PLAN.md — Dependencies + BackupManifest struct + shared helpers
+- [ ] 79-02-PLAN.md — Three Tauri commands + registration + smoke test
 **UI hint**: yes
 
 ### Phase 83: Backup Diagnostics
@@ -161,7 +173,10 @@ Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
   2. A user whose last backup is older than the staleness threshold sees an "Overdue" flag with the backup age
   3. A user whose backup was created with a different app version sees a version mismatch warning
   4. Diagnostic detail (exact age, version numbers) is available on expansion but not displayed by default — users with a healthy backup see a clean green state
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 79-01-PLAN.md — Dependencies + BackupManifest struct + shared helpers
+- [ ] 79-02-PLAN.md — Three Tauri commands + registration + smoke test
 **UI hint**: yes
 
 ---
@@ -248,7 +263,7 @@ Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
 | 76. Points Resolver + Unit Rules Mapping | v0.2.13 | 2/2 | Complete | 2026-05-15 |
 | 77. Data Health Page + Backup/Export | v0.2.13 | 2/2 | Complete | 2026-05-15 |
 | 78. Dashboard Command Center + After-Action | v0.2.13 | 3/3 | Complete | 2026-05-15 |
-| 79. Rust Backup Foundation | v0.2.14 | 0/TBD | Not started | - |
+| 79. Rust Backup Foundation | v0.2.14 | 0/2 | Not started | - |
 | 80. Export UI + Backup Status | v0.2.14 | 0/TBD | Not started | - |
 | 81. Restore Preview + Validation | v0.2.14 | 0/TBD | Not started | - |
 | 82. Restore Execution + Safety Backups | v0.2.14 | 0/TBD | Not started | - |
