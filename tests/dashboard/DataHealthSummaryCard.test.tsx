@@ -1,6 +1,6 @@
 /**
- * Phase 78 — DataHealthSummaryCard component behavioral tests
- * (Task 78-02-03, Req GD-03/DB-03).
+ * Phase 78/80 — DataHealthSummaryCard component behavioral tests
+ * (Task 78-02-03, Req GD-03/DB-03, STS-04).
  *
  * Verifies:
  * - Renders sync dot, warning count, backup age in horizontal row
@@ -9,8 +9,9 @@
  * - Warning count 0 shows "No warnings"
  * - Warning count > 0 shows "{N} warning(s)"
  * - Backup status: "No backup" when null, date-based label when set
+ * - STS-04: Backup dot (not HardDrive icon) with freshness color
  */
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import type { DiagnosticFlag } from "@/db/queries/diagnostics";
 import type { BackupStatus } from "@/hooks/useDiagnostics";
@@ -137,5 +138,40 @@ describe("DataHealthSummaryCard — navigation link", () => {
     const link = screen.getByText("View full report");
     expect(link).toBeInTheDocument();
     expect(link.closest("a")).toHaveAttribute("href", "/data-health");
+  });
+});
+
+describe("DataHealthSummaryCard — STS-04 backup dot", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("STS-04: renders backup dot with muted color when no backup", () => {
+    mockBackup = null;
+    render(<DataHealthSummaryCard />);
+    const dot = document.querySelector(".bg-muted-foreground");
+    expect(dot).toBeInTheDocument();
+    expect(screen.getByText("No backup")).toBeInTheDocument();
+  });
+
+  it("STS-04: renders backup dot with green color for recent backup", () => {
+    vi.useFakeTimers();
+    const now = new Date("2026-05-18T12:00:00.000Z");
+    vi.setSystemTime(now);
+    mockBackup = { date: now.toISOString(), path: "/backup.zip", success: true };
+    render(<DataHealthSummaryCard />);
+    const greenDot = document.querySelector(".bg-green-500");
+    expect(greenDot).toBeInTheDocument();
+    expect(screen.getByText(/Backed up today/)).toBeInTheDocument();
+  });
+
+  it("STS-04: does not render HardDrive icon", () => {
+    render(<DataHealthSummaryCard />);
+    // Lucide renders SVG with data-lucide attribute
+    const hardDrive = document.querySelector("[data-lucide='hard-drive']");
+    expect(hardDrive).not.toBeInTheDocument();
+    // Also verify no element with aria-label mentioning HardDrive
+    const ariaHardDrive = document.querySelector("[aria-label*='HardDrive']");
+    expect(ariaHardDrive).not.toBeInTheDocument();
   });
 });
