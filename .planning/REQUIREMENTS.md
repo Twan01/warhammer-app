@@ -73,38 +73,38 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EXP-01 | — | Pending |
-| EXP-02 | — | Pending |
-| EXP-03 | — | Pending |
-| EXP-04 | — | Pending |
-| EXP-05 | — | Pending |
-| RST-01 | — | Pending |
-| RST-02 | — | Pending |
-| RST-03 | — | Pending |
-| RST-04 | — | Pending |
-| RST-05 | — | Pending |
-| RST-06 | — | Pending |
-| RST-07 | — | Pending |
-| RST-08 | — | Pending |
-| RST-09 | — | Pending |
-| STS-01 | — | Pending |
-| STS-02 | — | Pending |
-| STS-03 | — | Pending |
-| STS-04 | — | Pending |
-| SAF-01 | — | Pending |
-| SAF-02 | — | Pending |
-| SAF-03 | — | Pending |
-| SAF-04 | — | Pending |
-| DGN-01 | — | Pending |
-| DGN-02 | — | Pending |
-| DGN-03 | — | Pending |
-| DGN-04 | — | Pending |
+| EXP-01 | Phase 79 | Pending |
+| EXP-02 | Phase 79 | Pending |
+| EXP-03 | Phase 79 | Pending |
+| EXP-04 | Phase 79 | Pending |
+| EXP-05 | Phase 79 | Pending |
+| RST-01 | Phase 81 | Pending |
+| RST-02 | Phase 81 | Pending |
+| RST-03 | Phase 81 | Pending |
+| RST-04 | Phase 81 | Pending |
+| RST-05 | Phase 81 | Pending |
+| RST-06 | Phase 82 | Pending |
+| RST-07 | Phase 82 | Pending |
+| RST-08 | Phase 82 | Pending |
+| RST-09 | Phase 81 | Pending |
+| STS-01 | Phase 80 | Pending |
+| STS-02 | Phase 80 | Pending |
+| STS-03 | Phase 80 | Pending |
+| STS-04 | Phase 80 | Pending |
+| SAF-01 | Phase 79 | Pending |
+| SAF-02 | Phase 82 | Pending |
+| SAF-03 | Phase 79 | Pending |
+| SAF-04 | Phase 82 | Pending |
+| DGN-01 | Phase 83 | Pending |
+| DGN-02 | Phase 83 | Pending |
+| DGN-03 | Phase 83 | Pending |
+| DGN-04 | Phase 83 | Pending |
 
 **Coverage:**
 - v0.2.14 requirements: 26 total
-- Mapped to phases: 0
-- Unmapped: 26
+- Mapped to phases: 26
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-05-18*
-*Last updated: 2026-05-18 after initial definition*
+*Last updated: 2026-05-18 after roadmap creation*

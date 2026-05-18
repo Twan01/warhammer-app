@@ -16,6 +16,7 @@
 - ✅ **v0.2.10 Applied Recipes, Points Import & List Validation** — Phases 61-67 (shipped 2026-05-13)
 - ✅ **v0.2.11 Foundation Hardening** — Phases 68-72 (shipped 2026-05-13)
 - ✅ **v0.2.13 Data Integrity, Diagnostics & Product Coherence** — Phases 73-78 (shipped 2026-05-15)
+- 🚧 **v0.2.14 Backup 2.0 — Structured Export, Restore & Safety Backups** — Phases 79-83 (in progress)
 
 ## Phases
 
@@ -87,6 +88,171 @@ Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
 </details>
 
 ---
+
+### 🚧 v0.2.14 Backup 2.0 — Structured Export, Restore & Safety Backups (In Progress)
+
+**Milestone Goal:** Make HobbyForge safe to use long-term by giving the user a reliable way to export, restore, and protect their local data.
+
+- [ ] **Phase 79: Rust Backup Foundation** - zip crate + structured export command + validate command + safety backup command (Rust-first; unlocks all UI)
+- [ ] **Phase 80: Export UI + Backup Status** - BackupCard upgrade, status indicators, export flow, dashboard integration
+- [ ] **Phase 81: Restore Preview + Validation** - file picker, manifest validation, schema version checks, preview modal (non-destructive)
+- [ ] **Phase 82: Restore Execution + Safety Backups** - atomic file swap, process restart, pre-sync safety backup, safety backup listing
+- [ ] **Phase 83: Backup Diagnostics** - never-backed-up flag, staleness threshold, version mismatch detection, diagnostic detail disclosure
+
+## Phase Details
+
+### Phase 79: Rust Backup Foundation
+**Goal**: The Rust backend can create structured backup zips, validate existing backups, and create safety backups — enabling all UI phases that follow
+**Depends on**: Phase 78 (v0.2.13 complete)
+**Requirements**: EXP-01, EXP-02, EXP-03, EXP-04, EXP-05, SAF-01, SAF-03
+**Success Criteria** (what must be TRUE):
+  1. Calling `create_structured_backup` from JS produces a .zip file at the chosen path containing hobbyforge.db (via VACUUM INTO) and metadata.json with app version, migration count, timestamp, and platform
+  2. Backup filename defaults to `hobbyforge-backup-YYYY-MM-DD-HHMM.zip` format
+  3. Calling `create_safety_backup` produces a .zip in the app data directory with an auto-generated timestamped name
+  4. Calling `validate_backup` on a valid .zip returns parsed metadata without modifying any file
+  5. A JS-triggered export returns success or a typed error message that the UI can display
+**Plans**: TBD
+**UI hint**: no
+
+### Phase 80: Export UI + Backup Status
+**Goal**: Users can export a structured backup from the Data Health page and see live backup health status across the app
+**Depends on**: Phase 79
+**Requirements**: STS-01, STS-02, STS-03, STS-04
+**Success Criteria** (what must be TRUE):
+  1. The BackupCard on Data Health shows the last backup date as a human-readable age (e.g., "2 days ago") or "Never backed up"
+  2. A health indicator (Healthy / Recommended / Overdue / Never) is visible on the BackupCard with appropriate color coding
+  3. Clicking the export action opens a save dialog, runs the backup, and shows a success or error toast
+  4. The DataHealthSummaryCard on the Dashboard reflects current backup status (healthy / needs attention)
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 81: Restore Preview + Validation
+**Goal**: Users can select a backup file and see a safe, informative preview of what will be restored before committing to anything destructive
+**Depends on**: Phase 79
+**Requirements**: RST-01, RST-02, RST-03, RST-04, RST-05, RST-09
+**Success Criteria** (what must be TRUE):
+  1. Clicking "Restore from backup" on Data Health opens a file picker filtered to .zip files
+  2. After selecting a file, the app shows a preview card: backup date, app version, schema version, file size — no data has changed yet
+  3. A backup with a schema version newer than the running app is rejected with a clear error message
+  4. A backup with an older schema version shows a warning but allows the user to continue
+  5. The restore cannot proceed past the preview without explicit user confirmation (e.g., a confirm button that names the destructive action)
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 82: Restore Execution + Safety Backups
+**Goal**: Users can complete a restore that atomically replaces the database and restarts the app, with automatic safety backups protecting against data loss before any risky operation
+**Depends on**: Phase 81
+**Requirements**: RST-06, RST-07, RST-08, SAF-02, SAF-04
+**Success Criteria** (what must be TRUE):
+  1. Confirming a restore automatically creates a safety backup of the current database before any file is touched
+  2. The restore replaces hobbyforge.db atomically: WAL/SHM/journal sidecars are deleted, then the extracted db file is swapped in
+  3. The app restarts after a successful restore and the Data Health page reflects the restored database state
+  4. A safety backup is automatically created before every Wahapedia rules sync
+  5. The Data Health page lists available safety backups with their timestamps and sizes
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 83: Backup Diagnostics
+**Goal**: The Data Health page surfaces actionable backup health problems without overwhelming users who have a recent backup
+**Depends on**: Phase 80, Phase 82
+**Requirements**: DGN-01, DGN-02, DGN-03, DGN-04
+**Success Criteria** (what must be TRUE):
+  1. A user who has never exported a backup sees a "Never backed up" diagnostic flag on Data Health
+  2. A user whose last backup is older than the staleness threshold sees an "Overdue" flag with the backup age
+  3. A user whose backup was created with a different app version sees a version mismatch warning
+  4. Diagnostic detail (exact age, version numbers) is available on expansion but not displayed by default — users with a healthy backup see a clean green state
+**Plans**: TBD
+**UI hint**: yes
+
+---
+
+## Progress
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. App Shell | v0.1.1 | 3/3 | Complete | 2024-04-30 |
+| 2. Data Layer + Entity CRUD | v0.1.1 | 4/4 | Complete | 2024-04-30 |
+| 3. Collection Module | v0.1.1 | 5/5 | Complete | 2024-05-01 |
+| 4. Painting Module | v0.1.1 | 4/4 | Complete | 2024-05-01 |
+| 5. Dashboard | v0.1.1 | 4/4 | Complete | 2024-05-01 |
+| 6. Foundation | v0.2.0 | 5/5 | Complete | 2024-05-01 |
+| 7. Paint Inventory | v0.2.0 | 5/5 | Complete | 2024-05-02 |
+| 8. Army List Builder | v0.2.0 | 6/6 | Complete | 2024-05-03 |
+| 9. Unit Playbook | v0.2.0 | 4/4 | Complete | 2024-05-02 |
+| 10. Theming Foundation | v0.2.1 | 4/4 | Complete | 2026-05-03 |
+| 11. Dashboard Command Center | v0.2.1 | 4/4 | Complete | 2026-05-03 |
+| 12. Collection Gallery View | v0.2.1 | 4/4 | Complete | 2026-05-04 |
+| 13. Hobby Journal | v0.2.1 | 6/6 | Complete | 2026-05-04 |
+| 14. Spending Tracker | v0.2.1 | 5/5 | Complete | 2026-05-04 |
+| 15. 40K Datasheet Integration | v0.2.1 | 7/7 | Complete | 2026-05-04 |
+| 16. Design Overhaul | v0.2.1 | 8/8 | Complete | 2026-05-04 |
+| 17. Schema Foundation + Enrichment | v0.2.2 | 1/1 | Complete | 2026-05-04 |
+| 18. Battle Log | v0.2.2 | 4/4 | Complete | 2026-05-04 |
+| 19. Analytics Core | v0.2.2 | 4/4 | Complete | 2026-05-04 |
+| 20. v0.2.1 Polish & Gap Closure | v0.2.1 | 3/3 | Complete | 2026-05-04 |
+| 21. Wishlist | v0.2.2 | 3/3 | Complete | 2026-05-05 |
+| 22. Hobby Goals | v0.2.2 | 4/4 | Complete | 2026-05-05 |
+| 23. Display Features | v0.2.2 | 2/2 | Complete | 2026-05-05 |
+| 24. Unit Point Calculator | v0.2.2 | 4/4 | Complete | 2026-05-05 |
+| 35. v0.2.2 Gap Closure | v0.2.2 | 1/1 | Complete | 2026-05-05 |
+| 25. Design Foundation | v0.2.3 | 2/2 | Complete | 2026-05-04 |
+| 26. Dashboard Redesign | v0.2.3 | 5/5 | Complete | 2026-05-05 |
+| 27. Navigation & Quick Add | v0.2.3 | 4/4 | Complete | 2026-05-05 |
+| 28. Collection + Projects | v0.2.3 | 5/5 | Complete | 2026-05-05 |
+| 29. Workshop + Play | v0.2.3 | 5/5 | Complete | 2026-05-05 |
+| 30. Grid Layout Foundation | v0.2.4 | 2/2 | Complete | 2026-05-06 |
+| 31. Focus & Projects Panels | v0.2.4 | 3/3 | Complete | 2026-05-06 |
+| 32. Army Readiness Card | v0.2.4 | 1/1 | Complete | 2026-05-06 |
+| 33. Data Intelligence | v0.2.4 | 4/4 | Complete | 2026-05-06 |
+| 34. Visual Polish | v0.2.4 | 2/2 | Complete | 2026-05-06 |
+| 36. v0.2.4 Gap Closure | v0.2.4 | 1/1 | Complete | 2026-05-06 |
+| 37. Schema Foundation + Pre-flight Fixes | v0.2.5 | 2/2 | Complete | 2026-05-07 |
+| 38. Structured Step Input | v0.2.5 | 2/2 | Complete | 2026-05-07 |
+| 39. Studio UX + Paint Availability | v0.2.5 | 3/3 | Complete | 2026-05-07 |
+| 40. Recipe Actions + Step Photos | v0.2.5 | 3/3 | Complete | 2026-05-07 |
+| 41. Session Integration | v0.2.5 | 2/2 | Complete | 2026-05-07 |
+| 42. Architecture Audit | v0.2.6 | 1/1 | Complete | 2026-05-08 |
+| 43. Extended Rules Read Layer | v0.2.6 | 2/2 | Complete | 2026-05-08 |
+| 44. Sync Pipeline Hardening | v0.2.6 | 2/2 | Complete | 2026-05-08 |
+| 45. Sync Metadata & Import Tracking | v0.2.6 | 2/2 | Complete | 2026-05-08 |
+| 46. Manual Overrides & Version Comparison | v0.2.6 | 2/2 | Complete | 2026-05-08 |
+| 47. v0.2.6 Gap Closure | v0.2.6 | 2/2 | Complete | 2026-05-08 |
+| 48. Section Data Layer | v0.2.7 | 2/2 | Complete | 2026-05-08 |
+| 49. Section Read UI | v0.2.7 | 1/1 | Complete | 2026-05-08 |
+| 50. Section Form UI | v0.2.7 | 3/3 | Complete | 2026-05-08 |
+| 51. Duplication + Integration Polish | v0.2.7 | 2/2 | Complete | 2026-05-08 |
+| 52. Schema + Data Layer Foundation | v0.2.8 | 3/3 | Complete | 2026-05-10 |
+| 53. Rules Data Hub UI | v0.2.8 | 3/3 | Complete | 2026-05-11 |
+| 54. Army Lists 2.0 — Detachment Selection | v0.2.8 | 2/2 | Complete | 2026-05-11 |
+| 55. Playbook Enhancements — Favorites and Notes | v0.2.8 | 2/2 | Complete | 2026-05-11 |
+| 56. Game Day Mode | v0.2.8 | 2/2 | Complete | 2026-05-11 |
+| 57. Schema & Data Layer | v0.2.9 | 2/2 | Complete | 2026-05-12 |
+| 58. Recipe Form & Timeline Display | v0.2.9 | 2/2 | Complete | 2026-05-12 |
+| 59. Session Section Cascade | v0.2.9 | 2/2 | Complete | 2026-05-12 |
+| 60. Kanban & CurrentFocus Integration | v0.2.9 | 2/2 | Complete | 2026-05-12 |
+| 61. Recipe Workflow Hardening | v0.2.10 | 2/2 | Complete | 2026-05-13 |
+| 62. Applied Recipe Data Layer | v0.2.10 | 2/2 | Complete | 2026-05-13 |
+| 63. Applied Recipe UX | v0.2.10 | 3/3 | Complete | 2026-05-13 |
+| 64. Applied Recipe Integrations | v0.2.10 | 3/3 | Complete | 2026-05-13 |
+| 65. Points Import Pipeline | v0.2.10 | 3/3 | Complete | 2026-05-13 |
+| 66. Army List Validation | v0.2.10 | 3/3 | Complete | 2026-05-13 |
+| 67. Game Day Integration | v0.2.10 | 1/1 | Complete | 2026-05-13 |
+| 68. Infrastructure Quick Wins | v0.2.11 | 2/2 | Complete | 2026-05-13 |
+| 69. Paintless Recipe Steps | v0.2.11 | 1/1 | Complete | 2026-05-13 |
+| 70. Non-Destructive Recipe Save | v0.2.11 | 2/2 | Complete | 2026-05-13 |
+| 71. Stable Session Section FK | v0.2.11 | 2/2 | Complete | 2026-05-13 |
+| 72. Data-Layer Test Suite | v0.2.11 | 2/2 | Complete | 2026-05-13 |
+| 73. Schema Foundation + Version Parity | v0.2.13 | 2/2 | Complete | 2026-05-14 |
+| 74. Applied Recipe Identity Hardening | v0.2.13 | 2/2 | Complete | 2026-05-14 |
+| 75. Transactional Recipe Graph Save | v0.2.13 | 2/2 | Complete | 2026-05-15 |
+| 76. Points Resolver + Unit Rules Mapping | v0.2.13 | 2/2 | Complete | 2026-05-15 |
+| 77. Data Health Page + Backup/Export | v0.2.13 | 2/2 | Complete | 2026-05-15 |
+| 78. Dashboard Command Center + After-Action | v0.2.13 | 3/3 | Complete | 2026-05-15 |
+| 79. Rust Backup Foundation | v0.2.14 | 0/TBD | Not started | - |
+| 80. Export UI + Backup Status | v0.2.14 | 0/TBD | Not started | - |
+| 81. Restore Preview + Validation | v0.2.14 | 0/TBD | Not started | - |
+| 82. Restore Execution + Safety Backups | v0.2.14 | 0/TBD | Not started | - |
+| 83. Backup Diagnostics | v0.2.14 | 0/TBD | Not started | - |
 
 <details>
 <summary>✅ v0.1.1 HobbyForge MVP (Phases 1-5) — SHIPPED 2024-05-01</summary>
@@ -210,86 +376,3 @@ Full details: `.planning/milestones/v0.2.6-ROADMAP.md`
 Full details: `.planning/milestones/v0.2.7-ROADMAP.md`
 
 </details>
-
-## Progress
-
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|----------------|--------|-----------|
-| 1. App Shell | v0.1.1 | 3/3 | Complete | 2024-04-30 |
-| 2. Data Layer + Entity CRUD | v0.1.1 | 4/4 | Complete | 2024-04-30 |
-| 3. Collection Module | v0.1.1 | 5/5 | Complete | 2024-05-01 |
-| 4. Painting Module | v0.1.1 | 4/4 | Complete | 2024-05-01 |
-| 5. Dashboard | v0.1.1 | 4/4 | Complete | 2024-05-01 |
-| 6. Foundation | v0.2.0 | 5/5 | Complete | 2024-05-01 |
-| 7. Paint Inventory | v0.2.0 | 5/5 | Complete | 2024-05-02 |
-| 8. Army List Builder | v0.2.0 | 6/6 | Complete | 2024-05-03 |
-| 9. Unit Playbook | v0.2.0 | 4/4 | Complete | 2024-05-02 |
-| 10. Theming Foundation | v0.2.1 | 4/4 | Complete | 2026-05-03 |
-| 11. Dashboard Command Center | v0.2.1 | 4/4 | Complete | 2026-05-03 |
-| 12. Collection Gallery View | v0.2.1 | 4/4 | Complete | 2026-05-04 |
-| 13. Hobby Journal | v0.2.1 | 6/6 | Complete | 2026-05-04 |
-| 14. Spending Tracker | v0.2.1 | 5/5 | Complete | 2026-05-04 |
-| 15. 40K Datasheet Integration | v0.2.1 | 7/7 | Complete | 2026-05-04 |
-| 16. Design Overhaul | v0.2.1 | 8/8 | Complete | 2026-05-04 |
-| 17. Schema Foundation + Enrichment | v0.2.2 | 1/1 | Complete | 2026-05-04 |
-| 18. Battle Log | v0.2.2 | 4/4 | Complete | 2026-05-04 |
-| 19. Analytics Core | v0.2.2 | 4/4 | Complete | 2026-05-04 |
-| 20. v0.2.1 Polish & Gap Closure | v0.2.1 | 3/3 | Complete | 2026-05-04 |
-| 21. Wishlist | v0.2.2 | 3/3 | Complete | 2026-05-05 |
-| 22. Hobby Goals | v0.2.2 | 4/4 | Complete | 2026-05-05 |
-| 23. Display Features | v0.2.2 | 2/2 | Complete | 2026-05-05 |
-| 24. Unit Point Calculator | v0.2.2 | 4/4 | Complete | 2026-05-05 |
-| 35. v0.2.2 Gap Closure | v0.2.2 | 1/1 | Complete | 2026-05-05 |
-| 25. Design Foundation | v0.2.3 | 2/2 | Complete | 2026-05-04 |
-| 26. Dashboard Redesign | v0.2.3 | 5/5 | Complete | 2026-05-05 |
-| 27. Navigation & Quick Add | v0.2.3 | 4/4 | Complete | 2026-05-05 |
-| 28. Collection + Projects | v0.2.3 | 5/5 | Complete | 2026-05-05 |
-| 29. Workshop + Play | v0.2.3 | 5/5 | Complete | 2026-05-05 |
-| 30. Grid Layout Foundation | v0.2.4 | 2/2 | Complete | 2026-05-06 |
-| 31. Focus & Projects Panels | v0.2.4 | 3/3 | Complete | 2026-05-06 |
-| 32. Army Readiness Card | v0.2.4 | 1/1 | Complete | 2026-05-06 |
-| 33. Data Intelligence | v0.2.4 | 4/4 | Complete | 2026-05-06 |
-| 34. Visual Polish | v0.2.4 | 2/2 | Complete | 2026-05-06 |
-| 36. v0.2.4 Gap Closure | v0.2.4 | 1/1 | Complete | 2026-05-06 |
-| 37. Schema Foundation + Pre-flight Fixes | v0.2.5 | 2/2 | Complete | 2026-05-07 |
-| 38. Structured Step Input | v0.2.5 | 2/2 | Complete | 2026-05-07 |
-| 39. Studio UX + Paint Availability | v0.2.5 | 3/3 | Complete | 2026-05-07 |
-| 40. Recipe Actions + Step Photos | v0.2.5 | 3/3 | Complete | 2026-05-07 |
-| 41. Session Integration | v0.2.5 | 2/2 | Complete | 2026-05-07 |
-| 42. Architecture Audit | v0.2.6 | 1/1 | Complete | 2026-05-08 |
-| 43. Extended Rules Read Layer | v0.2.6 | 2/2 | Complete | 2026-05-08 |
-| 44. Sync Pipeline Hardening | v0.2.6 | 2/2 | Complete | 2026-05-08 |
-| 45. Sync Metadata & Import Tracking | v0.2.6 | 2/2 | Complete | 2026-05-08 |
-| 46. Manual Overrides & Version Comparison | v0.2.6 | 2/2 | Complete | 2026-05-08 |
-| 47. v0.2.6 Gap Closure | v0.2.6 | 2/2 | Complete | 2026-05-08 |
-| 48. Section Data Layer | v0.2.7 | 2/2 | Complete | 2026-05-08 |
-| 49. Section Read UI | v0.2.7 | 1/1 | Complete | 2026-05-08 |
-| 50. Section Form UI | v0.2.7 | 3/3 | Complete | 2026-05-08 |
-| 51. Duplication + Integration Polish | v0.2.7 | 2/2 | Complete | 2026-05-08 |
-| 52. Schema + Data Layer Foundation | v0.2.8 | 3/3 | Complete | 2026-05-10 |
-| 53. Rules Data Hub UI | v0.2.8 | 3/3 | Complete | 2026-05-11 |
-| 54. Army Lists 2.0 — Detachment Selection | v0.2.8 | 2/2 | Complete | 2026-05-11 |
-| 55. Playbook Enhancements — Favorites and Notes | v0.2.8 | 2/2 | Complete | 2026-05-11 |
-| 56. Game Day Mode | v0.2.8 | 2/2 | Complete | 2026-05-11 |
-| 57. Schema & Data Layer | v0.2.9 | 2/2 | Complete | 2026-05-12 |
-| 58. Recipe Form & Timeline Display | v0.2.9 | 2/2 | Complete | 2026-05-12 |
-| 59. Session Section Cascade | v0.2.9 | 2/2 | Complete | 2026-05-12 |
-| 60. Kanban & CurrentFocus Integration | v0.2.9 | 2/2 | Complete | 2026-05-12 |
-| 61. Recipe Workflow Hardening | v0.2.10 | 2/2 | Complete | 2026-05-13 |
-| 62. Applied Recipe Data Layer | v0.2.10 | 2/2 | Complete | 2026-05-13 |
-| 63. Applied Recipe UX | v0.2.10 | 3/3 | Complete | 2026-05-13 |
-| 64. Applied Recipe Integrations | v0.2.10 | 3/3 | Complete | 2026-05-13 |
-| 65. Points Import Pipeline | v0.2.10 | 3/3 | Complete | 2026-05-13 |
-| 66. Army List Validation | v0.2.10 | 3/3 | Complete | 2026-05-13 |
-| 67. Game Day Integration | v0.2.10 | 1/1 | Complete | 2026-05-13 |
-| 68. Infrastructure Quick Wins | v0.2.11 | 2/2 | Complete | 2026-05-13 |
-| 69. Paintless Recipe Steps | v0.2.11 | 1/1 | Complete | 2026-05-13 |
-| 70. Non-Destructive Recipe Save | v0.2.11 | 2/2 | Complete | 2026-05-13 |
-| 71. Stable Session Section FK | v0.2.11 | 2/2 | Complete | 2026-05-13 |
-| 72. Data-Layer Test Suite | v0.2.11 | 2/2 | Complete | 2026-05-13 |
-| 73. Schema Foundation + Version Parity | v0.2.13 | 2/2 | Complete | 2026-05-14 |
-| 74. Applied Recipe Identity Hardening | v0.2.13 | 2/2 | Complete | 2026-05-14 |
-| 75. Transactional Recipe Graph Save | v0.2.13 | 2/2 | Complete | 2026-05-15 |
-| 76. Points Resolver + Unit Rules Mapping | v0.2.13 | 2/2 | Complete | 2026-05-15 |
-| 77. Data Health Page + Backup/Export | v0.2.13 | 2/2 | Complete | 2026-05-15 |
-| 78. Dashboard Command Center + After-Action | v0.2.13 | 3/3 | Complete | 2026-05-15 |

@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v0.2.14
 milestone_name: Backup 2.0 — Structured Export, Restore & Safety Backups
-status: planning
-last_updated: "2026-05-18T17:30:23.213Z"
+status: roadmap_ready
+last_updated: "2026-05-18"
 last_activity: 2026-05-18
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,17 +17,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-15)
+See: .planning/PROJECT.md (updated 2026-05-18)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play"
-**Current focus:** Planning next milestone
+**Current focus:** v0.2.14 Backup 2.0 — Phases 79-83
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Phase 79 — Rust Backup Foundation (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-18 — Milestone v0.2.14 started
+Status: Roadmap defined, ready to plan Phase 79
+Last activity: 2026-05-18 — Roadmap created for v0.2.14
 
 ## Performance Metrics
 
@@ -44,11 +44,20 @@ Last activity: 2026-05-18 — Milestone v0.2.14 started
 
 ### Decisions Carried Forward
 
-None — clean slate for next milestone.
+- Phase 79 must ship before any UI phase calls backup Tauri commands — Rust commands must exist first
+- Only new Cargo dependency: `zip = "2"` in src-tauri/Cargo.toml
+- Restore requires Tauri process restart (`tauri::AppHandle::restart()`) — tauri-plugin-sql has no reconnect API
+- Safety backup + restore are one atomic Rust command: backup current db → swap in restored db → restart
+- WAL/SHM/journal sidecar files must be explicitly deleted before the file swap in restore
+- rules.db excluded from all backups — fully regenerable via Wahapedia sync
+- Schema version = migration count (integer), not semver — count migration files in src-tauri/migrations/
+- Two-step restore pattern: validate+preview (non-destructive, Phase 81) then commit (destructive, Phase 82)
+- localStorage pattern for backup status metadata (established in v0.2.13, consistent with existing pattern)
 
 ### Pending Todos
 
-None.
+- Add `zip = "2"` to src-tauri/Cargo.toml during Phase 79
+- Count current migration files to establish baseline schema version integer
 
 ### Open Blockers
 
@@ -56,7 +65,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-15
-Stopped at: Milestone v0.2.13 archived
+Last session: 2026-05-18
+Stopped at: Roadmap created for v0.2.14
 Resume file: None
-Resume: Start next milestone with /gsd-new-milestone
+Resume: Run `/gsd-plan-phase 79` to begin planning the Rust foundation phase
