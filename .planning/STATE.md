@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-18)
 
 ## Current Position
 
-Phase: Phase 79 — Rust Backup Foundation (complete)
-Plan: Phase 79 complete (2/2 plans)
-Status: Phase 79 complete, ready for Phase 80
-Last activity: 2026-05-18 — Completed 79-02 (three Tauri backup commands + registration)
+Phase: Phase 81 — Restore Preview + Validation (context gathered)
+Plan: Not yet planned
+Status: Phase 81 context gathered, ready for planning
+Last activity: 2026-05-18 — Phase 81 context captured (auto mode)
 
 ## Performance Metrics
 
@@ -65,6 +65,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-18
-Stopped at: Completed 79-02-PLAN.md (Phase 79 complete)
-Resume file: .planning/phases/80-export-ui-backup-status/80-01-PLAN.md
-Resume: Begin Phase 80 (Export UI + Backup Status)
+Stopped at: Phase 81 context gathered
+Resume file: .planning/phases/81-restore-preview-validation/81-CONTEXT.md
+Resume: Plan Phase 81 (Restore Preview + Validation)
