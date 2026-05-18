@@ -144,8 +144,8 @@ Plans:
   5. The restore cannot proceed past the preview without explicit user confirmation (e.g., a confirm button that names the destructive action)
 **Plans**: 2 plans
 Plans:
-- [ ] 79-01-PLAN.md — Dependencies + BackupManifest struct + shared helpers
-- [ ] 79-02-PLAN.md — Three Tauri commands + registration + smoke test
+- [ ] 81-01-PLAN.md — Rust get_schema_version command + BackupManifest TS type + formatBytes utility
+- [ ] 81-02-PLAN.md — BackupCard restore button + RestorePreviewDialog + tests
 **UI hint**: yes
 
 ### Phase 82: Restore Execution + Safety Backups
@@ -265,7 +265,7 @@ Plans:
 | 78. Dashboard Command Center + After-Action | v0.2.13 | 3/3 | Complete | 2026-05-15 |
 | 79. Rust Backup Foundation | v0.2.14 | 2/2 | Complete | 2026-05-18 |
 | 80. Export UI + Backup Status | v0.2.14 | 0/TBD | Not started | - |
-| 81. Restore Preview + Validation | v0.2.14 | 0/TBD | Not started | - |
+| 81. Restore Preview + Validation | v0.2.14 | 0/2 | Not started | - |
 | 82. Restore Execution + Safety Backups | v0.2.14 | 0/TBD | Not started | - |
 | 83. Backup Diagnostics | v0.2.14 | 0/TBD | Not started | - |
 
