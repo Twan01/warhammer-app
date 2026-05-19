@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.2.15
 milestone_name: Painting Mode
 status: executing
-stopped_at: Phase 86 plan 1 complete, plan 2 next
-last_updated: "2026-05-19T15:02:00Z"
-last_activity: 2026-05-19 -- Phase 86 plan 01 executed
+stopped_at: Phase 86 complete, phase 87 next
+last_updated: "2026-05-19T15:15:00Z"
+last_activity: 2026-05-19 -- Phase 86 plan 02 executed
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
-  percent: 57
+  completed_plans: 7
+  percent: 71
 ---
 
 # Project State
@@ -25,16 +25,16 @@ See: .planning/PROJECT.md (updated 2026-05-19)
 
 ## Current Position
 
-Phase: 86 (Shell, Route & Keyboard Shortcuts) — EXECUTING
-Plan: 2 of 2
-Status: Executing Phase 86
-Last activity: 2026-05-19 -- Phase 86 plan 01 executed
+Phase: 86 (Shell, Route & Keyboard Shortcuts) — COMPLETE
+Plan: 2 of 2 (complete)
+Status: Phase 86 complete, ready for Phase 87
+Last activity: 2026-05-19 -- Phase 86 plan 02 executed
 
 ```
-Progress: [█████     ] 57% (2/5 phases, 6/7 plans)
+Progress: [███████   ] 71% (3/5 phases, 7/7 plans)
 Phase 84: [✓] Data Layer + Early Tests
 Phase 85: [✓] Core Execution UI
-Phase 86: [~] Shell, Route & Keyboard Shortcuts (1/2 plans)
+Phase 86: [✓] Shell, Route & Keyboard Shortcuts (2/2 plans)
 Phase 87: [ ] Session Integration + Entry Points
 Phase 88: [ ] Polish + Test Coverage
 ```
@@ -83,7 +83,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-19T15:02:00Z
-Stopped at: Phase 86 plan 1 complete, plan 2 next
-Resume file: .planning/phases/86-shell-route-keyboard/86-02-PLAN.md
-Resume: /gsd:execute-phase 86
+Last session: 2026-05-19T15:15:00Z
+Stopped at: Phase 86 complete, phase 87 next
+Resume file: .planning/phases/87-session-entry-points/87-01-PLAN.md
+Resume: /gsd:execute-phase 87
