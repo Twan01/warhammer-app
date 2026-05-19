@@ -56,6 +56,7 @@ export interface BackupStatus {
   date: string;
   path: string;
   success: boolean;
+  app_version?: string;
 }
 
 /**

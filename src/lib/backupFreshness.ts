@@ -33,6 +33,21 @@ export function getBackupAgeLabel(date: string | null): string {
   return `Backed up ${ageDays} days ago`;
 }
 
+/**
+ * Phase 83 — Version mismatch detection (DGN-03).
+ *
+ * Returns true when the backup was made with a different app version.
+ * Returns false if either argument is nullish — missing app_version on
+ * old backups should NOT produce a false mismatch warning.
+ */
+export function hasVersionMismatch(
+  backupVersion: string | undefined,
+  currentVersion: string | null,
+): boolean {
+  if (!backupVersion || !currentVersion) return false;
+  return backupVersion !== currentVersion;
+}
+
 /** CSS class for the backup freshness dot color. */
 export const BACKUP_FRESHNESS_DOT_CLASS: Record<BackupFreshness, string> = {
   healthy: "bg-green-500",
