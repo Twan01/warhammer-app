@@ -22,9 +22,10 @@ vi.mock("@/hooks/useNextPaintingAction", () => ({
 }));
 
 vi.mock("@tanstack/react-router", () => ({
-  Link: ({ to, children, className }: { to: string; children: React.ReactNode; className?: string }) => (
-    <a href={to} className={className}>{children}</a>
-  ),
+  Link: ({ to, params, children, className }: { to: string; params?: Record<string, string>; children: React.ReactNode; className?: string }) => {
+    const href = params ? Object.entries(params).reduce((acc, [k, v]) => acc.replace(`$${k}`, v), to) : to;
+    return <a href={href} className={className}>{children}</a>;
+  },
 }));
 
 import { NextPaintingActionCard } from "@/features/dashboard/NextPaintingActionCard";
@@ -152,11 +153,11 @@ describe("NextPaintingActionCard — paint availability dots", () => {
 });
 
 describe("NextPaintingActionCard — navigation link", () => {
-  it("renders 'Go to recipe' link pointing to /painting-projects", () => {
+  it("renders 'Start Painting' link pointing to the assignment's painting mode route", () => {
     mockData = MOCK_STEP;
     render(<NextPaintingActionCard />);
-    const link = screen.getByText("Go to recipe");
+    const link = screen.getByText("Start Painting");
     expect(link).toBeInTheDocument();
-    expect(link.closest("a")).toHaveAttribute("href", "/painting-projects");
+    expect(link.closest("a")).toHaveAttribute("href", "/painting-mode/1");
   });
 });
