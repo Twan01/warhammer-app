@@ -1,15 +1,22 @@
-import { Database } from "lucide-react";
+import { useState, useEffect } from "react";
+import { AlertTriangle, Database } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { getVersion } from "@tauri-apps/api/app";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRulesSyncMeta } from "@/hooks/useDatasheet";
 import { useDiagnosticFlags, useBackupStatus } from "@/hooks/useDiagnostics";
 import { getSyncFreshness, getSyncAgeLabel, FRESHNESS_DOT_CLASS } from "@/lib/syncFreshness";
-import { getBackupFreshness, getBackupAgeLabel, BACKUP_FRESHNESS_DOT_CLASS } from "@/lib/backupFreshness";
+import { getBackupFreshness, getBackupAgeLabel, hasVersionMismatch, BACKUP_FRESHNESS_DOT_CLASS } from "@/lib/backupFreshness";
 
 export function DataHealthSummaryCard() {
   const { data: syncMeta, isLoading: syncLoading } = useRulesSyncMeta();
   const { data: flags, isLoading: flagsLoading } = useDiagnosticFlags();
   const backup = useBackupStatus();
+  const [appVersion, setAppVersion] = useState<string | null>(null);
+
+  useEffect(() => {
+    getVersion().then(setAppVersion).catch(() => setAppVersion("unknown"));
+  }, []);
 
   const freshness = getSyncFreshness(syncMeta?.last_sync_at ?? null);
   const syncLabel = getSyncAgeLabel(syncMeta?.last_sync_at ?? null);
@@ -20,6 +27,7 @@ export function DataHealthSummaryCard() {
 
   const backupTier = getBackupFreshness(backup?.date ?? null);
   const backupLabel = getBackupAgeLabel(backup?.date ?? null);
+  const versionMismatch = hasVersionMismatch(backup?.app_version, appVersion);
 
   return (
     <div className="rounded-lg border border-border/60 bg-card p-4 shadow-sm transition-shadow duration-150 hover:shadow-md">
@@ -52,6 +60,12 @@ export function DataHealthSummaryCard() {
           <div className="flex items-center gap-1.5">
             <span className={`inline-block h-2 w-2 rounded-full ${BACKUP_FRESHNESS_DOT_CLASS[backupTier]}`} />
             <span className="text-muted-foreground">{backupLabel}</span>
+            {versionMismatch && (
+              <>
+                <AlertTriangle size={12} className="text-amber-500" />
+                <span className="text-amber-500">(outdated)</span>
+              </>
+            )}
           </div>
         </div>
 

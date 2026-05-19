@@ -1,18 +1,24 @@
 /**
- * Phase 80 -- BackupCard renders button and invokes export_backup on click.
+ * Phase 80 + 83 -- BackupCard renders button, invokes export_backup, and shows
+ * collapsible diagnostic details (DGN-01/03/04).
  *
- * Mocks Tauri APIs (save dialog + invoke) and verifies:
+ * Mocks Tauri APIs (save dialog + invoke + getVersion) and verifies:
  *   - "Create Backup" button is rendered
  *   - Clicking it opens save dialog with ZIP filter
  *   - On dialog confirm, invoke("export_backup") is called
  *   - Health dot is rendered based on backup status tier
+ *   - DGN-04: Diagnostic details are hidden by default
+ *   - DGN-04: Diagnostic details appear on expansion
+ *   - DGN-01: Never-backed-up state shows call-to-action in expanded details
+ *   - DGN-03: Version mismatch shows amber indicator in expanded details
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 const mockSave = vi.fn();
 const mockInvoke = vi.fn();
+const mockGetVersion = vi.fn().mockResolvedValue("0.2.14");
 
 vi.mock("@tauri-apps/plugin-dialog", () => ({
   save: (...args: unknown[]) => mockSave(...args),
@@ -20,6 +26,10 @@ vi.mock("@tauri-apps/plugin-dialog", () => ({
 
 vi.mock("@tauri-apps/api/core", () => ({
   invoke: (...args: unknown[]) => mockInvoke(...args),
+}));
+
+vi.mock("@tauri-apps/api/app", () => ({
+  getVersion: () => mockGetVersion(),
 }));
 
 vi.mock("@tauri-apps/plugin-process", () => ({
@@ -33,9 +43,10 @@ vi.mock("sonner", () => ({
   },
 }));
 
-// Mock useBackupStatus to return null (no prior backup)
+// Default mock: no prior backup (mutable for per-test override)
+const mockUseBackupStatus = vi.fn().mockReturnValue(null);
 vi.mock("@/hooks/useDiagnostics", () => ({
-  useBackupStatus: () => null,
+  useBackupStatus: () => mockUseBackupStatus(),
   BACKUP_STORAGE_KEY: "lastBackup",
 }));
 
@@ -45,6 +56,8 @@ import { toast } from "sonner";
 beforeEach(() => {
   mockSave.mockReset();
   mockInvoke.mockReset();
+  mockGetVersion.mockReset().mockResolvedValue("0.2.14");
+  mockUseBackupStatus.mockReset().mockReturnValue(null);
   localStorage.clear();
 });
 
@@ -134,28 +147,85 @@ describe("BackupCard", () => {
     expect(dot).toBeInTheDocument();
   });
 
-  it("STS-02: renders correct tier dot for recent backup", () => {
+  it("STS-02: renders green dot for recent backup", () => {
     vi.useFakeTimers();
     const now = new Date("2026-05-18T12:00:00.000Z");
     vi.setSystemTime(now);
 
-    // Re-mock to return a recent backup
-    vi.doMock("@/hooks/useDiagnostics", () => ({
-      useBackupStatus: () => ({
-        date: now.toISOString(),
-        path: "test.zip",
-        success: true,
-      }),
-      BACKUP_STORAGE_KEY: "lastBackup",
-    }));
+    mockUseBackupStatus.mockReturnValue({
+      date: now.toISOString(),
+      path: "test.zip",
+      success: true,
+    });
 
-    // BackupCard uses the hook at module import time, so we verify the dot color
-    // indirectly by checking BACKUP_FRESHNESS_DOT_CLASS logic:
-    // A date of "now" → healthy → bg-green-500
-    // Since the mock is set at module level (vi.mock hoisted), we test the
-    // component with the initial null mock and verify the muted dot is present.
     render(<BackupCard />);
-    const muted = document.querySelector(".bg-muted-foreground");
-    expect(muted).toBeInTheDocument();
+    const greenDot = document.querySelector(".bg-green-500");
+    expect(greenDot).toBeInTheDocument();
+  });
+});
+
+describe("BackupCard — DGN-04: progressive disclosure", () => {
+  it("diagnostic details are hidden by default", () => {
+    render(<BackupCard />);
+    // "Backup age" is inside CollapsibleContent — should not be visible when collapsed
+    expect(screen.queryByText("Backup age")).not.toBeInTheDocument();
+  });
+
+  it("diagnostic details appear on expansion", async () => {
+    render(<BackupCard />);
+    const toggle = screen.getByRole("button", { name: /toggle backup details/i });
+    await userEvent.click(toggle);
+
+    await waitFor(() => {
+      expect(screen.getByText("Backup age")).toBeInTheDocument();
+      expect(screen.getByText("App version")).toBeInTheDocument();
+      expect(screen.getByText("Status")).toBeInTheDocument();
+    });
+  });
+});
+
+describe("BackupCard — DGN-01: never-backed-up expanded details", () => {
+  it("shows call-to-action text when never backed up", async () => {
+    // Default mock returns null (no backup)
+    render(<BackupCard />);
+    const toggle = screen.getByRole("button", { name: /toggle backup details/i });
+    await userEvent.click(toggle);
+
+    await waitFor(() => {
+      expect(screen.getByText(/no backup.*export one/i)).toBeInTheDocument();
+    });
+  });
+});
+
+describe("BackupCard — DGN-03: version mismatch display", () => {
+  it("shows amber indicator when backup version differs from current", async () => {
+    // Override to return a backup with a different app_version
+    mockUseBackupStatus.mockReturnValue({
+      date: "2026-05-19T00:00:00Z",
+      path: "test.zip",
+      success: true,
+      app_version: "0.2.13",
+    });
+    mockGetVersion.mockResolvedValue("0.2.14");
+
+    render(<BackupCard />);
+
+    // Wait for getVersion() to resolve
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /toggle backup details/i })).toBeInTheDocument();
+    });
+
+    // Expand details
+    const toggle = screen.getByRole("button", { name: /toggle backup details/i });
+    await userEvent.click(toggle);
+
+    await waitFor(() => {
+      // Both versions should be visible in the version row
+      const versionText = screen.getByText(/Backup: v0\.2\.13 \/ Current: v0\.2\.14/);
+      expect(versionText).toBeInTheDocument();
+      // Amber dot should be present
+      const amberDot = document.querySelector(".bg-amber-500");
+      expect(amberDot).toBeInTheDocument();
+    });
   });
 });
