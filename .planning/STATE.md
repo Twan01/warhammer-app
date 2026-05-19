@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v0.2.15
 milestone_name: Painting Mode
-status: verifying
-stopped_at: Phase 87 UI-SPEC approved
-last_updated: "2026-05-19T18:26:18.327Z"
-last_activity: 2026-05-19
+status: executing
+stopped_at: Phase 87 complete
+last_updated: "2026-05-19T21:30:00.000Z"
+last_activity: 2026-05-19 -- Phase 87 complete
 progress:
   total_phases: 5
   completed_phases: 4
@@ -21,21 +21,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-19)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 86 — Shell, Route & Keyboard Shortcuts
+**Current focus:** Phase 87 — Session Integration + Entry Points
 
 ## Current Position
 
-Phase: 86 (Shell, Route & Keyboard Shortcuts) — COMPLETE
+Phase: 87 (Session Integration + Entry Points) — COMPLETE
 Plan: 2 of 2 (complete)
-Status: Phase complete — ready for verification
+Status: Phase complete — ready for Phase 88
 Last activity: 2026-05-19
 
 ```
-Progress: [██████████] 100%
+Progress: [████████  ] 80% (4/5 phases, 9/9 plans)
 Phase 84: [✓] Data Layer + Early Tests
 Phase 85: [✓] Core Execution UI
 Phase 86: [✓] Shell, Route & Keyboard Shortcuts (2/2 plans)
-Phase 87: [ ] Session Integration + Entry Points
+Phase 87: [✓] Session Integration + Entry Points (2/2 plans)
 Phase 88: [ ] Polish + Test Coverage
 ```
 
