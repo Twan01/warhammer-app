@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.2.15
 milestone_name: Painting Mode
 status: executing
-stopped_at: Phase 84 context gathered
-last_updated: "2026-05-19T13:10:00Z"
-last_activity: 2026-05-19 -- Phase 84 complete (all plans, all tests green)
+stopped_at: Phase 85 context gathered
+last_updated: "2026-05-19T15:00:00Z"
+last_activity: 2026-05-19 -- Phase 85 context gathered (auto mode)
 progress:
   total_phases: 5
   completed_phases: 1
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-19)
 
 ## Current Position
 
-Phase: 84 — Data Layer + Early Tests
-Plan: All complete
-Status: Complete
-Last activity: 2026-05-19 -- Phase 84 verified (22/22 tests, build clean)
+Phase: 85 — Core Execution UI
+Plan: TBD
+Status: Context gathered, ready for planning
+Last activity: 2026-05-19 -- Phase 85 context gathered (auto mode)
 
 ```
 Progress: [██        ] 20% (1/5 phases)
@@ -83,7 +83,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-19T13:10:00Z
-Stopped at: Phase 84 complete
-Resume file: .planning/ROADMAP.md
-Resume: /gsd:discuss-phase 85
+Last session: 2026-05-19T15:00:00Z
+Stopped at: Phase 85 context gathered
+Resume file: .planning/phases/85-core-execution-ui/85-CONTEXT.md
+Resume: /gsd:plan-phase 85
