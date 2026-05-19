@@ -10,10 +10,15 @@ import { save, open as openDialog } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { getVersion } from "@tauri-apps/api/app";
 import { relaunch } from "@tauri-apps/plugin-process";
-import { Download, Loader2, Upload } from "lucide-react";
+import { ChevronDown, Download, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/components/ui/collapsible";
 import {
   useBackupStatus,
   BACKUP_STORAGE_KEY,
@@ -22,6 +27,7 @@ import {
 import {
   getBackupFreshness,
   getBackupAgeLabel,
+  hasVersionMismatch,
   BACKUP_FRESHNESS_DOT_CLASS,
 } from "@/lib/backupFreshness";
 import type { BackupManifest } from "@/types/backup";
@@ -135,49 +141,122 @@ export function BackupCard() {
   const tier = getBackupFreshness(backupStatus?.date ?? null);
   const tierLabel = tier.charAt(0).toUpperCase() + tier.slice(1);
   const ageLabel = getBackupAgeLabel(backupStatus?.date ?? null);
+  const versionMismatch = hasVersionMismatch(
+    backupStatus?.app_version,
+    appVersion,
+  );
+
+  // Compute version display for diagnostic row
+  function getVersionDisplay(): { text: string; dotClass: string } {
+    if (!backupStatus?.app_version) {
+      return { text: "Version info unavailable", dotClass: "bg-muted-foreground" };
+    }
+    if (!appVersion) {
+      return { text: "Loading...", dotClass: "bg-muted-foreground" };
+    }
+    if (versionMismatch) {
+      return {
+        text: `Backup: v${backupStatus.app_version} / Current: v${appVersion}`,
+        dotClass: "bg-amber-500",
+      };
+    }
+    return {
+      text: `v${appVersion} (matches backup)`,
+      dotClass: "bg-green-500",
+    };
+  }
+
+  const versionDisplay = getVersionDisplay();
+
+  // Tier status text and color
+  const tierStatusMap: Record<typeof tier, { text: string; colorClass: string }> = {
+    healthy: { text: "Healthy", colorClass: "text-green-500" },
+    recommended: { text: "Recommended", colorClass: "text-amber-500" },
+    overdue: { text: "Overdue", colorClass: "text-orange-500" },
+    never: { text: "No backup — export one to protect your data", colorClass: "text-muted-foreground" },
+  };
+  const tierStatus = tierStatusMap[tier];
 
   return (
     <>
     <Card>
-      <CardContent className="flex items-center justify-between gap-4 p-6">
-        <div className="flex flex-col gap-1">
-          <span className="text-sm font-semibold">Database Backup</span>
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <span className={`inline-block h-2 w-2 rounded-full ${BACKUP_FRESHNESS_DOT_CLASS[tier]}`} />
-            <span>{tier === "never" ? "Never — No backup yet" : `${tierLabel} — ${ageLabel}`}</span>
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <span className="text-sm font-semibold">Database Backup</span>
+            <Collapsible defaultOpen={false}>
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <span className={`inline-block h-2 w-2 rounded-full ${BACKUP_FRESHNESS_DOT_CLASS[tier]}`} />
+                <span>{tier === "never" ? "Never — No backup yet" : `${tierLabel} — ${ageLabel}`}</span>
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-0.5 text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+                    aria-label="Toggle backup details"
+                  >
+                    <ChevronDown className="h-3 w-3 transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
+                  </button>
+                </CollapsibleTrigger>
+              </div>
+              <CollapsibleContent>
+                <div className="pt-2 space-y-1.5">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Backup age</span>
+                    <span className="flex items-center gap-1.5">
+                      <span className={`inline-block h-1.5 w-1.5 rounded-full ${BACKUP_FRESHNESS_DOT_CLASS[tier]}`} />
+                      {ageLabel}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">App version</span>
+                    <span className="flex items-center gap-1.5">
+                      <span className={`inline-block h-1.5 w-1.5 rounded-full ${versionDisplay.dotClass}`} />
+                      {versionDisplay.text}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Status</span>
+                    <span className={`flex items-center gap-1.5 ${tierStatus.colorClass}`}>
+                      <span className={`inline-block h-1.5 w-1.5 rounded-full ${BACKUP_FRESHNESS_DOT_CLASS[tier]}`} />
+                      {tierStatus.text}
+                    </span>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={handleBackup} disabled={isBackingUp}>
-            {isBackingUp ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating backup...
-              </>
-            ) : (
-              <>
-                <Download className="mr-2 h-4 w-4" />
-                Create Backup
-              </>
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleRestore}
-            disabled={isValidating || isRestoring}
-          >
-            {isValidating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Validating...
-              </>
-            ) : (
-              <>
-                <Upload className="mr-2 h-4 w-4" />
-                Restore from Backup
-              </>
-            )}
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={handleBackup} disabled={isBackingUp}>
+              {isBackingUp ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating backup...
+                </>
+              ) : (
+                <>
+                  <Download className="mr-2 h-4 w-4" />
+                  Create Backup
+                </>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleRestore}
+              disabled={isValidating || isRestoring}
+            >
+              {isValidating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Validating...
+                </>
+              ) : (
+                <>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Restore from Backup
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
