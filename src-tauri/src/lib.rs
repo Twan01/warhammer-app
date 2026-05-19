@@ -581,6 +581,12 @@ pub struct BackupManifest {
     pub created_at: String,
     pub platform: String,
     pub db_size_bytes: u64,
+    #[serde(default)]
+    pub rules_schema_version: u32,
+    #[serde(default)]
+    pub includes_rules_db: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub notes: Option<String>,
 }
 
 /// Return the current UTC time formatted as an ISO 8601 / RFC 3339 string.
@@ -705,6 +711,9 @@ async fn export_backup(
         created_at: format_iso8601_now(),
         platform: std::env::consts::OS.to_string(),
         db_size_bytes: db_size,
+        rules_schema_version: get_rules_migrations().len() as u32,
+        includes_rules_db: false,
+        notes: None,
     };
 
     // 3. Create the zip archive
@@ -782,6 +791,9 @@ async fn create_safety_backup(app: tauri::AppHandle) -> Result<String, String> {
         created_at: format_iso8601_now(),
         platform: std::env::consts::OS.to_string(),
         db_size_bytes: db_size,
+        rules_schema_version: get_rules_migrations().len() as u32,
+        includes_rules_db: false,
+        notes: None,
     };
 
     // 5. Create the zip archive
@@ -956,7 +968,7 @@ pub fn run() {
 mod tests {
     use super::*;
 
-    /// EXP-03: BackupManifest serialize/deserialize roundtrip — all 5 fields survive
+    /// EXP-03: BackupManifest serialize/deserialize roundtrip — all 8 fields survive
     #[test]
     fn backup_manifest_serde_roundtrip() {
         let original = BackupManifest {
@@ -965,6 +977,9 @@ mod tests {
             created_at: "2026-05-18T12:00:00Z".to_string(),
             platform: "windows".to_string(),
             db_size_bytes: 1_048_576,
+            rules_schema_version: 2,
+            includes_rules_db: false,
+            notes: Some("Test backup".to_string()),
         };
 
         let json = serde_json::to_string(&original).expect("serialize failed");
@@ -976,6 +991,27 @@ mod tests {
         assert_eq!(deserialized.created_at, original.created_at);
         assert_eq!(deserialized.platform, original.platform);
         assert_eq!(deserialized.db_size_bytes, original.db_size_bytes);
+        assert_eq!(deserialized.rules_schema_version, original.rules_schema_version);
+        assert_eq!(deserialized.includes_rules_db, original.includes_rules_db);
+        assert_eq!(deserialized.notes, original.notes);
+    }
+
+    /// EXP-03: BackupManifest deserialization tolerates missing optional `notes` field
+    #[test]
+    fn backup_manifest_serde_without_notes() {
+        let json = r#"{"app_version":"0.2.14","schema_version":16,"created_at":"2026-05-18T12:00:00Z","platform":"windows","db_size_bytes":100,"rules_schema_version":2,"includes_rules_db":false}"#;
+        let manifest: BackupManifest = serde_json::from_str(json).expect("deserialize failed");
+        assert_eq!(manifest.notes, None);
+    }
+
+    /// Backwards compatibility: old backups without new fields parse with defaults
+    #[test]
+    fn backup_manifest_serde_legacy_format() {
+        let json = r#"{"app_version":"0.2.13","schema_version":14,"created_at":"2026-05-15T12:00:00Z","platform":"windows","db_size_bytes":500000}"#;
+        let manifest: BackupManifest = serde_json::from_str(json).expect("legacy format should parse");
+        assert_eq!(manifest.rules_schema_version, 0);
+        assert!(!manifest.includes_rules_db);
+        assert_eq!(manifest.notes, None);
     }
 
     /// EXP-03: format_iso8601_now() returns a valid RFC 3339 timestamp
@@ -1076,6 +1112,9 @@ mod tests {
             created_at: "2026-05-18T14:30:00Z".to_string(),
             platform: "windows".to_string(),
             db_size_bytes: db_content.len() as u64,
+            rules_schema_version: 2,
+            includes_rules_db: false,
+            notes: None,
         };
 
         // Create the zip

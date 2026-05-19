@@ -124,12 +124,36 @@ export function RestorePreviewDialog({
               {capitalize(manifest.platform)}
             </span>
           </div>
-          <div className="flex items-center justify-between py-2">
+          <div className="flex items-center justify-between border-b border-border py-2">
             <span className="text-sm text-muted-foreground">
               Database Size
             </span>
             <span className="text-sm font-medium">
               {formatBytes(manifest.db_size_bytes)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between border-b border-border py-2">
+            <span className="text-sm text-muted-foreground">
+              Rules Database
+            </span>
+            <span className="text-sm font-medium">
+              {manifest.includes_rules_db ? "Included" : "Not included (re-sync after restore)"}
+            </span>
+          </div>
+          {manifest.notes && (
+            <div className="flex items-center justify-between border-b border-border py-2">
+              <span className="text-sm text-muted-foreground">Notes</span>
+              <span className="text-sm font-medium">{manifest.notes}</span>
+            </div>
+          )}
+          <div className="flex items-center justify-between py-2">
+            <span className="text-sm text-muted-foreground">
+              Rules Schema
+            </span>
+            <span className="text-sm font-medium">
+              {manifest.rules_schema_version > 0
+                ? `v${manifest.rules_schema_version}`
+                : "Unknown"}
             </span>
           </div>
         </div>

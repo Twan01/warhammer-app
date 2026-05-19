@@ -48,6 +48,8 @@ const MOCK_MANIFEST: BackupManifest = {
   created_at: new Date().toISOString(),
   platform: "windows",
   db_size_bytes: 2516582,
+  rules_schema_version: 2,
+  includes_rules_db: false,
 };
 
 function mockValidationSuccess(

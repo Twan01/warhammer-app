@@ -126,6 +126,10 @@ export function BackupCard() {
     setIsRestoring(true);
     try {
       await invoke("restore_from_backup", { path: selectedPath });
+      // Persist last restore date before relaunch
+      const existing = backupStatus ?? { date: "", path: "", success: true };
+      const updated: BackupStatus = { ...existing, last_restore_date: new Date().toISOString() };
+      localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(updated));
       await relaunch();
     } catch (error) {
       toast.error(
@@ -221,6 +225,29 @@ export function BackupCard() {
                       {tierStatus.text}
                     </span>
                   </div>
+                  {backupStatus && backupStatus.success === false && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Last attempt</span>
+                      <span className="flex items-center gap-1.5 text-destructive">
+                        <span className="inline-block h-1.5 w-1.5 rounded-full bg-destructive" />
+                        Backup failed
+                      </span>
+                    </div>
+                  )}
+                  {backupStatus?.path && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Location</span>
+                      <span className="max-w-[280px] truncate text-right" title={backupStatus.path}>
+                        {backupStatus.path}
+                      </span>
+                    </div>
+                  )}
+                  {backupStatus?.last_restore_date && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Last restore</span>
+                      <span>{getBackupAgeLabel(backupStatus.last_restore_date).replace("Backed up ", "Restored ")}</span>
+                    </div>
+                  )}
                 </div>
               </CollapsibleContent>
             </Collapsible>
