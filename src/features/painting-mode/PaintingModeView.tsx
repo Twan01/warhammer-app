@@ -17,6 +17,7 @@ import type { usePaintingModeState } from "@/hooks/usePaintingModeState";
 interface PaintingModeViewProps {
   state: ReturnType<typeof usePaintingModeState>;
   onMarkDone: () => void;
+  onMarkDoneWithSession: () => void;
   recipeId: number;
   isMutating: boolean;
 }
@@ -24,6 +25,7 @@ interface PaintingModeViewProps {
 export function PaintingModeView({
   state,
   onMarkDone,
+  onMarkDoneWithSession,
   recipeId,
   isMutating: _isMutating,
 }: PaintingModeViewProps) {
@@ -162,6 +164,7 @@ export function PaintingModeView({
             currentStep ? state.completedSet.has(currentStep.id) : false
           }
           onMarkDone={onMarkDone}
+          onMarkDoneWithSession={onMarkDoneWithSession}
           goPrev={state.goPrev}
           goNext={state.goNext}
           canGoPrev={state.canGoPrev}

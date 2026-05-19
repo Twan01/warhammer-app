@@ -10,6 +10,7 @@ export interface StepFocalViewProps {
   stepPhotoUrl: string | undefined;
   isCompleted: boolean;
   onMarkDone: () => void;
+  onMarkDoneWithSession: () => void;
   goPrev: () => void;
   goNext: () => void;
   canGoPrev: boolean;
@@ -26,6 +27,7 @@ export function StepFocalView({
   stepPhotoUrl,
   isCompleted,
   onMarkDone,
+  onMarkDoneWithSession,
   goPrev,
   goNext,
   canGoPrev,
@@ -143,17 +145,28 @@ export function StepFocalView({
         </Button>
       </div>
 
-      {/* 7. Mark Done button */}
-      <Button
-        className="w-full h-12 mt-4"
-        disabled={isCompleted || isAllComplete}
-        data-testid="mark-done-btn"
-        onClick={onMarkDone}
-      >
-        <Check className="h-5 w-5 mr-2" />
-        Mark Done
-        <kbd className="ml-2 text-[10px] bg-muted px-1 rounded">Space</kbd>
-      </Button>
+      {/* 7. Action buttons — Mark Done (primary) + Done + Log Session (secondary) */}
+      <div className="flex flex-col gap-2 mt-4">
+        <Button
+          className="w-full h-12"
+          disabled={isCompleted || isAllComplete}
+          data-testid="mark-done-btn"
+          onClick={onMarkDone}
+        >
+          <Check className="h-5 w-5 mr-2" />
+          Mark Done
+          <kbd className="ml-2 text-[10px] bg-muted px-1 rounded">Space</kbd>
+        </Button>
+        <Button
+          variant="outline"
+          className="w-full"
+          disabled={isCompleted || isAllComplete}
+          data-testid="mark-done-with-session-btn"
+          onClick={onMarkDoneWithSession}
+        >
+          Done + Log Session
+        </Button>
+      </div>
     </div>
   );
 }

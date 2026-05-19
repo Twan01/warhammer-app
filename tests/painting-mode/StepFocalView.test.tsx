@@ -66,6 +66,7 @@ function renderFocalView(overrides: Partial<StepFocalViewProps> = {}) {
     stepPhotoUrl: undefined,
     isCompleted: false,
     onMarkDone: vi.fn(),
+    onMarkDoneWithSession: vi.fn(),
     goPrev: vi.fn(),
     goNext: vi.fn(),
     canGoPrev: true,

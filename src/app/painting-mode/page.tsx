@@ -1,13 +1,17 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "@tanstack/react-router";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import { useRecipeAssignment, useCompleteStep } from "@/hooks/useRecipeAssignments";
 import { usePaintingModeState } from "@/hooks/usePaintingModeState";
 import { useRecipeSections } from "@/hooks/useRecipeSections";
+import { useUnit } from "@/hooks/useUnits";
+import { useRecipe } from "@/hooks/useRecipes";
 import { todayISO } from "@/lib/dates";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { PaintingModeView } from "@/features/painting-mode/PaintingModeView";
+import { PaintingSessionSheet } from "@/features/painting-mode/PaintingSessionSheet";
 
 export function PaintingModePage() {
   const { assignmentId } = useParams({
@@ -37,6 +41,9 @@ function PaintingModePageInner({ assignmentId }: { assignmentId: number }) {
   const completeMutation = useCompleteStep();
   const { data: sections = [] } = useRecipeSections(recipeId);
 
+  const { data: unit } = useUnit(unitId > 0 ? unitId : undefined);
+  const { data: recipe } = useRecipe(recipeId > 0 ? recipeId : undefined);
+
   // Derive current step and section name for handleMarkDone
   const currentStep = state.orderedSteps.find(
     (s) => s.id === state.currentStepId,
@@ -65,6 +72,35 @@ function PaintingModePageInner({ assignmentId }: { assignmentId: number }) {
       },
       {
         onSuccess: () => state.goNext(),
+      },
+    );
+  };
+
+  const [paintingSessionOpen, setPaintingSessionOpen] = useState(false);
+
+  const handleMarkDoneWithSession = (duration: number, notes: string | null) => {
+    if (!currentStep || !assignment) return;
+    completeMutation.mutate(
+      {
+        assignmentId,
+        unitId,
+        recipeStepId: currentStep.id,
+        session: {
+          unit_id: unitId,
+          session_date: todayISO(),
+          duration_minutes: duration,
+          notes: notes ?? null,
+          recipe_id: recipeId,
+          recipe_step_id: currentStep.id,
+          section_name: sectionName,
+          recipe_section_id: currentStep.section_id ?? null,
+        },
+      },
+      {
+        onSuccess: () => {
+          setPaintingSessionOpen(false);
+          state.goNext();
+        },
       },
     );
   };
@@ -102,13 +138,27 @@ function PaintingModePageInner({ assignmentId }: { assignmentId: number }) {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background text-foreground">
-      <PaintingModeView
-        state={state}
-        onMarkDone={handleMarkDone}
-        recipeId={assignment.recipe_id}
-        isMutating={completeMutation.isPending}
+    <>
+      <div className="h-screen flex flex-col bg-background text-foreground">
+        <PaintingModeView
+          state={state}
+          onMarkDone={handleMarkDone}
+          onMarkDoneWithSession={() => setPaintingSessionOpen(true)}
+          recipeId={assignment.recipe_id}
+          isMutating={completeMutation.isPending}
+        />
+      </div>
+      {/* Sibling sheet — never nested inside PaintingModeView */}
+      <PaintingSessionSheet
+        open={paintingSessionOpen}
+        onClose={() => setPaintingSessionOpen(false)}
+        unitName={unit?.name ?? ""}
+        recipeName={recipe?.name ?? ""}
+        stepName={currentStep?.step_name ?? ""}
+        sectionName={sectionName}
+        onSubmit={handleMarkDoneWithSession}
+        isPending={completeMutation.isPending}
       />
-    </div>
+    </>
   );
 }

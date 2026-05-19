@@ -139,7 +139,7 @@ let defaultState: ReturnType<typeof import("@/hooks/usePaintingModeState").usePa
 function renderView(stateOverride?: Partial<typeof defaultState>) {
   const state = { ...defaultState, ...stateOverride };
   return render(
-    <PaintingModeView state={state} onMarkDone={mockOnMarkDone} recipeId={10} isMutating={false} />,
+    <PaintingModeView state={state} onMarkDone={mockOnMarkDone} onMarkDoneWithSession={vi.fn()} recipeId={10} isMutating={false} />,
     { wrapper: createWrapper() },
   );
 }

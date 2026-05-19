@@ -85,6 +85,14 @@ vi.mock("@/hooks/useRecipeSections", () => ({
   useRecipeSections: () => ({ data: [] }),
 }));
 
+vi.mock("@/hooks/useUnits", () => ({
+  useUnit: () => ({ data: { id: 10, name: "Intercessors" } }),
+}));
+
+vi.mock("@/hooks/useRecipes", () => ({
+  useRecipe: () => ({ data: { id: 20, name: "Ultramarines Scheme" } }),
+}));
+
 vi.mock("@/lib/dates", () => ({
   todayISO: () => "2026-05-19",
 }));
@@ -92,6 +100,10 @@ vi.mock("@/lib/dates", () => ({
 // Mock PaintingModeView as a simple div so keyboard events bubble from document
 vi.mock("@/features/painting-mode/PaintingModeView", () => ({
   PaintingModeView: () => <div data-testid="painting-mode-view">View</div>,
+}));
+
+vi.mock("@/features/painting-mode/PaintingSessionSheet", () => ({
+  PaintingSessionSheet: () => null,
 }));
 
 import { PaintingModePage } from "@/app/painting-mode/page";
