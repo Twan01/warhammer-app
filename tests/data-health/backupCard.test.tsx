@@ -22,6 +22,10 @@ vi.mock("@tauri-apps/api/core", () => ({
   invoke: (...args: unknown[]) => mockInvoke(...args),
 }));
 
+vi.mock("@tauri-apps/plugin-process", () => ({
+  relaunch: vi.fn(),
+}));
+
 vi.mock("sonner", () => ({
   toast: {
     success: vi.fn(),

@@ -11,6 +11,7 @@ import type { BackupManifest } from "@/types/backup";
 
 const mockOpen = vi.fn();
 const mockInvoke = vi.fn();
+const mockRelaunch = vi.fn();
 
 vi.mock("@tauri-apps/plugin-dialog", () => ({
   save: vi.fn(),
@@ -19,6 +20,10 @@ vi.mock("@tauri-apps/plugin-dialog", () => ({
 
 vi.mock("@tauri-apps/api/core", () => ({
   invoke: (...args: unknown[]) => mockInvoke(...args),
+}));
+
+vi.mock("@tauri-apps/plugin-process", () => ({
+  relaunch: () => mockRelaunch(),
 }));
 
 vi.mock("sonner", () => ({
@@ -60,6 +65,7 @@ function mockValidationSuccess(
 beforeEach(() => {
   mockOpen.mockReset();
   mockInvoke.mockReset();
+  mockRelaunch.mockReset();
   vi.mocked(toast.success).mockReset();
   vi.mocked(toast.error).mockReset();
   vi.mocked(toast.info).mockReset();
@@ -238,8 +244,14 @@ describe("Restore flow", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows placeholder toast on confirm click", async () => {
-    mockValidationSuccess({ ...MOCK_MANIFEST, schema_version: 32 }, 32);
+  it("calls restore_from_backup with selected path when user confirms", async () => {
+    mockOpen.mockResolvedValueOnce("C:\\backups\\test.zip");
+    mockInvoke.mockImplementation((cmd: string) => {
+      if (cmd === "validate_backup") return Promise.resolve(MOCK_MANIFEST);
+      if (cmd === "get_schema_version") return Promise.resolve(32);
+      if (cmd === "restore_from_backup") return Promise.resolve(undefined);
+      return Promise.reject(new Error(`Unknown command: ${cmd}`));
+    });
     render(<BackupCard />);
 
     await userEvent.click(
@@ -255,9 +267,67 @@ describe("Restore flow", () => {
     );
 
     await waitFor(() => {
-      expect(toast.info).toHaveBeenCalledWith(
-        "Restore execution coming in a future update",
+      expect(mockInvoke).toHaveBeenCalledWith("restore_from_backup", {
+        path: "C:\\backups\\test.zip",
+      });
+    });
+  });
+
+  it("calls relaunch after successful restore", async () => {
+    mockOpen.mockResolvedValueOnce("C:\\backups\\test.zip");
+    mockInvoke.mockImplementation((cmd: string) => {
+      if (cmd === "validate_backup") return Promise.resolve(MOCK_MANIFEST);
+      if (cmd === "get_schema_version") return Promise.resolve(32);
+      if (cmd === "restore_from_backup") return Promise.resolve(undefined);
+      return Promise.reject(new Error(`Unknown command: ${cmd}`));
+    });
+    render(<BackupCard />);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /restore from backup/i }),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Restore Backup")).toBeInTheDocument();
+    });
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /replace current database/i }),
+    );
+
+    await waitFor(() => {
+      expect(mockRelaunch).toHaveBeenCalled();
+    });
+  });
+
+  it("shows error toast and does not relaunch when restore fails", async () => {
+    mockOpen.mockResolvedValueOnce("C:\\backups\\test.zip");
+    mockInvoke.mockImplementation((cmd: string) => {
+      if (cmd === "validate_backup") return Promise.resolve(MOCK_MANIFEST);
+      if (cmd === "get_schema_version") return Promise.resolve(32);
+      if (cmd === "restore_from_backup")
+        return Promise.reject(new Error("disk full"));
+      return Promise.reject(new Error(`Unknown command: ${cmd}`));
+    });
+    render(<BackupCard />);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /restore from backup/i }),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Restore Backup")).toBeInTheDocument();
+    });
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /replace current database/i }),
+    );
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        expect.stringContaining("Restore failed:"),
       );
     });
+    expect(mockRelaunch).not.toHaveBeenCalled();
   });
 });
