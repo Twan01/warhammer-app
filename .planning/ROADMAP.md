@@ -96,7 +96,7 @@ Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
 - [x] **Phase 79: Rust Backup Foundation** - zip crate + structured export command + validate command + safety backup command (Rust-first; unlocks all UI)
 - [x] **Phase 80: Export UI + Backup Status** - BackupCard upgrade, status indicators, export flow, dashboard integration
 - [x] **Phase 81: Restore Preview + Validation** - file picker, manifest validation, schema version checks, preview modal (non-destructive) — completed 2026-05-18 (human_needed)
-- [ ] **Phase 82: Restore Execution + Safety Backups** - atomic file swap, process restart, pre-sync safety backup, safety backup listing
+- [x] **Phase 82: Restore Execution + Safety Backups** - atomic file swap, process restart, pre-sync safety backup, safety backup listing — completed 2026-05-19
 - [ ] **Phase 83: Backup Diagnostics** - never-backed-up flag, staleness threshold, version mismatch detection, diagnostic detail disclosure
 
 ## Phase Details
@@ -184,12 +184,12 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 82-01-PLAN.md — Rust restore_from_backup + list_safety_backups commands
+- [x] 82-01-PLAN.md — Rust restore_from_backup + list_safety_backups commands
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 82-02-PLAN.md — Restore execution wiring in BackupCard + RestorePreviewDialog isRestoring + tests
-- [ ] 82-03-PLAN.md — Pre-sync safety backup in useRulesSync + SafetyBackupsList component + tests
+- [x] 82-02-PLAN.md — Restore execution wiring in BackupCard + RestorePreviewDialog isRestoring + tests
+- [x] 82-03-PLAN.md — Pre-sync safety backup in useRulesSync + SafetyBackupsList component + tests
 
 **UI hint**: yes
 
