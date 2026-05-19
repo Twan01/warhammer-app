@@ -6,7 +6,7 @@
  * action behind explicit confirmation. Newer-than-current schema versions
  * disable the action button entirely (RST-04).
  */
-import { AlertTriangle, ShieldAlert } from "lucide-react";
+import { AlertTriangle, Loader2, ShieldAlert } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,12 +51,14 @@ export function RestorePreviewDialog({
   open,
   onOpenChange,
   onConfirm,
+  isRestoring = false,
 }: {
   manifest: BackupManifest;
   currentSchemaVersion: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
+  isRestoring?: boolean;
 }) {
   const schemaState = getSchemaState(
     manifest.schema_version,
@@ -64,7 +66,7 @@ export function RestorePreviewDialog({
   );
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open={open} onOpenChange={(v) => { if (!isRestoring) onOpenChange(v); }}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Restore Backup</AlertDialogTitle>
@@ -153,13 +155,20 @@ export function RestorePreviewDialog({
         )}
 
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isRestoring}>Cancel</AlertDialogCancel>
           <AlertDialogAction
             className={buttonVariants({ variant: "destructive" })}
-            disabled={schemaState === "newer"}
+            disabled={schemaState === "newer" || isRestoring}
             onClick={onConfirm}
           >
-            Replace current database
+            {isRestoring ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Restoring...
+              </>
+            ) : (
+              "Replace current database"
+            )}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

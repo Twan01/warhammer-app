@@ -8,6 +8,7 @@
 import { useState } from "react";
 import { save, open as openDialog } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
+import { relaunch } from "@tauri-apps/plugin-process";
 import { Download, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -37,6 +38,8 @@ export function BackupCard() {
   const [currentSchemaVersion, setCurrentSchemaVersion] = useState<
     number | null
   >(null);
+  const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  const [isRestoring, setIsRestoring] = useState(false);
 
   async function handleBackup() {
     const now = new Date();
@@ -95,6 +98,7 @@ export function BackupCard() {
       setManifest(validatedManifest);
       setCurrentSchemaVersion(schemaVersion);
       setPreviewOpen(true);
+      setSelectedPath(result);
     } catch (error) {
       toast.error(
         `Invalid backup file: ${error instanceof Error ? error.message : String(error)}`,
@@ -104,10 +108,21 @@ export function BackupCard() {
     }
   }
 
-  function handleConfirmRestore() {
-    toast.info("Restore execution coming in a future update");
-    setPreviewOpen(false);
-    setManifest(null);
+  async function handleConfirmRestore() {
+    if (!selectedPath) return;
+    setIsRestoring(true);
+    try {
+      await invoke("restore_from_backup", { path: selectedPath });
+      await relaunch();
+    } catch (error) {
+      toast.error(
+        `Restore failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      setIsRestoring(false);
+      setPreviewOpen(false);
+      setManifest(null);
+      setSelectedPath(null);
+    }
   }
 
   const tier = getBackupFreshness(backupStatus?.date ?? null);
@@ -142,7 +157,7 @@ export function BackupCard() {
           <Button
             variant="outline"
             onClick={handleRestore}
-            disabled={isValidating}
+            disabled={isValidating || isRestoring}
           >
             {isValidating ? (
               <>
@@ -166,6 +181,7 @@ export function BackupCard() {
         open={previewOpen}
         onOpenChange={setPreviewOpen}
         onConfirm={handleConfirmRestore}
+        isRestoring={isRestoring}
       />
     )}
     </>
