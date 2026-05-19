@@ -794,6 +794,119 @@ async fn create_safety_backup(app: tauri::AppHandle) -> Result<String, String> {
     Ok(safety_path.display().to_string())
 }
 
+// ── Restore + Safety Backup listing ─────────────────────────────────────────
+
+#[derive(serde::Serialize)]
+pub struct SafetyBackupEntry {
+    pub filename: String,
+    pub timestamp: String,
+    pub size_bytes: u64,
+}
+
+/// Replace hobbyforge.db with the database from a validated backup zip.
+/// Sequence: (1) create safety backup, (2) delete sidecar files, (3) extract
+/// hobbyforge.db from the zip. If step 1 fails the restore is aborted with
+/// the original database intact.
+#[tauri::command]
+async fn restore_from_backup(
+    app: tauri::AppHandle,
+    path: String,
+) -> Result<(), String> {
+    use std::io::Read;
+
+    // 1. Safety backup before any destructive operation
+    create_safety_backup(app.clone()).await?;
+
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("app_data_dir: {e}"))?;
+
+    // 2. Delete sidecar files (WAL, SHM, journal) — tolerate NotFound
+    for sidecar in ["-wal", "-shm", "-journal"] {
+        let sidecar_path = app_data_dir.join(format!("hobbyforge.db{sidecar}"));
+        if let Err(e) = std::fs::remove_file(&sidecar_path) {
+            if e.kind() != std::io::ErrorKind::NotFound {
+                return Err(format!("remove sidecar {sidecar}: {e}"));
+            }
+        }
+    }
+
+    // 3. Extract hobbyforge.db from backup zip
+    let file = std::fs::File::open(&path)
+        .map_err(|e| format!("open zip: {e}"))?;
+    let mut archive = zip::ZipArchive::new(file)
+        .map_err(|e| format!("invalid zip archive: {e}"))?;
+
+    let mut db_entry = archive
+        .by_name("hobbyforge.db")
+        .map_err(|_| "backup missing hobbyforge.db".to_string())?;
+
+    let mut db_bytes = Vec::new();
+    db_entry
+        .read_to_end(&mut db_bytes)
+        .map_err(|e| format!("read hobbyforge.db from zip: {e}"))?;
+
+    std::fs::write(app_data_dir.join("hobbyforge.db"), &db_bytes)
+        .map_err(|e| format!("write hobbyforge.db: {e}"))?;
+
+    Ok(())
+}
+
+/// List safety backup files in app_data_dir/backups/, sorted newest first.
+/// Returns an empty vec if the backups directory does not exist (normal on
+/// first run). This is a read-only, infallible command.
+#[tauri::command]
+fn list_safety_backups(app: tauri::AppHandle) -> Vec<SafetyBackupEntry> {
+    let app_data_dir = match app.path().app_data_dir() {
+        Ok(d) => d,
+        Err(_) => return vec![],
+    };
+    let backups_dir = app_data_dir.join("backups");
+
+    let read_dir = match std::fs::read_dir(&backups_dir) {
+        Ok(d) => d,
+        Err(_) => return vec![],
+    };
+
+    let mut entries: Vec<SafetyBackupEntry> = read_dir
+        .filter_map(|e| {
+            let e = e.ok()?;
+            let name = e.file_name().to_string_lossy().to_string();
+            if !name.starts_with("safety-") || !name.ends_with(".zip") {
+                return None;
+            }
+
+            // Parse timestamp from "safety-YYYY-MM-DD-HHMM.zip"
+            let stem = name.strip_prefix("safety-")?.strip_suffix(".zip")?;
+            let parts: Vec<&str> = stem.split('-').collect();
+            if parts.len() != 4 || parts[3].len() != 4 {
+                return None;
+            }
+            let timestamp = format!(
+                "{}-{}-{}T{}:{}:00Z",
+                parts[0],
+                parts[1],
+                parts[2],
+                &parts[3][..2],
+                &parts[3][2..],
+            );
+
+            let size_bytes = e.metadata().ok()?.len();
+
+            Some(SafetyBackupEntry {
+                filename: name,
+                timestamp,
+                size_bytes,
+            })
+        })
+        .collect();
+
+    // Sort newest first (descending by timestamp string — ISO 8601 sorts lexicographically)
+    entries.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    entries
+}
+
 /// Return the app's expected schema version (migration count).
 /// Used by the frontend to compare against a backup manifest's schema_version
 /// for restore compatibility checks (RST-04 / RST-05).
@@ -832,6 +945,8 @@ pub fn run() {
             validate_backup,
             create_safety_backup,
             get_schema_version,
+            restore_from_backup,
+            list_safety_backups,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
