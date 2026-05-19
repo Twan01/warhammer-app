@@ -38,9 +38,9 @@ Requirements for Painting Mode. Each maps to roadmap phases.
 
 ### Session Logging
 
-- [ ] **SL-01**: User can open Log Session prefilled with current unit, recipe, section, and step
-- [ ] **SL-02**: User can mark step done + log session in one atomic action (combined button)
-- [ ] **SL-03**: Mark step done is also available as a standalone action without session logging
+- [x] **SL-01**: User can open Log Session prefilled with current unit, recipe, section, and step
+- [x] **SL-02**: User can mark step done + log session in one atomic action (combined button)
+- [x] **SL-03**: Mark step done is also available as a standalone action without session logging
 
 ### Entry Points
 
@@ -49,7 +49,7 @@ Requirements for Painting Mode. Each maps to roadmap phases.
 - [ ] **EP-03**: User can open Painting Mode from Unit Detail / Applied Recipe panel
 - [ ] **EP-04**: User can open Painting Mode from Painting Projects Kanban
 - [ ] **EP-05**: User can open Painting Mode from Recipe Detail (when applied to a unit)
-- [ ] **EP-06**: Empty/missing recipe states explain what to do next
+- [x] **EP-06**: Empty/missing recipe states explain what to do next
 
 ### Presentation
 
@@ -112,15 +112,15 @@ Requirements for Painting Mode. Each maps to roadmap phases.
 | PR-01 | Phase 85 | Complete |
 | PR-02 | Phase 85 | Complete |
 | PR-03 | Phase 85 | Complete |
-| SL-01 | Phase 87 | Pending |
-| SL-02 | Phase 87 | Pending |
-| SL-03 | Phase 87 | Pending |
+| SL-01 | Phase 87 | Complete |
+| SL-02 | Phase 87 | Complete |
+| SL-03 | Phase 87 | Complete |
 | EP-01 | Phase 87 | Pending |
 | EP-02 | Phase 87 | Pending |
 | EP-03 | Phase 87 | Pending |
 | EP-04 | Phase 87 | Pending |
 | EP-05 | Phase 87 | Pending |
-| EP-06 | Phase 87 | Pending |
+| EP-06 | Phase 87 | Complete |
 | PX-01 | Phase 85 | Pending |
 | PX-02 | Phase 86 | Complete |
 | PX-03 | Phase 86 | Complete |

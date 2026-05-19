@@ -197,7 +197,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 
-- [ ] 87-01-PLAN.md — Session logger Sheet + StepFocalView button pair + PaintingModePage handler
+- [x] 87-01-PLAN.md — Session logger Sheet + StepFocalView button pair + PaintingModePage handler
 - [ ] 87-02-PLAN.md — Five entry point surfaces + KanbanEnrichment assignmentIds extension
 
 **UI hint**: yes
@@ -306,7 +306,7 @@ Plans:
 | 84. Data Layer + Early Tests | v0.2.15 | 0/2 | Not started | - |
 | 85. Core Execution UI | v0.2.15 | 1/3 | In progress | - |
 | 86. Shell, Route & Keyboard Shortcuts | v0.2.15 | 2/2 | Complete   | 2026-05-19 |
-| 87. Session Integration + Entry Points | v0.2.15 | 0/2 | Not started | - |
+| 87. Session Integration + Entry Points | v0.2.15 | 1/2 | In Progress|  |
 | 88. Polish + Test Coverage | v0.2.15 | 0/TBD | Not started | - |
 
 <details>
