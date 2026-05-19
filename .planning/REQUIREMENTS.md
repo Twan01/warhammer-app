@@ -32,9 +32,9 @@ Requirements for Painting Mode. Each maps to roadmap phases.
 
 ### Paint Readiness
 
-- [ ] **PR-01**: User sees paint availability status (all available / missing paints listed) at mode entry
-- [ ] **PR-02**: Missing paint does not block progress but shows a non-blocking warning
-- [ ] **PR-03**: Paintless steps are handled cleanly without false availability warnings
+- [x] **PR-01**: User sees paint availability status (all available / missing paints listed) at mode entry
+- [x] **PR-02**: Missing paint does not block progress but shows a non-blocking warning
+- [x] **PR-03**: Paintless steps are handled cleanly without false availability warnings
 
 ### Session Logging
 
@@ -109,9 +109,9 @@ Requirements for Painting Mode. Each maps to roadmap phases.
 | SP-03 | Phase 85 | Pending |
 | SP-04 | Phase 85 | Pending |
 | SP-05 | Phase 86 | Pending |
-| PR-01 | Phase 85 | Pending |
-| PR-02 | Phase 85 | Pending |
-| PR-03 | Phase 85 | Pending |
+| PR-01 | Phase 85 | Complete |
+| PR-02 | Phase 85 | Complete |
+| PR-03 | Phase 85 | Complete |
 | SL-01 | Phase 87 | Pending |
 | SL-02 | Phase 87 | Pending |
 | SL-03 | Phase 87 | Pending |

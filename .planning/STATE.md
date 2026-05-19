@@ -10,7 +10,7 @@ progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 5
-  completed_plans: 2
+  completed_plans: 3
   percent: 20
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-05-19)
 ## Current Position
 
 Phase: 85 — Core Execution UI
-Plan: 3 plans in 2 waves (85-01, 85-02 wave 1; 85-03 wave 2)
-Status: Ready to execute
-Last activity: 2026-05-19 -- Phase 85 planned (verification passed)
+Plan: 85-01 complete, next 85-02 (wave 1)
+Status: Executing
+Last activity: 2026-05-19 -- 85-01 complete (ScrollArea + StepMetadataRow + PaintReadinessBanner)
 
 ```
 Progress: [██        ] 20% (1/5 phases)
@@ -83,7 +83,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-19T16:00:00Z
-Stopped at: Phase 85 planned — ready to execute
-Resume file: .planning/phases/85-core-execution-ui/85-01-PLAN.md
+Last session: 2026-05-19T13:48:00Z
+Stopped at: Completed 85-01, next 85-02
+Resume file: .planning/phases/85-core-execution-ui/85-02-PLAN.md
 Resume: /gsd:execute-phase 85
