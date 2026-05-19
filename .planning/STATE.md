@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.2.15
 milestone_name: Painting Mode
-status: completed
+status: executing
 stopped_at: Phase 87 UI-SPEC approved
-last_updated: "2026-05-19T15:40:40.027Z"
-last_activity: 2026-05-19 -- Phase 86 plan 02 executed
+last_updated: "2026-05-19T15:59:27.286Z"
+last_activity: 2026-05-19 -- Phase 87 planning complete
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 7
+  total_plans: 9
   completed_plans: 7
   percent: 60
 ---
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-05-19)
 
 Phase: 86 (Shell, Route & Keyboard Shortcuts) — COMPLETE
 Plan: 2 of 2 (complete)
-Status: Phase 86 complete, ready for Phase 87
-Last activity: 2026-05-19 -- Phase 86 plan 02 executed
+Status: Ready to execute
+Last activity: 2026-05-19 -- Phase 87 planning complete
 
 ```
 Progress: [███████   ] 71% (3/5 phases, 7/7 plans)

@@ -403,17 +403,17 @@ The `PaintingModePage` currently shows "Assignment not found" when `assignment` 
 
 If this table is non-empty: claims A2 and A3 were directly verified in the codebase. Claims A1, A4, A5 are patterns consistent with the codebase but not individually confirmed by tool output.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should CurrentFocusCard always show the Paint button, or only when `appliedProgress` is present?**
    - What we know: `primaryAssignment` is computed in `DashboardPage` and is `undefined` when no assignments exist. `onPaint` prop can be conditionally set.
    - What's unclear: The decision doc says "add a Paint button/link that navigates to painting mode for the focused unit's assignment" — but a focused unit might have no assignment.
-   - Recommendation: Follow D-14 — only pass `onPaint` to `CurrentFocusCard` when `primaryAssignment !== undefined`. Card renders the button only when `onPaint` is provided.
+   - RESOLVED: Follow D-14 — only pass `onPaint` to `CurrentFocusCard` when `primaryAssignment !== undefined`. Card renders the button only when `onPaint` is provided.
 
 2. **EP-06 exact rendering location**
    - What we know: The route guard for assignment-not-found already exists in `PaintingModePage`. A truly "no recipe applied" scenario can only happen if someone navigates to the URL directly with a valid assignment ID for an assignment whose recipe has no steps.
    - What's unclear: CONTEXT.md D-13 says "when painting mode route is accessed for a unit with no applied recipe" — but the route is always accessed VIA an assignment ID, meaning an applied recipe exists by definition.
-   - Recommendation: The D-13 empty state is the **entry point guard** (D-14) plus the existing "No steps in this recipe" state in `PaintingModeView`. No new route-level empty state is needed for "no recipe" beyond what already exists.
+   - RESOLVED: The D-13 empty state is the **entry point guard** (D-14) plus the existing "No steps in this recipe" state in `PaintingModeView`. No new route-level empty state is needed for "no recipe" beyond what already exists.
 
 ## Environment Availability
 
@@ -434,15 +434,15 @@ Step 2.6: SKIPPED — no external dependencies. This phase is entirely code/comp
 
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| SL-01 | PaintingSessionSheet opens prefilled with unit/recipe/section/step context | unit | `pnpm test -- tests/painting-mode/PaintingSessionSheet.test.tsx` | ❌ Wave 0 |
-| SL-02 | "Done + Log Session" calls `completeStepWithSession` with user-entered duration+notes | unit | `pnpm test -- tests/painting-mode/PaintingModePage.test.tsx` | ✅ extend existing |
-| SL-03 | "Mark Done" standalone does not open sheet or pass non-zero duration | unit | `pnpm test -- tests/painting-mode/StepFocalView.test.tsx` | ✅ extend existing |
-| EP-01 | NextPaintingActionCard link points to painting mode route | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | ❌ Wave 0 |
-| EP-02 | CurrentFocusCard "Paint" button triggers navigation | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | ❌ Wave 0 |
-| EP-03 | AppliedRecipesTab shows "Start Painting" button per assignment | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | ❌ Wave 0 |
-| EP-04 | KanbanCard shows painting mode link when assignmentId available | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | ❌ Wave 0 |
-| EP-05 | RecipeDetailSheet shows "Paint" link for applied units | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | ❌ Wave 0 |
-| EP-06 | Entry point surfaces suppress paint link when no assignment | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | ❌ Wave 0 |
+| SL-01 | PaintingSessionSheet opens prefilled with unit/recipe/section/step context | unit | `pnpm test -- tests/painting-mode/PaintingSessionSheet.test.tsx` | No — Wave 0 |
+| SL-02 | "Done + Log Session" calls `completeStepWithSession` with user-entered duration+notes | unit | `pnpm test -- tests/painting-mode/PaintingModePage.test.tsx` | Yes — extend existing |
+| SL-03 | "Mark Done" standalone does not open sheet or pass non-zero duration | unit | `pnpm test -- tests/painting-mode/StepFocalView.test.tsx` | Yes — extend existing |
+| EP-01 | NextPaintingActionCard link points to painting mode route | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | No — Wave 0 |
+| EP-02 | CurrentFocusCard "Paint" button triggers navigation | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | No — Wave 0 |
+| EP-03 | AppliedRecipesTab shows "Start Painting" button per assignment | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | No — Wave 0 |
+| EP-04 | KanbanCard shows painting mode link when assignmentId available | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | No — Wave 0 |
+| EP-05 | RecipeDetailSheet shows "Paint" link for applied units | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | No — Wave 0 |
+| EP-06 | Entry point surfaces suppress paint link when no assignment | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | No — Wave 0 |
 
 ### Sampling Rate
 
