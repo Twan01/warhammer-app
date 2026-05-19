@@ -62,7 +62,7 @@ Source: `src/features/painting-mode/StepFocalView.tsx` (existing button), `src/f
 
 Notes:
 - Step name (`h2` in StepFocalView) uses `text-2xl font-semibold` — maintain existing size from PX-01 (distraction-free layout with larger typography)
-- Session Sheet heading: `text-lg font-semibold` via SheetTitle — matches app-wide Sheet heading size
+- Session Sheet heading: `text-base font-semibold` — renders at 16px semibold, avoids introducing a 5th size between body (16px) and heading (24px)
 - All size/weight values match existing usage in StepFocalView.tsx and CurrentFocusCard.tsx; do not introduce new sizes
 
 Source: existing `src/features/painting-mode/StepFocalView.tsx` line 54 + `src/features/dashboard/CurrentFocusCard.tsx` line 67
@@ -153,7 +153,7 @@ Displayed in a `bg-muted rounded-md p-3` summary block above the form fields.
 
 **Footer actions**:
 - Primary: "Save & Mark Done" — `variant="default"`, disabled while `isPending`
-- Secondary: "Cancel" — `variant="ghost"`, closes sheet without completing step
+- Secondary: "Keep Working" — `variant="ghost"`, closes sheet without completing step
 
 Source: CONTEXT.md D-01, D-02, D-03 + RESEARCH.md Pattern 1 + `src/features/dashboard/LogSessionSheet.tsx` reference
 
@@ -167,7 +167,7 @@ Source: CONTEXT.md D-01, D-02, D-03 + RESEARCH.md Pattern 1 + `src/features/dash
 | `KanbanCard` | Ghost icon button in `KanbanCardActions` area | `Palette` 14px | "Paint" | Only when `assignmentId` prop is defined |
 | `RecipeDetailSheet` | Outline button per applied unit | `Palette` 14px | "Paint {unit name}" | Only per assignment returned by `useAssignmentsByRecipe` |
 
-Lucide icon: `Palette` — already imported in `NextPaintingActionCard`, `CurrentFocusCard`. Use `size={14}` with `className="mr-1.5"` to match existing ghost button icon pattern in `CurrentFocusCard`.
+Lucide icon: `Palette` — already imported in `NextPaintingActionCard`, `CurrentFocusCard`. Use `size={14}` with `className="mr-2"` to match existing ghost button icon pattern in `CurrentFocusCard`.
 
 Source: CONTEXT.md D-07 through D-14 + RESEARCH.md Code Examples
 
@@ -196,7 +196,7 @@ Source: CONTEXT.md D-13
 | Primary CTA (StepFocalView) | "Mark Done" (existing — no change) |
 | Secondary CTA (StepFocalView) | "Done + Log Session" |
 | Sheet primary submit | "Save & Mark Done" |
-| Sheet cancel | "Cancel" |
+| Sheet cancel | "Keep Working" |
 | NextPaintingActionCard link | "Start Painting" (replaces "Go to recipe") |
 | CurrentFocusCard paint button | "Paint" |
 | AppliedRecipesTab button (not started) | "Start Painting" |
@@ -278,7 +278,7 @@ No third-party registries. No new npm packages installed in this phase.
 | shadcn new-york / zinc | `components.json` |
 | Geist Variable font | `src/styles/globals.css` |
 | `text-2xl font-semibold` step heading | `StepFocalView.tsx` line 54 |
-| Ghost button icon pattern (14px + mr-1.5) | `CurrentFocusCard.tsx` lines 118–125 |
+| Ghost button icon pattern (14px + mr-2) | `CurrentFocusCard.tsx` lines 118–125 (mr-1.5 corrected to mr-2) |
 | Exact button styling, icon choices, micro-copy | Claude's discretion (CONTEXT.md) |
 
 ---
