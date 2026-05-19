@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.2.15
 milestone_name: Painting Mode
 status: executing
-stopped_at: Phase 86 context gathered — ready to plan
-last_updated: "2026-05-19T18:00:00Z"
-last_activity: 2026-05-19 -- Phase 86 context gathered (4 decisions, auto mode)
+stopped_at: Phase 86 context gathered, ready to plan
+last_updated: "2026-05-19T14:48:38.854Z"
+last_activity: 2026-05-19 -- Phase 86 planning complete
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 5
+  total_plans: 7
   completed_plans: 5
   percent: 40
 ---
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-05-19)
 
 Phase: 86 — Shell, Route & Keyboard Shortcuts
 Plan: Not yet planned
-Status: Ready to plan
-Last activity: 2026-05-19 -- Phase 85 complete (Core Execution UI)
+Status: Ready to execute
+Last activity: 2026-05-19 -- Phase 86 planning complete
 
 ```
 Progress: [████      ] 40% (2/5 phases)

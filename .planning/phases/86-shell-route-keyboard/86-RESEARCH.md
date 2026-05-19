@@ -604,17 +604,19 @@ Phase 86 has no external service dependencies beyond existing project tooling. `
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Layout route refactor scope**
    - What we know: Current `router.tsx` has all routes as direct children of `rootRoute` with `AppLayout` rendered in the root component
    - What's unclear: The cleanest refactor path — restructure root to thin shell + add layoutRoute parent, OR keep rootRoute as-is and add a fixed-position overlay in `PaintingModePage` that covers the sidebar visually
    - Recommendation: Layout route nesting is the architecturally clean approach per D-01. The overlay hack would leave sidebar DOM in the tree (interactive via keyboard tab). Planner should pick the layout route approach and budget for the full rootRoute → layoutRoute migration.
+   - RESOLVED: Layout route nesting approach selected per D-01. Plan 86-01 Task 2 implements thin rootRoute shell + layoutRoute for existing routes + bareLayoutRoute for painting mode.
 
 2. **Hotkey handler access pattern**
    - What we know: D-05 registers shortcuts in `PaintingModePage`, but `handleMarkDone`, `goPrev`, `goNext` live in `PaintingModeView` which is a child component
    - What's unclear: Whether the page shell should hoist the callback state or use a ref-forwarding / callback-prop pattern
    - Recommendation: Lift `handleMarkDone`, `goPrev`, `goNext` up to `PaintingModePage` by moving the hook calls (`usePaintingModeState`, `useCompleteStep`) from inside `PaintingModeView` to the page shell, then pass them down as props. This is consistent with D-05 and requires refactoring `PaintingModeView` to accept pre-computed handlers as props OR making the page shell a thin wrapper that duplicates the hook calls.
+   - RESOLVED: Lift approach selected. `usePaintingModeState` and `useCompleteStep` are called exclusively in `PaintingModePage`. `PaintingModeView` is refactored to accept state and handlers as props. No hook duplication — single source of truth for navigation state.
 
 ---
 
