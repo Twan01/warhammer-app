@@ -182,6 +182,18 @@ describe("StepFocalView", () => {
     expect(screen.queryByTestId("paint-swatch")).not.toBeInTheDocument();
   });
 
+  it("D-10: renders kbd badges for keyboard shortcuts", () => {
+    renderFocalView();
+
+    const kbdElements = document.querySelectorAll("kbd");
+    expect(kbdElements.length).toBe(3);
+
+    const kbdTexts = Array.from(kbdElements).map((el) => el.textContent);
+    expect(kbdTexts).toContain("←"); // left arrow
+    expect(kbdTexts).toContain("→"); // right arrow
+    expect(kbdTexts).toContain("Space");
+  });
+
   it("renders 'All steps complete!' state when isAllComplete", () => {
     renderFocalView({ isAllComplete: true });
     expect(screen.getByText("All steps complete!")).toBeInTheDocument();

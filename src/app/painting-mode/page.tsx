@@ -77,7 +77,7 @@ function PaintingModePageInner({ assignmentId }: { assignmentId: number }) {
   // Keyboard shortcuts enabled only when assignment loaded and state ready
   const enabled = !!assignment && !state.isLoading;
 
-  useHotkeys(" ", handleMarkDone, { preventDefault: true, enabled });
+  useHotkeys("space", handleMarkDone, { preventDefault: true, enabled });
   useHotkeys("arrowleft", () => state.goPrev(), { preventDefault: true, enabled });
   useHotkeys("arrowright", () => state.goNext(), { preventDefault: true, enabled });
   useHotkeys("escape", handleExit);

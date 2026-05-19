@@ -123,6 +123,42 @@ describe("SectionNavigator", () => {
     expect(screen.getByText("Varnish coat")).toBeInTheDocument();
   });
 
+  describe("SP-05: section completion acknowledgment", () => {
+    it("renders Check icon when all steps in section are complete", () => {
+      renderNavigator({
+        sectionProgressMap: new Map([
+          [1, { completed: 2, total: 2, name: "Basecoat" }],
+        ]),
+      });
+
+      expect(screen.getByTestId("section-complete")).toBeInTheDocument();
+      // Should NOT show the progress badge text
+      expect(screen.queryByText("2/2")).not.toBeInTheDocument();
+    });
+
+    it("renders Badge with count when section is incomplete", () => {
+      renderNavigator({
+        sectionProgressMap: new Map([
+          [1, { completed: 1, total: 3, name: "Basecoat" }],
+        ]),
+      });
+
+      expect(screen.queryByTestId("section-complete")).not.toBeInTheDocument();
+      expect(screen.getByText("1/3")).toBeInTheDocument();
+    });
+
+    it("completed section name has muted styling", () => {
+      renderNavigator({
+        sectionProgressMap: new Map([
+          [1, { completed: 2, total: 2, name: "Basecoat" }],
+        ]),
+      });
+
+      const sectionName = screen.getByText("Basecoat");
+      expect(sectionName).toHaveClass("text-muted-foreground");
+    });
+  });
+
   it("shows check indicator for completed steps", () => {
     renderNavigator({
       completedSet: new Set([1]),
