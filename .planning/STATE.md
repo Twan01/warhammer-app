@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v0.2.14
 milestone_name: Backup 2.0 — Structured Export, Restore & Safety Backups
 status: complete
-stopped_at: v0.2.14 milestone complete — all 5 phases shipped
+stopped_at: v0.2.14 archived — planning next milestone
 last_updated: "2026-05-19T15:00:00Z"
 last_activity: 2026-05-19
 progress:
@@ -18,17 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-18)
+See: .planning/PROJECT.md (updated 2026-05-19)
 
-**Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play"
-**Current focus:** v0.2.14 milestone complete — all 5 phases shipped
+**Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with reliable backup/restore so local data is always recoverable
+**Current focus:** v0.2.14 archived — planning next milestone
 
 ## Current Position
 
-Phase: 83 (Backup Diagnostics) — complete
-Plan: 2 of 2 executed
-Status: All phases complete — milestone v0.2.14 shipped
-Last activity: 2026-05-19 -- Phase 83 executed and verified
+Phase: — (milestone archived)
+Plan: —
+Status: v0.2.14 archived — next milestone TBD
+Last activity: 2026-05-19 — v0.2.14 archived
 
 ## Performance Metrics
 
@@ -72,6 +72,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-19
-Stopped at: v0.2.14 milestone complete — all 5 phases shipped
-Resume file: None — milestone complete
+Stopped at: v0.2.14 archived
+Resume file: None — milestone archived
 Resume: /gsd:new-milestone for next version

@@ -1,4 +1,26 @@
 # Milestones
+## v0.2.14 Backup 2.0 — Structured Export, Restore & Safety Backups (Shipped: 2026-05-19)
+
+**Phases completed:** 5 phases (79–83), 11 plans
+**Timeline:** 2026-05-18 → 2026-05-19 (2 days)
+**Stats:** 17 source commits, 12 files changed, +1,283 / -72 lines, 26/26 requirements satisfied, 1,831 tests passing
+
+**Key accomplishments:**
+- Rust backup foundation: zip crate + 3 Tauri commands (export_backup, validate_backup, create_safety_backup) with VACUUM INTO for safe database copy and BackupManifest struct
+- Export UI + backup status: BackupCard health tier (healthy/recommended/overdue/never) with color-coded dots, file picker export flow, DataHealthSummaryCard backup freshness indicator
+- Restore preview + validation: AlertDialog-based preview with schema compatibility checks (reject newer, warn older), destructive confirmation gate, formatBytes utility
+- Restore execution + safety backups: atomic database swap with WAL/SHM/journal sidecar cleanup, app restart via relaunch(), pre-sync safety backup in useRulesSync, SafetyBackupsList component
+- Backup diagnostics: collapsible diagnostic detail section (age/version/status rows), version mismatch detection with amber dashboard indicator, progressive disclosure keeping healthy state clean
+
+**Tech debt accepted:** Nyquist validation partial for Phase 79, missing for Phase 83
+
+**Archived:**
+- Roadmap: `.planning/milestones/v0.2.14-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.2.14-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.2.14-MILESTONE-AUDIT.md`
+
+---
+
 ## v0.2.13 Data Integrity, Diagnostics & Product Coherence (Shipped: 2026-05-15)
 
 **Phases completed:** 6 phases (73–78), 13 plans

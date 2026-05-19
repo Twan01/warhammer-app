@@ -4,15 +4,15 @@
 
 HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, structured painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play." Official points and rules data are imported via Wahapedia sync for personal use.
 
-Shipped through v0.2.13 (78 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps, transactional graph save, recipe_step_id-keyed progress), army list builder with detachment selection, centralized points resolver with source labeling and user-confirmable unit-to-rules mapping, battle log with after-action capture (forgotten rules, MVP/underperformer notes), spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard, KanbanCards, NextPaintingActionCard, ReadyToPlayCard, and DataHealthSummaryCard, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist, pre-game readiness panel, end-game after-action with forgotten-rules-to-reminders pipeline), Data Health page with diagnostics and VACUUM INTO backup, a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK), version parity enforcement, and auto-update via GitHub Releases with in-app banner.
+Shipped through v0.2.14 (83 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps, transactional graph save, recipe_step_id-keyed progress), army list builder with detachment selection, centralized points resolver with source labeling and user-confirmable unit-to-rules mapping, battle log with after-action capture (forgotten rules, MVP/underperformer notes), spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard, KanbanCards, NextPaintingActionCard, ReadyToPlayCard, and DataHealthSummaryCard, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist, pre-game readiness panel, end-game after-action with forgotten-rules-to-reminders pipeline), Data Health page with diagnostics, structured backup export (.zip with VACUUM INTO + metadata.json), full restore with preview/validation/atomic swap/restart, automatic safety backups before restore and rules sync, progressive backup diagnostics with version mismatch detection, a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK), version parity enforcement, and auto-update via GitHub Releases with in-app banner.
 
 ## Current State
 
-v0.2.13 shipped 2026-05-15. 78 phases complete across 14 milestones. ~300+ TypeScript source files. 28 SQLite migrations (26 hobbyforge.db + 2 rules.db). Planning next milestone.
+v0.2.14 shipped 2026-05-19. 83 phases complete across 15 milestones. ~300+ TypeScript source files. 28 SQLite migrations (26 hobbyforge.db + 2 rules.db). 1,831 automated tests. 7 Tauri Rust commands. Planning next milestone.
 
 ## Core Value
 
-A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with official points via Wahapedia sync for personal use.
+A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with official points via Wahapedia sync for personal use, and reliable backup/restore so local data is always recoverable.
 
 ## Requirements
 
@@ -189,16 +189,13 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ GD-03: Forgotten rules become Game Day reminders — Phase 78 — v0.2.13
 - ✓ GD-04: Notes editable from after-action — Phase 78 — v0.2.13
 
-## Current Milestone: v0.2.14 Backup 2.0 — Structured Export, Restore & Safety Backups
+*All v0.2.14 requirements verified and shipped 2026-05-19*
 
-**Goal:** Make HobbyForge safer to use long term by giving the user a reliable way to export, restore and protect their local data.
-
-**Target features:**
-- Structured backup export (timestamped .zip with hobbyforge.db + metadata.json + manifest)
-- Restore / import backup (validate, preview, safety backup before restore, reload)
-- Backup status in Data Health (last backup date, health status, links to export/restore)
-- Automatic safety backups (pre-restore, optionally before sync/migration)
-- Backup diagnostics (never backed up, failed, too old, version mismatch, schema compatibility)
+- ✓ EXP-01–05: Structured backup export (.zip with VACUUM INTO + metadata.json, timestamped filename, success/failure feedback) — Phases 79–80 — v0.2.14
+- ✓ RST-01–09: Full restore pipeline (file picker, manifest validation, schema compatibility preview, explicit confirmation, auto safety backup, atomic swap, app restart) — Phases 81–82 — v0.2.14
+- ✓ STS-01–04: Backup status display (last backup age, health tier indicator, action links, dashboard summary) — Phase 80 — v0.2.14
+- ✓ SAF-01–04: Safety backups (pre-restore, pre-sync, app data directory, visible in Data Health) — Phases 79, 82 — v0.2.14
+- ✓ DGN-01–04: Backup diagnostics (never-backed-up flag, staleness threshold, version mismatch, progressive disclosure) — Phase 83 — v0.2.14
 
 ### Active
 
@@ -217,7 +214,7 @@ A single personal command center that always answers "what do I own, what's pain
 
 ## Context
 
-- **Current state:** v0.2.13 shipped. ~300+ TypeScript source files. ~100,000+ LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 12 main pages. Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline. 28 SQLite migrations (26 hobbyforge.db + 2 rules.db). Transactional recipe graph save, recipe_step_id-keyed progress, centralized points resolver with source labeling, unit-to-rules mapping layer, Data Health page with diagnostics and VACUUM INTO backup, dashboard command center (NextPaintingAction, ReadyToPlay, DataHealthSummary), Game Day after-action loop with forgotten-rules-to-reminders. 14 data-layer tests via better-sqlite3. Version parity enforcement. Auto-update via GitHub Releases.
+- **Current state:** v0.2.14 shipped. ~300+ TypeScript source files. ~100,000+ LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 12 main pages. Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline. 28 SQLite migrations (26 hobbyforge.db + 2 rules.db). 7 Rust Tauri commands (backup export, validate, safety backup, restore, list safety backups, get schema version, bulk sync rules). Structured backup/restore with preview + atomic swap + restart. Automatic safety backups before restore and rules sync. Progressive backup diagnostics. Transactional recipe graph save, recipe_step_id-keyed progress, centralized points resolver with source labeling, unit-to-rules mapping layer, Data Health page with full diagnostics, dashboard command center (NextPaintingAction, ReadyToPlay, DataHealthSummary), Game Day after-action loop with forgotten-rules-to-reminders. 1,831 automated tests. Version parity enforcement. Auto-update via GitHub Releases.
 - **Personal tool** — single user (the owner), local-first, no accounts or sync
 - **Domain:** Warhammer 40K 10th edition, hobby management (collecting → painting → playing)
 - **User journey priority:** painter/collector → ready-to-play, *not* competitive optimization
@@ -308,6 +305,13 @@ A single personal command center that always answers "what do I own, what's pain
 | promoted_to_reminder column vestigial | Design chose automatic promotion (all forgotten rules become reminders); column typed but never written | — Accepted tech debt; column removable if schema changes |
 | Warning split: computeListWarnings vs computeUnitWarnings | List-level warnings (points exceeded, stale) in summary panel; unit-level (no points, not ready) on rows | ✓ Good — clean separation, no duplicate warnings |
 | localStorage for backup status | Backup metadata (date, path) persists across sessions without SQLite schema change | ✓ Good — appropriate for single-value persistence |
+| VACUUM INTO via Rust for structured backup | tauri-plugin-sql JS bridge can't execute VACUUM INTO; Rust command creates clean .zip with db + metadata.json | ✓ Good — consistent, safe backups without raw file copy |
+| App restart via relaunch() after restore | tauri-plugin-sql has no reconnect API; relaunch() from @tauri-apps/plugin-process cleanly reinitializes | ✓ Good — clean restart, process plugin already permitted |
+| WAL/SHM/journal sidecar cleanup before swap | SQLite sidecars must be deleted before replacing the main db file to prevent corruption | ✓ Good — atomic restore with no leftover state |
+| rules.db excluded from backups | Fully regenerable via Wahapedia sync; including it doubles zip size for zero recovery value | ✓ Good — smaller backups, no information loss |
+| Schema version = migration count (integer) | Counting migration files in src-tauri/migrations/ gives a reliable, monotonic version number | ✓ Good — simple comparison for schema compatibility checks |
+| Two-step restore (preview then commit) | Non-destructive validation and preview before any destructive operation | ✓ Good — prevents accidental data loss from wrong backup file |
+| Pre-sync safety backup aborts sync on failure | Safety backup must succeed before risking rules.db wipe; fail-fast prevents data loss | ✓ Good — defense-in-depth for the most dangerous automatic operation |
 
 ---
 ## Evolution
@@ -328,4 +332,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-18 after v0.2.14 milestone started*
+*Last updated: 2026-05-19 after v0.2.14 milestone shipped*

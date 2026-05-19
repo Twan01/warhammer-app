@@ -595,6 +595,52 @@
 
 ---
 
+## Milestone: v0.2.14 — Backup 2.0
+
+**Shipped:** 2026-05-19
+**Phases:** 5 (79–83) | **Plans:** 11 | **Timeline:** 2 days (2026-05-18 → 2026-05-19)
+
+### What Was Built
+
+- Phase 79: Rust backup foundation — zip crate dependency, BackupManifest struct, 3 Tauri commands (export_backup with VACUUM INTO, validate_backup, create_safety_backup)
+- Phase 80: Export UI + backup status — backupFreshness utility with 4-tier health classification (healthy/recommended/overdue/never), BackupCard migration to new export command, DataHealthSummaryCard backup freshness dot
+- Phase 81: Restore preview + validation — get_schema_version Rust command, BackupManifest TypeScript type mirror, RestorePreviewDialog AlertDialog with schema compatibility banners (reject newer, warn older), formatBytes utility
+- Phase 82: Restore execution + safety backups — restore_from_backup Rust command (safety backup + sidecar cleanup + zip extraction + swap), list_safety_backups command, BackupCard restore wiring with relaunch(), pre-sync safety backup in useRulesSync, SafetyBackupsList component
+- Phase 83: Backup diagnostics — app_version in BackupStatus, hasVersionMismatch pure function, collapsible diagnostic detail section, DataHealthSummaryCard version mismatch amber indicator
+
+### What Worked
+
+- **Rust-first foundation phase:** Phase 79 shipped all 3 Tauri commands before any UI work. Phases 80–83 consumed these commands without a single Rust-side bug or API change. The investment in getting the backend right first paid off cleanly.
+- **Established patterns scaled:** localStorage for backup status (from v0.2.13), VACUUM INTO via Rust command (from v0.2.13), pure function utilities with tests (backupFreshness, hasVersionMismatch, formatBytes) — all reused proven patterns.
+- **Two-step restore design:** Separating preview (Phase 81, non-destructive) from execution (Phase 82, destructive) made each phase focused and the UX safer. Users can't accidentally destroy data.
+- **Pre-completion milestone audit caught real bugs:** The audit found a cache invalidation bug in useRulesSync (missing SAFETY_BACKUPS_KEY invalidation after pre-sync backup) and fixed it before shipping.
+- **No gap closure phase needed:** All 26 requirements passed on first audit — 6th consecutive milestone with clean first-pass audit (v0.2.7, v0.2.8, v0.2.9, v0.2.11, v0.2.13, v0.2.14).
+
+### What Was Inefficient
+
+- **Nyquist validation partial/missing:** Phase 79 has partial Nyquist compliance, Phase 83 has no VALIDATION.md. The backup commands require Tauri runtime for true end-to-end validation, which jsdom-based tests can't provide — the gap is structural, not procedural.
+- **SUMMARY one_liner still missing:** All 11 SUMMARY files shipped with null one_liner fields. Accomplishment extraction at milestone completion was manual (again). This is the most persistent process gap across all milestones.
+
+### Patterns Established
+
+- **Rust command pattern for SQLite operations beyond tauri-plugin-sql:** export_backup, restore_from_backup, validate_backup, create_safety_backup, list_safety_backups, get_schema_version — 6 new Rust commands in one milestone. Pattern: JS calls invoke(), Rust opens raw connection, executes, returns typed result.
+- **Safety-first destructive operations:** Always create a safety backup before any destructive operation (restore, sync). Abort if backup fails. Applied to both restore_from_backup and useRulesSync.
+- **Progressive disclosure for diagnostic detail:** Show clean healthy state by default; expand for age, version, and status details. Applied via Collapsible in BackupCard with ChevronDown animation.
+
+### Key Lessons
+
+1. **Rust-first foundation phases work for backend-heavy milestones.** All 7 Tauri commands were rock-solid by the time UI phases consumed them. Zero API changes during Phases 80–83.
+2. **Backup/restore is inherently hard to test in jsdom.** File system operations, VACUUM INTO, process restart — these need Tauri runtime. Nyquist compliance gaps are acceptable when the limitation is structural.
+3. **Pre-completion audit remains load-bearing.** Caught cache invalidation bug, ROADMAP progress drift, and checkbox gaps — same categories as v0.2.13. The pattern is proven across 6 milestones.
+
+### Cost Observations
+
+- Model: Claude Opus 4.6 throughout
+- Sessions: 3 (Phase 79 foundation, Phases 80-82 UI + execution, Phase 83 diagnostics + audit + completion)
+- Notable: 5 phases with 11 plans and 26 requirements in 2 days — Rust foundation phase enabled smooth UI execution; clean linear dependency chain (79→80/81→82→83)
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -614,6 +660,7 @@
 | v0.2.9 | 4 | 8 | Workflow metadata; cascade selector; pure derivation function; batch enrichment pattern; no gap closure needed |
 | v0.2.11 | 5 | 9 | Foundation hardening; non-destructive save; data-layer tests; paintless steps; session FK; no gap closure needed |
 | v0.2.13 | 6 | 13 | Data identity hardening; transactional save; centralized points resolver; Data Health + backup; dashboard command center; game day after-action; no gap closure needed |
+| v0.2.14 | 5 | 11 | Structured backup/restore; Rust-first foundation (6 new commands); safety backups; progressive diagnostics; no gap closure needed |
 
 ### Cumulative Quality
 
@@ -632,6 +679,7 @@
 | v0.2.9 | ~1,240 | All passing (18/19 requirements satisfied, 1 partial design deviation, Nyquist compliant, gaps resolved inline) |
 | v0.2.11 | ~1,260 | All passing (9/9 requirements satisfied, 14 data-layer tests added, Nyquist 4/5 compliant, no gap closure) |
 | v0.2.13 | ~1,300 | All passing (26/26 requirements satisfied, Nyquist 6/6 compliant, no gap closure, 5th consecutive clean audit) |
+| v0.2.14 | 1,831 | All passing (26/26 requirements satisfied, Nyquist 3/5 compliant, no gap closure, 6th consecutive clean audit) |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -651,3 +699,5 @@
 14. Clean first-pass audits correlate with well-scoped milestones — focused work (4–5 phases, clear dependency chain) ships without gap closure
 15. Pre-completion milestone audit is load-bearing — catches cache invalidation gaps, ROADMAP drift, and checkbox issues before they become silent tech debt (confirmed in v0.2.13)
 16. Rust commands are the escape hatch for tauri-plugin-sql limitations — VACUUM INTO, and potentially ATTACH DATABASE, need direct Rust access (learned in v0.2.13 Phase 77)
+17. Rust-first foundation phases work for backend-heavy milestones — all commands rock-solid by UI phase time, zero API changes needed (confirmed in v0.2.14)
+18. Backup/restore operations are inherently hard to test in jsdom — Nyquist gaps are structural when the feature requires Tauri runtime (file system, process restart)
