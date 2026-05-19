@@ -94,8 +94,8 @@ Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
 **Milestone Goal:** Make HobbyForge safe to use long-term by giving the user a reliable way to export, restore, and protect their local data.
 
 - [x] **Phase 79: Rust Backup Foundation** - zip crate + structured export command + validate command + safety backup command (Rust-first; unlocks all UI)
-- [ ] **Phase 80: Export UI + Backup Status** - BackupCard upgrade, status indicators, export flow, dashboard integration
-- [x] **Phase 81: Restore Preview + Validation** - file picker, manifest validation, schema version checks, preview modal (non-destructive)
+- [x] **Phase 80: Export UI + Backup Status** - BackupCard upgrade, status indicators, export flow, dashboard integration
+- [x] **Phase 81: Restore Preview + Validation** - file picker, manifest validation, schema version checks, preview modal (non-destructive) — completed 2026-05-18 (human_needed)
 - [ ] **Phase 82: Restore Execution + Safety Backups** - atomic file swap, process restart, pre-sync safety backup, safety backup listing
 - [ ] **Phase 83: Backup Diagnostics** - never-backed-up flag, staleness threshold, version mismatch detection, diagnostic detail disclosure
 
@@ -180,11 +180,16 @@ Plans:
   4. A safety backup is automatically created before every Wahapedia rules sync
   5. The Data Health page lists available safety backups with their timestamps and sizes
 
-**Plans**: 2 plans
+**Plans**: 3 plans
 Plans:
+**Wave 1**
 
-- [x] 80-01-PLAN.md — Backup freshness utility + unit tests
-- [ ] 80-02-PLAN.md — BackupCard migration + DataHealthSummaryCard update + test updates
+- [ ] 82-01-PLAN.md — Rust restore_from_backup + list_safety_backups commands
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 82-02-PLAN.md — Restore execution wiring in BackupCard + RestorePreviewDialog isRestoring + tests
+- [ ] 82-03-PLAN.md — Pre-sync safety backup in useRulesSync + SafetyBackupsList component + tests
 
 **UI hint**: yes
 
@@ -295,7 +300,7 @@ Plans:
 | 79. Rust Backup Foundation | v0.2.14 | 2/2 | Complete | 2026-05-18 |
 | 80. Export UI + Backup Status | v0.2.14 | 2/2 | Complete   | 2026-05-18 |
 | 81. Restore Preview + Validation | v0.2.14 | 2/2 | Complete | - |
-| 82. Restore Execution + Safety Backups | v0.2.14 | 0/TBD | Not started | - |
+| 82. Restore Execution + Safety Backups | v0.2.14 | 0/3 | Not started | - |
 | 83. Backup Diagnostics | v0.2.14 | 0/TBD | Not started | - |
 
 <details>
