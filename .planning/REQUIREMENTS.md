@@ -44,11 +44,11 @@ Requirements for Painting Mode. Each maps to roadmap phases.
 
 ### Entry Points
 
-- [ ] **EP-01**: User can open Painting Mode from Dashboard NextPaintingActionCard
-- [ ] **EP-02**: User can open Painting Mode from CurrentFocusCard
-- [ ] **EP-03**: User can open Painting Mode from Unit Detail / Applied Recipe panel
-- [ ] **EP-04**: User can open Painting Mode from Painting Projects Kanban
-- [ ] **EP-05**: User can open Painting Mode from Recipe Detail (when applied to a unit)
+- [x] **EP-01**: User can open Painting Mode from Dashboard NextPaintingActionCard
+- [x] **EP-02**: User can open Painting Mode from CurrentFocusCard
+- [x] **EP-03**: User can open Painting Mode from Unit Detail / Applied Recipe panel
+- [x] **EP-04**: User can open Painting Mode from Painting Projects Kanban
+- [x] **EP-05**: User can open Painting Mode from Recipe Detail (when applied to a unit)
 - [x] **EP-06**: Empty/missing recipe states explain what to do next
 
 ### Presentation
@@ -115,11 +115,11 @@ Requirements for Painting Mode. Each maps to roadmap phases.
 | SL-01 | Phase 87 | Complete |
 | SL-02 | Phase 87 | Complete |
 | SL-03 | Phase 87 | Complete |
-| EP-01 | Phase 87 | Pending |
-| EP-02 | Phase 87 | Pending |
-| EP-03 | Phase 87 | Pending |
-| EP-04 | Phase 87 | Pending |
-| EP-05 | Phase 87 | Pending |
+| EP-01 | Phase 87 | Complete |
+| EP-02 | Phase 87 | Complete |
+| EP-03 | Phase 87 | Complete |
+| EP-04 | Phase 87 | Complete |
+| EP-05 | Phase 87 | Complete |
 | EP-06 | Phase 87 | Complete |
 | PX-01 | Phase 85 | Pending |
 | PX-02 | Phase 86 | Complete |
