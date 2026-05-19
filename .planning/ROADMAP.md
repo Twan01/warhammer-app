@@ -194,7 +194,12 @@ Plans:
   3. User can open Painting Mode from the Dashboard NextPaintingActionCard, CurrentFocusCard, Unit Detail applied recipe panel, Kanban card, and Recipe Detail sheet
   4. When a unit has no applied recipe, the empty state explains what to do next instead of showing a broken or empty view
 
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+
+- [ ] 87-01-PLAN.md — Session logger Sheet + StepFocalView button pair + PaintingModePage handler
+- [ ] 87-02-PLAN.md — Five entry point surfaces + KanbanEnrichment assignmentIds extension
+
 **UI hint**: yes
 
 ### Phase 88: Polish + Test Coverage
@@ -301,7 +306,7 @@ Plans:
 | 84. Data Layer + Early Tests | v0.2.15 | 0/2 | Not started | - |
 | 85. Core Execution UI | v0.2.15 | 1/3 | In progress | - |
 | 86. Shell, Route & Keyboard Shortcuts | v0.2.15 | 2/2 | Complete   | 2026-05-19 |
-| 87. Session Integration + Entry Points | v0.2.15 | 0/TBD | Not started | - |
+| 87. Session Integration + Entry Points | v0.2.15 | 0/2 | Not started | - |
 | 88. Polish + Test Coverage | v0.2.15 | 0/TBD | Not started | - |
 
 <details>
