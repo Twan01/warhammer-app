@@ -50,9 +50,11 @@ This phase uses "larger typography" (PX-01, D-02) for desk-distance readability.
 | Role | Size | Weight | Line Height | Tailwind Class |
 |------|------|--------|-------------|----------------|
 | Body | 16px | 400 (regular) | 1.5 | `text-base` |
-| Label | 14px | 500 (medium) | 1.4 | `text-sm font-medium` |
+| Label | 14px | 400 (regular) | 1.4 | `text-sm` |
 | Heading | 20px | 600 (semibold) | 1.3 | `text-xl font-semibold` |
 | Display | 28px | 600 (semibold) | 1.2 | `text-2xl font-semibold` |
+
+Two weights only: 400 (regular) for Body and Label, 600 (semibold) for Heading and Display. Labels are differentiated from body text by size (14px vs 16px), not weight.
 
 Application:
 - **Display (28px)**: Step name/instruction text -- the primary heading of the focal view (D-06)
@@ -148,18 +150,18 @@ Top-to-bottom vertical stack within the focal view:
 3. **Metadata row** (D-04): horizontal flex with `gap-4`, each item is icon (16px) + text (Body 16px). Fields: technique (Badge outline), tool (Paintbrush icon), dilution (Droplets icon), time (Clock icon + "~Xm").
 4. **Reference photo** (D-05): `max-w-full rounded-lg` image, collapses when absent. Max height 320px with `object-contain`.
 5. **Step notes**: Body 16px, `text-muted-foreground`, only when notes exist.
-6. **Navigation bar**: `flex items-center justify-between mt-auto pt-6 border-t border-border`. Previous button (ghost, ChevronLeft icon), position text (Label 14px, "Step X of Y . SectionName"), Next button (ghost, ChevronRight icon). Buttons disable at boundaries.
+6. **Navigation bar**: `flex items-center justify-between mt-auto pt-6 border-t border-border`. Previous button (ghost, ChevronLeft icon, `aria-label="Previous step"`), position text (Label 14px, "Step X of Y . SectionName"), Next button (ghost, ChevronRight icon, `aria-label="Next step"`). Buttons disable at boundaries.
 7. **Mark Done button**: Full-width `Button` primary variant, Heading 20px weight, `h-12` height. Text: "Mark Done" or "Done" with Check icon.
 
 ### Section Navigator Layout (D-07 through D-10)
 
 - Each section: `Collapsible` defaultOpen for current section, closed for others
-- Section header: `flex items-center justify-between px-3 py-2`, section name (Label 14px medium), count badge ("3/5", Badge secondary variant)
+- Section header: `flex items-center justify-between px-3 py-2`, section name (Label 14px), count badge ("3/5", Badge secondary variant)
 - Current section: `border-l-3 border-primary bg-accent/50`
 - Optional sections: additional "Optional" Badge (outline variant, `text-xs`)
 - Step sub-items: `pl-6 py-1.5 flex items-center gap-2 cursor-pointer hover:bg-accent/30 rounded`
   - Completed: green Check circle icon (16px) + step name (Label 14px, `text-muted-foreground line-through`)
-  - Current: filled primary dot (8px) + step name (Label 14px, `font-medium`)
+  - Current: filled primary dot (8px) + step name (Label 14px, `font-semibold`)
   - Pending: hollow muted dot (8px) + step name (Label 14px)
 - Unsectioned steps: grouped under "General" virtual section at bottom (D-10)
 
@@ -167,8 +169,8 @@ Top-to-bottom vertical stack within the focal view:
 
 - `bg-amber-500/10 border border-amber-500/20 rounded-lg mx-6 mt-4 px-4 py-3`
 - Icon: `AlertTriangle` (amber-500, 20px) + "Some paints are not in your inventory:" (Body 16px)
-- List: comma-separated paint names in `font-medium`
-- Dismiss: ghost Button with X icon, right-aligned
+- List: comma-separated paint names in `font-semibold`
+- Dismiss: ghost Button with X icon, right-aligned, `aria-label="Dismiss banner"`
 - State: `useState(true)` local dismissed state, shown only when `missingPaints.length > 0`
 
 ### Loading State
@@ -219,6 +221,18 @@ No third-party registries used in this phase.
 | Dismiss readiness banner | Sets local `dismissed` state to true. Banner hidden for remainder of session. |
 
 Note: Keyboard shortcuts (Space, Arrow keys, Escape) are Phase 86 scope. This phase is mouse/click only.
+
+---
+
+## Accessibility Contract
+
+| Element | Attribute | Value |
+|---------|-----------|-------|
+| Previous step button | `aria-label` | "Previous step" |
+| Next step button | `aria-label` | "Next step" |
+| Dismiss banner button | `aria-label` | "Dismiss banner" |
+
+All three are icon-only buttons that require explicit accessible labels.
 
 ---
 
