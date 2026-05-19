@@ -15,6 +15,7 @@ export interface KanbanColumnProps {
   onRemoveFromBoard: (unit: Unit) => void;
   onEditUnit: (unit: Unit) => void;
   onLogSession: (unitId: number) => void;
+  onPaint?: (assignmentId: number) => void;
   enrichment?: KanbanEnrichment;
   workflowPositions?: Map<number, WorkflowPosition>;
 }
@@ -26,6 +27,7 @@ export function KanbanColumn({
   onRemoveFromBoard,
   onEditUnit,
   onLogSession,
+  onPaint,
   enrichment,
   workflowPositions,
 }: KanbanColumnProps) {
@@ -59,10 +61,12 @@ export function KanbanColumn({
               onRemoveFromBoard={onRemoveFromBoard}
               onEditUnit={onEditUnit}
               onLogSession={onLogSession}
+              onPaint={onPaint}
               recipeName={enrichment?.recipeNames.get(u.id)}
               photoCount={enrichment?.photoCounts.get(u.id)}
               workflowPosition={workflowPositions?.get(u.id)}
               appliedProgress={enrichment?.appliedProgress?.get(u.id)}
+              assignmentId={enrichment?.assignmentIds?.get(u.id)}
             />
           ))}
         </SortableContext>

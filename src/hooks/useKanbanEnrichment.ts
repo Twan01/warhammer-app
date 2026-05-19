@@ -15,6 +15,7 @@ export interface KanbanEnrichment {
   recipeNames: Map<number, string>;
   photoCounts: Map<number, number>;
   appliedProgress: Map<number, AppliedRecipeProgress>;
+  assignmentIds: Map<number, number>;
 }
 
 export const KANBAN_ENRICHMENT_KEY = (unitIds: number[]) =>
@@ -31,6 +32,7 @@ export function useKanbanEnrichment(unitIds: number[]) {
       ]);
 
       const appliedProgressMap = new Map<number, AppliedRecipeProgress>();
+      const assignmentIdsMap = new Map<number, number>();
       await Promise.all(
         sortedIds.map(async (unitId) => {
           const assignments = await getAssignmentsByUnit(unitId);
@@ -48,6 +50,7 @@ export function useKanbanEnrichment(unitIds: number[]) {
             total: progress.total,
             assignmentCount: assignments.length,
           });
+          assignmentIdsMap.set(unitId, primary.id);
         }),
       );
 
@@ -55,6 +58,7 @@ export function useKanbanEnrichment(unitIds: number[]) {
         recipeNames: new Map(recipeRows.map((r) => [r.unit_id, r.name])),
         photoCounts: new Map(photoRows.map((r) => [r.entity_id, r.photo_count])),
         appliedProgress: appliedProgressMap,
+        assignmentIds: assignmentIdsMap,
       };
     },
     enabled: sortedIds.length > 0,

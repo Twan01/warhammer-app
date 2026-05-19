@@ -21,6 +21,7 @@ import { useUnits } from "@/hooks/useUnits";
 import { useDuplicateRecipe } from "@/hooks/useRecipes";
 import { useWishlistItems, useCreateWishlistItem } from "@/hooks/useWishlistItems";
 import { useSessionsByRecipe } from "@/hooks/useJournalSessions";
+import { useAssignmentsByRecipe } from "@/hooks/useRecipeAssignments";
 import { useRecipeSections } from "@/hooks/useRecipeSections";
 import type { PaintingRecipe } from "@/types/recipe";
 import { RecipeStepTimeline } from "./RecipeStepTimeline";
@@ -80,6 +81,7 @@ export function RecipeDetailSheet({
   }, [paints]);
 
   const { data: sessions = [] } = useSessionsByRecipe(recipe?.id);
+  const { data: assignments = [] } = useAssignmentsByRecipe(recipe?.id);
 
   const unitMap = useMemo(() => {
     const m = new Map<number, string>();
@@ -299,6 +301,31 @@ export function RecipeDetailSheet({
               )}
 
               <Separator />
+
+              {assignments.length > 0 && (
+                <Field label="Applied to Units">
+                  <div className="flex flex-col gap-2">
+                    {assignments.map((a) => (
+                      <div key={a.id} className="flex items-center justify-between">
+                        <span className="text-sm">{unitMap.get(a.unit_id) ?? "Unknown unit"}</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            navigate({
+                              to: "/painting-mode/$assignmentId",
+                              params: { assignmentId: String(a.id) },
+                            })
+                          }
+                          data-testid={`paint-unit-btn-${a.id}`}
+                        >
+                          Paint
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </Field>
+              )}
 
               <Field label="Sessions">
                 {sessions.length === 0 ? (

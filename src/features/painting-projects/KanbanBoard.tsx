@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import {
   DndContext,
   DragOverlay,
@@ -35,6 +36,7 @@ export interface KanbanBoardProps {
 }
 
 export function KanbanBoard({ onEditUnit, onAddProject, onLogSession }: KanbanBoardProps) {
+  const navigate = useNavigate();
   const { data: units = [], isLoading } = useUnits();
   const { data: factions = [] } = useFactions();
   const qc = useQueryClient();
@@ -81,6 +83,13 @@ export function KanbanBoard({ onEditUnit, onAddProject, onLogSession }: KanbanBo
         },
       },
     );
+  }
+
+  function handlePaint(assignmentId: number) {
+    navigate({
+      to: "/painting-mode/$assignmentId",
+      params: { assignmentId: String(assignmentId) },
+    });
   }
 
   function handleDragStart(event: DragStartEvent) {
@@ -160,6 +169,7 @@ export function KanbanBoard({ onEditUnit, onAddProject, onLogSession }: KanbanBo
             onRemoveFromBoard={handleRemoveFromBoard}
             onEditUnit={onEditUnit}
             onLogSession={onLogSession}
+            onPaint={handlePaint}
             enrichment={enrichment}
             workflowPositions={workflowPositions}
           />

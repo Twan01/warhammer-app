@@ -1,4 +1,4 @@
-import { GripVertical, Flag, Calendar, Camera, Paintbrush } from "lucide-react";
+import { GripVertical, Flag, Calendar, Camera, Paintbrush, Palette } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Card } from "@/components/ui/card";
@@ -30,10 +30,12 @@ export interface KanbanCardProps {
   onRemoveFromBoard: (unit: Unit) => void;
   onEditUnit: (unit: Unit) => void;
   onLogSession: (unitId: number) => void;
+  onPaint?: (assignmentId: number) => void;
   recipeName?: string;
   photoCount?: number;
   workflowPosition?: WorkflowPosition | null;
   appliedProgress?: AppliedRecipeProgress | null;
+  assignmentId?: number;
 }
 
 export function KanbanCard({
@@ -42,10 +44,12 @@ export function KanbanCard({
   onRemoveFromBoard,
   onEditUnit,
   onLogSession,
+  onPaint,
   recipeName,
   photoCount,
   workflowPosition,
   appliedProgress,
+  assignmentId,
 }: KanbanCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: `unit-${unit.id}`,
@@ -79,6 +83,17 @@ export function KanbanCard({
         >
           <Paintbrush size={14} />
         </button>
+        {onPaint && assignmentId !== undefined && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onPaint(assignmentId); }}
+            aria-label={`Open painting mode for ${unit.name}`}
+            title="Paint"
+            className="h-6 w-6 flex items-center justify-center rounded text-muted-foreground hover:text-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          >
+            <Palette size={14} />
+          </button>
+        )}
         <KanbanCardActions
           onRemoveFromBoard={() => onRemoveFromBoard(unit)}
           onEditUnit={() => onEditUnit(unit)}
