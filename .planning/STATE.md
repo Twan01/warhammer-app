@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.2.15
 milestone_name: Painting Mode
-status: executing
-stopped_at: Phase 86 complete, phase 87 next
-last_updated: "2026-05-19T15:15:00Z"
+status: completed
+stopped_at: Phase 87 context gathered
+last_updated: "2026-05-19T15:27:40.997Z"
 last_activity: 2026-05-19 -- Phase 86 plan 02 executed
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 7
   completed_plans: 7
-  percent: 71
+  percent: 60
 ---
 
 # Project State
@@ -83,7 +83,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-19T15:15:00Z
-Stopped at: Phase 86 complete, phase 87 next
-Resume file: .planning/phases/87-session-entry-points/87-01-PLAN.md
+Last session: 2026-05-19T15:27:40.991Z
+Stopped at: Phase 87 context gathered
+Resume file: .planning/phases/87-session-integration-entry-points/87-CONTEXT.md
 Resume: /gsd:execute-phase 87
