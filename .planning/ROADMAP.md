@@ -207,9 +207,18 @@ Plans:
 
 **Plans**: 2 plans
 Plans:
+**Wave 1**
 
-- [ ] 80-01-PLAN.md — Backup freshness utility + unit tests
-- [ ] 80-02-PLAN.md — BackupCard migration + DataHealthSummaryCard update + test updates
+- [ ] 83-01-PLAN.md — BackupStatus app_version extension + hasVersionMismatch function + tests
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 83-02-PLAN.md — Collapsible diagnostic UI in BackupCard + DataHealthSummaryCard mismatch indicator + tests
+
+
+
+
+
 
 **UI hint**: yes
 
@@ -301,7 +310,7 @@ Plans:
 | 80. Export UI + Backup Status | v0.2.14 | 2/2 | Complete   | 2026-05-18 |
 | 81. Restore Preview + Validation | v0.2.14 | 2/2 | Complete | - |
 | 82. Restore Execution + Safety Backups | v0.2.14 | 0/3 | Planned | - |
-| 83. Backup Diagnostics | v0.2.14 | 0/TBD | Not started | - |
+| 83. Backup Diagnostics | v0.2.14 | 0/2 | Planned | - |
 
 <details>
 <summary>✅ v0.1.1 HobbyForge MVP (Phases 1-5) — SHIPPED 2024-05-01</summary>
