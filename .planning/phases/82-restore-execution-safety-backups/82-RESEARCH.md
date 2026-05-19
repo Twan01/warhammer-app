@@ -525,17 +525,19 @@ export function SafetyBackupsList() {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **process:default vs process:allow-restart in capabilities**
    - What we know: `process:default` is already in `default.json`; ACL manifest confirms it includes `allow-restart`
    - What's unclear: D-07 says to add `process:allow-restart` specifically — this may have been written without checking the current `default.json` state
    - Recommendation: The plan task for D-07 should verify the capability is already covered and mark the task as "no change needed" or skip it. Do not add a redundant entry.
+   - RESOLVED: `process:default` already grants `allow-restart`; no capability change needed (per Pitfall 2). Plan 82-01 Task 1 notes this as already covered.
 
 2. **isRestoring UI state in BackupCard**
    - What we know: D-03 says "show a brief 'Restoring...' state before the relaunch"
    - What's unclear: Whether this requires a dedicated `isRestoring` state variable or can reuse the existing `isValidating` state
    - Recommendation: Add a dedicated `isRestoring` state to keep the UI states semantically distinct.
+   - RESOLVED: Dedicated `isRestoring` state added in BackupCard (per 82-02 Task 1). Keeps semantics clear from `isValidating`.
 
 ---
 
