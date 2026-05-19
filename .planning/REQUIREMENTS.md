@@ -24,10 +24,10 @@ Requirements for Painting Mode. Each maps to roadmap phases.
 
 ### Section Progress
 
-- [ ] **SP-01**: User sees section list with completed/total step counts
-- [ ] **SP-02**: Current section is visually highlighted
-- [ ] **SP-03**: User can jump to any section or step from the section navigator
-- [ ] **SP-04**: Optional sections are visually distinct
+- [x] **SP-01**: User sees section list with completed/total step counts
+- [x] **SP-02**: Current section is visually highlighted
+- [x] **SP-03**: User can jump to any section or step from the section navigator
+- [x] **SP-04**: Optional sections are visually distinct
 - [ ] **SP-05**: Section shows completion acknowledgment when all steps are done
 
 ### Paint Readiness
@@ -104,10 +104,10 @@ Requirements for Painting Mode. Each maps to roadmap phases.
 | SE-03 | Phase 85 | Pending |
 | SE-04 | Phase 85 | Pending |
 | SE-05 | Phase 85 | Pending |
-| SP-01 | Phase 85 | Pending |
-| SP-02 | Phase 85 | Pending |
-| SP-03 | Phase 85 | Pending |
-| SP-04 | Phase 85 | Pending |
+| SP-01 | Phase 85 | Complete |
+| SP-02 | Phase 85 | Complete |
+| SP-03 | Phase 85 | Complete |
+| SP-04 | Phase 85 | Complete |
 | SP-05 | Phase 86 | Pending |
 | PR-01 | Phase 85 | Complete |
 | PR-02 | Phase 85 | Complete |

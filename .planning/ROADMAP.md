@@ -155,7 +155,7 @@ Plans:
 Plans:
 
 - [x] 85-01-PLAN.md — ScrollArea install + StepMetadataRow + PaintReadinessBanner + tests
-- [ ] 85-02-PLAN.md — SectionNavigator component + tests
+- [x] 85-02-PLAN.md — SectionNavigator component + tests
 - [ ] 85-03-PLAN.md — StepFocalView + PaintingModeView root + integration tests
 
 **UI hint**: yes
