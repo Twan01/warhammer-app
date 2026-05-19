@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.2.15
 milestone_name: Painting Mode
 status: executing
-stopped_at: Phase 85 planned — ready to execute
-last_updated: "2026-05-19T16:00:00Z"
-last_activity: 2026-05-19 -- Phase 85 planned (3 plans in 2 waves, verification passed)
+stopped_at: Phase 85 complete — ready to plan Phase 86
+last_updated: "2026-05-19T16:30:00Z"
+last_activity: 2026-05-19 -- Phase 85 complete (3 plans, 5 components, 38 tests)
 progress:
   total_phases: 5
   completed_phases: 2
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-19)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with reliable backup/restore so local data is always recoverable
-**Current focus:** v0.2.15 Painting Mode — roadmap defined, ready to plan Phase 84
+**Current focus:** v0.2.15 Painting Mode — Phase 85 complete, ready to plan Phase 86
 
 ## Current Position
 
-Phase: 85 — Core Execution UI
-Plan: 85-03 complete, phase 85 done
-Status: Executing
-Last activity: 2026-05-19 -- 85-03 complete (StepFocalView + PaintingModeView + 19 tests)
+Phase: 86 — Shell, Route & Keyboard Shortcuts
+Plan: Not yet planned
+Status: Ready to plan
+Last activity: 2026-05-19 -- Phase 85 complete (Core Execution UI)
 
 ```
 Progress: [████      ] 40% (2/5 phases)
@@ -83,7 +83,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-19T14:03:00Z
-Stopped at: Completed 85-03, phase 85 done
+Last session: 2026-05-19T16:30:00Z
+Stopped at: Phase 85 complete, ready to plan Phase 86
 Resume file: .planning/phases/86-shell-route-keyboard/86-01-PLAN.md
-Resume: /gsd:execute-phase 86
+Resume: /gsd:discuss-phase 86 --auto
