@@ -174,7 +174,12 @@ Plans:
   5. When all steps in a section are complete the section shows a completion acknowledgment
   6. Time estimate is displayed per step in the execution view
 
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+
+- [ ] 86-01-PLAN.md — Router layout nesting + PaintingModePage shell + keyboard shortcuts + useRecipeAssignment hook
+- [ ] 86-02-PLAN.md — SP-05 section completion acknowledgment + D-10 kbd badges + test coverage
+
 **UI hint**: yes
 
 ### Phase 87: Session Integration + Entry Points
@@ -295,7 +300,7 @@ Plans:
 | 83. Backup Diagnostics | v0.2.14 | 2/2 | Complete | 2026-05-19 |
 | 84. Data Layer + Early Tests | v0.2.15 | 0/2 | Not started | - |
 | 85. Core Execution UI | v0.2.15 | 1/3 | In progress | - |
-| 86. Shell, Route & Keyboard Shortcuts | v0.2.15 | 0/TBD | Not started | - |
+| 86. Shell, Route & Keyboard Shortcuts | v0.2.15 | 0/2 | Not started | - |
 | 87. Session Integration + Entry Points | v0.2.15 | 0/TBD | Not started | - |
 | 88. Polish + Test Coverage | v0.2.15 | 0/TBD | Not started | - |
 
