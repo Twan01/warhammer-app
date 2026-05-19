@@ -151,7 +151,13 @@ Plans:
   4. A section list shows completed vs total step counts per section, highlights the current section, and lets the user jump to any section or step
   5. Missing paints are shown as a non-blocking warning at entry and paintless steps produce no false availability warnings
 
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+
+- [ ] 85-01-PLAN.md — ScrollArea install + StepMetadataRow + PaintReadinessBanner + tests
+- [ ] 85-02-PLAN.md — SectionNavigator component + tests
+- [ ] 85-03-PLAN.md — StepFocalView + PaintingModeView root + integration tests
+
 **UI hint**: yes
 
 ### Phase 86: Shell, Route & Keyboard Shortcuts
@@ -288,7 +294,7 @@ Plans:
 | 82. Restore Execution + Safety Backups | v0.2.14 | 3/3 | Complete | 2026-05-19 |
 | 83. Backup Diagnostics | v0.2.14 | 2/2 | Complete | 2026-05-19 |
 | 84. Data Layer + Early Tests | v0.2.15 | 0/2 | Not started | - |
-| 85. Core Execution UI | v0.2.15 | 0/TBD | Not started | - |
+| 85. Core Execution UI | v0.2.15 | 0/3 | Not started | - |
 | 86. Shell, Route & Keyboard Shortcuts | v0.2.15 | 0/TBD | Not started | - |
 | 87. Session Integration + Entry Points | v0.2.15 | 0/TBD | Not started | - |
 | 88. Polish + Test Coverage | v0.2.15 | 0/TBD | Not started | - |
