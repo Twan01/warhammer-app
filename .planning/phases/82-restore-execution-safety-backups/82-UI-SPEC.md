@@ -1,7 +1,7 @@
 ---
 phase: 82
 slug: restore-execution-safety-backups
-status: draft
+status: approved
 shadcn_initialized: true
 preset: "new-york / zinc / css-variables"
 created: 2026-05-19
@@ -124,7 +124,7 @@ safety-2026-05-19-1430    19 May 2026 at 14:30        42 KB
 - Icon: `<Shield className="h-3.5 w-3.5 text-muted-foreground shrink-0" />`
 - Timestamp: `text-sm text-foreground` — formatted as "DD MMM YYYY at HH:MM"
 - Size: `text-sm text-muted-foreground` — formatted via existing `formatBytes()` utility
-- Row: `flex items-center gap-2 py-1.5` with size pushed right via `ml-auto`
+- Row: `flex items-center gap-2 py-2` with size pushed right via `ml-auto`
 - Separator between rows: `divide-y divide-border` on the list container
 
 **Empty state (no safety backups yet):**
@@ -135,11 +135,11 @@ Safety backups are created automatically before each restore and rules sync.
 - Heading: `text-sm text-muted-foreground`
 - Body: `text-sm text-muted-foreground` — single sentence, no icon required (low-salience state)
 
-**Loading state:** Skeleton rows — 3x `<Skeleton className="h-4 w-full" />` at `py-1.5` spacing, matching the entry row height.
+**Loading state:** Skeleton rows — 3x `<Skeleton className="h-4 w-full" />` at `py-2` spacing, matching the entry row height.
 
 **Error state (React Query error):**
 ```
-text-sm text-muted-foreground: "Could not load safety backups."
+text-sm text-muted-foreground: "Could not load safety backups — refresh the page to try again."
 ```
 No retry button — user can refresh the page.
 
@@ -205,7 +205,7 @@ No new UI components for this change.
 | Safety backups list heading | "Safety Backups" |
 | Safety backups empty heading | "No safety backups yet" |
 | Safety backups empty body | "Safety backups are created automatically before each restore and rules sync." |
-| Safety backups loading error | "Could not load safety backups." |
+| Safety backups loading error | "Could not load safety backups — refresh the page to try again." |
 
 **Tone notes (from CONTEXT.md specifics):**
 - Restore should feel "final but safe" — no hedging language, but the word "automatically" on the safety backup copy builds confidence
@@ -247,11 +247,11 @@ Source: observed imports in BackupCard.tsx, RestorePreviewDialog.tsx. `Skeleton`
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS (error copy updated with inline solution path)
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS (py-1.5 → py-2 fixed)
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved (2026-05-19)
