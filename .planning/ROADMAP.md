@@ -97,7 +97,7 @@ Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
 - [x] **Phase 80: Export UI + Backup Status** - BackupCard upgrade, status indicators, export flow, dashboard integration
 - [x] **Phase 81: Restore Preview + Validation** - file picker, manifest validation, schema version checks, preview modal (non-destructive) — completed 2026-05-18 (human_needed)
 - [x] **Phase 82: Restore Execution + Safety Backups** - atomic file swap, process restart, pre-sync safety backup, safety backup listing — completed 2026-05-19
-- [ ] **Phase 83: Backup Diagnostics** - never-backed-up flag, staleness threshold, version mismatch detection, diagnostic detail disclosure
+- [x] **Phase 83: Backup Diagnostics** - never-backed-up flag, staleness threshold, version mismatch detection, diagnostic detail disclosure — completed 2026-05-19
 
 ## Phase Details
 
@@ -209,11 +209,11 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 83-01-PLAN.md — BackupStatus app_version extension + hasVersionMismatch function + tests
+- [x] 83-01-PLAN.md — BackupStatus app_version extension + hasVersionMismatch function + tests
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 83-02-PLAN.md — Collapsible diagnostic UI in BackupCard + DataHealthSummaryCard mismatch indicator + tests
+- [x] 83-02-PLAN.md — Collapsible diagnostic UI in BackupCard + DataHealthSummaryCard mismatch indicator + tests
 
 
 

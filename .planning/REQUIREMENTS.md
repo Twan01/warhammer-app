@@ -36,17 +36,17 @@ Requirements for Backup 2.0 milestone. Each maps to roadmap phases.
 
 ### Safety Backups
 
-- [ ] **SAF-01**: Automatic safety backup created before restore (part of RST-06)
-- [ ] **SAF-02**: Automatic safety backup created before Wahapedia rules sync
-- [ ] **SAF-03**: Safety backups stored in app data directory with auto-generated names
-- [ ] **SAF-04**: User can see safety backups in Data Health
+- [x] **SAF-01**: Automatic safety backup created before restore (part of RST-06)
+- [x] **SAF-02**: Automatic safety backup created before Wahapedia rules sync
+- [x] **SAF-03**: Safety backups stored in app data directory with auto-generated names
+- [x] **SAF-04**: User can see safety backups in Data Health
 
 ### Backup Diagnostics
 
-- [ ] **DGN-01**: Data Health flags "never backed up" state
-- [ ] **DGN-02**: Data Health flags backup older than configurable threshold
-- [ ] **DGN-03**: Data Health flags backup version mismatch (backup from different app version)
-- [ ] **DGN-04**: Diagnostic details available without overwhelming normal users
+- [x] **DGN-01**: Data Health flags "never backed up" state
+- [x] **DGN-02**: Data Health flags backup older than configurable threshold
+- [x] **DGN-03**: Data Health flags backup version mismatch (backup from different app version)
+- [x] **DGN-04**: Diagnostic details available without overwhelming normal users
 
 ## Future Requirements
 
@@ -91,14 +91,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STS-02 | Phase 80 | Complete |
 | STS-03 | Phase 80 | Complete |
 | STS-04 | Phase 80 | Complete |
-| SAF-01 | Phase 79 | Pending |
-| SAF-02 | Phase 82 | Pending |
-| SAF-03 | Phase 79 | Pending |
-| SAF-04 | Phase 82 | Pending |
-| DGN-01 | Phase 83 | Pending |
-| DGN-02 | Phase 83 | Pending |
-| DGN-03 | Phase 83 | Pending |
-| DGN-04 | Phase 83 | Pending |
+| SAF-01 | Phase 79 | Shipped |
+| SAF-02 | Phase 82 | Shipped |
+| SAF-03 | Phase 79 | Shipped |
+| SAF-04 | Phase 82 | Shipped |
+| DGN-01 | Phase 83 | Shipped |
+| DGN-02 | Phase 83 | Shipped |
+| DGN-03 | Phase 83 | Shipped |
+| DGN-04 | Phase 83 | Shipped |
 
 **Coverage:**
 - v0.2.14 requirements: 26 total
