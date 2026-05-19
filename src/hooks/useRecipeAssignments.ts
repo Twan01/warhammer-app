@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getAssignmentsByUnit,
   getAssignmentsByRecipe,
+  getAssignment,
   createAssignment,
   deleteAssignment,
   getStepProgress,
@@ -29,6 +30,9 @@ export const RECIPE_ASSIGNMENTS_KEY = (recipeId: number) =>
 export const STEP_PROGRESS_KEY = (assignmentId: number) =>
   ["recipe-assignments", "progress", assignmentId] as const;
 
+export const ASSIGNMENT_KEY = (id: number) =>
+  ["recipe-assignments", "by-id", id] as const;
+
 // ---------------------------------------------------------------------------
 // Query hooks
 // ---------------------------------------------------------------------------
@@ -54,6 +58,14 @@ export function useStepProgress(assignmentId: number | undefined) {
     queryKey: assignmentId !== undefined ? STEP_PROGRESS_KEY(assignmentId) : ["recipe-assignments"],
     queryFn: () => (assignmentId !== undefined ? getStepProgress(assignmentId) : Promise.resolve([])),
     enabled: assignmentId !== undefined,
+  });
+}
+
+export function useRecipeAssignment(id: number | undefined) {
+  return useQuery({
+    queryKey: id !== undefined ? ASSIGNMENT_KEY(id) : ASSIGNMENTS_KEY,
+    queryFn: () => (id !== undefined ? getAssignment(id) : Promise.resolve(null)),
+    enabled: id !== undefined,
   });
 }
 
