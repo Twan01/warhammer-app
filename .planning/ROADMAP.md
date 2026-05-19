@@ -109,7 +109,7 @@ Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
 
 - [x] **Phase 84: Data Layer + Early Tests** — Transactional step completion, section-aware ordering, extended cache invalidation, navigation hook, and pure-function test coverage
 - [x] **Phase 85: Core Execution UI** — Step focal view with full detail display, section navigator, paint readiness warning, distraction-free layout
-- [ ] **Phase 86: Shell, Route & Keyboard Shortcuts** — Full-page route, keyboard shortcuts (Space/Arrow/Escape), input guards, section completion acknowledgment
+- [ ] **Phase 86: Shell, Route & Keyboard Shortcuts** (1/2 plans) — Full-page route, keyboard shortcuts (Space/Arrow/Escape), input guards, section completion acknowledgment
 - [ ] **Phase 87: Session Integration + Entry Points** — Atomic done+log action, prefilled session logger, all six entry points wired
 - [ ] **Phase 88: Polish + Test Coverage** — Optional sections, paintless steps, missing paint warning, session prefill test coverage
 

@@ -54,11 +54,11 @@ Requirements for Painting Mode. Each maps to roadmap phases.
 ### Presentation
 
 - [ ] **PX-01**: Painting Mode uses a distraction-free layout with sidebar hidden and larger typography
-- [ ] **PX-02**: Keyboard shortcut: Space marks step done
-- [ ] **PX-03**: Keyboard shortcut: Arrow left/right navigates previous/next
-- [ ] **PX-04**: Keyboard shortcut: Escape exits Painting Mode
-- [ ] **PX-05**: Keyboard shortcuts are disabled when form inputs are focused
-- [ ] **PX-06**: Time estimate displayed per step
+- [x] **PX-02**: Keyboard shortcut: Space marks step done
+- [x] **PX-03**: Keyboard shortcut: Arrow left/right navigates previous/next
+- [x] **PX-04**: Keyboard shortcut: Escape exits Painting Mode
+- [x] **PX-05**: Keyboard shortcuts are disabled when form inputs are focused
+- [x] **PX-06**: Time estimate displayed per step
 
 ### Tests
 
@@ -122,11 +122,11 @@ Requirements for Painting Mode. Each maps to roadmap phases.
 | EP-05 | Phase 87 | Pending |
 | EP-06 | Phase 87 | Pending |
 | PX-01 | Phase 85 | Pending |
-| PX-02 | Phase 86 | Pending |
-| PX-03 | Phase 86 | Pending |
-| PX-04 | Phase 86 | Pending |
-| PX-05 | Phase 86 | Pending |
-| PX-06 | Phase 86 | Pending |
+| PX-02 | Phase 86 | Complete |
+| PX-03 | Phase 86 | Complete |
+| PX-04 | Phase 86 | Complete |
+| PX-05 | Phase 86 | Complete |
+| PX-06 | Phase 86 | Complete |
 | TS-01 | Phase 84 | Pending |
 | TS-02 | Phase 84 | Pending |
 | TS-03 | Phase 84 | Pending |

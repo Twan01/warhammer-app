@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.2.15
 milestone_name: Painting Mode
 status: executing
-stopped_at: Phase 86 context gathered, ready to plan
-last_updated: "2026-05-19T14:48:38.854Z"
-last_activity: 2026-05-19 -- Phase 86 planning complete
+stopped_at: Phase 86 plan 1 complete, plan 2 next
+last_updated: "2026-05-19T15:02:00Z"
+last_activity: 2026-05-19 -- Phase 86 plan 01 executed
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 7
-  completed_plans: 5
-  percent: 40
+  completed_plans: 6
+  percent: 57
 ---
 
 # Project State
@@ -21,20 +21,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-19)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with reliable backup/restore so local data is always recoverable
-**Current focus:** v0.2.15 Painting Mode — Phase 85 complete, ready to plan Phase 86
+**Current focus:** Phase 86 — Shell, Route & Keyboard Shortcuts
 
 ## Current Position
 
-Phase: 86 — Shell, Route & Keyboard Shortcuts
-Plan: Not yet planned
-Status: Ready to execute
-Last activity: 2026-05-19 -- Phase 86 planning complete
+Phase: 86 (Shell, Route & Keyboard Shortcuts) — EXECUTING
+Plan: 2 of 2
+Status: Executing Phase 86
+Last activity: 2026-05-19 -- Phase 86 plan 01 executed
 
 ```
-Progress: [████      ] 40% (2/5 phases)
+Progress: [█████     ] 57% (2/5 phases, 6/7 plans)
 Phase 84: [✓] Data Layer + Early Tests
 Phase 85: [✓] Core Execution UI
-Phase 86: [ ] Shell, Route & Keyboard Shortcuts
+Phase 86: [~] Shell, Route & Keyboard Shortcuts (1/2 plans)
 Phase 87: [ ] Session Integration + Entry Points
 Phase 88: [ ] Polish + Test Coverage
 ```
@@ -83,7 +83,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-19T18:00:00Z
-Stopped at: Phase 86 context gathered, ready to plan
-Resume file: .planning/phases/86-shell-route-keyboard/86-CONTEXT.md
-Resume: /gsd:plan-phase 86 --auto
+Last session: 2026-05-19T15:02:00Z
+Stopped at: Phase 86 plan 1 complete, plan 2 next
+Resume file: .planning/phases/86-shell-route-keyboard/86-02-PLAN.md
+Resume: /gsd:execute-phase 86
