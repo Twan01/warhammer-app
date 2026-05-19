@@ -28,13 +28,14 @@ export interface CurrentFocusCardProps {
   photo: UnitPhotoWithUrl | undefined;
   onOpen: () => void;
   onLog: () => void;
+  onPaint?: () => void;
   recipeName?: string | null;
   extraRecipeCount?: number;
   workflowPosition?: WorkflowPosition | null;
   appliedProgress?: AppliedRecipeProgress | null;
 }
 
-export function CurrentFocusCard({ unit, faction, photo, onOpen, onLog, recipeName, extraRecipeCount = 0, workflowPosition, appliedProgress }: CurrentFocusCardProps) {
+export function CurrentFocusCard({ unit, faction, photo, onOpen, onLog, onPaint, recipeName, extraRecipeCount = 0, workflowPosition, appliedProgress }: CurrentFocusCardProps) {
   if (!unit) {
     return (
       <Card className="bg-card border border-border/60 shadow-sm px-6 py-6 transition-shadow duration-150 hover:shadow-md">
@@ -123,6 +124,12 @@ export function CurrentFocusCard({ unit, faction, photo, onOpen, onLog, recipeNa
             <Paintbrush size={14} className="mr-1.5" aria-hidden={true} />
             Log
           </Button>
+          {onPaint && (
+            <Button variant="ghost" size="sm" onClick={onPaint} data-testid="paint-btn">
+              <Palette size={14} className="mr-1.5" aria-hidden={true} />
+              Paint
+            </Button>
+          )}
         </div>
       </div>
     </Card>

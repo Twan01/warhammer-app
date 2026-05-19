@@ -21,6 +21,7 @@
  * access stats fields in subtitle (Pitfall 7).
  */
 import { useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { Plus, Paintbrush } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -65,6 +66,7 @@ import { LogSessionSheet } from "./LogSessionSheet";
 import { PageHeader } from "@/components/common/PageHeader";
 
 export function DashboardPage() {
+  const navigate = useNavigate();
   const { data: stats, isLoading, isError } = useDashboardStats();
   const { data: analytics, isLoading: analyticsLoading } = useHobbyAnalytics();
   const { data: activityEvents } = useRecentActivity(stats?.units);
@@ -359,6 +361,13 @@ export function DashboardPage() {
                 setLogSessionOpen(true);
               }
             }}
+            onPaint={primaryAssignment !== undefined
+              ? () => navigate({
+                  to: "/painting-mode/$assignmentId",
+                  params: { assignmentId: String(primaryAssignment.id) },
+                })
+              : undefined
+            }
             recipeName={focusRecipes?.[0]?.name ?? null}
             extraRecipeCount={Math.max(0, (focusRecipes?.length ?? 0) - 1)}
             workflowPosition={focusWorkflowPositions?.get(focusUnit?.id ?? -1)}

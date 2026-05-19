@@ -62,10 +62,11 @@ export function NextPaintingActionCard() {
         )}
 
         <Link
-          to="/painting-projects"
+          to="/painting-mode/$assignmentId"
+          params={{ assignmentId: String(data.assignment_id) }}
           className="text-xs text-muted-foreground underline-offset-2 hover:underline"
         >
-          Go to recipe
+          Start Painting
         </Link>
       </div>
     </div>
