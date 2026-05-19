@@ -178,7 +178,7 @@ Plans:
 Plans:
 
 - [x] 86-01-PLAN.md — Router layout nesting + PaintingModePage shell + keyboard shortcuts + useRecipeAssignment hook
-- [ ] 86-02-PLAN.md — SP-05 section completion acknowledgment + D-10 kbd badges + test coverage
+- [x] 86-02-PLAN.md — SP-05 section completion acknowledgment + D-10 kbd badges + test coverage
 
 **UI hint**: yes
 
@@ -300,7 +300,7 @@ Plans:
 | 83. Backup Diagnostics | v0.2.14 | 2/2 | Complete | 2026-05-19 |
 | 84. Data Layer + Early Tests | v0.2.15 | 0/2 | Not started | - |
 | 85. Core Execution UI | v0.2.15 | 1/3 | In progress | - |
-| 86. Shell, Route & Keyboard Shortcuts | v0.2.15 | 1/2 | In Progress|  |
+| 86. Shell, Route & Keyboard Shortcuts | v0.2.15 | 2/2 | Complete   | 2026-05-19 |
 | 87. Session Integration + Entry Points | v0.2.15 | 0/TBD | Not started | - |
 | 88. Polish + Test Coverage | v0.2.15 | 0/TBD | Not started | - |
 
