@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-18)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play"
-**Current focus:** Phase 82 (Restore Execution + Safety Backups) — context gathered, ready for planning
+**Current focus:** Phase 82 (Restore Execution + Safety Backups) — planned, ready to execute
 
 ## Current Position
 
-Phase: 82 (Restore Execution + Safety Backups) — context gathered
-Plan: 0 of TBD
-Status: Context captured, ready for planning
-Last activity: 2026-05-19 -- Phase 82 context gathered
+Phase: 82 (Restore Execution + Safety Backups) — planned
+Plan: 0 of 3
+Status: Ready to execute — 3 plans in 2 waves
+Last activity: 2026-05-19 -- Phase 82 planned
 
 ## Performance Metrics
 
@@ -69,6 +69,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-19
-Stopped at: Phase 82 context gathered
-Resume file: .planning/phases/82-restore-execution-safety-backups/82-CONTEXT.md
-Resume: Phase 82 context complete, proceed to planning
+Stopped at: Phase 82 planned — 3 plans in 2 waves
+Resume file: .planning/phases/82-restore-execution-safety-backups/82-01-PLAN.md
+Resume: Phase 82 planned, proceed to execution

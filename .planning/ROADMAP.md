@@ -300,7 +300,7 @@ Plans:
 | 79. Rust Backup Foundation | v0.2.14 | 2/2 | Complete | 2026-05-18 |
 | 80. Export UI + Backup Status | v0.2.14 | 2/2 | Complete   | 2026-05-18 |
 | 81. Restore Preview + Validation | v0.2.14 | 2/2 | Complete | - |
-| 82. Restore Execution + Safety Backups | v0.2.14 | 0/3 | Not started | - |
+| 82. Restore Execution + Safety Backups | v0.2.14 | 0/3 | Planned | - |
 | 83. Backup Diagnostics | v0.2.14 | 0/TBD | Not started | - |
 
 <details>
