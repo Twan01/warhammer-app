@@ -124,7 +124,7 @@ describe("SectionNavigator", () => {
   });
 
   it("shows check indicator for completed steps", () => {
-    const { container } = renderNavigator({
+    renderNavigator({
       completedSet: new Set([1]),
       currentStepId: 2,
     });
