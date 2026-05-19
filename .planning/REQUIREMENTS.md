@@ -95,51 +95,51 @@ Requirements for Painting Mode. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DL-01 | — | Pending |
-| DL-02 | — | Pending |
-| DL-03 | — | Pending |
-| DL-04 | — | Pending |
-| SE-01 | — | Pending |
-| SE-02 | — | Pending |
-| SE-03 | — | Pending |
-| SE-04 | — | Pending |
-| SE-05 | — | Pending |
-| SP-01 | — | Pending |
-| SP-02 | — | Pending |
-| SP-03 | — | Pending |
-| SP-04 | — | Pending |
-| SP-05 | — | Pending |
-| PR-01 | — | Pending |
-| PR-02 | — | Pending |
-| PR-03 | — | Pending |
-| SL-01 | — | Pending |
-| SL-02 | — | Pending |
-| SL-03 | — | Pending |
-| EP-01 | — | Pending |
-| EP-02 | — | Pending |
-| EP-03 | — | Pending |
-| EP-04 | — | Pending |
-| EP-05 | — | Pending |
-| EP-06 | — | Pending |
-| PX-01 | — | Pending |
-| PX-02 | — | Pending |
-| PX-03 | — | Pending |
-| PX-04 | — | Pending |
-| PX-05 | — | Pending |
-| PX-06 | — | Pending |
-| TS-01 | — | Pending |
-| TS-02 | — | Pending |
-| TS-03 | — | Pending |
-| TS-04 | — | Pending |
-| TS-05 | — | Pending |
-| TS-06 | — | Pending |
-| TS-07 | — | Pending |
+| DL-01 | Phase 84 | Pending |
+| DL-02 | Phase 84 | Pending |
+| DL-03 | Phase 84 | Pending |
+| DL-04 | Phase 84 | Pending |
+| SE-01 | Phase 85 | Pending |
+| SE-02 | Phase 85 | Pending |
+| SE-03 | Phase 85 | Pending |
+| SE-04 | Phase 85 | Pending |
+| SE-05 | Phase 85 | Pending |
+| SP-01 | Phase 85 | Pending |
+| SP-02 | Phase 85 | Pending |
+| SP-03 | Phase 85 | Pending |
+| SP-04 | Phase 85 | Pending |
+| SP-05 | Phase 86 | Pending |
+| PR-01 | Phase 85 | Pending |
+| PR-02 | Phase 85 | Pending |
+| PR-03 | Phase 85 | Pending |
+| SL-01 | Phase 87 | Pending |
+| SL-02 | Phase 87 | Pending |
+| SL-03 | Phase 87 | Pending |
+| EP-01 | Phase 87 | Pending |
+| EP-02 | Phase 87 | Pending |
+| EP-03 | Phase 87 | Pending |
+| EP-04 | Phase 87 | Pending |
+| EP-05 | Phase 87 | Pending |
+| EP-06 | Phase 87 | Pending |
+| PX-01 | Phase 85 | Pending |
+| PX-02 | Phase 86 | Pending |
+| PX-03 | Phase 86 | Pending |
+| PX-04 | Phase 86 | Pending |
+| PX-05 | Phase 86 | Pending |
+| PX-06 | Phase 86 | Pending |
+| TS-01 | Phase 84 | Pending |
+| TS-02 | Phase 84 | Pending |
+| TS-03 | Phase 84 | Pending |
+| TS-04 | Phase 88 | Pending |
+| TS-05 | Phase 88 | Pending |
+| TS-06 | Phase 88 | Pending |
+| TS-07 | Phase 88 | Pending |
 
 **Coverage:**
 - v0.2.15 requirements: 39 total
-- Mapped to phases: 0
-- Unmapped: 39 ⚠️
+- Mapped to phases: 39
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-19*
-*Last updated: 2026-05-19 after initial definition*
+*Last updated: 2026-05-19 after roadmap creation*

@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v0.2.15
 milestone_name: Painting Mode
 status: planning
-last_updated: "2026-05-19T11:46:55.540Z"
+last_updated: "2026-05-19T12:00:00.000Z"
 last_activity: 2026-05-19
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-19)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with reliable backup/restore so local data is always recoverable
-**Current focus:** v0.2.14 archived — planning next milestone
+**Current focus:** v0.2.15 Painting Mode — roadmap defined, ready to plan Phase 84
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 84 — Data Layer + Early Tests
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-19 — Milestone v0.2.15 started
+Status: Roadmap defined, ready for /gsd:plan-phase 84
+Last activity: 2026-05-19 — Roadmap created for v0.2.15
+
+```
+Progress: [          ] 0% (0/5 phases)
+Phase 84: [ ] Data Layer + Early Tests
+Phase 85: [ ] Core Execution UI
+Phase 86: [ ] Shell, Route & Keyboard Shortcuts
+Phase 87: [ ] Session Integration + Entry Points
+Phase 88: [ ] Polish + Test Coverage
+```
 
 ## Performance Metrics
 
@@ -43,22 +52,25 @@ Last activity: 2026-05-19 — Milestone v0.2.15 started
 
 ## Accumulated Context
 
-### Decisions Carried Forward
+### Key Architecture Decisions for v0.2.15
 
-- Phase 79 must ship before any UI phase calls backup Tauri commands — Rust commands must exist first
-- Only new Cargo dependency: `zip = "2"` in src-tauri/Cargo.toml
-- Restore requires Tauri process restart (`tauri::AppHandle::restart()`) — tauri-plugin-sql has no reconnect API
-- Safety backup + restore are one atomic Rust command: backup current db → swap in restored db → restart
-- WAL/SHM/journal sidecar files must be explicitly deleted before the file swap in restore
-- rules.db excluded from all backups — fully regenerable via Wahapedia sync
-- Schema version = migration count (integer), not semver — count migration files in src-tauri/migrations/
-- Two-step restore pattern: validate+preview (non-destructive, Phase 81) then commit (destructive, Phase 82)
-- localStorage pattern for backup status metadata (established in v0.2.13, consistent with existing pattern)
-- RestorePreviewDialog uses controlled AlertDialog with 3 schema states (match/older/newer)
-- Placeholder toast replaced with real restore_from_backup + relaunch() flow in 82-02
-- JS owns restart via relaunch() from @tauri-apps/plugin-process (process:default already grants allow-restart)
-- Pre-sync safety backup in useRulesSync — abort sync if backup fails (SAF-02)
-- SafetyBackupsList component on Data Health page — loading, empty, populated, error states (SAF-04)
+- Full-page route at `/painting-mode/$assignmentId` — mirrors GameDayPage pattern
+- New feature module: `src/features/painting-mode/` (6 new files)
+- No new DB migrations or Rust commands — entire data layer already in place
+- One new transactional function: `completeStepWithSession` in `src/db/queries/recipeAssignments.ts`
+- New `useCompleteStep` mutation must invalidate: step progress + kanban enrichment + unit assignments + dashboard action + workflow position keys
+- Section-aware step ordering: `COALESCE(section.order_index, 999999), step.order_index` — enforced client-side
+- One new npm package: `react-hotkeys-hook` v5.3.2 (8 KB, React 19 compatible)
+- Keyboard shortcuts must be guarded: disabled when `e.target instanceof HTMLInputElement` or textarea
+- Full-page layout hides sidebar — `PaintingModeLayout` wrapper, not the shared AppLayout
+- Atomic step + session write follows `saveRecipeGraph` BEGIN/COMMIT pattern (flat inline SQL, no nested transactions)
+
+### Key Pitfalls to Avoid
+
+- `useToggleStepProgress` only invalidates `STEP_PROGRESS_KEY` — new `useCompleteStep` needs the broader set
+- Wrong step ordering in multi-section recipes — derive first incomplete step client-side, not from DB row order
+- Keyboard shortcuts firing in form inputs — guard at event handler level
+- Sidebar remaining interactive in painting mode — use dedicated layout route
 
 ### Pending Todos
 
@@ -71,6 +83,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-19
-Stopped at: v0.2.14 archived
-Resume file: None — milestone archived
-Resume: /gsd:new-milestone for next version
+Stopped at: Roadmap created
+Resume file: None
+Resume: /gsd:plan-phase 84
