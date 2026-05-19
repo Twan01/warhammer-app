@@ -116,67 +116,88 @@ Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
 ## Phase Details
 
 ### Phase 84: Data Layer + Early Tests
+
 **Goal**: The data operations that power Painting Mode are correct, transactional, and tested before any UI exists
 **Depends on**: Phase 83 (v0.2.14 shipped)
 **Requirements**: DL-01, DL-02, DL-03, DL-04, TS-01, TS-02, TS-03
 **Success Criteria** (what must be TRUE):
+
   1. Marking a step done + creating a session log is a single atomic database operation that either fully commits or fully rolls back
   2. The first incomplete step in a multi-section recipe is always the one with the lowest section order_index then step order_index, never the wrong step
   3. Completing a step immediately refreshes kanban cards, unit assignments, dashboard next-action, and workflow position without a manual page reload
   4. Tests pass verifying: first-incomplete-step selection, step completion write, and previous/next navigation logic
+
 **Plans**: 2 plans
 Plans:
+
 - [ ] 84-01-PLAN.md — Atomic completeStepWithSession + useCompleteStep hook + tests
 - [ ] 84-02-PLAN.md — usePaintingModeState navigation hook + tests
 
+**Cross-cutting constraints:**
+
+- D-09: Tests go in tests/painting-mode/ directory
+- D-11: Test pattern follows tests/painting/recipeAssignments.test.ts
+
 ### Phase 85: Core Execution UI
+
 **Goal**: User can execute a painting step from a focused, distraction-free view with all the information they need at the desk
 **Depends on**: Phase 84
 **Requirements**: SE-01, SE-02, SE-03, SE-04, SE-05, SP-01, SP-02, SP-03, SP-04, PR-01, PR-02, PR-03, PX-01
 **Success Criteria** (what must be TRUE):
+
   1. User sees the current step's paint swatch, technique, tool, dilution, time estimate, and reference photo (when one exists) without opening any editor or sheet
   2. User can mark the current step done with a single click and the view advances to the next step
   3. User can navigate forward and backward through steps and always knows their position (e.g. "Step 3 of 7, Section: Basecoat")
   4. A section list shows completed vs total step counts per section, highlights the current section, and lets the user jump to any section or step
   5. Missing paints are shown as a non-blocking warning at entry and paintless steps produce no false availability warnings
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 86: Shell, Route & Keyboard Shortcuts
+
 **Goal**: Painting Mode has its own full-page route with sidebar hidden and keyboard shortcuts that let a painter never touch the mouse
 **Depends on**: Phase 85
 **Requirements**: PX-02, PX-03, PX-04, PX-05, PX-06, SP-05
 **Success Criteria** (what must be TRUE):
+
   1. Pressing Space marks the current step done without any mouse interaction
   2. Pressing ArrowLeft/ArrowRight navigates to the previous/next step
   3. Pressing Escape exits Painting Mode and returns to the previous surface
   4. Keyboard shortcuts are silent when focus is inside a text input or form field
   5. When all steps in a section are complete the section shows a completion acknowledgment
   6. Time estimate is displayed per step in the execution view
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 87: Session Integration + Entry Points
+
 **Goal**: User can log a session atomically while marking a step done, and can reach Painting Mode from any relevant surface in the app
 **Depends on**: Phase 86
 **Requirements**: SL-01, SL-02, SL-03, EP-01, EP-02, EP-03, EP-04, EP-05, EP-06
 **Success Criteria** (what must be TRUE):
+
   1. A combined "Done + Log Session" action marks the step complete and saves a session log in one tap, pre-filled with current unit, recipe, section, and step
   2. "Mark done" is also available as a standalone action that does not open the session logger
   3. User can open Painting Mode from the Dashboard NextPaintingActionCard, CurrentFocusCard, Unit Detail applied recipe panel, Kanban card, and Recipe Detail sheet
   4. When a unit has no applied recipe, the empty state explains what to do next instead of showing a broken or empty view
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 88: Polish + Test Coverage
+
 **Goal**: Edge cases are handled cleanly and the full Painting Mode feature has automated test coverage
 **Depends on**: Phase 87
 **Requirements**: TS-04, TS-05, TS-06, TS-07
 **Success Criteria** (what must be TRUE):
+
   1. Tests pass verifying optional sections render as visually distinct and do not break navigation
   2. Tests pass verifying paintless steps display cleanly without triggering paint availability warnings
   3. Tests pass verifying the missing paint warning fires for paints that are not owned and is absent when all paints are owned
   4. Tests pass verifying the session pre-fill values match the current unit, recipe, section, and step context
+
 **Plans**: TBD
 
 ## Progress
