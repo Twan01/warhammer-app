@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.2.14
-milestone_name: Backup 2.0 — Structured Export, Restore & Safety Backups
-status: complete
-stopped_at: v0.2.14 archived — planning next milestone
-last_updated: "2026-05-19T15:00:00Z"
+milestone: v0.2.15
+milestone_name: Painting Mode
+status: planning
+last_updated: "2026-05-19T11:46:55.540Z"
 last_activity: 2026-05-19
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 11
-  completed_plans: 11
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-19)
 
 ## Current Position
 
-Phase: — (milestone archived)
+Phase: Not started (defining requirements)
 Plan: —
-Status: v0.2.14 archived — next milestone TBD
-Last activity: 2026-05-19 — v0.2.14 archived
+Status: Defining requirements
+Last activity: 2026-05-19 — Milestone v0.2.15 started
 
 ## Performance Metrics
 

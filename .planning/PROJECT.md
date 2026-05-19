@@ -6,9 +6,22 @@ HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby 
 
 Shipped through v0.2.14 (83 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps, transactional graph save, recipe_step_id-keyed progress), army list builder with detachment selection, centralized points resolver with source labeling and user-confirmable unit-to-rules mapping, battle log with after-action capture (forgotten rules, MVP/underperformer notes), spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard, KanbanCards, NextPaintingActionCard, ReadyToPlayCard, and DataHealthSummaryCard, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist, pre-game readiness panel, end-game after-action with forgotten-rules-to-reminders pipeline), Data Health page with diagnostics, structured backup export (.zip with VACUUM INTO + metadata.json), full restore with preview/validation/atomic swap/restart, automatic safety backups before restore and rules sync, progressive backup diagnostics with version mismatch detection, a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK), version parity enforcement, and auto-update via GitHub Releases with in-app banner.
 
+## Current Milestone: v0.2.15 Painting Mode
+
+**Goal:** Create a focused, distraction-free Painting Mode that turns an applied recipe into a clear step-by-step execution experience at the painting desk.
+
+**Target features:**
+- Painting Mode entry points from Dashboard, Current Focus, Unit Detail, Applied Recipe, Kanban, Recipe Detail
+- Current step execution view with paint/tool/technique/dilution, mark done, previous/next navigation
+- Section progress navigation with completion counts and jump-to-section/step
+- Missing paint readiness check with non-blocking warnings
+- Fast session logging prefilled from current context, atomic step completion + session save
+- Distraction-free presentation with larger typography, high contrast, keyboard shortcuts
+- Test coverage for step selection, navigation, completion, paint warnings, session prefill
+
 ## Current State
 
-v0.2.14 shipped 2026-05-19. 83 phases complete across 15 milestones. ~300+ TypeScript source files. 28 SQLite migrations (26 hobbyforge.db + 2 rules.db). 1,831 automated tests. 7 Tauri Rust commands. Planning next milestone.
+v0.2.14 shipped 2026-05-19. 83 phases complete across 15 milestones. ~300+ TypeScript source files. 28 SQLite migrations (26 hobbyforge.db + 2 rules.db). 1,831 automated tests. 7 Tauri Rust commands. Building v0.2.15.
 
 ## Core Value
 
@@ -199,6 +212,8 @@ A single personal command center that always answers "what do I own, what's pain
 
 ### Active
 
+*v0.2.15 requirements — see REQUIREMENTS.md*
+
 ### Out of Scope
 
 - Auto-backup on schedule — manual backup + safety backups before risky operations sufficient for now
@@ -332,4 +347,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-19 after v0.2.14 milestone shipped*
+*Last updated: 2026-05-19 after v0.2.15 milestone started*
