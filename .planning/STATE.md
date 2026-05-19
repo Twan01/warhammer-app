@@ -10,8 +10,8 @@ progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 6
-  completed_plans: 6
-  percent: 60
+  completed_plans: 7
+  percent: 70
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-05-18)
 ## Current Position
 
 Phase: 82 (Restore Execution + Safety Backups) — executing
-Plan: 1 of 3
-Status: Plan 01 complete — Rust commands implemented
-Last activity: 2026-05-19 -- Phase 82-01 executed
+Plan: 2 of 3
+Status: Plan 02 complete — Restore UI wiring done
+Last activity: 2026-05-19 -- Phase 82-02 executed
 
 ## Performance Metrics
 
@@ -56,7 +56,7 @@ Last activity: 2026-05-19 -- Phase 82-01 executed
 - Two-step restore pattern: validate+preview (non-destructive, Phase 81) then commit (destructive, Phase 82)
 - localStorage pattern for backup status metadata (established in v0.2.13, consistent with existing pattern)
 - RestorePreviewDialog uses controlled AlertDialog with 3 schema states (match/older/newer)
-- Placeholder toast "Restore execution coming in a future update" — Phase 82 replaces this
+- Placeholder toast replaced with real restore_from_backup + relaunch() flow in 82-02
 
 ### Pending Todos
 
@@ -69,6 +69,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-19
-Stopped at: Completed 82-01 (Rust commands)
-Resume file: .planning/phases/82-restore-execution-safety-backups/82-02-PLAN.md
-Resume: Execute 82-02 (restore UI wiring + safety backups list)
+Stopped at: Completed 82-02 (restore UI wiring)
+Resume file: .planning/phases/82-restore-execution-safety-backups/82-03-PLAN.md
+Resume: Execute 82-03 (safety backups list + DataHealthPage integration)
