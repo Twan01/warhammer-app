@@ -4,6 +4,7 @@ import type {
   CreateRecipeAssignmentInput,
   StepProgress,
 } from "@/types/recipeAssignment";
+import type { CreateSessionInput } from "@/types/paintingSession";
 
 export interface FirstIncompleteStep {
   assignment_id: number;
@@ -163,6 +164,48 @@ export async function bulkCreateAssignments(
         [unitId, recipeId],
       );
     }
+    await db.execute("COMMIT", []);
+  } catch (e) {
+    await db.execute("ROLLBACK", []);
+    throw e;
+  }
+}
+
+/**
+ * Atomically marks a recipe step as completed AND logs a painting session.
+ * Both writes happen in a single transaction — if either fails, both are
+ * rolled back so we never get orphaned progress or session records.
+ */
+export async function completeStepWithSession(
+  assignmentId: number,
+  recipeStepId: number,
+  session: CreateSessionInput,
+): Promise<void> {
+  const db = await getDb();
+  await db.execute("BEGIN TRANSACTION", []);
+  try {
+    await db.execute(
+      `INSERT INTO unit_recipe_step_progress (assignment_id, recipe_step_id, completed, completed_at)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT(assignment_id, recipe_step_id) DO UPDATE SET
+         completed = excluded.completed,
+         completed_at = excluded.completed_at`,
+      [assignmentId, recipeStepId, 1, new Date().toISOString()],
+    );
+    await db.execute(
+      `INSERT INTO painting_sessions (unit_id, session_date, duration_minutes, notes, recipe_id, recipe_step_id, section_name, recipe_section_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        session.unit_id,
+        session.session_date,
+        session.duration_minutes,
+        session.notes ?? null,
+        session.recipe_id ?? null,
+        recipeStepId,
+        session.section_name ?? null,
+        session.recipe_section_id ?? null,
+      ],
+    );
     await db.execute("COMMIT", []);
   } catch (e) {
     await db.execute("ROLLBACK", []);

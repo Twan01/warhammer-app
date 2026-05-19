@@ -7,8 +7,12 @@ import {
   getStepProgress,
   upsertStepProgress,
   bulkCreateAssignments,
+  completeStepWithSession,
 } from "@/db/queries/recipeAssignments";
 import type { CreateRecipeAssignmentInput } from "@/types/recipeAssignment";
+import type { CreateSessionInput } from "@/types/paintingSession";
+import { NEXT_PAINTING_ACTION_KEY } from "@/hooks/useNextPaintingAction";
+import { DASHBOARD_STATS_KEY } from "@/hooks/useDashboardStats";
 
 // ---------------------------------------------------------------------------
 // Cache keys (D-12)
@@ -110,6 +114,35 @@ export function useBulkCreateAssignments() {
        */
       qc.invalidateQueries({ queryKey: ASSIGNMENTS_KEY });
       qc.invalidateQueries({ queryKey: RECIPE_ASSIGNMENTS_KEY(variables.recipeId) });
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Painting-mode: atomic step completion (84-01)
+// ---------------------------------------------------------------------------
+
+type CompleteStepVars = {
+  assignmentId: number;
+  unitId: number;
+  recipeStepId: number;
+  session: CreateSessionInput;
+};
+
+export function useCompleteStep() {
+  const qc = useQueryClient();
+  return useMutation<void, Error, CompleteStepVars>({
+    mutationFn: ({ assignmentId, recipeStepId, session }) =>
+      completeStepWithSession(assignmentId, recipeStepId, session),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: STEP_PROGRESS_KEY(variables.assignmentId) });
+      // D-06: prefix — we don't know active unit ID sets
+      qc.invalidateQueries({ queryKey: ["kanban-enrichment"] });
+      qc.invalidateQueries({ queryKey: UNIT_ASSIGNMENTS_KEY(variables.unitId) });
+      qc.invalidateQueries({ queryKey: NEXT_PAINTING_ACTION_KEY });
+      // D-06: prefix — we don't know active unit ID sets
+      qc.invalidateQueries({ queryKey: ["workflow-positions"] });
+      qc.invalidateQueries({ queryKey: DASHBOARD_STATS_KEY });
     },
   });
 }
