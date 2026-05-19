@@ -5,9 +5,10 @@
  * Rust `export_backup` command (structured ZIP export), and persists the
  * result to localStorage. Shows health tier dot + age label when available.
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { save, open as openDialog } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
+import { getVersion } from "@tauri-apps/api/app";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { Download, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
@@ -40,6 +41,11 @@ export function BackupCard() {
   >(null);
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [isRestoring, setIsRestoring] = useState(false);
+  const [appVersion, setAppVersion] = useState<string | null>(null);
+
+  useEffect(() => {
+    getVersion().then(setAppVersion).catch(() => setAppVersion("unknown"));
+  }, []);
 
   async function handleBackup() {
     const now = new Date();
@@ -66,6 +72,7 @@ export function BackupCard() {
         date: new Date().toISOString(),
         path: destination,
         success: true,
+        ...(appVersion ? { app_version: appVersion } : {}),
       };
       localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(status));
       setBackupStatus(status);

@@ -60,6 +60,33 @@ describe("useBackupStatus", () => {
     expect(result).toBeNull();
   });
 
+  it("reads and parses backup data with app_version from localStorage", () => {
+    const status = {
+      date: "2026-05-18T10:00:00.000Z",
+      path: "C:\\backups\\hobbyforge-backup-2026-05-18.zip",
+      success: true,
+      app_version: "0.2.14",
+    };
+    localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(status));
+
+    const result = useBackupStatus();
+    expect(result).not.toBeNull();
+    expect(result!.app_version).toBe("0.2.14");
+  });
+
+  it("handles legacy backup data without app_version field", () => {
+    const status = {
+      date: "2026-05-15T10:00:00.000Z",
+      path: "C:\\backups\\hobbyforge-backup-2026-05-15.db",
+      success: true,
+    };
+    localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(status));
+
+    const result = useBackupStatus();
+    expect(result).not.toBeNull();
+    expect(result!.app_version).toBeUndefined();
+  });
+
   it("uses BACKUP_STORAGE_KEY constant 'lastBackup'", () => {
     expect(BACKUP_STORAGE_KEY).toBe("lastBackup");
   });
