@@ -86,6 +86,10 @@ vi.mock("@/db/queries/pointsImportHistory", () => ({
   insertPointsImportHistory: insertPointsImportHistoryMock,
 }));
 
+vi.mock("@/features/data-health/SafetyBackupsList", () => ({
+  SAFETY_BACKUPS_KEY: ["safety-backups"],
+}));
+
 import { useRulesSync } from "@/hooks/useRulesSync";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { invoke } from "@tauri-apps/api/core";
@@ -102,13 +106,13 @@ beforeEach(() => {
 });
 
 describe("useRulesSync", () => {
-  it("SYNC-05: onSuccess invalidates all 12 query keys (8 original + 2 Phase 52 + 2 Phase 65 army lists)", () => {
+  it("SYNC-05: onSuccess invalidates all 13 query keys (8 original + 2 Phase 52 + 2 Phase 65 army lists + 1 Phase 82 safety backups)", () => {
     const opts = useRulesSync() as unknown as {
       onSuccess: () => void;
     };
     opts.onSuccess();
 
-    expect(invalidateQueriesMock).toHaveBeenCalledTimes(12);
+    expect(invalidateQueriesMock).toHaveBeenCalledTimes(13);
 
     const calls = invalidateQueriesMock.mock.calls.map(
       (c: { queryKey: string[] }[]) => c[0].queryKey[0],
@@ -127,6 +131,8 @@ describe("useRulesSync", () => {
     // Phase 65 — army list invalidation after points sync (D-20)
     expect(calls).toContain("army-lists");
     expect(calls).toContain("army-list-readiness");
+    // Phase 82 — safety backup created at start of sync
+    expect(calls).toContain("safety-backups");
   });
 
   it("SYNC-05: Phase 43 invalidation calls use exact: false", () => {

@@ -17,6 +17,7 @@ import { insertSyncError } from "@/db/queries/syncErrors";
 import type { InsertSyncErrorInput } from "@/db/queries/syncErrors";
 import { capturePreSyncSnapshot, getLatestSnapshot } from "@/db/queries/rulesSnapshot";
 import { SYNC_ERRORS_KEY } from "@/hooks/useSyncErrors";
+import { SAFETY_BACKUPS_KEY } from "@/features/data-health/SafetyBackupsList";
 import { getRulesSyncMeta } from "@/db/queries/datasheets";
 import { computeSyncDiff } from "@/lib/computeSyncDiff";
 import type { SyncDiff, ExtendedSnapshotData } from "@/lib/computeSyncDiff";
@@ -331,6 +332,8 @@ export function useRulesSync() {
       // Phase 65 — invalidate army list caches since effective_points may change (D-20)
       qc.invalidateQueries({ queryKey: ["army-lists"], exact: false });
       qc.invalidateQueries({ queryKey: ["army-list-readiness"], exact: false });
+      // Phase 82 — safety backup was created at start of sync
+      qc.invalidateQueries({ queryKey: SAFETY_BACKUPS_KEY });
       // NOTE: do NOT add rules-favorites or rules-notes here —
       // they live in hobbyforge.db and survive sync unchanged.
     },
