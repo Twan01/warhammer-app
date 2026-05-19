@@ -1,10 +1,11 @@
 ---
 phase: 84
 slug: data-layer-early-tests
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-19
+audited: 2026-05-19
 ---
 
 # Phase 84 — Validation Strategy
@@ -38,13 +39,13 @@ created: 2026-05-19
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 84-01-01 | 01 | 1 | DL-01 | — | N/A | unit | `pnpm test -- tests/painting-mode/completeStepWithSession.test.ts` | ❌ W0 | ⬜ pending |
-| 84-01-02 | 01 | 1 | DL-02 | — | N/A | unit | `pnpm test -- tests/painting-mode/paintingModeState.test.ts` | ❌ W0 | ⬜ pending |
-| 84-01-03 | 01 | 1 | DL-03 | — | N/A | unit | `pnpm test -- tests/painting-mode/useCompleteStep.test.ts` | ❌ W0 | ⬜ pending |
-| 84-01-04 | 01 | 1 | DL-04 | — | N/A | unit | `pnpm test -- tests/painting-mode/paintingModeState.test.ts` | ❌ W0 | ⬜ pending |
-| 84-02-01 | 02 | 1 | TS-01 | — | N/A | unit | `pnpm test -- tests/painting-mode/paintingModeState.test.ts` | ❌ W0 | ⬜ pending |
-| 84-02-02 | 02 | 1 | TS-02 | — | N/A | unit | `pnpm test -- tests/painting-mode/completeStepWithSession.test.ts` | ❌ W0 | ⬜ pending |
-| 84-02-03 | 02 | 1 | TS-03 | — | N/A | unit | `pnpm test -- tests/painting-mode/paintingModeState.test.ts` | ❌ W0 | ⬜ pending |
+| 84-01-01 | 01 | 1 | DL-01 | T-84-02 | ROLLBACK on failure | unit | `pnpm test -- tests/painting-mode/completeStepWithSession.test.ts` | ✅ | ✅ green |
+| 84-01-02 | 01 | 1 | DL-02 | — | N/A | unit | `pnpm test -- tests/painting-mode/paintingModeState.test.ts` | ✅ | ✅ green |
+| 84-01-03 | 01 | 1 | DL-03 | — | N/A | unit | `pnpm test -- tests/painting-mode/useCompleteStep.test.ts` | ✅ | ✅ green |
+| 84-01-04 | 01 | 1 | DL-04 | — | N/A | unit | `pnpm test -- tests/painting-mode/paintingModeState.test.ts` | ✅ | ✅ green |
+| 84-02-01 | 02 | 1 | TS-01 | — | N/A | unit | `pnpm test -- tests/painting-mode/paintingModeState.test.ts` | ✅ | ✅ green |
+| 84-02-02 | 02 | 1 | TS-02 | — | N/A | unit | `pnpm test -- tests/painting-mode/completeStepWithSession.test.ts` | ✅ | ✅ green |
+| 84-02-03 | 02 | 1 | TS-03 | — | N/A | unit | `pnpm test -- tests/painting-mode/paintingModeState.test.ts` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -52,11 +53,11 @@ created: 2026-05-19
 
 ## Wave 0 Requirements
 
-- [ ] `tests/painting-mode/completeStepWithSession.test.ts` — SQL assertions for atomic transaction (DL-01)
-- [ ] `tests/painting-mode/paintingModeState.test.ts` — navigation logic tests (DL-02, DL-04, TS-01, TS-03)
-- [ ] `tests/painting-mode/useCompleteStep.test.ts` — hook invalidation contract (DL-03)
+- [x] `tests/painting-mode/completeStepWithSession.test.ts` — 5 tests: SQL assertions for atomic transaction (DL-01, TS-02)
+- [x] `tests/painting-mode/paintingModeState.test.ts` — 11 tests: navigation logic, section-aware ordering (DL-02, DL-04, TS-01, TS-03)
+- [x] `tests/painting-mode/useCompleteStep.test.ts` — 6 tests: hook invalidation contract (DL-03)
 
-*Existing test infrastructure covers the framework. Only test files are needed.*
+*22 total tests across 3 files — all green.*
 
 ---
 
@@ -68,11 +69,23 @@ created: 2026-05-19
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** ✅ compliant
+
+---
+
+## Validation Audit 2026-05-19
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+All 7 requirements (DL-01 through DL-04, TS-01 through TS-03) have automated test coverage across 3 test files with 22 passing tests. No gaps detected.
