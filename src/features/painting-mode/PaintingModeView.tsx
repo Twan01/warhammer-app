@@ -2,12 +2,9 @@ import { useState, useMemo, useEffect } from "react";
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { convertFileSrc } from "@tauri-apps/api/core";
 
-import { usePaintingModeState } from "@/hooks/usePaintingModeState";
-import { useCompleteStep } from "@/hooks/useRecipeAssignments";
 import { usePaints } from "@/hooks/usePaints";
 import { useRecipeSections } from "@/hooks/useRecipeSections";
 import { isPaintMissing } from "@/features/recipes/recipeSteps";
-import { todayISO } from "@/lib/dates";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { SectionNavigator } from "./SectionNavigator";
@@ -15,20 +12,21 @@ import { StepFocalView } from "./StepFocalView";
 import { PaintReadinessBanner } from "./PaintReadinessBanner";
 
 import type { Paint } from "@/types/paint";
+import type { usePaintingModeState } from "@/hooks/usePaintingModeState";
 
 interface PaintingModeViewProps {
-  assignmentId: number;
+  state: ReturnType<typeof usePaintingModeState>;
+  onMarkDone: () => void;
   recipeId: number;
-  unitId: number;
+  isMutating: boolean;
 }
 
 export function PaintingModeView({
-  assignmentId,
+  state,
+  onMarkDone,
   recipeId,
-  unitId,
+  isMutating: _isMutating,
 }: PaintingModeViewProps) {
-  const state = usePaintingModeState(assignmentId, recipeId);
-  const completeMutation = useCompleteStep();
   const { data: paints = [] } = usePaints();
   const { data: sections = [] } = useRecipeSections(recipeId);
 
@@ -113,30 +111,6 @@ export function PaintingModeView({
     state.orderedSteps.length > 0 &&
     state.orderedSteps.every((s) => state.completedSet.has(s.id));
 
-  // Mark done handler
-  const handleMarkDone = () => {
-    if (!currentStep) return;
-    completeMutation.mutate(
-      {
-        assignmentId,
-        unitId,
-        recipeStepId: currentStep.id,
-        session: {
-          unit_id: unitId,
-          session_date: todayISO(),
-          duration_minutes: 0,
-          recipe_id: recipeId,
-          recipe_step_id: currentStep.id,
-          section_name: sectionName,
-          recipe_section_id: currentStep.section_id ?? null,
-        },
-      },
-      {
-        onSuccess: () => state.goNext(),
-      },
-    );
-  };
-
   // Loading state
   if (state.isLoading) {
     return (
@@ -187,7 +161,7 @@ export function PaintingModeView({
           isCompleted={
             currentStep ? state.completedSet.has(currentStep.id) : false
           }
-          onMarkDone={handleMarkDone}
+          onMarkDone={onMarkDone}
           goPrev={state.goPrev}
           goNext={state.goNext}
           canGoPrev={state.canGoPrev}

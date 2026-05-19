@@ -8,6 +8,8 @@ import { z } from "zod";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { AppLayout } from "@/components/common/AppLayout";
 import { ActiveFactionProvider } from "@/context/ActiveFactionContext";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 import { DashboardPage } from "./dashboard/page";
 import { CollectionPage } from "./collection/page";
 import { PaintingProjectsPage } from "./painting-projects/page";
@@ -23,44 +25,84 @@ import { GoalsPage } from "./goals/page";
 import { RulesHubPageShell } from "./rules-hub/page";
 import { GameDayPageShell } from "./game-day/page";
 import { DataHealthPage } from "./data-health/page";
+import { PaintingModePage } from "./painting-mode/page";
+
+// ---------------------------------------------------------------------------
+// Root route — thin shell: only renders Outlet + devtools
+// ---------------------------------------------------------------------------
 
 const rootRoute = createRootRoute({
+  component: () => (
+    <>
+      <Outlet />
+      {import.meta.env.DEV && <TanStackRouterDevtools position="bottom-right" />}
+    </>
+  ),
+});
+
+// ---------------------------------------------------------------------------
+// Layout route — standard app shell with sidebar
+// ---------------------------------------------------------------------------
+
+const layoutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  id: "layout",
   component: () => (
     <AppLayout>
       <ActiveFactionProvider>
         <Outlet />
       </ActiveFactionProvider>
-      {import.meta.env.DEV && <TanStackRouterDevtools position="bottom-right" />}
     </AppLayout>
   ),
 });
 
-const dashboardRoute = createRoute({
+// ---------------------------------------------------------------------------
+// Bare layout route — distraction-free, no sidebar (painting mode)
+// ---------------------------------------------------------------------------
+
+const bareLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
+  id: "bare-layout",
+  component: () => (
+    <ActiveFactionProvider>
+      <TooltipProvider delayDuration={200}>
+        <Outlet />
+        <Toaster richColors position="bottom-right" />
+      </TooltipProvider>
+    </ActiveFactionProvider>
+  ),
+});
+
+// ---------------------------------------------------------------------------
+// Standard page routes (children of layoutRoute)
+// ---------------------------------------------------------------------------
+
+const dashboardRoute = createRoute({
+  getParentRoute: () => layoutRoute,
   path: "/",
   component: DashboardPage,
 });
 
 const factionsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => layoutRoute,
   path: "/factions",
   component: FactionsPage,
 });
 
 const collectionRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => layoutRoute,
   path: "/collection",
   component: CollectionPage,
 });
 
 const paintingProjectsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => layoutRoute,
   path: "/painting-projects",
   component: PaintingProjectsPage,
 });
 
 export const recipesRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => layoutRoute,
   path: "/recipes",
   validateSearch: z.object({
     paintId: z.number().optional(),
@@ -69,81 +111,98 @@ export const recipesRoute = createRoute({
 });
 
 const paintsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => layoutRoute,
   path: "/paints",
   component: PaintsPage,
 });
 
 const armyListsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => layoutRoute,
   path: "/army-lists",
   component: ArmyListsPage,
 });
 
 const spendingRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => layoutRoute,
   path: "/spending",
   component: SpendingPage,
 });
 
 const wishlistRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => layoutRoute,
   path: "/wishlist",
   component: WishlistPage,
 });
 
 const battleLogRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => layoutRoute,
   path: "/battle-log",
   component: BattleLogPage,
 });
 
 const goalsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => layoutRoute,
   path: "/goals",
   component: GoalsPage,
 });
 
 const settingsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => layoutRoute,
   path: "/settings",
   component: SettingsPage,
 });
 
 const rulesHubRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => layoutRoute,
   path: "/rules-hub",
   component: RulesHubPageShell,
 });
 
 const gameDayRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => layoutRoute,
   path: "/game-day/$listId",
   component: GameDayPageShell,
 });
 
 const dataHealthRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => layoutRoute,
   path: "/data-health",
   component: DataHealthPage,
 });
 
+// ---------------------------------------------------------------------------
+// Painting mode route (child of bareLayoutRoute — no sidebar)
+// ---------------------------------------------------------------------------
+
+const paintingModeRoute = createRoute({
+  getParentRoute: () => bareLayoutRoute,
+  path: "/painting-mode/$assignmentId",
+  component: PaintingModePage,
+});
+
+// ---------------------------------------------------------------------------
+// Route tree
+// ---------------------------------------------------------------------------
+
 const routeTree = rootRoute.addChildren([
-  dashboardRoute,
-  factionsRoute,
-  collectionRoute,
-  paintingProjectsRoute,
-  goalsRoute,
-  recipesRoute,
-  paintsRoute,
-  armyListsRoute,
-  spendingRoute,
-  wishlistRoute,
-  battleLogRoute,
-  settingsRoute,
-  rulesHubRoute,
-  gameDayRoute,
-  dataHealthRoute,
+  layoutRoute.addChildren([
+    dashboardRoute,
+    factionsRoute,
+    collectionRoute,
+    paintingProjectsRoute,
+    goalsRoute,
+    recipesRoute,
+    paintsRoute,
+    armyListsRoute,
+    spendingRoute,
+    wishlistRoute,
+    battleLogRoute,
+    settingsRoute,
+    rulesHubRoute,
+    gameDayRoute,
+    dataHealthRoute,
+  ]),
+  bareLayoutRoute.addChildren([paintingModeRoute]),
 ]);
 
 export const router = createRouter({ routeTree });

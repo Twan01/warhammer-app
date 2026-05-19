@@ -18,19 +18,9 @@ import type { Paint } from "@/types/paint";
 // Mocks
 // ---------------------------------------------------------------------------
 
-const mockPaintingModeState = vi.fn();
 const mockUsePaints = vi.fn();
 const mockUseRecipeSections = vi.fn();
-const mockCompleteStepMutate = vi.fn();
-
-vi.mock("@/hooks/usePaintingModeState", () => ({
-  usePaintingModeState: (...args: unknown[]) => mockPaintingModeState(...args),
-}));
-
-vi.mock("@/hooks/useRecipeAssignments", () => ({
-  useCompleteStep: () => ({ mutate: mockCompleteStepMutate }),
-  useStepProgress: () => ({ data: [], isLoading: false }),
-}));
+const mockOnMarkDone = vi.fn();
 
 vi.mock("@/hooks/usePaints", () => ({
   usePaints: (...args: unknown[]) => mockUsePaints(...args),
@@ -143,9 +133,13 @@ function createWrapper() {
   };
 }
 
-function renderView() {
+// Default painting mode state used by tests
+let defaultState: ReturnType<typeof import("@/hooks/usePaintingModeState").usePaintingModeState>;
+
+function renderView(stateOverride?: Partial<typeof defaultState>) {
+  const state = { ...defaultState, ...stateOverride };
   return render(
-    <PaintingModeView assignmentId={1} recipeId={10} unitId={5} />,
+    <PaintingModeView state={state} onMarkDone={mockOnMarkDone} recipeId={10} isMutating={false} />,
     { wrapper: createWrapper() },
   );
 }
@@ -158,7 +152,7 @@ function setDefaultMocks() {
   const step1 = makeStep({ id: 1, step_name: "Apply base coat", paint_id: 10, section_id: 100, order_index: 0 });
   const step2 = makeStep({ id: 2, step_name: "Apply shade wash", paint_id: 20, section_id: 100, order_index: 1 });
 
-  mockPaintingModeState.mockReturnValue({
+  defaultState = {
     orderedSteps: [step1, step2],
     currentStepId: 1,
     currentIndex: 0,
@@ -170,7 +164,7 @@ function setDefaultMocks() {
     goNext: vi.fn(),
     goToStep: vi.fn(),
     sectionProgressMap: new Map([[100, { completed: 0, total: 2, name: "Basecoat" }]]),
-  });
+  };
 
   mockUsePaints.mockReturnValue({
     data: [
@@ -197,7 +191,7 @@ describe("PaintingModeView", () => {
   });
 
   it("renders loading skeleton when hook returns isLoading (PX-01)", () => {
-    mockPaintingModeState.mockReturnValue({
+    renderView({
       orderedSteps: [],
       currentStepId: null,
       currentIndex: -1,
@@ -211,14 +205,13 @@ describe("PaintingModeView", () => {
       sectionProgressMap: new Map(),
     });
 
-    renderView();
     // Skeleton elements should be present
     const skeletons = document.querySelectorAll("[class*='animate-pulse'], [data-slot='skeleton']");
     expect(skeletons.length).toBeGreaterThan(0);
   });
 
   it("renders empty state message when orderedSteps is empty", () => {
-    mockPaintingModeState.mockReturnValue({
+    renderView({
       orderedSteps: [],
       currentStepId: null,
       currentIndex: -1,
@@ -232,7 +225,6 @@ describe("PaintingModeView", () => {
       sectionProgressMap: new Map(),
     });
 
-    renderView();
     expect(screen.getByText("No steps in this recipe")).toBeInTheDocument();
   });
 
