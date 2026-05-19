@@ -245,14 +245,14 @@ describe("useRulesSync", () => {
     };
     vi.mocked(invoke).mockResolvedValue(mockRustResult);
 
-    // Track call order
+    // Track call order -- distinguish invoke commands by name (SAF-02 adds create_safety_backup before bulk_sync_rules)
     const callOrder: string[] = [];
     capturePreSyncSnapshotMock.mockImplementation(async () => {
       callOrder.push("capturePreSyncSnapshot");
     });
     getRulesSyncMetaMock.mockResolvedValue(null);
-    vi.mocked(invoke).mockImplementation(async () => {
-      callOrder.push("invoke");
+    vi.mocked(invoke).mockImplementation(async (...args: unknown[]) => {
+      callOrder.push(`invoke:${args[0]}`);
       return mockRustResult;
     });
 
@@ -261,9 +261,9 @@ describe("useRulesSync", () => {
     };
     await opts.mutationFn();
 
-    // capturePreSyncSnapshot must appear before invoke in the call order
+    // capturePreSyncSnapshot must appear before invoke("bulk_sync_rules") in the call order
     const snapshotIdx = callOrder.indexOf("capturePreSyncSnapshot");
-    const invokeIdx = callOrder.indexOf("invoke");
+    const invokeIdx = callOrder.indexOf("invoke:bulk_sync_rules");
     expect(snapshotIdx).toBeGreaterThanOrEqual(0);
     expect(invokeIdx).toBeGreaterThanOrEqual(0);
     expect(snapshotIdx).toBeLessThan(invokeIdx);

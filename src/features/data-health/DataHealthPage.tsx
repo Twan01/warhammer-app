@@ -14,6 +14,7 @@ import { VersionInfoCard } from "./VersionInfoCard";
 import { TableCountsGrid } from "./TableCountsGrid";
 import { DiagnosticsCard } from "./DiagnosticsCard";
 import { BackupCard } from "./BackupCard";
+import { SafetyBackupsList } from "./SafetyBackupsList";
 
 export function DataHealthPage() {
   return (
@@ -30,6 +31,11 @@ export function DataHealthPage() {
       <DiagnosticsCard />
 
       <BackupCard />
+
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">Safety Backups</h2>
+        <SafetyBackupsList />
+      </div>
     </div>
   );
 }

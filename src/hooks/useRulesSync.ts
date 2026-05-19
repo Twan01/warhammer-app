@@ -84,6 +84,9 @@ export function useRulesSync() {
 
   return useMutation<{ wahapediaVersion: string; rowCounts: Record<string, number>; diff: SyncDiff; pointsDelta: PointsDelta }, Error, void>({
     mutationFn: async () => {
+      // SAF-02: Safety backup before any sync operation — abort sync if fails
+      await invoke("create_safety_backup");
+
       const [
         factionsRaw, sourcesRaw, dsRaw, modelsRaw, abilitiesRaw, keywordsRaw,
         wargearRaw, sharedAbilitiesRaw, stratagemsRaw, detachmentsRaw,
