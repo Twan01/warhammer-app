@@ -117,12 +117,13 @@ export function StepFocalView({
       <div className="flex items-center justify-between mt-auto pt-6 border-t border-border">
         <Button
           variant="ghost"
-          size="icon"
+          className="flex items-center gap-1"
           disabled={!canGoPrev}
           aria-label="Previous step"
           onClick={goPrev}
         >
           <ChevronLeft className="h-5 w-5" />
+          <kbd className="text-[10px] bg-muted px-1 rounded">&larr;</kbd>
         </Button>
 
         <span className="text-sm" data-testid="position-indicator">
@@ -132,11 +133,12 @@ export function StepFocalView({
 
         <Button
           variant="ghost"
-          size="icon"
+          className="flex items-center gap-1"
           disabled={!canGoNext}
           aria-label="Next step"
           onClick={goNext}
         >
+          <kbd className="text-[10px] bg-muted px-1 rounded">&rarr;</kbd>
           <ChevronRight className="h-5 w-5" />
         </Button>
       </div>
@@ -150,6 +152,7 @@ export function StepFocalView({
       >
         <Check className="h-5 w-5 mr-2" />
         Mark Done
+        <kbd className="ml-2 text-[10px] bg-muted px-1 rounded">Space</kbd>
       </Button>
     </div>
   );

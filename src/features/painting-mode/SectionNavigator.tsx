@@ -92,6 +92,10 @@ export function SectionNavigator({
           const progressText = progress
             ? `${progress.completed}/${progress.total}`
             : `0/${section.steps.length}`;
+          const isComplete =
+            progress != null &&
+            progress.total > 0 &&
+            progress.completed === progress.total;
 
           return (
             <Collapsible
@@ -114,7 +118,7 @@ export function SectionNavigator({
                     className="flex items-center justify-between w-full px-3 py-2 rounded hover:bg-accent/30"
                   >
                     <span className="flex items-center gap-2">
-                      <span className="text-sm">{section.name}</span>
+                      <span className={isComplete ? "text-sm text-muted-foreground" : "text-sm"}>{section.name}</span>
                       {section.optional && (
                         <Badge variant="outline" className="text-xs">
                           Optional
@@ -122,7 +126,11 @@ export function SectionNavigator({
                       )}
                     </span>
                     <span className="flex items-center gap-1">
-                      <Badge variant="secondary">{progressText}</Badge>
+                      {isComplete ? (
+                        <Check className="h-4 w-4 text-green-500" data-testid="section-complete" />
+                      ) : (
+                        <Badge variant="secondary">{progressText}</Badge>
+                      )}
                       <ChevronDown className="h-3 w-3 text-muted-foreground" />
                     </span>
                   </button>
