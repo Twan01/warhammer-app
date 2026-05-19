@@ -124,7 +124,10 @@ Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
   2. The first incomplete step in a multi-section recipe is always the one with the lowest section order_index then step order_index, never the wrong step
   3. Completing a step immediately refreshes kanban cards, unit assignments, dashboard next-action, and workflow position without a manual page reload
   4. Tests pass verifying: first-incomplete-step selection, step completion write, and previous/next navigation logic
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 84-01-PLAN.md — Atomic completeStepWithSession + useCompleteStep hook + tests
+- [ ] 84-02-PLAN.md — usePaintingModeState navigation hook + tests
 
 ### Phase 85: Core Execution UI
 **Goal**: User can execute a painting step from a focused, distraction-free view with all the information they need at the desk
@@ -263,7 +266,7 @@ Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
 | 81. Restore Preview + Validation | v0.2.14 | 2/2 | Complete | - |
 | 82. Restore Execution + Safety Backups | v0.2.14 | 3/3 | Complete | 2026-05-19 |
 | 83. Backup Diagnostics | v0.2.14 | 2/2 | Complete | 2026-05-19 |
-| 84. Data Layer + Early Tests | v0.2.15 | 0/TBD | Not started | - |
+| 84. Data Layer + Early Tests | v0.2.15 | 0/2 | Not started | - |
 | 85. Core Execution UI | v0.2.15 | 0/TBD | Not started | - |
 | 86. Shell, Route & Keyboard Shortcuts | v0.2.15 | 0/TBD | Not started | - |
 | 87. Session Integration + Entry Points | v0.2.15 | 0/TBD | Not started | - |
