@@ -1,26 +1,31 @@
 # Feature Research
 
-**Domain:** Backup/restore for a local-first SQLite desktop app (Tauri 2 + Windows)
-**Researched:** 2026-05-18
-**Milestone:** v0.2.14 Backup 2.0 — Structured Export, Restore & Safety Backups
-**Confidence:** HIGH (grounded in existing codebase inspection + comparable app research)
+**Domain:** Focused step-by-step execution mode for miniature painting (Painting Mode)
+**Researched:** 2026-05-19
+**Milestone:** v0.2.15 Painting Mode
+**Confidence:** HIGH (table stakes grounded in comparable app research + existing codebase), MEDIUM (differentiators), HIGH (anti-features — based on explicit complexity analysis)
 
 ---
 
-## Context: What Already Exists (v0.2.13)
+## Context: What Already Exists (v0.2.14)
 
-This is a subsequent milestone. The following backup infrastructure is already shipped and must not be re-scoped here:
+This is a subsequent milestone. Painting Mode is a new **execution surface** layered on existing data — it does not require schema changes.
 
 | Existing capability | Implementation | Notes |
 |---------------------|---------------|-------|
-| `backup_database` Rust command (VACUUM INTO) | `src-tauri/src/lib.rs` | Works; only exports hobbyforge.db as raw `.db` file |
-| Native save dialog filtered to `.db` | `BackupCard.tsx` via `@tauri-apps/plugin-dialog` | File picker already wired |
-| Last backup date + path in localStorage | `useDiagnostics.ts` → `BACKUP_STORAGE_KEY` | `{ date, path, success }` shape |
-| BackupCard on DataHealthPage | Phase 77 (BK-01/02/03) | Shows "last backup: N days ago — filename" |
-| `tauri_plugin_fs` registered in builder | `lib.rs` | Available for zip/file ops in new Rust commands |
-| `tauri_plugin_process` registered | `lib.rs` | Available for app restart after restore |
-
-The v0.2.14 milestone builds on this. The existing `backup_database` command is not modified — new commands are additive.
+| Applied recipes (recipe assigned to unit) | `applied_recipes` table, `recipe_step_id`-keyed progress | Progress tracked per step; survives recipe reorders |
+| Step metadata | `recipe_steps`: `paint_id`, `technique`, `tool`, `dilution`, `time_estimate`, `photos`, `notes` | All display fields present |
+| Section metadata | `recipe_sections`: `section_type`, `technique`, `execution_mode`, `applies_to` | Workflow context available |
+| Paint inventory state | `paints.owned`, `paints.running_low` | Availability already tracked |
+| Step photos | `recipe_step_photos` table | Stored; displayed in `SectionedTimeline` |
+| Session logging | `LogSessionSheet` with cascading selectors (recipe → section → step) | Accepts `initialValues` prop |
+| `useUpdateAppliedRecipeStepProgress` | `src/hooks/useAppliedRecipes.ts` | Step completion mutation already exists |
+| `useCreatePaintingSession` | `src/hooks/usePaintingSessions.ts` | Session creation mutation already exists |
+| `CurrentFocusCard` | `src/features/dashboard/CurrentFocusCard.tsx` | Shows next step; entry point candidate |
+| `NextPaintingActionCard` | `src/features/dashboard/` | Shows paint/tool/technique for next step |
+| `KanbanCard` | `src/features/painting-projects/KanbanCard.tsx` | Shows workflow position + next step hint |
+| `AppliedRecipesTab` | `src/features/units/AppliedRecipesTab.tsx` | Per-unit recipe progress; entry point candidate |
+| `SectionedTimeline` | `src/features/recipes/SectionedTimeline.tsx` | Per-section paint availability already computed |
 
 ---
 
@@ -28,116 +33,129 @@ The v0.2.14 milestone builds on this. The existing `backup_database` command is 
 
 ### Table Stakes (Users Expect These)
 
-Features users assume exist in a serious local-first data app once basic export is shipped. Missing any of these leaves the backup system feeling incomplete or unsafe.
+Features that any focused execution mode must have. Missing these makes Painting Mode feel like a re-skinned timeline rather than a distinct mode. Drawn from patterns in cooking apps (Cook Mode / SideChef), workout trackers (StrongLifts / RepCount), assembly guides (IKEA Assembly Guide app), and the miniature-specific app Liber Pigmenta.
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Structured backup export (.zip with DB + metadata.json) | Raw `.db` files are opaque and non-self-describing. Any app that competes for trust (Bear, Obsidian, Stash) packages backups as named archives with version context. A `.zip` that can be opened in Explorer and understood is the expected format for personal data export. | MEDIUM | Zip must contain: `hobbyforge.db` (VACUUM INTO copy), `metadata.json` (app version, schema version, export timestamp, table row counts). Filename: `hobbyforge-backup-YYYY-MM-DD-v{semver}.zip`. New Rust command handles zip assembly. |
-| Restore / import from backup file | Any export without restore is a trap. Users back up data expecting to be able to recover. Once export exists, restore is the implied contract. Comparable apps (Bear, Stash) support in-app restore. | HIGH | Sequence: open `.zip` picker → validate zip structure → read metadata.json → show preview → auto-create safety backup → replace hobbyforge.db → trigger app relaunch. The safety-backup-before-replace step is the critical gate — never skip it. |
-| Pre-restore safety backup (automatic) | Data-loss is irreversible. The restore operation replaces the live database. Users expect the app to protect them from a bad restore. Bear warns but provides no protection; Stash requires manual pre-backup. The HobbyForge standard is higher: do it automatically. | MEDIUM | No user action needed. New Rust command `safety_backup_database` writes to `app_data_dir/safety-backups/hobbyforge-safety-{timestamp}.db` using VACUUM INTO. Path shown to user in the restore confirmation dialog. Auto-generated filename — no file picker. |
-| Schema/version compatibility check on restore | Restoring a backup from a newer schema version onto an older app silently corrupts the database (migrations 29-30 would be missing). Stash has reported bugs from exactly this pattern. This must be a hard block, not an advisory. | MEDIUM | Read `app_version` and `schema_version` from `metadata.json` before restore. Block if backup schema_version > current app migration count. Warn (with override) if versions differ but schema_version <= current. Allow same-or-older schema restores after user confirmation. |
-| Restore preview from metadata | Users should know what they are restoring before data is replaced. The `metadata.json` table row counts give enough information for a meaningful preview without opening the DB. | LOW | Display in confirmation dialog: "This backup contains: 42 units, 12 recipes, 8 army lists, 5 factions. Created 2026-05-10 with app v0.2.13." Read from `metadata.json` — no DB access required at this step. |
-| Clear success/failure feedback | Users need to know if export/restore worked. Silent failures are unacceptable for a backup system. | LOW | Toast on success with file path (export) or safety backup path (restore). Inline error with actionable copy on failure. Never swallow errors. |
-| Backup status staleness in BackupCard | "Last backup: 14 days ago" is more actionable than a bare date. Users should see a visual indication that their backup is stale before something goes wrong. | LOW | Extend existing BackupCard. Compute `backupAgeDays` from localStorage date. Show: green (backed up today/yesterday), amber (3-7 days), red (>7 days or never). Feeds into DataHealthSummaryCard on Dashboard. |
+| Feature | Why Expected | Complexity | Dependency on Existing Infrastructure |
+|---------|--------------|------------|---------------------------------------|
+| Single-step focal view | Every step-by-step execution app presents one step at a time. Cook Mode (cooking apps), StrongLifts (workout), IKEA Assembly Guide all use this pattern. Scrolling a timeline with dirty hands is unusable. | LOW | Re-renders a single `recipe_step` row full-width; step list already ordered by `section_id` + `order_index` |
+| Previous / Next navigation | Bidirectional navigation is universal. Assembly guides, cooking apps, and workout trackers all provide back/forward. Users need to re-read the previous step to verify prep or check dry time. | LOW | Step list already sorted; need current step index in local state (new) |
+| Step position indicator ("Step 3 of 7") | Cooking apps show step count. IKEA guide shows section progress. Users need orientation inside long recipes. Without it, Painting Mode feels disorienting. | LOW | Section step counts already computed in `SectionedTimeline` |
+| Mark step done (inline, no modal) | The core action of execution mode. Workout trackers require ≤3 taps to log a set. Painting Mode must be one action. Without it, Painting Mode is read-only. | LOW | `useUpdateAppliedRecipeStepProgress` mutation already exists; mutation call wired to a button/keypress |
+| Paint / tool / technique display (prominent) | The primary reason to enter Painting Mode — the user needs the paint name, hex swatch, tool, technique, and dilution visible without scrolling or cross-referencing. Cook Mode shows per-step ingredient quantities for the same reason. | LOW | All fields on `recipe_step`; paint join gives `hex_color` and `brand`; display only |
+| Section progress navigation with jump-to | Long recipes (10+ steps) require section jumping. IKEA Assembly Guide includes a "jump to step" dropdown. Linear-only navigation is a blocker for multi-section recipes. | LOW | Sections and completion counts already available; jump = set current step index to first step of target section |
+| Missing paint warning (non-blocking) | Users need to know a required paint is not owned before executing a step. Non-blocking pattern (Baymard: "warnings alert but don't prevent proceeding") — never block the user, just inform. | LOW | `paint.owned` and `paint.running_low` already in DB; join already done in `SectionedTimeline` paint availability display |
+| Entry points from existing surfaces | Users expect to enter from wherever they are: Dashboard, Unit Detail, Applied Recipe, Kanban. Recipe app cook modes are reachable from the recipe card in one tap. Without multiple entries, the mode is hidden. | MEDIUM | Routing only; no new data — all entry points need `applied_recipe_id` + `unit_id` passed as route/state params |
+| Exit / close action | Every focused mode (Word Focus Mode, Novlr, Cook Mode) provides a clear escape back. Without it, users feel trapped. | LOW | Navigation only; back button or Esc |
+| Distraction-free presentation | Painting Mode must look visually distinct from the regular app to signal "execution mode now." Larger typography, high-contrast paint swatch, minimal chrome. IKEA guide uses full-panel single-step layouts. | LOW | CSS only — no new data; can be implemented as a dedicated route or full-panel component |
 
-### Differentiators (What Makes This Better Than Raw .db Backup)
+### Differentiators (Competitive Advantage)
 
-Features that separate the v0.2.14 structured backup from the BK-01/02/03 raw `.db` approach and from comparable apps like Bear and Stash.
+Features that make HobbyForge Painting Mode genuinely useful beyond what Liber Pigmenta or a plain step list provides. Grounded in patterns from Liber Pigmenta (side-by-side reference), workout trackers (keyboard speed), and cooking apps (atomic action patterns).
 
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Timestamped zip filename with app version | Self-documenting archive in Explorer: `hobbyforge-backup-2026-05-18-v0.2.14.zip` tells the user exactly when and from which version without opening anything. Raw `.db` files have no such context. | LOW | Generated at export time from current semver and `todayISO()`. Constructed in the Rust export command. |
-| metadata.json with schema version | Machine-readable provenance: enables version compatibility check on restore without opening the DB, and provides human-readable summary of what the backup contains. | LOW | Fields: `app_version` (string semver), `schema_version` (integer = migration count, currently 28), `export_timestamp` (ISO-8601), `db_size_bytes`, `table_row_counts` (object with key tables: units, painting_recipes, army_lists, factions, paints, battle_logs). |
-| Automatic pre-restore safety backup | The single biggest trust differentiator. Bear requires users to export first. Stash requires manual pre-backup. HobbyForge does it silently before every restore — users cannot accidentally destroy unrecoverable data. | MEDIUM | Reuses VACUUM INTO logic from existing `backup_database` command. New command: auto-path, no dialog. Path surfaced in confirmation dialog so user knows where the safety net is. |
-| Backup age diagnostic in Data Health | "Never backed up" and "Last backup: 23 days ago" are actionable diagnostics, not just informational. Surfaces in DiagnosticsCard alongside orphan and stale-data flags. | LOW | Extends `DiagnosticsCard` with a backup-status check: reads localStorage backup record, checks age, checks if format is structured zip or legacy raw db. Feeds severity badge (none/warn/error). |
-| Backup format field in localStorage status | Distinguishes structured zip exports (restorable via the new flow) from legacy raw `.db` exports (not restorable via the new flow). Prevents user confusion when they try to restore an old backup. | LOW | Add `format: "zip" | "raw"` to the `BackupStatus` type in `useDiagnostics.ts`. Old records without `format` are treated as `"raw"`. |
+| Feature | Value Proposition | Complexity | Dependencies |
+|---------|-------------------|------------|--------------|
+| Keyboard shortcuts (Space = done, ← → = navigate, Esc = exit) | Workout trackers achieve 76% time reduction per action with keyboard nav. At a painting desk, wet brushes mean no mouse. Space + arrows = zero mouse-grabbing. This is the single highest-value UX improvement over every comparable app including Liber Pigmenta. | LOW | `useEffect` keydown handler in Painting Mode component; no DB changes; testable with keyboard event simulation |
+| Session prefill from current context | When saving a session from Painting Mode, recipe, section, and step are pre-populated. Avoids three cascading dropdown interactions in `LogSessionSheet` with wet hands. | LOW | `LogSessionSheet` already accepts `initialValues`; need to wire `{ recipe_id, section_id, step_id }` from current step context as props |
+| Atomic "done + log session" action | One action marks a step complete AND creates a session log entry. Removes the "go log a session afterward" friction. Unlike Liber Pigmenta which requires a separate photo/note capture step. | MEDIUM | Composes `useUpdateAppliedRecipeStepProgress` + `useCreatePaintingSession` into a single coordinated call; session prefilled from step context; no new DB schema needed |
+| Step reference photo display | Steps already store photos in `recipe_step_photos`. Displaying them inline in Painting Mode provides the reference painters need at the desk — the "side-by-side inspiration and execution" pattern that Liber Pigmenta highlights as core. | LOW | Photos already stored; need inline display (lightbox or full-width image) in step focal view |
+| Paint availability readiness check at mode entry | Before entering Painting Mode, show which paints in the entire recipe are missing. "Pre-flight check" pattern — IKEA assembly: "check you have all parts before starting." Non-blocking (user can proceed). | LOW | `paint.owned` join across all steps in the recipe; already done per-section in `SectionedTimeline`; aggregate to recipe level |
+| Section completion acknowledgment | When all steps in a section are done, show a subtle visual acknowledgment. Workout apps use progress rings that fill; cooking apps advance a progress bar. Positive reinforcement during long sessions. | LOW | Completion percentage already computed; trigger on 100% for a section; CSS animation only |
+| Time estimate display per step | Steps already have `time_estimate`. Showing "~15 min — wet blending" during execution helps the painter plan breaks without an intrusive timer. Cooking apps show per-step durations. | LOW | Field already populated; display only in step focal view |
 
 ### Anti-Features (Avoid These)
 
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Scheduled / automatic backup on timer | "Set and forget" safety | Single-user personal tool — scheduled tasks add background process complexity, Windows wake/power issues, and notification spam. Explicitly out of scope per PROJECT.md. | Manual export + automatic pre-restore safety backup + optional pre-sync safety backup covers the real risk windows without background processes |
-| rules.db in the backup archive | "Complete backup" appeal | rules.db is fully reconstructible from Wahapedia sync at any time. It is destroyed and rebuilt on every sync. Including it doubles the archive size (~2-5 MB of rules data) for zero recovery value. | Document in export UI: "Your personal data is backed up. Rules data is re-synced separately." |
-| Backup history list managed in-app | "Restore any version" appeal | Requires in-app storage management, delete UI, and disk space accounting — large scope for single-user marginal value. | Timestamped filenames in Explorer. User manages their own backup history. App tracks only the most recent backup status. |
-| Export to CSV or JSON (human-readable) | Data portability appeal | CSV/JSON export of 28-table schema with FK relationships is a distinct "data portability" feature, not a backup. A backup must be restorable; a CSV export is not. | Defer CSV/JSON export to a separate "Export Data" feature under Data Health if requested. |
-| Differential / incremental backup | "Faster backup" appeal | SQLite VACUUM INTO already produces a compact consistent snapshot. The DB is typically <5 MB. Full snapshot is fast and simple to validate on restore. Differential adds complexity for no measurable user benefit. | Full VACUUM INTO is the correct approach. |
-| Restore from raw .db file (v0.2.14 scope) | Backward compat for BK-01/02/03 backups | Requires a separate restore code path that skips metadata validation. Adds branching complexity to the restore flow. The number of raw .db backups in the wild is low (one user). | Document: "Legacy .db backups cannot be restored in-app. To restore a .db backup, close HobbyForge, replace hobbyforge.db in AppData manually, and relaunch." Revisit in v0.2.15 if needed. |
-| Auto-backup before every sync | "Maximum safety" appeal | Wahapedia sync already takes 2-10 seconds for network + DB operations. Adding VACUUM INTO before every sync adds 0.5-1s and silent file accumulation in AppData. Pre-restore safety backup covers the meaningful risk. | Offer pre-sync safety backup as an explicit user toggle in a future settings page, not as a default. |
+| Feature | Why It Seems Appealing | Why Problematic | Better Approach |
+|---------|----------------------|-----------------|-----------------|
+| Built-in countdown timer per step | Cooking app timers are useful because times are precise. Painting drying times depend on temperature, brand, and layer thickness — a timer creates false urgency and noise. | Adds live state, timer lifecycle management, notification complexity. `time_estimate` already exists as a rough guide. | Display `time_estimate` as a static label ("~15 min"). User controls their own timer externally if needed. |
+| Auto-advance to next step on completion | Seems efficient. In practice, painters mark a step done and then re-read it while the paint dries. Auto-advance removes the ability to reference the completed step. Assembly guide research shows users frequently look back. | Silent loss of reference to the just-completed step. | Keep current step visible after marking done. Show "Next" button prominently but require explicit navigation. |
+| Voice control / hands-free commands | Sounds perfect for a dirty-hands painting desk. | Windows Speech API + microphone permissions + noise sensitivity = high implementation complexity for a personal desktop app. Liber Pigmenta has this; community feedback shows it is rarely used. Keyboard shortcuts achieve the same goal more reliably. | Keyboard shortcuts (Space, arrows) are the correct solution for a desktop app. |
+| Multi-unit parallel execution mode ("paint 5 at once") | Power painters batch identical steps across a squad simultaneously. | Requires a fundamentally different UI — step focal view becomes a per-unit checklist, not a single action. This is a distinct "batch painting" workflow that deserves its own feature if ever requested. | Painting Mode targets one applied recipe on one unit. Bulk apply (already built) handles assigning the same recipe to multiple units independently. |
+| Full recipe edit within Painting Mode | Painters sometimes notice an error mid-execution. | `RecipeDetailSheet` is a complex sectioned DnD form. Embedding it inside Painting Mode creates a nested sheet stack and risks accidental edits during execution. | Add an "Edit Recipe" link that navigates out of Painting Mode to the recipe editor. Keep editing and execution as separate surfaces. |
+| Painting Mode as a detached/floating window | Would allow keeping Painting Mode visible while switching to reference photos in another app. | Tauri multi-window requires IPC for state sync. High complexity for a single-user personal desktop app where the main window is maximized full-screen. | Full-panel route presentation within the existing window is sufficient. The app is a maximized desktop window; there is no mobile screen-real-estate problem. |
 
 ---
 
 ## Feature Dependencies
 
 ```
-[Structured Export .zip]
-    └──requires──> New Rust command: export_backup (zip assembly + metadata.json)
-    └──requires──> metadata.json schema definition (app_version, schema_version, etc.)
-    └──dependency-of──> Restore (restore reads metadata.json from the zip)
+Painting Mode Entry
+    └──requires──> Applied Recipe (recipe assigned to unit with per-step progress)
+                       └──requires──> Recipe with sections and steps (already built)
+                       └──requires──> Unit in collection (already built)
+    └──entry-points──> CurrentFocusCard, AppliedRecipesTab, KanbanCard, RecipeDetailSheet
 
-[Restore / Import]
-    └──requires──> Structured Export format (zip + metadata.json — must exist to read)
-    └──requires──> Safety backup before replace (never skip this gate)
-    └──requires──> Schema version compatibility check (block downgrade restore)
-    └──requires──> App relaunch after DB replace (plugin-sql pool holds stale handles)
-    └──requires──> Restore preview (from metadata.json — no DB access needed)
+Single-Step Focal View
+    └──requires──> Step list ordered by section_id + order_index (already in DB)
+    └──requires──> Current step index in local component state (new)
+    └──enhances──> All other step-level features (paint display, photo, time estimate)
 
-[Safety backup (automatic)]
-    └──requires──> backup_database Rust command pattern (VACUUM INTO — already exists)
-    └──new command──> safety_backup_database (auto-path, no dialog)
-    └──called-by──> Restore flow (pre-replace step)
-    └──enhances──> Restore (turns destructive operation into recoverable operation)
+Mark Step Done
+    └──requires──> useUpdateAppliedRecipeStepProgress (already exists)
+    └──enhances──> Atomic Session Save (optional composition)
 
-[Schema version compatibility check]
-    └──reads──> metadata.json schema_version from zip
-    └──compares-against──> Current migration count (get_migrations().len() in lib.rs)
-    └──called-by──> Restore flow (before safety backup and replace)
+Keyboard Shortcuts
+    └──requires──> Focused Painting Mode component (needs mounted event listener)
+    └──enhances──> Mark Step Done (Space)
+    └──enhances──> Navigation (← →)
+    └──enhances──> Exit (Esc)
 
-[App relaunch after restore]
-    └──uses──> tauri_plugin_process restart() (already registered in lib.rs)
-    └──called-by──> Restore flow (final step after DB replace)
+Session Prefill
+    └──requires──> LogSessionSheet accepting initialValues (already supported)
+    └──requires──> Current step context { recipe_id, section_id, step_id } in scope
 
-[Backup status staleness]
-    └──reads──> localStorage BackupStatus (already exists)
-    └──extends──> BackupCard (existing component)
-    └──enhances──> DataHealthSummaryCard on Dashboard (staleness signal)
+Atomic Session Save on Completion
+    └──requires──> Mark Step Done (calls progress mutation)
+    └──requires──> Session Prefill (prefills session context)
+    └──requires──> useCreatePaintingSession (already exists)
 
-[Backup diagnostics]
-    └──reads──> localStorage BackupStatus
-    └──extends──> DiagnosticsCard (existing component) or new BackupDiagnosticsCard
-    └──enhances──> DataHealthPage (existing page — no new route needed)
+Missing Paint Warning
+    └──requires──> paint.owned join across recipe steps (already queryable)
+    └──enhances──> Entry readiness check (aggregate to recipe level at mode entry)
+    └──enhances──> Per-step indicator (flag icon if current step's paint is missing)
+
+Step Reference Photos
+    └──requires──> recipe_step_photos table (already exists)
+    └──enhances──> Single-Step Focal View (inline display)
 ```
 
 ### Dependency Notes
 
-- **Restore requires safety backup — always, no exceptions:** The replace-DB step is irreversible. The safety backup is the only recovery path if the user restores a bad file. This must be executed before the replace, not offered as an option.
-- **Restore requires app relaunch, not cache invalidation:** After replacing `hobbyforge.db` on disk, the tauri-plugin-sql connection pool holds file handles to the old file. React Query cache invalidation is insufficient — it will re-query against the old, now-replaced file. `invoke("plugin:process|restart")` is the only clean path. This is already in `lib.rs` via `tauri_plugin_process`.
-- **Schema version uses migration count, not semver:** The `schema_version` field in `metadata.json` should be the count of migrations in `get_migrations()` (currently 28), not the app semver. Migration count is the true DB compatibility signal. App semver can change without schema changes. Read via `PRAGMA user_version` at export time or hardcode migration count.
-- **Structured export must precede restore in phasing:** Restore reads metadata.json from the zip. If the export command doesn't produce a zip yet, restore has nothing to read. These two features ship together or export ships one phase before restore.
-- **Backup diagnostics has no hard dependencies:** Reads only localStorage and does not touch the DB. Can ship in any phase.
+- **All Painting Mode features require Applied Recipe:** The mode operates on an `applied_recipe` record. Every entry point must pass `applied_recipe_id` + `unit_id`. There is no Painting Mode for a recipe not applied to a unit.
+- **Keyboard shortcuts have zero DB dependencies:** Pure UI layer; testable without DB mocking using keyboard event simulation.
+- **Atomic Session Save is compositional:** No new DB schema. It chains the two existing mutations (`useUpdateAppliedRecipeStepProgress` + `useCreatePaintingSession`) in sequence from the user's single action. "Atomic" is from the UX perspective, not a DB transaction.
+- **Missing Paint Warning has no new data requirement:** `paint.owned` is already joined in the applied recipe query pattern; `SectionedTimeline` already aggregates this per section. Painting Mode needs the recipe-level aggregate.
+- **Session Prefill has no new data requirement:** `LogSessionSheet` already accepts `initialValues`; only the calling code needs to pass current step context.
 
 ---
 
-## MVP Definition for v0.2.14
+## MVP Definition for v0.2.15
 
-### Launch With (P1 — core scope)
+### Launch With (P1 — core Painting Mode)
 
-- [x] Structured backup export — zip containing `hobbyforge.db` + `metadata.json` (app version, schema version, timestamp, table row counts)
-- [x] Restore / import from structured backup zip — validate zip, check schema version, show preview, auto-create safety backup, replace DB, relaunch
-- [x] Pre-restore safety backup — automatic, no user action, written to `app_data_dir/safety-backups/`, path surfaced in confirmation dialog
-- [x] Schema version compatibility check — hard block on downgrade restore; warn with override for version difference on same schema
-- [x] Backup status staleness in BackupCard — age-based color indicator (green/amber/red), feeds Dashboard DataHealthSummaryCard
+Minimum viable mode — turns the recipe into a usable desk reference with tracked progress.
 
-### Add After Core is Stable (P2)
+- [ ] Single-step focal view with full step detail (paint swatch, technique, tool, dilution, time estimate, step notes)
+- [ ] Previous / Next navigation with step position indicator ("Step 3 of 7")
+- [ ] Section progress navigation with completion counts and jump-to-section
+- [ ] Mark step done (inline button, no modal)
+- [ ] Missing paint non-blocking warning at mode entry + per-step indicator
+- [ ] Session prefill from current context (recipe, section, step pre-populated in LogSessionSheet)
+- [ ] Keyboard shortcuts: Space = mark done, ← → = navigate, Esc = exit
+- [ ] Entry points: CurrentFocusCard (Dashboard), AppliedRecipesTab (Unit Detail), KanbanCard, RecipeDetailSheet
+- [ ] Distraction-free presentation: larger typography, minimal chrome, high-contrast paint swatch, visually distinct from regular app
+- [ ] Test coverage: step selection, navigation, completion, paint warnings, session prefill logic
 
-- [ ] Backup diagnostics in DiagnosticsCard — never backed up / format is legacy raw .db / backup too old flags
-- [ ] `format` field in localStorage BackupStatus — distinguishes structured zip from legacy raw exports
-- [ ] Safety backup before Wahapedia sync — triggered in the sync hook before `invoke("bulk_sync_rules")`; reuses `safety_backup_database` command
+### Add After Core Works (P2)
 
-### Future Consideration (v0.3+)
+- [ ] Step reference photo display — trigger: users report switching to another app to see reference photos
+- [ ] Atomic "done + log session" action — trigger: users report logging sessions as post-execution friction
+- [ ] Section completion acknowledgment — trigger: feedback that long recipes feel unrewarding mid-session
+- [ ] Time estimate label per step — low cost; add with any P2 pass
 
-- [ ] Restore from legacy raw .db files — separate code path, document manual workaround for now
-- [ ] Scheduled auto-backup — explicitly out of scope per PROJECT.md
-- [ ] Backup history management — out of scope (timestamped filenames + Explorer is sufficient)
+### Future Consideration (v0.2.16+)
+
+- [ ] Batch painting mode (same step across multiple units) — trigger: explicit user request with clear UX solution
+- [ ] Per-model progress within a squad unit — requires data model changes; defer until squad-level tracking is validated
 
 ---
 
@@ -145,86 +163,54 @@ Features that separate the v0.2.14 structured backup from the BK-01/02/03 raw `.
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Structured backup export (.zip + metadata.json) | HIGH | MEDIUM | P1 |
-| Pre-restore safety backup (automatic) | HIGH | MEDIUM | P1 — gate on restore flow |
-| Schema version compatibility check | HIGH | LOW | P1 — hard block, not optional |
-| Restore / import with preview + safety backup | HIGH | HIGH | P1 |
-| Backup status staleness in BackupCard | MEDIUM | LOW | P1 — extends existing component |
-| Backup diagnostics in DiagnosticsCard | MEDIUM | MEDIUM | P2 |
-| `format` field in BackupStatus | LOW | LOW | P2 — correctness improvement |
-| Safety backup before sync | MEDIUM | LOW | P2 — add after core restore works |
-| Restore from legacy raw .db | LOW | MEDIUM | P3 |
+| Single-step focal view | HIGH | LOW | P1 |
+| Previous / Next navigation | HIGH | LOW | P1 |
+| Mark step done (inline) | HIGH | LOW | P1 |
+| Paint / tool / technique display | HIGH | LOW | P1 |
+| Section progress indicator | HIGH | LOW | P1 |
+| Keyboard shortcuts | HIGH | LOW | P1 |
+| Missing paint warning (non-blocking) | HIGH | LOW | P1 |
+| Entry from multiple surfaces | HIGH | MEDIUM | P1 |
+| Session prefill from context | HIGH | LOW | P1 |
+| Distraction-free presentation | MEDIUM | LOW | P1 |
+| Jump-to-section navigation | MEDIUM | LOW | P1 |
+| Step reference photos | MEDIUM | LOW | P2 |
+| Atomic done + log session | MEDIUM | MEDIUM | P2 |
+| Time estimate label | LOW | LOW | P2 |
+| Section completion acknowledgment | LOW | LOW | P2 |
 
-**Priority key:** P1 = must have for v0.2.14 launch / P2 = add once core works / P3 = future
-
----
-
-## Comparable App Patterns
-
-| App | Backup format | Restore UX | Safety pattern | Lessons for HobbyForge |
-|-----|--------------|------------|---------------|------------------------|
-| Bear (notes, SQLite) | `.bear2bk` = ZIP of TextBundles | Replaces all notes; warns that current notes are lost | None — user must export first | HobbyForge improves on Bear by auto-creating safety backup before replace |
-| Stash (media, SQLite + Go) | Raw SQLite file download from web UI | Manual: stop app, delete old .db + WAL files, copy backup, restart | None — user must manually back up first. Schema version mismatch bugs reported. | HobbyForge improves: in-app replace + relaunch, schema version gate |
-| Obsidian (markdown vault) | Raw folder / zip; no in-app backup | Not in-app — user manages files externally | None (plain files, no DB) | Not comparable — file-based, not DB |
-| HobbyForge v0.2.13 | Raw `.db` via VACUUM INTO | None | None | Current baseline |
-| **HobbyForge v0.2.14 target** | `.zip` with DB + metadata.json | In-app: validate → preview → auto-safety-backup → replace → relaunch | Automatic pre-restore safety backup | Meaningfully ahead of all comparable apps on restore safety |
+**Priority key:** P1 = must have for v0.2.15 launch / P2 = add once core works / P3 = future
 
 ---
 
-## Implementation Notes for Roadmap Phasing
+## Comparable App Pattern Analysis
 
-### New Rust commands needed
-
-Three new commands in `src-tauri/src/lib.rs`:
-
-1. **`export_backup(destination: String)`** — VACUUM INTO temp `.db`, build `metadata.json`, zip both into `destination`, delete temp file. Returns `ExportResult { path, size_bytes }`.
-2. **`import_backup(source: String)`** — extract zip, read and return `metadata.json` contents for frontend preview + version check. Does NOT replace DB yet — frontend confirms first. Returns `ImportMetadata`.
-3. **`restore_backup(source: String)`** — called after user confirms: auto-create safety backup (reuses VACUUM INTO), extract DB from zip, replace `hobbyforge.db`, return safety backup path. Frontend calls `plugin:process|restart` after success.
-4. **`safety_backup_database()`** — no args; auto-generates path in `app_data_dir/safety-backups/hobbyforge-safety-{timestamp}.db`; VACUUM INTO. Returns the path written.
-
-Splitting import into validate-step (`import_backup`) and commit-step (`restore_backup`) avoids a half-committed restore if the user cancels during the confirmation dialog.
-
-### BackupStatus type extension
-
-```ts
-// src/hooks/useDiagnostics.ts — extend existing type
-export interface BackupStatus {
-  date: string;        // existing
-  path: string;        // existing
-  success: boolean;    // existing
-  format?: "zip" | "raw";  // new — absent in legacy records = "raw"
-}
-```
-
-### Restore flow component
-
-`RestoreBackupDialog.tsx` in `src/features/data-health/` — multi-step dialog:
-1. Open file picker (`.zip` only)
-2. Call `import_backup` → receive `ImportMetadata`
-3. Run schema version check in JS
-4. Render confirmation step: preview counts + safety backup will be created at [auto-path] + version warning if applicable
-5. User confirms → call `restore_backup` → receive safety backup path
-6. Show "Restore complete. Safety backup at [path]." toast → `invoke("plugin:process|restart")`
-
-### DataHealthSummaryCard backup signal
-
-The Dashboard's `DataHealthSummaryCard` already exists (DB-03, Phase 78). It should surface the backup staleness signal from `useBackupStatus`. Add a "Backup: N days ago" line or a colored dot to the card's existing health indicators. No new hook needed — reads from localStorage directly.
+| App Type | Pattern Used | Key Insight for Painting Mode |
+|----------|-------------|-------------------------------|
+| Cooking (Cook Mode / SideChef) | Full-screen, one-step-at-a-time; swipe left/right or tap next/prev; per-step ingredient context; screen stays awake | One-step focal view is non-negotiable; per-step paint display mirrors per-step ingredient display |
+| Workout (StrongLifts / RepCount) | ≤3 taps to log a set; keyboard nav reduces per-cell time by 76%; distraction-free screens; no pop-ups during execution | Keyboard shortcuts (Space to mark done) are the highest-ROI UX feature; minimize taps |
+| Assembly (IKEA Assembly Guide app) | "Mark step as complete" to avoid confusion; forward/back + dropdown jump; audio/hands-free; consistent step layout | Explicit completion action per step; jump-to-section dropdown; stable layout between steps |
+| Miniature painting (Liber Pigmenta) | Dedicated Painting Mode as separate surface; phase-by-phase navigation; per-model progress; side-by-side reference + execution; photo + notes capture | Direct inspiration; HobbyForge differentiates with keyboard nav and atomic session save |
+| Focus/Zen mode research (NN/g) | Zen mode can make users focus on the interface instead of the task when poorly designed | Present Painting Mode as a distinct route/panel, not a modal overlay. Gradual chrome reduction preferred over total UI hiding. |
 
 ---
 
 ## Sources
 
-- Existing codebase: `src-tauri/src/lib.rs` — `backup_database` command (VACUUM INTO), `tauri_plugin_process` registration
-- Existing codebase: `src/features/data-health/BackupCard.tsx`, `src/hooks/useDiagnostics.ts` — `BackupStatus` type, `BACKUP_STORAGE_KEY`
-- Existing codebase: `src/features/data-health/DataHealthPage.tsx` — existing page structure; restore UI slots in here
-- Comparable app: [Bear backup & restore](https://bear.app/faq/backup-restore/) — zip format, replace-all restore, no safety net
-- Comparable app: [Stash backup & restore wiki](https://github.com/stashapp/stash/wiki/Backup-&-Restore-Database) — WAL file caveats, schema version mismatch risk, manual restore procedure
-- Comparable app: [Stash schema downgrade discussion](https://github.com/stashapp/stash/discussions/3688) — real-world schema version mismatch failure mode
-- SQLite backup strategies: [Backup strategies for SQLite in production](https://oldmoe.blog/2024/04/30/backup-strategies-for-sqlite-in-production/) — VACUUM INTO vs file copy, WAL safety
-- Tauri FS plugin: [tauri-plugin-fs docs](https://v2.tauri.app/plugin/file-system/) — available for zip assembly in Rust
-- Confirmation dialog UX: [LogRocket — double-check user actions](https://blog.logrocket.com/ux-design/double-check-user-actions-confirmation-dialog/) — when to require explicit confirmation
+- [Cook Mode: Follow Recipes Step by Step — Drizzle Lemons](https://www.drizzlelemons.com/blog/cook-mode-step-by-step-recipe-view)
+- [Hands-Free Recipe Navigation UX Case Study — Medium](https://medium.com/@calebha_63744/handsfree-recipe-navigation-a-ux-case-study-of-finding-and-following-recipe-like-a-breeze-49cc4cafc408)
+- [How to Design Effective UX for Recipe Apps — Ratomir](https://www.ratomir.com/blog/how-to-design-effective-ux-for-recipe-apps-with-step-by-step-cooking-guides/)
+- [Fitness App UX: Key Principles for Engaging Workout Apps — Stormotion](https://stormotion.io/blog/fitness-app-ux/)
+- [IKEA Assembly Guide App UX Case Study — Medium/Design Bootcamp](https://medium.com/design-bootcamp/ui-ux-case-study-ikea-assemble-app-b3523e45c7a6)
+- [The IKEA Manual: UX of Building Furniture — Sketchboat](https://www.sketchboat.com/blog/the-ikea-manual-the-ux-of-building-furniture-and-why-it-works)
+- [Liber Pigmenta Miniature Painting App](https://www.liberpigmenta.com/)
+- [Why Zen Mode Isn't the Answer to Everything — NN/G](https://www.nngroup.com/articles/zen-mode/)
+- [Form Usability: Validations vs Warnings — Baymard](https://baymard.com/blog/validations-vs-warnings)
+- [The UX of Keyboard Shortcuts — Medium/Design Bootcamp](https://medium.com/design-bootcamp/the-art-of-keyboard-shortcuts-designing-for-speed-and-efficiency-9afd717fc7ed)
+- [List of Miniature Painting Apps — Minipainting Wiki](https://minipainting.fandom.com/wiki/List_of_Miniature_Painting_Apps)
+- Existing codebase: `src/hooks/useAppliedRecipes.ts`, `src/hooks/usePaintingSessions.ts`, `src/features/recipes/SectionedTimeline.tsx`, `src/features/units/AppliedRecipesTab.tsx`, `src/features/dashboard/CurrentFocusCard.tsx`
 
 ---
 
-*Feature research for: HobbyForge v0.2.14 — Backup 2.0 (Structured Export, Restore & Safety Backups)*
-*Researched: 2026-05-18*
+*Feature research for: HobbyForge v0.2.15 — Painting Mode (focused step-by-step execution)*
+*Researched: 2026-05-19*

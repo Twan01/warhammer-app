@@ -1,150 +1,144 @@
 # Stack Research
 
-**Domain:** Tauri 2 desktop app — structured backup export / restore / safety backups (v0.2.14)
-**Researched:** 2026-05-18
+**Domain:** Painting Mode — focused recipe execution + session logging (HobbyForge v0.2.15)
+**Researched:** 2026-05-19
 **Confidence:** HIGH
+
+---
+
+## Context
+
+This is an **additive** milestone. The existing validated stack handles virtually everything needed
+for Painting Mode. This document evaluates only the net-new capabilities: keyboard shortcut handling,
+full-screen/focus mode, step-by-step wizard UX, and step transition animations.
 
 ---
 
 ## Summary
 
-This is an **additive** milestone. The existing stack already contains every plugin needed.
-The only new Rust dependency is the `zip` crate for archive creation and extraction.
-No new JS/npm packages are required. All orchestration and DB operations belong in Rust;
-the JS layer only invokes commands and calls the already-wired `relaunch()`.
+**One new npm package needed: `react-hotkeys-hook` v5.3.2.**
+
+Everything else — fullscreen, step navigation, animations, session logging — is covered by the
+existing stack. The fullscreen pattern is already proven in `ShowcaseMode.tsx`. Step navigation is
+trivial index state. Animations are covered by Tailwind v4 + the `tw-animate-css` package already
+installed.
 
 ---
 
 ## Recommended Stack
 
-### New Rust Dependency (the only addition)
+### New Package
 
-| Crate | Version | Purpose | Why Recommended |
-|-------|---------|---------|-----------------|
-| `zip` | `"2"` (crates.io: 8.6.0 as of May 2026) | Create and extract `.zip` archives from Rust Tauri commands | Pure-Rust, no system dependency, supports Stored + Deflate. ZipWriter/ZipArchive APIs are stable. Preferred over JS zip libs because all file I/O stays in the Rust process, avoids Tauri IPC size limits for binary blobs, and leverages the same pattern as the existing sqlx direct connection in `lib.rs`. |
+| Library | Version | Purpose | Why Recommended |
+|---------|---------|---------|-----------------|
+| `react-hotkeys-hook` | `^5.3.2` | Declarative keyboard shortcut hook for Space/Arrow/Escape in Painting Mode | Handles conditional enable/disable (`enabled` option), does not require a provider, scopes to focused elements via ref, cleans up automatically. The existing native `addEventListener` pattern in `ShowcaseMode.tsx` works for 2–3 keys in a single isolated overlay but scales poorly to 5+ shortcuts with focus-aware disabling. 8 KB gzipped. React 19 compatible (`peerDeps: react >= 16.8`). Actively maintained (v5.3.2 released May 2026). |
 
-> **Version note:** The crate's crates.io identifier is `zip` (maintained at `zip-rs/zip2`), currently at version 8.6.0. Pin as `zip = "2"` in Cargo.toml to accept any compatible release, or pin exact for reproducibility. The `deflate` feature is needed for compressed archives.
+### Existing Stack — No Changes Needed
 
-### Existing Capabilities Already in Place (no changes needed)
-
-| Technology | Already in Stack | Role in This Milestone |
-|------------|-----------------|------------------------|
-| `sqlx 0.8` | Cargo.toml | Direct SQLite connection for VACUUM INTO — already used by `backup_database` command |
-| `tauri-plugin-fs 2` | Cargo.toml + capabilities | Read/write files in app_data_dir; temp file staging during restore |
-| `tauri-plugin-dialog 2` | Cargo.toml + capabilities | `save()` for export destination, `open()` for restore file picker |
-| `tauri-plugin-process 2.3.1` | Cargo.toml + `capabilities/default.json` | `relaunch()` already imported and working in `UpdateBanner.tsx`; `process:default` grants `allow-restart` |
-| `serde / serde_json 1` | Cargo.toml | Serialize metadata.json and manifest inside zip |
-| `std::fs` | Rust stdlib | File rename for atomic DB swap during restore |
-| `tauri-plugin-sql 2` | Cargo.toml | Existing pool — restore flow uses `relaunch()` to reinitialize rather than closing mid-session |
-
----
-
-## Architecture Boundary: Rust vs JavaScript
-
-**All zip I/O and file operations live in Rust commands.** JavaScript only:
-1. Calls `save()` / `open()` dialog to get a user-chosen path.
-2. Invokes a Rust command with that path string.
-3. Calls `relaunch()` after a successful restore (or Rust calls `app_handle.restart()` directly).
-
-**Why not a JS zip library (JSZip, ADM-ZIP, fflate)?**
-- Tauri IPC transfers binary through JSON serialization — a 50+ MB db file as base64 across the bridge is impractical.
-- `tauri-plugin-fs` can read/write from JS, but constructing a multi-file zip in JS means reading each binary file into a JS buffer, zipping in JS, writing back — three IPC round trips for large binary data.
-- Rust has direct filesystem access with no IPC overhead; the zip crate runs in-process alongside the DB file.
+| Capability | Existing Mechanism | Notes |
+|------------|-------------------|-------|
+| Full-screen window | `@tauri-apps/api/window` — `getCurrentWindow().setFullscreen(true/false)` | Already used in `ShowcaseMode.tsx`. Proven pattern. `core:window:allow-set-fullscreen` already in `capabilities/default.json`. |
+| Distraction-free overlay layout | `fixed inset-0 z-50` + Tailwind CSS | Same structure as `ShowcaseMode.tsx`. Covers AppLayout's sidebar/header without any state changes. |
+| Step navigation state | React `useState` (local) | Trivial index in a custom `usePaintingMode` hook. No Zustand needed for step index; Zustand used only for the entry point (which unit/recipe to open). |
+| Step completion reads/writes | React Query + existing `applied_recipe_step_progress` queries | No new query keys needed. Same cache as the collection/applied-recipe views. |
+| Session log form | React Hook Form + Zod | Same pattern as `LogSessionSheet.tsx`. Pre-fill context from Painting Mode props. |
+| Step transition animation | Tailwind v4 `transition-opacity duration-150` + `tw-animate-css` `animate-fade-in` | Already installed. Sufficient for a 150 ms opacity fade between steps. |
+| Section progress display | `useMemo` over completed step IDs | Pure computation, no library. |
+| Paint availability warnings | Existing `recipe_step_paint_availability` query pattern | Already proven in Recipe detail view. |
+| Icons | Lucide React | `Play`, `Check`, `ChevronLeft`, `ChevronRight`, `Maximize2`, `X` already in bundle. |
+| UI primitives | shadcn/ui `Card`, `Badge`, `Button`, `Progress` | No new component categories. |
 
 ---
 
-## Zip Archive Structure
+## Key Integration Points
 
-```
-hobbyforge-backup-2026-05-18.zip
-├── hobbyforge.db          (VACUUM INTO consistent snapshot)
-├── metadata.json          (app version, schema version, created_at, db_size_bytes)
-└── manifest.json          (file list + checksums for integrity verification on restore)
-```
+### Keyboard Shortcuts (useHotkeys)
 
-ZipWriter pattern (Rust):
-```rust
-use zip::{ZipWriter, write::SimpleFileOptions, CompressionMethod};
-use std::io::Write;
+```ts
+import { useHotkeys } from "react-hotkeys-hook";
 
-let file = File::create(&destination)?;
-let mut zip = ZipWriter::new(file);
-let opts = SimpleFileOptions::default()
-    .compression_method(CompressionMethod::Deflated);
-
-zip.start_file("hobbyforge.db", opts)?;
-zip.write_all(&db_bytes)?;
-
-zip.start_file("metadata.json", opts)?;
-zip.write_all(metadata_json.as_bytes())?;
-
-zip.finish()?;
+// In PaintingModeOverlay.tsx
+useHotkeys("space", () => markCurrentStepDone(), {
+  preventDefault: true,
+  enabled: !sessionFormOpen,   // disable when log form is open
+});
+useHotkeys("arrowRight", goNext, { preventDefault: true, enabled: !sessionFormOpen });
+useHotkeys("arrowLeft",  goPrev, { preventDefault: true, enabled: !sessionFormOpen });
+useHotkeys("escape",     onExit, { preventDefault: true });
 ```
 
-ZipArchive pattern for restore validation (Rust):
-```rust
-use zip::ZipArchive;
-let file = File::open(&source)?;
-let mut archive = ZipArchive::new(file)?;
-let mut db_entry = archive.by_name("hobbyforge.db")?;
-// stream to temp path, then rename to app_data_dir/hobbyforge.db
+The `enabled` option accepts a boolean — set it to `false` when a form input has focus (derive
+from a `sessionFormOpen` state flag) so Space does not interfere with textarea input.
+
+### Fullscreen Lifecycle (copy-adapt ShowcaseMode.tsx)
+
+```ts
+// Enter on mount, exit on unmount — identical to ShowcaseMode.tsx
+useEffect(() => {
+  if (isTauri()) getCurrentWindow().setFullscreen(true);
+  return () => { getCurrentWindow().setFullscreen(false).catch(() => {}); };
+}, []);
 ```
 
----
+No new imports beyond what `ShowcaseMode.tsx` already uses.
 
-## SQLite Safety: VACUUM INTO Is the Only Safe Backup Method
+### Step Wizard (no library)
 
-**Problem:** `std::fs::copy` on a live WAL-mode SQLite file copies only the `.db` while `-wal` and `-shm` sidecar files are being written — produces an instantly-corrupt backup. This is documented in SQLite's official "How to Corrupt" guide.
+```ts
+// src/features/painting-mode/usePaintingMode.ts
+export function usePaintingMode(steps: RecipeStep[]) {
+  const [index, setIndex] = useState(0);
+  return {
+    index,
+    current: steps[index],
+    total: steps.length,
+    goNext: () => setIndex(i => Math.min(i + 1, steps.length - 1)),
+    goPrev: () => setIndex(i => Math.max(i - 1, 0)),
+    jumpTo: (i: number) => setIndex(i),
+    isFirst: index === 0,
+    isLast:  index === steps.length - 1,
+  };
+}
+```
 
-**Rule:** Every backup (structured export, safety backup before restore, safety backup before sync) must use VACUUM INTO via a direct sqlx connection. The existing `backup_database` Rust command already implements this correctly and is the template for all backup paths in this milestone.
+Section progress derives from `completedStepIds: Set<number>` passed in from React Query.
 
----
+### Step Transition Animation
 
-## Restore Flow: Pool Constraint and Relaunch
+Use `key={currentIndex}` on the step content card to trigger a remount + fade-in:
 
-tauri-plugin-sql holds a connection pool open for the entire app lifetime. There is no public API to reinitialize it mid-session. The only clean restore path:
+```tsx
+<div key={index} className="animate-fade-in">
+  {/* current step content */}
+</div>
+```
 
-1. VACUUM INTO safety backup to a temp path (same pattern as `backup_database`).
-2. Validate the zip: open archive, check manifest, verify `hobbyforge.db` entry exists and checksum matches.
-3. Extract `hobbyforge.db` from zip to a staging path (e.g., `app_data_dir/hobbyforge.db.incoming`).
-4. Rust command calls `app_handle.restart()` — or returns success to JS which calls `await relaunch()`.
-5. On startup, a Rust startup hook in `run()` checks for a pending restore flag file. If found: `std::fs::rename("hobbyforge.db.incoming", "hobbyforge.db")`, delete flag, proceed. The plugin pool then opens the restored file normally and migrations run.
-
-This pending-restore pattern avoids trying to close the pool mid-session. The process fully exits before any file rename happens.
-
-**`relaunch()` is already proven working** in `UpdateBanner.tsx` (same import, same Tauri version, same capability grant). No new setup needed.
+`animate-fade-in` is provided by `tw-animate-css` (already installed). Duration is ~150 ms by
+default — appropriate for a desk-side execution UI. No Framer Motion needed.
 
 ---
 
 ## Installation
 
-```toml
-# src-tauri/Cargo.toml — add ONE line under [dependencies]
-zip = { version = "2", features = ["deflate"] }
+```bash
+# One new package
+pnpm add react-hotkeys-hook
 ```
 
-No npm installs needed. No capabilities changes needed (`process:default` already grants `allow-restart`).
-
----
-
-## Supporting Libraries
-
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| `zip` | `"2"` | Zip archive creation + extraction | All structured export and restore commands |
-| `serde_json` (already present) | `"1"` | Serialize metadata.json / manifest.json inside zip | Same crate, no new dependency |
+No Rust changes. No Tauri capability changes. No new shadcn components.
 
 ---
 
 ## Alternatives Considered
 
-| Recommended | Alternative | When Alternative Makes Sense |
-|-------------|-------------|------------------------------|
-| Rust `zip` crate | JS `JSZip` / `fflate` | Only if archive contains only small text files with no binary blobs |
-| Rust `zip` crate | `async_zip` crate | If async streaming of very large archives is needed (not the case here) |
-| VACUUM INTO for safety backups | `std::fs::copy` | Never — unsafe for WAL-mode SQLite |
-| Pending-restore flag + startup hook | Close pool mid-session and swap file | Only if tauri-plugin-sql exposed a `reinitialize()` API (it does not) |
-| `.zip` format | `.tar.gz` | On Linux/macOS where users have native tar tooling; Windows users expect zip |
+| Recommended | Alternative | Why Not |
+|-------------|-------------|---------|
+| `react-hotkeys-hook` | Native `addEventListener` (ShowcaseMode pattern) | Scales poorly past 3 shortcuts; no `enabled` toggle; no element scoping; boilerplate cleanup per component |
+| `react-hotkeys-hook` | TanStack Hotkeys | Newer, less adoption, different API paradigm (template-string bindings), no established use in project |
+| Custom `usePaintingMode` hook | `react-step-wizard`, `react-wizard` | Abstract over trivial index state; no shadcn integration; no benefit for linear array navigation |
+| Custom `usePaintingMode` hook | shadcn community stepper packages | Copy-paste compatibility risk; shadcn native stepper not yet available (GitHub #5987 open) |
+| Tailwind v4 `animate-fade-in` | Framer Motion | +30 KB for a 150 ms fade already solved by `tw-animate-css`; no spring/gesture needs in Painting Mode |
+| Existing `@tauri-apps/api/window` | New Tauri child window | Child window requires new Rust commands, IPC for state sync, separate window lifecycle; overkill for an overlay mode |
 
 ---
 
@@ -152,11 +146,12 @@ No npm installs needed. No capabilities changes needed (`process:default` alread
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| JS zip library (JSZip, ADM-ZIP, fflate) | Binary IPC overhead for DB-sized files; splits backup logic between JS and Rust | Rust `zip` crate in a Tauri command |
-| `async_zip` crate | Async overhead unnecessary for a one-shot backup; more complex error handling | Synchronous `zip` crate (use `spawn_blocking` if needed for tokio compatibility) |
-| Additional Tauri plugins | `fs`, `dialog`, `process` already registered | No new plugins needed |
-| New SQLite schema for backup metadata | Backup metadata already lives in `localStorage` per existing `BackupStatus` / `BACKUP_STORAGE_KEY` pattern | Extend the existing `BackupStatus` interface in `useDiagnostics.ts` |
-| Auto-scheduled backups | Explicitly out of scope per PROJECT.md | Manual backup + safety backups before risky operations is sufficient |
+| Framer Motion / Motion React | +30 KB bundle for effects already handled by Tailwind v4 + `tw-animate-css` | `animate-fade-in` utility class, `transition-opacity duration-150` |
+| Any stepper/wizard library | Step navigation is 10 lines of `useState`; no generic wizard adds value | Custom `usePaintingMode` hook |
+| `@tauri-apps/plugin-global-shortcut` | Registers OS-level shortcuts active when window is unfocused — intrusive for an in-app mode | `useHotkeys` scoped to the overlay component |
+| `react-use` or `ahooks` | Large utility bundles; keyboard hook is one of hundreds of unrelated utilities | Targeted `react-hotkeys-hook` at 8 KB |
+| Tauri child windows | IPC complexity, separate lifecycle, new Rust commands | `fixed inset-0 z-50` overlay over existing window |
+| New Tauri capability permissions | `core:window:allow-set-fullscreen` already present in `capabilities/default.json` | No changes needed |
 
 ---
 
@@ -164,22 +159,21 @@ No npm installs needed. No capabilities changes needed (`process:default` alread
 
 | Package | Version | Compatible With | Notes |
 |---------|---------|-----------------|-------|
-| `zip` | `"2"` | `serde_json "1"`, `std::fs`, `tokio` runtime | Pure-Rust, no system deps, compiles on Windows MSVC without issues |
-| `tauri-plugin-process` | `2.3.1` (already pinned) | `relaunch()` from `@tauri-apps/plugin-process` | Working in `UpdateBanner.tsx`; no version change needed |
-| `sqlx` | `0.8` (already in use) | VACUUM INTO backup commands | Existing pattern validated in `backup_database` command |
+| `react-hotkeys-hook` | `^5.3.2` | React `>=16.8` — confirmed React 19 compatible | `peerDependencies` uses `>=16.8.0`; no upper bound restriction |
 
 ---
 
 ## Sources
 
-- `crates.io/crates/zip` — current version 8.6.0, updated May 2026 (HIGH confidence — crates.io registry)
-- `sqlite.org/howtocorrupt.html` — WAL-mode safe copy rules (HIGH confidence — SQLite official docs)
-- `v2.tauri.app/plugin/process/` — process plugin relaunch API and permissions (HIGH confidence — Tauri official docs)
-- `src-tauri/capabilities/default.json` — `process:default` already granted (verified in codebase)
-- `src/components/common/UpdateBanner.tsx` — `relaunch()` already imported and proven working (verified in codebase)
-- `src-tauri/src/lib.rs` — `backup_database` VACUUM INTO command (verified in codebase)
-- `src-tauri/Cargo.toml` — existing dependencies confirmed (verified in codebase)
+- [react-hotkeys-hook GitHub](https://github.com/JohannesKlauss/react-hotkeys-hook) — peerDependencies and release history verified (HIGH)
+- [react-hotkeys-hook API docs](https://react-hotkeys-hook.vercel.app/docs/api/use-hotkeys) — `enabled`, `preventDefault`, scope options confirmed (HIGH)
+- [Tauri Core Permissions](https://v2.tauri.app/reference/acl/core-permissions/) — `core:window:allow-set-fullscreen` confirmed (HIGH)
+- [Tauri Window API](https://v2.tauri.app/reference/javascript/api/namespacewindow/) — `setFullscreen`, `isFullscreen` confirmed (HIGH)
+- [shadcn stepper issue #5987](https://github.com/shadcn-ui/ui/issues/5987) — no native Stepper, still open as of 2026 (MEDIUM)
+- `src-tauri/capabilities/default.json` (project file) — `core:window:allow-set-fullscreen` already present (HIGH)
+- `src/features/units/ShowcaseMode.tsx` (project file) — fullscreen + keyboard pattern proven in production (HIGH)
+- `package.json` (project file) — `tw-animate-css` already installed; Framer Motion absent (HIGH)
 
 ---
-*Stack research for: HobbyForge v0.2.14 Backup 2.0 — Structured Export, Restore & Safety Backups*
-*Researched: 2026-05-18*
+*Stack research for: HobbyForge v0.2.15 Painting Mode*
+*Researched: 2026-05-19*

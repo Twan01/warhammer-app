@@ -1,437 +1,490 @@
 # Architecture Research
 
-**Domain:** Tauri 2 desktop app — structured backup export, restore/import, and safety backups for v0.2.14
-**Researched:** 2026-05-18
-**Confidence:** HIGH (codebase directly inspected, existing patterns verified)
+**Domain:** Painting Mode — focused recipe execution view integrated into HobbyForge
+**Researched:** 2026-05-19
+**Confidence:** HIGH (direct codebase analysis of all integration surfaces)
 
 ---
 
-## Existing Architecture (Baseline)
+## System Overview
 
-The app already ships two backup-related capabilities:
-
-1. **`backup_database` Rust command** — VACUUM INTO to a user-chosen `.db` path via `save()` dialog. Raw SQLite file, no metadata, no compression.
-2. **`BackupCard` component** — UI wrapper in `DataHealthPage`. Calls the command, writes `{ date, path, success }` to `localStorage["lastBackup"]`. Reads back via `useBackupStatus()` (plain function, not a React Query hook).
-
-The existing pattern establishes: file operations must go through Rust commands (not the JS plugin bridge), and `tauri-plugin-dialog` + `tauri-plugin-fs` are already registered and used throughout the app.
+```
+┌──────────────────────────────────────────────────────────────────┐
+│              Entry Points (6 existing surfaces)                   │
+│                                                                   │
+│  Dashboard             Kanban              Unit Detail            │
+│  ┌──────────────────┐  ┌───────────────┐  ┌──────────────────┐  │
+│  │CurrentFocusCard  │  │ KanbanCard    │  │AssignmentCheckl  │  │
+│  │+ "Paint" button  │  │+ Paint Mode   │  │+ "Open in Paint  │  │
+│  │NextPaintingAction│  │  action       │  │  Mode" link      │  │
+│  │→ link to mode    │  │               │  │                  │  │
+│  └────────┬─────────┘  └──────┬────────┘  └────────┬─────────┘  │
+│           │                   │                    │             │
+│  Applied Recipe    Recipe Detail                                  │
+│  ┌────────┴──────┐  ┌────────┴────────────────────┘             │
+│  │RecipeDetail   │  │  navigate with assignmentId               │
+│  │Sheet footer   │  │                                           │
+│  └───────────────┘                                              │
+└───────────────────────────────┬──────────────────────────────────┘
+                                │  navigate({ to: "/painting-mode/$assignmentId" })
+                                ▼
+┌──────────────────────────────────────────────────────────────────┐
+│          PaintingModePageShell  (src/app/painting-mode/page.tsx) │
+│          Extracts $assignmentId param, NaN guard, renders        │
+│          PaintingModePage — matches GameDayPageShell pattern     │
+└───────────────────────────────┬──────────────────────────────────┘
+                                │
+┌───────────────────────────────▼──────────────────────────────────┐
+│              PaintingModePage  (src/features/painting-mode/)     │
+│                                                                   │
+│  ┌───────────────────────────────────────────────────────────┐   │
+│  │  SectionNav                     StepExecutionView          │   │
+│  │  (section list with              (step name, phase badge,  │   │
+│  │   completion counts,              paint/tool/technique,    │   │
+│  │   jump-to, active highlight)      dilution, time, photo,   │   │
+│  │                                   mark done, prev/next)    │   │
+│  │                                                            │   │
+│  │                       PaintReadinessWarning                │   │
+│  │                       (missing/low paint banner)           │   │
+│  └───────────────────────────────────────────────────────────┘   │
+│                                                                   │
+│  [Keyboard: ArrowLeft/Right = prev/next, Space = mark done]      │
+│  PaintingModeLogSheet (sheet overlay, prefilled, atomic)         │
+└───────────────────────────────┬──────────────────────────────────┘
+                                │
+┌───────────────────────────────▼──────────────────────────────────┐
+│                 Existing Hook Layer (ALL REUSED)                  │
+│                                                                   │
+│  useStepProgress(assignmentId)      → StepProgress[]             │
+│  useToggleStepProgress()            → mark step done/undone      │
+│  useRecipePaints(recipeId)          → RecipeStep[] w/ paint data  │
+│  useRecipeSections(recipeId)        → RecipeSection[] + metadata  │
+│  usePaints()                        → Paint[] ownership status   │
+│  useCreatePaintingSession()         → log session w/ step FK     │
+│  useAssignmentsByUnit(unitId)       → assignment lookup          │
+└───────────────────────────────┬──────────────────────────────────┘
+                                │
+┌───────────────────────────────▼──────────────────────────────────┐
+│                 Existing Query Layer (UNCHANGED)                  │
+│  getStepProgress / upsertStepProgress                            │
+│  getRecipePaintsByRecipe / getRecipeSections                     │
+│  createSession                                                    │
+└───────────────────────────────┬──────────────────────────────────┘
+                                │
+┌───────────────────────────────▼──────────────────────────────────┐
+│           SQLite: hobbyforge.db (UNCHANGED, no migrations)       │
+│  unit_recipe_assignments, unit_recipe_step_progress              │
+│  recipe_steps, recipe_sections, painting_sessions                │
+└──────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## System Overview: Backup 2.0 Data Flow
+## Component Responsibilities
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  UI Layer (React)                                            │
-│  ┌──────────────┐  ┌──────────────┐  ┌───────────────────┐  │
-│  │ BackupCard   │  │ RestoreSheet │  │ BackupStatusBadge │  │
-│  │ (enhanced)   │  │ (new)        │  │ (new)             │  │
-│  └──────┬───────┘  └──────┬───────┘  └────────┬──────────┘  │
-│         │                 │                   │              │
-├─────────┼─────────────────┼───────────────────┼──────────────┤
-│  Hook Layer                                                  │
-│  useBackupStatus()  ←─ localStorage (existing)               │
-│  useBackupHistory() ←─ localStorage array (new)              │
-├─────────┼─────────────────┼───────────────────┼──────────────┤
-│  invoke() boundary — Tauri IPC                               │
-├─────────▼─────────────────▼───────────────────▼──────────────┤
-│  Rust Commands (src-tauri/src/lib.rs)                        │
-│  ┌───────────────────┐  ┌────────────────────────────────┐   │
-│  │ export_backup     │  │ restore_backup                 │   │
-│  │ (zip + metadata)  │  │ (validate, safety-bkp, replace)│   │
-│  └───────────────────┘  └────────────────────────────────┘   │
-│  ┌───────────────────┐  ┌────────────────────────────────┐   │
-│  │ backup_database   │  │ validate_backup_zip            │   │
-│  │ (existing VACUUM) │  │ (inspect zip, return manifest) │   │
-│  └───────────────────┘  └────────────────────────────────┘   │
-├─────────────────────────────────────────────────────────────┤
-│  SQLite / File System                                        │
-│  hobbyforge.db  ←─ sqlx direct connection (not plugin pool) │
-│  %APPDATA%\com.hobbyforge.app\                              │
-│    ├── hobbyforge.db                                         │
-│    ├── rules.db                                              │
-│    └── safety_backups\          (new — auto-created)        │
-└─────────────────────────────────────────────────────────────┘
-```
+| Component | Responsibility | New / Modified / Reused |
+|-----------|----------------|------------------------|
+| `PaintingModePageShell` | Route param extraction, NaN guard, renders `PaintingModePage` | NEW (matches `GameDayPageShell`) |
+| `PaintingModePage` | Page root: owns keyboard handler, `logSheetOpen` state, layout composition, back navigation | NEW |
+| `usePaintingModeState` | Local hook: derives initial step from completedSet, controlled `currentStepId`, prev/next/jump navigation, ordered step array | NEW |
+| `StepExecutionView` | Renders step detail (name, phase badge, paint, tool, technique, dilution, time estimate, step photo), mark done button, prev/next nav | NEW |
+| `SectionNav` | Vertical section list with completion counts, active section highlight, click-to-jump-to-first-step | NEW |
+| `PaintReadinessWarning` | Non-blocking banner when current step's paint is missing or running-low, reuses `PaintAvailability` type | NEW |
+| `PaintingModeLogSheet` | Prefilled session logger (unit+recipe+step locked from context), only duration+notes editable, atomic complete+log | NEW |
+| `AssignmentChecklist` | Existing sectioned checklist — reused as-is, gains "Open in Paint Mode" link per assignment | MODIFIED (minor) |
+| `CurrentFocusCard` | Gains "Paint" button alongside existing "Open" and "Log" buttons | MODIFIED (minor) |
+| `NextPaintingActionCard` | Changes link target from `/painting-projects` to `/painting-mode/$assignmentId` when assignment exists | MODIFIED (minor) |
+| `KanbanCardActions` | Gains "Paint Mode" action that navigates with assignment ID | MODIFIED (minor) |
+| `RecipeDetailSheet` | Gains "Open in Paint Mode" footer button (enabled only when unit has assignment) | MODIFIED (minor) |
+| `computeAssignmentProgress` | Pure function for progress percentages — reused unchanged | REUSED |
+| `computeWorkflowPosition` | Pure function for "where am I" derivation — reused unchanged | REUSED |
+| `RecipeStepTimeline` | Existing timeline display — optionally reused for recipe overview panel | REUSED |
 
 ---
 
-## Rust vs TypeScript Boundary
+## Recommended Project Structure
 
-This is the most critical architectural decision for Backup 2.0.
+```
+src/
+├── app/
+│   ├── painting-mode/
+│   │   └── page.tsx                     # PaintingModePageShell
+│   └── router.tsx                       # +1 route, +1 import
+├── features/
+│   └── painting-mode/                   # NEW feature module
+│       ├── PaintingModePage.tsx         # Page root: layout, keyboard, sheet state
+│       ├── usePaintingModeState.ts      # Local navigation + step state hook
+│       ├── StepExecutionView.tsx        # Current step detail + mark done + nav
+│       ├── SectionNav.tsx               # Section list with progress counts + jump
+│       ├── PaintReadinessWarning.tsx    # Missing/low paint banner
+│       └── PaintingModeLogSheet.tsx     # Prefilled session logger
+```
 
-**Must be in Rust:**
+### Structure Rationale
 
-| Operation | Why |
-|-----------|-----|
-| VACUUM INTO (existing) | tauri-plugin-sql JS bridge cannot execute VACUUM INTO — proven in v0.2.13 |
-| ZIP archive creation | Requires writing to arbitrary filesystem paths; `zip` crate handles binary safely |
-| ZIP extraction | Same — file writes outside AppData scope need Rust's `tauri_plugin_fs` ACL bypass |
-| Safety backup creation | Happens before restore — must be atomic with the restore path logic |
-| File copy for safety backups | Rust `std::fs::copy` is synchronous and atomic; JS equivalent would add race risk |
-| DB file replacement during restore | The plugin pool holds the DB open; only Rust can close the pool and replace the file |
-| manifest.json write inside zip | Part of ZIP creation — bundled with it |
-
-**Can stay in TypeScript:**
-
-| Operation | Why |
-|-----------|-----|
-| File picker dialogs | `tauri-plugin-dialog` already used in BackupCard |
-| Reading manifest from zip (preview) | Rust command returns parsed manifest as JSON; TS just renders it |
-| React Query cache invalidation after restore | Must happen client-side post-invoke |
-| localStorage backup history writes | Same as existing backup status pattern |
-| Backup staleness/health computation | Pure function, same pattern as `getSyncFreshness()` |
-| Diagnostic flag for "never backed up" | Read-only check of localStorage — no Rust needed |
+- **`src/features/painting-mode/`:** Follows the established one-dir-per-domain convention. All new components co-located. No files scattered across other features.
+- **`src/app/painting-mode/page.tsx`:** Thin shell identical to `src/app/game-day/page.tsx`. Only purpose: extract URL param and render the feature.
+- **No new files in `src/db/queries/` or `src/hooks/`:** All required data paths already exist. The only new hook is `usePaintingModeState` which is local to the feature (not a React Query hook — it is pure React state derived from existing query data).
 
 ---
 
-## New Rust Commands Required
+## Architectural Patterns
 
-### 1. `export_backup` (new — replaces/extends `backup_database`)
+### Pattern 1: Full-Page Route (GameDay pattern)
 
-```
-Input:  { destination: String }  // .zip path from save() dialog
-Output: Result<BackupManifest, String>
-```
+**What:** A new TanStack Router route at `/painting-mode/$assignmentId`. Not an overlay, not a Sheet, not a modal.
 
-Steps:
-1. Resolve `app_data_dir` → get `hobbyforge.db` path
-2. `VACUUM INTO` to a temp file in `app_data_dir/tmp_backup.db`
-3. Build `metadata.json` (app version, schema version, timestamp, row counts)
-4. Open a zip writer at `destination`
-5. Add `hobbyforge.db` (from temp file) + `metadata.json` to zip
-6. Remove temp file
-7. Return `BackupManifest` as JSON (TS side stores to localStorage)
+**When to use:** The feature needs full-screen real estate, distraction-free layout, keyboard shortcuts, and navigation via `useNavigate` from any existing surface. `GameDayPage` sets this exact precedent with `/game-day/$listId`.
 
-The `zip` crate (`zip = "2"`) must be added to `src-tauri/Cargo.toml`.
+**Trade-offs:** User must navigate back to return to the source page. This is intentional — the "distraction-free" goal means Paint Mode should own the full screen. The browser-back button or an explicit "Exit" button handles return.
 
-### 2. `validate_backup_zip` (new)
-
-```
-Input:  { source: String }  // path to .zip file from open() dialog
-Output: Result<BackupManifest, String>
-```
-
-Steps:
-1. Open zip, verify it contains `hobbyforge.db` + `metadata.json`
-2. Parse `metadata.json` → return as `BackupManifest`
-3. Return error string if corrupt/unrecognized format
-
-Used to power the "preview before restore" UI without doing a restore yet.
-
-### 3. `restore_backup` (new)
-
-```
-Input:  { source: String, safety_backup_path: String }
-Output: Result<RestoreResult, String>
-```
-
-Steps (order is critical):
-1. Create safety backup via `VACUUM INTO safety_backup_path`
-2. Extract `hobbyforge.db` from zip to a temp file
-3. **Close the sqlx connection** to `hobbyforge.db`
-4. Replace `app_data_dir/hobbyforge.db` with temp file via `std::fs::rename`
-5. **Restart** the Tauri process via `tauri_plugin_process::restart()`
-
-**DB connection lifecycle note:** `tauri-plugin-sql` holds a connection pool to `hobbyforge.db`. You cannot replace a file that is open. The only safe approach for a Tauri app is:
-- Use `tauri_plugin_process::restart()` after the file swap — the app restarts, migrations run on the restored DB, and the pool is fresh.
-- Do NOT try to close the pool mid-session — no public API for it in tauri-plugin-sql v2.
-
-The `restore_backup` command therefore never returns to the JS caller on success — the process restarts instead. The TS caller should handle this with a `try/catch` that expects either an error (show it) or no response (process is restarting).
-
-### 4. `create_safety_backup` (new helper or merged into restore_backup)
-
-Can be a standalone command OR merged as a pre-step inside `restore_backup`. Standalone is preferable for the "pre-sync safety backup" use case.
-
-```
-Input:  {} (no args — path auto-computed)
-Output: Result<String, String>  // returns the backup path on success
-```
-
-Path: `%APPDATA%\com.hobbyforge.app\safety_backups\safety-{timestamp}.db`
-
----
-
-## BackupManifest Type (shared Rust + TS)
-
+**Example:**
 ```typescript
-// src/types/backup.ts (new)
-export interface BackupManifest {
-  app_version: string;        // from tauri.conf.json at backup time
-  schema_version: number;     // PRAGMA user_version at backup time
-  created_at: string;         // ISO 8601
-  hobbyforge_db_size_bytes: number;
-  row_counts: {               // for preview display
-    units: number;
-    painting_recipes: number;
-    painting_sessions: number;
-    army_lists: number;
-    battle_logs: number;
+// src/app/painting-mode/page.tsx
+import { useParams } from "@tanstack/react-router";
+import { PaintingModePage } from "@/features/painting-mode/PaintingModePage";
+
+export function PaintingModePageShell() {
+  const { assignmentId } = useParams({ from: "/painting-mode/$assignmentId" });
+  const id = Number(assignmentId);
+  if (Number.isNaN(id)) return null;
+  return <PaintingModePage assignmentId={id} />;
+}
+
+// src/app/router.tsx addition
+const paintingModeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/painting-mode/$assignmentId",
+  component: PaintingModePageShell,
+});
+```
+
+### Pattern 2: Current Step as Derived-then-Controlled State
+
+**What:** On mount, derive `currentStepId` from the first incomplete step in the ordered steps array. After that, it is controlled local React state — prev/next navigation changes it without any DB round-trip.
+
+**When to use:** When "current position" is cheap to derive from existing data (completedSet from `useStepProgress`) and navigation needs to be instantaneous.
+
+**Trade-offs:** If the user returns to Paint Mode after a break, the initial position re-derives correctly. If two windows somehow both modified progress (impossible for a single-user desktop app), they could diverge — not a concern here.
+
+**Example (`usePaintingModeState.ts`):**
+```typescript
+export function usePaintingModeState(
+  steps: RecipeStep[],
+  sections: RecipeSection[],
+  progressRows: StepProgress[]
+) {
+  // Build flat ordered array: sort by [section.order_index, step.order_index]
+  const orderedSteps = useMemo(() => {
+    const sectionOrder = new Map(sections.map((s, i) => [s.id, s.order_index]));
+    return [...steps].sort((a, b) => {
+      const sa = sectionOrder.get(a.section_id ?? -1) ?? 0;
+      const sb = sectionOrder.get(b.section_id ?? -1) ?? 0;
+      if (sa !== sb) return sa - sb;
+      return a.order_index - b.order_index;
+    });
+  }, [steps, sections]);
+
+  const completedSet = useMemo(
+    () => new Set(progressRows.filter(p => p.completed === 1).map(p => p.recipe_step_id)),
+    [progressRows]
+  );
+
+  // Derive once on mount: first incomplete step, fallback to last step
+  const initialStepId = useMemo(() => {
+    const first = orderedSteps.find(s => !completedSet.has(s.id));
+    return first?.id ?? orderedSteps[orderedSteps.length - 1]?.id ?? null;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // intentionally run once on mount only
+
+  const [currentStepId, setCurrentStepId] = useState<number | null>(initialStepId);
+  const currentIndex = orderedSteps.findIndex(s => s.id === currentStepId);
+
+  return {
+    currentStepId,
+    currentIndex,
+    orderedSteps,
+    completedSet,
+    canGoPrev: currentIndex > 0,
+    canGoNext: currentIndex < orderedSteps.length - 1,
+    goToStep: setCurrentStepId,
+    goPrev: () => currentIndex > 0 && setCurrentStepId(orderedSteps[currentIndex - 1].id),
+    goNext: () => currentIndex < orderedSteps.length - 1 && setCurrentStepId(orderedSteps[currentIndex + 1].id),
   };
-  format_version: number;     // 1 — for future format evolution
 }
 ```
 
-Rust serializes this via `serde::Serialize` → JSON in the zip manifest + return value.
+### Pattern 3: Keyboard Handler at Page Root with Sheet Guard
+
+**What:** `PaintingModePage` registers a `keydown` listener in a `useEffect`. Keyboard shortcuts (ArrowLeft/Right for nav, Space/Enter for mark done, Escape to exit) are handled centrally. The handler is suppressed when `logSheetOpen` is true or when focus is in a form control.
+
+**When to use:** Always in a "mode" page with keyboard navigation. The central registration means shortcuts work regardless of where focus is on the page.
+
+**Trade-offs:** Must guard against shortcuts firing when PaintingModeLogSheet is open (it has its own form). Use a `logSheetOpen` boolean state flag checked first in the handler.
+
+**Example:**
+```typescript
+// PaintingModePage.tsx
+useEffect(() => {
+  function handleKey(e: KeyboardEvent) {
+    if (logSheetOpen) return;
+    const tag = (e.target as HTMLElement).tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+    if (e.key === "ArrowRight" || e.key === "l") { e.preventDefault(); nav.goNext(); }
+    if (e.key === "ArrowLeft"  || e.key === "h") { e.preventDefault(); nav.goPrev(); }
+    if (e.key === " " || e.key === "Enter")       { e.preventDefault(); handleMarkDone(); }
+    if (e.key === "Escape")                        { navigate({ to: ".." }); }
+  }
+  window.addEventListener("keydown", handleKey);
+  return () => window.removeEventListener("keydown", handleKey);
+}, [logSheetOpen, nav, handleMarkDone, navigate]);
+```
+
+### Pattern 4: Atomic Step Completion + Session Log
+
+**What:** "Mark done" is a two-mutation sequence: (1) `upsertStepProgress` marks the step complete, (2) `createSession` logs the session with the same `recipe_step_id`. Sequential `mutateAsync`. Partial failure (step ok, session fails) shows warning toast and stays on the step — matches `LogSessionSheet`'s existing tolerance.
+
+**When to use:** Whenever the user marks a step done in Paint Mode. Session creation is the natural result of completing a step.
+
+**Trade-offs:** Sequential means latency is the sum of both mutations. For a local SQLite desktop app this is imperceptible (< 5ms each). No need for `Promise.all` since session depends on step completion.
+
+### Pattern 5: Section-Grouped Step Navigation in `usePaintingModeState`
+
+**What:** The `orderedSteps` flat array is built by sorting steps using `[sectionOrderIndex, stepOrderIndex]` as the composite key. This produces the correct painting order: all steps in section 1 first, then all in section 2, etc. Section nav jumps to the first step of a target section by finding `orderedSteps.find(s => s.section_id === targetSectionId)`.
+
+**Why this works:** It mirrors exactly how `AssignmentChecklist` and `SectionedTimeline` render steps — sectioned by `section_id`, ordered by `order_index` within each section. `computeWorkflowPosition` uses the same ordering logic.
 
 ---
 
-## React Query Cache Invalidation After Restore
+## Data Flow
 
-Since restore causes a process restart, cache invalidation is implicit — the React Query cache is entirely fresh on restart. No explicit invalidation is needed for the restore path.
+### Request Flow: Entry to Active Step
 
-However, for any future "hot reload" approach (not recommended for v0.2.14), the invalidation would be:
+```
+[User clicks "Paint" on KanbanCard or CurrentFocusCard]
+    ↓
+Resolve assignment.id from local data (useAssignmentsByUnit already fetched)
+    ↓
+navigate({ to: "/painting-mode/$assignmentId", params: { assignmentId: String(id) } })
+    ↓
+PaintingModePageShell extracts param, NaN guard
+    ↓
+PaintingModePage mounts, fires 4 parallel queries:
+  useStepProgress(assignmentId)      → progressRows
+  useRecipePaints(recipeId)          → steps (all RecipeStep fields)
+  useRecipeSections(recipeId)        → sections (section_type, technique, etc.)
+  usePaints()                        → allPaints (ownership status)
+    ↓
+usePaintingModeState(steps, sections, progressRows)
+  → orderedSteps, currentStepId, completedSet, nav functions
+    ↓
+currentStep = orderedSteps.find(s => s.id === currentStepId)
+paintMap = new Map(allPaints.map(p => [p.id, p]))
+currentStepPaints = [paintMap.get(currentStep.paint_id), paintMap.get(currentStep.alt_paint_id)]
+    ↓
+Render: SectionNav (left) + StepExecutionView (center) + PaintReadinessWarning (if needed)
+```
+
+### Request Flow: Mark Done + Log Session
+
+```
+[Space keypress or "Mark Done" button click]
+    ↓
+useToggleStepProgress.mutateAsync({
+  assignmentId,
+  recipeStepId: currentStepId,
+  completed: true
+})
+    ↓ success → invalidates STEP_PROGRESS_KEY(assignmentId)
+    ↓
+useCreatePaintingSession.mutateAsync({
+  unit_id,                              // from assignment lookup
+  recipe_id,                            // from assignment
+  recipe_step_id: currentStepId,
+  section_name: currentSection?.name ?? null,
+  recipe_section_id: currentSection?.id ?? null,
+  session_date: todayISO(),
+  duration_minutes: logSheetDuration ?? 30,
+  notes: null
+})
+    ↓ success → invalidates painting-sessions, workflow-positions, hobby-analytics, etc.
+    ↓
+nav.goNext()  — advance to next step (local state update, instant)
+```
+
+### State Management
+
+```
+Server State (React Query):
+  progressRows       ← useStepProgress(assignmentId)
+  steps              ← useRecipePaints(recipeId)
+  sections           ← useRecipeSections(recipeId)
+  allPaints          ← usePaints()
+
+Local Derived State (usePaintingModeState):
+  orderedSteps       ← derived from steps + sections (memo)
+  completedSet       ← derived from progressRows (memo)
+  currentStepId      ← useState, initialized from completedSet on mount
+
+UI State (PaintingModePage):
+  logSheetOpen       ← useState<boolean>
+  logSheetDuration   ← useState<number>
+```
+
+---
+
+## Integration Points
+
+### Entry Point Wiring
+
+| Surface | File | Current Behavior | Required Change |
+|---------|------|-----------------|-----------------|
+| `NextPaintingActionCard` | `src/features/dashboard/NextPaintingActionCard.tsx` | Link to `/painting-projects` | Change link to `/painting-mode/${data.assignment_id}` — `assignment_id` must be added to `FirstIncompleteStep` query result |
+| `CurrentFocusCard` | `src/features/dashboard/CurrentFocusCard.tsx` | "Open" + "Log" buttons | Add "Paint" button, pass `onPaint` callback from `DashboardPage` (sibling portal pattern) |
+| `DashboardPage` | `src/features/dashboard/DashboardPage.tsx` | Manages `onOpen`/`onLog` callbacks | Add assignment lookup for focus unit, pass `onPaint: () => navigate(...)` to `CurrentFocusCard` |
+| `KanbanCardActions` | `src/features/painting-projects/KanbanCardActions.tsx` | "Log Session" | Add "Paint Mode" action, pass `onPaintMode` callback |
+| `KanbanCard` | `src/features/painting-projects/KanbanCard.tsx` | `onLogSession` prop | Add `onPaintMode` prop, thread through to `KanbanCardActions` |
+| `KanbanBoard` | `src/features/painting-projects/KanbanBoard.tsx` | Calls `onLogSession` | Add `onPaintMode` callback, resolve `assignmentId` via enrichment data |
+| `AssignmentChecklist` | `src/features/recipes/AssignmentChecklist.tsx` | Checklist only | Add "Open in Paint Mode" button at top, receives `onPaintMode` callback from parent |
+| `RecipeDetailSheet` | `src/features/recipes/RecipeDetailSheet.tsx` | "Apply to Unit(s)" in footer | Add "Open in Paint Mode" footer button (enabled when assignments exist for the linked unit) |
+
+### Assignment ID Resolution by Surface
+
+The key question at each entry point: "which `assignmentId` do I navigate with?"
+
+| Surface | How to Get Assignment ID |
+|---------|--------------------------|
+| `CurrentFocusCard` (via `DashboardPage`) | `useAssignmentsByUnit(focusUnit.id)` → `assignments[0]?.id`. Already fetched in `DashboardPage`. |
+| `NextPaintingActionCard` | `data.assignment_id` — add this column to `getMostRecentAssignmentWithIncompleteStep` SQL query (trivially: `a.id AS assignment_id` already in the SELECT as `assignment_id`). Confirm it is exposed on `FirstIncompleteStep` type. |
+| `KanbanCard` | `useKanbanEnrichment` or `useAssignmentsByUnit` per unit. The Kanban board already has enrichment data — thread `assignment_id` through the enrichment or do a targeted lookup. |
+| `RecipeDetailSheet` | `useAssignmentsByRecipe(recipe.id)` → `assignments[0]?.id`. Already imported in the sheet's hook list. |
+| `AssignmentChecklist` | `assignment.id` — it is a required prop of the component. Pass it directly to `onPaintMode`. |
+
+### Route Registration
 
 ```typescript
-// Nuke everything
-queryClient.clear();
-// Then force remount of the router
+// src/app/router.tsx
+import { PaintingModePageShell } from "./painting-mode/page";
+
+const paintingModeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/painting-mode/$assignmentId",
+  component: PaintingModePageShell,
+});
+
+const routeTree = rootRoute.addChildren([
+  // ... existing routes
+  paintingModeRoute,
+]);
 ```
 
-The restart approach is simpler and safer.
+### Cache Invalidation Contract
+
+`useToggleStepProgress` currently invalidates only `STEP_PROGRESS_KEY(assignmentId)`. This is correct and sufficient for Painting Mode — the `completedSet` updates via query refetch, which drives `SectionNav` progress counts and `StepExecutionView` done state.
+
+`useCreatePaintingSession` already invalidates the broader keys: `painting-sessions`, `workflow-positions`, `hobby-analytics`, `recent-activity`, `goal-progress`. No changes to invalidation contracts are needed.
+
+### Hook Reuse Map
+
+| Required Data | Existing Hook | Status |
+|---------------|--------------|--------|
+| Step definitions with all fields | `useRecipePaints(recipeId)` | Reused |
+| Section grouping + workflow metadata | `useRecipeSections(recipeId)` | Reused |
+| Step completion state | `useStepProgress(assignmentId)` | Reused |
+| Toggle step done/undone | `useToggleStepProgress()` | Reused |
+| Paint ownership status | `usePaints()` | Reused |
+| Log session with step FK | `useCreatePaintingSession()` | Reused |
+| Per-section progress counts | `computeAssignmentProgress()` pure fn | Reused |
+| Navigation + ordered steps | `usePaintingModeState` | NEW (local hook) |
+| Assignment metadata (unit_id, recipe_id) | `getAssignment(id)` query | 1 new query or JOIN |
+
+The one gap: given only `assignmentId`, the page needs `unit_id` and `recipe_id` to call the correct hooks. Options in preference order:
+1. Add a `getAssignment(id)` query to `src/db/queries/recipeAssignments.ts` (a trivial `SELECT * WHERE id = $1` — the function stub already exists at line 79 of that file).
+2. Pass `unitId` and `recipeId` as additional route search params from the entry point.
+
+Option 1 is cleaner: the page is self-contained with just `assignmentId`.
 
 ---
 
-## localStorage Backup State Evolution
+## Suggested Build Order
 
-Existing:
-```typescript
-// Single entry
-BACKUP_STORAGE_KEY = "lastBackup"
-{ date, path, success }: BackupStatus
-```
+Dependencies flow bottom-up. Each phase is unblocked when its predecessor completes.
 
-Extended for v0.2.14:
-```typescript
-// Key stays the same for backward compat with existing BackupCard
-BACKUP_STORAGE_KEY = "lastBackup"
-{ date, path, success, manifest?: BackupManifest }: BackupStatus  // add manifest field
-
-// New key for history
-BACKUP_HISTORY_KEY = "backupHistory"
-BackupStatus[]  // last N backups (cap at 10)
-```
-
-This extends existing types without breaking the existing `useBackupStatus()` hook.
+| Phase | Deliverable | Depends On | Parallelizable |
+|-------|-------------|-----------|----------------|
+| 1 | `usePaintingModeState` hook + unit tests (step ordering, navigation, completedSet derivation) | Existing `RecipeStep` type, `computeAssignmentProgress` patterns | Independent, start here |
+| 2 | `StepExecutionView` + `PaintReadinessWarning` components | Phase 1 hook, `usePaints`, existing `RecipeStepTimeline` patterns | After phase 1 |
+| 3 | `SectionNav` component | Phase 1 hook for progress Map, `RecipeSection` type | After phase 1, parallel with phase 2 |
+| 4 | `PaintingModePage` full layout + keyboard handler + route registration | Phases 2–3, `useStepProgress`, `useRecipePaints`, `useRecipeSections`, `useToggleStepProgress` | After phases 2–3 |
+| 5 | `PaintingModeLogSheet` (prefilled, atomic complete+log) | Phase 4 (needs page context), `useCreatePaintingSession` | After phase 4 |
+| 6 | Entry point wiring (all 6 surfaces: add "Paint" buttons, navigate calls) | Completed route from phase 4 | After phase 4 |
+| 7 | Tests: step selection, navigation, completion, paint warnings, session prefill | Phases 1–6 | After phase 6 |
 
 ---
 
-## Backup Diagnostics: Pure Function Pattern
-
-Follow the `getSyncFreshness()` pattern — pure function in `src/lib/`:
+## Anti-Patterns
 
-```typescript
-// src/lib/backupHealth.ts (new)
-export type BackupHealth = "healthy" | "stale" | "old" | "never" | "failed";
+### Anti-Pattern 1: Overlay / Modal Instead of Full Route
 
-export function getBackupHealth(status: BackupStatus | null): BackupHealth {
-  if (!status) return "never";
-  if (!status.success) return "failed";
-  const ageDays = (Date.now() - new Date(status.date).getTime()) / 86_400_000;
-  if (ageDays < 7) return "healthy";
-  if (ageDays < 30) return "stale";
-  return "old";
-}
-```
+**What people do:** Implement Painting Mode as a Dialog or Sheet overlay on an existing page.
 
-Consumed by the enhanced `BackupCard` and `DataHealthSummaryCard` without any backend calls.
+**Why it's wrong:** Sheets are 400–500px side panels. The feature requires "distraction-free presentation with larger typography, high contrast." Sheet real estate is insufficient. Keyboard shortcuts from the overlay would compete with the parent page's listeners. Radix nested portal context issues apply (documented pitfall in `PROJECT.md`).
 
----
+**Do this instead:** Full-page route at `/painting-mode/$assignmentId`. Exact precedent: `GameDayPage` at `/game-day/$listId`.
 
-## Component Boundaries
+### Anti-Pattern 2: Fetching Assignment in the Shell
 
-| Component | New/Modified | Responsibility |
-|-----------|-------------|----------------|
-| `BackupCard` | Modified | Add export format selector (zip vs raw db), show manifest details, link to restore |
-| `RestoreSheet` | New | File picker → validate_backup_zip → preview manifest → confirm → invoke restore_backup |
-| `BackupStatusBadge` | New | Compact badge (healthy/stale/never) for DataHealthSummaryCard dashboard widget |
-| `SafetyBackupNotice` | New (inline) | Small notice shown before destructive ops (restore, sync if opted in) |
-| `BackupHistoryList` | New (inside BackupCard) | Last N backups from localStorage history |
+**What people do:** `PaintingModePageShell` queries for the assignment to validate it exists before rendering the page, causing a loading flash.
 
----
+**Why it's wrong:** The parent already has the assignment context (that's how it navigated). The shell's only job is param extraction and NaN guard, matching `GameDayPageShell`.
 
-## Data Flow: Export Backup
+**Do this instead:** Shell extracts raw `number`, passes to page. Page handles all loading states.
 
-```
-User clicks "Export Backup"
-    ↓
-save() dialog (tauri-plugin-dialog) → user picks .zip path
-    ↓
-invoke("export_backup", { destination })
-    ↓ [Rust]
-VACUUM INTO temp.db → build metadata.json → zip both → return BackupManifest
-    ↓ [back to TS]
-Write BackupStatus + manifest to localStorage
-Update backup history array
-Toast: "Backup saved to [filename]"
-```
+### Anti-Pattern 3: Storing Current Step in SQLite
 
-## Data Flow: Restore Backup
+**What people do:** Add `current_step_id` to `unit_recipe_assignments` to persist which step the user is "on."
 
-```
-User clicks "Restore from Backup"
-    ↓
-open() dialog → user picks .zip path
-    ↓
-invoke("validate_backup_zip", { source }) → BackupManifest
-    ↓
-RestoreSheet shows preview (version, date, row counts, schema compatibility check)
-    ↓
-User confirms → invoke("restore_backup", { source, safety_backup_path })
-    ↓ [Rust]
-1. VACUUM INTO safety_backup_path   ← safety net
-2. Extract hobbyforge.db from zip to temp file
-3. std::fs::rename temp → hobbyforge.db
-4. tauri_plugin_process::restart()  ← process exits here
-    ↓ [App restarts]
-tauri-plugin-sql runs migrations on restored DB (no-op if schema matches)
-App loads fresh — all React Query cache empty
-```
+**Why it's wrong:** Current step is transient UI state — it changes on every prev/next keypress. Would flood the DB with writes. The position is already derivable from `completedSet` (first incomplete step).
 
-## Data Flow: Safety Backup (pre-restore, optional pre-sync)
+**Do this instead:** Derive initial step on mount from `completedSet`. Navigate in local React state. Optionally persist to `localStorage["painting-mode-step-${assignmentId}"]` if resume-on-reload is desired.
 
-```
-Auto-triggered before restore (no dialog)
-Auto-path: %APPDATA%\com.hobbyforge.app\safety_backups\safety-{YYYYMMDD-HHmmss}.db
-invoke("create_safety_backup") → path string → stored in safety backup log
-```
+### Anti-Pattern 4: Per-Step Hook Calls for Paint Data
 
----
+**What people do:** Call `usePaints()` inside `StepExecutionView` and filter per step, or call a per-step data hook.
 
-## Architectural Patterns to Follow
+**Why it's wrong:** `usePaints()` inside a component that re-renders on every step navigation is wasteful (though React Query deduplicates it). More importantly, the pattern is inconsistent with the rest of the codebase.
 
-### Pattern 1: Direct sqlx Connection (Not Plugin Pool)
+**Do this instead:** `usePaints()` once at page level → `paintMap = new Map(paints.map(p => [p.id, p]))` → pass as prop. Identical pattern to `RecipeDetailSheet`, `SectionedTimeline`, and `RecipeStepTimeline`.
 
-The existing `backup_database` and `bulk_sync_rules` both use a direct `sqlx` connection, bypassing the plugin pool. This is the established pattern for all Rust DB operations. All new Rust backup commands follow this pattern.
+### Anti-Pattern 5: Two-State Section + Step Navigation
 
-**Why:** The plugin pool is managed by tauri-plugin-sql. Direct connections avoid pool contention and allow operations the pool interface doesn't expose (VACUUM INTO, write access outside the plugin's API).
+**What people do:** Track `currentSectionIndex` and `currentStepIndexWithinSection` as two separate state values, requiring synchronization on section jumps.
 
-### Pattern 2: Rust Returns Structured Data, TS Stores It
+**Why it's wrong:** Creates derived-state sync bugs when jumping sections. Section is always derivable from `currentStep.section_id`.
 
-`export_backup` returns a `BackupManifest` struct (serialized as JSON). TypeScript stores it in localStorage. This follows the `bulk_sync_rules` → `SyncResult` pattern already established.
-
-### Pattern 3: Diagnostic Staleness as Pure Function
-
-`getBackupHealth()` follows `getSyncFreshness()` exactly — pure function, no hooks, testable in isolation, no backend calls.
-
-### Pattern 4: Process Restart for Restore
-
-For restore specifically, `tauri_plugin_process::restart()` is the only safe approach given the plugin pool holds the DB open. This is simpler than attempting pool teardown and avoids a class of race conditions. The TS caller wraps the invoke in try/catch but does not await a response — if no error, the app restarts.
-
----
-
-## Anti-Patterns to Avoid
-
-### Anti-Pattern 1: Restoring via JS File Write + Pool Reconnect
-
-**What it looks like:** Writing the extracted `.db` bytes via `tauri-plugin-fs` `writeFile()` to the AppData path, then calling `Database.load()` again.
-
-**Why wrong:** `tauri-plugin-sql` holds the DB file open with a connection pool. `writeFile` will either fail (Windows file lock) or corrupt the DB mid-write if the pool is still active. There is no public API to close the pool in v2.
-
-**Instead:** Rust command does the file replacement, then `tauri_plugin_process::restart()`.
-
-### Anti-Pattern 2: Zip Operations in TypeScript
-
-**What it looks like:** Using a JS zip library (e.g., `jszip`) to create the archive client-side.
-
-**Why wrong:** The DB file (`hobbyforge.db`) is not accessible via `tauri-plugin-fs` `readFile()` because the plugin pool holds it open. Rust must create the zip using the VACUUM INTO temp file approach.
-
-**Instead:** `export_backup` Rust command handles all zip operations.
-
-### Anti-Pattern 3: Storing Safety Backups Outside AppData
-
-**What it looks like:** Prompting the user for a safety backup location before every restore.
-
-**Why wrong:** Adds friction to restore. Safety backups are automatic, not user-visible by default.
-
-**Instead:** Fixed subdirectory `%APPDATA%\com.hobbyforge.app\safety_backups\` with timestamped filenames. Mention the path in the post-restore success screen only.
-
-### Anti-Pattern 4: Schema Version Mismatch Silent Restore
-
-**What it looks like:** Restoring a backup without checking if its `schema_version` is compatible.
-
-**Why wrong:** Restoring a backup from v0.2.10 (schema v21) into v0.2.14 (schema v28) will cause migrations to re-run. If any migration is not idempotent, data loss or errors follow.
-
-**Instead:** `validate_backup_zip` returns `schema_version`. The RestoreSheet shows a warning if `backup.schema_version < current.schema_version` ("This backup is from an older version. Migrations will be re-applied on restore."). If `backup.schema_version > current.schema_version`, block with error ("This backup requires a newer app version").
-
----
-
-## File System Scope: AppData Directory
-
-Established pattern from `src-tauri/src/lib.rs`:
-
-```rust
-let app_data_dir = app.path().app_data_dir()
-    .map_err(|e| format!("app_data_dir: {e}"))?;
-// Windows: C:\Users\{user}\AppData\Roaming\com.hobbyforge.app\
-```
-
-New paths created by Backup 2.0:
-```
-%APPDATA%\com.hobbyforge.app\
-  hobbyforge.db           ← existing
-  rules.db                ← existing
-  safety_backups\         ← new, auto-created by create_safety_backup
-    safety-20260518-143022.db
-    safety-20260521-091540.db
-```
-
-The `safety_backups` subdirectory is created via `std::fs::create_dir_all` inside the Rust command (same as `app_data_dir` creation in `run()`).
-
----
-
-## Cargo Dependencies Required
-
-```toml
-# src-tauri/Cargo.toml additions
-zip = "2"          # zip archive read/write — crates.io top result, 70M+ downloads
-```
-
-No other new Rust dependencies. `serde_json` and `sqlx` already present.
-
----
-
-## Suggested Build Order (Phase Dependencies)
-
-1. **Rust foundation first** — `export_backup`, `validate_backup_zip`, `create_safety_backup` commands + `BackupManifest` type. These have no TypeScript dependencies and unblock all UI work. Register in `invoke_handler!`.
-
-2. **TypeScript types** — `src/types/backup.ts` with `BackupManifest`, extended `BackupStatus`. Used by all subsequent UI components.
-
-3. **Enhanced BackupCard + export flow** — Replaces existing `.db` export with `.zip` export. `useBackupStatus()` extended with `manifest`. Existing localStorage key preserved.
-
-4. **`validate_backup_zip` + RestoreSheet** — Preview modal using the validate command. No restore yet — safe to ship independently.
-
-5. **`restore_backup` + confirm flow** — Full restore with safety backup + process restart. Depends on RestoreSheet from step 4.
-
-6. **Backup diagnostics** — `getBackupHealth()` pure function + `BackupStatusBadge` + enhanced `DataHealthPage` backup section. No Rust dependencies — can be built in parallel with step 3+.
-
----
-
-## Integration Points with Existing Components
-
-| Existing Component | Change Required |
-|-------------------|-----------------|
-| `BackupCard` | Replace `.db` save dialog with `.zip` save dialog; invoke `export_backup` instead of `backup_database`; show manifest details on success |
-| `DataHealthPage` | Add RestoreSheet trigger; add backup history list; replace BackupCard inline |
-| `DataHealthSummaryCard` (dashboard) | Add `BackupStatusBadge` using `getBackupHealth()` |
-| `src-tauri/src/lib.rs` | Add 3 new commands to `invoke_handler!`; add `zip` import |
-| `src-tauri/Cargo.toml` | Add `zip = "2"` |
-| `src/hooks/useDiagnostics.ts` | Extend `BackupStatus` interface; add `useBackupHistory()` |
-| `src/types/backup.ts` | New file — `BackupManifest`, extended `BackupStatus` |
-| `src/lib/backupHealth.ts` | New file — `getBackupHealth()` pure function |
+**Do this instead:** Track only `currentStepId`. Derive section from `currentStep.section_id`. Section nav jumps set `currentStepId` to the first step of the target section.
 
 ---
 
 ## Sources
 
-- `src-tauri/src/lib.rs` — existing `backup_database` pattern (VACUUM INTO via direct sqlx)
-- `src/features/data-health/BackupCard.tsx` — existing UI + localStorage pattern
-- `src/hooks/useDiagnostics.ts` — existing `BackupStatus` type + `useBackupStatus()`
-- `src/db/client.ts` — plugin pool singleton (why it cannot be closed mid-session)
-- `src-tauri/Cargo.toml` — existing dependencies; no zip crate yet
-- `src-tauri/tauri.conf.json` — plugin registrations including `tauri-plugin-process`
-- [zip crate on crates.io](https://crates.io/crates/zip) — standard Rust zip library
-- [Tauri plugin-sql docs](https://v2.tauri.app/plugin/sql/) — confirms pool model
+- `src/hooks/useRecipeAssignments.ts` — `useStepProgress`, `useToggleStepProgress`, `STEP_PROGRESS_KEY`
+- `src/hooks/useWorkflowPositions.ts` — batch enrichment pattern, `computeWorkflowPosition` usage
+- `src/hooks/useNextPaintingAction.ts` — `FirstIncompleteStep` type, paint availability derivation pattern
+- `src/hooks/useJournalSessions.ts` — `useCreatePaintingSession`, cache invalidation contract
+- `src/hooks/useRecipePaints.ts` — `useRecipePaints`, `usePaints`, `paintMap` pattern
+- `src/features/recipes/AssignmentChecklist.tsx` — section-grouped step rendering, completedSet pattern
+- `src/features/recipes/SectionedTimeline.tsx` — section+step rendering, stepsBySection Map pattern
+- `src/features/recipes/RecipeDetailSheet.tsx` — `paintMap` prop-drilling pattern, step photo resolution
+- `src/features/dashboard/LogSessionSheet.tsx` — prefill pattern, atomic session+step-toggle sequence
+- `src/features/dashboard/CurrentFocusCard.tsx` — existing "Open"/"Log" button pattern
+- `src/features/dashboard/NextPaintingActionCard.tsx` — paint availability display, `PaintAvailability` type
+- `src/features/painting-projects/KanbanCard.tsx` — `WorkflowPosition`, `AppliedRecipeProgress` props
+- `src/lib/computeWorkflowPosition.ts` — step ID as source of truth, section derived
+- `src/lib/computeAssignmentProgress.ts` — `bySectionId` Map for progress counts
+- `src/app/game-day/page.tsx` — `GameDayPageShell` route param extraction pattern
+- `src/app/router.tsx` — route tree, existing `gameDayRoute` pattern
 
 ---
-*Architecture research for: v0.2.14 Backup 2.0 — Structured Export, Restore & Safety Backups*
-*Researched: 2026-05-18*
+*Architecture research for: v0.2.15 Painting Mode integration into HobbyForge*
+*Researched: 2026-05-19*

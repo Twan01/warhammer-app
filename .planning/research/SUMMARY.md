@@ -1,90 +1,93 @@
-# Research Summary: HobbyForge v0.2.13
+# Project Research Summary
 
-**Project:** HobbyForge v0.2.13 — Data Integrity, Diagnostics & Product Coherence
-**Researched:** 2026-05-14
+**Project:** HobbyForge v0.2.15 — Painting Mode
+**Domain:** Focused step-by-step recipe execution surface (desktop hobby app)
+**Researched:** 2026-05-19
+**Confidence:** HIGH
 
 ## Executive Summary
 
-v0.2.13 is a hardening and coherence milestone built entirely on the existing stack. No new npm or Cargo dependencies are required. The key architectural work is restructuring three brittle patterns: the sequential recipe save in `RecipeFormSheet.tsx`, the triplicated 5-level COALESCE chain across query files, and the order_index-keyed progress records that become unreliable after step reordering.
+Painting Mode is a focused execution surface layered on top of HobbyForge's existing applied-recipe and session data model. It does not require schema changes, new Rust commands, or new Tauri permissions — the entire data layer is already in place. The recommended approach is a full-page route at `/painting-mode/$assignmentId` (mirroring the `GameDayPage` pattern), with a distraction-free layout that hides the sidebar, keyboard shortcuts for desk-side operation, and an atomic step-completion + session-log action. One new npm package is needed: `react-hotkeys-hook` v5.3.2 (8 KB, React 19 compatible).
 
-The recommended approach is schema-first, then data-layer corrections, then query/lib consolidation, then diagnostics, then Rust-side backup, then UX features. Two hard architectural constraints must be enforced throughout: no nested `BEGIN TRANSACTION` calls (tauri-plugin-sql does not support savepoints), and `VACUUM INTO` rather than raw file copy for backup (file copy is unsafe without explicit WAL checkpoint).
+The highest-value UX differentiator over comparable apps (Liber Pigmenta, Cook Mode, StrongLifts) is keyboard navigation: Space to mark a step done, arrow keys to navigate, Escape to exit. This removes all mouse interaction for a painter with wet brushes. The second differentiator is atomic session logging — marking a step done simultaneously creates a session log entry pre-filled from context, eliminating the post-session "remember to log" friction.
 
-The single highest-risk item is the order_index → recipe_step_id migration back-fill. The SQL must join through `recipe_sections` to disambiguate per-section `order_index` values — without this, multi-section recipes will have progress silently re-attributed to the wrong steps.
+The primary risks are data integrity and cache coherence: the step completion mutation must use a full `BEGIN/COMMIT` transaction covering both the progress upsert and session insert, and it must invalidate a broader cache key set than the existing `useToggleStepProgress` covers. Section-aware step ordering (`COALESCE(section.order_index, 999999), step.order_index`) must be enforced client-side to prevent Painting Mode from opening on the wrong step in multi-section recipes.
 
 ## Stack Additions
 
-**None required.** All capabilities implementable with existing Tauri 2 + React 19 + SQLite toolkit:
-- Transactions: `BEGIN/COMMIT/ROLLBACK` via `db.execute()` (already proven in `duplicateRecipe`, `bulkCreateAssignments`, `replaceSyncedUnitPoints`)
-- Backup: New Rust command using `VACUUM INTO` (not raw file copy — unsafe without WAL checkpoint)
-- Diagnostics: SQLite PRAGMAs + `SELECT COUNT(*)` via existing `db.select()`
-- Points resolver: Pure TypeScript function in `src/lib/`
+One new package: `react-hotkeys-hook` v5.3.2. Everything else reuses proven infrastructure:
+- Fullscreen via `getCurrentWindow().setFullscreen(true)` (already in `capabilities/default.json`)
+- Step transition animation via `animate-fade-in` from `tw-animate-css` (already installed)
+- Step navigation via custom `usePaintingModeState` hook (pure `useState`)
 
 ## Feature Assessment
 
 ### Table Stakes (P1 — must ship)
-- Applied recipe identity hardening (order_index → recipe_step_id)
-- Transactional recipe graph save (`saveRecipeGraph()`)
-- Centralized points resolver + PointsSourceChip UI
-- Split list/unit warnings
-- Dashboard next-action step text
-- Game Day End Game flow (close the loop to BattleLogSheet)
-- Data Health/Diagnostics page
-- Manual backup/export
-- Version parity check script
+- Single-step focal view with full step detail (paint swatch, technique, tool, dilution, time estimate)
+- Previous / Next navigation with step position indicator
+- Section progress navigation with completion counts and jump-to-section
+- Mark step done (inline, one action, no modal)
+- Missing paint non-blocking warning at mode entry and per-step
+- Session pre-fill from current context
+- Keyboard shortcuts: Space = mark done, ArrowLeft/Right = navigate, Escape = exit
+- Entry points from existing surfaces: CurrentFocusCard, AppliedRecipesTab, KanbanCard, RecipeDetailSheet
+- Distraction-free presentation: full panel, minimal chrome, sidebar hidden
 
-### Differentiators
-- Points source labeling ("95 pts · synced" vs "100 pts · manual override") — no competitor does this
-- Data Health diagnostics page — neither Tabletop Battles nor BattleBase have one
-- After-action review analytics (per-mission/faction win rates)
-- Unit-to-rules mapping confirmation layer
+### Differentiators (P2)
+- Step reference photo display
+- Atomic "done + log session" single action
+- Section completion acknowledgment
+- Time estimate label per step
 
-### Defer to v0.3+
-- Restore from backup (connection lifecycle complexity)
-- Auto-backup on schedule
-- Army list snapshot versioning
-- Per-round VP tracking
+### Defer (v0.2.16+)
+- Batch painting mode (same step across multiple units)
+- Per-model progress within a squad unit
+- Voice control
 
 ## Architecture Impact
 
-- Four-layer stack unchanged (UI → hooks → queries → DB client)
-- Two new migrations: 026 (unit_rules_mapping), 027 (battle_log_game_day columns)
-- Three new pure functions in `src/lib/`: `resolveUnitPoints()`, `splitWarnings()`, points SQL constant
-- Key new query: `saveRecipeGraph()` — flat inlined SQL transaction (no helper delegation)
-- New Rust command: `backup_database` using `VACUUM INTO`
-- New pages/components: DataHealthPage, BackupSection, AfterActionSheet, NextActionsPanel, PointsSourceChip
+- Full-page route at `/painting-mode/$assignmentId` (mirrors `GameDayPage` pattern)
+- New feature module: `src/features/painting-mode/` (6 new files)
+- No new DB migrations or Rust commands
+- One new transactional function: `completeStepWithSession` in `src/db/queries/recipeAssignments.ts`
+- Extended cache invalidation on new `useCompleteStep` mutation
+
+**Major components:**
+1. `PaintingModePageShell` — thin route wrapper, param extraction
+2. `usePaintingModeState` — section-aware step ordering, controlled `currentStepId`, navigation
+3. `StepExecutionView` — current step detail, mark done, position indicator
+4. `SectionNav` — vertical section list with completion counts, jump-to
+5. `PaintReadinessWarning` — non-blocking banner for missing/low paint
+6. `PaintingModeLogSheet` — prefilled session logger with atomic complete+log
 
 ## Key Pitfalls
 
-1. **order_index back-fill must join through recipe_sections** to disambiguate per-section values — hardest SQL in milestone
-2. **saveRecipeGraph must inline all SQL** — tauri-plugin-sql does not support nested transactions
-3. **Backup must use VACUUM INTO**, not std::fs::copy — raw copy unsafe without WAL checkpoint
-4. **COALESCE site-3 divergence** in `dashboard.ts` uses only 2-level chain — must resolve or document
-5. **gameDayStore has no version/migrate** in persist config — must add before any new nested fields
+1. **Incomplete cache invalidation** — `useToggleStepProgress` only invalidates `STEP_PROGRESS_KEY`. New `useCompleteStep` must also invalidate kanban-enrichment, unit assignments, dashboard action keys.
+2. **Non-atomic step + session write** — Must use `BEGIN/COMMIT` block following `saveRecipeGraph` pattern.
+3. **Wrong step ordering in multi-section recipes** — Derive first incomplete step client-side using section+step order.
+4. **Keyboard shortcuts firing inside form inputs** — Guard with `e.target instanceof HTMLInputElement` checks.
+5. **Sidebar remaining interactive** — Full-page route with `PaintingModeLayout` hiding sidebar.
 
 ## Suggested Phase Order
 
 | Phase | Focus | Risk | Dependencies |
 |-------|-------|------|--------------|
-| 1 | Schema Foundation (migrations 026+027, version parity) | LOW | None |
-| 2 | Applied Recipe Identity Hardening | HIGH | Phase 1 |
-| 3 | Transactional Recipe Graph Save | MEDIUM | Phase 1 |
-| 4 | Points Resolver + Unit Rules Mapping + Split Warnings | MEDIUM | Phase 1 |
-| 5 | Data Health Page + Backup/Export | MEDIUM | Phases 1-2 (clean data for diagnostics) |
-| 6 | Dashboard Command Center + Game Day After-Action | LOW-MEDIUM | Phases 1-4 |
+| 1 | Data Layer + Navigation Hook | HIGH | None |
+| 2 | Core Painting Mode UI | MEDIUM | Phase 1 |
+| 3 | Shell, Route, Keyboard Shortcuts | MEDIUM | Phase 2 |
+| 4 | Session Integration + Entry Points | LOW | Phase 3 |
+| 5 | P2 Features + Test Coverage | LOW | Phase 4 |
 
-## Research Confidence
+## Sources
 
-**Overall: HIGH** — all findings from direct codebase inspection (~290 source files). Key confirmed patterns:
-- Transaction pattern proven in 3 existing query functions
-- COALESCE divergence at site-3 directly verified
-- gameDayStore persist config inspected (no version/migrate)
-- Migration numbers confirmed (last is 025_tactical_role)
-
-## Open Questions
-
-- Whether `VACUUM INTO` works through the tauri-plugin-sql JS bridge — recommended early spike in Phase 5
-- COALESCE site-3 semantic decision: `getArmyReadinessByFaction` cannot use `alu.points_override` (no army_list_units join) — decide during Phase 4 planning
-- Whether restore from backup is deferred to v0.2.14 or included as stretch goal
+### Primary (HIGH confidence)
+- `src/hooks/useRecipeAssignments.ts` — invalidation set for `useToggleStepProgress`
+- `src/hooks/useNextPaintingAction.ts` — `FirstIncompleteStep` type, paint availability
+- `src/features/units/ShowcaseMode.tsx` — fullscreen + keyboard handler pattern
+- `src/features/recipes/SectionedTimeline.tsx` — section+step rendering, paintMap pattern
+- `src/db/queries/recipes.ts` — `saveRecipeGraph` transaction pattern
+- `src/app/game-day/page.tsx` — `GameDayPageShell` route shell pattern
+- `src-tauri/capabilities/default.json` — fullscreen permission verified
 
 ---
-*Synthesized: 2026-05-14*
+*Synthesized: 2026-05-19*
