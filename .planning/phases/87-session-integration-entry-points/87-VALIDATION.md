@@ -16,15 +16,15 @@
 
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| SL-01 | PaintingSessionSheet opens prefilled with unit/recipe/section/step context | unit | `pnpm test -- tests/painting-mode/PaintingSessionSheet.test.tsx` | No — Wave 0 |
-| SL-02 | "Done + Log Session" calls `completeStepWithSession` with user-entered duration+notes | unit | `pnpm test -- tests/painting-mode/PaintingModePage.test.tsx` | Yes — extend existing |
-| SL-03 | "Mark Done" standalone does not open sheet or pass non-zero duration | unit | `pnpm test -- tests/painting-mode/StepFocalView.test.tsx` | Yes — extend existing |
-| EP-01 | NextPaintingActionCard link points to painting mode route | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | No — Wave 0 |
-| EP-02 | CurrentFocusCard "Paint" button triggers navigation | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | No — Wave 0 |
-| EP-03 | AppliedRecipesTab shows "Start Painting" button per assignment | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | No — Wave 0 |
-| EP-04 | KanbanCard shows painting mode link when assignmentId available | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | No — Wave 0 |
-| EP-05 | RecipeDetailSheet shows "Paint" link for applied units | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | No — Wave 0 |
-| EP-06 | Entry point surfaces suppress paint link when no assignment | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | No — Wave 0 |
+| SL-01 | PaintingSessionSheet opens prefilled with unit/recipe/section/step context | unit | `pnpm test -- tests/painting-mode/PaintingSessionSheet.test.tsx` | Yes -- green |
+| SL-02 | "Done + Log Session" calls `completeStepWithSession` with user-entered duration+notes | unit | `pnpm test -- tests/painting-mode/PaintingModePage.test.tsx` | Yes -- green (extended) |
+| SL-03 | "Mark Done" standalone does not open sheet or pass non-zero duration | unit | `pnpm test -- tests/painting-mode/StepFocalView.test.tsx` | Yes -- green (extended) |
+| EP-01 | NextPaintingActionCard link points to painting mode route | unit | `pnpm test -- tests/dashboard/NextPaintingActionCard.test.tsx` | Yes -- green (pre-existing) |
+| EP-02 | CurrentFocusCard "Paint" button triggers navigation | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | Yes -- green |
+| EP-03 | AppliedRecipesTab shows "Paint" button per assignment | unit | `pnpm test -- tests/units/AppliedRecipesTab.test.tsx` | Yes -- green |
+| EP-04 | KanbanCard shows painting mode link when assignmentId available | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | Yes -- green |
+| EP-05 | RecipeDetailSheet shows "Paint" link for applied units | unit | `pnpm test -- tests/recipes/RecipeDetailSheetPaint.test.tsx` | Yes -- green |
+| EP-06 | Entry point surfaces suppress paint link when no assignment | unit | `pnpm test -- tests/painting-mode/entryPoints.test.tsx` | Yes -- green (covered in EP-02/EP-04 negative tests) |
 
 ## Sampling Rate
 
@@ -32,9 +32,21 @@
 - **Per wave merge:** `pnpm test`
 - **Phase gate:** Full suite green before `/gsd:verify-work`
 
-## Wave 0 Gaps
+## Wave 0 Gaps -- RESOLVED
 
-- [ ] `tests/painting-mode/PaintingSessionSheet.test.tsx` — covers SL-01 (sheet renders prefilled fields)
-- [ ] `tests/painting-mode/entryPoints.test.tsx` — covers EP-01 through EP-06 (one describe block per surface, mocking hooks)
+- [x] `tests/painting-mode/PaintingSessionSheet.test.tsx` -- 7 tests, covers SL-01 (sheet renders prefilled fields, form defaults, submit, close)
+- [x] `tests/painting-mode/entryPoints.test.tsx` -- 8 tests, covers EP-02 + EP-04 + EP-06 (CurrentFocusCard Paint, KanbanCard paint icon, negative cases)
+- [x] `tests/units/AppliedRecipesTab.test.tsx` -- 4 tests, covers EP-03 (Paint button per assignment, navigation)
+- [x] `tests/recipes/RecipeDetailSheetPaint.test.tsx` -- 4 tests, covers EP-05 (Paint button for applied units)
+- [x] `tests/painting-mode/PaintingModePage.test.tsx` -- extended with 3 SL-02 tests (session sheet open, context props, mutation payload)
+- [x] `tests/painting-mode/StepFocalView.test.tsx` -- extended with 3 SL-03 tests (button existence, isolation, disabled state)
 
-*(Existing test files `PaintingModePage.test.tsx` and `StepFocalView.test.tsx` will be extended for SL-02 and SL-03 within plan tasks.)*
+## Validation Audit 2026-05-20
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 8 |
+| Resolved | 8 |
+| Escalated | 0 |
+
+**Nyquist-compliant:** All 9 requirements have automated verification (1 pre-existing, 8 filled).
