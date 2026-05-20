@@ -121,7 +121,7 @@ Full details: `.planning/milestones/v0.2.15-ROADMAP.md`
 
 **Milestone Goal:** Transform army lists from a simple unit tracker into a full list-building experience with auto-resolved points, loadout configuration, enhancements, leader attachment, list export, version history, and the ability to plan with unowned datasheets.
 
-- [ ] **Phase 89: Schema + Data Layer** — Migrations for ghost units, warlord flag, enhancement tracking, leader attachment; COALESCE chain updated across all 3 query sites; stable insertion order fix
+- [x] **Phase 89: Schema + Data Layer** — Migrations for ghost units, warlord flag, enhancement tracking, leader attachment; COALESCE chain updated across all 3 query sites; stable insertion order fix
 - [ ] **Phase 90: Loadout Builder** — Model count tier selector wired to synced_unit_point_tiers; wargear options display from BSData; LoadoutBuilderSheet at page level
 - [ ] **Phase 91: Enhancement Assignment** — EnhancementPickerSheet for character units; validation (max 3, no duplicates, character-only, Epic Hero exclusion); enhancement points in summary bar
 - [ ] **Phase 92: Leader Attachment** — Leader-to-target pairing from synced_leader_targets; visual grouping of leader with their attached unit in the list
@@ -173,7 +173,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 90-01-PLAN.md — Data layer (query functions + hooks) + ArmyListUnitRow refactor + test scaffold
+- [x] 90-01-PLAN.md — Data layer (query functions + hooks) + ArmyListUnitRow refactor + test scaffold
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -373,7 +373,7 @@ Plans:
 | 87. Session Integration + Entry Points | v0.2.15 | 2/2 | Complete | 2026-05-19 |
 | 88. Polish + Test Coverage | v0.2.15 | 2/2 | Complete | 2026-05-20 |
 | 89. Schema + Data Layer | v0.2.18 | 2/2 | Complete    | 2026-05-20 |
-| 90. Loadout Builder | v0.2.18 | 0/2 | In progress | - |
+| 90. Loadout Builder | v0.2.18 | 1/2 | In progress | - |
 | 91. Enhancement Assignment | v0.2.18 | 0/TBD | Not started | - |
 | 92. Leader Attachment | v0.2.18 | 0/TBD | Not started | - |
 | 93. Datasheet Browser + Ghost Units | v0.2.18 | 0/TBD | Not started | - |
