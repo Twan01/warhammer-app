@@ -17,24 +17,27 @@ export async function createFaction(input: CreateFactionInput): Promise<number> 
   const result = await db.execute(
     `INSERT INTO factions (name, game_system, description, color_theme, icon_path, lore_notes)
      VALUES ($1, $2, $3, $4, $5, $6)`,
-    [input.name, input.game_system, input.description, input.color_theme, input.icon_path, input.lore_notes ?? null]
+    [input.name, input.game_system, input.description ?? null, input.color_theme, input.icon_path ?? null, input.lore_notes ?? null]
   );
   return result.lastInsertId ?? 0;
 }
 
 export async function updateFaction(input: UpdateFactionInput): Promise<void> {
   const db = await getDb();
+  // Guard NOT NULL columns against undefined from Partial<CreateFactionInput>.
+  // COALESCE ensures undefined/null values fall back to existing column values,
+  // preventing NOT NULL constraint violations when only a subset of fields is provided.
   await db.execute(
     `UPDATE factions
-        SET name = $2,
-            game_system = $3,
+        SET name = COALESCE($2, name),
+            game_system = COALESCE($3, game_system),
             description = $4,
-            color_theme = $5,
+            color_theme = COALESCE($5, color_theme),
             icon_path = $6,
             lore_notes = $7,
             updated_at = datetime('now')
       WHERE id = $1`,
-    [input.id, input.name, input.game_system, input.description ?? null, input.color_theme, input.icon_path ?? null, input.lore_notes ?? null]
+    [input.id, input.name ?? null, input.game_system ?? null, input.description ?? null, input.color_theme ?? null, input.icon_path ?? null, input.lore_notes ?? null]
   );
 }
 

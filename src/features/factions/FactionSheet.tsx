@@ -99,7 +99,8 @@ export function FactionSheet({ open, faction, onClose }: FactionSheetProps) {
         toast.success("Faction created.");
       }
       onClose();
-    } catch {
+    } catch (err) {
+      console.error("[FactionSheet] save failed:", err);
       toast.error("Something went wrong. Please try again.");
       // Sheet stays open so user can retry
     }
@@ -174,7 +175,7 @@ export function FactionSheet({ open, faction, onClose }: FactionSheetProps) {
                   <FormControl>
                     <textarea
                       className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      placeholder="Chapter backstory, homeworld, custom lore, campaign history…"
+                      placeholder="Chapter backstory, homeworld, custom lore, campaign history..."
                       rows={4}
                       {...field}
                       value={field.value ?? ""}
