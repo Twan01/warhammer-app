@@ -8,7 +8,7 @@ Shipped through v0.2.15 (88 phases): full hobby command center with collection m
 
 ## Current State
 
-v0.2.15 shipped 2026-05-20. 88 phases complete across 16 milestones. ~300+ TypeScript source files. 28 SQLite migrations (26 hobbyforge.db + 2 rules.db). 1,831+ automated tests. 7 Tauri Rust commands. Planning next milestone.
+v0.2.18 in progress. Phase 89 (schema-data-layer) complete — migration 031 creates Army Lists 3.0 schema (ghost units, enhancements join table, warlord flag, tier-based points, leader attachment), TypeScript types extended, 6-level COALESCE chain across all query sites, 10 new CRUD functions, 10 new React Query hooks. 89 phases complete across 17 milestones. ~300+ TypeScript source files. 29 SQLite migrations (27 hobbyforge.db + 2 rules.db). 1,960+ automated tests. 7 Tauri Rust commands.
 
 ## Core Value
 
