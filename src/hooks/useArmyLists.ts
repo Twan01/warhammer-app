@@ -13,12 +13,25 @@ import {
   getArmyListReadiness,
   clearArmyListDetachment,
   clearArmyListPointsLimit,
+  setWarlord,
+  clearWarlord,
+  addGhostUnitToList,
+  setLeaderAttachment,
+  clearLeaderAttachment,
+  setSelectedModelCount,
+  clearSelectedModelCount,
+  addEnhancement,
+  removeEnhancement,
+  getEnhancementsByList,
 } from "@/db/queries/armyLists";
 import type {
   CreateArmyListInput,
   UpdateArmyListInput,
   AddUnitToListInput,
   UpdateArmyListUnitInput,
+  AddGhostUnitToListInput,
+  AddEnhancementInput,
+  ArmyListEnhancement,
 } from "@/types/armyList";
 
 /**
@@ -216,5 +229,206 @@ export function useArmyListReadiness(ids: number[]) {
       return m;
     },
     enabled: sortedIds.length > 0,
+  });
+}
+
+// ─── Phase 89: Army Lists 3.0 mutation hooks ────────────────────────────────
+
+/**
+ * Phase 89 — Warlord designation (D-10).
+ * Uses CASE WHEN scoped to list_id to atomically deselect-then-select in one UPDATE.
+ */
+export interface SetWarlordVariables {
+  army_list_unit_id: number;
+  list_id: number;
+}
+
+export function useSetWarlord() {
+  const qc = useQueryClient();
+  return useMutation<void, Error, SetWarlordVariables>({
+    mutationFn: ({ army_list_unit_id, list_id }) => setWarlord(army_list_unit_id, list_id),
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
+      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
+      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
+    },
+  });
+}
+
+/**
+ * Phase 89 — Clear warlord for all units in the list.
+ * Variables: list_id (number).
+ */
+export function useClearWarlord() {
+  const qc = useQueryClient();
+  return useMutation<void, Error, number>({
+    mutationFn: clearWarlord,
+    onSuccess: (_, list_id) => {
+      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(list_id) });
+      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(list_id) });
+      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
+    },
+  });
+}
+
+/**
+ * Phase 89 — Add a ghost/planned unit to a list (D-04).
+ * ghost_unit_name should match BSData canonical name for points resolution.
+ */
+export function useAddGhostUnitToList() {
+  const qc = useQueryClient();
+  return useMutation<number, Error, AddGhostUnitToListInput>({
+    mutationFn: addGhostUnitToList,
+    onSuccess: (_insertedId, variables) => {
+      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
+      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
+      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
+    },
+  });
+}
+
+/**
+ * Phase 89 — Leader attachment (D-03).
+ * Records that army_list_unit_id is attached to target_id.
+ */
+export interface SetLeaderAttachmentVariables {
+  army_list_unit_id: number;
+  target_id: number;
+  list_id: number;
+}
+
+export function useSetLeaderAttachment() {
+  const qc = useQueryClient();
+  return useMutation<void, Error, SetLeaderAttachmentVariables>({
+    mutationFn: ({ army_list_unit_id, target_id }) => setLeaderAttachment(army_list_unit_id, target_id),
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
+      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
+      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
+    },
+  });
+}
+
+/**
+ * Phase 89 — Clear leader attachment (D-13).
+ * Sets leader_attached_to_id = NULL for the given army_list_units row.
+ */
+export interface ClearLeaderAttachmentVariables {
+  army_list_unit_id: number;
+  list_id: number;
+}
+
+export function useClearLeaderAttachment() {
+  const qc = useQueryClient();
+  return useMutation<void, Error, ClearLeaderAttachmentVariables>({
+    mutationFn: ({ army_list_unit_id }) => clearLeaderAttachment(army_list_unit_id),
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
+      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
+      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
+    },
+  });
+}
+
+/**
+ * Phase 89 — Set selected model count for tier-based points resolution (D-08).
+ * Triggers re-resolution of points via synced_unit_point_tiers JOIN.
+ */
+export interface SetSelectedModelCountVariables {
+  army_list_unit_id: number;
+  count: number;
+  list_id: number;
+}
+
+export function useSetSelectedModelCount() {
+  const qc = useQueryClient();
+  return useMutation<void, Error, SetSelectedModelCountVariables>({
+    mutationFn: ({ army_list_unit_id, count }) => setSelectedModelCount(army_list_unit_id, count),
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
+      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
+      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
+    },
+  });
+}
+
+/**
+ * Phase 89 — Clear selected model count back to NULL (D-13).
+ * NULL = use default/min tier — points fall through to synced_unit_points.
+ */
+export interface ClearSelectedModelCountVariables {
+  army_list_unit_id: number;
+  list_id: number;
+}
+
+export function useClearSelectedModelCount() {
+  const qc = useQueryClient();
+  return useMutation<void, Error, ClearSelectedModelCountVariables>({
+    mutationFn: ({ army_list_unit_id }) => clearSelectedModelCount(army_list_unit_id),
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
+      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
+      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
+    },
+  });
+}
+
+/**
+ * Phase 89 — Add an enhancement to a unit in an army list (D-01, D-02).
+ * Enhancement points are tracked separately from the per-unit COALESCE chain.
+ */
+export function useAddEnhancement() {
+  const qc = useQueryClient();
+  return useMutation<number, Error, AddEnhancementInput>({
+    mutationFn: addEnhancement,
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
+      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
+      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
+    },
+  });
+}
+
+/**
+ * Phase 89 — Remove an enhancement assignment by its own id.
+ */
+export interface RemoveEnhancementVariables {
+  enhancement_id: number;
+  list_id: number;
+}
+
+export function useRemoveEnhancement() {
+  const qc = useQueryClient();
+  return useMutation<void, Error, RemoveEnhancementVariables>({
+    mutationFn: ({ enhancement_id }) => removeEnhancement(enhancement_id),
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
+      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
+      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
+    },
+  });
+}
+
+/**
+ * Phase 89 — Query hook for all enhancements in an army list.
+ * Returns ArmyListEnhancement[] ordered by created_at ASC.
+ */
+export function useEnhancementsByList(listId: number | undefined) {
+  return useQuery<ArmyListEnhancement[]>({
+    queryKey: ["army-list-enhancements", listId],
+    queryFn: () => getEnhancementsByList(listId!),
+    enabled: listId !== undefined,
   });
 }
