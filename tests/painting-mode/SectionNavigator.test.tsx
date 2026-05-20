@@ -174,4 +174,39 @@ describe("SectionNavigator", () => {
     // Completed step text should have line-through
     expect(screen.getByText("Apply base")).toHaveClass("line-through");
   });
+
+  describe("TS-04: optional sections", () => {
+    it("clicking step inside optional section calls goToStep correctly", async () => {
+      const user = userEvent.setup();
+      const optionalSection = makeSection({ id: 1, name: "Weathering", optional: 1 });
+      const step1 = makeStep({ id: 1, step_name: "Apply rust effect", section_id: 1, order_index: 0 });
+      const step2 = makeStep({ id: 2, step_name: "Drybrush edges", section_id: 1, order_index: 1 });
+
+      const { goToStep } = renderNavigator({
+        sections: [optionalSection],
+        orderedSteps: [step1, step2],
+        currentStepId: 1, // ensures the collapsible is open
+        sectionProgressMap: new Map([
+          [1, { completed: 0, total: 2, name: "Weathering" }],
+        ]),
+      });
+
+      const stepButton = screen.getByText("Drybrush edges").closest("button")!;
+      await user.click(stepButton);
+
+      expect(goToStep).toHaveBeenCalledWith(2);
+    });
+
+    it("optional section with all steps complete shows check icon", () => {
+      renderNavigator({
+        sections: [makeSection({ id: 1, name: "Weathering", optional: 1 })],
+        sectionProgressMap: new Map([
+          [1, { completed: 2, total: 2, name: "Weathering" }],
+        ]),
+      });
+
+      expect(screen.getByTestId("section-complete")).toBeInTheDocument();
+      expect(screen.queryByText("2/2")).not.toBeInTheDocument();
+    });
+  });
 });
