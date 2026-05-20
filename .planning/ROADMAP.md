@@ -122,7 +122,7 @@ Full details: `.planning/milestones/v0.2.15-ROADMAP.md`
 **Milestone Goal:** Transform army lists from a simple unit tracker into a full list-building experience with auto-resolved points, loadout configuration, enhancements, leader attachment, list export, version history, and the ability to plan with unowned datasheets.
 
 - [x] **Phase 89: Schema + Data Layer** — Migrations for ghost units, warlord flag, enhancement tracking, leader attachment; COALESCE chain updated across all 3 query sites; stable insertion order fix
-- [ ] **Phase 90: Loadout Builder** — Model count tier selector wired to synced_unit_point_tiers; wargear options display from BSData; LoadoutBuilderSheet at page level
+- [x] **Phase 90: Loadout Builder** — Model count tier selector wired to synced_unit_point_tiers; wargear options display from BSData; LoadoutBuilderSheet at page level
 - [ ] **Phase 91: Enhancement Assignment** — EnhancementPickerSheet for character units; validation (max 3, no duplicates, character-only, Epic Hero exclusion); enhancement points in summary bar
 - [ ] **Phase 92: Leader Attachment** — Leader-to-target pairing from synced_leader_targets; visual grouping of leader with their attached unit in the list
 - [ ] **Phase 93: Datasheet Browser + Ghost Units** — DatasheetBrowserDialog for all faction datasheets; add unowned units as ghost/planned entries; ghost units isolated from Collection/Dashboard/Kanban
@@ -177,7 +177,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 90-02-PLAN.md — LoadoutBuilderSheet component + sibling portal wiring + tests
+- [x] 90-02-PLAN.md — LoadoutBuilderSheet component + sibling portal wiring + tests
 
 **UI hint**: yes
 
