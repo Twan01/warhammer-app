@@ -214,7 +214,11 @@ Plans:
   3. Tests pass verifying the missing paint warning fires for paints that are not owned and is absent when all paints are owned
   4. Tests pass verifying the session pre-fill values match the current unit, recipe, section, and step context
 
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+
+- [ ] 88-01-PLAN.md — TS-04 optional sections + TS-07 session prefill tests
+- [ ] 88-02-PLAN.md — TS-05 paintless steps + TS-06 missing paint warning integration tests
 
 ## Progress
 
@@ -307,7 +311,7 @@ Plans:
 | 85. Core Execution UI | v0.2.15 | 1/3 | In progress | - |
 | 86. Shell, Route & Keyboard Shortcuts | v0.2.15 | 2/2 | Complete   | 2026-05-19 |
 | 87. Session Integration + Entry Points | v0.2.15 | 2/2 | Complete   | 2026-05-19 |
-| 88. Polish + Test Coverage | v0.2.15 | 0/TBD | Not started | - |
+| 88. Polish + Test Coverage | v0.2.15 | 0/2 | Not started | - |
 
 <details>
 <summary>✅ v0.1.1 HobbyForge MVP (Phases 1-5) — SHIPPED 2024-05-01</summary>
