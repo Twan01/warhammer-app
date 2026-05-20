@@ -78,7 +78,7 @@ vi.mock("@/hooks/useLoadoutOptions", () => ({
 // Factory
 // ---------------------------------------------------------------------------
 
-function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
+export function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
   return {
     id: 1,
     list_id: 1,
