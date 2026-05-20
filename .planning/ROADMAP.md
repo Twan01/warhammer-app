@@ -111,7 +111,7 @@ Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
 - [x] **Phase 85: Core Execution UI** — Step focal view with full detail display, section navigator, paint readiness warning, distraction-free layout
 - [x] **Phase 86: Shell, Route & Keyboard Shortcuts** (2/2 plans) — Full-page route, keyboard shortcuts (Space/Arrow/Escape), input guards, section completion acknowledgment
 - [x] **Phase 87: Session Integration + Entry Points** (2/2 plans) — Atomic done+log action, prefilled session logger, all six entry points wired
-- [ ] **Phase 88: Polish + Test Coverage** — Optional sections, paintless steps, missing paint warning, session prefill test coverage
+- [x] **Phase 88: Polish + Test Coverage** (2/2 plans) — Optional sections, paintless steps, missing paint warning, session prefill test coverage
 
 ## Phase Details
 
@@ -217,8 +217,8 @@ Plans:
 **Plans**: 2 plans
 Plans:
 
-- [ ] 88-01-PLAN.md — TS-04 optional sections + TS-07 session prefill tests
-- [ ] 88-02-PLAN.md — TS-05 paintless steps + TS-06 missing paint warning integration tests
+- [x] 88-01-PLAN.md — TS-04 optional sections + TS-07 session prefill tests
+- [x] 88-02-PLAN.md — TS-05 paintless steps + TS-06 missing paint warning integration tests
 
 ## Progress
 
@@ -311,7 +311,7 @@ Plans:
 | 85. Core Execution UI | v0.2.15 | 1/3 | In progress | - |
 | 86. Shell, Route & Keyboard Shortcuts | v0.2.15 | 2/2 | Complete   | 2026-05-19 |
 | 87. Session Integration + Entry Points | v0.2.15 | 2/2 | Complete   | 2026-05-19 |
-| 88. Polish + Test Coverage | v0.2.15 | 0/2 | Planned | - |
+| 88. Polish + Test Coverage | v0.2.15 | 2/2 | Complete | 2026-05-20 |
 
 <details>
 <summary>✅ v0.1.1 HobbyForge MVP (Phases 1-5) — SHIPPED 2024-05-01</summary>
