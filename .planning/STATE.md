@@ -4,14 +4,14 @@ milestone: v0.2.18
 milestone_name: Army Lists 3.0 — Smart List Builder
 status: executing
 stopped_at: Phase 89 context gathered
-last_updated: "2026-05-20T14:08:35.608Z"
+last_updated: "2026-05-20T14:39:53.105Z"
 last_activity: 2026-05-20 -- Phase 89 planning complete
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 0
+  completed_plans: 2
+  percent: 29
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-20)
 ## Current Position
 
 Phase: 89 of 95 (Schema + Data Layer)
-Plan: — (not yet planned)
-Status: Ready to execute
-Last activity: 2026-05-20 -- Phase 89 planning complete
+Plan: 02 of 02 complete (Phase 89 done)
+Status: Executing — Phase 89 complete, ready for Phase 90
+Last activity: 2026-05-20 -- Phase 89 Plan 02 complete (query functions + mutation hooks)
 
-Progress: [█████░░░░░] 50%
+Progress: [██░░░░░░░░] 29%
 
 ## Performance Metrics
 
@@ -52,6 +52,9 @@ Progress: [█████░░░░░] 50%
 - COALESCE chain must be updated atomically across all 3 query sites in a single migration pass
 - New packages needed: @tauri-apps/plugin-clipboard-manager (EXP-01), jsPDF lazy-loaded (EXP-04)
 - All new Sheets use sibling portal pattern at page level (established pattern from v0.2.0+)
+- setWarlord uses CASE WHEN id = $1 THEN 1 ELSE 0 END WHERE list_id = $2 — single UPDATE prevents cross-list mutation
+- addGhostUnitToList hardcodes NULL as unit_id in SQL for clarity (not a parameter)
+- useEnhancementsByList uses ["army-list-enhancements", listId] key (separate from ARMY_LIST_UNITS_KEY)
 
 ### Pending Todos
 
@@ -63,7 +66,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-20T14:08:35.602Z
-Stopped at: Phase 89 context gathered
+Last session: 2026-05-20
+Stopped at: Phase 89 Plan 02 complete — query functions + mutation hooks delivered
 Resume file: None
-Resume: /gsd:plan-phase 89
+Resume: /gsd:plan-phase 90
