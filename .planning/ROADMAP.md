@@ -132,108 +132,147 @@ Full details: `.planning/milestones/v0.2.15-ROADMAP.md`
 ## Phase Details
 
 ### Phase 89: Schema + Data Layer
+
 **Goal**: The database and query layer fully supports every new Army Lists 3.0 feature without UI work
 **Depends on**: Phase 88 (v0.2.15 complete)
 **Requirements**: DL-03, DL-04
 **Success Criteria** (what must be TRUE):
+
   1. Units in an army list always display in stable insertion order (newest at bottom) — no more random reordering
   2. A unit can be designated Warlord in the army list and the flag persists across page reloads
   3. army_list_units accepts nullable unit_id and a ghost_unit_name TEXT column for planned units not in the collection
   4. Enhancement assignment and leader attachment columns exist in the schema with correct FK constraints
   5. The 5-level COALESCE points chain is updated atomically across all 3 query sites to include the new tier resolution
+
 **Plans**: 2 plans
 Plans:
+**Wave 1**
+
 - [ ] 89-01-PLAN.md — Migration 031 + lib.rs + types + resolveUnitPoints
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 89-02-PLAN.md — Query functions + mutation hooks + tests
+
 **UI hint**: no
 
 ### Phase 90: Loadout Builder
+
 **Goal**: Users can configure model count and see wargear options for any unit in their army list, with points auto-resolving from synced tiers
 **Depends on**: Phase 89
 **Requirements**: DL-01, DL-02
 **Success Criteria** (what must be TRUE):
+
   1. User can open a loadout panel for a unit and select a model count tier; the unit's effective points update immediately in the summary bar
   2. User can view available wargear options for a unit sourced from BSData (display-only, free in 10th ed)
   3. Selecting a different tier persists on save and is reflected in all points calculations across the list
   4. The LoadoutBuilderSheet opens as a sibling portal at page level (no nested Sheet/Dialog issues)
+
 **Plans**: 2 plans
 Plans:
+
 - [ ] 89-01-PLAN.md — Migration 031 + lib.rs + types + resolveUnitPoints
 - [ ] 89-02-PLAN.md — Query functions + mutation hooks + tests
+
 **UI hint**: yes
 
 ### Phase 91: Enhancement Assignment
+
 **Goal**: Users can assign detachment enhancements to character units with automatic points tracking and rule validation enforced
 **Depends on**: Phase 90
 **Requirements**: ENH-01, ENH-02, ENH-03
 **Success Criteria** (what must be TRUE):
+
   1. User can browse available enhancements for their detachment and assign one to a character unit
   2. Enhancement points are automatically added to the list total and shown as a separate line in the summary bar with a breakdown
   3. The list rejects (with a clear warning) any assignment that exceeds 3 enhancements, duplicates an enhancement, targets a non-character unit, or targets an Epic Hero
   4. Removing an enhancement clears its points from the summary bar immediately
+
 **Plans**: 2 plans
 Plans:
+
 - [ ] 89-01-PLAN.md — Migration 031 + lib.rs + types + resolveUnitPoints
 - [ ] 89-02-PLAN.md — Query functions + mutation hooks + tests
+
 **UI hint**: yes
 
 ### Phase 92: Leader Attachment
+
 **Goal**: Users can pair character leaders with valid target units and the list visually reflects the attachment grouping
 **Depends on**: Phase 91
 **Requirements**: LDR-01, LDR-02
 **Success Criteria** (what must be TRUE):
+
   1. User can attach a character unit as leader to a target unit; only valid pairings from synced_leader_targets are offered
   2. An attached leader and their target unit display visually grouped (indented or bracketed) in the army list
   3. Removing a leader attachment returns both units to independent display
+
 **Plans**: 2 plans
 Plans:
+
 - [ ] 89-01-PLAN.md — Migration 031 + lib.rs + types + resolveUnitPoints
 - [ ] 89-02-PLAN.md — Query functions + mutation hooks + tests
+
 **UI hint**: yes
 
 ### Phase 93: Datasheet Browser + Ghost Units
+
 **Goal**: Users can browse all faction datasheets and plan their list with unowned units clearly distinguished from their collection
 **Depends on**: Phase 89
 **Requirements**: BRW-01, BRW-02, BRW-03
 **Success Criteria** (what must be TRUE):
+
   1. User can open a DatasheetBrowserDialog from the army list and see all datasheets for the active faction, not just owned units
   2. User can add an unowned datasheet as a "planned" unit to the list; it appears with a clear visual marker (e.g., "Planned" badge) distinguishing it from owned units
   3. Ghost/planned units do not appear in the Collection page, Dashboard stats, or Painting Kanban
   4. Points for ghost units resolve from synced data (or show unknown) and count toward the list total
+
 **Plans**: 2 plans
 Plans:
+
 - [ ] 89-01-PLAN.md — Migration 031 + lib.rs + types + resolveUnitPoints
 - [ ] 89-02-PLAN.md — Query functions + mutation hooks + tests
+
 **UI hint**: yes
 
 ### Phase 94: List Export
+
 **Goal**: Users can share or archive their army list in multiple formats without leaving the app
 **Depends on**: Phase 89
 **Requirements**: EXP-01, EXP-02, EXP-03, EXP-04
 **Success Criteria** (what must be TRUE):
+
   1. User can copy the army list as formatted plain text to the clipboard (ready to paste into Discord/forums) with a single action
   2. User can open a print-friendly view of the army list and print it via the browser print dialog
   3. User can save the army list as a structured JSON file via a native save dialog
   4. User can export the army list as a PDF file saved to disk (jsPDF, lazy-loaded so startup is not impacted)
+
 **Plans**: 2 plans
 Plans:
+
 - [ ] 89-01-PLAN.md — Migration 031 + lib.rs + types + resolveUnitPoints
 - [ ] 89-02-PLAN.md — Query functions + mutation hooks + tests
+
 **UI hint**: yes
 
 ### Phase 95: Version Snapshots
+
 **Goal**: Users can save named snapshots of their army list and compare or restore previous versions
 **Depends on**: Phase 89
 **Requirements**: SNP-01, SNP-02, SNP-03, SNP-04
 **Success Criteria** (what must be TRUE):
+
   1. User can save the current list state as a named snapshot with a custom label; the snapshot captures all units, loadouts, enhancements, and point totals
   2. User can view a history of saved snapshots with timestamps and point totals
   3. User can compare two snapshots side-by-side and see which units were added or removed and the points delta between them
   4. User can restore the army list to the state of any saved snapshot
+
 **Plans**: 2 plans
 Plans:
+
 - [ ] 89-01-PLAN.md — Migration 031 + lib.rs + types + resolveUnitPoints
 - [ ] 89-02-PLAN.md — Query functions + mutation hooks + tests
+
 **UI hint**: yes
 
 ## Progress
