@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v0.2.18
 milestone_name: Army Lists 3.0 — Smart List Builder
-status: planning
-last_updated: "2026-05-20T12:48:37.283Z"
+status: active
+last_updated: "2026-05-20"
 last_activity: 2026-05-20
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-20)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with reliable backup/restore so local data is always recoverable
-**Current focus:** Planning next milestone
+**Current focus:** Phase 89 — Schema + Data Layer (v0.2.18 start)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-05-20 — Milestone v0.2.18 started
+Phase: 89 of 95 (Schema + Data Layer)
+Plan: — (not yet planned)
+Status: Ready to plan
+Last activity: 2026-05-20 — v0.2.18 roadmap created (7 phases, 20 requirements)
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -38,11 +40,17 @@ Last activity: 2026-05-20 — Milestone v0.2.18 started
 - v0.2.13: 13 plans across 6 phases (2 days)
 - v0.2.11: 9 plans across 5 phases (single day)
 - v0.2.10: 17 plans across 7 phases (single day)
-- v0.2.9: 8 plans across 4 phases (single day)
-- v0.2.8: 12 plans across 5 phases (2 days)
-- v0.2.6: 11 plans across 6 phases (single day)
 
 ## Accumulated Context
+
+### Decisions (v0.2.18)
+
+- Ghost units: nullable unit_id + ghost_unit_name TEXT on army_list_units — NOT new rows in units table
+- Enhancement points tracked separately from COALESCE chain; added to list total at summary level, not per-unit
+- All synced table references must be TEXT copies (detachment_name, weapon_name pattern) — no integer FKs across DBs
+- COALESCE chain must be updated atomically across all 3 query sites in a single migration pass
+- New packages needed: @tauri-apps/plugin-clipboard-manager (EXP-01), jsPDF lazy-loaded (EXP-04)
+- All new Sheets use sibling portal pattern at page level (established pattern from v0.2.0+)
 
 ### Pending Todos
 
@@ -55,6 +63,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-20
-Stopped at: v0.2.15 shipped and archived
-Resume file: N/A
-Resume: /gsd:new-milestone
+Stopped at: Roadmap created — 7 phases (89–95) across 20 requirements
+Resume file: None
+Resume: /gsd:plan-phase 89

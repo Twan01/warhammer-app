@@ -71,13 +71,32 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| — | — | Pending |
+| DL-01 | Phase 90 | Pending |
+| DL-02 | Phase 90 | Pending |
+| DL-03 | Phase 89 | Pending |
+| DL-04 | Phase 89 | Pending |
+| ENH-01 | Phase 91 | Pending |
+| ENH-02 | Phase 91 | Pending |
+| ENH-03 | Phase 91 | Pending |
+| LDR-01 | Phase 92 | Pending |
+| LDR-02 | Phase 92 | Pending |
+| BRW-01 | Phase 93 | Pending |
+| BRW-02 | Phase 93 | Pending |
+| BRW-03 | Phase 93 | Pending |
+| EXP-01 | Phase 94 | Pending |
+| EXP-02 | Phase 94 | Pending |
+| EXP-03 | Phase 94 | Pending |
+| EXP-04 | Phase 94 | Pending |
+| SNP-01 | Phase 95 | Pending |
+| SNP-02 | Phase 95 | Pending |
+| SNP-03 | Phase 95 | Pending |
+| SNP-04 | Phase 95 | Pending |
 
 **Coverage:**
 - v0.2.18 requirements: 20 total
-- Mapped to phases: 0
-- Unmapped: 20
+- Mapped to phases: 20
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-05-20*
-*Last updated: 2026-05-20 after initial definition*
+*Last updated: 2026-05-20 — traceability populated after roadmap creation*
