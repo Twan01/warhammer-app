@@ -1,4 +1,27 @@
 # Milestones
+## v0.2.15 Painting Mode (Shipped: 2026-05-20)
+
+**Phases completed:** 5 phases (84–88), 11 plans
+**Timeline:** 2026-05-19 → 2026-05-20 (2 days)
+**Stats:** 38 source files changed, +4,021 / -45 lines, 39/39 requirements satisfied, Nyquist fully compliant
+
+**Key accomplishments:**
+- Atomic step completion with session logging: single-transaction step progress + session save with 6-key React Query cache invalidation, section-aware ordering via COALESCE, navigation hook with first-incomplete selection and prev/next/jumpTo
+- Step-by-step execution UI: StepFocalView hero card with paint swatch, technique/tool/dilution metadata, reference photo, position indicator; SectionNavigator with collapsible sections, progress badges, and step sub-items
+- Distraction-free painting mode: full-page route with sidebar hidden, larger typography, react-hotkeys-hook keyboard shortcuts (Space marks done, Arrow left/right navigates, Escape exits), input guards for form fields
+- Session integration: Zod-validated PaintingSessionSheet prefilled from current context, atomic done+log action via sibling Fragment button pair, standalone mark-done alternative
+- Six entry points wired: Dashboard NextPaintingActionCard, CurrentFocusCard, Unit Detail applied recipe panel, Kanban card, RecipeDetailSheet — all guarded when no applied recipe
+- Full test coverage: 28+ tests covering step selection, navigation, optional sections, paintless steps, paint warnings, session prefill
+
+**Tech debt accepted:** None — 7th consecutive milestone with clean first-pass audit
+
+**Archived:**
+- Roadmap: `.planning/milestones/v0.2.15-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.2.15-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.2.15-MILESTONE-AUDIT.md`
+
+---
+
 ## v0.2.14 Backup 2.0 — Structured Export, Restore & Safety Backups (Shipped: 2026-05-19)
 
 **Phases completed:** 5 phases (79–83), 11 plans

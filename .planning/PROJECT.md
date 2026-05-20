@@ -4,24 +4,11 @@
 
 HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, structured painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play." Official points and rules data are imported via Wahapedia sync for personal use.
 
-Shipped through v0.2.14 (83 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps, transactional graph save, recipe_step_id-keyed progress), army list builder with detachment selection, centralized points resolver with source labeling and user-confirmable unit-to-rules mapping, battle log with after-action capture (forgotten rules, MVP/underperformer notes), spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard, KanbanCards, NextPaintingActionCard, ReadyToPlayCard, and DataHealthSummaryCard, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist, pre-game readiness panel, end-game after-action with forgotten-rules-to-reminders pipeline), Data Health page with diagnostics, structured backup export (.zip with VACUUM INTO + metadata.json), full restore with preview/validation/atomic swap/restart, automatic safety backups before restore and rules sync, progressive backup diagnostics with version mismatch detection, a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK), version parity enforcement, and auto-update via GitHub Releases with in-app banner.
-
-## Current Milestone: v0.2.15 Painting Mode
-
-**Goal:** Create a focused, distraction-free Painting Mode that turns an applied recipe into a clear step-by-step execution experience at the painting desk.
-
-**Target features:**
-- Painting Mode entry points from Dashboard, Current Focus, Unit Detail, Applied Recipe, Kanban, Recipe Detail
-- Current step execution view with paint/tool/technique/dilution, mark done, previous/next navigation
-- Section progress navigation with completion counts and jump-to-section/step
-- Missing paint readiness check with non-blocking warnings
-- Fast session logging prefilled from current context, atomic step completion + session save
-- Distraction-free presentation with larger typography, high contrast, keyboard shortcuts
-- Test coverage for step selection, navigation, completion, paint warnings, session prefill
+Shipped through v0.2.15 (88 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps, transactional graph save, recipe_step_id-keyed progress), a dedicated Painting Mode for focused step-by-step recipe execution (distraction-free full-page layout, keyboard shortcuts, section navigator, paint readiness warnings, atomic step completion with session logging, 6 entry points), army list builder with detachment selection, centralized points resolver with source labeling and user-confirmable unit-to-rules mapping, battle log with after-action capture (forgotten rules, MVP/underperformer notes), spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard, KanbanCards, NextPaintingActionCard, ReadyToPlayCard, and DataHealthSummaryCard, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist, pre-game readiness panel, end-game after-action with forgotten-rules-to-reminders pipeline), Data Health page with diagnostics, structured backup export (.zip with VACUUM INTO + metadata.json), full restore with preview/validation/atomic swap/restart, automatic safety backups before restore and rules sync, progressive backup diagnostics with version mismatch detection, a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK), version parity enforcement, and auto-update via GitHub Releases with in-app banner.
 
 ## Current State
 
-v0.2.14 shipped 2026-05-19. 83 phases complete across 15 milestones. ~300+ TypeScript source files. 28 SQLite migrations (26 hobbyforge.db + 2 rules.db). 1,831 automated tests. 7 Tauri Rust commands. Building v0.2.15.
+v0.2.15 shipped 2026-05-20. 88 phases complete across 16 milestones. ~300+ TypeScript source files. 28 SQLite migrations (26 hobbyforge.db + 2 rules.db). 1,831+ automated tests. 7 Tauri Rust commands. Planning next milestone.
 
 ## Core Value
 
@@ -210,9 +197,20 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ SAF-01–04: Safety backups (pre-restore, pre-sync, app data directory, visible in Data Health) — Phases 79, 82 — v0.2.14
 - ✓ DGN-01–04: Backup diagnostics (never-backed-up flag, staleness threshold, version mismatch, progressive disclosure) — Phase 83 — v0.2.14
 
+*All v0.2.15 requirements verified and shipped 2026-05-20*
+
+- ✓ DL-01..DL-04: Atomic step completion transaction, section-aware ordering, 6-key cache invalidation, navigation hook with first-incomplete selection — Phase 84 — v0.2.15
+- ✓ SE-01..SE-05: Step execution view with paint swatch, technique/tool/dilution/time, mark done, prev/next navigation, position indicator, reference photo — Phase 85 — v0.2.15
+- ✓ SP-01..SP-05: Section navigator with progress counts, current section highlight, jump-to-section/step, optional section badges, section completion acknowledgment — Phases 85–86 — v0.2.15
+- ✓ PR-01..PR-03: Paint readiness warning at entry, non-blocking missing paint display, paintless step handling without false warnings — Phase 85 — v0.2.15
+- ✓ SL-01..SL-03: Prefilled session logger, atomic done+log action, standalone mark-done alternative — Phase 87 — v0.2.15
+- ✓ EP-01..EP-06: Six entry points (Dashboard, CurrentFocus, Unit Detail, Kanban, RecipeDetail), empty state guidance — Phase 87 — v0.2.15
+- ✓ PX-01..PX-06: Distraction-free layout, keyboard shortcuts (Space/Arrow/Escape), input guards, time estimate per step — Phases 85–86 — v0.2.15
+- ✓ TS-01..TS-07: Test coverage for step selection, completion, navigation, optional sections, paintless steps, paint warnings, session prefill — Phases 84, 88 — v0.2.15
+
 ### Active
 
-*v0.2.15 requirements — see REQUIREMENTS.md*
+*No active requirements — planning next milestone*
 
 ### Out of Scope
 
@@ -229,7 +227,7 @@ A single personal command center that always answers "what do I own, what's pain
 
 ## Context
 
-- **Current state:** v0.2.14 shipped. ~300+ TypeScript source files. ~100,000+ LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 12 main pages. Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline. 28 SQLite migrations (26 hobbyforge.db + 2 rules.db). 7 Rust Tauri commands (backup export, validate, safety backup, restore, list safety backups, get schema version, bulk sync rules). Structured backup/restore with preview + atomic swap + restart. Automatic safety backups before restore and rules sync. Progressive backup diagnostics. Transactional recipe graph save, recipe_step_id-keyed progress, centralized points resolver with source labeling, unit-to-rules mapping layer, Data Health page with full diagnostics, dashboard command center (NextPaintingAction, ReadyToPlay, DataHealthSummary), Game Day after-action loop with forgotten-rules-to-reminders. 1,831 automated tests. Version parity enforcement. Auto-update via GitHub Releases.
+- **Current state:** v0.2.15 shipped. ~300+ TypeScript source files. ~100,000+ LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 13 main pages (including Painting Mode). Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline. 28 SQLite migrations (26 hobbyforge.db + 2 rules.db). 7 Rust Tauri commands. Structured backup/restore with preview + atomic swap + restart. Automatic safety backups before restore and rules sync. Progressive backup diagnostics. Transactional recipe graph save, recipe_step_id-keyed progress, centralized points resolver, Painting Mode with full-page execution view + keyboard shortcuts + 6 entry points, dashboard command center (NextPaintingAction, ReadyToPlay, DataHealthSummary), Game Day after-action loop. 1,831+ automated tests. Version parity enforcement. Auto-update via GitHub Releases.
 - **Personal tool** — single user (the owner), local-first, no accounts or sync
 - **Domain:** Warhammer 40K 10th edition, hobby management (collecting → painting → playing)
 - **User journey priority:** painter/collector → ready-to-play, *not* competitive optimization
@@ -327,6 +325,11 @@ A single personal command center that always answers "what do I own, what's pain
 | Schema version = migration count (integer) | Counting migration files in src-tauri/migrations/ gives a reliable, monotonic version number | ✓ Good — simple comparison for schema compatibility checks |
 | Two-step restore (preview then commit) | Non-destructive validation and preview before any destructive operation | ✓ Good — prevents accidental data loss from wrong backup file |
 | Pre-sync safety backup aborts sync on failure | Safety backup must succeed before risking rules.db wipe; fail-fast prevents data loss | ✓ Good — defense-in-depth for the most dangerous automatic operation |
+| Full-page route for Painting Mode (not Sheet/Dialog) | Painting desk needs maximum screen real estate; sidebar hidden for distraction-free focus | ✓ Good — mirrors GameDayPage pattern; clean layout route nesting |
+| react-hotkeys-hook for keyboard shortcuts | 8 KB, React 19 compatible, declarative API for Space/Arrow/Escape | ✓ Good — clean input guards via enableOnFormTags: false |
+| Sibling Fragment pattern for button pair | Mark Done + Done & Log Session as Fragment siblings avoids nested Sheet/Dialog issues | ✓ Good — consistent with established sibling portal pattern |
+| No new migrations for Painting Mode | Entire data layer (step progress, sessions, recipe assignments) already in place from v0.2.10/v0.2.11 | ✓ Excellent — zero schema risk, pure UI milestone |
+| completeStepWithSession flat inline transaction | Follows saveRecipeGraph BEGIN/COMMIT pattern; tauri-plugin-sql cannot nest transactions | ✓ Good — consistent with established transaction pattern |
 
 ---
 ## Evolution
@@ -347,4 +350,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-19 after v0.2.15 milestone started*
+*Last updated: 2026-05-20 after v0.2.15 milestone shipped*

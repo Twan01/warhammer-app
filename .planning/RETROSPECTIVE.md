@@ -641,6 +641,53 @@
 
 ---
 
+## Milestone: v0.2.15 — Painting Mode
+
+**Shipped:** 2026-05-20
+**Phases:** 5 (84–88) | **Plans:** 11 | **Timeline:** 2 days (2026-05-19 → 2026-05-20)
+
+### What Was Built
+
+- Phase 84: Atomic `completeStepWithSession` transaction (step progress upsert + session insert in BEGIN/COMMIT), `usePaintingModeState` navigation hook with section-aware first-incomplete selection, prev/next/jumpTo, per-section progress map, 11 TDD tests
+- Phase 85: StepFocalView hero card (paint swatch, technique/tool/dilution/time metadata, reference photo, position indicator), SectionNavigator left panel with collapsible sections and progress badges, PaintReadinessBanner dismissible warning, PaintingModeView split-panel root
+- Phase 86: Full-page route at `/painting-mode/$assignmentId` with react-hotkeys-hook keyboard shortcuts (Space/Arrow/Escape), input guards, layout route nesting eliminating sidebar, section completion checkmark, kbd badges
+- Phase 87: Zod-validated PaintingSessionSheet with prefilled context, sibling Fragment button pair (Mark Done + Done & Log Session), five entry points wired (Dashboard, CurrentFocus, Unit Detail, Kanban, RecipeDetail)
+- Phase 88: 6 integration tests for paintless steps and missing paint warnings, optional section navigation tests, session prefill value-matching tests
+
+### What Worked
+
+- **No new migrations or Rust commands:** The entire data layer for Painting Mode was already in place from v0.2.10 (applied recipes, step progress) and v0.2.11 (stable session FK). v0.2.15 was a pure UI milestone with zero schema risk. This validated the foundation-first approach across multiple milestones.
+- **Data layer TDD phase (Phase 84):** Writing `completeStepWithSession` and `usePaintingModeState` with 11 tests before any UI existed meant Phases 85–88 had zero data-layer bugs. Consistent with v0.2.0/v0.2.5/v0.2.7/v0.2.8 foundation-first pattern.
+- **Clean linear dependency chain:** 84→85→86→87→88 with no parallelism needed. Each phase built directly on the previous one's output. No coordination overhead.
+- **No gap closure phase needed:** All 39 requirements passed on first audit — 7th consecutive milestone (v0.2.7 through v0.2.15) with clean first-pass audit. The pre-completion audit caught only documentation gaps (ROADMAP checkboxes, VERIFICATION.md missing), not code issues.
+- **Established patterns reused extensively:** Sibling Fragment pattern (button pair), full-page layout route (GameDayPage), transaction pattern (saveRecipeGraph), pure function derivation (usePaintingModeState), Zod-validated Sheet (LogSessionSheet) — all proven patterns applied without reinvention.
+
+### What Was Inefficient
+
+- **SUMMARY frontmatter still incomplete:** Most SUMMARY files shipped with empty `requirements_completed` and null `one_liner` fields. The milestone audit had to manually cross-reference VERIFICATION.md to confirm coverage. This is the most persistent documentation gap across all milestones.
+- **Documentation gaps required audit remediation:** 3 missing VERIFICATION.md files, 8 empty SUMMARY frontmatter fields, 19 unchecked REQUIREMENTS.md boxes — all code-verified but not documented. The audit fixed these, but inline documentation during execution would have prevented the overhead.
+
+### Patterns Established
+
+- **Painting Mode full-page route pattern:** `/painting-mode/$assignmentId` with layout route nesting that hides sidebar. Reusable for any future distraction-free mode (e.g., batch painting).
+- **react-hotkeys-hook for keyboard shortcuts:** Declarative `useHotkeys('space', handler, { enableOnFormTags: false })` pattern. Clean input guards without manual event.target checking.
+- **Sibling Fragment button pair:** Two action buttons (standalone + combined) as Fragment siblings of a Sheet, coordinated via shared state. Avoids nested Sheet/Dialog portal issues.
+- **Entry point guard pattern:** CTA button hidden when `!assignmentId` — prevents navigation to painting mode when no applied recipe exists. Applied consistently across 5 entry surfaces.
+
+### Key Lessons
+
+1. **Foundation-first investment pays dividends across milestones.** v0.2.15 needed zero new migrations because v0.2.10 and v0.2.11 built the data layer correctly. Pure UI milestones are fast and low-risk.
+2. **7 consecutive clean audits confirm the scoping pattern.** Well-scoped milestones (4–5 phases, clear dependency chain, focused domain) consistently pass audit on first attempt. The correlation is now proven across 7 milestones.
+3. **Documentation enforcement remains the #1 process gap.** SUMMARY frontmatter, VERIFICATION.md, REQUIREMENTS.md checkboxes — all three documentation artifacts are consistently incomplete during execution and require audit remediation. A workflow enforcement hook is needed, not more retrospective lessons.
+
+### Cost Observations
+
+- Model: Claude Opus 4.6 throughout
+- Sessions: 3 (Phase 84 foundation, Phases 85–87 UI execution, Phase 88 tests + audit + completion)
+- Notable: 5 phases with 11 plans and 39 requirements in 2 days — fastest requirements-per-day rate (19.5 req/day); the highest requirement count of any milestone completed without gap closure
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -661,6 +708,7 @@
 | v0.2.11 | 5 | 9 | Foundation hardening; non-destructive save; data-layer tests; paintless steps; session FK; no gap closure needed |
 | v0.2.13 | 6 | 13 | Data identity hardening; transactional save; centralized points resolver; Data Health + backup; dashboard command center; game day after-action; no gap closure needed |
 | v0.2.14 | 5 | 11 | Structured backup/restore; Rust-first foundation (6 new commands); safety backups; progressive diagnostics; no gap closure needed |
+| v0.2.15 | 5 | 11 | Painting Mode: full-page execution view, keyboard shortcuts, 6 entry points, atomic session logging; zero new migrations (pure UI milestone); 7th consecutive clean audit |
 
 ### Cumulative Quality
 
@@ -680,6 +728,7 @@
 | v0.2.11 | ~1,260 | All passing (9/9 requirements satisfied, 14 data-layer tests added, Nyquist 4/5 compliant, no gap closure) |
 | v0.2.13 | ~1,300 | All passing (26/26 requirements satisfied, Nyquist 6/6 compliant, no gap closure, 5th consecutive clean audit) |
 | v0.2.14 | 1,831 | All passing (26/26 requirements satisfied, Nyquist 3/5 compliant, no gap closure, 6th consecutive clean audit) |
+| v0.2.15 | 1,831+ | All passing (39/39 requirements satisfied, Nyquist fully compliant, no gap closure, 7th consecutive clean audit) |
 
 ### Top Lessons (Verified Across Milestones)
 
