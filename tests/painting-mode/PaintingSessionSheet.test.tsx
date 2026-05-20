@@ -107,4 +107,40 @@ describe("PaintingSessionSheet", () => {
 
     expect(screen.getByRole("button", { name: /Save & Mark Done/i })).toBeDisabled();
   });
+
+  describe("TS-07: session prefill context", () => {
+    it("renders all four context values matching exact prop strings", () => {
+      render(
+        <PaintingSessionSheet
+          {...defaultProps}
+          unitName="Blood Angels Intercessors"
+          recipeName="Flesh Tearers Scheme"
+          sectionName="Highlights"
+          stepName="Edge highlight pauldrons"
+        />,
+      );
+
+      expect(screen.getByText("Blood Angels Intercessors")).toBeInTheDocument();
+      expect(screen.getByText("Flesh Tearers Scheme")).toBeInTheDocument();
+      expect(screen.getByText("Highlights")).toBeInTheDocument();
+      expect(screen.getByText("Edge highlight pauldrons")).toBeInTheDocument();
+    });
+
+    it("omits section label when sectionName is null with different values", () => {
+      render(
+        <PaintingSessionSheet
+          {...defaultProps}
+          unitName="Plague Marines"
+          recipeName="Death Guard Scheme"
+          sectionName={null}
+          stepName="Prime black"
+        />,
+      );
+
+      expect(screen.getByText("Plague Marines")).toBeInTheDocument();
+      expect(screen.getByText("Death Guard Scheme")).toBeInTheDocument();
+      expect(screen.getByText("Prime black")).toBeInTheDocument();
+      expect(screen.queryByText("Highlights")).not.toBeInTheDocument();
+    });
+  });
 });
