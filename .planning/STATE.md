@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.2.18
 milestone_name: Army Lists 3.0 — Smart List Builder
-status: executing
-stopped_at: Phase 89 context gathered
-last_updated: "2026-05-20T14:39:53.105Z"
+status: ready_to_plan
+stopped_at: Phase 89 complete (2/2) — ready to discuss Phase 90
+last_updated: 2026-05-20T14:52:56.999Z
 last_activity: 2026-05-20 -- Phase 89 planning complete
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 2
   completed_plans: 2
-  percent: 29
+  percent: 14
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-20)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 89 — Schema + Data Layer (v0.2.18 start)
+**Current focus:** Phase 90 — loadout builder
 
 ## Current Position
 
-Phase: 89 of 95 (Schema + Data Layer)
-Plan: 02 of 02 complete (Phase 89 done)
-Status: Executing — Phase 89 complete, ready for Phase 90
-Last activity: 2026-05-20 -- Phase 89 Plan 02 complete (query functions + mutation hooks)
+Phase: 90 of 95 (loadout builder)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-05-20
 
 Progress: [██░░░░░░░░] 29%
 
