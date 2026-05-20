@@ -10,6 +10,7 @@ dependency_graph:
 tech_stack:
   added: []
   patterns: [fireEvent.keyDown for react-hotkeys-hook testing]
+requirements-completed: [SP-05, PX-06]
 key_files:
   created:
     - tests/painting-mode/PaintingModePage.test.tsx

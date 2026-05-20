@@ -10,6 +10,7 @@ dependency_graph:
 tech_stack:
   added: [react-hotkeys-hook@5.3.2]
   patterns: [layout-route-nesting, lifted-state-props, bare-layout]
+requirements-completed: [PX-02, PX-03, PX-04, PX-05]
 key_files:
   created:
     - src/app/painting-mode/page.tsx

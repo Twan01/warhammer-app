@@ -10,6 +10,7 @@ dependency_graph:
 tech_stack:
   added: []
   patterns: [root-composition, prop-drilling, split-panel-layout, photo-url-resolution]
+requirements-completed: [SE-01, SE-02, SE-03, SE-04, SE-05, PX-01]
 key_files:
   created:
     - src/features/painting-mode/StepFocalView.tsx

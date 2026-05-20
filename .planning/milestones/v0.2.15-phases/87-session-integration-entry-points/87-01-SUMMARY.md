@@ -10,6 +10,7 @@ dependency_graph:
 tech_stack:
   added: []
   patterns: [zod-schema-no-default, sibling-sheet-contract, buildDefaultValues-pattern]
+requirements-completed: [SL-01, SL-02, SL-03]
 key_files:
   created:
     - src/features/painting-mode/paintingSessionSchema.ts

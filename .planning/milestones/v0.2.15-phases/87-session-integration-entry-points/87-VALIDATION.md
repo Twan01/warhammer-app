@@ -1,3 +1,13 @@
+---
+phase: 87
+slug: session-integration-entry-points
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
+created: 2026-05-19
+audited: 2026-05-20
+---
+
 # Phase 87: Session Integration + Entry Points — Validation Architecture
 
 **Extracted from:** 87-RESEARCH.md

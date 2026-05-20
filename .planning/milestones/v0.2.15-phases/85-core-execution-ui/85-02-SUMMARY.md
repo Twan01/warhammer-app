@@ -10,6 +10,7 @@ dependency_graph:
 tech_stack:
   added: []
   patterns: [collapsible-sections, section-progress-map, virtual-general-section]
+requirements-completed: [SP-01, SP-02, SP-03, SP-04]
 key_files:
   created:
     - src/features/painting-mode/SectionNavigator.tsx

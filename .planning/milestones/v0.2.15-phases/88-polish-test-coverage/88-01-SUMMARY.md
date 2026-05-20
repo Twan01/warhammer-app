@@ -10,6 +10,7 @@ dependency_graph:
 tech_stack:
   added: []
   patterns: [describe-block-augmentation, factory-helper-reuse]
+requirements-completed: [TS-04, TS-07]
 key_files:
   modified:
     - tests/painting-mode/SectionNavigator.test.tsx

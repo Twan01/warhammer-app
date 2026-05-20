@@ -10,6 +10,7 @@ dependency_graph:
 tech_stack:
   added: []
   patterns: [atomic-transaction, 6-key-invalidation-contract]
+requirements-completed: [DL-01, DL-03, TS-02]
 key_files:
   created:
     - tests/painting-mode/completeStepWithSession.test.ts

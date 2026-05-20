@@ -10,6 +10,7 @@ dependency_graph:
 tech_stack:
   added: []
   patterns: [TanStack Router useNavigate, TanStack Router Link with params, callback prop threading]
+requirements-completed: [EP-01, EP-02, EP-03, EP-04, EP-05, EP-06]
 key_files:
   created: []
   modified:
