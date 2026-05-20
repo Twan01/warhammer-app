@@ -102,6 +102,7 @@ export function useDeletePaintingSession(unitId: number) {
       qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
       qc.invalidateQueries({ queryKey: ["goal-progress"] });
       qc.invalidateQueries({ queryKey: ["recent-activity"] });
+      qc.invalidateQueries({ queryKey: ["recipe-sessions"] });
     },
   });
 }

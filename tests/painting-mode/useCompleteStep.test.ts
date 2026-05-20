@@ -40,7 +40,7 @@ const MUTATION_VARS = {
 } as const;
 
 describe("useCompleteStep", () => {
-  it("invalidates exactly 6 keys on success", async () => {
+  it("invalidates exactly 10 keys on success", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useCompleteStep(), { wrapper });
 
@@ -48,7 +48,7 @@ describe("useCompleteStep", () => {
       await result.current.mutateAsync({ ...MUTATION_VARS });
     });
 
-    expect(spy).toHaveBeenCalledTimes(6);
+    expect(spy).toHaveBeenCalledTimes(10);
   });
 
   it("invalidates STEP_PROGRESS_KEY(assignmentId)", async () => {

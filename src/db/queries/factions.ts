@@ -26,15 +26,15 @@ export async function updateFaction(input: UpdateFactionInput): Promise<void> {
   const db = await getDb();
   await db.execute(
     `UPDATE factions
-        SET name = COALESCE($2, name),
-            game_system = COALESCE($3, game_system),
-            description = COALESCE($4, description),
-            color_theme = COALESCE($5, color_theme),
-            icon_path = COALESCE($6, icon_path),
-            lore_notes  = $7,
+        SET name = $2,
+            game_system = $3,
+            description = $4,
+            color_theme = $5,
+            icon_path = $6,
+            lore_notes = $7,
             updated_at = datetime('now')
       WHERE id = $1`,
-    [input.id, input.name ?? null, input.game_system ?? null, input.description ?? null, input.color_theme ?? null, input.icon_path ?? null, input.lore_notes ?? null]
+    [input.id, input.name, input.game_system, input.description ?? null, input.color_theme, input.icon_path ?? null, input.lore_notes ?? null]
   );
 }
 

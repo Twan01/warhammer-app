@@ -116,7 +116,7 @@ function PaintingModePageInner({ assignmentId }: { assignmentId: number }) {
   useHotkeys("space", handleMarkDone, { preventDefault: true, enabled });
   useHotkeys("arrowleft", () => state.goPrev(), { preventDefault: true, enabled });
   useHotkeys("arrowright", () => state.goNext(), { preventDefault: true, enabled });
-  useHotkeys("escape", handleExit);
+  useHotkeys("escape", handleExit, { enabled });
 
   // Loading state
   if (assignmentLoading) {

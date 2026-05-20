@@ -119,7 +119,7 @@ export function KanbanBoard({ onEditUnit, onAddProject, onLogSession }: KanbanBo
       const overUnit = units.find((u) => u.id === overUnitId);
       targetStatus = overUnit?.status_painting ?? null;
     }
-    if (!targetStatus || targetStatus === unit.status_painting) return;
+    if (!targetStatus || !(PAINTING_STATUS_ORDER as readonly string[]).includes(targetStatus) || targetStatus === unit.status_painting) return;
 
     // Optimistic update
     const previous = qc.getQueryData<Unit[]>(UNITS_KEY);

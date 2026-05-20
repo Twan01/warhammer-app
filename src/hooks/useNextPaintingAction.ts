@@ -64,9 +64,9 @@ export function useNextPaintingAction() {
 
   return {
     data,
-    isLoading: stepQuery.isLoading,
-    isPending: stepQuery.isPending,
-    isError: stepQuery.isError,
-    error: stepQuery.error,
+    isLoading: stepQuery.isLoading || recipePaintsQuery.isLoading || allPaintsQuery.isLoading,
+    isPending: stepQuery.isPending || recipePaintsQuery.isPending || allPaintsQuery.isPending,
+    isError: stepQuery.isError || recipePaintsQuery.isError || allPaintsQuery.isError,
+    error: stepQuery.error ?? recipePaintsQuery.error ?? allPaintsQuery.error,
   };
 }

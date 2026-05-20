@@ -19,6 +19,7 @@ export interface StepFocalViewProps {
   totalSteps: number;
   sectionName: string | null;
   isAllComplete: boolean;
+  isMutating?: boolean;
 }
 
 export function StepFocalView({
@@ -36,6 +37,7 @@ export function StepFocalView({
   totalSteps,
   sectionName,
   isAllComplete,
+  isMutating,
 }: StepFocalViewProps) {
   if (isAllComplete) {
     return (
@@ -149,7 +151,7 @@ export function StepFocalView({
       <div className="flex flex-col gap-2 mt-4">
         <Button
           className="w-full h-12"
-          disabled={isCompleted || isAllComplete}
+          disabled={isCompleted || isAllComplete || !!isMutating}
           data-testid="mark-done-btn"
           onClick={onMarkDone}
         >
@@ -160,7 +162,7 @@ export function StepFocalView({
         <Button
           variant="outline"
           className="w-full"
-          disabled={isCompleted || isAllComplete}
+          disabled={isCompleted || isAllComplete || !!isMutating}
           data-testid="mark-done-with-session-btn"
           onClick={onMarkDoneWithSession}
         >

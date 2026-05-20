@@ -19,8 +19,13 @@ export async function getRulesDb(): Promise<Database> {
     _rulesDbPromise = (async () => {
       const db = await Database.load("sqlite:rules.db");
       await db.execute("PRAGMA foreign_keys = ON");
+      await db.execute("PRAGMA journal_mode = WAL");
+      await db.execute("PRAGMA busy_timeout = 10000");
       return db;
-    })();
+    })().catch((err) => {
+      _rulesDbPromise = null;
+      throw err;
+    });
   }
   return _rulesDbPromise;
 }

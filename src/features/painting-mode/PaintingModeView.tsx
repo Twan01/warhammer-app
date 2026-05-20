@@ -27,7 +27,7 @@ export function PaintingModeView({
   onMarkDone,
   onMarkDoneWithSession,
   recipeId,
-  isMutating: _isMutating,
+  isMutating,
 }: PaintingModeViewProps) {
   const { data: paints = [] } = usePaints();
   const { data: sections = [] } = useRecipeSections(recipeId);
@@ -173,6 +173,7 @@ export function PaintingModeView({
           totalSteps={state.orderedSteps.length}
           sectionName={sectionName}
           isAllComplete={isAllComplete}
+          isMutating={isMutating}
         />
       </div>
     </div>

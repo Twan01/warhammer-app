@@ -47,15 +47,15 @@ describe("computeSpendingStats — DATA-03/04 (cost per model + value split)", (
     expect(result.costPerCompletedModelPence).toBeNull();
   });
 
-  it("Test 2: costPerCompletedModelPence equals Math.round(unitTotalPence / completedCount) when Completed units exist", () => {
+  it("Test 2: costPerCompletedModelPence equals Math.round(paintedValuePence / completedCount) when Completed units exist", () => {
     const tau = f({ id: 1, name: "Tau" });
     const units = [
       u({ id: 1, faction_id: 1, purchase_price_pence: 1500, status_painting: "Not Started" }),
       u({ id: 2, faction_id: 1, purchase_price_pence: 2500, status_painting: "Completed" }),
     ];
-    // unitTotalPence = 4000, completedCount = 1 => 4000/1 = 4000
+    // paintedValuePence = 2500 (only completed unit), completedCount = 1 => 2500/1 = 2500
     const result = computeSpendingStats(units, [tau], 0);
-    expect(result.costPerCompletedModelPence).toBe(4000);
+    expect(result.costPerCompletedModelPence).toBe(2500);
   });
 
   it("Test 3: costPerCompletedModelPence is Math.round'd when not evenly divisible (10000 / 3 Completed = 3333)", () => {

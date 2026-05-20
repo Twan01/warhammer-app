@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useRecipePaints } from "@/hooks/useRecipePaints";
 import { useRecipeSections } from "@/hooks/useRecipeSections";
 import { useStepProgress } from "@/hooks/useRecipeAssignments";
@@ -61,21 +61,23 @@ export function usePaintingModeState(assignmentId: number, recipeId: number) {
     [progressRows],
   );
 
-  // Mount-only: pick first incomplete step, or last step if all complete
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const initialStepId = useMemo(
+  const firstIncompleteId = useMemo(
     () =>
       orderedSteps.find((s) => !completedSet.has(s.id))?.id ??
       orderedSteps[orderedSteps.length - 1]?.id ??
       null,
-    // Empty deps: navigation is controlled state after mount (Pitfall 4)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [orderedSteps, completedSet],
   );
 
-  const [currentStepId, setCurrentStepId] = useState<number | null>(
-    initialStepId,
-  );
+  const [currentStepId, setCurrentStepId] = useState<number | null>(null);
+  const hasInitialized = useRef(false);
+
+  useEffect(() => {
+    if (!hasInitialized.current && firstIncompleteId !== null) {
+      setCurrentStepId(firstIncompleteId);
+      hasInitialized.current = true;
+    }
+  }, [firstIncompleteId]);
 
   const currentIndex = orderedSteps.findIndex((s) => s.id === currentStepId);
   const canGoPrev = currentIndex > 0;

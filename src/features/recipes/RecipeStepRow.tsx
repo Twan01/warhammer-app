@@ -160,16 +160,6 @@ export function RecipeStepRow({
             />
           </div>
         </div>
-        <datalist id="tool-suggestions">
-          {["Size 0 brush", "Size 1 brush", "Size 2 brush", "Dry brush", "Airbrush", "Sponge", "Palette knife"].map((t) => (
-            <option key={t} value={t} />
-          ))}
-        </datalist>
-        <datalist id="technique-suggestions">
-          {["Thin layers", "Stipple", "Wet blend", "Dry brush", "Wash", "Glaze", "Edge highlight", "Feathering"].map((t) => (
-            <option key={t} value={t} />
-          ))}
-        </datalist>
         {/* Line 3: notes */}
         <Input
           className="text-xs"

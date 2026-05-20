@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 import type { SyncDiff } from "@/lib/computeSyncDiff";
 import type { PointsDelta } from "@/types/pointsDelta";
 import { getArmyListUnitNames } from "@/db/queries/armyLists";
+import { DatasheetPointsTab } from "./DatasheetPointsTab";
 
 export function RulesHubPage() {
   const [lastSyncDiff, setLastSyncDiff] = useState<SyncDiff | null>(null);
@@ -172,12 +173,17 @@ export function RulesHubPage() {
               Select an army to browse rules.
             </p>
           ) : (
-            <Tabs defaultValue="stratagems">
+            <Tabs defaultValue="datasheets">
               <TabsList>
+                <TabsTrigger value="datasheets">Datasheets</TabsTrigger>
                 <TabsTrigger value="stratagems">Stratagems</TabsTrigger>
                 <TabsTrigger value="detachments">Detachments</TabsTrigger>
                 <TabsTrigger value="shared-abilities">Shared Abilities</TabsTrigger>
               </TabsList>
+
+              <TabsContent value="datasheets" className="mt-4 space-y-4">
+                <DatasheetPointsTab factionId={selectedFactionId!} />
+              </TabsContent>
 
               <TabsContent value="stratagems" className="mt-4 space-y-4">
                 {/* Phase filter chips */}

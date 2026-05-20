@@ -306,6 +306,29 @@ export async function resolveWahapediaFactionIdByName(
   return null;
 }
 
+export interface DatasheetWithPoints {
+  id: string;
+  name: string;
+  role: string | null;
+  points: number | null;
+}
+
+export async function getDatasheetsByFactionWithPoints(
+  factionId: string,
+): Promise<DatasheetWithPoints[]> {
+  const db = await getRulesDb();
+  return db.select<DatasheetWithPoints[]>(
+    `SELECT d.id, d.name, d.role, dp.points
+     FROM rw_datasheets d
+     LEFT JOIN rw_datasheet_points dp
+       ON dp.datasheet_name = d.name
+       AND (dp.faction_id IS NULL OR dp.faction_id = d.faction_id)
+     WHERE d.faction_id = $1
+     ORDER BY d.role, d.name ASC`,
+    [factionId],
+  );
+}
+
 /**
  * DS-04 fallback: search datasheets by name substring when no faction match.
  * Requires at least 2 characters to avoid returning the full 2500-row table.

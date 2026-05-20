@@ -145,16 +145,18 @@ export const useGameDayStore = create<GameDayStore>()(
   ),
 );
 
-const DEFAULT_STATE: GameDayListState = {
-  cp: 0,
-  prevCp: null,
-  startingCp: 0,
-  checklistItems: DEFAULT_CHECKLIST.map((item) => ({ ...item })),
-  usedAbilities: [],
-};
+function createDefaultState(): GameDayListState {
+  return {
+    cp: 0,
+    prevCp: null,
+    startingCp: 0,
+    checklistItems: DEFAULT_CHECKLIST.map((item) => ({ ...item })),
+    usedAbilities: [],
+  };
+}
 
 export function useGameDayListState(listId: number): GameDayListState {
   return (
-    useGameDayStore((s) => s.listStates[String(listId)]) ?? DEFAULT_STATE
+    useGameDayStore((s) => s.listStates[String(listId)]) ?? createDefaultState()
   );
 }

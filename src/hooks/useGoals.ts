@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { toast } from "sonner";
 import {
   getGoals,
@@ -18,10 +19,11 @@ export function useGoals() {
 
 export function useGoalProgress() {
   const { data: goals } = useGoals();
+  const goalIds = useMemo(() => (goals ?? []).map((g) => g.id), [goals]);
   return useQuery({
-    queryKey: GOAL_PROGRESS_KEY,
+    queryKey: [...GOAL_PROGRESS_KEY, goalIds],
     queryFn: () => getGoalProgress(goals ?? []),
-    enabled: goals !== undefined, // empty array IS valid — disabled only when goals is undefined
+    enabled: goals !== undefined,
   });
 }
 

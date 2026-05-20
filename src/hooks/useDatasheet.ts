@@ -17,6 +17,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getDatasheetIdForUnit,
   getDatasheetsByFaction,
+  getDatasheetsByFactionWithPoints,
   getFullDatasheet,
   getRulesSyncMeta,
   getWahapediaFactions,
@@ -72,6 +73,21 @@ export function useRulesSyncMeta() {
   return useQuery({
     queryKey: RULES_SYNC_META_KEY,
     queryFn: getRulesSyncMeta,
+    staleTime: Infinity,
+  });
+}
+
+export function useDatasheetsByFactionWithPoints(factionId: string | undefined) {
+  return useQuery({
+    queryKey:
+      factionId !== undefined
+        ? (["datasheets-with-points", factionId] as const)
+        : (["datasheets-with-points"] as const),
+    queryFn: () =>
+      factionId !== undefined
+        ? getDatasheetsByFactionWithPoints(factionId)
+        : Promise.resolve([]),
+    enabled: factionId !== undefined,
     staleTime: Infinity,
   });
 }

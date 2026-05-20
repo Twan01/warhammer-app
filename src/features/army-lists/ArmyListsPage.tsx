@@ -49,10 +49,10 @@ export function ArmyListsPage() {
   const closeSheet = () => { setSheetOpen(false); setEditingList(null); };
   const openDelete = (list: ArmyList) => { setDeletingList(list); setDeleteDialogOpen(true); };
   const closeDelete = () => {
+    const wasDeleting = deletingList;
     setDeleteDialogOpen(false);
     setDeletingList(null);
-    // If we deleted the currently-open detail, close that too
-    if (selectedList && deletingList && selectedList.id === deletingList.id) {
+    if (wasDeleting && selectedListId === wasDeleting.id) {
       setSelectedListId(null);
     }
   };

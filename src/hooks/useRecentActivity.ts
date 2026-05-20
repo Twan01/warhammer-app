@@ -13,6 +13,7 @@
  *     events refresh automatically without an extra invalidation here.
  */
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { getRecentActivity } from "@/db/queries/dashboard";
 import {
   computeRecentActivity,
@@ -23,8 +24,12 @@ import type { Unit } from "@/types/unit";
 export const RECENT_ACTIVITY_KEY = ["recent-activity"] as const;
 
 export function useRecentActivity(units: Unit[] | undefined) {
+  const unitIds = useMemo(
+    () => (units ?? []).map((u) => u.id).sort((a, b) => a - b),
+    [units],
+  );
   return useQuery<ActivityEvent[], Error>({
-    queryKey: RECENT_ACTIVITY_KEY,
+    queryKey: [...RECENT_ACTIVITY_KEY, unitIds],
     queryFn: async () => {
       const { sessions, battles } = await getRecentActivity();
       return computeRecentActivity(units ?? [], sessions, battles);

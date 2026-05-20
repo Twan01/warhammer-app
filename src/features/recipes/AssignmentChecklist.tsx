@@ -32,16 +32,20 @@ export function AssignmentChecklist({ assignment, recipeId }: AssignmentChecklis
     [stepProgressRows],
   );
 
-  // Group steps by section_id (copy SectionedTimeline pattern)
-  const stepsBySection = useMemo(() => {
+  // Group steps by section_id; orphan steps (null section_id) collected separately
+  const { stepsBySection, orphanSteps } = useMemo(() => {
     const map = new Map<number, RecipeStep[]>();
+    const orphans: RecipeStep[] = [];
     for (const step of steps) {
-      if (step.section_id === null) continue;
+      if (step.section_id === null) {
+        orphans.push(step);
+        continue;
+      }
       const existing = map.get(step.section_id) ?? [];
       existing.push(step);
       map.set(step.section_id, existing);
     }
-    return map;
+    return { stepsBySection: map, orphanSteps: orphans };
   }, [steps]);
 
   // Compute progress from step definitions and progress rows
@@ -71,6 +75,29 @@ export function AssignmentChecklist({ assignment, recipeId }: AssignmentChecklis
       {/* Sectioned accordion or flat list */}
       {sections.length > 0 ? (
         <Accordion type="multiple">
+          {orphanSteps.length > 0 && (
+            <AccordionItem value="general">
+              <AccordionTrigger className="min-h-12">
+                <span>General</span>
+                <Badge variant="outline">
+                  {orphanSteps.filter((s) => completedSet.has(s.id)).length}/{orphanSteps.length}
+                </Badge>
+              </AccordionTrigger>
+              <AccordionContent>
+                {orphanSteps.map((step) => (
+                  <div key={step.id} className="min-h-12 flex items-center gap-2">
+                    <Checkbox
+                      checked={completedSet.has(step.id)}
+                      onCheckedChange={(checked) => handleToggle(step.id, !!checked)}
+                    />
+                    <span className={completedSet.has(step.id) ? "line-through text-muted-foreground" : ""}>
+                      {step.step_name}
+                    </span>
+                  </div>
+                ))}
+              </AccordionContent>
+            </AccordionItem>
+          )}
           {sections.map((section) => {
             const bucket = progress.bySectionId.get(section.id) ?? { total: 0, completed: 0 };
             const sectionSteps = stepsBySection.get(section.id) ?? [];

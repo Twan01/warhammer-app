@@ -174,17 +174,19 @@ export function BattleLogSheet({
         toast.success("Game logged.");
       }
 
-      if (values.mvp_unit_id && values.mvp_notes) {
-        appendNotes.mutate({
-          unit_id: values.mvp_unit_id,
-          text: `[MVP ${values.battle_date}] ${values.mvp_notes}`,
-        });
-      }
-      if (values.underperforming_unit_id && values.underperformer_notes) {
-        appendNotes.mutate({
-          unit_id: values.underperforming_unit_id,
-          text: `[Underperformed ${values.battle_date}] ${values.underperformer_notes}`,
-        });
+      if (!isEdit) {
+        if (values.mvp_unit_id && values.mvp_notes) {
+          appendNotes.mutate({
+            unit_id: values.mvp_unit_id,
+            text: `[MVP ${values.battle_date}] ${values.mvp_notes}`,
+          });
+        }
+        if (values.underperforming_unit_id && values.underperformer_notes) {
+          appendNotes.mutate({
+            unit_id: values.underperforming_unit_id,
+            text: `[Underperformed ${values.battle_date}] ${values.underperformer_notes}`,
+          });
+        }
       }
 
       onClose();

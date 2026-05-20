@@ -85,6 +85,8 @@ export function useCreateAssignment() {
        */
       qc.invalidateQueries({ queryKey: UNIT_ASSIGNMENTS_KEY(input.unit_id) });
       qc.invalidateQueries({ queryKey: RECIPE_ASSIGNMENTS_KEY(input.recipe_id) });
+      qc.invalidateQueries({ queryKey: ["kanban-enrichment"] });
+      qc.invalidateQueries({ queryKey: NEXT_PAINTING_ACTION_KEY });
     },
   });
 }
@@ -94,12 +96,10 @@ export function useDeleteAssignment() {
   return useMutation<void, Error, { id: number; unitId: number; recipeId: number }>({
     mutationFn: ({ id }) => deleteAssignment(id),
     onSuccess: (_data, variables) => {
-      /**
-       * CASCADE INVALIDATION CONTRACT (D-13 symmetry)
-       * MUST match useCreateAssignment keys exactly.
-       */
       qc.invalidateQueries({ queryKey: UNIT_ASSIGNMENTS_KEY(variables.unitId) });
       qc.invalidateQueries({ queryKey: RECIPE_ASSIGNMENTS_KEY(variables.recipeId) });
+      qc.invalidateQueries({ queryKey: ["kanban-enrichment"] });
+      qc.invalidateQueries({ queryKey: NEXT_PAINTING_ACTION_KEY });
     },
   });
 }
@@ -148,13 +148,15 @@ export function useCompleteStep() {
       completeStepWithSession(assignmentId, recipeStepId, session),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: STEP_PROGRESS_KEY(variables.assignmentId) });
-      // D-06: prefix — we don't know active unit ID sets
       qc.invalidateQueries({ queryKey: ["kanban-enrichment"] });
       qc.invalidateQueries({ queryKey: UNIT_ASSIGNMENTS_KEY(variables.unitId) });
       qc.invalidateQueries({ queryKey: NEXT_PAINTING_ACTION_KEY });
-      // D-06: prefix — we don't know active unit ID sets
       qc.invalidateQueries({ queryKey: ["workflow-positions"] });
       qc.invalidateQueries({ queryKey: DASHBOARD_STATS_KEY });
+      qc.invalidateQueries({ queryKey: ["painting-sessions", variables.unitId] });
+      qc.invalidateQueries({ queryKey: ["recent-activity"] });
+      qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
+      qc.invalidateQueries({ queryKey: ["goal-progress"] });
     },
   });
 }

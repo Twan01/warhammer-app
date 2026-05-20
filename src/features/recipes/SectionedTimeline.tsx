@@ -22,16 +22,20 @@ export function SectionedTimeline({
 }: SectionedTimelineProps) {
   if (sections.length === 0) return null;
 
-  // Group steps by section_id
-  const stepsBySection = useMemo(() => {
+  // Group steps by section_id; orphan steps (null section_id) collected separately
+  const { stepsBySection, orphanSteps } = useMemo(() => {
     const map = new Map<number, RecipeStep[]>();
+    const orphans: RecipeStep[] = [];
     for (const step of steps) {
-      if (step.section_id === null) continue;
+      if (step.section_id === null) {
+        orphans.push(step);
+        continue;
+      }
       const existing = map.get(step.section_id) ?? [];
       existing.push(step);
       map.set(step.section_id, existing);
     }
-    return map;
+    return { stepsBySection: map, orphanSteps: orphans };
   }, [steps]);
 
   // Compute per-section availability (owned vs missing)
@@ -53,6 +57,12 @@ export function SectionedTimeline({
 
   return (
     <div className="flex flex-col gap-6" data-testid="sectioned-timeline">
+      {orphanSteps.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-semibold text-muted-foreground">General</span>
+          <RecipeStepTimeline steps={orphanSteps} paintMap={paintMap} stepPhotoUrls={stepPhotoUrls} />
+        </div>
+      )}
       {sections.map((section) => {
         const sectionSteps = stepsBySection.get(section.id) ?? [];
         const stepCount = sectionSteps.length;

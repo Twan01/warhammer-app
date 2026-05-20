@@ -12,7 +12,7 @@ interface DetachmentRulesSectionProps {
 export function DetachmentRulesSection({ detachmentId }: DetachmentRulesSectionProps) {
   const { data: abilities, isLoading: abilitiesLoading } =
     useDetachmentAbilitiesByDetachment(detachmentId ?? undefined);
-  const { data: stratagems, isLoading: stratagemssLoading } =
+  const { data: stratagems, isLoading: stratagemsLoading } =
     useStratagemsByDetachment(detachmentId ?? undefined);
 
   if (!detachmentId) {
@@ -23,7 +23,7 @@ export function DetachmentRulesSection({ detachmentId }: DetachmentRulesSectionP
     );
   }
 
-  const isLoading = abilitiesLoading || stratagemssLoading;
+  const isLoading = abilitiesLoading || stratagemsLoading;
 
   if (isLoading) {
     return (

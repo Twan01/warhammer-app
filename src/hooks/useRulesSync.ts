@@ -24,8 +24,18 @@ import type { SyncDiff, ExtendedSnapshotData } from "@/lib/computeSyncDiff";
 import { getRulesDb } from "@/db/rules-client";
 import { computePointsDelta } from "@/lib/computePointsDelta";
 import type { PointsDelta } from "@/types/pointsDelta";
-import { replaceSyncedUnitPoints } from "@/db/queries/syncedUnitPoints";
+import { replaceSyncedUnitPoints, replaceSyncedUnitPointTiers } from "@/db/queries/syncedUnitPoints";
 import { insertPointsImportHistory } from "@/db/queries/pointsImportHistory";
+import { parsePointsFromCatFiles } from "@/lib/fetchBsdataPoints";
+import type { PointsTier } from "@/lib/fetchBsdataPoints";
+import { fetchAllCatFiles } from "@/lib/bsdataCommon";
+import { parseExtendedFromCatFiles } from "@/lib/parseBsdataExtended";
+import {
+  replaceSyncedEnhancements,
+  replaceSyncedLoadoutOptions,
+  replaceSyncedModelCounts,
+  replaceSyncedLeaderTargets,
+} from "@/db/queries/bsdataExtended";
 
 /** Mirrors the Rust SyncResult struct returned by bulk_sync_rules via Tauri IPC. */
 interface RustSyncResult {
@@ -107,19 +117,19 @@ export function useRulesSync() {
       const detachAbils    = parseWahapediaCsv(detachmentAbilitiesRaw);
       const wahapediaVersion = parseLastUpdate(lastUpdateRaw);
 
-      // Graceful points CSV fetch — separate from Promise.all so 404 does not
-      // fail the entire sync (D-18, T-65-04). Wahapedia may not have this file.
+      // Fetch BSData .cat XML files once, parse for points + extended data.
+      // Separate from main Wahapedia CSV sync so failure doesn't block rules import.
       let pointsRows: Record<string, string>[] = [];
+      let pointsTiers: Map<string, PointsTier[]> = new Map();
+      let bsdataExtended: ReturnType<typeof parseExtendedFromCatFiles> | null = null;
       try {
-        const pointsRaw = await fetchCsv("Datasheets_points.csv");
-        const parsed = parseWahapediaCsv(pointsRaw);
-        if (parsed.length > 0) {
-          validateCsvHeaders("Datasheets_points.csv", parsed);
-          pointsRows = parsed;
-        }
+        const catFiles = await fetchAllCatFiles();
+        const bsdata = parsePointsFromCatFiles(catFiles);
+        pointsRows = bsdata.rows;
+        pointsTiers = bsdata.tiers;
+        bsdataExtended = parseExtendedFromCatFiles(catFiles);
       } catch {
-        // Points CSV unavailable (404 or parse error) — sync proceeds without points
-        console.warn("[useRulesSync] Datasheets_points.csv not available — skipping points import");
+        console.warn("[useRulesSync] BSData fetch failed — sync proceeds without points/extended data");
       }
 
       // Validate CSV headers before any data transformation (SYNC-03)
@@ -280,11 +290,39 @@ export function useRulesSync() {
         pointsDelta = computePointsDelta(preSyncPointsMap, afterPointsMap);
 
         // Populate synced_unit_points cache in hobbyforge.db
-        await replaceSyncedUnitPoints(cacheRows, new Date().toISOString());
+        const syncedAt = new Date().toISOString();
+        await replaceSyncedUnitPoints(cacheRows, syncedAt);
+
+        // Store point tiers (model count → points brackets)
+        if (pointsTiers.size > 0) {
+          const tierRows = Array.from(pointsTiers.entries()).flatMap(
+            ([key, tiers]) => {
+              const colonIdx = key.lastIndexOf(":");
+              const unitName = key.slice(0, colonIdx);
+              const rawFaction = key.slice(colonIdx + 1);
+              const factionId = rawFaction === "null" || rawFaction === "" ? null : rawFaction;
+              return tiers.map((t) => ({
+                unit_name: unitName,
+                faction_id: factionId,
+                model_count: t.modelCount,
+                points: t.points,
+              }));
+            },
+          );
+          await replaceSyncedUnitPointTiers(tierRows, syncedAt);
+        }
+
+        // Store extended BSData data (enhancements, loadouts, model counts, leader targets)
+        if (bsdataExtended) {
+          await replaceSyncedEnhancements(bsdataExtended.enhancements, syncedAt);
+          await replaceSyncedLoadoutOptions(bsdataExtended.loadoutOptions, syncedAt);
+          await replaceSyncedModelCounts(bsdataExtended.modelCounts, syncedAt);
+          await replaceSyncedLeaderTargets(bsdataExtended.leaderTargets, syncedAt);
+        }
 
         // Store delta in points_import_history
         await insertPointsImportHistory({
-          source_file: "Datasheets_points.csv",
+          source_file: "BSData/wh40k-10e",
           version: wahapediaVersion,
           row_count: afterPointsRows.length,
           delta_added: pointsDelta.added,
@@ -319,7 +357,9 @@ export function useRulesSync() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: RULES_SYNC_META_KEY });
       qc.invalidateQueries({ queryKey: ["datasheets-by-faction"], exact: false });
+      qc.invalidateQueries({ queryKey: ["datasheets-with-points"], exact: false });
       qc.invalidateQueries({ queryKey: ["datasheet"], exact: false });
+      qc.invalidateQueries({ queryKey: ["point-tiers"], exact: false });
       // Phase 44 additions — Phase 43 query keys (SYNC-05)
       qc.invalidateQueries({ queryKey: ["stratagems-by-faction"], exact: false });
       qc.invalidateQueries({ queryKey: ["detachments-by-faction"], exact: false });
@@ -334,6 +374,11 @@ export function useRulesSync() {
       qc.invalidateQueries({ queryKey: ["army-list-readiness"], exact: false });
       // Phase 82 — safety backup was created at start of sync
       qc.invalidateQueries({ queryKey: SAFETY_BACKUPS_KEY });
+      // BSData extended data
+      qc.invalidateQueries({ queryKey: ["enhancements-by-faction"], exact: false });
+      qc.invalidateQueries({ queryKey: ["loadout-options-by-faction"], exact: false });
+      qc.invalidateQueries({ queryKey: ["model-counts-by-faction"], exact: false });
+      qc.invalidateQueries({ queryKey: ["leader-targets-by-faction"], exact: false });
       // NOTE: do NOT add rules-favorites or rules-notes here —
       // they live in hobbyforge.db and survive sync unchanged.
     },

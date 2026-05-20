@@ -172,6 +172,18 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/028_step_progress_identity.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 29,
+            description: "synced_point_tiers",
+            sql: include_str!("../migrations/029_synced_point_tiers.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 30,
+            description: "bsdata_extended",
+            sql: include_str!("../migrations/030_bsdata_extended.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

@@ -32,6 +32,7 @@ export function relativeDate(isoString: string): string {
   const now = new Date();
   const then = new Date(isoString.replace(" ", "T"));
   const diffMs = now.getTime() - then.getTime();
+  if (diffMs <= 0) return "just now";
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   if (diffDays === 0) return "today";
   if (diffDays === 1) return "yesterday";

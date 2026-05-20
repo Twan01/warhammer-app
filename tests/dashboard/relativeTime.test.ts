@@ -26,8 +26,8 @@ function ago(minutes: number): string {
 }
 
 describe("DASH-06 formatRelativeTime — minutes range (<1h)", () => {
-  it("returns '0m' for 'just now'", () => {
-    expect(formatRelativeTime(ago(0))).toBe("0m");
+  it("returns 'just now' for 'just now'", () => {
+    expect(formatRelativeTime(ago(0))).toBe("just now");
   });
   it("returns '30m' for 30 minutes ago", () => {
     expect(formatRelativeTime(ago(30))).toBe("30m");

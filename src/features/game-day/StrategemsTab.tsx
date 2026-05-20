@@ -121,9 +121,9 @@ export function StrategemsTab({ detachmentId, listId }: StrategemsTabProps) {
             <span className="text-sm font-semibold">Rules You Forgot Recently</span>
           </div>
           <div className="flex flex-col gap-1.5">
-            {(forgottenRules ?? []).map((rule) => (
+            {(forgottenRules ?? []).map((rule, i) => (
               <div
-                key={rule}
+                key={`forgotten-${i}`}
                 className="flex items-center gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2"
               >
                 <span className="flex-1 text-sm">{rule}</span>

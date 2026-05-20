@@ -459,7 +459,6 @@ export function PlaybookTab({
       }
       applyIncomingOrRouteConflicts(fresh);
     } catch (e) {
-      console.error(e);
       toast.error("Failed to link datasheet — try again.");
     }
   }
@@ -576,7 +575,6 @@ export function PlaybookTab({
         }
       },
       onError: (err) => {
-        console.error("[useRulesSync] sync failed:", err);
         toast.error(`Sync failed: ${err.message}`);
       },
     });

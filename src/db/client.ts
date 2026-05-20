@@ -25,7 +25,10 @@ export async function getDb(): Promise<Database> {
       const db = await Database.load("sqlite:hobbyforge.db");
       await db.execute("PRAGMA foreign_keys = ON");
       return db;
-    })();
+    })().catch((err) => {
+      _dbPromise = null;
+      throw err;
+    });
   }
   return _dbPromise;
 }

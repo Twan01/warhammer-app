@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, ChevronDown, ChevronUp, Info, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -70,6 +70,7 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
   const updateUnit = useUpdateUnit();
   const [expanded, setExpanded] = useState(false);
   const [notesDraft, setNotesDraft] = useState(unit.notes ?? "");
+  useEffect(() => { setNotesDraft(unit.notes ?? ""); }, [unit.notes]);
   const [pendingTierId, setPendingTierId] = useState<number | null>(null);
   const [mappingSheetOpen, setMappingSheetOpen] = useState(false);
 
@@ -271,7 +272,7 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
                   <SelectValue placeholder="Tier..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {tiers!.map((t) => (
+                  {(tiers ?? []).map((t) => (
                     <SelectItem key={t.id} value={String(t.id)}>
                       {t.model_count} models = {t.points}pts
                     </SelectItem>
@@ -286,7 +287,7 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
                   className="h-7 text-xs"
                   disabled={updateUnit.isPending}
                   onClick={() => {
-                    const tier = tiers!.find((t) => t.id === pendingTierId);
+                    const tier = tiers?.find((t) => t.id === pendingTierId);
                     if (!tier) return;
                     updateUnit.mutate(
                       { id: unit.unit_id, points: tier.points },

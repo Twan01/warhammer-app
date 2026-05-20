@@ -62,7 +62,9 @@ export function GoalSheet({ open, onOpenChange, editingGoal }: GoalSheetProps) {
 
   async function onSubmit(data: GoalFormValues) {
     try {
-      const period = currentPeriod(data.timeframe);
+      const period = isEdit && editingGoal && data.timeframe === editingGoal.timeframe
+        ? editingGoal.period
+        : currentPeriod(data.timeframe);
       if (isEdit && editingGoal) {
         await updateGoalMutation.mutateAsync({
           id: editingGoal.id,

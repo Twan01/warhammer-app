@@ -14,7 +14,8 @@ interface GoalCardProps {
 export function GoalCard({ goal, progressCount, onEdit, onDelete }: GoalCardProps) {
   const goalPeriod = computeGoalPeriod(goal.timeframe, goal.period);
   const status = deriveGoalStatus(progressCount, goal.target_count, goalPeriod.isExpired);
-  const pct = Math.min(100, Math.round((progressCount / goal.target_count) * 100));
+  const safeTarget = Math.max(1, goal.target_count);
+  const pct = Math.min(100, Math.round((progressCount / safeTarget) * 100));
 
   const fillColor =
     status === "completed"

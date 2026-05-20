@@ -10,7 +10,9 @@
 export function formatRelativeTime(sqliteDatetime: string): string {
   const date = new Date(sqliteDatetime.replace(" ", "T") + "Z");
   const diffMs = Date.now() - date.getTime();
+  if (diffMs <= 0) return "just now";
   const diffMin = Math.floor(diffMs / 60_000);
+  if (diffMin < 1) return "just now";
   if (diffMin < 60) return `${diffMin}m`;
   const diffHr = Math.floor(diffMin / 60);
   if (diffHr < 24) return `${diffHr}h`;

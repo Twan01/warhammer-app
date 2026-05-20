@@ -43,6 +43,48 @@ export async function replaceSyncedUnitPoints(
   }
 }
 
+export interface SyncedUnitPointTier {
+  unit_name: string;
+  faction_id: string | null;
+  model_count: number;
+  points: number;
+}
+
+export async function replaceSyncedUnitPointTiers(
+  rows: SyncedUnitPointTier[],
+  syncedAt: string,
+): Promise<void> {
+  const db = await getDb();
+  await db.execute("BEGIN TRANSACTION", []);
+  try {
+    await db.execute("DELETE FROM synced_unit_point_tiers", []);
+    for (const row of rows) {
+      await db.execute(
+        `INSERT INTO synced_unit_point_tiers (unit_name, faction_id, model_count, points, synced_at)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [row.unit_name, row.faction_id, row.model_count, row.points, syncedAt],
+      );
+    }
+    await db.execute("COMMIT", []);
+  } catch (e) {
+    await db.execute("ROLLBACK", []);
+    throw e;
+  }
+}
+
+export async function getPointTiersByFaction(
+  factionId: string,
+): Promise<SyncedUnitPointTier[]> {
+  const db = await getDb();
+  return db.select<SyncedUnitPointTier[]>(
+    `SELECT unit_name, faction_id, model_count, points
+     FROM synced_unit_point_tiers
+     WHERE faction_id = $1
+     ORDER BY unit_name, model_count`,
+    [factionId],
+  );
+}
+
 /**
  * Read all synced unit points into a Map keyed by "unit_name:faction_id".
  * Used by computePointsDelta to build before/after snapshots.

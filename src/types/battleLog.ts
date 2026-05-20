@@ -36,5 +36,5 @@ export interface BattleLog {
   // NO updated_at — schema does not have one
 }
 
-export type CreateBattleLogInput = Omit<BattleLog, "id" | "created_at">;
+export type CreateBattleLogInput = Omit<BattleLog, "id" | "created_at" | "promoted_to_reminder">;
 export type UpdateBattleLogInput = CreateBattleLogInput & { id: number };

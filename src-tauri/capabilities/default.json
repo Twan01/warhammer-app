@@ -22,7 +22,9 @@
     {
       "identifier": "http:default",
       "allow": [
-        { "url": "https://wahapedia.ru/**" }
+        { "url": "https://wahapedia.ru/**" },
+        { "url": "https://api.github.com/**" },
+        { "url": "https://raw.githubusercontent.com/**" }
       ]
     },
     "updater:default",

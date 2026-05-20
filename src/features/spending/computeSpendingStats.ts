@@ -64,7 +64,7 @@ export function computeSpendingStats(
     factionBreakdown,
     paintsPence,
     costPerCompletedModelPence:
-      completedCount === 0 ? null : Math.round(unitTotalPence / completedCount),
+      completedCount === 0 ? null : Math.round(paintedValuePence / completedCount),
     paintedValuePence,
     unpaintedValuePence,
   };
