@@ -373,7 +373,7 @@ Plans:
 | 87. Session Integration + Entry Points | v0.2.15 | 2/2 | Complete | 2026-05-19 |
 | 88. Polish + Test Coverage | v0.2.15 | 2/2 | Complete | 2026-05-20 |
 | 89. Schema + Data Layer | v0.2.18 | 2/2 | Complete    | 2026-05-20 |
-| 90. Loadout Builder | v0.2.18 | 1/2 | In progress | - |
+| 90. Loadout Builder | v0.2.18 | 2/2 | Complete    | 2026-05-20 |
 | 91. Enhancement Assignment | v0.2.18 | 0/TBD | Not started | - |
 | 92. Leader Attachment | v0.2.18 | 0/TBD | Not started | - |
 | 93. Datasheet Browser + Ghost Units | v0.2.18 | 0/TBD | Not started | - |

@@ -4,11 +4,11 @@ milestone: v0.2.18
 milestone_name: Army Lists 3.0 — Smart List Builder
 status: ready_to_execute
 stopped_at: Phase 90 complete — LoadoutBuilderSheet delivered
-last_updated: 2026-05-20T17:25:00.000Z
-last_activity: 2026-05-20 -- Phase 90 complete (LoadoutBuilderSheet component + wiring + tests)
+last_updated: 2026-05-20T18:00:00.000Z
+last_activity: 2026-05-20 -- Phase 90 verified complete (LoadoutBuilderSheet + tier selection + wargear display + tests)
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
   completed_plans: 4
   percent: 57
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-05-20)
 
 ## Current Position
 
-Phase: 90 of 95 (loadout builder)
+Phase: 90 of 95 (loadout builder — verified complete)
 Plan: 2 of 2 complete (Phase 90 done)
-Status: Phase 90 complete
+Status: Phase 90 verified — ready for Phase 91
 Last activity: 2026-05-20
 
 Progress: [█████░░░░░] 57%
@@ -67,6 +67,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-20
-Stopped at: Phase 90 complete — LoadoutBuilderSheet delivered
+Stopped at: Phase 90 verified complete — all gates passed
 Resume file: None
 Resume: /gsd:execute-phase 91
