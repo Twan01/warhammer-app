@@ -8,7 +8,7 @@
  * - EP-05: RecipeDetailSheet Paint button for applied units
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Unit } from "@/types/unit";

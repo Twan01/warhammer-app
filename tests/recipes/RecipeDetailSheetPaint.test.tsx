@@ -12,6 +12,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import type { PaintingRecipe } from "@/types/recipe";
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -104,12 +105,21 @@ function createWrapper() {
   };
 }
 
-const baseRecipe = {
+const baseRecipe: PaintingRecipe = {
   id: 1,
   name: "Ultramarines Scheme",
   faction_id: null,
   unit_id: null,
   area: null,
+  primer: null,
+  basecoat: null,
+  shade: null,
+  layer: null,
+  highlight: null,
+  glaze_filter: null,
+  weathering: null,
+  technical: null,
+  basing: null,
   tutorial_link: null,
   notes: null,
   style: null,
@@ -117,6 +127,7 @@ const baseRecipe = {
   effect: null,
   difficulty: null,
   estimated_minutes: null,
+  result_photo_path: null,
   created_at: "2026-01-01",
   updated_at: "2026-01-01",
 };
