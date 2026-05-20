@@ -148,7 +148,7 @@ Full details: `.planning/milestones/v0.2.15-ROADMAP.md`
 Plans:
 **Wave 1**
 
-- [ ] 89-01-PLAN.md — Migration 031 + lib.rs + types + resolveUnitPoints
+- [x] 89-01-PLAN.md — Migration 031 + lib.rs + types + resolveUnitPoints
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -367,7 +367,7 @@ Plans:
 | 86. Shell, Route & Keyboard Shortcuts | v0.2.15 | 2/2 | Complete | 2026-05-19 |
 | 87. Session Integration + Entry Points | v0.2.15 | 2/2 | Complete | 2026-05-19 |
 | 88. Polish + Test Coverage | v0.2.15 | 2/2 | Complete | 2026-05-20 |
-| 89. Schema + Data Layer | v0.2.18 | 0/2 | In progress | - |
+| 89. Schema + Data Layer | v0.2.18 | 1/2 | In Progress|  |
 | 90. Loadout Builder | v0.2.18 | 0/TBD | Not started | - |
 | 91. Enhancement Assignment | v0.2.18 | 0/TBD | Not started | - |
 | 92. Leader Attachment | v0.2.18 | 0/TBD | Not started | - |

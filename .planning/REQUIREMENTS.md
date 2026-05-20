@@ -11,8 +11,8 @@ Requirements for Army Lists 3.0 — Smart List Builder. Each maps to roadmap pha
 
 - [ ] **DL-01**: User can select model count tier for a unit in the army list, and points auto-resolve from synced_unit_point_tiers
 - [ ] **DL-02**: User can see wargear/loadout options for a unit from BSData (display-only — wargear is free in 10th ed)
-- [ ] **DL-03**: Units in army list display in stable insertion order (newest at bottom)
-- [ ] **DL-04**: User can designate one unit as Warlord in the army list
+- [x] **DL-03**: Units in army list display in stable insertion order (newest at bottom)
+- [x] **DL-04**: User can designate one unit as Warlord in the army list
 
 ### Enhancements
 
@@ -73,8 +73,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | DL-01 | Phase 90 | Pending |
 | DL-02 | Phase 90 | Pending |
-| DL-03 | Phase 89 | Pending |
-| DL-04 | Phase 89 | Pending |
+| DL-03 | Phase 89 | Complete |
+| DL-04 | Phase 89 | Complete |
 | ENH-01 | Phase 91 | Pending |
 | ENH-02 | Phase 91 | Pending |
 | ENH-03 | Phase 91 | Pending |
