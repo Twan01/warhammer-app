@@ -200,4 +200,31 @@ describe("StepFocalView", () => {
     expect(screen.getByText("All steps complete!")).toBeInTheDocument();
     expect(screen.queryByTestId("mark-done-btn")).not.toBeInTheDocument();
   });
+
+  // ---------------------------------------------------------------------------
+  // SL-03: "Done + Log Session" button vs "Mark Done" button
+  // ---------------------------------------------------------------------------
+
+  it("SL-03: 'Done + Log Session' button exists and calls onMarkDoneWithSession", async () => {
+    const user = userEvent.setup();
+    const { props } = renderFocalView();
+    const sessionBtn = screen.getByTestId("mark-done-with-session-btn");
+    expect(sessionBtn).toHaveTextContent("Done + Log Session");
+    await user.click(sessionBtn);
+    expect(props.onMarkDoneWithSession).toHaveBeenCalledOnce();
+  });
+
+  it("SL-03: 'Mark Done' calls onMarkDone, NOT onMarkDoneWithSession", async () => {
+    const user = userEvent.setup();
+    const { props } = renderFocalView();
+    await user.click(screen.getByTestId("mark-done-btn"));
+    expect(props.onMarkDone).toHaveBeenCalledOnce();
+    expect(props.onMarkDoneWithSession).not.toHaveBeenCalled();
+  });
+
+  it("SL-03: both buttons disabled when isCompleted is true", () => {
+    renderFocalView({ isCompleted: true });
+    expect(screen.getByTestId("mark-done-btn")).toBeDisabled();
+    expect(screen.getByTestId("mark-done-with-session-btn")).toBeDisabled();
+  });
 });
