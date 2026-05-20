@@ -48,7 +48,7 @@ export function UnitPickerDialog({
   const { data: units = [] } = useUnits();
   const addUnitToList = useAddUnitToList();
 
-  // Pitfall 3: null factionId means "no faction set on list" → show all units.
+  // Pitfall 3: null factionId means "no faction set on list" -> show all units.
   const filteredUnits = factionId === null
     ? units
     : units.filter((u) => u.faction_id === factionId);
@@ -62,7 +62,10 @@ export function UnitPickerDialog({
           toast.success("Unit added.");
           // Do NOT close — stay open for multi-add (CONTEXT.md decision)
         },
-        onError: () => toast.error("Failed to add unit. Please try again."),
+        onError: (err) => {
+          console.error("[UnitPickerDialog] Failed to add unit:", err);
+          toast.error("Failed to add unit. Please try again.");
+        },
       },
     );
   }
@@ -81,12 +84,16 @@ export function UnitPickerDialog({
         <Command>
           <CommandInput placeholder="Search units..." />
           <CommandList>
-            <CommandEmpty>No units found in this faction.</CommandEmpty>
+            <CommandEmpty>
+              {units.length === 0
+                ? "No units in your collection yet. Add units on the Collection page first."
+                : "No units found in this faction."}
+            </CommandEmpty>
             <CommandGroup>
               {filteredUnits.map((unit) => (
                 <CommandItem
                   key={unit.id}
-                  value={unit.name}
+                  value={`${unit.name}-${unit.id}`}
                   onSelect={() => handleSelect(unit.id)}
                 >
                   <span className="flex-1">{unit.name}</span>

@@ -92,7 +92,10 @@ export function ArmyListDetailSheet({
       { army_list_unit_id: armyListUnitId, list_id: list.id },
       {
         onSuccess: () => toast.success("Unit removed."),
-        onError: () => toast.error("Failed to remove unit. Please try again."),
+        onError: (err) => {
+          console.error("[ArmyListDetailSheet] Failed to remove unit:", err);
+          toast.error("Failed to remove unit. Please try again.");
+        },
       },
     );
   }
@@ -112,7 +115,10 @@ export function ArmyListDetailSheet({
       },
       {
         onSuccess: () => toast.success("Notes saved."),
-        onError: () => toast.error("Failed to save notes. Please try again."),
+        onError: (err) => {
+          console.error("[ArmyListDetailSheet] Failed to save notes:", err);
+          toast.error("Failed to save notes. Please try again.");
+        },
       },
     );
   }
@@ -168,6 +174,7 @@ export function ArmyListDetailSheet({
                   value={list.detachment_id}
                   valueName={list.detachment_name}
                   disabled={!faction}
+                  rulesSynced={syncMeta?.last_sync_at != null}
                   onChange={handleDetachmentSelect}
                   onClear={handleDetachmentClear}
                 />

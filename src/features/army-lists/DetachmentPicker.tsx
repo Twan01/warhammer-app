@@ -18,6 +18,8 @@ interface DetachmentPickerProps {
   value: string | null;
   valueName: string | null;
   disabled: boolean;
+  /** Whether rules have ever been synced. When false, shows a helpful message. */
+  rulesSynced: boolean;
   onChange: (detachmentId: string, detachmentName: string) => void;
   onClear: () => void;
 }
@@ -27,6 +29,7 @@ export function DetachmentPicker({
   value,
   valueName,
   disabled,
+  rulesSynced,
   onChange,
   onClear,
 }: DetachmentPickerProps) {
@@ -48,6 +51,13 @@ export function DetachmentPicker({
       </Button>
     );
   }
+
+  // Determine the empty-state message based on why detachments are empty
+  const emptyMessage = !rulesSynced
+    ? "Sync rules from the Rules Hub to load detachments."
+    : factionWahapediaId === undefined
+      ? "Could not match faction to rules data. Try syncing rules."
+      : "No detachments found for this faction.";
 
   return (
     <div className="flex items-center gap-2">
@@ -71,7 +81,7 @@ export function DetachmentPicker({
           <Command shouldFilter>
             <CommandInput placeholder="Search detachments..." />
             <CommandList>
-              <CommandEmpty>No detachments found.</CommandEmpty>
+              <CommandEmpty>{emptyMessage}</CommandEmpty>
               <CommandGroup>
                 {detachments.map((d) => (
                   <CommandItem
