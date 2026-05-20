@@ -1,10 +1,11 @@
 ---
 phase: 89
 slug: schema-data-layer
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-20
+validated: 2026-05-20
 ---
 
 # Phase 89 — Validation Strategy
@@ -38,18 +39,26 @@ created: 2026-05-20
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 89-01-01 | 01 | 1 | DL-03 | — | N/A | unit | `pnpm test` | ❌ W0 | ⬜ pending |
-| 89-01-02 | 01 | 1 | DL-04 | — | N/A | unit | `pnpm test` | ❌ W0 | ⬜ pending |
+| 89-01-01 | 01 | 1 | DL-03 (Migration 031) | T-89-01, T-89-03 | CHECK constraint + atomic recreation | grep verify | `grep -c "version: 31" src-tauri/src/lib.rs` | ✅ | ✅ green |
+| 89-01-02 | 01 | 1 | DL-04 (Types + resolveUnitPoints) | — | N/A | unit | `pnpm test -- tests/lib/resolveUnitPoints.test.ts` | ✅ | ✅ green |
+| 89-02-01 | 02 | 2 | DL-03 (Query functions) | T-89-04 | list_id scoping in setWarlord | unit | `pnpm test -- tests/army-list/armyListQueries.test.ts` | ✅ | ✅ green |
+| 89-02-01 | 02 | 2 | DL-04 (Enhancement CRUD) | T-89-05 | Parameterized queries | unit | `pnpm test -- tests/army-list/armyListEnhancements.test.ts` | ✅ | ✅ green |
+| 89-02-02 | 02 | 2 | DL-03/04 (Mutation hooks) | — | N/A | unit (hook) | `pnpm test -- tests/army-list/armyListHookInvalidations.test.ts` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
 ---
 
-## Wave 0 Requirements
+## Test Files
 
-- [ ] `tests/army-lists/schema-v3.test.ts` — stubs for DL-03, DL-04, ghost units, warlord, enhancements, COALESCE chain
+| File | Tests | Covers |
+|------|-------|--------|
+| `tests/lib/resolveUnitPoints.test.ts` | 13 | tier_points priority, 0-as-valid, null fallthrough, type contract |
+| `tests/army-list/armyListQueries.test.ts` | 9 | setWarlord SQL + scoping, addGhostUnitToList, clearLeaderAttachment, clearSelectedModelCount |
+| `tests/army-list/armyListEnhancements.test.ts` | 8 | addEnhancement, removeEnhancement, getEnhancementsByList |
+| `tests/army-list/armyListHookInvalidations.test.ts` | 45 | Cache invalidation for all 10 new hooks (positive + negative assertions) |
 
-*Existing better-sqlite3 test infrastructure from Phase 72 covers migration parity testing.*
+**Total phase-specific tests:** 75
 
 ---
 
@@ -63,11 +72,23 @@ created: 2026-05-20
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** validated
+
+---
+
+## Validation Audit 2026-05-20
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 1 |
+| Resolved | 1 |
+| Escalated | 0 |
+
+Gap resolved: 10 mutation hooks in `useArmyLists.ts` now have 45 dedicated cache-invalidation tests verifying correct query key invalidation (including negative assertions for hooks with reduced invalidation sets).
