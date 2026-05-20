@@ -1,490 +1,524 @@
-# Architecture Research
+# Architecture: Smart Army List Builder Integration
 
-**Domain:** Painting Mode — focused recipe execution view integrated into HobbyForge
-**Researched:** 2026-05-19
-**Confidence:** HIGH (direct codebase analysis of all integration surfaces)
-
----
-
-## System Overview
-
-```
-┌──────────────────────────────────────────────────────────────────┐
-│              Entry Points (6 existing surfaces)                   │
-│                                                                   │
-│  Dashboard             Kanban              Unit Detail            │
-│  ┌──────────────────┐  ┌───────────────┐  ┌──────────────────┐  │
-│  │CurrentFocusCard  │  │ KanbanCard    │  │AssignmentCheckl  │  │
-│  │+ "Paint" button  │  │+ Paint Mode   │  │+ "Open in Paint  │  │
-│  │NextPaintingAction│  │  action       │  │  Mode" link      │  │
-│  │→ link to mode    │  │               │  │                  │  │
-│  └────────┬─────────┘  └──────┬────────┘  └────────┬─────────┘  │
-│           │                   │                    │             │
-│  Applied Recipe    Recipe Detail                                  │
-│  ┌────────┴──────┐  ┌────────┴────────────────────┘             │
-│  │RecipeDetail   │  │  navigate with assignmentId               │
-│  │Sheet footer   │  │                                           │
-│  └───────────────┘                                              │
-└───────────────────────────────┬──────────────────────────────────┘
-                                │  navigate({ to: "/painting-mode/$assignmentId" })
-                                ▼
-┌──────────────────────────────────────────────────────────────────┐
-│          PaintingModePageShell  (src/app/painting-mode/page.tsx) │
-│          Extracts $assignmentId param, NaN guard, renders        │
-│          PaintingModePage — matches GameDayPageShell pattern     │
-└───────────────────────────────┬──────────────────────────────────┘
-                                │
-┌───────────────────────────────▼──────────────────────────────────┐
-│              PaintingModePage  (src/features/painting-mode/)     │
-│                                                                   │
-│  ┌───────────────────────────────────────────────────────────┐   │
-│  │  SectionNav                     StepExecutionView          │   │
-│  │  (section list with              (step name, phase badge,  │   │
-│  │   completion counts,              paint/tool/technique,    │   │
-│  │   jump-to, active highlight)      dilution, time, photo,   │   │
-│  │                                   mark done, prev/next)    │   │
-│  │                                                            │   │
-│  │                       PaintReadinessWarning                │   │
-│  │                       (missing/low paint banner)           │   │
-│  └───────────────────────────────────────────────────────────┘   │
-│                                                                   │
-│  [Keyboard: ArrowLeft/Right = prev/next, Space = mark done]      │
-│  PaintingModeLogSheet (sheet overlay, prefilled, atomic)         │
-└───────────────────────────────┬──────────────────────────────────┘
-                                │
-┌───────────────────────────────▼──────────────────────────────────┐
-│                 Existing Hook Layer (ALL REUSED)                  │
-│                                                                   │
-│  useStepProgress(assignmentId)      → StepProgress[]             │
-│  useToggleStepProgress()            → mark step done/undone      │
-│  useRecipePaints(recipeId)          → RecipeStep[] w/ paint data  │
-│  useRecipeSections(recipeId)        → RecipeSection[] + metadata  │
-│  usePaints()                        → Paint[] ownership status   │
-│  useCreatePaintingSession()         → log session w/ step FK     │
-│  useAssignmentsByUnit(unitId)       → assignment lookup          │
-└───────────────────────────────┬──────────────────────────────────┘
-                                │
-┌───────────────────────────────▼──────────────────────────────────┐
-│                 Existing Query Layer (UNCHANGED)                  │
-│  getStepProgress / upsertStepProgress                            │
-│  getRecipePaintsByRecipe / getRecipeSections                     │
-│  createSession                                                    │
-└───────────────────────────────┬──────────────────────────────────┘
-                                │
-┌───────────────────────────────▼──────────────────────────────────┐
-│           SQLite: hobbyforge.db (UNCHANGED, no migrations)       │
-│  unit_recipe_assignments, unit_recipe_step_progress              │
-│  recipe_steps, recipe_sections, painting_sessions                │
-└──────────────────────────────────────────────────────────────────┘
-```
+**Project:** HobbyForge v0.2.18 — Army Lists 3.0
+**Researched:** 2026-05-20
+**Focus:** Integration of loadout builder, enhancement assignment, rules browsing, version snapshots, and export into existing architecture
 
 ---
 
-## Component Responsibilities
+## Existing Architecture Constraints That Drive Every Decision
 
-| Component | Responsibility | New / Modified / Reused |
-|-----------|----------------|------------------------|
-| `PaintingModePageShell` | Route param extraction, NaN guard, renders `PaintingModePage` | NEW (matches `GameDayPageShell`) |
-| `PaintingModePage` | Page root: owns keyboard handler, `logSheetOpen` state, layout composition, back navigation | NEW |
-| `usePaintingModeState` | Local hook: derives initial step from completedSet, controlled `currentStepId`, prev/next/jump navigation, ordered step array | NEW |
-| `StepExecutionView` | Renders step detail (name, phase badge, paint, tool, technique, dilution, time estimate, step photo), mark done button, prev/next nav | NEW |
-| `SectionNav` | Vertical section list with completion counts, active section highlight, click-to-jump-to-first-step | NEW |
-| `PaintReadinessWarning` | Non-blocking banner when current step's paint is missing or running-low, reuses `PaintAvailability` type | NEW |
-| `PaintingModeLogSheet` | Prefilled session logger (unit+recipe+step locked from context), only duration+notes editable, atomic complete+log | NEW |
-| `AssignmentChecklist` | Existing sectioned checklist — reused as-is, gains "Open in Paint Mode" link per assignment | MODIFIED (minor) |
-| `CurrentFocusCard` | Gains "Paint" button alongside existing "Open" and "Log" buttons | MODIFIED (minor) |
-| `NextPaintingActionCard` | Changes link target from `/painting-projects` to `/painting-mode/$assignmentId` when assignment exists | MODIFIED (minor) |
-| `KanbanCardActions` | Gains "Paint Mode" action that navigates with assignment ID | MODIFIED (minor) |
-| `RecipeDetailSheet` | Gains "Open in Paint Mode" footer button (enabled only when unit has assignment) | MODIFIED (minor) |
-| `computeAssignmentProgress` | Pure function for progress percentages — reused unchanged | REUSED |
-| `computeWorkflowPosition` | Pure function for "where am I" derivation — reused unchanged | REUSED |
-| `RecipeStepTimeline` | Existing timeline display — optionally reused for recipe overview panel | REUSED |
+### 1. Cross-DB Pattern (immovable)
+`ATTACH DATABASE` is impossible with tauri-plugin-sql. The dual-query merge pattern is the only option:
+- `rules.db` is read for datasheet browsing (via `getRulesDb()`)
+- Data that must survive rules sync lives in `hobbyforge.db` as TEXT copies or synced_* cache tables
+- Cross-DB references are TEXT denormalization (weapon_name, detachment_name, detachment_id, rules_datasheet_id)
+
+### 2. Points COALESCE Chain (must be extended, not replaced)
+Current 5-level chain in SQL:
+```sql
+COALESCE(alu.points_override, sup.points, uo.points, u.points, 0)
+```
+Where `sup.points` comes from `synced_unit_points` (joined by unit_name + faction_id TEXT match).
+
+New loadout and enhancement points must slot into this chain without breaking existing consumers. The resolution order for v0.2.18 needs to become:
+```sql
+COALESCE(
+  alu.points_override,           -- army-list-level manual override (highest)
+  alul.loadout_points,           -- computed from selected model count tier
+  sup.points,                    -- synced base points
+  uo.points,                     -- unit_overrides manual override
+  u.points,                      -- units.points field
+  0                              -- fallback
+)
+```
+`alul.loadout_points` would be a stored INTEGER on `army_list_unit_loadout` updated when the user selects a model count. This avoids a complex subquery in `getArmyListWithUnits`.
+
+### 3. NULL-Passthrough Pattern (mandatory)
+`updateArmyListUnit` uses full-replacement UPDATE (never COALESCE) so `points_override` can be cleared back to NULL. Any new columns on `army_list_units` (loadout selection, enhancement) follow the same rule.
+
+### 4. Sheet/Dialog Sibling Portal (established)
+`ArmyListDetailSheet` + `UnitPickerDialog` are siblings at `ArmyListsPage` level. New dialogs (LoadoutBuilderSheet, EnhancementPickerSheet, DatasheetBrowserDialog) must follow this same sibling-portal pattern. Never nest inside `ArmyListDetailSheet`.
+
+### 5. staleTime: Infinity for rules.db hooks
+Rules data only changes on manual sync. All new hooks reading from `synced_*` tables in hobbyforge.db or `rw_*` tables in rules.db should use `staleTime: Infinity` and rely on targeted invalidation after sync.
 
 ---
 
-## Recommended Project Structure
+## New Tables Required (hobbyforge.db migrations)
 
+### Migration 031: army_list_unit_loadout
+Stores per-army-list-unit loadout selections (not per-collection-unit — each list slot can have a different loadout):
+
+```sql
+CREATE TABLE IF NOT EXISTS army_list_unit_loadout (
+  id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+  army_list_unit_id      INTEGER NOT NULL UNIQUE REFERENCES army_list_units(id) ON DELETE CASCADE,
+  model_count            INTEGER,                  -- selected count (from synced_model_counts range)
+  loadout_points         INTEGER,                  -- base points for selected model count tier
+  options_json           TEXT,                     -- JSON: [{group_name, option_name}] TEXT copy, no FK
+  created_at             TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at             TEXT NOT NULL DEFAULT (datetime('now'))
+);
 ```
-src/
-├── app/
-│   ├── painting-mode/
-│   │   └── page.tsx                     # PaintingModePageShell
-│   └── router.tsx                       # +1 route, +1 import
-├── features/
-│   └── painting-mode/                   # NEW feature module
-│       ├── PaintingModePage.tsx         # Page root: layout, keyboard, sheet state
-│       ├── usePaintingModeState.ts      # Local navigation + step state hook
-│       ├── StepExecutionView.tsx        # Current step detail + mark done + nav
-│       ├── SectionNav.tsx               # Section list with progress counts + jump
-│       ├── PaintReadinessWarning.tsx    # Missing/low paint banner
-│       └── PaintingModeLogSheet.tsx     # Prefilled session logger
+
+Rationale: UNIQUE on army_list_unit_id (one loadout config per slot). `options_json` stores selected wargear as a TEXT blob — no FK to synced_loadout_options because synced_loadout_options is wiped on re-sync. The group_name+option_name pair is sufficient to re-resolve display names after sync. `loadout_points` is pre-computed and stored so the COALESCE chain can include it without a subquery.
+
+### Migration 032: army_list_unit_enhancement
+Stores enhancement assignment per army-list-unit slot:
+
+```sql
+CREATE TABLE IF NOT EXISTS army_list_unit_enhancement (
+  id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+  army_list_unit_id      INTEGER NOT NULL UNIQUE REFERENCES army_list_units(id) ON DELETE CASCADE,
+  enhancement_name       TEXT NOT NULL,            -- TEXT copy (survives re-sync)
+  enhancement_points     INTEGER NOT NULL DEFAULT 0,
+  detachment_name        TEXT,                     -- TEXT copy for display
+  created_at             TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at             TEXT NOT NULL DEFAULT (datetime('now'))
+);
 ```
 
-### Structure Rationale
+Rationale: Enhancement name is a TEXT copy from `synced_enhancements`. Points stored at assignment time — avoids a re-join at read time. UNIQUE on army_list_unit_id (one enhancement per character slot).
 
-- **`src/features/painting-mode/`:** Follows the established one-dir-per-domain convention. All new components co-located. No files scattered across other features.
-- **`src/app/painting-mode/page.tsx`:** Thin shell identical to `src/app/game-day/page.tsx`. Only purpose: extract URL param and render the feature.
-- **No new files in `src/db/queries/` or `src/hooks/`:** All required data paths already exist. The only new hook is `usePaintingModeState` which is local to the feature (not a React Query hook — it is pure React state derived from existing query data).
+### Migration 033: army_list_snapshots
+Named version snapshots for an army list:
+
+```sql
+CREATE TABLE IF NOT EXISTS army_list_snapshots (
+  id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+  list_id                INTEGER NOT NULL REFERENCES army_lists(id) ON DELETE CASCADE,
+  name                   TEXT NOT NULL,            -- user-supplied label, e.g. "Tournament v1"
+  snapshot_json          TEXT NOT NULL,            -- full serialized list state
+  total_points           INTEGER NOT NULL DEFAULT 0,
+  created_at             TEXT NOT NULL DEFAULT (datetime('now'))
+);
+-- No updated_at: snapshots are immutable once created.
+```
+
+Rationale: Snapshots are immutable blobs. `snapshot_json` contains a complete denormalized representation: list metadata, all units with their effective_points, loadout selections, enhancements, tactical roles, and notes. This avoids any re-join on restore and makes the JSON self-describing for export. `total_points` is stored for quick list display without deserializing the blob.
+
+### Migration 034: ghost columns on army_list_units (if unowned units are in scope)
+Makes `unit_id` nullable and adds ghost columns:
+
+```sql
+ALTER TABLE army_list_units ADD COLUMN ghost_unit_name TEXT;
+ALTER TABLE army_list_units ADD COLUMN ghost_datasheet_id TEXT;
+```
+
+The FK `REFERENCES units(id)` on the existing `unit_id` column is preserved — ghost slots are inserted with `unit_id = NULL` via a separate insert path. The LEFT JOIN in `getArmyListWithUnits` handles both cases.
 
 ---
 
-## Architectural Patterns
+## New Query Modules
 
-### Pattern 1: Full-Page Route (GameDay pattern)
+### `src/db/queries/armyListLoadout.ts` (NEW)
+```
+getLoadoutForArmyListUnit(aluId)    → SELECT from army_list_unit_loadout WHERE army_list_unit_id
+upsertArmyListUnitLoadout(input)    → INSERT OR REPLACE (single row per army_list_unit_id)
+clearArmyListUnitLoadout(aluId)     → DELETE FROM army_list_unit_loadout WHERE army_list_unit_id
+```
 
-**What:** A new TanStack Router route at `/painting-mode/$assignmentId`. Not an overlay, not a Sheet, not a modal.
+### `src/db/queries/armyListEnhancement.ts` (NEW)
+```
+getEnhancementForArmyListUnit(aluId)    → SELECT from army_list_unit_enhancement
+upsertArmyListUnitEnhancement(input)    → INSERT OR REPLACE
+clearArmyListUnitEnhancement(aluId)     → DELETE
+```
 
-**When to use:** The feature needs full-screen real estate, distraction-free layout, keyboard shortcuts, and navigation via `useNavigate` from any existing surface. `GameDayPage` sets this exact precedent with `/game-day/$listId`.
+### `src/db/queries/armyListSnapshots.ts` (NEW)
+```
+getSnapshotsForList(listId)         → SELECT ORDER BY created_at DESC
+getSnapshotById(id)                 → SELECT WHERE id
+createSnapshot(input)               → INSERT (with serialized JSON)
+deleteSnapshot(id)                  → DELETE
+```
 
-**Trade-offs:** User must navigate back to return to the source page. This is intentional — the "distraction-free" goal means Paint Mode should own the full screen. The browser-back button or an explicit "Exit" button handles return.
+### `src/db/queries/armyLists.ts` (MODIFIED)
+- `getArmyListWithUnits`: extend SELECT to LEFT JOIN `army_list_unit_loadout` and `army_list_unit_enhancement`, add `loadout_points`, `enhancement_points`, `enhancement_name`, `model_count` to the ArmyListUnitRow projection
+- Update `effective_points` COALESCE to include `alul.loadout_points` between `alu.points_override` and `sup.points`
 
-**Example:**
+### `src/db/queries/bsdataExtended.ts` (MODIFIED)
+- Add `getLoadoutOptionsForUnit(unitName, factionId)` — filtered by unit_name (currently only `getLoadoutOptionsByFaction` exists)
+- Add `getModelCountForUnit(unitName, factionId)` — filtered by unit_name
+- These per-unit queries are needed by the LoadoutBuilderSheet (opened from a specific unit row)
+
+### `src/db/queries/datasheets.ts` (MODIFIED — optional)
+- Consider adding a search param to `getDatasheetsByFaction` for large factions; current full-select + client filter is acceptable for typical faction sizes (<200 datasheets)
+
+---
+
+## New Hook Modules
+
+### `src/hooks/useArmyListLoadout.ts` (NEW)
+```
+ARMY_LIST_UNIT_LOADOUT_KEY = (aluId) => ["army-list-unit-loadout", aluId]
+useArmyListUnitLoadout(aluId)     → useQuery
+useUpsertArmyListUnitLoadout()    → useMutation + invalidate ARMY_LIST_UNIT_LOADOUT_KEY + ARMY_LIST_UNITS_KEY(listId)
+useClearArmyListUnitLoadout()     → useMutation
+```
+
+Invalidation contract: after upsert/clear, invalidate both `ARMY_LIST_UNIT_LOADOUT_KEY(aluId)` AND `ARMY_LIST_UNITS_KEY(listId)` — the latter forces the unit row to re-read `effective_points` from the updated `loadout_points`.
+
+### `src/hooks/useArmyListEnhancement.ts` (NEW)
+```
+ARMY_LIST_UNIT_ENHANCEMENT_KEY = (aluId) => ["army-list-unit-enhancement", aluId]
+useArmyListUnitEnhancement(aluId)     → useQuery
+useUpsertArmyListUnitEnhancement()    → useMutation + invalidate + ARMY_LIST_UNITS_KEY(listId)
+useClearArmyListUnitEnhancement()     → useMutation
+```
+
+### `src/hooks/useArmyListSnapshots.ts` (NEW)
+```
+ARMY_LIST_SNAPSHOTS_KEY = (listId) => ["army-list-snapshots", listId]
+useArmyListSnapshots(listId)     → useQuery
+useCreateSnapshot()              → useMutation + invalidate ARMY_LIST_SNAPSHOTS_KEY
+useDeleteSnapshot()              → useMutation + invalidate ARMY_LIST_SNAPSHOTS_KEY
+```
+
+### `src/hooks/useBsdataPerUnit.ts` (NEW)
+Currently `bsdataExtended.ts` has read functions for faction-level queries. Per-unit queries for the LoadoutBuilderSheet need:
+```
+useLoadoutOptionsForUnit(unitName, factionId)   → staleTime: Infinity
+useModelCountForUnit(unitName, factionId)        → staleTime: Infinity
+```
+
+### `src/hooks/useArmyLists.ts` (MODIFIED — minor)
+- No structural changes required
+- `useAddUnitToList` may need a ghost variant if unowned units are in scope
+
+---
+
+## New Components
+
+### `LoadoutBuilderSheet.tsx` (NEW in `src/features/army-lists/`)
+A Sheet for configuring a single army_list_unit's loadout.
+
+Props: `{ open, aluId, unitName, factionWahapediaId, listId, currentLoadout, onClose }`
+
+Displays:
+- Model count select (from `synced_model_counts` range, min/max bounds)
+- Wargear option groups (from `synced_loadout_options` grouped by `group_name`)
+- is_exclusive enforcement (radio within group when is_exclusive = 1, checkboxes when 0)
+- Points preview: selected model count tier points (from `synced_unit_point_tiers`)
+- Save calls `useUpsertArmyListUnitLoadout`
+
+Opening pattern: follows the existing `RulesMappingSheet` pattern (rendered via sibling portal in `ArmyListsPage`, NOT nested in ArmyListDetailSheet).
+
+### `EnhancementPickerSheet.tsx` (NEW in `src/features/army-lists/`)
+A Sheet for assigning an enhancement from the faction/detachment's `synced_enhancements`.
+
+Props: `{ open, aluId, listId, detachmentName, factionWahapediaId, currentEnhancement, onClose }`
+
+Displays: enhancements grouped by detachment, filtered to current list detachment by default with option to show all. Each row shows name + points. Selecting calls `useUpsertArmyListUnitEnhancement`.
+
+Character eligibility: check `rulesMapping?.match_status` and datasheet keywords if available; otherwise show for all units with a soft note. Do not block non-characters — GW data is inconsistent.
+
+### `DatasheetBrowserDialog.tsx` (NEW in `src/features/army-lists/`)
+Replaces `UnitPickerDialog` as the primary unit-addition entry point.
+
+Props: `{ open, listId, factionId, factionWahapediaId, onClose }`
+
+Two sections using dual-query merge:
+- "Your Collection": owned units filtered by faction, with painting status badges
+- "Available Datasheets": rules.db datasheets NOT in collection (cross-DB client merge)
+- Search box filters both sections client-side
+- Click owned unit: calls `useAddUnitToList` (existing behavior)
+- Click unowned datasheet: calls `useAddGhostUnitToList` (new, if ghost units in scope) or shows "Add to Collection first" prompt (simpler fallback)
+
+Keep `UnitPickerDialog.tsx` as a simplified alias or redirect until `DatasheetBrowserDialog` is confirmed stable.
+
+### `SnapshotPanel.tsx` (NEW in `src/features/army-lists/`)
+Collapsible section inside `ArmyListDetailSheet` (below units table, above notes).
+
+Displays: list of named snapshots with created_at, total_points, delete button. "Save Snapshot" triggers a small inline name-input prompt. Snapshot comparison is out of scope for v0.2.18 — display is read-only list.
+
+### `ArmyListExportSheet.tsx` (NEW in `src/features/army-lists/`)
+A Sheet accessed from `ArmyListDetailSheet` footer (new "Export" button alongside "Game Day").
+
+Export formats:
+- Text/Clipboard: formatted text block via `navigator.clipboard.writeText`
+- JSON: structured JSON via download (uses `@tauri-apps/plugin-fs` dialog) or clipboard fallback
+- No PDF in v0.2.18
+
+Text export serializes data already loaded in the parent via `useArmyListWithUnits`. No new queries needed.
+
+### `ArmyListUnitRow.tsx` (MODIFIED)
+Add:
+- Loadout summary display below unit name (model count + key options, via `useArmyListUnitLoadout`)
+- "Configure Loadout" icon button (opens `LoadoutBuilderSheet` via sibling portal state)
+- Enhancement badge if assigned (via `useArmyListUnitEnhancement`)
+- "Assign Enhancement" icon button
+- Points display updated to show `loadout_points` as source when active
+
+Controls should be in a collapsible advanced section to preserve row compactness. The row already carries 5+ controls; loadout and enhancement should not add to the default collapsed height.
+
+### `ArmyListSummaryBar.tsx` (MODIFIED)
+- Enhancement points total added as a separate line (not folded into per-unit effective_points)
+- Total = sum(effective_points) + sum(enhancement_points across all units)
+
+### `ArmyListDetailSheet.tsx` (MODIFIED)
+- Add `SnapshotPanel` above list notes section
+- Add "Export" button to footer alongside "Game Day"
+- Sibling portal state management for `LoadoutBuilderSheet` and `EnhancementPickerSheet`
+- Replace "Add Unit" trigger to open `DatasheetBrowserDialog` instead of `UnitPickerDialog`
+
+---
+
+## Data Flow: Loadout Selection
+
+```
+User opens LoadoutBuilderSheet for army_list_units.id=42
+  → useLoadoutOptionsForUnit(unitName, factionId) → synced_loadout_options (hobbyforge.db)
+  → useModelCountForUnit(unitName, factionId) → synced_model_counts (hobbyforge.db)
+  → useUnitPointTiers(unit.unit_id) → unit_point_tiers (existing hook, hobbyforge.db)
+  → useArmyListUnitLoadout(42) → army_list_unit_loadout (existing config if any)
+
+User selects model count = 10:
+  → Look up points from synced_unit_point_tiers WHERE model_count = 10
+  → loadout_points = tier.points
+
+User selects wargear options (no point impact in 10th edition):
+  → Local state: Map<groupName, optionName[]>
+  → Stored as options_json TEXT blob
+
+User clicks Save:
+  → useUpsertArmyListUnitLoadout({
+      army_list_unit_id: 42,
+      model_count: 10,
+      loadout_points: 200,
+      options_json: JSON.stringify(selectedOptions)
+    })
+  → Invalidates ARMY_LIST_UNIT_LOADOUT_KEY(42) + ARMY_LIST_UNITS_KEY(listId)
+  → ArmyListDetailSheet re-renders with updated effective_points from COALESCE chain
+```
+
+**Key BSData insight**: `synced_loadout_options` stores wargear choices but NOT per-option point costs. In 40K 10th edition, wargear swaps are free — points are determined by model count tiers only. Therefore `loadout_points` = the tier-appropriate base points. Wargear selection is for display and list documentation purposes, not point calculation.
+
+---
+
+## Data Flow: Enhancement Assignment
+
+```
+User opens EnhancementPickerSheet for army_list_units.id=42 (character unit)
+  → getEnhancementsByFaction(wahapediaFactionId) → synced_enhancements (hobbyforge.db)
+    (client-side filter by list.detachment_name if set)
+
+User selects "Iron Resolve" (25pts):
+  → useUpsertArmyListUnitEnhancement({
+      army_list_unit_id: 42,
+      enhancement_name: "Iron Resolve",
+      enhancement_points: 25,
+      detachment_name: "Gladius Task Force"
+    })
+  → Invalidates ARMY_LIST_UNIT_ENHANCEMENT_KEY(42) + ARMY_LIST_UNITS_KEY(listId)
+
+ArmyListDetailSheet re-renders:
+  → getArmyListWithUnits JOIN army_list_unit_enhancement returns enhancement_points
+  → ArmyListSummaryBar adds enhancement totals separately from unit effective_points
+```
+
+Enhancement points are tracked separately from the per-unit COALESCE chain because an enhancement belongs to the list composition, not the unit's base cost. GW adds enhancement points on top of the unit's points in list validation.
+
+---
+
+## Data Flow: Version Snapshots
+
+```
+User clicks "Save Snapshot" → enters name "Tournament Draft 1":
+  → Serialize from already-loaded React Query cache:
+      {
+        schema_version: 1,
+        name: list.name,
+        total_points: computed,
+        units: units.map(u => ({
+          unit_name: u.unit_name, effective_points: u.effective_points,
+          model_count: u.model_count, options_json: u.options_json,
+          enhancement_name: u.enhancement_name, enhancement_points: u.enhancement_points,
+          tactical_role: u.tactical_role, notes: u.notes
+        })),
+        detachment_name: list.detachment_name,
+        saved_at: ISO timestamp
+      }
+  → useCreateSnapshot({ list_id, name, snapshot_json: JSON.stringify(state), total_points })
+  → Invalidates ARMY_LIST_SNAPSHOTS_KEY(listId)
+
+Snapshot panel:
+  → useArmyListSnapshots(listId) → [{id, name, total_points, created_at}]
+  → Click expand: deserialize snapshot_json → read-only detail view
+  → Delete: useDeleteSnapshot(id) + invalidate ARMY_LIST_SNAPSHOTS_KEY
+```
+
+Snapshots are immutable write-once. No update path exists. The `schema_version` field in `snapshot_json` enables future migration of old snapshot data if the shape needs to change.
+
+---
+
+## Data Flow: Export
+
+```
+User opens ArmyListExportSheet:
+  → Units loaded via existing useArmyListWithUnits (already present in parent)
+  → Enhancement data already in ArmyListUnitRow projection (from getArmyListWithUnits JOIN)
+  → No new queries needed
+
+Text clipboard format:
+  [List Name] — [Total Points]pts
+  Detachment: [detachment_name]
+
+  UNITS:
+  - [unit_name] ([model_count] models) — [effective_points]pts
+    Wargear: [options from options_json]
+    Enhancement: [enhancement_name] ([enhancement_points]pts)
+    Role: [tactical_role]
+
+  Total: [X]pts (includes [Y]pts enhancements)
+
+JSON: serialize snapshot_json directly (reuses snapshot serialization logic)
+```
+
+---
+
+## Data Flow: Datasheet Browser (cross-DB merge)
+
 ```typescript
-// src/app/painting-mode/page.tsx
-import { useParams } from "@tanstack/react-router";
-import { PaintingModePage } from "@/features/painting-mode/PaintingModePage";
+// DatasheetBrowserDialog internal logic:
+const { data: ownedUnits } = useUnits();
+const { data: datasheets } = useDatasheetsByFaction(wahapediaFactionId);  // rules.db
 
-export function PaintingModePageShell() {
-  const { assignmentId } = useParams({ from: "/painting-mode/$assignmentId" });
-  const id = Number(assignmentId);
-  if (Number.isNaN(id)) return null;
-  return <PaintingModePage assignmentId={id} />;
-}
+const ownedNames = useMemo(
+  () => new Set(ownedUnits?.map(u => u.name.toLowerCase())),
+  [ownedUnits]
+);
 
-// src/app/router.tsx addition
-const paintingModeRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/painting-mode/$assignmentId",
-  component: PaintingModePageShell,
-});
+const unownedDatasheets = useMemo(
+  () => datasheets?.filter(ds => !ownedNames.has(ds.name.toLowerCase())),
+  [datasheets, ownedNames]
+);
 ```
 
-### Pattern 2: Current Step as Derived-then-Controlled State
-
-**What:** On mount, derive `currentStepId` from the first incomplete step in the ordered steps array. After that, it is controlled local React state — prev/next navigation changes it without any DB round-trip.
-
-**When to use:** When "current position" is cheap to derive from existing data (completedSet from `useStepProgress`) and navigation needs to be instantaneous.
-
-**Trade-offs:** If the user returns to Paint Mode after a break, the initial position re-derives correctly. If two windows somehow both modified progress (impossible for a single-user desktop app), they could diverge — not a concern here.
-
-**Example (`usePaintingModeState.ts`):**
-```typescript
-export function usePaintingModeState(
-  steps: RecipeStep[],
-  sections: RecipeSection[],
-  progressRows: StepProgress[]
-) {
-  // Build flat ordered array: sort by [section.order_index, step.order_index]
-  const orderedSteps = useMemo(() => {
-    const sectionOrder = new Map(sections.map((s, i) => [s.id, s.order_index]));
-    return [...steps].sort((a, b) => {
-      const sa = sectionOrder.get(a.section_id ?? -1) ?? 0;
-      const sb = sectionOrder.get(b.section_id ?? -1) ?? 0;
-      if (sa !== sb) return sa - sb;
-      return a.order_index - b.order_index;
-    });
-  }, [steps, sections]);
-
-  const completedSet = useMemo(
-    () => new Set(progressRows.filter(p => p.completed === 1).map(p => p.recipe_step_id)),
-    [progressRows]
-  );
-
-  // Derive once on mount: first incomplete step, fallback to last step
-  const initialStepId = useMemo(() => {
-    const first = orderedSteps.find(s => !completedSet.has(s.id));
-    return first?.id ?? orderedSteps[orderedSteps.length - 1]?.id ?? null;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // intentionally run once on mount only
-
-  const [currentStepId, setCurrentStepId] = useState<number | null>(initialStepId);
-  const currentIndex = orderedSteps.findIndex(s => s.id === currentStepId);
-
-  return {
-    currentStepId,
-    currentIndex,
-    orderedSteps,
-    completedSet,
-    canGoPrev: currentIndex > 0,
-    canGoNext: currentIndex < orderedSteps.length - 1,
-    goToStep: setCurrentStepId,
-    goPrev: () => currentIndex > 0 && setCurrentStepId(orderedSteps[currentIndex - 1].id),
-    goNext: () => currentIndex < orderedSteps.length - 1 && setCurrentStepId(orderedSteps[currentIndex + 1].id),
-  };
-}
-```
-
-### Pattern 3: Keyboard Handler at Page Root with Sheet Guard
-
-**What:** `PaintingModePage` registers a `keydown` listener in a `useEffect`. Keyboard shortcuts (ArrowLeft/Right for nav, Space/Enter for mark done, Escape to exit) are handled centrally. The handler is suppressed when `logSheetOpen` is true or when focus is in a form control.
-
-**When to use:** Always in a "mode" page with keyboard navigation. The central registration means shortcuts work regardless of where focus is on the page.
-
-**Trade-offs:** Must guard against shortcuts firing when PaintingModeLogSheet is open (it has its own form). Use a `logSheetOpen` boolean state flag checked first in the handler.
-
-**Example:**
-```typescript
-// PaintingModePage.tsx
-useEffect(() => {
-  function handleKey(e: KeyboardEvent) {
-    if (logSheetOpen) return;
-    const tag = (e.target as HTMLElement).tagName;
-    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-    if (e.key === "ArrowRight" || e.key === "l") { e.preventDefault(); nav.goNext(); }
-    if (e.key === "ArrowLeft"  || e.key === "h") { e.preventDefault(); nav.goPrev(); }
-    if (e.key === " " || e.key === "Enter")       { e.preventDefault(); handleMarkDone(); }
-    if (e.key === "Escape")                        { navigate({ to: ".." }); }
-  }
-  window.addEventListener("keydown", handleKey);
-  return () => window.removeEventListener("keydown", handleKey);
-}, [logSheetOpen, nav, handleMarkDone, navigate]);
-```
-
-### Pattern 4: Atomic Step Completion + Session Log
-
-**What:** "Mark done" is a two-mutation sequence: (1) `upsertStepProgress` marks the step complete, (2) `createSession` logs the session with the same `recipe_step_id`. Sequential `mutateAsync`. Partial failure (step ok, session fails) shows warning toast and stays on the step — matches `LogSessionSheet`'s existing tolerance.
-
-**When to use:** Whenever the user marks a step done in Paint Mode. Session creation is the natural result of completing a step.
-
-**Trade-offs:** Sequential means latency is the sum of both mutations. For a local SQLite desktop app this is imperceptible (< 5ms each). No need for `Promise.all` since session depends on step completion.
-
-### Pattern 5: Section-Grouped Step Navigation in `usePaintingModeState`
-
-**What:** The `orderedSteps` flat array is built by sorting steps using `[sectionOrderIndex, stepOrderIndex]` as the composite key. This produces the correct painting order: all steps in section 1 first, then all in section 2, etc. Section nav jumps to the first step of a target section by finding `orderedSteps.find(s => s.section_id === targetSectionId)`.
-
-**Why this works:** It mirrors exactly how `AssignmentChecklist` and `SectionedTimeline` render steps — sectioned by `section_id`, ordered by `order_index` within each section. `computeWorkflowPosition` uses the same ordering logic.
+This is the established dual-query pattern from `DatasheetPicker` and `DetachmentPicker`.
 
 ---
 
-## Data Flow
+## Build Order (dependency-constrained)
 
-### Request Flow: Entry to Active Step
+### Phase A: Schema + Data Layer (blocks all UI)
+1. Migrations 031 (loadout), 032 (enhancement), 033 (snapshots)
+2. Extend `getArmyListWithUnits` — LEFT JOIN both new tables, updated COALESCE
+3. New query modules: armyListLoadout.ts, armyListEnhancement.ts, armyListSnapshots.ts
+4. Add per-unit queries to bsdataExtended.ts
+5. New hooks: useArmyListLoadout.ts, useArmyListEnhancement.ts, useArmyListSnapshots.ts, useBsdataPerUnit.ts
+6. Extend ArmyListUnitRow type in src/types/armyList.ts
+7. Register migrations in lib.rs
 
-```
-[User clicks "Paint" on KanbanCard or CurrentFocusCard]
-    ↓
-Resolve assignment.id from local data (useAssignmentsByUnit already fetched)
-    ↓
-navigate({ to: "/painting-mode/$assignmentId", params: { assignmentId: String(id) } })
-    ↓
-PaintingModePageShell extracts param, NaN guard
-    ↓
-PaintingModePage mounts, fires 4 parallel queries:
-  useStepProgress(assignmentId)      → progressRows
-  useRecipePaints(recipeId)          → steps (all RecipeStep fields)
-  useRecipeSections(recipeId)        → sections (section_type, technique, etc.)
-  usePaints()                        → allPaints (ownership status)
-    ↓
-usePaintingModeState(steps, sections, progressRows)
-  → orderedSteps, currentStepId, completedSet, nav functions
-    ↓
-currentStep = orderedSteps.find(s => s.id === currentStepId)
-paintMap = new Map(allPaints.map(p => [p.id, p]))
-currentStepPaints = [paintMap.get(currentStep.paint_id), paintMap.get(currentStep.alt_paint_id)]
-    ↓
-Render: SectionNav (left) + StepExecutionView (center) + PaintReadinessWarning (if needed)
-```
+### Phase B: Unit Order Bug Fix + Export (lowest risk, validates Phase A)
+1. Fix ORDER BY in getArmyListWithUnits (use `alu.id ASC` for stable ordering)
+2. ArmyListExportSheet.tsx — text/clipboard export
+3. SnapshotPanel.tsx + useArmyListSnapshots integration
 
-### Request Flow: Mark Done + Log Session
+**Dependency**: Phase A. Independent of C, D, E.
 
-```
-[Space keypress or "Mark Done" button click]
-    ↓
-useToggleStepProgress.mutateAsync({
-  assignmentId,
-  recipeStepId: currentStepId,
-  completed: true
-})
-    ↓ success → invalidates STEP_PROGRESS_KEY(assignmentId)
-    ↓
-useCreatePaintingSession.mutateAsync({
-  unit_id,                              // from assignment lookup
-  recipe_id,                            // from assignment
-  recipe_step_id: currentStepId,
-  section_name: currentSection?.name ?? null,
-  recipe_section_id: currentSection?.id ?? null,
-  session_date: todayISO(),
-  duration_minutes: logSheetDuration ?? 30,
-  notes: null
-})
-    ↓ success → invalidates painting-sessions, workflow-positions, hobby-analytics, etc.
-    ↓
-nav.goNext()  — advance to next step (local state update, instant)
-```
+### Phase C: Loadout Builder
+1. useBsdataPerUnit.ts hooks
+2. LoadoutBuilderSheet.tsx
+3. ArmyListUnitRow.tsx — add loadout trigger + summary display
+4. Sibling portal wiring in ArmyListsPage
 
-### State Management
+**Dependency**: Phase A. Independent of D, E.
 
-```
-Server State (React Query):
-  progressRows       ← useStepProgress(assignmentId)
-  steps              ← useRecipePaints(recipeId)
-  sections           ← useRecipeSections(recipeId)
-  allPaints          ← usePaints()
+### Phase D: Enhancement Assignment
+1. EnhancementPickerSheet.tsx
+2. ArmyListUnitRow.tsx — add enhancement badge + trigger
+3. ArmyListSummaryBar.tsx — enhancement total line
+4. Sibling portal wiring in ArmyListsPage
 
-Local Derived State (usePaintingModeState):
-  orderedSteps       ← derived from steps + sections (memo)
-  completedSet       ← derived from progressRows (memo)
-  currentStepId      ← useState, initialized from completedSet on mount
+**Dependency**: Phase A. Independent of C (can run in parallel).
 
-UI State (PaintingModePage):
-  logSheetOpen       ← useState<boolean>
-  logSheetDuration   ← useState<number>
-```
+### Phase E: Datasheet Browser (highest complexity)
+1. DatasheetBrowserDialog.tsx — two-section owned/unowned browser
+2. Migration 034 (ghost columns) if unowned units are in scope, else omit
+3. addGhostUnitToList query + hook if ghost units are in scope
+4. Replace UnitPickerDialog trigger in ArmyListDetailSheet
+
+**Dependency**: Phase A. Ghost units add significant complexity — recommend deciding scope before starting this phase.
+
+### Recommended execution order:
+1. Phase A — schema + data layer
+2. Phase B — bug fix + export (low risk, validates data layer)
+3. Phase C + D in sequence (loadout then enhancement, or reverse — no dependency between them)
+4. Phase E last — most complex, ghost units may slip to next milestone
 
 ---
 
-## Integration Points
+## Modified vs New: Explicit Inventory
 
-### Entry Point Wiring
+### Modified Files
 
-| Surface | File | Current Behavior | Required Change |
-|---------|------|-----------------|-----------------|
-| `NextPaintingActionCard` | `src/features/dashboard/NextPaintingActionCard.tsx` | Link to `/painting-projects` | Change link to `/painting-mode/${data.assignment_id}` — `assignment_id` must be added to `FirstIncompleteStep` query result |
-| `CurrentFocusCard` | `src/features/dashboard/CurrentFocusCard.tsx` | "Open" + "Log" buttons | Add "Paint" button, pass `onPaint` callback from `DashboardPage` (sibling portal pattern) |
-| `DashboardPage` | `src/features/dashboard/DashboardPage.tsx` | Manages `onOpen`/`onLog` callbacks | Add assignment lookup for focus unit, pass `onPaint: () => navigate(...)` to `CurrentFocusCard` |
-| `KanbanCardActions` | `src/features/painting-projects/KanbanCardActions.tsx` | "Log Session" | Add "Paint Mode" action, pass `onPaintMode` callback |
-| `KanbanCard` | `src/features/painting-projects/KanbanCard.tsx` | `onLogSession` prop | Add `onPaintMode` prop, thread through to `KanbanCardActions` |
-| `KanbanBoard` | `src/features/painting-projects/KanbanBoard.tsx` | Calls `onLogSession` | Add `onPaintMode` callback, resolve `assignmentId` via enrichment data |
-| `AssignmentChecklist` | `src/features/recipes/AssignmentChecklist.tsx` | Checklist only | Add "Open in Paint Mode" button at top, receives `onPaintMode` callback from parent |
-| `RecipeDetailSheet` | `src/features/recipes/RecipeDetailSheet.tsx` | "Apply to Unit(s)" in footer | Add "Open in Paint Mode" footer button (enabled when assignments exist for the linked unit) |
+| File | Nature of Change |
+|------|-----------------|
+| `src/db/queries/armyLists.ts` | Extend `getArmyListWithUnits` — LEFT JOINs + COALESCE update |
+| `src/db/queries/bsdataExtended.ts` | Add per-unit `getLoadoutOptionsForUnit` and `getModelCountForUnit` |
+| `src/hooks/useArmyLists.ts` | Possibly add ghost unit variant; otherwise no changes |
+| `src/features/army-lists/ArmyListUnitRow.tsx` | Add loadout summary, enhancement badge, new sheet triggers |
+| `src/features/army-lists/ArmyListDetailSheet.tsx` | Add SnapshotPanel, Export button, sibling portal state |
+| `src/features/army-lists/ArmyListSummaryBar.tsx` | Add enhancement points total line |
+| `src/features/army-lists/UnitPickerDialog.tsx` | Replace/supplement with DatasheetBrowserDialog trigger |
+| `src/features/army-lists/ArmyListsPage.tsx` | Add sibling portal state + components for new sheets/dialogs |
+| `src/types/armyList.ts` | Extend ArmyListUnitRow with loadout/enhancement/ghost fields |
+| `src-tauri/src/lib.rs` | Register migrations 031-034 |
 
-### Assignment ID Resolution by Surface
+### New Files
 
-The key question at each entry point: "which `assignmentId` do I navigate with?"
-
-| Surface | How to Get Assignment ID |
-|---------|--------------------------|
-| `CurrentFocusCard` (via `DashboardPage`) | `useAssignmentsByUnit(focusUnit.id)` → `assignments[0]?.id`. Already fetched in `DashboardPage`. |
-| `NextPaintingActionCard` | `data.assignment_id` — add this column to `getMostRecentAssignmentWithIncompleteStep` SQL query (trivially: `a.id AS assignment_id` already in the SELECT as `assignment_id`). Confirm it is exposed on `FirstIncompleteStep` type. |
-| `KanbanCard` | `useKanbanEnrichment` or `useAssignmentsByUnit` per unit. The Kanban board already has enrichment data — thread `assignment_id` through the enrichment or do a targeted lookup. |
-| `RecipeDetailSheet` | `useAssignmentsByRecipe(recipe.id)` → `assignments[0]?.id`. Already imported in the sheet's hook list. |
-| `AssignmentChecklist` | `assignment.id` — it is a required prop of the component. Pass it directly to `onPaintMode`. |
-
-### Route Registration
-
-```typescript
-// src/app/router.tsx
-import { PaintingModePageShell } from "./painting-mode/page";
-
-const paintingModeRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/painting-mode/$assignmentId",
-  component: PaintingModePageShell,
-});
-
-const routeTree = rootRoute.addChildren([
-  // ... existing routes
-  paintingModeRoute,
-]);
-```
-
-### Cache Invalidation Contract
-
-`useToggleStepProgress` currently invalidates only `STEP_PROGRESS_KEY(assignmentId)`. This is correct and sufficient for Painting Mode — the `completedSet` updates via query refetch, which drives `SectionNav` progress counts and `StepExecutionView` done state.
-
-`useCreatePaintingSession` already invalidates the broader keys: `painting-sessions`, `workflow-positions`, `hobby-analytics`, `recent-activity`, `goal-progress`. No changes to invalidation contracts are needed.
-
-### Hook Reuse Map
-
-| Required Data | Existing Hook | Status |
-|---------------|--------------|--------|
-| Step definitions with all fields | `useRecipePaints(recipeId)` | Reused |
-| Section grouping + workflow metadata | `useRecipeSections(recipeId)` | Reused |
-| Step completion state | `useStepProgress(assignmentId)` | Reused |
-| Toggle step done/undone | `useToggleStepProgress()` | Reused |
-| Paint ownership status | `usePaints()` | Reused |
-| Log session with step FK | `useCreatePaintingSession()` | Reused |
-| Per-section progress counts | `computeAssignmentProgress()` pure fn | Reused |
-| Navigation + ordered steps | `usePaintingModeState` | NEW (local hook) |
-| Assignment metadata (unit_id, recipe_id) | `getAssignment(id)` query | 1 new query or JOIN |
-
-The one gap: given only `assignmentId`, the page needs `unit_id` and `recipe_id` to call the correct hooks. Options in preference order:
-1. Add a `getAssignment(id)` query to `src/db/queries/recipeAssignments.ts` (a trivial `SELECT * WHERE id = $1` — the function stub already exists at line 79 of that file).
-2. Pass `unitId` and `recipeId` as additional route search params from the entry point.
-
-Option 1 is cleaner: the page is self-contained with just `assignmentId`.
+| File | Purpose |
+|------|---------|
+| `src-tauri/migrations/031_army_list_unit_loadout.sql` | Loadout config per army_list_unit slot |
+| `src-tauri/migrations/032_army_list_unit_enhancement.sql` | Enhancement assignment per slot |
+| `src-tauri/migrations/033_army_list_snapshots.sql` | Version snapshots (immutable blobs) |
+| `src-tauri/migrations/034_army_list_ghost_units.sql` | Ghost unit columns (if unowned units in scope) |
+| `src/db/queries/armyListLoadout.ts` | CRUD for army_list_unit_loadout |
+| `src/db/queries/armyListEnhancement.ts` | CRUD for army_list_unit_enhancement |
+| `src/db/queries/armyListSnapshots.ts` | CRUD for army_list_snapshots |
+| `src/hooks/useArmyListLoadout.ts` | React Query hooks for loadout |
+| `src/hooks/useArmyListEnhancement.ts` | React Query hooks for enhancement |
+| `src/hooks/useArmyListSnapshots.ts` | React Query hooks for snapshots |
+| `src/hooks/useBsdataPerUnit.ts` | Per-unit loadout options + model count hooks |
+| `src/features/army-lists/LoadoutBuilderSheet.tsx` | Loadout configuration UI |
+| `src/features/army-lists/EnhancementPickerSheet.tsx` | Enhancement selection UI |
+| `src/features/army-lists/DatasheetBrowserDialog.tsx` | Expanded unit/datasheet picker |
+| `src/features/army-lists/SnapshotPanel.tsx` | Snapshot list + save UI |
+| `src/features/army-lists/ArmyListExportSheet.tsx` | Export to clipboard/JSON |
 
 ---
 
-## Suggested Build Order
+## Architectural Risks
 
-Dependencies flow bottom-up. Each phase is unblocked when its predecessor completes.
+1. **`getArmyListWithUnits` query complexity**: Adding two more LEFT JOINs to an already 5-join query. Test with lists of >20 units. React Query 5-minute staleTime means the cost is paid at load time only, but the query should be verified for correctness with all combinations of NULL loadout / NULL enhancement.
 
-| Phase | Deliverable | Depends On | Parallelizable |
-|-------|-------------|-----------|----------------|
-| 1 | `usePaintingModeState` hook + unit tests (step ordering, navigation, completedSet derivation) | Existing `RecipeStep` type, `computeAssignmentProgress` patterns | Independent, start here |
-| 2 | `StepExecutionView` + `PaintReadinessWarning` components | Phase 1 hook, `usePaints`, existing `RecipeStepTimeline` patterns | After phase 1 |
-| 3 | `SectionNav` component | Phase 1 hook for progress Map, `RecipeSection` type | After phase 1, parallel with phase 2 |
-| 4 | `PaintingModePage` full layout + keyboard handler + route registration | Phases 2–3, `useStepProgress`, `useRecipePaints`, `useRecipeSections`, `useToggleStepProgress` | After phases 2–3 |
-| 5 | `PaintingModeLogSheet` (prefilled, atomic complete+log) | Phase 4 (needs page context), `useCreatePaintingSession` | After phase 4 |
-| 6 | Entry point wiring (all 6 surfaces: add "Paint" buttons, navigate calls) | Completed route from phase 4 | After phase 4 |
-| 7 | Tests: step selection, navigation, completion, paint warnings, session prefill | Phases 1–6 | After phase 6 |
+2. **`options_json` stale after re-sync**: If BSData loadout options change (group or option names renamed upstream), stored `options_json` references stale names. Mitigation: compare `synced_loadout_options.synced_at` vs `army_list_unit_loadout.updated_at` and show a "loadout may be outdated" badge if stale.
 
----
+3. **Enhancement uniqueness per list**: The schema allows multiple units in the same list to have the same enhancement. GW rules prohibit this (one enhancement per list, unique). Enforce in the `EnhancementPickerSheet` UI by greying out enhancements already assigned in the same list — no DB-level UNIQUE needed (would break multi-list scenarios where the same enhancement is valid in different lists).
 
-## Anti-Patterns
+4. **Ghost units and LEFT JOIN**: Making `army_list_units.unit_id` nullable changes the behavior of the existing INNER JOIN to units in `getArmyListWithUnits`. The migration must change JOIN to LEFT JOIN and the SELECT must use `COALESCE(u.name, alu.ghost_unit_name)` for unit_name. All existing behavior (owned units) is unaffected by LEFT JOIN when `unit_id IS NOT NULL`.
 
-### Anti-Pattern 1: Overlay / Modal Instead of Full Route
+5. **Snapshot JSON schema evolution**: Old snapshots remain as immutable blobs after schema changes. The `schema_version` key in `snapshot_json` enables future detection. For v0.2.18, treat snapshots as display-only (no restore from snapshot — export is the use case).
 
-**What people do:** Implement Painting Mode as a Dialog or Sheet overlay on an existing page.
-
-**Why it's wrong:** Sheets are 400–500px side panels. The feature requires "distraction-free presentation with larger typography, high contrast." Sheet real estate is insufficient. Keyboard shortcuts from the overlay would compete with the parent page's listeners. Radix nested portal context issues apply (documented pitfall in `PROJECT.md`).
-
-**Do this instead:** Full-page route at `/painting-mode/$assignmentId`. Exact precedent: `GameDayPage` at `/game-day/$listId`.
-
-### Anti-Pattern 2: Fetching Assignment in the Shell
-
-**What people do:** `PaintingModePageShell` queries for the assignment to validate it exists before rendering the page, causing a loading flash.
-
-**Why it's wrong:** The parent already has the assignment context (that's how it navigated). The shell's only job is param extraction and NaN guard, matching `GameDayPageShell`.
-
-**Do this instead:** Shell extracts raw `number`, passes to page. Page handles all loading states.
-
-### Anti-Pattern 3: Storing Current Step in SQLite
-
-**What people do:** Add `current_step_id` to `unit_recipe_assignments` to persist which step the user is "on."
-
-**Why it's wrong:** Current step is transient UI state — it changes on every prev/next keypress. Would flood the DB with writes. The position is already derivable from `completedSet` (first incomplete step).
-
-**Do this instead:** Derive initial step on mount from `completedSet`. Navigate in local React state. Optionally persist to `localStorage["painting-mode-step-${assignmentId}"]` if resume-on-reload is desired.
-
-### Anti-Pattern 4: Per-Step Hook Calls for Paint Data
-
-**What people do:** Call `usePaints()` inside `StepExecutionView` and filter per step, or call a per-step data hook.
-
-**Why it's wrong:** `usePaints()` inside a component that re-renders on every step navigation is wasteful (though React Query deduplicates it). More importantly, the pattern is inconsistent with the rest of the codebase.
-
-**Do this instead:** `usePaints()` once at page level → `paintMap = new Map(paints.map(p => [p.id, p]))` → pass as prop. Identical pattern to `RecipeDetailSheet`, `SectionedTimeline`, and `RecipeStepTimeline`.
-
-### Anti-Pattern 5: Two-State Section + Step Navigation
-
-**What people do:** Track `currentSectionIndex` and `currentStepIndexWithinSection` as two separate state values, requiring synchronization on section jumps.
-
-**Why it's wrong:** Creates derived-state sync bugs when jumping sections. Section is always derivable from `currentStep.section_id`.
-
-**Do this instead:** Track only `currentStepId`. Derive section from `currentStep.section_id`. Section nav jumps set `currentStepId` to the first step of the target section.
+6. **`ArmyListUnitRow` component complexity**: The row already has 5+ interactive controls. Adding loadout + enhancement triggers risks making the row unusable. Gate advanced controls behind a collapsed "Advanced" section or an expand toggle, following the existing notes expand/collapse pattern.
 
 ---
 
 ## Sources
 
-- `src/hooks/useRecipeAssignments.ts` — `useStepProgress`, `useToggleStepProgress`, `STEP_PROGRESS_KEY`
-- `src/hooks/useWorkflowPositions.ts` — batch enrichment pattern, `computeWorkflowPosition` usage
-- `src/hooks/useNextPaintingAction.ts` — `FirstIncompleteStep` type, paint availability derivation pattern
-- `src/hooks/useJournalSessions.ts` — `useCreatePaintingSession`, cache invalidation contract
-- `src/hooks/useRecipePaints.ts` — `useRecipePaints`, `usePaints`, `paintMap` pattern
-- `src/features/recipes/AssignmentChecklist.tsx` — section-grouped step rendering, completedSet pattern
-- `src/features/recipes/SectionedTimeline.tsx` — section+step rendering, stepsBySection Map pattern
-- `src/features/recipes/RecipeDetailSheet.tsx` — `paintMap` prop-drilling pattern, step photo resolution
-- `src/features/dashboard/LogSessionSheet.tsx` — prefill pattern, atomic session+step-toggle sequence
-- `src/features/dashboard/CurrentFocusCard.tsx` — existing "Open"/"Log" button pattern
-- `src/features/dashboard/NextPaintingActionCard.tsx` — paint availability display, `PaintAvailability` type
-- `src/features/painting-projects/KanbanCard.tsx` — `WorkflowPosition`, `AppliedRecipeProgress` props
-- `src/lib/computeWorkflowPosition.ts` — step ID as source of truth, section derived
-- `src/lib/computeAssignmentProgress.ts` — `bySectionId` Map for progress counts
-- `src/app/game-day/page.tsx` — `GameDayPageShell` route param extraction pattern
-- `src/app/router.tsx` — route tree, existing `gameDayRoute` pattern
+- Direct codebase analysis (HIGH confidence):
+  - `src/db/queries/armyLists.ts` — existing COALESCE chain, join pattern, NULL-passthrough requirement
+  - `src-tauri/migrations/030_bsdata_extended.sql` — synced_loadout_options schema (no points column confirmed)
+  - `src-tauri/migrations/029_synced_point_tiers.sql` — model count tier schema
+  - `src/features/army-lists/ArmyListDetailSheet.tsx` — sibling portal pattern, component structure
+  - `src/features/army-lists/ArmyListUnitRow.tsx` — existing interactive controls, complexity baseline
+  - `src/hooks/useArmyLists.ts` — cache key patterns, invalidation contracts
+  - `src/lib/resolveUnitPoints.ts` — COALESCE resolution order
+  - `src/db/queries/bsdataExtended.ts` — synced data read patterns, faction-level vs unit-level gap
+  - `src/app/router.tsx` — route structure, bare vs layout route distinction
 
----
-*Architecture research for: v0.2.15 Painting Mode integration into HobbyForge*
-*Researched: 2026-05-19*
+- Domain knowledge (MEDIUM confidence):
+  - 40K 10th edition wargear is free (no per-option point costs): consistent with synced_loadout_options having no points column
+  - Enhancement uniqueness rule per list: standard GW rule, no DB enforcement needed
