@@ -208,9 +208,22 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ PX-01..PX-06: Distraction-free layout, keyboard shortcuts (Space/Arrow/Escape), input guards, time estimate per step — Phases 85–86 — v0.2.15
 - ✓ TS-01..TS-07: Test coverage for step selection, completion, navigation, optional sections, paintless steps, paint warnings, session prefill — Phases 84, 88 — v0.2.15
 
+## Current Milestone: v0.2.18 Army Lists 3.0 — Smart List Builder
+
+**Goal:** Transform army lists from a simple unit tracker into a full list-building experience with auto-resolved points, loadout configuration, enhancements, list export, version history, and the ability to plan with units you don't yet own.
+
+**Target features:**
+- Auto-link units to rules datasheets (auto-match by name, manual fallback for ambiguous)
+- Full loadout builder (model count tiers, wargear options, per-choice points adjustment)
+- Enhancement assignment to character units with auto-points
+- Collection + rules browsing (add owned units AND plan with unowned datasheets, with indicator)
+- List export (text/clipboard, print-friendly, JSON/PDF)
+- Version snapshots (save named versions, side-by-side comparison)
+- Bug fix: units display order in army list
+
 ### Active
 
-*No active requirements — planning next milestone*
+*Requirements being defined — see REQUIREMENTS.md*
 
 ### Out of Scope
 
@@ -350,4 +363,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-20 after v0.2.15 milestone shipped*
+*Last updated: 2026-05-20 — v0.2.18 milestone started*

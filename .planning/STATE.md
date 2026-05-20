@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.2.15
-milestone_name: Painting Mode
-status: shipped
-stopped_at: v0.2.15 archived — planning next milestone
-last_updated: "2026-05-20T00:00:00.000Z"
-last_activity: 2026-05-20 -- v0.2.15 shipped and archived
+milestone: v0.2.18
+milestone_name: Army Lists 3.0 — Smart List Builder
+status: planning
+last_updated: "2026-05-20T12:48:37.283Z"
+last_activity: 2026-05-20
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 11
-  completed_plans: 11
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,9 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-20)
 
 ## Current Position
 
-Phase: N/A — between milestones
-Status: v0.2.15 shipped, planning next milestone
-Last activity: 2026-05-20
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-20 — Milestone v0.2.18 started
 
 ## Performance Metrics
 
