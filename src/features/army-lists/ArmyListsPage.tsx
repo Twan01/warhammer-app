@@ -11,6 +11,7 @@ import { ArmyListDeleteDialog } from "./ArmyListDeleteDialog";
 import { ArmyListDetailSheet } from "./ArmyListDetailSheet";
 import { UnitPickerDialog } from "./UnitPickerDialog";
 import { ArmyListsEmptyState } from "./ArmyListsEmptyState";
+import { LoadoutBuilderSheet } from "./LoadoutBuilderSheet";
 import { PageHeader } from "@/components/common/PageHeader";
 
 /**
@@ -37,10 +38,17 @@ export function ArmyListsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingList, setDeletingList] = useState<ArmyList | null>(null);
   const [unitPickerOpen, setUnitPickerOpen] = useState(false);
+  const [loadoutUnitId, setLoadoutUnitId] = useState<number | null>(null);
 
   // Pattern: store ID, derive object from cache (selectedListId pattern)
   const selectedList = selectedListId !== null
     ? (lists ?? []).find((l) => l.id === selectedListId) ?? null
+    : null;
+
+  // Derive units for loadout sheet sibling portal
+  const { data: selectedListUnits } = useArmyListWithUnits(selectedListId ?? undefined);
+  const loadoutUnit = loadoutUnitId !== null
+    ? (selectedListUnits ?? []).find((u) => u.id === loadoutUnitId) ?? null
     : null;
 
   // Handlers
@@ -57,9 +65,11 @@ export function ArmyListsPage() {
     }
   };
   const openDetail = (list: ArmyList) => setSelectedListId(list.id);
-  const closeDetail = () => { setSelectedListId(null); setUnitPickerOpen(false); };
+  const closeDetail = () => { setSelectedListId(null); setUnitPickerOpen(false); setLoadoutUnitId(null); };
   const openUnitPicker = () => setUnitPickerOpen(true);
   const closeUnitPicker = () => setUnitPickerOpen(false);
+  const openLoadout = (armyListUnitId: number) => setLoadoutUnitId(armyListUnitId);
+  const closeLoadout = () => setLoadoutUnitId(null);
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -113,7 +123,7 @@ export function ArmyListsPage() {
         onEdit={openEdit}
         onDelete={openDelete}
         onAddUnit={openUnitPicker}
-        onConfigureUnit={() => {/* Phase 90 Plan 02: LoadoutBuilderSheet wiring */}}
+        onConfigureUnit={openLoadout}
       />
       <ArmyListSheet
         key={editingList?.id ?? "new-edit"}
@@ -132,6 +142,13 @@ export function ArmyListsPage() {
         listId={selectedListId}
         factionId={selectedList?.faction_id ?? null}
         onClose={closeUnitPicker}
+      />
+      <LoadoutBuilderSheet
+        open={loadoutUnitId !== null}
+        unit={loadoutUnit}
+        listId={selectedListId}
+        listFactionId={selectedList?.faction_id ?? null}
+        onClose={closeLoadout}
       />
     </div>
   );
