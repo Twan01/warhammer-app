@@ -34,8 +34,9 @@ interface UnitAbilityCardProps {
 }
 
 export function UnitAbilityCard({ unit, listId }: UnitAbilityCardProps) {
-  const { data: datasheet, isLoading: dsLoading } = useDatasheet(unit.unit_id);
-  const { data: strategyNote, isLoading: noteLoading } = useStrategyNote(unit.unit_id);
+  const unitIdOrUndefined = unit.unit_id ?? undefined;
+  const { data: datasheet, isLoading: dsLoading } = useDatasheet(unitIdOrUndefined);
+  const { data: strategyNote, isLoading: noteLoading } = useStrategyNote(unitIdOrUndefined);
   const listState = useGameDayListState(listId);
   const toggleAbilityUsed = useGameDayStore((s) => s.toggleAbilityUsed);
 
@@ -73,8 +74,8 @@ export function UnitAbilityCard({ unit, listId }: UnitAbilityCardProps) {
     <Collapsible defaultOpen={false}>
       <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left [&[data-state=open]>svg:last-child]:rotate-180">
         <span className="flex-1 text-sm font-medium">{unit.unit_name}</span>
-        <Badge variant={getPaintingBadgeVariant(unit.status_painting)} className="mx-2 shrink-0">
-          {unit.status_painting}
+        <Badge variant={getPaintingBadgeVariant(unit.status_painting ?? "")} className="mx-2 shrink-0">
+          {unit.status_painting ?? "—"}
         </Badge>
         <span className="mr-2 shrink-0 text-xs text-muted-foreground">
           {unit.effective_points}pts

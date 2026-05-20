@@ -51,7 +51,7 @@ export async function getArmyListById(id: number): Promise<ArmyList | null> {
 
 export async function getArmyListWithUnits(listId: number): Promise<ArmyListUnitRow[]> {
   const db = await getDb();
-  return db.select<ArmyListUnitRow[]>(
+  const rows = await db.select<ArmyListUnitRow[]>(
     `SELECT
        alu.id, alu.list_id, alu.unit_id, alu.points_override, alu.notes, alu.tactical_role, alu.created_at,
        u.name AS unit_name,
@@ -72,6 +72,7 @@ export async function getArmyListWithUnits(listId: number): Promise<ArmyListUnit
      ORDER BY alu.created_at ASC`,
     [listId]
   );
+  return rows;
 }
 
 export async function createArmyList(input: CreateArmyListInput): Promise<number> {
@@ -151,7 +152,6 @@ export async function deleteArmyList(id: number): Promise<void> {
 
 export async function addUnitToList(input: AddUnitToListInput): Promise<number> {
   const db = await getDb();
-  // Plain INSERT — duplicates (same unit_id in same list_id) are allowed.
   const result = await db.execute(
     `INSERT INTO army_list_units (list_id, unit_id, points_override, notes)
      VALUES ($1, $2, $3, $4)`,

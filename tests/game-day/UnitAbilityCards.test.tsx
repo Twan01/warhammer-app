@@ -24,6 +24,10 @@ const mockUnit: ArmyListUnitRow = {
   id: 1,
   list_id: 1,
   unit_id: 100,
+  ghost_unit_name: null,
+  is_warlord: 0,
+  selected_model_count: null,
+  leader_attached_to_id: null,
   points_override: null,
   notes: null,
   created_at: "2026-01-01",
@@ -37,6 +41,7 @@ const mockUnit: ArmyListUnitRow = {
   tactical_role: null,
   synced_points: null,
   override_points: null,
+  tier_points: null,
 };
 
 const opgAbility: RwDatasheetAbility = {

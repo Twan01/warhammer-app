@@ -136,7 +136,7 @@ export function useAddUnitToList() {
   const qc = useQueryClient();
   return useMutation<number, Error, AddUnitToListInput>({
     mutationFn: addUnitToList,
-    onSuccess: (_, variables) => {
+    onSuccess: (_insertedId, variables) => {
       qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
       qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
       qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });

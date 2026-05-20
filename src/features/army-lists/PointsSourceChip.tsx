@@ -16,6 +16,7 @@ import type { PointsSource } from "@/lib/resolveUnitPoints";
 const SOURCE_DOT_CLASS: Record<PointsSource, string> = {
   synced: "bg-emerald-500",
   override: "bg-violet-500",
+  tier: "bg-cyan-500",
   "user-override": "bg-amber-500",
   base: "bg-blue-500",
   unknown: "bg-muted-foreground/50",
@@ -24,6 +25,7 @@ const SOURCE_DOT_CLASS: Record<PointsSource, string> = {
 const SOURCE_LABEL: Record<PointsSource, string> = {
   synced: "synced",
   override: "override",
+  tier: "tier",
   "user-override": "user-override",
   base: "base",
   unknown: "unknown",

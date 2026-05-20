@@ -74,20 +74,22 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
   const [pendingTierId, setPendingTierId] = useState<number | null>(null);
   const [mappingSheetOpen, setMappingSheetOpen] = useState(false);
 
-  const { data: tiers } = useUnitPointTiers(unit.unit_id);
-  const { data: loadouts } = useUnitLoadouts(unit.unit_id);
-  const { data: rulesMapping } = useUnitRulesMapping(unit.unit_id);
+  const unitIdOrUndefined = unit.unit_id ?? undefined;
+  const { data: tiers } = useUnitPointTiers(unitIdOrUndefined);
+  const { data: loadouts } = useUnitLoadouts(unitIdOrUndefined);
+  const { data: rulesMapping } = useUnitRulesMapping(unitIdOrUndefined);
 
   // Phase 76 — points source resolution
   const resolved = useMemo(
     () =>
       resolveUnitPoints({
         points_override: unit.points_override,
+        tier_points: unit.tier_points,
         synced_points: unit.synced_points,
         override_points: unit.override_points,
         unit_points: unit.unit_points,
       }),
-    [unit.points_override, unit.synced_points, unit.override_points, unit.unit_points],
+    [unit.points_override, unit.tier_points, unit.synced_points, unit.override_points, unit.unit_points],
   );
 
   // Phase 76 — ambiguity detection (T-76-05: cached by React Query)
@@ -182,12 +184,14 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
                 <TooltipContent>{warnings.soft.join(", ")}</TooltipContent>
               </Tooltip>
             ) : null}
-            <MatchStatusIndicator
-              unitId={unit.unit_id}
-              matchStatus={rulesMapping?.match_status ?? null}
-              ambiguousCount={ambiguousCount}
-              onClick={() => setMappingSheetOpen(true)}
-            />
+            {unit.unit_id != null && (
+              <MatchStatusIndicator
+                unitId={unit.unit_id}
+                matchStatus={rulesMapping?.match_status ?? null}
+                ambiguousCount={ambiguousCount}
+                onClick={() => setMappingSheetOpen(true)}
+              />
+            )}
             <span>{unit.unit_name}</span>
           </div>
           {activeLoadout && (
@@ -288,7 +292,7 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
                   disabled={updateUnit.isPending}
                   onClick={() => {
                     const tier = tiers?.find((t) => t.id === pendingTierId);
-                    if (!tier) return;
+                    if (!tier || unit.unit_id == null) return;
                     updateUnit.mutate(
                       { id: unit.unit_id, points: tier.points },
                       {
@@ -359,7 +363,7 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
         </TableRow>
       )}
 
-      {mappingSheetOpen && (
+      {mappingSheetOpen && unit.unit_id != null && unit.faction_id != null && (
         <RulesMappingSheet
           open={mappingSheetOpen}
           unitId={unit.unit_id}

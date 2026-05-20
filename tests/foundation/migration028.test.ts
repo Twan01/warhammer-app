@@ -144,12 +144,13 @@ describe("migration 028 — lib.rs registration", () => {
     expect(block).toMatch(/MigrationKind::Up/);
   });
 
-  it("version 28 is the highest version in get_migrations() (no gap or successor)", () => {
+  it("version 28 is present in get_migrations() (may not be the highest after later migrations)", () => {
     const getMigrationsBlock = libRs.split("fn get_rules_migrations")[0];
     const versions = [
       ...getMigrationsBlock.matchAll(/version:\s*(\d+)\s*,/g),
     ].map((m) => parseInt(m[1], 10));
-    expect(Math.max(...versions)).toBe(28);
+    expect(versions).toContain(28);
+    expect(Math.max(...versions)).toBeGreaterThanOrEqual(28);
   });
 
   it("migration 28 appears after migration 27 in get_migrations()", () => {

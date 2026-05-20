@@ -1,6 +1,7 @@
 /**
  * ArmyList entities (ARMY-01..07).
- * Mirrors army_lists and army_list_units tables in 001_core_schema.sql.
+ * Mirrors army_lists and army_list_units tables in 001_core_schema.sql,
+ * extended for Army Lists 3.0 (migration 031_army_list_v3.sql, Phase 89).
  *
  * Notes:
  * - army_lists: faction_id is nullable (SET NULL on faction delete).
@@ -10,6 +11,8 @@
  * - points_override is nullable. NULL means "inherit unit.points".
  *   Update flow MUST allow clearing back to NULL — use full-replacement
  *   UPDATE in updateArmyListUnit, NOT COALESCE.
+ * - unit_id is nullable for ghost/planned units. When unit_id IS NULL,
+ *   ghost_unit_name must be set (enforced by DB CHECK constraint).
  */
 export interface ArmyList {
   id: number;
@@ -27,7 +30,11 @@ export interface ArmyList {
 export interface ArmyListUnit {
   id: number;
   list_id: number;
-  unit_id: number;
+  unit_id: number | null;               // NULLABLE for ghost/planned units (Phase 89)
+  ghost_unit_name: string | null;       // NOT NULL when unit_id IS NULL (Phase 89)
+  is_warlord: number;                   // 0 | 1 integer per SQLite boolean pattern (Phase 89)
+  selected_model_count: number | null;  // NULL = default/min tier (Phase 89)
+  leader_attached_to_id: number | null; // FK to army_list_units.id, ON DELETE SET NULL (Phase 89)
   points_override: number | null;
   notes: string | null;
   created_at: string;
@@ -36,21 +43,25 @@ export interface ArmyListUnit {
 
 /**
  * Joined row returned by getArmyListWithUnits().
- * Includes live unit fields (JOIN units) and a SQL-computed effective_points
- * via COALESCE(alu.points_override, u.points, 0). The UI sums effective_points
- * directly — never reimplements the COALESCE in JS.
+ * Includes live unit fields (LEFT JOIN units) and a SQL-computed effective_points
+ * via COALESCE(alu.points_override, tier.points, sup.points, uo.points, u.points, 0).
+ * The UI sums effective_points directly — never reimplements the COALESCE in JS.
+ *
+ * Ghost units (unit_id IS NULL) have null faction_id, status_assembly,
+ * status_painting, and painting_percentage since they have no units row.
  */
 export interface ArmyListUnitRow extends ArmyListUnit {
   unit_name: string;
   unit_points: number | null;
   effective_points: number;
-  faction_id: number;
-  status_assembly: number;
-  status_painting: string;
-  painting_percentage: number;
+  faction_id: number | null;          // null for ghost units (Phase 89)
+  status_assembly: number | null;     // null for ghost units (Phase 89)
+  status_painting: string | null;     // null for ghost units (Phase 89)
+  painting_percentage: number | null; // null for ghost units (Phase 89)
   tactical_role: string | null;
   synced_points: number | null;
   override_points: number | null;
+  tier_points: number | null;         // from synced_unit_point_tiers (Phase 89)
 }
 
 export interface ArmyListWithUnits {
@@ -69,6 +80,19 @@ export interface AddUnitToListInput {
 }
 
 /**
+ * Input for adding a ghost/planned unit to an army list (Phase 89).
+ * Ghost units have no collection entry — they represent units the player
+ * plans to acquire or proxy. ghost_unit_name should match the canonical
+ * BSData/Wahapedia name so points can be resolved via the name-based join.
+ */
+export interface AddGhostUnitToListInput {
+  list_id: number;
+  ghost_unit_name: string;
+  points_override?: number | null;
+  notes?: string | null;
+}
+
+/**
  * Update payload for army_list_units.
  * Both fields are non-optional and nullable (full replacement, NOT partial)
  * so the caller can clear points_override back to NULL.
@@ -78,6 +102,31 @@ export interface UpdateArmyListUnitInput {
   points_override: number | null;
   notes: string | null;
   tactical_role: string | null;
+}
+
+/**
+ * Enhancement assigned to an army list unit (Phase 89).
+ * Stored in army_list_enhancements with TEXT/INTEGER copies of the
+ * enhancement name and points at assignment time (denormalized, survives
+ * rules.db re-sync which DELETE-all + re-INSERT synced_enhancements).
+ */
+export interface ArmyListEnhancement {
+  id: number;
+  list_id: number;
+  army_list_unit_id: number;
+  enhancement_name: string;
+  enhancement_points: number;
+  created_at: string;
+}
+
+/**
+ * Input for assigning an enhancement to a unit in an army list (Phase 89).
+ */
+export interface AddEnhancementInput {
+  list_id: number;
+  army_list_unit_id: number;
+  enhancement_name: string;
+  enhancement_points: number;
 }
 
 /**
