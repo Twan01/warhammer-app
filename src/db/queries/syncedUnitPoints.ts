@@ -86,6 +86,27 @@ export async function getPointTiersByFaction(
 }
 
 /**
+ * Phase 90 — Get point tiers for a specific unit by name and faction.
+ * Used by LoadoutBuilderSheet tier selector (DL-01).
+ * Supports ghost units via name-based lookup (D-10).
+ * faction_id is TEXT in synced tables — never pass a number (Pitfall 1).
+ */
+export async function getTiersByUnitName(
+  unitName: string,
+  factionId: string | null,
+): Promise<Array<{ model_count: number; points: number }>> {
+  const db = await getDb();
+  return db.select(
+    `SELECT model_count, points
+     FROM synced_unit_point_tiers
+     WHERE unit_name = $1
+       AND (faction_id IS NULL OR faction_id = $2)
+     ORDER BY model_count ASC`,
+    [unitName, factionId],
+  );
+}
+
+/**
  * Read all synced unit points into a Map keyed by "unit_name:faction_id".
  * Used by computePointsDelta to build before/after snapshots.
  */

@@ -66,7 +66,7 @@ function makeWrapper() {
 
 /** Extract all invalidated query keys from the spy */
 function invalidatedKeys(spy: ReturnType<typeof vi.spyOn>) {
-  return spy.mock.calls.map((c) => (c[0] as { queryKey: unknown }).queryKey);
+  return spy.mock.calls.map((c: [{ queryKey: unknown }]) => c[0].queryKey);
 }
 
 beforeEach(() => {
