@@ -311,7 +311,7 @@ Plans:
 | 85. Core Execution UI | v0.2.15 | 1/3 | In progress | - |
 | 86. Shell, Route & Keyboard Shortcuts | v0.2.15 | 2/2 | Complete   | 2026-05-19 |
 | 87. Session Integration + Entry Points | v0.2.15 | 2/2 | Complete   | 2026-05-19 |
-| 88. Polish + Test Coverage | v0.2.15 | 0/2 | Not started | - |
+| 88. Polish + Test Coverage | v0.2.15 | 0/2 | Planned | - |
 
 <details>
 <summary>✅ v0.1.1 HobbyForge MVP (Phases 1-5) — SHIPPED 2024-05-01</summary>
