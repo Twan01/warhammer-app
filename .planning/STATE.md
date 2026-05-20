@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.2.18
 milestone_name: Army Lists 3.0 — Smart List Builder
 status: ready_to_plan
-stopped_at: Phase 89 complete (2/2) — ready to discuss Phase 90
-last_updated: 2026-05-20T14:52:56.999Z
-last_activity: 2026-05-20 -- Phase 89 planning complete
+stopped_at: Phase 90 context gathered — ready to plan
+last_updated: 2026-05-20T16:00:00.000Z
+last_activity: 2026-05-20 -- Phase 90 context gathered
 progress:
   total_phases: 7
   completed_phases: 1
@@ -67,6 +67,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-20
-Stopped at: Phase 89 Plan 02 complete — query functions + mutation hooks delivered
-Resume file: None
+Stopped at: Phase 90 context gathered
+Resume file: .planning/phases/90-loadout-builder/90-CONTEXT.md
 Resume: /gsd:plan-phase 90
