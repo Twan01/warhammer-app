@@ -11,7 +11,7 @@ import { fetch } from "@tauri-apps/plugin-http";
 import { invoke } from "@tauri-apps/api/core";
 import { parseWahapediaCsv } from "@/lib/parseWahapediaCsv";
 import { stripHtml } from "@/lib/stripHtml";
-import { RULES_SYNC_META_KEY } from "@/hooks/useDatasheet";
+import { RULES_SYNC_META_KEY, WAHAPEDIA_FACTIONS_KEY } from "@/hooks/useDatasheet";
 import { validateCsvHeaders } from "@/lib/validateCsvHeaders";
 import { insertSyncError } from "@/db/queries/syncErrors";
 import type { InsertSyncErrorInput } from "@/db/queries/syncErrors";
@@ -356,6 +356,7 @@ export function useRulesSync() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: RULES_SYNC_META_KEY });
+      qc.invalidateQueries({ queryKey: WAHAPEDIA_FACTIONS_KEY });
       qc.invalidateQueries({ queryKey: ["datasheets-by-faction"], exact: false });
       qc.invalidateQueries({ queryKey: ["datasheets-with-points"], exact: false });
       qc.invalidateQueries({ queryKey: ["datasheet"], exact: false });
