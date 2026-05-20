@@ -113,6 +113,7 @@ export function ArmyListsPage() {
         onEdit={openEdit}
         onDelete={openDelete}
         onAddUnit={openUnitPicker}
+        onConfigureUnit={() => {/* Phase 90 Plan 02: LoadoutBuilderSheet wiring */}}
       />
       <ArmyListSheet
         key={editingList?.id ?? "new-edit"}

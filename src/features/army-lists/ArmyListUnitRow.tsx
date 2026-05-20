@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, ChevronDown, ChevronUp, Info, Trash2 } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronUp, Info, Settings2, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { TableRow, TableCell } from "@/components/ui/table";
@@ -19,11 +19,8 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { useUpdateArmyListUnit } from "@/hooks/useArmyLists";
-import { useUnitPointTiers } from "@/hooks/useUnitPointTiers";
 import { useUnitLoadouts } from "@/hooks/useUnitLoadouts";
-import { useUpdateUnit } from "@/hooks/useUnits";
 import { useUnitRulesMapping } from "@/hooks/useUnitRulesMapping";
-import { computeDelta } from "@/lib/computeDelta";
 import { computeUnitWarnings } from "@/lib/computeUnitWarnings";
 import type { WarningContext } from "@/lib/computeUnitWarnings";
 import { resolveUnitPoints } from "@/lib/resolveUnitPoints";
@@ -41,6 +38,7 @@ interface ArmyListUnitRowProps {
   pointsLimit: number | null;
   freshness: SyncFreshness;
   onRemove: () => void;
+  onConfigure: () => void;
 }
 
 /**
@@ -50,7 +48,7 @@ interface ArmyListUnitRowProps {
  *   1. Unit name (+ active loadout name below if set)
  *   2. Painting status badge
  *   3. Points override (inline number Input — saves on blur or Enter)
- *      + tier selector + delta badge (Phase 24)
+ *      + Configure trigger (Phase 90)
  *   4. Notes expand toggle (ChevronDown/Up icon)
  *   5. Remove button (Trash2 ghost icon)
  *
@@ -58,24 +56,18 @@ interface ArmyListUnitRowProps {
  * COALESCE. Every save MUST pass BOTH points_override AND notes — otherwise
  * the un-passed field is overwritten with undefined.
  *
- * Phase 24 additions:
- * - Tier selector (Select) when unit has point tiers — shows model count + pts per tier
- * - Delta badge (+N red / -N green) when a different tier is previewed
- * - Confirm button writes to units.points via useUpdateUnit (not army_list_units)
- * - Active loadout name displayed below unit name (subtle muted text)
- * - Pitfall 5: setPendingTierId(null) on confirm clears badge immediately
+ * Phase 90: The inline tier selector (Phase 24) is replaced with a compact
+ * Configure trigger that opens the LoadoutBuilderSheet (D-02, D-04).
+ * Tier selection now writes to army_list_units.selected_model_count (per-list).
  */
-export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onRemove }: ArmyListUnitRowProps) {
+export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onRemove, onConfigure }: ArmyListUnitRowProps) {
   const updateArmyListUnit = useUpdateArmyListUnit();
-  const updateUnit = useUpdateUnit();
   const [expanded, setExpanded] = useState(false);
   const [notesDraft, setNotesDraft] = useState(unit.notes ?? "");
   useEffect(() => { setNotesDraft(unit.notes ?? ""); }, [unit.notes]);
-  const [pendingTierId, setPendingTierId] = useState<number | null>(null);
   const [mappingSheetOpen, setMappingSheetOpen] = useState(false);
 
   const unitIdOrUndefined = unit.unit_id ?? undefined;
-  const { data: tiers } = useUnitPointTiers(unitIdOrUndefined);
   const { data: loadouts } = useUnitLoadouts(unitIdOrUndefined);
   const { data: rulesMapping } = useUnitRulesMapping(unitIdOrUndefined);
 
@@ -100,7 +92,6 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
   });
   const ambiguousCount = matchingDatasheets?.length ?? 0;
 
-  const hasTiers = (tiers?.length ?? 0) > 0;
   const activeLoadout = loadouts?.find((l) => l.is_active === 1);
 
   // Phase 66 — per-unit warning computation
@@ -109,13 +100,10 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
     return computeUnitWarnings(unit, ctx);
   }, [unit, totalPoints, pointsLimit, freshness]);
 
-  const candidatePoints = useMemo(() => {
-    if (pendingTierId === null) return null;
-    const tier = tiers?.find((t) => t.id === pendingTierId);
-    return tier?.points ?? null;
-  }, [pendingTierId, tiers]);
-
-  const delta = computeDelta(candidatePoints, unit.effective_points);
+  // Phase 90 — Configure trigger label showing active tier
+  const tierLabel = unit.selected_model_count !== null && unit.tier_points !== null
+    ? `${unit.selected_model_count} models · ${unit.tier_points}pts`
+    : "Configure";
 
   function handlePointsBlur(rawValue: string) {
     const numeric = rawValue === "" ? null : Number(rawValue);
@@ -252,64 +240,19 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
               }}
               aria-label={`Points override for ${unit.unit_name}`}
             />
-            {delta !== 0 && (
-              <Badge
-                variant="outline"
-                className={
-                  delta > 0
-                    ? "text-destructive border-destructive ml-1.5"
-                    : "text-green-600 border-green-600 ml-1.5"
-                }
-              >
-                {delta > 0 ? `+${delta}` : `${delta}`}
-              </Badge>
-            )}
           </div>
           <PointsSourceChip points={resolved.points} source={resolved.source} />
-          {hasTiers && (
-            <div className="flex items-center gap-1.5 mt-1">
-              <Select
-                value={pendingTierId !== null ? String(pendingTierId) : ""}
-                onValueChange={(val) => setPendingTierId(val ? Number(val) : null)}
-              >
-                <SelectTrigger className="w-28 h-7 text-xs">
-                  <SelectValue placeholder="Tier..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {(tiers ?? []).map((t) => (
-                    <SelectItem key={t.id} value={String(t.id)}>
-                      {t.model_count} models = {t.points}pts
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {pendingTierId !== null && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs"
-                  disabled={updateUnit.isPending}
-                  onClick={() => {
-                    const tier = tiers?.find((t) => t.id === pendingTierId);
-                    if (!tier || unit.unit_id == null) return;
-                    updateUnit.mutate(
-                      { id: unit.unit_id, points: tier.points },
-                      {
-                        onSuccess: () => {
-                          setPendingTierId(null); // Pitfall 5: clear pending to hide badge
-                          toast.success(`Points updated to ${tier.points} pts`);
-                        },
-                        onError: () => toast.error("Failed to update points"),
-                      },
-                    );
-                  }}
-                >
-                  Confirm
-                </Button>
-              )}
-            </div>
-          )}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-7 text-xs mt-1"
+            onClick={onConfigure}
+            aria-label={`Configure loadout for ${unit.unit_name}`}
+          >
+            <Settings2 className="h-3 w-3 mr-1" />
+            {tierLabel}
+          </Button>
         </TableCell>
 
         <TableCell>

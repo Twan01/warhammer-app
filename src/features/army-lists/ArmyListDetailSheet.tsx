@@ -46,10 +46,16 @@ interface ArmyListDetailSheetProps {
    * — this Sheet does NOT own the dialog state (Pitfall 1).
    */
   onAddUnit: () => void;
+  /**
+   * Phase 90 — Triggered when the user clicks "Configure" on a unit row.
+   * The parent (ArmyListsPage) opens a sibling-portal LoadoutBuilderSheet
+   * — this Sheet does NOT own the dialog state (Pitfall 5).
+   */
+  onConfigureUnit: (armyListUnitId: number) => void;
 }
 
 export function ArmyListDetailSheet({
-  open, list, onClose, onEdit, onDelete, onAddUnit,
+  open, list, onClose, onEdit, onDelete, onAddUnit, onConfigureUnit,
 }: ArmyListDetailSheetProps) {
   const { data: units, isLoading } = useArmyListWithUnits(list?.id);
   const { data: factions } = useFactions();
@@ -233,6 +239,7 @@ export function ArmyListDetailSheet({
                       pointsLimit={list.points_limit}
                       freshness={freshness}
                       onRemove={() => handleRemoveUnit(alu.id)}
+                      onConfigure={() => onConfigureUnit(alu.id)}
                     />
                   ))}
                 </TableBody>
