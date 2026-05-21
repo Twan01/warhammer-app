@@ -231,6 +231,13 @@ describe("LoadoutBuilderSheet", () => {
     expect(screen.getByText("Planned")).toBeInTheDocument();
   });
 
+  // DL-01: Empty tier state
+  it("shows 'No tier data available' when tiers array is empty", () => {
+    currentMockTiers = [];
+    renderSheet(makeUnit());
+    expect(screen.getByText("No tier data available")).toBeInTheDocument();
+  });
+
   // Pitfall 6: Points override warning
   it("shows points override warning when points_override is set", () => {
     renderSheet(makeUnit({ points_override: 150 }));
