@@ -561,17 +561,13 @@ function dateStamp(): string {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **fs capability scope for save-dialog paths**
-   - What we know: `fs:default` does NOT cover user-chosen paths; needs explicit scope
-   - What's unclear: Whether the scope needs `$HOME/**` or more granular `$DESKTOP/**` + `$DOWNLOAD/**` + `$DOCUMENT/**`
-   - Recommendation: Add all three (`$HOME/**` covers all of them); OR use Rust command for file write to avoid any capability scope ambiguity
+1. **fs capability scope for save-dialog paths** — RESOLVED
+   - Resolution: Use `$HOME/**` as broad scope covering all user directories. Additionally, PDF binary writes use the `write_bytes_to_path` Rust command (Plan 01 Task 1), which bypasses fs capability scope entirely. JSON writes use `writeTextFile` with the broader scope.
 
-2. **PrintPreviewDialog portal: window-level or body-level?**
-   - What we know: Sibling portal pattern at ArmyListsPage — established for UnitPickerDialog, DatasheetBrowserDialog
-   - What's unclear: `@media print` must target only `.print-content` inside dialog — needs CSS that doesn't interfere with Dialog's overlay/backdrop
-   - Recommendation: Add `print:hidden` Tailwind classes to `DialogContent`/`DialogOverlay`, make only a `.print-content` wrapper visible; test via DevTools media emulation
+2. **PrintPreviewDialog portal: window-level or body-level?** — RESOLVED
+   - Resolution: Sibling portal at ArmyListsPage level (established pattern). `@media print` CSS hides all body children except `#print-content` via `body > *:not(#print-content) { display: none !important; }` and hides `[data-radix-portal]` elements. DialogContent gets `print:hidden` Tailwind class. Print content div uses id `print-content` for CSS targeting.
 
 ---
 
