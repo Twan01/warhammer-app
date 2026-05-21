@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.2.18
 milestone_name: Army Lists 3.0 — Smart List Builder
 status: ready_to_plan
-stopped_at: Phase 91 context gathered
-last_updated: 2026-05-21T10:00:00.000Z
-last_activity: 2026-05-21 -- Phase 91 context gathered (enhancement assignment — auto mode)
+stopped_at: Phase 93 context gathered
+last_updated: 2026-05-21T11:00:00.000Z
+last_activity: 2026-05-21 -- Phase 93 context gathered (datasheet browser + ghost units — auto mode)
 progress:
   total_phases: 7
   completed_phases: 2
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-20)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 91 — enhancement assignment
+**Current focus:** Phase 93 — datasheet browser + ghost units
 
 ## Current Position
 
-Phase: 91 of 95 (enhancement assignment — context gathered)
-Plan: 0 of TBD (Phase 91 planning next)
-Status: Phase 91 context gathered — ready for planning
+Phase: 93 of 95 (datasheet browser + ghost units — context gathered)
+Plan: 0 of TBD (Phase 93 planning next)
+Status: Phase 93 context gathered — ready for planning
 Last activity: 2026-05-21
 
 Progress: [█████░░░░░] 57%
@@ -67,6 +67,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-21
-Stopped at: Phase 91 context gathered
-Resume file: .planning/phases/91-enhancement-assignment/91-CONTEXT.md
-Resume: /gsd:plan-phase 91
+Stopped at: Phase 93 context gathered
+Resume file: .planning/phases/93-datasheet-browser-ghost-units/93-CONTEXT.md
+Resume: /gsd:plan-phase 93
