@@ -13,8 +13,13 @@ import {
   getArmyListReadiness,
   clearArmyListDetachment,
   clearArmyListPointsLimit,
+  addEnhancement,
+  removeEnhancement,
+  getEnhancementsByList,
 } from "@/db/queries/armyLists";
 import type {
+  ArmyListEnhancement,
+  AddEnhancementInput,
   CreateArmyListInput,
   UpdateArmyListInput,
   AddUnitToListInput,
@@ -216,5 +221,59 @@ export function useArmyListReadiness(ids: number[]) {
       return m;
     },
     enabled: sortedIds.length > 0,
+  });
+}
+
+/**
+ * Phase 89 — Add an enhancement to a unit in an army list (D-01, D-02).
+ * Enhancement points are tracked separately from the per-unit COALESCE chain.
+ */
+export function useAddEnhancement() {
+  const qc = useQueryClient();
+  return useMutation<number, Error, AddEnhancementInput>({
+    mutationFn: addEnhancement,
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
+      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
+      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
+      qc.invalidateQueries({ queryKey: ["army-list-enhancements", variables.list_id] });
+    },
+  });
+}
+
+/**
+ * Phase 89 — Remove an enhancement assignment by its own id.
+ */
+export interface RemoveEnhancementVariables {
+  enhancement_id: number;
+  list_id: number;
+}
+
+export function useRemoveEnhancement() {
+  const qc = useQueryClient();
+  return useMutation<void, Error, RemoveEnhancementVariables>({
+    mutationFn: ({ enhancement_id }) => removeEnhancement(enhancement_id),
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
+      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
+      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
+      qc.invalidateQueries({ queryKey: ["army-list-enhancements", variables.list_id] });
+    },
+  });
+}
+
+/**
+ * Phase 89 — Query hook for all enhancements in an army list.
+ * Returns ArmyListEnhancement[] ordered by created_at ASC.
+ */
+export function useEnhancementsByList(listId: number | undefined) {
+  return useQuery<ArmyListEnhancement[]>({
+    queryKey: ["army-list-enhancements", listId],
+    queryFn: () => getEnhancementsByList(listId!),
+    enabled: listId !== undefined,
   });
 }

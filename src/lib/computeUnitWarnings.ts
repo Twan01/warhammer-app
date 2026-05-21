@@ -107,8 +107,10 @@ export function computeListHealthStats(
   units: ArmyListUnitRow[],
   pointsLimit: number | null,
   freshness: SyncFreshness,
+  enhancementTotal = 0,
 ): ListHealthStats {
-  const totalPoints = units.reduce((sum, u) => sum + u.effective_points, 0);
+  const unitPoints = units.reduce((sum, u) => sum + u.effective_points, 0);
+  const totalPoints = unitPoints + enhancementTotal;
 
   const paintedPoints = units
     .filter((u) => u.status_painting === "Completed")

@@ -5,11 +5,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useArmyLists, useArmyListWithUnits } from "@/hooks/useArmyLists";
 import { useFactions } from "@/hooks/useFactions";
 import type { ArmyList } from "@/types/armyList";
+import { useEnhancementsByList } from "@/hooks/useArmyLists";
 import { ArmyListCard } from "./ArmyListCard";
 import { ArmyListSheet } from "./ArmyListSheet";
 import { ArmyListDeleteDialog } from "./ArmyListDeleteDialog";
 import { ArmyListDetailSheet } from "./ArmyListDetailSheet";
 import { UnitPickerDialog } from "./UnitPickerDialog";
+import { EnhancementPickerSheet } from "./EnhancementPickerSheet";
 import { ArmyListsEmptyState } from "./ArmyListsEmptyState";
 import { PageHeader } from "@/components/common/PageHeader";
 
@@ -37,10 +39,17 @@ export function ArmyListsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingList, setDeletingList] = useState<ArmyList | null>(null);
   const [unitPickerOpen, setUnitPickerOpen] = useState(false);
+  const [enhancementUnitId, setEnhancementUnitId] = useState<number | null>(null);
 
   // Pattern: store ID, derive object from cache (selectedListId pattern)
   const selectedList = selectedListId !== null
     ? (lists ?? []).find((l) => l.id === selectedListId) ?? null
+    : null;
+
+  // Phase 91: load units for selectedList to derive enhancementUnit
+  const { data: selectedListUnits } = useArmyListWithUnits(selectedListId ?? undefined);
+  const enhancementUnit = enhancementUnitId !== null
+    ? (selectedListUnits ?? []).find((u) => u.id === enhancementUnitId) ?? null
     : null;
 
   // Handlers
@@ -57,9 +66,11 @@ export function ArmyListsPage() {
     }
   };
   const openDetail = (list: ArmyList) => setSelectedListId(list.id);
-  const closeDetail = () => { setSelectedListId(null); setUnitPickerOpen(false); };
+  const closeDetail = () => { setSelectedListId(null); setUnitPickerOpen(false); setEnhancementUnitId(null); };
   const openUnitPicker = () => setUnitPickerOpen(true);
   const closeUnitPicker = () => setUnitPickerOpen(false);
+  const openEnhancement = (armyListUnitId: number) => setEnhancementUnitId(armyListUnitId);
+  const closeEnhancement = () => setEnhancementUnitId(null);
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -113,6 +124,7 @@ export function ArmyListsPage() {
         onEdit={openEdit}
         onDelete={openDelete}
         onAddUnit={openUnitPicker}
+        onEnhanceUnit={openEnhancement}
       />
       <ArmyListSheet
         key={editingList?.id ?? "new-edit"}
@@ -132,6 +144,12 @@ export function ArmyListsPage() {
         factionId={selectedList?.faction_id ?? null}
         onClose={closeUnitPicker}
       />
+      <EnhancementPickerSheet
+        open={enhancementUnitId !== null}
+        unit={enhancementUnit}
+        list={selectedList}
+        onClose={closeEnhancement}
+      />
     </div>
   );
 }
@@ -150,6 +168,8 @@ function ArmyListCardWrapper({
   onClick: () => void;
 }) {
   const { data: units = [] } = useArmyListWithUnits(list.id);
+  const { data: enhancements = [] } = useEnhancementsByList(list.id);
+  const enhancementTotal = enhancements.reduce((s, e) => s + e.enhancement_points, 0);
   const faction = list.faction_id !== null
     ? factions.find((f) => f.id === list.faction_id) ?? null
     : null;
@@ -158,6 +178,7 @@ function ArmyListCardWrapper({
       list={list}
       faction={faction}
       units={units}
+      enhancementTotal={enhancementTotal}
       onClick={onClick}
     />
   );

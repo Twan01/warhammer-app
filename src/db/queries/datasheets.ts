@@ -329,6 +329,41 @@ export async function getDatasheetsByFactionWithPoints(
   );
 }
 
+export interface UnitKeywordStatus {
+  isCharacter: boolean;
+  isEpicHero: boolean;
+}
+
+/**
+ * ENH-02: Cross-DB lookup from rules.db — determines if a unit has the
+ * "Character" and/or "Epic Hero" keywords. Used to gate enhancement
+ * eligibility (only Characters can take enhancements; Epic Heroes cannot).
+ *
+ * Returns safe defaults { false, false } when rules.db is unavailable or
+ * the unit name doesn't match any datasheet. Case-insensitive match.
+ */
+export async function getUnitKeywords(
+  unitName: string,
+): Promise<UnitKeywordStatus> {
+  try {
+    const db = await getRulesDb();
+    const rows = await db.select<{ keyword: string }[]>(
+      `SELECT k.keyword
+       FROM rw_datasheets d
+       JOIN rw_datasheet_keywords k ON k.datasheet_id = d.id
+       WHERE LOWER(d.name) = LOWER($1)
+         AND LOWER(k.keyword) IN ('character', 'epic hero')`,
+      [unitName],
+    );
+    return {
+      isCharacter: rows.some((r) => r.keyword.toLowerCase() === "character"),
+      isEpicHero: rows.some((r) => r.keyword.toLowerCase() === "epic hero"),
+    };
+  } catch {
+    return { isCharacter: false, isEpicHero: false };
+  }
+}
+
 /**
  * DS-04 fallback: search datasheets by name substring when no faction match.
  * Requires at least 2 characters to avoid returning the full 2500-row table.

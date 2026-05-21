@@ -36,7 +36,7 @@ describe("ArmyListSummaryBar readiness panel (PLAY-01)", () => {
       makeUnit({ id: 1, status_painting: "Completed", effective_points: 100 }),
       makeUnit({ id: 2, status_painting: "Primed", effective_points: 100 }),
     ];
-    render(<TooltipProvider><ArmyListSummaryBar units={units} {...defaultProps} /></TooltipProvider>);
+    render(<TooltipProvider><ArmyListSummaryBar units={units} {...defaultProps} enhancements={[]} /></TooltipProvider>);
 
     // The inner progress bar div has class bg-battle-gold
     const progressBar = document.querySelector(".bg-battle-gold");
@@ -48,7 +48,7 @@ describe("ArmyListSummaryBar readiness panel (PLAY-01)", () => {
     const units = [
       makeUnit({ id: 1, status_painting: "Completed", effective_points: 200 }),
     ];
-    render(<TooltipProvider><ArmyListSummaryBar units={units} {...defaultProps} /></TooltipProvider>);
+    render(<TooltipProvider><ArmyListSummaryBar units={units} {...defaultProps} enhancements={[]} /></TooltipProvider>);
 
     const progressBar = document.querySelector(".bg-battle-gold");
     expect(progressBar).not.toBeNull();
@@ -60,7 +60,7 @@ describe("ArmyListSummaryBar readiness panel (PLAY-01)", () => {
       makeUnit({ id: 1, unit_name: "Intercessors", status_painting: "Completed", effective_points: 100 }),
       makeUnit({ id: 2, unit_name: "Hellblaster", status_painting: "Primed", effective_points: 100 }),
     ];
-    render(<TooltipProvider><ArmyListSummaryBar units={units} {...defaultProps} /></TooltipProvider>);
+    render(<TooltipProvider><ArmyListSummaryBar units={units} {...defaultProps} enhancements={[]} /></TooltipProvider>);
 
     expect(screen.getByText("Hellblaster")).toBeInTheDocument();
     expect(screen.getByText("Primed")).toBeInTheDocument();
@@ -72,7 +72,7 @@ describe("ArmyListSummaryBar readiness panel (PLAY-01)", () => {
       makeUnit({ id: 1, status_painting: "Completed", effective_points: 100 }),
       makeUnit({ id: 2, status_painting: "Completed", effective_points: 150 }),
     ];
-    render(<TooltipProvider><ArmyListSummaryBar units={units} {...defaultProps} /></TooltipProvider>);
+    render(<TooltipProvider><ArmyListSummaryBar units={units} {...defaultProps} enhancements={[]} /></TooltipProvider>);
 
     expect(screen.getByText("All units battle-ready")).toBeInTheDocument();
     expect(screen.queryByText(/Not ready/)).not.toBeInTheDocument();
@@ -82,7 +82,7 @@ describe("ArmyListSummaryBar readiness panel (PLAY-01)", () => {
     const units = [
       makeUnit({ id: 1, status_painting: "Completed", effective_points: 100 }),
     ];
-    render(<TooltipProvider><ArmyListSummaryBar units={units} {...defaultProps} /></TooltipProvider>);
+    render(<TooltipProvider><ArmyListSummaryBar units={units} {...defaultProps} enhancements={[]} /></TooltipProvider>);
 
     const msg = screen.getByText("All units battle-ready");
     expect(msg).toHaveClass("text-battle-gold");
@@ -92,7 +92,7 @@ describe("ArmyListSummaryBar readiness panel (PLAY-01)", () => {
     const units = [
       makeUnit({ id: 1, status_painting: "Completed", effective_points: 100 }),
     ];
-    render(<TooltipProvider><ArmyListSummaryBar units={units} {...defaultProps} /></TooltipProvider>);
+    render(<TooltipProvider><ArmyListSummaryBar units={units} {...defaultProps} enhancements={[]} /></TooltipProvider>);
 
     expect(screen.getByText(/Total:/)).toBeInTheDocument();
     expect(screen.getByText(/Owned:/)).toBeInTheDocument();

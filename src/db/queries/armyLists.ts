@@ -2,10 +2,12 @@ import { getDb } from "@/db/client";
 import type {
   ArmyList,
   ArmyListUnitRow,
+  ArmyListEnhancement,
   CreateArmyListInput,
   UpdateArmyListInput,
   AddUnitToListInput,
   UpdateArmyListUnitInput,
+  AddEnhancementInput,
 } from "@/types/armyList";
 
 /**
@@ -241,5 +243,41 @@ export async function getArmyListReadiness(
      WHERE al.id IN (${placeholders})
      GROUP BY al.id`,
     ids,
+  );
+}
+
+/**
+ * Phase 89 — Add an enhancement to an army list unit (D-01, D-02).
+ * Stores TEXT/INTEGER copies of enhancement name and points at assignment time
+ * (denormalized — survives rules.db DELETE-all + re-INSERT on next sync).
+ * Enhancement points are tracked separately from the per-unit COALESCE chain.
+ */
+export async function addEnhancement(input: AddEnhancementInput): Promise<number> {
+  const db = await getDb();
+  const result = await db.execute(
+    `INSERT INTO army_list_enhancements (list_id, army_list_unit_id, enhancement_name, enhancement_points)
+     VALUES ($1, $2, $3, $4)`,
+    [input.list_id, input.army_list_unit_id, input.enhancement_name, input.enhancement_points],
+  );
+  return result.lastInsertId ?? 0;
+}
+
+/**
+ * Phase 89 — Remove an enhancement assignment by its own id.
+ */
+export async function removeEnhancement(enhancementId: number): Promise<void> {
+  const db = await getDb();
+  await db.execute("DELETE FROM army_list_enhancements WHERE id = $1", [enhancementId]);
+}
+
+/**
+ * Phase 89 — Get all enhancements assigned to units in an army list.
+ * Ordered by created_at ASC for stable display.
+ */
+export async function getEnhancementsByList(listId: number): Promise<ArmyListEnhancement[]> {
+  const db = await getDb();
+  return db.select<ArmyListEnhancement[]>(
+    "SELECT * FROM army_list_enhancements WHERE list_id = $1 ORDER BY created_at ASC",
+    [listId],
   );
 }

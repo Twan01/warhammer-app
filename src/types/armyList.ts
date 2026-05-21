@@ -80,6 +80,25 @@ export interface UpdateArmyListUnitInput {
   tactical_role: string | null;
 }
 
+export interface ArmyListEnhancement {
+  id: number;
+  list_id: number;
+  army_list_unit_id: number;
+  enhancement_name: string;
+  enhancement_points: number;
+  created_at: string;
+}
+
+/**
+ * Input for assigning an enhancement to a unit in an army list (Phase 89).
+ */
+export interface AddEnhancementInput {
+  list_id: number;
+  army_list_unit_id: number;
+  enhancement_name: string;
+  enhancement_points: number;
+}
+
 /**
  * Phase 66 — Tactical role tags (LV-02, D-07/D-08).
  *

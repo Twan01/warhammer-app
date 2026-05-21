@@ -53,7 +53,7 @@ function renderBar(
 ) {
   return render(
     <TooltipProvider>
-      <ArmyListSummaryBar units={units} pointsLimit={pointsLimit} freshness={freshness} />
+      <ArmyListSummaryBar units={units} pointsLimit={pointsLimit} freshness={freshness} enhancements={[]} />
     </TooltipProvider>,
   );
 }

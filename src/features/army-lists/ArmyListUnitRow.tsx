@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, ChevronDown, ChevronUp, Info, Trash2 } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronUp, Info, Sparkles, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { TableRow, TableCell } from "@/components/ui/table";
@@ -31,6 +31,7 @@ import type { SyncFreshness } from "@/lib/syncFreshness";
 import type { ArmyListUnitRow as ArmyListUnitRowType } from "@/types/armyList";
 import { TACTICAL_ROLES, TACTICAL_ROLES_DISPLAY } from "@/types/armyList";
 import { findMatchingDatasheets } from "@/db/queries/unitRulesMapping";
+import { useUnitKeywords } from "@/hooks/useUnitKeywords";
 import { PointsSourceChip } from "./PointsSourceChip";
 import { MatchStatusIndicator } from "./MatchStatusIndicator";
 import { RulesMappingSheet } from "./RulesMappingSheet";
@@ -41,6 +42,10 @@ interface ArmyListUnitRowProps {
   pointsLimit: number | null;
   freshness: SyncFreshness;
   onRemove: () => void;
+  /** Phase 91 — Opens the sibling-portal EnhancementPickerSheet for this unit. */
+  onEnhance: () => void;
+  /** Phase 91 — Name of the enhancement currently assigned to this unit, if any. */
+  enhancementName?: string;
 }
 
 /**
@@ -65,7 +70,7 @@ interface ArmyListUnitRowProps {
  * - Active loadout name displayed below unit name (subtle muted text)
  * - Pitfall 5: setPendingTierId(null) on confirm clears badge immediately
  */
-export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onRemove }: ArmyListUnitRowProps) {
+export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onRemove, onEnhance, enhancementName }: ArmyListUnitRowProps) {
   const updateArmyListUnit = useUpdateArmyListUnit();
   const updateUnit = useUpdateUnit();
   const [expanded, setExpanded] = useState(false);
@@ -77,6 +82,17 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
   const { data: tiers } = useUnitPointTiers(unit.unit_id);
   const { data: loadouts } = useUnitLoadouts(unit.unit_id);
   const { data: rulesMapping } = useUnitRulesMapping(unit.unit_id);
+
+  /**
+   * Phase 91 — Unit keyword check for enhancement eligibility.
+   * Ghost units whose name doesn't match a Wahapedia datasheet will return
+   * isCharacter: false — the Enhance trigger won't show. This is expected
+   * and correct per D-05 (ghost units can't receive enhancements).
+   */
+  const { data: keywords } = useUnitKeywords(unit.unit_name);
+  const isCharacter = keywords?.isCharacter ?? false;
+  const isEpicHero = keywords?.isEpicHero ?? false;
+  const showEnhanceTrigger = isCharacter && !isEpicHero;
 
   // Phase 76 — points source resolution
   const resolved = useMemo(
@@ -194,6 +210,23 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
             <span className="text-xs text-muted-foreground block">
               {activeLoadout.name}
             </span>
+          )}
+          {enhancementName && (
+            <Badge variant="outline" className="text-xs mt-0.5">
+              <Sparkles className="h-3 w-3 mr-1" />{enhancementName}
+            </Badge>
+          )}
+          {showEnhanceTrigger && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs mt-1"
+              onClick={onEnhance}
+              aria-label={`Assign enhancement to ${unit.unit_name}`}
+            >
+              <Sparkles className="h-3 w-3 mr-1" />Enhance
+            </Button>
           )}
           <Select
             value={unit.tactical_role ?? ""}
