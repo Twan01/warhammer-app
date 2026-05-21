@@ -8,7 +8,7 @@ Shipped through v0.2.15 (88 phases): full hobby command center with collection m
 
 ## Current State
 
-v0.2.18 in progress. Phase 93 (datasheet-browser-ghost-units) complete — DatasheetBrowserDialog with Command palette search, faction datasheet grouping by role, multi-add UX; ghost unit visual treatment in ArmyListUnitRow ("Planned" badge, muted styling, hidden painting/tactical role, preserved Configure access); Browse Datasheets button in ArmyListDetailSheet; sibling portal wiring in ArmyListsPage. 93 phases complete across 17 milestones. ~300+ TypeScript source files. 29 SQLite migrations (27 hobbyforge.db + 2 rules.db). 2,060+ automated tests. 7 Tauri Rust commands.
+v0.2.18 in progress. Phase 94 (list-export) complete — 4-format army list export via ExportDropdown in detail sheet header: clipboard copy (tournament-style text via Tauri clipboard-manager plugin), print preview (PrintPreviewDialog with @media print CSS), JSON save (versioned hobbyforge-army-list v1.0 schema via native save dialog), PDF export (lazy-loaded jsPDF via write_bytes_to_path Rust command). Shared formatArmyListForExport utility with leader pair grouping, ghost/warlord markers, enhancement listing. 94 phases complete across 17 milestones. ~300+ TypeScript source files. 29 SQLite migrations (27 hobbyforge.db + 2 rules.db). 2,090+ automated tests. 8 Tauri Rust commands.
 
 ## Core Value
 
