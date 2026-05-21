@@ -48,10 +48,7 @@ export function groupUnitsWithLeaders(units: ArmyListUnitRow[]): GroupedUnit[] {
     }
   }
 
-  // 3. Build set of all unit IDs present in the array (for orphan detection)
-  const presentIds = new Set(units.map((u) => u.id));
-
-  // 4. Iterate in original order, emit targets then their leaders
+  // 3. Iterate in original order, emit targets then their leaders
   const result: GroupedUnit[] = [];
 
   for (const unit of units) {
@@ -72,10 +69,9 @@ export function groupUnitsWithLeaders(units: ArmyListUnitRow[]): GroupedUnit[] {
     }
   }
 
-  // Orphaned leaders (target not in presentIds) are naturally excluded:
+  // Orphaned leaders (target not in array) are naturally excluded:
   // they were skipped in the main loop (attachedLeaderIds) and their
   // target never appeared to emit them from leadersByTarget.
-  // The presentIds set is kept for clarity but the algorithm handles it implicitly.
 
   return result;
 }

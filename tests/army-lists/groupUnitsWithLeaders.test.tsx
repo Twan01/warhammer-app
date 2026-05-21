@@ -5,10 +5,7 @@
  * immediately after their target unit for visual grouping (D-06, D-07).
  */
 import { describe, it, expect } from "vitest";
-import {
-  groupUnitsWithLeaders,
-  type GroupedUnit,
-} from "@/lib/groupUnitsWithLeaders";
+import { groupUnitsWithLeaders } from "@/lib/groupUnitsWithLeaders";
 import type { ArmyListUnitRow } from "@/types/armyList";
 
 // ---------------------------------------------------------------------------
