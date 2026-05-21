@@ -66,7 +66,7 @@ export function LeaderAttachmentSheet({ open, unit, list, units, onClose }: Lead
   // Filter list units to valid targets (case-insensitive name match)
   const validTargetUnits = useMemo(() => {
     const targetNamesLower = new Set(validTargetNames.map((n) => n.toLowerCase()));
-    return units.filter((u) => targetNamesLower.has(u.unit_name.toLowerCase()));
+    return units.filter((u) => u.unit_name && targetNamesLower.has(u.unit_name.toLowerCase()));
   }, [units, validTargetNames]);
 
   // Current attachment: check if this leader is already attached
