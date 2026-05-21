@@ -125,7 +125,7 @@ Full details: `.planning/milestones/v0.2.15-ROADMAP.md`
 - [x] **Phase 90: Loadout Builder** — Model count tier selector wired to synced_unit_point_tiers; wargear options display from BSData; LoadoutBuilderSheet at page level
 - [ ] **Phase 91: Enhancement Assignment** — EnhancementPickerSheet for character units; validation (max 3, no duplicates, character-only, Epic Hero exclusion); enhancement points in summary bar
 - [ ] **Phase 92: Leader Attachment** — Leader-to-target pairing from synced_leader_targets; visual grouping of leader with their attached unit in the list
-- [ ] **Phase 93: Datasheet Browser + Ghost Units** — DatasheetBrowserDialog for all faction datasheets; add unowned units as ghost/planned entries; ghost units isolated from Collection/Dashboard/Kanban
+- [x] **Phase 93: Datasheet Browser + Ghost Units** — DatasheetBrowserDialog for all faction datasheets; add unowned units as ghost/planned entries; ghost units isolated from Collection/Dashboard/Kanban
 - [ ] **Phase 94: List Export** — Clipboard text copy; print-friendly layout; JSON file export; PDF via jsPDF (lazy-loaded)
 - [ ] **Phase 95: Version Snapshots** — Save named snapshot of list state; snapshot history view; side-by-side comparison; restore to snapshot
 

@@ -8,7 +8,7 @@ Shipped through v0.2.15 (88 phases): full hobby command center with collection m
 
 ## Current State
 
-v0.2.18 in progress. Phase 90 (loadout-builder) complete — LoadoutBuilderSheet component with model count tier selection (persists to army_list_units.selected_model_count via Phase 89 mutations), grouped wargear display from BSData synced_loadout_options, ghost unit support, points override warnings, sibling portal wiring at ArmyListsPage level; ArmyListUnitRow refactored to show Configure trigger instead of old inline tier selector; 2 new query functions (getLoadoutOptionsForUnit, getTiersByUnitName), 2 new React Query hooks, 9 tests. 90 phases complete across 17 milestones. ~300+ TypeScript source files. 29 SQLite migrations (27 hobbyforge.db + 2 rules.db). 1,960+ automated tests. 7 Tauri Rust commands.
+v0.2.18 in progress. Phase 93 (datasheet-browser-ghost-units) complete — DatasheetBrowserDialog with Command palette search, faction datasheet grouping by role, multi-add UX; ghost unit visual treatment in ArmyListUnitRow ("Planned" badge, muted styling, hidden painting/tactical role, preserved Configure access); Browse Datasheets button in ArmyListDetailSheet; sibling portal wiring in ArmyListsPage. 93 phases complete across 17 milestones. ~300+ TypeScript source files. 29 SQLite migrations (27 hobbyforge.db + 2 rules.db). 2,060+ automated tests. 7 Tauri Rust commands.
 
 ## Core Value
 
