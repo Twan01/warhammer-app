@@ -26,7 +26,9 @@ import {
   useEnhancementsByList,
 } from "@/hooks/useArmyLists";
 import { useWahapediaFactionId, useRulesSyncMeta } from "@/hooks/useDatasheet";
+import { useLeaderTargets } from "@/hooks/useLeaderTargets";
 import { useFactions } from "@/hooks/useFactions";
+import { groupUnitsWithLeaders } from "@/lib/groupUnitsWithLeaders";
 import type { ArmyList } from "@/types/armyList";
 import { ArmyListSummaryBar } from "./ArmyListSummaryBar";
 import { ArmyListUnitRow } from "./ArmyListUnitRow";
@@ -59,6 +61,11 @@ interface ArmyListDetailSheetProps {
    */
   onEnhanceUnit: (armyListUnitId: number) => void;
   /**
+   * Phase 92 — Opens the sibling-portal LeaderAttachmentSheet for a unit.
+   * This Sheet does NOT own the dialog state.
+   */
+  onAttachLeader: (armyListUnitId: number) => void;
+  /**
    * Phase 93 — Triggered when the user clicks "Browse Datasheets".
    * The parent (ArmyListsPage) opens a sibling-portal DatasheetBrowserDialog.
    */
@@ -66,7 +73,7 @@ interface ArmyListDetailSheetProps {
 }
 
 export function ArmyListDetailSheet({
-  open, list, onClose, onEdit, onDelete, onAddUnit, onConfigureUnit, onEnhanceUnit, onBrowseDatasheets,
+  open, list, onClose, onEdit, onDelete, onAddUnit, onConfigureUnit, onEnhanceUnit, onAttachLeader, onBrowseDatasheets,
 }: ArmyListDetailSheetProps) {
   const { data: units, isLoading } = useArmyListWithUnits(list?.id);
   const { data: listEnhancements } = useEnhancementsByList(list?.id);
@@ -88,6 +95,27 @@ export function ArmyListDetailSheet({
     () => getSyncFreshness(syncMeta?.last_sync_at ?? null),
     [syncMeta?.last_sync_at],
   );
+
+  // Phase 92 — Leader targets for this faction
+  const factionIdStr = list?.faction_id != null ? String(list.faction_id) : null;
+  const { data: leaderTargets } = useLeaderTargets(factionIdStr);
+
+  // Phase 92 — Group units with their attached leaders for visual nesting
+  const groupedUnits = useMemo(
+    () => groupUnitsWithLeaders(units ?? []),
+    [units],
+  );
+
+  // Phase 92 — Lookup: target unit ID -> attached leader unit name
+  const leaderNameMap = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const u of units ?? []) {
+      if (u.leader_attached_to_id != null) {
+        map.set(u.leader_attached_to_id, u.unit_name);
+      }
+    }
+    return map;
+  }, [units]);
 
   const totalPoints = useMemo(
     () => (units ?? []).reduce((sum, u) => sum + u.effective_points, 0),
@@ -253,7 +281,7 @@ export function ArmyListDetailSheet({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(units ?? []).map((alu) => (
+                  {groupedUnits.map(({ unit: alu, isIndentedLeader }) => (
                     <ArmyListUnitRow
                       key={alu.id}
                       unit={alu}
@@ -263,7 +291,11 @@ export function ArmyListDetailSheet({
                       onRemove={() => handleRemoveUnit(alu.id)}
                       onConfigure={() => onConfigureUnit(alu.id)}
                       onEnhance={() => onEnhanceUnit(alu.id)}
+                      onAttachLeader={() => onAttachLeader(alu.id)}
                       enhancementName={(listEnhancements ?? []).find((le) => le.army_list_unit_id === alu.id)?.enhancement_name}
+                      isIndentedLeader={isIndentedLeader}
+                      leaderName={leaderNameMap.get(alu.id)}
+                      leaderTargets={leaderTargets ?? []}
                     />
                   ))}
                 </TableBody>

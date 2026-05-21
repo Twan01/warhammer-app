@@ -103,6 +103,7 @@ function renderRow(
     onConfigure?: () => void;
     onRemove?: () => void;
     onEnhance?: () => void;
+    onAttachLeader?: () => void;
   } = {},
 ) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -119,6 +120,7 @@ function renderRow(
               onRemove={overrides.onRemove ?? vi.fn()}
               onConfigure={overrides.onConfigure ?? vi.fn()}
               onEnhance={overrides.onEnhance ?? vi.fn()}
+              onAttachLeader={overrides.onAttachLeader ?? vi.fn()}
             />
           </TableBody>
         </Table>

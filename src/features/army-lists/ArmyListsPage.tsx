@@ -12,6 +12,7 @@ import { ArmyListDeleteDialog } from "./ArmyListDeleteDialog";
 import { ArmyListDetailSheet } from "./ArmyListDetailSheet";
 import { UnitPickerDialog } from "./UnitPickerDialog";
 import { EnhancementPickerSheet } from "./EnhancementPickerSheet";
+import { LeaderAttachmentSheet } from "./LeaderAttachmentSheet";
 import { ArmyListsEmptyState } from "./ArmyListsEmptyState";
 import { LoadoutBuilderSheet } from "./LoadoutBuilderSheet";
 import { DatasheetBrowserDialog } from "./DatasheetBrowserDialog";
@@ -43,6 +44,7 @@ export function ArmyListsPage() {
   const [unitPickerOpen, setUnitPickerOpen] = useState(false);
   const [loadoutUnitId, setLoadoutUnitId] = useState<number | null>(null);
   const [enhancementUnitId, setEnhancementUnitId] = useState<number | null>(null);
+  const [leaderUnitId, setLeaderUnitId] = useState<number | null>(null);
   const [datasheetBrowserOpen, setDatasheetBrowserOpen] = useState(false);
 
   // Pattern: store ID, derive object from cache (selectedListId pattern)
@@ -56,6 +58,9 @@ export function ArmyListsPage() {
     : null;
   const enhancementUnit = enhancementUnitId !== null
     ? (selectedListUnits ?? []).find((u) => u.id === enhancementUnitId) ?? null
+    : null;
+  const leaderUnit = leaderUnitId !== null
+    ? (selectedListUnits ?? []).find((u) => u.id === leaderUnitId) ?? null
     : null;
 
   // Handlers
@@ -72,13 +77,15 @@ export function ArmyListsPage() {
     }
   };
   const openDetail = (list: ArmyList) => setSelectedListId(list.id);
-  const closeDetail = () => { setSelectedListId(null); setUnitPickerOpen(false); setLoadoutUnitId(null); setEnhancementUnitId(null); setDatasheetBrowserOpen(false); };
+  const closeDetail = () => { setSelectedListId(null); setUnitPickerOpen(false); setLoadoutUnitId(null); setEnhancementUnitId(null); setLeaderUnitId(null); setDatasheetBrowserOpen(false); };
   const openUnitPicker = () => setUnitPickerOpen(true);
   const closeUnitPicker = () => setUnitPickerOpen(false);
   const openLoadout = (armyListUnitId: number) => setLoadoutUnitId(armyListUnitId);
   const closeLoadout = () => setLoadoutUnitId(null);
   const openEnhancement = (armyListUnitId: number) => setEnhancementUnitId(armyListUnitId);
   const closeEnhancement = () => setEnhancementUnitId(null);
+  const openLeaderAttach = (armyListUnitId: number) => setLeaderUnitId(armyListUnitId);
+  const closeLeaderAttach = () => setLeaderUnitId(null);
   const openDatasheetBrowser = () => setDatasheetBrowserOpen(true);
   const closeDatasheetBrowser = () => setDatasheetBrowserOpen(false);
 
@@ -136,6 +143,7 @@ export function ArmyListsPage() {
         onAddUnit={openUnitPicker}
         onConfigureUnit={openLoadout}
         onEnhanceUnit={openEnhancement}
+        onAttachLeader={openLeaderAttach}
         onBrowseDatasheets={openDatasheetBrowser}
       />
       <ArmyListSheet
@@ -168,6 +176,13 @@ export function ArmyListsPage() {
         unit={enhancementUnit}
         list={selectedList}
         onClose={closeEnhancement}
+      />
+      <LeaderAttachmentSheet
+        open={leaderUnitId !== null}
+        unit={leaderUnit}
+        list={selectedList}
+        units={selectedListUnits ?? []}
+        onClose={closeLeaderAttach}
       />
       <DatasheetBrowserDialog
         open={datasheetBrowserOpen}

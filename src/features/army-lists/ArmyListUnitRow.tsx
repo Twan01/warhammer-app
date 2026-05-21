@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, ChevronDown, ChevronUp, Info, Settings2, Sparkles, Trash2 } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronUp, Info, Link2, Settings2, Sparkles, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { TableRow, TableCell } from "@/components/ui/table";
@@ -26,6 +26,7 @@ import type { WarningContext } from "@/lib/computeUnitWarnings";
 import { resolveUnitPoints } from "@/lib/resolveUnitPoints";
 import type { SyncFreshness } from "@/lib/syncFreshness";
 import type { ArmyListUnitRow as ArmyListUnitRowType } from "@/types/armyList";
+import type { SyncedLeaderTargetRow } from "@/db/queries/bsdataExtended";
 import { TACTICAL_ROLES, TACTICAL_ROLES_DISPLAY } from "@/types/armyList";
 import { findMatchingDatasheets } from "@/db/queries/unitRulesMapping";
 import { useUnitKeywords } from "@/hooks/useUnitKeywords";
@@ -41,7 +42,11 @@ interface ArmyListUnitRowProps {
   onRemove: () => void;
   onConfigure: () => void;
   onEnhance: () => void;
+  onAttachLeader: () => void;
   enhancementName?: string;
+  isIndentedLeader?: boolean;
+  leaderName?: string;
+  leaderTargets?: SyncedLeaderTargetRow[];
 }
 
 /**
@@ -63,7 +68,7 @@ interface ArmyListUnitRowProps {
  * Configure trigger that opens the LoadoutBuilderSheet (D-02, D-04).
  * Tier selection now writes to army_list_units.selected_model_count (per-list).
  */
-export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onRemove, onConfigure, onEnhance, enhancementName }: ArmyListUnitRowProps) {
+export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onRemove, onConfigure, onEnhance, onAttachLeader, enhancementName, isIndentedLeader = false, leaderName, leaderTargets = [] }: ArmyListUnitRowProps) {
   const isGhost = unit.unit_id === null;
   const updateArmyListUnit = useUpdateArmyListUnit();
   const [expanded, setExpanded] = useState(false);
@@ -85,6 +90,11 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
   const isCharacter = keywords?.isCharacter ?? false;
   const isEpicHero = keywords?.isEpicHero ?? false;
   const showEnhanceTrigger = isCharacter && !isEpicHero;
+
+  // Phase 92 — Leader eligibility: unit name matches a leader_name in synced targets
+  const isLeader = leaderTargets.some(
+    (lt) => lt.leader_name.toLowerCase() === unit.unit_name.toLowerCase(),
+  );
 
   // Phase 76 — points source resolution
   const resolved = useMemo(
@@ -165,8 +175,11 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
 
   return (
     <>
-      <TableRow>
-        <TableCell className="font-medium">
+      <TableRow
+        className={isIndentedLeader ? "border-l-2" : ""}
+        style={isIndentedLeader ? { borderLeftColor: "var(--faction-accent, hsl(var(--muted-foreground)))" } : undefined}
+      >
+        <TableCell className={`font-medium${isIndentedLeader ? " pl-8" : ""}`}>
           <div className="flex items-center">
             {warnings.hard.length > 0 ? (
               <Tooltip>
@@ -208,6 +221,11 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
               <Sparkles className="h-3 w-3 mr-1" />{enhancementName}
             </Badge>
           )}
+          {leaderName && (
+            <Badge variant="outline" className="text-xs mt-0.5">
+              <Link2 className="h-3 w-3 mr-1" />Leader: {leaderName}
+            </Badge>
+          )}
           {showEnhanceTrigger && (
             <Button
               type="button"
@@ -218,6 +236,23 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
               aria-label={`Assign enhancement to ${unit.unit_name}`}
             >
               <Sparkles className="h-3 w-3 mr-1" />Enhance
+            </Button>
+          )}
+          {isLeader && (
+            <Button
+              type="button"
+              variant={unit.leader_attached_to_id != null ? "secondary" : "outline"}
+              size="sm"
+              className="h-7 text-xs mt-1"
+              onClick={onAttachLeader}
+              aria-label={
+                unit.leader_attached_to_id != null
+                  ? `${unit.unit_name} attached`
+                  : `Attach ${unit.unit_name} as leader`
+              }
+            >
+              <Link2 className="h-3 w-3 mr-1" />
+              {unit.leader_attached_to_id != null ? "Attached" : "Attach Leader"}
             </Button>
           )}
           {!isGhost && (

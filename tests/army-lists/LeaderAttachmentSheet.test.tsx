@@ -82,6 +82,7 @@ function makeList(overrides: Partial<ArmyList> = {}): ArmyList {
     detachment_id: null,
     detachment_name: null,
     points_limit: 2000,
+    list_type: null,
     notes: null,
     created_at: "2024-01-01",
     updated_at: "2024-01-01",
