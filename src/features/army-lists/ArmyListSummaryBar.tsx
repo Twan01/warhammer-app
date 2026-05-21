@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { computeListHealthStats, computeListWarnings } from "@/lib/computeUnitWarnings";
 import { PointsFreshnessBadge } from "./PointsFreshnessBadge";
-import type { ArmyListUnitRow } from "@/types/armyList";
+import type { ArmyListUnitRow, ArmyListEnhancement } from "@/types/armyList";
 import {
   TACTICAL_ROLES,
   TACTICAL_ROLES_DISPLAY,
@@ -21,6 +21,7 @@ interface ArmyListSummaryBarProps {
   units: ArmyListUnitRow[];
   pointsLimit: number | null;
   freshness: SyncFreshness;
+  enhancements: ArmyListEnhancement[];
 }
 
 /**
@@ -30,10 +31,15 @@ interface ArmyListSummaryBarProps {
  * freshness badge, warning count with tooltip. Role coverage pills when
  * at least one unit has a tactical role assigned.
  */
-export function ArmyListSummaryBar({ units, pointsLimit, freshness }: ArmyListSummaryBarProps) {
+export function ArmyListSummaryBar({ units, pointsLimit, freshness, enhancements }: ArmyListSummaryBarProps) {
+  const enhancementTotal = useMemo(
+    () => enhancements.reduce((s, e) => s + e.enhancement_points, 0),
+    [enhancements],
+  );
+
   const stats = useMemo(
-    () => computeListHealthStats(units, pointsLimit, freshness),
-    [units, pointsLimit, freshness],
+    () => computeListHealthStats(units, pointsLimit, freshness, enhancementTotal),
+    [units, pointsLimit, freshness, enhancementTotal],
   );
 
   const listWarnings = useMemo(
@@ -86,6 +92,9 @@ export function ArmyListSummaryBar({ units, pointsLimit, freshness }: ArmyListSu
           value={pointsValue}
           valueClassName={stats.pointsExceeded ? "text-destructive" : undefined}
         />
+        {enhancementTotal > 0 && (
+          <Stat label="Enhancements" value={`${enhancementTotal} pts (${enhancements.length})`} />
+        )}
         <Stat label="Owned" value={`${stats.ownershipPct}%`} />
         <Stat label="Ready" value={`${stats.battleReadyPct}%`} />
       </div>

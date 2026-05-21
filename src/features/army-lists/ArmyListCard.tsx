@@ -9,6 +9,7 @@ interface ArmyListCardProps {
   list: ArmyList;
   faction: Faction | null;
   units: ArmyListUnitRow[];
+  enhancementTotal: number;
   onClick: () => void;
 }
 
@@ -24,11 +25,12 @@ interface ArmyListCardProps {
  * detail sheet is opened. Future refactor could lift the calculation into a
  * helper, but for now keeping it inline keeps each component self-contained.
  */
-export function ArmyListCard({ list, faction, units, onClick }: ArmyListCardProps) {
-  const totalPoints = useMemo(
+export function ArmyListCard({ list, faction, units, enhancementTotal, onClick }: ArmyListCardProps) {
+  const unitPoints = useMemo(
     () => units.reduce((sum, u) => sum + u.effective_points, 0),
     [units],
   );
+  const totalPoints = unitPoints + enhancementTotal;
 
   const paintedPoints = useMemo(
     () =>

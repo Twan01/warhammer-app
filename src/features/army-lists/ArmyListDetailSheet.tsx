@@ -23,6 +23,7 @@ import {
   useRemoveUnitFromList,
   useUpdateArmyList,
   useClearArmyListDetachment,
+  useEnhancementsByList,
 } from "@/hooks/useArmyLists";
 import { useWahapediaFactionId, useRulesSyncMeta } from "@/hooks/useDatasheet";
 import { useFactions } from "@/hooks/useFactions";
@@ -53,6 +54,11 @@ interface ArmyListDetailSheetProps {
    */
   onConfigureUnit: (armyListUnitId: number) => void;
   /**
+   * Phase 91 — Opens the sibling-portal EnhancementPickerSheet for a unit.
+   * This Sheet does NOT own the dialog state.
+   */
+  onEnhanceUnit: (armyListUnitId: number) => void;
+  /**
    * Phase 93 — Triggered when the user clicks "Browse Datasheets".
    * The parent (ArmyListsPage) opens a sibling-portal DatasheetBrowserDialog.
    */
@@ -60,9 +66,10 @@ interface ArmyListDetailSheetProps {
 }
 
 export function ArmyListDetailSheet({
-  open, list, onClose, onEdit, onDelete, onAddUnit, onConfigureUnit, onBrowseDatasheets,
+  open, list, onClose, onEdit, onDelete, onAddUnit, onConfigureUnit, onEnhanceUnit, onBrowseDatasheets,
 }: ArmyListDetailSheetProps) {
   const { data: units, isLoading } = useArmyListWithUnits(list?.id);
+  const { data: listEnhancements } = useEnhancementsByList(list?.id);
   const { data: factions } = useFactions();
   const navigate = useNavigate();
   const removeUnitFromList = useRemoveUnitFromList();
@@ -175,7 +182,7 @@ export function ArmyListDetailSheet({
               </SheetDescription>
             </SheetHeader>
 
-            <ArmyListSummaryBar units={units ?? []} pointsLimit={list.points_limit} freshness={freshness} />
+            <ArmyListSummaryBar units={units ?? []} pointsLimit={list.points_limit} freshness={freshness} enhancements={listEnhancements ?? []} />
 
             <div className="flex flex-col gap-3 px-4 py-2">
               <div className="flex flex-col gap-1.5">
@@ -255,6 +262,8 @@ export function ArmyListDetailSheet({
                       freshness={freshness}
                       onRemove={() => handleRemoveUnit(alu.id)}
                       onConfigure={() => onConfigureUnit(alu.id)}
+                      onEnhance={() => onEnhanceUnit(alu.id)}
+                      enhancementName={(listEnhancements ?? []).find((le) => le.army_list_unit_id === alu.id)?.enhancement_name}
                     />
                   ))}
                 </TableBody>

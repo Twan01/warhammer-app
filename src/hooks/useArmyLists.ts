@@ -25,13 +25,13 @@ import {
   getEnhancementsByList,
 } from "@/db/queries/armyLists";
 import type {
+  ArmyListEnhancement,
+  AddEnhancementInput,
   CreateArmyListInput,
   UpdateArmyListInput,
   AddUnitToListInput,
   UpdateArmyListUnitInput,
   AddGhostUnitToListInput,
-  AddEnhancementInput,
-  ArmyListEnhancement,
 } from "@/types/armyList";
 
 /**
@@ -395,6 +395,7 @@ export function useAddEnhancement() {
       qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
       qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
+      qc.invalidateQueries({ queryKey: ["army-list-enhancements", variables.list_id] });
     },
   });
 }
@@ -417,6 +418,7 @@ export function useRemoveEnhancement() {
       qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
       qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
+      qc.invalidateQueries({ queryKey: ["army-list-enhancements", variables.list_id] });
     },
   });
 }

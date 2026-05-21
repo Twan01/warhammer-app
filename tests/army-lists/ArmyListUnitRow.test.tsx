@@ -102,6 +102,7 @@ function renderRow(
   overrides: {
     onConfigure?: () => void;
     onRemove?: () => void;
+    onEnhance?: () => void;
   } = {},
 ) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -117,6 +118,7 @@ function renderRow(
               freshness={defaultFreshness}
               onRemove={overrides.onRemove ?? vi.fn()}
               onConfigure={overrides.onConfigure ?? vi.fn()}
+              onEnhance={overrides.onEnhance ?? vi.fn()}
             />
           </TableBody>
         </Table>

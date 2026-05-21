@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, ChevronDown, ChevronUp, Info, Settings2, Trash2 } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronUp, Info, Settings2, Sparkles, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { TableRow, TableCell } from "@/components/ui/table";
@@ -28,6 +28,7 @@ import type { SyncFreshness } from "@/lib/syncFreshness";
 import type { ArmyListUnitRow as ArmyListUnitRowType } from "@/types/armyList";
 import { TACTICAL_ROLES, TACTICAL_ROLES_DISPLAY } from "@/types/armyList";
 import { findMatchingDatasheets } from "@/db/queries/unitRulesMapping";
+import { useUnitKeywords } from "@/hooks/useUnitKeywords";
 import { PointsSourceChip } from "./PointsSourceChip";
 import { MatchStatusIndicator } from "./MatchStatusIndicator";
 import { RulesMappingSheet } from "./RulesMappingSheet";
@@ -39,6 +40,8 @@ interface ArmyListUnitRowProps {
   freshness: SyncFreshness;
   onRemove: () => void;
   onConfigure: () => void;
+  onEnhance: () => void;
+  enhancementName?: string;
 }
 
 /**
@@ -60,7 +63,7 @@ interface ArmyListUnitRowProps {
  * Configure trigger that opens the LoadoutBuilderSheet (D-02, D-04).
  * Tier selection now writes to army_list_units.selected_model_count (per-list).
  */
-export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onRemove, onConfigure }: ArmyListUnitRowProps) {
+export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onRemove, onConfigure, onEnhance, enhancementName }: ArmyListUnitRowProps) {
   const isGhost = unit.unit_id === null;
   const updateArmyListUnit = useUpdateArmyListUnit();
   const [expanded, setExpanded] = useState(false);
@@ -71,6 +74,17 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
   const unitIdOrUndefined = unit.unit_id ?? undefined;
   const { data: loadouts } = useUnitLoadouts(unitIdOrUndefined);
   const { data: rulesMapping } = useUnitRulesMapping(unitIdOrUndefined);
+
+  /**
+   * Phase 91 — Unit keyword check for enhancement eligibility.
+   * Ghost units whose name doesn't match a Wahapedia datasheet will return
+   * isCharacter: false — the Enhance trigger won't show. This is expected
+   * and correct per D-05 (ghost units can't receive enhancements).
+   */
+  const { data: keywords } = useUnitKeywords(unit.unit_name);
+  const isCharacter = keywords?.isCharacter ?? false;
+  const isEpicHero = keywords?.isEpicHero ?? false;
+  const showEnhanceTrigger = isCharacter && !isEpicHero;
 
   // Phase 76 — points source resolution
   const resolved = useMemo(
@@ -188,6 +202,23 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
             <span className="text-xs text-muted-foreground block">
               {activeLoadout.name}
             </span>
+          )}
+          {enhancementName && (
+            <Badge variant="outline" className="text-xs mt-0.5">
+              <Sparkles className="h-3 w-3 mr-1" />{enhancementName}
+            </Badge>
+          )}
+          {showEnhanceTrigger && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs mt-1"
+              onClick={onEnhance}
+              aria-label={`Assign enhancement to ${unit.unit_name}`}
+            >
+              <Sparkles className="h-3 w-3 mr-1" />Enhance
+            </Button>
           )}
           {!isGhost && (
             <Select

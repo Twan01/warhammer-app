@@ -5,11 +5,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useArmyLists, useArmyListWithUnits } from "@/hooks/useArmyLists";
 import { useFactions } from "@/hooks/useFactions";
 import type { ArmyList } from "@/types/armyList";
+import { useEnhancementsByList } from "@/hooks/useArmyLists";
 import { ArmyListCard } from "./ArmyListCard";
 import { ArmyListSheet } from "./ArmyListSheet";
 import { ArmyListDeleteDialog } from "./ArmyListDeleteDialog";
 import { ArmyListDetailSheet } from "./ArmyListDetailSheet";
 import { UnitPickerDialog } from "./UnitPickerDialog";
+import { EnhancementPickerSheet } from "./EnhancementPickerSheet";
 import { ArmyListsEmptyState } from "./ArmyListsEmptyState";
 import { LoadoutBuilderSheet } from "./LoadoutBuilderSheet";
 import { DatasheetBrowserDialog } from "./DatasheetBrowserDialog";
@@ -40,6 +42,7 @@ export function ArmyListsPage() {
   const [deletingList, setDeletingList] = useState<ArmyList | null>(null);
   const [unitPickerOpen, setUnitPickerOpen] = useState(false);
   const [loadoutUnitId, setLoadoutUnitId] = useState<number | null>(null);
+  const [enhancementUnitId, setEnhancementUnitId] = useState<number | null>(null);
   const [datasheetBrowserOpen, setDatasheetBrowserOpen] = useState(false);
 
   // Pattern: store ID, derive object from cache (selectedListId pattern)
@@ -47,10 +50,12 @@ export function ArmyListsPage() {
     ? (lists ?? []).find((l) => l.id === selectedListId) ?? null
     : null;
 
-  // Derive units for loadout sheet sibling portal
   const { data: selectedListUnits } = useArmyListWithUnits(selectedListId ?? undefined);
   const loadoutUnit = loadoutUnitId !== null
     ? (selectedListUnits ?? []).find((u) => u.id === loadoutUnitId) ?? null
+    : null;
+  const enhancementUnit = enhancementUnitId !== null
+    ? (selectedListUnits ?? []).find((u) => u.id === enhancementUnitId) ?? null
     : null;
 
   // Handlers
@@ -67,11 +72,13 @@ export function ArmyListsPage() {
     }
   };
   const openDetail = (list: ArmyList) => setSelectedListId(list.id);
-  const closeDetail = () => { setSelectedListId(null); setUnitPickerOpen(false); setLoadoutUnitId(null); setDatasheetBrowserOpen(false); };
+  const closeDetail = () => { setSelectedListId(null); setUnitPickerOpen(false); setLoadoutUnitId(null); setEnhancementUnitId(null); setDatasheetBrowserOpen(false); };
   const openUnitPicker = () => setUnitPickerOpen(true);
   const closeUnitPicker = () => setUnitPickerOpen(false);
   const openLoadout = (armyListUnitId: number) => setLoadoutUnitId(armyListUnitId);
   const closeLoadout = () => setLoadoutUnitId(null);
+  const openEnhancement = (armyListUnitId: number) => setEnhancementUnitId(armyListUnitId);
+  const closeEnhancement = () => setEnhancementUnitId(null);
   const openDatasheetBrowser = () => setDatasheetBrowserOpen(true);
   const closeDatasheetBrowser = () => setDatasheetBrowserOpen(false);
 
@@ -128,6 +135,7 @@ export function ArmyListsPage() {
         onDelete={openDelete}
         onAddUnit={openUnitPicker}
         onConfigureUnit={openLoadout}
+        onEnhanceUnit={openEnhancement}
         onBrowseDatasheets={openDatasheetBrowser}
       />
       <ArmyListSheet
@@ -155,6 +163,12 @@ export function ArmyListsPage() {
         listFactionId={selectedList?.faction_id ?? null}
         onClose={closeLoadout}
       />
+      <EnhancementPickerSheet
+        open={enhancementUnitId !== null}
+        unit={enhancementUnit}
+        list={selectedList}
+        onClose={closeEnhancement}
+      />
       <DatasheetBrowserDialog
         open={datasheetBrowserOpen}
         listId={selectedListId}
@@ -179,6 +193,8 @@ function ArmyListCardWrapper({
   onClick: () => void;
 }) {
   const { data: units = [] } = useArmyListWithUnits(list.id);
+  const { data: enhancements = [] } = useEnhancementsByList(list.id);
+  const enhancementTotal = enhancements.reduce((s, e) => s + e.enhancement_points, 0);
   const faction = list.faction_id !== null
     ? factions.find((f) => f.id === list.faction_id) ?? null
     : null;
@@ -187,6 +203,7 @@ function ArmyListCardWrapper({
       list={list}
       faction={faction}
       units={units}
+      enhancementTotal={enhancementTotal}
       onClick={onClick}
     />
   );
