@@ -12,6 +12,7 @@ import { ArmyListDetailSheet } from "./ArmyListDetailSheet";
 import { UnitPickerDialog } from "./UnitPickerDialog";
 import { ArmyListsEmptyState } from "./ArmyListsEmptyState";
 import { LoadoutBuilderSheet } from "./LoadoutBuilderSheet";
+import { DatasheetBrowserDialog } from "./DatasheetBrowserDialog";
 import { PageHeader } from "@/components/common/PageHeader";
 
 /**
@@ -39,6 +40,7 @@ export function ArmyListsPage() {
   const [deletingList, setDeletingList] = useState<ArmyList | null>(null);
   const [unitPickerOpen, setUnitPickerOpen] = useState(false);
   const [loadoutUnitId, setLoadoutUnitId] = useState<number | null>(null);
+  const [datasheetBrowserOpen, setDatasheetBrowserOpen] = useState(false);
 
   // Pattern: store ID, derive object from cache (selectedListId pattern)
   const selectedList = selectedListId !== null
@@ -65,11 +67,13 @@ export function ArmyListsPage() {
     }
   };
   const openDetail = (list: ArmyList) => setSelectedListId(list.id);
-  const closeDetail = () => { setSelectedListId(null); setUnitPickerOpen(false); setLoadoutUnitId(null); };
+  const closeDetail = () => { setSelectedListId(null); setUnitPickerOpen(false); setLoadoutUnitId(null); setDatasheetBrowserOpen(false); };
   const openUnitPicker = () => setUnitPickerOpen(true);
   const closeUnitPicker = () => setUnitPickerOpen(false);
   const openLoadout = (armyListUnitId: number) => setLoadoutUnitId(armyListUnitId);
   const closeLoadout = () => setLoadoutUnitId(null);
+  const openDatasheetBrowser = () => setDatasheetBrowserOpen(true);
+  const closeDatasheetBrowser = () => setDatasheetBrowserOpen(false);
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -124,6 +128,7 @@ export function ArmyListsPage() {
         onDelete={openDelete}
         onAddUnit={openUnitPicker}
         onConfigureUnit={openLoadout}
+        onBrowseDatasheets={openDatasheetBrowser}
       />
       <ArmyListSheet
         key={editingList?.id ?? "new-edit"}
@@ -149,6 +154,12 @@ export function ArmyListsPage() {
         listId={selectedListId}
         listFactionId={selectedList?.faction_id ?? null}
         onClose={closeLoadout}
+      />
+      <DatasheetBrowserDialog
+        open={datasheetBrowserOpen}
+        listId={selectedListId}
+        factionId={selectedList?.faction_id ?? null}
+        onClose={closeDatasheetBrowser}
       />
     </div>
   );

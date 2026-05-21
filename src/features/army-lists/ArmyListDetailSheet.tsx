@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Plus, Swords } from "lucide-react";
+import { BookOpen, Plus, Swords } from "lucide-react";
 import { toast } from "sonner";
 import { getSyncFreshness } from "@/lib/syncFreshness";
 import {
@@ -52,10 +52,15 @@ interface ArmyListDetailSheetProps {
    * — this Sheet does NOT own the dialog state (Pitfall 5).
    */
   onConfigureUnit: (armyListUnitId: number) => void;
+  /**
+   * Phase 93 — Triggered when the user clicks "Browse Datasheets".
+   * The parent (ArmyListsPage) opens a sibling-portal DatasheetBrowserDialog.
+   */
+  onBrowseDatasheets: () => void;
 }
 
 export function ArmyListDetailSheet({
-  open, list, onClose, onEdit, onDelete, onAddUnit, onConfigureUnit,
+  open, list, onClose, onEdit, onDelete, onAddUnit, onConfigureUnit, onBrowseDatasheets,
 }: ArmyListDetailSheetProps) {
   const { data: units, isLoading } = useArmyListWithUnits(list?.id);
   const { data: factions } = useFactions();
@@ -195,14 +200,24 @@ export function ArmyListDetailSheet({
 
             <div className="flex items-center justify-between px-4 py-2">
               <span className="text-sm font-semibold">Units</span>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={onAddUnit}
-              >
-                <Plus className="mr-2 h-4 w-4" /> Add Unit
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onAddUnit}
+                >
+                  <Plus className="mr-2 h-4 w-4" /> Add Unit
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onBrowseDatasheets}
+                >
+                  <BookOpen className="mr-2 h-4 w-4" /> Browse Datasheets
+                </Button>
+              </div>
             </div>
 
             {isLoading && (
