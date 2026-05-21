@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v0.2.18
 milestone_name: Army Lists 3.0 — Smart List Builder
-status: ready_to_plan
-stopped_at: Phase 93 context gathered
-last_updated: 2026-05-21T11:00:00.000Z
-last_activity: 2026-05-21 -- Phase 93 context gathered (datasheet browser + ghost units — auto mode)
+status: ready_to_execute
+stopped_at: Phase 93 planned — 2 plans in 2 waves
+last_updated: 2026-05-21T13:00:00.000Z
+last_activity: 2026-05-21 -- Phase 93 planned (datasheet browser + ghost units — 2 plans, checker passed)
 progress:
   total_phases: 7
   completed_phases: 2
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-05-20)
 
 ## Current Position
 
-Phase: 93 of 95 (datasheet browser + ghost units — context gathered)
-Plan: 0 of TBD (Phase 93 planning next)
-Status: Phase 93 context gathered — ready for planning
+Phase: 93 of 95 (datasheet browser + ghost units — planned)
+Plan: 2 plans in 2 waves (ready to execute)
+Status: Phase 93 planned — ready for execution
 Last activity: 2026-05-21
 
 Progress: [█████░░░░░] 57%
@@ -67,6 +67,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-21
-Stopped at: Phase 93 context gathered
-Resume file: .planning/phases/93-datasheet-browser-ghost-units/93-CONTEXT.md
-Resume: /gsd:plan-phase 93
+Stopped at: Phase 93 planned — 2 plans in 2 waves, checker passed
+Resume file: .planning/phases/93-datasheet-browser-ghost-units/93-01-PLAN.md
+Resume: /gsd:execute-phase 93

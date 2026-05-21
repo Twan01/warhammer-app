@@ -517,17 +517,17 @@ const pointsValue = (() => {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Exact keyword casing in rules.db**
+1. **Exact keyword casing in rules.db** — RESOLVED
    - What we know: `rw_datasheet_keywords` is synced from Wahapedia CSV. The schema stores keyword as TEXT.
    - What's unclear: Whether Wahapedia CSV uses "Character" or "CHARACTER" or "character". The `getFullDatasheet` query does not normalize keyword case.
-   - Recommendation: Use `LOWER(k.keyword) IN ('character', 'epic hero')` in the query to be case-insensitive. Then normalize the returned values to detect "character" and "epic hero" in lowercase.
+   - Resolution: Use `LOWER(k.keyword) IN ('character', 'epic hero')` in the `getUnitKeywords` query to be case-insensitive. Accepted in Plan 91-01 Task 1.
 
-2. **Enhancement trigger when rules.db is not synced**
+2. **Enhancement trigger when rules.db is not synced** — RESOLVED
    - What we know: D-05 says "no datasheet found = enhancement assignment blocked with No rules data message."
    - What's unclear: Whether the trigger button itself should be hidden or visible-but-blocked.
-   - Recommendation: Show the trigger button to all non-ghost units in the list (to not penalize users who haven't synced). Open the sheet; inside, show a "No rules data — cannot verify character status" message with the assignment blocked. For ghost units, hide the trigger (no reliable fallback).
+   - Resolution: When `useUnitKeywords` returns `{ isCharacter: false, isEpicHero: false }` (safe defaults from unsynced rules.db), the enhancement trigger is suppressed (hidden) on the unit row. This aligns with D-06 ("trigger only appears on character unit rows") — if we can't confirm character status, we don't show the trigger. For ghost units, the same behavior applies. D-05's "No rules data message" refers to the sheet interior state if somehow opened, not a separate visible-but-blocked path. This falls within Claude's Discretion per CONTEXT.md.
 
 ---
 
