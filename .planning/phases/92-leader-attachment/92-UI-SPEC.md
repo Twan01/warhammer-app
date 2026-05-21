@@ -53,10 +53,10 @@ Exceptions: Leader indent uses 32px (pl-8) to visually subordinate the leader ro
 | Sheet Title | 18px (text-lg) | 600 (font-semibold) | 1.2 |
 
 Phase-specific usage:
-- **Target row name** in LeaderAttachmentSheet: 14px / 500 (font-medium) — matches EnhancementPickerSheet row pattern
+- **Target row name** in LeaderAttachmentSheet: 14px / 400 (normal) — body text role, no extra weight needed
 - **Points badge** in target rows: 12px / 400 inside `Badge variant="secondary"`
 - **"Leader: [name]" badge** on target unit row: 12px / 400 inside `Badge variant="outline"`
-- **Trigger button text** ("Attach" / "Attached"): 12px / 400 — matches existing `h-7 text-xs` pattern
+- **Trigger button text** ("Attach Leader" / "Attached"): 12px / 400 — matches existing `h-7 text-xs` pattern
 - **Disabled tooltip text**: 14px / 400 — Radix TooltipContent default
 
 ---
@@ -68,7 +68,7 @@ Phase-specific usage:
 | Dominant (60%) | hsl(var(--background)) | Table background, sheet background |
 | Secondary (30%) | hsl(var(--card)) | Target row cards in sheet (border p-3 rounded-md) |
 | Accent (10%) | var(--faction-accent) | Leader indent left border (2px solid) |
-| Destructive | hsl(var(--destructive)) | Detach button (variant="destructive") |
+| Destructive | hsl(var(--destructive)) | Detach Leader button (variant="destructive") |
 | Muted | hsl(var(--muted-foreground)) | Disabled state text, empty state copy, secondary descriptions |
 
 Accent reserved for:
@@ -78,7 +78,7 @@ Accent reserved for:
 Color usage notes:
 - The "Leader: [name]" badge uses `variant="outline"` (border color only, no fill) to stay subtle
 - "Attached" state on trigger button uses `variant="secondary"` to indicate current state without strong emphasis
-- Disabled "Attach" buttons use default disabled opacity (opacity-50 via shadcn Button)
+- Disabled "Attach Leader" buttons use default disabled opacity (opacity-50 via shadcn Button)
 
 ---
 
@@ -104,7 +104,7 @@ Color usage notes:
 | Component | Usage |
 |-----------|-------|
 | Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription | LeaderAttachmentSheet container |
-| Button | Attach, Detach, trigger buttons |
+| Button | Attach Leader, Detach Leader, trigger buttons |
 | Badge | Points display, "Leader: [name]" badge, "Attached" indicator |
 | Tooltip, TooltipTrigger, TooltipContent | Disabled button explanations |
 | Table, TableRow, TableCell | Inherited — unit rows in ArmyListDetailSheet |
@@ -124,21 +124,23 @@ Color usage notes:
 
 **Trigger:** Click Link2 button on a leader-eligible unit row in ArmyListDetailSheet.
 
+**Focal point:** When the sheet opens, the primary focal point is the **Valid targets list** (the scrollable list of attachable units). When a leader is already attached, the focal point shifts to the **Current attachment banner** at the top of the sheet content, which shows the active attachment and the "Detach Leader" action.
+
 **Sheet layout (top to bottom):**
 1. **Header:** Link2 icon + "{unit_name} -- Leader Attachment" title, "{faction_name} leader targets" description
-2. **Current attachment banner** (conditional): If leader is already attached, show a highlighted row with the current target name + "Detach" destructive button. Separated by a subtle border-b.
+2. **Current attachment banner** (conditional): If leader is already attached, show a highlighted row with the current target name + "Detach Leader" destructive button. Separated by a subtle border-b.
 3. **Valid targets list:** Each target is a bordered card (rounded-md border p-3) with:
-   - Left: target unit name (14px font-medium) + points Badge (variant="secondary", 12px)
-   - Right: "Attach" Button (variant="outline", size="sm", h-7 text-xs)
+   - Left: target unit name (14px normal) + points Badge (variant="secondary", 12px)
+   - Right: "Attach Leader" Button (variant="outline", size="sm", h-7 text-xs)
 4. **Empty state:** Shown when no valid targets exist in the army list.
 
 **States:**
 
 | State | Visual Treatment |
 |-------|-----------------|
-| Target available | "Attach" button enabled (variant="outline") |
-| Target already led by another leader | "Attach" button disabled + Tooltip: "Already led by {leader_name}" |
-| Leader already attached to this target | Row highlighted with bg-secondary, "Detach" button (variant="destructive") shown instead of "Attach" |
+| Target available | "Attach Leader" button enabled (variant="outline") |
+| Target already led by another leader | "Attach Leader" button disabled + Tooltip: "Already led by {leader_name}" |
+| Leader already attached to this target | Row highlighted with bg-secondary, "Detach Leader" button (variant="destructive") shown instead of "Attach Leader" |
 | No valid targets in list | Empty state message |
 | No faction selected | Guard message: "No faction selected for this list." |
 | Mutation pending | Button shows disabled state during mutate |
@@ -151,7 +153,7 @@ Color usage notes:
 
 | Unit State | Trigger Appearance |
 |------------|-------------------|
-| Leader, not attached | Button: Link2 icon + "Attach" (variant="outline", h-7 text-xs) |
+| Leader, not attached | Button: Link2 icon + "Attach Leader" (variant="outline", h-7 text-xs) |
 | Leader, already attached | Button: Link2 icon + "Attached" (variant="secondary", h-7 text-xs) — clicking opens sheet showing current attachment |
 | Not a leader | No trigger shown |
 
@@ -183,8 +185,9 @@ The `groupUnitsWithLeaders()` function produces a `GroupedUnit[]` array:
 
 | Element | Copy |
 |---------|------|
-| Primary CTA | "Attach" (assign leader to target) |
-| Secondary CTA | "Detach" (remove leader from target) |
+| Primary CTA | "Attach Leader" (assign leader to target) |
+| Secondary CTA | "Detach Leader" (remove leader from target) |
+| Destructive action confirmation | No confirmation required -- action is immediately reversible via re-attach |
 | Sheet title | "{unit_name} -- Leader Attachment" |
 | Sheet description | "Attach this leader to a valid target unit" |
 | Already attached banner | "Currently attached to {target_name}" |
@@ -196,7 +199,7 @@ The `groupUnitsWithLeaders()` function produces a `GroupedUnit[]` array:
 | Error toast (detach fail) | "Failed to detach leader. Please try again." |
 | Success toast (attach) | No toast -- visual grouping change provides immediate feedback |
 | Success toast (detach) | No toast -- visual ungrouping provides immediate feedback |
-| Trigger button (unattached) | "Attach" |
+| Trigger button (unattached) | "Attach Leader" |
 | Trigger button (attached) | "Attached" |
 | Guard: no faction | "No faction selected for this list." |
 
