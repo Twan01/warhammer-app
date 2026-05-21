@@ -95,7 +95,7 @@ function makeUnit(overrides: Partial<ArmyListUnitRowType> = {}): ArmyListUnitRow
 // Render helper
 // ---------------------------------------------------------------------------
 
-const defaultFreshness: SyncFreshness = { status: "fresh", lastSync: "2024-01-01", ageMs: 0 };
+const defaultFreshness: SyncFreshness = "fresh";
 
 function renderRow(
   unit: ArmyListUnitRowType,

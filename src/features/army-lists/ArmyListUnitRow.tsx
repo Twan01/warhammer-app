@@ -61,6 +61,7 @@ interface ArmyListUnitRowProps {
  * Tier selection now writes to army_list_units.selected_model_count (per-list).
  */
 export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onRemove, onConfigure }: ArmyListUnitRowProps) {
+  const isGhost = unit.unit_id === null;
   const updateArmyListUnit = useUpdateArmyListUnit();
   const [expanded, setExpanded] = useState(false);
   const [notesDraft, setNotesDraft] = useState(unit.notes ?? "");
@@ -180,49 +181,58 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
                 onClick={() => setMappingSheetOpen(true)}
               />
             )}
-            <span>{unit.unit_name}</span>
+            <span className={isGhost ? "text-muted-foreground" : ""}>{unit.unit_name}</span>
+            {isGhost && <Badge variant="outline" className="ml-1.5 text-xs">Planned</Badge>}
           </div>
           {activeLoadout && (
             <span className="text-xs text-muted-foreground block">
               {activeLoadout.name}
             </span>
           )}
-          <Select
-            value={unit.tactical_role ?? ""}
-            onValueChange={(val) => {
-              const newRole = val === "__none__" ? null : val;
-              updateArmyListUnit.mutate(
-                {
-                  id: unit.id,
-                  list_id: unit.list_id,
-                  points_override: unit.points_override,
-                  notes: unit.notes,
-                  tactical_role: newRole,
-                },
-                {
-                  onError: () => toast.error("Failed to update role. Please try again."),
-                },
-              );
-            }}
-          >
-            <SelectTrigger className="w-28 h-6 text-xs mt-0.5">
-              <SelectValue placeholder="Role..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__none__">None</SelectItem>
-              {TACTICAL_ROLES.map((role) => (
-                <SelectItem key={role} value={role}>
-                  {TACTICAL_ROLES_DISPLAY[role]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {!isGhost && (
+            <Select
+              value={unit.tactical_role ?? ""}
+              onValueChange={(val) => {
+                const newRole = val === "__none__" ? null : val;
+                updateArmyListUnit.mutate(
+                  {
+                    id: unit.id,
+                    list_id: unit.list_id,
+                    points_override: unit.points_override,
+                    notes: unit.notes,
+                    tactical_role: newRole,
+                  },
+                  {
+                    onError: () => toast.error("Failed to update role. Please try again."),
+                  },
+                );
+              }}
+            >
+              <SelectTrigger className="w-28 h-6 text-xs mt-0.5">
+                <SelectValue placeholder="Role..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">None</SelectItem>
+                {TACTICAL_ROLES.map((role) => (
+                  <SelectItem key={role} value={role}>
+                    {TACTICAL_ROLES_DISPLAY[role]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </TableCell>
 
         <TableCell className="space-x-1">
-          <Badge variant="secondary">{unit.status_painting}</Badge>
-          {unit.status_assembly === 1 && (
-            <Badge variant="outline">Assembled</Badge>
+          {isGhost ? (
+            <span className="text-xs text-muted-foreground">--</span>
+          ) : (
+            <>
+              <Badge variant="secondary">{unit.status_painting}</Badge>
+              {unit.status_assembly === 1 && (
+                <Badge variant="outline">Assembled</Badge>
+              )}
+            </>
           )}
         </TableCell>
 
