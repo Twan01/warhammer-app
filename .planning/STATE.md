@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.2.18
 milestone_name: Army Lists 3.0 — Smart List Builder
 status: ready_to_plan
-stopped_at: Phase 92 context gathered — ready to plan
-last_updated: 2026-05-21T16:00:00.000Z
-last_activity: 2026-05-21 -- Phase 92 context gathered (leader attachment)
+stopped_at: Phase 94 context gathered — ready to plan
+last_updated: 2026-05-21T17:00:00.000Z
+last_activity: 2026-05-21 -- Phase 94 context gathered (list export)
 progress:
   total_phases: 7
   completed_phases: 4
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-20)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 92 — leader attachment
+**Current focus:** Phase 94 — list export
 
 ## Current Position
 
-Phase: 92 of 95 (leader attachment — context gathered, ready to plan)
+Phase: 94 of 95 (list export — context gathered, ready to plan)
 Plan: none yet
-Status: Phase 92 context gathered — ready to plan
+Status: Phase 94 context gathered — ready to plan
 Last activity: 2026-05-21
 
 Progress: [███████░░░] 78%
@@ -61,6 +61,12 @@ Progress: [███████░░░] 78%
 - Leader attachment uses LeaderAttachmentSheet (sibling portal pattern) with preventive validation — only valid targets shown
 - Visual grouping: leader row indented under target with left border accent; client-side reorder based on leader_attached_to_id
 - Leader detection: unit name matches leader_name in synced_leader_targets (distinct from Character keyword)
+- Export: single DropdownMenu button in ArmyListDetailSheet header with 4 format options
+- Clipboard text: tournament-style compact format with leader grouping and [Planned] markers
+- Print: PrintPreviewDialog with CSS @media print, sibling portal pattern
+- JSON: versioned structured format (hobbyforge-army-list v1.0) with full metadata + units + enhancements
+- PDF: jsPDF text-based generation, lazy-loaded via dynamic import
+- Shared formatArmyListForExport() utility for all 4 formats
 
 ### Pending Todos
 
@@ -73,6 +79,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-21
-Stopped at: Phase 92 context gathered — ready to plan
-Resume file: .planning/phases/92-leader-attachment/92-CONTEXT.md
-Resume: /gsd:plan-phase 92
+Stopped at: Phase 94 context gathered — ready to plan
+Resume file: .planning/phases/94-list-export/94-CONTEXT.md
+Resume: /gsd:plan-phase 94
