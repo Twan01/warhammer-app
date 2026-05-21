@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { BookOpen, Plus, Swords } from "lucide-react";
 import { toast } from "sonner";
@@ -30,8 +30,20 @@ import { useLeaderTargets } from "@/hooks/useLeaderTargets";
 import { useFactions } from "@/hooks/useFactions";
 import { groupUnitsWithLeaders } from "@/lib/groupUnitsWithLeaders";
 import type { ArmyList } from "@/types/armyList";
+import { writeText } from "@tauri-apps/plugin-clipboard-manager";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeTextFile } from "@tauri-apps/plugin-fs";
+import { invoke } from "@tauri-apps/api/core";
+import {
+  formatArmyListForExport,
+  buildClipboardText,
+  buildJsonFormat,
+  slugify,
+  dateStamp,
+} from "@/lib/exportArmyList";
 import { ArmyListSummaryBar } from "./ArmyListSummaryBar";
 import { ArmyListUnitRow } from "./ArmyListUnitRow";
+import { ExportDropdown } from "./ExportDropdown";
 import { DetachmentPicker } from "./DetachmentPicker";
 import { StaleDataBanner } from "./StaleDataBanner";
 import { DetachmentRulesSection } from "./DetachmentRulesSection";
@@ -70,10 +82,15 @@ interface ArmyListDetailSheetProps {
    * The parent (ArmyListsPage) opens a sibling-portal DatasheetBrowserDialog.
    */
   onBrowseDatasheets: () => void;
+  /**
+   * Phase 94 — Opens the sibling-portal PrintPreviewDialog.
+   * This Sheet does NOT own the dialog state.
+   */
+  onPrintPreview: () => void;
 }
 
 export function ArmyListDetailSheet({
-  open, list, onClose, onEdit, onDelete, onAddUnit, onConfigureUnit, onEnhanceUnit, onAttachLeader, onBrowseDatasheets,
+  open, list, onClose, onEdit, onDelete, onAddUnit, onConfigureUnit, onEnhanceUnit, onAttachLeader, onBrowseDatasheets, onPrintPreview,
 }: ArmyListDetailSheetProps) {
   const { data: units, isLoading } = useArmyListWithUnits(list?.id);
   const { data: listEnhancements } = useEnhancementsByList(list?.id);
@@ -184,6 +201,140 @@ export function ArmyListDetailSheet({
     });
   }
 
+  // Phase 94 — Export handlers
+  const handleCopyToClipboard = useCallback(async () => {
+    if (!list) return;
+    try {
+      const data = formatArmyListForExport(list, units ?? [], listEnhancements ?? [], faction?.name ?? null);
+      const text = buildClipboardText(data);
+      await writeText(text);
+      toast.success("List copied to clipboard");
+    } catch (err) {
+      console.error("[ArmyListDetailSheet] Clipboard copy failed:", err);
+      toast.error("Failed to copy — check clipboard permissions");
+    }
+  }, [list, units, listEnhancements, faction]);
+
+  const handleSaveJson = useCallback(async () => {
+    if (!list) return;
+    try {
+      const data = formatArmyListForExport(list, units ?? [], listEnhancements ?? [], faction?.name ?? null);
+      const jsonString = buildJsonFormat(data);
+      const destination = await save({
+        title: "Save Army List as JSON",
+        defaultPath: `${slugify(list.name)}-${dateStamp()}.json`,
+        filters: [{ name: "JSON", extensions: ["json"] }],
+      });
+      if (!destination) return; // user cancelled
+      await writeTextFile(destination, jsonString);
+      toast.success("List saved as JSON");
+    } catch (err) {
+      console.error("[ArmyListDetailSheet] JSON save failed:", err);
+      toast.error("Failed to save JSON — check file permissions");
+    }
+  }, [list, units, listEnhancements, faction]);
+
+  const handleSavePdf = useCallback(async () => {
+    if (!list) return;
+    try {
+      const data = formatArmyListForExport(list, units ?? [], listEnhancements ?? [], faction?.name ?? null);
+      const destination = await save({
+        title: "Save Army List as PDF",
+        defaultPath: `${slugify(list.name)}-${dateStamp()}.pdf`,
+        filters: [{ name: "PDF", extensions: ["pdf"] }],
+      });
+      if (!destination) return; // user cancelled
+
+      // Lazy-load jsPDF and jspdf-autotable (Pitfall 6: both in same async scope)
+      const { jsPDF } = await import("jspdf");
+      const autoTableModule = await import("jspdf-autotable");
+      const autoTable = autoTableModule.default;
+
+      const doc = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
+      const grandTotal = data.totalPoints + data.enhancementTotal;
+
+      // Header — army name
+      doc.setFontSize(18);
+      doc.setFont("helvetica", "bold");
+      doc.text(list.name, 20, 25);
+
+      // Metadata line
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(51, 51, 51);
+      doc.text(
+        `Faction: ${data.factionName ?? "None"}  |  Detachment: ${list.detachment_name ?? "None"}  |  ${dateStamp()}`,
+        20,
+        33,
+      );
+      doc.setTextColor(0, 0, 0);
+
+      // Units table
+      const unitRows = data.sortedUnits.map((u) => {
+        let name = u.displayName;
+        if (u.isGhost) name += " (Planned)";
+        if (u.isWarlord) name += " (Warlord)";
+        const notes = u.leaderLabel ?? u.enhancementName ?? "";
+        return [name, `${u.points}pts`, notes];
+      });
+
+      autoTable(doc, {
+        startY: 40,
+        head: [["Unit", "Points", "Notes"]],
+        body: unitRows,
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [60, 60, 60] },
+        margin: { left: 20, right: 20 },
+      });
+
+      // Enhancements section
+      if (data.enhancements.length > 0) {
+        const lastY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable?.finalY ?? 100;
+        doc.setFontSize(13);
+        doc.setFont("helvetica", "bold");
+        doc.text("Enhancements", 20, lastY + 10);
+
+        autoTable(doc, {
+          startY: lastY + 14,
+          head: [["Enhancement", "Points"]],
+          body: data.enhancements.map((e) => [e.enhancement_name, `${e.enhancement_points}pts`]),
+          styles: { fontSize: 9 },
+          headStyles: { fillColor: [60, 60, 60] },
+          margin: { left: 20, right: 20 },
+        });
+      }
+
+      // Totals line
+      const finalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable?.finalY ?? 120;
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text(
+        `Total: ${grandTotal}pts${list.points_limit ? ` / ${list.points_limit}pts` : ""}`,
+        20,
+        finalY + 10,
+      );
+
+      // Footer — "Generated by HobbyForge"
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(153, 153, 153);
+      doc.text("Generated by HobbyForge", pageWidth - 20, pageHeight - 10, { align: "right" });
+
+      // Write via Rust command (Pitfall 4: never call doc.save())
+      const buffer = doc.output("arraybuffer");
+      await invoke("write_bytes_to_path", {
+        destination,
+        bytes: Array.from(new Uint8Array(buffer)),
+      });
+      toast.success("List saved as PDF");
+    } catch (err) {
+      console.error("[ArmyListDetailSheet] PDF export failed:", err);
+      toast.error("Failed to generate PDF");
+    }
+  }, [list, units, listEnhancements, faction]);
+
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <SheetContent
@@ -211,6 +362,15 @@ export function ArmyListDetailSheet({
             </SheetHeader>
 
             <ArmyListSummaryBar units={units ?? []} pointsLimit={list.points_limit} freshness={freshness} enhancements={listEnhancements ?? []} />
+
+            <div className="px-4 py-1">
+              <ExportDropdown
+                onCopyToClipboard={handleCopyToClipboard}
+                onPrint={onPrintPreview}
+                onSaveJson={handleSaveJson}
+                onSavePdf={handleSavePdf}
+              />
+            </div>
 
             <div className="flex flex-col gap-3 px-4 py-2">
               <div className="flex flex-col gap-1.5">

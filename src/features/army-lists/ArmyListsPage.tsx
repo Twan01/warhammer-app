@@ -16,6 +16,7 @@ import { LeaderAttachmentSheet } from "./LeaderAttachmentSheet";
 import { ArmyListsEmptyState } from "./ArmyListsEmptyState";
 import { LoadoutBuilderSheet } from "./LoadoutBuilderSheet";
 import { DatasheetBrowserDialog } from "./DatasheetBrowserDialog";
+import { PrintPreviewDialog } from "./PrintPreviewDialog";
 import { PageHeader } from "@/components/common/PageHeader";
 
 /**
@@ -46,6 +47,7 @@ export function ArmyListsPage() {
   const [enhancementUnitId, setEnhancementUnitId] = useState<number | null>(null);
   const [leaderUnitId, setLeaderUnitId] = useState<number | null>(null);
   const [datasheetBrowserOpen, setDatasheetBrowserOpen] = useState(false);
+  const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
 
   // Pattern: store ID, derive object from cache (selectedListId pattern)
   const selectedList = selectedListId !== null
@@ -53,6 +55,10 @@ export function ArmyListsPage() {
     : null;
 
   const { data: selectedListUnits } = useArmyListWithUnits(selectedListId ?? undefined);
+  const { data: selectedListEnhancements } = useEnhancementsByList(selectedListId ?? undefined);
+  const selectedListFactionName = selectedList?.faction_id
+    ? (factions ?? []).find((f) => f.id === selectedList.faction_id)?.name ?? null
+    : null;
   const loadoutUnit = loadoutUnitId !== null
     ? (selectedListUnits ?? []).find((u) => u.id === loadoutUnitId) ?? null
     : null;
@@ -77,7 +83,7 @@ export function ArmyListsPage() {
     }
   };
   const openDetail = (list: ArmyList) => setSelectedListId(list.id);
-  const closeDetail = () => { setSelectedListId(null); setUnitPickerOpen(false); setLoadoutUnitId(null); setEnhancementUnitId(null); setLeaderUnitId(null); setDatasheetBrowserOpen(false); };
+  const closeDetail = () => { setSelectedListId(null); setUnitPickerOpen(false); setLoadoutUnitId(null); setEnhancementUnitId(null); setLeaderUnitId(null); setDatasheetBrowserOpen(false); setPrintPreviewOpen(false); };
   const openUnitPicker = () => setUnitPickerOpen(true);
   const closeUnitPicker = () => setUnitPickerOpen(false);
   const openLoadout = (armyListUnitId: number) => setLoadoutUnitId(armyListUnitId);
@@ -88,6 +94,8 @@ export function ArmyListsPage() {
   const closeLeaderAttach = () => setLeaderUnitId(null);
   const openDatasheetBrowser = () => setDatasheetBrowserOpen(true);
   const closeDatasheetBrowser = () => setDatasheetBrowserOpen(false);
+  const openPrintPreview = () => setPrintPreviewOpen(true);
+  const closePrintPreview = () => setPrintPreviewOpen(false);
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -145,6 +153,7 @@ export function ArmyListsPage() {
         onEnhanceUnit={openEnhancement}
         onAttachLeader={openLeaderAttach}
         onBrowseDatasheets={openDatasheetBrowser}
+        onPrintPreview={openPrintPreview}
       />
       <ArmyListSheet
         key={editingList?.id ?? "new-edit"}
@@ -189,6 +198,14 @@ export function ArmyListsPage() {
         listId={selectedListId}
         factionId={selectedList?.faction_id ?? null}
         onClose={closeDatasheetBrowser}
+      />
+      <PrintPreviewDialog
+        open={printPreviewOpen}
+        list={selectedList}
+        units={selectedListUnits ?? []}
+        enhancements={selectedListEnhancements ?? []}
+        factionName={selectedListFactionName}
+        onClose={closePrintPreview}
       />
     </div>
   );
