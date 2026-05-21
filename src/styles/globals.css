@@ -128,3 +128,55 @@ body {
   color: hsl(var(--foreground));
   font-family: var(--font-sans);
 }
+
+/* Phase 94 — Print layout: hide app shell, show only #print-content */
+@media print {
+  /* Hide all body children except the print content */
+  body > *:not(#print-content) {
+    display: none !important;
+  }
+
+  /* Hide Radix dialog portals (overlay/backdrop) */
+  [data-radix-portal] {
+    display: none !important;
+  }
+
+  /* Make print content visible and full-width */
+  #print-content {
+    display: block !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    color: black;
+    padding: 20mm;
+    box-sizing: border-box;
+  }
+
+  /* Print typography */
+  #print-content {
+    font-size: 11pt;
+    line-height: 1.4;
+  }
+
+  #print-content h1 {
+    font-size: 16pt;
+    font-weight: 700;
+  }
+
+  #print-content h2 {
+    font-size: 13pt;
+    font-weight: 600;
+  }
+
+  /* Section separators */
+  #print-content [data-slot="separator"] {
+    border-color: #cccccc;
+  }
+
+  /* Ghost unit names: italic (no color dependency in print) */
+  #print-content .italic {
+    font-style: italic;
+  }
+}
