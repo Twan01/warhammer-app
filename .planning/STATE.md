@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.2.18
 milestone_name: Army Lists 3.0 — Smart List Builder
 status: ready_to_plan
-stopped_at: Phase 93 completed — next phase 94
-last_updated: 2026-05-21T14:00:00.000Z
-last_activity: 2026-05-21 -- Phase 93 executed (datasheet browser + ghost units — 2 plans, 2 waves)
+stopped_at: Phase 91 + 93 completed — next phase 94
+last_updated: 2026-05-21T15:00:00.000Z
+last_activity: 2026-05-21 -- Phase 91 executed (enhancement assignment — 2 plans, 2 waves)
 progress:
   total_phases: 7
-  completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
-  percent: 71
+  completed_phases: 4
+  total_plans: 8
+  completed_plans: 8
+  percent: 78
 ---
 
 # Project State
@@ -30,13 +30,13 @@ Plan: none yet
 Status: Phase 93 completed — ready to plan Phase 94
 Last activity: 2026-05-21
 
-Progress: [███████░░░] 71%
+Progress: [███████░░░] 78%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- v0.2.18: 6 plans across 3 phases (1 day, in progress)
+- v0.2.18: 8 plans across 4 phases (1 day, in progress)
 - v0.2.15: 11 plans across 5 phases (2 days)
 - v0.2.14: 11 plans across 5 phases (2 days)
 - v0.2.13: 13 plans across 6 phases (2 days)

@@ -123,7 +123,7 @@ Full details: `.planning/milestones/v0.2.15-ROADMAP.md`
 
 - [x] **Phase 89: Schema + Data Layer** — Migrations for ghost units, warlord flag, enhancement tracking, leader attachment; COALESCE chain updated across all 3 query sites; stable insertion order fix
 - [x] **Phase 90: Loadout Builder** — Model count tier selector wired to synced_unit_point_tiers; wargear options display from BSData; LoadoutBuilderSheet at page level
-- [ ] **Phase 91: Enhancement Assignment** — EnhancementPickerSheet for character units; validation (max 3, no duplicates, character-only, Epic Hero exclusion); enhancement points in summary bar
+- [x] **Phase 91: Enhancement Assignment** — EnhancementPickerSheet for character units; validation (max 3, no duplicates, character-only, Epic Hero exclusion); enhancement points in summary bar
 - [ ] **Phase 92: Leader Attachment** — Leader-to-target pairing from synced_leader_targets; visual grouping of leader with their attached unit in the list
 - [x] **Phase 93: Datasheet Browser + Ghost Units** — DatasheetBrowserDialog for all faction datasheets; add unowned units as ghost/planned entries; ghost units isolated from Collection/Dashboard/Kanban
 - [ ] **Phase 94: List Export** — Clipboard text copy; print-friendly layout; JSON file export; PDF via jsPDF (lazy-loaded)
