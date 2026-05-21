@@ -196,8 +196,13 @@ Plans:
 **Plans**: 2 plans
 Plans:
 
-- [ ] 89-01-PLAN.md — Migration 031 + lib.rs + types + resolveUnitPoints
-- [ ] 89-02-PLAN.md — Query functions + mutation hooks + tests
+**Wave 1**
+
+- [ ] 91-01-PLAN.md — getUnitKeywords utility + useUnitKeywords hook + computeListHealthStats enhancement total + tests
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 91-02-PLAN.md — EnhancementPickerSheet + ArmyListUnitRow trigger + summary bar integration + ArmyListCard + tests
 
 **UI hint**: yes
 
