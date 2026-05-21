@@ -1,0 +1,78 @@
+---
+phase: 94
+slug: list-export
+status: draft
+nyquist_compliant: false
+wave_0_complete: false
+created: 2026-05-21
+---
+
+# Phase 94 — Validation Strategy
+
+> Per-phase validation contract for feedback sampling during execution.
+
+---
+
+## Test Infrastructure
+
+| Property | Value |
+|----------|-------|
+| **Framework** | vitest 4.x + React Testing Library 16 |
+| **Config file** | vitest.config.ts |
+| **Quick run command** | `pnpm test -- tests/army-lists/export` |
+| **Full suite command** | `pnpm test` |
+| **Estimated runtime** | ~15 seconds |
+
+---
+
+## Sampling Rate
+
+- **After every task commit:** Run `pnpm test -- tests/army-lists/export`
+- **After every plan wave:** Run `pnpm test`
+- **Before `/gsd:verify-work`:** Full suite must be green
+- **Max feedback latency:** 15 seconds
+
+---
+
+## Per-Task Verification Map
+
+| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
+|---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
+| 94-01-01 | 01 | 1 | EXP-01 | — | N/A | unit | `pnpm test -- tests/army-lists/export/formatArmyList.test.ts` | ❌ W0 | ⬜ pending |
+| 94-01-02 | 01 | 1 | EXP-03 | — | N/A | unit | `pnpm test -- tests/army-lists/export/formatArmyList.test.ts` | ❌ W0 | ⬜ pending |
+| 94-02-01 | 02 | 2 | EXP-01 | — | N/A | integration | `pnpm test -- tests/army-lists/export/ExportDropdown.test.tsx` | ❌ W0 | ⬜ pending |
+| 94-02-02 | 02 | 2 | EXP-02 | — | N/A | integration | `pnpm test -- tests/army-lists/export/PrintPreviewDialog.test.tsx` | ❌ W0 | ⬜ pending |
+| 94-02-03 | 02 | 2 | EXP-04 | — | N/A | integration | `pnpm test -- tests/army-lists/export/ExportDropdown.test.tsx` | ❌ W0 | ⬜ pending |
+
+*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+
+---
+
+## Wave 0 Requirements
+
+- [ ] `tests/army-lists/export/formatArmyList.test.ts` — stubs for EXP-01, EXP-03 (pure formatting logic)
+- [ ] `tests/army-lists/export/ExportDropdown.test.tsx` — stubs for EXP-01, EXP-04 (clipboard + PDF export actions)
+- [ ] `tests/army-lists/export/PrintPreviewDialog.test.tsx` — stubs for EXP-02 (print preview rendering)
+
+---
+
+## Manual-Only Verifications
+
+| Behavior | Requirement | Why Manual | Test Instructions |
+|----------|-------------|------------|-------------------|
+| Print dialog opens with correct content | EXP-02 | window.print() requires real browser/webview | Open army list → Export → Print → Verify print preview shows correct layout → Print dialog opens |
+| PDF file saves to disk with correct content | EXP-04 | jsPDF output requires Tauri file system | Open army list → Export → Save as PDF → Choose location → Verify PDF opens and shows correct content |
+| Clipboard text pastes correctly in Discord | EXP-01 | Clipboard requires real Tauri runtime | Open army list → Export → Copy to Clipboard → Paste in Discord/Notepad → Verify format |
+
+---
+
+## Validation Sign-Off
+
+- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
+- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
+- [ ] Wave 0 covers all MISSING references
+- [ ] No watch-mode flags
+- [ ] Feedback latency < 15s
+- [ ] `nyquist_compliant: true` set in frontmatter
+
+**Approval:** pending
