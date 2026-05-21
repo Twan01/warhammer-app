@@ -27,6 +27,17 @@
         { "url": "https://raw.githubusercontent.com/**" }
       ]
     },
+    "clipboard-manager:allow-write-text",
+    "fs:allow-write-text-file",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        { "path": "$HOME/**" },
+        { "path": "$DESKTOP/**" },
+        { "path": "$DOWNLOAD/**" },
+        { "path": "$DOCUMENT/**" }
+      ]
+    },
     "updater:default",
     "process:default"
   ]

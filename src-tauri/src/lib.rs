@@ -937,6 +937,13 @@ fn list_safety_backups(app: tauri::AppHandle) -> Vec<SafetyBackupEntry> {
     entries
 }
 
+/// Write raw bytes to a user-chosen path (from save dialog).
+/// Used for PDF binary export — bypasses fs capability scope.
+#[tauri::command]
+fn write_bytes_to_path(destination: String, bytes: Vec<u8>) -> Result<(), String> {
+    std::fs::write(&destination, &bytes).map_err(|e| format!("write error: {e}"))
+}
+
 /// Return the app's expected schema version (migration count).
 /// Used by the frontend to compare against a backup manifest's schema_version
 /// for restore compatibility checks (RST-04 / RST-05).
@@ -963,6 +970,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
                 .add_migrations("sqlite:hobbyforge.db", get_migrations())
@@ -977,6 +985,7 @@ pub fn run() {
             get_schema_version,
             restore_from_backup,
             list_safety_backups,
+            write_bytes_to_path,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
