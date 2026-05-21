@@ -4,14 +4,14 @@ milestone: v0.2.18
 milestone_name: Army Lists 3.0 — Smart List Builder
 status: executing
 stopped_at: Phase 94 Plan 02 complete — export UI wired with 4 formats
-last_updated: 2026-05-21T06:57:41.000Z
-last_activity: 2026-05-21 -- Phase 94 Plan 02 complete (export UI)
+last_updated: "2026-05-21T07:04:59.263Z"
+last_activity: 2026-05-21
 progress:
   total_phases: 7
-  completed_phases: 5
-  total_plans: 8
+  completed_phases: 6
+  total_plans: 12
   completed_plans: 12
-  percent: 90
+  percent: 86
 ---
 
 # Project State
@@ -25,8 +25,8 @@ See: .planning/PROJECT.md (updated 2026-05-20)
 
 ## Current Position
 
-Phase: 94 of 95 (list export — Plan 02 complete)
-Plan: 2 of 2 complete
+Phase: 95 of 95 (version snapshots)
+Plan: Not started
 Status: Phase 94 executing — Plan 02 done
 Last activity: 2026-05-21
 

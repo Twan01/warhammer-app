@@ -33,10 +33,10 @@ Requirements for Army Lists 3.0 — Smart List Builder. Each maps to roadmap pha
 
 ### Export
 
-- [ ] **EXP-01**: User can copy army list as formatted text to clipboard (for Discord/forums)
-- [ ] **EXP-02**: User can view a print-friendly layout and print via browser print dialog
-- [ ] **EXP-03**: User can export army list as structured JSON file via save dialog
-- [ ] **EXP-04**: User can export army list as PDF file via jsPDF
+- [x] **EXP-01**: User can copy army list as formatted text to clipboard (for Discord/forums)
+- [x] **EXP-02**: User can view a print-friendly layout and print via browser print dialog
+- [x] **EXP-03**: User can export army list as structured JSON file via save dialog
+- [x] **EXP-04**: User can export army list as PDF file via jsPDF
 
 ### Version Snapshots
 
@@ -83,16 +83,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BRW-01 | Phase 93 | Pending |
 | BRW-02 | Phase 93 | Pending |
 | BRW-03 | Phase 93 | Pending |
-| EXP-01 | Phase 94 | Pending |
-| EXP-02 | Phase 94 | Pending |
-| EXP-03 | Phase 94 | Pending |
-| EXP-04 | Phase 94 | Pending |
+| EXP-01 | Phase 94 | Complete |
+| EXP-02 | Phase 94 | Complete |
+| EXP-03 | Phase 94 | Complete |
+| EXP-04 | Phase 94 | Complete |
 | SNP-01 | Phase 95 | Pending |
 | SNP-02 | Phase 95 | Pending |
 | SNP-03 | Phase 95 | Pending |
 | SNP-04 | Phase 95 | Pending |
 
 **Coverage:**
+
 - v0.2.18 requirements: 20 total
 - Mapped to phases: 20
 - Unmapped: 0

@@ -126,7 +126,7 @@ Full details: `.planning/milestones/v0.2.15-ROADMAP.md`
 - [x] **Phase 91: Enhancement Assignment** — EnhancementPickerSheet for character units; validation (max 3, no duplicates, character-only, Epic Hero exclusion); enhancement points in summary bar
 - [x] **Phase 92: Leader Attachment** — Leader-to-target pairing from synced_leader_targets; visual grouping of leader with their attached unit in the list
 - [x] **Phase 93: Datasheet Browser + Ghost Units** — DatasheetBrowserDialog for all faction datasheets; add unowned units as ghost/planned entries; ghost units isolated from Collection/Dashboard/Kanban
-- [ ] **Phase 94: List Export** — Clipboard text copy; print-friendly layout; JSON file export; PDF via jsPDF (lazy-loaded)
+- [x] **Phase 94: List Export** — Clipboard text copy; print-friendly layout; JSON file export; PDF via jsPDF (lazy-loaded) (completed 2026-05-21)
 - [ ] **Phase 95: Version Snapshots** — Save named snapshot of list state; snapshot history view; side-by-side comparison; restore to snapshot
 
 ## Phase Details
@@ -272,11 +272,11 @@ Plans:
 
 **Wave 1**
 
-- [ ] 94-01-PLAN.md — Tauri plugin setup + shared export formatting utility + tests
+- [x] 94-01-PLAN.md — Tauri plugin setup + shared export formatting utility + tests
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 94-02-PLAN.md — ExportDropdown + PrintPreviewDialog + export handler wiring + integration
+- [x] 94-02-PLAN.md — ExportDropdown + PrintPreviewDialog + export handler wiring + integration
 
 **UI hint**: yes
 
@@ -397,7 +397,7 @@ Plans:
 | 91. Enhancement Assignment | v0.2.18 | 0/TBD | Not started | - |
 | 92. Leader Attachment | v0.2.18 | 0/2 | Not started | - |
 | 93. Datasheet Browser + Ghost Units | v0.2.18 | 0/2 | Not started | - |
-| 94. List Export | v0.2.18 | 0/2 | Not started | - |
+| 94. List Export | v0.2.18 | 2/2 | Complete    | 2026-05-21 |
 | 95. Version Snapshots | v0.2.18 | 0/TBD | Not started | - |
 
 <details>
