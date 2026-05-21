@@ -34,6 +34,9 @@ vi.mock("@/db/queries/armyLists", () => ({
   updateArmyListUnit: vi.fn(),
   clearArmyListDetachment: vi.fn().mockResolvedValue(undefined),
   getArmyListReadiness: vi.fn().mockResolvedValue([]),
+  addEnhancement: vi.fn().mockResolvedValue(1),
+  removeEnhancement: vi.fn().mockResolvedValue(undefined),
+  getEnhancementsByList: vi.fn().mockResolvedValue([]),
 }));
 vi.mock("@/db/queries/factions", () => ({
   getFactions: vi.fn().mockResolvedValue([] as Faction[]),
@@ -55,6 +58,10 @@ vi.mock("@/db/queries/datasheets", () => ({
   getDatasheetsByFaction: vi.fn().mockResolvedValue([]),
   getDatasheetIdForUnit: vi.fn().mockResolvedValue(null),
   getFullDatasheet: vi.fn().mockResolvedValue(null),
+  getUnitKeywords: vi.fn().mockResolvedValue({ isCharacter: false, isEpicHero: false }),
+}));
+vi.mock("@/db/queries/bsdataExtended", () => ({
+  getEnhancementsByFaction: vi.fn().mockResolvedValue([]),
 }));
 vi.mock("@/db/queries/rulesExtended", () => ({
   getDetachmentsByFaction: vi.fn().mockResolvedValue([]),
