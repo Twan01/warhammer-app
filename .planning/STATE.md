@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v0.2.18
 milestone_name: Army Lists 3.0 — Smart List Builder
-status: ready_to_execute
-stopped_at: Phase 90 complete — LoadoutBuilderSheet delivered
-last_updated: 2026-05-20T18:00:00.000Z
-last_activity: 2026-05-20 -- Phase 90 verified complete (LoadoutBuilderSheet + tier selection + wargear display + tests)
+status: ready_to_plan
+stopped_at: Phase 91 context gathered
+last_updated: 2026-05-21T10:00:00.000Z
+last_activity: 2026-05-21 -- Phase 91 context gathered (enhancement assignment — auto mode)
 progress:
   total_phases: 7
   completed_phases: 2
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-20)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 90 — loadout builder
+**Current focus:** Phase 91 — enhancement assignment
 
 ## Current Position
 
-Phase: 90 of 95 (loadout builder — verified complete)
-Plan: 2 of 2 complete (Phase 90 done)
-Status: Phase 90 verified — ready for Phase 91
-Last activity: 2026-05-20
+Phase: 91 of 95 (enhancement assignment — context gathered)
+Plan: 0 of TBD (Phase 91 planning next)
+Status: Phase 91 context gathered — ready for planning
+Last activity: 2026-05-21
 
 Progress: [█████░░░░░] 57%
 
@@ -66,7 +66,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-20
-Stopped at: Phase 90 verified complete — all gates passed
-Resume file: None
-Resume: /gsd:execute-phase 91
+Last session: 2026-05-21
+Stopped at: Phase 91 context gathered
+Resume file: .planning/phases/91-enhancement-assignment/91-CONTEXT.md
+Resume: /gsd:plan-phase 91
