@@ -51,7 +51,7 @@ All type uses Geist Variable. The project runs dark-mode-first (zinc dark tokens
 | Role | Size | Weight | Line Height | Usage |
 |------|------|--------|-------------|-------|
 | Body | 14px | 400 (regular) | 1.5 | Unit rows, enhancement rows, clipboard text preview |
-| Label | 12px | 500 (medium) | 1.4 | Badges ("Planned", "Warlord"), column headers, metadata keys |
+| Label | 12px | 400 (regular) | 1.4 | Badges ("Planned", "Warlord"), column headers, metadata keys |
 | Heading | 16px | 600 (semibold) | 1.3 | Section headers inside PrintPreviewDialog ("== Units ==", "== Enhancements ==") |
 | Display | 20px | 600 (semibold) | 1.2 | Army list name in print header and PDF header |
 
