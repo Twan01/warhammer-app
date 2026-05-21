@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.2.18
 milestone_name: Army Lists 3.0 — Smart List Builder
-status: ready_to_execute
-stopped_at: Phase 94 planned — 2 plans in 2 waves, ready to execute
-last_updated: 2026-05-21T06:37:38.000Z
-last_activity: 2026-05-21 -- Phase 92 Plan 02 complete (leader attachment UI)
+status: executing
+stopped_at: Phase 94 Plan 01 complete — export foundation installed and tested
+last_updated: 2026-05-21T06:48:00.000Z
+last_activity: 2026-05-21 -- Phase 94 Plan 01 complete (export foundation)
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 8
-  completed_plans: 10
-  percent: 80
+  completed_plans: 11
+  percent: 85
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-20)
 
 ## Current Position
 
-Phase: 94 of 95 (list export — planned, ready to execute)
-Plan: 2 plans in 2 waves
-Status: Phase 94 planned — ready to execute
+Phase: 94 of 95 (list export — Plan 01 complete)
+Plan: 1 of 2 complete
+Status: Phase 94 executing — Plan 01 done, Plan 02 next
 Last activity: 2026-05-21
 
-Progress: [████████░░] 80%
+Progress: [████████░░] 85%
 
 ## Performance Metrics
 
@@ -79,6 +79,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-21
-Stopped at: Phase 92 Plan 02 complete — leader attachment UI wired
-Resume file: .planning/phases/92-leader-attachment/92-02-SUMMARY.md
-Resume: Continue with next phase
+Stopped at: Phase 94 Plan 01 complete — export foundation installed and tested
+Resume file: .planning/phases/94-list-export/94-01-SUMMARY.md
+Resume: Continue with Phase 94 Plan 02 (export UI wiring)
