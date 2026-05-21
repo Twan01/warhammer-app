@@ -102,13 +102,17 @@ export function computeListWarnings(context: WarningContext): UnitWarnings {
  * - ownershipPct is always 100 per D-15 (FK constraint means all units are owned)
  * - battleReadyPct = round((paintedPoints / totalPoints) * 100) or 0
  * - Warning counts: list-level from computeListWarnings, unit-level per unit
+ * - enhancementTotal (Phase 91, ENH-03): optional points from assigned
+ *   enhancements, added to totalPoints for the points-exceeded check
  */
 export function computeListHealthStats(
   units: ArmyListUnitRow[],
   pointsLimit: number | null,
   freshness: SyncFreshness,
+  enhancementTotal = 0,
 ): ListHealthStats {
-  const totalPoints = units.reduce((sum, u) => sum + u.effective_points, 0);
+  const unitPoints = units.reduce((sum, u) => sum + u.effective_points, 0);
+  const totalPoints = unitPoints + enhancementTotal;
 
   const paintedPoints = units
     .filter((u) => u.status_painting === "Completed")
