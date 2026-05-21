@@ -28,6 +28,11 @@ function makeUnit(pts: number): ArmyListUnitRow {
     tactical_role: null,
     synced_points: null,
     override_points: null,
+    tier_points: null,
+    ghost_unit_name: null,
+    is_warlord: 0,
+    selected_model_count: null,
+    leader_attached_to_id: null,
   };
 }
 
