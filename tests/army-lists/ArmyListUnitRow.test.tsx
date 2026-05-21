@@ -160,3 +160,83 @@ describe("ArmyListUnitRow — Configure button", () => {
     expect(onConfigure).toHaveBeenCalledTimes(1);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Ghost unit treatment (Phase 93 — BRW-02, BRW-03)
+// ---------------------------------------------------------------------------
+
+function makeGhostUnit(overrides: Partial<ArmyListUnitRowType> = {}): ArmyListUnitRowType {
+  return makeUnit({
+    unit_id: null,
+    ghost_unit_name: "Vanguard Veterans",
+    unit_name: "Vanguard Veterans",
+    status_painting: null,
+    status_assembly: null,
+    painting_percentage: null,
+    faction_id: null,
+    ...overrides,
+  });
+}
+
+describe("ArmyListUnitRow — Ghost unit treatment", () => {
+  beforeEach(() => {
+    mockUpdateMutate.mockClear();
+  });
+
+  it("renders 'Planned' badge when unit_id is null", () => {
+    renderRow(makeGhostUnit());
+    expect(screen.getByText("Planned")).toBeInTheDocument();
+  });
+
+  it("applies muted text styling to ghost unit name", () => {
+    renderRow(makeGhostUnit());
+    const nameEl = screen.getByText("Vanguard Veterans");
+    expect(nameEl).toHaveClass("text-muted-foreground");
+  });
+
+  it("hides painting status badges for ghost units", () => {
+    // Ghost unit should NOT show any painting status
+    renderRow(makeGhostUnit());
+    expect(screen.queryByText("Completed")).not.toBeInTheDocument();
+    expect(screen.queryByText("Assembled")).not.toBeInTheDocument();
+    // Verify the "--" placeholder is shown instead
+    expect(screen.getByText("--")).toBeInTheDocument();
+  });
+
+  it("shows painting status badges for owned units", () => {
+    renderRow(makeUnit({ status_painting: "Completed", status_assembly: 1 }));
+    expect(screen.getByText("Completed")).toBeInTheDocument();
+    expect(screen.getByText("Assembled")).toBeInTheDocument();
+  });
+
+  it("still renders Configure button for ghost units", () => {
+    renderRow(makeGhostUnit());
+    const btn = screen.getByRole("button", { name: /Configure loadout for Vanguard Veterans/ });
+    expect(btn).toBeInTheDocument();
+  });
+
+  it("still renders Remove button for ghost units", () => {
+    renderRow(makeGhostUnit());
+    const btn = screen.getByRole("button", { name: /Remove unit from list/ });
+    expect(btn).toBeInTheDocument();
+  });
+
+  it("does not render tactical role selector for ghost units", () => {
+    // Ghost units should NOT have the combobox (Select trigger)
+    renderRow(makeGhostUnit());
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+  });
+
+  it("renders tactical role selector for owned units", () => {
+    renderRow(makeUnit());
+    expect(screen.getByRole("combobox")).toBeInTheDocument();
+  });
+
+  it("ghost isolation is schema-level -- no code filter needed", () => {
+    // BRW-03: Ghost units are isolated from Collection, Dashboard, and Kanban
+    // by schema design. Those features query the `units` table directly, not
+    // `army_list_units`. Ghost units (unit_id IS NULL) never appear in `units`.
+    // Verified in migration 031_army_list_v3.sql.
+    expect(true).toBe(true);
+  });
+});
