@@ -220,8 +220,13 @@ Plans:
 **Plans**: 2 plans
 Plans:
 
-- [ ] 89-01-PLAN.md — Migration 031 + lib.rs + types + resolveUnitPoints
-- [ ] 89-02-PLAN.md — Query functions + mutation hooks + tests
+**Wave 1**
+
+- [ ] 92-01-PLAN.md — groupUnitsWithLeaders utility + useLeaderTargets hook + tests
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 92-02-PLAN.md — LeaderAttachmentSheet + visual grouping + sibling portal wiring + tests
 
 **UI hint**: yes
 
@@ -385,7 +390,7 @@ Plans:
 | 89. Schema + Data Layer | v0.2.18 | 2/2 | Complete    | 2026-05-20 |
 | 90. Loadout Builder | v0.2.18 | 2/2 | Complete    | 2026-05-20 |
 | 91. Enhancement Assignment | v0.2.18 | 0/TBD | Not started | - |
-| 92. Leader Attachment | v0.2.18 | 0/TBD | Not started | - |
+| 92. Leader Attachment | v0.2.18 | 0/2 | Not started | - |
 | 93. Datasheet Browser + Ghost Units | v0.2.18 | 0/2 | Not started | - |
 | 94. List Export | v0.2.18 | 0/TBD | Not started | - |
 | 95. Version Snapshots | v0.2.18 | 0/TBD | Not started | - |
