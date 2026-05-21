@@ -34,6 +34,7 @@ vi.mock("@/db/queries/armyLists", () => ({
   updateArmyListUnit: vi.fn(),
   clearArmyListDetachment: vi.fn().mockResolvedValue(undefined),
   getArmyListReadiness: vi.fn().mockResolvedValue([]),
+  addGhostUnitToList: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("@/db/queries/factions", () => ({
   getFactions: vi.fn().mockResolvedValue([] as Faction[]),

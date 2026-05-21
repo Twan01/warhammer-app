@@ -53,6 +53,7 @@ vi.mock("@/db/queries/syncErrors", () => ({
 
 vi.mock("@/hooks/useDatasheet", () => ({
   RULES_SYNC_META_KEY: ["rules-sync-meta"],
+  WAHAPEDIA_FACTIONS_KEY: ["wahapedia-factions"],
 }));
 
 vi.mock("@/db/queries/rulesSnapshot", () => ({
