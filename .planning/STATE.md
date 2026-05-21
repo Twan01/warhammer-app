@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.2.15
 milestone_name: Painting Mode
-status: shipped
-stopped_at: v0.2.15 archived — planning next milestone
-last_updated: "2026-05-20T00:00:00.000Z"
-last_activity: 2026-05-20 -- v0.2.15 shipped and archived
+status: planning
+stopped_at: v0.2.15 shipped and archived
+last_updated: "2026-05-21T05:36:56.765Z"
+last_activity: 2026-05-20
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 11
-  completed_plans: 11
-  percent: 100
+  total_phases: 1
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 1
+  percent: 0
 ---
 
 # Project State
@@ -54,7 +54,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-20
+Last session: 2026-05-21T05:36:56.759Z
 Stopped at: v0.2.15 shipped and archived
-Resume file: N/A
+Resume file: None
 Resume: /gsd:new-milestone
