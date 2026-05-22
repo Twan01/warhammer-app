@@ -136,7 +136,7 @@ Full details: `.planning/milestones/v0.2.18-ROADMAP.md`
 
 **Milestone Goal:** Make HobbyForge faster, more resilient to errors, and architecturally cleaner for long-term maintenance. No new user-facing features -- purely internal quality. The app should feel the same to the user but be faster and more robust.
 
-- [ ] **Phase 96: Database Hardening** - Indexes, CHECK constraints, and WAL mode on main DB
+- [ ] **Phase 96: Database Hardening** (1/1 plans) - Indexes, CHECK constraints, and WAL mode on main DB
 - [ ] **Phase 97: Error Resilience** - Error boundaries, DB health check gate, global error handlers
 - [ ] **Phase 98: Performance Optimization** - Code splitting, precise invalidation, batched queries, memoization
 - [ ] **Phase 99: Architecture Cleanup** - Eliminate circular deps, decompose mega components, extract state machine
