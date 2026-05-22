@@ -139,7 +139,7 @@ Full details: `.planning/milestones/v0.2.18-ROADMAP.md`
 - [x] **Phase 96: Database Hardening** (1/1 plans) - Indexes, CHECK constraints, and WAL mode on main DB -- completed 2026-05-22
 - [ ] **Phase 97: Error Resilience** (2 plans) - Error boundaries, DB health check gate, global error handlers
 - [ ] **Phase 98: Performance Optimization** - Code splitting, precise invalidation, batched queries, memoization
-- [ ] **Phase 99: Architecture Cleanup** - Eliminate circular deps, decompose mega components, extract state machine
+- [ ] **Phase 99: Architecture Cleanup** (3 plans) - Eliminate circular deps, decompose mega components, extract state machine
 
 ## Phase Details
 
@@ -195,7 +195,11 @@ Plans:
   2. PlaybookTab.tsx is decomposed into sub-tab components where each file is under 300 lines -- the tab still renders identically from the user's perspective
   3. UnitSheet.tsx is decomposed into form section components where each file is under 200 lines -- create/edit unit workflow is unchanged
   4. ArmyListsPage modal state is managed by a reducer or state machine instead of 14+ individual useState calls -- the page behavior is identical but the state logic is centralized and testable
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 99-01-PLAN.md -- Query-layer isolation (ARCH-01) + ArmyListsPage reducer (ARCH-04)
+- [ ] 99-02-PLAN.md -- PlaybookTab decomposition into 5 sub-components (ARCH-02)
+- [ ] 99-03-PLAN.md -- UnitSheet decomposition into form sections (ARCH-03)
 
 ## Progress
 
@@ -299,7 +303,7 @@ Plans:
 | 96. Database Hardening | v0.3.0 | 1/1 | Complete | 2026-05-22 |
 | 97. Error Resilience | v0.3.0 | 1/2 | In Progress|  |
 | 98. Performance Optimization | v0.3.0 | 3/3 | Complete    | 2026-05-22 |
-| 99. Architecture Cleanup | v0.3.0 | 0/TBD | Not started | - |
+| 99. Architecture Cleanup | v0.3.0 | 0/3 | Not started | - |
 
 <details>
 <summary>âœ… v0.1.1 HobbyForge MVP (Phases 1-5) â€” SHIPPED 2024-05-01</summary>
