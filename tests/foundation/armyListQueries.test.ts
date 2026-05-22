@@ -120,10 +120,32 @@ describe("armyLists queries — createArmyList / updateArmyList / deleteArmyList
     expect(sql).toMatch(/WHERE id = \$1/);
   });
 
-  it("deleteArmyList runs DELETE FROM army_lists WHERE id = $1", async () => {
-    executeMock.mockResolvedValueOnce(undefined);
+  it("deleteArmyList explicitly deletes children then parent in correct FK order", async () => {
+    // deleteArmyList now makes 5 execute calls in dependency order
+    executeMock.mockResolvedValue(undefined);
     await deleteArmyList(5);
-    expect(executeMock).toHaveBeenCalledWith("DELETE FROM army_lists WHERE id = $1", [5]);
+
+    expect(executeMock).toHaveBeenCalledTimes(5);
+    // 1. Delete enhancements first (FK to army_list_units + army_lists)
+    expect(executeMock.mock.calls[0]).toEqual([
+      "DELETE FROM army_list_enhancements WHERE list_id = $1", [5],
+    ]);
+    // 2. Delete snapshots (FK to army_lists)
+    expect(executeMock.mock.calls[1]).toEqual([
+      "DELETE FROM army_list_snapshots WHERE list_id = $1", [5],
+    ]);
+    // 3. Clear self-referencing FK before deleting units
+    expect(executeMock.mock.calls[2]).toEqual([
+      "UPDATE army_list_units SET leader_attached_to_id = NULL WHERE list_id = $1", [5],
+    ]);
+    // 4. Delete army list units
+    expect(executeMock.mock.calls[3]).toEqual([
+      "DELETE FROM army_list_units WHERE list_id = $1", [5],
+    ]);
+    // 5. Delete the army list itself (parent)
+    expect(executeMock.mock.calls[4]).toEqual([
+      "DELETE FROM army_lists WHERE id = $1", [5],
+    ]);
   });
 });
 

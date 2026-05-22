@@ -160,9 +160,27 @@ export async function clearArmyListPointsLimit(id: number): Promise<void> {
   );
 }
 
+/**
+ * Delete an army list and all related child records.
+ *
+ * Explicitly deletes children in dependency order rather than relying solely
+ * on CASCADE, because the self-referencing FK on army_list_units
+ * (leader_attached_to_id REFERENCES army_list_units(id) ON DELETE SET NULL)
+ * can cause FK constraint errors during cascaded deletes when SQLite processes
+ * rows in an order where a referenced row is deleted before the SET NULL fires
+ * on the referencing row. Explicit cleanup avoids this:
+ *   1. Delete enhancements (FK to army_list_units + army_lists)
+ *   2. Delete snapshots (FK to army_lists)
+ *   3. Clear self-referencing leader_attached_to_id links
+ *   4. Delete army list units
+ *   5. Delete the army list itself
+ */
 export async function deleteArmyList(id: number): Promise<void> {
   const db = await getDb();
-  // CASCADE on army_list_units removes the unit memberships automatically.
+  await db.execute("DELETE FROM army_list_enhancements WHERE list_id = $1", [id]);
+  await db.execute("DELETE FROM army_list_snapshots WHERE list_id = $1", [id]);
+  await db.execute("UPDATE army_list_units SET leader_attached_to_id = NULL WHERE list_id = $1", [id]);
+  await db.execute("DELETE FROM army_list_units WHERE list_id = $1", [id]);
   await db.execute("DELETE FROM army_lists WHERE id = $1", [id]);
 }
 

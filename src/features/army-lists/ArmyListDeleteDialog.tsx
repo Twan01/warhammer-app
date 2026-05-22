@@ -26,8 +26,9 @@ export function ArmyListDeleteDialog({ open, list, onClose }: ArmyListDeleteDial
       await deleteArmyList.mutateAsync(list.id);
       toast.success("Army list deleted.");
       onClose();
-    } catch {
-      toast.error("Something went wrong. Please try again.");
+    } catch (err) {
+      console.error("[ArmyListDeleteDialog] Failed to delete army list:", err);
+      toast.error("Failed to delete army list. Please try again.");
       onClose();
     }
   }
