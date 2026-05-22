@@ -17,7 +17,7 @@ export function useFactions() {
 
 export function useFaction(id: number | undefined) {
   return useQuery({
-    queryKey: id !== undefined ? FACTION_KEY(id) : FACTIONS_KEY,
+    queryKey: id !== undefined ? FACTION_KEY(id) : ["factions", "disabled"],
     queryFn: () => (id !== undefined ? getFactionById(id) : Promise.resolve(null)),
     enabled: id !== undefined,
   });
@@ -50,6 +50,9 @@ export function useDeleteFaction() {
     mutationFn: deleteFaction,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: FACTIONS_KEY });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      qc.invalidateQueries({ queryKey: ["army-readiness"] });
+      qc.invalidateQueries({ queryKey: ["spending-stats"] });
     },
     // FK errors reject — handled by component try/catch with toast (Pattern 4)
   });

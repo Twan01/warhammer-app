@@ -109,7 +109,7 @@ export function CurrentFocusCard({ unit, faction, photo, onOpen, onLog, onPaint,
             <div className="h-1 flex-1 rounded-full bg-border/40">
               <div
                 className="h-1 rounded-full bg-faction-accent transition-all duration-500"
-                style={{ width: `${unit.painting_percentage}%` }}
+                style={{ width: `${Math.max(0, Math.min(100, unit.painting_percentage))}%` }}
               />
             </div>
           </div>

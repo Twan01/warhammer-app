@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { PaintingRecipe } from "@/types/recipe";
 import type { Faction } from "@/types/faction";
-import type { Unit } from "@/types/unit";
 import type { AvailabilityStats } from "@/hooks/useRecipePaints";
 import { RecipeCard } from "./RecipeCard";
 import { RecipeEmptyState } from "./RecipeEmptyState";
@@ -10,7 +9,6 @@ import { RecipeEmptyState } from "./RecipeEmptyState";
 export interface RecipeCardGridProps {
   data: PaintingRecipe[];
   factions: Faction[];
-  units: Unit[];
   stepCountByRecipe: Map<number, number>;
   sectionCountByRecipe: Map<number, number>;
   swatchColorsByRecipe: Map<number, { paint_id: number; hex_color: string | null }[]>;
@@ -25,7 +23,6 @@ export interface RecipeCardGridProps {
 export function RecipeCardGrid({
   data,
   factions,
-  units: _units,
   stepCountByRecipe,
   sectionCountByRecipe,
   swatchColorsByRecipe,

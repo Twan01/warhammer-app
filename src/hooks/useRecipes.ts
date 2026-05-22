@@ -24,7 +24,7 @@ export function useRecipes() {
 
 export function useRecipe(id: number | undefined) {
   return useQuery({
-    queryKey: id !== undefined ? RECIPE_KEY(id) : RECIPES_KEY,
+    queryKey: id !== undefined ? RECIPE_KEY(id) : ["recipes", "disabled"],
     queryFn: () => (id !== undefined ? getRecipeById(id) : Promise.resolve(null)),
     enabled: id !== undefined,
   });

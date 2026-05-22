@@ -36,7 +36,7 @@ export const RULES_SYNC_META_KEY = ["rules-sync-meta"] as const;
  */
 export function useDatasheet(unitId: number | undefined) {
   return useQuery({
-    queryKey: unitId !== undefined ? DATASHEET_KEY(unitId) : (["datasheet"] as const),
+    queryKey: unitId !== undefined ? DATASHEET_KEY(unitId) : (["datasheet", "disabled"] as const),
     queryFn: async () => {
       if (unitId === undefined) return null;
       const linkedId = await getDatasheetIdForUnit(unitId);
@@ -56,7 +56,7 @@ export function useDatasheetsByFaction(factionId: string | undefined) {
     queryKey:
       factionId !== undefined
         ? DATASHEETS_BY_FACTION_KEY(factionId)
-        : (["datasheets-by-faction"] as const),
+        : (["datasheets-by-faction", "disabled"] as const),
     queryFn: () =>
       factionId !== undefined ? getDatasheetsByFaction(factionId) : Promise.resolve([]),
     enabled: factionId !== undefined,
@@ -82,7 +82,7 @@ export function useDatasheetsByFactionWithPoints(factionId: string | undefined) 
     queryKey:
       factionId !== undefined
         ? (["datasheets-with-points", factionId] as const)
-        : (["datasheets-with-points"] as const),
+        : (["datasheets-with-points", "disabled"] as const),
     queryFn: () =>
       factionId !== undefined
         ? getDatasheetsByFactionWithPoints(factionId)
@@ -115,7 +115,7 @@ export function useWahapediaFactionId(localFactionName: string | undefined) {
     queryKey:
       localFactionName !== undefined
         ? WAHAPEDIA_FACTION_KEY(localFactionName)
-        : (["wahapedia-faction-id"] as const),
+        : (["wahapedia-faction-id", "disabled"] as const),
     queryFn: () =>
       localFactionName !== undefined
         ? resolveWahapediaFactionIdByName(localFactionName)

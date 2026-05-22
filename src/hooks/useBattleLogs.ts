@@ -84,7 +84,7 @@ export function useDeleteBattleLog() {
 
 export function useForgottenRules(armyListId: number | undefined) {
   return useQuery({
-    queryKey: armyListId !== undefined ? FORGOTTEN_RULES_KEY(armyListId) : ["forgotten-rules"],
+    queryKey: armyListId !== undefined ? FORGOTTEN_RULES_KEY(armyListId) : ["forgotten-rules", "disabled"],
     queryFn: () => (armyListId !== undefined ? getRecentForgottenRules(armyListId) : Promise.resolve([])),
     enabled: armyListId !== undefined,
   });

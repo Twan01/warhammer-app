@@ -20,7 +20,7 @@
  *                 src/features/units/JournalTab.tsx (mutation field semantics).
  */
 import { useEffect, useMemo, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import {
@@ -253,36 +253,28 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Unit</FormLabel>
-                  <Controller
-                    name="unit_id"
-                    control={form.control}
-                    render={({ field: ctrl }) => (
-                      <Select
-                        disabled={unitsLoading}
-                        value={ctrl.value ? String(ctrl.value) : ""}
-                        onValueChange={(v) => ctrl.onChange(Number(v))}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue
-                              placeholder={unitsLoading ? "Loading units…" : "Select a unit"}
-                            />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {orderedUnits.map((u) => (
-                            <SelectItem key={u.id} value={String(u.id)}>
-                              {u.name}
-                              {u.is_active_project === 1 ? " · active" : ""}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  <FormMessage>{form.formState.errors.unit_id?.message}</FormMessage>
-                  {/* unused render arg silenced */}
-                  <input type="hidden" value={field.value ?? ""} readOnly />
+                  <Select
+                    disabled={unitsLoading}
+                    value={field.value ? String(field.value) : ""}
+                    onValueChange={(v) => field.onChange(Number(v))}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue
+                          placeholder={unitsLoading ? "Loading units…" : "Select a unit"}
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {orderedUnits.map((u) => (
+                        <SelectItem key={u.id} value={String(u.id)}>
+                          {u.name}
+                          {u.is_active_project === 1 ? " · active" : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -293,33 +285,25 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Update Painting Status</FormLabel>
-                  <Controller
-                    name="new_status"
-                    control={form.control}
-                    render={({ field: ctrl }) => (
-                      <Select
-                        value={ctrl.value ?? "__none__"}
-                        onValueChange={(v) => ctrl.onChange(v === "__none__" ? null : v)}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="No change" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="__none__">No change</SelectItem>
-                          {PAINTING_STATUS_ORDER.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {status}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
+                  <Select
+                    value={field.value ?? "__none__"}
+                    onValueChange={(v) => field.onChange(v === "__none__" ? null : v)}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="No change" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="__none__">No change</SelectItem>
+                      {PAINTING_STATUS_ORDER.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
-                  {/* unused render arg silenced */}
-                  <input type="hidden" value={field.value ?? ""} readOnly />
                 </FormItem>
               )}
             />
@@ -330,38 +314,30 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Recipe</FormLabel>
-                  <Controller
-                    name="recipe_id"
-                    control={form.control}
-                    render={({ field: ctrl }) => (
-                      <Select
-                        disabled={recipesLoading}
-                        value={ctrl.value != null ? String(ctrl.value) : "__none__"}
-                        onValueChange={(v) =>
-                          ctrl.onChange(v === "__none__" ? null : Number(v))
-                        }
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue
-                              placeholder={recipesLoading ? "Loading recipes..." : "No recipe"}
-                            />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="__none__">No recipe</SelectItem>
-                          {orderedRecipes.map((r) => (
-                            <SelectItem key={r.id} value={String(r.id)}>
-                              {r.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
+                  <Select
+                    disabled={recipesLoading}
+                    value={field.value != null ? String(field.value) : "__none__"}
+                    onValueChange={(v) =>
+                      field.onChange(v === "__none__" ? null : Number(v))
+                    }
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue
+                          placeholder={recipesLoading ? "Loading recipes..." : "No recipe"}
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="__none__">No recipe</SelectItem>
+                      {orderedRecipes.map((r) => (
+                        <SelectItem key={r.id} value={String(r.id)}>
+                          {r.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
-                  {/* unused render arg silenced */}
-                  <input type="hidden" value={field.value ?? ""} readOnly />
                 </FormItem>
               )}
             />
@@ -373,44 +349,36 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Section</FormLabel>
-                    <Controller
-                      name="section_name"
-                      control={form.control}
-                      render={({ field: ctrl }) => (
-                        <Select
-                          value={watchedSectionId != null ? String(watchedSectionId) : "__none__"}
-                          onValueChange={(v) => {
-                            const numId = v === "__none__" ? null : Number(v);
-                            setWatchedSectionId(numId);
-                            ctrl.onChange(
-                              v === "__none__"
-                                ? null
-                                : sections.find((s) => s.id === numId)?.name ?? null
-                            );
-                          }}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="No section" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="__none__">No section</SelectItem>
-                            {sections
-                              .slice()
-                              .sort((a, b) => a.order_index - b.order_index)
-                              .map((s) => (
-                                <SelectItem key={s.id} value={String(s.id)}>
-                                  {s.name}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
+                    <Select
+                      value={watchedSectionId != null ? String(watchedSectionId) : "__none__"}
+                      onValueChange={(v) => {
+                        const numId = v === "__none__" ? null : Number(v);
+                        setWatchedSectionId(numId);
+                        field.onChange(
+                          v === "__none__"
+                            ? null
+                            : sections.find((s) => s.id === numId)?.name ?? null
+                        );
+                      }}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="No section" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="__none__">No section</SelectItem>
+                        {sections
+                          .slice()
+                          .sort((a, b) => a.order_index - b.order_index)
+                          .map((s) => (
+                            <SelectItem key={s.id} value={String(s.id)}>
+                              {s.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
-                    {/* unused render arg silenced */}
-                    <input type="hidden" value={field.value ?? ""} readOnly />
                   </FormItem>
                 )}
               />
@@ -423,38 +391,30 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Recipe Step</FormLabel>
-                    <Controller
-                      name="recipe_step_id"
-                      control={form.control}
-                      render={({ field: ctrl }) => (
-                        <Select
-                          value={ctrl.value != null ? String(ctrl.value) : "__none__"}
-                          onValueChange={(v) =>
-                            ctrl.onChange(v === "__none__" ? null : Number(v))
-                          }
-                        >
-                          <FormControl>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="No step" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="__none__">No step</SelectItem>
-                            {filteredSteps
-                              .slice()
-                              .sort((a, b) => a.order_index - b.order_index)
-                              .map((s) => (
-                                <SelectItem key={s.id} value={String(s.id)}>
-                                  {s.painting_phase ? `${s.painting_phase}: ` : ""}{s.step_name}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
+                    <Select
+                      value={field.value != null ? String(field.value) : "__none__"}
+                      onValueChange={(v) =>
+                        field.onChange(v === "__none__" ? null : Number(v))
+                      }
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="No step" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="__none__">No step</SelectItem>
+                        {filteredSteps
+                          .slice()
+                          .sort((a, b) => a.order_index - b.order_index)
+                          .map((s) => (
+                            <SelectItem key={s.id} value={String(s.id)}>
+                              {s.painting_phase ? `${s.painting_phase}: ` : ""}{s.step_name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
-                    {/* unused render arg silenced */}
-                    <input type="hidden" value={field.value ?? ""} readOnly />
                   </FormItem>
                 )}
               />

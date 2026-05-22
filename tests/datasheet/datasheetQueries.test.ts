@@ -141,9 +141,9 @@ describe("resolveWahapediaFactionIdByName", () => {
     expect(sql).toMatch(/LOWER\(name\)\s*=\s*LOWER\(\$1\)/);
     // user-name LIKE faction branch
     expect(sql).toMatch(/LOWER\(\$1\)\s+LIKE\s+'%'\s*\|\|\s*LOWER\(name\)\s*\|\|\s*'%'/);
-    // faction LIKE user-name branch
-    expect(sql).toMatch(/LOWER\(name\)\s+LIKE\s+'%'\s*\|\|\s*LOWER\(\$1\)\s*\|\|\s*'%'/);
-    expect(rulesSelectMock.mock.calls[0][1]).toEqual(["Space Marines"]);
+    // faction LIKE user-name branch (uses $2 with ESCAPE for LIKE-safe input)
+    expect(sql).toMatch(/LOWER\(name\)\s+LIKE\s+'%'\s*\|\|\s*LOWER\(\$2\)\s*\|\|\s*'%'/);
+    expect(rulesSelectMock.mock.calls[0][1]).toEqual(["Space Marines", "Space Marines"]);
   });
 
   it("G-1: returns null when no faction row matches", async () => {

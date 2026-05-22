@@ -377,9 +377,10 @@ export function useRulesSync() {
       qc.invalidateQueries({ queryKey: SAFETY_BACKUPS_KEY });
       // BSData extended data
       qc.invalidateQueries({ queryKey: ["enhancements-by-faction"], exact: false });
-      qc.invalidateQueries({ queryKey: ["loadout-options-by-faction"], exact: false });
+      qc.invalidateQueries({ queryKey: ["loadout-options"], exact: false });
       qc.invalidateQueries({ queryKey: ["model-counts-by-faction"], exact: false });
-      qc.invalidateQueries({ queryKey: ["leader-targets-by-faction"], exact: false });
+      qc.invalidateQueries({ queryKey: ["leader-targets"], exact: false });
+      qc.invalidateQueries({ queryKey: ["synced-tiers-by-name"], exact: false });
       // NOTE: do NOT add rules-favorites or rules-notes here —
       // they live in hobbyforge.db and survive sync unchanged.
     },

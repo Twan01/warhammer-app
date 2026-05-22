@@ -20,5 +20,7 @@ export function formatRelativeTime(sqliteDatetime: string): string {
   if (diffDays < 7) return `${diffDays}d`;
   const diffWeeks = Math.floor(diffDays / 7);
   if (diffWeeks < 4) return `${diffWeeks}w`;
-  return `${Math.floor(diffWeeks / 4)}mo`;
+  const months = Math.floor(diffWeeks / 4);
+  if (months >= 12) return `${Math.floor(months / 12)}y`;
+  return `${months}mo`;
 }

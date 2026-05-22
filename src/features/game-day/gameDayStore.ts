@@ -9,7 +9,7 @@ export interface ChecklistItem {
 
 export interface GameDayListState {
   cp: number;
-  prevCp: number | null;
+  cpHistory: number[];
   startingCp: number;
   checklistItems: ChecklistItem[];
   usedAbilities: string[];
@@ -39,7 +39,7 @@ export const DEFAULT_CHECKLIST: ChecklistItem[] = [
 function getListState(state: GameDayStore, listId: number): GameDayListState {
   return state.listStates[String(listId)] ?? {
     cp: 0,
-    prevCp: null,
+    cpHistory: [],
     startingCp: 0,
     checklistItems: [...DEFAULT_CHECKLIST.map((item) => ({ ...item }))],
     usedAbilities: [],
@@ -67,14 +67,14 @@ export const useGameDayStore = create<GameDayStore>()(
       listStates: {},
 
       setStartingCp: (listId, cp) =>
-        set((s) => setListState(s, listId, { startingCp: cp, cp, prevCp: null })),
+        set((s) => setListState(s, listId, { startingCp: cp, cp, cpHistory: [] })),
 
       spendCp: (listId, cost) =>
         set((s) => {
           const cur = getListState(s, listId);
           const safeCost = Math.max(0, cost);
           return setListState(s, listId, {
-            prevCp: cur.cp,
+            cpHistory: [...cur.cpHistory, cur.cp],
             cp: Math.max(0, cur.cp - safeCost),
           });
         }),
@@ -83,7 +83,7 @@ export const useGameDayStore = create<GameDayStore>()(
         set((s) => {
           const cur = getListState(s, listId);
           return setListState(s, listId, {
-            prevCp: cur.cp,
+            cpHistory: [...cur.cpHistory, cur.cp],
             cp: cur.cp + 1,
           });
         }),
@@ -91,9 +91,12 @@ export const useGameDayStore = create<GameDayStore>()(
       undoCp: (listId) =>
         set((s) => {
           const cur = getListState(s, listId);
+          if (cur.cpHistory.length === 0) return s;
+          const history = [...cur.cpHistory];
+          const prev = history.pop()!;
           return setListState(s, listId, {
-            cp: cur.prevCp ?? cur.cp,
-            prevCp: null,
+            cp: prev,
+            cpHistory: history,
           });
         }),
 
@@ -148,7 +151,7 @@ export const useGameDayStore = create<GameDayStore>()(
 function createDefaultState(): GameDayListState {
   return {
     cp: 0,
-    prevCp: null,
+    cpHistory: [],
     startingCp: 0,
     checklistItems: DEFAULT_CHECKLIST.map((item) => ({ ...item })),
     usedAbilities: [],

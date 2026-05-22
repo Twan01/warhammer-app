@@ -16,7 +16,7 @@ import type { ArmyListUnitRow } from "@/types/armyList";
 import type { RwDatasheetAbility } from "@/types/datasheet";
 
 function getPaintingBadgeVariant(status: string): "default" | "secondary" | "outline" {
-  if (status === "Battle Ready" || status === "Parade Ready") return "default";
+  if (status === "Completed" || status === "Varnished") return "default";
   if (status === "Not Started") return "outline";
   return "secondary";
 }

@@ -9,9 +9,7 @@
  *   - extractFilename extracts filename from paths (tested via BackupCard rendering)
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-
-// We need to test useBackupStatus directly -- it reads from localStorage
-// and is NOT a React Query hook, so no provider needed.
+import { renderHook } from "@testing-library/react";
 
 vi.mock("@/db/queries/diagnostics", () => ({
   getTableCounts: vi.fn(),
@@ -34,8 +32,8 @@ beforeEach(() => {
 
 describe("useBackupStatus", () => {
   it("returns null when no backup data in localStorage", () => {
-    const result = useBackupStatus();
-    expect(result).toBeNull();
+    const { result } = renderHook(() => useBackupStatus());
+    expect(result.current).toBeNull();
   });
 
   it("reads and parses valid backup data from localStorage", () => {
@@ -46,18 +44,18 @@ describe("useBackupStatus", () => {
     };
     localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(status));
 
-    const result = useBackupStatus();
-    expect(result).toEqual(status);
-    expect(result!.date).toBe("2026-05-15T10:00:00.000Z");
-    expect(result!.path).toBe("C:\\backups\\hobbyforge-backup-2026-05-15.db");
-    expect(result!.success).toBe(true);
+    const { result } = renderHook(() => useBackupStatus());
+    expect(result.current).toEqual(status);
+    expect(result.current!.date).toBe("2026-05-15T10:00:00.000Z");
+    expect(result.current!.path).toBe("C:\\backups\\hobbyforge-backup-2026-05-15.db");
+    expect(result.current!.success).toBe(true);
   });
 
   it("returns null when localStorage contains malformed JSON", () => {
     localStorage.setItem(BACKUP_STORAGE_KEY, "not valid json{{{");
 
-    const result = useBackupStatus();
-    expect(result).toBeNull();
+    const { result } = renderHook(() => useBackupStatus());
+    expect(result.current).toBeNull();
   });
 
   it("reads and parses backup data with app_version from localStorage", () => {
@@ -69,9 +67,9 @@ describe("useBackupStatus", () => {
     };
     localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(status));
 
-    const result = useBackupStatus();
-    expect(result).not.toBeNull();
-    expect(result!.app_version).toBe("0.2.14");
+    const { result } = renderHook(() => useBackupStatus());
+    expect(result.current).not.toBeNull();
+    expect(result.current!.app_version).toBe("0.2.14");
   });
 
   it("handles legacy backup data without app_version field", () => {
@@ -82,9 +80,9 @@ describe("useBackupStatus", () => {
     };
     localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(status));
 
-    const result = useBackupStatus();
-    expect(result).not.toBeNull();
-    expect(result!.app_version).toBeUndefined();
+    const { result } = renderHook(() => useBackupStatus());
+    expect(result.current).not.toBeNull();
+    expect(result.current!.app_version).toBeUndefined();
   });
 
   it("uses BACKUP_STORAGE_KEY constant 'lastBackup'", () => {

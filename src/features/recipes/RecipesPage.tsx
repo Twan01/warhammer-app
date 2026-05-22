@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -222,7 +223,6 @@ export function RecipesPage() {
       <RecipeCardGrid
         data={filtered}
         factions={factions}
-        units={units}
         stepCountByRecipe={stepCountByRecipe}
         sectionCountByRecipe={sectionCountByRecipe}
         swatchColorsByRecipe={swatchColorsByRecipe}
@@ -240,10 +240,9 @@ export function RecipesPage() {
         onClose={closeDetail}
         onEdit={onEditRecipe}
         onDelete={openDelete}
-        onDuplicate={(newId) => {
-          const newRecipe = recipes.find((r) => r.id === newId) ?? null;
-          setSelectedRecipe(newRecipe);
-          setDetailOpen(true);
+        onDuplicate={() => {
+          closeDetail();
+          toast.success("Recipe duplicated successfully.");
         }}
       />
 

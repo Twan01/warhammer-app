@@ -39,7 +39,7 @@ export const ASSIGNMENT_KEY = (id: number) =>
 
 export function useAssignmentsByUnit(unitId: number | undefined) {
   return useQuery({
-    queryKey: unitId !== undefined ? UNIT_ASSIGNMENTS_KEY(unitId) : ["recipe-assignments"],
+    queryKey: unitId !== undefined ? UNIT_ASSIGNMENTS_KEY(unitId) : ["recipe-assignments", "disabled"],
     queryFn: () => (unitId !== undefined ? getAssignmentsByUnit(unitId) : Promise.resolve([])),
     enabled: unitId !== undefined,
   });
@@ -47,7 +47,7 @@ export function useAssignmentsByUnit(unitId: number | undefined) {
 
 export function useAssignmentsByRecipe(recipeId: number | undefined) {
   return useQuery({
-    queryKey: recipeId !== undefined ? RECIPE_ASSIGNMENTS_KEY(recipeId) : ["recipe-assignments"],
+    queryKey: recipeId !== undefined ? RECIPE_ASSIGNMENTS_KEY(recipeId) : ["recipe-assignments", "disabled"],
     queryFn: () => (recipeId !== undefined ? getAssignmentsByRecipe(recipeId) : Promise.resolve([])),
     enabled: recipeId !== undefined,
   });
@@ -55,7 +55,7 @@ export function useAssignmentsByRecipe(recipeId: number | undefined) {
 
 export function useStepProgress(assignmentId: number | undefined) {
   return useQuery({
-    queryKey: assignmentId !== undefined ? STEP_PROGRESS_KEY(assignmentId) : ["recipe-assignments"],
+    queryKey: assignmentId !== undefined ? STEP_PROGRESS_KEY(assignmentId) : ["recipe-assignments", "disabled"],
     queryFn: () => (assignmentId !== undefined ? getStepProgress(assignmentId) : Promise.resolve([])),
     enabled: assignmentId !== undefined,
   });
@@ -63,7 +63,7 @@ export function useStepProgress(assignmentId: number | undefined) {
 
 export function useRecipeAssignment(id: number | undefined) {
   return useQuery({
-    queryKey: id !== undefined ? ASSIGNMENT_KEY(id) : ASSIGNMENTS_KEY,
+    queryKey: id !== undefined ? ASSIGNMENT_KEY(id) : ["recipe-assignments", "disabled"],
     queryFn: () => (id !== undefined ? getAssignment(id) : Promise.resolve(null)),
     enabled: id !== undefined,
   });
@@ -111,6 +111,8 @@ export function useToggleStepProgress() {
       upsertStepProgress(assignmentId, recipeStepId, completed),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: STEP_PROGRESS_KEY(variables.assignmentId) });
+      qc.invalidateQueries({ queryKey: ["kanban-enrichment"] });
+      qc.invalidateQueries({ queryKey: NEXT_PAINTING_ACTION_KEY });
     },
   });
 }
@@ -126,6 +128,8 @@ export function useBulkCreateAssignments() {
        */
       qc.invalidateQueries({ queryKey: ASSIGNMENTS_KEY });
       qc.invalidateQueries({ queryKey: RECIPE_ASSIGNMENTS_KEY(variables.recipeId) });
+      qc.invalidateQueries({ queryKey: ["kanban-enrichment"] });
+      qc.invalidateQueries({ queryKey: NEXT_PAINTING_ACTION_KEY });
     },
   });
 }

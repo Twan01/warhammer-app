@@ -41,7 +41,7 @@ export const SNAPSHOTS_KEY = (listId: number) =>
  */
 export function useSnapshotsByList(listId: number | undefined) {
   return useQuery({
-    queryKey: listId !== undefined ? SNAPSHOTS_KEY(listId) : ["army-list-snapshots"],
+    queryKey: listId !== undefined ? SNAPSHOTS_KEY(listId) : ["army-list-snapshots", "disabled"],
     queryFn: () => getSnapshotsByList(listId!),
     enabled: listId !== undefined,
   });

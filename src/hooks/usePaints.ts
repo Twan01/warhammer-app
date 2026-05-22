@@ -20,7 +20,7 @@ export function usePaints() {
 
 export function usePaint(id: number | undefined) {
   return useQuery({
-    queryKey: id !== undefined ? PAINT_KEY(id) : PAINTS_KEY,
+    queryKey: id !== undefined ? PAINT_KEY(id) : ["paints", "disabled"],
     queryFn: () => (id !== undefined ? getPaintById(id) : Promise.resolve(null)),
     enabled: id !== undefined,
   });

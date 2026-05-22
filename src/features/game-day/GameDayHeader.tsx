@@ -91,7 +91,7 @@ export function GameDayHeader({
             variant="ghost"
             size="icon"
             className="h-8 w-8"
-            disabled={listState.prevCp === null}
+            disabled={listState.cpHistory.length === 0}
             onClick={() => undoCp(listId)}
           >
             <Undo2 className="h-4 w-4" />

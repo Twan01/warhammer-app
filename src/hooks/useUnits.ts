@@ -17,7 +17,7 @@ export function useUnits() {
 
 export function useUnit(id: number | undefined) {
   return useQuery({
-    queryKey: id !== undefined ? UNIT_KEY(id) : UNITS_KEY,
+    queryKey: id !== undefined ? UNIT_KEY(id) : ["units", "disabled"],
     queryFn: () => (id !== undefined ? getUnitById(id) : Promise.resolve(null)),
     enabled: id !== undefined,
   });

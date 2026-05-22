@@ -15,6 +15,7 @@ export type SyncFreshness = "fresh" | "aging" | "stale" | "never";
 export function getSyncFreshness(lastSyncAt: string | null): SyncFreshness {
   if (!lastSyncAt) return "never";
   const ageMs = Date.now() - new Date(lastSyncAt).getTime();
+  if (Number.isNaN(ageMs)) return "never";
   const ageDays = ageMs / (1000 * 60 * 60 * 24);
   if (ageDays < 7) return "fresh";
   if (ageDays < 14) return "aging";
@@ -25,6 +26,7 @@ export function getSyncFreshness(lastSyncAt: string | null): SyncFreshness {
 export function getSyncAgeLabel(lastSyncAt: string | null): string {
   if (!lastSyncAt) return "Never synced";
   const ageMs = Date.now() - new Date(lastSyncAt).getTime();
+  if (Number.isNaN(ageMs)) return "Never synced";
   const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24));
   if (ageDays === 0) return "Synced today";
   if (ageDays === 1) return "Synced yesterday";

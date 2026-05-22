@@ -107,20 +107,23 @@ beforeEach(() => {
 });
 
 describe("useRulesSync", () => {
-  it("SYNC-05: onSuccess invalidates all 13 query keys (8 original + 2 Phase 52 + 2 Phase 65 army lists + 1 Phase 82 safety backups)", () => {
+  it("SYNC-05: onSuccess invalidates all 21 query keys", () => {
     const opts = useRulesSync() as unknown as {
       onSuccess: () => void;
     };
     opts.onSuccess();
 
-    expect(invalidateQueriesMock).toHaveBeenCalledTimes(13);
+    expect(invalidateQueriesMock).toHaveBeenCalledTimes(21);
 
     const calls = invalidateQueriesMock.mock.calls.map(
       (c: { queryKey: string[] }[]) => c[0].queryKey[0],
     );
     expect(calls).toContain("rules-sync-meta");
+    expect(calls).toContain("wahapedia-factions");
     expect(calls).toContain("datasheets-by-faction");
+    expect(calls).toContain("datasheets-with-points");
     expect(calls).toContain("datasheet");
+    expect(calls).toContain("point-tiers");
     expect(calls).toContain("stratagems-by-faction");
     expect(calls).toContain("detachments-by-faction");
     expect(calls).toContain("detachment-abilities");
@@ -134,6 +137,12 @@ describe("useRulesSync", () => {
     expect(calls).toContain("army-list-readiness");
     // Phase 82 — safety backup created at start of sync
     expect(calls).toContain("safety-backups");
+    // BSData extended data invalidation
+    expect(calls).toContain("enhancements-by-faction");
+    expect(calls).toContain("loadout-options");
+    expect(calls).toContain("model-counts-by-faction");
+    expect(calls).toContain("leader-targets");
+    expect(calls).toContain("synced-tiers-by-name");
   });
 
   it("SYNC-05: Phase 43 invalidation calls use exact: false", () => {

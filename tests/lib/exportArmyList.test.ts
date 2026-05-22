@@ -173,6 +173,7 @@ describe("buildClipboardText", () => {
       enhancements: [],
       totalPoints: 0,
       enhancementTotal: 0,
+      unitNameByListUnitId: new Map(),
       ...overrides,
     };
   }
@@ -200,7 +201,9 @@ describe("buildClipboardText", () => {
             isWarlord: false,
             isGhost: false,
             leaderLabel: null,
+            selectedModelCount: null,
             enhancementName: null,
+            enhancementNames: [],
           },
         ],
       }),
@@ -218,7 +221,9 @@ describe("buildClipboardText", () => {
             isWarlord: false,
             isGhost: false,
             leaderLabel: "Led by: Captain -- 80pts",
+            selectedModelCount: null,
             enhancementName: null,
+            enhancementNames: [],
           },
         ],
       }),
@@ -235,8 +240,10 @@ describe("buildClipboardText", () => {
             points: 95,
             isWarlord: false,
             isGhost: true,
+            selectedModelCount: null,
             leaderLabel: null,
             enhancementName: null,
+            enhancementNames: [],
           },
         ],
       }),
@@ -253,8 +260,10 @@ describe("buildClipboardText", () => {
             points: 100,
             isWarlord: true,
             isGhost: false,
+            selectedModelCount: null,
             leaderLabel: null,
             enhancementName: null,
+            enhancementNames: [],
           },
         ],
       }),
@@ -304,6 +313,7 @@ describe("buildJsonFormat", () => {
       enhancements: [],
       totalPoints: 0,
       enhancementTotal: 0,
+      unitNameByListUnitId: new Map(),
     };
     const json = JSON.parse(buildJsonFormat(data));
     expect(json.format).toBe("hobbyforge-army-list");
@@ -322,13 +332,16 @@ describe("buildJsonFormat", () => {
           points: 80,
           isWarlord: true,
           isGhost: false,
+          selectedModelCount: null,
           leaderLabel: null,
           enhancementName: "Storm of Fire",
+          enhancementNames: ["Storm of Fire"],
         },
       ],
       enhancements: [],
       totalPoints: 80,
       enhancementTotal: 0,
+      unitNameByListUnitId: new Map(),
     };
     const json = JSON.parse(buildJsonFormat(data));
     expect(json.units[0].name).toBe("Intercessors");
@@ -344,8 +357,10 @@ describe("buildJsonFormat", () => {
       points: 80,
       isWarlord: false,
       isGhost: false,
+      selectedModelCount: null,
       leaderLabel: null,
       enhancementName: "Inspiring Leader",
+      enhancementNames: ["Inspiring Leader"],
     };
     const enh = makeEnhancement({ army_list_unit_id: 10, enhancement_name: "Inspiring Leader", enhancement_points: 25 });
     const data: ExportData = {
@@ -355,6 +370,7 @@ describe("buildJsonFormat", () => {
       enhancements: [enh],
       totalPoints: 80,
       enhancementTotal: 25,
+      unitNameByListUnitId: new Map([[10, "Captain"]]),
     };
     const json = JSON.parse(buildJsonFormat(data));
     expect(json.enhancements[0].name).toBe("Inspiring Leader");

@@ -64,12 +64,16 @@ export function GoalsPage() {
     setDeleteDialogOpen(true);
   }
 
+  function closeDeleteDialog() {
+    setDeleteDialogOpen(false);
+    setDeletingGoal(null);
+  }
+
   async function handleDeleteConfirm() {
     if (!deletingGoal) return;
     try {
       await deleteGoalMutation.mutateAsync(deletingGoal.id);
-      setDeleteDialogOpen(false);
-      setDeletingGoal(null);
+      closeDeleteDialog();
     } catch {
       toast.error("Failed to delete goal.");
     }
@@ -171,9 +175,10 @@ export function GoalsPage() {
       />
       <GoalDeleteDialog
         open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
+        onOpenChange={(o) => { if (!o) closeDeleteDialog(); }}
         goal={deletingGoal}
         onConfirm={handleDeleteConfirm}
+        isPending={deleteGoalMutation.isPending}
       />
     </div>
   );

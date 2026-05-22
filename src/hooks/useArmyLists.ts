@@ -65,7 +65,7 @@ export function useArmyLists() {
 
 export function useArmyList(id: number | undefined) {
   return useQuery({
-    queryKey: id !== undefined ? ARMY_LIST_KEY(id) : ARMY_LISTS_KEY,
+    queryKey: id !== undefined ? ARMY_LIST_KEY(id) : ["army-lists", "disabled"],
     queryFn: () => (id !== undefined ? getArmyListById(id) : Promise.resolve(null)),
     enabled: id !== undefined,
   });
@@ -73,7 +73,7 @@ export function useArmyList(id: number | undefined) {
 
 export function useArmyListWithUnits(listId: number | undefined) {
   return useQuery({
-    queryKey: listId !== undefined ? ARMY_LIST_UNITS_KEY(listId) : ARMY_LISTS_KEY,
+    queryKey: listId !== undefined ? ARMY_LIST_UNITS_KEY(listId) : ["army-lists", "disabled"],
     queryFn: () => (listId !== undefined ? getArmyListWithUnits(listId) : Promise.resolve([])),
     enabled: listId !== undefined,
   });
@@ -138,8 +138,13 @@ export function useDeleteArmyList() {
   const qc = useQueryClient();
   return useMutation<void, Error, number>({
     mutationFn: deleteArmyList,
-    onSuccess: () => {
+    onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
+      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(id) });
+      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(id) });
+      qc.invalidateQueries({ queryKey: ["army-list-enhancements", id] });
+      qc.invalidateQueries({ queryKey: ["army-list-readiness"], exact: false });
+      qc.invalidateQueries({ queryKey: ["army-list-snapshots", id] });
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
     },
   });
@@ -429,7 +434,7 @@ export function useRemoveEnhancement() {
  */
 export function useEnhancementsByList(listId: number | undefined) {
   return useQuery<ArmyListEnhancement[]>({
-    queryKey: ["army-list-enhancements", listId],
+    queryKey: listId !== undefined ? ["army-list-enhancements", listId] : ["army-list-enhancements", "disabled"],
     queryFn: () => getEnhancementsByList(listId!),
     enabled: listId !== undefined,
   });

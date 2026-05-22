@@ -126,7 +126,7 @@ export async function getRecentForgottenRules(armyListId: number): Promise<strin
         }
       }
     } catch {
-      console.warn("Malformed forgotten_rules JSON:", row.forgotten_rules);
+      // Silently skip malformed forgotten_rules JSON entries
     }
   }
   return [...seen];

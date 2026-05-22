@@ -21,7 +21,6 @@ import {
 import type { MatchStatus } from "@/types/unitRulesMapping";
 
 interface MatchStatusIndicatorProps {
-  unitId: number;
   matchStatus: MatchStatus | null;
   ambiguousCount?: number;
   onClick: () => void;
@@ -74,7 +73,6 @@ function getIndicatorConfig(
 }
 
 export function MatchStatusIndicator({
-  unitId: _unitId,
   matchStatus,
   ambiguousCount = 0,
   onClick,

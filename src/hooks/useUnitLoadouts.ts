@@ -21,7 +21,7 @@ export const UNIT_LOADOUTS_KEY = (unitId: number) => ["unit-loadouts", unitId] a
 
 export function useUnitLoadouts(unitId: number | undefined) {
   return useQuery({
-    queryKey: unitId !== undefined ? UNIT_LOADOUTS_KEY(unitId) : (["unit-loadouts"] as const),
+    queryKey: unitId !== undefined ? UNIT_LOADOUTS_KEY(unitId) : (["unit-loadouts", "disabled"] as const),
     queryFn: () => (unitId !== undefined ? getUnitLoadouts(unitId) : Promise.resolve([])),
     enabled: unitId !== undefined,
   });

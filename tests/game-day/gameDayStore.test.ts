@@ -21,7 +21,7 @@ describe("gameDayStore", () => {
 
       const state = useGameDayStore.getState().listStates["1"];
       expect(state.cp).toBe(3);
-      expect(state.prevCp).toBe(5);
+      expect(state.cpHistory).toEqual([5]);
     });
 
     it("spendCp floors at 0 when cost > current CP", () => {
@@ -40,10 +40,10 @@ describe("gameDayStore", () => {
 
       const state = useGameDayStore.getState().listStates["1"];
       expect(state.cp).toBe(4);
-      expect(state.prevCp).toBe(3);
+      expect(state.cpHistory).toEqual([3]);
     });
 
-    it("undoCp restores previous CP and clears prevCp", () => {
+    it("undoCp restores previous CP from history", () => {
       const store = useGameDayStore.getState();
       store.setStartingCp(1, 5);
       useGameDayStore.getState().spendCp(1, 2);
@@ -51,17 +51,17 @@ describe("gameDayStore", () => {
 
       const state = useGameDayStore.getState().listStates["1"];
       expect(state.cp).toBe(5);
-      expect(state.prevCp).toBeNull();
+      expect(state.cpHistory).toEqual([]);
     });
 
-    it("undoCp is a no-op when prevCp is null", () => {
+    it("undoCp is a no-op when cpHistory is empty", () => {
       const store = useGameDayStore.getState();
       store.setStartingCp(1, 5);
       useGameDayStore.getState().undoCp(1);
 
       const state = useGameDayStore.getState().listStates["1"];
       expect(state.cp).toBe(5);
-      expect(state.prevCp).toBeNull();
+      expect(state.cpHistory).toEqual([]);
     });
 
     it("setStartingCp sets both cp and startingCp", () => {
@@ -71,7 +71,7 @@ describe("gameDayStore", () => {
       const state = useGameDayStore.getState().listStates["1"];
       expect(state.cp).toBe(3);
       expect(state.startingCp).toBe(3);
-      expect(state.prevCp).toBeNull();
+      expect(state.cpHistory).toEqual([]);
     });
   });
 

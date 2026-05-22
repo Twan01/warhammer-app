@@ -178,7 +178,7 @@ export function RecipeDetailSheet({
     }
     resolve();
     return () => { cancelled = true; };
-  }, [stepsKey]);
+  }, [stepsKey, steps]);
 
   const [applyToUnitsOpen, setApplyToUnitsOpen] = useState(false);
   const navigate = useNavigate();

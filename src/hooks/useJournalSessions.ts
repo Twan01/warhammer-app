@@ -28,7 +28,7 @@ export function useJournalSessions(unitId: number | undefined) {
     queryKey:
       unitId !== undefined
         ? PAINTING_SESSIONS_KEY(unitId)
-        : (["painting-sessions"] as const),
+        : (["painting-sessions", "disabled"] as const),
     queryFn: () =>
       unitId !== undefined ? getSessionsByUnit(unitId) : Promise.resolve([] as PaintingSession[]),
     enabled: unitId !== undefined,
@@ -41,7 +41,7 @@ export function useSessionsByRecipe(recipeId: number | undefined) {
     queryKey:
       recipeId !== undefined
         ? RECIPE_SESSIONS_KEY(recipeId)
-        : (["recipe-sessions"] as const),
+        : (["recipe-sessions", "disabled"] as const),
     queryFn: () =>
       recipeId !== undefined
         ? getSessionsByRecipe(recipeId)
@@ -61,6 +61,7 @@ export function useCreatePaintingSession() {
       qc.invalidateQueries({ queryKey: ["recent-activity"] });
       qc.invalidateQueries({ queryKey: ["goal-progress"] });
       qc.invalidateQueries({ queryKey: ["workflow-positions"] });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
       // Phase 41 — invalidate recipe-sessions cache if session linked to a recipe
       if (variables.recipe_id != null) {
         qc.invalidateQueries({ queryKey: RECIPE_SESSIONS_KEY(variables.recipe_id) });

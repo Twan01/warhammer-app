@@ -5,6 +5,11 @@ import type {
   UpsertUnitRulesMappingInput,
 } from "@/types/unitRulesMapping";
 
+/** Escape LIKE special characters so user input is matched literally. */
+function escapeLike(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
+}
+
 /**
  * UnitRulesMapping queries (PV-03..05, D-07).
  *
@@ -94,8 +99,8 @@ export async function findMatchingDatasheets(
     `SELECT unit_name, faction_id, points
      FROM synced_unit_points
      WHERE unit_name = $1
-       OR unit_name LIKE $2`,
-    [unitName, `%${unitName}%`],
+       OR unit_name LIKE $2 ESCAPE '\\'`,
+    [unitName, `%${escapeLike(unitName)}%`],
   );
 }
 
@@ -111,7 +116,7 @@ export async function findRulesDatasheets(
   const db = await getRulesDb();
   return db.select(
     `SELECT id, name, faction_id FROM rw_datasheets
-     WHERE name LIKE $1 ORDER BY name LIMIT 20`,
-    [`%${searchTerm}%`],
+     WHERE name LIKE $1 ESCAPE '\\' ORDER BY name LIMIT 20`,
+    [`%${escapeLike(searchTerm)}%`],
   );
 }

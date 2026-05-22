@@ -10,6 +10,7 @@
  * useBackupStatus() reads from localStorage (not a useQuery hook)
  * since backup metadata is not stored in the database.
  */
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   getDiagnosticFlags,
@@ -63,13 +64,31 @@ export interface BackupStatus {
 /**
  * D-06: Reads the last backup metadata from localStorage.
  * Returns null when no backup has been performed yet.
+ * Reacts to cross-tab storage events so the UI stays in sync.
  */
 export function useBackupStatus(): BackupStatus | null {
-  try {
-    const raw = localStorage.getItem(BACKUP_STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw) as BackupStatus;
-  } catch {
-    return null;
-  }
+  const [status, setStatus] = useState<BackupStatus | null>(() => {
+    try {
+      const raw = localStorage.getItem(BACKUP_STORAGE_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw) as BackupStatus;
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    function handleStorage(e: StorageEvent) {
+      if (e.key !== BACKUP_STORAGE_KEY) return;
+      try {
+        setStatus(e.newValue ? (JSON.parse(e.newValue) as BackupStatus) : null);
+      } catch {
+        setStatus(null);
+      }
+    }
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
+
+  return status;
 }

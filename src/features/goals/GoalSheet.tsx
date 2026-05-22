@@ -126,7 +126,15 @@ export function GoalSheet({ open, onOpenChange, editingGoal }: GoalSheetProps) {
                       type="number"
                       min={1}
                       {...field}
-                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        if (raw === "") {
+                          field.onChange(raw);
+                          return;
+                        }
+                        const v = e.target.valueAsNumber;
+                        field.onChange(Number.isNaN(v) ? field.value : v);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />

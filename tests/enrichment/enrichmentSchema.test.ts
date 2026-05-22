@@ -28,6 +28,7 @@ const requiredFactionBase = {
   description: null,
   color_theme: "#4A90D9",
   icon_path: null,
+  lore_notes: null,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -117,9 +118,9 @@ describe("factionSchema — ENRCH-01 (lore_notes field)", () => {
     expect(result.success).toBe(true);
   });
 
-  it("accepts undefined for lore_notes (optional)", () => {
-    // lore_notes is not included in the object at all
-    const result = factionSchema.safeParse({ ...requiredFactionBase });
-    expect(result.success).toBe(true);
+  it("rejects undefined for lore_notes (nullable but required)", () => {
+    const { lore_notes: _, ...withoutLoreNotes } = requiredFactionBase;
+    const result = factionSchema.safeParse(withoutLoreNotes);
+    expect(result.success).toBe(false);
   });
 });

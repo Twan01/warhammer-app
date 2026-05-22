@@ -124,31 +124,6 @@ export interface AddEnhancementInput {
 }
 
 /**
- * Enhancement assigned to an army list unit (Phase 89).
- * Stored in army_list_enhancements with TEXT/INTEGER copies of the
- * enhancement name and points at assignment time (denormalized, survives
- * rules.db re-sync which DELETE-all + re-INSERT synced_enhancements).
- */
-export interface ArmyListEnhancement {
-  id: number;
-  list_id: number;
-  army_list_unit_id: number;
-  enhancement_name: string;
-  enhancement_points: number;
-  created_at: string;
-}
-
-/**
- * Input for assigning an enhancement to a unit in an army list (Phase 89).
- */
-export interface AddEnhancementInput {
-  list_id: number;
-  army_list_unit_id: number;
-  enhancement_name: string;
-  enhancement_points: number;
-}
-
-/**
  * Phase 66 — Tactical role tags (LV-02, D-07/D-08).
  *
  * Fixed enum of 7 roles. Single role per unit (TEXT column on army_list_units).

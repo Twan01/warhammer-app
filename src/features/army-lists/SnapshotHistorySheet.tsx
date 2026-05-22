@@ -137,11 +137,16 @@ export function SnapshotHistorySheet({
     (snapshot: ArmyListSnapshot) => {
       if (!list || listId === null) return;
 
+      if (list.faction_id === null) {
+        toast.error("Cannot restore: this list has no faction assigned. Please assign a faction first.");
+        return;
+      }
+
       restoreSnapshot.mutate(
         {
           snapshot_id: snapshot.id,
           list_id: listId,
-          faction_id: list.faction_id!,
+          faction_id: list.faction_id,
         },
         {
           onSuccess: () => {

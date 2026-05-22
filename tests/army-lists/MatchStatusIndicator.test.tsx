@@ -19,7 +19,6 @@ function renderIndicator(
   render(
     <TooltipProvider>
       <MatchStatusIndicator
-        unitId={1}
         matchStatus={matchStatus}
         ambiguousCount={options.ambiguousCount}
         onClick={onClick}

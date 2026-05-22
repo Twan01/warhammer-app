@@ -158,9 +158,15 @@ export function SnapshotCompareDialog({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {/* Common units */}
+                {/* Common units — index-based pairing to handle duplicate names */}
                 {diff.unitsCommon.map((unit, i) => {
-                  const unitB = parsedB!.units.find((u) => u.name === unit.name);
+                  // Build consumed counter to pair with the correct B unit by index
+                  const bUnitsWithName = parsedB!.units.filter((u) => u.name === unit.name);
+                  let matchIndex = 0;
+                  for (let j = 0; j < i; j++) {
+                    if (diff.unitsCommon[j].name === unit.name) matchIndex++;
+                  }
+                  const unitB = bUnitsWithName[matchIndex] ?? bUnitsWithName[0];
                   return (
                     <TableRow key={`common-${i}`}>
                       <TableCell className="text-muted-foreground text-sm">{unit.name}</TableCell>

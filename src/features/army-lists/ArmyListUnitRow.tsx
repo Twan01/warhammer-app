@@ -202,7 +202,6 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
             ) : null}
             {unit.unit_id != null && (
               <MatchStatusIndicator
-                unitId={unit.unit_id}
                 matchStatus={rulesMapping?.match_status ?? null}
                 ambiguousCount={ambiguousCount}
                 onClick={() => setMappingSheetOpen(true)}

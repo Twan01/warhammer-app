@@ -131,7 +131,7 @@ export async function getAmbiguousPointMatches(): Promise<DiagnosticFlag | null>
     db.select<{ id: number; name: string }[]>(
       `SELECT u.id, u.name
        FROM units u
-       JOIN synced_unit_points sup ON sup.unit_id = u.id`
+       JOIN synced_unit_points sup ON sup.unit_name = u.name`
     ),
     rulesDb.select<{ datasheet_name: string }[]>(
       "SELECT datasheet_name FROM rw_datasheet_points"

@@ -24,8 +24,10 @@ export interface ExportUnit {
   points: number;
   isWarlord: boolean;
   isGhost: boolean;
+  selectedModelCount: number | null;
   leaderLabel: string | null;
   enhancementName: string | null;
+  enhancementNames: string[];
 }
 
 export interface ExportData {
@@ -35,6 +37,8 @@ export interface ExportData {
   enhancements: ArmyListEnhancement[];
   totalPoints: number;
   enhancementTotal: number;
+  /** Maps army_list_unit_id -> unit display name for enhancement assigned_to. */
+  unitNameByListUnitId: Map<number, string>;
 }
 
 // ---------------------------------------------------------------------------
@@ -51,10 +55,18 @@ export function formatArmyListForExport(
   enhancements: ArmyListEnhancement[],
   factionName: string | null,
 ): ExportData {
-  // Build enhancement lookup: army_list_unit_id -> enhancement_name
-  const enhMap = new Map<number, string>();
+  // Build enhancement lookup: army_list_unit_id -> enhancement_name(s)
+  const enhMap = new Map<number, string[]>();
   for (const e of enhancements) {
-    enhMap.set(e.army_list_unit_id, e.enhancement_name);
+    const existing = enhMap.get(e.army_list_unit_id) ?? [];
+    existing.push(e.enhancement_name);
+    enhMap.set(e.army_list_unit_id, existing);
+  }
+
+  // Build army_list_unit_id -> unit_name lookup for enhancement assigned_to
+  const unitIdToName = new Map<number, string>();
+  for (const u of units) {
+    unitIdToName.set(u.id, u.unit_name);
   }
 
   // Build leader lookup: leader_attached_to_id -> leader unit row
@@ -92,8 +104,10 @@ export function formatArmyListForExport(
       points: u.effective_points,
       isWarlord: u.is_warlord === 1,
       isGhost: u.unit_id === null,
+      selectedModelCount: u.selected_model_count ?? null,
       leaderLabel,
-      enhancementName: enhMap.get(u.id) ?? null,
+      enhancementName: enhMap.get(u.id)?.[0] ?? null,
+      enhancementNames: enhMap.get(u.id) ?? [],
     };
   });
 
@@ -110,6 +124,7 @@ export function formatArmyListForExport(
     enhancements,
     totalPoints,
     enhancementTotal,
+    unitNameByListUnitId: unitIdToName,
   };
 }
 
@@ -187,7 +202,7 @@ export function buildJsonFormat(data: ExportData): string {
       points: u.points,
       is_warlord: u.isWarlord,
       is_ghost: u.isGhost,
-      selected_model_count: null as number | null,
+      selected_model_count: u.selectedModelCount,
       leader_attached_to: u.leaderLabel
         ? u.leaderLabel.replace("Led by: ", "").replace(/ -- \d+pts$/, "")
         : null,
@@ -196,7 +211,7 @@ export function buildJsonFormat(data: ExportData): string {
     enhancements: data.enhancements.map((e) => ({
       name: e.enhancement_name,
       points: e.enhancement_points,
-      assigned_to: null as string | null,
+      assigned_to: data.unitNameByListUnitId.get(e.army_list_unit_id) ?? null,
     })),
   };
 

@@ -26,7 +26,7 @@ export function FactionCard({
   return (
     <Card
       // FACT-05 / CONTEXT.md: 4px left border using faction.color_theme as the visible accent.
-      style={{ borderLeft: `4px solid ${faction.color_theme}` }}
+      style={{ borderLeft: `4px solid ${/^#[0-9A-Fa-f]{6}$/.test(faction.color_theme) ? faction.color_theme : "#71717a"}` }}
       className="border-l-[4px]"
     >
       <CardHeader className="pb-2">

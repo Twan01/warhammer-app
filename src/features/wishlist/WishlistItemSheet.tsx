@@ -184,7 +184,9 @@ export function WishlistItemSheet({
                         field.onChange(
                           e.target.value === ""
                             ? null
-                            : Math.round(e.target.valueAsNumber * 100),
+                            : Number.isNaN(e.target.valueAsNumber)
+                              ? field.value
+                              : Math.round(e.target.valueAsNumber * 100),
                         )
                       }
                     />

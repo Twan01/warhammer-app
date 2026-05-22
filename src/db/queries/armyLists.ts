@@ -108,8 +108,8 @@ export async function updateArmyList(input: UpdateArmyListInput): Promise<void> 
         SET name            = COALESCE($2, name),
             faction_id      = COALESCE($3, faction_id),
             points_limit    = COALESCE($4, points_limit),
-            list_type       = COALESCE($5, list_type),
-            notes           = COALESCE($6, notes),
+            list_type       = $5,
+            notes           = $6,
             detachment_id   = COALESCE($7, detachment_id),
             detachment_name = COALESCE($8, detachment_name),
             updated_at      = datetime('now')

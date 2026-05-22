@@ -12,12 +12,12 @@ import { z } from "zod";
 export const factionSchema = z.object({
   name: z.string().min(1, "Name is required").max(80, "Name must be 80 characters or fewer"),
   game_system: z.string().min(1, "Game system is required"),
-  description: z.string().max(500, "Description must be 500 characters or fewer").optional().nullable(),
+  description: z.string().max(500, "Description must be 500 characters or fewer").nullable(),
   color_theme: z
     .string()
     .regex(/^#[0-9A-Fa-f]{6}$/, "Color must be a 6-digit hex like #4A90D9"),
-  icon_path: z.string().optional().nullable(),
-  lore_notes: z.string().optional().nullable(),
+  icon_path: z.string().nullable(),
+  lore_notes: z.string().nullable(),
 });
 
 export type FactionFormValues = z.infer<typeof factionSchema>;

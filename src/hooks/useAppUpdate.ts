@@ -52,7 +52,15 @@ export function useAppUpdate() {
   }, [update]);
 
   useEffect(() => {
-    checkForUpdate();
+    let cancelled = false;
+    checkForUpdate().finally(() => {
+      if (cancelled) {
+        // Component unmounted — reset state to avoid stale updates
+        setStatus("idle");
+        setUpdate(null);
+      }
+    });
+    return () => { cancelled = true; };
   }, [checkForUpdate]);
 
   return {

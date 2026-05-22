@@ -39,7 +39,7 @@ vi.mock("@/features/game-day/gameDayStore", async (importOriginal) => {
     }),
     useGameDayListState: (): GameDayListState => ({
       cp: 0,
-      prevCp: null,
+      cpHistory: [],
       startingCp: 0,
       checklistItems: mockChecklistItems,
       usedAbilities: [],

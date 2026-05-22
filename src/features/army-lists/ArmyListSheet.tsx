@@ -186,8 +186,8 @@ export function ArmyListSheet({ open, list, onClose }: ArmyListSheetProps) {
                 <FormItem>
                   <FormLabel>List Type</FormLabel>
                   <Select
-                    value={field.value ?? ""}
-                    onValueChange={(v) => field.onChange(v || null)}
+                    value={field.value ?? "__none__"}
+                    onValueChange={(v) => field.onChange(v === "__none__" ? null : v)}
                   >
                     <FormControl>
                       <SelectTrigger className="w-full">
@@ -195,6 +195,7 @@ export function ArmyListSheet({ open, list, onClose }: ArmyListSheetProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      <SelectItem value="__none__">No type</SelectItem>
                       {ARMY_LIST_TYPES.map((type) => (
                         <SelectItem key={type} value={type}>
                           {type}

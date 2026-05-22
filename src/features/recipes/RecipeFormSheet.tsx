@@ -149,7 +149,7 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
       setSections([makeDraftSection("Steps")]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recipe?.id, existingSections.length, existingSteps.length]);
+  }, [recipe?.id, existingSections, existingSteps]);
 
   // PAINT-03: detect new paint after PaintSheet closes
   useEffect(() => {
@@ -203,6 +203,11 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
   }
 
   async function onSubmit(values: RecipeFormValues) {
+    const emptySteps = sections.flatMap(s => s.steps).filter(s => !s.step_name.trim());
+    if (emptySteps.length > 0) {
+      toast.warning("All steps must have a name.");
+      return;
+    }
     try {
       const finalRecipeId = await saveRecipeGraph(
         recipe?.id ?? null,

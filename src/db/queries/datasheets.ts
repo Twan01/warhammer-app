@@ -19,6 +19,11 @@
 import { getDb } from "@/db/client";
 import { getRulesDb } from "@/db/rules-client";
 import { stripHtml } from "@/lib/stripHtml";
+
+/** Escape LIKE special characters so user input is matched literally. */
+function escapeLike(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
+}
 import type {
   DatasheetSummary,
   FullDatasheet,
@@ -274,9 +279,9 @@ export async function resolveWahapediaFactionIdByName(
     `SELECT id FROM rw_factions
      WHERE LOWER(name) = LOWER($1)
         OR LOWER($1) LIKE '%' || LOWER(name) || '%'
-        OR LOWER(name) LIKE '%' || LOWER($1) || '%'
+        OR LOWER(name) LIKE '%' || LOWER($2) || '%' ESCAPE '\\'
      LIMIT 1`,
-    [name]
+    [name, escapeLike(name)]
   );
   if (directRows[0]) return directRows[0].id;
 
@@ -382,7 +387,7 @@ export async function searchAllDatasheets(
   if (query.trim().length < 2) return [];
   const db = await getRulesDb();
   return db.select<DatasheetSummary[]>(
-    "SELECT id, name, role FROM rw_datasheets WHERE LOWER(name) LIKE '%' || LOWER($1) || '%' ORDER BY name ASC LIMIT 100",
-    [query.trim()]
+    "SELECT id, name, role FROM rw_datasheets WHERE LOWER(name) LIKE '%' || LOWER($1) || '%' ESCAPE '\\' ORDER BY name ASC LIMIT 100",
+    [escapeLike(query.trim())]
   );
 }

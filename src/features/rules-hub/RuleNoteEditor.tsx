@@ -27,15 +27,30 @@ export function RuleNoteEditor({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const upsertNote = useUpsertRulesNote();
 
+  const pendingTextRef = useRef(localText);
+  pendingTextRef.current = localText;
+  const initialTextRef = useRef(note?.note_text ?? "");
+
   useEffect(() => {
     setLocalText(note?.note_text ?? "");
+    initialTextRef.current = note?.note_text ?? "";
   }, [note?.note_text]);
 
   useEffect(() => {
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        if (pendingTextRef.current !== initialTextRef.current) {
+          upsertNote.mutate({
+            rule_id: ruleId,
+            rule_type: ruleType,
+            rule_name: ruleName,
+            note_text: pendingTextRef.current,
+          });
+        }
+      }
     };
-  }, []);
+  }, [ruleId, ruleType, ruleName]);
 
   function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     const value = e.target.value;

@@ -98,10 +98,10 @@ export function PaintSheet({ open, paint, onClose }: PaintSheetProps) {
         paint_type: values.paint_type,
         color_family: values.color_family || null,
         hex_color: values.hex_color || null,
-        owned: values.owned ? 1 : 0 as 0 | 1,
+        owned: (values.owned ? 1 : 0) as 0 | 1,
         quantity: values.quantity ?? null,
-        running_low: values.running_low ? 1 : 0 as 0 | 1,
-        wishlist: values.wishlist ? 1 : 0 as 0 | 1,
+        running_low: (values.running_low ? 1 : 0) as 0 | 1,
+        wishlist: (values.wishlist ? 1 : 0) as 0 | 1,
         notes: values.notes || null,
         purchase_price_pence: values.purchase_price_pence ?? null,
         purchase_date: values.purchase_date || null,
@@ -264,7 +264,11 @@ export function PaintSheet({ open, paint, onClose }: PaintSheetProps) {
                       value={field.value ?? ""}
                       onChange={(e) =>
                         field.onChange(
-                          e.target.value === "" ? null : e.target.valueAsNumber
+                          e.target.value === ""
+                            ? null
+                            : Number.isNaN(e.target.valueAsNumber)
+                              ? field.value
+                              : e.target.valueAsNumber,
                         )
                       }
                     />
@@ -354,7 +358,11 @@ export function PaintSheet({ open, paint, onClose }: PaintSheetProps) {
                       value={field.value ?? ""}
                       onChange={(e) =>
                         field.onChange(
-                          e.target.value === "" ? null : e.target.valueAsNumber
+                          e.target.value === ""
+                            ? null
+                            : Number.isNaN(e.target.valueAsNumber)
+                              ? field.value
+                              : e.target.valueAsNumber,
                         )
                       }
                     />

@@ -135,97 +135,106 @@ export async function restoreSnapshot(input: RestoreSnapshotInput): Promise<void
     nameToId.set(row.name, row.id);
   }
 
-  // 3. Auto-save current state as safety snapshot (D-10)
+  // 3. Gather current state for safety snapshot BEFORE starting the transaction
   const currentList = await getArmyListById(input.list_id);
   const currentUnits = await getArmyListWithUnits(input.list_id);
   const currentEnhancements = await getEnhancementsByList(input.list_id);
 
-  if (currentList) {
-    const exportData = formatArmyListForExport(
-      currentList,
-      currentUnits,
-      currentEnhancements,
-      null,
-    );
-    const safetyBlob = buildJsonFormat(exportData);
-    const safetyPoints = exportData.totalPoints;
+  // Wrap safety snapshot + destructive restore in a single transaction (CR-01)
+  await db.execute("BEGIN TRANSACTION", []);
+  try {
+    // 3b. Auto-save current state as safety snapshot (D-10)
+    if (currentList) {
+      const exportData = formatArmyListForExport(
+        currentList,
+        currentUnits,
+        currentEnhancements,
+        null,
+      );
+      const safetyBlob = buildJsonFormat(exportData);
+      const safetyPoints = exportData.totalPoints;
 
-    await createSnapshot({
-      list_id: input.list_id,
-      label: "Auto-save before restore",
-      snapshot_data: safetyBlob,
-      total_points: safetyPoints,
-    });
-  }
-
-  // 4. Delete all current units (CASCADE deletes enhancements per migration 031)
-  await db.execute("DELETE FROM army_list_units WHERE list_id = $1", [input.list_id]);
-
-  // 5. Re-insert units from snapshot
-  for (const unit of parsed.units) {
-    const realUnitId = nameToId.get(unit.name) ?? null;
-    const ghostName = realUnitId === null ? unit.name : null;
-
-    await db.execute(
-      `INSERT INTO army_list_units (list_id, unit_id, ghost_unit_name, is_warlord, points_override)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [
-        input.list_id,
-        realUnitId,
-        ghostName,
-        unit.is_warlord ? 1 : 0,
-        unit.points,
-      ],
-    );
-  }
-
-  // 6. Re-fetch newly inserted units to map names to new row IDs
-  const newUnitRows = await db.select<{ id: number; match_name: string }[]>(
-    `SELECT id, COALESCE(ghost_unit_name, '') AS match_name
-     FROM army_list_units WHERE list_id = $1`,
-    [input.list_id],
-  );
-
-  // Build lookup: we need unit name -> new army_list_units.id
-  // For non-ghost units, match_name is '' so we need the unit name from the units table
-  const newUnitNameToId = new Map<string, number>();
-  for (const row of newUnitRows) {
-    if (row.match_name) {
-      // Ghost unit — match_name is the ghost_unit_name
-      newUnitNameToId.set(row.match_name, row.id);
+      await db.execute(
+        `INSERT INTO army_list_snapshots (list_id, label, snapshot_data, total_points)
+         VALUES ($1, $2, $3, $4)`,
+        [input.list_id, "Auto-save before restore", safetyBlob, safetyPoints],
+      );
     }
-  }
 
-  // Also look up real unit names via the units table
-  const newUnitRowsFull = await db.select<{ id: number; unit_id: number | null; ghost_unit_name: string | null }[]>(
-    `SELECT alu.id, alu.unit_id, alu.ghost_unit_name
-     FROM army_list_units alu WHERE alu.list_id = $1`,
-    [input.list_id],
-  );
-  for (const row of newUnitRowsFull) {
-    if (row.unit_id !== null) {
-      // Find the unit name from the nameToId map (reverse lookup)
-      for (const [name, uid] of nameToId.entries()) {
-        if (uid === row.unit_id) {
-          newUnitNameToId.set(name, row.id);
-          break;
-        }
+    // 4. Delete all current units (CASCADE deletes enhancements per migration 031)
+    await db.execute("DELETE FROM army_list_units WHERE list_id = $1", [input.list_id]);
+
+    // 5. Re-insert units from snapshot
+    for (const unit of parsed.units) {
+      const realUnitId = nameToId.get(unit.name) ?? null;
+      const ghostName = realUnitId === null ? unit.name : null;
+
+      await db.execute(
+        `INSERT INTO army_list_units (list_id, unit_id, ghost_unit_name, is_warlord, points_override)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          input.list_id,
+          realUnitId,
+          ghostName,
+          unit.is_warlord ? 1 : 0,
+          unit.points,
+        ],
+      );
+    }
+
+    // 6. Re-fetch newly inserted units to map names to new row IDs
+    const newUnitRows = await db.select<{ id: number; match_name: string }[]>(
+      `SELECT id, COALESCE(ghost_unit_name, '') AS match_name
+       FROM army_list_units WHERE list_id = $1`,
+      [input.list_id],
+    );
+
+    // Build lookup: we need unit name -> new army_list_units.id
+    // For non-ghost units, match_name is '' so we need the unit name from the units table
+    const newUnitNameToId = new Map<string, number>();
+    for (const row of newUnitRows) {
+      if (row.match_name) {
+        // Ghost unit — match_name is the ghost_unit_name
+        newUnitNameToId.set(row.match_name, row.id);
       }
-    } else if (row.ghost_unit_name) {
-      newUnitNameToId.set(row.ghost_unit_name, row.id);
     }
-  }
 
-  // 7. Re-insert enhancements from snapshot
-  for (const enh of parsed.enhancements) {
-    if (!enh.assigned_to) continue;
-    const armyListUnitId = newUnitNameToId.get(enh.assigned_to);
-    if (armyListUnitId === undefined) continue; // Skip if assigned unit not found
-
-    await db.execute(
-      `INSERT INTO army_list_enhancements (list_id, army_list_unit_id, enhancement_name, enhancement_points)
-       VALUES ($1, $2, $3, $4)`,
-      [input.list_id, armyListUnitId, enh.name, enh.points],
+    // Also look up real unit names via the units table
+    const newUnitRowsFull = await db.select<{ id: number; unit_id: number | null; ghost_unit_name: string | null }[]>(
+      `SELECT alu.id, alu.unit_id, alu.ghost_unit_name
+       FROM army_list_units alu WHERE alu.list_id = $1`,
+      [input.list_id],
     );
+    for (const row of newUnitRowsFull) {
+      if (row.unit_id !== null) {
+        // Find the unit name from the nameToId map (reverse lookup)
+        for (const [name, uid] of nameToId.entries()) {
+          if (uid === row.unit_id) {
+            newUnitNameToId.set(name, row.id);
+            break;
+          }
+        }
+      } else if (row.ghost_unit_name) {
+        newUnitNameToId.set(row.ghost_unit_name, row.id);
+      }
+    }
+
+    // 7. Re-insert enhancements from snapshot
+    for (const enh of parsed.enhancements) {
+      if (!enh.assigned_to) continue;
+      const armyListUnitId = newUnitNameToId.get(enh.assigned_to);
+      if (armyListUnitId === undefined) continue; // Skip if assigned unit not found
+
+      await db.execute(
+        `INSERT INTO army_list_enhancements (list_id, army_list_unit_id, enhancement_name, enhancement_points)
+         VALUES ($1, $2, $3, $4)`,
+        [input.list_id, armyListUnitId, enh.name, enh.points],
+      );
+    }
+
+    await db.execute("COMMIT", []);
+  } catch (e) {
+    await db.execute("ROLLBACK", []);
+    throw e;
   }
 }

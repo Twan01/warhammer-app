@@ -262,7 +262,7 @@ describe("useCreateAssignment — cache invalidation", () => {
     expect(keys).toContainEqual(RECIPE_ASSIGNMENTS_KEY(7));
   });
 
-  it("invalidates exactly 2 keys on success", async () => {
+  it("invalidates exactly 4 keys on success", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useCreateAssignment(), { wrapper });
 
@@ -271,7 +271,7 @@ describe("useCreateAssignment — cache invalidation", () => {
     });
     await waitFor(() => expect(spy).toHaveBeenCalled());
 
-    expect(spy).toHaveBeenCalledTimes(2);
+    expect(spy).toHaveBeenCalledTimes(4);
   });
 });
 
@@ -307,7 +307,7 @@ describe("useDeleteAssignment — cache invalidation (D-13 symmetry)", () => {
     expect(keys).toContainEqual(RECIPE_ASSIGNMENTS_KEY(7));
   });
 
-  it("invalidates exactly 2 keys — same count as useCreateAssignment (D-13)", async () => {
+  it("invalidates exactly 4 keys — same count as useCreateAssignment (D-13)", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useDeleteAssignment(), { wrapper });
 
@@ -316,7 +316,7 @@ describe("useDeleteAssignment — cache invalidation (D-13 symmetry)", () => {
     });
     await waitFor(() => expect(spy).toHaveBeenCalled());
 
-    expect(spy).toHaveBeenCalledTimes(2);
+    expect(spy).toHaveBeenCalledTimes(4);
   });
 
   it("D-13 symmetry: create and delete invalidate identical cache key shapes", async () => {
@@ -362,7 +362,7 @@ describe("useToggleStepProgress — cache invalidation", () => {
     expect(keys).toContainEqual(STEP_PROGRESS_KEY(5));
   });
 
-  it("invalidates exactly 1 key on success", async () => {
+  it("invalidates exactly 3 keys on success", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useToggleStepProgress(), { wrapper });
 
@@ -371,7 +371,7 @@ describe("useToggleStepProgress — cache invalidation", () => {
     });
     await waitFor(() => expect(spy).toHaveBeenCalled());
 
-    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledTimes(3);
   });
 });
 
@@ -407,7 +407,7 @@ describe("useBulkCreateAssignments — cache invalidation (Pitfall 5)", () => {
     expect(keys).toContainEqual(RECIPE_ASSIGNMENTS_KEY(5));
   });
 
-  it("invalidates exactly 2 keys on success", async () => {
+  it("invalidates exactly 4 keys on success", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useBulkCreateAssignments(), { wrapper });
 
@@ -416,6 +416,6 @@ describe("useBulkCreateAssignments — cache invalidation (Pitfall 5)", () => {
     });
     await waitFor(() => expect(spy).toHaveBeenCalled());
 
-    expect(spy).toHaveBeenCalledTimes(2);
+    expect(spy).toHaveBeenCalledTimes(4);
   });
 });

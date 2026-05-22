@@ -25,7 +25,7 @@ export function useUnitRulesMapping(unitId: number | undefined) {
     queryKey:
       unitId !== undefined
         ? UNIT_RULES_MAPPING_KEY(unitId)
-        : (["unit-rules-mapping"] as const),
+        : (["unit-rules-mapping", "disabled"] as const),
     queryFn: () =>
       unitId !== undefined
         ? getUnitRulesMapping(unitId)

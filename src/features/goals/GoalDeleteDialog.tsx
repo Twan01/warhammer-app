@@ -14,6 +14,7 @@ interface GoalDeleteDialogProps {
   onOpenChange: (open: boolean) => void;
   goal: HobbyGoal | null;
   onConfirm: () => void;
+  isPending?: boolean;
 }
 
 export function GoalDeleteDialog({
@@ -21,6 +22,7 @@ export function GoalDeleteDialog({
   onOpenChange,
   goal,
   onConfirm,
+  isPending,
 }: GoalDeleteDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -34,11 +36,11 @@ export function GoalDeleteDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={onConfirm}>
-            Delete
+          <Button variant="destructive" onClick={onConfirm} disabled={isPending}>
+            {isPending ? "Deleting..." : "Delete"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -3,6 +3,7 @@
  * Fetches recipe names, photo counts, and applied recipe progress in parallel.
  * Query key uses sorted IDs to prevent re-fetch on dnd-kit reorder (Pitfall 2).
  */
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getRecipeNamesByUnitIds, getRecipeById } from "@/db/queries/recipes";
 import { getPhotoCountsByUnitIds } from "@/db/queries/unitPhotos";
@@ -22,7 +23,7 @@ export const KANBAN_ENRICHMENT_KEY = (unitIds: number[]) =>
   ["kanban-enrichment", ...unitIds] as const;
 
 export function useKanbanEnrichment(unitIds: number[]) {
-  const sortedIds = [...unitIds].sort((a, b) => a - b);
+  const sortedIds = useMemo(() => [...unitIds].sort((a, b) => a - b), [unitIds]);
   return useQuery({
     queryKey: KANBAN_ENRICHMENT_KEY(sortedIds),
     queryFn: async (): Promise<KanbanEnrichment> => {

@@ -54,15 +54,15 @@ export function PointsDeltaSection({
         </button>
       </CollapsibleTrigger>
 
-      <p className="mt-1 text-xs">
-        <span className="text-green-600">+{pointsDelta.added} added</span>
-        {" / "}
-        <span className="text-red-600">-{pointsDelta.removed} removed</span>
-        {" / "}
-        <span className="text-amber-600">~{pointsDelta.changed} changed</span>
-      </p>
-
       <CollapsibleContent>
+        <p className="mt-1 text-xs">
+          <span className="text-green-600">+{pointsDelta.added} added</span>
+          {" / "}
+          <span className="text-red-600">-{pointsDelta.removed} removed</span>
+          {" / "}
+          <span className="text-amber-600">~{pointsDelta.changed} changed</span>
+        </p>
+
         <div className="mt-2 max-h-48 overflow-y-auto space-y-1">
           {pointsDelta.details.map((detail, idx) => (
             <div

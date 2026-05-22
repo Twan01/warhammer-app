@@ -21,7 +21,7 @@ export const STRATEGY_NOTE_KEY = (unitId: number) => ["strategy-note", unitId] a
  */
 export function useStrategyNote(unitId: number | undefined) {
   return useQuery({
-    queryKey: unitId !== undefined ? STRATEGY_NOTE_KEY(unitId) : (["strategy-note"] as const),
+    queryKey: unitId !== undefined ? STRATEGY_NOTE_KEY(unitId) : (["strategy-note", "disabled"] as const),
     queryFn: () => (unitId !== undefined ? getStrategyNote(unitId) : Promise.resolve(null)),
     enabled: unitId !== undefined,
     staleTime: Infinity,

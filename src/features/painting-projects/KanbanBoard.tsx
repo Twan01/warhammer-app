@@ -5,6 +5,7 @@ import {
   DragOverlay,
   PointerSensor,
   KeyboardSensor,
+  closestCenter,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -24,6 +25,7 @@ import {
   applyActiveFilter,
   groupByStatus,
   sortKanbanCards,
+  getVisibleColumns,
 } from "./kanbanUtils";
 import { KanbanColumn } from "./KanbanColumn";
 import { KanbanCard } from "./KanbanCard";
@@ -56,12 +58,12 @@ export function KanbanBoard({ onEditUnit, onAddProject, onLogSession }: KanbanBo
   const { data: enrichment } = useKanbanEnrichment(activeUnitIds);
   const { data: workflowPositions } = useWorkflowPositions(activeUnitIds);
 
-  const { grouped } = useMemo(() => {
+  const { grouped, visibleColumns } = useMemo(() => {
     const active = applyActiveFilter(units);
     const g = groupByStatus(active);
     // Sort each bucket
     for (const s of PAINTING_STATUS_ORDER) g[s] = sortKanbanCards(g[s]);
-    return { grouped: g };
+    return { grouped: g, visibleColumns: getVisibleColumns(g) };
   }, [units]);
 
   const sensors = useSensors(
@@ -158,9 +160,9 @@ export function KanbanBoard({ onEditUnit, onAddProject, onLogSession }: KanbanBo
   }
 
   return (
-    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex gap-8 overflow-x-auto px-6 py-4">
-        {PAINTING_STATUS_ORDER.map((status) => (
+        {visibleColumns.map((status) => (
           <KanbanColumn
             key={status}
             status={status}

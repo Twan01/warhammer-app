@@ -35,7 +35,7 @@ export async function upsertRulesFavorite(
      VALUES ($1, $2, $3, $4,
        COALESCE((SELECT created_at FROM rules_favorites WHERE rule_id = $1 AND rule_type = $2), datetime('now')),
        datetime('now'))`,
-    [input.rule_id, input.rule_type, input.rule_name, input.is_reminder]
+    [input.rule_id, input.rule_type, input.rule_name, input.is_reminder ? 1 : 0]
   );
 }
 

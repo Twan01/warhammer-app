@@ -15,7 +15,7 @@ export const UNIT_POINT_TIERS_KEY = (unitId: number) => ["unit-point-tiers", uni
 
 export function useUnitPointTiers(unitId: number | undefined) {
   return useQuery({
-    queryKey: unitId !== undefined ? UNIT_POINT_TIERS_KEY(unitId) : (["unit-point-tiers"] as const),
+    queryKey: unitId !== undefined ? UNIT_POINT_TIERS_KEY(unitId) : (["unit-point-tiers", "disabled"] as const),
     queryFn: () => (unitId !== undefined ? getUnitPointTiers(unitId) : Promise.resolve([])),
     enabled: unitId !== undefined,
   });

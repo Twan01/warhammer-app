@@ -24,7 +24,7 @@ export const UNIT_OVERRIDE_KEY = (unitId: number) => ["unit-override", unitId] a
 export function useUnitOverride(unitId: number | undefined) {
   return useQuery({
     queryKey:
-      unitId !== undefined ? UNIT_OVERRIDE_KEY(unitId) : (["unit-override"] as const),
+      unitId !== undefined ? UNIT_OVERRIDE_KEY(unitId) : (["unit-override", "disabled"] as const),
     queryFn: () =>
       unitId !== undefined ? getUnitOverride(unitId) : Promise.resolve(null),
     enabled: unitId !== undefined,
