@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AlertCircle, ChevronDown, Loader2, Pencil, RefreshCw, X } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,11 +11,10 @@ import { useRulesSync } from "@/hooks/useRulesSync";
 import { useUnitOverride, useUpsertUnitOverride, useDeleteUnitOverride } from "@/hooks/useUnitOverride";
 import type { SyncDiff } from "@/lib/computeSyncDiff";
 import type { UpsertUnitOverrideInput } from "@/types/unitOverride";
-import { getSyncFreshness, getSyncAgeLabel, FRESHNESS_DOT_CLASS } from "@/lib/syncFreshness";
 import { useRulesSyncErrors } from "@/hooks/useSyncErrors";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
-import { relativeDate } from "@/lib/dates";
+import { PlaybookStats, STAT_KEYS } from "@/features/units/PlaybookStats";
+import type { StatKey } from "@/features/units/PlaybookStats";
+import { PlaybookSyncDetails } from "@/features/units/PlaybookSyncDetails";
 import {
   useStratagemsByFaction,
   useDetachmentsByFaction,
@@ -55,10 +54,6 @@ interface PlaybookTabProps {
   onClearImportResolution?: () => void;
 }
 
-type StatKey = "M" | "T" | "Sv" | "W" | "Ld" | "OC";
-
-const STAT_KEYS: StatKey[] = ["M", "T", "Sv", "W", "Ld", "OC"];
-
 const STRATEGY_NOTE_FIELDS: ReadonlyArray<{
   key:
     | "battlefield_role"
@@ -87,21 +82,6 @@ const TEXTAREA_CLASS =
 
 const SECTION_LABEL_CLASS =
   "text-xs font-semibold text-muted-foreground uppercase tracking-wide";
-
-function formatStatValue(key: StatKey, value: number | null): React.ReactNode {
-  if (value === null) {
-    return <span className="text-muted-foreground">—</span>;
-  }
-  if (key === "M") return `${value}"`;
-  if (key === "Sv" || key === "Ld" || key === "OC") return `${value}+`;
-  return `${value}`;
-}
-
-function parseNumberInput(raw: string): number | null {
-  if (raw === "") return null;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : null;
-}
 
 export function PlaybookTab({
   unitId,
@@ -614,318 +594,42 @@ export function PlaybookTab({
       aria-busy={isLoading}
     >
       {/* Stats section */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <span className={SECTION_LABEL_CLASS}>Stats</span>
-          <div className="flex items-center gap-2">
-            {syncMeta && (() => {
-              const freshness = getSyncFreshness(syncMeta.last_sync_at);
-              const ageLabel = getSyncAgeLabel(syncMeta.last_sync_at);
-              return (
-                <div className="flex items-center gap-1.5">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className={`inline-block w-2 h-2 rounded-full ${FRESHNESS_DOT_CLASS[freshness]}`} />
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">{ageLabel}</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  <span className="text-xs text-muted-foreground">
-                    Last synced: {formatSyncDate(syncMeta.last_sync_at)}
-                  </span>
-                </div>
-              );
-            })()}
-            {syncMeta && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setPickerOpen(true)}
-                disabled={!wahapediaFactionId}
-              >
-                {hasDatasheetLink ? "Re-import" : "Import stats"}
-              </Button>
-            )}
-            {syncMeta && hasDatasheetLink && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label="Re-sync datasheets"
-                onClick={handleSyncClick}
-                disabled={rulesSync.isPending}
-              >
-                {rulesSync.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" aria-hidden="true" />
-                )}
-              </Button>
-            )}
-            {overrideRow && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      aria-label="Clear all overrides"
-                      onClick={() => {
-                        deleteOverride.mutate(unitId, {
-                          onSuccess: () => toast.success("Overrides cleared"),
-                          onError: () => toast.error("Failed to clear overrides"),
-                        });
-                      }}
-                    >
-                      <X className="h-3.5 w-3.5" aria-hidden="true" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top">Clear all overrides</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              aria-label="Edit stats"
-              onClick={() => setStatsEditMode((v) => !v)}
-            >
-              <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
-            </Button>
-          </div>
-        </div>
+      <PlaybookStats
+        unitId={unitId}
+        syncMeta={syncMeta}
+        overrideRow={overrideRow}
+        hasDatasheetLink={hasDatasheetLink}
+        hasMultipleProfiles={hasMultipleProfiles}
+        statsEditMode={statsEditMode}
+        onToggleStatsEditMode={() => setStatsEditMode((v) => !v)}
+        wahapediaFactionId={wahapediaFactionId}
+        onPickerOpen={() => setPickerOpen(true)}
+        onSyncClick={handleSyncClick}
+        isSyncing={rulesSync.isPending}
+        onDeleteOverride={(id) => {
+          deleteOverride.mutate(id, {
+            onSuccess: () => toast.success("Overrides cleared"),
+            onError: () => toast.error("Failed to clear overrides"),
+          });
+        }}
+        statValue={statValue}
+        setStat={setStat}
+        importedStatValue={importedStatValue}
+        isStatOverridden={isStatOverridden}
+        pointsOverrideValue={pointsOverrideValue}
+        onPointsOverrideChange={setPointsOverrideValue}
+        unitPoints={unit?.points}
+        formatSyncDate={formatSyncDate}
+      />
 
-        {/* Sync Details -- collapsible section showing version + row counts + error history */}
-        {syncMeta && syncMeta.last_sync_at && (
-          <div className="flex flex-col gap-1">
-            <Collapsible>
-              <CollapsibleTrigger className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                <ChevronDown className="h-3 w-3" />
-                <span>Sync details</span>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pt-1.5 pl-4">
-                <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
-                  {/* META-03: Wahapedia version */}
-                  {syncMeta.wahapedia_version && (
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Source:</span>
-                      <span>Wahapedia {syncMeta.wahapedia_version}</span>
-                    </div>
-                  )}
-                  {/* META-02: Per-table row counts (matching post-sync toast: datasheets, stratagems, abilities, wargear, keywords) */}
-                  {syncMeta.datasheets_count != null && (
-                    <div className="flex flex-wrap gap-x-3 gap-y-0.5">
-                      <span>{syncMeta.datasheets_count} datasheets</span>
-                      <span>{syncMeta.stratagems_count ?? 0} stratagems</span>
-                      <span>{syncMeta.abilities_count ?? 0} abilities</span>
-                      <span>{syncMeta.wargear_count ?? 0} wargear</span>
-                      <span>{syncMeta.keywords_count ?? 0} keywords</span>
-                    </div>
-                  )}
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-
-            {/* META-04: Error history -- only shown when errors exist */}
-            {syncErrors.length > 0 && (
-              <Collapsible>
-                <CollapsibleTrigger className="flex items-center gap-1 text-xs text-destructive/80 hover:text-destructive transition-colors">
-                  <AlertCircle className="h-3 w-3" />
-                  <span>Sync errors ({syncErrors.length})</span>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-1.5 pl-4">
-                  <div className="flex flex-col gap-1 text-xs">
-                    {syncErrors.slice(0, 10).map((err) => (
-                      <div key={err.id} className="flex items-start gap-2 text-muted-foreground">
-                        <Badge variant="outline" className="text-[10px] px-1 py-0 shrink-0">
-                          {err.error_type.replace("_", " ")}
-                        </Badge>
-                        <span className="flex-1 break-words">{err.message}</span>
-                        <span className="shrink-0 tabular-nums">{relativeDate(err.occurred_at)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            )}
-
-            {/* OVRD-06/07: Post-sync diff view */}
-            {lastSyncDiff && lastSyncDiff.total_changed > 0 && (
-              <Collapsible>
-                <CollapsibleTrigger className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                  <ChevronDown className="h-3 w-3 transition-transform data-[state=open]:rotate-180" aria-hidden="true" />
-                  <span>Changes since last sync ({lastSyncDiff.total_changed})</span>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-1.5 pl-4 flex flex-col gap-1.5">
-                  {lastSyncDiff.removed.length > 0 && (
-                    <div className="flex flex-col gap-0.5">
-                      <div className="flex items-center gap-1">
-                        <AlertCircle className="h-3 w-3 text-destructive" aria-hidden="true" />
-                        <span className="text-xs font-semibold text-destructive">Removed ({lastSyncDiff.removed.length})</span>
-                      </div>
-                      {lastSyncDiff.removed.map((d) => (
-                        <span key={d.id} className="text-xs text-muted-foreground pl-4">{d.name}</span>
-                      ))}
-                    </div>
-                  )}
-                  {lastSyncDiff.renamed.length > 0 && (
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-xs font-semibold text-muted-foreground">Renamed ({lastSyncDiff.renamed.length})</span>
-                      {lastSyncDiff.renamed.map((d) => (
-                        <span key={d.id} className="text-xs text-muted-foreground pl-4">
-                          {d.oldName} &rarr; {d.newName}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  {lastSyncDiff.modified.length > 0 && (
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-xs font-semibold text-muted-foreground">
-                        Modified ({lastSyncDiff.modified.length})
-                      </span>
-                      {lastSyncDiff.modified.map((d) => (
-                        <div key={d.id} className="flex flex-col gap-0.5 pl-4">
-                          <span className="text-xs text-muted-foreground font-medium">{d.name}</span>
-                          {d.changes.slice(0, 5).map((c, i) => (
-                            <span key={i} className="text-xs text-muted-foreground pl-2">
-                              {c.oldValue && c.newValue
-                                ? `${c.field}: ${c.oldValue} → ${c.newValue}`
-                                : c.newValue
-                                  ? `+${c.field}`
-                                  : `-${c.field}`}
-                            </span>
-                          ))}
-                          {d.changes.length > 5 && (
-                            <span className="text-xs text-muted-foreground pl-2 italic">
-                              &hellip;and {d.changes.length - 5} more
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {lastSyncDiff.added.length > 0 && (
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-xs font-semibold text-muted-foreground">Added ({lastSyncDiff.added.length})</span>
-                      {lastSyncDiff.added.map((d) => (
-                        <span key={d.id} className="text-xs text-muted-foreground pl-4">{d.name}</span>
-                      ))}
-                    </div>
-                  )}
-                </CollapsibleContent>
-              </Collapsible>
-            )}
-          </div>
-        )}
-
-        {/* Empty-rules-db banner — shown when no syncMeta */}
-        {!syncMeta && (
-          <div className="rounded-md border border-border bg-card px-3 py-2 text-sm text-muted-foreground">
-            Sync datasheets to auto-fill stats.{" "}
-            <button
-              type="button"
-              className="underline underline-offset-2 hover:text-foreground"
-              onClick={handleSyncClick}
-              disabled={rulesSync.isPending}
-            >
-              {rulesSync.isPending ? "Syncing…" : "Sync now"}
-            </button>
-          </div>
-        )}
-
-        {/* OVRD-01: Points override — visible in edit mode when unit has linked datasheet */}
-        {hasDatasheetLink && statsEditMode && (
-          <div className="flex items-center gap-2 px-1">
-            <span className="text-xs font-medium text-muted-foreground w-16">Points</span>
-            <Input
-              type="number"
-              min={0}
-              placeholder={unit?.points != null ? String(unit.points) : "—"}
-              value={pointsOverrideValue}
-              onChange={(e) => setPointsOverrideValue(e.target.value)}
-              className="h-7 w-24 text-sm tabular-nums"
-              aria-label="Points override"
-            />
-            {overrideRow?.points != null && (
-              <span className="text-[10px] text-muted-foreground">
-                (imported: {unit?.points ?? "—"})
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* OVRD-01: Points override display — visible in view mode when a points override is active */}
-        {hasDatasheetLink && !statsEditMode && overrideRow?.points != null && (
-          <div className="flex items-center gap-2 px-1">
-            <span className="text-xs font-medium text-muted-foreground w-16">Points</span>
-            <span className="text-sm font-semibold tabular-nums">{overrideRow.points} pts</span>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Pencil className="h-2.5 w-2.5 text-primary cursor-help" aria-hidden="true" />
-                </TooltipTrigger>
-                <TooltipContent side="top">
-                  Manual override — imported value: {unit?.points ?? "—"} pts
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        )}
-
-        <div className="flex flex-row gap-1">
-          {STAT_KEYS.map((key) => (
-            <div
-              key={key}
-              className={`relative flex-1 flex flex-col items-center justify-center min-h-[44px] border ${
-                isStatOverridden(key) ? "border-primary bg-primary/5" : statsEditMode ? "border-primary" : "border-border"
-              } rounded-sm bg-card gap-1 px-1 py-2`}
-            >
-              <span className="text-[10px] font-semibold text-muted-foreground uppercase">
-                {key}
-              </span>
-              {isStatOverridden(key) && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Pencil className="h-2.5 w-2.5 text-primary absolute top-1 right-1 cursor-help" aria-hidden="true" />
-                    </TooltipTrigger>
-                    <TooltipContent side="top">
-                      Manual override — imported value: {formatStatValue(key, importedStatValue(key))}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-              {statsEditMode ? (
-                <Input
-                  type="number"
-                  min={0}
-                  value={statValue(key) ?? ""}
-                  onChange={(e) => setStat(key, parseNumberInput(e.target.value))}
-                  className="h-7 text-center text-base font-semibold p-0 border-0 bg-transparent"
-                  aria-label={`${key} value`}
-                />
-              ) : (
-                <span className="text-base font-semibold text-foreground tabular-nums">
-                  {formatStatValue(key, statValue(key))}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* DS-12 multi-profile note */}
-        {hasMultipleProfiles && (
-          <p className="text-xs text-muted-foreground mt-1">
-            Additional model profiles available — see Datasheet Abilities for details.
-          </p>
-        )}
-      </div>
+      {/* Sync Details */}
+      {syncMeta && (
+        <PlaybookSyncDetails
+          syncMeta={syncMeta}
+          syncErrors={syncErrors}
+          lastSyncDiff={lastSyncDiff}
+        />
+      )}
 
       <Separator />
 
