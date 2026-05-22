@@ -11,8 +11,8 @@ import {
   computeSectionDiff,
   buildSectionIdMap,
   computeStepDiff,
-} from "@/features/recipes/recipeDiff";
-import type { DraftSection } from "@/features/recipes/recipeSection";
+} from "@/lib/recipeDiff";
+import type { DraftSection } from "@/types/recipe";
 import type { RecipeSection } from "@/types/recipeSection";
 import type { RecipeStep } from "@/types/recipePaint";
 

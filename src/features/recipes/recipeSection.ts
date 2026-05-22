@@ -7,30 +7,12 @@
  * draft state model used by the section form (manual useState pattern;
  * useFieldArray is NOT used — see project decision RHF #10607).
  */
-import type { DraftStep } from "./recipeSteps";
+import type { DraftStep, DraftSection } from "@/types/recipe";
 import type { RecipeSection } from "@/types/recipeSection";
 import type { RecipeStep } from "@/types/recipePaint";
 
-// ---------------------------------------------------------------------------
-// DraftSection — form-level representation of a recipe section
-// ---------------------------------------------------------------------------
-
-export interface DraftSection {
-  /** UUID assigned at draft creation; never stored in DB */
-  localId: string;
-  dbId: number | null;
-  name: string;
-  surface: string | null;
-  /** 0 = required, 1 = skippable */
-  optional: number;
-  notes: string | null;
-  // Phase 57 — workflow metadata (WF-01..04)
-  section_type: string | null;
-  technique: string | null;
-  execution_mode: string | null;
-  applies_to: string | null;
-  steps: DraftStep[];
-}
+// Re-export DraftSection from types for consumers that import from here
+export type { DraftSection } from "@/types/recipe";
 
 // ---------------------------------------------------------------------------
 // makeDraftSection — factory for a new empty section

@@ -4,7 +4,7 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 
 import { usePaints } from "@/hooks/usePaints";
 import { useRecipeSections } from "@/hooks/useRecipeSections";
-import { isPaintMissing } from "@/features/recipes/recipeSteps";
+import { isPaintMissing } from "@/lib/recipeSteps";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { SectionNavigator } from "./SectionNavigator";

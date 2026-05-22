@@ -1,6 +1,6 @@
 import { getDb } from "@/db/client";
 import type { HobbyGoal, CreateGoalInput, UpdateGoalInput } from "@/types/goal";
-import { computeGoalPeriod } from "@/features/goals/computeGoalPeriod";
+import { computeGoalPeriod } from "@/lib/computeGoalPeriod";
 
 /**
  * Hobby Goals CRUD + progress queries (ANLY-01..02).

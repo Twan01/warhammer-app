@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Pencil, Trash2, XCircle } from "lucide-react";
-import { computeGoalPeriod, deriveGoalStatus } from "@/features/goals/computeGoalPeriod";
+import { computeGoalPeriod, deriveGoalStatus } from "@/lib/computeGoalPeriod";
 import type { HobbyGoal } from "@/types/goal";
 
 interface GoalCardProps {

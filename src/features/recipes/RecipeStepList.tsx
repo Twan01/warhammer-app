@@ -15,7 +15,8 @@ import {
 } from "@dnd-kit/sortable";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { type DraftStep, makeDraftStep } from "./recipeSteps";
+import type { DraftStep } from "@/types/recipe";
+import { makeDraftStep } from "@/lib/recipeSteps";
 import { RecipeStepRow } from "./RecipeStepRow";
 
 export interface RecipeStepListProps {

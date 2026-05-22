@@ -2,10 +2,9 @@ import { getDb } from "@/db/client";
 import type { PaintingRecipe, CreateRecipeInput, UpdateRecipeInput } from "@/types/recipe";
 import type { RecipeStep } from "@/types/recipePaint";
 import type { RecipeSection } from "@/types/recipeSection";
-import type { DraftSection } from "@/features/recipes/recipeSection";
-import type { RecipeFormValues } from "@/features/recipes/recipeSchema";
-import { computeSectionDiff, computeStepDiff, buildSectionIdMap } from "@/features/recipes/recipeDiff";
-import { computeOrderIndex } from "@/features/recipes/recipeSteps";
+import type { DraftSection, RecipeFormValues } from "@/types/recipe";
+import { computeSectionDiff, computeStepDiff, buildSectionIdMap } from "@/lib/recipeDiff";
+import { computeOrderIndex } from "@/lib/recipeSteps";
 
 export async function getRecipes(): Promise<PaintingRecipe[]> {
   const db = await getDb();

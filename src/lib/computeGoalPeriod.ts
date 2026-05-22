@@ -1,3 +1,10 @@
+/**
+ * Pure date logic for hobby goal period computation.
+ *
+ * Relocated from src/features/goals/computeGoalPeriod.ts to src/lib/ so the
+ * query layer (src/db/queries/goals.ts) can import it without crossing the
+ * feature boundary. All functions are pure — no async, no DB, no React.
+ */
 import { todayISO } from "@/lib/dates";
 import type { GoalTimeframe } from "@/types/goal";
 
@@ -18,8 +25,8 @@ const MONTH_NAMES = [
 /**
  * Derives start/end dates, label, and expiry for a given period key.
  *
- * - month: period = "YYYY-MM" → startDate = first day, endDate = last day
- * - quarter: period = "YYYY-QN" → startDate = first day of Q, endDate = last day of Q
+ * - month: period = "YYYY-MM" -> startDate = first day, endDate = last day
+ * - quarter: period = "YYYY-QN" -> startDate = first day of Q, endDate = last day of Q
  *
  * isExpired: true when todayISO() is strictly after endDate (i.e., today > endDate).
  */
@@ -56,8 +63,8 @@ export function computeGoalPeriod(timeframe: GoalTimeframe, period: string): Goa
 
 /**
  * Returns the current period key for a given timeframe.
- * month → "YYYY-MM"
- * quarter → "YYYY-QN"
+ * month -> "YYYY-MM"
+ * quarter -> "YYYY-QN"
  */
 export function currentPeriod(timeframe: GoalTimeframe): string {
   const today = todayISO();
@@ -76,9 +83,9 @@ export function currentPeriod(timeframe: GoalTimeframe): string {
  * Derives goal status.
  *
  * ORDER IS CRITICAL (Pitfall 4):
- * 1. Check completed FIRST (progressCount >= targetCount) — even expired goals are "completed"
- * 2. Then check isExpired → "missed"
- * 3. Default → "active"
+ * 1. Check completed FIRST (progressCount >= targetCount) -- even expired goals are "completed"
+ * 2. Then check isExpired -> "missed"
+ * 3. Default -> "active"
  */
 export function deriveGoalStatus(
   progressCount: number,

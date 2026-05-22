@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateGoal, useUpdateGoal } from "@/hooks/useGoals";
-import { currentPeriod } from "@/features/goals/computeGoalPeriod";
+import { currentPeriod } from "@/lib/computeGoalPeriod";
 import { goalSchema, GOAL_TIMEFRAMES, type GoalFormValues } from "@/features/goals/goalSchema";
 import type { HobbyGoal } from "@/types/goal";
 

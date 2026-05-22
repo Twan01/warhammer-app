@@ -2,7 +2,7 @@ import type { RecipeStep } from "@/types/recipePaint";
 import type { Paint } from "@/types/paint";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Paintbrush, Droplets } from "lucide-react";
-import { isPaintMissing } from "./recipeSteps";
+import { isPaintMissing } from "@/lib/recipeSteps";
 
 export interface RecipeStepTimelineProps {
   steps: RecipeStep[];
