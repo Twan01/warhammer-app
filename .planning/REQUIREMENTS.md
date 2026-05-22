@@ -40,10 +40,10 @@ Requirements for Army Lists 3.0 — Smart List Builder. Each maps to roadmap pha
 
 ### Version Snapshots
 
-- [ ] **SNP-01**: User can save the current army list state as a named snapshot
-- [ ] **SNP-02**: User can view a history of saved snapshots with timestamps and point totals
-- [ ] **SNP-03**: User can compare two snapshots side-by-side (units added/removed, points delta)
-- [ ] **SNP-04**: User can restore a list to a previous snapshot state
+- [x] **SNP-01**: User can save the current army list state as a named snapshot
+- [x] **SNP-02**: User can view a history of saved snapshots with timestamps and point totals
+- [x] **SNP-03**: User can compare two snapshots side-by-side (units added/removed, points delta)
+- [x] **SNP-04**: User can restore a list to a previous snapshot state
 
 ## Future Requirements
 
@@ -87,10 +87,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXP-02 | Phase 94 | Complete |
 | EXP-03 | Phase 94 | Complete |
 | EXP-04 | Phase 94 | Complete |
-| SNP-01 | Phase 95 | Pending |
-| SNP-02 | Phase 95 | Pending |
-| SNP-03 | Phase 95 | Pending |
-| SNP-04 | Phase 95 | Pending |
+| SNP-01 | Phase 95 | Complete |
+| SNP-02 | Phase 95 | Complete |
+| SNP-03 | Phase 95 | Complete |
+| SNP-04 | Phase 95 | Complete |
 
 **Coverage:**
 
