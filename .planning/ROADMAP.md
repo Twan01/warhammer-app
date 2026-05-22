@@ -139,7 +139,7 @@ Full details: `.planning/milestones/v0.2.18-ROADMAP.md`
 - [x] **Phase 96: Database Hardening** (1/1 plans) - Indexes, CHECK constraints, and WAL mode on main DB -- completed 2026-05-22
 - [ ] **Phase 97: Error Resilience** (2 plans) - Error boundaries, DB health check gate, global error handlers
 - [ ] **Phase 98: Performance Optimization** - Code splitting, precise invalidation, batched queries, memoization
-- [ ] **Phase 99: Architecture Cleanup** (3 plans) - Eliminate circular deps, decompose mega components, extract state machine
+- [x] **Phase 99: Architecture Cleanup** (3/3 plans) - Eliminate circular deps, decompose mega components, extract state machine -- completed 2026-05-22
 
 ## Phase Details
 
@@ -197,9 +197,9 @@ Plans:
   4. ArmyListsPage modal state is managed by a reducer or state machine instead of 14+ individual useState calls -- the page behavior is identical but the state logic is centralized and testable
 **Plans**: 3 plans
 Plans:
-- [ ] 99-01-PLAN.md -- Query-layer isolation (ARCH-01) + ArmyListsPage reducer (ARCH-04)
-- [ ] 99-02-PLAN.md -- PlaybookTab decomposition into 5 sub-components (ARCH-02)
-- [ ] 99-03-PLAN.md -- UnitSheet decomposition into form sections (ARCH-03)
+- [x] 99-01-PLAN.md -- Query-layer isolation (ARCH-01) + ArmyListsPage reducer (ARCH-04) -- completed 2026-05-22
+- [x] 99-02-PLAN.md -- PlaybookTab decomposition into 5 sub-components (ARCH-02) -- completed 2026-05-22
+- [x] 99-03-PLAN.md -- UnitSheet decomposition into form sections (ARCH-03) -- completed 2026-05-22
 
 ## Progress
 

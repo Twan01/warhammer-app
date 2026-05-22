@@ -31,10 +31,10 @@ Requirements for the Robustness & Architecture Hardening milestone. Each maps to
 
 ### Architecture Cleanup
 
-- [ ] **ARCH-01**: DB query layer has zero imports from src/features/ -- all shared logic lives in src/lib/ or src/types/
-- [ ] **ARCH-02**: PlaybookTab.tsx is decomposed into sub-tab components (each under 300 lines)
-- [ ] **ARCH-03**: UnitSheet.tsx is decomposed into form section components (each under 200 lines)
-- [ ] **ARCH-04**: ArmyListsPage modal state uses a reducer or state machine instead of 14+ individual useState calls
+- [x] **ARCH-01**: DB query layer has zero imports from src/features/ -- all shared logic lives in src/lib/ or src/types/
+- [x] **ARCH-02**: PlaybookTab.tsx is decomposed into sub-tab components (each under 300 lines)
+- [x] **ARCH-03**: UnitSheet.tsx is decomposed into form section components (each under 200 lines)
+- [x] **ARCH-04**: ArmyListsPage modal state uses a reducer or state machine instead of 14+ individual useState calls
 
 ## Future Requirements
 
@@ -73,10 +73,10 @@ Requirements for the Robustness & Architecture Hardening milestone. Each maps to
 | PERF-02 | Phase 98 | Complete |
 | PERF-03 | Phase 98 | Complete |
 | PERF-04 | Phase 98 | Complete |
-| ARCH-01 | Phase 99 | Pending |
-| ARCH-02 | Phase 99 | Pending |
-| ARCH-03 | Phase 99 | Pending |
-| ARCH-04 | Phase 99 | Pending |
+| ARCH-01 | Phase 99 | Complete |
+| ARCH-02 | Phase 99 | Complete |
+| ARCH-03 | Phase 99 | Complete |
+| ARCH-04 | Phase 99 | Complete |
 
 **Coverage:**
 - v0.3.0 requirements: 17 total
