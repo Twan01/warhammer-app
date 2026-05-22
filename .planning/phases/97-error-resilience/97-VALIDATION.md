@@ -38,10 +38,11 @@ created: 2026-05-22
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 97-01-01 | 01 | 1 | ERR-01 | unit | `pnpm test -- tests/common/RouteErrorFallback.test.tsx` | ❌ W0 | ⬜ pending |
-| 97-01-02 | 01 | 1 | ERR-02 | unit | `pnpm test -- tests/common/RouteErrorFallback.test.tsx` | ❌ W0 | ⬜ pending |
-| 97-01-03 | 01 | 1 | ERR-03 | unit | `pnpm test -- tests/common/DbHealthGate.test.tsx` | ❌ W0 | ⬜ pending |
-| 97-01-04 | 01 | 1 | ERR-04 | unit | `pnpm test -- tests/common/GlobalErrorHandlers.test.tsx` | ❌ W0 | ⬜ pending |
+| 97-01-01 | 01 | 1 | ERR-01, ERR-02 | unit | `pnpm test -- tests/error-resilience/RouteErrorFallback.test.tsx` | ❌ W0 | ⬜ pending |
+| 97-01-02 | 01 | 1 | ERR-02 | unit | `pnpm test -- tests/error-resilience/routerErrorComponents.test.ts` | ❌ W0 | ⬜ pending |
+| 97-02-01 | 02 | 1 | ERR-03 | unit | `pnpm test -- tests/error-resilience/DbHealthGate.test.tsx` | ❌ W0 | ⬜ pending |
+| 97-02-02 | 02 | 1 | ERR-04 | unit | `pnpm test -- tests/error-resilience/QueryProviderGlobalError.test.tsx` | ❌ W0 | ⬜ pending |
+| 97-02-03 | 02 | 1 | ERR-04 | unit | `pnpm test -- tests/error-resilience/globalErrorHandlers.test.ts` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -49,6 +50,8 @@ created: 2026-05-22
 
 ## Wave 0 Requirements
 
-- [ ] `tests/common/RouteErrorFallback.test.tsx` — stubs for ERR-01, ERR-02
-- [ ] `tests/common/DbHealthGate.test.tsx` — stubs for ERR-03
-- [ ] `tests/common/GlobalErrorHandlers.test.tsx` — stubs for ERR-04
+- [ ] `tests/error-resilience/RouteErrorFallback.test.tsx` — stubs for ERR-01, ERR-02
+- [ ] `tests/error-resilience/routerErrorComponents.test.ts` — stubs for ERR-02 route isolation
+- [ ] `tests/error-resilience/DbHealthGate.test.tsx` — stubs for ERR-03
+- [ ] `tests/error-resilience/QueryProviderGlobalError.test.tsx` — stubs for ERR-04 React Query
+- [ ] `tests/error-resilience/globalErrorHandlers.test.ts` — stubs for ERR-04 window handlers

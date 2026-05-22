@@ -616,17 +616,17 @@ The `react-error-boundary` package is not installed and not needed for this phas
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Schema version constant maintenance**
    - What we know: There are 32 migration files; the expected `user_version` is 32
    - What's unclear: Should the constant be derived programmatically (e.g., injected by Vite from migration file count) or hardcoded with a comment?
-   - Recommendation: Hardcode as `const EXPECTED_SCHEMA_VERSION = 32` with a comment pointing to the migrations directory. Hardcoding is simpler and the value rarely changes mid-phase.
+   - RESOLVED: Hardcode as `const EXPECTED_SCHEMA_VERSION = 32` with a comment pointing to the migrations directory. Hardcoding is simpler and the value rarely changes mid-phase.
 
 2. **LoadingScreen during DB health check**
    - What we know: The health check is ~2ms; a loading state will flash briefly
    - What's unclear: Should there be a visible loading spinner or just a blank/themed screen?
-   - Recommendation: Return `null` or a minimal styled div (app background color) during the "checking" state — the check completes before the next paint frame in normal operation. Only show content on "failed".
+   - RESOLVED: Return `null` during the "checking" state — the check completes before the next paint frame in normal operation. Only show content on "failed".
 
 ---
 
