@@ -402,7 +402,7 @@ Plans:
 | 92. Leader Attachment | v0.2.18 | 0/2 | Not started | - |
 | 93. Datasheet Browser + Ghost Units | v0.2.18 | 0/2 | Not started | - |
 | 94. List Export | v0.2.18 | 2/2 | Complete    | 2026-05-21 |
-| 95. Version Snapshots | v0.2.18 | 2/2 | Complete   | 2026-05-22 |
+| 95. Version Snapshots | v0.2.18 | 2/2 | Complete    | 2026-05-22 |
 
 <details>
 <summary>✅ v0.1.1 HobbyForge MVP (Phases 1-5) — SHIPPED 2024-05-01</summary>
