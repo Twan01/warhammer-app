@@ -1,103 +1,88 @@
-# Requirements: HobbyForge v0.2.18
+# Requirements: HobbyForge v0.3.0
 
-**Defined:** 2026-05-20
-**Core Value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play"
+**Defined:** 2026-05-22
+**Core Value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with reliable backup/restore so local data is always recoverable
 
-## v0.2.18 Requirements
+## v0.3.0 Requirements
 
-Requirements for Army Lists 3.0 — Smart List Builder. Each maps to roadmap phases.
+Requirements for the Robustness & Architecture Hardening milestone. Each maps to roadmap phases.
 
-### Data Layer & Foundation
+### Error Handling & Resilience
 
-- [x] **DL-01**: User can select model count tier for a unit in the army list, and points auto-resolve from synced_unit_point_tiers
-- [x] **DL-02**: User can see wargear/loadout options for a unit from BSData (display-only — wargear is free in 10th ed)
-- [x] **DL-03**: Units in army list display in stable insertion order (newest at bottom)
-- [x] **DL-04**: User can designate one unit as Warlord in the army list
+- [ ] **ERR-01**: App renders a fallback UI (not blank screen) when any component throws during render
+- [ ] **ERR-02**: Each route has its own error boundary — a crash on one page doesn't break other pages
+- [ ] **ERR-03**: App verifies DB connection and schema integrity before rendering the main layout
+- [ ] **ERR-04**: Unhandled promise rejections and uncaught errors are captured and logged (not silently swallowed)
+- [ ] **ERR-05**: Main database uses WAL journal mode and busy_timeout (matching rules-client.ts)
 
-### Enhancements
+### Database Hardening
 
-- [ ] **ENH-01**: User can browse detachment enhancements and assign one to a character unit, points auto-added to list total
-- [ ] **ENH-02**: List validates enhancement rules: max 3 per army, no duplicates, character-only, excluded from Epic Heroes
-- [ ] **ENH-03**: Enhancement points shown separately in army list summary bar with breakdown
+- [ ] **DBH-01**: All foreign key columns have database indexes (units.faction_id, recipe_steps.recipe_id, army_list_units.list_id, painting_sessions.unit_id, battle_logs.army_list_id, painting_recipes.faction_id, painting_recipes.unit_id, recipe_sections.recipe_id)
+- [ ] **DBH-02**: Temporal query columns have indexes (painting_sessions.session_date DESC, battle_logs.battle_date DESC)
+- [ ] **DBH-03**: Data integrity CHECK constraints prevent invalid values (points >= 0, quantity >= 0, painting_percentage BETWEEN 0 AND 100)
+- [ ] **DBH-04**: Sync/import operations use batched INSERT statements instead of N individual INSERTs
 
-### Leader Attachment
+### Performance
 
-- [ ] **LDR-01**: User can attach a character unit as leader to a valid target unit, with valid pairings shown from synced_leader_targets
-- [ ] **LDR-02**: Attached leader shown visually grouped with their target unit in the list
+- [ ] **PERF-01**: Route pages are lazy-loaded via React.lazy() — only the current page's code loads on navigation
+- [ ] **PERF-02**: Mutation invalidation chains are precise — each mutation only invalidates queries actually affected by it
+- [ ] **PERF-03**: Kanban enrichment fetches assignments and recipe data in batched queries instead of N sequential per-unit calls
+- [ ] **PERF-04**: High-frequency render components (KanbanCard, ArmyListUnitRow, CurrentFocusCard) are wrapped with React.memo
 
-### Browsing & Planning
+### Architecture Cleanup
 
-- [ ] **BRW-01**: User can browse all faction datasheets from army list context (not just owned collection)
-- [ ] **BRW-02**: User can add unowned datasheets as "planned" units in the list, clearly marked vs owned
-- [ ] **BRW-03**: Ghost/planned units do not appear in Collection, Dashboard stats, or Kanban
-
-### Export
-
-- [x] **EXP-01**: User can copy army list as formatted text to clipboard (for Discord/forums)
-- [x] **EXP-02**: User can view a print-friendly layout and print via browser print dialog
-- [x] **EXP-03**: User can export army list as structured JSON file via save dialog
-- [x] **EXP-04**: User can export army list as PDF file via jsPDF
-
-### Version Snapshots
-
-- [x] **SNP-01**: User can save the current army list state as a named snapshot
-- [x] **SNP-02**: User can view a history of saved snapshots with timestamps and point totals
-- [x] **SNP-03**: User can compare two snapshots side-by-side (units added/removed, points delta)
-- [x] **SNP-04**: User can restore a list to a previous snapshot state
+- [ ] **ARCH-01**: DB query layer has zero imports from src/features/ — all shared logic lives in src/lib/ or src/types/
+- [ ] **ARCH-02**: PlaybookTab.tsx is decomposed into sub-tab components (each under 300 lines)
+- [ ] **ARCH-03**: UnitSheet.tsx is decomposed into form section components (each under 200 lines)
+- [ ] **ARCH-04**: ArmyListsPage modal state uses a reducer or state machine instead of 14+ individual useState calls
 
 ## Future Requirements
 
-Deferred to next milestone. Tracked but not in current roadmap.
+### Potential v0.3.1+
 
-### Advanced List Building
-
-- **ADV-01**: Crusade roster tracking with experience and battle honors
-- **ADV-02**: BattleScribe .rosz import for list migration
-- **ADV-03**: Kill Team list support
+- **FUT-01**: Virtualized lists for 1000+ item collections
+- **FUT-02**: Branded ID types for compile-time ID safety (ListId vs UnitId)
+- **FUT-03**: Generic filter utility replacing per-feature applyFilters implementations
+- **FUT-04**: Component-level error logging to persistent storage (not just console)
+- **FUT-05**: Vite build config optimization (rollupOptions chunk splitting, explicit build targets)
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Competitive list optimization / net-listing | Explicitly not the goal — hobby tool, not competitive optimizer |
-| Real-time auto-sync of rules data | Local-first, user triggers manually |
-| Multi-game-system support | 40K 10th edition only |
-| Cloud sync / sharing via account | Local-first by design |
-| Points auto-update without user action | User must trigger sync; stale data is flagged, not auto-fixed |
+| New user-facing features | This is a pure internal quality milestone |
+| ESLint / Prettier | Project convention is strict TypeScript only; no linter/formatter without explicit discussion |
+| ORM migration (Drizzle) | Raw typed queries working well; ORM is v3 escape hatch only |
+| Virtualization | Dataset sizes don't warrant it yet (25-row pages) |
+| Zustand filter standardization | Low-impact inconsistency; not worth the churn for this milestone |
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DL-01 | Phase 90 | Complete |
-| DL-02 | Phase 90 | Complete |
-| DL-03 | Phase 89 | Complete |
-| DL-04 | Phase 89 | Complete |
-| ENH-01 | Phase 91 | Pending |
-| ENH-02 | Phase 91 | Pending |
-| ENH-03 | Phase 91 | Pending |
-| LDR-01 | Phase 92 | Pending |
-| LDR-02 | Phase 92 | Pending |
-| BRW-01 | Phase 93 | Pending |
-| BRW-02 | Phase 93 | Pending |
-| BRW-03 | Phase 93 | Pending |
-| EXP-01 | Phase 94 | Complete |
-| EXP-02 | Phase 94 | Complete |
-| EXP-03 | Phase 94 | Complete |
-| EXP-04 | Phase 94 | Complete |
-| SNP-01 | Phase 95 | Complete |
-| SNP-02 | Phase 95 | Complete |
-| SNP-03 | Phase 95 | Complete |
-| SNP-04 | Phase 95 | Complete |
+| ERR-01 | — | Pending |
+| ERR-02 | — | Pending |
+| ERR-03 | — | Pending |
+| ERR-04 | — | Pending |
+| ERR-05 | — | Pending |
+| DBH-01 | — | Pending |
+| DBH-02 | — | Pending |
+| DBH-03 | — | Pending |
+| DBH-04 | — | Pending |
+| PERF-01 | — | Pending |
+| PERF-02 | — | Pending |
+| PERF-03 | — | Pending |
+| PERF-04 | — | Pending |
+| ARCH-01 | — | Pending |
+| ARCH-02 | — | Pending |
+| ARCH-03 | — | Pending |
+| ARCH-04 | — | Pending |
 
 **Coverage:**
-
-- v0.2.18 requirements: 20 total
-- Mapped to phases: 20
-- Unmapped: 0
+- v0.3.0 requirements: 17 total
+- Mapped to phases: 0
+- Unmapped: 17 (pending roadmap creation)
 
 ---
-*Requirements defined: 2026-05-20*
-*Last updated: 2026-05-20 — traceability populated after roadmap creation*
+*Requirements defined: 2026-05-22*
+*Last updated: 2026-05-22 after initial definition*
