@@ -4,12 +4,12 @@ milestone: v0.2.18
 milestone_name: Army Lists 3.0 — Smart List Builder
 status: executing
 stopped_at: Phase 95 context gathered — version snapshots
-last_updated: "2026-05-22T00:00:00.000Z"
-last_activity: 2026-05-22
+last_updated: "2026-05-22T07:01:16.411Z"
+last_activity: 2026-05-22 -- Phase 95 planning complete
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 12
+  total_plans: 14
   completed_plans: 12
   percent: 86
 ---
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-05-20)
 
 Phase: 95 of 95 (version snapshots)
 Plan: Not started
-Status: Phase 95 context gathered
-Last activity: 2026-05-22
+Status: Ready to execute
+Last activity: 2026-05-22 -- Phase 95 planning complete
 
 Progress: [█████████░] 90%
 

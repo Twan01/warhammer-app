@@ -621,7 +621,7 @@ export async function restoreSnapshot(input: RestoreSnapshotInput): Promise<void
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Enhancement restore complexity**
    - What we know: Enhancements reference `army_list_unit_id` (the DB row ID of the unit). After delete+re-insert, new row IDs are generated. The snapshot JSON has unit names but not the new IDs.
