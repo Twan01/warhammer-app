@@ -1,7 +1,7 @@
 # Requirements: HobbyForge v0.3.0
 
 **Defined:** 2026-05-22
-**Core Value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with reliable backup/restore so local data is always recoverable
+**Core Value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" -- with reliable backup/restore so local data is always recoverable
 
 ## v0.3.0 Requirements
 
@@ -10,7 +10,7 @@ Requirements for the Robustness & Architecture Hardening milestone. Each maps to
 ### Error Handling & Resilience
 
 - [ ] **ERR-01**: App renders a fallback UI (not blank screen) when any component throws during render
-- [ ] **ERR-02**: Each route has its own error boundary — a crash on one page doesn't break other pages
+- [ ] **ERR-02**: Each route has its own error boundary -- a crash on one page doesn't break other pages
 - [ ] **ERR-03**: App verifies DB connection and schema integrity before rendering the main layout
 - [ ] **ERR-04**: Unhandled promise rejections and uncaught errors are captured and logged (not silently swallowed)
 - [ ] **ERR-05**: Main database uses WAL journal mode and busy_timeout (matching rules-client.ts)
@@ -24,14 +24,14 @@ Requirements for the Robustness & Architecture Hardening milestone. Each maps to
 
 ### Performance
 
-- [ ] **PERF-01**: Route pages are lazy-loaded via React.lazy() — only the current page's code loads on navigation
-- [ ] **PERF-02**: Mutation invalidation chains are precise — each mutation only invalidates queries actually affected by it
+- [ ] **PERF-01**: Route pages are lazy-loaded via React.lazy() -- only the current page's code loads on navigation
+- [ ] **PERF-02**: Mutation invalidation chains are precise -- each mutation only invalidates queries actually affected by it
 - [ ] **PERF-03**: Kanban enrichment fetches assignments and recipe data in batched queries instead of N sequential per-unit calls
 - [ ] **PERF-04**: High-frequency render components (KanbanCard, ArmyListUnitRow, CurrentFocusCard) are wrapped with React.memo
 
 ### Architecture Cleanup
 
-- [ ] **ARCH-01**: DB query layer has zero imports from src/features/ — all shared logic lives in src/lib/ or src/types/
+- [ ] **ARCH-01**: DB query layer has zero imports from src/features/ -- all shared logic lives in src/lib/ or src/types/
 - [ ] **ARCH-02**: PlaybookTab.tsx is decomposed into sub-tab components (each under 300 lines)
 - [ ] **ARCH-03**: UnitSheet.tsx is decomposed into form section components (each under 200 lines)
 - [ ] **ARCH-04**: ArmyListsPage modal state uses a reducer or state machine instead of 14+ individual useState calls
@@ -60,29 +60,29 @@ Requirements for the Robustness & Architecture Hardening milestone. Each maps to
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ERR-01 | — | Pending |
-| ERR-02 | — | Pending |
-| ERR-03 | — | Pending |
-| ERR-04 | — | Pending |
-| ERR-05 | — | Pending |
-| DBH-01 | — | Pending |
-| DBH-02 | — | Pending |
-| DBH-03 | — | Pending |
-| DBH-04 | — | Pending |
-| PERF-01 | — | Pending |
-| PERF-02 | — | Pending |
-| PERF-03 | — | Pending |
-| PERF-04 | — | Pending |
-| ARCH-01 | — | Pending |
-| ARCH-02 | — | Pending |
-| ARCH-03 | — | Pending |
-| ARCH-04 | — | Pending |
+| ERR-01 | Phase 97 | Pending |
+| ERR-02 | Phase 97 | Pending |
+| ERR-03 | Phase 97 | Pending |
+| ERR-04 | Phase 97 | Pending |
+| ERR-05 | Phase 96 | Pending |
+| DBH-01 | Phase 96 | Pending |
+| DBH-02 | Phase 96 | Pending |
+| DBH-03 | Phase 96 | Pending |
+| DBH-04 | Phase 98 | Pending |
+| PERF-01 | Phase 98 | Pending |
+| PERF-02 | Phase 98 | Pending |
+| PERF-03 | Phase 98 | Pending |
+| PERF-04 | Phase 98 | Pending |
+| ARCH-01 | Phase 99 | Pending |
+| ARCH-02 | Phase 99 | Pending |
+| ARCH-03 | Phase 99 | Pending |
+| ARCH-04 | Phase 99 | Pending |
 
 **Coverage:**
 - v0.3.0 requirements: 17 total
-- Mapped to phases: 0
-- Unmapped: 17 (pending roadmap creation)
+- Mapped to phases: 17
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-05-22*
-*Last updated: 2026-05-22 after initial definition*
+*Last updated: 2026-05-22 after roadmap creation*

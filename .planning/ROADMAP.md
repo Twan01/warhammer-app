@@ -18,7 +18,7 @@
 - ✅ **v0.2.13 Data Integrity, Diagnostics & Product Coherence** — Phases 73-78 (shipped 2026-05-15)
 - ✅ **v0.2.14 Backup 2.0 — Structured Export, Restore & Safety Backups** — Phases 79-83 (shipped 2026-05-19)
 - ✅ **v0.2.15 Painting Mode** — Phases 84-88 (shipped 2026-05-20)
-- 🚧 **v0.2.18 Army Lists 3.0 — Smart List Builder** — Phases 89-95 (in progress)
+- ✅ **v0.2.18 Army Lists 3.0 — Smart List Builder** — Phases 89-95 (shipped 2026-05-22)
 
 ## Phases
 
@@ -117,192 +117,76 @@ Full details: `.planning/milestones/v0.2.15-ROADMAP.md`
 
 </details>
 
-### 🚧 v0.2.18 Army Lists 3.0 — Smart List Builder (In Progress)
+<details>
+<summary>✅ v0.2.18 Army Lists 3.0 — Smart List Builder (Phases 89-95) — SHIPPED 2026-05-22</summary>
 
-**Milestone Goal:** Transform army lists from a simple unit tracker into a full list-building experience with auto-resolved points, loadout configuration, enhancements, leader attachment, list export, version history, and the ability to plan with unowned datasheets.
+- [x] Phase 89: Schema + Data Layer (2/2 plans) — completed 2026-05-20
+- [x] Phase 90: Loadout Builder (2/2 plans) — completed 2026-05-20
+- [x] Phase 91: Enhancement Assignment (2/2 plans) — completed 2026-05-22
+- [x] Phase 92: Leader Attachment (2/2 plans) — completed 2026-05-22
+- [x] Phase 93: Datasheet Browser + Ghost Units (2/2 plans) — completed 2026-05-22
+- [x] Phase 94: List Export (2/2 plans) — completed 2026-05-21
+- [x] Phase 95: Version Snapshots (2/2 plans) — completed 2026-05-22
 
-- [x] **Phase 89: Schema + Data Layer** — Migrations for ghost units, warlord flag, enhancement tracking, leader attachment; COALESCE chain updated across all 3 query sites; stable insertion order fix
-- [x] **Phase 90: Loadout Builder** — Model count tier selector wired to synced_unit_point_tiers; wargear options display from BSData; LoadoutBuilderSheet at page level
-- [x] **Phase 91: Enhancement Assignment** — EnhancementPickerSheet for character units; validation (max 3, no duplicates, character-only, Epic Hero exclusion); enhancement points in summary bar
-- [x] **Phase 92: Leader Attachment** — Leader-to-target pairing from synced_leader_targets; visual grouping of leader with their attached unit in the list
-- [x] **Phase 93: Datasheet Browser + Ghost Units** — DatasheetBrowserDialog for all faction datasheets; add unowned units as ghost/planned entries; ghost units isolated from Collection/Dashboard/Kanban
-- [x] **Phase 94: List Export** — Clipboard text copy; print-friendly layout; JSON file export; PDF via jsPDF (lazy-loaded) (completed 2026-05-21)
-- [ ] **Phase 95: Version Snapshots** — Save named snapshot of list state; snapshot history view; side-by-side comparison; restore to snapshot
+Full details: `.planning/milestones/v0.2.18-ROADMAP.md`
+
+</details>
+
+### v0.3.0 Robustness & Architecture Hardening (In Progress)
+
+**Milestone Goal:** Make HobbyForge faster, more resilient to errors, and architecturally cleaner for long-term maintenance. No new user-facing features -- purely internal quality. The app should feel the same to the user but be faster and more robust.
+
+- [ ] **Phase 96: Database Hardening** - Indexes, CHECK constraints, and WAL mode on main DB
+- [ ] **Phase 97: Error Resilience** - Error boundaries, DB health check gate, global error handlers
+- [ ] **Phase 98: Performance Optimization** - Code splitting, precise invalidation, batched queries, memoization
+- [ ] **Phase 99: Architecture Cleanup** - Eliminate circular deps, decompose mega components, extract state machine
 
 ## Phase Details
 
-### Phase 89: Schema + Data Layer
-
-**Goal**: The database and query layer fully supports every new Army Lists 3.0 feature without UI work
-**Depends on**: Phase 88 (v0.2.15 complete)
-**Requirements**: DL-03, DL-04
+### Phase 96: Database Hardening
+**Goal**: The database layer prevents invalid data at the schema level and performs optimally for the existing query patterns
+**Depends on**: Phase 95 (v0.2.18 complete)
+**Requirements**: ERR-05, DBH-01, DBH-02, DBH-03
 **Success Criteria** (what must be TRUE):
+  1. Main database client uses WAL journal mode and busy_timeout matching rules-client.ts -- concurrent reads during writes no longer risk SQLITE_BUSY
+  2. All foreign key columns have explicit indexes -- JOIN and WHERE clauses on FK columns use index scans, not table scans
+  3. Temporal columns (session_date, battle_date) have DESC indexes -- sorting queries for "most recent" are index-assisted
+  4. CHECK constraints reject invalid data at the database level -- inserting negative points, quantities, or out-of-range painting percentages fails with a constraint error before any application code runs
+**Plans**: TBD
 
-  1. Units in an army list always display in stable insertion order (newest at bottom) — no more random reordering
-  2. A unit can be designated Warlord in the army list and the flag persists across page reloads
-  3. army_list_units accepts nullable unit_id and a ghost_unit_name TEXT column for planned units not in the collection
-  4. Enhancement assignment and leader attachment columns exist in the schema with correct FK constraints
-  5. The 5-level COALESCE points chain is updated atomically across all 3 query sites to include the new tier resolution
-
-**Plans**: 2 plans
-Plans:
-**Wave 1**
-
-- [x] 89-01-PLAN.md — Migration 031 + lib.rs + types + resolveUnitPoints
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 89-02-PLAN.md — Query functions + mutation hooks + tests
-
-**UI hint**: no
-
-### Phase 90: Loadout Builder
-
-**Goal**: Users can configure model count and see wargear options for any unit in their army list, with points auto-resolving from synced tiers
-**Depends on**: Phase 89
-**Requirements**: DL-01, DL-02
+### Phase 97: Error Resilience
+**Goal**: The app gracefully handles any runtime error without losing the user's context or showing a blank screen
+**Depends on**: Phase 96
+**Requirements**: ERR-01, ERR-02, ERR-03, ERR-04
 **Success Criteria** (what must be TRUE):
+  1. When any component throws during render, a styled fallback UI appears (not a blank white screen) with a "Reload" action
+  2. A crash on one route (e.g., /army-lists) does not affect other routes -- navigating away from the crashed page works normally
+  3. If the database connection or schema is corrupted at startup, the app shows a diagnostic screen instead of silently failing or rendering an empty shell
+  4. Unhandled promise rejections and uncaught errors are captured and logged to the console with structured context (not silently swallowed by React Query or async handlers)
+**Plans**: TBD
 
-  1. User can open a loadout panel for a unit and select a model count tier; the unit's effective points update immediately in the summary bar
-  2. User can view available wargear options for a unit sourced from BSData (display-only, free in 10th ed)
-  3. Selecting a different tier persists on save and is reflected in all points calculations across the list
-  4. The LoadoutBuilderSheet opens as a sibling portal at page level (no nested Sheet/Dialog issues)
-
-**Plans**: 2 plans
-Plans:
-
-**Wave 1**
-
-- [x] 90-01-PLAN.md — Data layer (query functions + hooks) + ArmyListUnitRow refactor + test scaffold
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 90-02-PLAN.md — LoadoutBuilderSheet component + sibling portal wiring + tests
-
-**UI hint**: yes
-
-### Phase 91: Enhancement Assignment
-
-**Goal**: Users can assign detachment enhancements to character units with automatic points tracking and rule validation enforced
-**Depends on**: Phase 90
-**Requirements**: ENH-01, ENH-02, ENH-03
+### Phase 98: Performance Optimization
+**Goal**: Page loads are faster, mutations only refresh what they changed, and the Kanban board enriches units efficiently
+**Depends on**: Phase 96
+**Requirements**: PERF-01, PERF-02, PERF-03, PERF-04, DBH-04
 **Success Criteria** (what must be TRUE):
+  1. Route pages are lazy-loaded -- navigating to a page for the first time triggers a dynamic import (visible in Network tab as separate chunks), reducing initial bundle size
+  2. Creating or editing a unit only invalidates queries that depend on unit data -- unrelated query keys (e.g., recipes, battle logs) are not refetched
+  3. Kanban enrichment (applied recipe progress, workflow position) uses batched queries that scale O(1) per board render, not O(N) per unit card
+  4. High-frequency components (KanbanCard, ArmyListUnitRow, CurrentFocusCard) are wrapped with React.memo and do not re-render when parent state unrelated to their props changes
+  5. Sync and import operations use batched INSERT statements -- bulk data ingestion completes in fewer round-trips than the current N-individual-INSERT approach
+**Plans**: TBD
 
-  1. User can browse available enhancements for their detachment and assign one to a character unit
-  2. Enhancement points are automatically added to the list total and shown as a separate line in the summary bar with a breakdown
-  3. The list rejects (with a clear warning) any assignment that exceeds 3 enhancements, duplicates an enhancement, targets a non-character unit, or targets an Epic Hero
-  4. Removing an enhancement clears its points from the summary bar immediately
-
-**Plans**: 2 plans
-Plans:
-
-**Wave 1**
-
-- [ ] 91-01-PLAN.md — getUnitKeywords utility + useUnitKeywords hook + computeListHealthStats enhancement total + tests
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [ ] 91-02-PLAN.md — EnhancementPickerSheet + ArmyListUnitRow trigger + summary bar integration + ArmyListCard + tests
-
-**UI hint**: yes
-
-### Phase 92: Leader Attachment
-
-**Goal**: Users can pair character leaders with valid target units and the list visually reflects the attachment grouping
-**Depends on**: Phase 91
-**Requirements**: LDR-01, LDR-02
+### Phase 99: Architecture Cleanup
+**Goal**: The codebase has clean dependency boundaries and no file exceeds 400 lines, making future features easier to build
+**Depends on**: Phase 97, Phase 98
+**Requirements**: ARCH-01, ARCH-02, ARCH-03, ARCH-04
 **Success Criteria** (what must be TRUE):
-
-  1. User can attach a character unit as leader to a target unit; only valid pairings from synced_leader_targets are offered
-  2. An attached leader and their target unit display visually grouped (indented or bracketed) in the army list
-  3. Removing a leader attachment returns both units to independent display
-
-**Plans**: 2 plans
-Plans:
-
-**Wave 1**
-
-- [ ] 92-01-PLAN.md — groupUnitsWithLeaders utility + useLeaderTargets hook + tests
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [ ] 92-02-PLAN.md — LeaderAttachmentSheet + visual grouping + sibling portal wiring + tests
-
-**UI hint**: yes
-
-### Phase 93: Datasheet Browser + Ghost Units
-
-**Goal**: Users can browse all faction datasheets and plan their list with unowned units clearly distinguished from their collection
-**Depends on**: Phase 89
-**Requirements**: BRW-01, BRW-02, BRW-03
-**Success Criteria** (what must be TRUE):
-
-  1. User can open a DatasheetBrowserDialog from the army list and see all datasheets for the active faction, not just owned units
-  2. User can add an unowned datasheet as a "planned" unit to the list; it appears with a clear visual marker (e.g., "Planned" badge) distinguishing it from owned units
-  3. Ghost/planned units do not appear in the Collection page, Dashboard stats, or Painting Kanban
-  4. Points for ghost units resolve from synced data (or show unknown) and count toward the list total
-
-**Plans**: 2 plans
-Plans:
-
-**Wave 1**
-
-- [ ] 93-01-PLAN.md — DatasheetBrowserDialog component + sibling portal wiring + trigger button + tests
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [ ] 93-02-PLAN.md — Ghost unit visual treatment in ArmyListUnitRow + extended tests + isolation verification
-
-**UI hint**: yes
-
-### Phase 94: List Export
-
-**Goal**: Users can share or archive their army list in multiple formats without leaving the app
-**Depends on**: Phase 89
-**Requirements**: EXP-01, EXP-02, EXP-03, EXP-04
-**Success Criteria** (what must be TRUE):
-
-  1. User can copy the army list as formatted plain text to the clipboard (ready to paste into Discord/forums) with a single action
-  2. User can open a print-friendly view of the army list and print it via the browser print dialog
-  3. User can save the army list as a structured JSON file via a native save dialog
-  4. User can export the army list as a PDF file saved to disk (jsPDF, lazy-loaded so startup is not impacted)
-
-**Plans**: 2 plans
-Plans:
-
-**Wave 1**
-
-- [x] 94-01-PLAN.md — Tauri plugin setup + shared export formatting utility + tests
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 94-02-PLAN.md — ExportDropdown + PrintPreviewDialog + export handler wiring + integration
-
-**UI hint**: yes
-
-### Phase 95: Version Snapshots
-
-**Goal**: Users can save named snapshots of their army list and compare or restore previous versions
-**Depends on**: Phase 89
-**Requirements**: SNP-01, SNP-02, SNP-03, SNP-04
-**Success Criteria** (what must be TRUE):
-
-  1. User can save the current list state as a named snapshot with a custom label; the snapshot captures all units, loadouts, enhancements, and point totals
-  2. User can view a history of saved snapshots with timestamps and point totals
-  3. User can compare two snapshots side-by-side and see which units were added or removed and the points delta between them
-  4. User can restore the army list to the state of any saved snapshot
-
-**Plans**: 2 plans
-Plans:
-
-**Wave 1**
-
-- [x] 95-01-PLAN.md � Migration + types + query module + hooks + diff utility + tests
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 95-02-PLAN.md � SnapshotHistorySheet + SnapshotCompareDialog + portal wiring + visual verification
-**UI hint**: yes
+  1. The src/db/queries/ directory has zero imports from src/features/ -- all shared logic accessed by queries lives in src/lib/ or src/types/
+  2. PlaybookTab.tsx is decomposed into sub-tab components where each file is under 300 lines -- the tab still renders identically from the user's perspective
+  3. UnitSheet.tsx is decomposed into form section components where each file is under 200 lines -- create/edit unit workflow is unchanged
+  4. ArmyListsPage modal state is managed by a reducer or state machine instead of 14+ individual useState calls -- the page behavior is identical but the state logic is centralized and testable
+**Plans**: TBD
 
 ## Progress
 
@@ -396,13 +280,17 @@ Plans:
 | 86. Shell, Route & Keyboard Shortcuts | v0.2.15 | 2/2 | Complete | 2026-05-19 |
 | 87. Session Integration + Entry Points | v0.2.15 | 2/2 | Complete | 2026-05-19 |
 | 88. Polish + Test Coverage | v0.2.15 | 2/2 | Complete | 2026-05-20 |
-| 89. Schema + Data Layer | v0.2.18 | 2/2 | Complete    | 2026-05-20 |
-| 90. Loadout Builder | v0.2.18 | 2/2 | Complete    | 2026-05-20 |
-| 91. Enhancement Assignment | v0.2.18 | 0/TBD | Not started | - |
-| 92. Leader Attachment | v0.2.18 | 0/2 | Not started | - |
-| 93. Datasheet Browser + Ghost Units | v0.2.18 | 0/2 | Not started | - |
-| 94. List Export | v0.2.18 | 2/2 | Complete    | 2026-05-21 |
-| 95. Version Snapshots | v0.2.18 | 2/2 | Complete    | 2026-05-22 |
+| 89. Schema + Data Layer | v0.2.18 | 2/2 | Complete | 2026-05-20 |
+| 90. Loadout Builder | v0.2.18 | 2/2 | Complete | 2026-05-20 |
+| 91. Enhancement Assignment | v0.2.18 | 2/2 | Complete | 2026-05-22 |
+| 92. Leader Attachment | v0.2.18 | 2/2 | Complete | 2026-05-22 |
+| 93. Datasheet Browser + Ghost Units | v0.2.18 | 2/2 | Complete | 2026-05-22 |
+| 94. List Export | v0.2.18 | 2/2 | Complete | 2026-05-21 |
+| 95. Version Snapshots | v0.2.18 | 2/2 | Complete | 2026-05-22 |
+| 96. Database Hardening | v0.3.0 | 0/TBD | Not started | - |
+| 97. Error Resilience | v0.3.0 | 0/TBD | Not started | - |
+| 98. Performance Optimization | v0.3.0 | 0/TBD | Not started | - |
+| 99. Architecture Cleanup | v0.3.0 | 0/TBD | Not started | - |
 
 <details>
 <summary>✅ v0.1.1 HobbyForge MVP (Phases 1-5) — SHIPPED 2024-05-01</summary>
