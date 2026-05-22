@@ -30,6 +30,7 @@ vi.mock("@/db/queries/unitPhotos", () => ({
 vi.mock("@/db/queries/recipeAssignments", () => ({
   getAssignmentsByUnit: vi.fn().mockResolvedValue([]),
   getStepProgress: vi.fn().mockResolvedValue([]),
+  getKanbanProgressByUnitIds: vi.fn().mockResolvedValue([]),
   createAssignment: vi.fn(),
   deleteAssignment: vi.fn(),
   getAssignment: vi.fn(),

@@ -35,7 +35,8 @@
  * The remaining 24 hook files were confirmed correct with no pruning needed.
  */
 import React from "react";
-import { vi, describe, it, expect, beforeEach, act } from "vitest";
+import { vi, describe, it, expect, beforeEach } from "vitest";
+import { act } from "@testing-library/react";
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
