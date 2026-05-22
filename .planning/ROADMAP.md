@@ -152,7 +152,9 @@ Full details: `.planning/milestones/v0.2.18-ROADMAP.md`
   2. All foreign key columns have explicit indexes -- JOIN and WHERE clauses on FK columns use index scans, not table scans
   3. Temporal columns (session_date, battle_date) have DESC indexes -- sorting queries for "most recent" are index-assisted
   4. CHECK constraints reject invalid data at the database level -- inserting negative points, quantities, or out-of-range painting percentages fails with a constraint error before any application code runs
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 96-01-PLAN.md -- WAL mode, FK/temporal indexes, CHECK constraints
 
 ### Phase 97: Error Resilience
 **Goal**: The app gracefully handles any runtime error without losing the user's context or showing a blank screen
@@ -287,7 +289,7 @@ Full details: `.planning/milestones/v0.2.18-ROADMAP.md`
 | 93. Datasheet Browser + Ghost Units | v0.2.18 | 2/2 | Complete | 2026-05-22 |
 | 94. List Export | v0.2.18 | 2/2 | Complete | 2026-05-21 |
 | 95. Version Snapshots | v0.2.18 | 2/2 | Complete | 2026-05-22 |
-| 96. Database Hardening | v0.3.0 | 0/TBD | Not started | - |
+| 96. Database Hardening | v0.3.0 | 0/1 | In progress | - |
 | 97. Error Resilience | v0.3.0 | 0/TBD | Not started | - |
 | 98. Performance Optimization | v0.3.0 | 0/TBD | Not started | - |
 | 99. Architecture Cleanup | v0.3.0 | 0/TBD | Not started | - |
