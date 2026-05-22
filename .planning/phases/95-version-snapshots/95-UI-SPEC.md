@@ -34,14 +34,14 @@ Declared values (must be multiples of 4):
 | Token | Value | Usage |
 |-------|-------|-------|
 | xs | 4px | Icon gaps, badge padding |
-| sm | 8px | List item internal padding, input gap |
+| sm | 8px | List item internal padding, input gap, snapshot row vertical padding (`p-2`) |
 | md | 16px | Sheet section padding, card padding |
 | lg | 24px | Sheet header/footer padding, section breaks |
 | xl | 32px | Major layout gaps within Sheet |
 | 2xl | 48px | Not used in this phase |
 | 3xl | 64px | Not used in this phase |
 
-Exceptions: Snapshot list rows use 12px vertical padding (between `sm` and `md`) to maintain compact scan density without cramping action buttons. This is an established pattern from `ArmyListUnitRow`.
+No exceptions declared. Snapshot list rows use `p-2` (8px) vertical padding for compact scan density — within the standard scale.
 
 ---
 
@@ -50,16 +50,16 @@ Exceptions: Snapshot list rows use 12px vertical padding (between `sm` and `md`)
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px | 400 | 1.5 |
-| Label | 12px | 500 | 1.4 |
+| Label | 12px | 400 | 1.4 |
 | Heading | 16px | 600 | 1.2 |
 | Display | 20px | 600 | 1.2 |
 
 Notes:
 - Body (14px/400) used for snapshot label text and unit names in compare columns.
-- Label (12px/500) used for timestamps, point totals in the history list, and column headers in the compare dialog.
+- Label (12px/400) used for timestamps, point totals in the history list, and column headers in the compare dialog.
 - Heading (16px/600) used for Sheet title ("Snapshot History") and Dialog title ("Compare Snapshots").
 - Display (20px/600) not used in primary content — reserved for points delta summary line in compare dialog.
-- All sizes via Tailwind utility classes (`text-sm`, `text-xs`, `text-base`, `text-lg`). `font-medium` = weight 500, `font-semibold` = weight 600.
+- All sizes via Tailwind utility classes (`text-sm`, `text-xs`, `text-base`, `text-lg`). Weight 400 = `font-normal`, weight 600 = `font-semibold`. Weight 500 (`font-medium`) is NOT used in this phase.
 
 Source: Established across existing army-lists components; no new font sizes introduced.
 
@@ -121,6 +121,7 @@ New Lucide icons introduced in this phase:
 
 - Sheet width: `sm:max-w-md` (matches `EnhancementPickerSheet`, `LeaderAttachmentSheet` pattern)
 - Header: `SheetTitle` = "Snapshot History" + `SheetDescription` = army list name
+- **Primary focal point: the Save section at the top** — it is the first and most prominent interactive area; the list below is secondary
 - Save section (top, above list):
   - Label: "Save current state as snapshot"
   - Row: `Input` (label text, full width) + `Button` ("Save Snapshot") inline
@@ -128,13 +129,16 @@ New Lucide icons introduced in this phase:
   - `Separator` below save section
 - Snapshot list (scrollable via `ScrollArea`):
   - Empty state: centered text "No snapshots yet. Save the current state above."
-  - Each row = `div` with `p-3` padding, `border-b border-border`
+  - Each row = `div` with `p-2` padding, `border-b border-border`
   - Row layout: left side (label + timestamp + points) / right side (action buttons)
-  - Label: `text-sm font-medium` truncated to single line
+  - Label: `text-sm font-semibold` truncated to single line
   - Timestamp: `text-xs text-muted-foreground` — formatted as "May 22, 2026 at 14:32"
   - Points: `text-xs text-muted-foreground` — formatted as "{N} pts"
   - Auto-save rows: `Badge variant="outline"` label "Auto-save" rendered before the snapshot label
   - Action buttons (right-aligned, icon-only, `size="icon" variant="ghost"`): Compare, Restore, Delete
+    - Compare button: `aria-label="Compare snapshots"`, `title="Compare snapshots"`
+    - Restore button: `aria-label="Restore this snapshot"`, `title="Restore this snapshot"`
+    - Delete button: `aria-label="Delete snapshot"`, `title="Delete snapshot"`
   - Compare button disabled when `<2` snapshots exist in the list; tooltip "Select a second snapshot to compare"
   - When one snapshot is selected for compare: row gets `ring-1 ring-faction-accent` highlight, Compare button becomes "Selected"
 - Footer: "Close" `Button variant="outline"`
@@ -198,6 +202,9 @@ New Lucide icons introduced in this phase:
 | Restore success toast | "List restored to '{label}'." |
 | Error state | "Something went wrong. Please try again." (matches existing app-wide error copy) |
 | Loading state | Skeleton rows (no text) |
+| Compare button aria-label | "Compare snapshots" |
+| Restore button aria-label | "Restore this snapshot" |
+| Delete button aria-label | "Delete snapshot" |
 
 Note on delete: CONTEXT.md left delete UX to Claude's Discretion. This contract chooses immediate delete with `sonner` undo toast (no confirmation dialog) because snapshots are lightweight and the auto-save pattern means the user always has recovery options. This avoids dialog fatigue alongside the restore confirmation.
 
