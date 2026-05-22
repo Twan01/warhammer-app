@@ -24,10 +24,10 @@ Requirements for the Robustness & Architecture Hardening milestone. Each maps to
 
 ### Performance
 
-- [ ] **PERF-01**: Route pages are lazy-loaded via React.lazy() -- only the current page's code loads on navigation
+- [x] **PERF-01**: Route pages are lazy-loaded via React.lazy() -- only the current page's code loads on navigation
 - [ ] **PERF-02**: Mutation invalidation chains are precise -- each mutation only invalidates queries actually affected by it
 - [ ] **PERF-03**: Kanban enrichment fetches assignments and recipe data in batched queries instead of N sequential per-unit calls
-- [ ] **PERF-04**: High-frequency render components (KanbanCard, ArmyListUnitRow, CurrentFocusCard) are wrapped with React.memo
+- [x] **PERF-04**: High-frequency render components (KanbanCard, ArmyListUnitRow, CurrentFocusCard) are wrapped with React.memo
 
 ### Architecture Cleanup
 
@@ -69,10 +69,10 @@ Requirements for the Robustness & Architecture Hardening milestone. Each maps to
 | DBH-02 | Phase 96 | Complete |
 | DBH-03 | Phase 96 | Complete |
 | DBH-04 | Phase 98 | Pending |
-| PERF-01 | Phase 98 | Pending |
+| PERF-01 | Phase 98 | Complete |
 | PERF-02 | Phase 98 | Pending |
 | PERF-03 | Phase 98 | Pending |
-| PERF-04 | Phase 98 | Pending |
+| PERF-04 | Phase 98 | Complete |
 | ARCH-01 | Phase 99 | Pending |
 | ARCH-02 | Phase 99 | Pending |
 | ARCH-03 | Phase 99 | Pending |

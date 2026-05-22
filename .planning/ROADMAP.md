@@ -182,7 +182,7 @@ Plans:
   5. Sync and import operations use batched INSERT statements -- bulk data ingestion completes in fewer round-trips than the current N-individual-INSERT approach
 **Plans**: 3 plans
 Plans:
-- [ ] 98-01-PLAN.md -- Lazy route imports + Suspense boundaries + React.memo on 3 components
+- [x] 98-01-PLAN.md -- Lazy route imports + Suspense boundaries + React.memo on 3 components
 - [x] 98-02-PLAN.md -- Batched INSERT for 6 sync replace* functions
 - [ ] 98-03-PLAN.md -- Batched Kanban enrichment query + invalidation precision audit
 
@@ -298,7 +298,7 @@ Plans:
 | 95. Version Snapshots | v0.2.18 | 2/2 | Complete | 2026-05-22 |
 | 96. Database Hardening | v0.3.0 | 1/1 | Complete | 2026-05-22 |
 | 97. Error Resilience | v0.3.0 | 1/2 | In Progress|  |
-| 98. Performance Optimization | v0.3.0 | 1/3 | In Progress|  |
+| 98. Performance Optimization | v0.3.0 | 2/3 | In Progress|  |
 | 99. Architecture Cleanup | v0.3.0 | 0/TBD | Not started | - |
 
 <details>
