@@ -2,15 +2,18 @@
  * PROJ-01 — batch enrichment data for kanban cards.
  * Fetches recipe names, photo counts, and applied recipe progress in parallel.
  * Query key uses sorted IDs to prevent re-fetch on dnd-kit reorder (Pitfall 2).
+ *
+ * PERF-03: Applied recipe progress now uses a single batched SQL query
+ * (getKanbanProgressByUnitIds) instead of the previous O(N) per-unit loop
+ * that executed 4N DB round-trips. The existing batched calls for recipe
+ * names and photo counts are preserved per D-08.
  */
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getRecipeNamesByUnitIds, getRecipeById } from "@/db/queries/recipes";
+import { getRecipeNamesByUnitIds } from "@/db/queries/recipes";
 import { getPhotoCountsByUnitIds } from "@/db/queries/unitPhotos";
 import type { AppliedRecipeProgress } from "@/types/recipeAssignment";
-import { getAssignmentsByUnit, getStepProgress } from "@/db/queries/recipeAssignments";
-import { getRecipePaintsByRecipe } from "@/db/queries/recipePaints";
-import { computeAssignmentProgress } from "@/lib/computeAssignmentProgress";
+import { getKanbanProgressByUnitIds } from "@/db/queries/recipeAssignments";
 
 export interface KanbanEnrichment {
   recipeNames: Map<number, string>;
@@ -27,33 +30,27 @@ export function useKanbanEnrichment(unitIds: number[]) {
   return useQuery({
     queryKey: KANBAN_ENRICHMENT_KEY(sortedIds),
     queryFn: async (): Promise<KanbanEnrichment> => {
+      // D-08: Keep existing batched calls for recipe names and photo counts.
       const [recipeRows, photoRows] = await Promise.all([
         getRecipeNamesByUnitIds(sortedIds),
         getPhotoCountsByUnitIds(sortedIds),
       ]);
 
+      // PERF-03: Single batched query replaces O(N) per-unit loop.
+      // Returns one row per unit (most-recent assignment only), with total_steps,
+      // completed_steps, recipe_name, and assignment_count already aggregated.
       const appliedProgressMap = new Map<number, AppliedRecipeProgress>();
       const assignmentIdsMap = new Map<number, number>();
-      await Promise.all(
-        sortedIds.map(async (unitId) => {
-          const assignments = await getAssignmentsByUnit(unitId);
-          if (assignments.length === 0) return;
-          const primary = assignments[assignments.length - 1];
-          const [steps, progressRows, recipe] = await Promise.all([
-            getRecipePaintsByRecipe(primary.recipe_id),
-            getStepProgress(primary.id),
-            getRecipeById(primary.recipe_id),
-          ]);
-          const progress = computeAssignmentProgress(steps, progressRows);
-          appliedProgressMap.set(unitId, {
-            recipeName: recipe?.name ?? "",
-            completed: progress.completed,
-            total: progress.total,
-            assignmentCount: assignments.length,
-          });
-          assignmentIdsMap.set(unitId, primary.id);
-        }),
-      );
+      const progressRows = await getKanbanProgressByUnitIds(sortedIds);
+      for (const row of progressRows) {
+        appliedProgressMap.set(row.unit_id, {
+          recipeName: row.recipe_name,
+          completed: row.completed_steps,
+          total: row.total_steps,
+          assignmentCount: row.assignment_count,
+        });
+        assignmentIdsMap.set(row.unit_id, row.assignment_id);
+      }
 
       return {
         recipeNames: new Map(recipeRows.map((r) => [r.unit_id, r.name])),
