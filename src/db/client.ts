@@ -24,6 +24,8 @@ export async function getDb(): Promise<Database> {
     _dbPromise = (async () => {
       const db = await Database.load("sqlite:hobbyforge.db");
       await db.execute("PRAGMA foreign_keys = ON");
+      await db.execute("PRAGMA journal_mode = WAL");
+      await db.execute("PRAGMA busy_timeout = 10000");
       return db;
     })().catch((err) => {
       _dbPromise = null;

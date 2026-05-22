@@ -1,6 +1,7 @@
 use tauri::Manager;
 use tauri_plugin_sql::{Migration, MigrationKind};
 use std::collections::HashMap;
+use sha2::{Digest, Sha384};
 
 fn get_migrations() -> Vec<Migration> {
     vec![
@@ -196,6 +197,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/032_army_list_snapshots.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 33,
+            description: "database_hardening",
+            sql: include_str!("../migrations/033_database_hardening.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
@@ -226,6 +233,133 @@ fn get_rules_migrations() -> Vec<Migration> {
             kind: MigrationKind::Up,
         },
     ]
+}
+
+// ── Pre-migration repair ────────────────────────────────────────────────────
+//
+// sqlx stores SHA-384 checksums of applied migrations in `_sqlx_migrations`.
+// If a migration file changes after being applied (even whitespace), the app
+// panics on startup with no recovery path. This runs *before* the Tauri
+// builder so it completes before tauri-plugin-sql initializes.
+
+fn resolve_app_data_dir() -> Option<std::path::PathBuf> {
+    const IDENTIFIER: &str = "com.hobbyforge.app";
+    #[cfg(target_os = "windows")]
+    {
+        std::env::var_os("APPDATA").map(|p| std::path::PathBuf::from(p).join(IDENTIFIER))
+    }
+    #[cfg(target_os = "macos")]
+    {
+        std::env::var_os("HOME")
+            .map(|h| std::path::PathBuf::from(h).join("Library/Application Support").join(IDENTIFIER))
+    }
+    #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+    {
+        std::env::var_os("XDG_DATA_HOME")
+            .map(std::path::PathBuf::from)
+            .or_else(|| std::env::var_os("HOME").map(|h| std::path::PathBuf::from(h).join(".local/share")))
+            .map(|p| p.join(IDENTIFIER))
+    }
+}
+
+async fn repair_migration_checksums(
+    db_path: &std::path::Path,
+    migrations: &[Migration],
+) -> Result<bool, String> {
+    use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions};
+    use std::str::FromStr;
+
+    if !db_path.exists() {
+        return Ok(false);
+    }
+
+    let db_url = format!("sqlite:{}", db_path.display());
+    let opts = SqliteConnectOptions::from_str(&db_url)
+        .map_err(|e| format!("repair opts: {e}"))?
+        .create_if_missing(false);
+    let mut conn = opts.connect().await.map_err(|e| format!("repair connect: {e}"))?;
+
+    let table_exists: bool = sqlx::query_scalar(
+        "SELECT COUNT(*) > 0 FROM sqlite_master WHERE type='table' AND name='_sqlx_migrations'"
+    )
+    .fetch_one(&mut conn)
+    .await
+    .unwrap_or(false);
+
+    if !table_exists {
+        return Ok(false);
+    }
+
+    let rows: Vec<(i64, Vec<u8>)> = sqlx::query_as(
+        "SELECT version, checksum FROM _sqlx_migrations ORDER BY version"
+    )
+    .fetch_all(&mut conn)
+    .await
+    .map_err(|e| format!("repair fetch: {e}"))?;
+
+    let mut mismatches = Vec::new();
+    for (db_version, db_checksum) in &rows {
+        if let Some(m) = migrations.iter().find(|m| m.version == *db_version) {
+            let expected = Vec::from(Sha384::digest(m.sql.as_bytes()).as_slice());
+            if *db_checksum != expected {
+                mismatches.push((*db_version, expected));
+            }
+        }
+    }
+
+    if mismatches.is_empty() {
+        return Ok(false);
+    }
+
+    println!(
+        "[hobbyforge] migration checksum mismatch on {} version(s): {:?} — repairing",
+        mismatches.len(),
+        mismatches.iter().map(|(v, _)| *v).collect::<Vec<_>>()
+    );
+
+    // Safety backup before modifying the tracking table
+    let backup_dir = db_path.parent().unwrap().join("backups");
+    std::fs::create_dir_all(&backup_dir)
+        .map_err(|e| format!("create backup dir: {e}"))?;
+    let ts = format_filename_timestamp();
+    let backup_path = backup_dir.join(format!("safety-premigrate-{ts}.db"));
+    std::fs::copy(db_path, &backup_path)
+        .map_err(|e| format!("safety copy: {e}"))?;
+    println!("[hobbyforge] safety backup created: {}", backup_path.display());
+
+    for (version, checksum) in &mismatches {
+        sqlx::query("UPDATE _sqlx_migrations SET checksum = $1 WHERE version = $2")
+            .bind(checksum.as_slice())
+            .bind(version)
+            .execute(&mut conn)
+            .await
+            .map_err(|e| format!("repair update v{version}: {e}"))?;
+    }
+
+    println!("[hobbyforge] migration checksums repaired successfully");
+    Ok(true)
+}
+
+fn preflight_migration_repair() {
+    let Some(app_data_dir) = resolve_app_data_dir() else {
+        eprintln!("[hobbyforge] could not resolve app data dir — skipping migration repair");
+        return;
+    };
+
+    let main_db = app_data_dir.join("hobbyforge.db");
+    let rules_db = app_data_dir.join("rules.db");
+
+    let main_migrations = get_migrations();
+    let rules_migrations = get_rules_migrations();
+
+    tauri::async_runtime::block_on(async {
+        if let Err(e) = repair_migration_checksums(&main_db, &main_migrations).await {
+            eprintln!("[hobbyforge] main db repair failed: {e}");
+        }
+        if let Err(e) = repair_migration_checksums(&rules_db, &rules_migrations).await {
+            eprintln!("[hobbyforge] rules db repair failed: {e}");
+        }
+    });
 }
 
 // ── Sync helpers ─────────────────────────────────────────────────────────────
@@ -960,6 +1094,8 @@ fn get_schema_version() -> u32 {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    preflight_migration_repair();
+
     tauri::Builder::default()
         .plugin(tauri_plugin_http::init())
         .setup(|app| {
