@@ -132,74 +132,17 @@ Full details: `.planning/milestones/v0.2.18-ROADMAP.md`
 
 </details>
 
-### v0.3.0 Robustness & Architecture Hardening (In Progress)
+<details>
+<summary>✅ v0.3.0 Robustness & Architecture Hardening (Phases 96-99) — SHIPPED 2026-05-22</summary>
 
-**Milestone Goal:** Make HobbyForge faster, more resilient to errors, and architecturally cleaner for long-term maintenance. No new user-facing features -- purely internal quality. The app should feel the same to the user but be faster and more robust.
+- [x] Phase 96: Database Hardening (1/1 plans) — completed 2026-05-22
+- [x] Phase 97: Error Resilience (2/2 plans) — completed 2026-05-22
+- [x] Phase 98: Performance Optimization (3/3 plans) — completed 2026-05-22
+- [x] Phase 99: Architecture Cleanup (3/3 plans) — completed 2026-05-22
 
-- [x] **Phase 96: Database Hardening** (1/1 plans) - Indexes, CHECK constraints, and WAL mode on main DB -- completed 2026-05-22
-- [ ] **Phase 97: Error Resilience** (2 plans) - Error boundaries, DB health check gate, global error handlers
-- [ ] **Phase 98: Performance Optimization** - Code splitting, precise invalidation, batched queries, memoization
-- [x] **Phase 99: Architecture Cleanup** (3/3 plans) - Eliminate circular deps, decompose mega components, extract state machine -- completed 2026-05-22
+Full details: `.planning/milestones/v0.3.0-ROADMAP.md`
 
-## Phase Details
-
-### Phase 96: Database Hardening
-**Goal**: The database layer prevents invalid data at the schema level and performs optimally for the existing query patterns
-**Depends on**: Phase 95 (v0.2.18 complete)
-**Requirements**: ERR-05, DBH-01, DBH-02, DBH-03
-**Success Criteria** (what must be TRUE):
-  1. Main database client uses WAL journal mode and busy_timeout matching rules-client.ts -- concurrent reads during writes no longer risk SQLITE_BUSY
-  2. All foreign key columns have explicit indexes -- JOIN and WHERE clauses on FK columns use index scans, not table scans
-  3. Temporal columns (session_date, battle_date) have DESC indexes -- sorting queries for "most recent" are index-assisted
-  4. CHECK constraints reject invalid data at the database level -- inserting negative points, quantities, or out-of-range painting percentages fails with a constraint error before any application code runs
-**Plans**: 1 plan
-Plans:
-- [x] 96-01-PLAN.md -- WAL mode, FK/temporal indexes, CHECK constraints -- completed 2026-05-22
-
-### Phase 97: Error Resilience
-**Goal**: The app gracefully handles any runtime error without losing the user's context or showing a blank screen
-**Depends on**: Phase 96
-**Requirements**: ERR-01, ERR-02, ERR-03, ERR-04
-**Success Criteria** (what must be TRUE):
-  1. When any component throws during render, a styled fallback UI appears (not a blank white screen) with a "Reload" action
-  2. A crash on one route (e.g., /army-lists) does not affect other routes -- navigating away from the crashed page works normally
-  3. If the database connection or schema is corrupted at startup, the app shows a diagnostic screen instead of silently failing or rendering an empty shell
-  4. Unhandled promise rejections and uncaught errors are captured and logged to the console with structured context (not silently swallowed by React Query or async handlers)
-**Plans**: 2 plans
-Plans:
-- [x] 97-01-PLAN.md -- Route error boundaries (RouteErrorFallback + router wiring + tests)
-- [ ] 97-02-PLAN.md -- DB health gate, global error handlers, QueryCache/MutationCache onError + tests
-
-### Phase 98: Performance Optimization
-**Goal**: Page loads are faster, mutations only refresh what they changed, and the Kanban board enriches units efficiently
-**Depends on**: Phase 96
-**Requirements**: PERF-01, PERF-02, PERF-03, PERF-04, DBH-04
-**Success Criteria** (what must be TRUE):
-  1. Route pages are lazy-loaded -- navigating to a page for the first time triggers a dynamic import (visible in Network tab as separate chunks), reducing initial bundle size
-  2. Creating or editing a unit only invalidates queries that depend on unit data -- unrelated query keys (e.g., recipes, battle logs) are not refetched
-  3. Kanban enrichment (applied recipe progress, workflow position) uses batched queries that scale O(1) per board render, not O(N) per unit card
-  4. High-frequency components (KanbanCard, ArmyListUnitRow, CurrentFocusCard) are wrapped with React.memo and do not re-render when parent state unrelated to their props changes
-  5. Sync and import operations use batched INSERT statements -- bulk data ingestion completes in fewer round-trips than the current N-individual-INSERT approach
-**Plans**: 3 plans
-Plans:
-- [x] 98-01-PLAN.md -- Lazy route imports + Suspense boundaries + React.memo on 3 components
-- [x] 98-02-PLAN.md -- Batched INSERT for 6 sync replace* functions
-- [x] 98-03-PLAN.md -- Batched Kanban enrichment query + invalidation precision audit
-
-### Phase 99: Architecture Cleanup
-**Goal**: The codebase has clean dependency boundaries and no file exceeds 400 lines, making future features easier to build
-**Depends on**: Phase 97, Phase 98
-**Requirements**: ARCH-01, ARCH-02, ARCH-03, ARCH-04
-**Success Criteria** (what must be TRUE):
-  1. The src/db/queries/ directory has zero imports from src/features/ -- all shared logic accessed by queries lives in src/lib/ or src/types/
-  2. PlaybookTab.tsx is decomposed into sub-tab components where each file is under 300 lines -- the tab still renders identically from the user's perspective
-  3. UnitSheet.tsx is decomposed into form section components where each file is under 200 lines -- create/edit unit workflow is unchanged
-  4. ArmyListsPage modal state is managed by a reducer or state machine instead of 14+ individual useState calls -- the page behavior is identical but the state logic is centralized and testable
-**Plans**: 3 plans
-Plans:
-- [x] 99-01-PLAN.md -- Query-layer isolation (ARCH-01) + ArmyListsPage reducer (ARCH-04) -- completed 2026-05-22
-- [x] 99-02-PLAN.md -- PlaybookTab decomposition into 5 sub-components (ARCH-02) -- completed 2026-05-22
-- [x] 99-03-PLAN.md -- UnitSheet decomposition into form sections (ARCH-03) -- completed 2026-05-22
+</details>
 
 ## Progress
 
@@ -301,9 +244,9 @@ Plans:
 | 94. List Export | v0.2.18 | 2/2 | Complete | 2026-05-21 |
 | 95. Version Snapshots | v0.2.18 | 2/2 | Complete | 2026-05-22 |
 | 96. Database Hardening | v0.3.0 | 1/1 | Complete | 2026-05-22 |
-| 97. Error Resilience | v0.3.0 | 1/2 | In Progress|  |
+| 97. Error Resilience | v0.3.0 | 2/2 | Complete | 2026-05-22 |
 | 98. Performance Optimization | v0.3.0 | 3/3 | Complete    | 2026-05-22 |
-| 99. Architecture Cleanup | v0.3.0 | 0/3 | Not started | - |
+| 99. Architecture Cleanup | v0.3.0 | 3/3 | Complete | 2026-05-22 |
 
 <details>
 <summary>âœ… v0.1.1 HobbyForge MVP (Phases 1-5) â€” SHIPPED 2024-05-01</summary>

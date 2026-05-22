@@ -1,4 +1,47 @@
 # Milestones
+## v0.3.0 Robustness & Architecture Hardening (Shipped: 2026-05-22)
+
+**Phases completed:** 4 phases (96–99), 9 plans
+**Timeline:** 2026-05-22 (single day)
+**Stats:** 57 commits, 111 files changed, +13,222 / -2,262 lines, 17/17 requirements satisfied, Nyquist fully compliant
+
+**Key accomplishments:**
+- Database hardening: WAL journal mode + busy_timeout on main DB, 31 FK indexes across 18 tables, 2 temporal DESC indexes, CHECK constraints on units (5 columns) and paints (2 columns) preventing invalid data at the schema level
+- Error resilience: RouteErrorFallback with dev-only error details, errorComponent on both layout routes (per-route isolation), DbHealthGate startup validation with DbDiagnosticScreen, global error handlers (window error + unhandledrejection), QueryCache/MutationCache onError logging
+- Performance optimization: React.lazy() route-level code splitting (13 lazy pages), React.memo on KanbanCard/ArmyListUnitRow/CurrentFocusCard, batched multi-row INSERT for 6 sync replace* functions (200-row chunks), getKanbanProgressByUnitIds CTE+ROW_NUMBER batched query (O(1) vs O(4N)), 25-file invalidation precision audit
+- Architecture cleanup: query-layer isolation (zero src/features/ imports in src/db/queries/), ArmyListsPage armyListsReducer replacing 14 useState calls, PlaybookTab decomposed into 5 sub-components (PlaybookStats/Strategy/Datasheet/Rules/SyncDetails), UnitSheet decomposed into UnitFormRequired/UnitFormOptional/UnitFormFields
+
+**Tech debt accepted:** 14 files still exceed 400 lines (aspirational, not in success criteria); PlaybookRules.tsx retains mutation hooks (accepted, within 300-line limit)
+
+**Archived:**
+- Roadmap: `.planning/milestones/v0.3.0-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.3.0-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.3.0-MILESTONE-AUDIT.md`
+
+---
+
+## v0.2.18 Army Lists 3.0 — Smart List Builder (Shipped: 2026-05-22)
+
+**Phases completed:** 7 phases (89–95), 14 plans
+**Timeline:** 2026-05-20 → 2026-05-22 (3 days)
+**Stats:** 20 requirements satisfied, Nyquist fully compliant
+
+**Key accomplishments:**
+- Schema + data layer: loadout_configurations, unit_enhancements, leader_attachments tables with FK indexes
+- Loadout builder: wargear/model count editor with per-model weapon options
+- Enhancement assignment: point-costed enhancements from rules.db with uniqueness validation
+- Leader attachment: preventive validation (leader-to-bodyguard only), mutual exclusion
+- Datasheet browser + ghost units: in-list datasheet browsing, planned/ghost unit support
+- List export: 4 formats (text, markdown, JSON, clipboard)
+- Version snapshots: save/compare/restore with auto-save safety net
+
+**Archived:**
+- Roadmap: `.planning/milestones/v0.2.18-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.2.18-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.2.18-MILESTONE-AUDIT.md`
+
+---
+
 ## v0.2.15 Painting Mode (Shipped: 2026-05-20)
 
 **Phases completed:** 5 phases (84–88), 11 plans

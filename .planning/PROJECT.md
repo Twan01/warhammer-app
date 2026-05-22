@@ -4,11 +4,11 @@
 
 HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, structured painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play." Official points and rules data are imported via Wahapedia sync for personal use.
 
-Shipped through v0.2.18 (95 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps, transactional graph save, recipe_step_id-keyed progress), a dedicated Painting Mode for focused step-by-step recipe execution (distraction-free full-page layout, keyboard shortcuts, section navigator, paint readiness warnings, atomic step completion with session logging, 6 entry points), army list builder with detachment selection, centralized points resolver with source labeling and user-confirmable unit-to-rules mapping, smart list builder (loadout builder, wargear/model count editor, enhancements with points, leader attachment with preventive validation, ghost/planned units, 4-format export, version snapshots with save/compare/restore), battle log with after-action capture (forgotten rules, MVP/underperformer notes), spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard, KanbanCards, NextPaintingActionCard, ReadyToPlayCard, and DataHealthSummaryCard, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist, pre-game readiness panel, end-game after-action with forgotten-rules-to-reminders pipeline), Data Health page with diagnostics, structured backup export (.zip with VACUUM INTO + metadata.json), full restore with preview/validation/atomic swap/restart, automatic safety backups before restore and rules sync, progressive backup diagnostics with version mismatch detection, a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK), version parity enforcement, and auto-update via GitHub Releases with in-app banner.
+Shipped through v0.3.0 (99 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps, transactional graph save, recipe_step_id-keyed progress), a dedicated Painting Mode for focused step-by-step recipe execution (distraction-free full-page layout, keyboard shortcuts, section navigator, paint readiness warnings, atomic step completion with session logging, 6 entry points), army list builder with detachment selection, centralized points resolver with source labeling and user-confirmable unit-to-rules mapping, smart list builder (loadout builder, wargear/model count editor, enhancements with points, leader attachment with preventive validation, ghost/planned units, 4-format export, version snapshots with save/compare/restore), battle log with after-action capture (forgotten rules, MVP/underperformer notes), spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard, KanbanCards, NextPaintingActionCard, ReadyToPlayCard, and DataHealthSummaryCard, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist, pre-game readiness panel, end-game after-action with forgotten-rules-to-reminders pipeline), Data Health page with diagnostics, structured backup export (.zip with VACUUM INTO + metadata.json), full restore with preview/validation/atomic swap/restart, automatic safety backups before restore and rules sync, progressive backup diagnostics with version mismatch detection, a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK), version parity enforcement, auto-update via GitHub Releases with in-app banner, and internal robustness hardening (WAL mode, FK indexes, CHECK constraints, route error boundaries, DB health gate, lazy route loading, React.memo, batched INSERTs, query-layer isolation, component decomposition).
 
 ## Current State
 
-v0.2.18 complete. Phase 95 (version-snapshots) complete — version snapshot system for army lists: save named snapshots as JSON blobs (reusing Phase 94 export format), browse snapshot history with timestamps and point totals, compare two snapshots side-by-side with color-coded unit diffs, restore to a previous snapshot with auto-save safety net. SnapshotHistorySheet + SnapshotCompareDialog as sibling portals. 95 phases complete across 17 milestones. ~300+ TypeScript source files. 30 SQLite migrations (28 hobbyforge.db + 2 rules.db). 2,100+ automated tests. 8 Tauri Rust commands.
+v0.3.0 complete. Internal quality milestone — WAL mode + FK indexes + CHECK constraints on main DB, route error boundaries + DB health gate + global error capture, lazy route loading + React.memo + batched INSERTs + O(1) Kanban enrichment, query-layer isolation + ArmyListsPage reducer + PlaybookTab/UnitSheet decomposition. 99 phases complete across 19 milestones. ~300+ TypeScript source files. 33 SQLite migrations (31 hobbyforge.db + 2 rules.db). 2,268+ automated tests. 8 Tauri Rust commands.
 
 ## Core Value
 
@@ -208,27 +208,20 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ PX-01..PX-06: Distraction-free layout, keyboard shortcuts (Space/Arrow/Escape), input guards, time estimate per step — Phases 85–86 — v0.2.15
 - ✓ TS-01..TS-07: Test coverage for step selection, completion, navigation, optional sections, paintless steps, paint warnings, session prefill — Phases 84, 88 — v0.2.15
 
-## Current Milestone: v0.3.0 Robustness & Architecture Hardening
+*All v0.2.18 requirements verified and shipped 2026-05-22*
 
-**Goal:** Make HobbyForge faster, more resilient to errors, and architecturally cleaner for long-term maintenance — no new features, purely internal quality.
+- ✓ Smart list builder: loadout configurations, wargear/model count editor, enhancements with points, leader attachment with preventive validation, ghost/planned units, datasheet browser, 4-format list export, version snapshots with save/compare/restore — Phases 89–95 — v0.2.18
 
-**Target features:**
-- Error boundaries (root + route-level) and global error handlers
-- App startup health check (DB connection gate)
-- WAL mode + busy_timeout on main database
-- Missing database indexes on FK and temporal columns
-- CHECK constraints for data integrity
-- Route-level code splitting with React.lazy()
-- Tighter React Query invalidation chains
-- Kanban enrichment query batch optimization
-- Fix circular dependencies (DB → features layer)
-- Decompose mega components (PlaybookTab, UnitSheet, ArmyListDetailSheet)
-- ArmyListsPage modal state machine extraction
-- Batch INSERT optimization for sync/import
+*All v0.3.0 requirements verified and shipped 2026-05-22*
+
+- ✓ ERR-01..ERR-05: Route error boundaries, per-route crash isolation, DB health gate at startup, global error capture, WAL mode + busy_timeout — Phases 96–97 — v0.3.0
+- ✓ DBH-01..DBH-04: FK indexes (31 across 18 tables), temporal DESC indexes, CHECK constraints (points/quantity/percentage), batched INSERT for sync — Phases 96, 98 — v0.3.0
+- ✓ PERF-01..PERF-04: Lazy route loading (13 pages), precise mutation invalidation, O(1) Kanban enrichment via CTE batch query, React.memo on 3 high-frequency components — Phase 98 — v0.3.0
+- ✓ ARCH-01..ARCH-04: Query-layer isolation (zero feature imports), PlaybookTab decomposition (5 sub-components), UnitSheet decomposition (3 form sections), ArmyListsPage useReducer — Phase 99 — v0.3.0
 
 ### Active
 
-*Requirements being defined — see REQUIREMENTS.md*
+*No active milestone — planning next*
 
 ### Out of Scope
 
@@ -245,7 +238,7 @@ A single personal command center that always answers "what do I own, what's pain
 
 ## Context
 
-- **Current state:** v0.2.18 shipped (95 phases across 17 milestones). ~300+ TypeScript source files. ~100,000+ LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 13 main pages (including Painting Mode). Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline. 32 SQLite migrations (30 hobbyforge.db + 2 rules.db). 8 Rust Tauri commands. Structured backup/restore with preview + atomic swap + restart. Automatic safety backups before restore and rules sync. Progressive backup diagnostics. Transactional recipe graph save, recipe_step_id-keyed progress, centralized points resolver, Painting Mode with full-page execution view + keyboard shortcuts + 6 entry points, dashboard command center (NextPaintingAction, ReadyToPlay, DataHealthSummary), Game Day after-action loop. Smart list builder with loadout config, enhancements, leader attachment, ghost units, 4-format export, version snapshots. 2,100+ automated tests. Version parity enforcement. Auto-update via GitHub Releases.
+- **Current state:** v0.3.0 shipped (99 phases across 19 milestones). ~300+ TypeScript source files. ~110,000+ LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 13 main pages (lazy-loaded via React.lazy). Dual-DB architecture (hobbyforge.db + rules.db) with WAL mode, FK indexes, CHECK constraints, and hardened sync pipeline. 33 SQLite migrations (31 hobbyforge.db + 2 rules.db). 8 Rust Tauri commands. Route error boundaries + DB health gate at startup. Structured backup/restore with preview + atomic swap + restart. Automatic safety backups before restore and rules sync. Progressive backup diagnostics. Transactional recipe graph save, recipe_step_id-keyed progress, centralized points resolver, Painting Mode with full-page execution view + keyboard shortcuts + 6 entry points, dashboard command center (NextPaintingAction, ReadyToPlay, DataHealthSummary), Game Day after-action loop. Smart list builder with loadout config, enhancements, leader attachment, ghost units, 4-format export, version snapshots. 2,268+ automated tests. Version parity enforcement. Auto-update via GitHub Releases.
 - **Personal tool** — single user (the owner), local-first, no accounts or sync
 - **Domain:** Warhammer 40K 10th edition, hobby management (collecting → painting → playing)
 - **User journey priority:** painter/collector → ready-to-play, *not* competitive optimization
@@ -348,6 +341,13 @@ A single personal command center that always answers "what do I own, what's pain
 | Sibling Fragment pattern for button pair | Mark Done + Done & Log Session as Fragment siblings avoids nested Sheet/Dialog issues | ✓ Good — consistent with established sibling portal pattern |
 | No new migrations for Painting Mode | Entire data layer (step progress, sessions, recipe assignments) already in place from v0.2.10/v0.2.11 | ✓ Excellent — zero schema risk, pure UI milestone |
 | completeStepWithSession flat inline transaction | Follows saveRecipeGraph BEGIN/COMMIT pattern; tauri-plugin-sql cannot nest transactions | ✓ Good — consistent with established transaction pattern |
+| Single migration (033) for all DB hardening | Indexes + CHECK constraints + table rebuilds in one file; avoids multi-migration ordering risk | ✓ Good — atomic schema upgrade |
+| DBH-04 grouped with performance phase | Batched INSERTs are query efficiency, not schema — belongs with code splitting + memoization | ✓ Good — clean 4-phase milestone structure |
+| React.lazy named-export adapter pattern | React.lazy requires default export; adapter wraps named exports for lazy loading | ✓ Good — no source changes needed on page components |
+| CTE + ROW_NUMBER for batched Kanban enrichment | Single SQL query replaces 4N individual queries; window function picks latest per unit | ✓ Excellent — O(1) DB round-trips vs O(4N) |
+| useReducer for ArmyListsPage state | Discriminated union actions replace 14 individual useState calls; centralized, testable | ✓ Good — 5 unit tests on pure reducer |
+| Orchestrator + sub-component pattern for large tabs | PlaybookTab slim orchestrator delegates to 5 focused sub-components | ✓ Good — each file under 300 lines |
+| useFormContext for UnitSheet decomposition | Form sections access RHF context without prop drilling; parent remains the FormProvider | ✓ Good — clean extraction, each file under 200 lines |
 
 ---
 ## Evolution
@@ -368,4 +368,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-22 — v0.3.0 milestone started*
+*Last updated: 2026-05-22 after v0.3.0 milestone*

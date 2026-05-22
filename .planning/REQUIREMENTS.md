@@ -11,8 +11,8 @@ Requirements for the Robustness & Architecture Hardening milestone. Each maps to
 
 - [x] **ERR-01**: App renders a fallback UI (not blank screen) when any component throws during render
 - [x] **ERR-02**: Each route has its own error boundary -- a crash on one page doesn't break other pages
-- [ ] **ERR-03**: App verifies DB connection and schema integrity before rendering the main layout
-- [ ] **ERR-04**: Unhandled promise rejections and uncaught errors are captured and logged (not silently swallowed)
+- [x] **ERR-03**: App verifies DB connection and schema integrity before rendering the main layout
+- [x] **ERR-04**: Unhandled promise rejections and uncaught errors are captured and logged (not silently swallowed)
 - [x] **ERR-05**: Main database uses WAL journal mode and busy_timeout (matching rules-client.ts)
 
 ### Database Hardening
@@ -62,8 +62,8 @@ Requirements for the Robustness & Architecture Hardening milestone. Each maps to
 |-------------|-------|--------|
 | ERR-01 | Phase 97 | Complete |
 | ERR-02 | Phase 97 | Complete |
-| ERR-03 | Phase 97 | Pending |
-| ERR-04 | Phase 97 | Pending |
+| ERR-03 | Phase 97 | Complete |
+| ERR-04 | Phase 97 | Complete |
 | ERR-05 | Phase 96 | Complete |
 | DBH-01 | Phase 96 | Complete |
 | DBH-02 | Phase 96 | Complete |
