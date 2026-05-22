@@ -17,6 +17,8 @@ import { ArmyListsEmptyState } from "./ArmyListsEmptyState";
 import { LoadoutBuilderSheet } from "./LoadoutBuilderSheet";
 import { DatasheetBrowserDialog } from "./DatasheetBrowserDialog";
 import { PrintPreviewDialog } from "./PrintPreviewDialog";
+import { SnapshotHistorySheet } from "./SnapshotHistorySheet";
+import { SnapshotCompareDialog } from "./SnapshotCompareDialog";
 import { PageHeader } from "@/components/common/PageHeader";
 
 /**
@@ -48,6 +50,9 @@ export function ArmyListsPage() {
   const [leaderUnitId, setLeaderUnitId] = useState<number | null>(null);
   const [datasheetBrowserOpen, setDatasheetBrowserOpen] = useState(false);
   const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
+  const [snapshotHistoryOpen, setSnapshotHistoryOpen] = useState(false);
+  const [compareSnapshotIds, setCompareSnapshotIds] = useState<[number, number] | null>(null);
+  const [compareSnapshotLabels, setCompareSnapshotLabels] = useState<[string, string] | null>(null);
 
   // Pattern: store ID, derive object from cache (selectedListId pattern)
   const selectedList = selectedListId !== null
@@ -83,7 +88,7 @@ export function ArmyListsPage() {
     }
   };
   const openDetail = (list: ArmyList) => setSelectedListId(list.id);
-  const closeDetail = () => { setSelectedListId(null); setUnitPickerOpen(false); setLoadoutUnitId(null); setEnhancementUnitId(null); setLeaderUnitId(null); setDatasheetBrowserOpen(false); setPrintPreviewOpen(false); };
+  const closeDetail = () => { setSelectedListId(null); setUnitPickerOpen(false); setLoadoutUnitId(null); setEnhancementUnitId(null); setLeaderUnitId(null); setDatasheetBrowserOpen(false); setPrintPreviewOpen(false); setSnapshotHistoryOpen(false); setCompareSnapshotIds(null); setCompareSnapshotLabels(null); };
   const openUnitPicker = () => setUnitPickerOpen(true);
   const closeUnitPicker = () => setUnitPickerOpen(false);
   const openLoadout = (armyListUnitId: number) => setLoadoutUnitId(armyListUnitId);
@@ -96,6 +101,10 @@ export function ArmyListsPage() {
   const closeDatasheetBrowser = () => setDatasheetBrowserOpen(false);
   const openPrintPreview = () => setPrintPreviewOpen(true);
   const closePrintPreview = () => setPrintPreviewOpen(false);
+  const openSnapshotHistory = () => setSnapshotHistoryOpen(true);
+  const closeSnapshotHistory = () => { setSnapshotHistoryOpen(false); setCompareSnapshotIds(null); setCompareSnapshotLabels(null); };
+  const openSnapshotCompare = (ids: [number, number], labels: [string, string]) => { setCompareSnapshotIds(ids); setCompareSnapshotLabels(labels); };
+  const closeSnapshotCompare = () => { setCompareSnapshotIds(null); setCompareSnapshotLabels(null); };
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -154,6 +163,7 @@ export function ArmyListsPage() {
         onAttachLeader={openLeaderAttach}
         onBrowseDatasheets={openDatasheetBrowser}
         onPrintPreview={openPrintPreview}
+        onOpenSnapshots={openSnapshotHistory}
       />
       <ArmyListSheet
         key={editingList?.id ?? "new-edit"}
@@ -206,6 +216,22 @@ export function ArmyListsPage() {
         enhancements={selectedListEnhancements ?? []}
         factionName={selectedListFactionName}
         onClose={closePrintPreview}
+      />
+      <SnapshotHistorySheet
+        open={snapshotHistoryOpen}
+        listId={selectedListId}
+        list={selectedList}
+        units={selectedListUnits ?? []}
+        enhancements={selectedListEnhancements ?? []}
+        factionName={selectedListFactionName}
+        onClose={closeSnapshotHistory}
+        onCompare={openSnapshotCompare}
+      />
+      <SnapshotCompareDialog
+        open={compareSnapshotIds !== null}
+        snapshotIds={compareSnapshotIds}
+        snapshotLabels={compareSnapshotLabels}
+        onClose={closeSnapshotCompare}
       />
     </div>
   );

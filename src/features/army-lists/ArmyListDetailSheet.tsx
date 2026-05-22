@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { BookOpen, Plus, Swords } from "lucide-react";
+import { BookOpen, History, Plus, Swords } from "lucide-react";
 import { toast } from "sonner";
 import { getSyncFreshness } from "@/lib/syncFreshness";
 import {
@@ -87,10 +87,15 @@ interface ArmyListDetailSheetProps {
    * This Sheet does NOT own the dialog state.
    */
   onPrintPreview: () => void;
+  /**
+   * Phase 95 — Opens the sibling-portal SnapshotHistorySheet.
+   * This Sheet does NOT own the dialog state.
+   */
+  onOpenSnapshots: () => void;
 }
 
 export function ArmyListDetailSheet({
-  open, list, onClose, onEdit, onDelete, onAddUnit, onConfigureUnit, onEnhanceUnit, onAttachLeader, onBrowseDatasheets, onPrintPreview,
+  open, list, onClose, onEdit, onDelete, onAddUnit, onConfigureUnit, onEnhanceUnit, onAttachLeader, onBrowseDatasheets, onPrintPreview, onOpenSnapshots,
 }: ArmyListDetailSheetProps) {
   const { data: units, isLoading } = useArmyListWithUnits(list?.id);
   const { data: listEnhancements } = useEnhancementsByList(list?.id);
@@ -363,13 +368,17 @@ export function ArmyListDetailSheet({
 
             <ArmyListSummaryBar units={units ?? []} pointsLimit={list.points_limit} freshness={freshness} enhancements={listEnhancements ?? []} />
 
-            <div className="px-4 py-1">
+            <div className="flex items-center gap-2 px-4 py-1">
               <ExportDropdown
                 onCopyToClipboard={handleCopyToClipboard}
                 onPrint={onPrintPreview}
                 onSaveJson={handleSaveJson}
                 onSavePdf={handleSavePdf}
               />
+              <Button variant="outline" size="sm" onClick={onOpenSnapshots}>
+                <History className="mr-2 h-4 w-4" />
+                Snapshots
+              </Button>
             </div>
 
             <div className="flex flex-col gap-3 px-4 py-2">
