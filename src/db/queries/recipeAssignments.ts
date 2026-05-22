@@ -171,6 +171,74 @@ export async function bulkCreateAssignments(
   }
 }
 
+// ─── PERF-03: Batched Kanban enrichment query ────────────────────────────────
+
+/**
+ * Row shape returned by getKanbanProgressByUnitIds.
+ * One row per unit (the most-recent assignment), with step completion counts.
+ */
+export interface KanbanProgressRow {
+  unit_id: number;
+  assignment_id: number;
+  assignment_count: number;
+  recipe_id: number;
+  recipe_name: string;
+  total_steps: number;
+  completed_steps: number;
+}
+
+/**
+ * PERF-03 — batch-fetches kanban progress for a set of unit IDs in a single
+ * DB round-trip.
+ *
+ * Uses a CTE with ROW_NUMBER() OVER (PARTITION BY unit_id ORDER BY created_at DESC)
+ * to select the most-recent assignment per unit plus COUNT(*) OVER for total
+ * assignment count, then JOINs painting_recipes and LEFT JOINs recipe_steps /
+ * unit_recipe_step_progress to aggregate step completion.
+ *
+ * Units with no assignments are naturally absent from the result — the CTE only
+ * includes units that have assignments.
+ *
+ * IN-clause uses positional $N placeholders per Tauri plugin-sql requirement.
+ * Guard clause prevents an invalid IN () SQL error when unitIds is empty.
+ *
+ * Threat T-98-03: injection risk is eliminated — all unitIds values go through
+ * parameterized binding via Tauri plugin-sql, never string-interpolated.
+ */
+export async function getKanbanProgressByUnitIds(
+  unitIds: number[],
+): Promise<KanbanProgressRow[]> {
+  if (unitIds.length === 0) return [];
+  const db = await getDb();
+  const placeholders = unitIds.map((_, i) => `$${i + 1}`).join(", ");
+  // CTE selects most-recent assignment per unit (rn = 1), plus total assignment count.
+  return db.select<KanbanProgressRow[]>(
+    `WITH ranked AS (
+       SELECT
+         id, unit_id, recipe_id, created_at,
+         ROW_NUMBER() OVER (PARTITION BY unit_id ORDER BY created_at DESC) AS rn,
+         COUNT(*) OVER (PARTITION BY unit_id) AS total_assignments
+       FROM unit_recipe_assignments
+       WHERE unit_id IN (${placeholders})
+     )
+     SELECT
+       r.unit_id,
+       r.id AS assignment_id,
+       r.total_assignments AS assignment_count,
+       r.recipe_id,
+       pr.name AS recipe_name,
+       COUNT(rs.id) AS total_steps,
+       COUNT(CASE WHEN sp.completed = 1 THEN 1 END) AS completed_steps
+     FROM ranked r
+     JOIN painting_recipes pr ON pr.id = r.recipe_id
+     LEFT JOIN recipe_steps rs ON rs.recipe_id = r.recipe_id
+     LEFT JOIN unit_recipe_step_progress sp ON sp.assignment_id = r.id AND sp.recipe_step_id = rs.id
+     WHERE r.rn = 1
+     GROUP BY r.unit_id, r.id, r.recipe_id, pr.name, r.total_assignments`,
+    unitIds,
+  );
+}
+
 /**
  * Atomically marks a recipe step as completed AND logs a painting session.
  * Both writes happen in a single transaction — if either fails, both are
