@@ -75,7 +75,7 @@ describe("pointsImportHistory schema contract", () => {
 });
 
 describe("syncedUnitPoints schema contract", () => {
-  it("replaceSyncedUnitPoints DELETEs then INSERTs rows", async () => {
+  it("replaceSyncedUnitPoints DELETEs then INSERTs rows (batched — DBH-04)", async () => {
     executeMock.mockResolvedValue(undefined);
     await replaceSyncedUnitPoints(
       [
@@ -84,22 +84,22 @@ describe("syncedUnitPoints schema contract", () => {
       ],
       "2026-05-13T12:00:00Z",
     );
-    // BEGIN + DELETE + 2 INSERTs + COMMIT = 5 calls
-    expect(executeMock).toHaveBeenCalledTimes(5);
+    // BEGIN + DELETE + 1 batched INSERT (2 rows in one VALUES clause) + COMMIT = 4 calls (not 5)
+    expect(executeMock).toHaveBeenCalledTimes(4);
     const [beginSql] = executeMock.mock.calls[0];
     expect(beginSql).toContain("BEGIN TRANSACTION");
     const [deleteSql] = executeMock.mock.calls[1];
     expect(deleteSql).toContain("DELETE FROM synced_unit_points");
-    const [insertSql1, params1] = executeMock.mock.calls[2];
-    expect(insertSql1).toContain("INSERT INTO synced_unit_points");
-    expect(insertSql1).toContain("unit_name");
-    expect(insertSql1).toContain("faction_id");
-    expect(insertSql1).toContain("points");
-    expect(insertSql1).toContain("synced_at");
-    expect(params1).toEqual(["Intercessors", "SM", 80, "2026-05-13T12:00:00Z"]);
-    const [, params2] = executeMock.mock.calls[3];
-    expect(params2).toEqual(["Boyz", null, 70, "2026-05-13T12:00:00Z"]);
-    const [commitSql] = executeMock.mock.calls[4];
+    const [insertSql, params] = executeMock.mock.calls[2];
+    expect(insertSql).toContain("INSERT INTO synced_unit_points");
+    expect(insertSql).toContain("unit_name");
+    expect(insertSql).toContain("faction_id");
+    expect(insertSql).toContain("points");
+    expect(insertSql).toContain("synced_at");
+    // Both rows in a single multi-row VALUES clause
+    expect(insertSql).toMatch(/VALUES.*\$1.*\$5/s);
+    expect(params).toEqual(["Intercessors", "SM", 80, "2026-05-13T12:00:00Z", "Boyz", null, 70, "2026-05-13T12:00:00Z"]);
+    const [commitSql] = executeMock.mock.calls[3];
     expect(commitSql).toContain("COMMIT");
   });
 

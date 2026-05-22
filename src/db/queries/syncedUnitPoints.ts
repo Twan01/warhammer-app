@@ -18,8 +18,8 @@ export interface SyncedUnitPointsRow {
 
 /**
  * Replace all synced unit points with fresh data from the latest sync.
- * DELETEs all existing rows, then INSERTs the new set.
- * Small table (hundreds of rows), so a loop is fine.
+ * DELETEs all existing rows, then INSERTs the new set using multi-row
+ * batched VALUES statements (DBH-04) — ceil(N/200) INSERT calls instead of N.
  */
 export async function replaceSyncedUnitPoints(
   rows: SyncedUnitPointsRow[],
@@ -29,11 +29,22 @@ export async function replaceSyncedUnitPoints(
   await db.execute("BEGIN TRANSACTION", []);
   try {
     await db.execute("DELETE FROM synced_unit_points", []);
-    for (const row of rows) {
+    if (rows.length === 0) {
+      await db.execute("COMMIT", []);
+      return;
+    }
+    const BATCH_SIZE = 200;
+    const COL_COUNT = 4;
+    for (let offset = 0; offset < rows.length; offset += BATCH_SIZE) {
+      const batch = rows.slice(offset, offset + BATCH_SIZE);
+      const placeholders = batch.map((_, i) => {
+        const base = i * COL_COUNT;
+        return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4})`;
+      }).join(", ");
+      const params = batch.flatMap(row => [row.unit_name, row.faction_id, row.points, syncedAt]);
       await db.execute(
-        `INSERT INTO synced_unit_points (unit_name, faction_id, points, synced_at)
-         VALUES ($1, $2, $3, $4)`,
-        [row.unit_name, row.faction_id, row.points, syncedAt],
+        `INSERT INTO synced_unit_points (unit_name, faction_id, points, synced_at) VALUES ${placeholders}`,
+        params,
       );
     }
     await db.execute("COMMIT", []);
@@ -58,11 +69,22 @@ export async function replaceSyncedUnitPointTiers(
   await db.execute("BEGIN TRANSACTION", []);
   try {
     await db.execute("DELETE FROM synced_unit_point_tiers", []);
-    for (const row of rows) {
+    if (rows.length === 0) {
+      await db.execute("COMMIT", []);
+      return;
+    }
+    const BATCH_SIZE = 200;
+    const COL_COUNT = 5;
+    for (let offset = 0; offset < rows.length; offset += BATCH_SIZE) {
+      const batch = rows.slice(offset, offset + BATCH_SIZE);
+      const placeholders = batch.map((_, i) => {
+        const base = i * COL_COUNT;
+        return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`;
+      }).join(", ");
+      const params = batch.flatMap(row => [row.unit_name, row.faction_id, row.model_count, row.points, syncedAt]);
       await db.execute(
-        `INSERT INTO synced_unit_point_tiers (unit_name, faction_id, model_count, points, synced_at)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [row.unit_name, row.faction_id, row.model_count, row.points, syncedAt],
+        `INSERT INTO synced_unit_point_tiers (unit_name, faction_id, model_count, points, synced_at) VALUES ${placeholders}`,
+        params,
       );
     }
     await db.execute("COMMIT", []);

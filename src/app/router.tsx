@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import {
   createRootRoute,
   createRoute,
@@ -6,27 +7,31 @@ import {
 } from "@tanstack/react-router";
 import { z } from "zod";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
+import { Loader2 } from "lucide-react";
 import { AppLayout } from "@/components/common/AppLayout";
 import { RouteErrorFallback } from "@/components/common/RouteErrorFallback";
 import { ActiveFactionProvider } from "@/context/ActiveFactionContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
-import { DashboardPage } from "./dashboard/page";
-import { CollectionPage } from "./collection/page";
-import { PaintingProjectsPage } from "./painting-projects/page";
-import { RecipesPage } from "./recipes/page";
-import { PaintsPage } from "./paints/page";
-import { SettingsPage } from "./settings/page";
-import { FactionsPage } from "./factions/page";
-import { ArmyListsPage } from "./army-lists/page";
-import { SpendingPage } from "./spending/page";
-import { BattleLogPage } from "./battle-log/page";
-import { WishlistPage } from "./wishlist/page";
-import { GoalsPage } from "./goals/page";
-import { RulesHubPageShell } from "./rules-hub/page";
-import { GameDayPageShell } from "./game-day/page";
-import { DataHealthPage } from "./data-health/page";
-import { PaintingModePage } from "./painting-mode/page";
+
+// Named-export adapter: .then(m => ({ default: m.PageName })) is required because
+// all page components use named exports, not export default.
+const DashboardPage = lazy(() => import("./dashboard/page").then(m => ({ default: m.DashboardPage })));
+const CollectionPage = lazy(() => import("./collection/page").then(m => ({ default: m.CollectionPage })));
+const PaintingProjectsPage = lazy(() => import("./painting-projects/page").then(m => ({ default: m.PaintingProjectsPage })));
+const RecipesPage = lazy(() => import("./recipes/page").then(m => ({ default: m.RecipesPage })));
+const PaintsPage = lazy(() => import("./paints/page").then(m => ({ default: m.PaintsPage })));
+const SettingsPage = lazy(() => import("./settings/page").then(m => ({ default: m.SettingsPage })));
+const FactionsPage = lazy(() => import("./factions/page").then(m => ({ default: m.FactionsPage })));
+const ArmyListsPage = lazy(() => import("./army-lists/page").then(m => ({ default: m.ArmyListsPage })));
+const SpendingPage = lazy(() => import("./spending/page").then(m => ({ default: m.SpendingPage })));
+const BattleLogPage = lazy(() => import("./battle-log/page").then(m => ({ default: m.BattleLogPage })));
+const WishlistPage = lazy(() => import("./wishlist/page").then(m => ({ default: m.WishlistPage })));
+const GoalsPage = lazy(() => import("./goals/page").then(m => ({ default: m.GoalsPage })));
+const RulesHubPageShell = lazy(() => import("./rules-hub/page").then(m => ({ default: m.RulesHubPageShell })));
+const GameDayPageShell = lazy(() => import("./game-day/page").then(m => ({ default: m.GameDayPageShell })));
+const DataHealthPage = lazy(() => import("./data-health/page").then(m => ({ default: m.DataHealthPage })));
+const PaintingModePage = lazy(() => import("./painting-mode/page").then(m => ({ default: m.PaintingModePage })));
 
 // ---------------------------------------------------------------------------
 // Root route — thin shell: only renders Outlet + devtools
@@ -52,7 +57,9 @@ export const layoutRoute = createRoute({
   component: () => (
     <AppLayout>
       <ActiveFactionProvider>
-        <Outlet />
+        <Suspense fallback={<div className="flex h-full items-center justify-center text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin" /></div>}>
+          <Outlet />
+        </Suspense>
       </ActiveFactionProvider>
     </AppLayout>
   ),
@@ -69,7 +76,9 @@ export const bareLayoutRoute = createRoute({
   component: () => (
     <ActiveFactionProvider>
       <TooltipProvider delayDuration={200}>
-        <Outlet />
+        <Suspense fallback={<div className="flex h-full items-center justify-center text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin" /></div>}>
+          <Outlet />
+        </Suspense>
         <Toaster richColors position="bottom-right" />
       </TooltipProvider>
     </ActiveFactionProvider>
