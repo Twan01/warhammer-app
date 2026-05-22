@@ -4,7 +4,7 @@ import { Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGoals, useGoalProgress, useDeleteGoal } from "@/hooks/useGoals";
-import { computeGoalPeriod, deriveGoalStatus } from "@/features/goals/computeGoalPeriod";
+import { computeGoalPeriod, deriveGoalStatus } from "@/lib/computeGoalPeriod";
 import { GoalCard } from "@/features/goals/GoalCard";
 import { GoalSheet } from "@/features/goals/GoalSheet";
 import { GoalDeleteDialog } from "@/features/goals/GoalDeleteDialog";

@@ -1,19 +1,12 @@
+/**
+ * Pure recipe step utility functions.
+ *
+ * Relocated from src/features/recipes/recipeSteps.ts to src/lib/ so the query
+ * layer (src/db/queries/recipes.ts) can import computeOrderIndex without
+ * crossing the feature boundary. All functions are pure.
+ */
+import type { DraftStep } from "@/types/recipe";
 import type { Paint } from "@/types/paint";
-
-export interface DraftStep {
-  localId: string;
-  dbId: number | null;
-  step_name: string;
-  paint_id: number | null;
-  notes: string | null;
-  painting_phase: string | null;
-  tool: string | null;
-  technique: string | null;
-  dilution: string | null;
-  time_estimate_minutes: number | null;
-  step_photo_path: string | null;
-  alt_paint_id: number | null;
-}
 
 export function makeDraftStep(): DraftStep {
   return {

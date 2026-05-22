@@ -26,7 +26,7 @@ import { useRecipeSections } from "@/hooks/useRecipeSections";
 import type { PaintingRecipe } from "@/types/recipe";
 import { RecipeStepTimeline } from "./RecipeStepTimeline";
 import { SectionedTimeline } from "./SectionedTimeline";
-import { isPaintMissing } from "./recipeSteps";
+import { isPaintMissing } from "@/lib/recipeSteps";
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { convertFileSrc } from "@tauri-apps/api/core";
 

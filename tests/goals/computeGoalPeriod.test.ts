@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, vi } from "vitest";
-import { computeGoalPeriod, currentPeriod, deriveGoalStatus } from "@/features/goals/computeGoalPeriod";
+import { computeGoalPeriod, currentPeriod, deriveGoalStatus } from "@/lib/computeGoalPeriod";
 
 // Mock todayISO to a fixed date for deterministic isExpired tests
 vi.mock("@/lib/dates", () => ({

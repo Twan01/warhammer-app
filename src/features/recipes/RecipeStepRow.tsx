@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { DraftStep } from "./recipeSteps";
+import type { DraftStep } from "@/types/recipe";
 import { PAINTING_PHASES } from "./recipeSchema";
 import { PaintCombobox } from "./PaintCombobox";
 

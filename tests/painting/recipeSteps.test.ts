@@ -2,7 +2,8 @@
  * RECIPE-05, RECIPE-06 — recipe step pure-function utilities.
  */
 import { describe, it, expect } from "vitest";
-import { computeOrderIndex, isPaintMissing, makeDraftStep, type DraftStep } from "@/features/recipes/recipeSteps";
+import { computeOrderIndex, isPaintMissing, makeDraftStep } from "@/lib/recipeSteps";
+import type { DraftStep } from "@/types/recipe";
 import type { Paint } from "@/types/paint";
 
 function step(over: Partial<DraftStep> = {}): DraftStep {

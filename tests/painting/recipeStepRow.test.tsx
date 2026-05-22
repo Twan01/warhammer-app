@@ -12,7 +12,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { RecipeStepRow } from "@/features/recipes/RecipeStepRow";
-import type { DraftStep } from "@/features/recipes/recipeSteps";
+import type { DraftStep } from "@/types/recipe";
 import { PAINTING_PHASES } from "@/features/recipes/recipeSchema";
 
 // ---------------------------------------------------------------------------

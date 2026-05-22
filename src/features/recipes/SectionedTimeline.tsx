@@ -5,7 +5,7 @@ import type { Paint } from "@/types/paint";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Layers } from "lucide-react";
 import { RecipeStepTimeline } from "./RecipeStepTimeline";
-import { isPaintMissing } from "./recipeSteps";
+import { isPaintMissing } from "@/lib/recipeSteps";
 
 export interface SectionedTimelineProps {
   sections: RecipeSection[];
