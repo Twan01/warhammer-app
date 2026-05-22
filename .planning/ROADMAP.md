@@ -137,7 +137,7 @@ Full details: `.planning/milestones/v0.2.18-ROADMAP.md`
 **Milestone Goal:** Make HobbyForge faster, more resilient to errors, and architecturally cleaner for long-term maintenance. No new user-facing features -- purely internal quality. The app should feel the same to the user but be faster and more robust.
 
 - [x] **Phase 96: Database Hardening** (1/1 plans) - Indexes, CHECK constraints, and WAL mode on main DB -- completed 2026-05-22
-- [ ] **Phase 97: Error Resilience** - Error boundaries, DB health check gate, global error handlers
+- [ ] **Phase 97: Error Resilience** (2 plans) - Error boundaries, DB health check gate, global error handlers
 - [ ] **Phase 98: Performance Optimization** - Code splitting, precise invalidation, batched queries, memoization
 - [ ] **Phase 99: Architecture Cleanup** - Eliminate circular deps, decompose mega components, extract state machine
 
@@ -165,7 +165,10 @@ Plans:
   2. A crash on one route (e.g., /army-lists) does not affect other routes -- navigating away from the crashed page works normally
   3. If the database connection or schema is corrupted at startup, the app shows a diagnostic screen instead of silently failing or rendering an empty shell
   4. Unhandled promise rejections and uncaught errors are captured and logged to the console with structured context (not silently swallowed by React Query or async handlers)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 97-01-PLAN.md -- Route error boundaries (RouteErrorFallback + router wiring + tests)
+- [ ] 97-02-PLAN.md -- DB health gate, global error handlers, QueryCache/MutationCache onError + tests
 
 ### Phase 98: Performance Optimization
 **Goal**: Page loads are faster, mutations only refresh what they changed, and the Kanban board enriches units efficiently
@@ -290,7 +293,7 @@ Plans:
 | 94. List Export | v0.2.18 | 2/2 | Complete | 2026-05-21 |
 | 95. Version Snapshots | v0.2.18 | 2/2 | Complete | 2026-05-22 |
 | 96. Database Hardening | v0.3.0 | 1/1 | Complete | 2026-05-22 |
-| 97. Error Resilience | v0.3.0 | 0/TBD | Not started | - |
+| 97. Error Resilience | v0.3.0 | 0/2 | Not started | - |
 | 98. Performance Optimization | v0.3.0 | 0/TBD | Not started | - |
 | 99. Architecture Cleanup | v0.3.0 | 0/TBD | Not started | - |
 
