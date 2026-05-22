@@ -1,9 +1,14 @@
+import { useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useDetachmentAbilitiesByDetachment,
   useStratagemsByDetachment,
 } from "@/hooks/useRulesExtended";
+import { useRulesFavorites } from "@/hooks/useRulesFavorites";
+import { useRulesNotes } from "@/hooks/useRulesNotes";
 import { StratagemCard } from "@/features/rules-hub/StratagemCard";
+import type { RulesFavorite } from "@/types/rulesFavorite";
+import type { RulesNote } from "@/types/rulesNote";
 
 interface DetachmentRulesSectionProps {
   detachmentId: string | null | undefined;
@@ -14,6 +19,20 @@ export function DetachmentRulesSection({ detachmentId }: DetachmentRulesSectionP
     useDetachmentAbilitiesByDetachment(detachmentId ?? undefined);
   const { data: stratagems, isLoading: stratagemsLoading } =
     useStratagemsByDetachment(detachmentId ?? undefined);
+  const { data: favorites = [] } = useRulesFavorites();
+  const { data: rulesNotes = [] } = useRulesNotes();
+
+  const favoritesMap = useMemo(() => {
+    const m = new Map<string, RulesFavorite>();
+    for (const f of favorites) m.set(`${f.rule_id}:${f.rule_type}`, f);
+    return m;
+  }, [favorites]);
+
+  const notesMap = useMemo(() => {
+    const m = new Map<string, RulesNote>();
+    for (const n of rulesNotes) m.set(`${n.rule_id}:${n.rule_type}`, n);
+    return m;
+  }, [rulesNotes]);
 
   if (!detachmentId) {
     return (
@@ -66,7 +85,12 @@ export function DetachmentRulesSection({ detachmentId }: DetachmentRulesSectionP
         <div className="flex flex-col gap-2 px-4">
           <span className="text-sm font-semibold">Stratagems ({stratagemsList.length})</span>
           {stratagemsList.map((s) => (
-            <StratagemCard key={s.id} stratagem={s} favorite={null} note={null} />
+            <StratagemCard
+              key={s.id}
+              stratagem={s}
+              favorite={favoritesMap.get(s.id + ':stratagem') ?? null}
+              note={notesMap.get(s.id + ':stratagem') ?? null}
+            />
           ))}
         </div>
       )}
