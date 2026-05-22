@@ -208,18 +208,23 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ PX-01..PX-06: Distraction-free layout, keyboard shortcuts (Space/Arrow/Escape), input guards, time estimate per step — Phases 85–86 — v0.2.15
 - ✓ TS-01..TS-07: Test coverage for step selection, completion, navigation, optional sections, paintless steps, paint warnings, session prefill — Phases 84, 88 — v0.2.15
 
-## Current Milestone: v0.2.18 Army Lists 3.0 — Smart List Builder
+## Current Milestone: v0.3.0 Robustness & Architecture Hardening
 
-**Goal:** Transform army lists from a simple unit tracker into a full list-building experience with auto-resolved points, loadout configuration, enhancements, list export, version history, and the ability to plan with units you don't yet own.
+**Goal:** Make HobbyForge faster, more resilient to errors, and architecturally cleaner for long-term maintenance — no new features, purely internal quality.
 
 **Target features:**
-- Auto-link units to rules datasheets (auto-match by name, manual fallback for ambiguous)
-- Full loadout builder (model count tiers, wargear options, per-choice points adjustment)
-- Enhancement assignment to character units with auto-points
-- Collection + rules browsing (add owned units AND plan with unowned datasheets, with indicator)
-- List export (text/clipboard, print-friendly, JSON/PDF)
-- Version snapshots (save named versions, side-by-side comparison)
-- Bug fix: units display order in army list
+- Error boundaries (root + route-level) and global error handlers
+- App startup health check (DB connection gate)
+- WAL mode + busy_timeout on main database
+- Missing database indexes on FK and temporal columns
+- CHECK constraints for data integrity
+- Route-level code splitting with React.lazy()
+- Tighter React Query invalidation chains
+- Kanban enrichment query batch optimization
+- Fix circular dependencies (DB → features layer)
+- Decompose mega components (PlaybookTab, UnitSheet, ArmyListDetailSheet)
+- ArmyListsPage modal state machine extraction
+- Batch INSERT optimization for sync/import
 
 ### Active
 
@@ -240,7 +245,7 @@ A single personal command center that always answers "what do I own, what's pain
 
 ## Context
 
-- **Current state:** v0.2.15 shipped. ~300+ TypeScript source files. ~100,000+ LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 13 main pages (including Painting Mode). Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline. 28 SQLite migrations (26 hobbyforge.db + 2 rules.db). 7 Rust Tauri commands. Structured backup/restore with preview + atomic swap + restart. Automatic safety backups before restore and rules sync. Progressive backup diagnostics. Transactional recipe graph save, recipe_step_id-keyed progress, centralized points resolver, Painting Mode with full-page execution view + keyboard shortcuts + 6 entry points, dashboard command center (NextPaintingAction, ReadyToPlay, DataHealthSummary), Game Day after-action loop. 1,831+ automated tests. Version parity enforcement. Auto-update via GitHub Releases.
+- **Current state:** v0.2.18 shipped (95 phases across 17 milestones). ~300+ TypeScript source files. ~100,000+ LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 13 main pages (including Painting Mode). Dual-DB architecture (hobbyforge.db + rules.db) with hardened sync pipeline. 32 SQLite migrations (30 hobbyforge.db + 2 rules.db). 8 Rust Tauri commands. Structured backup/restore with preview + atomic swap + restart. Automatic safety backups before restore and rules sync. Progressive backup diagnostics. Transactional recipe graph save, recipe_step_id-keyed progress, centralized points resolver, Painting Mode with full-page execution view + keyboard shortcuts + 6 entry points, dashboard command center (NextPaintingAction, ReadyToPlay, DataHealthSummary), Game Day after-action loop. Smart list builder with loadout config, enhancements, leader attachment, ghost units, 4-format export, version snapshots. 2,100+ automated tests. Version parity enforcement. Auto-update via GitHub Releases.
 - **Personal tool** — single user (the owner), local-first, no accounts or sync
 - **Domain:** Warhammer 40K 10th edition, hobby management (collecting → painting → playing)
 - **User journey priority:** painter/collector → ready-to-play, *not* competitive optimization
@@ -363,4 +368,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-20 — v0.2.18 milestone started*
+*Last updated: 2026-05-22 — v0.3.0 milestone started*
