@@ -10,7 +10,6 @@ import {
   armyListsReducer,
   initialArmyListsState,
   type ArmyListsState,
-  type ArmyListsAction,
 } from "@/features/army-lists/armyListsReducer";
 import type { ArmyList } from "@/types/armyList";
 

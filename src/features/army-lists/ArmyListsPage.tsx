@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useReducer } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -6,6 +6,7 @@ import { useArmyLists, useArmyListWithUnits } from "@/hooks/useArmyLists";
 import { useFactions } from "@/hooks/useFactions";
 import type { ArmyList } from "@/types/armyList";
 import { useEnhancementsByList } from "@/hooks/useArmyLists";
+import { armyListsReducer, initialArmyListsState } from "./armyListsReducer";
 import { ArmyListCard } from "./ArmyListCard";
 import { ArmyListSheet } from "./ArmyListSheet";
 import { ArmyListDeleteDialog } from "./ArmyListDeleteDialog";
@@ -38,21 +39,15 @@ export function ArmyListsPage() {
   const { data: lists, isLoading, isError } = useArmyLists();
   const { data: factions } = useFactions();
 
-  // Page-level portal state
-  const [selectedListId, setSelectedListId] = useState<number | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [editingList, setEditingList] = useState<ArmyList | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deletingList, setDeletingList] = useState<ArmyList | null>(null);
-  const [unitPickerOpen, setUnitPickerOpen] = useState(false);
-  const [loadoutUnitId, setLoadoutUnitId] = useState<number | null>(null);
-  const [enhancementUnitId, setEnhancementUnitId] = useState<number | null>(null);
-  const [leaderUnitId, setLeaderUnitId] = useState<number | null>(null);
-  const [datasheetBrowserOpen, setDatasheetBrowserOpen] = useState(false);
-  const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
-  const [snapshotHistoryOpen, setSnapshotHistoryOpen] = useState(false);
-  const [compareSnapshotIds, setCompareSnapshotIds] = useState<[number, number] | null>(null);
-  const [compareSnapshotLabels, setCompareSnapshotLabels] = useState<[string, string] | null>(null);
+  // Centralized portal state (ARCH-04)
+  const [state, dispatch] = useReducer(armyListsReducer, initialArmyListsState);
+  const {
+    selectedListId, sheetOpen, editingList,
+    deleteDialogOpen, deletingList, unitPickerOpen,
+    loadoutUnitId, enhancementUnitId, leaderUnitId,
+    datasheetBrowserOpen, printPreviewOpen,
+    snapshotHistoryOpen, compareSnapshotIds, compareSnapshotLabels,
+  } = state;
 
   // Pattern: store ID, derive object from cache (selectedListId pattern)
   const selectedList = selectedListId !== null
@@ -74,37 +69,30 @@ export function ArmyListsPage() {
     ? (selectedListUnits ?? []).find((u) => u.id === leaderUnitId) ?? null
     : null;
 
-  // Handlers
-  const openCreate = () => { setEditingList(null); setSheetOpen(true); };
-  const openEdit = (list: ArmyList) => { setEditingList(list); setSheetOpen(true); };
-  const closeSheet = () => { setSheetOpen(false); setEditingList(null); };
-  const openDelete = (list: ArmyList) => { setDeletingList(list); setDeleteDialogOpen(true); };
-  const closeDelete = () => {
-    const wasDeleting = deletingList;
-    setDeleteDialogOpen(false);
-    setDeletingList(null);
-    if (wasDeleting && selectedListId === wasDeleting.id) {
-      setSelectedListId(null);
-    }
-  };
-  const openDetail = (list: ArmyList) => setSelectedListId(list.id);
-  const closeDetail = () => { setSelectedListId(null); setUnitPickerOpen(false); setLoadoutUnitId(null); setEnhancementUnitId(null); setLeaderUnitId(null); setDatasheetBrowserOpen(false); setPrintPreviewOpen(false); setSnapshotHistoryOpen(false); setCompareSnapshotIds(null); setCompareSnapshotLabels(null); };
-  const openUnitPicker = () => setUnitPickerOpen(true);
-  const closeUnitPicker = () => setUnitPickerOpen(false);
-  const openLoadout = (armyListUnitId: number) => setLoadoutUnitId(armyListUnitId);
-  const closeLoadout = () => setLoadoutUnitId(null);
-  const openEnhancement = (armyListUnitId: number) => setEnhancementUnitId(armyListUnitId);
-  const closeEnhancement = () => setEnhancementUnitId(null);
-  const openLeaderAttach = (armyListUnitId: number) => setLeaderUnitId(armyListUnitId);
-  const closeLeaderAttach = () => setLeaderUnitId(null);
-  const openDatasheetBrowser = () => setDatasheetBrowserOpen(true);
-  const closeDatasheetBrowser = () => setDatasheetBrowserOpen(false);
-  const openPrintPreview = () => setPrintPreviewOpen(true);
-  const closePrintPreview = () => setPrintPreviewOpen(false);
-  const openSnapshotHistory = () => setSnapshotHistoryOpen(true);
-  const closeSnapshotHistory = () => { setSnapshotHistoryOpen(false); setCompareSnapshotIds(null); setCompareSnapshotLabels(null); };
-  const openSnapshotCompare = (ids: [number, number], labels: [string, string]) => { setCompareSnapshotIds(ids); setCompareSnapshotLabels(labels); };
-  const closeSnapshotCompare = () => { setCompareSnapshotIds(null); setCompareSnapshotLabels(null); };
+  // Handlers — dispatch wrappers preserve existing callback signatures
+  const openCreate = () => dispatch({ type: "OPEN_CREATE" });
+  const openEdit = (list: ArmyList) => dispatch({ type: "OPEN_EDIT", list });
+  const closeSheet = () => dispatch({ type: "CLOSE_SHEET" });
+  const openDelete = (list: ArmyList) => dispatch({ type: "OPEN_DELETE", list });
+  const closeDelete = () => dispatch({ type: "CLOSE_DELETE" });
+  const openDetail = (list: ArmyList) => dispatch({ type: "OPEN_DETAIL", listId: list.id });
+  const closeDetail = () => dispatch({ type: "CLOSE_DETAIL" });
+  const openUnitPicker = () => dispatch({ type: "OPEN_UNIT_PICKER" });
+  const closeUnitPicker = () => dispatch({ type: "CLOSE_UNIT_PICKER" });
+  const openLoadout = (armyListUnitId: number) => dispatch({ type: "OPEN_LOADOUT", unitId: armyListUnitId });
+  const closeLoadout = () => dispatch({ type: "CLOSE_LOADOUT" });
+  const openEnhancement = (armyListUnitId: number) => dispatch({ type: "OPEN_ENHANCEMENT", unitId: armyListUnitId });
+  const closeEnhancement = () => dispatch({ type: "CLOSE_ENHANCEMENT" });
+  const openLeaderAttach = (armyListUnitId: number) => dispatch({ type: "OPEN_LEADER_ATTACH", unitId: armyListUnitId });
+  const closeLeaderAttach = () => dispatch({ type: "CLOSE_LEADER_ATTACH" });
+  const openDatasheetBrowser = () => dispatch({ type: "OPEN_DATASHEET_BROWSER" });
+  const closeDatasheetBrowser = () => dispatch({ type: "CLOSE_DATASHEET_BROWSER" });
+  const openPrintPreview = () => dispatch({ type: "OPEN_PRINT_PREVIEW" });
+  const closePrintPreview = () => dispatch({ type: "CLOSE_PRINT_PREVIEW" });
+  const openSnapshotHistory = () => dispatch({ type: "OPEN_SNAPSHOT_HISTORY" });
+  const closeSnapshotHistory = () => dispatch({ type: "CLOSE_SNAPSHOT_HISTORY" });
+  const openSnapshotCompare = (ids: [number, number], labels: [string, string]) => dispatch({ type: "OPEN_SNAPSHOT_COMPARE", ids, labels });
+  const closeSnapshotCompare = () => dispatch({ type: "CLOSE_SNAPSHOT_COMPARE" });
 
   return (
     <div className="flex flex-col gap-6 p-6">
