@@ -12,6 +12,7 @@
  * Empty state: when `unit` is null (no active projects), renders a muted
  * placeholder directing the user to mark a project active. No changes.
  */
+import { memo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Target, ExternalLink, Paintbrush, Palette, Layers } from "lucide-react";
@@ -35,7 +36,7 @@ export interface CurrentFocusCardProps {
   appliedProgress?: AppliedRecipeProgress | null;
 }
 
-export function CurrentFocusCard({ unit, faction, photo, onOpen, onLog, onPaint, recipeName, extraRecipeCount = 0, workflowPosition, appliedProgress }: CurrentFocusCardProps) {
+export const CurrentFocusCard = memo(function CurrentFocusCard({ unit, faction, photo, onOpen, onLog, onPaint, recipeName, extraRecipeCount = 0, workflowPosition, appliedProgress }: CurrentFocusCardProps) {
   if (!unit) {
     return (
       <Card className="bg-card border border-border/60 shadow-sm px-6 py-6 transition-shadow duration-150 hover:shadow-md">
@@ -134,4 +135,5 @@ export function CurrentFocusCard({ unit, faction, photo, onOpen, onLog, onPaint,
       </div>
     </Card>
   );
-}
+});
+CurrentFocusCard.displayName = "CurrentFocusCard";

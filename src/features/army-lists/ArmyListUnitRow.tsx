@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { AlertTriangle, ChevronDown, ChevronUp, Info, Link2, Settings2, Sparkles, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -68,7 +68,7 @@ interface ArmyListUnitRowProps {
  * Configure trigger that opens the LoadoutBuilderSheet (D-02, D-04).
  * Tier selection now writes to army_list_units.selected_model_count (per-list).
  */
-export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onRemove, onConfigure, onEnhance, onAttachLeader, enhancementName, isIndentedLeader = false, leaderName, leaderTargets = [] }: ArmyListUnitRowProps) {
+export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onRemove, onConfigure, onEnhance, onAttachLeader, enhancementName, isIndentedLeader = false, leaderName, leaderTargets = [] }: ArmyListUnitRowProps) {
   const isGhost = unit.unit_id === null;
   const updateArmyListUnit = useUpdateArmyListUnit();
   const [expanded, setExpanded] = useState(false);
@@ -392,4 +392,5 @@ export function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onR
       )}
     </>
   );
-}
+});
+ArmyListUnitRow.displayName = "ArmyListUnitRow";

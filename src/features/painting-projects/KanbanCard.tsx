@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { GripVertical, Flag, Calendar, Camera, Paintbrush, Palette } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -38,7 +39,7 @@ export interface KanbanCardProps {
   assignmentId?: number;
 }
 
-export function KanbanCard({
+export const KanbanCard = memo(function KanbanCard({
   unit,
   faction,
   onRemoveFromBoard,
@@ -174,4 +175,5 @@ export function KanbanCard({
       )}
     </Card>
   );
-}
+});
+KanbanCard.displayName = "KanbanCard";
