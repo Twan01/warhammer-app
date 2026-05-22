@@ -42,6 +42,7 @@ export const HOBBYFORGE_MIGRATIONS = [
   "030_bsdata_extended.sql",
   "031_army_list_v3.sql",
   "032_army_list_snapshots.sql",
+  "033_database_hardening.sql",
 ] as const;
 
 // Authoritative rules migration order — must match lib.rs get_rules_migrations()
@@ -52,7 +53,7 @@ export const RULES_MIGRATIONS = [
   "rules_004_datasheet_points.sql",
 ] as const;
 
-export const HOBBYFORGE_MIGRATION_COUNT = HOBBYFORGE_MIGRATIONS.length; // 32
+export const HOBBYFORGE_MIGRATION_COUNT = HOBBYFORGE_MIGRATIONS.length; // 33
 export const RULES_MIGRATION_COUNT = RULES_MIGRATIONS.length; // 4
 
 /**
