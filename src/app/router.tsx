@@ -7,6 +7,7 @@ import {
 import { z } from "zod";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { AppLayout } from "@/components/common/AppLayout";
+import { RouteErrorFallback } from "@/components/common/RouteErrorFallback";
 import { ActiveFactionProvider } from "@/context/ActiveFactionContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
@@ -44,9 +45,10 @@ const rootRoute = createRootRoute({
 // Layout route — standard app shell with sidebar
 // ---------------------------------------------------------------------------
 
-const layoutRoute = createRoute({
+export const layoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "layout",
+  errorComponent: RouteErrorFallback,
   component: () => (
     <AppLayout>
       <ActiveFactionProvider>
@@ -60,9 +62,10 @@ const layoutRoute = createRoute({
 // Bare layout route — distraction-free, no sidebar (painting mode)
 // ---------------------------------------------------------------------------
 
-const bareLayoutRoute = createRoute({
+export const bareLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "bare-layout",
+  errorComponent: RouteErrorFallback,
   component: () => (
     <ActiveFactionProvider>
       <TooltipProvider delayDuration={200}>
