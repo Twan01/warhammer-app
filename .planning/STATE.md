@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.2.18
 milestone_name: Army Lists 3.0 — Smart List Builder
 status: executing
-stopped_at: Phase 94 Plan 02 complete — export UI wired with 4 formats
-last_updated: "2026-05-21T07:04:59.263Z"
-last_activity: 2026-05-21
+stopped_at: Phase 95 context gathered — version snapshots
+last_updated: "2026-05-22T00:00:00.000Z"
+last_activity: 2026-05-22
 progress:
   total_phases: 7
   completed_phases: 6
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-20)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 94 — list export
+**Current focus:** Phase 95 — version snapshots
 
 ## Current Position
 
 Phase: 95 of 95 (version snapshots)
 Plan: Not started
-Status: Phase 94 executing — Plan 02 done
-Last activity: 2026-05-21
+Status: Phase 95 context gathered
+Last activity: 2026-05-22
 
 Progress: [█████████░] 90%
 
@@ -67,6 +67,10 @@ Progress: [█████████░] 90%
 - JSON: versioned structured format (hobbyforge-army-list v1.0) with full metadata + units + enhancements
 - PDF: jsPDF text-based generation, lazy-loaded via dynamic import
 - Shared formatArmyListForExport() utility for all 4 formats
+- Snapshots: JSON blob in army_list_snapshots table reusing Phase 94 export format
+- Snapshot restore: destructive replace with auto-save safety snapshot before restore
+- Snapshot compare: two-column diff dialog matching units by display name
+- SnapshotHistorySheet + SnapshotCompareDialog as sibling portals at ArmyListsPage level
 
 ### Pending Todos
 
@@ -78,7 +82,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-21
-Stopped at: Phase 94 Plan 02 complete — export UI wired with 4 formats
-Resume file: .planning/phases/94-list-export/94-02-SUMMARY.md
-Resume: Phase 94 complete — proceed to Phase 95 or verify
+Last session: 2026-05-22
+Stopped at: Phase 95 context gathered — version snapshots
+Resume file: .planning/phases/95-version-snapshots/95-CONTEXT.md
+Resume: Phase 95 context done — proceed to plan-phase 95
