@@ -92,12 +92,8 @@ describe("useSetWarlord — cache invalidation (Phase 89 D-10)", () => {
     expect(invalidatedKeys(spy)).toContainEqual(ARMY_LIST_KEY(2));
   });
 
-  it("invalidates ARMY_LISTS_KEY", async () => {
-    const { spy, wrapper } = makeWrapper();
-    const { result } = renderHook(() => useSetWarlord(), { wrapper });
-    await waitFor(async () => { await result.current.mutateAsync(VARS); });
-    expect(invalidatedKeys(spy)).toContainEqual(ARMY_LISTS_KEY);
-  });
+  // PERF-02: ARMY_LISTS_KEY removed from useSetWarlord — warlord is detail-level,
+  // not visible in the list index. Moved to invalidationAudit.test.ts as a NOT assertion.
 
   it("invalidates ['dashboard-stats']", async () => {
     const { spy, wrapper } = makeWrapper();

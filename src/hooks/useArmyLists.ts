@@ -255,9 +255,10 @@ export function useSetWarlord() {
     onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
       qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
-      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
-      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
+      // PERF-02: ARMY_LISTS_KEY removed — warlord is a detail-level field not visible in
+      // the list index; ARMY_LIST_KEY(id) already covers the specific list detail.
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] }); // KEEP — DATA-09 forward-compat
+      qc.invalidateQueries({ queryKey: ["army-list-readiness"] }); // KEEP — warlord affects readiness display
     },
   });
 }
