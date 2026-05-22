@@ -20,7 +20,7 @@ Requirements for the Robustness & Architecture Hardening milestone. Each maps to
 - [x] **DBH-01**: All foreign key columns have database indexes (units.faction_id, recipe_steps.recipe_id, army_list_units.list_id, painting_sessions.unit_id, battle_logs.army_list_id, painting_recipes.faction_id, painting_recipes.unit_id, recipe_sections.recipe_id)
 - [x] **DBH-02**: Temporal query columns have indexes (painting_sessions.session_date DESC, battle_logs.battle_date DESC)
 - [x] **DBH-03**: Data integrity CHECK constraints prevent invalid values (points >= 0, quantity >= 0, painting_percentage BETWEEN 0 AND 100)
-- [ ] **DBH-04**: Sync/import operations use batched INSERT statements instead of N individual INSERTs
+- [x] **DBH-04**: Sync/import operations use batched INSERT statements instead of N individual INSERTs
 
 ### Performance
 
@@ -68,7 +68,7 @@ Requirements for the Robustness & Architecture Hardening milestone. Each maps to
 | DBH-01 | Phase 96 | Complete |
 | DBH-02 | Phase 96 | Complete |
 | DBH-03 | Phase 96 | Complete |
-| DBH-04 | Phase 98 | Pending |
+| DBH-04 | Phase 98 | Complete |
 | PERF-01 | Phase 98 | Complete |
 | PERF-02 | Phase 98 | Complete |
 | PERF-03 | Phase 98 | Complete |

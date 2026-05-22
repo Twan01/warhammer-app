@@ -184,7 +184,7 @@ Plans:
 Plans:
 - [x] 98-01-PLAN.md -- Lazy route imports + Suspense boundaries + React.memo on 3 components
 - [x] 98-02-PLAN.md -- Batched INSERT for 6 sync replace* functions
-- [ ] 98-03-PLAN.md -- Batched Kanban enrichment query + invalidation precision audit
+- [x] 98-03-PLAN.md -- Batched Kanban enrichment query + invalidation precision audit
 
 ### Phase 99: Architecture Cleanup
 **Goal**: The codebase has clean dependency boundaries and no file exceeds 400 lines, making future features easier to build
@@ -298,7 +298,7 @@ Plans:
 | 95. Version Snapshots | v0.2.18 | 2/2 | Complete | 2026-05-22 |
 | 96. Database Hardening | v0.3.0 | 1/1 | Complete | 2026-05-22 |
 | 97. Error Resilience | v0.3.0 | 1/2 | In Progress|  |
-| 98. Performance Optimization | v0.3.0 | 2/3 | In Progress|  |
+| 98. Performance Optimization | v0.3.0 | 3/3 | Complete    | 2026-05-22 |
 | 99. Architecture Cleanup | v0.3.0 | 0/TBD | Not started | - |
 
 <details>
