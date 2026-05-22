@@ -13,13 +13,13 @@ Requirements for the Robustness & Architecture Hardening milestone. Each maps to
 - [ ] **ERR-02**: Each route has its own error boundary -- a crash on one page doesn't break other pages
 - [ ] **ERR-03**: App verifies DB connection and schema integrity before rendering the main layout
 - [ ] **ERR-04**: Unhandled promise rejections and uncaught errors are captured and logged (not silently swallowed)
-- [ ] **ERR-05**: Main database uses WAL journal mode and busy_timeout (matching rules-client.ts)
+- [x] **ERR-05**: Main database uses WAL journal mode and busy_timeout (matching rules-client.ts)
 
 ### Database Hardening
 
-- [ ] **DBH-01**: All foreign key columns have database indexes (units.faction_id, recipe_steps.recipe_id, army_list_units.list_id, painting_sessions.unit_id, battle_logs.army_list_id, painting_recipes.faction_id, painting_recipes.unit_id, recipe_sections.recipe_id)
-- [ ] **DBH-02**: Temporal query columns have indexes (painting_sessions.session_date DESC, battle_logs.battle_date DESC)
-- [ ] **DBH-03**: Data integrity CHECK constraints prevent invalid values (points >= 0, quantity >= 0, painting_percentage BETWEEN 0 AND 100)
+- [x] **DBH-01**: All foreign key columns have database indexes (units.faction_id, recipe_steps.recipe_id, army_list_units.list_id, painting_sessions.unit_id, battle_logs.army_list_id, painting_recipes.faction_id, painting_recipes.unit_id, recipe_sections.recipe_id)
+- [x] **DBH-02**: Temporal query columns have indexes (painting_sessions.session_date DESC, battle_logs.battle_date DESC)
+- [x] **DBH-03**: Data integrity CHECK constraints prevent invalid values (points >= 0, quantity >= 0, painting_percentage BETWEEN 0 AND 100)
 - [ ] **DBH-04**: Sync/import operations use batched INSERT statements instead of N individual INSERTs
 
 ### Performance
@@ -64,10 +64,10 @@ Requirements for the Robustness & Architecture Hardening milestone. Each maps to
 | ERR-02 | Phase 97 | Pending |
 | ERR-03 | Phase 97 | Pending |
 | ERR-04 | Phase 97 | Pending |
-| ERR-05 | Phase 96 | Pending |
-| DBH-01 | Phase 96 | Pending |
-| DBH-02 | Phase 96 | Pending |
-| DBH-03 | Phase 96 | Pending |
+| ERR-05 | Phase 96 | Complete |
+| DBH-01 | Phase 96 | Complete |
+| DBH-02 | Phase 96 | Complete |
+| DBH-03 | Phase 96 | Complete |
 | DBH-04 | Phase 98 | Pending |
 | PERF-01 | Phase 98 | Pending |
 | PERF-02 | Phase 98 | Pending |

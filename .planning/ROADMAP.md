@@ -136,7 +136,7 @@ Full details: `.planning/milestones/v0.2.18-ROADMAP.md`
 
 **Milestone Goal:** Make HobbyForge faster, more resilient to errors, and architecturally cleaner for long-term maintenance. No new user-facing features -- purely internal quality. The app should feel the same to the user but be faster and more robust.
 
-- [ ] **Phase 96: Database Hardening** (1/1 plans) - Indexes, CHECK constraints, and WAL mode on main DB
+- [x] **Phase 96: Database Hardening** (1/1 plans) - Indexes, CHECK constraints, and WAL mode on main DB -- completed 2026-05-22
 - [ ] **Phase 97: Error Resilience** - Error boundaries, DB health check gate, global error handlers
 - [ ] **Phase 98: Performance Optimization** - Code splitting, precise invalidation, batched queries, memoization
 - [ ] **Phase 99: Architecture Cleanup** - Eliminate circular deps, decompose mega components, extract state machine
@@ -154,7 +154,7 @@ Full details: `.planning/milestones/v0.2.18-ROADMAP.md`
   4. CHECK constraints reject invalid data at the database level -- inserting negative points, quantities, or out-of-range painting percentages fails with a constraint error before any application code runs
 **Plans**: 1 plan
 Plans:
-- [ ] 96-01-PLAN.md -- WAL mode, FK/temporal indexes, CHECK constraints
+- [x] 96-01-PLAN.md -- WAL mode, FK/temporal indexes, CHECK constraints -- completed 2026-05-22
 
 ### Phase 97: Error Resilience
 **Goal**: The app gracefully handles any runtime error without losing the user's context or showing a blank screen
@@ -289,7 +289,7 @@ Plans:
 | 93. Datasheet Browser + Ghost Units | v0.2.18 | 2/2 | Complete | 2026-05-22 |
 | 94. List Export | v0.2.18 | 2/2 | Complete | 2026-05-21 |
 | 95. Version Snapshots | v0.2.18 | 2/2 | Complete | 2026-05-22 |
-| 96. Database Hardening | v0.3.0 | 0/1 | In progress | - |
+| 96. Database Hardening | v0.3.0 | 1/1 | Complete | 2026-05-22 |
 | 97. Error Resilience | v0.3.0 | 0/TBD | Not started | - |
 | 98. Performance Optimization | v0.3.0 | 0/TBD | Not started | - |
 | 99. Architecture Cleanup | v0.3.0 | 0/TBD | Not started | - |
