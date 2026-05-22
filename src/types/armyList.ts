@@ -154,6 +154,40 @@ export interface AddEnhancementInput {
  * Fixed enum of 7 roles. Single role per unit (TEXT column on army_list_units).
  * Follows the PAINTING_STATUS_ORDER const-array pattern from src/types/unit.ts.
  */
+/**
+ * Phase 95 — Version snapshot row (D-01).
+ * Excludes snapshot_data from list queries (D-03 / Pitfall 2).
+ * snapshot_data is fetched separately via getSnapshotData when needed.
+ */
+export interface ArmyListSnapshot {
+  id: number;
+  list_id: number;
+  label: string;
+  total_points: number;
+  created_at: string;
+}
+
+/**
+ * Phase 95 — Input for creating a new snapshot.
+ * snapshot_data is the JSON blob from buildJsonFormat.
+ */
+export interface CreateSnapshotInput {
+  list_id: number;
+  label: string;
+  snapshot_data: string;
+  total_points: number;
+}
+
+/**
+ * Phase 95 — Input for restoring a snapshot (D-09..D-12).
+ * faction_id is needed to resolve unit names back to unit_ids.
+ */
+export interface RestoreSnapshotInput {
+  snapshot_id: number;
+  list_id: number;
+  faction_id: number;
+}
+
 export const TACTICAL_ROLES = [
   "anti_tank",
   "screening",
