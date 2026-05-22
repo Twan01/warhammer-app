@@ -38,9 +38,9 @@ created: 2026-05-21
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 94-01-01 | 01 | 1 | EXP-01 | T-94-01 | slugify strips path traversal chars | unit | `pnpm test -- tests/lib/exportArmyList.test.ts` | ❌ W0 | ⬜ pending |
-| 94-01-02 | 01 | 1 | EXP-03 | — | N/A | unit | `pnpm test -- tests/lib/exportArmyList.test.ts` | ❌ W0 | ⬜ pending |
-| 94-02-01 | 02 | 2 | EXP-02 | — | N/A | integration | `pnpm test -- tests/army-lists/PrintPreviewDialog.test.tsx` | ❌ W0 | ⬜ pending |
+| 94-01-01 | 01 | 1 | EXP-01 | T-94-01 | slugify strips path traversal chars | unit | `pnpm test -- tests/lib/exportArmyList.test.ts` | ✅ | ✅ green |
+| 94-01-02 | 01 | 1 | EXP-03 | — | N/A | unit | `pnpm test -- tests/lib/exportArmyList.test.ts` | ✅ | ✅ green |
+| 94-02-01 | 02 | 2 | EXP-02 | — | N/A | integration | `pnpm test -- tests/army-lists/PrintPreviewDialog.test.tsx` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -48,10 +48,10 @@ created: 2026-05-21
 
 ## Wave 0 Requirements
 
-- [ ] `tests/lib/exportArmyList.test.ts` — stubs for EXP-01, EXP-03 (pure formatting logic, created by Plan 01 Task 2)
-- [ ] `tests/army-lists/PrintPreviewDialog.test.tsx` — stubs for EXP-02 (print preview rendering, created by Plan 02 Task 1)
+- [x] `tests/lib/exportArmyList.test.ts` — 28 tests for EXP-01, EXP-03 (pure formatting logic, created by Plan 01 Task 2)
+- [x] `tests/army-lists/PrintPreviewDialog.test.tsx` — 6 tests for EXP-02 (print preview rendering, created by Plan 02 Task 1)
 
-*Existing infrastructure covers all phase requirements. Tests created inline with TDD tasks.*
+*All Wave 0 test files exist and pass.*
 
 ---
 
@@ -76,3 +76,17 @@ created: 2026-05-21
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** approved 2026-05-21
+
+---
+
+## Validation Audit 2026-05-22
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+**Test coverage:** 34 tests across 2 files (28 unit + 6 integration), all green.
+**Threat T-94-01:** Explicitly tested — `slugify("My List../test")` → `"my-list-test"`.
+**Auditor verdict:** No gaps. Phase is Nyquist-compliant.
