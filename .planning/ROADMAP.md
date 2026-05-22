@@ -167,7 +167,7 @@ Plans:
   4. Unhandled promise rejections and uncaught errors are captured and logged to the console with structured context (not silently swallowed by React Query or async handlers)
 **Plans**: 2 plans
 Plans:
-- [ ] 97-01-PLAN.md -- Route error boundaries (RouteErrorFallback + router wiring + tests)
+- [x] 97-01-PLAN.md -- Route error boundaries (RouteErrorFallback + router wiring + tests)
 - [ ] 97-02-PLAN.md -- DB health gate, global error handlers, QueryCache/MutationCache onError + tests
 
 ### Phase 98: Performance Optimization
@@ -293,7 +293,7 @@ Plans:
 | 94. List Export | v0.2.18 | 2/2 | Complete | 2026-05-21 |
 | 95. Version Snapshots | v0.2.18 | 2/2 | Complete | 2026-05-22 |
 | 96. Database Hardening | v0.3.0 | 1/1 | Complete | 2026-05-22 |
-| 97. Error Resilience | v0.3.0 | 0/2 | Not started | - |
+| 97. Error Resilience | v0.3.0 | 1/2 | In Progress|  |
 | 98. Performance Optimization | v0.3.0 | 0/TBD | Not started | - |
 | 99. Architecture Cleanup | v0.3.0 | 0/TBD | Not started | - |
 
