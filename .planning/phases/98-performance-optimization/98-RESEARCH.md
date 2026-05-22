@@ -18,7 +18,7 @@
 
 **Mutation Invalidation Precision (PERF-02)**
 - D-04: Audit all 25 hook files and remove invalidations where the target query does NOT actually depend on the mutated data.
-- D-05: Keep cross-domain invalidations that are genuinely needed (e.g., unit mutations → dashboard-stats is correct because dashboard aggregates unit data).
+- D-05: Keep cross-domain invalidations that are genuinely needed (e.g., unit mutations -> dashboard-stats is correct because dashboard aggregates unit data).
 - D-06: Where possible, use `exact: true` on invalidateQueries calls to prevent broad prefix-based invalidation from hitting unrelated sub-keys.
 
 **Kanban Enrichment Batching (PERF-03)**
@@ -65,7 +65,7 @@ The highest-impact change is the Kanban enrichment batching (PERF-03): the curre
 
 The second highest-impact change is route lazy loading (PERF-01): the current `router.tsx` imports all 16 page components statically, meaning the entire app bundle loads before the user sees the first frame. Each route will become a separate chunk loaded on demand.
 
-Batch INSERT (DBH-04) targets sync operations which are already infrequent user-triggered actions but have measurable N×round-trip overhead. Four functions in `syncedUnitPoints.ts` and `bsdataExtended.ts` each loop INSERT one row at a time. Multi-row `VALUES` clauses are supported by Tauri plugin-sql's `db.execute()` since it passes SQL directly to SQLite.
+Batch INSERT (DBH-04) targets sync operations which are already infrequent user-triggered actions but have measurable N*round-trip overhead. Four functions in `syncedUnitPoints.ts` and `bsdataExtended.ts` each loop INSERT one row at a time. Multi-row `VALUES` clauses are supported by Tauri plugin-sql's `db.execute()` since it passes SQL directly to SQLite.
 
 **Primary recommendation:** Implement in this order: PERF-01 (router.tsx — isolated, low-risk), PERF-04 (3 component wraps — trivial), PERF-02 (invalidation audit — mechanical removal), PERF-03 (batched enrichment SQL — requires new query functions), DBH-04 (batched INSERT — requires SQL rewrite of 4 functions).
 
@@ -116,35 +116,35 @@ No external packages are introduced in this phase. All changes use already-insta
 
 ```
 User navigates to route
-        ↓
+        |
 TanStack Router matches path
-        ↓
+        |
 React.lazy() dynamic import (NEW — triggers Vite chunk load)
-        ↓
+        |
 Suspense boundary shows spinner while chunk downloads
-        ↓
-Page component renders → useQuery hooks fire
-        ↓
+        |
+Page component renders -> useQuery hooks fire
+        |
 React Query cache checks staleness
-        ↓
+        |
 If stale: fires DB query functions (SQLite)
-        ↓
-Mutation fires → onSuccess invalidateQueries (PRUNED — only affected keys)
-        ↓
+        |
+Mutation fires -> onSuccess invalidateQueries (PRUNED — only affected keys)
+        |
 React re-renders only subscribed components
-        ↓
+        |
 React.memo prevents re-render if props unchanged (NEW on 3 hot components)
 ```
 
 For Kanban board specifically:
 ```
 PaintingProjectsPage renders board
-        ↓
+        |
 useKanbanEnrichment(unitIds) fires
-        ↓
-[CURRENT] O(N) per-unit loop → getAssignmentsByUnit × N → getStepProgress × N → ...
-[TARGET]  1 batched query → getEnrichmentDataByUnitIds(unitIds) → all data returned
-        ↓
+        |
+[CURRENT] O(N) per-unit loop -> getAssignmentsByUnit x N -> getStepProgress x N -> ...
+[TARGET]  1 batched query -> getEnrichmentDataByUnitIds(unitIds) -> all data returned
+        |
 KanbanCard renders per unit (React.memo prevents re-render if same props)
 ```
 
@@ -155,16 +155,16 @@ No structural changes. All modifications are in-place edits to existing files:
 ```
 src/
   app/
-    router.tsx              — 16 static imports → React.lazy dynamic imports + Suspense
+    router.tsx              — 16 static imports -> React.lazy dynamic imports + Suspense
   hooks/
-    useKanbanEnrichment.ts  — O(N) loop → 1 batched call to new query function
+    useKanbanEnrichment.ts  — O(N) loop -> 1 batched call to new query function
     useUnits.ts             — remove provably unnecessary invalidations
     useArmyLists.ts         — audit and trim broad invalidations
     [other hooks]           — audit invalidation chains
   db/queries/
     recipeAssignments.ts    — NEW: getKanbanProgressByUnitIds() batched query
-    syncedUnitPoints.ts     — for-of INSERT loops → multi-row VALUES
-    bsdataExtended.ts       — for-of INSERT loops × 4 → multi-row VALUES
+    syncedUnitPoints.ts     — for-of INSERT loops -> multi-row VALUES
+    bsdataExtended.ts       — for-of INSERT loops x 4 -> multi-row VALUES
   features/
     painting-projects/KanbanCard.tsx    — wrap export with React.memo
     army-lists/ArmyListUnitRow.tsx      — wrap export with React.memo
@@ -537,7 +537,7 @@ The following functions in the JS query layer use per-row INSERT loops inside tr
 | File | Function | Columns | Max Expected Rows |
 |------|----------|---------|-------------------|
 | `src/db/queries/syncedUnitPoints.ts` | `replaceSyncedUnitPoints` | 4 | ~500 (Wahapedia units) |
-| `src/db/queries/syncedUnitPoints.ts` | `replaceSyncedUnitPointTiers` | 5 | ~1500 (3 tiers × 500 units) |
+| `src/db/queries/syncedUnitPoints.ts` | `replaceSyncedUnitPointTiers` | 5 | ~1500 (3 tiers x 500 units) |
 | `src/db/queries/bsdataExtended.ts` | `replaceSyncedEnhancements` | 5 | ~200 |
 | `src/db/queries/bsdataExtended.ts` | `replaceSyncedLoadoutOptions` | 7 | ~2000 |
 | `src/db/queries/bsdataExtended.ts` | `replaceSyncedModelCounts` | 5 | ~500 |
@@ -577,22 +577,19 @@ The following functions in the JS query layer use per-row INSERT loops inside tr
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **SQLite version in Tauri bundle**
-   - What we know: Tauri bundles its own SQLite via rusqlite crate
-   - What's unclear: Exact SQLite version — relevant for window function availability (ROW_NUMBER)
-   - Recommendation: Use the simpler subquery approach for the batched kanban query to avoid window function dependency. Window functions are a bonus if available.
+1. **SQLite version in Tauri bundle** (RESOLVED)
+   - What we know: Tauri bundles its own SQLite via rusqlite crate. SQLite supports window functions from version 3.25.0 (2018). Tauri's bundled SQLite is far newer.
+   - Resolution: Plan 03 Task 1 instructs the executor to try the CTE approach (with ROW_NUMBER) first and fall back to the subquery approach if window functions are not available. Both approaches produce the same KanbanProgressRow shape. Acceptance criteria accept either approach.
 
-2. **ArmyListUnitRow memo benefit — hooks inside**
+2. **ArmyListUnitRow memo benefit — hooks inside** (RESOLVED)
    - What we know: ArmyListUnitRow calls `useUnitLoadouts`, `useUnitRulesMapping`, `useUnitKeywords`, and an inline `useQuery`. These hook subscriptions cause re-renders independently of props.
-   - What's unclear: How frequently the parent `ArmyListDetailSheet` re-renders in practice
-   - Recommendation: Apply memo anyway — it prevents at minimum the prop-triggered re-renders. The hooks will still re-render on their own data changes, which is correct behavior.
+   - Resolution: Apply memo anyway — it prevents at minimum the prop-triggered re-renders from parent ArmyListDetailSheet re-renders. The hooks will still re-render on their own data changes, which is correct behavior.
 
-3. **Route chunk naming strategy**
-   - What we know: Vite automatically names chunks based on the file path
-   - What's unclear: Whether Vite produces human-readable chunk names or hashes
-   - Recommendation: Not a blocking question; chunk names are invisible to users and irrelevant to correctness.
+3. **Route chunk naming strategy** (RESOLVED)
+   - What we know: Vite automatically names chunks based on the file path.
+   - Resolution: Not a blocking question; chunk names are invisible to users and irrelevant to correctness. No action needed.
 
 ---
 
@@ -613,15 +610,15 @@ Step 2.6: SKIPPED (no new external dependencies — all changes use already-inst
 | Quick run command | `pnpm test -- tests/performance` |
 | Full suite command | `pnpm test` |
 
-### Phase Requirements → Test Map
+### Phase Requirements -> Test Map
 
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| PERF-01 | Lazy route components are dynamic imports (not eager modules) | Unit | `pnpm test -- tests/performance/lazyRoutes.test.ts` | ❌ Wave 0 |
-| PERF-02 | Pruned invalidations do not trigger unrelated queries | Unit | `pnpm test -- tests/performance/invalidationAudit.test.ts` | ❌ Wave 0 |
-| PERF-03 | `getKanbanProgressByUnitIds` returns all units in 1 query | Unit | `pnpm test -- tests/performance/kanbanBatchEnrichment.test.ts` | ❌ Wave 0 |
-| PERF-04 | KanbanCard, ArmyListUnitRow, CurrentFocusCard do not re-render on unrelated parent re-render | Unit | `pnpm test -- tests/performance/reactMemo.test.ts` | ❌ Wave 0 |
-| DBH-04 | `replaceSyncedUnitPoints` inserts N rows with 1 SQL call, not N calls | Unit | `pnpm test -- tests/performance/batchInsert.test.ts` | ❌ Wave 0 |
+| PERF-01 | Lazy route components are dynamic imports (not eager modules) | Unit | `pnpm test -- tests/performance/lazyRoutes.test.ts` | No Wave 0 |
+| PERF-02 | Pruned invalidations do not trigger unrelated queries | Unit | `pnpm test -- tests/performance/invalidationAudit.test.ts` | No Wave 0 |
+| PERF-03 | `getKanbanProgressByUnitIds` returns all units in 1 query | Unit | `pnpm test -- tests/performance/kanbanBatchEnrichment.test.ts` | No Wave 0 |
+| PERF-04 | KanbanCard, ArmyListUnitRow, CurrentFocusCard do not re-render on unrelated parent re-render | Unit | `pnpm test -- tests/performance/reactMemo.test.ts` | No Wave 0 |
+| DBH-04 | `replaceSyncedUnitPoints` inserts N rows with 1 SQL call, not N calls | Unit | `pnpm test -- tests/performance/batchInsert.test.ts` | No Wave 0 |
 
 **Note:** PERF-01 (lazy routes) is difficult to test meaningfully in jsdom — Vite chunks are a build artifact. A practical test verifies that each page module import resolves as a lazy component (its `_init` property is a function, not a module). PERF-04 (React.memo) can be tested with `React.memo.mock` checking or by rendering with `renderCount` tracking from `@testing-library/react`.
 

@@ -38,11 +38,11 @@ created: 2026-05-22
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 98-01-01 | 01 | 1 | PERF-01 | unit | `pnpm test -- tests/performance/lazy-routes.test.ts` | ❌ W0 | ⬜ pending |
-| 98-01-02 | 01 | 1 | PERF-04 | unit | `pnpm test -- tests/performance/memo-components.test.ts` | ❌ W0 | ⬜ pending |
-| 98-02-01 | 02 | 1 | PERF-02 | unit | `pnpm test -- tests/performance/invalidation-precision.test.ts` | ❌ W0 | ⬜ pending |
-| 98-02-02 | 02 | 1 | PERF-03 | unit | `pnpm test -- tests/performance/kanban-enrichment.test.ts` | ❌ W0 | ⬜ pending |
-| 98-02-03 | 02 | 1 | DBH-04 | unit | `pnpm test -- tests/performance/batch-insert.test.ts` | ❌ W0 | ⬜ pending |
+| 98-01-01 | 01 | 1 | PERF-01 | unit | `pnpm test -- tests/performance/lazyRoutes.test.ts` | ❌ W0 | ⬜ pending |
+| 98-01-02 | 01 | 1 | PERF-04 | unit | `pnpm test -- tests/performance/reactMemo.test.ts` | ❌ W0 | ⬜ pending |
+| 98-02-01 | 02 | 1 | DBH-04 | unit | `pnpm test -- tests/performance/batchInsert.test.ts` | ❌ W0 | ⬜ pending |
+| 98-03-01 | 03 | 1 | PERF-03 | unit | `pnpm test -- tests/performance/kanbanBatchEnrichment.test.ts` | ❌ W0 | ⬜ pending |
+| 98-03-02 | 03 | 1 | PERF-02 | unit | `pnpm test -- tests/performance/invalidationAudit.test.ts` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -50,11 +50,11 @@ created: 2026-05-22
 
 ## Wave 0 Requirements
 
-- [ ] `tests/performance/lazy-routes.test.ts` — stubs for PERF-01 (lazy route verification)
-- [ ] `tests/performance/memo-components.test.ts` — stubs for PERF-04 (React.memo verification)
-- [ ] `tests/performance/invalidation-precision.test.ts` — stubs for PERF-02 (invalidation audit)
-- [ ] `tests/performance/kanban-enrichment.test.ts` — stubs for PERF-03 (batched enrichment)
-- [ ] `tests/performance/batch-insert.test.ts` — stubs for DBH-04 (multi-row INSERT)
+- [ ] `tests/performance/lazyRoutes.test.ts` — stubs for PERF-01 (lazy route verification)
+- [ ] `tests/performance/reactMemo.test.ts` — stubs for PERF-04 (React.memo verification)
+- [ ] `tests/performance/batchInsert.test.ts` — stubs for DBH-04 (multi-row INSERT)
+- [ ] `tests/performance/kanbanBatchEnrichment.test.ts` — stubs for PERF-03 (batched enrichment)
+- [ ] `tests/performance/invalidationAudit.test.ts` — stubs for PERF-02 (invalidation audit)
 
 ---
 
