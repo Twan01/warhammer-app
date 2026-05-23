@@ -84,8 +84,10 @@ UPDATE units SET purchase_price_pence = 0 WHERE purchase_price_pence IS NOT NULL
 UPDATE paints SET quantity = 0 WHERE quantity IS NOT NULL AND quantity < 0;
 UPDATE paints SET purchase_price_pence = 0 WHERE purchase_price_pence IS NOT NULL AND purchase_price_pence < 0;
 
--- ─── Disable FK enforcement during table recreation ──────────────────────────
-PRAGMA foreign_keys = OFF;
+-- ─── Table recreation settings ──────────────────────────────────────────────
+-- Note: PRAGMA foreign_keys = OFF is NOT used here because it is a no-op
+-- inside a transaction (tauri-plugin-sql wraps migrations in a transaction).
+-- FK enforcement is set by client.ts after connection, not during migration.
 PRAGMA legacy_alter_table = ON;
 
 -- ─── Units table recreation ──────────────────────────────────────────────────
@@ -171,9 +173,8 @@ FROM paints_old;
 
 DROP TABLE paints_old;
 
--- ─── Restore FK enforcement ──────────────────────────────────────────────────
+-- ─── Restore legacy_alter_table ──────────────────────────────────────────────
 PRAGMA legacy_alter_table = OFF;
-PRAGMA foreign_keys = ON;
 
 -- ─── Re-create indexes on recreated tables ───────────────────────────────────
 -- idx_units_faction_id was lost when units_old was dropped
