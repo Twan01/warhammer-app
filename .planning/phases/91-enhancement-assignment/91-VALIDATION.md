@@ -36,3 +36,17 @@ date: 2026-05-21
 
 - `tests/army-list/armyListEnhancements.test.ts` — CRUD query tests (addEnhancement, removeEnhancement, getEnhancementsByList)
 - `tests/army-list/armyListHookInvalidations.test.ts` — Hook invalidation tests include enhancement mocks
+
+## Validation Audit 2026-05-21
+
+| Metric | Count |
+|--------|-------|
+| Requirements audited | 9 |
+| COVERED | 9 |
+| PARTIAL | 0 |
+| MISSING | 0 |
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+**Verdict: NYQUIST-COMPLIANT** — all requirements have automated verification passing green.
