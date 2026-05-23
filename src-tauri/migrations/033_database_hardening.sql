@@ -86,6 +86,7 @@ UPDATE paints SET purchase_price_pence = 0 WHERE purchase_price_pence IS NOT NUL
 
 -- ─── Disable FK enforcement during table recreation ──────────────────────────
 PRAGMA foreign_keys = OFF;
+PRAGMA legacy_alter_table = ON;
 
 -- ─── Units table recreation ──────────────────────────────────────────────────
 ALTER TABLE units RENAME TO units_old;
@@ -171,6 +172,7 @@ FROM paints_old;
 DROP TABLE paints_old;
 
 -- ─── Restore FK enforcement ──────────────────────────────────────────────────
+PRAGMA legacy_alter_table = OFF;
 PRAGMA foreign_keys = ON;
 
 -- ─── Re-create indexes on recreated tables ───────────────────────────────────

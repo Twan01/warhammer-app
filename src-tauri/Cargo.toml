@@ -28,6 +28,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-http = "2"
 sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite"] }
+sha2 = "0.10"
 zip = "2"
 time = { version = "0.3", features = ["formatting", "macros"] }
 tauri-plugin-updater = "2.10.1"
