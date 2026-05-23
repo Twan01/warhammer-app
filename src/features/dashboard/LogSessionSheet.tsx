@@ -123,7 +123,7 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
       form.reset(buildDefaultValues(defaultUnitId));
       setWatchedSectionId(null);
     }
-  }, [open, form, defaultUnitId]);
+  }, [open, defaultUnitId]);
 
   const orderedUnits = useMemo(
     () => sortUnitsForPicker(units ?? []),
@@ -157,12 +157,12 @@ export function LogSessionSheet({ open, onClose, defaultUnitId }: LogSessionShee
     form.setValue("recipe_step_id", null);
     form.setValue("section_name", null);
     setWatchedSectionId(null);
-  }, [watchedRecipeId, form]);
+  }, [watchedRecipeId]);
 
   // Reset chain 2: section changes → clear step only
   useEffect(() => {
     form.setValue("recipe_step_id", null);
-  }, [watchedSectionId, form]);
+  }, [watchedSectionId]);
 
   const orderedRecipes = useMemo(
     () => sortRecipesForPicker(recipes, factions),

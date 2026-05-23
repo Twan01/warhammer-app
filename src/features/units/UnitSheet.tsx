@@ -95,7 +95,7 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
 
   useEffect(() => {
     form.reset(buildDefaultValues(unit, defaultFactionId));
-  }, [unit, defaultFactionId, form]);
+  }, [unit, defaultFactionId]);
 
   async function onSubmit(values: UnitFormValues) {
     try {

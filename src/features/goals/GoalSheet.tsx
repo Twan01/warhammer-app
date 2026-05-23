@@ -58,7 +58,7 @@ export function GoalSheet({ open, onOpenChange, editingGoal }: GoalSheetProps) {
   // Reset form when editingGoal changes or sheet reopens — Pitfall 3
   useEffect(() => {
     form.reset(buildDefaultValues(editingGoal));
-  }, [editingGoal, open, form]);
+  }, [editingGoal, open]);
 
   async function onSubmit(data: GoalFormValues) {
     try {

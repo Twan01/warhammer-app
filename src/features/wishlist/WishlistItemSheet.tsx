@@ -82,7 +82,7 @@ export function WishlistItemSheet({
   // Pitfall 3 belt-and-braces: reset form when item prop changes
   useEffect(() => {
     form.reset(buildDefaultValues(item));
-  }, [item, form]);
+  }, [item]);
 
   async function onSubmit(values: WishlistItemFormValues) {
     try {

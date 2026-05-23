@@ -139,17 +139,17 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
   );
 
   // Re-initialize draft sections and form values when the recipe prop changes
+  const existingSectionsLen = existingSections.length;
+  const existingStepsLen = existingSteps.length;
   useEffect(() => {
     form.reset(buildDefaults(recipe));
-    if (recipe && existingSections.length > 0) {
-      // Edit mode: build draft from DB sections + steps
+    if (recipe && existingSectionsLen > 0) {
       setSections(buildDraftSections(existingSections, existingSteps));
     } else if (!recipe) {
-      // New recipe: one default section
       setSections([makeDraftSection("Steps")]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recipe?.id, existingSections, existingSteps]);
+  }, [recipe?.id, existingSectionsLen, existingStepsLen]);
 
   // PAINT-03: detect new paint after PaintSheet closes
   useEffect(() => {

@@ -80,7 +80,7 @@ export function ArmyListSheet({ open, list, onClose }: ArmyListSheetProps) {
   // forces remount, but this useEffect is belt-and-braces).
   useEffect(() => {
     form.reset(buildDefaultValues(list));
-  }, [list, form]);
+  }, [list]);
 
   async function onSubmit(values: ArmyListFormValues) {
     try {

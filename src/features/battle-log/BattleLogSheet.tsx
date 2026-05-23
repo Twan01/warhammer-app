@@ -141,7 +141,7 @@ export function BattleLogSheet({
 
   useEffect(() => {
     form.reset(buildDefaultValues(log, prefill));
-  }, [log, prefill, form]);
+  }, [log, prefill]);
 
   async function onSubmit(values: BattleLogFormValues) {
     try {

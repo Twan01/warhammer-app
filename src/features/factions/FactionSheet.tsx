@@ -72,7 +72,7 @@ export function FactionSheet({ open, faction, onClose }: FactionSheetProps) {
           }
         : DEFAULT_VALUES
     );
-  }, [faction, form]);
+  }, [faction]);
 
   async function onSubmit(values: FactionFormValues) {
     try {

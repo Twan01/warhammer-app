@@ -87,7 +87,7 @@ export function PaintSheet({ open, paint, onClose }: PaintSheetProps) {
   // Pitfall 3: reset form when paint prop changes (prevents stale data)
   useEffect(() => {
     form.reset(buildDefaultValues(paint));
-  }, [paint, form]);
+  }, [paint]);
 
   async function onSubmit(values: PaintFormValues) {
     try {

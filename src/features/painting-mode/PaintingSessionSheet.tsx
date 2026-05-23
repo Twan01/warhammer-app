@@ -61,7 +61,7 @@ export function PaintingSessionSheet({
     if (open) {
       form.reset(buildDefaultValues());
     }
-  }, [open, form]);
+  }, [open]);
 
   function handleSubmit(values: PaintingSessionFormValues) {
     onSubmit(values.duration_minutes, values.notes ?? null);
