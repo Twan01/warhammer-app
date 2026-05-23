@@ -688,6 +688,52 @@
 
 ---
 
+## Milestone: v0.3.0 — Robustness & Architecture Hardening
+
+**Shipped:** 2026-05-22
+**Phases:** 4 (96–99) | **Plans:** 9 | **Timeline:** 1 day (2026-05-22)
+
+### What Was Built
+
+- Phase 96 Database Hardening: migration 033 adds WAL mode + busy_timeout to main DB (matching rules-client.ts), 31 FK indexes across 18 tables, 2 temporal DESC indexes, CHECK constraints on units (5 columns) and paints (2 columns) via table recreation
+- Phase 97 Error Resilience: RouteErrorFallback component with dev-only error details, errorComponent wired on both layout routes, DbHealthGate startup validation with DbDiagnosticScreen, global error handlers (window error + unhandledrejection), QueryCache/MutationCache onError logging
+- Phase 98 Performance: React.lazy() route-level code splitting (13 lazy pages), React.memo on KanbanCard/ArmyListUnitRow/CurrentFocusCard, batched multi-row INSERT for 6 sync replace* functions (200-row chunks), getKanbanProgressByUnitIds CTE+ROW_NUMBER batched query (O(1) vs O(4N)), 25-file invalidation precision audit
+- Phase 99 Architecture Cleanup: query-layer isolation (3 pure functions relocated from features/ to lib/), ArmyListsPage armyListsReducer replacing 14 useState calls, PlaybookTab decomposed into 5 sub-components, UnitSheet decomposed into 3 form section components via useFormContext
+
+### What Worked
+
+- **Single migration for all DB changes:** Bundling WAL mode, 31 indexes, CHECK constraints, and table recreations into one migration (033) meant zero mid-phase migration risk and clean atomic upgrade
+- **Parallel phase execution:** Phases 96/97 and 98 had minimal overlap; Phase 99 depended on both but all completed same day — clean dependency chain with no blocking
+- **Orchestrator + sub-component pattern:** PlaybookTab decomposition kept the orchestrator as a slim router between 5 focused components — each file under 300 lines, zero behavioral change
+- **useFormContext for form decomposition:** UnitSheet form sections access RHF context without prop drilling — parent remains FormProvider, children just call useFormContext(). Clean extraction pattern
+- **CTE + ROW_NUMBER for batch queries:** Single SQL query with window function replaced 4N individual queries for Kanban enrichment. Pattern reusable for any "latest per group" batch query
+
+### What Was Inefficient
+
+- **Phase 98 checkbox oversight:** ROADMAP.md Phase 98 was left as `[ ]` (unchecked) even though all 3 plans completed — caught and fixed during milestone audit
+- **Test fixture staleness:** 3 TypeScript errors in test files (wrong enum value, missing property) from prior phases — not caught until v0.3.0 execution because those specific test files weren't run in isolation recently
+
+### Patterns Established
+
+- **Orchestrator + presentation sub-component pattern:** For tabs or sheets exceeding 300 lines, extract domain sub-components and keep the parent as a slim orchestrator that delegates rendering. Applied to PlaybookTab (5 sub-components) and UnitSheet (3 form sections).
+- **useReducer for complex page state:** When a page has 10+ independent useState calls managing related state, extract a discriminated-union reducer. State transitions become testable in isolation (5 tests on armyListsReducer).
+- **Batched CTE pattern for N+1 elimination:** `WITH ranked AS (SELECT *, ROW_NUMBER() OVER (PARTITION BY unit_id ORDER BY ...) AS rn) SELECT * FROM ranked WHERE rn = 1` replaces N individual "get latest for unit X" queries with one O(1) batch.
+- **React.lazy named-export adapter:** `const LazyPage = lazy(() => import('./Page').then(m => ({ default: m.Page })))` — wraps named exports for code splitting without touching source files.
+
+### Key Lessons
+
+1. **Internal quality milestones can be fast.** 4 phases, 9 plans, 17 requirements in a single day — when there's no UI to design or user flows to test, pure refactoring moves at high velocity.
+2. **Query-layer isolation is easy to verify.** A single grep for `from.*features/` in `src/db/queries/` proves ARCH-01. Structural requirements with mechanical verification are the cleanest to satisfy.
+3. **Table recreation for CHECK constraints is safe with INSERT INTO...SELECT.** The migration creates a temp table, copies data, drops original, renames — zero data loss. Simpler than ALTER TABLE which SQLite doesn't support for adding CHECK constraints.
+
+### Cost Observations
+
+- Model: Claude Opus 4.6 throughout
+- Sessions: 2 (Phase 96–98 execution, Phase 99 execution + audit + completion)
+- Notable: 4 phases with 9 plans and 17 requirements in 1 day — first pure-refactoring milestone; 8th consecutive clean audit (all gaps resolved inline)
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -709,6 +755,7 @@
 | v0.2.13 | 6 | 13 | Data identity hardening; transactional save; centralized points resolver; Data Health + backup; dashboard command center; game day after-action; no gap closure needed |
 | v0.2.14 | 5 | 11 | Structured backup/restore; Rust-first foundation (6 new commands); safety backups; progressive diagnostics; no gap closure needed |
 | v0.2.15 | 5 | 11 | Painting Mode: full-page execution view, keyboard shortcuts, 6 entry points, atomic session logging; zero new migrations (pure UI milestone); 7th consecutive clean audit |
+| v0.3.0 | 4 | 9 | First pure-refactoring milestone: WAL + indexes + CHECK constraints, error boundaries, code splitting, component decomposition; 8th consecutive clean audit |
 
 ### Cumulative Quality
 
@@ -729,6 +776,7 @@
 | v0.2.13 | ~1,300 | All passing (26/26 requirements satisfied, Nyquist 6/6 compliant, no gap closure, 5th consecutive clean audit) |
 | v0.2.14 | 1,831 | All passing (26/26 requirements satisfied, Nyquist 3/5 compliant, no gap closure, 6th consecutive clean audit) |
 | v0.2.15 | 1,831+ | All passing (39/39 requirements satisfied, Nyquist fully compliant, no gap closure, 7th consecutive clean audit) |
+| v0.3.0 | 2,268 | All passing (17/17 requirements satisfied, Nyquist fully compliant, no gap closure, 8th consecutive clean audit) |
 
 ### Top Lessons (Verified Across Milestones)
 
