@@ -340,6 +340,40 @@ async fn repair_migration_checksums(
     Ok(true)
 }
 
+async fn sync_user_version(
+    db_path: &std::path::Path,
+    migration_count: u32,
+) -> Result<(), String> {
+    use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, Row};
+    use std::str::FromStr;
+
+    if !db_path.exists() {
+        return Ok(());
+    }
+
+    let db_url = format!("sqlite:{}", db_path.display());
+    let opts = SqliteConnectOptions::from_str(&db_url)
+        .map_err(|e| format!("user_version opts: {e}"))?
+        .create_if_missing(false);
+    let mut conn = opts.connect().await.map_err(|e| format!("user_version connect: {e}"))?;
+
+    let current: u32 = sqlx::query("PRAGMA user_version")
+        .fetch_one(&mut conn)
+        .await
+        .map_err(|e| format!("read user_version: {e}"))
+        .and_then(|row| row.try_get::<u32, _>(0).map_err(|e| format!("get user_version: {e}")))?;
+
+    if current != migration_count {
+        sqlx::query(&format!("PRAGMA user_version = {migration_count}"))
+            .execute(&mut conn)
+            .await
+            .map_err(|e| format!("set user_version: {e}"))?;
+        println!("[hobbyforge] user_version updated: {current} → {migration_count}");
+    }
+
+    Ok(())
+}
+
 fn preflight_migration_repair() {
     let Some(app_data_dir) = resolve_app_data_dir() else {
         eprintln!("[hobbyforge] could not resolve app data dir — skipping migration repair");
@@ -358,6 +392,9 @@ fn preflight_migration_repair() {
         }
         if let Err(e) = repair_migration_checksums(&rules_db, &rules_migrations).await {
             eprintln!("[hobbyforge] rules db repair failed: {e}");
+        }
+        if let Err(e) = sync_user_version(&main_db, main_migrations.len() as u32).await {
+            eprintln!("[hobbyforge] user_version sync failed: {e}");
         }
     });
 }
