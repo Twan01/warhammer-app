@@ -65,6 +65,7 @@ export async function getArmyListWithUnits(listId: number): Promise<ArmyListUnit
        alu.is_warlord, alu.selected_model_count, alu.leader_attached_to_id,
        alu.points_override, alu.notes, alu.tactical_role, alu.created_at,
        COALESCE(u.name, alu.ghost_unit_name) AS unit_name,
+       urm.datasheet_name AS canonical_name,
        u.points AS unit_points,
        u.faction_id,
        u.status_assembly,
@@ -77,13 +78,12 @@ export async function getArmyListWithUnits(listId: number): Promise<ArmyListUnit
      FROM army_list_units alu
      LEFT JOIN units u ON u.id = alu.unit_id
      LEFT JOIN unit_overrides uo ON uo.unit_id = u.id
+     LEFT JOIN unit_rules_mapping urm ON urm.unit_id = u.id
      LEFT JOIN synced_unit_points sup
-       ON sup.unit_name = COALESCE(u.name, alu.ghost_unit_name)
-       AND (sup.faction_id IS NULL OR sup.faction_id = CAST(u.faction_id AS TEXT))
+       ON sup.unit_name = COALESCE(urm.datasheet_name, u.name, alu.ghost_unit_name)
      LEFT JOIN synced_unit_point_tiers tier
-       ON tier.unit_name = COALESCE(u.name, alu.ghost_unit_name)
+       ON tier.unit_name = COALESCE(urm.datasheet_name, u.name, alu.ghost_unit_name)
        AND tier.model_count = alu.selected_model_count
-       AND (tier.faction_id IS NULL OR tier.faction_id = CAST(u.faction_id AS TEXT))
      WHERE alu.list_id = $1
      ORDER BY alu.created_at ASC, alu.id ASC`,
     [listId]
@@ -398,13 +398,12 @@ export async function getArmyListReadiness(
      JOIN army_list_units alu ON alu.list_id = al.id
      LEFT JOIN units u ON u.id = alu.unit_id
      LEFT JOIN unit_overrides uo ON uo.unit_id = u.id
+     LEFT JOIN unit_rules_mapping urm ON urm.unit_id = u.id
      LEFT JOIN synced_unit_points sup
-       ON sup.unit_name = COALESCE(u.name, alu.ghost_unit_name)
-       AND (sup.faction_id IS NULL OR sup.faction_id = CAST(u.faction_id AS TEXT))
+       ON sup.unit_name = COALESCE(urm.datasheet_name, u.name, alu.ghost_unit_name)
      LEFT JOIN synced_unit_point_tiers tier
-       ON tier.unit_name = COALESCE(u.name, alu.ghost_unit_name)
+       ON tier.unit_name = COALESCE(urm.datasheet_name, u.name, alu.ghost_unit_name)
        AND tier.model_count = alu.selected_model_count
-       AND (tier.faction_id IS NULL OR tier.faction_id = CAST(u.faction_id AS TEXT))
      WHERE al.id IN (${placeholders})
      GROUP BY al.id`,
     ids,

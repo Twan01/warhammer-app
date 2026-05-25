@@ -58,6 +58,7 @@ vi.mock("@/hooks/useArmyLists", () => ({
         notes: null,
         created_at: "2026-01-01",
         unit_name: "Intercessors",
+        canonical_name: null,
         unit_points: 80,
         effective_points: 80,
         faction_id: 10,

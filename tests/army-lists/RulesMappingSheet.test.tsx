@@ -57,6 +57,7 @@ function makeMapping(overrides: Partial<UnitRulesMapping> = {}): UnitRulesMappin
     id: 1,
     unit_id: 10,
     rules_datasheet_id: "ds-001",
+    datasheet_name: null,
     match_status: "auto",
     source: null,
     created_at: "2024-01-01",

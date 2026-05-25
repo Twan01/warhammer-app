@@ -46,6 +46,7 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
     notes: null,
     created_at: "2026-01-01T00:00:00Z",
     unit_name: "Intercessors",
+    canonical_name: null,
     unit_points: 80,
     effective_points: 80,
     faction_id: 1,

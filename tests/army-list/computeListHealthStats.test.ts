@@ -19,6 +19,7 @@ function makeUnit(pts: number): ArmyListUnitRow {
     notes: null,
     created_at: "2026-01-01T00:00:00Z",
     unit_name: "Test Unit",
+    canonical_name: null,
     unit_points: pts,
     effective_points: pts,
     faction_id: 1,

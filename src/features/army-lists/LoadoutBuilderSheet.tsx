@@ -75,8 +75,9 @@ export function LoadoutBuilderSheet({
   listFactionId,
   onClose,
 }: LoadoutBuilderSheetProps) {
-  // Derive unit name (always available on ArmyListUnitRow via COALESCE)
+  // Prefer canonical_name (from unit_rules_mapping) for synced data lookups
   const unitName = unit?.unit_name;
+  const lookupName = unit?.canonical_name ?? unitName;
 
   // Pitfall 1 — faction_id must be string for synced table queries
   const factionIdStr = unit?.faction_id !== null && unit?.faction_id !== undefined
@@ -86,8 +87,8 @@ export function LoadoutBuilderSheet({
       : null;
 
   // Data hooks
-  const { data: tiers } = useTiersByUnitName(unitName, factionIdStr);
-  const { data: wargearOptions } = useLoadoutOptionsForUnit(unitName, factionIdStr);
+  const { data: tiers } = useTiersByUnitName(lookupName, factionIdStr);
+  const { data: wargearOptions } = useLoadoutOptionsForUnit(lookupName, factionIdStr);
   const setModelCount = useSetSelectedModelCount();
   const clearModelCount = useClearSelectedModelCount();
 

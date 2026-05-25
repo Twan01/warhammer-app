@@ -57,6 +57,7 @@ describe("ArmyListUnitRow type", () => {
       notes: null,
       created_at: "2024-01-01",
       unit_name: "Intercessors",
+      canonical_name: null,
       unit_points: 100,
       effective_points: 100,
       faction_id: 1,

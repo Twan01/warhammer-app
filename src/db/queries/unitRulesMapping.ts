@@ -49,7 +49,7 @@ export async function upsertUnitRulesMapping(
   if (existing.length > 0) {
     await db.execute(
       `UPDATE unit_rules_mapping SET
-         rules_datasheet_id=$2, match_status=$3, source=$4,
+         rules_datasheet_id=$2, match_status=$3, source=$4, datasheet_name=$5,
          updated_at=datetime('now')
        WHERE unit_id=$1`,
       [
@@ -57,18 +57,20 @@ export async function upsertUnitRulesMapping(
         input.rules_datasheet_id,
         input.match_status,
         input.source ?? null,
+        input.datasheet_name ?? null,
       ],
     );
   } else {
     await db.execute(
       `INSERT INTO unit_rules_mapping
-         (unit_id, rules_datasheet_id, match_status, source)
-       VALUES ($1, $2, $3, $4)`,
+         (unit_id, rules_datasheet_id, match_status, source, datasheet_name)
+       VALUES ($1, $2, $3, $4, $5)`,
       [
         input.unit_id,
         input.rules_datasheet_id,
         input.match_status,
         input.source ?? null,
+        input.datasheet_name ?? null,
       ],
     );
   }

@@ -92,6 +92,7 @@ export function RulesMappingSheet({
       await upsertMapping.mutateAsync({
         unit_id: unitId,
         rules_datasheet_id: mapping?.rules_datasheet_id ?? null,
+        datasheet_name: mapping?.datasheet_name ?? null,
         match_status: "confirmed",
         source: mapping?.source ?? null,
       });
@@ -102,11 +103,12 @@ export function RulesMappingSheet({
     }
   }
 
-  async function handleSelect(datasheetId: string) {
+  async function handleSelect(datasheetId: string, dsName: string) {
     try {
       await upsertMapping.mutateAsync({
         unit_id: unitId,
         rules_datasheet_id: datasheetId,
+        datasheet_name: dsName,
         match_status: "manual",
         source: "user",
       });
@@ -223,7 +225,7 @@ export function RulesMappingSheet({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleSelect(ds.id)}
+                      onClick={() => handleSelect(ds.id, ds.name)}
                       disabled={upsertMapping.isPending}
                     >
                       Select

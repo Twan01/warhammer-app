@@ -20,6 +20,7 @@ import { useFactions } from "@/hooks/useFactions";
 import { useUnits } from "@/hooks/useUnits";
 import { useQueryClient } from "@tanstack/react-query";
 import { upsertDatasheetLink } from "@/db/queries/datasheets";
+import { upsertUnitRulesMapping } from "@/db/queries/unitRulesMapping";
 import type { DatasheetConflict, DatasheetImportPayload, FullDatasheet, RwDatasheetAbility } from "@/types/datasheet";
 import type { StrategyNote, UpsertStrategyNoteInput } from "@/types/strategyNote";
 import { DatasheetPicker } from "@/features/units/DatasheetPicker";
@@ -34,8 +35,9 @@ interface PlaybookTabProps {
 }
 
 // Pure helpers — no hooks, defined outside the component
-function coerceStatToNumber(raw: string | null | undefined): number | null {
+function coerceStatToNumber(raw: string | number | null | undefined): number | null {
   if (raw === null || raw === undefined || raw === "") return null;
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
   const digits = raw.replace(/[^0-9]/g, "");
   return digits === "" ? null : Number(digits);
 }
@@ -51,6 +53,13 @@ function formatSyncDate(iso: string | null): string {
   } catch { return iso; }
 }
 
+/** Extract a human-readable message from an unknown caught value. */
+function errorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === "string") return err;
+  return "Unknown error";
+}
+
 export function PlaybookTab({ unitId, onDatasheetConflict, pendingImportResolution, onClearImportResolution }: PlaybookTabProps) {
   const { data, isLoading } = useStrategyNote(unitId);
   const upsert = useUpsertStrategyNote();
@@ -62,7 +71,7 @@ export function PlaybookTab({ unitId, onDatasheetConflict, pendingImportResoluti
   const { data: wahapediaFactionId } = useWahapediaFactionId(localFaction?.name);
   const { data: syncMeta } = useRulesSyncMeta();
   const { data: syncErrors = [] } = useRulesSyncErrors();
-  const { data: datasheet } = useDatasheet(unitId);
+  const { data: datasheet, error: datasheetError } = useDatasheet(unitId);
   const rulesSync = useRulesSync();
   const { data: overrideRow } = useUnitOverride(unitId);
   const upsertOverride = useUpsertUnitOverride();
@@ -130,11 +139,11 @@ export function PlaybookTab({ unitId, onDatasheetConflict, pendingImportResoluti
     const abText = formatAbilitiesAsText(payload.datasheet.abilities);
     const kwText = payload.datasheet.keywords.map((k) => k.keyword).join(", ");
     if (resolution.M === "use" && m0) setMove(coerceStatToNumber(m0.M));
-    if (resolution.T === "use" && m0) setToughness(coerceStatToNumber(m0.T as unknown as string));
+    if (resolution.T === "use" && m0) setToughness(coerceStatToNumber(m0.T));
     if (resolution.Sv === "use" && m0) setSaveStat(coerceStatToNumber(m0.Sv));
-    if (resolution.W === "use" && m0) setWounds(coerceStatToNumber(m0.W as unknown as string));
+    if (resolution.W === "use" && m0) setWounds(coerceStatToNumber(m0.W));
     if (resolution.Ld === "use" && m0) setLeadership(coerceStatToNumber(m0.Ld));
-    if (resolution.OC === "use" && m0) setObjectiveControl(coerceStatToNumber(m0.OC as unknown as string));
+    if (resolution.OC === "use" && m0) setObjectiveControl(coerceStatToNumber(m0.OC));
     if (resolution.abilities === "use") setAbilities(abText);
     if (resolution.keywords === "use") setKeywords(kwText);
     onClearImportResolution?.();
@@ -182,15 +191,19 @@ export function PlaybookTab({ unitId, onDatasheetConflict, pendingImportResoluti
       const { getFullDatasheet } = await import("@/db/queries/datasheets");
       const fresh = await getFullDatasheet(datasheetId);
       if (!fresh) { toast.error("Datasheet not found in rules database — try re-syncing."); return; }
+      await upsertUnitRulesMapping({ unit_id: unitId, rules_datasheet_id: datasheetId, datasheet_name: fresh.ds.name, match_status: "confirmed", source: "playbook-link" });
       applyIncomingOrRouteConflicts(fresh);
-    } catch { toast.error("Failed to link datasheet — try again."); }
+    } catch (err) {
+      console.error("[PlaybookTab] handlePickerSelect failed:", err);
+      toast.error(`Failed to link datasheet: ${errorMessage(err)}`);
+    }
   }
 
   function applyIncomingOrRouteConflicts(fresh: FullDatasheet) {
     const m0 = fresh.models[0] ?? null;
-    const inc = { M: m0 ? coerceStatToNumber(m0.M) : null, T: m0 ? coerceStatToNumber(m0.T as unknown as string) : null,
-      Sv: m0 ? coerceStatToNumber(m0.Sv) : null, W: m0 ? coerceStatToNumber(m0.W as unknown as string) : null,
-      Ld: m0 ? coerceStatToNumber(m0.Ld) : null, OC: m0 ? coerceStatToNumber(m0.OC as unknown as string) : null,
+    const inc = { M: m0 ? coerceStatToNumber(m0.M) : null, T: m0 ? coerceStatToNumber(m0.T) : null,
+      Sv: m0 ? coerceStatToNumber(m0.Sv) : null, W: m0 ? coerceStatToNumber(m0.W) : null,
+      Ld: m0 ? coerceStatToNumber(m0.Ld) : null, OC: m0 ? coerceStatToNumber(m0.OC) : null,
       ab: formatAbilitiesAsText(fresh.abilities), kw: fresh.keywords.map((k) => k.keyword).join(", ") };
     const cur = { M: move, T: toughness, Sv: saveStat, W: wounds, Ld: leadership, OC: objectiveControl };
     const conflicts: DatasheetConflict[] = [];
@@ -244,13 +257,16 @@ export function PlaybookTab({ unitId, onDatasheetConflict, pendingImportResoluti
         const op: UpsertUnitOverrideInput = { unit_id: unitId, points: parsedPts, move, toughness, save: saveStat, wounds, leadership, objective_control: objectiveControl, keywords: keywords || null, abilities: abilities || null };
         const hasStatOvr = STAT_KEYS.some((k) => { const imp = importedStatValue(k); const cur = statValue(k); return imp !== null && cur !== null && cur !== imp; });
         if (hasStatOvr || parsedPts !== null || (keywords || null) !== null || (abilities || null) !== null) {
-          try { await upsertOverride.mutateAsync(op); } catch { /* non-critical */ }
+          try { await upsertOverride.mutateAsync(op); } catch (overrideErr) { console.error("[PlaybookTab] override save failed:", overrideErr); }
         }
       }
       toast.success("Playbook saved");
       initialRef.current = { ...(initialRef.current ?? {} as StrategyNote), ...payload } as StrategyNote;
       setStatsEditMode(false);
-    } catch { toast.error("Failed to save playbook — try again"); }
+    } catch (err) {
+      console.error("[PlaybookTab] handleSave failed:", err);
+      toast.error(`Failed to save playbook: ${errorMessage(err)}`);
+    }
   }
 
   function handleFieldChange(field: string, value: string) {
@@ -262,6 +278,11 @@ export function PlaybookTab({ unitId, onDatasheetConflict, pendingImportResoluti
 
   return (
     <div className={`flex flex-col gap-6 p-4 ${isLoading ? "opacity-50 pointer-events-none" : ""}`} aria-busy={isLoading}>
+      {datasheetError && (
+        <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+          Failed to load datasheet: {errorMessage(datasheetError)}. Try re-syncing rules data.
+        </div>
+      )}
       <PlaybookStats unitId={unitId} syncMeta={syncMeta} overrideRow={overrideRow} hasDatasheetLink={hasDatasheetLink}
         hasMultipleProfiles={(datasheet?.models?.length ?? 0) > 1} statsEditMode={statsEditMode}
         onToggleStatsEditMode={() => setStatsEditMode((v) => !v)} wahapediaFactionId={wahapediaFactionId}

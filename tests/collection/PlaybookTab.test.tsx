@@ -346,7 +346,7 @@ describe("STRAT-05 — Save button dirty-state and inline save", () => {
     successSpy.mockRestore();
   });
 
-  it("on save error shows error toast and re-enables the Save button", async () => {
+  it("on save error shows error toast with actual error message and re-enables the Save button", async () => {
     const user = userEvent.setup();
     upsertStrategyNoteMock.mockRejectedValueOnce(new Error("DB failure"));
     const errorSpy = vi.spyOn(toast, "error");
@@ -355,7 +355,7 @@ describe("STRAT-05 — Save button dirty-state and inline save", () => {
     await user.type(screen.getByLabelText(/Personal Ability Notes/), "Deep Strike");
     await user.click(saveBtn);
     await vi.waitFor(() => {
-      expect(errorSpy).toHaveBeenCalledWith("Failed to save playbook — try again");
+      expect(errorSpy).toHaveBeenCalledWith("Failed to save playbook: DB failure");
     });
     // Save button re-enabled because isDirty stays true (no snapshot update on failure)
     expect(saveBtn).not.toBeDisabled();
@@ -906,5 +906,16 @@ describe("PlaybookTab — PLAY-01/02 ExtendedAbilityEntry annotation controls (s
     const starBtn = screen.getByRole("button", { name: "Add to favorites" });
     const controlsDiv = starBtn.parentElement;
     expect(controlsDiv?.querySelectorAll("svg").length).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe("PlaybookTab — datasheet error state", () => {
+  it("renders error banner when useDatasheet returns an error", async () => {
+    (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({
+      data: undefined,
+      error: new Error("no such table: rw_datasheets"),
+    });
+    renderInsideTabs(42);
+    expect(await screen.findByText(/Failed to load datasheet: no such table: rw_datasheets/)).toBeInTheDocument();
   });
 });

@@ -18,6 +18,7 @@ export interface UnitRulesMapping {
   id: number;
   unit_id: number;
   rules_datasheet_id: string | null;
+  datasheet_name: string | null;
   match_status: MatchStatus;
   source: string | null;
   created_at: string;
@@ -32,6 +33,7 @@ export interface UnitRulesMapping {
 export type UpsertUnitRulesMappingInput = {
   unit_id: number;
   rules_datasheet_id: string | null;
+  datasheet_name?: string | null;
   match_status: MatchStatus;
   source?: string | null;
 };

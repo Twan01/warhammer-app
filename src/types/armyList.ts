@@ -52,6 +52,7 @@ export interface ArmyListUnit {
  */
 export interface ArmyListUnitRow extends ArmyListUnit {
   unit_name: string;
+  canonical_name: string | null;
   unit_points: number | null;
   effective_points: number;
   faction_id: number | null;          // null for ghost units (Phase 89)

@@ -46,9 +46,11 @@ describe("armyLists queries — getArmyLists / getArmyListWithUnits", () => {
     // Phase 89: LEFT JOIN (not INNER JOIN) to support ghost units (unit_id IS NULL)
     expect(sql).toMatch(/LEFT JOIN units u ON u\.id = alu\.unit_id/);
     expect(sql).toMatch(/LEFT JOIN unit_overrides uo ON uo\.unit_id = u\.id/);
-    // Phase 89: synced join uses COALESCE(u.name, alu.ghost_unit_name) for ghost unit support
+    // unit_rules_mapping join for canonical datasheet name resolution
+    expect(sql).toMatch(/LEFT JOIN unit_rules_mapping urm ON urm\.unit_id = u\.id/);
+    // synced join uses COALESCE(urm.datasheet_name, u.name, alu.ghost_unit_name) for canonical name + ghost unit support
     expect(sql).toMatch(/LEFT JOIN synced_unit_points sup/);
-    expect(sql).toMatch(/sup\.unit_name = COALESCE\(u\.name, alu\.ghost_unit_name\)/);
+    expect(sql).toMatch(/sup\.unit_name = COALESCE\(urm\.datasheet_name, u\.name, alu\.ghost_unit_name\)/);
     // Phase 89: 6-level COALESCE includes tier.points at priority level 2
     expect(sql).toMatch(/COALESCE\(alu\.points_override, tier\.points, sup\.points, uo\.points, u\.points, 0\) AS effective_points/);
     expect(sql).toMatch(/WHERE alu\.list_id = \$1/);
