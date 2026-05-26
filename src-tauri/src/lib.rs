@@ -203,6 +203,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/033_database_hardening.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 34,
+            description: "urm_datasheet_name",
+            sql: include_str!("../migrations/034_urm_datasheet_name.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
