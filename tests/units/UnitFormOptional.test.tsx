@@ -89,7 +89,6 @@ describe("ARCH-03 — UnitFormOptional collapsible behavior", () => {
     await user.click(screen.getByRole("button", { name: /more details/i }));
     // After expand, field labels must appear
     expect(screen.getByText("Painting Status")).toBeInTheDocument();
-    expect(screen.getByText("Painting Percentage")).toBeInTheDocument();
     expect(screen.getByText("Notes")).toBeInTheDocument();
   });
 

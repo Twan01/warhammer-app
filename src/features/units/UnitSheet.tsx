@@ -109,7 +109,7 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
         points: values.points ?? null,
         status_assembly: values.status_assembly ? 1 : 0 as 0 | 1,
         status_painting: values.status_painting,
-        painting_percentage: values.painting_percentage,
+        painting_percentage: 0,
         status_basing: values.status_basing ? 1 : 0 as 0 | 1,
         status_varnished: values.status_varnished ? 1 : 0 as 0 | 1,
         is_active_project: values.is_active_project ? 1 : 0 as 0 | 1,
@@ -125,7 +125,8 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
       };
 
       if (isEdit && unit) {
-        await updateUnit.mutateAsync({ id: unit.id, ...payload });
+        const { painting_percentage: _pp, ...rest } = payload;
+        await updateUnit.mutateAsync({ id: unit.id, ...rest });
         toast.success("Unit updated.");
       } else {
         await createUnit.mutateAsync(payload);

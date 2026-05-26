@@ -14,6 +14,7 @@ import type { CreateRecipeAssignmentInput } from "@/types/recipeAssignment";
 import type { CreateSessionInput } from "@/types/paintingSession";
 import { NEXT_PAINTING_ACTION_KEY } from "@/hooks/useNextPaintingAction";
 import { DASHBOARD_STATS_KEY } from "@/hooks/useDashboardStats";
+import { UNITS_KEY } from "@/hooks/useUnits";
 
 // ---------------------------------------------------------------------------
 // Cache keys (D-12)
@@ -87,6 +88,7 @@ export function useCreateAssignment() {
       qc.invalidateQueries({ queryKey: RECIPE_ASSIGNMENTS_KEY(input.recipe_id) });
       qc.invalidateQueries({ queryKey: ["kanban-enrichment"] });
       qc.invalidateQueries({ queryKey: NEXT_PAINTING_ACTION_KEY });
+      qc.invalidateQueries({ queryKey: UNITS_KEY });
     },
   });
 }
@@ -100,6 +102,7 @@ export function useDeleteAssignment() {
       qc.invalidateQueries({ queryKey: RECIPE_ASSIGNMENTS_KEY(variables.recipeId) });
       qc.invalidateQueries({ queryKey: ["kanban-enrichment"] });
       qc.invalidateQueries({ queryKey: NEXT_PAINTING_ACTION_KEY });
+      qc.invalidateQueries({ queryKey: UNITS_KEY });
     },
   });
 }
@@ -113,6 +116,7 @@ export function useToggleStepProgress() {
       qc.invalidateQueries({ queryKey: STEP_PROGRESS_KEY(variables.assignmentId) });
       qc.invalidateQueries({ queryKey: ["kanban-enrichment"] });
       qc.invalidateQueries({ queryKey: NEXT_PAINTING_ACTION_KEY });
+      qc.invalidateQueries({ queryKey: UNITS_KEY });
     },
   });
 }
@@ -130,6 +134,7 @@ export function useBulkCreateAssignments() {
       qc.invalidateQueries({ queryKey: RECIPE_ASSIGNMENTS_KEY(variables.recipeId) });
       qc.invalidateQueries({ queryKey: ["kanban-enrichment"] });
       qc.invalidateQueries({ queryKey: NEXT_PAINTING_ACTION_KEY });
+      qc.invalidateQueries({ queryKey: UNITS_KEY });
     },
   });
 }
@@ -161,6 +166,7 @@ export function useCompleteStep() {
       qc.invalidateQueries({ queryKey: ["recent-activity"] });
       qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
       qc.invalidateQueries({ queryKey: ["goal-progress"] });
+      qc.invalidateQueries({ queryKey: UNITS_KEY });
     },
   });
 }

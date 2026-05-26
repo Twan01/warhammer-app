@@ -48,7 +48,7 @@ describe("useCompleteStep", () => {
       await result.current.mutateAsync({ ...MUTATION_VARS });
     });
 
-    expect(spy).toHaveBeenCalledTimes(10);
+    expect(spy).toHaveBeenCalledTimes(11);
   });
 
   it("invalidates STEP_PROGRESS_KEY(assignmentId)", async () => {

@@ -13,6 +13,7 @@ beforeEach(() => {
   executeMock.mockReset();
   selectMock.mockReset();
   executeMock.mockResolvedValue({ lastInsertId: 1 });
+  selectMock.mockResolvedValue([{ unit_id: 1 }]);
 });
 
 describe("completeStepWithSession", () => {
@@ -23,8 +24,8 @@ describe("completeStepWithSession", () => {
       duration_minutes: 30,
     });
 
-    // 2 calls: step progress upsert + session INSERT (auto-commit, no BEGIN/COMMIT)
-    expect(executeMock).toHaveBeenCalledTimes(2);
+    // 3 calls: step progress upsert + session INSERT + painting % sync
+    expect(executeMock).toHaveBeenCalledTimes(3);
     expect(executeMock.mock.calls[0][0]).toContain(
       "ON CONFLICT(assignment_id, recipe_step_id)",
     );

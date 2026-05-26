@@ -99,6 +99,7 @@ export async function createAssignment(input: CreateRecipeAssignmentInput): Prom
     "INSERT INTO unit_recipe_assignments (unit_id, recipe_id) VALUES ($1, $2)",
     [input.unit_id, input.recipe_id],
   );
+  await syncPaintingPercentageByUnitId(db, input.unit_id);
   return result.lastInsertId ?? 0;
 }
 
@@ -108,7 +109,13 @@ export async function createAssignment(input: CreateRecipeAssignmentInput): Prom
  */
 export async function deleteAssignment(id: number): Promise<void> {
   const db = await getDb();
+  const rows = await db.select<{ unit_id: number }[]>(
+    "SELECT unit_id FROM unit_recipe_assignments WHERE id = $1",
+    [id],
+  );
   await db.execute("DELETE FROM unit_recipe_assignments WHERE id = $1", [id]);
+  const unitId = rows[0]?.unit_id;
+  if (unitId) await syncPaintingPercentageByUnitId(db, unitId);
 }
 
 /**
@@ -125,6 +132,7 @@ export async function getStepProgress(assignmentId: number): Promise<StepProgres
 /**
  * Upserts a step progress record. Uses ON CONFLICT DO UPDATE SET to preserve
  * the existing row id (NOT INSERT OR REPLACE which deletes + re-inserts).
+ * After upserting, syncs the unit's painting_percentage from all assignments.
  */
 export async function upsertStepProgress(
   assignmentId: number,
@@ -145,6 +153,7 @@ export async function upsertStepProgress(
       completed ? new Date().toISOString() : null,
     ],
   );
+  await syncPaintingPercentageFromAssignment(db, assignmentId);
 }
 
 /**
@@ -165,7 +174,38 @@ export async function bulkCreateAssignments(
       "INSERT OR IGNORE INTO unit_recipe_assignments (unit_id, recipe_id) VALUES ($1, $2)",
       [unitId, recipeId],
     );
+    await syncPaintingPercentageByUnitId(db, unitId);
   }
+}
+
+// ─── Auto-sync painting percentage from recipe step progress ─────────────────
+
+const SYNC_PAINTING_PERCENTAGE_SQL = `
+  UPDATE units SET painting_percentage = COALESCE((
+    SELECT CASE WHEN COUNT(rs.id) = 0 THEN 0
+      ELSE CAST(ROUND(100.0 * COUNT(CASE WHEN sp.completed = 1 THEN 1 END) / COUNT(rs.id)) AS INTEGER)
+    END
+    FROM unit_recipe_assignments a
+    JOIN recipe_steps rs ON rs.recipe_id = a.recipe_id
+    LEFT JOIN unit_recipe_step_progress sp ON sp.assignment_id = a.id AND sp.recipe_step_id = rs.id
+    WHERE a.unit_id = $1
+  ), 0), updated_at = datetime('now')
+  WHERE id = $1`;
+
+type DbHandle = { execute(sql: string, params: unknown[]): Promise<unknown> };
+
+async function syncPaintingPercentageByUnitId(db: DbHandle, unitId: number): Promise<void> {
+  await db.execute(SYNC_PAINTING_PERCENTAGE_SQL, [unitId]);
+}
+
+async function syncPaintingPercentageFromAssignment(db: DbHandle, assignmentId: number): Promise<void> {
+  const dbFull = db as Awaited<ReturnType<typeof getDb>>;
+  const rows = await dbFull.select<{ unit_id: number }[]>(
+    "SELECT unit_id FROM unit_recipe_assignments WHERE id = $1",
+    [assignmentId],
+  );
+  const unitId = rows?.[0]?.unit_id;
+  if (unitId) await syncPaintingPercentageByUnitId(db, unitId);
 }
 
 // ─── PERF-03: Batched Kanban enrichment query ────────────────────────────────
@@ -273,4 +313,5 @@ export async function completeStepWithSession(
       session.recipe_section_id ?? null,
     ],
   );
+  await syncPaintingPercentageFromAssignment(db, assignmentId);
 }

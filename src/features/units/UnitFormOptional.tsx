@@ -81,27 +81,6 @@ export function UnitFormOptional({ hasTiers, tiersCount }: UnitFormOptionalProps
             )}
           />
 
-          <FormField
-            name="painting_percentage"
-            control={control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Painting Percentage</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={100}
-                    {...field}
-                    value={field.value ?? 0}
-                    onChange={(e) => field.onChange(e.target.valueAsNumber || 0)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           <CheckboxField name="status_assembly" label="Assembly complete" />
           <CheckboxField name="status_basing" label="Basing complete" />
           <CheckboxField name="status_varnished" label="Varnished" />

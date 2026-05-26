@@ -214,13 +214,13 @@ describe("bulkCreateAssignments — SQL assertions", () => {
     expect(sql).toContain("INSERT OR IGNORE INTO unit_recipe_assignments");
   });
 
-  it("calls db.execute once per unitId (no BEGIN/COMMIT wrapper)", async () => {
+  it("calls db.execute twice per unitId: INSERT + painting % sync", async () => {
     await bulkCreateAssignments([10, 20, 30], 7);
-    // 3 INSERTs only (auto-commit, no BEGIN/COMMIT)
-    expect(executeMock).toHaveBeenCalledTimes(3);
+    // 3 INSERTs + 3 syncs (auto-commit, no BEGIN/COMMIT)
+    expect(executeMock).toHaveBeenCalledTimes(6);
     expect(executeMock.mock.calls[0][1]).toEqual([10, 7]);
-    expect(executeMock.mock.calls[1][1]).toEqual([20, 7]);
-    expect(executeMock.mock.calls[2][1]).toEqual([30, 7]);
+    expect(executeMock.mock.calls[2][1]).toEqual([20, 7]);
+    expect(executeMock.mock.calls[4][1]).toEqual([30, 7]);
   });
 
   it("handles empty unitIds array with zero calls", async () => {
@@ -262,7 +262,7 @@ describe("useCreateAssignment — cache invalidation", () => {
     expect(keys).toContainEqual(RECIPE_ASSIGNMENTS_KEY(7));
   });
 
-  it("invalidates exactly 4 keys on success", async () => {
+  it("invalidates exactly 5 keys on success", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useCreateAssignment(), { wrapper });
 
@@ -271,7 +271,7 @@ describe("useCreateAssignment — cache invalidation", () => {
     });
     await waitFor(() => expect(spy).toHaveBeenCalled());
 
-    expect(spy).toHaveBeenCalledTimes(4);
+    expect(spy).toHaveBeenCalledTimes(5);
   });
 });
 
@@ -307,7 +307,7 @@ describe("useDeleteAssignment — cache invalidation (D-13 symmetry)", () => {
     expect(keys).toContainEqual(RECIPE_ASSIGNMENTS_KEY(7));
   });
 
-  it("invalidates exactly 4 keys — same count as useCreateAssignment (D-13)", async () => {
+  it("invalidates exactly 5 keys — same count as useCreateAssignment (D-13)", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useDeleteAssignment(), { wrapper });
 
@@ -316,7 +316,7 @@ describe("useDeleteAssignment — cache invalidation (D-13 symmetry)", () => {
     });
     await waitFor(() => expect(spy).toHaveBeenCalled());
 
-    expect(spy).toHaveBeenCalledTimes(4);
+    expect(spy).toHaveBeenCalledTimes(5);
   });
 
   it("D-13 symmetry: create and delete invalidate identical cache key shapes", async () => {
@@ -362,7 +362,7 @@ describe("useToggleStepProgress — cache invalidation", () => {
     expect(keys).toContainEqual(STEP_PROGRESS_KEY(5));
   });
 
-  it("invalidates exactly 3 keys on success", async () => {
+  it("invalidates exactly 4 keys on success", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useToggleStepProgress(), { wrapper });
 
@@ -371,7 +371,7 @@ describe("useToggleStepProgress — cache invalidation", () => {
     });
     await waitFor(() => expect(spy).toHaveBeenCalled());
 
-    expect(spy).toHaveBeenCalledTimes(3);
+    expect(spy).toHaveBeenCalledTimes(4);
   });
 });
 
@@ -407,7 +407,7 @@ describe("useBulkCreateAssignments — cache invalidation (Pitfall 5)", () => {
     expect(keys).toContainEqual(RECIPE_ASSIGNMENTS_KEY(5));
   });
 
-  it("invalidates exactly 4 keys on success", async () => {
+  it("invalidates exactly 5 keys on success", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useBulkCreateAssignments(), { wrapper });
 
@@ -416,6 +416,6 @@ describe("useBulkCreateAssignments — cache invalidation (Pitfall 5)", () => {
     });
     await waitFor(() => expect(spy).toHaveBeenCalled());
 
-    expect(spy).toHaveBeenCalledTimes(4);
+    expect(spy).toHaveBeenCalledTimes(5);
   });
 });
