@@ -1,6 +1,11 @@
 /**
- * DI-03 — saveRecipeGraph() SQL coverage: atomic commit on success, ROLLBACK on error.
+ * DI-03 — saveRecipeGraph() SQL coverage: auto-commit per statement.
  * DI-04 — Existing section/step IDs preserved via diff-based approach.
+ *
+ * NOTE: saveRecipeGraph uses auto-commit mode (no explicit BEGIN/COMMIT/ROLLBACK)
+ * because tauri-plugin-sql uses sqlx::Pool<Sqlite> — each db.execute() may run on
+ * a different connection from the pool, so explicit transaction boundaries are broken.
+ * In WAL mode, each committed write is immediately visible to all connections.
  *
  * Mocks getDb() to capture SQL strings and params.
  * Pure diff functions (computeSectionDiff, computeStepDiff, buildSectionIdMap) run with
@@ -194,25 +199,26 @@ describe("saveRecipeGraph — create path (recipeId = null)", () => {
   beforeEach(() => {
     selectMock.mockReset();
     executeMock.mockReset();
-    // BEGIN, recipe INSERT, section 1 INSERT, section 2 INSERT, step INSERTs, COMMIT
+    // recipe INSERT, section 1 INSERT, section 2 INSERT, step INSERTs
     executeMock
-      .mockResolvedValueOnce(undefined)              // BEGIN TRANSACTION
       .mockResolvedValueOnce({ lastInsertId: 50 })   // recipe INSERT
       .mockResolvedValueOnce({ lastInsertId: 200 })  // section 1 INSERT (local-sec-1)
       .mockResolvedValueOnce({ lastInsertId: 201 })  // section 2 INSERT (local-sec-2)
-      .mockResolvedValue({ lastInsertId: 300 });      // step INSERTs + COMMIT
+      .mockResolvedValue({ lastInsertId: 300 });      // step INSERTs
   });
 
-  it("issues BEGIN TRANSACTION as the first db.execute call", async () => {
+  it("does not issue BEGIN TRANSACTION (auto-commit mode for pool safety)", async () => {
     await saveRecipeGraph(null, FORM_VALUES, DRAFT_SECTIONS, [], []);
-    const [sql] = executeMock.mock.calls[0];
-    expect(sql).toBe("BEGIN TRANSACTION");
+    const sqlCalls = executeMock.mock.calls.map(([sql]) => sql);
+    expect(sqlCalls).not.toContain("BEGIN TRANSACTION");
+    expect(sqlCalls).not.toContain("COMMIT");
+    expect(sqlCalls).not.toContain("ROLLBACK");
   });
 
-  it("inserts recipe row with all form values as $1...$21", async () => {
+  it("inserts recipe row with all form values as $1...$21 as first call", async () => {
     await saveRecipeGraph(null, FORM_VALUES, DRAFT_SECTIONS, [], []);
-    // calls[0] = BEGIN; calls[1] = recipe INSERT
-    const [sql, params] = executeMock.mock.calls[1];
+    // calls[0] = recipe INSERT (no BEGIN before it)
+    const [sql, params] = executeMock.mock.calls[0];
     expect(sql).toContain("INSERT INTO painting_recipes");
     expect(sql).toContain("$21");
     expect(params[0]).toBe("Test Recipe");    // name = $1
@@ -227,13 +233,13 @@ describe("saveRecipeGraph — create path (recipeId = null)", () => {
 
   it("inserts sections for all draft sections with recipe_id = new recipe id", async () => {
     await saveRecipeGraph(null, FORM_VALUES, DRAFT_SECTIONS, [], []);
-    // calls[2] = section 1 INSERT; calls[3] = section 2 INSERT
-    const [sql1, params1] = executeMock.mock.calls[2];
+    // calls[1] = section 1 INSERT; calls[2] = section 2 INSERT
+    const [sql1, params1] = executeMock.mock.calls[1];
     expect(sql1).toContain("INSERT INTO recipe_sections");
     expect(params1[0]).toBe(50); // recipe_id
     expect(params1[1]).toBe("Armour"); // name
 
-    const [, params2] = executeMock.mock.calls[3];
+    const [, params2] = executeMock.mock.calls[2];
     expect(params2[0]).toBe(50);
     expect(params2[1]).toBe("Cloth");
     expect(params2[4]).toBe(1); // order_index = 1 for second section
@@ -241,34 +247,34 @@ describe("saveRecipeGraph — create path (recipeId = null)", () => {
 
   it("inserts steps for each section using sectionIdMap-resolved section_id ($13)", async () => {
     await saveRecipeGraph(null, FORM_VALUES, DRAFT_SECTIONS, [], []);
-    // calls[4] = step 1 in section 1; section 1 got id 200
-    const [sql, params] = executeMock.mock.calls[4];
+    // calls[3] = step 1 in section 1; section 1 got id 200
+    const [sql, params] = executeMock.mock.calls[3];
     expect(sql).toContain("INSERT INTO recipe_steps");
     expect(params[12]).toBe(200); // section_id = sectionIdMap.get("local-sec-1") = 200
 
-    // calls[5] = step 2 in section 1; still section_id 200
-    const [, params2] = executeMock.mock.calls[5];
+    // calls[4] = step 2 in section 1; still section_id 200
+    const [, params2] = executeMock.mock.calls[4];
     expect(params2[12]).toBe(200);
 
-    // calls[6] = step in section 2; section 2 got id 201
-    const [, params3] = executeMock.mock.calls[6];
+    // calls[5] = step in section 2; section 2 got id 201
+    const [, params3] = executeMock.mock.calls[5];
     expect(params3[12]).toBe(201);
   });
 
   it("assigns correct per-section order_index to steps", async () => {
     await saveRecipeGraph(null, FORM_VALUES, DRAFT_SECTIONS, [], []);
-    const [, params1] = executeMock.mock.calls[4]; // first step in section 1
-    const [, params2] = executeMock.mock.calls[5]; // second step in section 1
-    const [, params3] = executeMock.mock.calls[6]; // first step in section 2
+    const [, params1] = executeMock.mock.calls[3]; // first step in section 1
+    const [, params2] = executeMock.mock.calls[4]; // second step in section 1
+    const [, params3] = executeMock.mock.calls[5]; // first step in section 2
     expect(params1[3]).toBe(0); // order_index
     expect(params2[3]).toBe(1); // order_index
     expect(params3[3]).toBe(0); // resets per section
   });
 
-  it("issues COMMIT as the last execute call on success", async () => {
+  it("does not issue COMMIT (auto-commit mode)", async () => {
     await saveRecipeGraph(null, FORM_VALUES, DRAFT_SECTIONS, [], []);
-    const lastCall = executeMock.mock.calls[executeMock.mock.calls.length - 1];
-    expect(lastCall[0]).toBe("COMMIT");
+    const sqlCalls = executeMock.mock.calls.map(([sql]) => sql);
+    expect(sqlCalls).not.toContain("COMMIT");
   });
 });
 
@@ -280,22 +286,24 @@ describe("saveRecipeGraph — edit path (recipeId = 42)", () => {
   beforeEach(() => {
     selectMock.mockReset();
     executeMock.mockReset();
-    // BEGIN, UPDATE recipe, DELETE removed section (11), UPDATE existing section (10),
+    // UPDATE recipe, DELETE removed section (11), UPDATE existing section (10),
     // INSERT new section (local-sec-2), DELETE removed step (101),
-    // UPDATE existing step (100), INSERT new steps (local-step-2, local-step-3), COMMIT
+    // UPDATE existing step (100), INSERT new steps (local-step-2, local-step-3)
     executeMock.mockResolvedValue({ lastInsertId: 500 }); // default for all calls
   });
 
-  it("issues BEGIN TRANSACTION as the first db.execute call", async () => {
+  it("does not issue BEGIN TRANSACTION (auto-commit mode for pool safety)", async () => {
     await saveRecipeGraph(42, FORM_VALUES, DRAFT_SECTIONS, EXISTING_SECTIONS, EXISTING_STEPS);
-    const [sql] = executeMock.mock.calls[0];
-    expect(sql).toBe("BEGIN TRANSACTION");
+    const sqlCalls = executeMock.mock.calls.map(([sql]) => sql);
+    expect(sqlCalls).not.toContain("BEGIN TRANSACTION");
+    expect(sqlCalls).not.toContain("COMMIT");
+    expect(sqlCalls).not.toContain("ROLLBACK");
   });
 
-  it("updates recipe row with WHERE id = recipeId ($1)", async () => {
+  it("updates recipe row with WHERE id = recipeId ($1) as first call", async () => {
     await saveRecipeGraph(42, FORM_VALUES, DRAFT_SECTIONS, EXISTING_SECTIONS, EXISTING_STEPS);
-    // calls[1] = UPDATE recipe
-    const [sql, params] = executeMock.mock.calls[1];
+    // calls[0] = UPDATE recipe (no BEGIN before it)
+    const [sql, params] = executeMock.mock.calls[0];
     expect(sql).toContain("UPDATE painting_recipes");
     expect(params[0]).toBe(42); // $1 = recipeId
     expect(params[1]).toBe("Test Recipe"); // $2 = name
@@ -401,23 +409,16 @@ describe("saveRecipeGraph — edit path (recipeId = 42)", () => {
     // $13 = section_id = 500 (from new section insert)
     expect(washInsert![1][12]).toBe(500);
   });
-
-  it("issues COMMIT as the last execute call on success", async () => {
-    await saveRecipeGraph(42, FORM_VALUES, DRAFT_SECTIONS, EXISTING_SECTIONS, EXISTING_STEPS);
-    const lastCall = executeMock.mock.calls[executeMock.mock.calls.length - 1];
-    expect(lastCall[0]).toBe("COMMIT");
-  });
 });
 
 // ---------------------------------------------------------------------------
-// Tests: rollback on error
+// Tests: error propagation (no rollback in auto-commit mode)
 // ---------------------------------------------------------------------------
 
-describe("saveRecipeGraph — rollback on error", () => {
-  it("calls ROLLBACK when an execute call throws, and does not call COMMIT", async () => {
+describe("saveRecipeGraph — error propagation", () => {
+  it("re-throws the error when a SQL operation fails (no ROLLBACK in auto-commit mode)", async () => {
     executeMock.mockReset();
     executeMock
-      .mockResolvedValueOnce(undefined)              // BEGIN TRANSACTION
       .mockResolvedValueOnce({ lastInsertId: 50 })   // recipe INSERT
       .mockRejectedValueOnce(new Error("FK violation")); // section INSERT fails
 
@@ -426,14 +427,14 @@ describe("saveRecipeGraph — rollback on error", () => {
     ).rejects.toThrow("FK violation");
 
     const sqlCalls = executeMock.mock.calls.map(([sql]) => sql);
-    expect(sqlCalls).toContain("ROLLBACK");
+    expect(sqlCalls).not.toContain("BEGIN TRANSACTION");
+    expect(sqlCalls).not.toContain("ROLLBACK");
     expect(sqlCalls).not.toContain("COMMIT");
   });
 
-  it("re-throws the original error after ROLLBACK", async () => {
+  it("re-throws the original error from recipe INSERT", async () => {
     executeMock.mockReset();
     executeMock
-      .mockResolvedValueOnce(undefined)
       .mockRejectedValueOnce(new Error("UNIQUE constraint failed"));
 
     await expect(
@@ -441,10 +442,9 @@ describe("saveRecipeGraph — rollback on error", () => {
     ).rejects.toThrow("UNIQUE constraint failed");
   });
 
-  it("calls ROLLBACK on error in edit path UPDATE recipe", async () => {
+  it("re-throws error from edit path UPDATE recipe", async () => {
     executeMock.mockReset();
     executeMock
-      .mockResolvedValueOnce(undefined)               // BEGIN
       .mockRejectedValueOnce(new Error("DB locked")); // UPDATE fails
 
     await expect(
@@ -452,7 +452,7 @@ describe("saveRecipeGraph — rollback on error", () => {
     ).rejects.toThrow("DB locked");
 
     const sqlCalls = executeMock.mock.calls.map(([sql]) => sql);
-    expect(sqlCalls).toContain("ROLLBACK");
+    expect(sqlCalls).not.toContain("ROLLBACK");
     expect(sqlCalls).not.toContain("COMMIT");
   });
 });

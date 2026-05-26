@@ -230,7 +230,11 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
 
       toast.success(isEdit ? "Recipe saved." : "Recipe created.");
       onClose();
-    } catch {
+    } catch (err) {
+      console.error("[RecipeFormSheet] save failed:", err);
+      console.error("[RecipeFormSheet] sections:", JSON.stringify(sections.map(s => ({ localId: s.localId, dbId: s.dbId, name: s.name, stepCount: s.steps.length, stepDbIds: s.steps.map(st => st.dbId) }))));
+      console.error("[RecipeFormSheet] existingSections:", JSON.stringify(existingSections.map(s => ({ id: s.id, name: s.name }))));
+      console.error("[RecipeFormSheet] existingSteps:", JSON.stringify(existingSteps.map(s => ({ id: s.id, step_name: s.step_name, section_id: s.section_id }))));
       toast.error("Failed to save recipe. Changes were not saved.");
     }
   }
@@ -599,7 +603,7 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
         </SheetContent>
       </Sheet>
 
-      {/* Stacked PaintSheet for inline create — PAINT-03 */}
+      {/* Stacked PaintSheet for inline create -- PAINT-03 */}
       <PaintSheet
         open={paintSheetOpen}
         paint={null}

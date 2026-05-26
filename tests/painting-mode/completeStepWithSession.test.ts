@@ -16,22 +16,21 @@ beforeEach(() => {
 });
 
 describe("completeStepWithSession", () => {
-  it("wraps both writes in BEGIN/COMMIT", async () => {
+  it("executes both writes in auto-commit mode (no BEGIN/COMMIT)", async () => {
     await completeStepWithSession(5, 2, {
       unit_id: 1,
       session_date: "2026-05-19",
       duration_minutes: 30,
     });
 
-    expect(executeMock).toHaveBeenCalledTimes(4);
-    expect(executeMock.mock.calls[0][0]).toBe("BEGIN TRANSACTION");
-    expect(executeMock.mock.calls[1][0]).toContain(
+    // 2 calls: step progress upsert + session INSERT (auto-commit, no BEGIN/COMMIT)
+    expect(executeMock).toHaveBeenCalledTimes(2);
+    expect(executeMock.mock.calls[0][0]).toContain(
       "ON CONFLICT(assignment_id, recipe_step_id)",
     );
-    expect(executeMock.mock.calls[2][0]).toContain(
+    expect(executeMock.mock.calls[1][0]).toContain(
       "INSERT INTO painting_sessions",
     );
-    expect(executeMock.mock.calls[3][0]).toBe("COMMIT");
   });
 
   it("passes correct params for step progress upsert", async () => {
@@ -41,7 +40,7 @@ describe("completeStepWithSession", () => {
       duration_minutes: 30,
     });
 
-    expect(executeMock.mock.calls[1][1]).toEqual([
+    expect(executeMock.mock.calls[0][1]).toEqual([
       5,
       2,
       1,
@@ -60,7 +59,7 @@ describe("completeStepWithSession", () => {
       recipe_section_id: 3,
     });
 
-    expect(executeMock.mock.calls[2][1]).toEqual([
+    expect(executeMock.mock.calls[1][1]).toEqual([
       1,            // unit_id
       "2026-05-19", // session_date
       30,           // duration_minutes
@@ -72,12 +71,10 @@ describe("completeStepWithSession", () => {
     ]);
   });
 
-  it("ROLLBACKs if session INSERT throws", async () => {
+  it("re-throws error if session INSERT throws (no ROLLBACK in auto-commit)", async () => {
     executeMock
-      .mockResolvedValueOnce({ lastInsertId: 0 }) // BEGIN
       .mockResolvedValueOnce({ lastInsertId: 1 }) // upsert
-      .mockRejectedValueOnce(new Error("FK violation")) // session INSERT
-      .mockResolvedValueOnce(undefined); // ROLLBACK
+      .mockRejectedValueOnce(new Error("FK violation")); // session INSERT
 
     await expect(
       completeStepWithSession(5, 2, {
@@ -87,14 +84,14 @@ describe("completeStepWithSession", () => {
       }),
     ).rejects.toThrow("FK violation");
 
-    expect(executeMock.mock.calls[3][0]).toBe("ROLLBACK");
+    // No ROLLBACK call — auto-commit mode
+    const sqlCalls = executeMock.mock.calls.map(([sql]) => sql);
+    expect(sqlCalls).not.toContain("ROLLBACK");
   });
 
-  it("ROLLBACKs if step progress upsert throws", async () => {
+  it("re-throws error if step progress upsert throws", async () => {
     executeMock
-      .mockResolvedValueOnce({ lastInsertId: 0 }) // BEGIN
-      .mockRejectedValueOnce(new Error("upsert failed")) // upsert
-      .mockResolvedValueOnce(undefined); // ROLLBACK
+      .mockRejectedValueOnce(new Error("upsert failed")); // upsert
 
     await expect(
       completeStepWithSession(5, 2, {
@@ -103,7 +100,5 @@ describe("completeStepWithSession", () => {
         duration_minutes: 30,
       }),
     ).rejects.toThrow("upsert failed");
-
-    expect(executeMock.mock.calls[2][0]).toBe("ROLLBACK");
   });
 });

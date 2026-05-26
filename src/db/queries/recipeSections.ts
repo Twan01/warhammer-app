@@ -89,23 +89,20 @@ export async function deleteRecipeSection(id: number): Promise<void> {
 /**
  * Persists a new section order via sequential UPDATE.
  * No UNIQUE constraint on order_index, so sequential updates are safe.
+ *
+ * NOTE: Uses auto-commit per statement (no explicit transaction) because
+ * tauri-plugin-sql uses sqlx::Pool<Sqlite> — each db.execute() may run on
+ * a different connection from the pool.
  */
 export async function reorderRecipeSections(
   sections: { id: number; order_index: number }[],
 ): Promise<void> {
   const db = await getDb();
-  await db.execute("BEGIN TRANSACTION", []);
-  try {
-    for (const { id, order_index } of sections) {
-      await db.execute(
-        "UPDATE recipe_sections SET order_index = $1, updated_at = datetime('now') WHERE id = $2",
-        [order_index, id],
-      );
-    }
-    await db.execute("COMMIT", []);
-  } catch (e) {
-    await db.execute("ROLLBACK", []);
-    throw e;
+  for (const { id, order_index } of sections) {
+    await db.execute(
+      "UPDATE recipe_sections SET order_index = $1, updated_at = datetime('now') WHERE id = $2",
+      [order_index, id],
+    );
   }
 }
 

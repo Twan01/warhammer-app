@@ -75,7 +75,7 @@ describe("pointsImportHistory schema contract", () => {
 });
 
 describe("syncedUnitPoints schema contract", () => {
-  it("replaceSyncedUnitPoints DELETEs then INSERTs rows (batched — DBH-04)", async () => {
+  it("replaceSyncedUnitPoints DELETEs then INSERTs rows (batched — DBH-04, auto-commit)", async () => {
     executeMock.mockResolvedValue(undefined);
     await replaceSyncedUnitPoints(
       [
@@ -84,13 +84,11 @@ describe("syncedUnitPoints schema contract", () => {
       ],
       "2026-05-13T12:00:00Z",
     );
-    // BEGIN + DELETE + 1 batched INSERT (2 rows in one VALUES clause) + COMMIT = 4 calls (not 5)
-    expect(executeMock).toHaveBeenCalledTimes(4);
-    const [beginSql] = executeMock.mock.calls[0];
-    expect(beginSql).toContain("BEGIN TRANSACTION");
-    const [deleteSql] = executeMock.mock.calls[1];
+    // DELETE + 1 batched INSERT = 2 calls (auto-commit, no BEGIN/COMMIT)
+    expect(executeMock).toHaveBeenCalledTimes(2);
+    const [deleteSql] = executeMock.mock.calls[0];
     expect(deleteSql).toContain("DELETE FROM synced_unit_points");
-    const [insertSql, params] = executeMock.mock.calls[2];
+    const [insertSql, params] = executeMock.mock.calls[1];
     expect(insertSql).toContain("INSERT INTO synced_unit_points");
     expect(insertSql).toContain("unit_name");
     expect(insertSql).toContain("faction_id");
@@ -99,8 +97,6 @@ describe("syncedUnitPoints schema contract", () => {
     // Both rows in a single multi-row VALUES clause
     expect(insertSql).toMatch(/VALUES.*\$1.*\$5/s);
     expect(params).toEqual(["Intercessors", "SM", 80, "2026-05-13T12:00:00Z", "Boyz", null, 70, "2026-05-13T12:00:00Z"]);
-    const [commitSql] = executeMock.mock.calls[3];
-    expect(commitSql).toContain("COMMIT");
   });
 
   it("getSyncedUnitPointsMap returns Map keyed by unit_name:faction_id", async () => {

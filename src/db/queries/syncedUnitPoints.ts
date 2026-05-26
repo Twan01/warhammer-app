@@ -7,6 +7,10 @@
  * without cross-database queries (Research Pitfall 1 Option B).
  *
  * CRITICAL: Uses getDb() (hobbyforge.db), NOT getRulesDb().
+ *
+ * NOTE: Uses auto-commit per statement (no explicit transaction) because
+ * tauri-plugin-sql uses sqlx::Pool<Sqlite> — each db.execute() may run on
+ * a different connection from the pool.
  */
 import { getDb } from "@/db/client";
 
@@ -26,31 +30,23 @@ export async function replaceSyncedUnitPoints(
   syncedAt: string,
 ): Promise<void> {
   const db = await getDb();
-  await db.execute("BEGIN TRANSACTION", []);
-  try {
-    await db.execute("DELETE FROM synced_unit_points", []);
-    if (rows.length === 0) {
-      await db.execute("COMMIT", []);
-      return;
-    }
-    const BATCH_SIZE = 200;
-    const COL_COUNT = 4;
-    for (let offset = 0; offset < rows.length; offset += BATCH_SIZE) {
-      const batch = rows.slice(offset, offset + BATCH_SIZE);
-      const placeholders = batch.map((_, i) => {
-        const base = i * COL_COUNT;
-        return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4})`;
-      }).join(", ");
-      const params = batch.flatMap(row => [row.unit_name, row.faction_id, row.points, syncedAt]);
-      await db.execute(
-        `INSERT INTO synced_unit_points (unit_name, faction_id, points, synced_at) VALUES ${placeholders}`,
-        params,
-      );
-    }
-    await db.execute("COMMIT", []);
-  } catch (e) {
-    await db.execute("ROLLBACK", []);
-    throw e;
+  await db.execute("DELETE FROM synced_unit_points", []);
+  if (rows.length === 0) {
+    return;
+  }
+  const BATCH_SIZE = 200;
+  const COL_COUNT = 4;
+  for (let offset = 0; offset < rows.length; offset += BATCH_SIZE) {
+    const batch = rows.slice(offset, offset + BATCH_SIZE);
+    const placeholders = batch.map((_, i) => {
+      const base = i * COL_COUNT;
+      return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4})`;
+    }).join(", ");
+    const params = batch.flatMap(row => [row.unit_name, row.faction_id, row.points, syncedAt]);
+    await db.execute(
+      `INSERT INTO synced_unit_points (unit_name, faction_id, points, synced_at) VALUES ${placeholders}`,
+      params,
+    );
   }
 }
 
@@ -66,31 +62,23 @@ export async function replaceSyncedUnitPointTiers(
   syncedAt: string,
 ): Promise<void> {
   const db = await getDb();
-  await db.execute("BEGIN TRANSACTION", []);
-  try {
-    await db.execute("DELETE FROM synced_unit_point_tiers", []);
-    if (rows.length === 0) {
-      await db.execute("COMMIT", []);
-      return;
-    }
-    const BATCH_SIZE = 200;
-    const COL_COUNT = 5;
-    for (let offset = 0; offset < rows.length; offset += BATCH_SIZE) {
-      const batch = rows.slice(offset, offset + BATCH_SIZE);
-      const placeholders = batch.map((_, i) => {
-        const base = i * COL_COUNT;
-        return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`;
-      }).join(", ");
-      const params = batch.flatMap(row => [row.unit_name, row.faction_id, row.model_count, row.points, syncedAt]);
-      await db.execute(
-        `INSERT INTO synced_unit_point_tiers (unit_name, faction_id, model_count, points, synced_at) VALUES ${placeholders}`,
-        params,
-      );
-    }
-    await db.execute("COMMIT", []);
-  } catch (e) {
-    await db.execute("ROLLBACK", []);
-    throw e;
+  await db.execute("DELETE FROM synced_unit_point_tiers", []);
+  if (rows.length === 0) {
+    return;
+  }
+  const BATCH_SIZE = 200;
+  const COL_COUNT = 5;
+  for (let offset = 0; offset < rows.length; offset += BATCH_SIZE) {
+    const batch = rows.slice(offset, offset + BATCH_SIZE);
+    const placeholders = batch.map((_, i) => {
+      const base = i * COL_COUNT;
+      return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`;
+    }).join(", ");
+    const params = batch.flatMap(row => [row.unit_name, row.faction_id, row.model_count, row.points, syncedAt]);
+    await db.execute(
+      `INSERT INTO synced_unit_point_tiers (unit_name, faction_id, model_count, points, synced_at) VALUES ${placeholders}`,
+      params,
+    );
   }
 }
 

@@ -6,36 +6,34 @@ import type {
   BsdataLeaderTarget,
 } from "@/lib/parseBsdataExtended";
 
+/**
+ * NOTE: All replace* functions use auto-commit per statement (no explicit
+ * transaction) because tauri-plugin-sql uses sqlx::Pool<Sqlite> — each
+ * db.execute() may run on a different connection from the pool.
+ */
+
 export async function replaceSyncedEnhancements(
   rows: BsdataEnhancement[],
   syncedAt: string,
 ): Promise<void> {
   const db = await getDb();
-  await db.execute("BEGIN TRANSACTION", []);
-  try {
-    await db.execute("DELETE FROM synced_enhancements", []);
-    if (rows.length === 0) {
-      await db.execute("COMMIT", []);
-      return;
-    }
-    const BATCH_SIZE = 200;
-    const COL_COUNT = 5;
-    for (let offset = 0; offset < rows.length; offset += BATCH_SIZE) {
-      const batch = rows.slice(offset, offset + BATCH_SIZE);
-      const placeholders = batch.map((_, i) => {
-        const base = i * COL_COUNT;
-        return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`;
-      }).join(", ");
-      const params = batch.flatMap(row => [row.name, row.faction_id, row.detachment_name, row.points, syncedAt]);
-      await db.execute(
-        `INSERT INTO synced_enhancements (name, faction_id, detachment_name, points, synced_at) VALUES ${placeholders}`,
-        params,
-      );
-    }
-    await db.execute("COMMIT", []);
-  } catch (e) {
-    await db.execute("ROLLBACK", []);
-    throw e;
+  await db.execute("DELETE FROM synced_enhancements", []);
+  if (rows.length === 0) {
+    return;
+  }
+  const BATCH_SIZE = 200;
+  const COL_COUNT = 5;
+  for (let offset = 0; offset < rows.length; offset += BATCH_SIZE) {
+    const batch = rows.slice(offset, offset + BATCH_SIZE);
+    const placeholders = batch.map((_, i) => {
+      const base = i * COL_COUNT;
+      return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`;
+    }).join(", ");
+    const params = batch.flatMap(row => [row.name, row.faction_id, row.detachment_name, row.points, syncedAt]);
+    await db.execute(
+      `INSERT INTO synced_enhancements (name, faction_id, detachment_name, points, synced_at) VALUES ${placeholders}`,
+      params,
+    );
   }
 }
 
@@ -44,39 +42,31 @@ export async function replaceSyncedLoadoutOptions(
   syncedAt: string,
 ): Promise<void> {
   const db = await getDb();
-  await db.execute("BEGIN TRANSACTION", []);
-  try {
-    await db.execute("DELETE FROM synced_loadout_options", []);
-    if (rows.length === 0) {
-      await db.execute("COMMIT", []);
-      return;
-    }
-    const BATCH_SIZE = 200;
-    const COL_COUNT = 7;
-    for (let offset = 0; offset < rows.length; offset += BATCH_SIZE) {
-      const batch = rows.slice(offset, offset + BATCH_SIZE);
-      const placeholders = batch.map((_, i) => {
-        const base = i * COL_COUNT;
-        return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5}, $${base + 6}, $${base + 7})`;
-      }).join(", ");
-      const params = batch.flatMap(row => [
-        row.unit_name,
-        row.faction_id,
-        row.group_name,
-        row.option_name,
-        row.is_default ? 1 : 0,
-        row.is_exclusive ? 1 : 0,
-        syncedAt,
-      ]);
-      await db.execute(
-        `INSERT INTO synced_loadout_options (unit_name, faction_id, group_name, option_name, is_default, is_exclusive, synced_at) VALUES ${placeholders}`,
-        params,
-      );
-    }
-    await db.execute("COMMIT", []);
-  } catch (e) {
-    await db.execute("ROLLBACK", []);
-    throw e;
+  await db.execute("DELETE FROM synced_loadout_options", []);
+  if (rows.length === 0) {
+    return;
+  }
+  const BATCH_SIZE = 200;
+  const COL_COUNT = 7;
+  for (let offset = 0; offset < rows.length; offset += BATCH_SIZE) {
+    const batch = rows.slice(offset, offset + BATCH_SIZE);
+    const placeholders = batch.map((_, i) => {
+      const base = i * COL_COUNT;
+      return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5}, $${base + 6}, $${base + 7})`;
+    }).join(", ");
+    const params = batch.flatMap(row => [
+      row.unit_name,
+      row.faction_id,
+      row.group_name,
+      row.option_name,
+      row.is_default ? 1 : 0,
+      row.is_exclusive ? 1 : 0,
+      syncedAt,
+    ]);
+    await db.execute(
+      `INSERT INTO synced_loadout_options (unit_name, faction_id, group_name, option_name, is_default, is_exclusive, synced_at) VALUES ${placeholders}`,
+      params,
+    );
   }
 }
 
@@ -85,31 +75,23 @@ export async function replaceSyncedModelCounts(
   syncedAt: string,
 ): Promise<void> {
   const db = await getDb();
-  await db.execute("BEGIN TRANSACTION", []);
-  try {
-    await db.execute("DELETE FROM synced_model_counts", []);
-    if (rows.length === 0) {
-      await db.execute("COMMIT", []);
-      return;
-    }
-    const BATCH_SIZE = 200;
-    const COL_COUNT = 5;
-    for (let offset = 0; offset < rows.length; offset += BATCH_SIZE) {
-      const batch = rows.slice(offset, offset + BATCH_SIZE);
-      const placeholders = batch.map((_, i) => {
-        const base = i * COL_COUNT;
-        return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`;
-      }).join(", ");
-      const params = batch.flatMap(row => [row.unit_name, row.faction_id, row.min_models, row.max_models, syncedAt]);
-      await db.execute(
-        `INSERT INTO synced_model_counts (unit_name, faction_id, min_models, max_models, synced_at) VALUES ${placeholders}`,
-        params,
-      );
-    }
-    await db.execute("COMMIT", []);
-  } catch (e) {
-    await db.execute("ROLLBACK", []);
-    throw e;
+  await db.execute("DELETE FROM synced_model_counts", []);
+  if (rows.length === 0) {
+    return;
+  }
+  const BATCH_SIZE = 200;
+  const COL_COUNT = 5;
+  for (let offset = 0; offset < rows.length; offset += BATCH_SIZE) {
+    const batch = rows.slice(offset, offset + BATCH_SIZE);
+    const placeholders = batch.map((_, i) => {
+      const base = i * COL_COUNT;
+      return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`;
+    }).join(", ");
+    const params = batch.flatMap(row => [row.unit_name, row.faction_id, row.min_models, row.max_models, syncedAt]);
+    await db.execute(
+      `INSERT INTO synced_model_counts (unit_name, faction_id, min_models, max_models, synced_at) VALUES ${placeholders}`,
+      params,
+    );
   }
 }
 
@@ -118,31 +100,23 @@ export async function replaceSyncedLeaderTargets(
   syncedAt: string,
 ): Promise<void> {
   const db = await getDb();
-  await db.execute("BEGIN TRANSACTION", []);
-  try {
-    await db.execute("DELETE FROM synced_leader_targets", []);
-    if (rows.length === 0) {
-      await db.execute("COMMIT", []);
-      return;
-    }
-    const BATCH_SIZE = 200;
-    const COL_COUNT = 4;
-    for (let offset = 0; offset < rows.length; offset += BATCH_SIZE) {
-      const batch = rows.slice(offset, offset + BATCH_SIZE);
-      const placeholders = batch.map((_, i) => {
-        const base = i * COL_COUNT;
-        return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4})`;
-      }).join(", ");
-      const params = batch.flatMap(row => [row.leader_name, row.faction_id, row.target_name, syncedAt]);
-      await db.execute(
-        `INSERT INTO synced_leader_targets (leader_name, faction_id, target_name, synced_at) VALUES ${placeholders}`,
-        params,
-      );
-    }
-    await db.execute("COMMIT", []);
-  } catch (e) {
-    await db.execute("ROLLBACK", []);
-    throw e;
+  await db.execute("DELETE FROM synced_leader_targets", []);
+  if (rows.length === 0) {
+    return;
+  }
+  const BATCH_SIZE = 200;
+  const COL_COUNT = 4;
+  for (let offset = 0; offset < rows.length; offset += BATCH_SIZE) {
+    const batch = rows.slice(offset, offset + BATCH_SIZE);
+    const placeholders = batch.map((_, i) => {
+      const base = i * COL_COUNT;
+      return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4})`;
+    }).join(", ");
+    const params = batch.flatMap(row => [row.leader_name, row.faction_id, row.target_name, syncedAt]);
+    await db.execute(
+      `INSERT INTO synced_leader_targets (leader_name, faction_id, target_name, synced_at) VALUES ${placeholders}`,
+      params,
+    );
   }
 }
 

@@ -116,6 +116,15 @@ export async function getRecipeNamesByUnitIds(
  * Map<oldSectionId, newSectionId> for ID remapping, then copies all steps with
  * all 13 columns including section_id (remapped via sectionIdMap).
  * Returns the new recipe's ID.
+ *
+ * NOTE: tauri-plugin-sql uses sqlx::Pool<Sqlite> (connection pool). Each
+ * db.execute() may run on a DIFFERENT connection, so explicit BEGIN/COMMIT
+ * is broken — the transaction boundary is not shared across calls. We use
+ * auto-commit mode instead: in WAL mode each committed write is immediately
+ * visible to all connections, so FK constraints on subsequent operations
+ * see newly inserted rows. The trade-off is loss of atomicity (partial
+ * saves possible on mid-operation crash), but individual SQL operations
+ * rarely fail after validation.
  */
 export async function duplicateRecipe(originalId: number, newName: string): Promise<number> {
   const db = await getDb();
@@ -126,9 +135,6 @@ export async function duplicateRecipe(originalId: number, newName: string): Prom
   );
   const original = rows[0];
   if (!original) throw new Error("Recipe not found");
-
-  await db.execute("BEGIN TRANSACTION", []);
-  try {
 
   // 2. Insert recipe copy (all 21 metadata fields copied, new name)
   const result = await db.execute(
@@ -198,21 +204,24 @@ export async function duplicateRecipe(originalId: number, newName: string): Prom
     );
   }
 
-  await db.execute("COMMIT", []);
   return newRecipeId;
-
-  } catch (e) {
-    await db.execute("ROLLBACK", []);
-    throw e;
-  }
 }
 
 /**
  * DI-03 / DI-04 — Atomic save of a complete recipe graph (metadata + sections + steps).
  *
- * Wraps the full five-phase diff in a single BEGIN/COMMIT block with flat inline SQL.
- * On any error mid-save, ROLLBACK is called and the error is re-thrown so the calling
- * component can show a toast and keep the form open with data intact.
+ * Executes the full five-phase diff with auto-commit per statement.
+ * On any error mid-save, the error is re-thrown so the calling component can
+ * show a toast and keep the form open with data intact.
+ *
+ * NOTE: tauri-plugin-sql uses sqlx::Pool<Sqlite> (connection pool). Each
+ * db.execute() may run on a DIFFERENT connection from the pool, so explicit
+ * BEGIN TRANSACTION / COMMIT / ROLLBACK is broken — the transaction boundary
+ * is not shared across calls. We use auto-commit mode instead: in WAL mode
+ * each committed write is immediately visible to all connections, so FK
+ * constraints on subsequent operations see newly inserted rows. The trade-off
+ * is loss of atomicity (partial saves possible on mid-operation crash), but
+ * individual SQL operations rarely fail after validation.
  *
  * Handles both create (recipeId === null) and edit (recipeId !== null) paths:
  *   - Create: INSERT recipe row → INSERT all sections → INSERT all steps
@@ -222,7 +231,7 @@ export async function duplicateRecipe(originalId: number, newName: string): Prom
  *
  * All SQL uses $1/$2 positional parameters — no string interpolation of user input.
  * Does NOT call createRecipeSection, updateRecipeSection, addRecipePaint, etc. — each
- * of those calls getDb() independently and would run outside this transaction.
+ * of those calls getDb() independently and would run outside any transaction scope.
  */
 export async function saveRecipeGraph(
   recipeId: number | null,
@@ -232,72 +241,245 @@ export async function saveRecipeGraph(
   existingSteps: RecipeStep[],
 ): Promise<number> {
   const db = await getDb();
-  await db.execute("BEGIN TRANSACTION", []);
-  try {
-    let finalRecipeId: number;
+  let finalRecipeId: number;
 
-    if (recipeId === null) {
-      // -----------------------------------------------------------------------
-      // CREATE PATH — INSERT recipe row
-      // -----------------------------------------------------------------------
-      const result = await db.execute(
-        `INSERT INTO painting_recipes (
-           name, faction_id, unit_id, area,
-           primer, basecoat, shade, layer, highlight, glaze_filter,
-           weathering, technical, basing, notes, tutorial_link,
-           style, surface, effect, difficulty, estimated_minutes, result_photo_path
-         ) VALUES (
-           $1, $2, $3, $4,
-           $5, $6, $7, $8, $9, $10,
-           $11, $12, $13, $14, $15,
-           $16, $17, $18, $19, $20, $21
-         )`,
+  if (recipeId === null) {
+    // -----------------------------------------------------------------------
+    // CREATE PATH — INSERT recipe row
+    // -----------------------------------------------------------------------
+    const result = await db.execute(
+      `INSERT INTO painting_recipes (
+         name, faction_id, unit_id, area,
+         primer, basecoat, shade, layer, highlight, glaze_filter,
+         weathering, technical, basing, notes, tutorial_link,
+         style, surface, effect, difficulty, estimated_minutes, result_photo_path
+       ) VALUES (
+         $1, $2, $3, $4,
+         $5, $6, $7, $8, $9, $10,
+         $11, $12, $13, $14, $15,
+         $16, $17, $18, $19, $20, $21
+       )`,
+      [
+        formValues.name,
+        formValues.faction_id ?? null,
+        formValues.unit_id ?? null,
+        formValues.area ?? null,
+        null, null, null, null, null, null, // primer…glaze_filter: legacy text columns
+        null, null, null,                   // weathering, technical, basing: legacy
+        formValues.notes ?? null,
+        formValues.tutorial_link || null,
+        formValues.style ?? null,
+        formValues.surface ?? null,
+        formValues.effect ?? null,
+        formValues.difficulty ?? null,
+        formValues.estimated_minutes ?? null,
+        formValues.result_photo_path ?? null,
+      ],
+    );
+    finalRecipeId = result.lastInsertId ?? 0;
+
+    // INSERT all sections and build sectionIdMap
+    const sectionIdMap = new Map<string, number>();
+    for (let i = 0; i < sections.length; i++) {
+      const sec = sections[i];
+      const sectionResult = await db.execute(
+        `INSERT INTO recipe_sections (recipe_id, name, surface, optional, order_index, notes, section_type, technique, execution_mode, applies_to)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
         [
-          formValues.name,
-          formValues.faction_id ?? null,
-          formValues.unit_id ?? null,
-          formValues.area ?? null,
-          null, null, null, null, null, null, // primer…glaze_filter: legacy text columns
-          null, null, null,                   // weathering, technical, basing: legacy
-          formValues.notes ?? null,
-          formValues.tutorial_link || null,
-          formValues.style ?? null,
-          formValues.surface ?? null,
-          formValues.effect ?? null,
-          formValues.difficulty ?? null,
-          formValues.estimated_minutes ?? null,
-          formValues.result_photo_path ?? null,
+          finalRecipeId,
+          sec.name,
+          sec.surface ?? null,
+          sec.optional,
+          i,
+          sec.notes ?? null,
+          sec.section_type ?? null,
+          sec.technique ?? null,
+          sec.execution_mode ?? null,
+          sec.applies_to ?? null,
         ],
       );
-      finalRecipeId = result.lastInsertId ?? 0;
+      sectionIdMap.set(sec.localId, sectionResult.lastInsertId ?? 0);
+    }
 
-      // INSERT all sections and build sectionIdMap
-      const sectionIdMap = new Map<string, number>();
-      for (let i = 0; i < sections.length; i++) {
-        const sec = sections[i];
-        const sectionResult = await db.execute(
-          `INSERT INTO recipe_sections (recipe_id, name, surface, optional, order_index, notes, section_type, technique, execution_mode, applies_to)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+    // INSERT all steps with per-section order_index via computeOrderIndex
+    for (const sec of sections) {
+      const indexedSteps = computeOrderIndex(sec.steps);
+      for (const s of indexedSteps) {
+        await db.execute(
+          `INSERT INTO recipe_steps
+           (recipe_id, paint_id, step_name, order_index, notes,
+            painting_phase, tool, technique, dilution, time_estimate_minutes,
+            step_photo_path, alt_paint_id, section_id)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
           [
             finalRecipeId,
-            sec.name,
-            sec.surface ?? null,
-            sec.optional,
-            i,
-            sec.notes ?? null,
-            sec.section_type ?? null,
-            sec.technique ?? null,
-            sec.execution_mode ?? null,
-            sec.applies_to ?? null,
+            s.paint_id ?? null,
+            s.step_name,
+            s.order_index,
+            s.notes ?? null,
+            s.painting_phase ?? null,
+            s.tool ?? null,
+            s.technique ?? null,
+            s.dilution ?? null,
+            s.time_estimate_minutes ?? null,
+            s.step_photo_path ?? null,
+            s.alt_paint_id ?? null,
+            sectionIdMap.get(sec.localId) ?? null,
           ],
         );
-        sectionIdMap.set(sec.localId, sectionResult.lastInsertId ?? 0);
       }
+    }
+  } else {
+    // -----------------------------------------------------------------------
+    // EDIT PATH — UPDATE recipe row
+    // -----------------------------------------------------------------------
+    await db.execute(
+      `UPDATE painting_recipes
+       SET name              = $2,
+           faction_id        = $3,
+           unit_id           = $4,
+           area              = $5,
+           notes             = $6,
+           tutorial_link     = $7,
+           style             = $8,
+           surface           = $9,
+           effect            = $10,
+           difficulty        = $11,
+           estimated_minutes = $12,
+           result_photo_path = $13,
+           updated_at        = datetime('now')
+       WHERE id = $1`,
+      [
+        recipeId,
+        formValues.name,
+        formValues.faction_id ?? null,
+        formValues.unit_id ?? null,
+        formValues.area ?? null,
+        formValues.notes ?? null,
+        formValues.tutorial_link || null,
+        formValues.style ?? null,
+        formValues.surface ?? null,
+        formValues.effect ?? null,
+        formValues.difficulty ?? null,
+        formValues.estimated_minutes ?? null,
+        formValues.result_photo_path ?? null,
+      ],
+    );
+    finalRecipeId = recipeId;
 
-      // INSERT all steps with per-section order_index via computeOrderIndex
-      for (const sec of sections) {
-        const indexedSteps = computeOrderIndex(sec.steps);
-        for (const s of indexedSteps) {
+    // Phase 1 — compute section diff
+    const { toDelete: sectionsToDelete, toUpdate: sectionsToUpdate, toInsert: sectionsToInsert }
+      = computeSectionDiff(sections, existingSections);
+
+    // Phase 2 — DELETE removed sections (ON DELETE CASCADE removes their steps)
+    for (const id of sectionsToDelete) {
+      await db.execute("DELETE FROM recipe_sections WHERE id = $1", [id]);
+    }
+
+    // Phase 3 — UPDATE existing sections with their current order_index
+    for (let i = 0; i < sections.length; i++) {
+      const sec = sections[i];
+      if (!sectionsToUpdate.includes(sec)) continue;
+      await db.execute(
+        `UPDATE recipe_sections
+         SET name           = COALESCE($2, name),
+             surface        = $3,
+             optional       = COALESCE($4, optional),
+             order_index    = COALESCE($5, order_index),
+             notes          = $6,
+             section_type   = $7,
+             technique      = $8,
+             execution_mode = $9,
+             applies_to     = $10,
+             updated_at     = datetime('now')
+         WHERE id = $1`,
+        [
+          sec.dbId,
+          sec.name ?? null,
+          sec.surface ?? null,
+          sec.optional ?? null,
+          i,
+          sec.notes ?? null,
+          sec.section_type ?? null,
+          sec.technique ?? null,
+          sec.execution_mode ?? null,
+          sec.applies_to ?? null,
+        ],
+      );
+    }
+
+    // Phase 4 — seed sectionIdMap from survivors, then INSERT new sections
+    const sectionIdMap = buildSectionIdMap(sections);
+    for (let i = 0; i < sections.length; i++) {
+      const sec = sections[i];
+      if (!sectionsToInsert.includes(sec)) continue;
+      const sectionResult = await db.execute(
+        `INSERT INTO recipe_sections (recipe_id, name, surface, optional, order_index, notes, section_type, technique, execution_mode, applies_to)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+        [
+          finalRecipeId,
+          sec.name,
+          sec.surface ?? null,
+          sec.optional,
+          i,
+          sec.notes ?? null,
+          sec.section_type ?? null,
+          sec.technique ?? null,
+          sec.execution_mode ?? null,
+          sec.applies_to ?? null,
+        ],
+      );
+      sectionIdMap.set(sec.localId, sectionResult.lastInsertId ?? 0);
+    }
+
+    // Phase 5 — compute step diff
+    const { toDelete: stepsToDelete } = computeStepDiff(sections, existingSteps);
+
+    // DELETE removed steps
+    for (const id of stepsToDelete) {
+      await db.execute("DELETE FROM recipe_steps WHERE id = $1", [id]);
+    }
+
+    // UPDATE existing steps and INSERT new steps — iterate sections for correct order_index
+    for (const sec of sections) {
+      const indexedSteps = computeOrderIndex(sec.steps);
+      for (const s of indexedSteps) {
+        const resolvedSectionId = sectionIdMap.get(sec.localId) ?? null;
+        if (s.dbId !== null) {
+          // UPDATE existing step
+          await db.execute(
+            `UPDATE recipe_steps
+             SET paint_id              = $2,
+                 step_name             = $3,
+                 order_index           = $4,
+                 notes                 = $5,
+                 painting_phase        = $6,
+                 tool                  = $7,
+                 technique             = $8,
+                 dilution              = $9,
+                 time_estimate_minutes = $10,
+                 step_photo_path       = $11,
+                 alt_paint_id          = $12,
+                 section_id            = $13
+             WHERE id = $1`,
+            [
+              s.dbId,
+              s.paint_id ?? null,
+              s.step_name,
+              s.order_index,
+              s.notes ?? null,
+              s.painting_phase ?? null,
+              s.tool ?? null,
+              s.technique ?? null,
+              s.dilution ?? null,
+              s.time_estimate_minutes ?? null,
+              s.step_photo_path ?? null,
+              s.alt_paint_id ?? null,
+              resolvedSectionId,
+            ],
+          );
+        } else {
+          // INSERT new step
           await db.execute(
             `INSERT INTO recipe_steps
              (recipe_id, paint_id, step_name, order_index, notes,
@@ -317,193 +499,13 @@ export async function saveRecipeGraph(
               s.time_estimate_minutes ?? null,
               s.step_photo_path ?? null,
               s.alt_paint_id ?? null,
-              sectionIdMap.get(sec.localId) ?? null,
+              resolvedSectionId,
             ],
           );
         }
       }
-    } else {
-      // -----------------------------------------------------------------------
-      // EDIT PATH — UPDATE recipe row
-      // -----------------------------------------------------------------------
-      await db.execute(
-        `UPDATE painting_recipes
-         SET name              = $2,
-             faction_id        = $3,
-             unit_id           = $4,
-             area              = $5,
-             notes             = $6,
-             tutorial_link     = $7,
-             style             = $8,
-             surface           = $9,
-             effect            = $10,
-             difficulty        = $11,
-             estimated_minutes = $12,
-             result_photo_path = $13,
-             updated_at        = datetime('now')
-         WHERE id = $1`,
-        [
-          recipeId,
-          formValues.name,
-          formValues.faction_id ?? null,
-          formValues.unit_id ?? null,
-          formValues.area ?? null,
-          formValues.notes ?? null,
-          formValues.tutorial_link || null,
-          formValues.style ?? null,
-          formValues.surface ?? null,
-          formValues.effect ?? null,
-          formValues.difficulty ?? null,
-          formValues.estimated_minutes ?? null,
-          formValues.result_photo_path ?? null,
-        ],
-      );
-      finalRecipeId = recipeId;
-
-      // Phase 1 — compute section diff
-      const { toDelete: sectionsToDelete, toUpdate: sectionsToUpdate, toInsert: sectionsToInsert }
-        = computeSectionDiff(sections, existingSections);
-
-      // Phase 2 — DELETE removed sections (ON DELETE CASCADE removes their steps)
-      for (const id of sectionsToDelete) {
-        await db.execute("DELETE FROM recipe_sections WHERE id = $1", [id]);
-      }
-
-      // Phase 3 — UPDATE existing sections with their current order_index
-      for (let i = 0; i < sections.length; i++) {
-        const sec = sections[i];
-        if (!sectionsToUpdate.includes(sec)) continue;
-        await db.execute(
-          `UPDATE recipe_sections
-           SET name           = COALESCE($2, name),
-               surface        = $3,
-               optional       = COALESCE($4, optional),
-               order_index    = COALESCE($5, order_index),
-               notes          = $6,
-               section_type   = $7,
-               technique      = $8,
-               execution_mode = $9,
-               applies_to     = $10,
-               updated_at     = datetime('now')
-           WHERE id = $1`,
-          [
-            sec.dbId,
-            sec.name ?? null,
-            sec.surface ?? null,
-            sec.optional ?? null,
-            i,
-            sec.notes ?? null,
-            sec.section_type ?? null,
-            sec.technique ?? null,
-            sec.execution_mode ?? null,
-            sec.applies_to ?? null,
-          ],
-        );
-      }
-
-      // Phase 4 — seed sectionIdMap from survivors, then INSERT new sections
-      const sectionIdMap = buildSectionIdMap(sections);
-      for (let i = 0; i < sections.length; i++) {
-        const sec = sections[i];
-        if (!sectionsToInsert.includes(sec)) continue;
-        const sectionResult = await db.execute(
-          `INSERT INTO recipe_sections (recipe_id, name, surface, optional, order_index, notes, section_type, technique, execution_mode, applies_to)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-          [
-            finalRecipeId,
-            sec.name,
-            sec.surface ?? null,
-            sec.optional,
-            i,
-            sec.notes ?? null,
-            sec.section_type ?? null,
-            sec.technique ?? null,
-            sec.execution_mode ?? null,
-            sec.applies_to ?? null,
-          ],
-        );
-        sectionIdMap.set(sec.localId, sectionResult.lastInsertId ?? 0);
-      }
-
-      // Phase 5 — compute step diff
-      const { toDelete: stepsToDelete } = computeStepDiff(sections, existingSteps);
-
-      // DELETE removed steps
-      for (const id of stepsToDelete) {
-        await db.execute("DELETE FROM recipe_steps WHERE id = $1", [id]);
-      }
-
-      // UPDATE existing steps and INSERT new steps — iterate sections for correct order_index
-      for (const sec of sections) {
-        const indexedSteps = computeOrderIndex(sec.steps);
-        for (const s of indexedSteps) {
-          const resolvedSectionId = sectionIdMap.get(sec.localId) ?? null;
-          if (s.dbId !== null) {
-            // UPDATE existing step
-            await db.execute(
-              `UPDATE recipe_steps
-               SET paint_id              = $2,
-                   step_name             = $3,
-                   order_index           = $4,
-                   notes                 = $5,
-                   painting_phase        = $6,
-                   tool                  = $7,
-                   technique             = $8,
-                   dilution              = $9,
-                   time_estimate_minutes = $10,
-                   step_photo_path       = $11,
-                   alt_paint_id          = $12,
-                   section_id            = $13
-               WHERE id = $1`,
-              [
-                s.dbId,
-                s.paint_id ?? null,
-                s.step_name,
-                s.order_index,
-                s.notes ?? null,
-                s.painting_phase ?? null,
-                s.tool ?? null,
-                s.technique ?? null,
-                s.dilution ?? null,
-                s.time_estimate_minutes ?? null,
-                s.step_photo_path ?? null,
-                s.alt_paint_id ?? null,
-                resolvedSectionId,
-              ],
-            );
-          } else {
-            // INSERT new step
-            await db.execute(
-              `INSERT INTO recipe_steps
-               (recipe_id, paint_id, step_name, order_index, notes,
-                painting_phase, tool, technique, dilution, time_estimate_minutes,
-                step_photo_path, alt_paint_id, section_id)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
-              [
-                finalRecipeId,
-                s.paint_id ?? null,
-                s.step_name,
-                s.order_index,
-                s.notes ?? null,
-                s.painting_phase ?? null,
-                s.tool ?? null,
-                s.technique ?? null,
-                s.dilution ?? null,
-                s.time_estimate_minutes ?? null,
-                s.step_photo_path ?? null,
-                s.alt_paint_id ?? null,
-                resolvedSectionId,
-              ],
-            );
-          }
-        }
-      }
     }
-
-    await db.execute("COMMIT", []);
-    return finalRecipeId;
-  } catch (e) {
-    await db.execute("ROLLBACK", []);
-    throw e;
   }
+
+  return finalRecipeId;
 }

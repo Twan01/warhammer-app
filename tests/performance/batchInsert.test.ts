@@ -3,6 +3,10 @@
  *
  * Verifies that replace* sync functions issue a single batched INSERT
  * per chunk (multi-row VALUES) rather than one INSERT per row.
+ *
+ * NOTE: replace* functions use auto-commit mode (no explicit BEGIN/COMMIT)
+ * because tauri-plugin-sql uses sqlx::Pool<Sqlite> — each db.execute() may
+ * run on a different connection from the pool.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
@@ -35,7 +39,7 @@ describe("replaceSyncedUnitPoints", () => {
     ];
     await replaceSyncedUnitPoints(rows, "2026-05-22T00:00:00Z");
 
-    // Calls: BEGIN + DELETE + 1 batched INSERT + COMMIT = 4 total
+    // Calls: DELETE + 1 batched INSERT = 2 total (auto-commit, no BEGIN/COMMIT)
     const insertCalls = executeMock.mock.calls.filter((call: unknown[]) =>
       (call[0] as string).includes("INSERT INTO synced_unit_points"),
     );
@@ -54,11 +58,11 @@ describe("replaceSyncedUnitPoints", () => {
     );
     expect(insertCalls).toHaveLength(0);
 
-    // Should still have: BEGIN + DELETE + COMMIT
+    // Should still have DELETE (no BEGIN/COMMIT in auto-commit mode)
     const allSqls = executeMock.mock.calls.map((call: unknown[]) => call[0] as string);
-    expect(allSqls).toContain("BEGIN TRANSACTION");
     expect(allSqls).toContain("DELETE FROM synced_unit_points");
-    expect(allSqls).toContain("COMMIT");
+    expect(allSqls).not.toContain("BEGIN TRANSACTION");
+    expect(allSqls).not.toContain("COMMIT");
   });
 
   it("produces 2 INSERT calls for 201 rows (200-row chunk boundary)", async () => {

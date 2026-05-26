@@ -204,29 +204,29 @@ describe("upsertStepProgress — SQL assertions", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Group 8 — bulkCreateAssignments
+// Group 8 — bulkCreateAssignments (auto-commit, no BEGIN/COMMIT)
 // ---------------------------------------------------------------------------
 describe("bulkCreateAssignments — SQL assertions", () => {
   it("uses INSERT OR IGNORE to silently skip duplicates", async () => {
     await bulkCreateAssignments([1, 2], 5);
-    // calls[0] is BEGIN TRANSACTION; calls[1] is first INSERT
-    const [sql] = executeMock.mock.calls[1];
+    // calls[0] is first INSERT (no BEGIN in auto-commit mode)
+    const [sql] = executeMock.mock.calls[0];
     expect(sql).toContain("INSERT OR IGNORE INTO unit_recipe_assignments");
   });
 
-  it("calls db.execute for BEGIN + once per unitId + COMMIT", async () => {
+  it("calls db.execute once per unitId (no BEGIN/COMMIT wrapper)", async () => {
     await bulkCreateAssignments([10, 20, 30], 7);
-    // BEGIN + 3 INSERTs + COMMIT = 5 calls
-    expect(executeMock).toHaveBeenCalledTimes(5);
-    expect(executeMock.mock.calls[1][1]).toEqual([10, 7]);
-    expect(executeMock.mock.calls[2][1]).toEqual([20, 7]);
-    expect(executeMock.mock.calls[3][1]).toEqual([30, 7]);
+    // 3 INSERTs only (auto-commit, no BEGIN/COMMIT)
+    expect(executeMock).toHaveBeenCalledTimes(3);
+    expect(executeMock.mock.calls[0][1]).toEqual([10, 7]);
+    expect(executeMock.mock.calls[1][1]).toEqual([20, 7]);
+    expect(executeMock.mock.calls[2][1]).toEqual([30, 7]);
   });
 
-  it("handles empty unitIds array with only BEGIN + COMMIT", async () => {
+  it("handles empty unitIds array with zero calls", async () => {
     await bulkCreateAssignments([], 5);
-    // BEGIN + COMMIT = 2 calls
-    expect(executeMock).toHaveBeenCalledTimes(2);
+    // No calls at all (auto-commit, no BEGIN/COMMIT)
+    expect(executeMock).toHaveBeenCalledTimes(0);
   });
 });
 

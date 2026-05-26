@@ -2,6 +2,10 @@
  * STUDIO-03 — duplicateRecipe SQL coverage.
  * INTG-01 — section copy pass with Map<oldSectionId, newSectionId> remapping.
  * Mocks getDb() to capture SQL strings and params.
+ *
+ * NOTE: duplicateRecipe uses auto-commit mode (no explicit BEGIN/COMMIT)
+ * because tauri-plugin-sql uses sqlx::Pool<Sqlite> — each db.execute() may
+ * run on a different connection from the pool.
  */
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
@@ -122,14 +126,14 @@ beforeEach(() => {
     .mockResolvedValueOnce([RECIPE_FIXTURE])  // calls[0]: recipe
     .mockResolvedValueOnce(SECTION_FIXTURES)  // calls[1]: sections
     .mockResolvedValueOnce(STEP_FIXTURES);    // calls[2]: steps
-  // calls[0]: BEGIN; calls[1]: recipe INSERT (id 100); calls[2]: section 1 INSERT (id 200);
-  // calls[3]: section 2 INSERT (id 201); calls[4+]: step INSERTs; last: COMMIT
+  // calls[0]: recipe INSERT (id 100); calls[1]: section 1 INSERT (id 200);
+  // calls[2]: section 2 INSERT (id 201); calls[3+]: step INSERTs
+  // (no BEGIN/COMMIT in auto-commit mode)
   executeMock
-    .mockResolvedValueOnce(undefined)             // BEGIN TRANSACTION
     .mockResolvedValueOnce({ lastInsertId: 100 }) // recipe INSERT
     .mockResolvedValueOnce({ lastInsertId: 200 }) // section 1 INSERT (old id 20 -> new id 200)
     .mockResolvedValueOnce({ lastInsertId: 201 }) // section 2 INSERT (old id 21 -> new id 201)
-    .mockResolvedValue({ lastInsertId: 300 });     // step INSERTs + COMMIT
+    .mockResolvedValue({ lastInsertId: 300 });     // step INSERTs
 });
 
 describe("duplicateRecipe — SQL coverage (STUDIO-03 + INTG-01)", () => {
@@ -143,8 +147,8 @@ describe("duplicateRecipe — SQL coverage (STUDIO-03 + INTG-01)", () => {
 
   it("inserts recipe copy with newName as $1", async () => {
     await duplicateRecipe(1, "Copy of Space Marine Blue");
-    // calls[0] is BEGIN TRANSACTION; calls[1] is recipe INSERT
-    const [sql, params] = executeMock.mock.calls[1];
+    // calls[0] is recipe INSERT (no BEGIN before it in auto-commit mode)
+    const [sql, params] = executeMock.mock.calls[0];
     expect(sql).toContain("INSERT INTO painting_recipes");
     expect(params[0]).toBe("Copy of Space Marine Blue");
   });
@@ -159,8 +163,8 @@ describe("duplicateRecipe — SQL coverage (STUDIO-03 + INTG-01)", () => {
 
   it("inserts section copies with new recipe_id and all 10 columns including workflow metadata", async () => {
     await duplicateRecipe(1, "Copy of Space Marine Blue");
-    // executeMock.calls[2] = section 1 INSERT; calls[3] = section 2 INSERT (shifted by BEGIN)
-    const [sql1, params1] = executeMock.mock.calls[2];
+    // executeMock.calls[1] = section 1 INSERT; calls[2] = section 2 INSERT (no BEGIN offset)
+    const [sql1, params1] = executeMock.mock.calls[1];
     expect(sql1).toContain("INSERT INTO recipe_sections");
     expect(sql1).toContain("section_type");
     expect(sql1).toContain("technique");
@@ -168,7 +172,7 @@ describe("duplicateRecipe — SQL coverage (STUDIO-03 + INTG-01)", () => {
     expect(sql1).toContain("applies_to");
     expect(params1).toEqual([100, "Armour", "smooth", 0, 0, null, null, null, null, null]);
 
-    const [, params2] = executeMock.mock.calls[3];
+    const [, params2] = executeMock.mock.calls[2];
     expect(params2).toEqual([100, "Cloth", null, 1, 1, "optional block", null, null, null, null]);
   });
 
@@ -184,8 +188,8 @@ describe("duplicateRecipe — SQL coverage (STUDIO-03 + INTG-01)", () => {
 
   it("inserts step copies with newRecipeId as $1 and all 13 columns including section_id", async () => {
     await duplicateRecipe(1, "Copy of Space Marine Blue");
-    // executeMock.calls[4] = first step INSERT (after BEGIN + 1 recipe + 2 section INSERTs)
-    const [sql, params] = executeMock.mock.calls[4];
+    // executeMock.calls[3] = first step INSERT (after recipe + 2 section INSERTs, no BEGIN)
+    const [sql, params] = executeMock.mock.calls[3];
     expect(sql).toContain("INSERT INTO recipe_steps");
     expect(sql).toContain("step_photo_path");
     expect(sql).toContain("alt_paint_id");
@@ -196,27 +200,27 @@ describe("duplicateRecipe — SQL coverage (STUDIO-03 + INTG-01)", () => {
 
   it("remaps step section_id using sectionIdMap — old id 20 becomes new id 200", async () => {
     await duplicateRecipe(1, "Copy of Space Marine Blue");
-    // calls[4] = first step (had section_id 20 -> remapped to 200)
-    const [, params1] = executeMock.mock.calls[4];
+    // calls[3] = first step (had section_id 20 -> remapped to 200)
+    const [, params1] = executeMock.mock.calls[3];
     expect(params1[12]).toBe(200); // $13 section_id remapped
 
-    // calls[5] = second step (had section_id null -> stays null)
-    const [, params2] = executeMock.mock.calls[5];
+    // calls[4] = second step (had section_id null -> stays null)
+    const [, params2] = executeMock.mock.calls[4];
     expect(params2[12]).toBeNull(); // $13 section_id preserved as null
   });
 
   it("preserves order_index in step copies", async () => {
     await duplicateRecipe(1, "Copy of Space Marine Blue");
-    const [, params1] = executeMock.mock.calls[4]; // first step
-    const [, params2] = executeMock.mock.calls[5]; // second step
+    const [, params1] = executeMock.mock.calls[3]; // first step
+    const [, params2] = executeMock.mock.calls[4]; // second step
     expect(params1[3]).toBe(0); // order_index of first step
     expect(params2[3]).toBe(1); // order_index of second step
   });
 
   it("copies step_photo_path and alt_paint_id from original steps", async () => {
     await duplicateRecipe(1, "Copy of Space Marine Blue");
-    const [, params1] = executeMock.mock.calls[4]; // first step
-    const [, params2] = executeMock.mock.calls[5]; // second step
+    const [, params1] = executeMock.mock.calls[3]; // first step
+    const [, params2] = executeMock.mock.calls[4]; // second step
     expect(params1[10]).toBe("step1.jpg"); // $11 step_photo_path
     expect(params1[11]).toBe(99);           // $12 alt_paint_id
     expect(params2[10]).toBeNull();         // $11 step_photo_path null

@@ -150,24 +150,21 @@ export async function upsertStepProgress(
 /**
  * Assigns a recipe to multiple units in one pass. Uses INSERT OR IGNORE to
  * silently skip any (unit_id, recipe_id) pairs that already exist.
+ *
+ * NOTE: Uses auto-commit per statement (no explicit transaction) because
+ * tauri-plugin-sql uses sqlx::Pool<Sqlite> — each db.execute() may run on
+ * a different connection from the pool.
  */
 export async function bulkCreateAssignments(
   unitIds: number[],
   recipeId: number,
 ): Promise<void> {
   const db = await getDb();
-  await db.execute("BEGIN TRANSACTION", []);
-  try {
-    for (const unitId of unitIds) {
-      await db.execute(
-        "INSERT OR IGNORE INTO unit_recipe_assignments (unit_id, recipe_id) VALUES ($1, $2)",
-        [unitId, recipeId],
-      );
-    }
-    await db.execute("COMMIT", []);
-  } catch (e) {
-    await db.execute("ROLLBACK", []);
-    throw e;
+  for (const unitId of unitIds) {
+    await db.execute(
+      "INSERT OR IGNORE INTO unit_recipe_assignments (unit_id, recipe_id) VALUES ($1, $2)",
+      [unitId, recipeId],
+    );
   }
 }
 
@@ -240,9 +237,13 @@ export async function getKanbanProgressByUnitIds(
 }
 
 /**
- * Atomically marks a recipe step as completed AND logs a painting session.
- * Both writes happen in a single transaction — if either fails, both are
- * rolled back so we never get orphaned progress or session records.
+ * Marks a recipe step as completed AND logs a painting session.
+ * Both writes run as separate auto-committed statements.
+ *
+ * NOTE: Uses auto-commit per statement (no explicit transaction) because
+ * tauri-plugin-sql uses sqlx::Pool<Sqlite> — each db.execute() may run on
+ * a different connection from the pool. In WAL mode, the first write is
+ * immediately visible to the second.
  */
 export async function completeStepWithSession(
   assignmentId: number,
@@ -250,33 +251,26 @@ export async function completeStepWithSession(
   session: CreateSessionInput,
 ): Promise<void> {
   const db = await getDb();
-  await db.execute("BEGIN TRANSACTION", []);
-  try {
-    await db.execute(
-      `INSERT INTO unit_recipe_step_progress (assignment_id, recipe_step_id, completed, completed_at)
-       VALUES ($1, $2, $3, $4)
-       ON CONFLICT(assignment_id, recipe_step_id) DO UPDATE SET
-         completed = excluded.completed,
-         completed_at = excluded.completed_at`,
-      [assignmentId, recipeStepId, 1, new Date().toISOString()],
-    );
-    await db.execute(
-      `INSERT INTO painting_sessions (unit_id, session_date, duration_minutes, notes, recipe_id, recipe_step_id, section_name, recipe_section_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [
-        session.unit_id,
-        session.session_date,
-        session.duration_minutes,
-        session.notes ?? null,
-        session.recipe_id ?? null,
-        recipeStepId,
-        session.section_name ?? null,
-        session.recipe_section_id ?? null,
-      ],
-    );
-    await db.execute("COMMIT", []);
-  } catch (e) {
-    await db.execute("ROLLBACK", []);
-    throw e;
-  }
+  await db.execute(
+    `INSERT INTO unit_recipe_step_progress (assignment_id, recipe_step_id, completed, completed_at)
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT(assignment_id, recipe_step_id) DO UPDATE SET
+       completed = excluded.completed,
+       completed_at = excluded.completed_at`,
+    [assignmentId, recipeStepId, 1, new Date().toISOString()],
+  );
+  await db.execute(
+    `INSERT INTO painting_sessions (unit_id, session_date, duration_minutes, notes, recipe_id, recipe_step_id, section_name, recipe_section_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    [
+      session.unit_id,
+      session.session_date,
+      session.duration_minutes,
+      session.notes ?? null,
+      session.recipe_id ?? null,
+      recipeStepId,
+      session.section_name ?? null,
+      session.recipe_section_id ?? null,
+    ],
+  );
 }
