@@ -42,7 +42,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
   const tier = PAINTING_STATUS_TIER[status];
   return (
     <span className="inline-flex items-center gap-1.5 text-sm">
-      <span className={`h-1 w-1 rounded-full shrink-0 ${TIER_DOT_CLASS[tier]}`} />
+      <span className={`h-2 w-2 rounded-full shrink-0 ${TIER_DOT_CLASS[tier]}`} />
       {status}
     </span>
   );

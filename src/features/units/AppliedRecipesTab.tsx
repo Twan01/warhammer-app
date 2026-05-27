@@ -98,6 +98,7 @@ export function AppliedRecipesTab({ unitId, onApplyRecipe }: AppliedRecipesTabPr
               <AssignmentChecklist
                 assignment={assignment}
                 recipeId={assignment.recipe_id}
+                unitId={unitId}
               />
             )}
           </div>

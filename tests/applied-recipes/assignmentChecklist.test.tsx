@@ -53,6 +53,12 @@ vi.mock("@/lib/computeAssignmentProgress", () => ({
   computeAssignmentProgress: () => mockProgress,
 }));
 
+const mockUpdateUnitMutate = vi.fn();
+vi.mock("@/hooks/useUnits", () => ({
+  useUnit: () => ({ data: { id: 1, status_assembly: 0 } }),
+  useUpdateUnit: () => ({ mutate: mockUpdateUnitMutate }),
+}));
+
 vi.mock("@tauri-apps/api/path", () => ({
   appDataDir: vi.fn().mockResolvedValue("/mock/app/data"),
   join: vi.fn().mockImplementation((...parts: string[]) => parts.join("/")),
@@ -128,17 +134,18 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 
 describe("AssignmentChecklist", () => {
-  it("renders progress bar with percentage", () => {
+  it("renders progress bar with percentage (includes assembly step)", () => {
     render(
-      <AssignmentChecklist assignment={makeAssignment()} recipeId={1} />,
+      <AssignmentChecklist assignment={makeAssignment()} recipeId={1} unitId={1} />,
     );
 
-    expect(screen.getByText("33% complete")).toBeVisible();
+    // 1 completed step out of 3+1 (assembly) = 25%
+    expect(screen.getByText("25% complete")).toBeVisible();
   });
 
   it("renders section accordion headers with counts", () => {
     render(
-      <AssignmentChecklist assignment={makeAssignment()} recipeId={1} />,
+      <AssignmentChecklist assignment={makeAssignment()} recipeId={1} unitId={1} />,
     );
 
     expect(screen.getByText("Basecoat")).toBeVisible();
@@ -151,16 +158,16 @@ describe("AssignmentChecklist", () => {
     const user = userEvent.setup();
 
     render(
-      <AssignmentChecklist assignment={makeAssignment()} recipeId={1} />,
+      <AssignmentChecklist assignment={makeAssignment()} recipeId={1} unitId={1} />,
     );
 
     // Open the "Basecoat" accordion section to reveal checkboxes
     await user.click(screen.getByText("Basecoat"));
 
-    // The first checkbox (Base Silver) is completed (checked).
-    // Click it to toggle it off.
+    // checkboxes[0] is Assembly; section checkboxes follow
     const checkboxes = screen.getAllByRole("checkbox");
-    await user.click(checkboxes[0]);
+    // Click the first section checkbox (Base Silver, completed → toggle off)
+    await user.click(checkboxes[1]);
 
     expect(mockToggleMutate).toHaveBeenCalledWith({
       assignmentId: 1,
@@ -175,7 +182,7 @@ describe("AssignmentChecklist", () => {
     mockProgress = {
       total: 3,
       completed: 1,
-      percentage: 33,
+      percentage: 25,
       bySectionId: new Map<number | null, { total: number; completed: number }>([
         [null, { total: 3, completed: 1 }],
       ]),
@@ -188,7 +195,7 @@ describe("AssignmentChecklist", () => {
     ];
 
     const { container } = render(
-      <AssignmentChecklist assignment={makeAssignment()} recipeId={1} />,
+      <AssignmentChecklist assignment={makeAssignment()} recipeId={1} unitId={1} />,
     );
 
     // No accordion elements should be present
@@ -204,7 +211,7 @@ describe("AssignmentChecklist", () => {
     const user = userEvent.setup();
 
     render(
-      <AssignmentChecklist assignment={makeAssignment()} recipeId={1} />,
+      <AssignmentChecklist assignment={makeAssignment()} recipeId={1} unitId={1} />,
     );
 
     // Open the "Basecoat" accordion section to reveal step content

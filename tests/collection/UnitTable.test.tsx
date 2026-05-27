@@ -6,14 +6,15 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { UnitTable } from "@/features/units/UnitTable";
-import type { Unit } from "@/types/unit";
+import type { EnrichedUnit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
 
 function renderTable(props: Partial<Parameters<typeof UnitTable>[0]> = {}) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const baseProps = {
-    data: [] as Unit[],
+    data: [] as EnrichedUnit[],
     factions: [] as Faction[],
     isLoading: false,
     hasActiveFilters: false,
@@ -27,7 +28,9 @@ function renderTable(props: Partial<Parameters<typeof UnitTable>[0]> = {}) {
   };
   return render(
     <QueryClientProvider client={qc}>
-      <UnitTable {...baseProps} />
+      <TooltipProvider>
+        <UnitTable {...baseProps} />
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }
@@ -47,7 +50,7 @@ function makeFaction(over: Partial<Faction> = {}): Faction {
   };
 }
 
-function makeUnit(over: Partial<Unit> = {}): Unit {
+function makeUnit(over: Partial<EnrichedUnit> = {}): EnrichedUnit {
   return {
     id: 1,
     faction_id: 1,
@@ -57,6 +60,9 @@ function makeUnit(over: Partial<Unit> = {}): Unit {
     model_count: 10,
     owned_count: 10,
     points: 100,
+    effective_points: 100,
+    synced_points: null,
+    is_synced: false,
     status_assembly: 1,
     status_painting: "Built",
     painting_percentage: 25,

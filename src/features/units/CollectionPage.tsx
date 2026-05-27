@@ -3,11 +3,11 @@ import { Plus, LayoutList, LayoutGrid, Maximize } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ShowcaseMode } from "./ShowcaseMode";
-import { useUnits, useUpdateUnit, UNITS_KEY } from "@/hooks/useUnits";
+import { useUnitsEnriched, useUpdateUnit, UNITS_ENRICHED_KEY } from "@/hooks/useUnits";
 import { useFactions } from "@/hooks/useFactions";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { Unit } from "@/types/unit";
+import type { Unit, EnrichedUnit } from "@/types/unit";
 import { useCollectionFilters } from "./collectionFilters";
 import { applyUnitFilters } from "./applyUnitFilters";
 import { UnitTable } from "./UnitTable";
@@ -32,7 +32,7 @@ import { PageHeader } from "@/components/common/PageHeader";
 
 export function CollectionPage() {
   // Data
-  const { data: units, isLoading: unitsLoading, isError: unitsError } = useUnits();
+  const { data: units, isLoading: unitsLoading, isError: unitsError } = useUnitsEnriched();
   const { data: factions } = useFactions();
   const qc = useQueryClient();
   const updateUnit = useUpdateUnit();
@@ -122,15 +122,15 @@ export function CollectionPage() {
   };
   function handleToggleActive(unit: Unit) {
     const next = (unit.is_active_project === 1 ? 0 : 1) as 0 | 1;
-    const previous = qc.getQueryData<Unit[]>(UNITS_KEY);
-    qc.setQueryData<Unit[]>(UNITS_KEY, (old) =>
+    const previousEnriched = qc.getQueryData<EnrichedUnit[]>(UNITS_ENRICHED_KEY);
+    qc.setQueryData<EnrichedUnit[]>(UNITS_ENRICHED_KEY, (old) =>
       old?.map((u) => (u.id === unit.id ? { ...u, is_active_project: next } : u)) ?? [],
     );
     updateUnit.mutate(
       { id: unit.id, is_active_project: next },
       {
         onError: () => {
-          qc.setQueryData(UNITS_KEY, previous);
+          qc.setQueryData(UNITS_ENRICHED_KEY, previousEnriched);
           toast.error("Failed to update project status. Changes were not saved.");
         },
       },

@@ -11,9 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import type { Unit } from "@/types/unit";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import type { EnrichedUnit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
-import { StatusPopover } from "./StatusPopover";
 
 function SortableHeader<T>({
   column,
@@ -44,10 +44,10 @@ function SortableHeader<T>({
 
 export function buildColumns(
   factionMap: Map<number, Faction>,
-  onDelete: (unit: Unit) => void,
-  onEdit: (unit: Unit) => void,
-  onToggleActive: (unit: Unit) => void,
-): ColumnDef<Unit>[] {
+  onDelete: (unit: EnrichedUnit) => void,
+  onEdit: (unit: EnrichedUnit) => void,
+  onToggleActive: (unit: EnrichedUnit) => void,
+): ColumnDef<EnrichedUnit>[] {
   return [
     {
       accessorKey: "name",
@@ -88,12 +88,6 @@ export function buildColumns(
       ),
     },
     {
-      accessorKey: "status_painting",
-      header: ({ column }) => <SortableHeader column={column} label="Status" />,
-      cell: ({ row }) => <StatusPopover unit={row.original} />,
-      enableSorting: true,
-    },
-    {
       accessorKey: "painting_percentage",
       header: () => (
         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -102,19 +96,46 @@ export function buildColumns(
       ),
       enableSorting: false,
       cell: ({ row }) => (
-        <Progress
-          value={row.original.painting_percentage}
-          className="h-2 w-20"
-          aria-label={`${row.original.painting_percentage}% painted`}
-        />
+        <div className="flex items-center gap-2">
+          <Progress
+            value={row.original.painting_percentage}
+            className="h-2 w-20"
+            aria-label={`${row.original.painting_percentage}% painted`}
+          />
+          <span className="text-xs text-muted-foreground w-8 text-right tabular-nums">
+            {row.original.painting_percentage}%
+          </span>
+        </div>
       ),
     },
     {
-      accessorKey: "points",
+      id: "effective_points",
+      accessorFn: (row) => row.effective_points,
       header: ({ column }) => <SortableHeader column={column} label="Points" />,
-      cell: ({ row }) => (
-        <span className="text-sm">{row.original.points ?? "—"}</span>
-      ),
+      cell: ({ row }) => {
+        const u = row.original;
+        const pts = u.effective_points;
+        const isManual = u.points !== null;
+        const isSynced = u.is_synced;
+        return (
+          <span className="text-sm inline-flex items-center gap-1.5">
+            {pts === 0 && !isManual ? "—" : pts}
+            {!isSynced && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    className="inline-block h-2 w-2 rounded-full bg-destructive shrink-0"
+                    aria-label="Not synced to rules"
+                  />
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  No matching datasheet in rules — points are manual
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </span>
+        );
+      },
       enableSorting: true,
     },
     {

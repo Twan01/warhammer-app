@@ -9,7 +9,7 @@ export interface UnitFiltersInput {
   battleReady: boolean;
 }
 
-export function applyUnitFilters(units: Unit[], filters: UnitFiltersInput): Unit[] {
+export function applyUnitFilters<T extends Unit>(units: T[], filters: UnitFiltersInput): T[] {
   const search = filters.search.trim().toLowerCase();
   return units.filter((unit) => {
     if (filters.battleReady && !(unit.status_assembly === 1 && unit.status_painting === "Completed")) return false;

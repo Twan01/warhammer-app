@@ -52,3 +52,17 @@ export interface Unit {
 
 export type CreateUnitInput = Omit<Unit, "id" | "created_at" | "updated_at">;
 export type UpdateUnitInput = Partial<CreateUnitInput> & { id: number };
+
+/**
+ * Enriched unit returned by getUnitsWithPoints() — includes effective_points
+ * computed from the COALESCE chain (manual points > synced rules points)
+ * and a flag indicating whether the unit has a matching datasheet in rules.db.
+ */
+export interface EnrichedUnit extends Unit {
+  /** Points resolved via COALESCE(u.points, sup.points, 0). Manual wins over synced. */
+  effective_points: number;
+  /** Points from synced_unit_points (rules.db cache). NULL = no match found. */
+  synced_points: number | null;
+  /** Whether the unit has a matching entry in synced_unit_points (is linked to rules). */
+  is_synced: boolean;
+}

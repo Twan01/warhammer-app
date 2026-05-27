@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getUnits,
+  getUnitsWithPoints,
   getUnitById,
   createUnit,
   updateUnit,
@@ -9,10 +10,16 @@ import {
 import type { CreateUnitInput, UpdateUnitInput } from "@/types/unit";
 
 export const UNITS_KEY = ["units"] as const;
+export const UNITS_ENRICHED_KEY = ["units", "enriched"] as const;
 export const UNIT_KEY = (id: number) => ["units", id] as const;
 
 export function useUnits() {
   return useQuery({ queryKey: UNITS_KEY, queryFn: getUnits });
+}
+
+/** Units with effective_points resolved from rules.db sync + manual override. */
+export function useUnitsEnriched() {
+  return useQuery({ queryKey: UNITS_ENRICHED_KEY, queryFn: getUnitsWithPoints });
 }
 
 export function useUnit(id: number | undefined) {
@@ -29,6 +36,7 @@ export function useCreateUnit() {
     mutationFn: createUnit,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: UNITS_KEY });
+      qc.invalidateQueries({ queryKey: UNITS_ENRICHED_KEY });
       // DATA-09: forward-compatibility — invalidate dashboard-stats when unit data changes
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
       // SPEND-03/04 (Pitfall 2): invalidate spending-stats so Spending page stays fresh
@@ -46,6 +54,7 @@ export function useUpdateUnit() {
     mutationFn: updateUnit,
     onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: UNITS_KEY });
+      qc.invalidateQueries({ queryKey: UNITS_ENRICHED_KEY });
       qc.invalidateQueries({ queryKey: UNIT_KEY(variables.id) });
       // DATA-09: forward-compatibility — invalidate dashboard-stats when unit data changes
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
@@ -68,6 +77,7 @@ export function useDeleteUnit() {
     mutationFn: deleteUnit,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: UNITS_KEY });
+      qc.invalidateQueries({ queryKey: UNITS_ENRICHED_KEY });
       // DATA-09: forward-compatibility — invalidate dashboard-stats when unit data changes
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
       // SPEND-03/04 (Pitfall 2): invalidate spending-stats so Spending page stays fresh

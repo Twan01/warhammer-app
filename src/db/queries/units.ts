@@ -1,9 +1,37 @@
 import { getDb } from "@/db/client";
-import type { Unit, CreateUnitInput, UpdateUnitInput } from "@/types/unit";
+import type { Unit, CreateUnitInput, UpdateUnitInput, EnrichedUnit } from "@/types/unit";
 
 export async function getUnits(): Promise<Unit[]> {
   const db = await getDb();
   return db.select<Unit[]>("SELECT * FROM units ORDER BY name ASC");
+}
+
+/**
+ * Fetch all units with effective points resolved from the COALESCE chain:
+ *   COALESCE(u.points, sup.points, 0)
+ *
+ * Manual points (u.points) win over synced rules points (sup.points).
+ * is_synced indicates whether the unit has a matching entry in synced_unit_points.
+ *
+ * Uses the same join pattern as getArmyListWithUnits:
+ *   unit_rules_mapping → synced_unit_points via COALESCE(urm.datasheet_name, u.name)
+ */
+export async function getUnitsWithPoints(): Promise<EnrichedUnit[]> {
+  const db = await getDb();
+  const rows = await db.select<Array<Unit & { synced_points: number | null }>>(
+    `SELECT u.*,
+            sup.points AS synced_points
+     FROM units u
+     LEFT JOIN unit_rules_mapping urm ON urm.unit_id = u.id
+     LEFT JOIN synced_unit_points sup
+       ON sup.unit_name = COALESCE(urm.datasheet_name, u.name)
+     ORDER BY u.name ASC`,
+  );
+  return rows.map((row) => ({
+    ...row,
+    effective_points: row.points ?? row.synced_points ?? 0,
+    is_synced: row.synced_points !== null,
+  }));
 }
 
 export async function getUnitById(id: number): Promise<Unit | null> {

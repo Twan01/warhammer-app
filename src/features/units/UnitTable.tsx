@@ -18,22 +18,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Unit } from "@/types/unit";
+import type { EnrichedUnit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
 import { buildColumns } from "./UnitTableColumns";
 import { CollectionEmptyState } from "./CollectionEmptyState";
 
 interface UnitTableProps {
-  data: Unit[];
+  data: EnrichedUnit[];
   factions: Faction[];
   isLoading: boolean;
   hasActiveFilters: boolean;
-  onRowClick: (unit: Unit) => void;
+  onRowClick: (unit: EnrichedUnit) => void;
   onAdd: () => void;
-  onEdit: (unit: Unit) => void;
-  onDelete: (unit: Unit) => void;
+  onEdit: (unit: EnrichedUnit) => void;
+  onDelete: (unit: EnrichedUnit) => void;
   onClearFilters: () => void;
-  onToggleActive: (unit: Unit) => void;
+  onToggleActive: (unit: EnrichedUnit) => void;
 }
 
 export function UnitTable({
