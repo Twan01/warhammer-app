@@ -43,6 +43,9 @@ export const HOBBYFORGE_MIGRATIONS = [
   "031_army_list_v3.sql",
   "032_army_list_snapshots.sql",
   "033_database_hardening.sql",
+  "034_urm_datasheet_name.sql",
+  "035_army_list_unit_sort_order.sql",
+  "036_unit_form_simplification.sql",
 ] as const;
 
 // Authoritative rules migration order — must match lib.rs get_rules_migrations()

@@ -3,6 +3,7 @@ import {
   getUnitRulesMapping,
   upsertUnitRulesMapping,
   deleteUnitRulesMapping,
+  getDatasheetRoleForUnit,
 } from "@/db/queries/unitRulesMapping";
 import type { UpsertUnitRulesMappingInput } from "@/types/unitRulesMapping";
 
@@ -57,5 +58,14 @@ export function useDeleteUnitRulesMapping() {
       qc.invalidateQueries({ queryKey: UNIT_RULES_MAPPING_KEY(unitId) });
       qc.invalidateQueries({ queryKey: ["army-lists"], exact: false });
     },
+  });
+}
+
+export function useDatasheetRole(unitId: number | undefined) {
+  return useQuery({
+    queryKey: unitId !== undefined ? ["datasheet-role", unitId] as const : ["datasheet-role", "disabled"] as const,
+    queryFn: () => unitId !== undefined ? getDatasheetRoleForUnit(unitId) : Promise.resolve(null),
+    enabled: unitId !== undefined,
+    staleTime: Infinity,
   });
 }

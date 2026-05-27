@@ -215,6 +215,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/035_army_list_unit_sort_order.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 36,
+            description: "unit_form_simplification",
+            sql: include_str!("../migrations/036_unit_form_simplification.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

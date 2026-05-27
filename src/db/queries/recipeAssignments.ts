@@ -178,7 +178,7 @@ export async function bulkCreateAssignments(
   }
 }
 
-// ─── Auto-sync painting percentage from recipe step progress ─────────────────
+// ─── Auto-sync painting percentage + derived statuses from recipe progress ──
 
 const SYNC_PAINTING_PERCENTAGE_SQL = `
   UPDATE units SET painting_percentage = COALESCE((
@@ -193,13 +193,91 @@ const SYNC_PAINTING_PERCENTAGE_SQL = `
   WHERE id = $1`;
 
 type DbHandle = { execute(sql: string, params: unknown[]): Promise<unknown> };
+type DbFull = Awaited<ReturnType<typeof getDb>>;
+
+function percentageToStatus(pct: number, hasRecipes: boolean): string {
+  if (!hasRecipes) return "Not Started";
+  if (pct === 0) return "Not Started";
+  if (pct <= 15) return "Primed";
+  if (pct <= 30) return "Basecoated";
+  if (pct <= 45) return "Shaded";
+  if (pct <= 60) return "Layered";
+  if (pct <= 75) return "Highlighted";
+  if (pct <= 90) return "Details Done";
+  if (pct < 100) return "Based";
+  return "Completed";
+}
+
+async function syncDerivedStatuses(db: DbFull, unitId: number): Promise<void> {
+  const unitRows = await db.select<{ painting_percentage: number }[]>(
+    "SELECT painting_percentage FROM units WHERE id = $1",
+    [unitId],
+  );
+  if (!unitRows[0]) return;
+
+  const assignmentRows = await db.select<{ id: number }[]>(
+    "SELECT id FROM unit_recipe_assignments WHERE unit_id = $1",
+    [unitId],
+  );
+  const hasRecipes = assignmentRows.length > 0;
+  if (!hasRecipes) return;
+
+  const pct = unitRows[0].painting_percentage;
+  const status = percentageToStatus(pct, hasRecipes);
+
+  // Check basing: all steps in sections whose name contains "basing" are complete
+  const basingRows = await db.select<{ incomplete: number }[]>(
+    `SELECT COUNT(*) AS incomplete
+     FROM recipe_steps rs
+     JOIN recipe_sections sec ON sec.id = rs.section_id
+     JOIN unit_recipe_assignments a ON a.recipe_id = rs.recipe_id AND a.unit_id = $1
+     LEFT JOIN unit_recipe_step_progress sp ON sp.assignment_id = a.id AND sp.recipe_step_id = rs.id
+     WHERE LOWER(sec.name) LIKE '%basing%'
+       AND (sp.completed IS NULL OR sp.completed = 0)`,
+    [unitId],
+  );
+  const hasBasingSections = await db.select<{ cnt: number }[]>(
+    `SELECT COUNT(*) AS cnt
+     FROM recipe_sections sec
+     JOIN unit_recipe_assignments a ON a.recipe_id = sec.recipe_id AND a.unit_id = $1
+     WHERE LOWER(sec.name) LIKE '%basing%'`,
+    [unitId],
+  );
+  const basing = (hasBasingSections[0]?.cnt ?? 0) > 0 && (basingRows[0]?.incomplete ?? 1) === 0 ? 1 : 0;
+
+  // Check varnished: all steps in sections whose name contains "varnish" are complete
+  const varnishRows = await db.select<{ incomplete: number }[]>(
+    `SELECT COUNT(*) AS incomplete
+     FROM recipe_steps rs
+     JOIN recipe_sections sec ON sec.id = rs.section_id
+     JOIN unit_recipe_assignments a ON a.recipe_id = rs.recipe_id AND a.unit_id = $1
+     LEFT JOIN unit_recipe_step_progress sp ON sp.assignment_id = a.id AND sp.recipe_step_id = rs.id
+     WHERE LOWER(sec.name) LIKE '%varnish%'
+       AND (sp.completed IS NULL OR sp.completed = 0)`,
+    [unitId],
+  );
+  const hasVarnishSections = await db.select<{ cnt: number }[]>(
+    `SELECT COUNT(*) AS cnt
+     FROM recipe_sections sec
+     JOIN unit_recipe_assignments a ON a.recipe_id = sec.recipe_id AND a.unit_id = $1
+     WHERE LOWER(sec.name) LIKE '%varnish%'`,
+    [unitId],
+  );
+  const varnished = (hasVarnishSections[0]?.cnt ?? 0) > 0 && (varnishRows[0]?.incomplete ?? 1) === 0 ? 1 : 0;
+
+  await db.execute(
+    `UPDATE units SET status_painting = $2, status_basing = $3, status_varnished = $4, updated_at = datetime('now') WHERE id = $1`,
+    [unitId, status, basing, varnished],
+  );
+}
 
 async function syncPaintingPercentageByUnitId(db: DbHandle, unitId: number): Promise<void> {
   await db.execute(SYNC_PAINTING_PERCENTAGE_SQL, [unitId]);
+  await syncDerivedStatuses(db as DbFull, unitId);
 }
 
 async function syncPaintingPercentageFromAssignment(db: DbHandle, assignmentId: number): Promise<void> {
-  const dbFull = db as Awaited<ReturnType<typeof getDb>>;
+  const dbFull = db as DbFull;
   const rows = await dbFull.select<{ unit_id: number }[]>(
     "SELECT unit_id FROM unit_recipe_assignments WHERE id = $1",
     [assignmentId],

@@ -1,22 +1,14 @@
-﻿/**
- * Phase 17 â€” UnitDetailSheet Details tab enrichment display tests (ENRCH-04).
+/**
+ * Phase 17 — UnitDetailSheet Details tab enrichment display tests (ENRCH-04).
  *
- * Verifies that the Undercoat and Lore Notes read-only rows render correctly
- * in the Details tab of UnitDetailSheet.
- *
- * Mock strategy mirrors JournalTab.test.tsx and PlaybookTab.test.tsx:
- * - vi.mock the data hooks to return deterministic synchronous data
- * - vi.mock Tauri plugins and heavy child tabs (JournalTab, PlaybookTab)
- * - vi.mock @tanstack/react-router (useNavigate)
- * - Render UnitDetailSheet with open={true} and a mock unit prop
- * - The Details tab is the defaultValue tab â€” renders immediately
+ * Verifies that the Undercoat read-only row renders correctly in the Details tab.
+ * Lore Notes was merged into Notes (migration 036) and is no longer a separate field.
  */
 import { vi, describe, it, expect, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Unit } from "@/types/unit";
 
-// â”€â”€â”€ Stub Tauri plugin APIs (not available in jsdom) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 vi.mock("@tauri-apps/plugin-dialog", () => ({ open: vi.fn() }));
 vi.mock("@tauri-apps/plugin-fs", () => ({
   readFile: vi.fn(),
@@ -24,12 +16,10 @@ vi.mock("@tauri-apps/plugin-fs", () => ({
   BaseDirectory: { AppData: "AppData" },
 }));
 
-// â”€â”€â”€ Stub router (UnitDetailSheet calls useNavigate internally) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
 }));
 
-// â”€â”€â”€ Stub data hooks to resolve synchronously â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 vi.mock("@/hooks/useFactions", () => ({
   useFactions: () => ({ data: [], isLoading: false }),
 }));
@@ -43,7 +33,6 @@ vi.mock("@/hooks/useUnits", () => ({
   UNITS_KEY: ["units"],
 }));
 
-// â”€â”€â”€ Stub heavy child tabs that require their own IPC mocks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 vi.mock("@/features/units/PlaybookTab", () => ({
   PlaybookTab: () => <div data-testid="playbook-tab-stub" />,
 }));
@@ -52,14 +41,11 @@ vi.mock("@/features/units/JournalTab", () => ({
   JournalTab: () => <div data-testid="journal-tab-stub" />,
 }));
 
-vi.mock("@/features/units/StatusPopover", () => ({
-  StatusPopover: () => <span data-testid="status-popover-stub" />,
+vi.mock("@/features/units/PaintingPipeline", () => ({
+  PaintingPipeline: () => <div data-testid="painting-pipeline-stub" />,
 }));
 
-// â”€â”€â”€ Import after mocks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 import { UnitDetailSheet } from "@/features/units/UnitDetailSheet";
-
-// â”€â”€â”€ Factory â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function makeUnit(over: Partial<Unit> = {}): Unit {
   return {
@@ -108,43 +94,36 @@ function renderSheet(unit: Unit) {
   );
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
 afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("UnitDetailSheet â€” ENRCH-04 enrichment display", () => {
+describe("UnitDetailSheet — enrichment display", () => {
   it("renders Undercoat value when unit.undercoat is set", () => {
     renderSheet(makeUnit({ undercoat: "Chaos Black" }));
-    // The "UNDERCOAT" label (uppercase via CSS but accessible as text)
     expect(screen.getByText("Undercoat")).toBeInTheDocument();
     expect(screen.getByText("Chaos Black")).toBeInTheDocument();
   });
 
-  it("renders 'â€”' for Undercoat when unit.undercoat is null", () => {
+  it("does not render Undercoat row when unit.undercoat is null", () => {
     renderSheet(makeUnit({ undercoat: null }));
-    expect(screen.getByText("Undercoat")).toBeInTheDocument();
-    // The muted fallback dash â€” rendered inside a muted-foreground span
-    // We use getAllByText since other fields may also show 'â€”'
-    const dashes = screen.getAllByText("â€”");
-    expect(dashes.length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByText("Undercoat")).toBeNull();
   });
 
-  it("renders Lore Notes content when unit.lore_notes is set", () => {
-    const loreContent = "Veterans of the Siege of Vraks.\nBattle-scarred survivors.";
-    renderSheet(makeUnit({ lore_notes: loreContent }));
-    expect(screen.getByText("Lore Notes")).toBeInTheDocument();
-    // whitespace-pre-wrap preserves \n in the DOM text node; use a function matcher
-    // to avoid testing-library's default whitespace normalization stripping it.
-    const loreEl = screen.getByText((_, element) =>
-      element?.tagName === "P" && element.textContent === loreContent
-    );
-    expect(loreEl).toBeInTheDocument();
+  it("renders Notes content when unit.notes is set", () => {
+    const noteContent = "Veterans of the Siege of Vraks.";
+    renderSheet(makeUnit({ notes: noteContent }));
+    expect(screen.getByText("Notes")).toBeInTheDocument();
+    expect(screen.getByText(noteContent)).toBeInTheDocument();
   });
 
-  it("does not render Lore Notes section when unit.lore_notes is null", () => {
-    renderSheet(makeUnit({ lore_notes: null }));
-    expect(screen.queryByText("Lore Notes")).toBeNull();
+  it("does not render Notes section when unit.notes is null", () => {
+    renderSheet(makeUnit({ notes: null }));
+    expect(screen.queryByText("Notes")).toBeNull();
+  });
+
+  it("renders painting pipeline stepper", () => {
+    renderSheet(makeUnit());
+    expect(screen.getByTestId("painting-pipeline-stub")).toBeInTheDocument();
   });
 });

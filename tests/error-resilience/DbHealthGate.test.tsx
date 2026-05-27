@@ -94,6 +94,6 @@ describe("DbHealthGate — ERR-03", () => {
   });
 
   it("EXPECTED_SCHEMA_VERSION matches migration count", () => {
-    expect(EXPECTED_SCHEMA_VERSION).toBe(33);
+    expect(EXPECTED_SCHEMA_VERSION).toBe(36);
   });
 });

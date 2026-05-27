@@ -122,3 +122,25 @@ export async function findRulesDatasheets(
     [`%${escapeLike(searchTerm)}%`],
   );
 }
+
+/**
+ * Get the datasheet role (category) for a unit via its rules mapping.
+ * Returns null if no mapping exists or the datasheet has no role.
+ */
+export async function getDatasheetRoleForUnit(
+  unitId: number,
+): Promise<string | null> {
+  const mainDb = await getDb();
+  const mappings = await mainDb.select<{ rules_datasheet_id: string }[]>(
+    "SELECT rules_datasheet_id FROM unit_rules_mapping WHERE unit_id = $1 LIMIT 1",
+    [unitId],
+  );
+  if (!mappings[0]) return null;
+
+  const rulesDb = await getRulesDb();
+  const rows = await rulesDb.select<{ role: string | null }[]>(
+    "SELECT role FROM rw_datasheets WHERE id = $1 LIMIT 1",
+    [mappings[0].rules_datasheet_id],
+  );
+  return rows[0]?.role ?? null;
+}

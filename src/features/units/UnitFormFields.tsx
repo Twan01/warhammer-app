@@ -141,34 +141,3 @@ export function NullableTextareaField({ name, label, placeholder, rows }: { name
   );
 }
 
-export function PenceField({ name, label }: { name: keyof UnitFormValues; label: string }) {
-  const { control } = useFormContext<UnitFormValues>();
-  return (
-    <FormField
-      name={name}
-      control={control}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
-          <FormControl>
-            <Input
-              type="number"
-              min={0}
-              step={1}
-              placeholder="e.g. 1250 for £12.50"
-              {...field}
-              value={(field.value as number | null) ?? ""}
-              onChange={(e) =>
-                field.onChange(e.target.value === "" ? null : e.target.valueAsNumber)
-              }
-            />
-          </FormControl>
-          <p className="text-xs text-muted-foreground">
-            Enter amount in pence (100 = £1.00)
-          </p>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  );
-}
