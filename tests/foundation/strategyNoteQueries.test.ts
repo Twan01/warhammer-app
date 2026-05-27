@@ -1,5 +1,5 @@
-/**
- * STRAT-06 (Phase 6 Success Criteria 4) — Strategy note query function tests.
+﻿/**
+ * STRAT-06 (Phase 6 Success Criteria 4) â€” Strategy note query function tests.
  *
  * Mocks getDb() because tauri-plugin-sql IPC cannot run in jsdom.
  * Verifies SQL strings + parameter arrays.
@@ -21,7 +21,7 @@ beforeEach(() => {
   executeMock.mockReset();
 });
 
-describe("strategyNotes queries — getStrategyNote", () => {
+describe("strategyNotes queries â€” getStrategyNote", () => {
   it("returns null when no row exists for the given unit_id", async () => {
     selectMock.mockResolvedValueOnce([]);
     const result = await getStrategyNote(42);
@@ -49,7 +49,7 @@ describe("strategyNotes queries — getStrategyNote", () => {
   });
 });
 
-describe("strategyNotes queries — upsertStrategyNote (select-then-insert/update)", () => {
+describe("strategyNotes queries â€” upsertStrategyNote (select-then-insert/update)", () => {
   const baseInput = {
     unit_id: 42,
     move: 6, toughness: 4, save: 3, wounds: 2, leadership: 6, objective_control: 1,
@@ -96,14 +96,14 @@ describe("strategyNotes queries — upsertStrategyNote (select-then-insert/updat
     ]);
   });
 
-  it("save column accepts integer (3) and stores as INTEGER — never as string '3+'", async () => {
+  it("save column accepts integer (3) and stores as INTEGER â€” never as string '3+'", async () => {
     selectMock.mockResolvedValueOnce([]);
     executeMock.mockResolvedValueOnce(undefined);
 
     await upsertStrategyNote({ ...baseInput, save: 3 });
 
     const params = executeMock.mock.calls[0][1] as unknown[];
-    // save is the 4th positional ($4) — index 3 in the params array (after unit_id, move, toughness)
+    // save is the 4th positional ($4) â€” index 3 in the params array (after unit_id, move, toughness)
     expect(params[3]).toBe(3);
     expect(typeof params[3]).toBe("number");
   });

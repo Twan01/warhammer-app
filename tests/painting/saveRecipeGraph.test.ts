@@ -1,15 +1,15 @@
-/**
- * DI-03 — saveRecipeGraph() SQL coverage: auto-commit per statement.
- * DI-04 — Existing section/step IDs preserved via diff-based approach.
+﻿/**
+ * DI-03 â€” saveRecipeGraph() SQL coverage: auto-commit per statement.
+ * DI-04 â€” Existing section/step IDs preserved via diff-based approach.
  *
  * NOTE: saveRecipeGraph uses auto-commit mode (no explicit BEGIN/COMMIT/ROLLBACK)
- * because tauri-plugin-sql uses sqlx::Pool<Sqlite> — each db.execute() may run on
+ * because tauri-plugin-sql uses sqlx::Pool<Sqlite> â€” each db.execute() may run on
  * a different connection from the pool, so explicit transaction boundaries are broken.
  * In WAL mode, each committed write is immediately visible to all connections.
  *
  * Mocks getDb() to capture SQL strings and params.
  * Pure diff functions (computeSectionDiff, computeStepDiff, buildSectionIdMap) run with
- * real fixture data — no mocking needed for pure functions.
+ * real fixture data â€” no mocking needed for pure functions.
  */
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
@@ -195,7 +195,7 @@ const EXISTING_STEPS: RecipeStep[] = [
 // Tests: create path (recipeId === null)
 // ---------------------------------------------------------------------------
 
-describe("saveRecipeGraph — create path (recipeId = null)", () => {
+describe("saveRecipeGraph â€” create path (recipeId = null)", () => {
   beforeEach(() => {
     selectMock.mockReset();
     executeMock.mockReset();
@@ -282,7 +282,7 @@ describe("saveRecipeGraph — create path (recipeId = null)", () => {
 // Tests: edit path (recipeId !== null)
 // ---------------------------------------------------------------------------
 
-describe("saveRecipeGraph — edit path (recipeId = 42)", () => {
+describe("saveRecipeGraph â€” edit path (recipeId = 42)", () => {
   beforeEach(() => {
     selectMock.mockReset();
     executeMock.mockReset();
@@ -415,7 +415,7 @@ describe("saveRecipeGraph — edit path (recipeId = 42)", () => {
 // Tests: error propagation (no rollback in auto-commit mode)
 // ---------------------------------------------------------------------------
 
-describe("saveRecipeGraph — error propagation", () => {
+describe("saveRecipeGraph â€” error propagation", () => {
   it("re-throws the error when a SQL operation fails (no ROLLBACK in auto-commit mode)", async () => {
     executeMock.mockReset();
     executeMock

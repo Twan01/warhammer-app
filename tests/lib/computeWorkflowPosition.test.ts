@@ -1,5 +1,5 @@
-/**
- * Phase 60 — computeWorkflowPosition pure function tests.
+﻿/**
+ * Phase 60 â€” computeWorkflowPosition pure function tests.
  *
  * Covers all degradation scenarios (D-05, D-17, D-18, D-04, D-09)
  * and edge cases (orphaned step IDs, section_name-only, flat recipes).
@@ -11,7 +11,7 @@ import type { RecipeSection } from "@/types/recipeSection";
 import type { RecipeStep } from "@/types/recipePaint";
 
 // ---------------------------------------------------------------------------
-// Helpers — minimal fixture builders (only fields the function uses)
+// Helpers â€” minimal fixture builders (only fields the function uses)
 // ---------------------------------------------------------------------------
 
 function makeSection(overrides: Partial<RecipeSection> & { id: number; name: string; order_index: number }): RecipeSection {

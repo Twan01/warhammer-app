@@ -1,5 +1,5 @@
-/**
- * Phase 70 — Non-Destructive Recipe Save
+﻿/**
+ * Phase 70 â€” Non-Destructive Recipe Save
  * Gap 70-02-01: Section diff algorithm
  * Gap 70-02-02: Step diff + edge cases
  *
@@ -138,7 +138,7 @@ function newDraftStep(localId: string) {
 // Gap 70-02-01: Section diff algorithm
 // ---------------------------------------------------------------------------
 
-describe("computeSectionDiff — Phase 1: surviving section dbIds set", () => {
+describe("computeSectionDiff â€” Phase 1: surviving section dbIds set", () => {
   it("collects all non-null dbIds from draft sections into the surviving set", () => {
     // Three draft sections: two survivors, one new
     const draft = [
@@ -148,7 +148,7 @@ describe("computeSectionDiff — Phase 1: surviving section dbIds set", () => {
     ];
     const existing = [dbSection(1), dbSection(2)];
     const { toDelete } = computeSectionDiff(draft, existing);
-    // Neither section 1 nor section 2 should be deleted — both are in the draft
+    // Neither section 1 nor section 2 should be deleted â€” both are in the draft
     expect(toDelete).toHaveLength(0);
   });
 
@@ -164,7 +164,7 @@ describe("computeSectionDiff — Phase 1: surviving section dbIds set", () => {
   });
 });
 
-describe("computeSectionDiff — Phase 2: sections to DELETE", () => {
+describe("computeSectionDiff â€” Phase 2: sections to DELETE", () => {
   it("marks an existing section for deletion when it is absent from the draft", () => {
     // User removed section 2 from the form
     const draft = [existingDraft("local-a", 1)]; // only section 1 survives
@@ -196,7 +196,7 @@ describe("computeSectionDiff — Phase 2: sections to DELETE", () => {
   });
 });
 
-describe("computeSectionDiff — Phase 3: sections to UPDATE (dbId !== null)", () => {
+describe("computeSectionDiff â€” Phase 3: sections to UPDATE (dbId !== null)", () => {
   it("includes all surviving draft sections (dbId !== null) in toUpdate", () => {
     const draft = [
       existingDraft("local-a", 1),
@@ -224,7 +224,7 @@ describe("computeSectionDiff — Phase 3: sections to UPDATE (dbId !== null)", (
   });
 });
 
-describe("computeSectionDiff — Phase 4: sections to INSERT (dbId === null)", () => {
+describe("computeSectionDiff â€” Phase 4: sections to INSERT (dbId === null)", () => {
   it("includes all new draft sections (dbId === null) in toInsert", () => {
     const draft = [
       existingDraft("local-a", 1),
@@ -257,8 +257,8 @@ describe("computeSectionDiff — Phase 4: sections to INSERT (dbId === null)", (
 // buildSectionIdMap
 // ---------------------------------------------------------------------------
 
-describe("buildSectionIdMap — Phase 4 pure part", () => {
-  it("seeds localId → dbId for all non-null-dbId sections", () => {
+describe("buildSectionIdMap â€” Phase 4 pure part", () => {
+  it("seeds localId â†’ dbId for all non-null-dbId sections", () => {
     const sections = [
       existingDraft("local-a", 10),
       existingDraft("local-b", 20),
@@ -291,7 +291,7 @@ describe("buildSectionIdMap — Phase 4 pure part", () => {
 // Gap 70-02-02: Step diff + edge cases
 // ---------------------------------------------------------------------------
 
-describe("computeStepDiff — Phase 5a: global surviving step dbIds (flatMap)", () => {
+describe("computeStepDiff â€” Phase 5a: global surviving step dbIds (flatMap)", () => {
   it("collects step dbIds across ALL sections, not just a single section", () => {
     // Two sections each with one existing step
     const sectionA = existingDraft("sec-a", 1, {
@@ -302,7 +302,7 @@ describe("computeStepDiff — Phase 5a: global surviving step dbIds (flatMap)", 
     });
     const existing = [dbStep(101, 1), dbStep(102, 2)];
     const { toDelete } = computeStepDiff([sectionA, sectionB], existing);
-    // Both steps survive — neither should be deleted
+    // Both steps survive â€” neither should be deleted
     expect(toDelete).toHaveLength(0);
   });
 
@@ -317,7 +317,7 @@ describe("computeStepDiff — Phase 5a: global surviving step dbIds (flatMap)", 
   });
 });
 
-describe("computeStepDiff — Phase 5b: steps to DELETE", () => {
+describe("computeStepDiff â€” Phase 5b: steps to DELETE", () => {
   it("marks a step for deletion when it is absent from ALL draft sections", () => {
     // Step 101 existed but is not in the draft anymore
     const section = existingDraft("sec-a", 1, { steps: [] });
@@ -352,7 +352,7 @@ describe("computeStepDiff — Phase 5b: steps to DELETE", () => {
   });
 });
 
-describe("computeStepDiff — Phase 5c: steps to UPDATE vs INSERT", () => {
+describe("computeStepDiff â€” Phase 5c: steps to UPDATE vs INSERT", () => {
   it("puts steps with dbId !== null into toUpdate", () => {
     const section = existingDraft("sec-a", 1, {
       steps: [existingDraftStep("step-1", 101), existingDraftStep("step-2", 102)],
@@ -388,7 +388,7 @@ describe("computeStepDiff — Phase 5c: steps to UPDATE vs INSERT", () => {
   });
 });
 
-describe("computeStepDiff — cross-section drag edge case (D-12)", () => {
+describe("computeStepDiff â€” cross-section drag edge case (D-12)", () => {
   it("does NOT delete a step dragged from section A to section B", () => {
     // Step 101 originated in section A (dbId 1) but is now in section B (dbId 2) in the draft.
     // existingSteps still shows section_id=1 (old DB state).
@@ -403,7 +403,7 @@ describe("computeStepDiff — cross-section drag edge case (D-12)", () => {
       dbStep(101, 1), // DB still says section_id=1
     ];
     const { toDelete } = computeStepDiff([sectionA, sectionB], existing);
-    // Step 101 must NOT be deleted — it is in section B's draft
+    // Step 101 must NOT be deleted â€” it is in section B's draft
     expect(toDelete).not.toContain(101);
     expect(toDelete).toHaveLength(0);
   });

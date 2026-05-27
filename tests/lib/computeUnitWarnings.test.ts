@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+﻿import { describe, expect, it } from "vitest";
 import {
   computeUnitWarnings,
   computeListWarnings,
@@ -8,7 +8,7 @@ import type { WarningContext } from "@/lib/computeUnitWarnings";
 import type { ArmyListUnitRow } from "@/types/armyList";
 
 // ---------------------------------------------------------------------------
-// Factory helper — creates a healthy unit by default
+// Factory helper â€” creates a healthy unit by default
 // ---------------------------------------------------------------------------
 function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
   return {
@@ -21,12 +21,14 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
     leader_attached_to_id: null,
     points_override: null,
     notes: null,
+    sort_order: 0,
     created_at: "2024-01-01",
     unit_name: "Intercessors",
     canonical_name: null,
     unit_points: 100,
     effective_points: 100,
     faction_id: 1,
+    unit_category: null, unit_model_count: null,
     status_assembly: 1,
     status_painting: "Completed",
     painting_percentage: 100,
@@ -291,7 +293,7 @@ describe("computeListHealthStats", () => {
     expect(stats.pointsExceeded).toBe(false);
   });
 
-  it("counts hardWarnings — points exceeded counted once at list level", () => {
+  it("counts hardWarnings â€” points exceeded counted once at list level", () => {
     const units = [makeUnit(), makeUnit()];
     // Points exceeded is list-level, counted once (not per-unit)
     const stats = computeListHealthStats(units, 100, "fresh");

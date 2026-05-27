@@ -329,9 +329,8 @@ export function useRulesSync() {
           delta_removed: pointsDelta.removed,
           delta_changed: pointsDelta.changed,
         });
-      } catch {
-        // Points processing is best-effort — sync itself succeeded
-        console.warn("[useRulesSync] points post-processing failed");
+      } catch (err) {
+        console.error("[useRulesSync] points post-processing failed:", err);
       }
 
       return {

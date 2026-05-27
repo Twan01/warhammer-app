@@ -1,5 +1,5 @@
 import { memo, useEffect, useMemo, useState } from "react";
-import { AlertTriangle, ChevronDown, ChevronUp, Info, Link2, Settings2, Sparkles, Trash2 } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronUp, Crown, GripVertical, Info, Link2, Settings2, Sparkles, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { TableRow, TableCell } from "@/components/ui/table";
@@ -43,19 +43,21 @@ interface ArmyListUnitRowProps {
   onConfigure: () => void;
   onEnhance: () => void;
   onAttachLeader: () => void;
+  onToggleWarlord: () => void;
   enhancementName?: string;
   isIndentedLeader?: boolean;
   leaderName?: string;
   leaderTargets?: SyncedLeaderTargetRow[];
+  dragHandleProps?: Record<string, unknown>;
 }
 
 /**
  * ARMY-03, ARMY-04 — One unit row inside ArmyListDetailSheet's unit table.
  *
- * Layout (UI-SPEC §ArmyListDetailSheet, in this exact column order):
- *   1. Unit name (+ active loadout name below if set)
+ * Layout (UI-SPEC, in this exact column order):
+ *   1. Unit name (+ category badge, active loadout name below if set)
  *   2. Painting status badge
- *   3. Points override (inline number Input — saves on blur or Enter)
+ *   3. Points — shows effective_points prominently, with override input and source chip
  *      + Configure trigger (Phase 90)
  *   4. Notes expand toggle (ChevronDown/Up icon)
  *   5. Remove button (Trash2 ghost icon)
@@ -68,7 +70,7 @@ interface ArmyListUnitRowProps {
  * Configure trigger that opens the LoadoutBuilderSheet (D-02, D-04).
  * Tier selection now writes to army_list_units.selected_model_count (per-list).
  */
-export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onRemove, onConfigure, onEnhance, onAttachLeader, enhancementName, isIndentedLeader = false, leaderName, leaderTargets = [] }: ArmyListUnitRowProps) {
+export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onRemove, onConfigure, onEnhance, onAttachLeader, onToggleWarlord, enhancementName, isIndentedLeader = false, leaderName, leaderTargets = [], dragHandleProps }: ArmyListUnitRowProps) {
   const isGhost = unit.unit_id === null;
   const updateArmyListUnit = useUpdateArmyListUnit();
   const [expanded, setExpanded] = useState(false);
@@ -181,6 +183,21 @@ export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, totalPoints
       >
         <TableCell className={`font-medium${isIndentedLeader ? " pl-8" : ""}`}>
           <div className="flex items-center">
+            {dragHandleProps && (
+              <span {...dragHandleProps} className="cursor-grab mr-1 text-muted-foreground hover:text-foreground">
+                <GripVertical className="h-4 w-4" />
+              </span>
+            )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={`h-6 w-6 mr-1 ${unit.is_warlord === 1 ? "text-yellow-500" : "text-muted-foreground/40 hover:text-yellow-500"}`}
+              onClick={onToggleWarlord}
+              aria-label={unit.is_warlord === 1 ? "Remove warlord designation" : "Set as warlord"}
+            >
+              <Crown className="h-3.5 w-3.5" />
+            </Button>
             {warnings.hard.length > 0 ? (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -210,6 +227,11 @@ export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, totalPoints
             <span className={isGhost ? "text-muted-foreground" : ""}>{unit.unit_name}</span>
             {isGhost && <Badge variant="outline" className="ml-1.5 text-xs">Planned</Badge>}
           </div>
+          {unit.unit_category && (
+            <Badge variant="secondary" className="text-xs mt-0.5">
+              {unit.unit_category}
+            </Badge>
+          )}
           {activeLoadout && (
             <span className="text-xs text-muted-foreground block">
               {activeLoadout.name}
@@ -302,21 +324,30 @@ export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, totalPoints
         </TableCell>
 
         <TableCell>
-          <div className="flex items-center gap-1.5">
-            <Input
-              type="number"
-              min={0}
-              className="w-20 h-7 text-sm"
-              placeholder={unit.unit_points !== null ? String(unit.unit_points) : "—"}
-              defaultValue={unit.points_override ?? ""}
-              onBlur={(e) => handlePointsBlur(e.currentTarget.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") (e.currentTarget as HTMLInputElement).blur();
-              }}
-              aria-label={`Points override for ${unit.unit_name}`}
-            />
+          <div className="flex flex-col gap-1">
+            {/* Model count + effective points — prominent display */}
+            <span className="text-sm font-semibold">
+              {unit.unit_model_count != null && (
+                <span className="text-muted-foreground font-normal">{unit.unit_model_count} models · </span>
+              )}
+              {unit.effective_points}pts
+            </span>
+            <PointsSourceChip points={resolved.points} source={resolved.source} />
+            <div className="flex items-center gap-1.5">
+              <Input
+                type="number"
+                min={0}
+                className="w-20 h-7 text-sm"
+                placeholder={unit.unit_points !== null ? String(unit.unit_points) : "--"}
+                defaultValue={unit.points_override ?? ""}
+                onBlur={(e) => handlePointsBlur(e.currentTarget.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") (e.currentTarget as HTMLInputElement).blur();
+                }}
+                aria-label={`Points override for ${unit.unit_name}`}
+              />
+            </div>
           </div>
-          <PointsSourceChip points={resolved.points} source={resolved.source} />
           <Button
             type="button"
             variant="outline"

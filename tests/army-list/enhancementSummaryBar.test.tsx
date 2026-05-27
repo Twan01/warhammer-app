@@ -1,5 +1,5 @@
-/**
- * Phase 91 — ENH-03: ArmyListSummaryBar enhancement stat line tests.
+﻿/**
+ * Phase 91 â€” ENH-03: ArmyListSummaryBar enhancement stat line tests.
  *
  * Verifies that enhancement points are reflected in the summary bar:
  * - Enhancement stat line shown when enhancements exist
@@ -12,7 +12,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ArmyListSummaryBar } from "@/features/army-lists/ArmyListSummaryBar";
 import type { ArmyListUnitRow, ArmyListEnhancement } from "@/types/armyList";
 
-// PointsFreshnessBadge calls hooks internally — mock it
+// PointsFreshnessBadge calls hooks internally â€” mock it
 vi.mock("@/features/army-lists/PointsFreshnessBadge", () => ({
   PointsFreshnessBadge: () => <span data-testid="freshness-badge">Fresh</span>,
 }));
@@ -28,11 +28,13 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
     unit_id: 1,
     points_override: null,
     notes: null,
+    sort_order: 0,
     created_at: "2024-01-01",
     unit_name: "Intercessors",
     canonical_name: null,
     unit_points: 100,
     faction_id: 1,
+    unit_category: null, unit_model_count: null,
     status_assembly: 1,
     status_painting: "Completed",
     synced_points: null,
@@ -82,7 +84,7 @@ function renderBar(
 // Tests: ENH-03
 // ---------------------------------------------------------------------------
 
-describe("ArmyListSummaryBar — ENH-03 enhancement stat line", () => {
+describe("ArmyListSummaryBar â€” ENH-03 enhancement stat line", () => {
   it("shows enhancement stat line when enhancements exist", () => {
     const units = [makeUnit({ effective_points: 850 })];
     const enhancements = [

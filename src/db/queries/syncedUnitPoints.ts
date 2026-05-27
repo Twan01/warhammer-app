@@ -116,6 +116,13 @@ export async function getTiersByUnitName(
   );
 }
 
+export async function getSyncedUnitPointsList(): Promise<{ unit_name: string; faction_id: string | null; points: number }[]> {
+  const db = await getDb();
+  return db.select(
+    "SELECT unit_name, faction_id, points FROM synced_unit_points ORDER BY unit_name",
+  );
+}
+
 /**
  * Read all synced unit points into a Map keyed by "unit_name:faction_id".
  * Used by computePointsDelta to build before/after snapshots.

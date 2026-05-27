@@ -1,4 +1,4 @@
-// Phase 21 — Wishlist query module SQL contract tests (WISH-01..04).
+﻿// Phase 21 â€” Wishlist query module SQL contract tests (WISH-01..04).
 //
 // Mocks getDb() because tauri-plugin-sql IPC cannot run in jsdom.
 // Mirrors tests/battle-log/battleLogQueries.test.ts.

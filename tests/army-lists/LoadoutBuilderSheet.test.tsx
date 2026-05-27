@@ -1,5 +1,5 @@
-/**
- * Phase 90 — LoadoutBuilderSheet tests (DL-01, DL-02).
+﻿/**
+ * Phase 90 â€” LoadoutBuilderSheet tests (DL-01, DL-02).
  *
  * Covers tier selection, wargear display, ghost unit badge, and points override warning.
  */
@@ -80,7 +80,7 @@ vi.mock("@/hooks/useLoadoutOptions", () => ({
     ["synced-tiers-by-name", unitName, factionId] as const,
 }));
 
-// PointsSourceChip uses Tooltip internally — mock resolveUnitPoints to keep it simple
+// PointsSourceChip uses Tooltip internally â€” mock resolveUnitPoints to keep it simple
 vi.mock("@/lib/resolveUnitPoints", () => ({
   resolveUnitPoints: () => ({ points: 100, source: "base" }),
 }));
@@ -100,11 +100,13 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
     leader_attached_to_id: null,
     points_override: null,
     notes: null,
+    sort_order: 0,
     created_at: "2024-01-01",
     unit_name: "Intercessors",
     canonical_name: null,
     unit_points: 100,
     faction_id: 1,
+    unit_category: null, unit_model_count: null,
     status_assembly: 1,
     status_painting: "Completed",
     synced_points: null,

@@ -1,5 +1,5 @@
-/**
- * STEP-01/03/04 — addRecipePaint INSERT column coverage.
+﻿/**
+ * STEP-01/03/04 â€” addRecipePaint INSERT column coverage.
  *
  * Verifies the 10-column INSERT SQL string and the $1..$10 positional
  * placeholders used by addRecipePaint (Phase 38 Plan 01).
@@ -43,7 +43,7 @@ beforeEach(() => {
   executeMock.mockResolvedValue({ lastInsertId: 99 });
 });
 
-describe("addRecipePaint — 12-column INSERT coverage (STEP-01/03/04)", () => {
+describe("addRecipePaint â€” 12-column INSERT coverage (STEP-01/03/04)", () => {
   it("calls db.execute with all 12 columns in the INSERT statement", async () => {
     await addRecipePaint(makeInput());
     const [sql] = executeMock.mock.calls[0];
@@ -109,7 +109,7 @@ describe("addRecipePaint — 12-column INSERT coverage (STEP-01/03/04)", () => {
     expect(params[11]).toBe(55);          // $12 alt_paint_id
   });
 
-  it("applies ?? null guards — passes null for undefined-like new fields", async () => {
+  it("applies ?? null guards â€” passes null for undefined-like new fields", async () => {
     const input = makeInput({
       painting_phase: null,
       tool: null,

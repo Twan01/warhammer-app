@@ -1,5 +1,5 @@
-/**
- * ARCH-03 — UnitFormOptional behavioral tests.
+﻿/**
+ * ARCH-03 â€” UnitFormOptional behavioral tests.
  *
  * Verifies that UnitFormOptional, extracted from the monolithic UnitSheet.tsx,
  * starts collapsed and correctly reveals its optional fields when the toggle
@@ -67,8 +67,8 @@ function Harness({
   );
 }
 
-describe("ARCH-03 — UnitFormOptional collapsible behavior", () => {
-  it("renders collapsed by default — optional fields are hidden", () => {
+describe("ARCH-03 â€” UnitFormOptional collapsible behavior", () => {
+  it("renders collapsed by default â€” optional fields are hidden", () => {
     render(<Harness />);
     // In collapsed state the expand toggle exists but field labels are absent
     expect(screen.getByRole("button", { name: /more details/i })).toBeInTheDocument();
@@ -104,7 +104,7 @@ describe("ARCH-03 — UnitFormOptional collapsible behavior", () => {
     const user = userEvent.setup();
     render(<Harness />);
     await user.click(screen.getByRole("button", { name: /more details/i }));
-    // Expanded — click again
+    // Expanded â€” click again
     await user.click(screen.getByRole("button", { name: /hide details/i }));
     // Back to collapsed: Painting Status should be gone
     expect(screen.queryByText("Painting Status")).toBeNull();
@@ -143,7 +143,7 @@ describe("ARCH-03 — UnitFormOptional collapsible behavior", () => {
     expect(screen.getByText(/3 tier/)).toBeInTheDocument();
   });
 
-  it("does NOT render useQuery/useMutation hooks — component accepts only hasTiers+tiersCount props", () => {
+  it("does NOT render useQuery/useMutation hooks â€” component accepts only hasTiers+tiersCount props", () => {
     // This is a structural contract test: if the component compiled and renders
     // without querying the DB, its prop contract is pure (no side-channel deps).
     // If the component tries to fire a React Query hook directly it would need

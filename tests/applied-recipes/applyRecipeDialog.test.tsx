@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AR-02 -- ApplyRecipeDialog tests.
  * Covers: searchable recipe list, preview after selection, create mutation, reset on reopen.
  */

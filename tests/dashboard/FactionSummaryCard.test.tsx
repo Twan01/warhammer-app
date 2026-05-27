@@ -1,5 +1,5 @@
-/**
- * VIS-01 — FactionSummaryCard visual polish test stubs.
+﻿/**
+ * VIS-01 â€” FactionSummaryCard visual polish test stubs.
  *
  * These tests are INTENTIONALLY FAILING until Plan 01 implements the component
  * changes. They serve as automated verification targets for the VIS-01 requirements:
@@ -22,7 +22,7 @@ import {
 import { FactionSummaryCard } from "@/features/dashboard/FactionSummaryCard";
 import type { FactionStat } from "@/features/dashboard/computeStats";
 
-// Mock collectionFilters — FactionSummaryCard calls setState on click
+// Mock collectionFilters â€” FactionSummaryCard calls setState on click
 vi.mock("@/features/units/collectionFilters", () => ({
   useCollectionFilters: Object.assign(vi.fn(), {
     setState: vi.fn(),
@@ -138,7 +138,7 @@ describe("FactionSummaryCard", () => {
   it("activate button has Circle icon and proper aria-label (VIS-01)", async () => {
     // VIS-01: Star icon replaced by Circle icon in the activate button.
     // Button aria-label stays "Set as active faction theme".
-    // FAILS until Plan 01 swaps Star → Circle.
+    // FAILS until Plan 01 swaps Star â†’ Circle.
     renderWithRouter(<FactionSummaryCard stat={mockStat} />);
 
     // Wait for card to render

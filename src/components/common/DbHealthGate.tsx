@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { getDb } from "@/db/client";
+import { getRulesDb } from "@/db/rules-client";
+import { replaceSyncedUnitPoints } from "@/db/queries/syncedUnitPoints";
 import { DbDiagnosticScreen } from "@/components/common/DbDiagnosticScreen";
 
 /**
  * Expected schema version for hobbyforge.db.
  * Must match the highest-numbered migration prefix (033_database_hardening.sql).
  */
-export const EXPECTED_SCHEMA_VERSION = 33;
+export const EXPECTED_SCHEMA_VERSION = 35;
 
 /**
  * Extract user_version from a PRAGMA result row.
@@ -48,6 +50,29 @@ export function DbHealthGate({ children }: { children: ReactNode }) {
           `Schema version mismatch: found v${version}, expected v${EXPECTED_SCHEMA_VERSION}. ` +
             `The database may need migration.`
         );
+      }
+      // Repair synced_unit_points cache if stale
+      try {
+        const rulesDb = await getRulesDb();
+        const [{ c: rulesCount }] = await rulesDb.select<[{ c: number }]>(
+          "SELECT COUNT(*) as c FROM rw_datasheet_points", [],
+        );
+        const [{ c: cacheCount }] = await db.select<[{ c: number }]>(
+          "SELECT COUNT(*) as c FROM synced_unit_points", [],
+        );
+        if (rulesCount > 0 && cacheCount < rulesCount) {
+          console.info(`[DbHealthGate] synced_unit_points stale (${cacheCount}/${rulesCount}), repairing...`);
+          const rows = await rulesDb.select<{ datasheet_name: string; faction_id: string | null; points: number }[]>(
+            "SELECT datasheet_name, faction_id, points FROM rw_datasheet_points ORDER BY datasheet_name", [],
+          );
+          await replaceSyncedUnitPoints(
+            rows.map(r => ({ unit_name: r.datasheet_name, faction_id: r.faction_id, points: r.points })),
+            new Date().toISOString(),
+          );
+          console.info(`[DbHealthGate] synced_unit_points repaired: ${rows.length} rows`);
+        }
+      } catch (repairErr) {
+        console.warn("[DbHealthGate] points cache repair failed:", repairErr);
       }
       setState("ok");
     } catch (err) {

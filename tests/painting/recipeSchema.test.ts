@@ -1,5 +1,5 @@
-/**
- * SCHEMA-02 — recipeSchema Zod metadata validation tests.
+﻿/**
+ * SCHEMA-02 â€” recipeSchema Zod metadata validation tests.
  *
  * Verifies:
  *  1. RECIPE_STYLES, RECIPE_SURFACES, RECIPE_EFFECTS, RECIPE_DIFFICULTIES are
@@ -18,7 +18,7 @@ import {
   RECIPE_DIFFICULTIES,
 } from "@/features/recipes/recipeSchema";
 
-/** Minimal valid base shape — only required field is name. */
+/** Minimal valid base shape â€” only required field is name. */
 const BASE_VALID = {
   name: "Crimson Armor",
   faction_id: null,
@@ -34,7 +34,7 @@ const BASE_VALID = {
   result_photo_path: null,
 };
 
-describe("recipeSchema — const arrays (SCHEMA-02)", () => {
+describe("recipeSchema â€” const arrays (SCHEMA-02)", () => {
   it("RECIPE_STYLES is a non-empty array", () => {
     expect(Array.isArray(RECIPE_STYLES)).toBe(true);
     expect(RECIPE_STYLES.length).toBeGreaterThan(0);
@@ -56,7 +56,7 @@ describe("recipeSchema — const arrays (SCHEMA-02)", () => {
   });
 });
 
-describe("recipeSchema — valid recipe with metadata passes (SCHEMA-02)", () => {
+describe("recipeSchema â€” valid recipe with metadata passes (SCHEMA-02)", () => {
   it("accepts a fully populated recipe with all metadata fields", () => {
     const input = {
       ...BASE_VALID,
@@ -77,7 +77,7 @@ describe("recipeSchema — valid recipe with metadata passes (SCHEMA-02)", () =>
   });
 });
 
-describe("recipeSchema — estimated_minutes validation (SCHEMA-02)", () => {
+describe("recipeSchema â€” estimated_minutes validation (SCHEMA-02)", () => {
   it("rejects 0 (min is 1)", () => {
     const result = recipeSchema.safeParse({ ...BASE_VALID, estimated_minutes: 0 });
     expect(result.success).toBe(false);
@@ -104,7 +104,7 @@ describe("recipeSchema — estimated_minutes validation (SCHEMA-02)", () => {
   });
 });
 
-describe("recipeSchema — nullable metadata string fields (SCHEMA-02)", () => {
+describe("recipeSchema â€” nullable metadata string fields (SCHEMA-02)", () => {
   it("style accepts null", () => {
     const result = recipeSchema.safeParse({ ...BASE_VALID, style: null });
     expect(result.success).toBe(true);

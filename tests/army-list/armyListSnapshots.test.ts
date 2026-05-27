@@ -1,5 +1,5 @@
-/**
- * Phase 95 — armyListSnapshots query tests (SNP-01..04).
+﻿/**
+ * Phase 95 â€” armyListSnapshots query tests (SNP-01..04).
  *
  * Mocks getDb() because tauri-plugin-sql IPC cannot run in jsdom.
  * Follows the selectMock/executeMock pattern from armyListQueries.test.ts.
@@ -160,9 +160,9 @@ describe("restoreSnapshot", () => {
     executeMock.mockResolvedValueOnce({ lastInsertId: 99, rowsAffected: 1 });
     // 5. DELETE FROM army_list_units
     executeMock.mockResolvedValueOnce({ rowsAffected: 2 });
-    // 6. INSERT unit 1 (Intercessors — found in lookup)
+    // 6. INSERT unit 1 (Intercessors â€” found in lookup)
     executeMock.mockResolvedValueOnce({ lastInsertId: 100, rowsAffected: 1 });
-    // 7. INSERT unit 2 (Unknown Unit — NOT found, ghost fallback)
+    // 7. INSERT unit 2 (Unknown Unit â€” NOT found, ghost fallback)
     executeMock.mockResolvedValueOnce({ lastInsertId: 101, rowsAffected: 1 });
     // 8. Re-fetch new unit rows (COALESCE query)
     selectMock.mockResolvedValueOnce([
@@ -227,11 +227,11 @@ describe("restoreSnapshot", () => {
     );
     expect(unitInserts.length).toBe(2);
 
-    // First unit: Intercessors (found) — unit_id=10, ghost_unit_name=null
+    // First unit: Intercessors (found) â€” unit_id=10, ghost_unit_name=null
     expect(unitInserts[0][1][1]).toBe(10);    // unit_id
     expect(unitInserts[0][1][2]).toBeNull();   // ghost_unit_name
 
-    // Second unit: Unknown Unit (NOT found) — unit_id=null, ghost_unit_name="Unknown Unit"
+    // Second unit: Unknown Unit (NOT found) â€” unit_id=null, ghost_unit_name="Unknown Unit"
     expect(unitInserts[1][1][1]).toBeNull();   // unit_id
     expect(unitInserts[1][1][2]).toBe("Unknown Unit"); // ghost_unit_name
   });

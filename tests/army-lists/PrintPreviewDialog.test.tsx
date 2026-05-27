@@ -1,5 +1,5 @@
-/**
- * Phase 94 — PrintPreviewDialog tests (EXP-02).
+﻿/**
+ * Phase 94 â€” PrintPreviewDialog tests (EXP-02).
  *
  * Covers: renders army name, renders unit names, Print button present,
  * does not render content when closed.
@@ -10,7 +10,7 @@ import { PrintPreviewDialog } from "@/features/army-lists/PrintPreviewDialog";
 import type { ArmyList, ArmyListUnitRow, ArmyListEnhancement } from "@/types/armyList";
 
 // ---------------------------------------------------------------------------
-// Mock exportArmyList — the dialog calls formatArmyListForExport internally
+// Mock exportArmyList â€” the dialog calls formatArmyListForExport internally
 // ---------------------------------------------------------------------------
 vi.mock("@/lib/exportArmyList", () => ({
   formatArmyListForExport: (
@@ -63,12 +63,14 @@ const mockUnits: ArmyListUnitRow[] = [
     leader_attached_to_id: null,
     points_override: null,
     notes: null,
+    sort_order: 0,
     created_at: "2025-01-01",
     unit_name: "Intercessors",
     canonical_name: null,
     unit_points: 80,
     effective_points: 80,
     faction_id: 1,
+    unit_category: null, unit_model_count: null,
     status_assembly: null,
     status_painting: null,
     painting_percentage: null,
@@ -87,12 +89,14 @@ const mockUnits: ArmyListUnitRow[] = [
     leader_attached_to_id: null,
     points_override: null,
     notes: null,
+    sort_order: 0,
     created_at: "2025-01-01",
     unit_name: "Captain",
     canonical_name: null,
     unit_points: 80,
     effective_points: 80,
     faction_id: 1,
+    unit_category: null, unit_model_count: null,
     status_assembly: null,
     status_painting: null,
     painting_percentage: null,

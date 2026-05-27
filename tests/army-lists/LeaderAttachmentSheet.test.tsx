@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Phase 92 -- LeaderAttachmentSheet tests (LDR-01, LDR-02).
  *
  * Covers target display, attach/detach actions, disabled states, and empty state.
@@ -58,11 +58,13 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
     leader_attached_to_id: null,
     points_override: null,
     notes: null,
+    sort_order: 0,
     created_at: "2024-01-01",
     unit_name: "Captain",
     canonical_name: null,
     unit_points: 80,
     faction_id: 1,
+    unit_category: null, unit_model_count: null,
     status_assembly: 1,
     status_painting: "Completed",
     synced_points: null,
@@ -131,7 +133,7 @@ describe("LeaderAttachmentSheet", () => {
     const target = makeUnit({ id: 2, unit_name: "Intercessors", effective_points: 100 });
     renderSheet(leader, [leader, target]);
 
-    expect(screen.getByText(/Captain — Leader Attachment/)).toBeInTheDocument();
+    expect(screen.getByText(/Captain â€” Leader Attachment/)).toBeInTheDocument();
     expect(screen.getByText("Attach this leader to a valid target unit")).toBeInTheDocument();
   });
 

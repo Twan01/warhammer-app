@@ -1,5 +1,5 @@
-/**
- * DS-08 (secondary path) — DashboardPage conflict-dialog wiring tests.
+﻿/**
+ * DS-08 (secondary path) â€” DashboardPage conflict-dialog wiring tests.
  *
  * Verifies that:
  * 1. DashboardPage mounts DatasheetImportDialog in the populated state.
@@ -28,7 +28,7 @@ import { ActiveFactionProvider } from "@/context/ActiveFactionContext";
 import type { Unit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
 
-// ─── Mock dashboard query ─────────────────────────────────────────────────────
+// â”€â”€â”€ Mock dashboard query â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Phase 32: getArmyReadinessByFaction added; mock returns [] so ArmyReadinessCard
 // renders the empty-state and does not interfere with existing dashboard tests.
 vi.mock("@/db/queries/dashboard", () => ({
@@ -38,7 +38,7 @@ vi.mock("@/db/queries/dashboard", () => ({
 }));
 import { getDashboardStats } from "@/db/queries/dashboard";
 
-// ─── Mock factions query (ActiveFactionProvider) ──────────────────────────────
+// â”€â”€â”€ Mock factions query (ActiveFactionProvider) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 vi.mock("@/db/queries/factions", () => ({
   getFactions: vi.fn().mockResolvedValue([]),
   getFactionById: vi.fn(),
@@ -47,7 +47,7 @@ vi.mock("@/db/queries/factions", () => ({
   deleteFaction: vi.fn(),
 }));
 
-// ─── Mock useLatestUnitPhotos ─────────────────────────────────────────────────
+// â”€â”€â”€ Mock useLatestUnitPhotos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // DashboardPage now calls useLatestUnitPhotos to pass photo data to
 // CurrentFocusCard. Return an empty Map so the hook stays idle and does not
 // trigger the real Tauri appDataDir() call in jsdom.
@@ -55,15 +55,15 @@ vi.mock("@/hooks/useUnitPhotos", () => ({
   useLatestUnitPhotos: vi.fn().mockReturnValue({ data: new Map() }),
 }));
 
-// ─── Mock analytics query (used by DashboardPage's hobby health section) ──────
+// â”€â”€â”€ Mock analytics query (used by DashboardPage's hobby health section) â”€â”€â”€â”€â”€â”€
 vi.mock("@/db/queries/analytics", () => ({
   getHobbyAnalytics: vi.fn().mockResolvedValue(null),
 }));
 
-// ─── Stub UnitDetailSheet — expose props as data attributes ───────────────────
+// â”€â”€â”€ Stub UnitDetailSheet â€” expose props as data attributes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // DashboardPage mounts two UnitDetailSheet instances:
-//   1. Empty-state no-op (key="none-detail", open={false}) — no conflict props
-//   2. Populated (key depends on selectedUnit?.id, open={selectedUnitId !== null}) — gets conflict props
+//   1. Empty-state no-op (key="none-detail", open={false}) â€” no conflict props
+//   2. Populated (key depends on selectedUnit?.id, open={selectedUnitId !== null}) â€” gets conflict props
 // We distinguish them by the "open" prop.
 vi.mock("@/features/units/UnitDetailSheet", () => ({
   UnitDetailSheet: (props: {
@@ -82,17 +82,17 @@ vi.mock("@/features/units/UnitDetailSheet", () => ({
   ),
 }));
 
-// ─── Stub UnitSheet (edit sheet) ──────────────────────────────────────────────
+// â”€â”€â”€ Stub UnitSheet (edit sheet) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 vi.mock("@/features/units/UnitSheet", () => ({
   UnitSheet: () => <div data-testid="unit-sheet-stub" />,
 }));
 
-// ─── Stub UnitDeleteDialog ────────────────────────────────────────────────────
+// â”€â”€â”€ Stub UnitDeleteDialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 vi.mock("@/features/units/UnitDeleteDialog", () => ({
   UnitDeleteDialog: () => <div data-testid="unit-delete-dialog-stub" />,
 }));
 
-// ─── Stub DatasheetImportDialog — expose open prop ───────────────────────────
+// â”€â”€â”€ Stub DatasheetImportDialog â€” expose open prop â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 vi.mock("@/features/units/DatasheetImportDialog", () => ({
   DatasheetImportDialog: (props: { open: boolean; [key: string]: unknown }) => (
     <div
@@ -118,7 +118,7 @@ Object.defineProperty(window, "matchMedia", {
   } as MediaQueryList),
 });
 
-// ─── Factories ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Factories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function f(over: Partial<Faction> = {}): Faction {
   return {
     id: 1,
@@ -199,10 +199,10 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-// ─── Import DashboardPage after mocks ─────────────────────────────────────────
+// â”€â”€â”€ Import DashboardPage after mocks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 
-describe("DashboardPage — DS-08 conflict dialog wiring", () => {
+describe("DashboardPage â€” DS-08 conflict dialog wiring", () => {
   it("DS-08: DatasheetImportDialog is mounted in the populated state", async () => {
     const tau = f();
     vi.mocked(getDashboardStats).mockResolvedValue({
@@ -239,7 +239,7 @@ describe("DashboardPage — DS-08 conflict dialog wiring", () => {
     // Both sheet stubs are in the DOM; the populated one uses the unit id key variant.
     // We verify props by checking the data attributes on the stub.
     // The populated sheet (key={selectedUnit?.id ?? "none-detail"}, open={selectedUnitId !== null})
-    // is open=false until a row is clicked — but the stub renders regardless of open value,
+    // is open=false until a row is clicked â€” but the stub renders regardless of open value,
     // and we key them by open prop in the mock. Since selectedUnitId starts as null, both
     // sheets start with open=false. We distinguish by checking which sheet has conflict props.
 

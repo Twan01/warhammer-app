@@ -1,10 +1,10 @@
-/**
- * STUDIO-03 — duplicateRecipe SQL coverage.
- * INTG-01 — section copy pass with Map<oldSectionId, newSectionId> remapping.
+﻿/**
+ * STUDIO-03 â€” duplicateRecipe SQL coverage.
+ * INTG-01 â€” section copy pass with Map<oldSectionId, newSectionId> remapping.
  * Mocks getDb() to capture SQL strings and params.
  *
  * NOTE: duplicateRecipe uses auto-commit mode (no explicit BEGIN/COMMIT)
- * because tauri-plugin-sql uses sqlx::Pool<Sqlite> — each db.execute() may
+ * because tauri-plugin-sql uses sqlx::Pool<Sqlite> â€” each db.execute() may
  * run on a different connection from the pool.
  */
 import { vi, describe, it, expect, beforeEach } from "vitest";
@@ -113,7 +113,7 @@ const STEP_FIXTURES: RecipeStep[] = [
     time_estimate_minutes: null,
     step_photo_path: null,
     alt_paint_id: null,
-    section_id: null, // not assigned to a section — defensive path
+    section_id: null, // not assigned to a section â€” defensive path
     created_at: "2026-01-01T00:00:00Z",
   },
 ];
@@ -136,7 +136,7 @@ beforeEach(() => {
     .mockResolvedValue({ lastInsertId: 300 });     // step INSERTs
 });
 
-describe("duplicateRecipe — SQL coverage (STUDIO-03 + INTG-01)", () => {
+describe("duplicateRecipe â€” SQL coverage (STUDIO-03 + INTG-01)", () => {
   it("reads original recipe via SELECT with $1 = originalId", async () => {
     await duplicateRecipe(1, "Copy of Space Marine Blue");
     const [sql, params] = selectMock.mock.calls[0];
@@ -198,7 +198,7 @@ describe("duplicateRecipe — SQL coverage (STUDIO-03 + INTG-01)", () => {
     expect(params[0]).toBe(100); // newRecipeId from lastInsertId
   });
 
-  it("remaps step section_id using sectionIdMap — old id 20 becomes new id 200", async () => {
+  it("remaps step section_id using sectionIdMap â€” old id 20 becomes new id 200", async () => {
     await duplicateRecipe(1, "Copy of Space Marine Blue");
     // calls[3] = first step (had section_id 20 -> remapped to 200)
     const [, params1] = executeMock.mock.calls[3];

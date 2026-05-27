@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AR-07 -- ApplyToUnitsDialog tests.
  * Covers: unit list rendering, already-assigned dimming, multi-select count,
  * disabled confirm, and bulk create mutation args.

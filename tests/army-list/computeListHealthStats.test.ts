@@ -1,7 +1,7 @@
-/**
- * Phase 91 — computeListHealthStats enhancement total tests (ENH-03).
+﻿/**
+ * Phase 91 â€” computeListHealthStats enhancement total tests (ENH-03).
  *
- * Pure function tests — no mocks needed. Validates that the optional
+ * Pure function tests â€” no mocks needed. Validates that the optional
  * 4th parameter (enhancementTotal) is correctly added to totalPoints
  * and reflected in the pointsExceeded flag.
  */
@@ -17,12 +17,14 @@ function makeUnit(pts: number): ArmyListUnitRow {
     unit_id: 1,
     points_override: null,
     notes: null,
+    sort_order: 0,
     created_at: "2026-01-01T00:00:00Z",
     unit_name: "Test Unit",
     canonical_name: null,
     unit_points: pts,
     effective_points: pts,
     faction_id: 1,
+    unit_category: null, unit_model_count: null,
     status_assembly: 1,
     status_painting: "Not Started",
     painting_percentage: 0,
@@ -37,7 +39,7 @@ function makeUnit(pts: number): ArmyListUnitRow {
   };
 }
 
-describe("computeListHealthStats — enhancement total (ENH-03)", () => {
+describe("computeListHealthStats â€” enhancement total (ENH-03)", () => {
   it("includes enhancementTotal in totalPoints", () => {
     const units = [makeUnit(850)];
     const stats = computeListHealthStats(units, 1000, "fresh", 60);

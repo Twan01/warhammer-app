@@ -1,5 +1,5 @@
-/**
- * STUDIO-04 — applyRecipeFilters pure function tests.
+﻿/**
+ * STUDIO-04 â€” applyRecipeFilters pure function tests.
  * Tests filtering recipes by surface, style, difficulty, and hasMissing.
  */
 import { describe, it, expect } from "vitest";
@@ -82,7 +82,7 @@ describe("applyRecipeFilters", () => {
   });
 
   it("hasMissingFilter=true excludes recipes not in availability map (no paint links)", () => {
-    // recipe 4 not in map — should be excluded
+    // recipe 4 not in map â€” should be excluded
     const availabilityByRecipe = new Map<number, AvailabilityStats>([
       [1, { owned: 2, missing: 1, runningLow: 0 }],
     ]);

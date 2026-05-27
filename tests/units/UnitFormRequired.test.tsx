@@ -1,11 +1,11 @@
-/**
- * ARCH-03 — UnitFormRequired behavioral tests.
+﻿/**
+ * ARCH-03 â€” UnitFormRequired behavioral tests.
  *
  * Verifies that UnitFormRequired, extracted from the monolithic UnitSheet.tsx,
  * correctly renders all required form fields when wrapped in a react-hook-form
  * FormProvider (shadcn Form IS FormProvider).
  *
- * Tests the real component without mocking internals — if useFormContext blows
+ * Tests the real component without mocking internals â€” if useFormContext blows
  * up outside a provider the component will throw, which is itself a behavioral
  * defect.
  */
@@ -108,7 +108,7 @@ function Harness({
   );
 }
 
-describe("ARCH-03 — UnitFormRequired renders required fields", () => {
+describe("ARCH-03 â€” UnitFormRequired renders required fields", () => {
   it("renders the Name text input", () => {
     render(<Harness />);
     // The label "Name" should be present
@@ -152,9 +152,9 @@ describe("ARCH-03 — UnitFormRequired renders required fields", () => {
     expect(nameInput.value).toBe("Tau Fire Warriors");
   });
 
-  it("does NOT render any mutation hooks — no Save/Submit button inside the component", () => {
+  it("does NOT render any mutation hooks â€” no Save/Submit button inside the component", () => {
     render(<Harness />);
-    // UnitFormRequired must be a pure presenter — no submit button of its own
+    // UnitFormRequired must be a pure presenter â€” no submit button of its own
     expect(screen.queryByRole("button", { name: /save/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /submit/i })).toBeNull();
   });

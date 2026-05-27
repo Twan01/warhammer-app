@@ -209,6 +209,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/034_urm_datasheet_name.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 35,
+            description: "army_list_unit_sort_order",
+            sql: include_str!("../migrations/035_army_list_unit_sort_order.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

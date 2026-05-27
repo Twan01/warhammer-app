@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Phase 87 EP-02..EP-07 -- Entry point behavioral tests.
  *
  * Tests painting mode entry points across surfaces:

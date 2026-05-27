@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Phase 67 -- GameDayReadinessPanel component tests.
  *
  * Tests the pre-game readiness panel: points display, warning counts,
@@ -11,7 +11,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { GameDayReadinessPanel } from "@/features/game-day/GameDayReadinessPanel";
 import type { ArmyListUnitRow } from "@/types/armyList";
 
-// Mock PointsFreshnessBadge — it calls hooks internally
+// Mock PointsFreshnessBadge â€” it calls hooks internally
 vi.mock("@/features/army-lists/PointsFreshnessBadge", () => ({
   PointsFreshnessBadge: () => <span data-testid="freshness-badge">Fresh</span>,
 }));
@@ -31,11 +31,13 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
     leader_attached_to_id: null,
     points_override: null,
     notes: null,
+    sort_order: 0,
     created_at: "2024-01-01",
     unit_name: "Intercessors",
     canonical_name: null,
     unit_points: 100,
     faction_id: 1,
+    unit_category: null, unit_model_count: null,
     status_assembly: 1,
     status_painting: "Completed",
     synced_points: null,
@@ -139,7 +141,7 @@ describe("GameDayReadinessPanel", () => {
     await user.click(trigger);
     // Should show warning message text in the collapsible detail
     expect(screen.getByText("Not painted")).toBeInTheDocument();
-    // Unit name appears in both readiness gaps and collapsible — just verify count
+    // Unit name appears in both readiness gaps and collapsible â€” just verify count
     expect(screen.getAllByText("Terminators").length).toBeGreaterThanOrEqual(1);
   });
 

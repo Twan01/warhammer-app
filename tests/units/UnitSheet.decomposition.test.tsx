@@ -1,5 +1,5 @@
-/**
- * ARCH-03 — UnitSheet decomposition behavioral tests.
+﻿/**
+ * ARCH-03 â€” UnitSheet decomposition behavioral tests.
  *
  * Verifies that the slim UnitSheet orchestrator:
  * 1. Renders both UnitFormRequired and UnitFormOptional inside its Form wrapper
@@ -7,14 +7,14 @@
  * 3. buildDefaultValues hydrates an existing unit's values for edit mode
  * 4. The orchestrator itself renders the Sheet, form fields, and submit button
  *
- * This file intentionally does NOT mock UnitFormRequired or UnitFormOptional —
+ * This file intentionally does NOT mock UnitFormRequired or UnitFormOptional â€”
  * we want to verify the real render tree, not just that imports exist.
  */
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-// ── Mocks required for UnitSheet's own hook dependencies ──────────────────────
+// â”€â”€ Mocks required for UnitSheet's own hook dependencies â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 vi.mock("@/hooks/useUnits", () => ({
   useCreateUnit: vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false })),
@@ -103,7 +103,7 @@ function renderSheet(unit: Unit | null = null, open = true) {
   );
 }
 
-describe("ARCH-03 — UnitSheet orchestrator renders decomposed sub-components", () => {
+describe("ARCH-03 â€” UnitSheet orchestrator renders decomposed sub-components", () => {
   it("renders the sheet title 'New Unit' when unit=null", () => {
     renderSheet(null);
     expect(screen.getByText("New Unit")).toBeInTheDocument();

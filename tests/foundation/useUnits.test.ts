@@ -1,5 +1,5 @@
-/**
- * DATA-09 — useUnits mutations must invalidate ["dashboard-stats"]
+﻿/**
+ * DATA-09 â€” useUnits mutations must invalidate ["dashboard-stats"]
  * in addition to their own query keys.
  *
  * Pattern mirrors tests/foundation/usePaints.test.ts. Mocks query
@@ -66,7 +66,7 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("useUnits — UNITS_KEY constant", () => {
+describe("useUnits â€” UNITS_KEY constant", () => {
   it("UNITS_KEY equals ['units'] literal", () => {
     expect(UNITS_KEY).toEqual(["units"]);
   });
@@ -76,7 +76,7 @@ describe("useUnits — UNITS_KEY constant", () => {
   });
 });
 
-describe("useUnits — useCreateUnit onSuccess invalidations (DATA-09)", () => {
+describe("useUnits â€” useCreateUnit onSuccess invalidations (DATA-09)", () => {
   it("invalidates UNITS_KEY (['units'])", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useCreateUnit(), { wrapper });
@@ -113,7 +113,7 @@ describe("useUnits — useCreateUnit onSuccess invalidations (DATA-09)", () => {
   });
 });
 
-describe("useUnits — useUpdateUnit onSuccess invalidations (DATA-09)", () => {
+describe("useUnits â€” useUpdateUnit onSuccess invalidations (DATA-09)", () => {
   it("invalidates UNITS_KEY", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useUpdateUnit(), { wrapper });
@@ -163,7 +163,7 @@ describe("useUnits — useUpdateUnit onSuccess invalidations (DATA-09)", () => {
   });
 });
 
-describe("useUnits — useDeleteUnit onSuccess invalidations (DATA-09)", () => {
+describe("useUnits â€” useDeleteUnit onSuccess invalidations (DATA-09)", () => {
   it("invalidates UNITS_KEY", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useDeleteUnit(), { wrapper });

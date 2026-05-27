@@ -1,13 +1,13 @@
-/**
- * SCHEMA-04 — useAllStepCounts hook + STEP_COUNTS_KEY invalidation tests.
+﻿/**
+ * SCHEMA-04 â€” useAllStepCounts hook + STEP_COUNTS_KEY invalidation tests.
  *
  * Verifies:
- *  1. useAllStepCounts returns a Map<number, number> (recipe_id → step_count)
+ *  1. useAllStepCounts returns a Map<number, number> (recipe_id â†’ step_count)
  *     built from the batch query results.
  *  2. useAddRecipePaint.onSuccess invalidates STEP_COUNTS_KEY (["recipe-step-counts"]).
  *  3. useRemoveRecipePaint.onSuccess invalidates STEP_COUNTS_KEY.
  *
- * Pattern mirrors tests/foundation/useRecipes.test.ts — renderHook with a fresh
+ * Pattern mirrors tests/foundation/useRecipes.test.ts â€” renderHook with a fresh
  * QueryClient per test, spying on invalidateQueries. All query/mutation fns mocked.
  */
 import React from "react";
@@ -64,7 +64,7 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("useAllStepCounts — SCHEMA-04", () => {
+describe("useAllStepCounts â€” SCHEMA-04", () => {
   it("STEP_COUNTS_KEY equals ['recipe-step-counts']", () => {
     expect(STEP_COUNTS_KEY).toEqual(["recipe-step-counts"]);
   });
@@ -96,7 +96,7 @@ describe("useAllStepCounts — SCHEMA-04", () => {
   });
 });
 
-describe("useAddRecipePaint — STEP_COUNTS_KEY invalidation (SCHEMA-04)", () => {
+describe("useAddRecipePaint â€” STEP_COUNTS_KEY invalidation (SCHEMA-04)", () => {
   it("invalidates STEP_COUNTS_KEY (['recipe-step-counts']) on success", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useAddRecipePaint(), { wrapper });
@@ -111,7 +111,7 @@ describe("useAddRecipePaint — STEP_COUNTS_KEY invalidation (SCHEMA-04)", () =>
   });
 });
 
-describe("useRemoveRecipePaint — STEP_COUNTS_KEY invalidation (SCHEMA-04)", () => {
+describe("useRemoveRecipePaint â€” STEP_COUNTS_KEY invalidation (SCHEMA-04)", () => {
   it("invalidates STEP_COUNTS_KEY (['recipe-step-counts']) on success", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useRemoveRecipePaint(), { wrapper });

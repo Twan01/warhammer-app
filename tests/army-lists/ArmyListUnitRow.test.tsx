@@ -1,5 +1,5 @@
-/**
- * Phase 90 gap coverage — ArmyListUnitRow Configure button tests.
+﻿/**
+ * Phase 90 gap coverage â€” ArmyListUnitRow Configure button tests.
  *
  * Verifies that the Configure trigger button (Plan 01 Task 2):
  *   - Renders with "Configure" text when no tier is selected
@@ -17,7 +17,7 @@ import type { ArmyListUnitRow as ArmyListUnitRowType } from "@/types/armyList";
 import type { SyncFreshness } from "@/lib/syncFreshness";
 
 // ---------------------------------------------------------------------------
-// Mocks — ArmyListUnitRow has many internal dependencies
+// Mocks â€” ArmyListUnitRow has many internal dependencies
 // ---------------------------------------------------------------------------
 
 const mockUpdateMutate = vi.fn();
@@ -75,11 +75,13 @@ function makeUnit(overrides: Partial<ArmyListUnitRowType> = {}): ArmyListUnitRow
     leader_attached_to_id: null,
     points_override: null,
     notes: null,
+    sort_order: 0,
     created_at: "2024-01-01",
     unit_name: "Intercessors",
     canonical_name: null,
     unit_points: 100,
     faction_id: 1,
+    unit_category: null, unit_model_count: null,
     status_assembly: 1,
     status_painting: "Completed",
     synced_points: null,
@@ -122,6 +124,7 @@ function renderRow(
               onConfigure={overrides.onConfigure ?? vi.fn()}
               onEnhance={overrides.onEnhance ?? vi.fn()}
               onAttachLeader={overrides.onAttachLeader ?? vi.fn()}
+              onToggleWarlord={vi.fn()}
             />
           </TableBody>
         </Table>
@@ -134,7 +137,7 @@ function renderRow(
 // Tests
 // ---------------------------------------------------------------------------
 
-describe("ArmyListUnitRow — Configure button", () => {
+describe("ArmyListUnitRow â€” Configure button", () => {
   beforeEach(() => {
     mockUpdateMutate.mockClear();
   });
@@ -167,7 +170,7 @@ describe("ArmyListUnitRow — Configure button", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Ghost unit treatment (Phase 93 — BRW-02, BRW-03)
+// Ghost unit treatment (Phase 93 â€” BRW-02, BRW-03)
 // ---------------------------------------------------------------------------
 
 function makeGhostUnit(overrides: Partial<ArmyListUnitRowType> = {}): ArmyListUnitRowType {
@@ -183,7 +186,7 @@ function makeGhostUnit(overrides: Partial<ArmyListUnitRowType> = {}): ArmyListUn
   });
 }
 
-describe("ArmyListUnitRow — Ghost unit treatment", () => {
+describe("ArmyListUnitRow â€” Ghost unit treatment", () => {
   beforeEach(() => {
     mockUpdateMutate.mockClear();
   });

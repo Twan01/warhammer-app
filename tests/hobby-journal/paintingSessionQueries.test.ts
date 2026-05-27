@@ -1,5 +1,5 @@
-/**
- * JOUR-01..03 — paintingSessions query function tests.
+﻿/**
+ * JOUR-01..03 â€” paintingSessions query function tests.
  * Mocks getDb() because tauri-plugin-sql IPC cannot run in jsdom.
  * Verifies SQL strings + parameter arrays.
  */

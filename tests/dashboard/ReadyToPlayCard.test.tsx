@@ -1,5 +1,5 @@
-/**
- * Phase 78 — ReadyToPlayCard component behavioral tests
+﻿/**
+ * Phase 78 â€” ReadyToPlayCard component behavioral tests
  * (Task 78-02-02, Req GD-02/DB-02).
  *
  * Verifies:
@@ -64,7 +64,7 @@ beforeEach(() => {
   mockSyncMeta = null;
 });
 
-describe("ReadyToPlayCard — loading state", () => {
+describe("ReadyToPlayCard â€” loading state", () => {
   it("renders a skeleton while army lists are loading", () => {
     mockListsLoading = true;
     mockLists = undefined;
@@ -74,7 +74,7 @@ describe("ReadyToPlayCard — loading state", () => {
   });
 });
 
-describe("ReadyToPlayCard — empty state (no lists)", () => {
+describe("ReadyToPlayCard â€” empty state (no lists)", () => {
   it("renders 'No army lists yet' when lists array is empty", () => {
     mockLists = [];
     render(<ReadyToPlayCard />);
@@ -90,7 +90,7 @@ describe("ReadyToPlayCard — empty state (no lists)", () => {
   });
 });
 
-describe("ReadyToPlayCard — sorts by updated_at DESC and uses most recent list", () => {
+describe("ReadyToPlayCard â€” sorts by updated_at DESC and uses most recent list", () => {
   it("shows the most recently updated list name when multiple lists exist", () => {
     // RECENT_LIST has updated_at 2026-05-10, OLDER_LIST has 2026-03-01
     // Component should show RECENT_LIST
@@ -102,7 +102,7 @@ describe("ReadyToPlayCard — sorts by updated_at DESC and uses most recent list
   });
 });
 
-describe("ReadyToPlayCard — data rendering", () => {
+describe("ReadyToPlayCard â€” data rendering", () => {
   beforeEach(() => {
     mockLists = [RECENT_LIST];
     mockUnits = [
@@ -126,7 +126,7 @@ describe("ReadyToPlayCard — data rendering", () => {
 
   it("renders unpainted count for non-completed units", () => {
     render(<ReadyToPlayCard />);
-    // 2 units are not Completed — "2 unpainted" appears in the metadata row
+    // 2 units are not Completed â€” "2 unpainted" appears in the metadata row
     const matches = screen.getAllByText(/2 unpainted/);
     expect(matches.length).toBeGreaterThan(0);
   });
@@ -139,13 +139,13 @@ describe("ReadyToPlayCard — data rendering", () => {
 
   it("renders warning badge when unpainted count > 0", () => {
     render(<ReadyToPlayCard />);
-    // 2 unpainted — warning badge should appear
+    // 2 unpainted â€” warning badge should appear
     const badges = document.querySelectorAll(".bg-amber-500\\/15");
     expect(badges.length).toBeGreaterThan(0);
   });
 });
 
-describe("ReadyToPlayCard — all units painted (no warning badge)", () => {
+describe("ReadyToPlayCard â€” all units painted (no warning badge)", () => {
   it("does not render warning badge when all units are Completed", () => {
     mockLists = [RECENT_LIST];
     mockUnits = [

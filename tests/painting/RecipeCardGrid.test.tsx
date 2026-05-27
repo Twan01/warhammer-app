@@ -1,5 +1,5 @@
-/**
- * STUDIO-01 — RecipeCardGrid rendering tests.
+﻿/**
+ * STUDIO-01 â€” RecipeCardGrid rendering tests.
  * Tests grid states: loading, empty, data.
  */
 import { describe, it, expect, vi } from "vitest";

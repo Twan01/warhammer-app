@@ -1,5 +1,5 @@
-/**
- * PROJ-01, PROJ-02, PROJ-07 — Kanban pure-function utilities.
+﻿/**
+ * PROJ-01, PROJ-02, PROJ-07 â€” Kanban pure-function utilities.
  */
 import { describe, it, expect } from "vitest";
 import {

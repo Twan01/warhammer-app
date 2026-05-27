@@ -1,5 +1,5 @@
-/**
- * RECIPE-05, RECIPE-06 — recipe step pure-function utilities.
+﻿/**
+ * RECIPE-05, RECIPE-06 â€” recipe step pure-function utilities.
  */
 import { describe, it, expect } from "vitest";
 import { computeOrderIndex, isPaintMissing, makeDraftStep } from "@/lib/recipeSteps";

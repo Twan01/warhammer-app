@@ -1,11 +1,11 @@
-/**
- * Phase 21 — WishlistPage component integration tests (WISH-01..04).
+﻿/**
+ * Phase 21 â€” WishlistPage component integration tests (WISH-01..04).
  *
  * Mocks hooks at the module level so this is a pure component test (no SQLite).
  * Uses QueryClientProvider wrapper for React Query context.
  *
  * Pitfall 6: shadcn Select renders selected value in both visible span AND hidden
- * native option — use getAllByText or scope queries to specific container role.
+ * native option â€” use getAllByText or scope queries to specific container role.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
@@ -104,7 +104,7 @@ beforeEach(() => {
 // WISH-01: Add item
 // ---------------------------------------------------------------------------
 
-describe("WishlistPage — WISH-01 (add item)", () => {
+describe("WishlistPage â€” WISH-01 (add item)", () => {
   it("renders Sheet form with name, faction, cost, notes fields on Add click", async () => {
     const user = userEvent.setup();
     render(<WishlistPage />, { wrapper: Wrapper });
@@ -113,7 +113,7 @@ describe("WishlistPage — WISH-01 (add item)", () => {
     const addButtons = screen.getAllByRole("button", { name: /add item/i });
     await user.click(addButtons[0]);
 
-    // Sheet should open — look for the sheet title
+    // Sheet should open â€” look for the sheet title
     await waitFor(() => {
       expect(screen.getByText("Add Wishlist Item")).toBeInTheDocument();
     });
@@ -135,7 +135,7 @@ describe("WishlistPage — WISH-01 (add item)", () => {
     const nameInput = screen.getByPlaceholderText(/helbrute/i);
     await user.type(nameInput, "Test Model");
 
-    // Submit form — the mutation should be called
+    // Submit form â€” the mutation should be called
     const submitBtn = screen.getByRole("button", { name: /^add item$/i });
     await user.click(submitBtn);
 
@@ -149,7 +149,7 @@ describe("WishlistPage — WISH-01 (add item)", () => {
 // WISH-02: View items
 // ---------------------------------------------------------------------------
 
-describe("WishlistPage — WISH-02 (view items)", () => {
+describe("WishlistPage â€” WISH-02 (view items)", () => {
   it("renders rows with name, faction name, estimated cost, notes, date", () => {
     render(<WishlistPage />, { wrapper: Wrapper });
 
@@ -161,9 +161,9 @@ describe("WishlistPage — WISH-02 (view items)", () => {
     expect(screen.getByText("Chaos Space Marines")).toBeInTheDocument();
     expect(screen.getByText("Ultramarines")).toBeInTheDocument();
 
-    // Estimated cost for item 1 (4500 pence = £45.00)
-    // Pitfall 6: £45.00 appears both in the row and the summary bar
-    expect(screen.getAllByText("£45.00").length).toBeGreaterThanOrEqual(1);
+    // Estimated cost for item 1 (4500 pence = Â£45.00)
+    // Pitfall 6: Â£45.00 appears both in the row and the summary bar
+    expect(screen.getAllByText("Â£45.00").length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows empty state when no items exist", () => {
@@ -179,14 +179,14 @@ describe("WishlistPage — WISH-02 (view items)", () => {
   it("shows total estimated cost summary bar when items exist", () => {
     render(<WishlistPage />, { wrapper: Wrapper });
 
-    // Total = 4500 pence = £45.00 (Rhino has null cost treated as 0)
+    // Total = 4500 pence = Â£45.00 (Rhino has null cost treated as 0)
     // The summary bar shows count + formatted total
     expect(screen.getByText("items")).toBeInTheDocument();
     expect(screen.getByText("estimated")).toBeInTheDocument();
 
-    // The total formatted amount should appear (£45.00 total from mockItems)
-    // Item 1 cost (£45.00) is also shown in the row, so use getAllByText
-    const fortyFive = screen.getAllByText("£45.00");
+    // The total formatted amount should appear (Â£45.00 total from mockItems)
+    // Item 1 cost (Â£45.00) is also shown in the row, so use getAllByText
+    const fortyFive = screen.getAllByText("Â£45.00");
     expect(fortyFive.length).toBeGreaterThanOrEqual(1);
   });
 });
@@ -195,7 +195,7 @@ describe("WishlistPage — WISH-02 (view items)", () => {
 // WISH-03: Delete item
 // ---------------------------------------------------------------------------
 
-describe("WishlistPage — WISH-03 (delete item)", () => {
+describe("WishlistPage â€” WISH-03 (delete item)", () => {
   it("opens delete dialog on Delete button click", async () => {
     const user = userEvent.setup();
     render(<WishlistPage />, { wrapper: Wrapper });
@@ -238,7 +238,7 @@ describe("WishlistPage — WISH-03 (delete item)", () => {
 // WISH-04: Notes
 // ---------------------------------------------------------------------------
 
-describe("WishlistPage — WISH-04 (notes)", () => {
+describe("WishlistPage â€” WISH-04 (notes)", () => {
   it("displays notes text (truncated) on row for items with notes", () => {
     render(<WishlistPage />, { wrapper: Wrapper });
 

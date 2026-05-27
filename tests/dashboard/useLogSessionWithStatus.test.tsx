@@ -1,5 +1,5 @@
-/**
- * DATA-02 — LogSessionSheet mutation sequencing tests.
+﻿/**
+ * DATA-02 â€” LogSessionSheet mutation sequencing tests.
  *
  * Tests that LogSessionSheet calls createSession and updateUnit in the
  * correct sequence, handles partial failures, and shows the right toasts.
@@ -15,7 +15,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import type { Unit } from "@/types/unit";
 
-// ── Mocks ─────────────────────────────────────────────────────────────────────
+// â”€â”€ Mocks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const createSessionMutateAsync = vi.fn();
 const updateUnitMutateAsync = vi.fn();
@@ -58,11 +58,11 @@ vi.mock("@/lib/dates", () => ({
   formatCurrency: vi.fn(),
 }));
 
-// ── Import after mocks ─────────────────────────────────────────────────────────
+// â”€â”€ Import after mocks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 import { LogSessionSheet } from "@/features/dashboard/LogSessionSheet";
 
-// ── Test helpers ───────────────────────────────────────────────────────────────
+// â”€â”€ Test helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function u(over: Partial<Unit> = {}): Unit {
   return {
@@ -104,7 +104,7 @@ function Wrapper({ children }: { children: ReactNode }) {
   return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
 }
 
-// ── Setup ──────────────────────────────────────────────────────────────────────
+// â”€â”€ Setup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -113,9 +113,9 @@ beforeEach(() => {
   updateUnitMutateAsync.mockResolvedValue(undefined);
 });
 
-// ── Tests ──────────────────────────────────────────────────────────────────────
+// â”€â”€ Tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-describe("LogSessionSheet — DATA-02 (cache invalidation after status update)", () => {
+describe("LogSessionSheet â€” DATA-02 (cache invalidation after status update)", () => {
   describe("session-only submit (no status change)", () => {
     it("calls createSession.mutateAsync with session data", async () => {
       const user = userEvent.setup();
@@ -271,7 +271,7 @@ describe("LogSessionSheet — DATA-02 (cache invalidation after status update)",
       expect(mod.PAINTING_SESSIONS_KEY(7)).toEqual(["painting-sessions", 7]);
     });
 
-    it("UNITS_KEY is ['units'] — matches useUpdateUnit invalidation", async () => {
+    it("UNITS_KEY is ['units'] â€” matches useUpdateUnit invalidation", async () => {
       const { UNITS_KEY } = await import("@/hooks/useUnits");
       expect(UNITS_KEY).toEqual(["units"]);
     });
@@ -323,14 +323,14 @@ describe("LogSessionSheet — DATA-02 (cache invalidation after status update)",
       });
     });
 
-    it("invalidates units — UNITS_KEY contract matches ['units']", () => {
+    it("invalidates units â€” UNITS_KEY contract matches ['units']", () => {
       // The mock at top of file has UNITS_KEY: ["units"] to mirror the real export.
       // This verifies the key shape used by useUpdateUnit.onSuccess.
       expect(["units"]).toEqual(["units"]);
       expect(["units", 7]).toEqual(["units", 7]);
     });
 
-    it("goal-progress, recent-activity, hobby-analytics — useCreatePaintingSession.onSuccess covers DATA-02 keys", async () => {
+    it("goal-progress, recent-activity, hobby-analytics â€” useCreatePaintingSession.onSuccess covers DATA-02 keys", async () => {
       const mod = await import("@/hooks/useJournalSessions");
       expect(mod.PAINTING_SESSIONS_KEY(7)).toEqual(["painting-sessions", 7]);
     });
@@ -390,7 +390,7 @@ describe("LogSessionSheet — DATA-02 (cache invalidation after status update)",
         expect(toastWarningMock).toHaveBeenCalled();
       });
 
-      // createSession was called and succeeded — no rollback
+      // createSession was called and succeeded â€” no rollback
       expect(createSessionMutateAsync).toHaveBeenCalledOnce();
       expect(toastErrorMock).not.toHaveBeenCalled();
     });

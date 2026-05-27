@@ -1,8 +1,8 @@
-/**
- * Phase 76 — PV-06 gap: ArmyListSummaryBar renders list-level warnings as Badge components.
+﻿/**
+ * Phase 76 â€” PV-06 gap: ArmyListSummaryBar renders list-level warnings as Badge components.
  *
  * Verifies that computeListWarnings results appear as Badge elements in the
- * summary bar — specifically:
+ * summary bar â€” specifically:
  *   - Hard warnings ("Points exceeded") rendered as Badge variant="destructive"
  *   - Soft warnings ("Stale points data") rendered as Badge variant="outline"
  *   - No warning badges shown when list is within limit and sync is fresh
@@ -15,7 +15,7 @@ import { ArmyListSummaryBar } from "@/features/army-lists/ArmyListSummaryBar";
 import type { ArmyListUnitRow } from "@/types/armyList";
 import type { SyncFreshness } from "@/lib/syncFreshness";
 
-// PointsFreshnessBadge calls hooks internally — mock it
+// PointsFreshnessBadge calls hooks internally â€” mock it
 vi.mock("@/features/army-lists/PointsFreshnessBadge", () => ({
   PointsFreshnessBadge: () => <span data-testid="freshness-badge">Fresh</span>,
 }));
@@ -35,11 +35,13 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
     leader_attached_to_id: null,
     points_override: null,
     notes: null,
+    sort_order: 0,
     created_at: "2024-01-01",
     unit_name: "Intercessors",
     canonical_name: null,
     unit_points: 100,
     faction_id: 1,
+    unit_category: null, unit_model_count: null,
     status_assembly: 1,
     status_painting: "Completed",
     synced_points: null,
@@ -68,7 +70,7 @@ function renderBar(
 // Tests
 // ---------------------------------------------------------------------------
 
-describe("ArmyListSummaryBar — list-level warning badges (PV-06)", () => {
+describe("ArmyListSummaryBar â€” list-level warning badges (PV-06)", () => {
   // -------------------------------------------------------------------------
   // Hard warning: Points exceeded
   // -------------------------------------------------------------------------
@@ -167,7 +169,7 @@ describe("ArmyListSummaryBar — list-level warning badges (PV-06)", () => {
     const units = [makeUnit({ effective_points: 500 })];
     renderBar(units, 2000, "fresh");
 
-    // No warnings at all → the badge section (role=status) should not be in DOM
+    // No warnings at all â†’ the badge section (role=status) should not be in DOM
     expect(document.querySelector("[role='status']")).toBeNull();
   });
 
@@ -176,7 +178,7 @@ describe("ArmyListSummaryBar — list-level warning badges (PV-06)", () => {
   // -------------------------------------------------------------------------
 
   it("warning count trigger shows combined count that sums list and unit warnings", () => {
-    // stale + exceeded → 2 list warnings; not-painted unit → 1 unit warning → total 3
+    // stale + exceeded â†’ 2 list warnings; not-painted unit â†’ 1 unit warning â†’ total 3
     const units = [
       makeUnit({ effective_points: 2100, status_painting: "Primed" }),
     ];

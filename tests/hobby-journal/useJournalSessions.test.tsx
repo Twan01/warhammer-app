@@ -1,5 +1,5 @@
-/**
- * JOUR-03 — useDeletePaintingSession optimistic-delete tests.
+﻿/**
+ * JOUR-03 â€” useDeletePaintingSession optimistic-delete tests.
  *
  * Mocks the query module + sonner toast. Renders a thin TestConsumer to invoke
  * the hook inside a real QueryClient so we can read cache state pre/post mutate.
@@ -86,7 +86,7 @@ describe("useDeletePaintingSession", () => {
       expect(cache).toEqual(seed);
     });
     expect(toastErrorMock).toHaveBeenCalledWith(
-      "Failed to delete session — changes were not saved."
+      "Failed to delete session â€” changes were not saved."
     );
   });
 });

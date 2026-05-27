@@ -1,5 +1,5 @@
-/**
- * Phase 17 — Enrichment schema contract tests.
+﻿/**
+ * Phase 17 â€” Enrichment schema contract tests.
  *
  * Verifies ENRCH-01 (faction lore_notes), ENRCH-02 (unit lore_notes),
  * and ENRCH-03 (unit undercoat) Zod field contracts.
@@ -31,11 +31,11 @@ const requiredFactionBase = {
   lore_notes: null,
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ENRCH-02 — unit lore_notes
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ENRCH-02 â€” unit lore_notes
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-describe("unitSchema — ENRCH-02 (lore_notes field)", () => {
+describe("unitSchema â€” ENRCH-02 (lore_notes field)", () => {
   it("accepts a string value for lore_notes", () => {
     const result = unitSchema.safeParse({
       ...requiredBase,
@@ -52,18 +52,18 @@ describe("unitSchema — ENRCH-02 (lore_notes field)", () => {
     expect(result.success).toBe(true);
   });
 
-  it("accepts undefined for lore_notes (optional — can be omitted)", () => {
+  it("accepts undefined for lore_notes (optional â€” can be omitted)", () => {
     // lore_notes is not included in the object at all
     const result = unitSchema.safeParse({ ...requiredBase });
     expect(result.success).toBe(true);
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ENRCH-03 — unit undercoat
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ENRCH-03 â€” unit undercoat
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-describe("unitSchema — ENRCH-03 (undercoat field)", () => {
+describe("unitSchema â€” ENRCH-03 (undercoat field)", () => {
   it("accepts a string value for undercoat (e.g. 'Chaos Black')", () => {
     const result = unitSchema.safeParse({
       ...requiredBase,
@@ -96,11 +96,11 @@ describe("unitSchema — ENRCH-03 (undercoat field)", () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ENRCH-01 — faction lore_notes
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ENRCH-01 â€” faction lore_notes
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-describe("factionSchema — ENRCH-01 (lore_notes field)", () => {
+describe("factionSchema â€” ENRCH-01 (lore_notes field)", () => {
   it("accepts a string value for lore_notes (faction backstory)", () => {
     const result = factionSchema.safeParse({
       ...requiredFactionBase,

@@ -1,5 +1,5 @@
-/**
- * STUDIO-01 — RecipeCard rendering tests.
+﻿/**
+ * STUDIO-01 â€” RecipeCard rendering tests.
  * Tests the card metadata, swatch strip, badges, and availability indicator.
  */
 import { describe, it, expect, vi } from "vitest";

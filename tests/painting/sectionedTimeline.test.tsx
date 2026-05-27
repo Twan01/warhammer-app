@@ -1,5 +1,5 @@
-/**
- * VIEW-01 through VIEW-04 — SectionedTimeline component tests.
+﻿/**
+ * VIEW-01 through VIEW-04 â€” SectionedTimeline component tests.
  *
  * Covers:
  * - VIEW-01: Sectioned container and section headers with grouped steps
@@ -98,10 +98,10 @@ function makePaint(over: Partial<Paint> = {}): Paint {
 }
 
 // ---------------------------------------------------------------------------
-// VIEW-01 — Container and grouped rendering
+// VIEW-01 â€” Container and grouped rendering
 // ---------------------------------------------------------------------------
 
-describe("SectionedTimeline — VIEW-01 (container and grouped steps)", () => {
+describe("SectionedTimeline â€” VIEW-01 (container and grouped steps)", () => {
   it("renders sectioned-timeline container when sections and steps are provided", () => {
     const sections = [
       makeSection({ id: 1, name: "Armour" }),
@@ -176,10 +176,10 @@ describe("SectionedTimeline — VIEW-01 (container and grouped steps)", () => {
 });
 
 // ---------------------------------------------------------------------------
-// VIEW-02 — Section header metadata
+// VIEW-02 â€” Section header metadata
 // ---------------------------------------------------------------------------
 
-describe("SectionedTimeline — VIEW-02 (section header metadata)", () => {
+describe("SectionedTimeline â€” VIEW-02 (section header metadata)", () => {
   it("shows surface badge text when section.surface is set", () => {
     const sections = [makeSection({ id: 1, name: "Armour", surface: "Armour" })];
     render(
@@ -189,7 +189,7 @@ describe("SectionedTimeline — VIEW-02 (section header metadata)", () => {
         paintMap={new Map()}
       />
     );
-    // Surface badge — multiple "Armour" texts may exist (name + badge), just check at least one
+    // Surface badge â€” multiple "Armour" texts may exist (name + badge), just check at least one
     const armourEls = screen.getAllByText("Armour");
     expect(armourEls.length).toBeGreaterThan(0);
   });
@@ -249,10 +249,10 @@ describe("SectionedTimeline — VIEW-02 (section header metadata)", () => {
 });
 
 // ---------------------------------------------------------------------------
-// VIEW-03 — Per-section availability
+// VIEW-03 â€” Per-section availability
 // ---------------------------------------------------------------------------
 
-describe("SectionedTimeline — VIEW-03 (per-section paint availability)", () => {
+describe("SectionedTimeline â€” VIEW-03 (per-section paint availability)", () => {
   it("shows owned and missing counts when section has paints", () => {
     const ownedPaint = makePaint({ id: 1, owned: 1 });
     const missingPaint = makePaint({ id: 2, owned: 0 });
@@ -269,7 +269,7 @@ describe("SectionedTimeline — VIEW-03 (per-section paint availability)", () =>
     render(
       <SectionedTimeline sections={sections} steps={steps} paintMap={paintMap} />
     );
-    // Text may be split across elements — use regex to match
+    // Text may be split across elements â€” use regex to match
     expect(screen.getByText(/2 owned/)).toBeInTheDocument();
     expect(screen.getByText(/1 missing/)).toBeInTheDocument();
   });
@@ -320,7 +320,7 @@ describe("SectionedTimeline — VIEW-03 (per-section paint availability)", () =>
   });
 
   it("shows no availability info when ALL section steps have paint_id: null", () => {
-    // A section where every step is paintless — availability badge must be absent entirely.
+    // A section where every step is paintless â€” availability badge must be absent entirely.
     const sections = [makeSection({ id: 1, name: "Section A" })];
     const steps = [
       makeStep({ id: 1, section_id: 1, paint_id: null }),
@@ -335,10 +335,10 @@ describe("SectionedTimeline — VIEW-03 (per-section paint availability)", () =>
 });
 
 // ---------------------------------------------------------------------------
-// RUI-03 — section_type badge
+// RUI-03 â€” section_type badge
 // ---------------------------------------------------------------------------
 
-describe("SectionedTimeline — RUI-03 (section_type badge)", () => {
+describe("SectionedTimeline â€” RUI-03 (section_type badge)", () => {
   it("renders section_type badge when section_type is set", () => {
     const sections = [makeSection({ id: 1, name: "Section A", section_type: "basecoat" })];
     render(
@@ -372,10 +372,10 @@ describe("SectionedTimeline — RUI-03 (section_type badge)", () => {
 });
 
 // ---------------------------------------------------------------------------
-// RUI-04 — dot-separated metadata
+// RUI-04 â€” dot-separated metadata
 // ---------------------------------------------------------------------------
 
-describe("SectionedTimeline — RUI-04 (dot-separated metadata)", () => {
+describe("SectionedTimeline â€” RUI-04 (dot-separated metadata)", () => {
   it("shows dot-separated string with technique and execution_mode", () => {
     const sections = [makeSection({
       id: 1,
@@ -386,7 +386,7 @@ describe("SectionedTimeline — RUI-04 (dot-separated metadata)", () => {
     render(
       <SectionedTimeline sections={sections} steps={[]} paintMap={new Map()} />
     );
-    expect(screen.getByText("drybrush · sequential")).toBeInTheDocument();
+    expect(screen.getByText("drybrush Â· sequential")).toBeInTheDocument();
   });
 
   it("shows applies_to in dot string when set", () => {
@@ -412,7 +412,7 @@ describe("SectionedTimeline — RUI-04 (dot-separated metadata)", () => {
       <SectionedTimeline sections={sections} steps={[]} paintMap={new Map()} />
     );
     expect(screen.getByText("drybrush")).toBeInTheDocument();
-    expect(screen.queryByText(/·/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Â·/)).not.toBeInTheDocument();
   });
 
   it("renders no metadata span when all workflow fields are null", () => {
@@ -433,10 +433,10 @@ describe("SectionedTimeline — RUI-04 (dot-separated metadata)", () => {
 });
 
 // ---------------------------------------------------------------------------
-// VIEW-04 — Empty sections guard
+// VIEW-04 â€” Empty sections guard
 // ---------------------------------------------------------------------------
 
-describe("SectionedTimeline — VIEW-04 (empty sections guard)", () => {
+describe("SectionedTimeline â€” VIEW-04 (empty sections guard)", () => {
   it("renders nothing when sections array is empty", () => {
     const { container } = render(
       <SectionedTimeline sections={[]} steps={[]} paintMap={new Map()} />

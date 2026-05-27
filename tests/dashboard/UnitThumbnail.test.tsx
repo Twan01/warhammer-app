@@ -1,10 +1,10 @@
-/**
+﻿/**
  * PHOTO-01: UnitThumbnail renders an img element when a photo is provided.
  * PHOTO-02: UnitThumbnail renders a faction-colored Swords fallback when there
  * is no photo or when the image fails to load.
  *
  * The component is a pure presentational component that receives all data as
- * props — no hooks, no context, no QueryClient wrapper needed.
+ * props â€” no hooks, no context, no QueryClient wrapper needed.
  */
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";

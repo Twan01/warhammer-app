@@ -1,5 +1,5 @@
-/**
- * DATA-01 — logSessionSchema extension: new_status field tests.
+﻿/**
+ * DATA-01 â€” logSessionSchema extension: new_status field tests.
  *
  * Verifies that the new optional/nullable PaintingStatus field on
  * logSessionSchema behaves correctly across all allowed input variants.
@@ -15,7 +15,7 @@ const BASE_VALID = {
   notes: null,
 };
 
-describe("logSessionSchema — DATA-01 (new_status field)", () => {
+describe("logSessionSchema â€” DATA-01 (new_status field)", () => {
   it("parses successfully when new_status is omitted (field is optional)", () => {
     const result = logSessionSchema.safeParse(BASE_VALID);
     expect(result.success).toBe(true);
@@ -61,7 +61,7 @@ describe("logSessionSchema — DATA-01 (new_status field)", () => {
   });
 });
 
-describe("logSessionSchema — INTEG-01 (recipe_id + recipe_step_id fields)", () => {
+describe("logSessionSchema â€” INTEG-01 (recipe_id + recipe_step_id fields)", () => {
   it("parses successfully when recipe_id is omitted (field is optional)", () => {
     const result = logSessionSchema.safeParse(BASE_VALID);
     expect(result.success).toBe(true);
@@ -129,7 +129,7 @@ describe("logSessionSchema — INTEG-01 (recipe_id + recipe_step_id fields)", ()
   });
 });
 
-describe("logSessionSchema — SESS-05 (section_name field)", () => {
+describe("logSessionSchema â€” SESS-05 (section_name field)", () => {
   it("parses successfully when section_name is omitted (field is optional)", () => {
     const result = logSessionSchema.safeParse(BASE_VALID);
     expect(result.success).toBe(true);
@@ -166,7 +166,7 @@ describe("logSessionSchema — SESS-05 (section_name field)", () => {
   });
 });
 
-describe("logSessionSchema — REC-04 (recipe_section_id field)", () => {
+describe("logSessionSchema â€” REC-04 (recipe_section_id field)", () => {
   it("parses successfully when recipe_section_id is omitted (field is optional)", () => {
     const result = logSessionSchema.safeParse(BASE_VALID);
     expect(result.success).toBe(true);

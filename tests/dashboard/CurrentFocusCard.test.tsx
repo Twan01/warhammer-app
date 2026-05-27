@@ -1,10 +1,10 @@
-/**
+﻿/**
  * PANEL-01: CurrentFocusCard displays photo thumbnail, unit name, faction name,
  * model count, points (null-safe), and painting progress.
  * PANEL-02: CurrentFocusCard exposes Open (ExternalLink) and Log (Paintbrush)
  * ghost action buttons wired to onOpen / onLog callbacks.
  *
- * Props-based component — no QueryClient, no router, no context needed.
+ * Props-based component â€” no QueryClient, no router, no context needed.
  */
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -371,7 +371,7 @@ describe("CurrentFocusCard", () => {
       );
 
       expect(screen.getByText(/Battle Line Alpha/)).toBeInTheDocument();
-      // Palette icon renders as an SVG — confirm it is in the document
+      // Palette icon renders as an SVG â€” confirm it is in the document
       const recipeSpan = screen.getByText(/Battle Line Alpha/).closest("span");
       expect(recipeSpan).not.toBeNull();
       const svg = recipeSpan?.querySelector("svg");
@@ -410,7 +410,7 @@ describe("CurrentFocusCard", () => {
           photo={undefined}
           onOpen={vi.fn()}
           onLog={vi.fn()}
-          // recipeName not passed → undefined
+          // recipeName not passed â†’ undefined
         />
       );
 

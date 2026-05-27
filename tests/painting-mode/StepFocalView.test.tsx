@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Phase 85-03 -- StepFocalView component tests.
  *
  * Pure presentational component: all data via props, no hook mocking needed.
@@ -135,7 +135,7 @@ describe("StepFocalView", () => {
     renderFocalView({ sectionName: null });
     const indicator = screen.getByTestId("position-indicator");
     expect(indicator).toHaveTextContent("Step 3 of 7");
-    expect(indicator.textContent).not.toContain("·");
+    expect(indicator.textContent).not.toContain("Â·");
   });
 
   it("Previous button disabled when canGoPrev is false (SE-03)", () => {
@@ -190,8 +190,8 @@ describe("StepFocalView", () => {
     expect(kbdElements.length).toBe(3);
 
     const kbdTexts = Array.from(kbdElements).map((el) => el.textContent);
-    expect(kbdTexts).toContain("←"); // left arrow
-    expect(kbdTexts).toContain("→"); // right arrow
+    expect(kbdTexts).toContain("â†"); // left arrow
+    expect(kbdTexts).toContain("â†’"); // right arrow
     expect(kbdTexts).toContain("Space");
   });
 

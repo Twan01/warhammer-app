@@ -1,9 +1,9 @@
-/**
- * ARMY-05 — getArmyListsByUnitId query test.
+﻿/**
+ * ARMY-05 â€” getArmyListsByUnitId query test.
  *
  * The other army list query functions (createArmyList, addUnitToList,
  * updateArmyListUnit, etc.) are covered by tests/foundation/armyListQueries.test.ts
- * — do NOT duplicate. This file ONLY tests the new query added in plan 08-00.
+ * â€” do NOT duplicate. This file ONLY tests the new query added in plan 08-00.
  *
  * Phase 89 additions: setWarlord, addGhostUnitToList, clearLeaderAttachment,
  * clearSelectedModelCount (D-10, D-04, D-13).
@@ -32,7 +32,7 @@ beforeEach(() => {
   executeMock.mockReset();
 });
 
-describe("armyLists queries — getArmyListsByUnitId (ARMY-05)", () => {
+describe("armyLists queries â€” getArmyListsByUnitId (ARMY-05)", () => {
   it("issues SELECT al.id, al.name JOIN army_list_units WHERE alu.unit_id = $1 with [unitId]", async () => {
     selectMock.mockResolvedValueOnce([]);
     await getArmyListsByUnitId(42);
@@ -58,9 +58,9 @@ describe("armyLists queries — getArmyListsByUnitId (ARMY-05)", () => {
   });
 });
 
-// ─── Phase 89 query tests ────────────────────────────────────────────────────
+// â”€â”€â”€ Phase 89 query tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-describe("armyLists queries — setWarlord (Phase 89 D-10)", () => {
+describe("armyLists queries â€” setWarlord (Phase 89 D-10)", () => {
   it("issues CASE WHEN id = $1 THEN 1 ELSE 0 END WHERE list_id = $2", async () => {
     executeMock.mockResolvedValueOnce({ rowsAffected: 3 });
 
@@ -73,19 +73,19 @@ describe("armyLists queries — setWarlord (Phase 89 D-10)", () => {
     expect(params).toEqual([5, 2]);
   });
 
-  it("scopes the UPDATE by list_id (Pitfall 4 — no cross-list mutation)", async () => {
+  it("scopes the UPDATE by list_id (Pitfall 4 â€” no cross-list mutation)", async () => {
     executeMock.mockResolvedValueOnce({ rowsAffected: 2 });
 
     await setWarlord(10, 7);
 
     const [sql, params] = executeMock.mock.calls[0];
-    // Must have list_id scoping — not just id = $1 with no list guard
+    // Must have list_id scoping â€” not just id = $1 with no list guard
     expect(sql).toMatch(/WHERE\s+list_id\s*=\s*\$2/);
     expect(params[1]).toBe(7);
   });
 });
 
-describe("armyLists queries — addGhostUnitToList (Phase 89 D-04)", () => {
+describe("armyLists queries â€” addGhostUnitToList (Phase 89 D-04)", () => {
   it("inserts with unit_id = NULL and ghost_unit_name at $2 position", async () => {
     executeMock.mockResolvedValueOnce({ lastInsertId: 99, rowsAffected: 1 });
 
@@ -120,7 +120,7 @@ describe("armyLists queries — addGhostUnitToList (Phase 89 D-04)", () => {
   });
 });
 
-describe("armyLists queries — clearLeaderAttachment (Phase 89 D-13)", () => {
+describe("armyLists queries â€” clearLeaderAttachment (Phase 89 D-13)", () => {
   it("issues SET leader_attached_to_id = NULL WHERE id = $1", async () => {
     executeMock.mockResolvedValueOnce({ rowsAffected: 1 });
 
@@ -143,7 +143,7 @@ describe("armyLists queries — clearLeaderAttachment (Phase 89 D-13)", () => {
   });
 });
 
-describe("armyLists queries — clearSelectedModelCount (Phase 89 D-13)", () => {
+describe("armyLists queries â€” clearSelectedModelCount (Phase 89 D-13)", () => {
   it("issues SET selected_model_count = NULL WHERE id = $1", async () => {
     executeMock.mockResolvedValueOnce({ rowsAffected: 1 });
 

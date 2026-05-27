@@ -1,4 +1,4 @@
-import { vi, describe, it, expect, beforeEach } from "vitest";
+﻿import { vi, describe, it, expect, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import type { RecipeStep } from "@/types/recipePaint";
 import type { RecipeSection } from "@/types/recipeSection";
@@ -215,7 +215,7 @@ describe("usePaintingModeState", () => {
     });
     expect(result.current.currentStepId).toBe(41);
 
-    // Try to go beyond — should be no-op
+    // Try to go beyond â€” should be no-op
     act(() => {
       result.current.goNext();
     });
@@ -235,7 +235,7 @@ describe("usePaintingModeState", () => {
 
     expect(result.current.currentStepId).toBe(40);
 
-    // Try to go before first — should be no-op
+    // Try to go before first â€” should be no-op
     act(() => {
       result.current.goPrev();
     });

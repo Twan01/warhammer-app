@@ -1,5 +1,5 @@
-/**
- * COLL-02..06 — pre-filter logic for the unit table.
+﻿/**
+ * COLL-02..06 â€” pre-filter logic for the unit table.
  * Tests for applyUnitFilters pure function.
  */
 import { describe, it, expect } from "vitest";

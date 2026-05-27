@@ -1,5 +1,5 @@
-/**
- * PAINT-04 — PaintCombobox filters paints by brand+name; shows owned indicator.
+﻿/**
+ * PAINT-04 â€” PaintCombobox filters paints by brand+name; shows owned indicator.
  */
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -95,7 +95,7 @@ describe("PaintCombobox", () => {
     const paints = [makePaint({ id: 1, owned: 1 })];
     renderWithPaints(paints);
     await user.click(screen.getByRole("combobox"));
-    // Popover renders in a portal outside container — use document.querySelector
+    // Popover renders in a portal outside container â€” use document.querySelector
     const dot = document.querySelector(".text-green-500");
     expect(dot).not.toBeNull();
   });
@@ -105,7 +105,7 @@ describe("PaintCombobox", () => {
     const paints = [makePaint({ id: 1, owned: 0 })];
     renderWithPaints(paints);
     await user.click(screen.getByRole("combobox"));
-    // Popover renders in a portal outside container — use document.querySelector
+    // Popover renders in a portal outside container â€” use document.querySelector
     const dot = document.querySelector(".text-red-500");
     expect(dot).not.toBeNull();
   });

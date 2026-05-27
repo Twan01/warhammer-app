@@ -1,5 +1,5 @@
-/**
- * DASH-06 — Pure-function tests for computeRecentActivity().
+﻿/**
+ * DASH-06 â€” Pure-function tests for computeRecentActivity().
  * Wave 0 stubs (it.skip). Wave 1 flips these to `it` after creating
  * src/features/dashboard/computeRecentActivity.ts.
  *
@@ -7,7 +7,7 @@
  * is YYYY-MM-DD HH:MM:SS. The pure function must normalize sessions to a
  * comparable timestamp (e.g. session_date + " 23:59:59") before sort.
  *
- * Pitfall 5 (26-RESEARCH.md): battle_logs has NO updated_at — only created_at.
+ * Pitfall 5 (26-RESEARCH.md): battle_logs has NO updated_at â€” only created_at.
  */
 import { describe, it, expect } from "vitest";
 import type { Unit, PaintingStatus } from "@/types/unit";
@@ -31,13 +31,13 @@ function u(over: Partial<Unit>): Unit {
   };
 }
 
-describe("computeRecentActivity — empty inputs", () => {
+describe("computeRecentActivity â€” empty inputs", () => {
   it("returns empty array when units, sessions, and battles are all empty", () => {
     expect(computeRecentActivity([], [], [])).toEqual([]);
   });
 });
 
-describe("computeRecentActivity — unit_added events", () => {
+describe("computeRecentActivity â€” unit_added events", () => {
   it("emits one unit_added event per unit using created_at timestamp", () => {
     const units = [u({ id: 1, name: "Crisis Suit", created_at: "2026-05-01 10:00:00", updated_at: "2026-05-01 10:00:00" })];
     const events = computeRecentActivity(units, [], []);
@@ -53,7 +53,7 @@ describe("computeRecentActivity — unit_added events", () => {
   });
 });
 
-describe("computeRecentActivity — unit_updated events", () => {
+describe("computeRecentActivity â€” unit_updated events", () => {
   it("emits unit_updated only when updated_at !== created_at", () => {
     const fresh = u({ id: 1, name: "Fresh", created_at: "2026-05-01 10:00:00", updated_at: "2026-05-01 10:00:00" });
     const updated = u({ id: 2, name: "Updated", created_at: "2026-05-01 10:00:00", updated_at: "2026-05-02 10:00:00" });
@@ -64,7 +64,7 @@ describe("computeRecentActivity — unit_updated events", () => {
   });
 });
 
-describe("computeRecentActivity — session_logged events", () => {
+describe("computeRecentActivity â€” session_logged events", () => {
   it("emits one session_logged event per session row with label 'Session: {unit_name}'", () => {
     const sessions = [{ session_date: "2026-05-03", id: 5, unit_name: "Crisis Suit", unit_id: 1 }];
     const events = computeRecentActivity([], sessions, []);
@@ -82,7 +82,7 @@ describe("computeRecentActivity — session_logged events", () => {
   });
 });
 
-describe("computeRecentActivity — battle_logged events", () => {
+describe("computeRecentActivity â€” battle_logged events", () => {
   it("emits one battle_logged event per battle row with label 'Battle vs {opponent_faction}: {result}'", () => {
     const battles = [{ created_at: "2026-05-03 12:00:00", id: 1, opponent_faction: "Orks", result: "Win" }];
     const events = computeRecentActivity([], [], battles);
@@ -97,7 +97,7 @@ describe("computeRecentActivity — battle_logged events", () => {
   });
 });
 
-describe("computeRecentActivity — sort and slice", () => {
+describe("computeRecentActivity â€” sort and slice", () => {
   it("sorts all events by timestamp DESC (most recent first) across event types", () => {
     const units = [u({ id: 1, name: "U1", created_at: "2026-05-01 10:00:00", updated_at: "2026-05-01 10:00:00" })];
     const sessions = [{ session_date: "2026-05-03", id: 1, unit_name: "U2", unit_id: 2 }];
@@ -119,7 +119,7 @@ describe("computeRecentActivity — sort and slice", () => {
   });
 });
 
-describe("computeRecentActivity — combined feed", () => {
+describe("computeRecentActivity â€” combined feed", () => {
   it("combines all 4 event types in a single sorted feed", () => {
     const units = [u({ id: 1, name: "U1", created_at: "2026-05-01 10:00:00", updated_at: "2026-05-04 10:00:00" })];
     const sessions = [{ session_date: "2026-05-03", id: 1, unit_name: "U2", unit_id: 2 }];

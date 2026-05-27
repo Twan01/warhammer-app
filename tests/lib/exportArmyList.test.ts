@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+﻿import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import type {
   ArmyList,
   ArmyListUnitRow,
@@ -44,12 +44,14 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
     leader_attached_to_id: null,
     points_override: null,
     notes: null,
+    sort_order: 0,
     created_at: "2026-01-01T00:00:00Z",
     unit_name: "Intercessors",
     canonical_name: null,
     unit_points: 80,
     effective_points: 80,
     faction_id: 1,
+    unit_category: null, unit_model_count: null,
     status_assembly: null,
     status_painting: null,
     painting_percentage: null,

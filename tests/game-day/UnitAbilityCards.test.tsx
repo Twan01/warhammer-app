@@ -1,5 +1,5 @@
-/**
- * Phase 56 — UnitAbilityCard component tests.
+﻿/**
+ * Phase 56 â€” UnitAbilityCard component tests.
  *
  * Mocks useDatasheet, useStrategyNote, and the game day store to verify
  * rendering of painting badge, OPG abilities, regular abilities, strategy
@@ -30,12 +30,14 @@ const mockUnit: ArmyListUnitRow = {
   leader_attached_to_id: null,
   points_override: null,
   notes: null,
+  sort_order: 0,
   created_at: "2026-01-01",
   unit_name: "Intercessors",
   canonical_name: null,
   unit_points: 80,
   effective_points: 80,
   faction_id: 10,
+    unit_category: null, unit_model_count: null,
   status_assembly: 1,
   status_painting: "Battle Ready",
   painting_percentage: 100,
@@ -141,7 +143,7 @@ function Wrapper({ children }: { children: ReactNode }) {
 async function renderCardExpanded(unit: ArmyListUnitRow = mockUnit) {
   const user = userEvent.setup();
   render(<UnitAbilityCard unit={unit} listId={1} />, { wrapper: Wrapper });
-  // Expand the collapsible to reveal content — trigger is the button containing unit name
+  // Expand the collapsible to reveal content â€” trigger is the button containing unit name
   const trigger = screen.getByText(unit.unit_name).closest("button")!;
   await user.click(trigger);
 }

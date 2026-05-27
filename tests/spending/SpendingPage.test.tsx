@@ -1,5 +1,5 @@
-/**
- * Phase 14 — SpendingPage component tests.
+﻿/**
+ * Phase 14 â€” SpendingPage component tests.
  *
  * Verifies SPEND-03 (hero total) + SPEND-04 (per-faction breakdown + Paints row).
  * We mock useSpendingStats so this is a pure component test (no SQLite dependency).
@@ -11,7 +11,7 @@ import type { ReactNode } from "react";
 import { SpendingPage } from "@/features/spending/SpendingPage";
 import type { Faction } from "@/types/faction";
 
-// Mock useSpendingStats — different tests override the return value.
+// Mock useSpendingStats â€” different tests override the return value.
 vi.mock("@/hooks/useSpendingStats", () => ({
   useSpendingStats: vi.fn(),
   SPENDING_STATS_KEY: ["spending-stats"],
@@ -44,7 +44,7 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("SpendingPage — SPEND-03/04 (hero total + faction breakdown)", () => {
+describe("SpendingPage â€” SPEND-03/04 (hero total + faction breakdown)", () => {
   it("renders skeleton with aria-label='Loading spending data' while query is loading", () => {
     vi.mocked(useSpendingStats).mockReturnValue({
       isLoading: true,
@@ -55,7 +55,7 @@ describe("SpendingPage — SPEND-03/04 (hero total + faction breakdown)", () => 
     expect(screen.getByLabelText("Loading spending data")).toBeInTheDocument();
   });
 
-  it("renders error message when query fails (no full-page takeover per UI-SPEC §Component Inventory)", () => {
+  it("renders error message when query fails (no full-page takeover per UI-SPEC Â§Component Inventory)", () => {
     vi.mocked(useSpendingStats).mockReturnValue({
       isLoading: false,
       isError: true,
@@ -75,10 +75,10 @@ describe("SpendingPage — SPEND-03/04 (hero total + faction breakdown)", () => 
     } as unknown as ReturnType<typeof useSpendingStats>);
     render(<SpendingPage />, { wrapper: Wrapper });
     expect(screen.getByText("Total Hobby Spend")).toBeInTheDocument();
-    expect(screen.getByText("£247.50")).toBeInTheDocument();
+    expect(screen.getByText("Â£247.50")).toBeInTheDocument();
   });
 
-  it("renders one row per faction in factionBreakdown with formatted spend (zero shown as '£0.00')", () => {
+  it("renders one row per faction in factionBreakdown with formatted spend (zero shown as 'Â£0.00')", () => {
     vi.mocked(useSpendingStats).mockReturnValue({
       isLoading: false,
       isError: false,
@@ -94,12 +94,12 @@ describe("SpendingPage — SPEND-03/04 (hero total + faction breakdown)", () => 
     } as unknown as ReturnType<typeof useSpendingStats>);
     render(<SpendingPage />, { wrapper: Wrapper });
     expect(screen.getByText("Tau Empire")).toBeInTheDocument();
-    expect(screen.getByText("£85.00")).toBeInTheDocument();
+    expect(screen.getByText("Â£85.00")).toBeInTheDocument();
     expect(screen.getByText("Ultramarines")).toBeInTheDocument();
-    expect(screen.getByText("£62.50")).toBeInTheDocument();
+    expect(screen.getByText("Â£62.50")).toBeInTheDocument();
     expect(screen.getByText("Necrons")).toBeInTheDocument();
-    // Necrons row + Paints row both render £0.00; getAllByText to allow multiple matches
-    expect(screen.getAllByText("£0.00").length).toBeGreaterThanOrEqual(1);
+    // Necrons row + Paints row both render Â£0.00; getAllByText to allow multiple matches
+    expect(screen.getAllByText("Â£0.00").length).toBeGreaterThanOrEqual(1);
   });
 
   it("renders 'Paints' row separately at bottom of table with paintsPence formatted", () => {
@@ -110,12 +110,12 @@ describe("SpendingPage — SPEND-03/04 (hero total + faction breakdown)", () => 
     } as unknown as ReturnType<typeof useSpendingStats>);
     render(<SpendingPage />, { wrapper: Wrapper });
     expect(screen.getByText("Paints")).toBeInTheDocument();
-    // Both hero (£55.00) and Paints row (£55.00) render this string
-    expect(screen.getAllByText("£55.00").length).toBeGreaterThanOrEqual(2);
+    // Both hero (Â£55.00) and Paints row (Â£55.00) render this string
+    expect(screen.getAllByText("Â£55.00").length).toBeGreaterThanOrEqual(2);
   });
 });
 
-describe("SpendingPage — DATA-03/04 (spending intelligence metrics)", () => {
+describe("SpendingPage â€” DATA-03/04 (spending intelligence metrics)", () => {
   it("renders 'Cost Per Completed Model' card with formatted currency when data has Completed units (DATA-03)", () => {
     vi.mocked(useSpendingStats).mockReturnValue({
       isLoading: false,
@@ -131,8 +131,8 @@ describe("SpendingPage — DATA-03/04 (spending intelligence metrics)", () => {
     } as unknown as ReturnType<typeof useSpendingStats>);
     render(<SpendingPage />, { wrapper: Wrapper });
     expect(screen.getByText("Cost Per Completed Model")).toBeInTheDocument();
-    // £40.00 is the unique formatted value for costPerCompletedModelPence = 4000
-    expect(screen.getByText("£40.00")).toBeInTheDocument();
+    // Â£40.00 is the unique formatted value for costPerCompletedModelPence = 4000
+    expect(screen.getByText("Â£40.00")).toBeInTheDocument();
   });
 
   it("renders dash in 'Cost Per Completed Model' card when costPerCompletedModelPence is null (DATA-03)", () => {
@@ -150,8 +150,8 @@ describe("SpendingPage — DATA-03/04 (spending intelligence metrics)", () => {
     } as unknown as ReturnType<typeof useSpendingStats>);
     render(<SpendingPage />, { wrapper: Wrapper });
     expect(screen.getByText("Cost Per Completed Model")).toBeInTheDocument();
-    // The em dash character — should render as fallback
-    expect(screen.getByText("—")).toBeInTheDocument();
+    // The em dash character â€” should render as fallback
+    expect(screen.getByText("â€”")).toBeInTheDocument();
   });
 
   it("renders 'Painted vs Unpainted Value' card with two figures and painted/unpainted labels (DATA-04)", () => {
@@ -172,8 +172,8 @@ describe("SpendingPage — DATA-03/04 (spending intelligence metrics)", () => {
     expect(screen.getByText("painted")).toBeInTheDocument();
     expect(screen.getByText("unpainted")).toBeInTheDocument();
     // These values are distinct from all other currency values in the render
-    expect(screen.getByText("£45.00")).toBeInTheDocument();
-    expect(screen.getByText("£75.00")).toBeInTheDocument();
+    expect(screen.getByText("Â£45.00")).toBeInTheDocument();
+    expect(screen.getByText("Â£75.00")).toBeInTheDocument();
   });
 
   it("renders two skeleton cards in loading state for the metric section (DATA-03/04)", () => {

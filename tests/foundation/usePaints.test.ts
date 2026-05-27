@@ -1,5 +1,5 @@
-/**
- * Phase 6 Success Criteria 5 — usePaints mutations must invalidate BOTH
+﻿/**
+ * Phase 6 Success Criteria 5 â€” usePaints mutations must invalidate BOTH
  * PAINTS_KEY (['paints']) AND PAINTS_WITH_RECIPES_KEY (['paints-with-recipes']).
  *
  * Uses renderHook + a fresh QueryClient per test. Mocks the query functions
@@ -42,13 +42,13 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("usePaints — PAINTS_WITH_RECIPES_KEY constant", () => {
+describe("usePaints â€” PAINTS_WITH_RECIPES_KEY constant", () => {
   it("PAINTS_WITH_RECIPES_KEY equals ['paints-with-recipes'] literal", () => {
     expect(PAINTS_WITH_RECIPES_KEY).toEqual(["paints-with-recipes"]);
   });
 });
 
-describe("usePaints — useCreatePaint onSuccess invalidations", () => {
+describe("usePaints â€” useCreatePaint onSuccess invalidations", () => {
   it("invalidates PAINTS_KEY (['paints'])", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useCreatePaint(), { wrapper });
@@ -86,7 +86,7 @@ describe("usePaints — useCreatePaint onSuccess invalidations", () => {
   });
 });
 
-describe("usePaints — useUpdatePaint onSuccess invalidations", () => {
+describe("usePaints â€” useUpdatePaint onSuccess invalidations", () => {
   it("invalidates PAINTS_KEY", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useUpdatePaint(), { wrapper });
@@ -127,7 +127,7 @@ describe("usePaints — useUpdatePaint onSuccess invalidations", () => {
   });
 });
 
-describe("usePaints — useDeletePaint onSuccess invalidations", () => {
+describe("usePaints â€” useDeletePaint onSuccess invalidations", () => {
   it("invalidates PAINTS_KEY", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useDeletePaint(), { wrapper });

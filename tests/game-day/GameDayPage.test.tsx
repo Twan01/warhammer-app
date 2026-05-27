@@ -1,5 +1,5 @@
-/**
- * Phase 56 — GameDayPage component tests.
+﻿/**
+ * Phase 56 â€” GameDayPage component tests.
  *
  * Mocks React Query hooks and TanStack Router. Verifies the page renders
  * list name in header and all 3 tab triggers (Stratagems, Units, Checklist).
@@ -56,6 +56,7 @@ vi.mock("@/hooks/useArmyLists", () => ({
         unit_id: 100,
         points_override: null,
         notes: null,
+        sort_order: 0,
         created_at: "2026-01-01",
         unit_name: "Intercessors",
         canonical_name: null,

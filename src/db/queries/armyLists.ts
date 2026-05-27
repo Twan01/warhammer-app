@@ -63,11 +63,13 @@ export async function getArmyListWithUnits(listId: number): Promise<ArmyListUnit
     `SELECT
        alu.id, alu.list_id, alu.unit_id, alu.ghost_unit_name,
        alu.is_warlord, alu.selected_model_count, alu.leader_attached_to_id,
-       alu.points_override, alu.notes, alu.tactical_role, alu.created_at,
+       alu.points_override, alu.notes, alu.sort_order, alu.tactical_role, alu.created_at,
        COALESCE(u.name, alu.ghost_unit_name) AS unit_name,
        urm.datasheet_name AS canonical_name,
        u.points AS unit_points,
        u.faction_id,
+       u.category AS unit_category,
+       u.model_count AS unit_model_count,
        u.status_assembly,
        u.status_painting,
        u.painting_percentage,
@@ -85,7 +87,7 @@ export async function getArmyListWithUnits(listId: number): Promise<ArmyListUnit
        ON tier.unit_name = COALESCE(urm.datasheet_name, u.name, alu.ghost_unit_name)
        AND tier.model_count = alu.selected_model_count
      WHERE alu.list_id = $1
-     ORDER BY alu.created_at ASC, alu.id ASC`,
+     ORDER BY alu.sort_order ASC, alu.created_at ASC, alu.id ASC`,
     [listId]
   );
   return rows;
@@ -194,8 +196,27 @@ export async function addUnitToList(input: AddUnitToListInput): Promise<number> 
   return result.lastInsertId ?? 0;
 }
 
+/**
+ * Remove a single army_list_units row.
+ *
+ * Before deleting, clears any leader_attached_to_id references pointing to
+ * this row. Although the FK uses ON DELETE SET NULL, SQLite can fail with
+ * an FK constraint error when another row in the same DELETE batch
+ * references the row being deleted. Explicitly clearing the reference
+ * first avoids this race condition (same pattern as deleteArmyList).
+ */
 export async function removeUnitFromList(armyListUnitId: number): Promise<void> {
   const db = await getDb();
+  // Clear leader attachments pointing to this unit (prevents FK errors)
+  await db.execute(
+    "UPDATE army_list_units SET leader_attached_to_id = NULL WHERE leader_attached_to_id = $1",
+    [armyListUnitId]
+  );
+  // Delete enhancements assigned to this unit (prevents FK errors)
+  await db.execute(
+    "DELETE FROM army_list_enhancements WHERE army_list_unit_id = $1",
+    [armyListUnitId]
+  );
   await db.execute("DELETE FROM army_list_units WHERE id = $1", [armyListUnitId]);
 }
 
@@ -408,4 +429,20 @@ export async function getArmyListReadiness(
      GROUP BY al.id`,
     ids,
   );
+}
+
+/**
+ * Reorder units within a list by writing new sort_order values.
+ * Accepts an array of { id, sort_order } pairs.
+ */
+export async function reorderArmyListUnits(
+  updates: { id: number; sort_order: number }[],
+): Promise<void> {
+  const db = await getDb();
+  for (const { id, sort_order } of updates) {
+    await db.execute(
+      "UPDATE army_list_units SET sort_order = $1 WHERE id = $2",
+      [sort_order, id],
+    );
+  }
 }

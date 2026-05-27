@@ -1,9 +1,9 @@
-/**
- * SECT-04/05/06 — recipeSections query module and hook contract coverage.
+﻿/**
+ * SECT-04/05/06 â€” recipeSections query module and hook contract coverage.
  *
  * Tests SQL assertions for all 6 query functions, the updated addRecipePaint
  * INSERT (section_id as $13), and type shape checks for RecipeSection and RecipeStep.
- * Groups 10–14 cover hook invalidation contracts via renderHook + invalidateQueries spy.
+ * Groups 10â€“14 cover hook invalidation contracts via renderHook + invalidateQueries spy.
  *
  * Mocks getDb() because tauri-plugin-sql IPC cannot run in jsdom.
  */
@@ -32,7 +32,7 @@ import { addRecipePaint, getRecipePaintsByRecipe } from "@/db/queries/recipePain
 import type { CreateRecipeSectionInput, UpdateRecipeSectionInput, RecipeSection } from "@/types/recipeSection";
 import type { RecipeStep, CreateRecipeStepInput } from "@/types/recipePaint";
 
-// Hook imports — used by groups 10-14
+// Hook imports â€” used by groups 10-14
 import {
   RECIPE_SECTIONS_KEY,
   useCreateRecipeSection,
@@ -78,9 +78,9 @@ beforeEach(() => {
 });
 
 // ---------------------------------------------------------------------------
-// Group 1 — getRecipeSections (SECT-04 read)
+// Group 1 â€” getRecipeSections (SECT-04 read)
 // ---------------------------------------------------------------------------
-describe("getRecipeSections — SECT-04 read", () => {
+describe("getRecipeSections â€” SECT-04 read", () => {
   it("queries recipe_sections filtered by recipe_id with correct order", async () => {
     await getRecipeSections(42);
     const [sql, params] = selectMock.mock.calls[0];
@@ -97,9 +97,9 @@ describe("getRecipeSections — SECT-04 read", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Group 2 — createRecipeSection (SECT-04 create)
+// Group 2 â€” createRecipeSection (SECT-04 create)
 // ---------------------------------------------------------------------------
-describe("createRecipeSection — SECT-04 create", () => {
+describe("createRecipeSection â€” SECT-04 create", () => {
   const input: CreateRecipeSectionInput = {
     recipe_id: 1,
     name: "Armour",
@@ -154,7 +154,7 @@ describe("createRecipeSection — SECT-04 create", () => {
     expect(params).toHaveLength(10);
   });
 
-  it("applies null guards — surface and notes become null when not provided", async () => {
+  it("applies null guards â€” surface and notes become null when not provided", async () => {
     await createRecipeSection({ ...input, surface: null, notes: null });
     const [, params] = executeMock.mock.calls[0];
     expect(params[2]).toBeNull(); // $3 surface
@@ -186,9 +186,9 @@ describe("createRecipeSection — SECT-04 create", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Group 3 — updateRecipeSection (SECT-04 update)
+// Group 3 â€” updateRecipeSection (SECT-04 update)
 // ---------------------------------------------------------------------------
-describe("updateRecipeSection — SECT-04 update", () => {
+describe("updateRecipeSection â€” SECT-04 update", () => {
   it("UPDATE uses COALESCE for name, optional, order_index and WHERE id = $1", async () => {
     const input: UpdateRecipeSectionInput = { id: 5, name: "Cloth" };
     await updateRecipeSection(input);
@@ -236,9 +236,9 @@ describe("updateRecipeSection — SECT-04 update", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Group 4 — deleteRecipeSection (SECT-04 delete)
+// Group 4 â€” deleteRecipeSection (SECT-04 delete)
 // ---------------------------------------------------------------------------
-describe("deleteRecipeSection — SECT-04 delete", () => {
+describe("deleteRecipeSection â€” SECT-04 delete", () => {
   it("executes DELETE FROM recipe_sections WHERE id = $1 with correct id", async () => {
     await deleteRecipeSection(7);
     const [sql, params] = executeMock.mock.calls[0];
@@ -248,9 +248,9 @@ describe("deleteRecipeSection — SECT-04 delete", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Group 5 — reorderRecipeSections (SECT-05, auto-commit mode)
+// Group 5 â€” reorderRecipeSections (SECT-05, auto-commit mode)
 // ---------------------------------------------------------------------------
-describe("reorderRecipeSections — SECT-05", () => {
+describe("reorderRecipeSections â€” SECT-05", () => {
   it("calls db.execute once per section (no BEGIN/COMMIT wrapper)", async () => {
     const sections = [
       { id: 3, order_index: 0 },
@@ -281,9 +281,9 @@ describe("reorderRecipeSections — SECT-05", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Group 6 — getStepCountsBySection (SECT-06)
+// Group 6 â€” getStepCountsBySection (SECT-06)
 // ---------------------------------------------------------------------------
-describe("getStepCountsBySection — SECT-06", () => {
+describe("getStepCountsBySection â€” SECT-06", () => {
   it("queries COUNT(*) AS step_count GROUP BY section_id WHERE section_id IS NOT NULL", async () => {
     await getStepCountsBySection();
     const [sql, params] = selectMock.mock.calls[0];
@@ -295,9 +295,9 @@ describe("getStepCountsBySection — SECT-06", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Group 7 — addRecipePaint section_id support (SECT-02)
+// Group 7 â€” addRecipePaint section_id support (SECT-02)
 // ---------------------------------------------------------------------------
-describe("addRecipePaint — section_id support (SECT-02)", () => {
+describe("addRecipePaint â€” section_id support (SECT-02)", () => {
   it("INSERT contains section_id column and $13 placeholder", async () => {
     await addRecipePaint(makeStepInput({ section_id: 99 }));
     const [sql] = executeMock.mock.calls[0];
@@ -328,9 +328,9 @@ function makeWrapper() {
 }
 
 // ---------------------------------------------------------------------------
-// Group 8 — RecipeSection type shape (SECT-01)
+// Group 8 â€” RecipeSection type shape (SECT-01)
 // ---------------------------------------------------------------------------
-describe("RecipeSection type shape — SECT-01", () => {
+describe("RecipeSection type shape â€” SECT-01", () => {
   it("interface has all 13 expected keys", () => {
     const section: RecipeSection = {
       id: 1,
@@ -366,9 +366,9 @@ describe("RecipeSection type shape — SECT-01", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Group 9 — RecipeStep includes section_id (SECT-02)
+// Group 9 â€” RecipeStep includes section_id (SECT-02)
 // ---------------------------------------------------------------------------
-describe("RecipeStep includes section_id — SECT-02", () => {
+describe("RecipeStep includes section_id â€” SECT-02", () => {
   it("section_id is a key in the RecipeStep interface and can be null", () => {
     const step: RecipeStep = {
       id: 1,
@@ -414,9 +414,9 @@ describe("RecipeStep includes section_id — SECT-02", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Group 10 — useDeleteRecipeSection 5-key cascade invalidation (GAP-1)
+// Group 10 â€” useDeleteRecipeSection 5-key cascade invalidation (GAP-1)
 // ---------------------------------------------------------------------------
-describe("useDeleteRecipeSection — 5-key cascade invalidation contract", () => {
+describe("useDeleteRecipeSection â€” 5-key cascade invalidation contract", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("invalidates RECIPE_SECTIONS_KEY(recipeId) on success", async () => {
@@ -498,9 +498,9 @@ describe("useDeleteRecipeSection — 5-key cascade invalidation contract", () =>
 });
 
 // ---------------------------------------------------------------------------
-// Group 11 — useCreateRecipeSection invalidation (GAP-2)
+// Group 11 â€” useCreateRecipeSection invalidation (GAP-2)
 // ---------------------------------------------------------------------------
-describe("useCreateRecipeSection — invalidates RECIPE_SECTIONS_KEY only", () => {
+describe("useCreateRecipeSection â€” invalidates RECIPE_SECTIONS_KEY only", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("invalidates RECIPE_SECTIONS_KEY(recipe_id) on success", async () => {
@@ -528,7 +528,7 @@ describe("useCreateRecipeSection — invalidates RECIPE_SECTIONS_KEY only", () =
     expect(keys).toContainEqual(RECIPE_SECTIONS_KEY(5));
   });
 
-  it("invalidates exactly 1 key on success — does NOT invalidate paints/swatch/counts/availability", async () => {
+  it("invalidates exactly 1 key on success â€” does NOT invalidate paints/swatch/counts/availability", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useCreateRecipeSection(), { wrapper });
 
@@ -554,9 +554,9 @@ describe("useCreateRecipeSection — invalidates RECIPE_SECTIONS_KEY only", () =
 });
 
 // ---------------------------------------------------------------------------
-// Group 12 — useUpdateRecipeSection invalidation (GAP-3)
+// Group 12 â€” useUpdateRecipeSection invalidation (GAP-3)
 // ---------------------------------------------------------------------------
-describe("useUpdateRecipeSection — invalidates RECIPE_SECTIONS_KEY only", () => {
+describe("useUpdateRecipeSection â€” invalidates RECIPE_SECTIONS_KEY only", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("invalidates RECIPE_SECTIONS_KEY(recipe_id) on success", async () => {
@@ -586,9 +586,9 @@ describe("useUpdateRecipeSection — invalidates RECIPE_SECTIONS_KEY only", () =
 });
 
 // ---------------------------------------------------------------------------
-// Group 13 — useReorderRecipeSections invalidation (GAP-4)
+// Group 13 â€” useReorderRecipeSections invalidation (GAP-4)
 // ---------------------------------------------------------------------------
-describe("useReorderRecipeSections — invalidates RECIPE_SECTIONS_KEY only", () => {
+describe("useReorderRecipeSections â€” invalidates RECIPE_SECTIONS_KEY only", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("invalidates RECIPE_SECTIONS_KEY(recipeId) on success", async () => {
@@ -627,9 +627,9 @@ describe("useReorderRecipeSections — invalidates RECIPE_SECTIONS_KEY only", ()
 });
 
 // ---------------------------------------------------------------------------
-// Group 14 — useSectionStepCounts Map transform (GAP-5)
+// Group 14 â€” useSectionStepCounts Map transform (GAP-5)
 // ---------------------------------------------------------------------------
-describe("useSectionStepCounts — queryFn transforms rows into Map<number, number>", () => {
+describe("useSectionStepCounts â€” queryFn transforms rows into Map<number, number>", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     executeMock.mockResolvedValue({ lastInsertId: 1 });
@@ -667,7 +667,7 @@ describe("useSectionStepCounts — queryFn transforms rows into Map<number, numb
     expect(map.size).toBe(0);
   });
 
-  it("uses section_id as the Map key — not an array index", async () => {
+  it("uses section_id as the Map key â€” not an array index", async () => {
     // section_id 99 is non-sequential to confirm key identity
     const mockRows = [{ section_id: 99, step_count: 5 }];
     getSelectMock().mockResolvedValueOnce(mockRows);
@@ -685,9 +685,9 @@ describe("useSectionStepCounts — queryFn transforms rows into Map<number, numb
 });
 
 // ---------------------------------------------------------------------------
-// Group 15 — getRecipePaintsByRecipe section-aware ordering (REC-05)
+// Group 15 â€” getRecipePaintsByRecipe section-aware ordering (REC-05)
 // ---------------------------------------------------------------------------
-describe("getRecipePaintsByRecipe — section-aware ordering (REC-05)", () => {
+describe("getRecipePaintsByRecipe â€” section-aware ordering (REC-05)", () => {
   it("uses LEFT JOIN recipe_sections for section-aware step ordering", async () => {
     await getRecipePaintsByRecipe(1);
     const [sql, params] = selectMock.mock.calls[0];

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, Fragment } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { BookOpen, History, Plus, Swords } from "lucide-react";
 import { toast } from "sonner";
@@ -12,7 +12,7 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 import {
-  Table, TableHeader, TableRow, TableHead, TableBody,
+  Table, TableHeader, TableRow, TableHead, TableBody, TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -127,6 +127,26 @@ export function ArmyListDetailSheet({
     () => groupUnitsWithLeaders(units ?? []),
     [units],
   );
+
+  // Group units by category for sectioned display
+  const unitsByCategory = useMemo(() => {
+    const map = new Map<string, { unit: (typeof groupedUnits)[number]["unit"]; isIndentedLeader: boolean }[]>();
+    for (const entry of groupedUnits) {
+      const cat = entry.unit.unit_category ?? "Uncategorized";
+      if (!map.has(cat)) map.set(cat, []);
+      map.get(cat)!.push(entry);
+    }
+    // Sort categories: known battlefield roles first, then alphabetical
+    const roleOrder = ["Character", "Epic Hero", "Battleline", "Infantry", "Mounted", "Beast", "Vehicle", "Monster", "Fortification", "Dedicated Transport"];
+    return Array.from(map.entries()).sort((a, b) => {
+      const ai = roleOrder.indexOf(a[0]);
+      const bi = roleOrder.indexOf(b[0]);
+      if (ai !== -1 && bi !== -1) return ai - bi;
+      if (ai !== -1) return -1;
+      if (bi !== -1) return 1;
+      return a[0].localeCompare(b[0]);
+    });
+  }, [groupedUnits]);
 
   // Phase 92 — Lookup: target unit ID -> attached leader unit name
   const leaderNameMap = useMemo(() => {
@@ -346,7 +366,7 @@ export function ArmyListDetailSheet({
         side="right"
         // Pitfall 6 — fresh mount when switching lists
         key={list?.id ?? "none-detail"}
-        className="overflow-y-auto sm:max-w-[600px]"
+        className="overflow-y-auto sm:max-w-[900px]"
       >
         {list && (
           <>
@@ -367,38 +387,6 @@ export function ArmyListDetailSheet({
             </SheetHeader>
 
             <ArmyListSummaryBar units={units ?? []} pointsLimit={list.points_limit} freshness={freshness} enhancements={listEnhancements ?? []} />
-
-            <div className="flex items-center gap-2 px-4 py-1">
-              <ExportDropdown
-                onCopyToClipboard={handleCopyToClipboard}
-                onPrint={onPrintPreview}
-                onSaveJson={handleSaveJson}
-                onSavePdf={handleSavePdf}
-              />
-              <Button variant="outline" size="sm" onClick={onOpenSnapshots}>
-                <History className="mr-2 h-4 w-4" />
-                Snapshots
-              </Button>
-            </div>
-
-            <div className="flex flex-col gap-3 px-4 py-2">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold">Detachment</label>
-                <DetachmentPicker
-                  factionWahapediaId={wahapediaFactionId ?? undefined}
-                  value={list.detachment_id}
-                  valueName={list.detachment_name}
-                  disabled={!faction}
-                  rulesSynced={syncMeta?.last_sync_at != null}
-                  onChange={handleDetachmentSelect}
-                  onClear={handleDetachmentClear}
-                />
-              </div>
-              <StaleDataBanner lastSyncAt={syncMeta?.last_sync_at} />
-            </div>
-
-            <DetachmentRulesSection detachmentId={list.detachment_id} />
-            <RemindersSection />
 
             <Separator className="my-2" />
 
@@ -450,26 +438,84 @@ export function ArmyListDetailSheet({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {groupedUnits.map(({ unit: alu, isIndentedLeader }) => (
-                    <ArmyListUnitRow
-                      key={alu.id}
-                      unit={alu}
-                      totalPoints={totalPoints}
-                      pointsLimit={list.points_limit}
-                      freshness={freshness}
-                      onRemove={() => handleRemoveUnit(alu.id)}
-                      onConfigure={() => onConfigureUnit(alu.id)}
-                      onEnhance={() => onEnhanceUnit(alu.id)}
-                      onAttachLeader={() => onAttachLeader(alu.id)}
-                      enhancementName={(listEnhancements ?? []).find((le) => le.army_list_unit_id === alu.id)?.enhancement_name}
-                      isIndentedLeader={isIndentedLeader}
-                      leaderName={leaderNameMap.get(alu.id)}
-                      leaderTargets={leaderTargets ?? []}
-                    />
-                  ))}
+                  {unitsByCategory.map(([category, catUnits]) => {
+                    const catTotal = catUnits.reduce((s, e) => s + e.unit.effective_points, 0);
+                    return (
+                      <Fragment key={category}>
+                        <TableRow className="bg-muted/40 hover:bg-muted/40">
+                          <TableCell colSpan={2} className="py-1.5">
+                            <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                              {category}
+                            </span>
+                            <span className="text-xs text-muted-foreground ml-1">
+                              ({catUnits.length})
+                            </span>
+                          </TableCell>
+                          <TableCell className="py-1.5">
+                            <span className="text-xs font-semibold text-muted-foreground">
+                              {catTotal}pts
+                            </span>
+                          </TableCell>
+                          <TableCell colSpan={2} className="py-1.5" />
+                        </TableRow>
+                        {catUnits.map(({ unit: alu, isIndentedLeader }) => (
+                          <ArmyListUnitRow
+                            key={alu.id}
+                            unit={alu}
+                            totalPoints={totalPoints}
+                            pointsLimit={list.points_limit}
+                            freshness={freshness}
+                            onRemove={() => handleRemoveUnit(alu.id)}
+                            onConfigure={() => onConfigureUnit(alu.id)}
+                            onEnhance={() => onEnhanceUnit(alu.id)}
+                            onAttachLeader={() => onAttachLeader(alu.id)}
+                            onToggleWarlord={() => {}}
+                            enhancementName={(listEnhancements ?? []).find((le) => le.army_list_unit_id === alu.id)?.enhancement_name}
+                            isIndentedLeader={isIndentedLeader}
+                            leaderName={leaderNameMap.get(alu.id)}
+                            leaderTargets={leaderTargets ?? []}
+                          />
+                        ))}
+                      </Fragment>
+                    );
+                  })}
                 </TableBody>
               </Table>
             )}
+
+            <Separator className="my-4" />
+
+            <div className="flex flex-col gap-3 px-4 py-2">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold">Detachment</label>
+                <DetachmentPicker
+                  factionWahapediaId={wahapediaFactionId ?? undefined}
+                  value={list.detachment_id}
+                  valueName={list.detachment_name}
+                  disabled={!faction}
+                  rulesSynced={syncMeta?.last_sync_at != null}
+                  onChange={handleDetachmentSelect}
+                  onClear={handleDetachmentClear}
+                />
+              </div>
+              <StaleDataBanner lastSyncAt={syncMeta?.last_sync_at} />
+            </div>
+
+            <DetachmentRulesSection detachmentId={list.detachment_id} />
+            <RemindersSection />
+
+            <div className="flex items-center gap-2 px-4 py-1">
+              <ExportDropdown
+                onCopyToClipboard={handleCopyToClipboard}
+                onPrint={onPrintPreview}
+                onSaveJson={handleSaveJson}
+                onSavePdf={handleSavePdf}
+              />
+              <Button variant="outline" size="sm" onClick={onOpenSnapshots}>
+                <History className="mr-2 h-4 w-4" />
+                Snapshots
+              </Button>
+            </div>
 
             <Separator className="my-4" />
 

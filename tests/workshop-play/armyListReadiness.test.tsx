@@ -1,4 +1,4 @@
-/** Wave 1 — PLAY-02 army list readiness: query, hook, and BattleLogRow display. All stubs activated. Renamed from .ts to .tsx (JSX required for BattleLogRow render). */
+﻿/** Wave 1 â€” PLAY-02 army list readiness: query, hook, and BattleLogRow display. All stubs activated. Renamed from .ts to .tsx (JSX required for BattleLogRow render). */
 import React from "react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { render, screen, renderHook, waitFor } from "@testing-library/react";
@@ -74,7 +74,7 @@ describe("getArmyListReadiness query (PLAY-02)", () => {
   it("returns empty array when called with empty ids array", async () => {
     vi.mocked(getArmyListReadiness).mockResolvedValueOnce([]);
 
-    // Calling with [] should short-circuit — db.select should NOT be called
+    // Calling with [] should short-circuit â€” db.select should NOT be called
     // We verify this by calling the real function through the mocked module
     // and asserting dbSelectMock was never called.
     // Note: the mock returns [] but the real implementation's guard clause

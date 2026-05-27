@@ -1,4 +1,4 @@
-/** Wave 1 tests for WKSP-01 — PaintRow swatch consistency. */
+﻿/** Wave 1 tests for WKSP-01 â€” PaintRow swatch consistency. */
 import { describe, it, expect, vi } from "vitest";
 import { render } from "@testing-library/react";
 import { PaintRow } from "@/features/paints/PaintRow";

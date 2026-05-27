@@ -1,5 +1,5 @@
-/**
- * ARMY-06 — ArmyListsPage component tests.
+﻿/**
+ * ARMY-06 â€” ArmyListsPage component tests.
  * Replaces the Wave 0 stub from plan 08-00.
  *
  * Mocks the query module so this is a pure component test (no SQLite dependency).
@@ -119,13 +119,13 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("ArmyListsPage — ARMY-06", () => {
+describe("ArmyListsPage â€” ARMY-06", () => {
   it("empty state: when useArmyLists returns [], renders 'No army lists yet' heading and a 'New list' CTA button", async () => {
     vi.mocked(getArmyLists).mockResolvedValue([]);
     renderWithProviders(<ArmyListsPage />);
 
     expect(await screen.findByText("No army lists yet")).toBeInTheDocument();
-    // Multiple "New list" buttons exist (page CTA + empty state CTA) — at least one must render
+    // Multiple "New list" buttons exist (page CTA + empty state CTA) â€” at least one must render
     expect(screen.getAllByRole("button", { name: "New list" }).length).toBeGreaterThanOrEqual(1);
   });
 

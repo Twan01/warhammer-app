@@ -1,4 +1,4 @@
-/** Wave 1 — PLAY-01 ArmyListSummaryBar readiness panel upgrade. All 6 stubs activated.
+﻿/** Wave 1 â€” PLAY-01 ArmyListSummaryBar readiness panel upgrade. All 6 stubs activated.
  * Updated for Phase 66: new props (pointsLimit, freshness) and stat labels. */
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -6,12 +6,12 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ArmyListSummaryBar } from "@/features/army-lists/ArmyListSummaryBar";
 import type { ArmyListUnitRow } from "@/types/armyList";
 
-// StatusBadge renders PaintingStatus as text — no special mocking needed
+// StatusBadge renders PaintingStatus as text â€” no special mocking needed
 vi.mock("@/components/ui/status-badge", async (importOriginal) => {
   return importOriginal();
 });
 
-// PointsFreshnessBadge is self-contained (calls hooks internally) — mock it
+// PointsFreshnessBadge is self-contained (calls hooks internally) â€” mock it
 vi.mock("@/features/army-lists/PointsFreshnessBadge", () => ({
   PointsFreshnessBadge: () => <span data-testid="freshness-badge">Fresh</span>,
 }));
@@ -20,9 +20,9 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
   return {
     id: 1, list_id: 1, unit_id: 1,
     ghost_unit_name: null, is_warlord: 0, selected_model_count: null, leader_attached_to_id: null,
-    points_override: null, notes: null,
+    points_override: null, notes: null, sort_order: 0,
     created_at: "2024-01-01", unit_name: "Intercessors", canonical_name: null, unit_points: 100,
-    faction_id: 1, status_assembly: 1, status_painting: "Completed",
+    faction_id: 1, unit_category: null, unit_model_count: null, status_assembly: 1, status_painting: "Completed",
     painting_percentage: 100, effective_points: 100, tactical_role: null,
     synced_points: null, override_points: null, tier_points: null,
     ...overrides,

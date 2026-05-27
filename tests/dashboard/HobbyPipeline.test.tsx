@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+﻿import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { HobbyPipeline } from "@/features/dashboard/HobbyPipeline";
 import type { Unit } from "@/types/unit";
@@ -34,7 +34,7 @@ function u(over: Partial<Unit> = {}): Unit {
   };
 }
 
-describe("LAYOUT-03 — HobbyPipeline 5-bucket grouping", () => {
+describe("LAYOUT-03 â€” HobbyPipeline 5-bucket grouping", () => {
   it("renders exactly 5 bucket labels", () => {
     render(<HobbyPipeline units={[]} />);
     const items = screen.getAllByRole("listitem");

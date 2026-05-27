@@ -1,5 +1,5 @@
-/**
- * DATA-05 — RecipeDetailSheet unit link navigation tests.
+﻿/**
+ * DATA-05 â€” RecipeDetailSheet unit link navigation tests.
  *
  * RecipeDetailSheet's "Linked Unit" field renders a variant="link" Button
  * (not a plain span) when a unit is associated, and navigates to /collection
@@ -213,7 +213,7 @@ function renderSheet(recipe: PaintingRecipe | null) {
 // DATA-05 tests
 // ---------------------------------------------------------------------------
 
-describe("RecipeDetailSheet — DATA-05 (unit link navigation)", () => {
+describe("RecipeDetailSheet â€” DATA-05 (unit link navigation)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUnits = [mockUnit];
@@ -256,7 +256,7 @@ describe("RecipeDetailSheet — DATA-05 (unit link navigation)", () => {
       renderSheet(makeRecipe({ unit_id: null }));
 
       // Should render a dash, not a button
-      expect(screen.getByText("—")).toBeInTheDocument();
+      expect(screen.getByText("â€”")).toBeInTheDocument();
     });
 
     it("does NOT render a Button when unit is null", () => {
@@ -271,10 +271,10 @@ describe("RecipeDetailSheet — DATA-05 (unit link navigation)", () => {
 });
 
 // ---------------------------------------------------------------------------
-// STUDIO-02 — RecipeDetailSheet timeline and metadata badge tests
+// STUDIO-02 â€” RecipeDetailSheet timeline and metadata badge tests
 // ---------------------------------------------------------------------------
 
-describe("RecipeDetailSheet — STUDIO-02 (timeline and metadata badges)", () => {
+describe("RecipeDetailSheet â€” STUDIO-02 (timeline and metadata badges)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUnits = [mockUnit];
@@ -348,10 +348,10 @@ describe("RecipeDetailSheet — STUDIO-02 (timeline and metadata badges)", () =>
 });
 
 // ---------------------------------------------------------------------------
-// STUDIO-03 — Recipe duplication button tests
+// STUDIO-03 â€” Recipe duplication button tests
 // ---------------------------------------------------------------------------
 
-describe("RecipeDetailSheet — STUDIO-03 (duplicate button)", () => {
+describe("RecipeDetailSheet â€” STUDIO-03 (duplicate button)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUnits = [mockUnit];
@@ -394,10 +394,10 @@ describe("RecipeDetailSheet — STUDIO-03 (duplicate button)", () => {
 });
 
 // ---------------------------------------------------------------------------
-// PAINT-03 — "Add all missing to wishlist" button tests
+// PAINT-03 â€” "Add all missing to wishlist" button tests
 // ---------------------------------------------------------------------------
 
-describe("RecipeDetailSheet — PAINT-03 (add all missing to wishlist)", () => {
+describe("RecipeDetailSheet â€” PAINT-03 (add all missing to wishlist)", () => {
   const missingPaint: Paint = {
     id: 10,
     name: "Macragge Blue",
@@ -497,10 +497,10 @@ describe("RecipeDetailSheet — PAINT-03 (add all missing to wishlist)", () => {
 });
 
 // ---------------------------------------------------------------------------
-// PAINT-02 — RecipeStepTimeline "Alt:" display tests
+// PAINT-02 â€” RecipeStepTimeline "Alt:" display tests
 // ---------------------------------------------------------------------------
 
-describe("RecipeDetailSheet — PAINT-02 (alt paint display in timeline)", () => {
+describe("RecipeDetailSheet â€” PAINT-02 (alt paint display in timeline)", () => {
   const primaryPaint: Paint = {
     id: 20,
     name: "Macragge Blue",
@@ -582,10 +582,10 @@ describe("RecipeDetailSheet — PAINT-02 (alt paint display in timeline)", () =>
 });
 
 // ---------------------------------------------------------------------------
-// INTEG-02 — RecipeDetailSheet session history tests
+// INTEG-02 â€” RecipeDetailSheet session history tests
 // ---------------------------------------------------------------------------
 
-describe("RecipeDetailSheet — INTEG-02 (session history)", () => {
+describe("RecipeDetailSheet â€” INTEG-02 (session history)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUnits = [mockUnit];

@@ -1,5 +1,5 @@
-/**
- * ARCH-04 — armyListsReducer unit tests.
+﻿/**
+ * ARCH-04 â€” armyListsReducer unit tests.
  *
  * Tests the centralized state machine that replaces 14 individual useState
  * calls in ArmyListsPage. Covers cascade resets, action handlers, and
@@ -145,7 +145,7 @@ describe("armyListsReducer", () => {
     });
   });
 
-  describe("CLOSE_DETAIL — cascade reset", () => {
+  describe("CLOSE_DETAIL â€” cascade reset", () => {
     it("resets all 10 sub-sheet fields to null/false", () => {
       const before = fullyOpenState();
       const state = armyListsReducer(before, { type: "CLOSE_DETAIL" });
@@ -290,7 +290,7 @@ describe("armyListsReducer", () => {
   describe("unknown action", () => {
     it("returns state unchanged", () => {
       const before = fullyOpenState();
-      // @ts-expect-error — intentional unknown action for test coverage
+      // @ts-expect-error â€” intentional unknown action for test coverage
       const state = armyListsReducer(before, { type: "DOES_NOT_EXIST" });
       expect(state).toBe(before);
     });

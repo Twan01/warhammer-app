@@ -1,11 +1,11 @@
-/**
+﻿/**
  * PANEL-03: ActiveProjectsPanel renders up to 5 active project rows with
  * photo thumbnail, unit name, painting progress percentage, relative
  * last-updated date, and Open/Log ghost action buttons.
  *
  * Empty state: Target icon + guidance text when projects array is empty.
  *
- * Props-based component — no QueryClient, no router, no context needed.
+ * Props-based component â€” no QueryClient, no router, no context needed.
  */
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -97,7 +97,7 @@ describe("ActiveProjectsPanel", () => {
   describe("PANEL-03: project rows", () => {
     it("renders up to 5 project rows", () => {
       const factions = [makeFaction()];
-      // Provide 6 units — component should render all that are passed
+      // Provide 6 units â€” component should render all that are passed
       // (the slice to 5 happens in computeStats before passing props).
       // We test with 3 to verify the row count equals the projects length.
       const projects = [
@@ -137,7 +137,7 @@ describe("ActiveProjectsPanel", () => {
         />
       );
 
-      // Photo present → img rendered at sm size (w-11 h-11)
+      // Photo present â†’ img rendered at sm size (w-11 h-11)
       const img = screen.getByRole("img");
       expect(img.className).toContain("w-11");
       expect(img.className).toContain("h-11");
@@ -184,7 +184,7 @@ describe("ActiveProjectsPanel", () => {
 
     it("displays relative last-updated date in each row", () => {
       const factions = [makeFaction()];
-      // 10 days ago → relativeDate returns "10d ago"
+      // 10 days ago â†’ relativeDate returns "10d ago"
       const tenDaysAgo = (() => {
         const d = new Date();
         d.setDate(d.getDate() - 10);

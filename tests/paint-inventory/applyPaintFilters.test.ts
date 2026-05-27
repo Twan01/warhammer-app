@@ -1,5 +1,5 @@
-/**
- * PINV-02, PINV-03, PINV-04 — applyPaintFilters helper unit tests.
+﻿/**
+ * PINV-02, PINV-03, PINV-04 â€” applyPaintFilters helper unit tests.
  * Tests Phase 7 plan 07-01 Task 2.
  *
  * SQLite boolean discipline asserted: `running_low === 1` and `wishlist === 1`.
@@ -58,7 +58,7 @@ describe("applyPaintFilters", () => {
     expect(result.map((p) => p.id)).toEqual([1, 2]);
   });
 
-  it("runningLow filter checks paint.running_low === 1 — paints with running_low: 0 are excluded", () => {
+  it("runningLow filter checks paint.running_low === 1 â€” paints with running_low: 0 are excluded", () => {
     const list = [
       paint({ id: 1, running_low: 1 }),
       paint({ id: 2, running_low: 0 }),
@@ -68,7 +68,7 @@ describe("applyPaintFilters", () => {
     expect(result.map((p) => p.id)).toEqual([1, 3]);
   });
 
-  it("wishlist filter checks paint.wishlist === 1 — paints with wishlist: 0 are excluded", () => {
+  it("wishlist filter checks paint.wishlist === 1 â€” paints with wishlist: 0 are excluded", () => {
     const list = [
       paint({ id: 1, wishlist: 0 }),
       paint({ id: 2, wishlist: 1 }),
@@ -78,7 +78,7 @@ describe("applyPaintFilters", () => {
     expect(result.map((p) => p.id)).toEqual([2]);
   });
 
-  it("multiple filters AND-combine — Citadel + Shade narrows to the intersection", () => {
+  it("multiple filters AND-combine â€” Citadel + Shade narrows to the intersection", () => {
     const list = [
       paint({ id: 1, brand: "Citadel", paint_type: "Shade" }),
       paint({ id: 2, brand: "Citadel", paint_type: "Layer" }),

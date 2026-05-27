@@ -1,5 +1,5 @@
-/**
- * STRAT-06 (Phase 6 Success Criteria 4) — Army list query function tests.
+﻿/**
+ * STRAT-06 (Phase 6 Success Criteria 4) â€” Army list query function tests.
  *
  * Mocks getDb() because tauri-plugin-sql IPC cannot run in jsdom.
  * Verifies SQL strings + parameter arrays. Critical assertion: updateArmyListUnit
@@ -31,7 +31,7 @@ beforeEach(() => {
   executeMock.mockReset();
 });
 
-describe("armyLists queries — getArmyLists / getArmyListWithUnits", () => {
+describe("armyLists queries â€” getArmyLists / getArmyListWithUnits", () => {
   it("getArmyLists() calls db.select with 'SELECT * FROM army_lists ORDER BY name ASC'", async () => {
     selectMock.mockResolvedValueOnce([]);
     await getArmyLists();
@@ -60,7 +60,7 @@ describe("armyLists queries — getArmyLists / getArmyListWithUnits", () => {
   });
 });
 
-describe("armyLists queries — getArmyListUnitNames (PI-03 deviation)", () => {
+describe("armyLists queries â€” getArmyListUnitNames (PI-03 deviation)", () => {
   it("getArmyListUnitNames() LEFT JOINs units and uses COALESCE for unit_name (Phase 89 ghost unit support)", async () => {
     const mockRows = [
       { list_id: 1, list_name: "Alpha Strike", unit_name: "Intercessors" },
@@ -99,7 +99,7 @@ describe("armyLists queries — getArmyListUnitNames (PI-03 deviation)", () => {
   });
 });
 
-describe("armyLists queries — createArmyList / updateArmyList / deleteArmyList", () => {
+describe("armyLists queries â€” createArmyList / updateArmyList / deleteArmyList", () => {
   it("createArmyList INSERTs name, faction_id, points_limit, list_type, notes, detachment_id, detachment_name and returns lastInsertId", async () => {
     executeMock.mockResolvedValueOnce({ lastInsertId: 11 });
     const id = await createArmyList({
@@ -151,7 +151,7 @@ describe("armyLists queries — createArmyList / updateArmyList / deleteArmyList
   });
 });
 
-describe("armyLists queries — addUnitToList / removeUnitFromList", () => {
+describe("armyLists queries â€” addUnitToList / removeUnitFromList", () => {
   it("addUnitToList INSERTs list_id, unit_id, points_override, notes (allows duplicate unit_id for same list_id)", async () => {
     // Two inserts with same list_id+unit_id should both succeed at the SQL level.
     executeMock.mockResolvedValueOnce({ lastInsertId: 100 });
@@ -176,8 +176,8 @@ describe("armyLists queries — addUnitToList / removeUnitFromList", () => {
   });
 });
 
-describe("armyLists queries — updateArmyListUnit (NULL-passthrough)", () => {
-  it("UPDATE statement is 'SET points_override=$2, notes=$3' — NOT COALESCE — so points_override can be cleared to NULL", async () => {
+describe("armyLists queries â€” updateArmyListUnit (NULL-passthrough)", () => {
+  it("UPDATE statement is 'SET points_override=$2, notes=$3' â€” NOT COALESCE â€” so points_override can be cleared to NULL", async () => {
     executeMock.mockResolvedValueOnce(undefined);
     await updateArmyListUnit({ id: 7, points_override: 250, notes: "v2", tactical_role: null });
 

@@ -1,4 +1,5 @@
 import { useReducer } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,89 +11,34 @@ import { armyListsReducer, initialArmyListsState } from "./armyListsReducer";
 import { ArmyListCard } from "./ArmyListCard";
 import { ArmyListSheet } from "./ArmyListSheet";
 import { ArmyListDeleteDialog } from "./ArmyListDeleteDialog";
-import { ArmyListDetailSheet } from "./ArmyListDetailSheet";
-import { UnitPickerDialog } from "./UnitPickerDialog";
-import { EnhancementPickerSheet } from "./EnhancementPickerSheet";
-import { LeaderAttachmentSheet } from "./LeaderAttachmentSheet";
 import { ArmyListsEmptyState } from "./ArmyListsEmptyState";
-import { LoadoutBuilderSheet } from "./LoadoutBuilderSheet";
-import { DatasheetBrowserDialog } from "./DatasheetBrowserDialog";
-import { PrintPreviewDialog } from "./PrintPreviewDialog";
-import { SnapshotHistorySheet } from "./SnapshotHistorySheet";
-import { SnapshotCompareDialog } from "./SnapshotCompareDialog";
 import { PageHeader } from "@/components/common/PageHeader";
 
 /**
- * ARMY-02..06 root page. Owns ALL portal state — sibling portal architecture
- * (Pitfall 1 — never nest a Sheet/Dialog inside another).
+ * ARMY-02..06 root page — card grid of army lists.
  *
- * State machine:
- *   - selectedListId: which list's detail sheet is open
- *   - sheetOpen + editingList: create/edit form Sheet (null editingList = create)
- *   - deleteDialogOpen + deletingList: list delete confirmation
- *   - unitPickerOpen: unit picker Command palette (triggered by detail sheet)
+ * Clicking a card navigates to /army-lists/$listId (ArmyListDetailPage).
+ * This page only owns create/edit sheet + delete dialog portal state.
+ * All detail-level portals (unit picker, loadout, etc.) live on the detail page.
  *
- * Architecture mirrors CollectionPage exactly. Per-card unit totals are loaded
- * via N parallel useArmyListWithUnits queries (acceptable at personal-use scale).
+ * Per-card unit totals are loaded via N parallel useArmyListWithUnits queries
+ * (acceptable at personal-use scale).
  */
 export function ArmyListsPage() {
   const { data: lists, isLoading, isError } = useArmyLists();
   const { data: factions } = useFactions();
+  const navigate = useNavigate();
 
-  // Centralized portal state (ARCH-04)
+  // Centralized portal state (ARCH-04) — only create/edit/delete remain on the list page
   const [state, dispatch] = useReducer(armyListsReducer, initialArmyListsState);
-  const {
-    selectedListId, sheetOpen, editingList,
-    deleteDialogOpen, deletingList, unitPickerOpen,
-    loadoutUnitId, enhancementUnitId, leaderUnitId,
-    datasheetBrowserOpen, printPreviewOpen,
-    snapshotHistoryOpen, compareSnapshotIds, compareSnapshotLabels,
-  } = state;
+  const { sheetOpen, editingList, deleteDialogOpen, deletingList } = state;
 
-  // Pattern: store ID, derive object from cache (selectedListId pattern)
-  const selectedList = selectedListId !== null
-    ? (lists ?? []).find((l) => l.id === selectedListId) ?? null
-    : null;
-
-  const { data: selectedListUnits } = useArmyListWithUnits(selectedListId ?? undefined);
-  const { data: selectedListEnhancements } = useEnhancementsByList(selectedListId ?? undefined);
-  const selectedListFactionName = selectedList?.faction_id
-    ? (factions ?? []).find((f) => f.id === selectedList.faction_id)?.name ?? null
-    : null;
-  const loadoutUnit = loadoutUnitId !== null
-    ? (selectedListUnits ?? []).find((u) => u.id === loadoutUnitId) ?? null
-    : null;
-  const enhancementUnit = enhancementUnitId !== null
-    ? (selectedListUnits ?? []).find((u) => u.id === enhancementUnitId) ?? null
-    : null;
-  const leaderUnit = leaderUnitId !== null
-    ? (selectedListUnits ?? []).find((u) => u.id === leaderUnitId) ?? null
-    : null;
-
-  // Handlers — dispatch wrappers preserve existing callback signatures
+  // Handlers
   const openCreate = () => dispatch({ type: "OPEN_CREATE" });
-  const openEdit = (list: ArmyList) => dispatch({ type: "OPEN_EDIT", list });
   const closeSheet = () => dispatch({ type: "CLOSE_SHEET" });
-  const openDelete = (list: ArmyList) => dispatch({ type: "OPEN_DELETE", list });
   const closeDelete = () => dispatch({ type: "CLOSE_DELETE" });
-  const openDetail = (list: ArmyList) => dispatch({ type: "OPEN_DETAIL", listId: list.id });
-  const closeDetail = () => dispatch({ type: "CLOSE_DETAIL" });
-  const openUnitPicker = () => dispatch({ type: "OPEN_UNIT_PICKER" });
-  const closeUnitPicker = () => dispatch({ type: "CLOSE_UNIT_PICKER" });
-  const openLoadout = (armyListUnitId: number) => dispatch({ type: "OPEN_LOADOUT", unitId: armyListUnitId });
-  const closeLoadout = () => dispatch({ type: "CLOSE_LOADOUT" });
-  const openEnhancement = (armyListUnitId: number) => dispatch({ type: "OPEN_ENHANCEMENT", unitId: armyListUnitId });
-  const closeEnhancement = () => dispatch({ type: "CLOSE_ENHANCEMENT" });
-  const openLeaderAttach = (armyListUnitId: number) => dispatch({ type: "OPEN_LEADER_ATTACH", unitId: armyListUnitId });
-  const closeLeaderAttach = () => dispatch({ type: "CLOSE_LEADER_ATTACH" });
-  const openDatasheetBrowser = () => dispatch({ type: "OPEN_DATASHEET_BROWSER" });
-  const closeDatasheetBrowser = () => dispatch({ type: "CLOSE_DATASHEET_BROWSER" });
-  const openPrintPreview = () => dispatch({ type: "OPEN_PRINT_PREVIEW" });
-  const closePrintPreview = () => dispatch({ type: "CLOSE_PRINT_PREVIEW" });
-  const openSnapshotHistory = () => dispatch({ type: "OPEN_SNAPSHOT_HISTORY" });
-  const closeSnapshotHistory = () => dispatch({ type: "CLOSE_SNAPSHOT_HISTORY" });
-  const openSnapshotCompare = (ids: [number, number], labels: [string, string]) => dispatch({ type: "OPEN_SNAPSHOT_COMPARE", ids, labels });
-  const closeSnapshotCompare = () => dispatch({ type: "CLOSE_SNAPSHOT_COMPARE" });
+  const openDetail = (list: ArmyList) =>
+    navigate({ to: "/army-lists/$listId", params: { listId: String(list.id) } });
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -137,22 +83,7 @@ export function ArmyListsPage() {
         </div>
       )}
 
-      {/* Sibling portals at page root — Pitfall 1 (never nested) */}
-      <ArmyListDetailSheet
-        key={selectedList?.id ?? "none-detail"}
-        open={selectedListId !== null}
-        list={selectedList}
-        onClose={closeDetail}
-        onEdit={openEdit}
-        onDelete={openDelete}
-        onAddUnit={openUnitPicker}
-        onConfigureUnit={openLoadout}
-        onEnhanceUnit={openEnhancement}
-        onAttachLeader={openLeaderAttach}
-        onBrowseDatasheets={openDatasheetBrowser}
-        onPrintPreview={openPrintPreview}
-        onOpenSnapshots={openSnapshotHistory}
-      />
+      {/* Sibling portals — only create/edit + delete remain on the list page */}
       <ArmyListSheet
         key={editingList?.id ?? "new-edit"}
         open={sheetOpen}
@@ -164,62 +95,6 @@ export function ArmyListsPage() {
         open={deleteDialogOpen}
         list={deletingList}
         onClose={closeDelete}
-      />
-      <UnitPickerDialog
-        open={unitPickerOpen}
-        listId={selectedListId}
-        factionId={selectedList?.faction_id ?? null}
-        onClose={closeUnitPicker}
-      />
-      <LoadoutBuilderSheet
-        open={loadoutUnitId !== null}
-        unit={loadoutUnit}
-        listId={selectedListId}
-        listFactionId={selectedList?.faction_id ?? null}
-        onClose={closeLoadout}
-      />
-      <EnhancementPickerSheet
-        open={enhancementUnitId !== null}
-        unit={enhancementUnit}
-        list={selectedList}
-        onClose={closeEnhancement}
-      />
-      <LeaderAttachmentSheet
-        open={leaderUnitId !== null}
-        unit={leaderUnit}
-        list={selectedList}
-        units={selectedListUnits ?? []}
-        onClose={closeLeaderAttach}
-      />
-      <DatasheetBrowserDialog
-        open={datasheetBrowserOpen}
-        listId={selectedListId}
-        factionId={selectedList?.faction_id ?? null}
-        onClose={closeDatasheetBrowser}
-      />
-      <PrintPreviewDialog
-        open={printPreviewOpen}
-        list={selectedList}
-        units={selectedListUnits ?? []}
-        enhancements={selectedListEnhancements ?? []}
-        factionName={selectedListFactionName}
-        onClose={closePrintPreview}
-      />
-      <SnapshotHistorySheet
-        open={snapshotHistoryOpen}
-        listId={selectedListId}
-        list={selectedList}
-        units={selectedListUnits ?? []}
-        enhancements={selectedListEnhancements ?? []}
-        factionName={selectedListFactionName}
-        onClose={closeSnapshotHistory}
-        onCompare={openSnapshotCompare}
-      />
-      <SnapshotCompareDialog
-        open={compareSnapshotIds !== null}
-        snapshotIds={compareSnapshotIds}
-        snapshotLabels={compareSnapshotLabels}
-        onClose={closeSnapshotCompare}
       />
     </div>
   );

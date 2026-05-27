@@ -1,5 +1,5 @@
-/**
- * PROJ-02, PROJ-08 — KanbanBoard column ordering and empty state.
+﻿/**
+ * PROJ-02, PROJ-08 â€” KanbanBoard column ordering and empty state.
  */
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";

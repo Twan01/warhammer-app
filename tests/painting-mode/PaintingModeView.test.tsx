@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Phase 85-03 -- PaintingModeView integration tests.
  *
  * Mocks all hooks at module level. Verifies root composition:

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Phase 88-02 -- PaintingModeView integration tests.
  *
  * TS-05: paintless steps do not trigger PaintReadinessBanner

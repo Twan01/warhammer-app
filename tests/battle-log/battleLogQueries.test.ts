@@ -1,5 +1,5 @@
-/**
- * Phase 18 — Battle Log query module SQL contract tests.
+﻿/**
+ * Phase 18 â€” Battle Log query module SQL contract tests.
  *
  * Mocks getDb() because tauri-plugin-sql IPC cannot run in jsdom.
  * Mirrors tests/foundation/armyListQueries.test.ts.
@@ -26,7 +26,7 @@ beforeEach(() => {
   executeMock.mockReset();
 });
 
-describe("battleLogs queries — getBattleLogs (BATTLE-04)", () => {
+describe("battleLogs queries â€” getBattleLogs (BATTLE-04)", () => {
   it("calls db.select with 'SELECT * FROM battle_logs ORDER BY battle_date DESC, created_at DESC'", async () => {
     selectMock.mockResolvedValue([]);
     await getBattleLogs();
@@ -36,7 +36,7 @@ describe("battleLogs queries — getBattleLogs (BATTLE-04)", () => {
   });
 });
 
-describe("battleLogs queries — getBattleLogSummary (BATTLE-04)", () => {
+describe("battleLogs queries â€” getBattleLogSummary (BATTLE-04)", () => {
   it("calls db.select with 'SELECT result, COUNT(*) AS count FROM battle_logs GROUP BY result'", async () => {
     selectMock.mockResolvedValue([]);
     await getBattleLogSummary();
@@ -46,7 +46,7 @@ describe("battleLogs queries — getBattleLogSummary (BATTLE-04)", () => {
   });
 });
 
-describe("battleLogs queries — createBattleLog (BATTLE-01, BATTLE-02, BATTLE-03)", () => {
+describe("battleLogs queries â€” createBattleLog (BATTLE-01, BATTLE-02, BATTLE-03)", () => {
   it("INSERTs all 14 columns in the documented order and returns lastInsertId", async () => {
     executeMock.mockResolvedValue({ lastInsertId: 42, rowsAffected: 1 });
     const input = {
@@ -114,8 +114,8 @@ describe("battleLogs queries — createBattleLog (BATTLE-01, BATTLE-02, BATTLE-0
   });
 });
 
-describe("battleLogs queries — updateBattleLog (BATTLE-02 — Pitfall 5: full-replacement UPDATE for nullable FKs)", () => {
-  it("uses full-replacement UPDATE (SET army_list_id = $2) — does NOT use COALESCE for army_list_id, mvp_unit_id, or underperforming_unit_id", async () => {
+describe("battleLogs queries â€” updateBattleLog (BATTLE-02 â€” Pitfall 5: full-replacement UPDATE for nullable FKs)", () => {
+  it("uses full-replacement UPDATE (SET army_list_id = $2) â€” does NOT use COALESCE for army_list_id, mvp_unit_id, or underperforming_unit_id", async () => {
     executeMock.mockResolvedValue({ rowsAffected: 1 });
     const input = {
       id: 1,
@@ -204,7 +204,7 @@ describe("battleLogs queries — updateBattleLog (BATTLE-02 — Pitfall 5: full-
   });
 });
 
-describe("battleLogs queries — deleteBattleLog (BATTLE-05)", () => {
+describe("battleLogs queries â€” deleteBattleLog (BATTLE-05)", () => {
   it("runs DELETE FROM battle_logs WHERE id = $1 with the given id", async () => {
     executeMock.mockResolvedValue({ rowsAffected: 1 });
     await deleteBattleLog(42);

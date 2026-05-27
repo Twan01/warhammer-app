@@ -24,6 +24,7 @@ const PaintsPage = lazy(() => import("./paints/page").then(m => ({ default: m.Pa
 const SettingsPage = lazy(() => import("./settings/page").then(m => ({ default: m.SettingsPage })));
 const FactionsPage = lazy(() => import("./factions/page").then(m => ({ default: m.FactionsPage })));
 const ArmyListsPage = lazy(() => import("./army-lists/page").then(m => ({ default: m.ArmyListsPage })));
+const ArmyListDetailPageShell = lazy(() => import("./army-lists/detail/page").then(m => ({ default: m.ArmyListDetailPageShell })));
 const SpendingPage = lazy(() => import("./spending/page").then(m => ({ default: m.SpendingPage })));
 const BattleLogPage = lazy(() => import("./battle-log/page").then(m => ({ default: m.BattleLogPage })));
 const WishlistPage = lazy(() => import("./wishlist/page").then(m => ({ default: m.WishlistPage })));
@@ -134,6 +135,12 @@ const armyListsRoute = createRoute({
   component: ArmyListsPage,
 });
 
+const armyListDetailRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: "/army-lists/$listId",
+  component: ArmyListDetailPageShell,
+});
+
 const spendingRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/spending",
@@ -206,6 +213,7 @@ const routeTree = rootRoute.addChildren([
     recipesRoute,
     paintsRoute,
     armyListsRoute,
+    armyListDetailRoute,
     spendingRoute,
     wishlistRoute,
     battleLogRoute,

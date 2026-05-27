@@ -5,7 +5,6 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { computeListHealthStats, computeListWarnings } from "@/lib/computeUnitWarnings";
 import { PointsFreshnessBadge } from "./PointsFreshnessBadge";
 import type { ArmyListUnitRow, ArmyListEnhancement } from "@/types/armyList";
@@ -15,7 +14,6 @@ import {
 } from "@/types/armyList";
 import type { TacticalRole } from "@/types/armyList";
 import type { SyncFreshness } from "@/lib/syncFreshness";
-import type { PaintingStatus } from "@/types/unit";
 
 interface ArmyListSummaryBarProps {
   units: ArmyListUnitRow[];
@@ -30,6 +28,9 @@ interface ArmyListSummaryBarProps {
  * Stats: points total (X/Y when limit set), ownership %, readiness %,
  * freshness badge, warning count with tooltip. Role coverage pills when
  * at least one unit has a tactical role assigned.
+ *
+ * Category points breakdown: groups units by unit_category and shows
+ * the point total for each category (e.g. "HQ: 200pts, Battleline: 300pts").
  */
 export function ArmyListSummaryBar({ units, pointsLimit, freshness, enhancements }: ArmyListSummaryBarProps) {
   const enhancementTotal = useMemo(
@@ -78,6 +79,23 @@ export function ArmyListSummaryBar({ units, pointsLimit, freshness, enhancements
 
   const hasAnyRole = units.some((u) => u.tactical_role !== null);
 
+  // Category-based points breakdown
+  const categoryPoints = useMemo(() => {
+    const map = new Map<string, { points: number; count: number }>();
+    for (const u of units) {
+      const cat = u.unit_category ?? "Uncategorized";
+      const entry = map.get(cat) ?? { points: 0, count: 0 };
+      entry.points += u.effective_points;
+      entry.count += 1;
+      map.set(cat, entry);
+    }
+    // Sort by points descending
+    return Array.from(map.entries())
+      .sort((a, b) => b[1].points - a[1].points);
+  }, [units]);
+
+  const hasAnyCategory = units.some((u) => u.unit_category !== null);
+
   // Points display: "X / Y pts" when limit set, "X pts" otherwise
   const pointsValue = pointsLimit !== null
     ? `${stats.totalPoints} / ${pointsLimit} pts`
@@ -106,6 +124,25 @@ export function ArmyListSummaryBar({ units, pointsLimit, freshness, enhancements
           style={{ width: `${stats.battleReadyPct}%` }}
         />
       </div>
+
+      {/* Category points breakdown */}
+      {hasAnyCategory && categoryPoints.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Points by Category
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {categoryPoints.map(([category, { points, count }]) => (
+              <span
+                key={category}
+                className="bg-secondary text-secondary-foreground rounded-full px-2.5 py-1 text-xs"
+              >
+                {category}: {points}pts ({count})
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Freshness + warnings row */}
       <div className="flex items-center justify-between">
@@ -167,23 +204,15 @@ export function ArmyListSummaryBar({ units, pointsLimit, freshness, enhancements
         </div>
       )}
 
-      {/* Readiness section */}
+      {/* Compact readiness indicator */}
       {notReadyUnits.length === 0 ? (
         <p className="text-sm bg-battle-gold/10 text-battle-gold rounded px-2 py-1">
           All units battle-ready
         </p>
       ) : (
-        <div className="flex flex-col gap-1">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            Not ready ({notReadyUnits.length})
-          </p>
-          {notReadyUnits.map((u) => (
-            <div key={u.id} className="flex items-center justify-between text-sm py-0.5">
-              <span>{u.unit_name}</span>
-              <StatusBadge status={u.status_painting as PaintingStatus} />
-            </div>
-          ))}
-        </div>
+        <p className="text-xs text-muted-foreground">
+          {notReadyUnits.length} of {units.length} units not battle-ready
+        </p>
       )}
     </div>
   );

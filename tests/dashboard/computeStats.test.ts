@@ -1,5 +1,5 @@
-/**
- * DASH-01, DASH-02, DASH-03, DASH-04, DASH-05, DASH-06, DASH-08 —
+﻿/**
+ * DASH-01, DASH-02, DASH-03, DASH-04, DASH-05, DASH-06, DASH-08 â€”
  * Pure-function tests for computeStats() aggregation.
  *
  * Test fixture pattern mirrors tests/painting/kanbanUtils.test.ts: a
@@ -118,7 +118,7 @@ describe("DASH-03 paintingPct (average of painting_percentage)", () => {
     expect(computeStats(units, []).paintingPct).toBe(50);
   });
 
-  it("rounds correctly (33.33... → 33)", () => {
+  it("rounds correctly (33.33... â†’ 33)", () => {
     const units = [
       u({ id: 1, painting_percentage: 0 }),
       u({ id: 2, painting_percentage: 0 }),

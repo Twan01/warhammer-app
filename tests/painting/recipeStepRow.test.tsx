@@ -1,5 +1,5 @@
-/**
- * STEP-01/03 — RecipeStepRow renders new structured step inputs.
+﻿/**
+ * STEP-01/03 â€” RecipeStepRow renders new structured step inputs.
  *
  * Verifies the two-line layout:
  *  - Line 1: painting_phase Select (with PAINTING_PHASES items), title Input, PaintCombobox
@@ -16,7 +16,7 @@ import type { DraftStep } from "@/types/recipe";
 import { PAINTING_PHASES } from "@/features/recipes/recipeSchema";
 
 // ---------------------------------------------------------------------------
-// Mock @dnd-kit/sortable — useSortable calls pointer APIs not available in jsdom
+// Mock @dnd-kit/sortable â€” useSortable calls pointer APIs not available in jsdom
 // ---------------------------------------------------------------------------
 vi.mock("@dnd-kit/sortable", () => ({
   useSortable: () => ({
@@ -38,7 +38,7 @@ vi.mock("@dnd-kit/utilities", () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// Mock PaintCombobox — it calls usePaints which calls Tauri IPC
+// Mock PaintCombobox â€” it calls usePaints which calls Tauri IPC
 // ---------------------------------------------------------------------------
 vi.mock("@/features/recipes/PaintCombobox", () => ({
   PaintCombobox: () => <div data-testid="paint-combobox" />,
@@ -84,12 +84,12 @@ function renderRow(step: DraftStep = makeDraftStep()) {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe("RecipeStepRow — STEP-01/03 structured step inputs", () => {
+describe("RecipeStepRow â€” STEP-01/03 structured step inputs", () => {
   describe("painting_phase Select", () => {
     it("renders a Select trigger for painting_phase", () => {
       const { container } = renderRow();
       // Radix Select renders a trigger button with data-slot="select-trigger"
-      // plus a hidden native select — target by data-slot to avoid ambiguity
+      // plus a hidden native select â€” target by data-slot to avoid ambiguity
       const trigger = container.querySelector("[data-slot='select-trigger']");
       expect(trigger).toBeInTheDocument();
     });
@@ -205,7 +205,7 @@ describe("RecipeStepRow — STEP-01/03 structured step inputs", () => {
   describe("notes input", () => {
     it("renders the notes Input on the third row", () => {
       renderRow();
-      expect(screen.getByPlaceholderText("Notes…")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Notesâ€¦")).toBeInTheDocument();
     });
   });
 
@@ -244,7 +244,7 @@ describe("RecipeStepRow — STEP-01/03 structured step inputs", () => {
     });
   });
 
-  describe("paintless step rendering — PAINTLESS-01", () => {
+  describe("paintless step rendering â€” PAINTLESS-01", () => {
     it("renders without throwing when paint_id is null", () => {
       expect(() => renderRow(makeDraftStep({ paint_id: null }))).not.toThrow();
     });
@@ -257,7 +257,7 @@ describe("RecipeStepRow — STEP-01/03 structured step inputs", () => {
     });
 
     it("does not render a color swatch element when paint_id is null", () => {
-      // RecipeStepRow is a form input — it never shows a paint color swatch dot.
+      // RecipeStepRow is a form input â€” it never shows a paint color swatch dot.
       // Asserting its absence guards against regressions that might add an inline swatch.
       const { container } = renderRow(makeDraftStep({ paint_id: null }));
       const swatch = container.querySelector("[data-testid='timeline-node']");
@@ -272,11 +272,11 @@ describe("RecipeStepRow — STEP-01/03 structured step inputs", () => {
       expect(screen.getByPlaceholderText("Technique")).toBeInTheDocument();
       expect(screen.getByPlaceholderText("Dilution")).toBeInTheDocument();
       expect(screen.getByPlaceholderText("Min")).toBeInTheDocument();
-      expect(screen.getByPlaceholderText("Notes…")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Notesâ€¦")).toBeInTheDocument();
     });
   });
 
-  describe("alt paint combobox — PAINT-02", () => {
+  describe("alt paint combobox â€” PAINT-02", () => {
     it("renders an alt paint combobox container on the second row", () => {
       const { container } = renderRow();
       const altContainer = container.querySelector("[data-testid='alt-paint-combobox-container']");

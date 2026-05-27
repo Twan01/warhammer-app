@@ -1,5 +1,5 @@
-/**
- * Phase 9 — PlaybookTab component tests.
+﻿/**
+ * Phase 9 â€” PlaybookTab component tests.
  *
  * Covers STRAT-01 through STRAT-05. Mocks @/db/queries/strategyNotes so
  * useStrategyNote / useUpsertStrategyNote hooks resolve without tauri-plugin-sql.
@@ -59,7 +59,7 @@ vi.mock("@/db/queries/datasheets", () => ({
   resolveWahapediaFactionIdByName: vi.fn(async () => null),
 }));
 vi.mock("@/features/units/DatasheetPicker", () => ({
-  DatasheetPicker: () => null, // render nothing — picker is tested separately
+  DatasheetPicker: () => null, // render nothing â€” picker is tested separately
 }));
 
 vi.mock("@/hooks/useRulesFavorites", () => ({
@@ -167,7 +167,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("STRAT-01 — Playbook tab renders inside UnitDetailSheet", () => {
+describe("STRAT-01 â€” Playbook tab renders inside UnitDetailSheet", () => {
   it("renders the Playbook tab trigger alongside the Details trigger", async () => {
     renderInsideTabs();
     expect(screen.getByRole("tab", { name: /Details/ })).toBeInTheDocument();
@@ -177,7 +177,7 @@ describe("STRAT-01 — Playbook tab renders inside UnitDetailSheet", () => {
   it("switches to Playbook tab content on click without closing the sheet", async () => {
     const user = userEvent.setup();
     renderInsideTabs();
-    // We start on Playbook (defaultValue) — verify Save Playbook is present
+    // We start on Playbook (defaultValue) â€” verify Save Playbook is present
     expect(await screen.findByRole("button", { name: /Save Playbook/ })).toBeInTheDocument();
     // Switch to Details
     await user.click(screen.getByRole("tab", { name: /Details/ }));
@@ -188,7 +188,7 @@ describe("STRAT-01 — Playbook tab renders inside UnitDetailSheet", () => {
   });
 });
 
-describe("STRAT-02 — Stats block displays values with suffixes", () => {
+describe("STRAT-02 â€” Stats block displays values with suffixes", () => {
   it("renders six stat cells in order M, T, Sv, W, Ld, OC", async () => {
     renderInsideTabs();
     // Wait for hook query to settle
@@ -198,12 +198,12 @@ describe("STRAT-02 — Stats block displays values with suffixes", () => {
     expect(visibleOrder).toEqual(["M", "T", "Sv", "W", "Ld", "OC"]);
   });
 
-  it("displays — placeholder when a stat value is null", async () => {
+  it("displays â€” placeholder when a stat value is null", async () => {
     getStrategyNoteMock.mockResolvedValueOnce(makeNote()); // all stats null
     renderInsideTabs();
     await screen.findByRole("button", { name: /Save Playbook/ });
-    const dashes = screen.getAllByText("—");
-    // 6 stat cells, all null → 6 em-dashes minimum (other em-dashes elsewhere are unlikely on this tab)
+    const dashes = screen.getAllByText("â€”");
+    // 6 stat cells, all null â†’ 6 em-dashes minimum (other em-dashes elsewhere are unlikely on this tab)
     expect(dashes.length).toBeGreaterThanOrEqual(6);
   });
 
@@ -219,12 +219,12 @@ describe("STRAT-02 — Stats block displays values with suffixes", () => {
       })
     );
     renderInsideTabs();
-    // Wait for data to be rendered — 6" appears only after the hook resolves with stat data
+    // Wait for data to be rendered â€” 6" appears only after the hook resolves with stat data
     expect(await screen.findByText(`6"`)).toBeInTheDocument();
     expect(screen.getByText("3+")).toBeInTheDocument();
     expect(screen.getByText("7+")).toBeInTheDocument();
     expect(screen.getByText("1+")).toBeInTheDocument();
-    // T=4 and W=2 are raw integers — pick them up by their value text
+    // T=4 and W=2 are raw integers â€” pick them up by their value text
     expect(screen.getByText("4")).toBeInTheDocument();
     expect(screen.getByText("2")).toBeInTheDocument();
   });
@@ -242,7 +242,7 @@ describe("STRAT-02 — Stats block displays values with suffixes", () => {
   });
 });
 
-describe("STRAT-03 — Abilities and Keywords fields render", () => {
+describe("STRAT-03 â€” Abilities and Keywords fields render", () => {
   it("renders Abilities textarea with rows=3 and accepts user input", async () => {
     const user = userEvent.setup();
     renderInsideTabs();
@@ -266,7 +266,7 @@ describe("STRAT-03 — Abilities and Keywords fields render", () => {
   });
 });
 
-describe("STRAT-04 — Eight strategy note fields render in correct order", () => {
+describe("STRAT-04 â€” Eight strategy note fields render in correct order", () => {
   const EXPECTED_LABELS = [
     "Battlefield Role",
     "Strengths",
@@ -281,7 +281,7 @@ describe("STRAT-04 — Eight strategy note fields render in correct order", () =
   it("renders all 8 strategy note labels in the order specified by STRAT-04", async () => {
     renderInsideTabs();
     await screen.findByRole("button", { name: /Save Playbook/ });
-    // For each expected label, capture its DOM index — confirm strictly increasing
+    // For each expected label, capture its DOM index â€” confirm strictly increasing
     const positions = EXPECTED_LABELS.map((label) => {
       const el = screen.getByText(label);
       return Array.from(document.querySelectorAll("label, span")).indexOf(el);
@@ -305,7 +305,7 @@ describe("STRAT-04 — Eight strategy note fields render in correct order", () =
   });
 });
 
-describe("STRAT-05 — Save button dirty-state and inline save", () => {
+describe("STRAT-05 â€” Save button dirty-state and inline save", () => {
   it("Save button is disabled when no field has changed since load", async () => {
     getStrategyNoteMock.mockResolvedValueOnce(makeNote({ battlefield_role: "Anvil" }));
     renderInsideTabs();
@@ -363,7 +363,7 @@ describe("STRAT-05 — Save button dirty-state and inline save", () => {
   });
 });
 
-describe("PlaybookTab — DS-09 Datasheet Abilities collapsible", () => {
+describe("PlaybookTab â€” DS-09 Datasheet Abilities collapsible", () => {
   it("DS-09: renders Core/Faction/Unit sub-groups when useDatasheet returns abilities of all 3 types", async () => {
     const fakeDatasheet = {
       ds: { id: "001", name: "Intercessors", faction_id: "SM", source_id: "src1", role: "Battleline", damaged_w: null, damaged_description: null },
@@ -398,7 +398,7 @@ describe("PlaybookTab — DS-09 Datasheet Abilities collapsible", () => {
   });
 });
 
-describe("PlaybookTab — DS-10 Sources list", () => {
+describe("PlaybookTab â€” DS-10 Sources list", () => {
   it("DS-10: renders Sources section with the source publication name when datasheet has a source", async () => {
     const fakeDatasheet = {
       ds: { id: "001", name: "Intercessors", faction_id: "SM", source_id: "src1", role: "Battleline", damaged_w: null, damaged_description: null },
@@ -413,7 +413,7 @@ describe("PlaybookTab — DS-10 Sources list", () => {
   });
 });
 
-describe("PlaybookTab — DS-11 Personal Ability Notes textarea label rename", () => {
+describe("PlaybookTab â€” DS-11 Personal Ability Notes textarea label rename", () => {
   it("DS-11: textarea labeled 'Personal Ability Notes' (not 'Abilities') for the personal notes field with id='playbook-abilities'", () => {
     renderInsideTabs(42);
     expect(screen.getByLabelText("Personal Ability Notes")).toBeInTheDocument();
@@ -423,7 +423,7 @@ describe("PlaybookTab — DS-11 Personal Ability Notes textarea label rename", (
   });
 });
 
-describe("PlaybookTab — DS-12 multi-profile note", () => {
+describe("PlaybookTab â€” DS-12 multi-profile note", () => {
   it("DS-12: renders 'Additional model profiles available' note when datasheet.models has more than one row", async () => {
     const fakeDatasheet = {
       ds: { id: "001", name: "X", faction_id: "SM", source_id: null, role: null, damaged_w: null, damaged_description: null },
@@ -436,7 +436,7 @@ describe("PlaybookTab — DS-12 multi-profile note", () => {
     };
     (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: fakeDatasheet });
     renderInsideTabs(42);
-    expect(await screen.findByText("Additional model profiles available — see Datasheet Abilities for details.")).toBeInTheDocument();
+    expect(await screen.findByText("Additional model profiles available â€” see Datasheet Abilities for details.")).toBeInTheDocument();
   });
 
   it("DS-12: does NOT render the multi-profile note when datasheet.models has exactly one row", async () => {
@@ -448,11 +448,11 @@ describe("PlaybookTab — DS-12 multi-profile note", () => {
     };
     (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: fakeDatasheet });
     renderInsideTabs(42);
-    expect(screen.queryByText("Additional model profiles available — see Datasheet Abilities for details.")).toBeNull();
+    expect(screen.queryByText("Additional model profiles available â€” see Datasheet Abilities for details.")).toBeNull();
   });
 });
 
-describe("PlaybookTab — Weapons section (Phase 15 wargear)", () => {
+describe("PlaybookTab â€” Weapons section (Phase 15 wargear)", () => {
   const boltRifle = {
     datasheet_id: "001", line: 1, line_in_wargear: 1,
     name: "Bolt Rifle", range: "24", type: "Ranged", A: "2", BS_WS: "3",
@@ -479,9 +479,9 @@ describe("PlaybookTab — Weapons section (Phase 15 wargear)", () => {
     renderInsideTabs(42);
     await screen.findByText("Weapons");
     expect(screen.getByText("Bolt Rifle")).toBeInTheDocument();
-    // range: "24" → displayed as 24"
+    // range: "24" â†’ displayed as 24"
     expect(screen.getByText('24"')).toBeInTheDocument();
-    // A: "2", BS_WS: "3" → displayed as "3+", AP: "-1", D: "1", S: "4"
+    // A: "2", BS_WS: "3" â†’ displayed as "3+", AP: "-1", D: "1", S: "4"
     expect(screen.getByText("3+")).toBeInTheDocument();
   });
 
@@ -494,7 +494,7 @@ describe("PlaybookTab — Weapons section (Phase 15 wargear)", () => {
   });
 });
 
-describe("PlaybookTab — SCHEMA-01 Stratagems", () => {
+describe("PlaybookTab â€” SCHEMA-01 Stratagems", () => {
   const sampleStratagem = {
     id: "s1",
     faction_id: "SM",
@@ -539,7 +539,7 @@ describe("PlaybookTab — SCHEMA-01 Stratagems", () => {
   });
 });
 
-describe("PlaybookTab — SCHEMA-02 Detachments", () => {
+describe("PlaybookTab â€” SCHEMA-02 Detachments", () => {
   const sampleDetachment = {
     id: "d1",
     faction_id: "SM",
@@ -570,7 +570,7 @@ describe("PlaybookTab — SCHEMA-02 Detachments", () => {
   });
 });
 
-describe("PlaybookTab — SCHEMA-03 Detachment abilities nested under parent", () => {
+describe("PlaybookTab â€” SCHEMA-03 Detachment abilities nested under parent", () => {
   const sampleDetachment = {
     id: "d1",
     faction_id: "SM",
@@ -599,7 +599,7 @@ describe("PlaybookTab — SCHEMA-03 Detachment abilities nested under parent", (
   });
 });
 
-describe("PlaybookTab — SCHEMA-04 Shared Faction Abilities", () => {
+describe("PlaybookTab â€” SCHEMA-04 Shared Faction Abilities", () => {
   const sampleAbility = {
     id: "a1",
     name: "Oath of Moment",
@@ -630,7 +630,7 @@ describe("PlaybookTab — SCHEMA-04 Shared Faction Abilities", () => {
   });
 });
 
-describe("PlaybookTab — combined absence of extended sections", () => {
+describe("PlaybookTab â€” combined absence of extended sections", () => {
   it("shows none of the extended section headings when all three hooks return empty arrays and wahapediaFactionId is null", async () => {
     useStratagemsByFactionMock.mockReturnValue({ data: [] });
     useDetachmentsByFactionMock.mockReturnValue({ data: [] });
@@ -643,12 +643,12 @@ describe("PlaybookTab — combined absence of extended sections", () => {
   });
 });
 
-// ────────────────────────────────────────────────────────────────────────────
-// Phase 55 Plan 02 — Annotation controls in PlaybookTab sub-components
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Phase 55 Plan 02 â€” Annotation controls in PlaybookTab sub-components
 // PLAY-01: Star toggle visible on all rule entries
 // PLAY-02: Flag toggle visible on all rule entries
 // PLAY-04: Annotation styling (border-l-primary bg-primary/5) on annotated entries
-// ────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const sampleStratagemAnnotation = {
   id: "s-ann",
@@ -690,7 +690,7 @@ const sampleSharedAbilityAnnotation = {
   description: "Re-roll hit rolls of 1.",
 };
 
-describe("PlaybookTab — PLAY-01/02 StratagemEntry annotation controls", () => {
+describe("PlaybookTab â€” PLAY-01/02 StratagemEntry annotation controls", () => {
   it("PLAY-01: shows star button (Add to favorites) for each stratagem", async () => {
     useStratagemsByFactionMock.mockReturnValue({ data: [sampleStratagemAnnotation] });
     renderInsideTabs(42);
@@ -754,7 +754,7 @@ describe("PlaybookTab — PLAY-01/02 StratagemEntry annotation controls", () => 
   });
 });
 
-describe("PlaybookTab — PLAY-01/02 DetachmentAbilityRow annotation controls", () => {
+describe("PlaybookTab â€” PLAY-01/02 DetachmentAbilityRow annotation controls", () => {
   it("PLAY-01: shows star button for each detachment ability when rendered", async () => {
     useDetachmentsByFactionMock.mockReturnValue({ data: [sampleDetachmentAnnotation] });
     useDetachmentAbilitiesByDetachmentMock.mockReturnValue({ data: [sampleAbilityAnnotation] });
@@ -821,7 +821,7 @@ describe("PlaybookTab — PLAY-01/02 DetachmentAbilityRow annotation controls", 
   });
 });
 
-describe("PlaybookTab — PLAY-01/02 ExtendedAbilityEntry annotation controls (shared abilities)", () => {
+describe("PlaybookTab â€” PLAY-01/02 ExtendedAbilityEntry annotation controls (shared abilities)", () => {
   it("PLAY-01: shows star button for each shared faction ability", async () => {
     useSharedAbilitiesByFactionMock.mockReturnValue({ data: [sampleSharedAbilityAnnotation] });
     renderInsideTabs(42);
@@ -909,7 +909,7 @@ describe("PlaybookTab — PLAY-01/02 ExtendedAbilityEntry annotation controls (s
   });
 });
 
-describe("PlaybookTab — datasheet error state", () => {
+describe("PlaybookTab â€” datasheet error state", () => {
   it("renders error banner when useDatasheet returns an error", async () => {
     (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({
       data: undefined,

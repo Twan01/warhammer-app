@@ -1,5 +1,5 @@
-/**
- * DASH-01..06, DASH-08 — DashboardPage assembly tests.
+﻿/**
+ * DASH-01..06, DASH-08 â€” DashboardPage assembly tests.
  *
  * We use a wrapping QueryClientProvider so useDashboardStats runs in test
  * mode. We mock the underlying queries module so this test stays a pure
@@ -21,7 +21,7 @@ import { ActiveFactionProvider } from "@/context/ActiveFactionContext";
 import type { Unit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
 
-// Mock the dashboard query module — DashboardPage indirectly consumes this
+// Mock the dashboard query module â€” DashboardPage indirectly consumes this
 // through useDashboardStats. Different tests override the return value.
 // Phase 32: getArmyReadinessByFaction added; mock returns [] so ArmyReadinessCard
 // renders the empty-state and does not interfere with existing dashboard tests.
@@ -41,14 +41,14 @@ vi.mock("@/db/queries/factions", () => ({
   deleteFaction: vi.fn(),
 }));
 
-// Mock useLatestUnitPhotos — DashboardPage now calls this hook to pass photo
+// Mock useLatestUnitPhotos â€” DashboardPage now calls this hook to pass photo
 // data to CurrentFocusCard. Return an empty Map so the hook stays idle and
 // does not trigger the real Tauri appDataDir() call in jsdom.
 vi.mock("@/hooks/useUnitPhotos", () => ({
   useLatestUnitPhotos: vi.fn().mockReturnValue({ data: new Map() }),
 }));
 
-// jsdom does not define window.matchMedia — install it via Object.defineProperty so
+// jsdom does not define window.matchMedia â€” install it via Object.defineProperty so
 // useCountUp (called by AnimatedNumber inside the hero StatCards) has a working
 // implementation. Tests can override per-test via vi.spyOn. vi.restoreAllMocks() in
 // beforeEach restores the spy back to this base implementation between tests.
@@ -185,25 +185,25 @@ describe("DashboardPage", () => {
     });
     renderWithProviders(<DashboardPage />);
 
-    // DASH-01 — stat labels (top row)
+    // DASH-01 â€” stat labels (top row)
     expect(await screen.findByText("Total Models")).toBeInTheDocument();
     expect(screen.getByText("Fully Painted")).toBeInTheDocument();
     expect(screen.getByText("Battle-Ready Points")).toBeInTheDocument();
     expect(screen.getAllByText("Active Projects").length).toBeGreaterThanOrEqual(1);
 
-    // DASH-01 — page title is now "Hobby Command Center" (Wave 3 rework)
+    // DASH-01 â€” page title is now "Hobby Command Center" (Wave 3 rework)
     expect(screen.getByRole("heading", { level: 1, name: "Hobby Command Center" })).toBeInTheDocument();
 
-    // DASH-05 — By Faction section
+    // DASH-05 â€” By Faction section
     expect(screen.getByText("By Faction")).toBeInTheDocument();
     expect(screen.getAllByText("Tau").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("Ultra").length).toBeGreaterThanOrEqual(1);
 
-    // DASH-04 — HobbyPipeline replaces the old Progress section (no "Progress" heading)
+    // DASH-04 â€” HobbyPipeline replaces the old Progress section (no "Progress" heading)
     expect(screen.queryByText("Progress")).not.toBeInTheDocument();
     expect(screen.queryByText("Painting Progress")).not.toBeInTheDocument();
 
-    // DASH-06 — old two-column list headings are replaced by RecentActivityFeed
+    // DASH-06 â€” old two-column list headings are replaced by RecentActivityFeed
     expect(screen.queryByText("Recently Updated")).not.toBeInTheDocument();
   });
 
@@ -237,7 +237,7 @@ describe("DashboardPage", () => {
 
   it("animates hero stat values to their final integers after data loads (UI-07)", async () => {
     // Force useCountUp to short-circuit to target by faking prefers-reduced-motion=true.
-    // This makes the test deterministic — no fake-timer plumbing needed; useCountUp returns
+    // This makes the test deterministic â€” no fake-timer plumbing needed; useCountUp returns
     // target immediately (Pitfall 5 short-circuit). The visual animation behavior is
     // covered by the unit tests in tests/dashboard/useCountUp.test.ts.
     vi.spyOn(window, "matchMedia").mockReturnValue({
@@ -262,23 +262,23 @@ describe("DashboardPage", () => {
 
     renderWithProviders(<DashboardPage />);
 
-    // Wait for data to load — labels appear once stats compute.
+    // Wait for data to load â€” labels appear once stats compute.
     expect(await screen.findByText("Total Models")).toBeInTheDocument();
 
     // The 4 hero values: totalModels=2, fullyPainted=2, battleReadyPoints=250 (both painted),
     // activeProjectsCount=2 (both have is_active_project=1 in the u() factory default).
-    // Because reduced-motion is true, useCountUp returns target immediately — the final
+    // Because reduced-motion is true, useCountUp returns target immediately â€” the final
     // integer is in the DOM by the time the labels render.
     // Use getAllByText because "2" appears multiple times (Total Models, Fully Painted, Active Projects).
     expect(screen.getAllByText("2").length).toBeGreaterThanOrEqual(1);
     // "250" now appears in both the Battle-Ready Points StatCard and the FactionSummaryCard
-    // pts line — use getAllByText to assert at least one match exists.
+    // pts line â€” use getAllByText to assert at least one match exists.
     expect(screen.getAllByText("250").length).toBeGreaterThanOrEqual(1);
   });
 
   it("active FactionSummaryCard has ring-2 ring-faction-accent class when faction is active (UI-08)", async () => {
     // Pre-set the active faction in localStorage BEFORE render so ActiveFactionProvider's
-    // synchronous useState initializer picks it up — no flash of inactive state.
+    // synchronous useState initializer picks it up â€” no flash of inactive state.
     window.localStorage.setItem("active-faction-id", "1");
 
     const tau = f({ id: 1, name: "Tau" });
@@ -300,7 +300,7 @@ describe("DashboardPage", () => {
     expect(factionCard.className).toContain("ring-2");
     expect(factionCard.className).toContain("ring-faction-accent");
 
-    // Cleanup — leave localStorage clean for downstream tests
+    // Cleanup â€” leave localStorage clean for downstream tests
     window.localStorage.removeItem("active-faction-id");
   });
 
@@ -318,7 +318,7 @@ describe("DashboardPage", () => {
     // Wait for data to load
     expect(await screen.findByText("Total Models")).toBeInTheDocument();
 
-    // VIS-02 — hero gradient wrapper must exist with inline radial-gradient style
+    // VIS-02 â€” hero gradient wrapper must exist with inline radial-gradient style
     const heroWrapper = container.querySelector("[style*='radial-gradient']");
     expect(heroWrapper).not.toBeNull();
     expect(heroWrapper!.className).toContain("col-span-full");
@@ -359,7 +359,7 @@ describe("DashboardPage", () => {
     expect(totalModelsButton).toBeDefined();
   });
 
-  it("Hobby Health StatCards do NOT have role='button' (no to prop — LAYOUT-02 backward compat)", async () => {
+  it("Hobby Health StatCards do NOT have role='button' (no to prop â€” LAYOUT-02 backward compat)", async () => {
     vi.spyOn(window, "matchMedia").mockReturnValue({
       matches: true,
       media: "(prefers-reduced-motion: reduce)",
@@ -380,7 +380,7 @@ describe("DashboardPage", () => {
     renderWithProviders(<DashboardPage />);
     await screen.findByText("Total Models");
 
-    // Hobby Health StatCards (velocity, streak) do NOT have to prop — must not be role=button
+    // Hobby Health StatCards (velocity, streak) do NOT have to prop â€” must not be role=button
     const allButtons = screen.getAllByRole("button");
     const velocityButton = allButtons.find((b) => b.textContent?.includes("Hobby Velocity"));
     expect(velocityButton).toBeUndefined();

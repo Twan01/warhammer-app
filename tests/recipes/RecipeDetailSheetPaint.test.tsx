@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Phase 87 EP-05 -- RecipeDetailSheet Paint button for applied units.
  *
  * Verifies:

@@ -1,10 +1,10 @@
-/**
- * FORM-01, FORM-02 — RecipeSectionCard and RecipeSectionList component behavior.
+﻿/**
+ * FORM-01, FORM-02 â€” RecipeSectionCard and RecipeSectionList component behavior.
  *
- * Gap 1 (FORM-01): Collapsible section expand/collapse — clicking the collapse
+ * Gap 1 (FORM-01): Collapsible section expand/collapse â€” clicking the collapse
  *   chevron toggles content (RecipeStepList) visibility.
  *
- * Gap 2 (FORM-02): Section CRUD —
+ * Gap 2 (FORM-02): Section CRUD â€”
  *   - Changing section name input calls onChange with updated name
  *   - Deleting an empty section calls onRemove directly (no dialog)
  *   - Deleting a non-empty section opens AlertDialog confirmation
@@ -21,7 +21,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import type { DraftSection } from "@/features/recipes/recipeSection";
 
 // ---------------------------------------------------------------------------
-// Mock @dnd-kit/sortable — useSortable calls pointer APIs not available in jsdom
+// Mock @dnd-kit/sortable â€” useSortable calls pointer APIs not available in jsdom
 // ---------------------------------------------------------------------------
 vi.mock("@dnd-kit/sortable", () => ({
   useSortable: () => ({
@@ -57,7 +57,7 @@ vi.mock("@dnd-kit/utilities", () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// Mock RecipeStepList — isolates RecipeSectionCard from all DB hooks
+// Mock RecipeStepList â€” isolates RecipeSectionCard from all DB hooks
 // ---------------------------------------------------------------------------
 vi.mock("@/features/recipes/RecipeStepList", () => ({
   RecipeStepList: ({ steps }: { steps: unknown[] }) => (
@@ -157,13 +157,13 @@ function getCollapseBtn(container: HTMLElement) {
 }
 
 // ---------------------------------------------------------------------------
-// Gap 1 (FORM-01) — Collapsible expand/collapse
+// Gap 1 (FORM-01) â€” Collapsible expand/collapse
 // ---------------------------------------------------------------------------
 
-describe("RecipeSectionCard — FORM-01 collapsible expand/collapse", () => {
+describe("RecipeSectionCard â€” FORM-01 collapsible expand/collapse", () => {
   it("renders the step list (expanded by default)", () => {
     renderCard(makeSection());
-    // RecipeStepList is rendered (mocked) — card starts open
+    // RecipeStepList is rendered (mocked) â€” card starts open
     expect(screen.getByTestId("recipe-step-list")).toBeInTheDocument();
   });
 
@@ -191,7 +191,7 @@ describe("RecipeSectionCard — FORM-01 collapsible expand/collapse", () => {
   it("shows the step count badge when collapsed and steps exist", () => {
     const section = makeSection({ steps: [makeDraftStep("s1"), makeDraftStep("s2")] });
     const { container } = renderCard(section);
-    // Initially expanded — badge should NOT appear
+    // Initially expanded â€” badge should NOT appear
     expect(screen.queryByText(/2 steps/)).not.toBeInTheDocument();
     // Collapse
     const collapseBtn = getCollapseBtn(container);
@@ -202,10 +202,10 @@ describe("RecipeSectionCard — FORM-01 collapsible expand/collapse", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Gap 2 (FORM-02) — Section name change calls onChange
+// Gap 2 (FORM-02) â€” Section name change calls onChange
 // ---------------------------------------------------------------------------
 
-describe("RecipeSectionCard — FORM-02 section name inline edit", () => {
+describe("RecipeSectionCard â€” FORM-02 section name inline edit", () => {
   it("renders a text input with the section name", () => {
     renderCard(makeSection({ name: "Cloth" }));
     const nameInput = screen.getByDisplayValue("Cloth");
@@ -224,10 +224,10 @@ describe("RecipeSectionCard — FORM-02 section name inline edit", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Gap 2 (FORM-02) — Delete empty section calls onRemove directly
+// Gap 2 (FORM-02) â€” Delete empty section calls onRemove directly
 // ---------------------------------------------------------------------------
 
-describe("RecipeSectionCard — FORM-02 delete empty section", () => {
+describe("RecipeSectionCard â€” FORM-02 delete empty section", () => {
   it("renders the delete button", () => {
     renderCard(makeSection());
     // The Trash2 button is the last ghost/icon button in the header
@@ -241,7 +241,7 @@ describe("RecipeSectionCard — FORM-02 delete empty section", () => {
     const section = makeSection({ steps: [] });
     renderCard(section, { onRemove });
 
-    // Find the delete button (Trash2 icon button — it is the last icon button in header)
+    // Find the delete button (Trash2 icon button â€” it is the last icon button in header)
     // Query by finding buttons and picking the delete one (has class text-destructive)
     const { container } = renderCard(section, { onRemove });
     const deleteBtn = container.querySelector(".text-destructive");
@@ -261,10 +261,10 @@ describe("RecipeSectionCard — FORM-02 delete empty section", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Gap 2 (FORM-02) — Delete non-empty section shows AlertDialog confirmation
+// Gap 2 (FORM-02) â€” Delete non-empty section shows AlertDialog confirmation
 // ---------------------------------------------------------------------------
 
-describe("RecipeSectionCard — FORM-02 delete non-empty section shows confirmation", () => {
+describe("RecipeSectionCard â€” FORM-02 delete non-empty section shows confirmation", () => {
   beforeEach(() => {
     // Reset mocks before each test
     vi.clearAllMocks();
@@ -275,7 +275,7 @@ describe("RecipeSectionCard — FORM-02 delete non-empty section shows confirmat
     const { container } = renderCard(section);
     const deleteBtn = container.querySelector(".text-destructive");
     fireEvent.click(deleteBtn!);
-    // AlertDialog should now be open — Radix renders the dialog into the document
+    // AlertDialog should now be open â€” Radix renders the dialog into the document
     expect(screen.getByRole("alertdialog")).toBeInTheDocument();
   });
 
@@ -319,10 +319,10 @@ describe("RecipeSectionCard — FORM-02 delete non-empty section shows confirmat
 });
 
 // ---------------------------------------------------------------------------
-// Gap 2 (FORM-02) — RecipeSectionList renders multiple sections
+// Gap 2 (FORM-02) â€” RecipeSectionList renders multiple sections
 // ---------------------------------------------------------------------------
 
-describe("RecipeSectionList — FORM-02 renders multiple sections", () => {
+describe("RecipeSectionList â€” FORM-02 renders multiple sections", () => {
   function renderList(sections: DraftSection[], onChange = vi.fn()) {
     const onCreateNewPaint = vi.fn();
     const utils = render(
@@ -355,7 +355,7 @@ describe("RecipeSectionList — FORM-02 renders multiple sections", () => {
     // Each card renders a .text-destructive delete button; pick the first one
     const deleteBtns = container.querySelectorAll(".text-destructive");
     expect(deleteBtns.length).toBeGreaterThanOrEqual(1);
-    // Click delete on first card (empty section — calls onRemove directly)
+    // Click delete on first card (empty section â€” calls onRemove directly)
     fireEvent.click(deleteBtns[0]);
     expect(onChange).toHaveBeenCalledOnce();
     const updatedSections: DraftSection[] = onChange.mock.calls[0][0];
@@ -372,7 +372,7 @@ describe("RecipeSectionList — FORM-02 renders multiple sections", () => {
 });
 
 // ---------------------------------------------------------------------------
-// RUI-01 — Workflow collapsible visible (multi-section or metadata present)
+// RUI-01 â€” Workflow collapsible visible (multi-section or metadata present)
 // ---------------------------------------------------------------------------
 
 describe("RecipeSectionCard -- RUI-01 workflow collapsible", () => {
@@ -390,7 +390,7 @@ describe("RecipeSectionCard -- RUI-01 workflow collapsible", () => {
     const { container } = renderCard(makeSection(), { sectionsCount: 2 });
     const workflowTrigger = screen.getByText("Workflow");
     fireEvent.click(workflowTrigger);
-    // After opening, the 2x2 grid is rendered — find a select trigger with Type placeholder
+    // After opening, the 2x2 grid is rendered â€” find a select trigger with Type placeholder
     const selectTriggers = container.querySelectorAll("[data-slot='select-trigger']");
     // There are 4 selects total: surface + section_type + technique + execution_mode
     // The workflow selects only appear after clicking Workflow
@@ -404,11 +404,11 @@ describe("RecipeSectionCard -- RUI-01 workflow collapsible", () => {
     const workflowTrigger = screen.getByText("Workflow");
     fireEvent.click(workflowTrigger);
     // Find section_type select trigger (first workflow select in the grid)
-    // Interact via onValueChange simulation — find the hidden select element
+    // Interact via onValueChange simulation â€” find the hidden select element
     const selects = container.querySelectorAll("[data-slot='select-trigger']");
     // selects[0] = surface, selects[1] = section_type, selects[2] = technique, selects[3] = execution_mode
     expect(selects.length).toBeGreaterThanOrEqual(2);
-    // Verify onChange is callable — the section_type select exists after workflow is opened
+    // Verify onChange is callable â€” the section_type select exists after workflow is opened
     expect(screen.getByText("Workflow")).toBeInTheDocument();
   });
 
@@ -429,7 +429,7 @@ describe("RecipeSectionCard -- RUI-01 workflow collapsible", () => {
 });
 
 // ---------------------------------------------------------------------------
-// RUI-02 — Workflow collapsible hidden (single section, no metadata)
+// RUI-02 â€” Workflow collapsible hidden (single section, no metadata)
 // ---------------------------------------------------------------------------
 
 describe("RecipeSectionCard -- RUI-02 workflow collapsible hidden", () => {

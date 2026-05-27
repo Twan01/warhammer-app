@@ -23,6 +23,7 @@ import {
   addEnhancement,
   removeEnhancement,
   getEnhancementsByList,
+  reorderArmyListUnits,
 } from "@/db/queries/armyLists";
 import type {
   ArmyListEnhancement,
@@ -293,6 +294,16 @@ export function useAddGhostUnitToList() {
       qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
       qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
+    },
+  });
+}
+
+export function useReorderArmyListUnits() {
+  const qc = useQueryClient();
+  return useMutation<void, Error, { listId: number; updates: { id: number; sort_order: number }[] }>({
+    mutationFn: ({ updates }) => reorderArmyListUnits(updates),
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.listId) });
     },
   });
 }

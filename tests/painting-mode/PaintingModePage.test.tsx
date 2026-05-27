@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Phase 86-02 -- PaintingModePage keyboard shortcut tests.
  *
  * Covers PX-02 (Space mark done), PX-03 (Arrow nav), PX-04 (Escape exit),

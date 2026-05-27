@@ -37,6 +37,7 @@ export interface ArmyListUnit {
   leader_attached_to_id: number | null; // FK to army_list_units.id, ON DELETE SET NULL (Phase 89)
   points_override: number | null;
   notes: string | null;
+  sort_order: number;
   created_at: string;
   // Intentionally no updated_at — the schema does not have one.
 }
@@ -48,7 +49,7 @@ export interface ArmyListUnit {
  * The UI sums effective_points directly — never reimplements the COALESCE in JS.
  *
  * Ghost units (unit_id IS NULL) have null faction_id, status_assembly,
- * status_painting, and painting_percentage since they have no units row.
+ * status_painting, painting_percentage, and unit_category since they have no units row.
  */
 export interface ArmyListUnitRow extends ArmyListUnit {
   unit_name: string;
@@ -56,6 +57,8 @@ export interface ArmyListUnitRow extends ArmyListUnit {
   unit_points: number | null;
   effective_points: number;
   faction_id: number | null;          // null for ghost units (Phase 89)
+  unit_category: string | null;       // unit category (e.g. "HQ", "Battleline") for points grouping
+  unit_model_count: number | null;   // number of models in the unit from collection
   status_assembly: number | null;     // null for ghost units (Phase 89)
   status_painting: string | null;     // null for ghost units (Phase 89)
   painting_percentage: number | null; // null for ghost units (Phase 89)

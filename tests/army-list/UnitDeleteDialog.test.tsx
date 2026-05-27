@@ -1,5 +1,5 @@
-/**
- * ARMY-05 — UnitDeleteDialog enhanced state tests.
+﻿/**
+ * ARMY-05 â€” UnitDeleteDialog enhanced state tests.
  * Replaces the Wave 0 stub from plan 08-00.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -63,7 +63,7 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("UnitDeleteDialog (army list membership) — ARMY-05", () => {
+describe("UnitDeleteDialog (army list membership) â€” ARMY-05", () => {
   it("normal state: when unit is in 0 army lists, renders simple confirm with 'Delete unit?' title and 'Delete' button", async () => {
     vi.mocked(getArmyListsByUnitId).mockResolvedValue([]);
     renderWithQueryClient(

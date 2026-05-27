@@ -1,5 +1,5 @@
-/**
- * STEP-04 — formatMinutes pure function behavior via RecipeFormSheet.
+﻿/**
+ * STEP-04 â€” formatMinutes pure function behavior via RecipeFormSheet.
  *
  * formatMinutes is a module-level function in RecipeFormSheet.tsx that converts
  * a total-minutes integer to a human-readable string (e.g. "~30 min", "~1h").
@@ -15,7 +15,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // ---------------------------------------------------------------------------
-// Mocks — must be declared before imports
+// Mocks â€” must be declared before imports
 // ---------------------------------------------------------------------------
 
 vi.mock("@/hooks/useRecipes", () => ({
@@ -37,7 +37,7 @@ vi.mock("@/hooks/useRecipePaints", () => ({
   RECIPE_SWATCH_KEY: ["recipe-swatch-colors"],
 }));
 
-// useRecipeSections is required — RecipeFormSheet now fetches sections for edit mode.
+// useRecipeSections is required â€” RecipeFormSheet now fetches sections for edit mode.
 // Returning one section (id=99) so buildDraftSections groups existingSteps under it.
 const mockExistingSections = vi.fn(() => ({ data: [] as unknown[] }));
 vi.mock("@/hooks/useRecipeSections", () => ({
@@ -195,20 +195,20 @@ function renderSheet(recipe: PaintingRecipe, steps: RecipeStep[]) {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe("RecipeFormSheet — STEP-04 formatMinutes time sum display", () => {
-  describe("formatMinutes(0) — no steps with time", () => {
+describe("RecipeFormSheet â€” STEP-04 formatMinutes time sum display", () => {
+  describe("formatMinutes(0) â€” no steps with time", () => {
     it("does not show any time text next to Recipe Steps when all times are null", async () => {
       renderSheet(makeRecipe(), [makeStep(null)]);
       // Allow the useEffect to fire and set steps state
       await waitFor(() => {
         expect(screen.getByText("Recipe Steps")).toBeInTheDocument();
       });
-      // Should NOT render a time-sum span — no time set
+      // Should NOT render a time-sum span â€” no time set
       expect(screen.queryByText(/~\d/)).toBeNull();
     });
   });
 
-  describe("formatMinutes(30) — under 1 hour", () => {
+  describe("formatMinutes(30) â€” under 1 hour", () => {
     it("shows '~30 min' when total step time is 30 minutes", async () => {
       renderSheet(makeRecipe(), [makeStep(30)]);
       await waitFor(() => {
@@ -217,7 +217,7 @@ describe("RecipeFormSheet — STEP-04 formatMinutes time sum display", () => {
     });
   });
 
-  describe("formatMinutes(60) — exactly 1 hour", () => {
+  describe("formatMinutes(60) â€” exactly 1 hour", () => {
     it("shows '~1h' when total step time is 60 minutes", async () => {
       renderSheet(makeRecipe(), [makeStep(60)]);
       await waitFor(() => {
@@ -226,7 +226,7 @@ describe("RecipeFormSheet — STEP-04 formatMinutes time sum display", () => {
     });
   });
 
-  describe("formatMinutes(90) — 1 hour 30 min", () => {
+  describe("formatMinutes(90) â€” 1 hour 30 min", () => {
     it("shows '~1h 30min' when total step time is 90 minutes", async () => {
       renderSheet(makeRecipe(), [makeStep(90)]);
       await waitFor(() => {
@@ -235,7 +235,7 @@ describe("RecipeFormSheet — STEP-04 formatMinutes time sum display", () => {
     });
   });
 
-  describe("formatMinutes — sums multiple steps", () => {
+  describe("formatMinutes â€” sums multiple steps", () => {
     it("shows '~45 min' when two steps sum to 45 minutes", async () => {
       renderSheet(makeRecipe(), [
         makeStep(15, { id: 1, order_index: 0 }),

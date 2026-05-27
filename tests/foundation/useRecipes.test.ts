@@ -1,5 +1,5 @@
-/**
- * DATA-06 — useRecipes mutations must invalidate ["recipes", "by-unit"]
+﻿/**
+ * DATA-06 â€” useRecipes mutations must invalidate ["recipes", "by-unit"]
  * so CurrentFocusCard recipe name refreshes immediately after any recipe
  * create / update / delete.
  *
@@ -66,7 +66,7 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("useRecipes — RECIPES_KEY constants", () => {
+describe("useRecipes â€” RECIPES_KEY constants", () => {
   it("RECIPES_KEY equals ['recipes'] literal", () => {
     expect(RECIPES_KEY).toEqual(["recipes"]);
   });
@@ -76,7 +76,7 @@ describe("useRecipes — RECIPES_KEY constants", () => {
   });
 });
 
-describe("useRecipes — useCreateRecipe onSuccess invalidations (DATA-06)", () => {
+describe("useRecipes â€” useCreateRecipe onSuccess invalidations (DATA-06)", () => {
   it("invalidates RECIPES_KEY (['recipes'])", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useCreateRecipe(), { wrapper });
@@ -117,7 +117,7 @@ describe("useRecipes — useCreateRecipe onSuccess invalidations (DATA-06)", () 
   });
 });
 
-describe("useRecipes — useUpdateRecipe onSuccess invalidations (DATA-06)", () => {
+describe("useRecipes â€” useUpdateRecipe onSuccess invalidations (DATA-06)", () => {
   it("invalidates RECIPES_KEY", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useUpdateRecipe(), { wrapper });
@@ -171,7 +171,7 @@ describe("useRecipes — useUpdateRecipe onSuccess invalidations (DATA-06)", () 
   });
 });
 
-describe("useRecipes — useDeleteRecipe onSuccess invalidations (DATA-06)", () => {
+describe("useRecipes â€” useDeleteRecipe onSuccess invalidations (DATA-06)", () => {
   it("invalidates RECIPES_KEY", async () => {
     const { spy, wrapper } = makeWrapper();
     const { result } = renderHook(() => useDeleteRecipe(), { wrapper });

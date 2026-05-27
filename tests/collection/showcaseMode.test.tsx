@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 
-// Mock Tauri APIs — must be hoisted before the component import
+// Mock Tauri APIs â€” must be hoisted before the component import
 const mockSetFullscreen = vi.fn().mockResolvedValue(undefined);
 vi.mock("@tauri-apps/api/window", () => ({
   getCurrentWindow: () => ({ setFullscreen: mockSetFullscreen }),
@@ -15,7 +15,7 @@ import type { Unit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
 import type { UnitPhotoWithUrl } from "@/hooks/useUnitPhotos";
 
-// ── Test helpers ─────────────────────────────────────────────────────────────
+// â”€â”€ Test helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function makeUnit(id: number, name: string, factionId = 1): Unit {
   return {
@@ -75,7 +75,7 @@ function makePhoto(unitId: number, assetUrl: string): UnitPhotoWithUrl {
   };
 }
 
-// ── Test data ─────────────────────────────────────────────────────────────────
+// â”€â”€ Test data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const faction1 = makeFaction(1, "Space Marines");
 const faction2 = makeFaction(2, "Orks");
@@ -103,13 +103,13 @@ const threePhotos = new Map([
 ]);
 const twoFactionsList = [faction1, faction2];
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// â”€â”€ Tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 beforeEach(() => {
   mockSetFullscreen.mockClear();
 });
 
-describe("ShowcaseMode — full-screen gallery overlay (DISP-02/DISP-03)", () => {
+describe("ShowcaseMode â€” full-screen gallery overlay (DISP-02/DISP-03)", () => {
   it("renders overlay with data-testid showcase-overlay", () => {
     render(
       <ShowcaseMode
@@ -171,7 +171,7 @@ describe("ShowcaseMode — full-screen gallery overlay (DISP-02/DISP-03)", () =>
       />,
     );
     fireEvent.keyDown(document, { key: "Escape" });
-    // handleClose is async — wait for the promise to resolve
+    // handleClose is async â€” wait for the promise to resolve
     await vi.waitFor(() => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });

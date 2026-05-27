@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AR-04 -- AppliedRecipesTab tests.
  * Covers: assignment cards with recipe names, empty state CTA, onApplyRecipe callback, delete with 3 fields.
  */

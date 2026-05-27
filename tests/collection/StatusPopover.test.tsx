@@ -1,5 +1,5 @@
-/**
- * COLL-10 — optimistic status update with rollback on error.
+﻿/**
+ * COLL-10 â€” optimistic status update with rollback on error.
  * Tests the StatusPopover component's optimistic cache update and rollback contract.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

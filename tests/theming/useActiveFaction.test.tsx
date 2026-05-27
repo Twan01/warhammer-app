@@ -1,16 +1,16 @@
-/**
- * Phase 10 — useActiveFaction hook tests (Plan 10-01 fills in stubs).
+﻿/**
+ * Phase 10 â€” useActiveFaction hook tests (Plan 10-01 fills in stubs).
  *
  * Mocks @/hooks/useFactions because the real hook calls tauri-plugin-sql
  * which cannot run in jsdom. Each test sets the mock factions list and
- * verifies the documented contract from 10-RESEARCH.md §Pattern 2.
+ * verifies the documented contract from 10-RESEARCH.md Â§Pattern 2.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import type { ReactNode } from "react";
 import type { Faction } from "@/types/faction";
 
-// Mock useFactions — must be hoisted before SUT import so vi.mock applies
+// Mock useFactions â€” must be hoisted before SUT import so vi.mock applies
 const useFactionsMock = vi.fn();
 vi.mock("@/hooks/useFactions", () => ({
   useFactions: () => useFactionsMock(),
@@ -55,7 +55,7 @@ afterEach(() => {
   useFactionsMock.mockReset();
 });
 
-describe("useActiveFaction — THEME-01 (runtime DOM mutation)", () => {
+describe("useActiveFaction â€” THEME-01 (runtime DOM mutation)", () => {
   it("returns activeFactionHex = '#71717a' (zinc-500 default) when localStorage has no key", () => {
     useFactionsMock.mockReturnValue({ data: [] });
 
@@ -63,7 +63,7 @@ describe("useActiveFaction — THEME-01 (runtime DOM mutation)", () => {
 
     expect(result.current.activeFactionId).toBe(null);
     expect(result.current.activeFactionHex).toBe("#71717a");
-    // Provider's useEffect runs after render — assert DOM var was set
+    // Provider's useEffect runs after render â€” assert DOM var was set
     expect(document.documentElement.style.getPropertyValue("--faction-accent")).toBe(
       "#71717a"
     );
@@ -106,7 +106,7 @@ describe("useActiveFaction — THEME-01 (runtime DOM mutation)", () => {
   });
 });
 
-describe("useActiveFaction — THEME-02 (localStorage persistence)", () => {
+describe("useActiveFaction â€” THEME-02 (localStorage persistence)", () => {
   it("synchronously initializes activeFactionId from localStorage on mount (no flash)", () => {
     window.localStorage.setItem("active-faction-id", "5");
     const blue = makeFaction({ id: 5, color_theme: "#3a4f96" });

@@ -1,5 +1,5 @@
-/**
- * Phase 17 — UnitDetailSheet Details tab enrichment display tests (ENRCH-04).
+﻿/**
+ * Phase 17 â€” UnitDetailSheet Details tab enrichment display tests (ENRCH-04).
  *
  * Verifies that the Undercoat and Lore Notes read-only rows render correctly
  * in the Details tab of UnitDetailSheet.
@@ -9,14 +9,14 @@
  * - vi.mock Tauri plugins and heavy child tabs (JournalTab, PlaybookTab)
  * - vi.mock @tanstack/react-router (useNavigate)
  * - Render UnitDetailSheet with open={true} and a mock unit prop
- * - The Details tab is the defaultValue tab — renders immediately
+ * - The Details tab is the defaultValue tab â€” renders immediately
  */
 import { vi, describe, it, expect, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Unit } from "@/types/unit";
 
-// ─── Stub Tauri plugin APIs (not available in jsdom) ─────────────────────────
+// â”€â”€â”€ Stub Tauri plugin APIs (not available in jsdom) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 vi.mock("@tauri-apps/plugin-dialog", () => ({ open: vi.fn() }));
 vi.mock("@tauri-apps/plugin-fs", () => ({
   readFile: vi.fn(),
@@ -24,12 +24,12 @@ vi.mock("@tauri-apps/plugin-fs", () => ({
   BaseDirectory: { AppData: "AppData" },
 }));
 
-// ─── Stub router (UnitDetailSheet calls useNavigate internally) ───────────────
+// â”€â”€â”€ Stub router (UnitDetailSheet calls useNavigate internally) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
 }));
 
-// ─── Stub data hooks to resolve synchronously ─────────────────────────────────
+// â”€â”€â”€ Stub data hooks to resolve synchronously â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 vi.mock("@/hooks/useFactions", () => ({
   useFactions: () => ({ data: [], isLoading: false }),
 }));
@@ -43,7 +43,7 @@ vi.mock("@/hooks/useUnits", () => ({
   UNITS_KEY: ["units"],
 }));
 
-// ─── Stub heavy child tabs that require their own IPC mocks ───────────────────
+// â”€â”€â”€ Stub heavy child tabs that require their own IPC mocks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 vi.mock("@/features/units/PlaybookTab", () => ({
   PlaybookTab: () => <div data-testid="playbook-tab-stub" />,
 }));
@@ -56,10 +56,10 @@ vi.mock("@/features/units/StatusPopover", () => ({
   StatusPopover: () => <span data-testid="status-popover-stub" />,
 }));
 
-// ─── Import after mocks ───────────────────────────────────────────────────────
+// â”€â”€â”€ Import after mocks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 import { UnitDetailSheet } from "@/features/units/UnitDetailSheet";
 
-// ─── Factory ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Factory â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function makeUnit(over: Partial<Unit> = {}): Unit {
   return {
@@ -108,13 +108,13 @@ function renderSheet(unit: Unit) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("UnitDetailSheet — ENRCH-04 enrichment display", () => {
+describe("UnitDetailSheet â€” ENRCH-04 enrichment display", () => {
   it("renders Undercoat value when unit.undercoat is set", () => {
     renderSheet(makeUnit({ undercoat: "Chaos Black" }));
     // The "UNDERCOAT" label (uppercase via CSS but accessible as text)
@@ -122,12 +122,12 @@ describe("UnitDetailSheet — ENRCH-04 enrichment display", () => {
     expect(screen.getByText("Chaos Black")).toBeInTheDocument();
   });
 
-  it("renders '—' for Undercoat when unit.undercoat is null", () => {
+  it("renders 'â€”' for Undercoat when unit.undercoat is null", () => {
     renderSheet(makeUnit({ undercoat: null }));
     expect(screen.getByText("Undercoat")).toBeInTheDocument();
-    // The muted fallback dash — rendered inside a muted-foreground span
-    // We use getAllByText since other fields may also show '—'
-    const dashes = screen.getAllByText("—");
+    // The muted fallback dash â€” rendered inside a muted-foreground span
+    // We use getAllByText since other fields may also show 'â€”'
+    const dashes = screen.getAllByText("â€”");
     expect(dashes.length).toBeGreaterThanOrEqual(1);
   });
 

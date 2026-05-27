@@ -1,8 +1,8 @@
-/**
- * FORM-05, FORM-06 — recipeSection pure-function utilities.
+﻿/**
+ * FORM-05, FORM-06 â€” recipeSection pure-function utilities.
  *
  * Tests for DraftSection, makeDraftSection, and buildDraftSections.
- * These are pure functions — no mocks needed.
+ * These are pure functions â€” no mocks needed.
  */
 import { describe, it, expect } from "vitest";
 import {
@@ -106,7 +106,7 @@ const STEP_C = {
 // makeDraftSection
 // ---------------------------------------------------------------------------
 
-describe("recipeSection pure functions — makeDraftSection", () => {
+describe("recipeSection pure functions â€” makeDraftSection", () => {
   it("Test 1: returns default name 'Steps', all null fields, empty steps array, and UUID localId", () => {
     const result: DraftSection = makeDraftSection();
     expect(result.name).toBe("Steps");
@@ -137,7 +137,7 @@ describe("recipeSection pure functions — makeDraftSection", () => {
 // buildDraftSections
 // ---------------------------------------------------------------------------
 
-describe("recipeSection pure functions — buildDraftSections", () => {
+describe("recipeSection pure functions â€” buildDraftSections", () => {
   it("Test 3: groups steps into sections by section_id (2 sections, 3 steps = 2+1)", () => {
     const result = buildDraftSections([SECTION_1, SECTION_2], [STEP_A, STEP_B, STEP_C]);
     expect(result).toHaveLength(2);
@@ -171,7 +171,7 @@ describe("recipeSection pure functions — buildDraftSections", () => {
     expect(result[1].steps).toEqual([]);
   });
 
-  it("Test 6: maps all nullable DraftStep fields with null fallback (undefined → null)", () => {
+  it("Test 6: maps all nullable DraftStep fields with null fallback (undefined â†’ null)", () => {
     const stepWithUndefined = {
       ...STEP_A,
       painting_phase: undefined as unknown as null,
@@ -231,7 +231,7 @@ describe("recipeSection pure functions — buildDraftSections", () => {
     expect(result[0].applies_to).toBeNull();
   });
 
-  it("Test 9: maps undefined workflow metadata to null (undefined → null fallback)", () => {
+  it("Test 9: maps undefined workflow metadata to null (undefined â†’ null fallback)", () => {
     const sectionWithUndefined = {
       ...SECTION_1,
       section_type: undefined as unknown as null,

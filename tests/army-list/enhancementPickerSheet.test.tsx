@@ -1,5 +1,5 @@
-/**
- * Phase 91 — ENH-01, ENH-02: EnhancementPickerSheet component tests.
+﻿/**
+ * Phase 91 â€” ENH-01, ENH-02: EnhancementPickerSheet component tests.
  *
  * Tests enhancement listing, assignment, and preventive validation
  * (max 3, no duplicates, Epic Hero guard).
@@ -79,11 +79,13 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
     unit_id: 5,
     points_override: null,
     notes: null,
+    sort_order: 0,
     created_at: "2024-01-01",
     unit_name: "Chaplain",
     canonical_name: null,
     unit_points: 75,
     faction_id: 1,
+    unit_category: null, unit_model_count: null,
     status_assembly: 1,
     status_painting: "Completed",
     synced_points: null,
@@ -155,7 +157,7 @@ function renderSheet(
 // Tests: ENH-01
 // ---------------------------------------------------------------------------
 
-describe("EnhancementPickerSheet — ENH-01 enhancement listing", () => {
+describe("EnhancementPickerSheet â€” ENH-01 enhancement listing", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetEnhancementsByList.mockResolvedValue([]);
@@ -195,7 +197,7 @@ describe("EnhancementPickerSheet — ENH-01 enhancement listing", () => {
 // Tests: ENH-02
 // ---------------------------------------------------------------------------
 
-describe("EnhancementPickerSheet — ENH-02 preventive validation", () => {
+describe("EnhancementPickerSheet â€” ENH-02 preventive validation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

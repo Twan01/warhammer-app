@@ -1,5 +1,5 @@
-/**
- * Phase 92 — LDR-02: groupUnitsWithLeaders unit tests.
+﻿/**
+ * Phase 92 â€” LDR-02: groupUnitsWithLeaders unit tests.
  *
  * Verifies the pure reorder function that places attached leaders
  * immediately after their target unit for visual grouping (D-06, D-07).
@@ -28,12 +28,14 @@ function makeUnit(
     leader_attached_to_id: null,
     points_override: null,
     notes: null,
+    sort_order: 0,
     created_at: "2026-01-01T00:00:00Z",
     unit_name: overrides.unit_name ?? `Unit ${id}`,
     canonical_name: null,
     unit_points: overrides.unit_points ?? 100,
     effective_points: overrides.effective_points ?? 100,
     faction_id: overrides.faction_id ?? 1,
+    unit_category: null, unit_model_count: null,
     status_assembly: null,
     status_painting: null,
     painting_percentage: null,
@@ -52,7 +54,7 @@ beforeEach(() => {
 
 describe("groupUnitsWithLeaders", () => {
   // ---------------------------------------------------------------------------
-  // Test 1: No attachments — units unchanged
+  // Test 1: No attachments â€” units unchanged
   // ---------------------------------------------------------------------------
 
   it("returns units unchanged when no leader_attached_to_id is set", () => {
