@@ -1,7 +1,7 @@
 ---
 phase: 102
 slug: smart-context-pre-filling
-status: draft
+status: approved
 shadcn_initialized: true
 preset: new-york
 created: 2026-05-28
@@ -48,11 +48,9 @@ Exceptions: none
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px | 400 (regular) | 1.5 |
-| Label | 14px | 500 (medium) | 1.4 |
-| Heading | 18px | 600 (semibold) | 1.2 |
-| Group header | 12px | 500 (medium) | 1.3 |
+| Label / Heading / Group header | 12–18px | 500 (medium) | 1.2–1.4 |
 
-Note: Group header role is new for CommandGroup labels in ApplyRecipeDialog ("Suggested" / "Other"). Uses shadcn CommandGroup's built-in `text-xs font-medium text-muted-foreground` styling -- no custom token needed.
+Note: Group header role is new for CommandGroup labels in ApplyRecipeDialog ("Suggested" / "Other"). Uses shadcn CommandGroup's built-in `text-xs font-medium text-muted-foreground` styling — no custom token needed. Headings use 18px medium, labels use 14px medium, group headers use 12px medium.
 
 ---
 
@@ -70,6 +68,10 @@ Accent reserved for: selected CommandItem highlight, focused form field ring, fa
 No new colors introduced. All values use existing CSS custom properties from globals.css.
 
 ---
+
+## Visual Hierarchy
+
+**Focal point:** ApplyRecipeDialog — the "Suggested" group is the primary visual anchor, appearing first in the command palette. RecipeFormSheet focal point is inherited (form fields in existing layout).
 
 ## Component Inventory
 
@@ -168,11 +170,11 @@ No third-party registries used.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved (2026-05-28)
