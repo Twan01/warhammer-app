@@ -4,8 +4,8 @@
 
 - [ ] **SAD-01**: Assembly status auto-derives from recipe section completion — when all steps in sections with `section_type = 'assembly'` are complete, `status_assembly` is set to 1
 - [ ] **SAD-02**: Basing and varnish auto-derivation uses `section_type` field instead of fragile section name LIKE matching
-- [ ] **SAD-03**: `SECTION_TYPES` vocabulary extended with 'assembly', 'basing', 'varnish' values for explicit section_type mapping
-- [ ] **SAD-04**: Manual-override guard — auto-derivation does not overwrite statuses that were explicitly set by the user via StatusPopover
+- [x] **SAD-03**: `SECTION_TYPES` vocabulary extended with 'assembly', 'basing', 'varnish' values for explicit section_type mapping
+- [x] **SAD-04**: Manual-override guard — auto-derivation does not overwrite statuses that were explicitly set by the user via StatusPopover
 
 ## Active Project Lifecycle
 
@@ -42,8 +42,8 @@ None deferred — all proposed features included in this milestone.
 |-------------|-------|--------|
 | SAD-01 | Phase 100 | Pending |
 | SAD-02 | Phase 100 | Pending |
-| SAD-03 | Phase 100 | Pending |
-| SAD-04 | Phase 100 | Pending |
+| SAD-03 | Phase 100 | Complete |
+| SAD-04 | Phase 100 | Complete |
 | APL-01 | Phase 100 | Pending |
 | APL-02 | Phase 100 | Pending |
 | APL-03 | Phase 100 | Pending |
