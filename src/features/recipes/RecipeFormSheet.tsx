@@ -159,7 +159,7 @@ export function RecipeFormSheet({ open, recipe, onClose, defaultFactionId, defau
       setSections([makeDraftSection("Steps")]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recipe?.id, existingSectionsLen, existingStepsLen]);
+  }, [recipe?.id, existingSectionsLen, existingStepsLen, defaultFactionId, defaultUnitId]);
 
   // PAINT-03: detect new paint after PaintSheet closes
   useEffect(() => {
