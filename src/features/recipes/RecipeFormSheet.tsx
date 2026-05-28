@@ -65,6 +65,8 @@ export interface RecipeFormSheetProps {
   open: boolean;
   recipe: PaintingRecipe | null;
   onClose: () => void;
+  defaultFactionId?: number | null;
+  defaultUnitId?: number | null;
 }
 
 const DEFAULT_VALUES: RecipeFormValues = {
@@ -82,8 +84,16 @@ const DEFAULT_VALUES: RecipeFormValues = {
   result_photo_path: null,
 };
 
-function buildDefaults(recipe: PaintingRecipe | null): RecipeFormValues {
-  if (!recipe) return DEFAULT_VALUES;
+function buildDefaults(
+  recipe: PaintingRecipe | null,
+  defaultFactionId?: number | null,
+  defaultUnitId?: number | null,
+): RecipeFormValues {
+  if (!recipe) return {
+    ...DEFAULT_VALUES,
+    faction_id: defaultFactionId ?? null,
+    unit_id: defaultUnitId ?? null,
+  };
   return {
     name: recipe.name,
     faction_id: recipe.faction_id,
@@ -108,7 +118,7 @@ function formatMinutes(total: number): string {
   return m === 0 ? `~${h}h` : `~${h}h ${m}min`;
 }
 
-export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps) {
+export function RecipeFormSheet({ open, recipe, onClose, defaultFactionId, defaultUnitId }: RecipeFormSheetProps) {
   const isEdit = recipe !== null;
   const qc = useQueryClient();
 
@@ -123,7 +133,7 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
 
   const form = useForm<RecipeFormValues>({
     resolver: zodResolver(recipeSchema),
-    defaultValues: buildDefaults(recipe),
+    defaultValues: buildDefaults(recipe, defaultFactionId, defaultUnitId),
   });
 
   const [sections, setSections] = useState<DraftSection[]>([makeDraftSection("Steps")]);
@@ -142,7 +152,7 @@ export function RecipeFormSheet({ open, recipe, onClose }: RecipeFormSheetProps)
   const existingSectionsLen = existingSections.length;
   const existingStepsLen = existingSteps.length;
   useEffect(() => {
-    form.reset(buildDefaults(recipe));
+    form.reset(buildDefaults(recipe, defaultFactionId, defaultUnitId));
     if (recipe && existingSectionsLen > 0) {
       setSections(buildDraftSections(existingSections, existingSteps));
     } else if (!recipe) {
