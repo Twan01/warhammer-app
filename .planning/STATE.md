@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.3.7
 milestone_name: Smart Automation
 status: executing
-stopped_at: Phase 102 complete — milestone v0.3.7 ready for shipping
-last_updated: "2026-05-28T19:00:00.000Z"
-last_activity: 2026-05-28 -- Phase 102 executed (2 plans, 1 wave)
+stopped_at: Phase 101 planned — ready to execute
+last_updated: "2026-05-28T20:00:00.000Z"
+last_activity: 2026-05-28 -- Phase 101 planned (2 plans, 2 waves)
 progress:
   total_phases: 3
   completed_phases: 2
@@ -64,6 +64,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-28T19:00:00.000Z
-Stopped at: Phase 102 complete — milestone v0.3.7 needs Phase 101 to ship
-Resume: Phase 101 (Battle-Readiness Pure Function & Unit Picker) is the remaining phase in v0.3.7
+Last session: 2026-05-28T20:00:00.000Z
+Stopped at: Phase 101 planned — ready to execute
+Resume file: .planning/phases/101-battle-readiness-pure-function-unit-picker/101-01-PLAN.md
+Resume: Run `/gsd:execute-phase 101` to execute Phase 101 (Battle-Readiness Pure Function & Unit Picker)
