@@ -1,99 +1,122 @@
-# Domain Pitfalls
+# Domain Pitfalls: v0.3.7 Smart Automation
 
-**Domain:** Smart army list builder — loadout configuration, rules linking, list export, version snapshots, "unowned" unit planning added to dual-database HobbyForge
-**Milestone:** v0.2.18 Army Lists 3.0
-**Researched:** 2026-05-20
-**Confidence:** HIGH — all pitfalls derived directly from reading the live codebase: armyLists.ts, unitLoadouts.ts, unitRulesMapping.ts, syncedUnitPoints.ts, bsdataExtended.ts, datasheets.ts, rulesExtended.ts, rulesSnapshot.ts, and the full migration chain through migration 030.
+**Domain:** Adding auto-derivation and smart defaults to an existing manual system
+**Codebase context:** HobbyForge v0.3.0 — Tauri 2 + React 19 + TypeScript + SQLite
+**Research date:** 2026-05-28
+**Confidence:** HIGH — all pitfalls derived from direct inspection of the live codebase:
+`recipeAssignments.ts`, `units.ts`, `armyLists.ts`, `UnitSheet.tsx`, `StatusPopover.tsx`,
+`unitSchema.ts`, `useRecipeAssignments.ts`, `recipeSection.ts` types, `unit.ts` types,
+`computeAssignmentProgress.ts`, `kanbanUtils.ts`, and `.planning/PROJECT.md` Key Decisions log.
 
 ---
 
 ## Critical Pitfalls
 
-Mistakes that cause data loss on sync, silent corruption, or rewrites.
+Mistakes that cause silent data loss, status corruption, or require a codebase rewrite.
 
 ---
 
-### Pitfall 1: Storing loadout choices as FK references to synced tables
+### Pitfall 1: Auto-Derive Silently Overwrites a Manual Status the User Just Set
 
-**What goes wrong:** A new `army_list_unit_loadout_choices` table stores `loadout_option_id INTEGER REFERENCES synced_loadout_options(id)`. On the next Wahapedia sync, `replaceSyncedLoadoutOptions()` executes `DELETE FROM synced_loadout_options` inside a transaction, then re-INSERTs every row. All stored integer IDs are now invalid — either pointing at rows with different auto-increment values, or pointing at nothing. SQLite FK enforcement is OFF by default; hobbyforge.db only enables it via `PRAGMA foreign_keys = ON` on each connection (client.ts). The synced tables themselves have no FK references *from* them, so the dangling references in the new table are not caught at write time either.
+**What goes wrong:** `syncDerivedStatuses()` in `recipeAssignments.ts` fires after every step toggle and unconditionally writes `status_painting`, `status_basing`, and `status_varnished` to the DB:
 
-**Why it happens:** The four BSData-derived tables in hobbyforge.db — `synced_enhancements`, `synced_loadout_options`, `synced_model_counts`, `synced_leader_targets` — are all managed by `replaceSynced*` functions that do DELETE-all + re-INSERT (see bsdataExtended.ts). Their auto-increment IDs reset after each sync. Any column storing an ID from these tables is a time bomb.
-
-**Consequences:** User builds a loadout "Intercessors: Bolt Rifle, Power Fist". After next sync, the stored `loadout_option_id` values point at new rows that map to different options, or return NULL on LEFT JOIN. The army list silently shows the wrong wargear or points.
-
-**Prevention:** Follow the established `weapon_name TEXT` copy pattern from `unit_loadout_wargear` (migration 011, line 33: "weapon_name mirrors rw_datasheets_wargear.name (TEXT copy, not FK -- cross-DB)"). Store `group_name TEXT` and `option_name TEXT` as denormalized copies. The composite natural key `(unit_name, faction_id, group_name, option_name)` has a UNIQUE constraint on `synced_loadout_options` — use it for lookup at read time, not as a stored reference.
-
-**Detection:** Before writing any new schema column referencing `synced_*` tables: check whether the target table is managed by a `replaceSynced*` function. If yes, the only safe reference is a TEXT copy of a business-meaningful field.
-
-**Phase:** Schema design phase — before any migration is written.
-
----
-
-### Pitfall 2: Enhancement assignment stored as detachment_id INTEGER/TEXT from rules.db
-
-**What goes wrong:** Per-unit enhancement assignment stores `detachment_id TEXT` referencing `rw_detachments.id` in rules.db. After the next Wahapedia sync, that detachment ID may no longer exist (rules.db is fully deleted and recreated on every sync). The enhancement name and its points vanish from the army list total.
-
-**Why it happens:** `army_lists` already solved this correctly for the list-level detachment by storing `detachment_name TEXT` as a denormalized copy (armyLists.ts lines 81–83 and `clearArmyListDetachment`). But when implementing per-unit enhancement assignment, it is tempting to store only the `rw_detachments.id` reference from the current session because the picker already has that ID available.
-
-**Consequences:** After sync, the enhancement silently disappears from points totals. The only symptom is a discrepancy between the stored army list points and the displayed total — a hard bug to trace.
-
-**Prevention:** Store enhancement assignment as `enhancement_name TEXT` (denormalized copy from `synced_enhancements.name`) and `enhancement_points INTEGER` (snapshot of points at assignment time). At render time, look up the current row in `synced_enhancements` for comparison; if not found, display the stored name with a "stale" badge rather than hiding the row. This mirrors the `detachment_name` pattern on `army_lists`.
-
-**Detection warning sign:** Any column referencing `rw_detachments`, `rw_stratagems`, or any `rw_*` table in rules.db must survive `DELETE FROM rw_*` — which means only TEXT copies.
-
-**Phase:** Schema design phase. The enhancement column on `army_list_units` must be TEXT, not a reference ID.
-
----
-
-### Pitfall 3: Breaking the 5-level COALESCE chain when adding loadout points
-
-**What goes wrong:** The effective points computation is currently:
 ```sql
-COALESCE(alu.points_override, sup.points, uo.points, u.points, 0)
+UPDATE units SET status_painting = $2, status_basing = $3, status_varnished = $4,
+  updated_at = datetime('now') WHERE id = $1
 ```
-This expression appears in three places: `getArmyListWithUnits` (armyLists.ts line 65), `getArmyListReadiness` (armyLists.ts line 232), and `resolveUnitPoints()` in `src/lib/`. A loadout points adjustment (e.g., a `loadout_points_delta INTEGER` column on `army_list_units`) is inserted in the wrong priority position in one call site but not the others, or the adjustment is computed in JavaScript rather than SQL — causing Dashboard readiness points to disagree with army list totals.
 
-**Why it happens:** Adding a new points source to three independent SQL expressions requires updating all three consistently. The COALESCE divergence bug pattern is documented in CONTEXT.md under `resolveUnitPoints()` (Key Decisions row for PV-01). Missing one call site is easy.
+If the user manually set "Varnished" via `StatusPopover` and then ticks any recipe step, the sync recalculates from section completion — and if no varnish section exists (or is not fully complete), the value is overwritten. The overwrite is silent: no toast, no warning, no rollback.
 
-**Consequences:** Army list detail shows one total; Game Day pre-game panel shows another; Dashboard ArmyReadinessCard shows a third. All are reading from the same data but using different COALESCE expressions.
+**Why it happens:** No "manual override" flag exists on any of the three status columns. `syncDerivedStatuses()` was added without a guard for the case where the user set the status independently of recipe progress. The `updateUnit` query uses `COALESCE($N, column)` which prevents *clearing* via UPDATE from edit form saves — but `syncDerivedStatuses()` bypasses `updateUnit()` entirely with a direct write.
 
-**Prevention:** Search for `COALESCE(alu.points_override` across all `.ts` files before writing the new column. Every occurrence must be updated atomically in the same phase. Then update `resolveUnitPoints()` in `src/lib/` to match. Add a test asserting that all three query sites return the same `effective_points` for a fixture that exercises the new points source.
+**Consequences:**
+- User marks "Varnished" to confirm hand-applied spray. Next Painting Mode step tick reverts it to "Highlighted" (or whatever `percentageToStatus()` computes). Silent data loss.
+- `status_basing = 1` and `status_varnished = 1` become unset on any step toggle for units whose assigned recipe has no basing/varnish section — even units already confirmed as done.
+- `StatusPopover` raises a toast on error (it does not — it only rolls back on DB error) but not on auto-overwrite, so the user has no feedback that their manual choice was discarded.
 
-**Detection:** After implementing loadout points, compare effective_points between the army list page, Game Day mode, and Dashboard for the same unit. Any disagreement = divergent COALESCE.
+**Prevention:** Introduce a `status_manually_set` bitmask or per-field override flags (`status_basing_locked`, `status_varnished_locked`, `status_painting_locked`) on the `units` table. When `StatusPopover` writes a manual choice, it sets the lock bit. `syncDerivedStatuses()` checks the lock before writing that field; if locked, it skips it. The COALESCE-for-display pattern already established for points (5-level COALESCE chain) is the model: auto-derived value is the fallback, manual override wins.
 
-**Phase:** Points computation phase. Treat the COALESCE extension as an atomic multi-file change with no partial commits.
+Simplest safe approach that requires no schema change: in `syncDerivedStatuses()`, read the current `status_painting` value first and only overwrite `status_basing` / `status_varnished` (the boolean flags) when the recipe has the relevant section type. Leave `status_painting` as a read-only derived display — `StatusPopover` is the only write path for that field.
+
+**Detection:** Unit has `status_painting = 'Varnished'` in DB. User ticks a recipe step. Unit `updated_at` changes without user action and `status_painting` drops to a lower value. Any unit status regression after a step toggle is a symptom.
+
+**Phase to address:** Phase 1 (foundation) — must be designed before any auto-derive logic ships. Retrofitting the lock mechanism after is a migration + schema change.
 
 ---
 
-### Pitfall 4: "Planned" unowned units stored as phantom rows in the `units` table
+### Pitfall 2: `section_type` Values Do Not Cover the Status Fields Being Auto-Derived
 
-**What goes wrong:** To support adding rules-only datasheets to an army list (units the user does not own yet), a developer INSERTs a `units` row with a hypothetical `is_owned = 0` flag. This phantom row immediately appears in the Collection page, the Kanban board, Dashboard stats ("4 unbuilt units"), and all painting/readiness calculations. The "battle-ready percentage" drops because phantom rows count as not-painted.
+**What goes wrong:** The current `syncDerivedStatuses()` detects basing/varnish sections by matching `LOWER(sec.name) LIKE '%basing%'` and `LOWER(sec.name) LIKE '%varnish%'` — it uses **section name text matching**, not `section_type`. The `SECTION_TYPES` const in `src/types/recipeSection.ts` defines: `prep`, `basecoat`, `shade`, `layer`, `detail`, `effect`, `finishing`. None of these values map to "assembly", "basing", or "varnished" — the three boolean status fields the milestone targets.
 
-**Why it happens:** `army_list_units.unit_id` is a NOT NULL FK to `units(id)`. The path of least resistance to add a non-collection unit is to create a `units` row for it. But every hook and query reading `units` — `useUnits`, `getDashboardStats`, `getKanbanUnits`, etc. — will pick up phantom rows without any filter.
+**Why it happens:** `section_type` was introduced in v0.2.9 as recipe authoring metadata (Phase 57, WF-01). It was never given a semantic contract with unit status fields. The name-matching approach in `syncDerivedStatuses()` is a pragmatic shortcut that is fragile and invisible to users.
 
-**Consequences:** Collection page shows units the user never bought. Dashboard stats are wrong. The `getArmyListsByUnitId` delete-prevention check fires for phantom units. These are foundational data integrity bugs that corrupt the hobby tracking purpose of the app.
+**Consequences:**
+- A user names their section "Ground Work" (section_type: `detail`) — it never triggers `status_basing = 1` even when all steps complete.
+- `section_type = 'finishing'` is ambiguous — it could mean edge highlights, not just varnish. Auto-triggering `status_varnished` from a `finishing` section type would be wrong in many recipes.
+- No `assembly` value exists in `SECTION_TYPES` at all — there is no typed way to declare "this section represents assembly work."
+- If the milestone tries to use `section_type` as the trigger mechanism, it cannot — the vocabulary is wrong for that purpose.
 
-**Prevention:** Do not use `units` rows for planned entries. Add a nullable `planned_datasheet_id TEXT` and `planned_datasheet_name TEXT` to `army_list_units` alongside a nullable `unit_id`. When `unit_id IS NULL` and `planned_datasheet_name IS NOT NULL`, the row is a "planned" entry. `getArmyListWithUnits` becomes a UNION of real units (JOIN units) and planned units (no JOIN, use denormalized fields). A CHECK constraint `CHECK (unit_id IS NOT NULL OR planned_datasheet_name IS NOT NULL)` prevents both being NULL.
+**Prevention:** Decide the trigger mechanism before any code is written. Two valid options:
 
-**Detection:** Before any INSERT into `units`, ask: "Should this row appear in the Collection page?" If no, it does not belong in `units`.
+Option A — Extend `SECTION_TYPES` to include `assembly`, `basing`, `varnish` and migrate the detection logic from name-matching to type-matching. A safe additive schema change: text column with no CHECK constraint, existing sections keep their values, users can set the new types on existing sections.
 
-**Phase:** Schema design phase for the unowned-unit feature. This is a foundational modeling decision that must be locked before any UI is built on top.
+Option B — Document the name-matching contract as intentional, make it visible in the UX. Show a hint in the section editor: "Sections named 'basing' / 'varnish' / 'assembly' automatically update unit status flags." This is lower change impact but requires user education.
+
+Option A is cleaner at the cost of a migration. Option B avoids a migration at the cost of a fragile hidden contract.
+
+**Detection:** User creates a recipe with a section they intend as basing work but uses a different name. All steps complete, `status_basing` remains 0. The detection is silent — the user has no feedback.
+
+**Phase to address:** Phase 1 (schema / section_type vocabulary decision) — must be resolved before writing any auto-derive trigger logic.
 
 ---
 
-### Pitfall 5: COALESCE blocking NULL-clear on new nullable columns added to army_lists
+### Pitfall 3: `is_active_project` Auto-Management Conflicts with Manual Toggle
 
-**What goes wrong:** New columns added to `army_lists` in this milestone — for example, `list_format TEXT`, `enhancement_budget INTEGER` — are added to `updateArmyList`'s existing COALESCE UPDATE:
-```sql
-SET enhancement_budget = COALESCE($N, enhancement_budget)
-```
-This means the user can never clear `enhancement_budget` back to NULL. The COALESCE always preserves the old value when `null` is passed.
+**What goes wrong:** The Kanban board (`kanbanUtils.ts` `applyActiveFilter()`) shows only units where `is_active_project = 1`. If auto-management sets `is_active_project = 1` on recipe assign and clears it on completion, two write paths exist for the same column: (a) manual toggle via `updateUnit` from the Kanban or UnitSheet, and (b) automatic writes from `createAssignment` / `upsertStepProgress`.
 
-**Why it happens:** This exact class of bug already produced two remediation functions: `clearArmyListDetachment` (armyLists.ts lines 119–129) and `clearArmyListPointsLimit` (lines 133–145). Both exist because `updateArmyList` uses COALESCE which blocks NULL passthrough. Adding new nullable columns to the same COALESCE UPDATE without adding a corresponding clear function repeats the bug.
+In Tauri's `sqlx::Pool<Sqlite>`, each `db.execute()` runs on a pool-managed connection. Two React mutations in-flight concurrently (e.g., user clicks "Mark Active" while a step toggle is processing) reach the DB in an undefined order. The last writer wins.
 
-**Prevention:** For every nullable column added to `army_lists` in this milestone: if the user should be able to clear it to NULL, add a dedicated `clearArmyList[Field](id: number)` function immediately in the same commit. Do not add it to the COALESCE UPDATE. The existing pattern in armyLists.ts is the template.
+**The specific dangerous case:** User manually deactivates a unit (parks it, does not want it in Kanban). Later they tick a recipe step via Painting Mode. `upsertStepProgress` → `syncPaintingPercentageFromAssignment` → `syncPaintingPercentageByUnitId`. If the auto-management logic also touches `is_active_project` in this chain, the unit re-activates against the user's explicit intent.
 
-**Phase:** Schema extension phase — any phase that adds a nullable column to `army_lists` or `army_list_units`.
+**Why it happens:** There is no semantic distinction between "user set active = 1" and "system set active = 1". The DB column is a single INTEGER bit with no history.
+
+**Consequences:** Units the user deliberately parked reappear in Kanban. The Kanban becomes unreliable as a curated work-in-progress view. User loses trust in the tool.
+
+**Prevention:** Auto-*set* only (on recipe assign). Never auto-*clear*. The system does not know why a user deactivated a unit — maybe they finished the recipe but are still doing touch-ups, or they are taking a break. Let the user decide when to deactivate. The auto-set rule: if a recipe is assigned and `is_active_project` is currently 0, set it to 1. No write to `is_active_project` ever happens inside `syncDerivedStatuses()` or any step-toggle path.
+
+**Detection:** Unit disappears from / reappears in Kanban without the user touching the active toggle. Specifically: deactivate a unit manually, complete a step in Painting Mode — the unit should stay off Kanban.
+
+**Phase to address:** Phase 2 (active project lifecycle) — establish the auto-set-only rule as a written policy before any auto-management code is written.
+
+---
+
+### Pitfall 4: Smart Context Pre-Fill Reads Stale State from Zustand Filter Stores
+
+**What goes wrong:** Zustand filter stores (collection page faction filter, recipe page filters) persist across navigations — they are not reset on component unmount. If the pre-fill logic for the new unit form reads `faction_id` from the collection filter store rather than from `FactionContext` (the globally selected sidebar faction), the pre-fill reflects "whichever faction the user last filtered by" rather than "the faction the user has set as their current focus."
+
+**Concrete scenario:** User browses Space Marines collection (filter store = Space Marines faction). Switches to Death Guard to buy new models. Opens the Quick Add → New Unit sheet. The pre-fill reads the stale filter store and sets faction to Space Marines. User saves without noticing — the new Death Guard unit is in the wrong faction.
+
+**Why it happens:** The existing `UnitSheet` already accepts a `defaultFactionId` prop passed from the parent. The risk is if the milestone changes the prop source from "explicitly selected by parent" to "implicitly read from a filter store." The `FactionContext` is an explicit user action (clicking the faction in the sidebar), while the filter store is an ephemeral navigation artifact.
+
+**Prevention:** Pre-fill `faction_id` exclusively from `FactionContext` (the globally selected faction), not from filter stores. The filter store is scoped to its page and should never leak as a signal to creation forms. Document this rule in the pre-fill implementation comment. The `defaultFactionId` prop on `UnitSheet` already exists — the parent just needs to source it from `useFaction()` context, not from a Zustand store.
+
+**Detection:** User creates a unit while a faction filter is active — the faction field is pre-filled to the filtered faction, not the active context faction.
+
+**Phase to address:** Phase 3 (smart context pre-filling) — must specify exactly which context source drives each pre-fill value before implementation.
+
+---
+
+### Pitfall 5: Pre-Filled Form Values Submit Unreviewed When User Clicks Save Immediately
+
+**What goes wrong:** React Hook Form treats `defaultValues` as the initial form state. A pre-filled form that opens with faction, recipe, and section already selected submits those values if the user clicks Save without reviewing any field. If the pre-fill is wrong (see Pitfall 4) or stale, the error is committed to the DB with no warning.
+
+This is not a bug in isolation — it is the design of pre-filling. It becomes a pitfall when the pre-fill sources (stale context, last-used values from a different session) are imprecise.
+
+**Prevention:** For high-stakes pre-fills (faction assignment, recipe-to-unit linking), add a visual indicator that the value was auto-filled — a small "auto" badge or muted field styling. This prompts the user to review. Do not pre-fill required fields (like `faction_id`) to any value that the user cannot visually distinguish from a manual selection. For low-stakes pre-fills (today's date, last-used duration), no indicator is needed. Follow the `prefill` prop pattern already established in `BattleLogSheet` — mark the `isPrefilled` state and adjust the sheet description accordingly.
+
+**Detection:** User reports a unit or log entry in the wrong faction/state. The form defaulted to a value the user never consciously chose.
+
+**Phase to address:** Phase 3 (smart context pre-filling) — UX spec must define which fields get auto-fill indicators before implementation.
 
 ---
 
@@ -101,89 +124,70 @@ This means the user can never clear `enhancement_budget` back to NULL. The COALE
 
 ---
 
-### Pitfall 6: Version snapshot bloat from JSON blob storage
+### Pitfall 6: N+1 Queries for Per-Unit Battle-Readiness in Army List Unit Picker
 
-**What goes wrong:** Each version snapshot serializes the complete army list state — all units, loadout choices, enhancement assignments, points — as a single TEXT blob in a `snapshot_data` column. After 10–20 versions per list, the table is large and comparisons require deserializing two blobs and diffing them in JavaScript.
+**What goes wrong:** The unit picker for army lists needs to show each unit's battle-readiness state. If the component fetches all units via `getUnitsWithPoints()` (single JOIN query) and then queries recipe progress per unit individually, it creates N+1 round-trips.
 
-**Why it happens:** The `rules_snapshot` table (rulesSnapshot.ts) already demonstrates this pattern and caps it at 3 groups via `cleanOldSnapshots(3)`. A naive list version implementation without a cap or normalization strategy grows unboundedly and makes SQL-level diffing impossible.
+**Current state for comparison:** `getKanbanProgressByUnitIds()` (PERF-03 in v0.3.0) was introduced specifically to eliminate this pattern for Kanban enrichment — one CTE with `IN ($1, $2, ...)` for all unit IDs, returning progress for the full set. `getArmyListReadiness()` uses GROUP BY for a per-list summary. The unit rows returned by `getUnitsWithPoints()` already carry `status_painting`, `status_basing`, `status_varnished`, `status_assembly` — so *current-status readiness* is computable client-side from the existing single query.
 
-**Consequences:** Comparing "v2 vs v3" of a list requires fetching and deserializing both blobs. Adding a unit in v3 shows as "all units changed" if diffing by array index rather than stable ID. The data structure cannot be queried without deserialization.
+The risk materializes if the picker needs *recipe-derived readiness* (e.g., "recipe is 80% complete") — this requires joining assignment, step, and progress tables, which cannot be embedded in `getUnitsWithPoints()` without creating a complex query for every picker open.
 
-**Prevention:** Normalize snapshots: a `army_list_versions` parent table with an `id`, `list_id`, `name`, and `created_at`, plus a child `army_list_version_units` table (one row per unit entry: `unit_name TEXT`, `effective_points INTEGER`, `loadout_summary TEXT`, `enhancement_name TEXT`, `unit_order INTEGER`). Store points as integers at snapshot time so they don't need re-computation. Cap at 10 versions per list using the same `cleanOldSnapshots` pattern. Key diffs by `unit_order` (stable position in the list) or by a `snapshot_unit_key TEXT` (e.g., `unit_name + slot_index` for de-duplication).
+**Prevention:** Use the `getKanbanProgressByUnitIds()` pattern for recipe progress enrichment. Fetch unit list, extract IDs, batch-fetch progress in a single CTE query, merge client-side via `Map<unitId, progress>`. Never call a per-unit progress query inside a loop. If only boolean readiness (painted = true/false) is needed, compute it from the unit row itself — no extra query needed.
 
-**Detection warning:** Any `snapshot_data TEXT` column holding a serialized object longer than a single denormalized string.
+**Detection:** Open the army list unit picker with 30+ units. Observe DB query count via Tauri SQL logging. More than 2 queries (units + readiness) = N+1 regression.
 
-**Phase:** Version snapshot schema design phase — decide normalization strategy before writing the migration.
-
----
-
-### Pitfall 7: Version snapshot diff using array index instead of stable key
-
-**What goes wrong:** The version comparison UI renders "before" and "after" unit lists by array index. A unit is removed from position 2, causing all subsequent units to shift. The diff shows every unit after position 2 as "changed" even though only one was removed.
-
-**Why it happens:** Array-index diffing is the naive approach. The established pattern in this codebase is identity-based tracking: `recipe_step_id` keys step progress (migration 028, DI-01), not `order_index`. The same principle applies to list snapshots.
-
-**Prevention:** Build `Map<stableKey, snapshotRow>` for each version and compare by key. For unit rows where the same unit can appear multiple times in one list (no UNIQUE constraint on `(list_id, unit_id)` per armyList.ts line 8), use `(unit_name + slot_position)` as the composite key, or assign a stable `slot_id TEXT` (UUID) at first insertion and carry it through snapshots.
-
-**Phase:** Version snapshot comparison UI phase.
+**Phase to address:** Phase 4 (battle-readiness in unit picker) — design the enrichment query before writing the picker component.
 
 ---
 
-### Pitfall 8: PDF export expecting browser-grade print support in Tauri WebView2
+### Pitfall 7: `updateUnit` Edit Form Accidentally Overwrites Auto-Derived Status Fields
 
-**What goes wrong:** The developer uses `window.print()` or a `@media print` CSS stylesheet to generate export PDFs. In Tauri's WebView2 on Windows, `window.print()` opens the system Windows print dialog and cannot: auto-save to a file path, control filenames, or guarantee print CSS fidelity. The output often truncates at page boundaries and the dialog UX is jarring inside a desktop app.
+**What goes wrong:** The `UnitSheet.tsx` submit handler in edit mode explicitly strips auto-derived fields:
 
-**Why it happens:** In a browser, `window.print()` is acceptable for print-to-PDF. In a Tauri WebView, the behavior is identical to the OS print system with no programmatic control — the existing `VACUUM INTO` Rust command was introduced precisely because similar limitations blocked JS-side SQLite operations. The same constraint applies here.
+```typescript
+const { painting_percentage: _pp, status_painting: _sp, status_basing: _sb, status_varnished: _sv, status_assembly: _sa, ...rest } = payload;
+await updateUnit.mutateAsync({ id: unit.id, ...rest });
+```
 
-**Consequences:** "Export to PDF" delivers a poor UX: system dialog appears, formatting breaks on page breaks, file cannot be auto-saved. The feature feels unfinished.
+This is correct. But the `updateUnit` query in `units.ts` uses `COALESCE($9, status_assembly)` — so if any other call site passes these fields with non-null values, they overwrite auto-derived status. Any new edit surface (a batch editor, a quick-edit row action, a context menu) that builds the payload differently and forgets the stripping will silently reset status fields.
 
-**Prevention:** Prioritize export in this order: (1) Text/clipboard — `navigator.clipboard.writeText()`, no Tauri API needed, ships fastest. (2) Plain-text file — `@tauri-apps/plugin-dialog` `save()` to get a path, `@tauri-apps/plugin-fs` `writeTextFile()`. (3) Print/PDF — only via a new Rust Tauri command using a headless HTML-to-PDF Rust crate (e.g., `headless_chrome` or `wkhtmltopdf` wrapper), or `window.print()` with explicit documentation of its limitations. Do not promise "save to PDF" without the Rust command.
+**Prevention:** Split `updateUnit` into two typed functions:
+- `updateUnitMetadata(input: UpdateUnitMetadataInput)` — all non-status fields (name, faction, points, category, etc.)
+- `updateUnitStatus(unitId: number, status: Partial<UnitStatusFields>)` — status fields only, called exclusively from `StatusPopover` and `syncDerivedStatuses()`
 
-**Detection:** Prototype `window.print()` in the actual Tauri window (not `pnpm dev` Vite mode) before committing to the feature. The system dialog behavior is only visible in the Tauri context.
+This enforces the separation at the TypeScript type level. No edit form can accidentally write status fields because `UpdateUnitMetadataInput` does not include them.
 
-**Phase:** Export phase. Decide output format scope before building any export UI.
+**Detection:** A new edit surface (quick-edit, batch edit, inline edit row) saves a unit and the `status_painting` resets to "Not Started". This happens when the payload was built without stripping.
 
----
-
-### Pitfall 9: Loadout option lookup failing on unit name variants
-
-**What goes wrong:** `synced_loadout_options` is keyed by `unit_name TEXT`. The loadout builder looks up options via `WHERE unit_name = u.name`. If the user named their collection unit "Intercessors Squad" or "Primaris Intercessors" while BSData stores it as "Intercessors", the lookup returns zero results silently. No error is raised — LEFT JOIN returns NULL rows.
-
-**Why it happens:** The same name-matching problem exists in `getArmyListWithUnits` for `synced_unit_points` — the join is `ON sup.unit_name = u.name` (armyLists.ts line 69). Points fallback gracefully to `u.points`; loadout options have no fallback value, so the result is simply "no options available."
-
-**Prevention:** Route loadout option lookups through `unit_rules_mapping.rules_datasheet_id` when available. The datasheet record in rules.db has the canonical name matching BSData. Add a `canonical_name TEXT` column to `unit_rules_mapping` populated at mapping confirmation time, and use that as the join key for all BSData lookups instead of the user-facing collection unit name.
-
-**Detection:** Test loadout option display on a unit whose collection name differs from the BSData name by any substring (e.g., "Intercessors" vs "Primaris Intercessors"). Zero results from the lookup is the symptom.
-
-**Phase:** Loadout data layer phase — extend `unit_rules_mapping` before building the loadout UI.
+**Phase to address:** Phase 1 (foundation) — before adding any new edit surfaces that touch unit fields.
 
 ---
 
-### Pitfall 10: Nested Sheet/Dialog for the loadout builder
+### Pitfall 8: Bulk Recipe Apply Creates Per-Unit Sync Pressure in a Sequential Loop
 
-**What goes wrong:** The loadout builder is implemented as a Dialog opened from inside the ArmyList Sheet (the unit configuration row triggers a Dialog, while the Sheet is still open). Radix UI portals do not compose cleanly when nested — z-index stacking, focus trapping, scroll locking, and Escape key handling all break in ways that are WebView2-specific and difficult to diagnose.
+**What goes wrong:** `bulkCreateAssignments()` uses a sequential `for` loop calling `syncPaintingPercentageByUnitId()` after each INSERT. That sync chain runs 5 SELECT queries + 1 UPDATE per unit (percentage sync + 4 basing/varnish section queries + status write). For 20 units, that is 120 DB round-trips in a loop with auto-commit.
 
-**Why it happens:** This is a known established pitfall in the codebase (CONTEXT.md Key Decisions: "Sibling Sheet/Dialog portal pattern" and "PlaybookTab SheetHeader/Footer outside Tabs"). Nested Radix portals cause z-index and context issues. The temptation is to put the loadout Dialog inside the army list Sheet because that is where the trigger lives.
+In WAL mode, concurrent reads are allowed but the sequential SELECT→UPDATE chain per unit serializes against writes. For large batches this creates visible latency spikes (>500ms UI freeze).
 
-**Prevention:** Follow the established sibling portal pattern: the loadout Dialog and the army list Sheet are siblings in the React tree, both rendered at the page level. The unit row emits an `onConfigureLoadout(unitRowId)` callback to the page. The page holds `configureLoadoutRowId: number | null` in state. The Dialog renders at page level, not inside the Sheet. This is the same pattern used across all existing Sheet/Dialog interactions.
+**Prevention:** Defer percentage sync to after all inserts complete. Add `bulkSyncPaintingPercentages(unitIds: number[])` that runs one batch `UPDATE ... WHERE id IN (...)` with a computed CASE WHEN subquery per unit, or runs the per-unit sync sequentially but only once (not N times during the loop). The INSERTs themselves are fast; the sync is the bottleneck.
 
-**Detection:** If any `<Dialog>` or `<Sheet>` appears inside the render output of another `<Sheet>` or `<Dialog>`, stop and refactor to the sibling pattern.
+**Detection:** UI freezes or progress bar stalls noticeably when applying a recipe to 10+ units simultaneously. Time the mutation with `console.time()` around the `bulkCreateAssignments` call.
 
-**Phase:** Loadout builder UI phase.
+**Phase to address:** Phase 4 (batch operations) — before shipping bulk-apply UI.
 
 ---
 
-### Pitfall 11: Missing cache invalidation for new army-list-adjacent mutations
+### Pitfall 9: Battle-Readiness Definition Diverges Across Surfaces
 
-**What goes wrong:** A new `useAssignEnhancement` mutation invalidates `["army-lists", listId]` but forgets `["army-list-readiness"]` and `["dashboard-stats"]`. The army list detail updates correctly but the Dashboard ArmyReadinessCard still shows stale points until the user navigates away and back.
+**What goes wrong:** "Battle-ready" is defined as `status_painting = 'Completed'` in `getArmyListReadiness()` and `getArmyReadinessByFaction()` on the dashboard. If the unit picker shows a *different* definition (e.g., `status_painting = 'Completed' AND status_basing = 1 AND status_varnished = 1`), the readiness percentage in the picker diverges from what the army list summary panel and Dashboard show.
 
-**Why it happens:** The cache invalidation symmetry rule (CONTEXT.md Key Decisions: "Cache invalidation symmetry rule — If useCreate invalidates a key, useDelete must too") applies across all mutations touching army list data. With this milestone, there are at least four dependent cache keys: `["army-lists", listId]`, `["army-list-readiness"]`, `["dashboard-stats"]`, and any new `["army-list-versions"]` key. Missing any one produces stale data on the surfaces that read from it.
+**Established precedent:** This codebase has the `resolveUnitPoints()` pure function in `src/lib/` specifically to prevent COALESCE divergence across 3 query sites (PV-01 in v0.2.13). The same principle applies to readiness definitions.
 
-**Prevention:** Before writing any mutation hook in this milestone, enumerate all cache keys that read from `army_list_units` or any new table affecting army list totals. Put the complete list in the phase plan as a checklist. Every mutation that writes to these tables must invalidate the full set. Treat the invalidation set audit as a mandatory step, not an afterthought.
+**Prevention:** Define a canonical `isUnitBattleReady(unit: Pick<Unit, 'status_painting' | 'status_basing' | 'status_varnished' | 'status_assembly'>): boolean` pure function in `src/lib/`. Every component and query uses this predicate. The equivalent SQL expression is documented in a comment next to the function and copied consistently into all SQL WHERE clauses that filter battle-ready units. If the definition ever changes, it changes in one place.
 
-**Detection:** After implementing any mutation, check the Dashboard ArmyReadinessCard and Game Day points panel without navigating away. Stale values = missing invalidation.
+**Detection:** Open army list summary panel (shows X% ready), then open the unit picker for the same list — the per-unit readiness indicators should be consistent with the summary percentage. Any divergence = missing centralization.
 
-**Phase:** Every phase that adds a mutation hook.
+**Phase to address:** Phase 4 (battle-readiness in unit picker) — define the canonical predicate before any readiness-display code is written.
 
 ---
 
@@ -191,37 +195,63 @@ This means the user can never clear `enhancement_budget` back to NULL. The COALE
 
 ---
 
-### Pitfall 12: Forgetting to register new migrations in lib.rs
+### Pitfall 10: React Query Cache Not Invalidated After Auto-Derive Writes to `units` Table
 
-**What goes wrong:** A new `031_army_list_versions.sql` migration file is created in `src-tauri/migrations/` but not registered in `lib.rs`'s `get_migrations()` vector. The app builds without error. On first launch with an empty data directory, the `army_list_versions` table does not exist and the first INSERT returns a "no such table" error toast.
+**What goes wrong:** `syncDerivedStatuses()` and `syncPaintingPercentageByUnitId()` write directly to the `units` table inside the query layer. The mutation hooks (`useToggleStepProgress`, `useCompleteStep`) do invalidate `UNITS_KEY` in `onSuccess` — covering the collection list. But no `UNIT_KEY(id)` per-unit key exists yet (all reads go through the list key). If the milestone adds a `useUnit(id)` query for the picker or unit detail enrichment, it must also be invalidated on every step toggle and assignment change.
 
-**Why it happens:** This exact bug was fixed in Phase 68 (MIG-01) for migrations 018–021. The fix is not structural — every new migration file requires a corresponding manual entry in `lib.rs`.
+**Prevention:** Before adding any new `useQuery` with a unit-specific key (e.g., `["units", id]`), audit all call sites of `syncDerivedStatuses()` and confirm the enclosing mutation hook's `onSuccess` invalidates the new key. Add the key to the invalidation set in `useToggleStepProgress`, `useCompleteStep`, `useCreateAssignment`, and `useDeleteAssignment` at the same time the new query key is introduced.
 
-**Prevention:** After creating any `.sql` migration file, immediately add the entry in `lib.rs` before closing the change. Treat the SQL file and the `lib.rs` entry as a single atomic change. The next version number is `(current highest) + 1` — currently 30, so the next is 31.
+**Detection:** Unit status badge in a detail view shows stale value after a step is completed in Painting Mode. The list view updated correctly (UNITS_KEY invalidated) but the detail view did not.
 
-**Phase:** Any phase adding a migration.
-
----
-
-### Pitfall 13: Loadout exclusivity not enforced in the mutation function
-
-**What goes wrong:** `synced_loadout_options.is_exclusive` flags mutually exclusive options within a group (e.g., only one weapon type per model). The UI shows a radio/select, but if a second exclusive option is selected programmatically or via a race condition, two rows with `is_exclusive = 1` for the same `(army_list_unit_id, group_name)` exist in the choices table. Points are now double-counted.
-
-**Why it happens:** Exclusivity is a business rule that UI guards alone cannot guarantee — especially when bulk operations or future programmatic list construction bypass the UI.
-
-**Prevention:** Enforce the exclusivity rule in the mutation function, not just the UI. When `is_exclusive = 1`, DELETE all other selections for the same `(army_list_unit_id, group_name)` before inserting the new one. This is the same two-step deactivate-then-activate pattern used in `activateLoadout` (unitLoadouts.ts lines 68–77).
-
-**Phase:** Loadout builder data layer phase.
+**Phase to address:** Phase 1 — whenever a new per-unit query key is introduced.
 
 ---
 
-### Pitfall 14: updateArmyList COALESCE blocks clearing detachment when switching lists
+### Pitfall 11: `percentageToStatus()` Thresholds Are Arbitrary and Invisible to the User
 
-**What goes wrong:** This is an existing caveat, not a new one, but it is relevant when the loadout builder adds more columns. `updateArmyList` uses COALESCE for all fields (lines 88–112). The `clearArmyListDetachment` and `clearArmyListPointsLimit` escape hatches exist specifically because COALESCE blocks NULL passthrough. When the loadout builder or enhancement feature introduces new nullable columns on `army_lists` or `army_list_units`, re-reading the existing pattern must happen first to avoid repeating the mistake.
+**What goes wrong:** The function maps `painting_percentage` → `PaintingStatus` with hardcoded thresholds (`pct <= 15 → "Primed"`, `pct <= 30 → "Basecoated"`, etc.). A unit that is 31% complete auto-derives as "Basecoated" even if the user has only applied a wash — which maps more naturally to "Shaded." The user has no visibility into why the status changed to what it changed to.
 
-**Prevention:** Read armyLists.ts lines 119–145 before adding any nullable column. If the user should be able to clear it, add the clear function immediately.
+**Prevention:** Either (a) show the derived value with a visual "auto" indicator (small muted chip next to the badge in `StatusBadge`) so the user understands it is computed, not chosen; or (b) drop the text-status auto-derive entirely and only auto-derive the boolean flags (`status_basing`, `status_varnished`) which are binary and unambiguous. The percentage → text status mapping is inherently imprecise for hobby work that does not follow a linear progression.
 
-**Phase:** Schema extension phase.
+**Detection:** User reports that their unit jumped from "Primed" to "Layered" after ticking a step, bypassing Basecoated/Shaded. The status change felt unexpected because their recipe steps do not map to the `percentageToStatus` thresholds.
+
+**Phase to address:** Phase 1 — decide the UX contract for status auto-derivation before shipping.
+
+---
+
+### Pitfall 12: Form `useEffect` Reset Fires While the Sheet Is Open, Discarding Partial Input
+
+**What goes wrong:** `UnitSheet.tsx` uses:
+
+```typescript
+useEffect(() => {
+  form.reset(buildDefaultValues(unit, defaultFactionId));
+}, [unit, defaultFactionId]);
+```
+
+If the parent passes `defaultFactionId` derived from a context value that changes while the sheet is open (e.g., the globally active faction changes because the user taps a sidebar link), the effect fires and resets the form — discarding any partially typed values.
+
+**Prevention:** Compute `defaultFactionId` in the parent at the moment the Sheet *opens* (not continuously from live context). Use `useRef` to freeze the initial faction value, or only update the prop when `open` transitions from `false` to `true`. The context should never be read live inside an open form — capture it at open time and pass it as a stable prop.
+
+**Detection:** User opens UnitSheet, starts typing a name, clicks a faction in the sidebar — the form resets to empty. The `unit` prop did not change, but `defaultFactionId` did.
+
+**Phase to address:** Phase 3 (smart pre-filling) — audit the `defaultFactionId` prop source before wiring context-derived pre-fills.
+
+---
+
+## Integration Pitfalls Specific to This Codebase
+
+### The Two-Write-Path Problem for Status Fields
+
+`units.ts` `updateUnit()` uses `COALESCE($N, column)` for status fields — null = "don't change". But `syncDerivedStatuses()` bypasses `updateUnit()` with a direct `SET status_painting = $2, status_basing = $3, status_varnished = $4`. These two write paths are inconsistent by design and must stay coordinated. Any future modification to status persistence must update both paths. The safest resolution is Pitfall 7's prevention: split into `updateUnitMetadata` / `updateUnitStatus`.
+
+### The "No Nested Transactions" Constraint
+
+`tauri-plugin-sql` cannot nest transactions (established constraint, see Project.md Key Decisions). `syncDerivedStatuses()` runs as a chain of sequential `db.select()` + `db.execute()` calls without a transaction wrapper. If the process crashes between the percentage UPDATE and the status UPDATE, the unit ends up with `painting_percentage = 75` but `status_painting = 'Not Started'`. This is an accepted known risk in WAL + auto-commit mode. The milestone must not attempt to wrap auto-derive in a transaction helper that internally calls BEGIN — it will crash. Keep using the sequential auto-commit pattern already established.
+
+### React Query `staleTime: 5 min` Masks Auto-Derive Results for New Query Keys
+
+The `QueryProvider` sets `staleTime: 5 minutes`. After a step toggle invalidates `UNITS_KEY`, the refetch is immediate for that key. But any *new* query key introduced by this milestone (e.g., a per-unit readiness key for the picker) will serve stale data for up to 5 minutes unless explicitly invalidated. Every new query key that reads from `units` must be added to the invalidation chain in `useToggleStepProgress`, `useCompleteStep`, `useCreateAssignment`, and `useDeleteAssignment`. Treat the invalidation audit as a mandatory checklist item in each phase plan.
 
 ---
 
@@ -229,37 +259,38 @@ This means the user can never clear `enhancement_budget` back to NULL. The COALE
 
 | Phase Topic | Likely Pitfall | Mitigation |
 |---|---|---|
-| Schema design (new tables) | Pitfall 1: FK to DELETE-able synced tables | TEXT denormalized copies for all synced-data references |
-| Schema design (unowned units) | Pitfall 4: Phantom units in collection | Planned entries on army_list_units level, not units table |
-| Schema design (nullable columns) | Pitfall 5 + 14: COALESCE blocks NULL-clear | Dedicated clearArmyList[Field]() for every new nullable column |
-| Migration files | Pitfall 12: Missing lib.rs entry | SQL file + lib.rs entry = single atomic change |
-| Points computation | Pitfall 3: COALESCE divergence | Grep all COALESCE call sites, update atomically with test |
-| Enhancement assignment | Pitfall 2: detachment_id stored instead of name | Store enhancement_name TEXT + points INTEGER snapshot |
-| Version snapshots | Pitfall 6: JSON blob | Normalize as rows, cap at 10 per list |
-| Version snapshot diff | Pitfall 7: Index-based diff | Key by stable unit identity, not array position |
-| Loadout builder UI | Pitfall 10: Nested Sheet/Dialog | Sibling portal pattern at page level |
-| Loadout data layer | Pitfall 9: Name variant mismatch | Route through unit_rules_mapping canonical_name |
-| Loadout data layer | Pitfall 13: Exclusivity not in mutation | DELETE-then-INSERT in mutation function |
-| Export | Pitfall 8: PDF from Tauri | Text/file first; print only with explicit WebView2 limitation acceptance |
-| Any new mutation hook | Pitfall 11: Missing cache invalidation | Enumerate all dependent cache keys before writing any mutation |
+| Auto-derive statuses from recipe sections | Pitfall 1 (silent overwrite of manual status) | Design manual override flag/lock before writing any auto-derive logic |
+| Auto-derive via section_type field | Pitfall 2 (section_type vocabulary gap) | Extend SECTION_TYPES with assembly/basing/varnish, or document name-match contract; decide first |
+| Active project auto-management | Pitfall 3 (race condition between manual toggle and auto-set) | Auto-set only on recipe assign; never auto-clear from any step toggle path |
+| Smart context pre-filling | Pitfall 4 (stale Zustand faction) + Pitfall 5 (pre-fill submits unreviewed) | Use FactionContext not filter stores; add auto-fill indicators on high-stakes fields |
+| Battle-readiness in unit picker | Pitfall 6 (N+1 queries) + Pitfall 9 (diverging definitions) | Batch progress via CTE; define `isUnitBattleReady()` pure function first |
+| Batch recipe apply | Pitfall 8 (per-unit sync pressure in loop) | Defer sync to after all inserts; batch in one pass |
+| Any new edit surface touching unit fields | Pitfall 7 (accidental status field overwrite) | Split updateUnit into metadata vs status variants at the query layer |
+| Any new per-unit query key added | Pitfall 10 (cache invalidation gap) | Audit all syncDerivedStatuses call sites; add new key to all relevant mutation invalidation sets |
+| Status auto-derive UX | Pitfall 11 (arbitrary thresholds invisible to user) | Add "auto" indicator to StatusBadge when value is derived, not user-chosen |
+| Form pre-fill wiring | Pitfall 12 (form reset on live context change) | Freeze defaultFactionId at sheet-open time, not from live context subscription |
 
 ---
 
 ## Sources
 
-- `src/db/queries/armyLists.ts` — COALESCE chain, clearArmyListDetachment, clearArmyListPointsLimit patterns
-- `src/db/queries/unitLoadouts.ts` — activateLoadout two-step pattern, weapon_name TEXT copy
-- `src/db/queries/unitRulesMapping.ts` — rules_datasheet_id TEXT copy, name-based matching
-- `src/db/queries/syncedUnitPoints.ts` — DELETE-all + re-INSERT pattern for synced tables
-- `src/db/queries/bsdataExtended.ts` — replaceSynced* functions for all four BSData tables
-- `src/db/queries/datasheets.ts` — cross-DB lookup patterns, getFullDatasheet
-- `src/db/queries/rulesSnapshot.ts` — cleanOldSnapshots pattern
-- `src-tauri/migrations/011_point_tiers_loadouts.sql` — weapon_name TEXT copy comment
-- `src-tauri/migrations/026_unit_rules_mapping.sql` — rules_datasheet_id TEXT copy comment
-- `src-tauri/migrations/029_synced_point_tiers.sql` — synced table structure
-- `src-tauri/migrations/030_bsdata_extended.sql` — synced_enhancements, synced_loadout_options schema
-- `.planning/PROJECT.md` — Key Decisions log (COALESCE chain, detachment_name, weapon_name, sibling portal, cache invalidation symmetry, resolveUnitPoints, updateArmyListUnit full-replacement)
+All findings derived from direct codebase inspection (no web search required — all pitfalls are internal integration issues):
+
+- `src/db/queries/recipeAssignments.ts` — `syncDerivedStatuses()`, `syncPaintingPercentageByUnitId()`, `bulkCreateAssignments()`
+- `src/db/queries/units.ts` — `updateUnit()` COALESCE pattern, status field parameter handling
+- `src/db/queries/armyLists.ts` — `getArmyListReadiness()` battle-ready definition (`status_painting = 'Completed'`)
+- `src/features/units/UnitSheet.tsx` — status field stripping in edit mode, `defaultFactionId` reset pattern
+- `src/features/units/StatusPopover.tsx` — manual status override write path (optimistic update + rollback)
+- `src/features/units/unitSchema.ts` — comment "auto-managed by recipe sync, kept in schema for DB compat"
+- `src/features/units/PaintingPipeline.tsx` — stage definitions, assembly/basing/varnish boolean usage
+- `src/hooks/useRecipeAssignments.ts` — full invalidation chains in `useToggleStepProgress`, `useCompleteStep`, `useCreateAssignment`, `useBulkCreateAssignments`
+- `src/types/recipeSection.ts` — SECTION_TYPES const (no assembly/basing/varnish values)
+- `src/types/unit.ts` — PAINTING_STATUS_ORDER, Unit interface, status field types
+- `src/lib/computeAssignmentProgress.ts` — pure function pattern (precedent for new derivations)
+- `src/features/painting-projects/kanbanUtils.ts` — `applyActiveFilter()` consuming `is_active_project`
+- `src/features/battle-log/BattleLogSheet.tsx` — `prefill` prop + `isPrefilled` pattern (precedent for pre-fill UX)
+- `.planning/PROJECT.md` — Key Decisions log (no nested transactions, COALESCE patterns, cache invalidation symmetry rule, resolveUnitPoints precedent, PERF-03 Kanban batch enrichment)
 
 ---
-*Pitfalls research for: Army Lists 3.0 (smart list builder) features added to HobbyForge v0.2.18*
-*Researched: 2026-05-20*
+*Pitfalls research for: v0.3.7 Smart Automation features added to HobbyForge v0.3.0+*
+*Researched: 2026-05-28*

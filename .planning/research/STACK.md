@@ -1,8 +1,16 @@
-# Technology Stack Research
+# Technology Stack — v0.3.7 Smart Automation
 
-**Project:** HobbyForge v0.2.18 — Army Lists 3.0 Smart List Builder
-**Researched:** 2026-05-20
+**Project:** HobbyForge v0.3.7
+**Researched:** 2026-05-28
 **Confidence:** HIGH
+
+---
+
+## Verdict: Zero New Dependencies
+
+All four automation features can be implemented with the current stack. The required
+capabilities already exist: derive logic, hooks, context, and UI components are present
+and need extension, not replacement.
 
 ---
 
@@ -10,315 +18,204 @@
 
 This is a SUBSEQUENT milestone. The existing stack (Tauri 2 + React 19 + TypeScript 5 +
 Vite 6 + TailwindCSS 4 + shadcn/ui + SQLite + React Query + Zustand + RHF + Zod +
-@dnd-kit) handles virtually everything for the smart list builder.
-
-This document covers ONLY the net-new capabilities:
-
-1. Clipboard copy (text export)
-2. PDF/print export (save to file or print dialog)
-3. Version snapshots (SQLite-only — no library needed)
-4. Loadout builder UI (form complexity analysis)
+@dnd-kit + react-hotkeys-hook) covers everything. This document covers ONLY the net-new
+implementation strategy for the four automation features.
 
 ---
 
-## Summary
+## Feature Analysis — What Already Exists
 
-**Two new packages needed:**
+### Feature 1: Auto-derive assembly/basing/varnish from recipe section completion
 
-- `@tauri-apps/plugin-clipboard-manager` — for text clipboard copy (one-click "Copy list to clipboard")
-- `jspdf` — for PDF file generation (programmatic text-only, no HTML-to-image conversion)
+**Existing mechanism (verified: `src/db/queries/recipeAssignments.ts` lines 211–272):**
 
-**Everything else is covered by the existing stack:**
+`syncDerivedStatuses()` already auto-derives `status_basing` and `status_varnished` via
+LIKE name matching (`%basing%`, `%varnish%`) on `recipe_sections.name`. It is called
+on every step toggle, assignment create, and assignment delete. `status_painting` is
+derived from `painting_percentage`.
 
-- Version snapshots → plain SQLite JSON column (TEXT column in new migration)
-- Print-friendly view → CSS `@media print` + `window.print()` (confirmed working in Tauri 2 via WebView2 on Windows)
-- Loadout builder UI → existing RHF + Zod + shadcn/ui `Select`/`Checkbox` — no new library
-- JSON export → `JSON.stringify` + `@tauri-apps/plugin-fs` `writeFile` (already installed)
-- Save file dialog → `@tauri-apps/plugin-dialog` `save()` (already installed)
+**What is missing:**
 
----
+- `status_assembly` is not derived. The `section_type` column (already on `recipe_sections`
+  from v0.2.9 Phase 57) is unused by the derive logic — matching is purely by section
+  `name`. Assembly sections would be detected via `section_type = 'prep'`.
+- The derive runs 5 separate SELECT queries per unit. This can be consolidated.
 
-## New Package: Clipboard
+**Extension approach:** Extend `syncDerivedStatuses()` to also query for sections with
+`section_type = 'prep'` (using the existing column, not brittle name-matching), write
+`status_assembly = 1 | 0`. Optionally consolidate the 5-query fan-out into a single CTE,
+following the `getKanbanProgressByUnitIds` batch CTE pattern.
 
-### @tauri-apps/plugin-clipboard-manager
-
-| Property | Value |
-|----------|-------|
-| npm package | `@tauri-apps/plugin-clipboard-manager` |
-| Rust crate | `tauri-plugin-clipboard-manager = "2"` |
-| Permission needed | `clipboard-manager:allow-write-text` |
-| Why Tauri-specific | `navigator.clipboard.writeText()` is blocked in Tauri 2 by the WebView2 security context without an explicit capability grant; the Tauri plugin is the sanctioned path |
-
-**Why NOT `navigator.clipboard.writeText()` directly:** Tauri 2 ACL blocks clipboard access
-from the WebView unless `clipboard-manager:allow-write-text` is granted. The plugin wraps
-this correctly and is the pattern used by all Tauri 2 apps requiring clipboard write. Confirmed
-in official Tauri 2 docs (HIGH confidence).
-
-**Installation:**
-```bash
-# JS side
-pnpm add @tauri-apps/plugin-clipboard-manager
-
-# Rust side — add to src-tauri/Cargo.toml [dependencies]
-# tauri-plugin-clipboard-manager = "2"
-```
-
-**Capability grant** — add to `src-tauri/capabilities/default.json`:
-```json
-"clipboard-manager:allow-write-text"
-```
-
-**Registration** — add to `src-tauri/src/lib.rs` builder:
-```rust
-.plugin(tauri_plugin_clipboard_manager::init())
-```
-
-**Usage pattern:**
-```ts
-import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-
-async function copyListToClipboard(text: string) {
-  await writeText(text);
-  // show sonner toast "Copied to clipboard"
-}
-```
+**Stack addition needed:** None.
 
 ---
 
-## New Package: PDF Generation
+### Feature 2: Auto-manage is_active_project from recipe assignment lifecycle
 
-### jsPDF v4.2.1
+**Existing mechanism (verified: `src/db/queries/recipeAssignments.ts` lines 96–119,
+`src/hooks/useRecipeAssignments.ts` lines 77–108):**
 
-| Property | Value |
-|----------|-------|
-| npm package | `jspdf` |
-| Latest version | `4.2.1` (March 2025) |
-| Bundle size | ~300 KB minified (acceptable — only loaded on export action, can be lazy-imported) |
-| TypeScript | Built-in types included |
+`is_active_project` is a `0 | 1` column on `units`. Set only manually via form or
+`updateUnit()`. `createAssignment()` and `deleteAssignment()` already call
+`syncPaintingPercentageByUnitId()` — they hold a `db` handle and know the `unit_id`.
+Cache invalidation on `UNITS_KEY` already happens in both mutation hooks.
 
-**Why jsPDF over alternatives:**
+**Extension approach:**
 
-| Option | Verdict | Reason |
-|--------|---------|--------|
-| `jspdf` | RECOMMENDED | Programmatic text API, no HTML-to-image conversion needed for a text army list, works in Tauri WebView2 (browser JS context), mature (30K+ GitHub stars, 2.6M weekly downloads), TypeScript types included |
-| `@react-pdf/renderer` | DO NOT USE | Known Vite compatibility issues (requires `vite-plugin-shim-react-pdf` shim, doubles bundle when used in workers), 3.x required for Vite compat but still fragile; overkill for plain-text army list output |
-| `html2pdf.js` (html2canvas + jsPDF) | DO NOT USE | html2canvas renders the DOM to a canvas bitmap — slow, produces pixelated text, fails with Tailwind's CSS variables/custom properties, and the output is an image not selectable text in the PDF |
-| Headless Chrome / `wkhtmltopdf` | DO NOT USE | Requires bundling an external binary (50+ MB), Tauri plugin for wkhtmltopdf is unmaintained (0.1.0, crates.io), overkill for a structured text document |
-| `window.print()` + CSS `@media print` | SUPPLEMENTARY | Use for the in-app print dialog; works in Tauri 2 on Windows via WebView2's `ShowPrintUI()` underneath. Not a PDF saver but good for quick print |
+- In `createAssignment()`: after the INSERT and painting percentage sync, add
+  `db.execute("UPDATE units SET is_active_project = 1 WHERE id = $1 AND painting_percentage < 100", [unitId])`.
+- In `deleteAssignment()` and when `syncDerivedStatuses` detects 100% completion:
+  add `db.execute("UPDATE units SET is_active_project = 0 WHERE id = $1", [unitId])`.
 
-**Why army lists are a good fit for programmatic jsPDF:** The output is fully structured text
-(faction, detachment, unit rows with points, enhancement line, total). No rich layout,
-no embedded images required. jsPDF's `doc.text()` and `doc.line()` API handles this in
-~50 lines. No autotable plugin needed.
+No new query file, no new hook, no new cache key. `UNITS_KEY` invalidation already covers it.
 
-**Installation:**
-```bash
-pnpm add jspdf
-```
-
-**No Rust changes. No Tauri capability changes.** jsPDF produces a `Uint8Array` buffer in
-JS. The existing `@tauri-apps/plugin-fs` `writeFile` + `@tauri-apps/plugin-dialog` `save()`
-pattern (both already installed and permitted) handles saving to disk.
-
-**Save-to-disk pattern (existing plugins, no new permissions):**
-```ts
-import { save } from "@tauri-apps/plugin-dialog";
-import { writeFile } from "@tauri-apps/plugin-fs";
-import jsPDF from "jspdf";
-
-async function exportListAsPDF(list: ArmyListExport) {
-  const doc = new jsPDF();
-  // ... doc.text() calls to lay out the list
-  const pdfBytes = doc.output("arraybuffer");
-
-  const path = await save({
-    defaultPath: `${list.name}.pdf`,
-    filters: [{ name: "PDF", extensions: ["pdf"] }],
-  });
-  if (!path) return; // user cancelled
-
-  await writeFile(path, new Uint8Array(pdfBytes));
-}
-```
-
-**Lazy-load to keep initial bundle small:**
-```ts
-const { default: jsPDF } = await import("jspdf");
-```
+**Stack addition needed:** None.
 
 ---
 
-## Version Snapshots — No Library Needed
+### Feature 3: Smart context pre-filling (faction in recipe forms, recipe picker filtering by unit context)
 
-Version snapshots (save a named version of the army list for comparison) are a pure SQLite
-pattern — no new library required.
+**Existing mechanism (verified: `src/context/ActiveFactionContext.tsx`,
+`src/features/recipes/RecipeFormSheet.tsx` lines 1–60,
+`src/features/army-lists/UnitPickerDialog.tsx` lines 42–54):**
 
-**Implementation approach:**
+`ActiveFactionContext` exposes `activeFactionId` globally via `useActiveFaction()`.
+`RecipeFormSheet` already imports `useFactions()` and `useUnits()` but does not call
+`useActiveFaction()` to pre-seed `faction_id`. React Hook Form's `defaultValues` already
+supports this — it is the correct pre-fill mechanism.
 
-New migration table:
-```sql
-CREATE TABLE IF NOT EXISTS army_list_snapshots (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
-  list_id     INTEGER NOT NULL REFERENCES army_lists(id) ON DELETE CASCADE,
-  name        TEXT NOT NULL,              -- user-supplied label e.g. "2000pt GT v1"
-  snapshot    TEXT NOT NULL,              -- JSON blob of the list at save time
-  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
-);
-```
+For recipe picker filtering: `PaintingRecipe` already has `faction_id` and `unit_id`
+columns. Filtering by context is a pure JS `.filter()` over the existing query result.
+The exact pattern is already used in `UnitPickerDialog` where `factionId` is received
+as a prop and `filteredUnits` is derived via `.filter((u) => u.faction_id === factionId)`.
 
-The `snapshot` column stores a JSON string produced by `JSON.stringify(listWithUnits)`.
-This is the same pattern as `rulesSnapshot.ts` (`snapshot TEXT NOT NULL`) which already
-works reliably in production.
+**Extension approach:**
 
-**Side-by-side comparison:** Two snapshots are loaded into React state, parsed with
-`JSON.parse()`, and compared with a pure TypeScript diff function in `src/lib/`. No diff
-library needed — the data shape is shallow (list + flat unit array). Simple
-`unitsBefore.map(u => u.unit_name + u.effective_points)` vs `unitsAfter` comparison is
-sufficient for display.
+- In `RecipeFormSheet`: call `useActiveFaction()`, pass `activeFactionId` as `defaultValues.faction_id`.
+- In `ApplyRecipeDialog` / `ApplyToUnitsDialog`: receive `factionId` prop from the
+  calling component, add a `useMemo` filter on `recipes` — identical to `UnitPickerDialog`.
 
-**This follows the exact pattern of `rulesSnapshot.ts`** (production-proven). No risk.
+**Stack addition needed:** None.
 
 ---
 
-## Print-Friendly View — CSS + window.print()
+### Feature 4: Battle-readiness in army list unit picker, batch operations, points-remaining filtering
 
-`window.print()` works in Tauri 2 on Windows via WebView2's underlying print support.
-The Tauri v1 `window.print()` crash was macOS-only (WryWebView selector error, not
-relevant here). Windows WebView2 fully supports `window.print()` and opens the system
-print dialog.
+**Existing mechanism (verified: `src/features/army-lists/UnitPickerDialog.tsx`,
+`src/hooks/useUnits.ts`, `src/types/unit.ts`, `src/db/queries/armyLists.ts` lines 60–94,
+`src/hooks/useRecipeAssignments.ts` lines 124–140):**
 
-**Pattern:** A dedicated `PrintableListView` component rendered in a hidden `div` with
-`id="print-area"`. CSS `@media print` hides everything except `#print-area`.
+`UnitPickerDialog` calls `useUnits()` which returns the raw `Unit` interface. `Unit`
+already includes `status_painting`, `painting_percentage`, `status_assembly`,
+`status_basing`, `status_varnished` — all columns needed to compute and display readiness.
+`useUnitsEnriched()` already exists and adds `effective_points` via the COALESCE chain.
 
-```css
-@media print {
-  body > #root > * { display: none !important; }
-  #print-area { display: block !important; }
-}
-```
+Points-remaining computation: `getArmyListWithUnits()` already returns `effective_points`
+per unit row in the list (6-level COALESCE in SQL). The picker just needs to receive the
+current list's used-points total as a prop and filter or badge units accordingly.
 
-No library needed. No new Tauri capability. Existing CSP (disabled in `tauri.conf.json`)
-does not block `window.print()`.
+Batch apply: `useBulkCreateAssignments()` already exists at `useRecipeAssignments.ts`
+lines 124–140 with correct `INSERT OR IGNORE` semantics and cache invalidation.
 
----
+**Extension approach:**
 
-## Loadout Builder UI — Existing Stack
+- Switch `UnitPickerDialog` from `useUnits()` to `useUnitsEnriched()` (adds `effective_points`,
+  no query performance change — same SQL with one extra JOIN already in production).
+- Accept `usedPoints` and `pointsLimit` as props (both are already available at the
+  `ArmyListDetailPage` level from `getArmyListWithUnits` aggregation).
+- Add readiness badges to `CommandItem` using `StatusBadge` (already used on
+  `CollectionPage` and `GameDayPage`).
+- Batch-apply recipe UI: a multi-select checkbox list + single "Apply Recipe" button
+  wired to `useBulkCreateAssignments()`. This is a new UI component only.
 
-The loadout builder UI (model count selector, wargear option checkboxes, enhancement
-assignment) maps cleanly onto the existing stack.
-
-| Capability | Existing Tool | Notes |
-|------------|--------------|-------|
-| Model count tier picker | shadcn `Select` | `synced_model_counts` → 2-3 options max per unit |
-| Wargear option checkboxes | shadcn `Checkbox` + RHF `Controller` | `synced_loadout_options` grouped by `group_name`; `is_exclusive` groups → radio-style behavior |
-| Enhancement picker | shadcn `Select` | `synced_enhancements` filtered by `faction_id` + `detachment_name` |
-| Per-unit loadout form | RHF `useForm` | One form per unit row — NOT `useFieldArray` (see below) |
-| Points delta display | computed from `synced_unit_point_tiers` | Existing COALESCE chain, resolved in SQL |
-| Rules browse + add unowned units | existing `bsdataExtended.ts` queries | Read from rules.db via dual-query merge pattern |
-
-**`useFieldArray` is NOT used for the loadout builder.** The existing project decision
-(CONTEXT.md) already documents that `useFieldArray` has a known ID collision with
-`@dnd-kit/useSortable` (RHF issue #10607). Army list unit rows already use a manual
-array approach. Loadout options within a unit follow the same pattern: controlled
-checkboxes with `useState` or inline RHF `Controller` fields, not a field array.
+**Stack addition needed:** None.
 
 ---
 
-## JSON Export — No New Capability
+## Summary: No New Libraries
 
-Exporting the list as JSON uses the same pipeline as the PDF save pattern above:
+| Feature | New library? | Existing mechanism |
+|---------|-------------|--------------------|
+| Auto-derive assembly | No | Extend `syncDerivedStatuses()` + `section_type` column |
+| is_active_project lifecycle | No | Extend `createAssignment` / `deleteAssignment` + direct UPDATE |
+| Faction pre-fill in recipe form | No | `useActiveFaction()` + RHF `defaultValues` |
+| Recipe picker filtering by unit | No | Prop-based `.filter()` — mirrors `UnitPickerDialog` |
+| Readiness badges in unit picker | No | `useUnitsEnriched()` + existing `StatusBadge` |
+| Batch recipe apply UI | No | `useBulkCreateAssignments()` already exists, wire UI |
+| Points-remaining filter/display | No | Pure JS sum over `effective_points` from existing query |
 
-```ts
-const json = JSON.stringify(listWithUnits, null, 2);
-const encoder = new TextEncoder();
-const path = await save({ defaultPath: `${list.name}.json` });
-if (path) await writeFile(path, encoder.encode(json));
+---
+
+## Confirmed Existing Stack (Unchanged)
+
+| Technology | Role in this milestone |
+|------------|------------------------|
+| tauri-plugin-sql (Tauri 2 bundled) | All DB writes via `$N` parameterized syntax |
+| React Query `@tanstack/react-query` | Cache invalidation after auto-derive writes; `UNITS_KEY` covers derived columns |
+| React Hook Form | `defaultValues` pre-filling for faction context; no new form libraries |
+| Zustand | No new stores needed |
+| SQLite (hobbyforge.db) | `recipe_sections.section_type`, `units.status_assembly` already present |
+| `ActiveFactionContext` | Global faction pre-fill source; already a stable context |
+| `useUnitsEnriched()` | Provides `effective_points` + all status columns for picker enrichment |
+| `StatusBadge` | Readiness display in unit picker; already used on multiple pages |
+| `useBulkCreateAssignments()` | Batch recipe assignment; already production-proven |
+
+---
+
+## Architecture: Where Each Change Lives
+
+```
+src/db/queries/recipeAssignments.ts       (query layer — no file additions)
+  syncDerivedStatuses()                    extend: derive status_assembly via section_type
+  createAssignment()                       extend: auto-set is_active_project = 1
+  deleteAssignment()                       extend: auto-clear is_active_project = 0
+
+src/features/recipes/RecipeFormSheet.tsx  (UI — no new component)
+  + useActiveFaction()                     add: seed faction_id defaultValue
+
+src/features/recipes/ApplyRecipeDialog.tsx (UI — extend existing)
+  + factionId prop + useMemo filter        add: context-aware recipe filtering
+
+src/features/army-lists/UnitPickerDialog.tsx (UI — extend existing)
+  useUnits() → useUnitsEnriched()          switch: adds effective_points + status
+  + usedPoints / pointsLimit props         add: points-remaining display
+  CommandItem                              add: readiness badge per unit
+
+NEW: src/features/army-lists/BatchApplyRecipeSheet.tsx (new UI component only)
+  useBulkCreateAssignments()               wire: existing mutation hook
+  unit multi-select checkboxes             new: selection UI
 ```
 
-`@tauri-apps/plugin-fs` `writeFile` accepts `Uint8Array`. `TextEncoder` is a standard
-Web API present in WebView2. No new permissions needed — `fs:allow-appdata-write-recursive`
-is already granted, and `dialog:allow-save` is already granted.
-
-**Note:** The save dialog allows the user to pick any path, which the `fs` plugin permits
-when initiated from a dialog (the path comes from a user gesture, bypassing the appdata-only
-restriction).
+No new migration. No new query file. No new hook file. No new context.
 
 ---
 
 ## What NOT to Add
 
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| `@react-pdf/renderer` | Vite shim required, bundle doubles in workers, complex for plain-text list | `jspdf` programmatic text API |
-| `html2pdf.js` / `html2canvas` | Bitmap rendering, fails with CSS variables, slow | `jspdf` |
-| `pdfmake` | Large bundle, complex document definition format, no advantage over jsPDF for simple text list | `jspdf` |
-| `react-diff-viewer` or `diff` library | Overkill for shallow list comparison (unit name + points) | Pure TypeScript comparison function |
-| Nested `useFieldArray` for loadout form | RHF/dnd-kit ID collision (CONTEXT.md documented decision) | Manual array + `Controller` |
-| `tauri-plugin-printer-wkhtml-bin` | Unmaintained crate (0.1.0), requires wkhtmltopdf binary (+50 MB) | `window.print()` for print, `jspdf` for PDF |
-| Any snapshot/history library | Army list snapshot is a single JSON blob per version — no tree/branching | Plain SQLite TEXT column |
-| `react-hotkeys-hook` additional shortcuts | Already installed from v0.2.15 | Already in `dependencies` |
+| Avoid | Why |
+|-------|-----|
+| SQLite triggers for auto-derive | tauri-plugin-sql has no trigger event channel to React; derive stays in TS query layer where it is testable |
+| Background worker / job queue | Single-user desktop, WAL mode; synchronous derive in query layer is sufficient |
+| Any new ORM | Prisma dead-end, Drizzle deferred — documented in PROJECT.md Key Decisions |
+| New Zustand store for automation state | No persistent state to manage; all derives write to DB synchronously |
+| `useFieldArray` for batch-apply selection | Known RHF/dnd-kit ID collision (CONTEXT.md documented decision) — use `useState` for selected unit IDs |
+| Any new shadcn/ui component | Existing `Command`, `Badge`, `Checkbox`, `Sheet`, `CommandItem` cover all new UI |
 
 ---
 
-## Required Changes Summary
+## Confidence
 
-### New npm package
-```bash
-pnpm add @tauri-apps/plugin-clipboard-manager
-pnpm add jspdf
-```
-
-### New Rust dependency (src-tauri/Cargo.toml)
-```toml
-tauri-plugin-clipboard-manager = "2"
-```
-
-### New Tauri plugin registration (src-tauri/src/lib.rs)
-```rust
-.plugin(tauri_plugin_clipboard_manager::init())
-```
-
-### New capability permission (src-tauri/capabilities/default.json)
-```json
-"clipboard-manager:allow-write-text"
-```
-
-### New SQLite migration
-One new migration for `army_list_snapshots` table (plain SQL, no schema risk).
-
-### No changes to
-- `@tauri-apps/plugin-fs` (already installed + permitted)
-- `@tauri-apps/plugin-dialog` (already installed + permitted)
-- Rust commands (no new Rust command needed)
-- Tailwind / shadcn config
-- Router (new routes added, not router config)
+| Area | Confidence | Basis |
+|------|------------|-------|
+| No new library needed | HIGH | Read all four relevant source files directly |
+| `syncDerivedStatuses()` extension point | HIGH | Lines 211–272 of `recipeAssignments.ts` read; `section_type` column confirmed on `recipe_sections` |
+| is_active_project write point | HIGH | `createAssignment` + `deleteAssignment` both have `db` handle + `unit_id` |
+| Faction pre-fill via RHF defaultValues | HIGH | `RecipeFormSheet` confirmed uses `useForm`; `useActiveFaction()` is globally available |
+| `UnitPickerDialog` enrichment swap | HIGH | `useUnitsEnriched()` confirmed in `useUnits.ts`; `EnrichedUnit` has all needed columns |
+| Batch apply hook exists | HIGH | `useBulkCreateAssignments` at `useRecipeAssignments.ts` lines 124–139, production-proven |
+| `section_type` column presence | HIGH | `RecipeSection` type in `src/types/recipeSection.ts` confirms column; added v0.2.9 Phase 57 |
 
 ---
 
-## Version Compatibility
-
-| Package | Version | Compatible With | Notes |
-|---------|---------|-----------------|-------|
-| `@tauri-apps/plugin-clipboard-manager` | `^2.0.0` | Tauri 2 | First-party Tauri plugin, versioned with Tauri 2 |
-| `jspdf` | `^4.2.1` | React 19 + Vite 6 | Pure JS, no React dependency, no Vite shim needed, browser-compatible |
-
----
-
-## Sources
-
-- [Tauri 2 Clipboard Plugin docs](https://v2.tauri.app/plugin/clipboard/) — permissions, usage confirmed (HIGH)
-- [Tauri clipboard bug #10835](https://github.com/tauri-apps/tauri/issues/10835) — confirms `navigator.clipboard` blocked without plugin (HIGH)
-- [jsPDF GitHub releases](https://github.com/parallax/jsPDF/releases) — v4.2.1 confirmed March 2025 (HIGH)
-- [react-pdf Vite issue #2454](https://github.com/diegomura/react-pdf/issues/2454) — `@react-pdf/renderer` does not work with Vite 5/6 without shim (HIGH)
-- [vite-plugin-shim-react-pdf npm](https://www.npmjs.com/package/vite-plugin-shim-react-pdf) — confirms shim required (MEDIUM)
-- [Tauri print issue #3066](https://github.com/tauri-apps/tauri/issues/3066) — v1 crash was macOS WryWebView, not Windows WebView2 (MEDIUM)
-- [WebView2 print docs](https://learn.microsoft.com/en-us/microsoft-edge/webview2/how-to/print) — Windows WebView2 supports window.print() (HIGH)
-- [tauri-plugin-clipboard-manager Cargo.toml](https://github.com/tauri-apps/tauri-plugin-clipboard-manager/blob/v2/Cargo.toml) — v2 branch confirmed (HIGH)
-- `src-tauri/capabilities/default.json` (project file) — `dialog:allow-save`, `fs:allow-appdata-write-recursive` already present (HIGH)
-- `src-tauri/Cargo.toml` (project file) — `tauri-plugin-clipboard-manager` NOT present, must be added (HIGH)
-- `src/db/queries/rulesSnapshot.ts` (project file) — snapshot TEXT column pattern proven in production (HIGH)
-- `src-tauri/migrations/030_bsdata_extended.sql` (project file) — `synced_loadout_options`, `synced_enhancements`, `synced_model_counts` confirmed in schema (HIGH)
-
----
-*Stack research for: HobbyForge v0.2.18 Army Lists 3.0 Smart List Builder*
-*Researched: 2026-05-20*
+*Stack research for: HobbyForge v0.3.7 Smart Automation*
+*Researched: 2026-05-28*
