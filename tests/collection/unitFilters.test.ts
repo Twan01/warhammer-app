@@ -1,5 +1,5 @@
-﻿/**
- * COLL-02..06 â€” pre-filter logic for the unit table.
+/**
+ * COLL-02..06 — pre-filter logic for the unit table.
  * Tests for applyUnitFilters pure function.
  */
 import { describe, it, expect } from "vitest";
@@ -17,7 +17,7 @@ function u(over: Partial<Unit>): Unit {
     priority: null, target_completion_date: null,
     purchase_date: null, purchase_price_pence: null,
     storage_location: null, main_image_path: null, notes: null,
-    lore_notes: null, undercoat: null,
+    lore_notes: null, undercoat: null, status_assembly_override: 0 as 0 | 1, status_basing_override: 0 as 0 | 1, status_varnished_override: 0 as 0 | 1,
     created_at: "2026-01-01", updated_at: "2026-01-01",
     ...over,
   };

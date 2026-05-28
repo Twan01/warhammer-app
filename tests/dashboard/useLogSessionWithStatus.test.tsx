@@ -1,5 +1,5 @@
-﻿/**
- * DATA-02 â€” LogSessionSheet mutation sequencing tests.
+/**
+ * DATA-02 — LogSessionSheet mutation sequencing tests.
  *
  * Tests that LogSessionSheet calls createSession and updateUnit in the
  * correct sequence, handles partial failures, and shows the right toasts.
@@ -15,7 +15,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import type { Unit } from "@/types/unit";
 
-// â”€â”€ Mocks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Mocks ─────────────────────────────────────────────────────────────────────
 
 const createSessionMutateAsync = vi.fn();
 const updateUnitMutateAsync = vi.fn();
@@ -58,11 +58,11 @@ vi.mock("@/lib/dates", () => ({
   formatCurrency: vi.fn(),
 }));
 
-// â”€â”€ Import after mocks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Import after mocks ─────────────────────────────────────────────────────────
 
 import { LogSessionSheet } from "@/features/dashboard/LogSessionSheet";
 
-// â”€â”€ Test helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Test helpers ───────────────────────────────────────────────────────────────
 
 function u(over: Partial<Unit> = {}): Unit {
   return {
@@ -88,7 +88,7 @@ function u(over: Partial<Unit> = {}): Unit {
     main_image_path: null,
     notes: null,
     lore_notes: null,
-    undercoat: null,
+    undercoat: null, status_assembly_override: 0 as 0 | 1, status_basing_override: 0 as 0 | 1, status_varnished_override: 0 as 0 | 1,
     created_at: "2026-01-01 00:00:00",
     updated_at: "2026-01-01 00:00:00",
     ...over,
@@ -104,7 +104,7 @@ function Wrapper({ children }: { children: ReactNode }) {
   return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
 }
 
-// â”€â”€ Setup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Setup ──────────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -113,9 +113,9 @@ beforeEach(() => {
   updateUnitMutateAsync.mockResolvedValue(undefined);
 });
 
-// â”€â”€ Tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Tests ──────────────────────────────────────────────────────────────────────
 
-describe("LogSessionSheet â€” DATA-02 (cache invalidation after status update)", () => {
+describe("LogSessionSheet — DATA-02 (cache invalidation after status update)", () => {
   describe("session-only submit (no status change)", () => {
     it("calls createSession.mutateAsync with session data", async () => {
       const user = userEvent.setup();
@@ -271,7 +271,7 @@ describe("LogSessionSheet â€” DATA-02 (cache invalidation after status upda
       expect(mod.PAINTING_SESSIONS_KEY(7)).toEqual(["painting-sessions", 7]);
     });
 
-    it("UNITS_KEY is ['units'] â€” matches useUpdateUnit invalidation", async () => {
+    it("UNITS_KEY is ['units'] — matches useUpdateUnit invalidation", async () => {
       const { UNITS_KEY } = await import("@/hooks/useUnits");
       expect(UNITS_KEY).toEqual(["units"]);
     });
@@ -323,14 +323,14 @@ describe("LogSessionSheet â€” DATA-02 (cache invalidation after status upda
       });
     });
 
-    it("invalidates units â€” UNITS_KEY contract matches ['units']", () => {
+    it("invalidates units — UNITS_KEY contract matches ['units']", () => {
       // The mock at top of file has UNITS_KEY: ["units"] to mirror the real export.
       // This verifies the key shape used by useUpdateUnit.onSuccess.
       expect(["units"]).toEqual(["units"]);
       expect(["units", 7]).toEqual(["units", 7]);
     });
 
-    it("goal-progress, recent-activity, hobby-analytics â€” useCreatePaintingSession.onSuccess covers DATA-02 keys", async () => {
+    it("goal-progress, recent-activity, hobby-analytics — useCreatePaintingSession.onSuccess covers DATA-02 keys", async () => {
       const mod = await import("@/hooks/useJournalSessions");
       expect(mod.PAINTING_SESSIONS_KEY(7)).toEqual(["painting-sessions", 7]);
     });
@@ -390,7 +390,7 @@ describe("LogSessionSheet â€” DATA-02 (cache invalidation after status upda
         expect(toastWarningMock).toHaveBeenCalled();
       });
 
-      // createSession was called and succeeded â€” no rollback
+      // createSession was called and succeeded — no rollback
       expect(createSessionMutateAsync).toHaveBeenCalledOnce();
       expect(toastErrorMock).not.toHaveBeenCalled();
     });

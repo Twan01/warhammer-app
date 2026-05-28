@@ -1,10 +1,10 @@
-﻿/**
+/**
  * PHOTO-01: UnitThumbnail renders an img element when a photo is provided.
  * PHOTO-02: UnitThumbnail renders a faction-colored Swords fallback when there
  * is no photo or when the image fails to load.
  *
  * The component is a pure presentational component that receives all data as
- * props â€” no hooks, no context, no QueryClient wrapper needed.
+ * props — no hooks, no context, no QueryClient wrapper needed.
  */
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
@@ -47,7 +47,7 @@ function makeUnit(over: Partial<Unit> = {}): Unit {
     main_image_path: null,
     notes: null,
     lore_notes: null,
-    undercoat: null,
+    undercoat: null, status_assembly_override: 0 as 0 | 1, status_basing_override: 0 as 0 | 1, status_varnished_override: 0 as 0 | 1,
     created_at: "2026-01-01 00:00:00",
     updated_at: "2026-05-01 00:00:00",
     ...over,

@@ -52,6 +52,9 @@ const MIN_CREATE_INPUT = {
   notes: null,
   lore_notes: null,
   undercoat: null,
+  status_assembly_override: 0 as const,
+  status_basing_override: 0 as const,
+  status_varnished_override: 0 as const,
 };
 
 function makeWrapper() {

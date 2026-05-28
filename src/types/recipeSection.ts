@@ -4,6 +4,7 @@
  */
 export const SECTION_TYPES = [
   "prep", "basecoat", "shade", "layer", "detail", "effect", "finishing",
+  "assembly", "basing", "varnish",
 ] as const;
 export type SectionType = typeof SECTION_TYPES[number];
 

@@ -1,5 +1,5 @@
-﻿/**
- * Phase 14 â€” computeSpendingStats pure aggregation tests.
+/**
+ * Phase 14 — computeSpendingStats pure aggregation tests.
  *
  * Verifies SPEND-04 contract: per-faction breakdown + Paints row.
  * Test fixture pattern mirrors tests/dashboard/computeStats.test.ts.
@@ -20,7 +20,7 @@ function u(over: Partial<Unit>): Unit {
     priority: null, target_completion_date: null,
     purchase_date: null, purchase_price_pence: null,
     storage_location: null, main_image_path: null, notes: null,
-    lore_notes: null, undercoat: null,
+    lore_notes: null, undercoat: null, status_assembly_override: 0 as 0 | 1, status_basing_override: 0 as 0 | 1, status_varnished_override: 0 as 0 | 1,
     created_at: "2026-01-01 00:00:00", updated_at: "2026-01-01 00:00:00",
     ...over,
   };
@@ -36,7 +36,7 @@ function f(over: Partial<Faction>): Faction {
   };
 }
 
-describe("computeSpendingStats â€” DATA-03/04 (cost per model + value split)", () => {
+describe("computeSpendingStats — DATA-03/04 (cost per model + value split)", () => {
   it("Test 1: costPerCompletedModelPence is null when no units have status_painting === 'Completed'", () => {
     const tau = f({ id: 1, name: "Tau" });
     const units = [
@@ -88,7 +88,7 @@ describe("computeSpendingStats â€” DATA-03/04 (cost per model + value split
       u({ id: 2, faction_id: 1, purchase_price_pence: 2500, status_painting: "Completed" }),
     ];
     // unitTotalPence = 4000, paintedValuePence = 2500, unpaintedValuePence = 4000 - 2500 = 1500
-    const result = computeSpendingStats(units, [tau], 9999); // paintsPence intentionally high â€” must not count
+    const result = computeSpendingStats(units, [tau], 9999); // paintsPence intentionally high — must not count
     expect(result.unpaintedValuePence).toBe(1500);
   });
 
@@ -117,7 +117,7 @@ describe("computeSpendingStats â€” DATA-03/04 (cost per model + value split
   });
 });
 
-describe("computeSpendingStats â€” SPEND-04 (faction breakdown + Paints row)", () => {
+describe("computeSpendingStats — SPEND-04 (faction breakdown + Paints row)", () => {
   it("returns empty factionBreakdown entries (paintedPence=0) when no units exist for any faction (CONTEXT.md: all 4 factions always shown)", () => {
     const factions = [f({ id: 1, name: "Tau" }), f({ id: 2, name: "Ultra" })];
     const result = computeSpendingStats([], factions, 0);
@@ -150,7 +150,7 @@ describe("computeSpendingStats â€” SPEND-04 (faction breakdown + Paints row
     expect(Number.isNaN(result.totalPence)).toBe(false);
   });
 
-  it("groups unit pence by faction_id â€” one FactionSpend entry per faction in input order", () => {
+  it("groups unit pence by faction_id — one FactionSpend entry per faction in input order", () => {
     const tau = f({ id: 1, name: "Tau" });
     const ultra = f({ id: 2, name: "Ultra" });
     const units = [

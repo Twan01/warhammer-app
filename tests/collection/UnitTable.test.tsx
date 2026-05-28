@@ -1,5 +1,5 @@
-﻿/**
- * COLL-12 / POLISH-02 / POLISH-05 â€” UnitTable rendering states.
+/**
+ * COLL-12 / POLISH-02 / POLISH-05 — UnitTable rendering states.
  * Wave 1 plan 03-01 fills in test bodies after creating
  * src/features/units/UnitTable.tsx.
  */
@@ -77,7 +77,7 @@ function makeUnit(over: Partial<EnrichedUnit> = {}): EnrichedUnit {
     main_image_path: null,
     notes: null,
     lore_notes: null,
-    undercoat: null,
+    undercoat: null, status_assembly_override: 0 as 0 | 1, status_basing_override: 0 as 0 | 1, status_varnished_override: 0 as 0 | 1,
     created_at: "2026-01-01",
     updated_at: "2026-01-01",
     ...over,
@@ -109,7 +109,7 @@ describe("UnitTable", () => {
       const badges = screen.getAllByTestId("faction-badge");
       expect(badges.length).toBeGreaterThan(0);
       const style = (badges[0] as HTMLElement).style.backgroundColor;
-      // jsdom normalizes hex â†’ rgb; both forms acceptable
+      // jsdom normalizes hex → rgb; both forms acceptable
       expect(style.toLowerCase()).toMatch(/(#00ff66|rgb\(0,\s*255,\s*102\))/);
     });
   });

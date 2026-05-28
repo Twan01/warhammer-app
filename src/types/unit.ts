@@ -46,6 +46,10 @@ export interface Unit {
   notes: string | null;
   lore_notes: string | null;    // migration 008 — Phase 17 ENRCH-02
   undercoat: string | null;     // migration 008 — Phase 17 ENRCH-03
+  // migration 037 — Phase 100 SAD-04: manual-override guard for auto-derived boolean statuses
+  status_assembly_override: 0 | 1;
+  status_basing_override: 0 | 1;
+  status_varnished_override: 0 | 1;
   created_at: string;
   updated_at: string;
 }

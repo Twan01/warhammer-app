@@ -1,5 +1,5 @@
-﻿/**
- * Phase 12 â€” UnitGallery + CollectionPage integration tests (Plan 12-02 fills in stubs).
+/**
+ * Phase 12 — UnitGallery + CollectionPage integration tests (Plan 12-02 fills in stubs).
  *
  * Coverage:
  *   - 3 tests for UI-04 (toggle render, toggle click flips active state, localStorage
@@ -7,9 +7,9 @@
  *   - 2 tests for UI-05 (card content + click delegation) via UnitGallery direct render.
  *   - 1 test for UI-06 (Zustand filter store unchanged across toggle) via CollectionPage.
  *
- * Pitfall 6 (12-RESEARCH.md): No matchMedia polyfill â€” gallery has no animation.
+ * Pitfall 6 (12-RESEARCH.md): No matchMedia polyfill — gallery has no animation.
  *
- * Mock strategy mirrors tests/collection/UnitTable.test.tsx â€” vi.mock the data hooks so
+ * Mock strategy mirrors tests/collection/UnitTable.test.tsx — vi.mock the data hooks so
  * CollectionPage renders synchronously with deterministic mock data.
  */
 import {
@@ -64,7 +64,7 @@ const mockUnit: Unit = {
   main_image_path: null,
   notes: null,
   lore_notes: null,
-  undercoat: null,
+  undercoat: null, status_assembly_override: 0 as 0 | 1, status_basing_override: 0 as 0 | 1, status_varnished_override: 0 as 0 | 1,
   created_at: "2026-05-03T00:00:00Z",
   updated_at: "2026-05-03T00:00:00Z",
 };
@@ -114,7 +114,7 @@ beforeEach(() => {
   useCollectionFilters.getState().clearAll();
 });
 
-describe("UnitGallery â€” UI-04/UI-05/UI-06 (gallery view + toggle + filter preservation)", () => {
+describe("UnitGallery — UI-04/UI-05/UI-06 (gallery view + toggle + filter preservation)", () => {
   it("[UI-04] header row renders Table and Gallery icon buttons with correct aria-labels", () => {
     renderCollectionPage();
     expect(screen.getByLabelText("Table view")).toBeInTheDocument();
@@ -125,7 +125,7 @@ describe("UnitGallery â€” UI-04/UI-05/UI-06 (gallery view + toggle + filter
     const user = userEvent.setup();
     renderCollectionPage();
 
-    // Default view is 'table' â€” Table button has bg-muted, Gallery button does not.
+    // Default view is 'table' — Table button has bg-muted, Gallery button does not.
     expect(screen.getByLabelText("Table view").className).toContain("bg-muted");
     expect(screen.getByLabelText("Gallery view").className).not.toContain("bg-muted");
 
@@ -135,13 +135,13 @@ describe("UnitGallery â€” UI-04/UI-05/UI-06 (gallery view + toggle + filter
     expect(screen.getByLabelText("Table view").className).not.toContain("bg-muted");
   });
 
-  it("[UI-04] localStorage persistence â€” pre-set 'gallery' renders gallery active on first paint", () => {
+  it("[UI-04] localStorage persistence — pre-set 'gallery' renders gallery active on first paint", () => {
     window.localStorage.setItem("collection-view-mode", "gallery");
 
     renderCollectionPage();
 
     // Gallery button reads from localStorage synchronously via useState initializer in
-    // useCollectionViewMode â€” bg-muted is applied on first paint (no flash).
+    // useCollectionViewMode — bg-muted is applied on first paint (no flash).
     expect(screen.getByLabelText("Gallery view").className).toContain("bg-muted");
     expect(screen.getByLabelText("Table view").className).not.toContain("bg-muted");
   });
@@ -165,7 +165,7 @@ describe("UnitGallery â€” UI-04/UI-05/UI-06 (gallery view + toggle + filter
     expect(badge).toHaveStyle({ backgroundColor: "#1e40af" });
     expect(badge.textContent).toBe("Space Marines");
 
-    // StatusBadge renders status text (COLL-02 â€” replaces PaintingRing)
+    // StatusBadge renders status text (COLL-02 — replaces PaintingRing)
     expect(screen.getByText("Layered")).toBeInTheDocument();
 
     // Progress metadata line (COLL-02)
@@ -197,7 +197,7 @@ describe("UnitGallery â€” UI-04/UI-05/UI-06 (gallery view + toggle + filter
   it("[UI-06] switching view mode does not reset the collectionFilters Zustand store", async () => {
     const user = userEvent.setup();
 
-    // Seed filter state BEFORE render â€” proves toggle does not call clearAll on mount.
+    // Seed filter state BEFORE render — proves toggle does not call clearAll on mount.
     useCollectionFilters.setState({
       search: "Marines",
       factions: [1],

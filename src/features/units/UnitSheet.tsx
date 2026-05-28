@@ -127,6 +127,10 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
         notes: values.notes || null,
         lore_notes: null as string | null,
         undercoat: values.undercoat || null,
+        // migration 037 — override flags default to 0 on creation (user has not manually set status)
+        status_assembly_override: 0 as 0 | 1,
+        status_basing_override: 0 as 0 | 1,
+        status_varnished_override: 0 as 0 | 1,
       };
 
       if (isEdit && unit) {

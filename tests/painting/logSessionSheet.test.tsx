@@ -1,11 +1,11 @@
-﻿import { vi, describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import type { Unit } from "@/types/unit";
 
 /**
- * PROJ-03 â€” LogSessionSheet defaultUnitId prop pre-populates the unit picker.
+ * PROJ-03 — LogSessionSheet defaultUnitId prop pre-populates the unit picker.
  */
 
 // Mock useUnits / useUpdateUnit so no SQLite dependency
@@ -41,7 +41,7 @@ vi.mock("@/hooks/useRecipePaints", () => ({
   useRecipePaints: (recipeId: number | undefined) => useRecipePaintsMock(recipeId),
 }));
 
-// Mock useRecipeSections (new import in LogSessionSheet â€” Phase 59)
+// Mock useRecipeSections (new import in LogSessionSheet — Phase 59)
 const useRecipeSectionsMock = vi.fn();
 vi.mock("@/hooks/useRecipeSections", () => ({
   useRecipeSections: (recipeId: number | undefined) => useRecipeSectionsMock(recipeId),
@@ -102,7 +102,7 @@ function u(over: Partial<Unit> = {}): Unit {
     main_image_path: null,
     notes: null,
     lore_notes: null,
-    undercoat: null,
+    undercoat: null, status_assembly_override: 0 as 0 | 1, status_basing_override: 0 as 0 | 1, status_varnished_override: 0 as 0 | 1,
     created_at: "2026-01-01 00:00:00",
     updated_at: "2026-01-01 00:00:00",
     ...over,
@@ -150,7 +150,7 @@ describe("LogSessionSheet defaultUnitId", () => {
     expect(matches.length).toBeGreaterThan(0);
   });
 
-  it("form resets with new defaultUnitId when sheet reopens for different unit â€” Pitfall 4", () => {
+  it("form resets with new defaultUnitId when sheet reopens for different unit — Pitfall 4", () => {
     const { rerender } = render(
       <Wrapper>
         <LogSessionSheet open={true} onClose={() => {}} defaultUnitId={42} />
@@ -195,7 +195,7 @@ describe("LogSessionSheet defaultUnitId", () => {
   });
 });
 
-describe("LogSessionSheet â€” INTEG-01 (recipe/step selectors)", () => {
+describe("LogSessionSheet — INTEG-01 (recipe/step selectors)", () => {
   it("renders a Recipe combobox when recipes are available", () => {
     render(
       <Wrapper>
@@ -245,7 +245,7 @@ const recipeSteps = [
   { id: 101, step_name: "Gold Trim", section_id: 11, order_index: 1, painting_phase: "Detail" },
 ];
 
-describe("LogSessionSheet â€” SESS-01 through SESS-05 (section cascade)", () => {
+describe("LogSessionSheet — SESS-01 through SESS-05 (section cascade)", () => {
   // SESS-01: Section selector hidden for 0 sections
   it("SESS-01: does not render Section selector when recipe has 0 sections", () => {
     useRecipeSectionsMock.mockReturnValue({ data: [] });
@@ -267,7 +267,7 @@ describe("LogSessionSheet â€” SESS-01 through SESS-05 (section cascade)", (
         <LogSessionSheet open={true} onClose={() => {}} />
       </Wrapper>
     );
-    // Section label should not appear â€” only shown with 2+ sections
+    // Section label should not appear — only shown with 2+ sections
     expect(screen.queryByText("Section")).not.toBeInTheDocument();
   });
 
@@ -280,7 +280,7 @@ describe("LogSessionSheet â€” SESS-01 through SESS-05 (section cascade)", (
     // AND a recipe_id is pre-seeded via the form, the label appears.
     //
     // Strategy: mock useRecipeSections to return 2 sections for ANY call (including undefined).
-    // The conditional `watchedRecipeId != null` gates it â€” so Section won't show until recipe is picked.
+    // The conditional `watchedRecipeId != null` gates it — so Section won't show until recipe is picked.
     // This test verifies the label is absent before recipe selection (baseline).
     useRecipeSectionsMock.mockReturnValue({ data: sections });
     render(
@@ -381,10 +381,10 @@ describe("LogSessionSheet â€” SESS-01 through SESS-05 (section cascade)", (
 });
 
 // ---------------------------------------------------------------------------
-// AR-05: LogSessionSheet bridge logic â€” recipe step auto-completion
+// AR-05: LogSessionSheet bridge logic — recipe step auto-completion
 // ---------------------------------------------------------------------------
 
-describe("LogSessionSheet â€” AR-05 bridge hooks wiring", () => {
+describe("LogSessionSheet — AR-05 bridge hooks wiring", () => {
   it("AR-05: useAssignmentsByUnit is called with undefined when unit_id is 0 (no unit selected)", () => {
     render(
       <Wrapper>
@@ -417,7 +417,7 @@ describe("LogSessionSheet â€” AR-05 bridge hooks wiring", () => {
     );
     // Hook was called and component rendered without errors
     expect(useAssignmentsByUnitMock).toHaveBeenCalledWith(42);
-    // Component still renders the form â€” use getAllByText since both title and button have "Log Session"
+    // Component still renders the form — use getAllByText since both title and button have "Log Session"
     expect(screen.getAllByText("Log Session").length).toBeGreaterThan(0);
   });
 
@@ -427,7 +427,7 @@ describe("LogSessionSheet â€” AR-05 bridge hooks wiring", () => {
         <LogSessionSheet open={true} onClose={() => {}} defaultUnitId={42} />
       </Wrapper>
     );
-    // These mocks are initialized via vi.mock â€” if the component didn't call the hooks,
+    // These mocks are initialized via vi.mock — if the component didn't call the hooks,
     // they wouldn't be available. The component renders successfully, confirming hooks are wired.
     expect(screen.getAllByText("Log Session").length).toBeGreaterThan(0);
     // The component should not call mutateAsync during render (only during onSubmit)
@@ -435,7 +435,7 @@ describe("LogSessionSheet â€” AR-05 bridge hooks wiring", () => {
     expect(toggleStepProgressMutateAsyncMock).not.toHaveBeenCalled();
   });
 
-  it("AR-05: bridge does not fire during render â€” mutations are only called on submit", () => {
+  it("AR-05: bridge does not fire during render — mutations are only called on submit", () => {
     useAssignmentsByUnitMock.mockReturnValue({
       data: [{ id: 10, unit_id: 42, recipe_id: 1, created_at: "2026-01-01" }],
       isLoading: false,

@@ -1,5 +1,5 @@
-﻿/**
- * PROJ-03 â€” KanbanCard renders unit name, faction badge, progress, priority, target date.
+/**
+ * PROJ-03 — KanbanCard renders unit name, faction badge, progress, priority, target date.
  */
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -35,7 +35,7 @@ function makeUnit(over: Partial<Unit> = {}): Unit {
     main_image_path: null,
     notes: null,
     lore_notes: null,
-    undercoat: null,
+    undercoat: null, status_assembly_override: 0 as 0 | 1, status_basing_override: 0 as 0 | 1, status_varnished_override: 0 as 0 | 1,
     created_at: "2026-01-01",
     updated_at: "2026-01-01",
     ...over,
@@ -182,7 +182,7 @@ function renderCardWithProgress(
   );
 }
 
-describe("KanbanCard â€” AR-06: appliedProgress display", () => {
+describe("KanbanCard — AR-06: appliedProgress display", () => {
   it("renders recipeName: completed/total steps when appliedProgress is provided", () => {
     const progress: AppliedRecipeProgress = {
       recipeName: "NMM Gold",

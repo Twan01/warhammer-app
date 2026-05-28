@@ -1,5 +1,5 @@
-﻿/**
- * ARMY-05 â€” UnitDeleteDialog enhanced state tests.
+/**
+ * ARMY-05 — UnitDeleteDialog enhanced state tests.
  * Replaces the Wave 0 stub from plan 08-00.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -45,7 +45,7 @@ function unitFixture(over: Partial<Unit> = {}): Unit {
     main_image_path: null,
     notes: null,
     lore_notes: null,
-    undercoat: null,
+    undercoat: null, status_assembly_override: 0 as 0 | 1, status_basing_override: 0 as 0 | 1, status_varnished_override: 0 as 0 | 1,
     created_at: "2026-05-02 00:00:00",
     updated_at: "2026-05-02 00:00:00",
     ...over,
@@ -63,7 +63,7 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("UnitDeleteDialog (army list membership) â€” ARMY-05", () => {
+describe("UnitDeleteDialog (army list membership) — ARMY-05", () => {
   it("normal state: when unit is in 0 army lists, renders simple confirm with 'Delete unit?' title and 'Delete' button", async () => {
     vi.mocked(getArmyListsByUnitId).mockResolvedValue([]);
     renderWithQueryClient(
