@@ -1,4 +1,24 @@
 # Milestones
+## v0.3.7 Smart Automation (Shipped: 2026-05-28)
+
+**Phases completed:** 3 phases (100-102), 6 plans
+**Timeline:** 2026-05-28 (single day)
+**Stats:** 46 files changed, +1,731 / -296 lines, 13/13 requirements satisfied, Nyquist fully compliant
+
+**Key accomplishments:**
+- Query-layer automation: syncDerivedStatuses rewritten with assembly auto-derivation from section_type, section_type-first matching with name-LIKE backward-compat fallback, CASE WHEN override guards for all three status fields, is_active_project lifecycle (auto-set on recipe assign, auto-clear at 100%)
+- Battle-readiness pure function: computeUnitReadiness() canonical readiness definition in src/lib/ with 16 TDD tests, UnitPickerDialog upgrade with Battle Ready badge, 4-dot readiness indicators, per-row points display, budget-aware "Fits budget" filter
+- Smart context pre-filling: RecipeFormSheet auto-fills faction from ActiveFactionContext, ApplyRecipeDialog groups recipes into Suggested/Other by unit faction, all pre-filled values editable
+
+**Tech debt accepted:** Phases 100/101 missing formal VERIFICATION.md (code verified by integration checker); status_basing_override and status_varnished_override have no UI setter (guard logic inert)
+
+**Archived:**
+- Roadmap: `.planning/milestones/v0.3.7-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.3.7-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.3.7-MILESTONE-AUDIT.md`
+
+---
+
 ## v0.3.0 Robustness & Architecture Hardening (Shipped: 2026-05-22)
 
 **Phases completed:** 4 phases (96–99), 9 plans

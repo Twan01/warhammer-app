@@ -20,7 +20,7 @@
 - ✅ **v0.2.15 Painting Mode** — Phases 84-88 (shipped 2026-05-20)
 - ✅ **v0.2.18 Army Lists 3.0 — Smart List Builder** — Phases 89-95 (shipped 2026-05-22)
 - ✅ **v0.3.0 Robustness & Architecture Hardening** — Phases 96-99 (shipped 2026-05-22)
-- 🚧 **v0.3.7 Smart Automation** — Phases 100-102 (in progress)
+- ✅ **v0.3.7 Smart Automation** — Phases 100-102 (shipped 2026-05-28)
 
 ## Phases
 
@@ -146,81 +146,16 @@ Full details: `.planning/milestones/v0.3.0-ROADMAP.md`
 
 </details>
 
-### v0.3.7 Smart Automation (In Progress)
+<details>
+<summary>✅ v0.3.7 Smart Automation (Phases 100-102) — SHIPPED 2026-05-28</summary>
 
-**Milestone Goal:** Reduce manual data entry and repetitive actions by auto-deriving statuses from recipe completion, managing active projects automatically, pre-filling context intelligently, and surfacing battle-readiness in the army list picker.
+- [x] Phase 100: Query-Layer Automation (2/2 plans) — completed 2026-05-28
+- [x] Phase 101: Battle-Readiness Pure Function & Unit Picker (2/2 plans) — completed 2026-05-28
+- [x] Phase 102: Smart Context Pre-Filling (2/2 plans) — completed 2026-05-28
 
-- [x] **Phase 100: Query-Layer Automation** — Extend syncDerivedStatuses() with assembly auto-derivation (section_type guard), harden basing/varnish to use section_type instead of name-LIKE, add 'assembly' to SECTION_TYPES vocabulary, implement manual-override guard, and add autoManageActiveProject() for is_active_project auto-set on recipe assign
-- [x] **Phase 101: Battle-Readiness Pure Function & Unit Picker** — Establish computeUnitReadiness() as the canonical readiness definition, upgrade UnitPickerDialog with readiness badges, points-remaining display, and filter-by-affordability toggle
-- [x] **Phase 102: Smart Context Pre-Filling** — Pre-fill faction in RecipeFormSheet from FactionContext frozen at open time, pre-filter ApplyRecipeDialog by unit faction with suggested/other grouping, ensure all pre-filled values are visible and editable
+Full details: `.planning/milestones/v0.3.7-ROADMAP.md`
 
-## Phase Details
-
-### Phase 100: Query-Layer Automation
-
-**Goal**: Recipe completion automatically derives painting statuses and activates project tracking — no manual status updates needed for assembly, basing, or varnish milestones
-**Depends on**: Phase 99 (v0.3.0 architecture cleanup complete)
-**Requirements**: SAD-01, SAD-02, SAD-03, SAD-04, APL-01, APL-02, APL-03
-**Success Criteria** (what must be TRUE):
-
-  1. When all steps in sections with section_type = 'assembly' complete, status_assembly is set to 1 automatically — user does not touch StatusPopover
-  2. Basing and varnish auto-derivation reads section_type column ('basing', 'finishing') rather than fragile name-LIKE patterns — renaming a section does not break derivation
-  3. 'assembly' appears in the SECTION_TYPES const array so recipe authors can select it from the section type dropdown
-  4. Auto-derivation never overwrites a status that the user set manually via StatusPopover — the guard is present in syncDerivedStatuses() before any write
-  5. Assigning a recipe to a unit automatically sets is_active_project = 1; the unit appears in Kanban without a manual toggle
-
-**Plans**: 2 plans
-Plans:
-**Wave 1**
-
-- [x] 100-01-PLAN.md — Schema foundation: migration, types, updateUnit, override wiring
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 100-02-PLAN.md — Core automation: syncDerivedStatuses, is_active_project lifecycle, tests
-
-### Phase 101: Battle-Readiness Pure Function & Unit Picker
-
-**Goal**: Users can see which units are painting-complete and assembly-ready when adding units to an army list, and can filter the picker to only show units that fit within the remaining points budget
-**Depends on**: Phase 100
-**Requirements**: BRP-01, BRP-02, BRP-03
-**Success Criteria** (what must be TRUE):
-
-  1. A single computeUnitReadiness() pure function exists in src/lib/ as the canonical readiness definition — no other surface can diverge from it
-  2. Each unit row in UnitPickerDialog shows a readiness badge (painting status + assembly state) without an extra DB query per row
-  3. User can toggle a "fits budget" filter in UnitPickerDialog that hides units whose points exceed the remaining list budget — remaining budget is displayed in the picker header
-
-**Plans**: 2 plans
-**UI hint**: yes
-
-Plans:
-**Wave 1**
-
-- [x] 101-01-PLAN.md — TDD computeUnitReadiness pure function + tests (BRP-01)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 101-02-PLAN.md — UnitPickerDialog readiness badges, points display, affordability filter (BRP-02, BRP-03)
-
-### Phase 102: Smart Context Pre-Filling
-
-**Goal**: Opening a recipe form or recipe picker in the context of a specific unit or faction automatically pre-populates the relevant fields — reducing the most common redundant selections to zero clicks
-**Depends on**: Phase 100
-**Requirements**: SCP-01, SCP-02, SCP-03
-**Success Criteria** (what must be TRUE):
-
-  1. RecipeFormSheet opened from a unit context pre-fills the faction field from FactionContext — the user sees their active faction already selected when the sheet opens
-  2. ApplyRecipeDialog pre-filters its recipe list to show the target unit's faction recipes first (Suggested group) with all others below (Other group)
-  3. Any pre-filled value is editable — user can clear, change, or override every auto-filled field without restriction
-
-**Plans**: 2 plans
-**UI hint**: yes
-
-Plans:
-**Wave 1** (parallel)
-
-- [x] 102-01-PLAN.md — RecipeFormSheet pre-fill props + tests (SCP-01, SCP-03)
-- [x] 102-02-PLAN.md — ApplyRecipeDialog faction grouping + UnitDetailSheet wiring + tests (SCP-02)
+</details>
 
 ## Progress
 
@@ -325,7 +260,7 @@ Plans:
 | 97. Error Resilience | v0.3.0 | 2/2 | Complete | 2026-05-22 |
 | 98. Performance Optimization | v0.3.0 | 3/3 | Complete | 2026-05-22 |
 | 99. Architecture Cleanup | v0.3.0 | 3/3 | Complete | 2026-05-22 |
-| 100. Query-Layer Automation | v0.3.7 | 2/2 | Complete   | 2026-05-28 |
+| 100. Query-Layer Automation | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 | 101. Battle-Readiness Pure Function & Unit Picker | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 | 102. Smart Context Pre-Filling | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 
