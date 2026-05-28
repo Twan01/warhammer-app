@@ -36,6 +36,7 @@ import {
   replaceSyncedModelCounts,
   replaceSyncedLeaderTargets,
 } from "@/db/queries/bsdataExtended";
+import { normalizePointsNames } from "@/lib/normalizePointsNames";
 
 /** Mirrors the Rust SyncResult struct returned by bulk_sync_rules via Tauri IPC. */
 interface RustSyncResult {
@@ -231,6 +232,17 @@ export function useRulesSync() {
           wahapedia_version: wahapediaVersion,
         },
       });
+
+      // Post-sync: normalize BSData point names to match Wahapedia datasheet names.
+      // BSData uses different naming conventions (e.g. "Canoptek Spyder" vs Wahapedia's
+      // "Canoptek Spyders"). This pass UPDATEs rw_datasheet_points rows in-place so
+      // the LEFT JOIN in getDatasheetsByFactionWithPoints finds them.
+      try {
+        const rulesDb = await getRulesDb();
+        await normalizePointsNames(rulesDb);
+      } catch {
+        console.warn("[useRulesSync] points name normalization failed — some points may not match datasheets");
+      }
 
       // Compute post-sync diff (OVRD-06, OVRD-07)
       let diff: SyncDiff = { added: [], removed: [], renamed: [], modified: [], total_changed: 0 };

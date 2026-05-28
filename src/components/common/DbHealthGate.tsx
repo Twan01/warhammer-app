@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { getDb } from "@/db/client";
 import { getRulesDb } from "@/db/rules-client";
 import { replaceSyncedUnitPoints } from "@/db/queries/syncedUnitPoints";
+import { normalizePointsNames } from "@/lib/normalizePointsNames";
 import { DbDiagnosticScreen } from "@/components/common/DbDiagnosticScreen";
 
 /**
@@ -54,6 +55,16 @@ export function DbHealthGate({ children }: { children: ReactNode }) {
       // Repair synced_unit_points cache if stale
       try {
         const rulesDb = await getRulesDb();
+
+        // Normalize BSData point names to match Wahapedia datasheet names.
+        // Fixes mismatches like "Canoptek Spyder" (BSData) vs "Canoptek Spyders" (Wahapedia)
+        // that would cause points to show as null in the UI.
+        try {
+          await normalizePointsNames(rulesDb);
+        } catch (normErr) {
+          console.warn("[DbHealthGate] points name normalization failed:", normErr);
+        }
+
         const [{ c: rulesCount }] = await rulesDb.select<[{ c: number }]>(
           "SELECT COUNT(*) as c FROM rw_datasheet_points", [],
         );
