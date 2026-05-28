@@ -204,8 +204,14 @@ Plans:
   2. ApplyRecipeDialog pre-filters its recipe list to show the target unit's faction recipes first (Suggested group) with all others below (Other group)
   3. Any pre-filled value is editable — user can clear, change, or override every auto-filled field without restriction
 
-**Plans**: TBD
+**Plans**: 2 plans
 **UI hint**: yes
+
+Plans:
+**Wave 1** (parallel)
+
+- [ ] 102-01-PLAN.md — RecipeFormSheet pre-fill props + tests (SCP-01, SCP-03)
+- [ ] 102-02-PLAN.md — ApplyRecipeDialog faction grouping + UnitDetailSheet wiring + tests (SCP-02)
 
 ## Progress
 
