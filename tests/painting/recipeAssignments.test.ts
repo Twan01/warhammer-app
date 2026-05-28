@@ -138,6 +138,12 @@ describe("createAssignment — SQL assertions", () => {
     const id = await createAssignment({ unit_id: 1, recipe_id: 2 });
     expect(id).toBe(0);
   });
+
+  it("APL-01: sets is_active_project = 1 on the target unit after INSERT", async () => {
+    await createAssignment({ unit_id: 5, recipe_id: 3 });
+    const allSqls = executeMock.mock.calls.map((call) => call[0] as string);
+    expect(allSqls.some((sql: string) => sql.includes("is_active_project = 1"))).toBe(true);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -214,13 +220,24 @@ describe("bulkCreateAssignments — SQL assertions", () => {
     expect(sql).toContain("INSERT OR IGNORE INTO unit_recipe_assignments");
   });
 
-  it("calls db.execute twice per unitId: INSERT + painting % sync", async () => {
+  it("calls db.execute 3 times per unitId: INSERT + is_active_project UPDATE + painting % sync", async () => {
     await bulkCreateAssignments([10, 20, 30], 7);
-    // 3 INSERTs + 3 syncs (auto-commit, no BEGIN/COMMIT)
-    expect(executeMock).toHaveBeenCalledTimes(6);
+    // 3 INSERTs + 3 is_active_project UPDATEs + 3 sync calls = 9
+    expect(executeMock).toHaveBeenCalledTimes(9);
     expect(executeMock.mock.calls[0][1]).toEqual([10, 7]);
-    expect(executeMock.mock.calls[2][1]).toEqual([20, 7]);
-    expect(executeMock.mock.calls[4][1]).toEqual([30, 7]);
+    expect(executeMock.mock.calls[3][1]).toEqual([20, 7]);
+    expect(executeMock.mock.calls[6][1]).toEqual([30, 7]);
+  });
+
+  it("APL-01: sets is_active_project = 1 for each unitId in bulk assignment", async () => {
+    await bulkCreateAssignments([10, 20, 30], 7);
+    const activeProjectSqls = executeMock.mock.calls
+      .filter((call) => (call[0] as string).includes("is_active_project = 1"))
+      .map((call) => call[1] as unknown[]);
+    expect(activeProjectSqls.length).toBe(3);
+    expect(activeProjectSqls[0]).toEqual([10]);
+    expect(activeProjectSqls[1]).toEqual([20]);
+    expect(activeProjectSqls[2]).toEqual([30]);
   });
 
   it("handles empty unitIds array with zero calls", async () => {

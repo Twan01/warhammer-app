@@ -38,7 +38,7 @@ beforeEach(() => {
 });
 
 /** Build a mock db handle (mirrors the shape of the real db from getDb()) */
-const mockDb = { select: selectMock, execute: executeMock } as Parameters<typeof syncDerivedStatuses_TEST>[0];
+const mockDb = { select: selectMock, execute: executeMock } as unknown as Parameters<typeof syncDerivedStatuses_TEST>[0];
 
 // ---------------------------------------------------------------------------
 // Helper: set up the standard 8-select sequence with all overrides = 0
@@ -128,7 +128,7 @@ describe("SAD-01: assembly auto-derivation", () => {
     await syncDerivedStatuses_TEST(mockDb, 1);
 
     const assemblySqls = selectMock.mock.calls
-      .map(([sql]: [string]) => sql)
+      .map((call) => call[0] as string)
       .filter((sql: string) => sql.includes("assembly"));
 
     expect(assemblySqls.length).toBeGreaterThanOrEqual(1);
@@ -151,7 +151,7 @@ describe("SAD-02: section_type-first matching with name-LIKE fallback", () => {
     await syncDerivedStatuses_TEST(mockDb, 1);
 
     const basingSqls = selectMock.mock.calls
-      .map(([sql]: [string]) => sql)
+      .map((call) => call[0] as string)
       .filter((sql: string) => sql.includes("basing"));
 
     const hasDualPath = basingSqls.some(
@@ -168,7 +168,7 @@ describe("SAD-02: section_type-first matching with name-LIKE fallback", () => {
     await syncDerivedStatuses_TEST(mockDb, 1);
 
     const basingSqls = selectMock.mock.calls
-      .map(([sql]: [string]) => sql)
+      .map((call) => call[0] as string)
       .filter((sql: string) => sql.includes("basing"));
 
     // The fallback must check section_type IS NULL before the LIKE
@@ -186,7 +186,7 @@ describe("SAD-02: section_type-first matching with name-LIKE fallback", () => {
     await syncDerivedStatuses_TEST(mockDb, 1);
 
     const varnishSqls = selectMock.mock.calls
-      .map(([sql]: [string]) => sql)
+      .map((call) => call[0] as string)
       .filter((sql: string) => sql.includes("varnish"));
 
     const hasDualPath = varnishSqls.some(
@@ -203,7 +203,7 @@ describe("SAD-02: section_type-first matching with name-LIKE fallback", () => {
     await syncDerivedStatuses_TEST(mockDb, 1);
 
     const varnishSqls = selectMock.mock.calls
-      .map(([sql]: [string]) => sql)
+      .map((call) => call[0] as string)
       .filter((sql: string) => sql.includes("varnish"));
 
     const hasNullFallback = varnishSqls.some(
@@ -332,7 +332,7 @@ describe("APL-03: syncDerivedStatuses never sets is_active_project = 1 (only cre
 
     await syncDerivedStatuses_TEST(mockDb, 1);
 
-    const updateSqls = executeMock.mock.calls.map(([sql]: [string]) => sql);
+    const updateSqls = executeMock.mock.calls.map((call) => call[0] as string);
     const setsActiveToOne = updateSqls.some((sql: string) =>
       sql.includes("is_active_project = 1"),
     );

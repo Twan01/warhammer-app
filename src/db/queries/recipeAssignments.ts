@@ -99,6 +99,11 @@ export async function createAssignment(input: CreateRecipeAssignmentInput): Prom
     "INSERT INTO unit_recipe_assignments (unit_id, recipe_id) VALUES ($1, $2)",
     [input.unit_id, input.recipe_id],
   );
+  // APL-01: auto-set active project on recipe assignment
+  await db.execute(
+    "UPDATE units SET is_active_project = 1, updated_at = datetime('now') WHERE id = $1",
+    [input.unit_id],
+  );
   await syncPaintingPercentageByUnitId(db, input.unit_id);
   return result.lastInsertId ?? 0;
 }
@@ -174,6 +179,11 @@ export async function bulkCreateAssignments(
       "INSERT OR IGNORE INTO unit_recipe_assignments (unit_id, recipe_id) VALUES ($1, $2)",
       [unitId, recipeId],
     );
+    // APL-01: auto-set active project on recipe assignment
+    await db.execute(
+      "UPDATE units SET is_active_project = 1, updated_at = datetime('now') WHERE id = $1",
+      [unitId],
+    );
     await syncPaintingPercentageByUnitId(db, unitId);
   }
 }
@@ -209,66 +219,116 @@ function percentageToStatus(pct: number, hasRecipes: boolean): string {
 }
 
 async function syncDerivedStatuses(db: DbFull, unitId: number): Promise<void> {
-  const unitRows = await db.select<{ painting_percentage: number }[]>(
-    "SELECT painting_percentage FROM units WHERE id = $1",
-    [unitId],
-  );
-  if (!unitRows[0]) return;
+  try {
+    // D-01: Read override flags alongside painting_percentage in a single round-trip
+    const unitRows = await db.select<{
+      painting_percentage: number;
+      status_assembly_override: number;
+      status_basing_override: number;
+      status_varnished_override: number;
+    }[]>(
+      "SELECT painting_percentage, status_assembly_override, status_basing_override, status_varnished_override FROM units WHERE id = $1",
+      [unitId],
+    );
+    if (!unitRows[0]) return;
 
-  const assignmentRows = await db.select<{ id: number }[]>(
-    "SELECT id FROM unit_recipe_assignments WHERE unit_id = $1",
-    [unitId],
-  );
-  const hasRecipes = assignmentRows.length > 0;
-  if (!hasRecipes) return;
+    const assignmentRows = await db.select<{ id: number }[]>(
+      "SELECT id FROM unit_recipe_assignments WHERE unit_id = $1",
+      [unitId],
+    );
+    const hasRecipes = assignmentRows.length > 0;
+    if (!hasRecipes) return;
 
-  const pct = unitRows[0].painting_percentage;
-  const status = percentageToStatus(pct, hasRecipes);
+    const pct = unitRows[0].painting_percentage;
+    const status = percentageToStatus(pct, hasRecipes);
 
-  // Check basing: all steps in sections whose name contains "basing" are complete
-  const basingRows = await db.select<{ incomplete: number }[]>(
-    `SELECT COUNT(*) AS incomplete
-     FROM recipe_steps rs
-     JOIN recipe_sections sec ON sec.id = rs.section_id
-     JOIN unit_recipe_assignments a ON a.recipe_id = rs.recipe_id AND a.unit_id = $1
-     LEFT JOIN unit_recipe_step_progress sp ON sp.assignment_id = a.id AND sp.recipe_step_id = rs.id
-     WHERE LOWER(sec.name) LIKE '%basing%'
-       AND (sp.completed IS NULL OR sp.completed = 0)`,
-    [unitId],
-  );
-  const hasBasingSections = await db.select<{ cnt: number }[]>(
-    `SELECT COUNT(*) AS cnt
-     FROM recipe_sections sec
-     JOIN unit_recipe_assignments a ON a.recipe_id = sec.recipe_id AND a.unit_id = $1
-     WHERE LOWER(sec.name) LIKE '%basing%'`,
-    [unitId],
-  );
-  const basing = (hasBasingSections[0]?.cnt ?? 0) > 0 && (basingRows[0]?.incomplete ?? 1) === 0 ? 1 : 0;
+    // SAD-01 D-06: Assembly derivation — section_type = 'assembly' with name-LIKE fallback
+    const hasAssemblySections = await db.select<{ cnt: number }[]>(
+      `SELECT COUNT(*) AS cnt
+       FROM recipe_sections sec
+       JOIN unit_recipe_assignments a ON a.recipe_id = sec.recipe_id AND a.unit_id = $1
+       WHERE (sec.section_type = 'assembly'
+          OR (sec.section_type IS NULL AND LOWER(sec.name) LIKE '%assembly%'))`,
+      [unitId],
+    );
+    const assemblyRows = await db.select<{ incomplete: number }[]>(
+      `SELECT COUNT(*) AS incomplete
+       FROM recipe_steps rs
+       JOIN recipe_sections sec ON sec.id = rs.section_id
+       JOIN unit_recipe_assignments a ON a.recipe_id = rs.recipe_id AND a.unit_id = $1
+       LEFT JOIN unit_recipe_step_progress sp ON sp.assignment_id = a.id AND sp.recipe_step_id = rs.id
+       WHERE (sec.section_type = 'assembly'
+          OR (sec.section_type IS NULL AND LOWER(sec.name) LIKE '%assembly%'))
+         AND (sp.completed IS NULL OR sp.completed = 0)`,
+      [unitId],
+    );
+    const derivedAssembly = (hasAssemblySections[0]?.cnt ?? 0) > 0 && (assemblyRows[0]?.incomplete ?? 1) === 0 ? 1 : 0;
 
-  // Check varnished: all steps in sections whose name contains "varnish" are complete
-  const varnishRows = await db.select<{ incomplete: number }[]>(
-    `SELECT COUNT(*) AS incomplete
-     FROM recipe_steps rs
-     JOIN recipe_sections sec ON sec.id = rs.section_id
-     JOIN unit_recipe_assignments a ON a.recipe_id = rs.recipe_id AND a.unit_id = $1
-     LEFT JOIN unit_recipe_step_progress sp ON sp.assignment_id = a.id AND sp.recipe_step_id = rs.id
-     WHERE LOWER(sec.name) LIKE '%varnish%'
-       AND (sp.completed IS NULL OR sp.completed = 0)`,
-    [unitId],
-  );
-  const hasVarnishSections = await db.select<{ cnt: number }[]>(
-    `SELECT COUNT(*) AS cnt
-     FROM recipe_sections sec
-     JOIN unit_recipe_assignments a ON a.recipe_id = sec.recipe_id AND a.unit_id = $1
-     WHERE LOWER(sec.name) LIKE '%varnish%'`,
-    [unitId],
-  );
-  const varnished = (hasVarnishSections[0]?.cnt ?? 0) > 0 && (varnishRows[0]?.incomplete ?? 1) === 0 ? 1 : 0;
+    // SAD-02 D-07: Basing derivation — section_type = 'basing' with name-LIKE fallback
+    const hasBasingSections = await db.select<{ cnt: number }[]>(
+      `SELECT COUNT(*) AS cnt
+       FROM recipe_sections sec
+       JOIN unit_recipe_assignments a ON a.recipe_id = sec.recipe_id AND a.unit_id = $1
+       WHERE (sec.section_type = 'basing'
+          OR (sec.section_type IS NULL AND LOWER(sec.name) LIKE '%basing%'))`,
+      [unitId],
+    );
+    const basingRows = await db.select<{ incomplete: number }[]>(
+      `SELECT COUNT(*) AS incomplete
+       FROM recipe_steps rs
+       JOIN recipe_sections sec ON sec.id = rs.section_id
+       JOIN unit_recipe_assignments a ON a.recipe_id = rs.recipe_id AND a.unit_id = $1
+       LEFT JOIN unit_recipe_step_progress sp ON sp.assignment_id = a.id AND sp.recipe_step_id = rs.id
+       WHERE (sec.section_type = 'basing'
+          OR (sec.section_type IS NULL AND LOWER(sec.name) LIKE '%basing%'))
+         AND (sp.completed IS NULL OR sp.completed = 0)`,
+      [unitId],
+    );
+    const derivedBasing = (hasBasingSections[0]?.cnt ?? 0) > 0 && (basingRows[0]?.incomplete ?? 1) === 0 ? 1 : 0;
 
-  await db.execute(
-    `UPDATE units SET status_painting = $2, status_basing = $3, status_varnished = $4, updated_at = datetime('now') WHERE id = $1`,
-    [unitId, status, basing, varnished],
-  );
+    // SAD-02 D-07: Varnish derivation — section_type = 'varnish' with name-LIKE fallback
+    const hasVarnishSections = await db.select<{ cnt: number }[]>(
+      `SELECT COUNT(*) AS cnt
+       FROM recipe_sections sec
+       JOIN unit_recipe_assignments a ON a.recipe_id = sec.recipe_id AND a.unit_id = $1
+       WHERE (sec.section_type = 'varnish'
+          OR (sec.section_type IS NULL AND LOWER(sec.name) LIKE '%varnish%'))`,
+      [unitId],
+    );
+    const varnishRows = await db.select<{ incomplete: number }[]>(
+      `SELECT COUNT(*) AS incomplete
+       FROM recipe_steps rs
+       JOIN recipe_sections sec ON sec.id = rs.section_id
+       JOIN unit_recipe_assignments a ON a.recipe_id = rs.recipe_id AND a.unit_id = $1
+       LEFT JOIN unit_recipe_step_progress sp ON sp.assignment_id = a.id AND sp.recipe_step_id = rs.id
+       WHERE (sec.section_type = 'varnish'
+          OR (sec.section_type IS NULL AND LOWER(sec.name) LIKE '%varnish%'))
+         AND (sp.completed IS NULL OR sp.completed = 0)`,
+      [unitId],
+    );
+    const derivedVarnished = (hasVarnishSections[0]?.cnt ?? 0) > 0 && (varnishRows[0]?.incomplete ?? 1) === 0 ? 1 : 0;
+
+    // SAD-04 D-01/D-03: Override guards — null when override=1 so CASE WHEN preserves current DB value
+    const assembly: number | null = !unitRows[0].status_assembly_override ? derivedAssembly : null;
+    const basing: number | null = !unitRows[0].status_basing_override ? derivedBasing : null;
+    const varnished: number | null = !unitRows[0].status_varnished_override ? derivedVarnished : null;
+
+    // APL-02 D-09: Auto-clear is_active_project at 100%; CASE WHEN guards all override-guarded fields
+    await db.execute(
+      `UPDATE units
+       SET status_painting   = $2,
+           status_assembly   = CASE WHEN $3 IS NOT NULL THEN $3 ELSE status_assembly END,
+           status_basing     = CASE WHEN $4 IS NOT NULL THEN $4 ELSE status_basing END,
+           status_varnished  = CASE WHEN $5 IS NOT NULL THEN $5 ELSE status_varnished END,
+           is_active_project = CASE WHEN $6 = 1 THEN 0 ELSE is_active_project END,
+           updated_at        = datetime('now')
+       WHERE id = $1`,
+      [unitId, status, assembly, basing, varnished, pct === 100 ? 1 : 0],
+    );
+  } catch (err) {
+    // Silent failure — derivation is background automation; errors should not surface as toasts
+    console.error("[syncDerivedStatuses] derivation failed for unit", unitId, err);
+  }
 }
 
 // Export for testing only — not part of the public API
