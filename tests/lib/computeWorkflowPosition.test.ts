@@ -208,13 +208,13 @@ describe("computeWorkflowPosition", () => {
 // ---------------------------------------------------------------------------
 
 describe("SECTION_TYPES const array", () => {
-  it("has exactly 7 values", () => {
-    expect(SECTION_TYPES).toHaveLength(7);
+  it("has exactly 10 values", () => {
+    expect(SECTION_TYPES).toHaveLength(10);
   });
 
   it("contains the expected workflow phase types", () => {
     expect(SECTION_TYPES).toEqual(
-      ["prep", "basecoat", "shade", "layer", "detail", "effect", "finishing"],
+      ["prep", "basecoat", "shade", "layer", "detail", "effect", "finishing", "assembly", "basing", "varnish"],
     );
   });
 });
