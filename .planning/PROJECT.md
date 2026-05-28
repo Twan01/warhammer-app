@@ -221,7 +221,15 @@ A single personal command center that always answers "what do I own, what's pain
 
 ### Active
 
-*No active milestone — planning next*
+## Current Milestone: v0.3.7 Smart Automation
+
+**Goal:** Reduce manual data entry and repetitive actions by auto-deriving statuses, managing active projects, pre-filling context, and enabling batch operations.
+
+**Target features:**
+- Auto-derive statuses from recipes (assembly, basing, varnish from recipe step/section completion)
+- Active project auto-management (auto-set on recipe assign, auto-clear on completion)
+- Smart context pre-filling (faction in recipes, recipe picker filtering by unit context)
+- Battle-readiness & batch operations (readiness in army list picker, batch-apply recipes, smart points-remaining)
 
 ### Out of Scope
 
@@ -368,4 +376,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-22 after v0.3.0 milestone*
+*Last updated: 2026-05-28 after v0.3.7 milestone start*

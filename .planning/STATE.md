@@ -1,33 +1,34 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.3.0
-milestone_name: Robustness & Architecture Hardening
-status: archived
-stopped_at: v0.3.0 milestone archived
-last_updated: 2026-05-22T18:00:00.000Z
-last_activity: 2026-05-22 -- v0.3.0 milestone archived, 19 milestones shipped
+milestone: v0.3.7
+milestone_name: Smart Automation
+status: planning
+stopped_at: Defining requirements
+last_updated: 2026-05-28T00:00:00.000Z
+last_activity: 2026-05-28 -- Milestone v0.3.7 started
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 9
-  completed_plans: 9
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-22)
+See: .planning/PROJECT.md (updated 2026-05-28)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" -- with reliable backup/restore so local data is always recoverable
-**Current focus:** Planning next milestone
+**Current focus:** v0.3.7 Smart Automation — auto-derive statuses, active project management, context pre-filling, batch operations
 
 ## Current Position
 
-Phase: 99 of 99 (last phase of v0.3.0)
-Status: Milestone archived — ready for next milestone
-Last activity: 2026-05-22
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-28 — Milestone v0.3.7 started
 
 ## Performance Metrics
 
@@ -42,11 +43,9 @@ Last activity: 2026-05-22
 
 ## Accumulated Context
 
-### Decisions (v0.3.0)
+### Decisions (v0.3.7)
 
-- Roadmap: 4 phases (not 5) -- DBH-04 (batch INSERT) grouped with performance phase since both are query efficiency concerns, not schema changes
-- Single migration file (033) for all indexes + CHECK constraints per D-08
-- Minimum table recreation scope: only units and paints (covers all 3 required CHECK constraints)
+None yet.
 
 ### Pending Todos
 
@@ -58,6 +57,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-22
-Stopped at: v0.3.0 milestone archived
-Resume: `/gsd:new-milestone` to start next milestone
+Last session: 2026-05-28
+Stopped at: Defining requirements for v0.3.7
+Resume: Define requirements, then `/gsd:plan-phase` to start execution
