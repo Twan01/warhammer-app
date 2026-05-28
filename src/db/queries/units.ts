@@ -96,6 +96,9 @@ export async function updateUnit(input: UpdateUnitInput): Promise<void> {
             notes                   = $21,
             lore_notes              = $22,
             undercoat               = $23,
+            status_assembly_override  = COALESCE($24, status_assembly_override),
+            status_basing_override    = COALESCE($25, status_basing_override),
+            status_varnished_override = COALESCE($26, status_varnished_override),
             updated_at              = datetime('now')
       WHERE id = $1`,
     [
@@ -109,6 +112,7 @@ export async function updateUnit(input: UpdateUnitInput): Promise<void> {
       input.purchase_date ?? null, input.purchase_price_pence ?? null,
       input.storage_location ?? null, input.main_image_path ?? null, input.notes ?? null,
       input.lore_notes ?? null, input.undercoat ?? null,
+      input.status_assembly_override ?? null, input.status_basing_override ?? null, input.status_varnished_override ?? null,
     ]
   );
 }

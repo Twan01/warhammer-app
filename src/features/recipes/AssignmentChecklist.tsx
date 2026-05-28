@@ -73,7 +73,7 @@ export function AssignmentChecklist({ assignment, recipeId, unitId }: Assignment
   }
 
   function handleToggleAssembly(checked: boolean) {
-    updateUnit.mutate({ id: unitId, status_assembly: checked ? 1 : 0 });
+    updateUnit.mutate({ id: unitId, status_assembly: checked ? 1 : 0, status_assembly_override: 1 });
   }
 
   return (
