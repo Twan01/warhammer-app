@@ -88,6 +88,14 @@ vi.mock("@/features/paints/PaintSheet", () => ({
   PaintSheet: () => null,
 }));
 
+vi.mock("@/context/ActiveFactionContext", () => ({
+  useActiveFaction: () => ({
+    activeFactionId: null,
+    activeFactionHex: "#71717a",
+    setActiveFaction: vi.fn(),
+  }),
+}));
+
 import { RecipeFormSheet } from "@/features/recipes/RecipeFormSheet";
 
 // ---------------------------------------------------------------------------

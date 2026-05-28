@@ -134,7 +134,11 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
       };
 
       if (isEdit && unit) {
-        const { painting_percentage: _pp, status_painting: _sp, status_basing: _sb, status_varnished: _sv, status_assembly: _sa, ...rest } = payload;
+        const {
+          painting_percentage: _pp, status_painting: _sp, status_basing: _sb, status_varnished: _sv, status_assembly: _sa,
+          status_assembly_override: _sao, status_basing_override: _sbo, status_varnished_override: _svo,
+          ...rest
+        } = payload;
         await updateUnit.mutateAsync({ id: unit.id, ...rest });
         toast.success("Unit updated.");
       } else {

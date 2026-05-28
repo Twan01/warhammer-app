@@ -15,15 +15,15 @@
 
 ## Smart Context Pre-Filling
 
-- [ ] **SCP-01**: Recipe creation form pre-fills faction from FactionContext when opened from a unit context
-- [ ] **SCP-02**: Recipe picker in ApplyRecipeDialog pre-filters recipes by the target unit's faction
-- [ ] **SCP-03**: Pre-filled values are visible and editable — user can override any auto-filled field
+- [x] **SCP-01**: Recipe creation form pre-fills faction from FactionContext when opened from a unit context
+- [x] **SCP-02**: Recipe picker in ApplyRecipeDialog pre-filters recipes by the target unit's faction
+- [x] **SCP-03**: Pre-filled values are visible and editable — user can override any auto-filled field
 
 ## Battle-Readiness & Points
 
-- [ ] **BRP-01**: `isUnitBattleReady()` pure function established as canonical readiness definition (painting complete + assembled + based)
-- [ ] **BRP-02**: Army list unit picker shows painting status and assembly state inline per unit
-- [ ] **BRP-03**: Army list unit picker supports filtering/sorting by units that fit within remaining points budget
+- [x] **BRP-01**: `isUnitBattleReady()` pure function established as canonical readiness definition (painting complete + assembled + based)
+- [x] **BRP-02**: Army list unit picker shows painting status and assembly state inline per unit
+- [x] **BRP-03**: Army list unit picker supports filtering/sorting by units that fit within remaining points budget
 
 ## Future Requirements
 
@@ -47,9 +47,9 @@ None deferred — all proposed features included in this milestone.
 | APL-01 | Phase 100 | Complete |
 | APL-02 | Phase 100 | Complete |
 | APL-03 | Phase 100 | Complete |
-| SCP-01 | Phase 102 | Pending |
-| SCP-02 | Phase 102 | Pending |
-| SCP-03 | Phase 102 | Pending |
-| BRP-01 | Phase 101 | Pending |
-| BRP-02 | Phase 101 | Pending |
-| BRP-03 | Phase 101 | Pending |
+| SCP-01 | Phase 102 | Complete |
+| SCP-02 | Phase 102 | Complete |
+| SCP-03 | Phase 102 | Complete |
+| BRP-01 | Phase 101 | Complete |
+| BRP-02 | Phase 101 | Complete |
+| BRP-03 | Phase 101 | Complete |

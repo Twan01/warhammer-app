@@ -46,6 +46,7 @@ import { useRecipeSections, RECIPE_SECTIONS_KEY, SECTION_COUNTS_KEY } from "@/ho
 import { useFactions } from "@/hooks/useFactions";
 import { useUnits } from "@/hooks/useUnits";
 import { usePaints } from "@/hooks/usePaints";
+import { useActiveFaction } from "@/context/ActiveFactionContext";
 import type { PaintingRecipe } from "@/types/recipe";
 import {
   recipeSchema,
@@ -121,7 +122,9 @@ function formatMinutes(total: number): string {
 export function RecipeFormSheet({ open, recipe, onClose, defaultFactionId, defaultUnitId }: RecipeFormSheetProps) {
   const isEdit = recipe !== null;
   const qc = useQueryClient();
+  const { activeFactionId } = useActiveFaction();
 
+  const effectiveFactionId = defaultFactionId ?? activeFactionId;
 
   const { data: factions = [] } = useFactions();
   const { data: units = [] } = useUnits();
@@ -133,7 +136,7 @@ export function RecipeFormSheet({ open, recipe, onClose, defaultFactionId, defau
 
   const form = useForm<RecipeFormValues>({
     resolver: zodResolver(recipeSchema),
-    defaultValues: buildDefaults(recipe, defaultFactionId, defaultUnitId),
+    defaultValues: buildDefaults(recipe, effectiveFactionId, defaultUnitId),
   });
 
   const [sections, setSections] = useState<DraftSection[]>([makeDraftSection("Steps")]);
@@ -152,14 +155,14 @@ export function RecipeFormSheet({ open, recipe, onClose, defaultFactionId, defau
   const existingSectionsLen = existingSections.length;
   const existingStepsLen = existingSteps.length;
   useEffect(() => {
-    form.reset(buildDefaults(recipe, defaultFactionId, defaultUnitId));
+    form.reset(buildDefaults(recipe, effectiveFactionId, defaultUnitId));
     if (recipe && existingSectionsLen > 0) {
       setSections(buildDraftSections(existingSections, existingSteps));
     } else if (!recipe) {
       setSections([makeDraftSection("Steps")]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recipe?.id, existingSectionsLen, existingStepsLen, defaultFactionId, defaultUnitId]);
+  }, [recipe?.id, existingSectionsLen, existingStepsLen, effectiveFactionId, defaultUnitId]);
 
   // PAINT-03: detect new paint after PaintSheet closes
   useEffect(() => {
