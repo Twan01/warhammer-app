@@ -157,39 +157,53 @@ Full details: `.planning/milestones/v0.3.0-ROADMAP.md`
 ## Phase Details
 
 ### Phase 100: Query-Layer Automation
+
 **Goal**: Recipe completion automatically derives painting statuses and activates project tracking — no manual status updates needed for assembly, basing, or varnish milestones
 **Depends on**: Phase 99 (v0.3.0 architecture cleanup complete)
 **Requirements**: SAD-01, SAD-02, SAD-03, SAD-04, APL-01, APL-02, APL-03
 **Success Criteria** (what must be TRUE):
+
   1. When all steps in sections with section_type = 'assembly' complete, status_assembly is set to 1 automatically — user does not touch StatusPopover
   2. Basing and varnish auto-derivation reads section_type column ('basing', 'finishing') rather than fragile name-LIKE patterns — renaming a section does not break derivation
   3. 'assembly' appears in the SECTION_TYPES const array so recipe authors can select it from the section type dropdown
   4. Auto-derivation never overwrites a status that the user set manually via StatusPopover — the guard is present in syncDerivedStatuses() before any write
   5. Assigning a recipe to a unit automatically sets is_active_project = 1; the unit appears in Kanban without a manual toggle
+
 **Plans**: 2 plans
 Plans:
+**Wave 1**
+
 - [ ] 100-01-PLAN.md — Schema foundation: migration, types, updateUnit, override wiring
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 100-02-PLAN.md — Core automation: syncDerivedStatuses, is_active_project lifecycle, tests
 
 ### Phase 101: Battle-Readiness Pure Function & Unit Picker
+
 **Goal**: Users can see which units are painting-complete and assembly-ready when adding units to an army list, and can filter the picker to only show units that fit within the remaining points budget
 **Depends on**: Phase 100
 **Requirements**: BRP-01, BRP-02, BRP-03
 **Success Criteria** (what must be TRUE):
+
   1. A single computeUnitReadiness() pure function exists in src/lib/ as the canonical readiness definition — no other surface can diverge from it
   2. Each unit row in UnitPickerDialog shows a readiness badge (painting status + assembly state) without an extra DB query per row
   3. User can toggle a "fits budget" filter in UnitPickerDialog that hides units whose points exceed the remaining list budget — remaining budget is displayed in the picker header
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 102: Smart Context Pre-Filling
+
 **Goal**: Opening a recipe form or recipe picker in the context of a specific unit or faction automatically pre-populates the relevant fields — reducing the most common redundant selections to zero clicks
 **Depends on**: Phase 100
 **Requirements**: SCP-01, SCP-02, SCP-03
 **Success Criteria** (what must be TRUE):
+
   1. RecipeFormSheet opened from a unit context pre-fills the faction field from FactionContext — the user sees their active faction already selected when the sheet opens
   2. ApplyRecipeDialog pre-filters its recipe list to show the target unit's faction recipes first (Suggested group) with all others below (Other group)
   3. Any pre-filled value is editable — user can clear, change, or override every auto-filled field without restriction
+
 **Plans**: TBD
 **UI hint**: yes
 
