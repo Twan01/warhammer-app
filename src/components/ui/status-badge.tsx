@@ -27,7 +27,7 @@ export const PAINTING_STATUS_TIER: Record<PaintingStatus, Tier> = {
   Completed: "done",
 };
 
-const TIER_DOT_CLASS: Record<Tier, string> = {
+export const TIER_DOT_CLASS: Record<Tier, string> = {
   "not-started": "bg-muted-foreground/50",
   prep: "bg-slate-400",
   painting: "bg-violet-400",

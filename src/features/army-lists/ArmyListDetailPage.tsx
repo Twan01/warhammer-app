@@ -884,6 +884,8 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
         open={unitPickerOpen}
         listId={listId}
         factionId={list.faction_id ?? null}
+        remaining={list.points_limit != null ? list.points_limit - totalPoints : null}
+        pointsLimit={list.points_limit ?? null}
         onClose={() => dispatch({ type: "CLOSE_UNIT_PICKER" })}
       />
       <LoadoutBuilderSheet
