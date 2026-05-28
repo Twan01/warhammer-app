@@ -166,7 +166,10 @@ Full details: `.planning/milestones/v0.3.0-ROADMAP.md`
   3. 'assembly' appears in the SECTION_TYPES const array so recipe authors can select it from the section type dropdown
   4. Auto-derivation never overwrites a status that the user set manually via StatusPopover — the guard is present in syncDerivedStatuses() before any write
   5. Assigning a recipe to a unit automatically sets is_active_project = 1; the unit appears in Kanban without a manual toggle
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 100-01-PLAN.md — Schema foundation: migration, types, updateUnit, override wiring
+- [ ] 100-02-PLAN.md — Core automation: syncDerivedStatuses, is_active_project lifecycle, tests
 
 ### Phase 101: Battle-Readiness Pure Function & Unit Picker
 **Goal**: Users can see which units are painting-complete and assembly-ready when adding units to an army list, and can filter the picker to only show units that fit within the remaining points budget
@@ -293,7 +296,7 @@ Full details: `.planning/milestones/v0.3.0-ROADMAP.md`
 | 97. Error Resilience | v0.3.0 | 2/2 | Complete | 2026-05-22 |
 | 98. Performance Optimization | v0.3.0 | 3/3 | Complete | 2026-05-22 |
 | 99. Architecture Cleanup | v0.3.0 | 3/3 | Complete | 2026-05-22 |
-| 100. Query-Layer Automation | v0.3.7 | 0/TBD | Not started | - |
+| 100. Query-Layer Automation | v0.3.7 | 0/2 | Not started | - |
 | 101. Battle-Readiness Pure Function & Unit Picker | v0.3.7 | 0/TBD | Not started | - |
 | 102. Smart Context Pre-Filling | v0.3.7 | 0/TBD | Not started | - |
 
