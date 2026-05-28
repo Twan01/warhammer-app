@@ -40,16 +40,16 @@ None deferred — all proposed features included in this milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SAD-01 | — | Pending |
-| SAD-02 | — | Pending |
-| SAD-03 | — | Pending |
-| SAD-04 | — | Pending |
-| APL-01 | — | Pending |
-| APL-02 | — | Pending |
-| APL-03 | — | Pending |
-| SCP-01 | — | Pending |
-| SCP-02 | — | Pending |
-| SCP-03 | — | Pending |
-| BRP-01 | — | Pending |
-| BRP-02 | — | Pending |
-| BRP-03 | — | Pending |
+| SAD-01 | Phase 100 | Pending |
+| SAD-02 | Phase 100 | Pending |
+| SAD-03 | Phase 100 | Pending |
+| SAD-04 | Phase 100 | Pending |
+| APL-01 | Phase 100 | Pending |
+| APL-02 | Phase 100 | Pending |
+| APL-03 | Phase 100 | Pending |
+| SCP-01 | Phase 102 | Pending |
+| SCP-02 | Phase 102 | Pending |
+| SCP-03 | Phase 102 | Pending |
+| BRP-01 | Phase 101 | Pending |
+| BRP-02 | Phase 101 | Pending |
+| BRP-03 | Phase 101 | Pending |
