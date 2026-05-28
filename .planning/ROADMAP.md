@@ -152,7 +152,7 @@ Full details: `.planning/milestones/v0.3.0-ROADMAP.md`
 
 - [ ] **Phase 100: Query-Layer Automation** — Extend syncDerivedStatuses() with assembly auto-derivation (section_type guard), harden basing/varnish to use section_type instead of name-LIKE, add 'assembly' to SECTION_TYPES vocabulary, implement manual-override guard, and add autoManageActiveProject() for is_active_project auto-set on recipe assign
 - [ ] **Phase 101: Battle-Readiness Pure Function & Unit Picker** — Establish computeUnitReadiness() as the canonical readiness definition, upgrade UnitPickerDialog with readiness badges, points-remaining display, and filter-by-affordability toggle
-- [ ] **Phase 102: Smart Context Pre-Filling** — Pre-fill faction in RecipeFormSheet from FactionContext frozen at open time, pre-filter ApplyRecipeDialog by unit faction with suggested/other grouping, ensure all pre-filled values are visible and editable
+- [x] **Phase 102: Smart Context Pre-Filling** — Pre-fill faction in RecipeFormSheet from FactionContext frozen at open time, pre-filter ApplyRecipeDialog by unit faction with suggested/other grouping, ensure all pre-filled values are visible and editable
 
 ## Phase Details
 
@@ -190,8 +190,17 @@ Plans:
   2. Each unit row in UnitPickerDialog shows a readiness badge (painting status + assembly state) without an extra DB query per row
   3. User can toggle a "fits budget" filter in UnitPickerDialog that hides units whose points exceed the remaining list budget — remaining budget is displayed in the picker header
 
-**Plans**: TBD
+**Plans**: 2 plans
 **UI hint**: yes
+
+Plans:
+**Wave 1**
+
+- [ ] 101-01-PLAN.md — TDD computeUnitReadiness pure function + tests (BRP-01)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 101-02-PLAN.md — UnitPickerDialog readiness badges, points display, affordability filter (BRP-02, BRP-03)
 
 ### Phase 102: Smart Context Pre-Filling
 
@@ -210,8 +219,8 @@ Plans:
 Plans:
 **Wave 1** (parallel)
 
-- [ ] 102-01-PLAN.md — RecipeFormSheet pre-fill props + tests (SCP-01, SCP-03)
-- [ ] 102-02-PLAN.md — ApplyRecipeDialog faction grouping + UnitDetailSheet wiring + tests (SCP-02)
+- [x] 102-01-PLAN.md — RecipeFormSheet pre-fill props + tests (SCP-01, SCP-03)
+- [x] 102-02-PLAN.md — ApplyRecipeDialog faction grouping + UnitDetailSheet wiring + tests (SCP-02)
 
 ## Progress
 
@@ -317,8 +326,8 @@ Plans:
 | 98. Performance Optimization | v0.3.0 | 3/3 | Complete | 2026-05-22 |
 | 99. Architecture Cleanup | v0.3.0 | 3/3 | Complete | 2026-05-22 |
 | 100. Query-Layer Automation | v0.3.7 | 2/2 | Complete   | 2026-05-28 |
-| 101. Battle-Readiness Pure Function & Unit Picker | v0.3.7 | 0/TBD | Not started | - |
-| 102. Smart Context Pre-Filling | v0.3.7 | 0/TBD | Not started | - |
+| 101. Battle-Readiness Pure Function & Unit Picker | v0.3.7 | 0/2 | Planned | - |
+| 102. Smart Context Pre-Filling | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 
 <details>
 <summary>✅ v0.1.1 HobbyForge MVP (Phases 1-5) — SHIPPED 2024-05-01</summary>
