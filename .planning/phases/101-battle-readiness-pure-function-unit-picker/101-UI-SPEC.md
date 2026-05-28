@@ -48,10 +48,10 @@ Exceptions: none
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px | 400 (regular) | 1.5 |
-| Label | 12px | 500 (medium) | 1.4 |
+| Label | 12px | 400 (regular) | 1.4 |
 | Heading | 16px | 600 (semibold) | 1.2 |
 
-Note: This phase operates entirely within a Dialog/Command palette. Only 3 type sizes are needed. Heading = DialogTitle. Body = CommandItem unit name + points text. Label = budget display, filter label, readiness dot labels in tooltips.
+Note: This phase operates entirely within a Dialog/Command palette. Only 3 type sizes are needed. Heading = DialogTitle. Body = CommandItem unit name + points text. Label = budget display, filter label, readiness dot labels in tooltips. Two weights only: 400 (regular) for body and label text, 600 (semibold) for headings and the budget `font-semibold` display. The 14px vs 12px size difference provides sufficient hierarchy between Body and Label without needing a weight distinction.
 
 ---
 
