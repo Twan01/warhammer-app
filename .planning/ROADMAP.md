@@ -150,8 +150,8 @@ Full details: `.planning/milestones/v0.3.0-ROADMAP.md`
 
 **Milestone Goal:** Reduce manual data entry and repetitive actions by auto-deriving statuses from recipe completion, managing active projects automatically, pre-filling context intelligently, and surfacing battle-readiness in the army list picker.
 
-- [ ] **Phase 100: Query-Layer Automation** — Extend syncDerivedStatuses() with assembly auto-derivation (section_type guard), harden basing/varnish to use section_type instead of name-LIKE, add 'assembly' to SECTION_TYPES vocabulary, implement manual-override guard, and add autoManageActiveProject() for is_active_project auto-set on recipe assign
-- [ ] **Phase 101: Battle-Readiness Pure Function & Unit Picker** — Establish computeUnitReadiness() as the canonical readiness definition, upgrade UnitPickerDialog with readiness badges, points-remaining display, and filter-by-affordability toggle
+- [x] **Phase 100: Query-Layer Automation** — Extend syncDerivedStatuses() with assembly auto-derivation (section_type guard), harden basing/varnish to use section_type instead of name-LIKE, add 'assembly' to SECTION_TYPES vocabulary, implement manual-override guard, and add autoManageActiveProject() for is_active_project auto-set on recipe assign
+- [x] **Phase 101: Battle-Readiness Pure Function & Unit Picker** — Establish computeUnitReadiness() as the canonical readiness definition, upgrade UnitPickerDialog with readiness badges, points-remaining display, and filter-by-affordability toggle
 - [x] **Phase 102: Smart Context Pre-Filling** — Pre-fill faction in RecipeFormSheet from FactionContext frozen at open time, pre-filter ApplyRecipeDialog by unit faction with suggested/other grouping, ensure all pre-filled values are visible and editable
 
 ## Phase Details
@@ -196,11 +196,11 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 101-01-PLAN.md — TDD computeUnitReadiness pure function + tests (BRP-01)
+- [x] 101-01-PLAN.md — TDD computeUnitReadiness pure function + tests (BRP-01)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 101-02-PLAN.md — UnitPickerDialog readiness badges, points display, affordability filter (BRP-02, BRP-03)
+- [x] 101-02-PLAN.md — UnitPickerDialog readiness badges, points display, affordability filter (BRP-02, BRP-03)
 
 ### Phase 102: Smart Context Pre-Filling
 
