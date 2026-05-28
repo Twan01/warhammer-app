@@ -271,6 +271,9 @@ async function syncDerivedStatuses(db: DbFull, unitId: number): Promise<void> {
   );
 }
 
+// Export for testing only — not part of the public API
+export { syncDerivedStatuses as syncDerivedStatuses_TEST };
+
 async function syncPaintingPercentageByUnitId(db: DbHandle, unitId: number): Promise<void> {
   await db.execute(SYNC_PAINTING_PERCENTAGE_SQL, [unitId]);
   await syncDerivedStatuses(db as DbFull, unitId);
