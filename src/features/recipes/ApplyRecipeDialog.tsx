@@ -30,6 +30,7 @@ import { RecipeStepTimeline } from "./RecipeStepTimeline";
 interface ApplyRecipeDialogProps {
   open: boolean;
   unitId: number;
+  factionId?: number | null;
   onClose: () => void;
 }
 
@@ -45,6 +46,7 @@ interface ApplyRecipeDialogProps {
 export function ApplyRecipeDialog({
   open,
   unitId,
+  factionId,
   onClose,
 }: ApplyRecipeDialogProps) {
   const [selectedRecipeId, setSelectedRecipeId] = useState<number | null>(null);
@@ -67,6 +69,20 @@ export function ApplyRecipeDialog({
     for (const f of factions) m.set(f.id, f.name);
     return m;
   }, [factions]);
+
+  // Split recipes into suggested (faction match) and other groups
+  const { suggested, other } = useMemo(() => {
+    if (factionId == null) {
+      return { suggested: recipes, other: [] as typeof recipes };
+    }
+    const s: typeof recipes = [];
+    const o: typeof recipes = [];
+    for (const r of recipes) {
+      if (r.faction_id === factionId) s.push(r);
+      else o.push(r);
+    }
+    return { suggested: s, other: o };
+  }, [recipes, factionId]);
 
   // Build paintMap for preview
   const paintMap = useMemo(() => {
@@ -109,22 +125,42 @@ export function ApplyRecipeDialog({
               <CommandInput placeholder="Search recipes..." />
               <CommandList>
                 <CommandEmpty>No recipes found.</CommandEmpty>
-                <CommandGroup>
-                  {recipes.map((recipe) => (
-                    <CommandItem
-                      key={recipe.id}
-                      value={recipe.name}
-                      onSelect={() => setSelectedRecipeId(recipe.id)}
-                    >
-                      <span className="flex-1">{recipe.name}</span>
-                      {recipe.faction_id !== null && factionMap.has(recipe.faction_id) && (
-                        <Badge variant="secondary" className="ml-auto">
-                          {factionMap.get(recipe.faction_id)}
-                        </Badge>
-                      )}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                {suggested.length > 0 && (
+                  <CommandGroup heading={factionId != null && other.length > 0 ? `Suggested (${suggested.length})` : undefined}>
+                    {suggested.map((recipe) => (
+                      <CommandItem
+                        key={recipe.id}
+                        value={recipe.name}
+                        onSelect={() => setSelectedRecipeId(recipe.id)}
+                      >
+                        <span className="flex-1">{recipe.name}</span>
+                        {recipe.faction_id !== null && factionMap.has(recipe.faction_id) && (
+                          <Badge variant="secondary" className="ml-auto">
+                            {factionMap.get(recipe.faction_id)}
+                          </Badge>
+                        )}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+                {other.length > 0 && (
+                  <CommandGroup heading={`Other (${other.length})`}>
+                    {other.map((recipe) => (
+                      <CommandItem
+                        key={recipe.id}
+                        value={recipe.name}
+                        onSelect={() => setSelectedRecipeId(recipe.id)}
+                      >
+                        <span className="flex-1">{recipe.name}</span>
+                        {recipe.faction_id !== null && factionMap.has(recipe.faction_id) && (
+                          <Badge variant="secondary" className="ml-auto">
+                            {factionMap.get(recipe.faction_id)}
+                          </Badge>
+                        )}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
               </CommandList>
             </Command>
           </>

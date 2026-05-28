@@ -273,6 +273,7 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhoto
       <ApplyRecipeDialog
         open={applyDialogOpen}
         unitId={unit.id}
+        factionId={unit.faction_id}
         onClose={() => setApplyDialogOpen(false)}
       />
     )}
