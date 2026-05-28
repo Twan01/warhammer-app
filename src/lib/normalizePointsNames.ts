@@ -1,15 +1,3 @@
-/**
- * Post-sync normalization: matches BSData point names to Wahapedia datasheet names.
- *
- * BSData and Wahapedia use different naming conventions:
- * - Singular vs plural: "Canoptek Spyder" vs "Canoptek Spyders"
- * - Case differences: "Imotekh The Stormlord" vs "Imotekh the Stormlord"
- * - Variant suffixes: "Captain in Gravis Armour" vs "Captain"
- *
- * This module runs after bulk_sync_rules to UPDATE rw_datasheet_points rows
- * whose datasheet_name doesn't match any rw_datasheets.name, resolving them
- * to the closest Wahapedia name. Only updates within the same faction.
- */
 import type Database from "@tauri-apps/plugin-sql";
 
 interface PointsRow {
@@ -23,44 +11,89 @@ interface DatasheetRow {
   faction_id: string | null;
 }
 
-/**
- * Regex matching all apostrophe-like characters:
- * U+0027 ' APOSTROPHE (straight)
- * U+2018 ' LEFT SINGLE QUOTATION MARK (curly left)
- * U+2019 ' RIGHT SINGLE QUOTATION MARK (curly right)
- * U+2032 ' PRIME
- * U+0060 ` GRAVE ACCENT
- */
-const APOSTROPHE_RE = /['‘’′`]/g;
-
-/**
- * Normalize a name for fuzzy comparison:
- * - lowercase
- * - strip trailing 's' (handles plural)
- * - strip apostrophes and special quotes
- * - collapse whitespace
- */
-function normalizeName(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(APOSTROPHE_RE, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/s$/, "");
+export interface NormalizationResult {
+  updated: number;
+  unmatched: Array<{ datasheet_name: string; faction_id: string | null }>;
 }
 
-/**
- * Try to find a matching datasheet name for an unmatched points entry.
- * Strategies (in order):
- *  1. Case-insensitive exact match
- *  2. Normalized match (strip trailing s, apostrophes)
- *  3. Prefix match (BSData name starts with Wahapedia name or vice versa)
- */
+const KNOWN_OVERRIDES: ReadonlyMap<string, string> = new Map([
+  // Keys: lowercase BSData names. Values: exact Wahapedia names.
+  // Add entries here as mismatches are discovered that can't be auto-resolved.
+]);
+
+const APOSTROPHE_RE = /['''′`]/g;
+
+const SINGULAR_EXCEPTIONS = new Set([
+  "chaos", "crisis", "nexus", "colossus", "terminus", "atlas",
+  "aegis", "ibis", "mantis", "primus", "infernus", "carnifex",
+]);
+
+function singularize(word: string): string {
+  const lower = word.toLowerCase();
+  if (SINGULAR_EXCEPTIONS.has(lower)) return word;
+  if (lower.length < 3) return word;
+
+  if (lower.endsWith("ies") && lower.length > 4) {
+    return word.slice(0, -3) + (word[word.length - 3] === "I" ? "Y" : "y");
+  }
+  if (lower.endsWith("ves") && lower.length > 4) {
+    return word.slice(0, -3) + (lower[lower.length - 4] === "l" ? "f" : "fe");
+  }
+  if (
+    lower.endsWith("ches") || lower.endsWith("shes") ||
+    lower.endsWith("xes") || lower.endsWith("zes") || lower.endsWith("ses")
+  ) {
+    return word.slice(0, -2);
+  }
+  if (lower.endsWith("s") && !lower.endsWith("ss")) {
+    return word.slice(0, -1);
+  }
+  return word;
+}
+
+function normalizeName(name: string): string {
+  const collapsed = name
+    .toLowerCase()
+    .replace(APOSTROPHE_RE, "")
+    .replace(/-/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const parts = collapsed.split(" ");
+  if (parts.length > 0) {
+    parts[parts.length - 1] = singularize(parts[parts.length - 1]);
+  }
+  return parts.join(" ");
+}
+
+function levenshtein(a: string, b: string): number {
+  if (a === b) return 0;
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  let curr = new Array<number>(b.length + 1);
+
+  for (let i = 1; i <= a.length; i++) {
+    curr[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+    }
+    [prev, curr] = [curr, prev];
+  }
+  return prev[b.length];
+}
+
 function findBestMatch(
   pointsName: string,
   factionId: string | null,
   datasheetsByFaction: Map<string | null, DatasheetRow[]>,
 ): string | null {
+  // Strategy 0: known overrides
+  const override = KNOWN_OVERRIDES.get(pointsName.toLowerCase());
+  if (override) return override;
+
   const candidates = datasheetsByFaction.get(factionId) ?? [];
   if (candidates.length === 0) return null;
 
@@ -72,14 +105,12 @@ function findBestMatch(
     if (ds.name.toLowerCase() === ptLower) return ds.name;
   }
 
-  // Strategy 2: normalized match (handles plural/apostrophe differences)
+  // Strategy 2: normalized match (plurals, apostrophes, hyphens)
   for (const ds of candidates) {
     if (normalizeName(ds.name) === ptNorm) return ds.name;
   }
 
-  // Strategy 3: prefix match — only if the shorter name is at least 60% of the longer
-  // This handles "Captain in Gravis Armour" -> "Captain" but avoids false matches
-  // We skip this for very short names (< 8 chars) to avoid matching unrelated entries
+  // Strategy 3: prefix match (shorter name is prefix of longer, 60%+ ratio, 8+ chars)
   if (pointsName.length >= 8) {
     for (const ds of candidates) {
       const dsLower = ds.name.toLowerCase();
@@ -91,20 +122,30 @@ function findBestMatch(
     }
   }
 
-  return null;
+  // Strategy 4: Levenshtein distance (max 2 edits AND max 10% of length, unique match only)
+  let bestMatch: string | null = null;
+  let bestDist = Infinity;
+  let tied = false;
+
+  for (const ds of candidates) {
+    const dsNorm = normalizeName(ds.name);
+    const dist = levenshtein(ptNorm, dsNorm);
+    const maxLen = Math.max(ptNorm.length, dsNorm.length);
+    if (dist <= 2 && maxLen > 0 && dist / maxLen <= 0.1) {
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestMatch = ds.name;
+        tied = false;
+      } else if (dist === bestDist) {
+        tied = true;
+      }
+    }
+  }
+
+  return tied ? null : bestMatch;
 }
 
-/**
- * Normalize rw_datasheet_points names to match rw_datasheets names.
- *
- * Reads all unmatched points entries (where datasheet_name doesn't match
- * any rw_datasheets.name for the same faction), then updates them to the
- * closest matching Wahapedia datasheet name.
- *
- * Returns the number of rows updated.
- */
-export async function normalizePointsNames(rulesDb: Database): Promise<number> {
-  // Find all points entries with no exact datasheet match
+export async function normalizePointsNames(rulesDb: Database): Promise<NormalizationResult> {
   const unmatched = await rulesDb.select<PointsRow[]>(
     `SELECT dp.id, dp.datasheet_name, dp.faction_id
      FROM rw_datasheet_points dp
@@ -116,9 +157,8 @@ export async function normalizePointsNames(rulesDb: Database): Promise<number> {
     [],
   );
 
-  if (unmatched.length === 0) return 0;
+  if (unmatched.length === 0) return { updated: 0, unmatched: [] };
 
-  // Load all datasheets grouped by faction
   const allDatasheets = await rulesDb.select<DatasheetRow[]>(
     "SELECT name, faction_id FROM rw_datasheets ORDER BY name",
     [],
@@ -132,6 +172,8 @@ export async function normalizePointsNames(rulesDb: Database): Promise<number> {
   }
 
   let updated = 0;
+  const stillUnmatched: Array<{ datasheet_name: string; faction_id: string | null }> = [];
+
   for (const row of unmatched) {
     const match = findBestMatch(row.datasheet_name, row.faction_id, byFaction);
     if (match && match !== row.datasheet_name) {
@@ -142,16 +184,22 @@ export async function normalizePointsNames(rulesDb: Database): Promise<number> {
         );
         updated++;
       } catch {
-        // Skip conflicts (e.g., UNIQUE constraint if a matching row already exists)
-        // This happens when both "Canoptek Spyder" and "Canoptek Spyders" exist
-        // in points — we keep the one that's already correct
+        stillUnmatched.push({ datasheet_name: row.datasheet_name, faction_id: row.faction_id });
       }
+    } else if (!match) {
+      stillUnmatched.push({ datasheet_name: row.datasheet_name, faction_id: row.faction_id });
     }
   }
 
   if (updated > 0) {
     console.info(`[normalizePointsNames] fixed ${updated} / ${unmatched.length} mismatched point names`);
   }
+  if (stillUnmatched.length > 0) {
+    console.warn(
+      `[normalizePointsNames] ${stillUnmatched.length} points still unmatched:`,
+      stillUnmatched.slice(0, 10).map((r) => `${r.datasheet_name} (${r.faction_id})`).join(", "),
+    );
+  }
 
-  return updated;
+  return { updated, unmatched: stillUnmatched };
 }

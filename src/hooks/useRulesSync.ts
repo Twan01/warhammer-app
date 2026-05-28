@@ -239,7 +239,10 @@ export function useRulesSync() {
       // the LEFT JOIN in getDatasheetsByFactionWithPoints finds them.
       try {
         const rulesDb = await getRulesDb();
-        await normalizePointsNames(rulesDb);
+        const normResult = await normalizePointsNames(rulesDb);
+        if (normResult.unmatched.length > 0) {
+          console.warn(`[useRulesSync] ${normResult.unmatched.length} points still unmatched after normalization`);
+        }
       } catch {
         console.warn("[useRulesSync] points name normalization failed — some points may not match datasheets");
       }

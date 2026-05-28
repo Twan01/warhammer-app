@@ -60,7 +60,12 @@ export function DbHealthGate({ children }: { children: ReactNode }) {
         // Fixes mismatches like "Canoptek Spyder" (BSData) vs "Canoptek Spyders" (Wahapedia)
         // that would cause points to show as null in the UI.
         try {
-          await normalizePointsNames(rulesDb);
+          const normResult = await normalizePointsNames(rulesDb);
+          if (normResult.unmatched.length > 0) {
+            console.warn(
+              `[DbHealthGate] ${normResult.unmatched.length} points still unmatched after normalization`,
+            );
+          }
         } catch (normErr) {
           console.warn("[DbHealthGate] points name normalization failed:", normErr);
         }
