@@ -2,16 +2,16 @@
 
 ## Status Auto-Derivation
 
-- [ ] **SAD-01**: Assembly status auto-derives from recipe section completion — when all steps in sections with `section_type = 'assembly'` are complete, `status_assembly` is set to 1
-- [ ] **SAD-02**: Basing and varnish auto-derivation uses `section_type` field instead of fragile section name LIKE matching
+- [x] **SAD-01**: Assembly status auto-derives from recipe section completion — when all steps in sections with `section_type = 'assembly'` are complete, `status_assembly` is set to 1
+- [x] **SAD-02**: Basing and varnish auto-derivation uses `section_type` field instead of fragile section name LIKE matching
 - [x] **SAD-03**: `SECTION_TYPES` vocabulary extended with 'assembly', 'basing', 'varnish' values for explicit section_type mapping
 - [x] **SAD-04**: Manual-override guard — auto-derivation does not overwrite statuses that were explicitly set by the user via StatusPopover
 
 ## Active Project Lifecycle
 
-- [ ] **APL-01**: `is_active_project` auto-set to 1 when a recipe is first assigned to a unit
-- [ ] **APL-02**: `is_active_project` auto-cleared to 0 when all applied recipe steps reach 100% completion
-- [ ] **APL-03**: Manual `is_active_project` toggle continues to work and is not overridden by auto-management within the same session
+- [x] **APL-01**: `is_active_project` auto-set to 1 when a recipe is first assigned to a unit
+- [x] **APL-02**: `is_active_project` auto-cleared to 0 when all applied recipe steps reach 100% completion
+- [x] **APL-03**: Manual `is_active_project` toggle continues to work and is not overridden by auto-management within the same session
 
 ## Smart Context Pre-Filling
 
@@ -40,13 +40,13 @@ None deferred — all proposed features included in this milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SAD-01 | Phase 100 | Pending |
-| SAD-02 | Phase 100 | Pending |
+| SAD-01 | Phase 100 | Complete |
+| SAD-02 | Phase 100 | Complete |
 | SAD-03 | Phase 100 | Complete |
 | SAD-04 | Phase 100 | Complete |
-| APL-01 | Phase 100 | Pending |
-| APL-02 | Phase 100 | Pending |
-| APL-03 | Phase 100 | Pending |
+| APL-01 | Phase 100 | Complete |
+| APL-02 | Phase 100 | Complete |
+| APL-03 | Phase 100 | Complete |
 | SCP-01 | Phase 102 | Pending |
 | SCP-02 | Phase 102 | Pending |
 | SCP-03 | Phase 102 | Pending |

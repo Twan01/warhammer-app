@@ -177,7 +177,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 100-02-PLAN.md — Core automation: syncDerivedStatuses, is_active_project lifecycle, tests
+- [x] 100-02-PLAN.md — Core automation: syncDerivedStatuses, is_active_project lifecycle, tests
 
 ### Phase 101: Battle-Readiness Pure Function & Unit Picker
 
@@ -310,7 +310,7 @@ Plans:
 | 97. Error Resilience | v0.3.0 | 2/2 | Complete | 2026-05-22 |
 | 98. Performance Optimization | v0.3.0 | 3/3 | Complete | 2026-05-22 |
 | 99. Architecture Cleanup | v0.3.0 | 3/3 | Complete | 2026-05-22 |
-| 100. Query-Layer Automation | v0.3.7 | 1/2 | In Progress|  |
+| 100. Query-Layer Automation | v0.3.7 | 2/2 | Complete   | 2026-05-28 |
 | 101. Battle-Readiness Pure Function & Unit Picker | v0.3.7 | 0/TBD | Not started | - |
 | 102. Smart Context Pre-Filling | v0.3.7 | 0/TBD | Not started | - |
 
