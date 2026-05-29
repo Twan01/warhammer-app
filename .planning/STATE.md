@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Unit Database — Canonical 40k Data Hub
-status: planning
-last_updated: "2026-05-29T09:03:30.324Z"
+status: ready_to_plan
+last_updated: "2026-05-29"
 last_activity: 2026-05-29
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,17 +17,19 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-28)
+See: .planning/PROJECT.md (updated 2026-05-29)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with reliable backup/restore so local data is always recoverable
-**Current focus:** Planning next milestone
+**Current focus:** Phase 103 — Data Acquisition & Schema
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-05-29 — Milestone v0.4.0 started
+Phase: 103 of 107 (Data Acquisition & Schema)
+Plan: — of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-05-29 — Roadmap created for v0.4.0 milestone
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -39,11 +41,20 @@ Last activity: 2026-05-29 — Milestone v0.4.0 started
 - v0.2.15: 11 plans across 5 phases (2 days)
 - v0.2.14: 11 plans across 5 phases (2 days)
 
+**By Phase:**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| - | - | - | - |
+
 ## Accumulated Context
 
-### Decisions (v0.3.7)
+### Key Decisions (v0.4.0)
 
-Archived to `.planning/milestones/v0.3.7-ROADMAP.md`
+- Phase ordering is non-negotiable: schema and data before UI, UI before FK integration, FK integration before army list simplification, army list simplification before rules.db removal
+- rules.db must stay alive through Phases 103–106 — 7+ call sites use getRulesDb(); eliminate only in Phase 107
+- FK nullable: units.udb_unit_id uses ON DELETE SET NULL — collection units survive database re-import
+- Entity IDs: reuse Wahapedia string IDs for udb_units so existing rules_favorites_notes annotations survive the pivot
 
 ### Pending Todos
 
@@ -51,11 +62,21 @@ None.
 
 ### Open Blockers
 
-None.
+- Phase 103 is HIGH risk: BSData XML parsing and Wahapedia CSV merging into a clean unit_database.json is the hardest deliverable and blocks all downstream phases. Plan extra carefully.
+
+## Deferred Items
+
+| Category | Item | Status | Deferred At |
+|----------|------|--------|-------------|
+| v2 scope | EXT-01: Leader attachment targets | Deferred | v0.4.0 planning |
+| v2 scope | EXT-02: Enhancement data per faction | Deferred | v0.4.0 planning |
+| v2 scope | EXT-03: Stratagems in canonical DB | Deferred | v0.4.0 planning |
+| v2 scope | ADV-01: Unit comparison view | Deferred | v0.4.0 planning |
+| v2 scope | ADV-02: Faction overview page | Deferred | v0.4.0 planning |
 
 ## Session Continuity
 
-Last session: 2026-05-28T23:00:00.000Z
-Stopped at: Milestone v0.3.7 shipped and archived
-Resume file: n/a
-Resume: Run `/gsd:new-milestone` to start next milestone.
+Last session: 2026-05-29
+Stopped at: Roadmap created for v0.4.0, ready to plan Phase 103
+Resume file: None
+Resume: Run `/gsd:plan-phase 103` to begin planning.

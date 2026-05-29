@@ -82,40 +82,40 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DAS-01 | — | Pending |
-| DAS-02 | — | Pending |
-| DAS-03 | — | Pending |
-| DAS-04 | — | Pending |
-| DAS-05 | — | Pending |
-| DAS-06 | — | Pending |
-| DAS-07 | — | Pending |
-| DAS-08 | — | Pending |
-| BUI-01 | — | Pending |
-| BUI-02 | — | Pending |
-| BUI-03 | — | Pending |
-| BUI-04 | — | Pending |
-| BUI-05 | — | Pending |
-| BUI-06 | — | Pending |
-| COL-01 | — | Pending |
-| COL-02 | — | Pending |
-| COL-03 | — | Pending |
-| COL-04 | — | Pending |
-| COL-05 | — | Pending |
-| COL-06 | — | Pending |
-| COL-07 | — | Pending |
-| ALI-01 | — | Pending |
-| ALI-02 | — | Pending |
-| ALI-03 | — | Pending |
-| CLN-01 | — | Pending |
-| CLN-02 | — | Pending |
-| CLN-03 | — | Pending |
-| CLN-04 | — | Pending |
+| DAS-01 | Phase 103 | Pending |
+| DAS-02 | Phase 103 | Pending |
+| DAS-03 | Phase 103 | Pending |
+| DAS-04 | Phase 103 | Pending |
+| DAS-05 | Phase 103 | Pending |
+| DAS-06 | Phase 103 | Pending |
+| DAS-07 | Phase 103 | Pending |
+| DAS-08 | Phase 103 | Pending |
+| BUI-01 | Phase 104 | Pending |
+| BUI-02 | Phase 104 | Pending |
+| BUI-03 | Phase 104 | Pending |
+| BUI-04 | Phase 104 | Pending |
+| BUI-05 | Phase 104 | Pending |
+| BUI-06 | Phase 104 | Pending |
+| COL-01 | Phase 105 | Pending |
+| COL-02 | Phase 105 | Pending |
+| COL-03 | Phase 105 | Pending |
+| COL-04 | Phase 105 | Pending |
+| COL-05 | Phase 105 | Pending |
+| COL-06 | Phase 105 | Pending |
+| COL-07 | Phase 105 | Pending |
+| ALI-01 | Phase 106 | Pending |
+| ALI-02 | Phase 106 | Pending |
+| ALI-03 | Phase 106 | Pending |
+| CLN-01 | Phase 107 | Pending |
+| CLN-02 | Phase 107 | Pending |
+| CLN-03 | Phase 107 | Pending |
+| CLN-04 | Phase 107 | Pending |
 
 **Coverage:**
 - v1 requirements: 28 total
-- Mapped to phases: 0
-- Unmapped: 28 ⚠️
+- Mapped to phases: 28
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-29*
-*Last updated: 2026-05-29 after initial definition*
+*Last updated: 2026-05-29 — traceability filled after roadmap creation*
