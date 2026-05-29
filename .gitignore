@@ -25,6 +25,9 @@ Thumbs.db
 # pnpm
 .pnpm-debug.log*
 
+# Build script source data (Wahapedia CSVs + BSData XML — downloaded by developer, not committed)
+scripts/data/
+
 # User-local launcher overrides (optional - uncomment to ignore)
 # launch-local.bat
 # launch-dev-local.bat
