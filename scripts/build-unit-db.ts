@@ -679,12 +679,12 @@ async function main() {
     (f) => !unitsPerFaction.has(f.id) || unitsPerFaction.get(f.id)! === 0
   );
   if (emptyFactions.length > 0) {
-    console.error("ERROR: The following factions have no units:");
+    console.warn("  Removing " + emptyFactions.length + " faction(s) with no units:");
     for (const f of emptyFactions) {
-      console.error("  - " + f.id + ": " + f.name);
+      console.warn("    - " + f.id + ": " + f.name);
     }
-    console.error("Check that your Datasheets.csv matches Factions.csv.");
-    process.exit(1);
+    const emptyIds = new Set(emptyFactions.map((f) => f.id));
+    factions.splice(0, factions.length, ...factions.filter((f) => !emptyIds.has(f.id)));
   }
 
   // Check: total unit count >= 100 (40k 10th has ~500+ datasheets)
