@@ -227,6 +227,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/037_override_flags.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 38,
+            description: "udb_schema",
+            sql: include_str!("../migrations/038_udb_schema.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
