@@ -343,7 +343,7 @@ Plans:
 | 100. Query-Layer Automation | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 | 101. Battle-Readiness Pure Function & Unit Picker | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 | 102. Smart Context Pre-Filling | v0.3.7 | 2/2 | Complete | 2026-05-28 |
-| 103. Data Acquisition & Schema | v0.4.0 | 3/3 | Complete   | 2026-05-29 |
+| 103. Data Acquisition & Schema | v0.4.0 | 3/3 | Complete    | 2026-05-29 |
 | 104. Database Browser UI | v0.4.0 | 0/TBD | Not started | - |
 | 105. Collection Integration | v0.4.0 | 0/TBD | Not started | - |
 | 106. Army List Simplification | v0.4.0 | 0/TBD | Not started | - |

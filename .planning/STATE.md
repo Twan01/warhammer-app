@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Unit Database — Canonical 40k Data Hub
-status: verifying
-stopped_at: Phase 103 planned, ready to execute
-last_updated: "2026-05-29T11:00:04.052Z"
+status: ready_to_plan
+stopped_at: Phase 103 complete (3/3) — ready to discuss Phase 104
+last_updated: 2026-05-29T11:20:56.890Z
 last_activity: 2026-05-29
 progress:
   total_phases: 5
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-29)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 103 — data-acquisition-schema
+**Current focus:** Phase 104 — database browser ui
 
 ## Current Position
 
-Phase: 103 (data-acquisition-schema) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
+Phase: 104
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-05-29
 
 Progress: [██████████] 100%
@@ -46,7 +46,7 @@ Progress: [██████████] 100%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 103 | 3 | - | - |
 
 ## Accumulated Context
 
