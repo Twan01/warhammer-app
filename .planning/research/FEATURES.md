@@ -1,167 +1,162 @@
-# Feature Landscape — v0.3.7 Smart Automation
+# Feature Landscape: Unit Database / Canonical 40k Data Hub
 
-**Domain:** Smart automation in hobby/project tracking — status auto-derivation, lifecycle management, context pre-filling, battle-readiness filtering
-**Researched:** 2026-05-28
-**Overall confidence:** HIGH (grounded in existing codebase + domain survey of competitor apps)
-
----
-
-## What Already Exists (Do Not Rebuild)
-
-These are live in the codebase and must not be re-proposed as new features.
-
-| Existing Capability | Location |
-|---------------------|----------|
-| `painting_percentage` auto-computed from recipe step completion on every `upsertStepProgress` | `src/db/queries/recipeAssignments.ts: syncPaintingPercentageByUnitId()` |
-| `status_painting` auto-derived from `painting_percentage` via `percentageToStatus()` | Same file, runs inside `syncDerivedStatuses()` |
-| `status_basing` auto-derived by section name fuzzy match (LIKE '%basing%') | `syncDerivedStatuses()` |
-| `status_varnished` auto-derived by section name fuzzy match (LIKE '%varnish%') | `syncDerivedStatuses()` |
-| `is_active_project` manual toggle on collection page, kanban, unit detail sheet | Multiple UI surfaces; `src/features/units/CollectionPage.tsx`, `UnitDetailSheet.tsx` |
-| Bulk apply recipe to multiple units | `bulkCreateAssignments()` in `recipeAssignments.ts` |
-| Recipe form has `faction_id` and `unit_id` fields | `recipeSchema.ts` |
-| Army list `getArmyListWithUnits` returns `status_painting`, `painting_percentage`, `status_assembly` per unit | `armyLists.ts` — already in SQL projection |
-| Points resolved via 6-level COALESCE chain in army list SQL | `armyLists.ts: getArmyListWithUnits()` |
-| `SECTION_TYPES` const with values: prep, basecoat, shade, layer, detail, effect, finishing | `src/types/recipeSection.ts` |
-
-**Critical finding 1:** `status_basing` and `status_varnished` are already auto-derived, but by section *name* fuzzy match (LIKE '%basing%'). The v0.3.7 goal is a precision upgrade to use the `section_type` field instead — not a new feature category. `status_assembly` is NOT yet auto-derived at all.
-
-**Critical finding 2:** `is_active_project` auto-lifecycle does not exist. `createAssignment()` does not set it. Completing all steps does not clear it. This is fully new behavior.
-
-**Critical finding 3:** No competitor app (Figure Case, Pile of Potential, Liber Pigmenta) implements automatic status derivation from workflow data. All require manual status updates. HobbyForge's existing auto-derivation of basing/varnish is already ahead of the market. This milestone extends that lead.
+**Domain:** Warhammer 40k unit database browser for a personal hobby management desktop app
+**Researched:** 2026-05-29
+**Reference tools studied:** 40k.app (direct page fetch), Wahapedia, New Recruit, Quartermaster, ButtScribe, Official GW App
 
 ---
 
 ## Table Stakes
 
-Features users expect given the existing level of automation in the app. Missing = feels like a regression or inconsistency.
+Features users expect from any unit database browser. Missing any of these makes the product feel incomplete compared to free web tools like Wahapedia and 40k.app.
 
-| Feature | Why Expected | Complexity | Dependency |
-|---------|--------------|------------|------------|
-| **status_assembly auto-set when Assembly section completes** | Basing + varnish already auto-derive; assembly is the conspicuous gap. The inconsistency reads as a bug. | Low | `syncDerivedStatuses()` in `recipeAssignments.ts`; add assembly branch matching basing/varnish pattern |
-| **section_type-based basing/varnish derivation** | Current LIKE '%basing%' name match is fragile — "Base Coat" section would false-match. `section_type` field exists from v0.2.9. Using it is strictly more reliable. | Low-Medium | Update `syncDerivedStatuses()` to check `section_type` first, fall back to name match for pre-v0.2.9 recipes without section_type set |
-| **is_active_project auto-set when recipe is assigned** | Assigning a recipe is the clearest possible signal of active painting intent. Users expect the Kanban to reflect this immediately without a manual second step. | Low | Add `UPDATE units SET is_active_project = 1 WHERE id = $1` in `createAssignment()` and `bulkCreateAssignments()` |
-| **is_active_project auto-clear at 100% step completion** | A fully-complete recipe has no remaining steps. Leaving the unit "active" contradicts the data and clutters the Kanban and ActiveProjectsPanel. | Low | Add conditional clear in `syncPaintingPercentageByUnitId()` when computed pct = 100 |
-| **Battle-readiness badge in army list unit picker** | Army list query already returns `status_painting` and `painting_percentage` per unit. Not surfacing it in the picker forces users to cross-reference the Collection page. Data is present; just not shown. | Low | UI-only addition; `ArmyListUnitRow` already has `painting_percentage` and `status_assembly` |
-| **Points-remaining filter in army list unit picker** | Quartermaster (comparable tool) has this as a toggle. Without it, users manually compute what still fits in budget. The 6-level COALESCE chain already resolves points per unit; `points_limit` is on `army_lists`. | Medium | Compute `remaining = points_limit - sum(effective_points)` from list state; filter picker list to units where `effective_points <= remaining` |
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Faction picker with all factions | Every 40k tool starts here. Users think in factions first. Missing factions = broken trust in data completeness. | Low | ~28–35 factions depending on subfaction counting. 40k.app groups them as Imperium / Space Marines / Chaos / Xenos. Existing `rw_factions` table already holds these IDs and names. |
+| Unit list per faction grouped by role | 40k.app's confirmed role categories: Epic Heroes / Leaders & Characters / Battleline / Mounted / Infantry, Swarms & Beasts / Aircraft / Titanic / Dedicated Transports / Vehicles & Monsters. Users learn this grouping from GW official resources — any different grouping causes confusion. | Low | Role is already stored in `rw_datasheets.role` from Wahapedia. Rendering is a sort + section header operation. |
+| Points shown on unit list row | Every reference tool (40k.app, New Recruit, Wahapedia) shows points alongside unit name. Browsing without points is unusable for army-building context. | Low | Points are in `rw_datasheet_points` (synced) and will be in the canonical `unit_database_points` table. Multi-tier units (e.g., "5 models: 90pts / 10 models: 180pts") need a "from X pts" indicator on the list — show the minimum tier. |
+| Full datasheet detail view | Stats block (M/T/Sv/Inv Sv/W/Ld/OC per model profile), ranged weapons table (Range/A/BS-WS/S/AP/D + weapon keywords), melee weapons table (same columns), abilities by type (Core/Faction/Datasheet), faction keywords + unit keywords, composition text. This is the core reference value of any datasheet browser. | Medium | Existing schema already has `rw_datasheet_models`, `rw_datasheets_wargear`, `rw_datasheet_abilities`, `rw_datasheet_keywords`. The existing `PlaybookTab` component renders a version of this — evolve rather than rewrite. |
+| Text search within a faction's units | Users type unit name to find fast. Substring match on unit name within selected faction is the minimum. | Low | SQLite LIKE is sufficient at the single-faction level (~50–200 units per faction). No FTS5 needed for faction-scoped search. |
+| Offline-first — all data available without syncing | The core promise of v0.4.0. Users must be able to browse every faction and every unit immediately on app launch with no internet connection and no Wahapedia/BSData dependency. | High | This is a data acquisition problem, not a UI problem. The UI is simple; building the pre-populated canonical dataset is the hard part. Without this, nothing else in this milestone works. |
+| Invulnerable save (Inv Sv) displayed in stat block | 10th edition datasheets always show Inv Sv when a unit has one. Free tools show it; omitting it makes the datasheet look wrong. | Low | Already in `rw_datasheet_models.inv_sv`. Currently not rendered in PlaybookTab — add to stat block display. |
+| Damaged profile / degraded stats indicator | Multi-wound vehicles and monsters have a wound threshold above which they use degraded stats. Standard datasheet element; users reference it during games. | Low | Already in `rw_datasheets.damaged_w` and `damaged_description`. Currently rendered in PlaybookTab — carry forward. |
+| Ability descriptions (not just names) | Abilities must show full text descriptions, not just names. Users look up rules mid-game — names alone are useless. | Low | Already in `rw_datasheet_abilities.description`. Rendered in PlaybookTab — carry forward. |
+| Composition text | Min/max model counts, default equipment, and loadout options. Users need this to know how to legally field the unit. | Medium | Partially in BSData XML (not in current Wahapedia CSV schema). Must be a data acquisition goal. If unavailable from data source, show a "See codex" placeholder — do not omit the section entirely. |
 
 ---
 
 ## Differentiators
 
-Features that set HobbyForge apart from any hobby tracker. Not expected, but high per-interaction value.
+Features that set HobbyForge apart from free web reference tools. Users won't expect these from a generic datasheet browser, but they deliver high value in the context of a personal hobby management app.
 
-| Feature | Value Proposition | Complexity | Dependency |
-|---------|-------------------|------------|------------|
-| **Faction auto-fill in recipe form opened from unit context** | When opening "New Recipe" from a unit detail, pre-fill `faction_id` from the unit's faction. Eliminates the most common redundant selection for a single-faction painter. | Low | `RecipeFormSheet` already has `faction_id` field; add `defaultFactionId` prop wired into `defaultValues` |
-| **Recipe picker pre-filtered by unit faction** | When applying a recipe to a unit, show faction-matched recipes at the top (or as default filter). Users with multiple factions waste time scanning cross-faction recipes. | Low | `ApplyRecipeDialog` — sort/filter `recipes` array by `recipe.faction_id === unit.faction_id` before rendering |
-| **"Assembly" as an explicit section_type enum value** | Current `SECTION_TYPES` = [prep, basecoat, shade, layer, detail, effect, finishing]. "prep" is ambiguous. An explicit "assembly" type enables unambiguous auto-derivation of `status_assembly` and helps users label their sections correctly. | Low | Extend `SECTION_TYPES` const in `src/types/recipeSection.ts`; no schema migration needed (stored as TEXT) |
-| **Smart points-remaining badge in army list picker header** | Show the live remaining points budget prominently as units are added, updated on every list mutation. Combined with the filter toggle, this replaces mental math entirely. | Medium | Requires `useMemo` on `points_limit - sum(effective_points)` over current list state |
-| **Active project count becomes reliable metric on dashboard** | Once auto-lifecycle manages `is_active_project`, the count in ActiveProjectsPanel and CurrentFocusCard is trustworthy (not "whatever the user remembered to toggle"). No new UI needed; existing dashboard cards become more meaningful. | None (side effect) | Depends on is_active_project auto-lifecycle being in place |
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| "Add to Collection" directly from datasheet view | Removes the current friction: user browses a unit, finds one they own, clicks "Add to Collection" — faction, role, keywords pre-populated. Eliminates manual name entry entirely. | Medium | Requires the `units` table to gain a FK column pointing to the canonical `unit_database.id`. The existing `UnitPickerDialog` (army list builder) is the template for the browse-and-pick interaction pattern. |
+| Ownership badge on unit list row | When browsing a faction, units the user already owns are marked with a subtle badge or checkmark. Makes collection gaps visible at a glance without leaving the browser. | Low | Simple LEFT JOIN: `SELECT udb.id, (u.id IS NOT NULL) AS owned FROM unit_database udb LEFT JOIN units u ON u.unit_database_id = udb.id WHERE udb.faction_id = $1`. Requires the FK column to exist on `units`. |
+| Readiness badge on unit list row | Units in the collection that pass `computeUnitReadiness()` show a "Ready" indicator. Surfaces painting status inside the database browser. | Low | Call `computeUnitReadiness()` (already exists as a pure function) against owned units. Shown only for owned units — invisible for unowned units, so the list stays clean for pure browsing. |
+| Global cross-faction search | Search "Terminator" and find Space Marine Terminators, Chaos Terminators, and Grey Knight Terminators in one result set. Free web tools require selecting a faction first. | Medium | SQLite FTS5 (Full-Text Search) virtual table on `unit_name + faction_name + keywords` is the correct implementation. A plain LIKE query across 2500+ rows without an index is too slow for instant search feedback. FTS5 virtual table must be created during migration/import, not at query time. See PITFALLS.md for the FTS5 setup requirement. |
+| Faction alignment grouping on faction picker | Grouping factions as Imperium / Space Marines / Chaos / Xenos on the faction picker page matches the mental model GW players use. 40k.app uses this grouping (confirmed). | Low | Pure UI with hard-coded alignment mapping, or add an `alignment` TEXT column to the canonical `factions` table during migration. No runtime complexity. |
+| Points tier table on detail view | Show all model-count brackets (5 models: 90pts / 10 models: 180pts) in the datasheet, not just the minimum. Free tools and the official GW app often show only one price, requiring users to look elsewhere. | Low | The current `rw_datasheet_points` schema stores one row per unit (no model count). The new canonical schema needs `(unit_id, model_count NULLABLE, points)` rows. This is a schema design decision in Phase 1, not a UI problem. |
+| Weapon keywords displayed inline | 10th edition weapon special rules (Devastating Wounds, Rapid Fire 2, Anti-Infantry 4+, etc.) appear in weapon profiles. Showing these inline rather than abbreviated is a UX win vs. printed index cards. | Low | Already partially in `rw_datasheets_wargear.type` and `description`. Requires the data source to provide structured weapon keyword data (Wahapedia does export these). |
+| Detachment links from faction page | Show the available detachments for the faction at the top of the faction page, linking to their rules and enhancement lists. 40k.app does this (confirmed: detachment links appear above the unit list). | Low | Existing `rw_detachments` and `rw_detachment_abilities` tables already hold this data. UI-only addition on the faction page. |
+| Annotation (favorite / note) on database units | User can star a unit they want to buy ("wishlist") or attach a note ("considering for my list"). Annotations persist independently of ownership status. | Medium | Extend the existing `rule_annotations` table pattern (`rule_type / rule_id / is_favorite / note`). The `rule_type = 'unit_database'` variant would map to the canonical unit ID. No new schema paradigm — reuse established pattern. |
 
 ---
 
 ## Anti-Features
 
-Features that seem natural to request but would harm this specific app.
+Features to explicitly NOT build in this milestone, with rationale.
 
 | Anti-Feature | Why Avoid | What to Do Instead |
 |--------------|-----------|-------------------|
-| **Remove manual is_active_project toggle after adding auto-lifecycle** | User may intentionally keep a unit active during a planning phase before any recipe is assigned. Removing the manual override breaks legitimate use cases. | Keep the checkbox as an escape hatch; auto-lifecycle adds behavior on top, does not replace the toggle |
-| **Replace name-based basing/varnish heuristic entirely with section_type** | Recipes created before v0.2.9 have no `section_type` set. Removing the LIKE fallback would silently break auto-derivation for all existing recipes with named sections but no `section_type`. | Check `section_type` first; fall back to name LIKE when `section_type IS NULL` |
-| **Auto-assign a recipe when creating a unit** | Aggressive. User may want to log ownership (and even mark it active) without a painting plan yet. | Prompt or suggest post-create; never auto-assign |
-| **Block adding an unready unit to an army list** | Competitive players run unpainted lists for playtesting. Blocking contradicts the personal tool purpose. | Show readiness badge as purely informational, never gating |
-| **Auto-deactivate is_active_project if a recipe is removed** | Removing a recipe is a correction action, not a completion signal. Auto-clearing would surprise and hide units the user intends to keep active. | Only auto-clear when `painting_percentage` reaches 100 via step completion |
-| **AI/ML recipe suggestions or smart recommendations** | Out of scope per PROJECT.md. Desktop-local, no network, no telemetry. | Explicit user actions only |
-| **Automatic is_active_project set when unit is created** | Creation is not an activity signal. The user may create dozens of units in a bulk import session. | Only trigger on recipe assignment |
+| Real-time sync from Wahapedia/BSData at browse time | The entire point of v0.4.0 is to eliminate the fragile runtime sync pipeline. Adding it back as a browse-time dependency defeats the architecture goal and reintroduces WAL/connection pool timing bugs. | Ship a pre-built database. Provide a dev-side update script for GW changes. Keep the optional "check for points updates" as a separate user-triggered operation only. |
+| Complex filter combinatorics (role AND keyword AND points range AND painted status) | Filter combinations create state management complexity and edge-case UX bugs. With 50–200 units per faction, users don't need multi-dimensional filtering — client-side role grouping already handles the primary navigation need. | Role grouping handles the key filter. Provide text search + role dropdown. Keep it simple: two filter dimensions maximum per faction view. |
+| Codex-accurate visual datasheet layout replicating GW's print design | Reproducing GW's visual index card style (artwork, specific fonts, color bands) is a copyright risk and a massive styling effort for zero functional gain. The app has its own design system. | Use the existing dark-mode card and table layout consistent with the rest of HobbyForge. Functional accuracy matters; pixel-perfect GW aesthetics do not. |
+| Unit comparison side-by-side view | Interesting feature but adds significant UI complexity (two-panel layout, scroll sync, responsive breakpoints, state management). Not needed for the core browsing use case. | Defer. Users can open the datasheet and cross-reference with Wahapedia for comparison. |
+| Competitive tier ratings or win-rate data | This app explicitly avoids competitive optimization per PROJECT.md. Tier lists would drift scope toward a competitive tool, which is explicitly out of scope. | Not in scope. |
+| Auto-sync on app startup | Would reintroduce the WAL/connection pool timing bugs that have caused bugs across multiple milestones. The pre-built canonical database eliminates the need for startup syncing. | Manual update via app version update. Optional user-triggered "check for points updates" as a narrow escape hatch only. |
+| Purchase links or price display | Shopping feature, not hobby management. URLs break, prices change, legal complexity with GW's T&Cs. | The spending tracker handles purchase cost tracking. That is sufficient. |
+| Online roster sharing or cloud sync | Explicitly out of scope per PROJECT.md. Local-first is a core architectural constraint, not a feature flag. | Export formats (existing 4-format export) satisfy sharing needs for competitive events. |
+| Multi-game-system support (AoS, Horus Heresy) | Explicitly out of scope per PROJECT.md. Adds data acquisition complexity for zero user benefit in this personal 40k tool. | 40K 10th edition only. |
 
 ---
 
 ## Feature Dependencies
 
+Dependencies between features in this milestone and on existing HobbyForge capabilities.
+
 ```
-[Existing] syncDerivedStatuses() — basing/varnish by name LIKE match
-      ↓ precision upgrade (same function, same call sites)
-section_type-based derivation: check section_type field first, name LIKE fallback
-      + assembly derivation: new branch (section_type = "assembly" OR name LIKE "%assembl%")
+Pre-built canonical database (Phase 1: data acquisition + schema)
+    → ALL other features depend on this. Nothing else can be built without it.
+    → Faction picker
+    → Unit list with role grouping + points
+    → Datasheet detail view (stats, weapons, abilities, keywords)
+    → Global FTS5 search (index built at import time)
 
-"Assembly" added to SECTION_TYPES const
-      → Must happen before assembly auto-derivation is testable by users
-      → Zero migration (TypeScript const, TEXT column in SQLite)
+Faction picker
+    → Unit list (faction_id parameter)
+    → Detachment links per faction (existing rw_detachments data)
 
-[Existing] createAssignment() / bulkCreateAssignments()
-      ↓ side effect addition
-is_active_project = 1 UPDATE after recipe assignment INSERT
+Unit list
+    → Unit detail / datasheet view (unit_id parameter)
+    → Ownership badge (requires: units.unit_database_id FK column)
+    → Readiness badge (requires: ownership badge + computeUnitReadiness())
 
-[Existing] syncPaintingPercentageByUnitId() — called on every step completion and assignment mutation
-      ↓ conditional addition after percentage UPDATE
-is_active_project = 0 UPDATE when painting_percentage reaches 100
+Unit detail / datasheet view
+    → "Add to Collection" flow (user picks unit here or from list)
 
-[Existing] getArmyListWithUnits() — already returns status_painting, painting_percentage
-      ↓ UI-only addition
-Battle-readiness badge on each unit row in army list picker
+"Add to Collection" flow (Phase 3)
+    → units.unit_database_id FK column must exist (migration)
+    → Auto-populates faction, role, keywords from canonical record
+    → Opens existing UnitSheet with pre-filled values
 
-[Existing] points_limit on army_lists + effective_points per unit in ArmyListUnitRow
-      ↓ computed value (useMemo)
-Remaining budget = points_limit - sum(effective_points of all list units)
-      ↓ filter toggle
-Points-remaining filter: show only units where effective_points <= remaining
+units.unit_database_id FK column
+    → Ownership badge on list (LEFT JOIN)
+    → Migration of existing collection units to DB FK (name-match + user confirmation)
+    → Army list points resolved from database (Phase 4)
 
-[Existing] RecipeFormSheet — has faction_id field with defaultValues
-      ↓ prop addition
-defaultFactionId prop → wired into RHF defaultValues on open
+Army list points from database (Phase 4)
+    → Simplifies resolveUnitPoints() — reads unit_database_points via FK instead of 5-level COALESCE
+    → Points freshness badges can be simplified or removed
+    → synced_unit_points cache table can be deprecated
 
-[Existing] ApplyRecipeDialog — loads all recipes for a faction
-      ↓ sort/filter logic
-faction-matched recipes at top or default-selected in filter
+Single-database consolidation (Phase 5)
+    → Depends on: all above phases stable and validated
+    → Eliminates rules-client.ts, rules.db, WAL workarounds, dual-query patterns
+    → Highest migration risk — do last
 ```
+
+**Existing features that this milestone builds upon (do not rewrite):**
+- `PlaybookTab` — existing datasheet renderer for stats, abilities, keywords. Evolve this into the standalone datasheet view; do not build a new one from scratch.
+- `UnitPickerDialog` — existing army list unit picker. The "Add from Database" collection flow reuses this browse-and-pick interaction pattern.
+- `resolveUnitPoints()` pure function — centralized points resolver. After v0.4.0, its 5-level COALESCE simplifies to a direct lookup via FK.
+- `rule_annotations` table — annotation pattern (favorites, notes, reminders) can be extended with `rule_type = 'unit_database'` to support unit wishlist annotations.
+- `RulesHubPage` — evolves into the faction browser. Existing tab structure (stratagems, detachments, shared abilities) merges with new unit browser.
+- `computeUnitReadiness()` — pure function already in `src/lib/`. Used for readiness badges on unit list rows.
+- FTS5: SQLite ships with FTS5 built in. The Tauri plugin-sql executes arbitrary SQL, so FTS5 virtual table creation via migration SQL is supported without extra dependencies.
 
 ---
 
-## Complexity Notes
+## Data Model Requirements (implied by features)
 
-### Low complexity — pure additions, zero schema risk
+The canonical unit database schema must support the following to enable all table-stakes and differentiator features. These replace the existing `rw_*` tables, which live in the soon-to-be-eliminated `rules.db`.
 
-- **Assembly auto-derivation:** Add one branch to `syncDerivedStatuses()` mirroring basing pattern. Check `section_type = 'assembly'` OR `LOWER(sec.name) LIKE '%assembl%'`. Three SQL statements added (hasAssemblySections, incompleteAssembly, boolResult) matching the existing basing/varnish pattern exactly.
-- **is_active_project auto-set on assign:** Two-line addition per create function — `UPDATE units SET is_active_project = 1 WHERE id = $1`. Must also invalidate `["units"]` React Query key post-mutation (already invalidated by `createAssignment` hook).
-- **is_active_project auto-clear on 100%:** One conditional inside `syncPaintingPercentageByUnitId()` after the percentage UPDATE — `if pct === 100 then UPDATE units SET is_active_project = 0`.
-- **Faction auto-fill in recipe form:** Pass `defaultFactionId?: number` prop to `RecipeFormSheet`; include in `defaultValues` object. Caller (unit detail context) provides the unit's `faction_id`. No DB changes.
-- **Recipe picker pre-filter by faction:** In `ApplyRecipeDialog`, sort `recipes` so `recipe.faction_id === unit.faction_id` items appear first, or add a "faction match" filter chip. UI-only.
-- **Battle-readiness badge in army list picker:** Data is already on `ArmyListUnitRow`. Add a colored badge showing painted % or assembly status next to each unit in the picker. UI-only.
-- **"Assembly" in SECTION_TYPES const:** One string added to the TypeScript const array. Zero migration. Dropdown gains one option.
+| Entity | Required Fields | Replaces |
+|--------|----------------|---------|
+| `unit_database` | id, name, faction_id, role, damaged_w, damaged_description, composition_text | `rw_datasheets` |
+| `unit_database_models` | unit_id, line, name, M, T, Sv, inv_sv, W, Ld, OC | `rw_datasheet_models` |
+| `unit_database_weapons` | unit_id, line, name, range, A, BS_WS, S, AP, D, weapon_keywords TEXT | `rw_datasheets_wargear` (adds structured weapon_keywords) |
+| `unit_database_abilities` | unit_id, line, name, description, type | `rw_datasheet_abilities` |
+| `unit_database_keywords` | unit_id, keyword, is_faction_keyword | `rw_datasheet_keywords` |
+| `unit_database_points` | unit_id, model_count INTEGER NULLABLE, points | `rw_datasheet_points` (adds model_count for tier display) |
+| `unit_database_leaders` | unit_id, can_lead_unit_id | New — leader attachment targets from BSData |
+| FTS5 virtual table | content from unit_name + faction_name + keywords | New — global cross-faction search |
 
-### Medium complexity — computed state + UI work
-
-- **section_type-based basing/varnish derivation:** Update `syncDerivedStatuses()` SQL queries to include `OR sec.section_type IN ('basing', 'finishing')` alongside the existing LIKE clause. Must test fallback path for older recipes. Requires identifying which `section_type` value maps to "basing" (possibly a new explicit value) and which maps to "varnish" (currently "finishing" is closest). May need a schema-level decision on whether to add "basing" to `SECTION_TYPES` or reuse "finishing" for varnish.
-- **Points-remaining filter:** Compute remaining budget via `useMemo` over list state (already available in `useArmyList` hook result). Add toggle state in `armyListsReducer`. Filter unit picker list to affordable units. Handle edge cases: ghost units with 0 points, units with null effective_points defaulting to 0.
-
-### Schema impact
-
-- Adding "assembly" to `SECTION_TYPES` const: zero migration (TypeScript const only; SQLite stores section_type as TEXT).
-- All auto-lifecycle changes target existing columns (`is_active_project`, `status_assembly`): zero migration.
-- This milestone requires **no new SQL migrations**.
+**Key schema decision:** `unit_database` lives in `hobbyforge.db` from the start. This eliminates the cross-database join problem entirely and makes ownership badges and readiness queries trivial LEFT JOINs.
 
 ---
 
 ## MVP Recommendation
 
-Ordered by value/effort ratio:
+Ordered by dependency and risk. Ship in this order:
 
-1. **is_active_project auto-lifecycle** (assign → active, 100% → inactive)
-   Highest perceived value, lowest implementation risk. Changes two functions in `recipeAssignments.ts`. Makes Kanban self-managing. Delivers immediately visible dashboard improvement.
+1. **Pre-built canonical database** — data acquisition, schema migrations, import script, validation that all factions + units + points are present and correct. This is Phase 1 and blocks everything else.
 
-2. **Assembly auto-derivation + "assembly" section_type + section_type precision for basing/varnish**
-   Completes the status derivation story. All three boolean flags (assembly, basing, varnish) then auto-derive from recipe data. Ship together so the feature feels complete.
+2. **Faction picker + unit list with role grouping + points** — faction alignment groups, unit list sorted by role, "from X pts" indicator. Faction-scoped text search. This is the browseable product.
 
-3. **Battle-readiness badge in army list unit picker**
-   UI-only. Data already present. Immediate visual payoff, zero risk.
+3. **Datasheet detail view** — stats block (including Inv Sv), weapons tables, abilities, keywords, points tiers, damaged profile. Evolve PlaybookTab. Add detachment links at faction level.
 
-4. **Faction auto-fill + recipe picker pre-filter**
-   Reduces friction in the most frequent workflow (unit → apply recipe). Low risk, high daily-use value.
+4. **"Add from Database" collection flow** — browse/search → pick unit → confirm → added to collection with FK link and pre-filled data. Migrate existing collection units to DB FK by name heuristic.
 
-5. **Points-remaining filter in army list picker**
-   Most complex UI of the set. Logically final since it benefits most once the readiness badge provides context about *why* filtering matters.
+5. **Army list points from database** — remove the 5-level COALESCE chain; read directly from `unit_database_points` via `units.unit_database_id` FK. This is the reliability payoff.
 
-**Defer:** Dashboard active count enhancement — implement after auto-lifecycle is stable so the count is reliable. No new UI needed; the existing ActiveProjectsPanel just becomes more accurate.
+6. **Single-database consolidation** — eliminate `rules.db`, `rules-client.ts`, WAL workarounds, dual-query patterns. Do this last after everything above is stable.
+
+**Defer to post-v0.4.0:**
+- Global cross-faction FTS5 search (high value, low complexity — include in MVP if data acquisition lands on schedule; defer if it risks the timeline)
+- Ownership + readiness badges on unit list (add once FK link is stable and validated)
+- Leader attachment bidirectional links (requires BSData parsing — data acquisition risk; treat as "Should" not "Must")
+- Annotation (favorite/wishlist) on database units (pattern is known; low priority for initial release)
 
 ---
 
@@ -169,25 +164,27 @@ Ordered by value/effort ratio:
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Existing auto-derivation code (basing/varnish) | HIGH | Read directly from recipeAssignments.ts |
-| is_active_project current behavior | HIGH | Traced through all 12 call sites in codebase |
-| section_type values and meaning | HIGH | Read from types/recipeSection.ts |
-| Competitor apps (no auto-derivation) | HIGH | Figure Case, Pile of Potential confirmed manual-only |
-| Points-remaining filter UX | MEDIUM | Quartermaster described in search; exact interaction model requires design decision |
-| Recipe picker faction pre-filter UX | MEDIUM | Standard "sort by relevance" UX pattern, implementation straightforward |
+| Role grouping categories | HIGH | Confirmed from direct 40k.app page fetch — Epic Heroes / Leaders & Characters / Battleline / Mounted / Infantry, Swarms & Beasts / Aircraft / Titanic / Dedicated Transports / Vehicles & Monsters |
+| Datasheet anatomy (stats, weapons, abilities) | HIGH | Confirmed from official GW Warhammer Community articles + multiple community sources (M/T/Sv/Inv/W/Ld/OC, Range/A/BS-WS/S/AP/D weapons table) |
+| Faction count and alignment grouping | HIGH | Confirmed ~28–35 factions, Imperium / Space Marines / Chaos / Xenos, from 40k.app and adeptusars.com |
+| Existing schema coverage | HIGH | Directly read from migration files — rw_ tables cover 90% of required fields; missing: model_count on points, composition_text, leader targets |
+| FTS5 for global search | MEDIUM | SQLite FTS5 is documented and battle-tested. Tauri plugin-sql executes arbitrary SQL, so FTS5 virtual table creation via migration SQL should work — but has not been tested in this codebase. Verify in Phase 1 before committing to global search as a v0.4.0 feature. |
+| Leader attachment data availability | MEDIUM | BSData has this in XML. Wahapedia does not currently export it in the CSV sync format used today. Data acquisition risk. |
+| Composition text data availability | MEDIUM | BSData has model counts and loadout options. Wahapedia CSV does not include composition text. May require BSData XML parsing as a data source. |
+| Points multi-tier structure | HIGH | Known from existing `rw_datasheet_points` limitations and BSData XML structure. Schema change is straightforward; data exists in BSData. |
 
 ---
 
 ## Sources
 
-- Codebase: `src/db/queries/recipeAssignments.ts` — syncDerivedStatuses(), syncPaintingPercentageByUnitId(), createAssignment(), bulkCreateAssignments()
-- Codebase: `src/types/recipeSection.ts` — SECTION_TYPES const
-- Codebase: `src/db/queries/armyLists.ts` — getArmyListWithUnits() projection
-- Codebase: `src/types/unit.ts` — Unit interface, PaintingStatus
-- Codebase: `src/features/recipes/recipeSchema.ts` — faction_id, unit_id fields
-- [Figure Case — Hobby Progress (App Store)](https://apps.apple.com/us/app/figure-case-hobby-progress/id1487460834) — configurable workflow steps; no automatic status derivation
-- [Pile of Potential (Wargamer review)](https://www.wargamer.com/warhammer-40k/pile-of-potential-app) — tracks built/primed/painted/based + points; manual updates only
-- [Quartermaster army builder](https://quartermaster.app/) — points-remaining filter toggle pattern; MEDIUM confidence (described in search results, not verified by direct access)
-- [UX patterns: Good Defaults (UI-Patterns.com)](https://ui-patterns.com/patterns/GoodDefaults) — pre-fill from context, allow override
-- [Context-Aware Fields UX (UXPin)](https://www.uxpin.com/studio/blog/how-context-aware-fields-improve-ux/) — parent context drives child form defaults
-- [Zuko Blog: Smart Defaults in Forms](https://www.zuko.io/blog/how-to-use-defaults-to-optimize-your-form-ux) — defaults should reflect most-likely user intent
+- 40k.app factions page (direct fetch, HIGH confidence): https://www.40k.app/factions
+- 40k.app Space Marines faction page (direct fetch, HIGH confidence): https://www.40k.app/factions/space-marines — confirmed role grouping categories and points-on-list-row pattern
+- Warhammer Community — Anatomy of a New Datasheet (official GW): https://www.warhammer-community.com/en-gb/articles/MNNVVPhc/warhammer-40000-the-anatomy-of-a-new-datasheet/
+- Warhammer Community — How Army Building Works in 10th Edition: https://www.warhammer-community.com/en-gb/articles/z6UkH6T3/how-army-building-works-in-the-new-edition-of-warhammer-40000/
+- Warhammer Guild — Best Warhammer Apps guide: https://warhammerguild.com/guides/best-warhammer-apps/
+- Wahapedia feature overview (Spikey Bits): https://spikeybits.com/wahapedia-10th-edition-rules-resource-guide/
+- Adeptus Ars faction list: https://www.adeptusars.com/guides/factions
+- Dungeon Forge — How to Read Datasheets: https://dungeonforge.store/how-to-read-datasheets/
+- Quartermaster app: https://quartermaster.app/
+- Existing codebase — migration files: `src-tauri/migrations/rules_001_schema.sql`, `rules_002_wargear_abilities.sql`, `rules_004_datasheet_points.sql`
+- Existing codebase — features: `src/features/rules-hub/`, `src/db/queries/rulesExtended.ts`, `src/db/queries/rulesNotes.ts`
