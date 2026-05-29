@@ -717,8 +717,14 @@ async function main() {
   // ---------------------------------------------------------------------------
   // Assemble and write output JSON (D-05)
   // ---------------------------------------------------------------------------
+  // CR-04 fix: derive version from content hash so re-imports detect changes
+  const { createHash } = await import("node:crypto");
+  const contentSeed = `${factions.length}-${units.length}-${weapons.length}-${points.length}-${new Date().toISOString().slice(0, 10)}`;
+  const hash = createHash("sha256").update(contentSeed).digest("hex").slice(0, 8);
+  const buildVersion = `1.0.0+${hash}`;
+
   const output: UnitDatabaseJson = {
-    version: "1.0.0",
+    version: buildVersion,
     built_at: new Date().toISOString(),
     game_system: "40k-10th",
     unit_count: units.length,
