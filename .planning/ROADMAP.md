@@ -199,8 +199,12 @@ Plans:
   4. Typing in the global search box returns matching units across all factions via FTS5 with near-instant results
   5. User can filter the unit list by role, keyword, and point range independently or in combination
   6. Unit lists with 100+ entries scroll smoothly without sluggishness via virtual scrolling
-**Plans**: TBD
+**Plans**: 3 plans
 **UI hint**: yes
+Plans:
+- [ ] 104-01-PLAN.md — Data layer, filter infrastructure, route wiring
+- [ ] 104-02-PLAN.md — Page shell, faction picker, virtual unit list, search, filter bar
+- [ ] 104-03-PLAN.md — Datasheet detail Sheet (stat block, weapons, abilities, keywords)
 
 ### Phase 105: Collection Integration
 **Goal**: Collection units are linked to database entries by stable ID, users can add units directly from the browser, and ownership/readiness context is visible on database rows
@@ -344,7 +348,7 @@ Plans:
 | 101. Battle-Readiness Pure Function & Unit Picker | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 | 102. Smart Context Pre-Filling | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 | 103. Data Acquisition & Schema | v0.4.0 | 3/3 | Complete    | 2026-05-29 |
-| 104. Database Browser UI | v0.4.0 | 0/TBD | Not started | - |
+| 104. Database Browser UI | v0.4.0 | 0/3 | Not started | - |
 | 105. Collection Integration | v0.4.0 | 0/TBD | Not started | - |
 | 106. Army List Simplification | v0.4.0 | 0/TBD | Not started | - |
 | 107. Cleanup & Pipeline | v0.4.0 | 0/TBD | Not started | - |
