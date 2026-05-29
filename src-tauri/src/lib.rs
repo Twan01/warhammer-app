@@ -221,6 +221,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/036_unit_form_simplification.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 37,
+            description: "override_flags",
+            sql: include_str!("../migrations/037_override_flags.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
