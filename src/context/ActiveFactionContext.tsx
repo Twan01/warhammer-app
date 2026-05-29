@@ -87,10 +87,13 @@ export function ActiveFactionProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const DEFAULT_STATE: ActiveFactionState = {
+  activeFactionId: null,
+  activeFactionHex: "#71717a",
+  setActiveFaction: () => {},
+};
+
 export function useActiveFaction(): ActiveFactionState {
   const ctx = useContext(ActiveFactionContext);
-  if (!ctx) {
-    throw new Error("useActiveFaction must be used within ActiveFactionProvider");
-  }
-  return ctx;
+  return ctx ?? DEFAULT_STATE;
 }
