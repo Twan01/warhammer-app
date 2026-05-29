@@ -605,7 +605,7 @@ CREATE VIRTUAL TABLE IF NOT EXISTS udb_search USING fts5(
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **TypeScript runner for build script**
    - What we know: Project uses pnpm + TypeScript; `pnpm dev` runs Vite

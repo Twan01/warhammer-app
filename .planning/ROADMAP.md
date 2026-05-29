@@ -199,11 +199,7 @@ Plans:
   4. Typing in the global search box returns matching units across all factions via FTS5 with near-instant results
   5. User can filter the unit list by role, keyword, and point range independently or in combination
   6. Unit lists with 100+ entries scroll smoothly without sluggishness via virtual scrolling
-**Plans**: 3 plans
-Plans:
-- [ ] 103-01-PLAN.md — Schema migration (udb_* tables + FTS5) and verification tests
-- [ ] 103-02-PLAN.md — Build script (Wahapedia CSV + BSData XML -> unit_database.json)
-- [ ] 103-03-PLAN.md — Rust import command, setup hook, and Tauri resource bundling
+**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 105: Collection Integration
@@ -215,11 +211,7 @@ Plans:
   2. Database browser rows show an "owned" badge for units already in the collection and a painting-status readiness badge
   3. Existing collection units have `udb_unit_id` FK back-filled by name matching on migration; any units that could not be matched appear flagged in the Data Health page
   4. User can still create a collection unit manually by name (for custom or kitbash models) without requiring a database link
-**Plans**: 3 plans
-Plans:
-- [ ] 103-01-PLAN.md — Schema migration (udb_* tables + FTS5) and verification tests
-- [ ] 103-02-PLAN.md — Build script (Wahapedia CSV + BSData XML -> unit_database.json)
-- [ ] 103-03-PLAN.md — Rust import command, setup hook, and Tauri resource bundling
+**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 106: Army List Simplification
@@ -230,11 +222,7 @@ Plans:
   1. Army list point totals are correct and drawn from the database's points tiers via FK join — no intermediate synced_unit_points cache row is consulted for linked units
   2. Army list validation warnings correctly use database-sourced keywords and roles (e.g., CHARACTER, BATTLELINE) for structural checks
   3. The `synced_unit_points` cache table and its query layer are removed; the army list SQL uses a direct FK join with a fallback COALESCE for any unlinked (manually-entered) units
-**Plans**: 3 plans
-Plans:
-- [ ] 103-01-PLAN.md — Schema migration (udb_* tables + FTS5) and verification tests
-- [ ] 103-02-PLAN.md — Build script (Wahapedia CSV + BSData XML -> unit_database.json)
-- [ ] 103-03-PLAN.md — Rust import command, setup hook, and Tauri resource bundling
+**Plans**: TBD
 
 ### Phase 107: Cleanup & Pipeline
 **Goal**: The app runs on a single hobbyforge.db with no rules.db dependency, all dead sync code is removed, and a dev-side update script exists for future GW data changes
@@ -245,11 +233,7 @@ Plans:
   2. The Wahapedia CSV fetch pipeline, `getRulesDb()` call sites, and dead sync hooks are removed; TypeScript compilation passes with no new errors
   3. A dev-side Node.js update script re-runs the data acquisition pipeline and produces a diff report identifying changed units, points, or abilities
   4. A simplified "check for points updates" trigger remains available in the app for users to initiate a lightweight data refresh
-**Plans**: 3 plans
-Plans:
-- [ ] 103-01-PLAN.md — Schema migration (udb_* tables + FTS5) and verification tests
-- [ ] 103-02-PLAN.md — Build script (Wahapedia CSV + BSData XML -> unit_database.json)
-- [ ] 103-03-PLAN.md — Rust import command, setup hook, and Tauri resource bundling
+**Plans**: TBD
 
 ## Progress
 
@@ -359,7 +343,7 @@ Plans:
 | 100. Query-Layer Automation | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 | 101. Battle-Readiness Pure Function & Unit Picker | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 | 102. Smart Context Pre-Filling | v0.3.7 | 2/2 | Complete | 2026-05-28 |
-| 103. Data Acquisition & Schema | v0.4.0 | 0/3 | Not started | - |
+| 103. Data Acquisition & Schema | v0.4.0 | 0/3 | Planned | - |
 | 104. Database Browser UI | v0.4.0 | 0/TBD | Not started | - |
 | 105. Collection Integration | v0.4.0 | 0/TBD | Not started | - |
 | 106. Army List Simplification | v0.4.0 | 0/TBD | Not started | - |
