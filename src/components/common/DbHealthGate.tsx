@@ -7,9 +7,9 @@ import { DbDiagnosticScreen } from "@/components/common/DbDiagnosticScreen";
 
 /**
  * Expected schema version for hobbyforge.db.
- * Must match the highest-numbered migration prefix (037_override_flags.sql).
+ * Must match the highest-numbered migration prefix (038_udb_schema.sql).
  */
-export const EXPECTED_SCHEMA_VERSION = 37;
+export const EXPECTED_SCHEMA_VERSION = 38;
 
 /**
  * Extract user_version from a PRAGMA result row.
@@ -52,7 +52,10 @@ export function DbHealthGate({ children }: { children: ReactNode }) {
             `The database may need migration.`
         );
       }
-      // Repair synced_unit_points cache if stale
+      // Repair synced_unit_points cache if stale or names are mismatched.
+      // The cache stores point data from rules.db keyed by Wahapedia datasheet name.
+      // If the cache has BSData names (pre-normalization) instead of Wahapedia names,
+      // the army list COALESCE JOIN fails and points show as null.
       try {
         const rulesDb = await getRulesDb();
 
@@ -76,8 +79,38 @@ export function DbHealthGate({ children }: { children: ReactNode }) {
         const [{ c: cacheCount }] = await db.select<[{ c: number }]>(
           "SELECT COUNT(*) as c FROM synced_unit_points", [],
         );
-        if (rulesCount > 0 && cacheCount < rulesCount) {
-          console.info(`[DbHealthGate] synced_unit_points stale (${cacheCount}/${rulesCount}), repairing...`);
+
+        // Detect name mismatches: sample a few names from rules.db and check if
+        // they exist in the cache. Name mismatches happen when the cache was
+        // populated with BSData names before normalization corrected them to
+        // Wahapedia names. The army list JOIN uses Wahapedia names (via
+        // unit_rules_mapping.datasheet_name), so BSData names cause NULL points.
+        let namesMismatch = false;
+        if (rulesCount > 0 && cacheCount > 0) {
+          try {
+            const sampleRulesNames = await rulesDb.select<{ datasheet_name: string }[]>(
+              "SELECT datasheet_name FROM rw_datasheet_points LIMIT 10", [],
+            );
+            for (const { datasheet_name } of sampleRulesNames) {
+              const [{ c: found }] = await db.select<[{ c: number }]>(
+                "SELECT COUNT(*) as c FROM synced_unit_points WHERE unit_name = $1",
+                [datasheet_name],
+              );
+              if (found === 0) {
+                namesMismatch = true;
+                break;
+              }
+            }
+          } catch {
+            // Sample check failed — fall through to count-based repair
+          }
+        }
+
+        if (rulesCount > 0 && (cacheCount < rulesCount || namesMismatch)) {
+          const reason = namesMismatch
+            ? "names mismatch (BSData vs Wahapedia)"
+            : `count stale (${cacheCount}/${rulesCount})`;
+          console.info(`[DbHealthGate] synced_unit_points repair needed: ${reason}`);
           const rows = await rulesDb.select<{ datasheet_name: string; faction_id: string | null; points: number }[]>(
             "SELECT datasheet_name, faction_id, points FROM rw_datasheet_points ORDER BY datasheet_name", [],
           );
