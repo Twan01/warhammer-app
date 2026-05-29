@@ -185,7 +185,7 @@ Full details: `.planning/milestones/v0.3.7-ROADMAP.md`
 **Plans**: 3 plans
 Plans:
 - [x] 103-01-PLAN.md — Schema migration (udb_* tables + FTS5) and verification tests
-- [ ] 103-02-PLAN.md — Build script (Wahapedia CSV + BSData XML -> unit_database.json)
+- [x] 103-02-PLAN.md — Build script (Wahapedia CSV + BSData XML -> unit_database.json)
 - [ ] 103-03-PLAN.md — Rust import command, setup hook, and Tauri resource bundling
 
 ### Phase 104: Database Browser UI
@@ -343,7 +343,7 @@ Plans:
 | 100. Query-Layer Automation | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 | 101. Battle-Readiness Pure Function & Unit Picker | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 | 102. Smart Context Pre-Filling | v0.3.7 | 2/2 | Complete | 2026-05-28 |
-| 103. Data Acquisition & Schema | v0.4.0 | 1/3 | In Progress|  |
+| 103. Data Acquisition & Schema | v0.4.0 | 2/3 | In Progress|  |
 | 104. Database Browser UI | v0.4.0 | 0/TBD | Not started | - |
 | 105. Collection Integration | v0.4.0 | 0/TBD | Not started | - |
 | 106. Army List Simplification | v0.4.0 | 0/TBD | Not started | - |
