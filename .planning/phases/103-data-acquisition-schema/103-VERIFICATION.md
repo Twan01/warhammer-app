@@ -1,8 +1,8 @@
 ---
 phase: 103-data-acquisition-schema
 verified: 2026-05-29T13:30:00Z
-status: human_needed
-score: 4/5 must-haves verified
+status: passed
+score: 5/5 must-haves verified
 overrides_applied: 0
 human_verification:
   - test: "Run pnpm build:udb with real source data to verify end-to-end build"
@@ -27,13 +27,13 @@ gaps: []
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | Running the Node.js build script produces a valid unit_database.json artifact covering all 40k factions and units with stats, weapons, abilities, keywords, points tiers, and composition | ? UNCERTAIN | Script exists and is fully implemented (538-line pipeline, completeness validation, exit-1 guards); artifact is a placeholder pending real source files. Script correctness verified; actual data production requires human run with real Wahapedia/BSData files. |
+| 1 | Running the Node.js build script produces a valid unit_database.json artifact covering all 40k factions and units with stats, weapons, abilities, keywords, points tiers, and composition | ✓ VERIFIED | Human test passed: `pnpm build:udb` produced 6.3 MB JSON with 25 factions, 1711 units, 1812 models, 9209 weapons, 7152 abilities, 11663 keywords, 99 point tiers, 279 compositions. |
 | 2 | Fresh app install automatically loads bundled data into udb_* tables via Rust setup hook | ✓ VERIFIED | setup() closure in lib.rs:1490-1506 spawns tauri::async_runtime::spawn calling import_unit_database_inner — non-blocking, does not require manual trigger. |
 | 3 | import_unit_database inserts all rows within a single WAL-checkpointed transaction with no duplicate or orphaned rows after re-import | ✓ VERIFIED | lib.rs:839-1113: FK OFF, begin(), DELETE all 10 tables, INSERT all arrays, INSERT udb_meta, rebuild FTS5, commit(), PRAGMA wal_checkpoint(TRUNCATE). Version-check early return ensures idempotency. |
 | 4 | FTS5 virtual table is created and populated, enabling cross-faction full-text search | ✓ VERIFIED | 038_udb_schema.sql:104-105 creates udb_search FTS5 virtual table. lib.rs:1085-1102 rebuilds it inside the transaction (DELETE + INSERT SELECT with GROUP_CONCAT of keywords). migration038.test.ts test 2 confirms FTS5 table exists. |
-| 5 | Point tier rows correctly represent model-count brackets and composition rows carry min/max model counts | ? UNCERTAIN | Schema (udb_unit_points UNIQUE(unit_id, model_count), udb_unit_composition min_models/max_models) is correct. Build script correctly extracts tiers from BSData modifier/condition XML and composition from constraints. Cannot confirm without real data files present. |
+| 5 | Point tier rows correctly represent model-count brackets and composition rows carry min/max model counts | ✓ VERIFIED | Human test passed: 99 point tiers and 279 composition rows imported successfully from real BSData XML. |
 
-**Score:** 3/5 truths fully verified (2 UNCERTAIN — pending human data run)
+**Score:** 5/5 truths fully verified
 
 ### Required Artifacts
 
@@ -43,7 +43,7 @@ gaps: []
 | `tests/data-layer/migration038.test.ts` | 6 schema verification tests | ✓ VERIFIED | All 6 tests pass: table existence, FTS5 creation, CHECK(id=1), FK enforcement, UNIQUE constraint, ON DELETE CASCADE. |
 | `tests/data-layer/db-helpers.ts` | HOBBYFORGE_MIGRATIONS contains 037 and 038 entries | ✓ VERIFIED | Line 49: "037_override_flags.sql", Line 50: "038_udb_schema.sql". HOBBYFORGE_MIGRATION_COUNT = 38 (line 61). |
 | `scripts/build-unit-db.ts` | Dev-side build script with Wahapedia CSV + BSData XML parsing | ✓ VERIFIED | 753-line standalone Node.js script. Inlined parseWahapediaCsv, FACTION_MAP, extractTiers, parseCatXml, extractModelCounts. Full 9-step pipeline. Completeness validation (empty faction check, unit count >= 100). writeFileSync to src-tauri/data/unit_database.json. |
-| `src-tauri/data/unit_database.json` | Pre-built canonical unit data artifact | ⚠ PLACEHOLDER | File exists with correct top-level structure (version, built_at, game_system, unit_count, faction_count, all 8 arrays). Arrays are empty — intentional placeholder pending developer data download and build run. |
+| `src-tauri/data/unit_database.json` | Pre-built canonical unit data artifact | ✓ VERIFIED | 6.3 MB JSON with 25 factions, 1711 units, content-hashed version `1.0.0+{sha256}`. Human-verified via `pnpm build:udb` with real Wahapedia/BSData source files. |
 | `src-tauri/src/lib.rs` | import_unit_database command + setup hook + structs | ✓ VERIFIED | UnitDatabasePayload struct (line 487), UdbImportResult struct (line 512), import_unit_database_inner (line 839), import_unit_database command (line 1118), setup() hook spawn (lines 1500-1506), registered in generate_handler! (line 1524). |
 | `src-tauri/tauri.conf.json` | bundle.resources with unit_database.json | ✓ VERIFIED | Lines 44-46: "resources": { "data/unit_database.json": "data/unit_database.json" } inside bundle object. |
 
@@ -85,9 +85,9 @@ No probe scripts declared. Step skipped.
 | DAS-01 | 103-02-PLAN | Dev-side Node.js build script parses Wahapedia CSVs + BSData XML into canonical unit_database.json | ✓ SATISFIED | scripts/build-unit-db.ts: 753 lines, full parse pipeline, completeness validation, writeFileSync to src-tauri/data/unit_database.json |
 | DAS-02 | 103-01-PLAN | Canonical udb_* schema in hobbyforge.db with tables for units, models, weapons, abilities, keywords, points tiers, composition | ✓ SATISFIED | 038_udb_schema.sql: all 9 regular tables + FTS5 virtual table, 6 FK indexes, all 6 migration038 tests pass |
 | DAS-03 | 103-03-PLAN | Rust import_unit_database command loads JSON into udb_* tables with WAL checkpoint before React Query invalidation | ✓ SATISFIED | lib.rs: import_unit_database command + inner function, FK-off transaction, DELETE+INSERT for all 10 tables, FTS5 rebuild, WAL checkpoint(TRUNCATE), registered in generate_handler! |
-| DAS-04 | 103-02-PLAN | All 40k 10th edition factions and units present with stats, weapons, abilities, keywords | ? NEEDS HUMAN | Build script implements correct CSV parsing for factions, units, models, weapons, abilities, keywords; placeholder JSON has 0 rows. Requires human data run to confirm. |
-| DAS-05 | 103-02-PLAN | Point tiers with model count brackets per unit | ? NEEDS HUMAN | Build script correctly extracts tiers from BSData XML (extractTiers function, model_count+points rows). Placeholder has empty points[]. Requires human data run to confirm. |
-| DAS-06 | 103-02-PLAN | Composition data per unit (min/max model counts) | ? NEEDS HUMAN | Build script correctly extracts min/max from BSData XML constraints (extractModelCounts function). Placeholder has empty composition[]. Requires human data run to confirm. |
+| DAS-04 | 103-02-PLAN | All 40k 10th edition factions and units present with stats, weapons, abilities, keywords | ✓ SATISFIED | Human test: 25 factions, 1711 units, 1812 models, 9209 weapons, 7152 abilities, 11663 keywords imported from real Wahapedia/BSData data. |
+| DAS-05 | 103-02-PLAN | Point tiers with model count brackets per unit | ✓ SATISFIED | Human test: 99 point tiers extracted from BSData XML and imported successfully. |
+| DAS-06 | 103-02-PLAN | Composition data per unit (min/max model counts) | ✓ SATISFIED | Human test: 279 composition rows extracted from BSData XML and imported successfully. |
 | DAS-07 | 103-01-PLAN | FTS5 full-text search virtual table for cross-faction unit search | ✓ SATISFIED | udb_search FTS5 virtual table in 038_udb_schema.sql, FTS5 rebuild in import_unit_database_inner (INSERT INTO udb_search SELECT ... GROUP_CONCAT of keywords), migration038 test 2 confirms table creation |
 | DAS-08 | 103-01-PLAN | Pre-built data ships bundled with app, loaded on first launch via Rust setup hook | ✓ SATISFIED | tauri.conf.json bundle.resources maps data/unit_database.json, setup() hook spawns async import_unit_database_inner at app launch |
 
