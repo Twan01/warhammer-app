@@ -13,7 +13,7 @@
 - **D-01:** Unit Database sidebar entry in the **Play** group, after Rules Hub. Icon: `BookMarked` (or `Database`/`Library` — Claude's discretion).
 - **D-02:** Route path `/unit-database`. Lazy-loaded page following established `router.tsx` pattern.
 - **D-03:** Single-page layout — two-panel: faction picker (left/top) + main content area (unit list). Mirrors Rules Hub pattern.
-- **D-04:** Faction picker groups factions under 4 alignment headers: Imperium, Space Marines, Chaos, Xenos. Static mapping (faction_id → alignment) in a const object in the feature module (not in DB).
+- **D-04:** Faction picker groups factions under 4 alignment headers: Imperium, Space Marines, Chaos, Xenos. Static mapping (faction_id -> alignment) in a const object in the feature module (not in DB).
 - **D-05:** Units within a faction grouped by 9 GW role categories using collapsible section headers. Each row shows: name, base points (lowest tier), model count range. Uses `role` column from `udb_units`.
 - **D-06:** Virtual scrolling via `@tanstack/react-virtual`. Applied to unit list within each faction (not faction picker).
 - **D-07:** Clicking a unit opens a Sheet overlay (right-side drawer) — consistent with existing UnitDetailSheet/UnitSheet pattern.
@@ -137,32 +137,32 @@ No postinstall script detected (`npm view @tanstack/react-virtual scripts.postin
 
 ```
 User opens /unit-database
-        ↓
+        |
 DatabaseBrowserPage
-  ├── Global search bar (Input + debounce)
-  │     ↓ [search active]
-  │   UdbSearchResults (flat list of matching units)
-  │     └── click unit → opens UdbDatasheetSheet
-  │
-  └── [search cleared]
-      ├── FactionPicker (left panel / top bar)
-      │     grouped by alignment header (Imperium / SM / Chaos / Xenos)
-      │     └── click faction → sets selectedFactionId in Zustand
-      │
-      └── UdbUnitList (main content)
-            ├── FilterBar (role Select, keyword Input, point range Inputs)
-            ├── role sections (Collapsible per role category)
-            │     └── useVirtualizer scroll container
-            │           └── virtual UdbUnitRow items (name, base pts, model count)
-            │                 └── click row → opens UdbDatasheetSheet
-            └── UdbDatasheetSheet (shadcn Sheet)
-                  ├── stat block table (udb_unit_models)
-                  ├── ranged weapons (udb_unit_weapons WHERE category='Ranged')
-                  ├── melee weapons (udb_unit_weapons WHERE category='Melee')
-                  ├── abilities (udb_unit_abilities grouped by ability_type)
-                  ├── keywords (udb_unit_keywords)
-                  ├── points tiers table (udb_unit_points)
-                  └── damaged profile (udb_units.damaged_w + damaged_desc)
+  +-- Global search bar (Input + debounce)
+  |     | [search active]
+  |   UdbSearchResults (flat list of matching units)
+  |     +-- click unit -> opens UdbDatasheetSheet
+  |
+  +-- [search cleared]
+      +-- FactionPicker (left panel / top bar)
+      |     grouped by alignment header (Imperium / SM / Chaos / Xenos)
+      |     +-- click faction -> sets selectedFactionId in Zustand
+      |
+      +-- UdbUnitList (main content)
+            +-- FilterBar (role Select, keyword Input, point range Inputs)
+            +-- role sections (Collapsible per role category)
+            |     +-- useVirtualizer scroll container
+            |           +-- virtual UdbUnitRow items (name, base pts, model count)
+            |                 +-- click row -> opens UdbDatasheetSheet
+            +-- UdbDatasheetSheet (shadcn Sheet)
+                  +-- stat block table (udb_unit_models)
+                  +-- ranged weapons (udb_unit_weapons WHERE category='Ranged')
+                  +-- melee weapons (udb_unit_weapons WHERE category='Melee')
+                  +-- abilities (udb_unit_abilities grouped by ability_type)
+                  +-- keywords (udb_unit_keywords)
+                  +-- points tiers table (udb_unit_points)
+                  +-- damaged profile (udb_units.damaged_w + damaged_desc)
 ```
 
 ### Recommended Project Structure
@@ -181,7 +181,7 @@ src/
       UdbSearchResults.tsx       # Flat search results list
       databaseBrowserFilters.ts  # Zustand store
       applyUdbFilters.ts         # Pure filter function (role/keyword/pts range)
-      factionAlignmentMap.ts     # Const: faction_id → alignment mapping
+      factionAlignmentMap.ts     # Const: faction_id -> alignment mapping
   db/
     queries/
       unitDatabase.ts            # getUdbFactions, getUdbUnitsByFaction,
@@ -544,22 +544,25 @@ export function useUdbUnits(factionId: string | null) {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Exact faction IDs in udb_factions**
    - What we know: Migration 038 comments say IDs "reuse Wahapedia text IDs like 'SM', 'NEC'"
    - What's unclear: The full list of IDs actually present after Phase 103 import — needed to populate `FACTION_ALIGNMENT` map
    - Recommendation: Wave 1 task should include a query against the actual DB and populate the map from real data before building the picker UI
+   - RESOLVED: All 25 faction IDs enumerated from Phase 103 unit_database.json output: AoI, AM, GC, NEC, AE, TL, ORK, UN, GK, TAU, LoV, AdM, TS, DG, EC, WE, QT, CD, QI, SM, TYR, AC, AS, CSM, DRU. Plan 01 Task 1 maps all 25 to alignment groups in factionAlignmentMap.ts.
 
 2. **Virtual scroll height for the unit list container**
    - What we know: `useVirtualizer` requires a fixed-height scroll container
    - What's unclear: Whether a fixed pixel height (`600px`) or a CSS calc (`calc(100vh - toolbar-height)`) should be used
    - Recommendation: Use `calc(100vh - Xpx)` with appropriate offset for toolbar + filter bar — this is Claude's discretion per CONTEXT.md
+   - RESOLVED: Plan 02 Task 2 uses `h-[calc(100vh-220px)]` for the virtual scroll container, accounting for page header + search bar + filter bar. This is Claude's discretion per CONTEXT.md.
 
 3. **Whether role grouping uses Collapsibles or visual section dividers**
    - What we know: D-05 specifies "collapsible section headers"
    - What's unclear: Whether collapsibility can coexist with a single virtualizer (requires flattened list with header items)
    - Recommendation: Implement as a flattened virtual list with interleaved header items (type discriminated union). This is more complex to build but avoids the anti-pattern described in Pitfall 1.
+   - RESOLVED: Plan 02 Task 2 uses a single flattened virtualizer with interleaved `{ kind: "header" }` and `{ kind: "unit" }` items. Role headers are visual section dividers within the virtual list, not separate Collapsible components. This avoids the anti-pattern described in Pitfall 1.
 
 ---
 
@@ -589,15 +592,15 @@ export function useUdbUnits(factionId: string | null) {
 | Quick run command | `pnpm test -- tests/unit-database/` |
 | Full suite command | `pnpm test` |
 
-### Phase Requirements → Test Map
+### Phase Requirements -> Test Map
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| BUI-01 | Faction picker renders alignment groups | unit | `pnpm test -- tests/unit-database/FactionPicker.test.tsx` | ❌ Wave 0 |
-| BUI-02 | Unit rows show name, base points, model count | unit | `pnpm test -- tests/unit-database/UdbUnitRow.test.tsx` | ❌ Wave 0 |
-| BUI-03 | Datasheet Sheet renders stat block, weapons, abilities, keywords | unit | `pnpm test -- tests/unit-database/UdbDatasheetSheet.test.tsx` | ❌ Wave 0 |
-| BUI-04 | FTS5 search query sanitizes input and returns results | unit | `pnpm test -- tests/unit-database/unitDatabase.queries.test.ts` | ❌ Wave 0 |
-| BUI-05 | applyUdbFilters applies role/keyword/point range AND logic | unit | `pnpm test -- tests/unit-database/applyUdbFilters.test.ts` | ❌ Wave 0 |
-| BUI-06 | Virtual list renders only visible items | unit | `pnpm test -- tests/unit-database/UdbUnitList.test.tsx` | ❌ Wave 0 |
+| BUI-01 | Faction picker renders alignment groups | unit | `pnpm test -- tests/unit-database/FactionPicker.test.tsx` | Wave 0 |
+| BUI-02 | Unit rows show name, base points, model count | unit | `pnpm test -- tests/unit-database/UdbUnitRow.test.tsx` | Wave 0 |
+| BUI-03 | Datasheet Sheet renders stat block, weapons, abilities, keywords | unit | `pnpm test -- tests/unit-database/UdbDatasheetSheet.test.tsx` | Wave 0 |
+| BUI-04 | FTS5 search query sanitizes input and returns results | unit | `pnpm test -- tests/unit-database/unitDatabase.queries.test.ts` | Wave 0 |
+| BUI-05 | applyUdbFilters applies role/keyword/point range AND logic | unit | `pnpm test -- tests/unit-database/applyUdbFilters.test.ts` | Wave 0 |
+| BUI-06 | Virtual list renders only visible items | unit | `pnpm test -- tests/unit-database/UdbUnitList.test.tsx` | Wave 0 |
 
 ### Sampling Rate
 - **Per task commit:** `pnpm test -- tests/unit-database/`
