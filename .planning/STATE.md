@@ -2,9 +2,10 @@
 gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Unit Database — Canonical 40k Data Hub
-status: ready_to_plan
-last_updated: "2026-05-29"
-last_activity: 2026-05-29
+status: planning
+stopped_at: Phase 103 context gathered
+last_updated: "2026-05-29T10:14:43.648Z"
+last_activity: 2026-05-29 — Roadmap created for v0.4.0 milestone
 progress:
   total_phases: 5
   completed_phases: 0
@@ -76,7 +77,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-29
-Stopped at: Roadmap created for v0.4.0, ready to plan Phase 103
-Resume file: None
+Last session: 2026-05-29T10:14:43.641Z
+Stopped at: Phase 103 context gathered
+Resume file: .planning/phases/103-data-acquisition-schema/103-CONTEXT.md
 Resume: Run `/gsd:plan-phase 103` to begin planning.
