@@ -226,9 +226,24 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ BRP-01..BRP-03: computeUnitReadiness() canonical pure function, readiness badges in UnitPickerDialog, budget-aware filtering — Phase 101 — v0.3.7
 - ✓ SCP-01..SCP-03: RecipeFormSheet faction pre-fill from ActiveFactionContext, ApplyRecipeDialog Suggested/Other grouping, editable pre-fills — Phase 102 — v0.3.7
 
+## Current Milestone: v0.4.0 Unit Database — Canonical 40k Data Hub
+
+**Goal:** Replace the fragile Wahapedia CSV + BSData XML sync pipeline with a curated, pre-built unit database that ships with the app as the single source of truth for all 40k unit data.
+
+**Target features:**
+- Pre-built canonical unit database with all 40k 10th edition factions and units
+- Full datasheet data: stats, weapons, abilities, keywords, points, composition
+- Faction browser UI with role-grouped unit list and datasheet detail view
+- Global search and filtering across all factions
+- "Add from database" collection flow replacing manual name entry
+- Collection units linked to database by ID (not name matching)
+- Army list points resolved directly from database
+- Dev-side update pipeline for future GW changes
+- Migrate to single database (eliminate rules.db)
+
 ### Active
 
-*Planning next milestone*
+*Defining requirements for v0.4.0*
 
 ### Out of Scope
 
@@ -375,4 +390,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-28 after v0.3.7 milestone shipped*
+*Last updated: 2026-05-29 after v0.4.0 milestone started*

@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.3.7
-milestone_name: Smart Automation
-status: shipped
-stopped_at: Milestone archived
-last_updated: "2026-05-28T23:00:00.000Z"
-last_activity: 2026-05-28 -- Milestone v0.3.7 archived and shipped
+milestone: v0.4.0
+milestone_name: Unit Database — Canonical 40k Data Hub
+status: planning
+last_updated: "2026-05-29T09:03:30.324Z"
+last_activity: 2026-05-29
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-28)
 
 ## Current Position
 
-Milestone v0.3.7 Smart Automation — SHIPPED 2026-05-28
-All 3 phases (100-102) complete, 6 plans, 13/13 requirements satisfied.
-
-Progress: [██████████] 100% (3/3 phases) — SHIPPED
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-29 — Milestone v0.4.0 started
 
 ## Performance Metrics
 
