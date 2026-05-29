@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Unit Database — Canonical 40k Data Hub
 status: ready_to_plan
-stopped_at: Phase 103 verified (human UAT passed) — ready to discuss Phase 104
-last_updated: 2026-05-29T14:15:00Z
+stopped_at: Phase 104 context gathered — ready to plan
+last_updated: 2026-05-29T15:00:00Z
 last_activity: 2026-05-29
 progress:
   total_phases: 5
@@ -79,7 +79,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-29T14:15:00Z
-Stopped at: Phase 103 fully verified with human UAT — ready to plan Phase 104
-Resume file: None
-Resume: Run `/gsd:discuss-phase 104` to begin Phase 104 (Database Browser UI).
+Last session: 2026-05-29T15:00:00Z
+Stopped at: Phase 104 context gathered — ready to plan
+Resume file: .planning/phases/104-database-browser-ui/104-CONTEXT.md
+Resume: Run `/gsd:plan-phase 104` to plan Phase 104 (Database Browser UI).
