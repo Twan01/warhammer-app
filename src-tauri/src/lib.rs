@@ -483,6 +483,43 @@ pub struct SyncResult {
     pub points: u64,
 }
 
+#[derive(serde::Deserialize)]
+pub struct UnitDatabasePayload {
+    version: String,
+    built_at: String,
+    game_system: Option<String>,
+    faction_count: Option<u32>,
+    unit_count: Option<u32>,
+    #[serde(default)]
+    factions: Vec<JsRow>,
+    #[serde(default)]
+    units: Vec<JsRow>,
+    #[serde(default)]
+    models: Vec<JsRow>,
+    #[serde(default)]
+    weapons: Vec<JsRow>,
+    #[serde(default)]
+    abilities: Vec<JsRow>,
+    #[serde(default)]
+    keywords: Vec<JsRow>,
+    #[serde(default)]
+    points: Vec<JsRow>,
+    #[serde(default)]
+    composition: Vec<JsRow>,
+}
+
+#[derive(serde::Serialize, Debug)]
+pub struct UdbImportResult {
+    pub factions: u64,
+    pub units: u64,
+    pub models: u64,
+    pub weapons: u64,
+    pub abilities: u64,
+    pub keywords: u64,
+    pub points: u64,
+    pub composition: u64,
+}
+
 /// Bulk-insert all Wahapedia CSV data into rules.db inside a single native
 /// SQLite transaction. Uses a direct sqlx connection (not the plugin pool)
 /// so all statements run on one connection and the transaction is real.
@@ -795,6 +832,291 @@ async fn bulk_sync_rules(
 
     tx.commit().await.map_err(|e| format!("commit: {e}"))?;
     Ok(counts)
+}
+
+/// Core import logic for unit_database.json into udb_* tables.
+/// Callable from both the setup hook and the Tauri command.
+async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportResult, String> {
+    use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, Connection};
+    use std::str::FromStr;
+
+    // Resolve hobbyforge.db path
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("app_data_dir: {e}"))?;
+    let db_url = format!("sqlite:{}", app_data_dir.join("hobbyforge.db").display());
+
+    // Resolve JSON resource path (D-07: ships as Tauri resource)
+    let resource_dir = app
+        .path()
+        .resource_dir()
+        .map_err(|e| format!("resource_dir: {e}"))?;
+    let json_path = resource_dir.join("data").join("unit_database.json");
+    let json_str = std::fs::read_to_string(&json_path)
+        .map_err(|e| format!("read unit_database.json ({}): {e}", json_path.display()))?;
+    let payload: UnitDatabasePayload = serde_json::from_str(&json_str)
+        .map_err(|e| format!("parse unit_database.json: {e}"))?;
+
+    // Open direct sqlx connection (D-11: same pattern as bulk_sync_rules)
+    let opts = SqliteConnectOptions::from_str(&db_url)
+        .map_err(|e| format!("opts: {e}"))?
+        .create_if_missing(false)
+        .journal_mode(sqlx::sqlite::SqliteJournalMode::Wal)
+        .busy_timeout(std::time::Duration::from_secs(30));
+
+    let mut conn = opts.connect().await.map_err(|e| format!("connect: {e}"))?;
+
+    // D-06: Check udb_meta version — skip import if already up to date
+    let existing_version: Option<String> = sqlx::query_scalar(
+        "SELECT version FROM udb_meta WHERE id = 1",
+    )
+    .fetch_optional(&mut conn)
+    .await
+    .map_err(|e| format!("query udb_meta: {e}"))?;
+
+    if let Some(ref ver) = existing_version {
+        if ver == &payload.version {
+            return Ok(UdbImportResult {
+                factions: 0, units: 0, models: 0, weapons: 0,
+                abilities: 0, keywords: 0, points: 0, composition: 0,
+            });
+        }
+    }
+
+    // FK checks OFF so we can DELETE in any order (D-11)
+    sqlx::query("PRAGMA foreign_keys = OFF")
+        .execute(&mut conn)
+        .await
+        .map_err(|e| format!("pragma fk off: {e}"))?;
+
+    let mut tx = conn.begin().await.map_err(|e| format!("begin: {e}"))?;
+
+    let mut counts = UdbImportResult {
+        factions: 0, units: 0, models: 0, weapons: 0,
+        abilities: 0, keywords: 0, points: 0, composition: 0,
+    };
+
+    // D-09/D-08: DELETE all udb_* tables (FK OFF so order doesn't matter)
+    for table in [
+        "udb_search",
+        "udb_unit_keywords",
+        "udb_unit_points",
+        "udb_unit_composition",
+        "udb_unit_abilities",
+        "udb_unit_weapons",
+        "udb_unit_models",
+        "udb_units",
+        "udb_factions",
+        "udb_meta",
+    ] {
+        sqlx::query(&format!("DELETE FROM {table}"))
+            .execute(&mut *tx)
+            .await
+            .map_err(|e| format!("delete {table}: {e}"))?;
+    }
+
+    // INSERT factions
+    for row in &payload.factions {
+        let id = str_val(row, "id").unwrap_or_default();
+        if id.is_empty() { continue; }
+        let res = sqlx::query(
+            "INSERT INTO udb_factions (id, name, short_name) VALUES (?, ?, ?)",
+        )
+        .bind(&id)
+        .bind(str_val(row, "name").unwrap_or_default())
+        .bind(str_val(row, "short_name"))
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert faction {id}: {e}"))?;
+        counts.factions += res.rows_affected();
+    }
+
+    // INSERT units
+    for row in &payload.units {
+        let id = str_val(row, "id").unwrap_or_default();
+        if id.is_empty() { continue; }
+        let res = sqlx::query(
+            "INSERT INTO udb_units (id, faction_id, name, role, base_points, damaged_w, damaged_desc) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        )
+        .bind(&id)
+        .bind(str_val(row, "faction_id").unwrap_or_default())
+        .bind(str_val(row, "name").unwrap_or_default())
+        .bind(str_val(row, "role"))
+        .bind(i64_val(row, "base_points"))
+        .bind(str_val(row, "damaged_w"))
+        .bind(str_val(row, "damaged_desc"))
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert unit {id}: {e}"))?;
+        counts.units += res.rows_affected();
+    }
+
+    // INSERT models
+    for row in &payload.models {
+        let unit_id = str_val(row, "unit_id").unwrap_or_default();
+        if unit_id.is_empty() { continue; }
+        let res = sqlx::query(
+            "INSERT INTO udb_unit_models (unit_id, line_order, name, M, T, Sv, inv_sv, W, Ld, OC) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        )
+        .bind(&unit_id)
+        .bind(i64_val(row, "line_order").unwrap_or(0))
+        .bind(str_val(row, "name"))
+        .bind(str_val(row, "M"))
+        .bind(i64_val(row, "T"))
+        .bind(str_val(row, "Sv"))
+        .bind(str_val(row, "inv_sv"))
+        .bind(i64_val(row, "W"))
+        .bind(str_val(row, "Ld"))
+        .bind(i64_val(row, "OC"))
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert model unit_id={unit_id}: {e}"))?;
+        counts.models += res.rows_affected();
+    }
+
+    // INSERT weapons
+    for row in &payload.weapons {
+        let unit_id = str_val(row, "unit_id").unwrap_or_default();
+        if unit_id.is_empty() { continue; }
+        let res = sqlx::query(
+            "INSERT INTO udb_unit_weapons (unit_id, weapon_group, line_order, name, category, range, attacks, skill, strength, ap, damage, keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        )
+        .bind(&unit_id)
+        .bind(i64_val(row, "weapon_group").unwrap_or(1))
+        .bind(i64_val(row, "line_order").unwrap_or(1))
+        .bind(str_val(row, "name").unwrap_or_default())
+        .bind(str_val(row, "category"))
+        .bind(str_val(row, "range"))
+        .bind(str_val(row, "attacks"))
+        .bind(str_val(row, "skill"))
+        .bind(str_val(row, "strength"))
+        .bind(str_val(row, "ap"))
+        .bind(str_val(row, "damage"))
+        .bind(str_val(row, "keywords"))
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert weapon unit_id={unit_id}: {e}"))?;
+        counts.weapons += res.rows_affected();
+    }
+
+    // INSERT abilities
+    for row in &payload.abilities {
+        let unit_id = str_val(row, "unit_id").unwrap_or_default();
+        if unit_id.is_empty() { continue; }
+        let res = sqlx::query(
+            "INSERT INTO udb_unit_abilities (unit_id, line_order, name, description, ability_type) VALUES (?, ?, ?, ?, ?)",
+        )
+        .bind(&unit_id)
+        .bind(i64_val(row, "line_order").unwrap_or(0))
+        .bind(str_val(row, "name").unwrap_or_default())
+        .bind(str_val(row, "description"))
+        .bind(str_val(row, "ability_type"))
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert ability unit_id={unit_id}: {e}"))?;
+        counts.abilities += res.rows_affected();
+    }
+
+    // INSERT keywords
+    for row in &payload.keywords {
+        let unit_id = str_val(row, "unit_id").unwrap_or_default();
+        let keyword = str_val(row, "keyword").unwrap_or_default();
+        if unit_id.is_empty() || keyword.is_empty() { continue; }
+        let is_faction: i64 = i64_val(row, "is_faction").unwrap_or(0);
+        let res = sqlx::query(
+            "INSERT OR IGNORE INTO udb_unit_keywords (unit_id, keyword, is_faction) VALUES (?, ?, ?)",
+        )
+        .bind(&unit_id)
+        .bind(&keyword)
+        .bind(is_faction)
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert keyword unit_id={unit_id} keyword={keyword}: {e}"))?;
+        counts.keywords += res.rows_affected();
+    }
+
+    // INSERT points tiers
+    for row in &payload.points {
+        let unit_id = str_val(row, "unit_id").unwrap_or_default();
+        if unit_id.is_empty() { continue; }
+        let res = sqlx::query(
+            "INSERT INTO udb_unit_points (unit_id, model_count, points) VALUES (?, ?, ?)",
+        )
+        .bind(&unit_id)
+        .bind(i64_val(row, "model_count").unwrap_or(0))
+        .bind(i64_val(row, "points").unwrap_or(0))
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert points unit_id={unit_id}: {e}"))?;
+        counts.points += res.rows_affected();
+    }
+
+    // INSERT composition
+    for row in &payload.composition {
+        let unit_id = str_val(row, "unit_id").unwrap_or_default();
+        if unit_id.is_empty() { continue; }
+        let res = sqlx::query(
+            "INSERT INTO udb_unit_composition (unit_id, min_models, max_models, notes) VALUES (?, ?, ?, ?)",
+        )
+        .bind(&unit_id)
+        .bind(i64_val(row, "min_models").unwrap_or(1))
+        .bind(i64_val(row, "max_models").unwrap_or(1))
+        .bind(str_val(row, "notes"))
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert composition unit_id={unit_id}: {e}"))?;
+        counts.composition += res.rows_affected();
+    }
+
+    // INSERT udb_meta (single row, id=1)
+    sqlx::query(
+        "INSERT INTO udb_meta (id, version, built_at, game_system, unit_count, faction_count) VALUES (1, ?, ?, ?, ?, ?)",
+    )
+    .bind(&payload.version)
+    .bind(&payload.built_at)
+    .bind(payload.game_system.as_deref().unwrap_or("40k-10th"))
+    .bind(payload.unit_count.map(|v| v as i64))
+    .bind(payload.faction_count.map(|v| v as i64))
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| format!("insert udb_meta: {e}"))?;
+
+    // D-08: Rebuild FTS5 index from source tables
+    sqlx::query("DELETE FROM udb_search")
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("delete udb_search: {e}"))?;
+
+    sqlx::query(
+        "INSERT INTO udb_search(unit_id, name, faction_name, keywords) \
+         SELECT u.id, u.name, f.name, \
+                COALESCE(GROUP_CONCAT(k.keyword, ' '), '') \
+         FROM udb_units u \
+         JOIN udb_factions f ON f.id = u.faction_id \
+         LEFT JOIN udb_unit_keywords k ON k.unit_id = u.id \
+         GROUP BY u.id",
+    )
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| format!("rebuild udb_search: {e}"))?;
+
+    tx.commit().await.map_err(|e| format!("commit udb: {e}"))?;
+
+    // D-12: WAL checkpoint after commit, before returning
+    sqlx::query("PRAGMA wal_checkpoint(TRUNCATE)")
+        .execute(&mut conn)
+        .await
+        .map_err(|e| format!("wal_checkpoint: {e}"))?;
+
+    Ok(counts)
+}
+
+/// Import the bundled unit_database.json into udb_* tables.
+/// Called by the setup hook on first launch or version mismatch.
+#[tauri::command]
+async fn import_unit_database(app: tauri::AppHandle) -> Result<UdbImportResult, String> {
+    import_unit_database_inner(&app).await
 }
 
 // ── Backup helpers ──────────────────────────────────────────────────────────
@@ -1172,6 +1494,17 @@ pub fn run() {
                 .expect("failed to resolve app_data_dir");
             std::fs::create_dir_all(&app_data_dir).expect("failed to create app_data_dir");
             println!("[hobbyforge] app_data_dir = {}", app_data_dir.display());
+
+            // D-06: Auto-import bundled unit_database.json on first launch or version mismatch.
+            // Spawned as async task — does not block window creation (T-103-07).
+            let handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                match import_unit_database_inner(&handle).await {
+                    Ok(result) => println!("[hobbyforge] udb import: {result:?}"),
+                    Err(e) => eprintln!("[hobbyforge] udb import failed: {e}"),
+                }
+            });
+
             Ok(())
         })
         .plugin(tauri_plugin_updater::Builder::new().build())
@@ -1188,6 +1521,7 @@ pub fn run() {
         )
         .invoke_handler(tauri::generate_handler![
             bulk_sync_rules,
+            import_unit_database,
             export_backup,
             validate_backup,
             create_safety_backup,

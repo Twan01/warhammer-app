@@ -40,7 +40,10 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "createUpdaterArtifacts": true
+    "createUpdaterArtifacts": true,
+    "resources": {
+      "data/unit_database.json": "data/unit_database.json"
+    }
   },
   "plugins": {
     "sql": {
