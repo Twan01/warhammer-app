@@ -11,12 +11,12 @@ Requirements for v0.4.0 milestone. Each maps to roadmap phases.
 
 - [x] **DAS-01**: Dev-side Node.js build script parses Wahapedia CSVs + BSData XML into canonical `unit_database.json`
 - [x] **DAS-02**: Canonical `udb_*` schema in hobbyforge.db with tables for units, models, weapons, abilities, keywords, points tiers, composition
-- [ ] **DAS-03**: Rust `import_unit_database` command loads JSON into `udb_*` tables with WAL checkpoint before React Query invalidation
+- [x] **DAS-03**: Rust `import_unit_database` command loads JSON into `udb_*` tables with WAL checkpoint before React Query invalidation
 - [x] **DAS-04**: All 40k 10th edition factions and units present with stats, weapons, abilities, keywords
 - [x] **DAS-05**: Point tiers with model count brackets per unit (e.g., 5 models: 90pts, 10 models: 180pts)
 - [x] **DAS-06**: Composition data per unit (min/max model counts, default equipment)
 - [x] **DAS-07**: FTS5 full-text search virtual table for cross-faction unit search
-- [ ] **DAS-08**: Pre-built data ships bundled with app, loaded on first launch via Rust setup hook
+- [x] **DAS-08**: Pre-built data ships bundled with app, loaded on first launch via Rust setup hook
 
 ### Database Browser UI
 
@@ -84,12 +84,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | DAS-01 | Phase 103 | Complete |
 | DAS-02 | Phase 103 | Complete |
-| DAS-03 | Phase 103 | Pending |
+| DAS-03 | Phase 103 | Complete |
 | DAS-04 | Phase 103 | Complete |
 | DAS-05 | Phase 103 | Complete |
 | DAS-06 | Phase 103 | Complete |
 | DAS-07 | Phase 103 | Complete |
-| DAS-08 | Phase 103 | Pending |
+| DAS-08 | Phase 103 | Complete |
 | BUI-01 | Phase 104 | Pending |
 | BUI-02 | Phase 104 | Pending |
 | BUI-03 | Phase 104 | Pending |

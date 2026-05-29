@@ -186,7 +186,7 @@ Full details: `.planning/milestones/v0.3.7-ROADMAP.md`
 Plans:
 - [x] 103-01-PLAN.md — Schema migration (udb_* tables + FTS5) and verification tests
 - [x] 103-02-PLAN.md — Build script (Wahapedia CSV + BSData XML -> unit_database.json)
-- [ ] 103-03-PLAN.md — Rust import command, setup hook, and Tauri resource bundling
+- [x] 103-03-PLAN.md — Rust import command, setup hook, and Tauri resource bundling
 
 ### Phase 104: Database Browser UI
 **Goal**: Users can browse all 40k factions and units through a dedicated in-app browser with filtering, full-text search, and complete datasheet detail
@@ -343,7 +343,7 @@ Plans:
 | 100. Query-Layer Automation | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 | 101. Battle-Readiness Pure Function & Unit Picker | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 | 102. Smart Context Pre-Filling | v0.3.7 | 2/2 | Complete | 2026-05-28 |
-| 103. Data Acquisition & Schema | v0.4.0 | 2/3 | In Progress|  |
+| 103. Data Acquisition & Schema | v0.4.0 | 3/3 | Complete   | 2026-05-29 |
 | 104. Database Browser UI | v0.4.0 | 0/TBD | Not started | - |
 | 105. Collection Integration | v0.4.0 | 0/TBD | Not started | - |
 | 106. Army List Simplification | v0.4.0 | 0/TBD | Not started | - |
