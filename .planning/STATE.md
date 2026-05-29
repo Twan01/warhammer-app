@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Unit Database — Canonical 40k Data Hub
-status: ready_to_plan
+status: executing
 stopped_at: Phase 104 context gathered — ready to plan
-last_updated: 2026-05-29T15:00:00Z
-last_activity: 2026-05-29
+last_updated: "2026-05-29T12:45:46.906Z"
+last_activity: 2026-05-29 -- Phase 104 planning complete
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 3
+  total_plans: 6
   completed_plans: 3
   percent: 20
 ---
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-05-29)
 
 Phase: 104
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-05-29
+Status: Ready to execute
+Last activity: 2026-05-29 -- Phase 104 planning complete
 
 Progress: [██████████] 100%
 
