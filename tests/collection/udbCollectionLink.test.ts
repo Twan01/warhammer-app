@@ -95,7 +95,7 @@ describe("resolveWorstStatus (Plan 02 Task 1 — RED until then)", () => {
   beforeEach(async () => {
     try {
       const mod = await import("@/features/unit-database/UdbUnitRow");
-      resolveWorstStatus = (mod as Record<string, (s: string) => string>).resolveWorstStatus;
+      resolveWorstStatus = (mod as unknown as Record<string, (s: string) => string>).resolveWorstStatus;
     } catch {
       resolveWorstStatus = () => { throw new Error("UdbUnitRow not yet implemented"); };
     }
@@ -125,7 +125,7 @@ describe("resolveReadinessDotClass (Plan 02 Task 1 — RED until then)", () => {
   beforeEach(async () => {
     try {
       const mod = await import("@/features/unit-database/UdbUnitRow");
-      resolveReadinessDotClass = (mod as Record<string, (s: string) => string>).resolveReadinessDotClass;
+      resolveReadinessDotClass = (mod as unknown as Record<string, (s: string) => string>).resolveReadinessDotClass;
     } catch {
       resolveReadinessDotClass = () => { throw new Error("UdbUnitRow not yet implemented"); };
     }

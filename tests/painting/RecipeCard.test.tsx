@@ -31,6 +31,7 @@ function makeFaction(over: Partial<Faction> = {}): Faction {
     id: 1, name: "Tau Empire", game_system: "Warhammer 40K",
     description: null, color_theme: "#33aaff", icon_path: null,
     lore_notes: null,
+    wahapedia_faction_id: null,
     created_at: "2026-01-01", updated_at: "2026-01-01",
     ...over,
   };

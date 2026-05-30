@@ -88,6 +88,7 @@ const SAMPLE_UNIT: Unit = {
   status_assembly_override: 0,
   status_basing_override: 0,
   status_varnished_override: 0,
+  udb_unit_id: null,
   created_at: "2026-01-01",
   updated_at: "2026-01-01",
 };

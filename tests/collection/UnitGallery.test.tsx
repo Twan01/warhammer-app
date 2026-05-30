@@ -37,6 +37,7 @@ const mockFaction: Faction = {
   color_theme: "#1e40af",
   icon_path: null,
   lore_notes: null,
+  wahapedia_faction_id: null,
   created_at: "2026-05-03T00:00:00Z",
   updated_at: "2026-05-03T00:00:00Z",
 };
@@ -65,6 +66,7 @@ const mockUnit: Unit = {
   notes: null,
   lore_notes: null,
   undercoat: null, status_assembly_override: 0 as 0 | 1, status_basing_override: 0 as 0 | 1, status_varnished_override: 0 as 0 | 1,
+  udb_unit_id: null,
   created_at: "2026-05-03T00:00:00Z",
   updated_at: "2026-05-03T00:00:00Z",
 };

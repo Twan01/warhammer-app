@@ -131,6 +131,8 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
         status_assembly_override: 0 as 0 | 1,
         status_basing_override: 0 as 0 | 1,
         status_varnished_override: 0 as 0 | 1,
+        // migration 039 — Phase 105 COL-02: preserve existing link or null for new units
+        udb_unit_id: (unit as { udb_unit_id?: string | null } | undefined)?.udb_unit_id ?? null,
       };
 
       if (isEdit && unit) {

@@ -55,6 +55,7 @@ const MIN_CREATE_INPUT = {
   status_assembly_override: 0 as const,
   status_basing_override: 0 as const,
   status_varnished_override: 0 as const,
+  udb_unit_id: null,
 };
 
 function makeWrapper() {

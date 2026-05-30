@@ -46,6 +46,7 @@ const mockStat: FactionStat = {
     color_theme: "#3a4f96",
     icon_path: null,
     lore_notes: null,
+    wahapedia_faction_id: null,
     created_at: "2024-01-01",
     updated_at: "2024-01-01",
   },

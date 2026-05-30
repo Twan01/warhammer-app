@@ -109,6 +109,17 @@ export interface UdbSearchResult {
   keywords: string;
 }
 
+/**
+ * Phase 105 COL-02: Aggregated ownership per udb_unit_id within a faction.
+ * owned_count: number of collection units linked to this udb_unit
+ * all_statuses: pipe-separated painting statuses for all linked units (GROUP_CONCAT)
+ */
+export interface UdbOwnershipEntry {
+  udb_unit_id: string;
+  owned_count: number;
+  all_statuses: string;
+}
+
 // ---------------------------------------------------------------------------
 // Queries
 // ---------------------------------------------------------------------------
@@ -209,6 +220,32 @@ export async function getUdbUnitDetail(
     points,
     composition,
   };
+}
+
+/**
+ * Phase 105 COL-02/COL-04: Returns aggregated ownership data per udb_unit_id
+ * for a given faction. Joins collection units to udb_units via the FK column.
+ *
+ * Uses GROUP_CONCAT (not MIN) for status aggregation — SQLite MIN on TEXT is
+ * alphabetical, not semantic. JS resolves worst status via PAINTING_STATUS_ORDER.
+ *
+ * factionId is the udb_factions.id string (e.g. "SM", "NEC").
+ */
+export async function getUdbOwnershipByFaction(
+  factionId: string,
+): Promise<UdbOwnershipEntry[]> {
+  const db = await getDb();
+  return db.select<UdbOwnershipEntry[]>(
+    `SELECT u.udb_unit_id,
+            COUNT(*) AS owned_count,
+            GROUP_CONCAT(u.status_painting, '|') AS all_statuses
+     FROM units u
+     JOIN udb_units uu ON uu.id = u.udb_unit_id
+     WHERE uu.faction_id = $1
+       AND u.udb_unit_id IS NOT NULL
+     GROUP BY u.udb_unit_id`,
+    [factionId],
+  );
 }
 
 /**

@@ -50,6 +50,8 @@ export interface Unit {
   status_assembly_override: 0 | 1;
   status_basing_override: 0 | 1;
   status_varnished_override: 0 | 1;
+  // migration 039 — Phase 105 COL-02: nullable FK to canonical unit database
+  udb_unit_id: string | null;
   created_at: string;
   updated_at: string;
 }

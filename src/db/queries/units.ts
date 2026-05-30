@@ -48,13 +48,13 @@ export async function createUnit(input: CreateUnitInput): Promise<number> {
        status_assembly, status_painting, painting_percentage,
        status_basing, status_varnished, is_active_project,
        priority, target_completion_date, purchase_date, purchase_price_pence,
-       storage_location, main_image_path, notes, lore_notes, undercoat
+       storage_location, main_image_path, notes, lore_notes, undercoat, udb_unit_id
      ) VALUES (
        $1, $2, $3, $4, $5, $6, $7,
        $8, $9, $10,
        $11, $12, $13,
        $14, $15, $16, $17,
-       $18, $19, $20, $21, $22
+       $18, $19, $20, $21, $22, $23
      )`,
     [
       input.faction_id, input.name, input.category ?? null, input.unit_type ?? null,
@@ -64,7 +64,7 @@ export async function createUnit(input: CreateUnitInput): Promise<number> {
       input.priority ?? null, input.target_completion_date ?? null,
       input.purchase_date ?? null, input.purchase_price_pence ?? null,
       input.storage_location ?? null, input.main_image_path ?? null, input.notes ?? null,
-      input.lore_notes ?? null, input.undercoat ?? null,
+      input.lore_notes ?? null, input.undercoat ?? null, input.udb_unit_id ?? null,
     ]
   );
   return result.lastInsertId ?? 0;
@@ -99,9 +99,11 @@ export async function updateUnit(input: UpdateUnitInput): Promise<void> {
             status_assembly_override  = COALESCE($24, status_assembly_override),
             status_basing_override    = COALESCE($25, status_basing_override),
             status_varnished_override = COALESCE($26, status_varnished_override),
+            udb_unit_id             = $27,
             updated_at              = datetime('now')
       WHERE id = $1`,
     [
+      // udb_unit_id ($27): no COALESCE — NULL means unlinked, call sites must always provide
       input.id,
       input.faction_id ?? null, input.name ?? null,
       input.category ?? null, input.unit_type ?? null,
@@ -113,6 +115,7 @@ export async function updateUnit(input: UpdateUnitInput): Promise<void> {
       input.storage_location ?? null, input.main_image_path ?? null, input.notes ?? null,
       input.lore_notes ?? null, input.undercoat ?? null,
       input.status_assembly_override ?? null, input.status_basing_override ?? null, input.status_varnished_override ?? null,
+      input.udb_unit_id ?? null,
     ]
   );
 }

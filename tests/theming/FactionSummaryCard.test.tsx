@@ -20,6 +20,7 @@ const mockStat: FactionStat = {
     description: null,
     icon_path: null,
     lore_notes: null,
+    wahapedia_faction_id: null,
     created_at: "2024-01-01T00:00:00Z",
     updated_at: "2024-01-01T00:00:00Z",
   },

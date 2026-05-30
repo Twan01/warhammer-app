@@ -72,6 +72,7 @@ function makeUnit(over: Partial<Unit> = {}): Unit {
     notes: null,
     lore_notes: null,
     undercoat: null, status_assembly_override: 0 as 0 | 1, status_basing_override: 0 as 0 | 1, status_varnished_override: 0 as 0 | 1,
+    udb_unit_id: null,
     created_at: "2026-05-04",
     updated_at: "2026-05-04",
     ...over,

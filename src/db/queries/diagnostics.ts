@@ -191,6 +191,27 @@ export async function getUnmatchedPointsCount(): Promise<DiagnosticFlag | null> 
 }
 
 /**
+ * Phase 105 COL-06: Count collection units that have no link to the canonical
+ * unit database (udb_unit_id IS NULL). Returns a warning-severity flag when
+ * any unlinked units exist, null when all units are linked.
+ */
+export async function getUnlinkedUnitsCount(): Promise<DiagnosticFlag | null> {
+  const db = await getDb();
+  const rows = await db.select<{ c: number }[]>(
+    "SELECT COUNT(*) as c FROM units WHERE udb_unit_id IS NULL",
+  );
+  const count = rows[0]?.c ?? 0;
+  if (count === 0) return null;
+  const plural = count !== 1 ? "s are" : " is";
+  return {
+    type: "unlinked_units",
+    count,
+    description: `${count} collection unit${plural} not linked to the canonical unit database`,
+    severity: "warning",
+  };
+}
+
+/**
  * Aggregates all diagnostic flags into a single array.
  * Stale sync detection is handled in the UI layer via useRulesSyncMeta
  * rather than duplicated here (per D-10/D-14).
@@ -200,6 +221,7 @@ export async function getDiagnosticFlags(): Promise<DiagnosticFlag[]> {
     getOrphanedProgressRows(),
     getAmbiguousPointMatches(),
     getUnmatchedPointsCount(),
+    getUnlinkedUnitsCount(),
   ]);
   return results.filter((f): f is DiagnosticFlag => f !== null);
 }

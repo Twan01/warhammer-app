@@ -95,6 +95,8 @@ export function FactionSheet({ open, faction, onClose }: FactionSheetProps) {
           color_theme: values.color_theme,
           icon_path: values.icon_path || null,
           lore_notes: values.lore_notes || null,
+          // migration 039 — Phase 105 COL-05: bridge column, null on create (backfilled by migration)
+          wahapedia_faction_id: null,
         });
         toast.success("Faction created.");
       }

@@ -53,6 +53,7 @@ function makeEnrichedUnit(overrides: Partial<EnrichedUnit> = {}): EnrichedUnit {
     status_assembly_override: 0,
     status_basing_override: 0,
     status_varnished_override: 0,
+    udb_unit_id: null,
     created_at: "2025-01-01",
     updated_at: "2025-01-01",
     effective_points: 100,

@@ -18,6 +18,7 @@ function u(over: Partial<Unit>): Unit {
     purchase_date: null, purchase_price_pence: null,
     storage_location: null, main_image_path: null, notes: null,
     lore_notes: null, undercoat: null, status_assembly_override: 0 as 0 | 1, status_basing_override: 0 as 0 | 1, status_varnished_override: 0 as 0 | 1,
+    udb_unit_id: null,
     created_at: "2026-01-01", updated_at: "2026-01-01",
     ...over,
   };

@@ -10,6 +10,8 @@ export interface Faction {
   color_theme: string;
   icon_path: string | null;
   lore_notes: string | null;    // migration 008 — Phase 17 ENRCH-01
+  // migration 039 — Phase 105 COL-05: bridge column to canonical udb_factions
+  wahapedia_faction_id: string | null;
   created_at: string;
   updated_at: string;
 }
