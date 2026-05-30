@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Unit Database — Canonical 40k Data Hub
 status: executing
-stopped_at: Phase 106 Plan 01 complete — Plan 02 next
-last_updated: 2026-05-30T16:30:00.000Z
-last_activity: 2026-05-30 -- Phase 106 Plan 01 executed
+stopped_at: Phase 106 Plan 02 complete — Phase 106 done
+last_updated: 2026-05-30T16:35:00.000Z
+last_activity: 2026-05-30 -- Phase 106 Plan 02 executed
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 10
-  completed_plans: 9
-  percent: 50
+  completed_plans: 10
+  percent: 60
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-29)
 ## Current Position
 
 Phase: 106
-Plan: 01 complete, 02 pending
+Plan: 02 complete (phase done)
 Status: Executing
 Last activity: 2026-05-30
 
-Progress: [██████████████████████████] 50%
+Progress: [██████████████████████████████] 60%
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Progress: [███████████████████████
 
 | Phase 103 P01 | 15m | 2 tasks | 4 files |
 | Phase 106 P01 | 45m | 2 tasks | 38 files |
+| Phase 106 P02 | 5m | 2 tasks | 3 files |
 
 ### Key Decisions (v0.4.0)
 
@@ -81,7 +82,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-30T16:30:00Z
-Stopped at: Phase 106 Plan 01 complete — Plan 02 next
-Resume file: .planning/phases/106-army-list-simplification/106-02-PLAN.md
-Resume: Phase 106 Plan 01 done (FK-based points + syncedUnitPoints deletion). Next: Plan 02.
+Last session: 2026-05-30T16:35:00Z
+Stopped at: Phase 106 Plan 02 complete — Phase 106 done
+Resume file: .planning/phases/107-rules-db-cleanup/107-01-PLAN.md
+Resume: Phase 106 done (BATTLELINE validation + DROP migration). Next: Phase 107.

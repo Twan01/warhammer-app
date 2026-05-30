@@ -167,7 +167,7 @@ Full details: `.planning/milestones/v0.3.7-ROADMAP.md`
 - [ ] **Phase 103: Data Acquisition & Schema** — Canonical `udb_*` tables, Node.js build script, Rust import command, and bundled pre-built data
 - [x] **Phase 104: Database Browser UI** — Faction picker, unit list by GW roles, full datasheet detail, FTS5 global search, filters, virtual scrolling (completed 2026-05-30)
 - [ ] **Phase 105: Collection Integration** — FK link from collection units to database, "Add from Database" flow, ownership/readiness badges, Data Health diagnostic
-- [ ] **Phase 106: Army List Simplification** — Points resolved via database FK join, validation uses database keywords/roles, synced_unit_points cache eliminated
+- [x] **Phase 106: Army List Simplification** — Points resolved via database FK join, validation uses database keywords/roles, synced_unit_points cache eliminated (completed 2026-05-30)
 - [ ] **Phase 107: Cleanup & Pipeline** — rules.db eliminated, dead sync code removed, single-database architecture, dev-side update script
 
 ## Phase Details
@@ -255,9 +255,9 @@ Plans:
 
 - [x] 106-01-PLAN.md — FK-based points resolution + synced cache removal (completed 2026-05-30)
 
-**Wave 2** *(blocked on Wave 1 completion)*
+**Wave 2**
 
-- [ ] 106-02-PLAN.md — Keyword/role validation + DROP migration
+- [x] 106-02-PLAN.md — Keyword/role validation + DROP migration (completed 2026-05-30)
 
 ### Phase 107: Cleanup & Pipeline
 
