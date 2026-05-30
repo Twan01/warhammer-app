@@ -8,29 +8,32 @@ export async function getUnits(): Promise<Unit[]> {
 
 /**
  * Fetch all units with effective points resolved from the COALESCE chain:
- *   COALESCE(u.points, sup.points, 0)
+ *   COALESCE(u.points, udb_base.points, 0)
  *
- * Manual points (u.points) win over synced rules points (sup.points).
- * is_synced indicates whether the unit has a matching entry in synced_unit_points.
+ * Manual points (u.points) win over database points (udb_base.points).
+ * is_linked indicates whether the unit has a canonical database entry (udb_unit_id IS NOT NULL).
  *
- * Uses the same join pattern as getArmyListWithUnits:
- *   unit_rules_mapping → synced_unit_points via COALESCE(urm.datasheet_name, u.name)
+ * Uses FK-based join through units.udb_unit_id -> udb_unit_points (Phase 106).
  */
 export async function getUnitsWithPoints(): Promise<EnrichedUnit[]> {
   const db = await getDb();
-  const rows = await db.select<Array<Unit & { synced_points: number | null }>>(
+  const rows = await db.select<Array<Unit & { udb_base_points: number | null }>>(
     `SELECT u.*,
-            sup.points AS synced_points
+            udb_base.points AS udb_base_points
      FROM units u
-     LEFT JOIN unit_rules_mapping urm ON urm.unit_id = u.id
-     LEFT JOIN synced_unit_points sup
-       ON sup.unit_name = COALESCE(urm.datasheet_name, u.name)
+     LEFT JOIN udb_unit_points udb_base
+       ON udb_base.unit_id = u.udb_unit_id
+       AND udb_base.model_count = (
+         SELECT MIN(model_count)
+         FROM udb_unit_points
+         WHERE unit_id = u.udb_unit_id
+       )
      ORDER BY u.name ASC`,
   );
   return rows.map((row) => ({
     ...row,
-    effective_points: row.points ?? row.synced_points ?? 0,
-    is_synced: row.synced_points !== null,
+    effective_points: row.points ?? row.udb_base_points ?? 0,
+    is_linked: row.udb_unit_id != null,
   }));
 }
 

@@ -57,8 +57,8 @@ function makeEnrichedUnit(overrides: Partial<EnrichedUnit> = {}): EnrichedUnit {
     created_at: "2025-01-01",
     updated_at: "2025-01-01",
     effective_points: 100,
-    synced_points: null,
-    is_synced: false,
+    udb_base_points: null,
+    is_linked: false,
     ...overrides,
   };
 }

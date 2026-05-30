@@ -75,9 +75,8 @@ export function LoadoutBuilderSheet({
   listFactionId,
   onClose,
 }: LoadoutBuilderSheetProps) {
-  // Prefer canonical_name (from unit_rules_mapping) for synced data lookups
   const unitName = unit?.unit_name;
-  const lookupName = unit?.canonical_name ?? unitName;
+  const lookupName = unitName;
 
   // Pitfall 1 — faction_id must be string for synced table queries
   const factionIdStr = unit?.faction_id !== null && unit?.faction_id !== undefined
@@ -98,11 +97,11 @@ export function LoadoutBuilderSheet({
     return resolveUnitPoints({
       points_override: unit.points_override,
       tier_points: unit.tier_points,
-      synced_points: unit.synced_points,
+      udb_base_points: unit.udb_base_points,
       override_points: unit.override_points,
       unit_points: unit.unit_points,
     });
-  }, [unit?.points_override, unit?.tier_points, unit?.synced_points, unit?.override_points, unit?.unit_points]);
+  }, [unit?.points_override, unit?.tier_points, unit?.udb_base_points, unit?.override_points, unit?.unit_points]);
 
   // Wargear grouping
   const wargearGroups = useMemo(

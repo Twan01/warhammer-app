@@ -20,8 +20,9 @@ import type {
  * - addUnitToList allows the same unit_id to appear multiple times in one list
  *   (no UNIQUE constraint on (list_id, unit_id) — intentional per CONTEXT.md).
  * - getArmyListWithUnits LEFT JOINs units to support ghost/planned units (unit_id IS NULL).
- *   Computes effective_points via 6-level COALESCE chain in SQL (Phase 89):
- *   COALESCE(alu.points_override, tier.points, sup.points, uo.points, u.points, 0)
+ *   Computes effective_points via 5-level COALESCE chain in SQL (Phase 106):
+ *   COALESCE(alu.points_override, udb_tier.points, udb_base.points, uo.points, u.points, 0)
+ *   Points resolved via FK join through units.udb_unit_id -> udb_unit_points.
  *   Never cache unit.points — it changes when the user edits the unit.
  * - New nullable columns (leader_attached_to_id, selected_model_count) each have dedicated
  *   clear functions following the clearArmyListDetachment pattern (D-13).
@@ -65,7 +66,6 @@ export async function getArmyListWithUnits(listId: number): Promise<ArmyListUnit
        alu.is_warlord, alu.selected_model_count, alu.leader_attached_to_id,
        alu.points_override, alu.notes, alu.sort_order, alu.tactical_role, alu.created_at,
        COALESCE(u.name, alu.ghost_unit_name) AS unit_name,
-       urm.datasheet_name AS canonical_name,
        u.points AS unit_points,
        u.faction_id,
        u.category AS unit_category,
@@ -73,19 +73,29 @@ export async function getArmyListWithUnits(listId: number): Promise<ArmyListUnit
        u.status_assembly,
        u.status_painting,
        u.painting_percentage,
-       sup.points AS synced_points,
        uo.points AS override_points,
-       tier.points AS tier_points,
-       COALESCE(alu.points_override, tier.points, sup.points, uo.points, u.points, 0) AS effective_points
+       udb_tier.points AS tier_points,
+       udb_base.points AS udb_base_points,
+       udb.role AS udb_role,
+       (SELECT GROUP_CONCAT(keyword, ',')
+        FROM udb_unit_keywords
+        WHERE unit_id = u.udb_unit_id AND is_faction = 0
+       ) AS udb_keywords,
+       COALESCE(alu.points_override, udb_tier.points, udb_base.points, uo.points, u.points, 0) AS effective_points
      FROM army_list_units alu
      LEFT JOIN units u ON u.id = alu.unit_id
      LEFT JOIN unit_overrides uo ON uo.unit_id = u.id
-     LEFT JOIN unit_rules_mapping urm ON urm.unit_id = u.id
-     LEFT JOIN synced_unit_points sup
-       ON sup.unit_name = COALESCE(urm.datasheet_name, u.name, alu.ghost_unit_name)
-     LEFT JOIN synced_unit_point_tiers tier
-       ON tier.unit_name = COALESCE(urm.datasheet_name, u.name, alu.ghost_unit_name)
-       AND tier.model_count = alu.selected_model_count
+     LEFT JOIN udb_units udb ON udb.id = u.udb_unit_id
+     LEFT JOIN udb_unit_points udb_tier
+       ON udb_tier.unit_id = u.udb_unit_id
+       AND udb_tier.model_count = alu.selected_model_count
+     LEFT JOIN udb_unit_points udb_base
+       ON udb_base.unit_id = u.udb_unit_id
+       AND udb_base.model_count = (
+         SELECT MIN(model_count)
+         FROM udb_unit_points
+         WHERE unit_id = u.udb_unit_id
+       )
      WHERE alu.list_id = $1
      ORDER BY alu.sort_order ASC, alu.created_at ASC, alu.id ASC`,
     [listId]
@@ -302,8 +312,8 @@ export async function clearLeaderAttachment(armyListUnitId: number): Promise<voi
 
 /**
  * Phase 89 — Set selected model count for tier-based points resolution (D-08).
- * When set, the COALESCE chain resolves tier.points from synced_unit_point_tiers
- * matching (unit_name, faction_id, model_count).
+ * When set, the COALESCE chain resolves udb_tier.points from udb_unit_points
+ * matching (unit_id, model_count) via FK join.
  */
 export async function setSelectedModelCount(armyListUnitId: number, count: number): Promise<void> {
   const db = await getDb();
@@ -315,7 +325,7 @@ export async function setSelectedModelCount(armyListUnitId: number, count: numbe
 
 /**
  * Phase 89 — Clear selected model count back to NULL (D-13).
- * NULL means "use default/min tier" — points fall through to synced_unit_points.
+ * NULL means "use default/min tier" — points fall through to udb_base via udb_unit_points.
  */
 export async function clearSelectedModelCount(armyListUnitId: number): Promise<void> {
   const db = await getDb();
@@ -394,7 +404,7 @@ export async function getArmyListsByUnitId(
  *
  * Battle-ready = units with status_painting = 'Completed' (canonical value from
  * PAINTING_STATUS_ORDER — NOT 'Complete', Pitfall 1).
- * Effective points = COALESCE(alu.points_override, sup.points, uo.points, u.points, 0) — never computed in JS.
+ * Effective points = COALESCE(alu.points_override, udb_tier.points, udb_base.points, uo.points, u.points, 0) — never computed in JS.
  * Returns empty array immediately for empty ids — avoids SQL IN () error (Pitfall 2).
  */
 export interface ArmyListReadiness {
@@ -411,20 +421,24 @@ export async function getArmyListReadiness(
   const placeholders = ids.map((_, i) => `$${i + 1}`).join(", ");
   return db.select<ArmyListReadiness[]>(
     `SELECT al.id,
-       SUM(COALESCE(alu.points_override, tier.points, sup.points, uo.points, u.points, 0)) AS total_points,
+       SUM(COALESCE(alu.points_override, udb_tier.points, udb_base.points, uo.points, u.points, 0)) AS total_points,
        SUM(CASE WHEN u.status_painting = 'Completed'
-                THEN COALESCE(alu.points_override, tier.points, sup.points, uo.points, u.points, 0)
+                THEN COALESCE(alu.points_override, udb_tier.points, udb_base.points, uo.points, u.points, 0)
                 ELSE 0 END) AS battle_ready_points
      FROM army_lists al
      JOIN army_list_units alu ON alu.list_id = al.id
      LEFT JOIN units u ON u.id = alu.unit_id
      LEFT JOIN unit_overrides uo ON uo.unit_id = u.id
-     LEFT JOIN unit_rules_mapping urm ON urm.unit_id = u.id
-     LEFT JOIN synced_unit_points sup
-       ON sup.unit_name = COALESCE(urm.datasheet_name, u.name, alu.ghost_unit_name)
-     LEFT JOIN synced_unit_point_tiers tier
-       ON tier.unit_name = COALESCE(urm.datasheet_name, u.name, alu.ghost_unit_name)
-       AND tier.model_count = alu.selected_model_count
+     LEFT JOIN udb_unit_points udb_tier
+       ON udb_tier.unit_id = u.udb_unit_id
+       AND udb_tier.model_count = alu.selected_model_count
+     LEFT JOIN udb_unit_points udb_base
+       ON udb_base.unit_id = u.udb_unit_id
+       AND udb_base.model_count = (
+         SELECT MIN(model_count)
+         FROM udb_unit_points
+         WHERE unit_id = u.udb_unit_id
+       )
      WHERE al.id IN (${placeholders})
      GROUP BY al.id`,
     ids,

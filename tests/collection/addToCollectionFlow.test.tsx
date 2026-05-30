@@ -7,7 +7,7 @@
  * c. handleAddToCollection maps UDB faction_id to collection faction_id via wahapedia_faction_id match
  * d. handleAddToCollection extracts points and model_count from UDB data
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { UdbUnitDetail } from "@/db/queries/unitDatabase";

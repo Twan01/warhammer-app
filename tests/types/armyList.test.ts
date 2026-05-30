@@ -58,7 +58,6 @@ describe("ArmyListUnitRow type", () => {
       sort_order: 0,
       created_at: "2024-01-01",
       unit_name: "Intercessors",
-      canonical_name: null,
       unit_points: 100,
       effective_points: 100,
       faction_id: 1,
@@ -67,7 +66,9 @@ describe("ArmyListUnitRow type", () => {
       status_painting: "Completed",
       painting_percentage: 100,
       tactical_role: "anti_tank",
-      synced_points: null,
+      udb_base_points: null,
+      udb_role: null,
+      udb_keywords: null,
       override_points: null,
       tier_points: null,
     } satisfies ArmyListUnitRow;

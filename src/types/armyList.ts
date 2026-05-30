@@ -45,7 +45,8 @@ export interface ArmyListUnit {
 /**
  * Joined row returned by getArmyListWithUnits().
  * Includes live unit fields (LEFT JOIN units) and a SQL-computed effective_points
- * via COALESCE(alu.points_override, tier.points, sup.points, uo.points, u.points, 0).
+ * via COALESCE(alu.points_override, udb_tier.points, udb_base.points, uo.points, u.points, 0).
+ * Points resolved via FK join through units.udb_unit_id -> udb_unit_points (Phase 106).
  * The UI sums effective_points directly — never reimplements the COALESCE in JS.
  *
  * Ghost units (unit_id IS NULL) have null faction_id, status_assembly,
@@ -53,7 +54,6 @@ export interface ArmyListUnit {
  */
 export interface ArmyListUnitRow extends ArmyListUnit {
   unit_name: string;
-  canonical_name: string | null;
   unit_points: number | null;
   effective_points: number;
   faction_id: number | null;          // null for ghost units (Phase 89)
@@ -63,9 +63,11 @@ export interface ArmyListUnitRow extends ArmyListUnit {
   status_painting: string | null;     // null for ghost units (Phase 89)
   painting_percentage: number | null; // null for ghost units (Phase 89)
   tactical_role: string | null;
-  synced_points: number | null;
   override_points: number | null;
-  tier_points: number | null;         // from synced_unit_point_tiers (Phase 89)
+  tier_points: number | null;         // from udb_unit_points tier match (Phase 106)
+  udb_base_points: number | null;     // from udb_unit_points min tier fallback (Phase 106)
+  udb_role: string | null;            // from udb_units.role (e.g. "Battleline", "Character") (Phase 106)
+  udb_keywords: string | null;        // comma-separated non-faction keywords from udb_unit_keywords (Phase 106)
 }
 
 export interface ArmyListWithUnits {

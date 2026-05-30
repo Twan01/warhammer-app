@@ -116,20 +116,20 @@ export function buildColumns(
         const u = row.original;
         const pts = u.effective_points;
         const isManual = u.points !== null;
-        const isSynced = u.is_synced;
+        const isLinked = u.is_linked;
         return (
           <span className="text-sm inline-flex items-center gap-1.5">
             {pts === 0 && !isManual ? "—" : pts}
-            {!isSynced && (
+            {!isLinked && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span
                     className="inline-block h-2 w-2 rounded-full bg-destructive shrink-0"
-                    aria-label="Not synced to rules"
+                    aria-label="Not linked to database"
                   />
                 </TooltipTrigger>
                 <TooltipContent side="right">
-                  No matching datasheet in rules — points are manual
+                  Not linked to unit database — points are manual
                 </TooltipContent>
               </Tooltip>
             )}

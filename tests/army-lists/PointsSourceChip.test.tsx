@@ -2,7 +2,7 @@
  * Phase 76 — PV-02 gap: PointsSourceChip component tests.
  *
  * Verifies that the chip renders the correct dot color class and text
- * for each of the 5 PointsSource values, and exposes the correct aria-label.
+ * for each of the PointsSource values, and exposes the correct aria-label.
  */
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -23,8 +23,8 @@ describe("PointsSourceChip", () => {
   // Dot color classes — each source has a distinct bg- class
   // ---------------------------------------------------------------------------
 
-  it("renders bg-emerald-500 dot for synced source", () => {
-    renderChip(95, "synced");
+  it("renders bg-emerald-500 dot for database source", () => {
+    renderChip(95, "database");
     const dot = document.querySelector(".bg-emerald-500");
     expect(dot).not.toBeNull();
   });
@@ -59,7 +59,7 @@ describe("PointsSourceChip", () => {
   // ---------------------------------------------------------------------------
 
   it("renders '<N> pts' text label for a known source", () => {
-    renderChip(95, "synced");
+    renderChip(95, "database");
     expect(screen.getByText("95 pts")).toBeInTheDocument();
   });
 
@@ -77,9 +77,9 @@ describe("PointsSourceChip", () => {
   // Aria-label — accessibility attribute must encode both value and source
   // ---------------------------------------------------------------------------
 
-  it("aria-label contains points value and source name for synced", () => {
-    renderChip(95, "synced");
-    const wrapper = screen.getByLabelText(/95 points, source: synced/i);
+  it("aria-label contains points value and source name for database", () => {
+    renderChip(95, "database");
+    const wrapper = screen.getByLabelText(/95 points, source: database/i);
     expect(wrapper).toBeInTheDocument();
   });
 
@@ -100,7 +100,7 @@ describe("PointsSourceChip", () => {
   // ---------------------------------------------------------------------------
 
   it("dot element has rounded-full class for all sources", () => {
-    for (const source of ["synced", "override", "user-override", "base"] as PointsSource[]) {
+    for (const source of ["database", "override", "user-override", "base"] as PointsSource[]) {
       const { unmount } = renderChip(50, source);
       const dot = document.querySelector(".rounded-full");
       expect(dot, `rounded-full missing for source=${source}`).not.toBeNull();

@@ -39,8 +39,8 @@ export function UnitFormOptional({ hasTiers, tiersCount, unit }: UnitFormOptiona
   const { control, setValue } = useFormContext<UnitFormValues>();
   const [expanded, setExpanded] = useState(false);
 
-  const syncedPoints = unit && "synced_points" in unit ? (unit as EnrichedUnit).synced_points : null;
-  const isSynced = unit && "is_synced" in unit ? (unit as EnrichedUnit).is_synced : false;
+  const udbBasePoints = unit && "udb_base_points" in unit ? (unit as EnrichedUnit).udb_base_points : null;
+  const isLinked = unit && "is_linked" in unit ? (unit as EnrichedUnit).is_linked : false;
 
   async function handlePickImage() {
     const path = await openDialog({
@@ -119,7 +119,7 @@ export function UnitFormOptional({ hasTiers, tiersCount, unit }: UnitFormOptiona
                   <Input
                     type="number"
                     min={0}
-                    placeholder={syncedPoints !== null ? `${syncedPoints} from rules` : "Optional"}
+                    placeholder={udbBasePoints !== null ? `${udbBasePoints} from database` : "Optional"}
                     {...field}
                     value={field.value ?? ""}
                     onChange={(e) =>
@@ -135,9 +135,9 @@ export function UnitFormOptional({ hasTiers, tiersCount, unit }: UnitFormOptiona
                   <p className="text-xs text-muted-foreground mt-1">
                     Managed by point tiers ({tiersCount} tier{tiersCount !== 1 ? "s" : ""} defined)
                   </p>
-                ) : isSynced && syncedPoints !== null && field.value === null ? (
+                ) : isLinked && udbBasePoints !== null && field.value === null ? (
                   <p className="text-xs text-muted-foreground mt-1">
-                    Will use {syncedPoints} pts from rules data
+                    Will use {udbBasePoints} pts from unit database
                   </p>
                 ) : null}
                 <FormMessage />

@@ -33,7 +33,6 @@ const mockUnit: ArmyListUnitRow = {
   sort_order: 0,
   created_at: "2026-01-01",
   unit_name: "Intercessors",
-  canonical_name: null,
   unit_points: 80,
   effective_points: 80,
   faction_id: 10,
@@ -42,7 +41,9 @@ const mockUnit: ArmyListUnitRow = {
   status_painting: "Battle Ready",
   painting_percentage: 100,
   tactical_role: null,
-  synced_points: null,
+  udb_base_points: null,
+    udb_role: null,
+    udb_keywords: null,
   override_points: null,
   tier_points: null,
 };

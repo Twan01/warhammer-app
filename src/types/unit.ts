@@ -61,14 +61,14 @@ export type UpdateUnitInput = Partial<CreateUnitInput> & { id: number };
 
 /**
  * Enriched unit returned by getUnitsWithPoints() — includes effective_points
- * computed from the COALESCE chain (manual points > synced rules points)
- * and a flag indicating whether the unit has a matching datasheet in rules.db.
+ * computed from the COALESCE chain (manual points > database points)
+ * and a flag indicating whether the unit is linked to the canonical unit database.
  */
 export interface EnrichedUnit extends Unit {
-  /** Points resolved via COALESCE(u.points, sup.points, 0). Manual wins over synced. */
+  /** Points resolved via COALESCE(u.points, udb_base.points, 0). Manual wins over database. */
   effective_points: number;
-  /** Points from synced_unit_points (rules.db cache). NULL = no match found. */
-  synced_points: number | null;
-  /** Whether the unit has a matching entry in synced_unit_points (is linked to rules). */
-  is_synced: boolean;
+  /** Points from udb_unit_points (canonical database). NULL = no match / unlinked. */
+  udb_base_points: number | null;
+  /** Whether the unit is linked to a canonical database entry (udb_unit_id IS NOT NULL). */
+  is_linked: boolean;
 }

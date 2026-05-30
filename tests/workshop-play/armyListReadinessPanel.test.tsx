@@ -21,10 +21,12 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
     id: 1, list_id: 1, unit_id: 1,
     ghost_unit_name: null, is_warlord: 0, selected_model_count: null, leader_attached_to_id: null,
     points_override: null, notes: null, sort_order: 0,
-    created_at: "2024-01-01", unit_name: "Intercessors", canonical_name: null, unit_points: 100,
+    created_at: "2024-01-01", unit_name: "Intercessors", unit_points: 100,
     faction_id: 1, unit_category: null, unit_model_count: null, status_assembly: 1, status_painting: "Completed",
     painting_percentage: 100, effective_points: 100, tactical_role: null,
-    synced_points: null, override_points: null, tier_points: null,
+    udb_base_points: null, override_points: null, tier_points: null,
+    udb_role: null,
+    udb_keywords: null,
     ...overrides,
   };
 }

@@ -104,11 +104,11 @@ export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, totalPoints
       resolveUnitPoints({
         points_override: unit.points_override,
         tier_points: unit.tier_points,
-        synced_points: unit.synced_points,
+        udb_base_points: unit.udb_base_points,
         override_points: unit.override_points,
         unit_points: unit.unit_points,
       }),
-    [unit.points_override, unit.tier_points, unit.synced_points, unit.override_points, unit.unit_points],
+    [unit.points_override, unit.tier_points, unit.udb_base_points, unit.override_points, unit.unit_points],
   );
 
   // Phase 76 — ambiguity detection (T-76-05: cached by React Query)
