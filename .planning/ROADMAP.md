@@ -275,11 +275,11 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 106-01-PLAN.md — FK-based points resolution + synced cache removal
+- [ ] 107-01-PLAN.md — Eliminate rules.db, delete dead sync infrastructure, redirect hooks to udb_* queries
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 106-02-PLAN.md — Keyword/role validation + DROP migration
+- [ ] 107-02-PLAN.md — Dev-side update script with diff reporting + data version display
 
 ## Progress
 
