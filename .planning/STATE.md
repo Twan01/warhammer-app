@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Unit Database — Canonical 40k Data Hub
 status: executing
-stopped_at: Phase 106 Plan 02 complete — Phase 106 done
-last_updated: 2026-05-30T16:35:00.000Z
-last_activity: 2026-05-30 -- Phase 106 Plan 02 executed
+stopped_at: Phase 107 context gathered
+last_updated: 2026-05-30T18:00:00.000Z
+last_activity: 2026-05-30 -- Phase 107 context gathered (auto-mode)
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 10
   completed_plans: 10
-  percent: 60
+  percent: 80
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-29)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 106 — army list simplification
+**Current focus:** Phase 107 — cleanup & pipeline (rules.db elimination)
 
 ## Current Position
 
-Phase: 106
-Plan: 02 complete (phase done)
+Phase: 106 complete, next: 107
+Plan: verified
 Status: Executing
 Last activity: 2026-05-30
 
-Progress: [██████████████████████████████] 60%
+Progress: [████████████████████████████████████████] 80%
 
 ## Performance Metrics
 
@@ -82,7 +82,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-30T16:35:00Z
-Stopped at: Phase 106 Plan 02 complete — Phase 106 done
-Resume file: .planning/phases/107-rules-db-cleanup/107-01-PLAN.md
-Resume: Phase 106 done (BATTLELINE validation + DROP migration). Next: Phase 107.
+Last session: 2026-05-30T17:00:00Z
+Stopped at: Phase 107 context gathered
+Resume file: .planning/phases/107-cleanup-pipeline/107-CONTEXT.md
+Resume: Phase 107 context gathered. Next: /gsd:plan-phase 107
