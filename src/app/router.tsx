@@ -33,6 +33,7 @@ const RulesHubPageShell = lazy(() => import("./rules-hub/page").then(m => ({ def
 const GameDayPageShell = lazy(() => import("./game-day/page").then(m => ({ default: m.GameDayPageShell })));
 const DataHealthPage = lazy(() => import("./data-health/page").then(m => ({ default: m.DataHealthPage })));
 const PaintingModePage = lazy(() => import("./painting-mode/page").then(m => ({ default: m.PaintingModePage })));
+const UnitDatabasePageShell = lazy(() => import("./unit-database/page").then(m => ({ default: m.UnitDatabasePageShell })));
 
 // ---------------------------------------------------------------------------
 // Root route — thin shell: only renders Outlet + devtools
@@ -189,6 +190,12 @@ const dataHealthRoute = createRoute({
   component: DataHealthPage,
 });
 
+const unitDatabaseRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: "/unit-database",
+  component: UnitDatabasePageShell,
+});
+
 // ---------------------------------------------------------------------------
 // Painting mode route (child of bareLayoutRoute — no sidebar)
 // ---------------------------------------------------------------------------
@@ -221,6 +228,7 @@ const routeTree = rootRoute.addChildren([
     rulesHubRoute,
     gameDayRoute,
     dataHealthRoute,
+    unitDatabaseRoute,
   ]),
   bareLayoutRoute.addChildren([paintingModeRoute]),
 ]);

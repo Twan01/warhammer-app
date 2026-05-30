@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import {
+  BookMarked,
   BookOpen,
   ChevronsLeft,
   ChevronsRight,
@@ -48,6 +49,7 @@ const PLAY_NAV = [
   { to: "/army-lists", label: "Army Lists", icon: ClipboardList },
   { to: "/battle-log", label: "Battle Log", icon: Swords },
   { to: "/rules-hub", label: "Rules Hub", icon: Library },
+  { to: "/unit-database", label: "Unit Database", icon: BookMarked },
 ] as const;
 
 const MANAGEMENT_NAV = [
