@@ -1,47 +1,51 @@
 /**
- * Phase 15 — Datasheet read hooks (DS-04, DS-06, DS-07).
+ * Phase 107 -- Datasheet hooks redirected to udb_* tables.
  *
- * Three read paths:
- *   - useDatasheet(unitId): the linked datasheet for a unit, via
- *     getDatasheetIdForUnit() → getFullDatasheet(). Returns null when no link.
- *   - useDatasheetsByFaction(factionId): the picker's pre-filtered list.
- *   - useRulesSyncMeta(): the rw_sync_meta row, used by PlaybookTab to decide
- *     between empty-banner vs Last-synced label.
+ * All imports from datasheets.ts (rules.db queries) have been eliminated.
+ * Hooks now read from unitDatabase.ts (hobbyforge.db udb_* tables) via getDb().
  *
- * staleTime: Infinity matches useStrategyNote — datasheet content is static
- * until explicit re-sync. After sync, Plan 15-04's useRulesSync mutation
- * invalidates ["datasheet"] AND ["datasheets-by-faction"] AND RULES_SYNC_META_KEY
- * to force refetch.
+ * Backward-compatible cache key exports are preserved so existing
+ * invalidation calls in consumer components continue to work.
  */
 import { useQuery } from "@tanstack/react-query";
+import { getDb } from "@/db/client";
 import {
-  getDatasheetIdForUnit,
-  getDatasheetsByFaction,
-  getDatasheetsByFactionWithPoints,
-  getFullDatasheet,
-  getRulesSyncMeta,
-  getWahapediaFactions,
-  resolveWahapediaFactionIdByName,
-} from "@/db/queries/datasheets";
+  getUdbUnitDetail,
+  getUdbUnitsByFaction,
+  getUdbFactions,
+} from "@/db/queries/unitDatabase";
+
+// ── Cache keys (backward-compatible exports) ────────────────────────────────
 
 export const DATASHEET_KEY = (unitId: number) => ["datasheet", unitId] as const;
 export const DATASHEETS_BY_FACTION_KEY = (factionId: string) =>
   ["datasheets-by-faction", factionId] as const;
-export const RULES_SYNC_META_KEY = ["rules-sync-meta"] as const;
+export const WAHAPEDIA_FACTIONS_KEY = ["wahapedia-factions"] as const;
+export const WAHAPEDIA_FACTION_KEY = (name: string) =>
+  ["wahapedia-faction-id", name] as const;
+
+// ── Hooks ───────────────────────────────────────────────────────────────────
 
 /**
- * DS-04 + DS-06 + DS-07: returns the FullDatasheet linked to the unit, or null
- * when the unit has no datasheet_id link OR the linked datasheet no longer exists
- * in rules.db.
+ * Returns the UdbUnitDetail linked to a collection unit via units.udb_unit_id.
+ * Returns null when the unit has no udb_unit_id link.
  */
 export function useDatasheet(unitId: number | undefined) {
   return useQuery({
-    queryKey: unitId !== undefined ? DATASHEET_KEY(unitId) : (["datasheet", "disabled"] as const),
+    queryKey:
+      unitId !== undefined
+        ? DATASHEET_KEY(unitId)
+        : (["datasheet", "disabled"] as const),
     queryFn: async () => {
       if (unitId === undefined) return null;
-      const linkedId = await getDatasheetIdForUnit(unitId);
-      if (linkedId === null) return null;
-      return getFullDatasheet(linkedId);
+      const db = await getDb();
+      const rows = await db.select<{ udb_unit_id: string | null }[]>(
+        "SELECT udb_unit_id FROM units WHERE id = $1",
+        [unitId],
+      );
+      const udbUnitId = rows[0]?.udb_unit_id ?? null;
+      if (!udbUnitId) return null;
+      return getUdbUnitDetail(udbUnitId);
     },
     enabled: unitId !== undefined,
     staleTime: Infinity,
@@ -49,7 +53,7 @@ export function useDatasheet(unitId: number | undefined) {
 }
 
 /**
- * DS-04: returns the picker's faction-pre-filtered list (id, name, role projection).
+ * Returns unit summaries for a faction from the canonical unit database.
  */
 export function useDatasheetsByFaction(factionId: string | undefined) {
   return useQuery({
@@ -58,25 +62,18 @@ export function useDatasheetsByFaction(factionId: string | undefined) {
         ? DATASHEETS_BY_FACTION_KEY(factionId)
         : (["datasheets-by-faction", "disabled"] as const),
     queryFn: () =>
-      factionId !== undefined ? getDatasheetsByFaction(factionId) : Promise.resolve([]),
+      factionId !== undefined
+        ? getUdbUnitsByFaction(factionId)
+        : Promise.resolve([]),
     enabled: factionId !== undefined,
     staleTime: Infinity,
   });
 }
 
 /**
- * DS-02 + DS-03: returns the single rw_sync_meta row, or null when rules.db is
- * empty/uninitialized. PlaybookTab uses this to render either the empty-state
- * banner ("Sync datasheets to auto-fill stats") or the Last-synced label.
+ * Returns unit summaries with points for a faction. In the canonical unit
+ * database, units already include points -- same query as useDatasheetsByFaction.
  */
-export function useRulesSyncMeta() {
-  return useQuery({
-    queryKey: RULES_SYNC_META_KEY,
-    queryFn: getRulesSyncMeta,
-    staleTime: Infinity,
-  });
-}
-
 export function useDatasheetsByFactionWithPoints(factionId: string | undefined) {
   return useQuery({
     queryKey:
@@ -85,30 +82,27 @@ export function useDatasheetsByFactionWithPoints(factionId: string | undefined) 
         : (["datasheets-with-points", "disabled"] as const),
     queryFn: () =>
       factionId !== undefined
-        ? getDatasheetsByFactionWithPoints(factionId)
+        ? getUdbUnitsByFaction(factionId)
         : Promise.resolve([]),
     enabled: factionId !== undefined,
     staleTime: Infinity,
   });
 }
 
-export const WAHAPEDIA_FACTIONS_KEY = ["wahapedia-factions"] as const;
-
+/**
+ * Returns all factions from the canonical unit database.
+ */
 export function useWahapediaFactions() {
   return useQuery({
     queryKey: WAHAPEDIA_FACTIONS_KEY,
-    queryFn: getWahapediaFactions,
+    queryFn: getUdbFactions,
     staleTime: Infinity,
   });
 }
 
-export const WAHAPEDIA_FACTION_KEY = (name: string) =>
-  ["wahapedia-faction-id", name] as const;
-
 /**
- * DS-04 cross-DB lookup wrapped as a TanStack Query so the result is cached
- * per HobbyForge faction name. Result lives forever (Wahapedia faction IDs
- * never change without a re-sync, which invalidates RULES_SYNC_META_KEY anyway).
+ * Resolves a HobbyForge faction name to a Wahapedia/udb faction ID.
+ * Searches udb_factions by case-insensitive name match.
  */
 export function useWahapediaFactionId(localFactionName: string | undefined) {
   return useQuery({
@@ -116,10 +110,14 @@ export function useWahapediaFactionId(localFactionName: string | undefined) {
       localFactionName !== undefined
         ? WAHAPEDIA_FACTION_KEY(localFactionName)
         : (["wahapedia-faction-id", "disabled"] as const),
-    queryFn: () =>
-      localFactionName !== undefined
-        ? resolveWahapediaFactionIdByName(localFactionName)
-        : Promise.resolve(null),
+    queryFn: async () => {
+      if (localFactionName === undefined) return null;
+      const factions = await getUdbFactions();
+      const match = factions.find(
+        (f) => f.name.toLowerCase() === localFactionName.toLowerCase(),
+      );
+      return match?.id ?? null;
+    },
     enabled: localFactionName !== undefined,
     staleTime: Infinity,
   });

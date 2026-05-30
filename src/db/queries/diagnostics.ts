@@ -12,7 +12,6 @@
  * Cross-DB queries (ambiguous points) query each DB separately and compare in JS.
  */
 import { getDb } from "@/db/client";
-import { getRulesDb } from "@/db/rules-client";
 
 // ── Interfaces ──────────────────────────────────────────────────────────────
 
@@ -32,7 +31,6 @@ export interface DiagnosticFlag {
 
 export interface SchemaVersions {
   hobbyforge: number;
-  rules: number;
 }
 
 // ── Query functions ─────────────────────────────────────────────────────────
@@ -69,12 +67,8 @@ export async function getTableCounts(): Promise<TableCounts> {
  * value from the result object as a fallback.
  */
 export async function getSchemaVersions(): Promise<SchemaVersions> {
-  const [db, rulesDb] = await Promise.all([getDb(), getRulesDb()]);
-
-  const [hfRows, rulesRows] = await Promise.all([
-    db.select<Record<string, number>[]>("PRAGMA user_version"),
-    rulesDb.select<Record<string, number>[]>("PRAGMA user_version"),
-  ]);
+  const db = await getDb();
+  const hfRows = await db.select<Record<string, number>[]>("PRAGMA user_version");
 
   const extractVersion = (row: Record<string, number> | undefined): number => {
     if (!row) return 0;
@@ -86,7 +80,6 @@ export async function getSchemaVersions(): Promise<SchemaVersions> {
 
   return {
     hobbyforge: extractVersion(hfRows[0]),
-    rules: extractVersion(rulesRows[0]),
   };
 }
 
@@ -135,33 +128,6 @@ export async function getAmbiguousPointMatches(): Promise<DiagnosticFlag | null>
 }
 
 /**
- * Detect points entries that have no matching datasheet after normalization.
- * These are BSData units where no Wahapedia equivalent could be found.
- */
-export async function getUnmatchedPointsCount(): Promise<DiagnosticFlag | null> {
-  const rulesDb = await getRulesDb();
-
-  const [{ c: count }] = await rulesDb.select<[{ c: number }]>(
-    `SELECT COUNT(*) as c
-     FROM rw_datasheet_points dp
-     WHERE NOT EXISTS (
-       SELECT 1 FROM rw_datasheets d
-       WHERE d.name = dp.datasheet_name
-         AND (dp.faction_id IS NULL OR d.faction_id = dp.faction_id)
-     )`,
-    [],
-  );
-
-  if (count === 0) return null;
-  return {
-    type: "unmatched_points",
-    count,
-    description: `${count} BSData points entries have no matching Wahapedia datasheet`,
-    severity: "info",
-  };
-}
-
-/**
  * Phase 105 COL-06: Count collection units that have no link to the canonical
  * unit database (udb_unit_id IS NULL). Returns a warning-severity flag when
  * any unlinked units exist, null when all units are linked.
@@ -184,14 +150,13 @@ export async function getUnlinkedUnitsCount(): Promise<DiagnosticFlag | null> {
 
 /**
  * Aggregates all diagnostic flags into a single array.
- * Stale sync detection is handled in the UI layer via useRulesSyncMeta
+ * Data freshness is handled in the UI layer via useUdbMeta
  * rather than duplicated here (per D-10/D-14).
  */
 export async function getDiagnosticFlags(): Promise<DiagnosticFlag[]> {
   const results = await Promise.all([
     getOrphanedProgressRows(),
     getAmbiguousPointMatches(),
-    getUnmatchedPointsCount(),
     getUnlinkedUnitsCount(),
   ]);
   return results.filter((f): f is DiagnosticFlag => f !== null);
