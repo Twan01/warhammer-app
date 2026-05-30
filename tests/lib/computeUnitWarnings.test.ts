@@ -155,6 +155,29 @@ describe("computeUnitWarnings", () => {
     expect(result.soft).not.toContain("Stale points");
   });
 
+  it("returns empty warnings for unlinked unit (udb_role = null)", () => {
+    const unit = makeUnit({ udb_role: null, udb_unit_id: null });
+    const ctx = makeContext();
+    const result = computeUnitWarnings(unit, ctx);
+    // Unlinked units skip role validation entirely (D-09)
+    expect(result.hard).toEqual([]);
+    expect(result.soft).toEqual([]);
+  });
+
+  it("returns empty warnings for ghost unit (unit_id = null)", () => {
+    const unit = makeUnit({
+      unit_id: null,
+      ghost_unit_name: "Ghost Intercessors",
+      status_painting: null,
+      status_assembly: null,
+    });
+    const ctx = makeContext();
+    const result = computeUnitWarnings(unit, ctx);
+    // Ghost units skip role validation (D-09)
+    expect(result.hard).toEqual([]);
+    expect(result.soft).toEqual([]);
+  });
+
   it("returns empty hard and soft for a fully healthy unit", () => {
     const unit = makeUnit();
     const ctx = makeContext({ freshness: "fresh" });
@@ -187,51 +210,116 @@ describe("computeUnitWarnings", () => {
 describe("computeListWarnings", () => {
   it("returns hard 'Points exceeded' when totalPoints > pointsLimit", () => {
     const ctx = makeContext({ totalPoints: 2100, pointsLimit: 2000 });
-    const result = computeListWarnings(ctx);
+    const result = computeListWarnings(ctx, []);
     expect(result.hard).toContain("Points exceeded");
   });
 
   it("does NOT return 'Points exceeded' when pointsLimit is null", () => {
     const ctx = makeContext({ totalPoints: 9999, pointsLimit: null });
-    const result = computeListWarnings(ctx);
+    const result = computeListWarnings(ctx, []);
     expect(result.hard).not.toContain("Points exceeded");
   });
 
   it("does NOT return 'Points exceeded' when totalPoints <= pointsLimit", () => {
     const ctx = makeContext({ totalPoints: 2000, pointsLimit: 2000 });
-    const result = computeListWarnings(ctx);
+    const result = computeListWarnings(ctx, []);
     expect(result.hard).not.toContain("Points exceeded");
   });
 
   it("returns soft 'Stale points data' when freshness is 'stale'", () => {
     const ctx = makeContext({ freshness: "stale" });
-    const result = computeListWarnings(ctx);
+    const result = computeListWarnings(ctx, []);
     expect(result.soft).toContain("Stale points data");
   });
 
   it("returns soft 'Stale points data' when freshness is 'never'", () => {
     const ctx = makeContext({ freshness: "never" });
-    const result = computeListWarnings(ctx);
+    const result = computeListWarnings(ctx, []);
     expect(result.soft).toContain("Stale points data");
   });
 
   it("does NOT return 'Stale points data' when freshness is 'fresh'", () => {
     const ctx = makeContext({ freshness: "fresh" });
-    const result = computeListWarnings(ctx);
+    const result = computeListWarnings(ctx, []);
     expect(result.soft).not.toContain("Stale points data");
   });
 
   it("does NOT return 'Stale points data' when freshness is 'aging'", () => {
     const ctx = makeContext({ freshness: "aging" });
-    const result = computeListWarnings(ctx);
+    const result = computeListWarnings(ctx, []);
     expect(result.soft).not.toContain("Stale points data");
   });
 
   it("returns empty hard and soft for a healthy list", () => {
     const ctx = makeContext({ totalPoints: 1500, pointsLimit: 2000, freshness: "fresh" });
-    const result = computeListWarnings(ctx);
+    const result = computeListWarnings(ctx, []);
     expect(result.hard).toEqual([]);
     expect(result.soft).toEqual([]);
+  });
+
+  // -------------------------------------------------------------------------
+  // BATTLELINE count validation (Phase 106, D-08)
+  // -------------------------------------------------------------------------
+  it("returns soft warning when 2000pt list has fewer than 3 Battleline units", () => {
+    const units = [
+      { udb_role: "Battleline", unit_id: 1 },
+    ];
+    const ctx = makeContext({ totalPoints: 1500, pointsLimit: 2000 });
+    const result = computeListWarnings(ctx, units);
+    expect(result.soft).toContain("Needs 3 Battleline (have 1)");
+  });
+
+  it("returns soft warning when 1000pt list has 0 Battleline units", () => {
+    const units = [
+      { udb_role: "Character", unit_id: 1 },
+    ];
+    const ctx = makeContext({ totalPoints: 800, pointsLimit: 1000 });
+    const result = computeListWarnings(ctx, units);
+    expect(result.soft).toContain("Needs 2 Battleline (have 0)");
+  });
+
+  it("returns no Battleline warning when threshold is met (3 battleline at 2000pt)", () => {
+    const units = [
+      { udb_role: "Battleline", unit_id: 1 },
+      { udb_role: "Battleline", unit_id: 2 },
+      { udb_role: "Battleline", unit_id: 3 },
+    ];
+    const ctx = makeContext({ totalPoints: 1800, pointsLimit: 2000 });
+    const result = computeListWarnings(ctx, units);
+    const battlelineWarnings = result.soft.filter(w => w.includes("Battleline"));
+    expect(battlelineWarnings).toHaveLength(0);
+  });
+
+  it("skips Battleline check when pointsLimit is null", () => {
+    const units = [
+      { udb_role: "Character", unit_id: 1 },
+    ];
+    const ctx = makeContext({ pointsLimit: null });
+    const result = computeListWarnings(ctx, units);
+    const battlelineWarnings = result.soft.filter(w => w.includes("Battleline"));
+    expect(battlelineWarnings).toHaveLength(0);
+  });
+
+  it("counts Battleline case-insensitively", () => {
+    const units = [
+      { udb_role: "battleline", unit_id: 1 },
+      { udb_role: "BATTLELINE", unit_id: 2 },
+    ];
+    const ctx = makeContext({ pointsLimit: 1500 });
+    const result = computeListWarnings(ctx, units);
+    const battlelineWarnings = result.soft.filter(w => w.includes("Battleline"));
+    expect(battlelineWarnings).toHaveLength(0); // 2 >= 2 required for 1000-1999
+  });
+
+  it("skips unlinked units (unit_id = null) when counting Battleline", () => {
+    const units = [
+      { udb_role: "Battleline", unit_id: null },  // ghost/unlinked — skipped
+      { udb_role: "Battleline", unit_id: 1 },
+    ];
+    const ctx = makeContext({ pointsLimit: 2000 });
+    const result = computeListWarnings(ctx, units);
+    // Only 1 linked battleline, need 3 for 2000pt
+    expect(result.soft).toContain("Needs 3 Battleline (have 1)");
   });
 });
 
