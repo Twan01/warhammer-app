@@ -1,4 +1,4 @@
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Plus } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Collapsible,
@@ -14,7 +15,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useUdbUnitDetail } from "@/hooks/useUnitDatabase";
-import type { UdbAbility } from "@/db/queries/unitDatabase";
+import type { UdbAbility, UdbUnitDetail } from "@/db/queries/unitDatabase";
 import { UdbStatBlock } from "./UdbStatBlock";
 import { UdbWeaponsTable } from "./UdbWeaponsTable";
 
@@ -25,12 +26,16 @@ interface UdbDatasheetSheetProps {
   unitId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onAddToCollection?: (unit: UdbUnitDetail) => void;
+  ownershipData?: { owned_count: number; all_statuses: string } | null;
 }
 
 export function UdbDatasheetSheet({
   unitId,
   open,
   onOpenChange,
+  onAddToCollection,
+  ownershipData,
 }: UdbDatasheetSheetProps) {
   const { data: unit, isLoading } = useUdbUnitDetail(unitId);
 
@@ -90,6 +95,22 @@ export function UdbDatasheetSheet({
                 </Badge>
               )}
             </SheetHeader>
+
+            {onAddToCollection && (
+              <div className="px-4 pt-2 pb-0">
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => onAddToCollection(unit)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  {ownershipData && ownershipData.owned_count > 0
+                    ? "Add Another to Collection"
+                    : "Add to Collection"}
+                </Button>
+              </div>
+            )}
 
             <div className="flex flex-col gap-4 px-4 pb-6">
               <Separator />
