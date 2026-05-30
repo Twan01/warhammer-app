@@ -234,7 +234,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 105-02-PLAN.md — Ownership badges, readiness dots, and Add from Database flow
+- [x] 105-02-PLAN.md — Ownership badges, readiness dots, and Add from Database flow
 
 **UI hint**: yes
 
@@ -375,7 +375,7 @@ Plans:
 | 102. Smart Context Pre-Filling | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 | 103. Data Acquisition & Schema | v0.4.0 | 3/3 | Complete    | 2026-05-29 |
 | 104. Database Browser UI | v0.4.0 | 0/3 | Not started | - |
-| 105. Collection Integration | v0.4.0 | 1/2 | In Progress|  |
+| 105. Collection Integration | v0.4.0 | 2/2 | Complete   | 2026-05-30 |
 | 106. Army List Simplification | v0.4.0 | 0/TBD | Not started | - |
 | 107. Cleanup & Pipeline | v0.4.0 | 0/TBD | Not started | - |
 
