@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { toast } from "sonner";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -90,7 +91,11 @@ export function DatabaseBrowserPage() {
     const matchedFaction = collectionFactions.find(
       (f) => f.wahapedia_faction_id === unit.faction_id,
     );
-    const factionId = matchedFaction?.id ?? 0;
+    if (!matchedFaction) {
+      toast.error("No matching collection faction found. Create the faction first.");
+      return;
+    }
+    const factionId = matchedFaction.id;
 
     // Lowest points tier
     const basePoints = unit.points[0]?.points ?? null;

@@ -21,6 +21,7 @@ const DONE_STATUSES = new Set([
  * Statuses not found in PAINTING_STATUS_ORDER are treated as index -1 (worst/unknown).
  */
 export function resolveWorstStatus(allStatuses: string): string {
+  if (!allStatuses) return "Not Started";
   const statuses = allStatuses.split("|");
   let worstIndex = Infinity;
   let worstStatus = statuses[0] ?? "Not Started";
