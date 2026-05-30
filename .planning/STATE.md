@@ -4,8 +4,8 @@ milestone: v0.4.0
 milestone_name: Unit Database — Canonical 40k Data Hub
 status: executing
 stopped_at: Phase 105 context gathered — ready for planning
-last_updated: "2026-05-30T11:32:36.316Z"
-last_activity: 2026-05-30 -- Phase 105 planning complete
+last_updated: "2026-05-30T11:36:04.359Z"
+last_activity: 2026-05-30 -- Phase 105 execution started
 progress:
   total_phases: 5
   completed_phases: 2
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-29)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 105 — Collection Integration
+**Current focus:** Phase 105 — collection-integration
 
 ## Current Position
 
-Phase: 105
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-30 -- Phase 105 planning complete
+Phase: 105 (collection-integration) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 105
+Last activity: 2026-05-30 -- Phase 105 execution started
 
 Progress: [████████████████████] 40%
 
