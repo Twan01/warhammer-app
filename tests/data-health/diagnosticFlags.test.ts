@@ -112,26 +112,38 @@ describe("getAmbiguousPointMatches", () => {
 
 describe("getDiagnosticFlags", () => {
   it("returns empty array when all diagnostics pass", async () => {
-    // getOrphanedProgressRows query
-    mockSelect.mockResolvedValueOnce([{ c: 0 }]);
-    // getAmbiguousPointMatches: units query then rules query
-    mockSelect.mockResolvedValueOnce([]); // no units with synced points
-    mockRulesSelect.mockResolvedValueOnce([]);
+    mockSelect.mockImplementation((sql: string) => {
+      if (sql.includes("step_progress")) return Promise.resolve([{ c: 0 }]);
+      if (sql.includes("synced_unit_points")) return Promise.resolve([]);
+      if (sql.includes("udb_unit_id")) return Promise.resolve([{ c: 0 }]);
+      return Promise.resolve([{ c: 0 }]);
+    });
+    mockRulesSelect.mockImplementation((sql: string) => {
+      if (sql.includes("NOT EXISTS")) return Promise.resolve([{ c: 0 }]);
+      if (sql.includes("datasheet_name")) return Promise.resolve([]);
+      return Promise.resolve([{ c: 0 }]);
+    });
 
     const result = await getDiagnosticFlags();
     expect(result).toEqual([]);
   });
 
   it("aggregates multiple flags when issues exist", async () => {
-    // getOrphanedProgressRows: 3 orphans
-    mockSelect.mockResolvedValueOnce([{ c: 3 }]);
-    // getAmbiguousPointMatches: 1 unit with no match
-    mockSelect.mockResolvedValueOnce([{ id: 1, name: "NoMatch" }]);
-    mockRulesSelect.mockResolvedValueOnce([{ datasheet_name: "Other" }]);
+    mockSelect.mockImplementation((sql: string) => {
+      if (sql.includes("step_progress")) return Promise.resolve([{ c: 3 }]);
+      if (sql.includes("synced_unit_points")) return Promise.resolve([]);
+      if (sql.includes("udb_unit_id")) return Promise.resolve([{ c: 2 }]);
+      return Promise.resolve([{ c: 0 }]);
+    });
+    mockRulesSelect.mockImplementation((sql: string) => {
+      if (sql.includes("NOT EXISTS")) return Promise.resolve([{ c: 0 }]);
+      if (sql.includes("datasheet_name")) return Promise.resolve([]);
+      return Promise.resolve([{ c: 0 }]);
+    });
 
     const result = await getDiagnosticFlags();
     expect(result).toHaveLength(2);
     expect(result.map((f) => f.type)).toContain("orphaned_progress");
-    expect(result.map((f) => f.type)).toContain("ambiguous_points");
+    expect(result.map((f) => f.type)).toContain("unlinked_units");
   });
 });
