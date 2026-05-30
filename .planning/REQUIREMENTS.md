@@ -39,9 +39,9 @@ Requirements for v0.4.0 milestone. Each maps to roadmap phases.
 
 ### Army List Integration
 
-- [ ] **ALI-01**: Army list points resolved from database FK join (simplified COALESCE chain)
+- [x] **ALI-01**: Army list points resolved from database FK join (simplified COALESCE chain)
 - [ ] **ALI-02**: Army list validation uses database keywords and roles
-- [ ] **ALI-03**: Remove dependency on `synced_unit_points` cache table for points resolution
+- [x] **ALI-03**: Remove dependency on `synced_unit_points` cache table for points resolution
 
 ### Cleanup & Pipeline
 
@@ -103,9 +103,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | COL-05 | Phase 105 | Complete |
 | COL-06 | Phase 105 | Complete |
 | COL-07 | Phase 105 | Complete |
-| ALI-01 | Phase 106 | Pending |
+| ALI-01 | Phase 106 | Complete |
 | ALI-02 | Phase 106 | Pending |
-| ALI-03 | Phase 106 | Pending |
+| ALI-03 | Phase 106 | Complete |
 | CLN-01 | Phase 107 | Pending |
 | CLN-02 | Phase 107 | Pending |
 | CLN-03 | Phase 107 | Pending |
