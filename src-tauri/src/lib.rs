@@ -233,6 +233,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/038_udb_schema.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 39,
+            description: "collection_udb_link",
+            sql: include_str!("../migrations/039_collection_udb_link.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
