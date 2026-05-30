@@ -32,6 +32,7 @@ function makeUnit(
     created_at: "2026-01-01T00:00:00Z",
     unit_name: overrides.unit_name ?? `Unit ${id}`,
     unit_points: overrides.unit_points ?? 100,
+    udb_unit_id: null,
     effective_points: overrides.effective_points ?? 100,
     faction_id: overrides.faction_id ?? 1,
     unit_category: null, unit_model_count: null,

@@ -1,20 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { getLoadoutOptionsForUnit } from "@/db/queries/bsdataExtended";
-import { getTiersByUnitName } from "@/db/queries/syncedUnitPoints";
+import { getDb } from "@/db/client";
 
 /**
  * Phase 90 — React Query hooks for unit-level loadout data.
- * Used by LoadoutBuilderSheet for wargear display (DL-02) and tier selection (DL-01).
+ * Phase 106 — Tier hook rewritten to use udb_unit_points via FK (ALI-03).
  *
- * Both hooks accept string | null for factionId because synced tables store
- * faction_id as TEXT (Pitfall 1 from RESEARCH.md — never pass a number).
+ * Used by LoadoutBuilderSheet for wargear display (DL-02) and tier selection (DL-01).
  */
 
 export const LOADOUT_OPTIONS_KEY = (unitName: string, factionId: string | null) =>
   ["loadout-options", unitName, factionId] as const;
 
-export const SYNCED_TIERS_BY_NAME_KEY = (unitName: string, factionId: string | null) =>
-  ["synced-tiers-by-name", unitName, factionId] as const;
+export const UDB_TIERS_KEY = (udbUnitId: string) =>
+  ["udb-tiers", udbUnitId] as const;
 
 export function useLoadoutOptionsForUnit(
   unitName: string | undefined,
@@ -33,19 +32,36 @@ export function useLoadoutOptionsForUnit(
   });
 }
 
-export function useTiersByUnitName(
-  unitName: string | undefined,
-  factionId: string | null | undefined,
+/**
+ * Fetch point tiers for a unit from the canonical unit database (udb_unit_points).
+ * Accepts udbUnitId (the FK from units.udb_unit_id) instead of name-based lookup.
+ * For ghost units without udb_unit_id, returns empty array (enabled: false).
+ */
+async function getUdbTiersByUnitId(
+  udbUnitId: string,
+): Promise<Array<{ model_count: number; points: number }>> {
+  const db = await getDb();
+  return db.select(
+    `SELECT model_count, points
+     FROM udb_unit_points
+     WHERE unit_id = $1
+     ORDER BY model_count ASC`,
+    [udbUnitId],
+  );
+}
+
+export function useTiersByUdbUnitId(
+  udbUnitId: string | undefined,
 ) {
   return useQuery({
-    queryKey: unitName !== undefined
-      ? SYNCED_TIERS_BY_NAME_KEY(unitName, factionId ?? null)
-      : (["synced-tiers-by-name"] as const),
+    queryKey: udbUnitId !== undefined
+      ? UDB_TIERS_KEY(udbUnitId)
+      : (["udb-tiers"] as const),
     queryFn: () =>
-      unitName !== undefined
-        ? getTiersByUnitName(unitName, factionId ?? null)
+      udbUnitId !== undefined
+        ? getUdbTiersByUnitId(udbUnitId)
         : Promise.resolve([]),
-    enabled: unitName !== undefined,
+    enabled: udbUnitId !== undefined,
     staleTime: 5 * 60 * 1000,
   });
 }

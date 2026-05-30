@@ -70,10 +70,6 @@ vi.mock("@/lib/computePointsDelta", () => ({
   computePointsDelta: () => ({ added: 0, removed: 0, changed: 0, details: [] }),
 }));
 
-vi.mock("@/db/queries/syncedUnitPoints", () => ({
-  replaceSyncedUnitPoints: vi.fn().mockResolvedValue(undefined),
-}));
-
 vi.mock("@/db/queries/pointsImportHistory", () => ({
   insertPointsImportHistory: vi.fn().mockResolvedValue(undefined),
 }));

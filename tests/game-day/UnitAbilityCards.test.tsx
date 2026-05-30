@@ -34,6 +34,7 @@ const mockUnit: ArmyListUnitRow = {
   created_at: "2026-01-01",
   unit_name: "Intercessors",
   unit_points: 80,
+    udb_unit_id: null,
   effective_points: 80,
   faction_id: 10,
     unit_category: null, unit_model_count: null,

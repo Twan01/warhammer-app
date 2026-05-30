@@ -86,12 +86,12 @@ describe("getArmyReadinessByFaction (Phase 32)", () => {
     expect(sql).not.toMatch(/LEFT\s+JOIN units u ON/i);
   });
 
-  it("Test 4: SQL uses 4-level COALESCE(sup.points, uo.points, u.points, 0) to handle null points", async () => {
+  it("Test 4: SQL uses 4-level COALESCE(udb_base.points, uo.points, u.points, 0) for FK-based points resolution (Phase 106)", async () => {
     dbSelectMock.mockResolvedValueOnce([]);
     await getArmyReadinessByFaction();
 
     const [sql] = dbSelectMock.mock.calls[0] as [string];
-    expect(sql).toMatch(/COALESCE\(sup\.points, uo\.points, u\.points, 0\)/);
+    expect(sql).toMatch(/COALESCE\(udb_base\.points, uo\.points, u\.points, 0\)/);
   });
 });
 

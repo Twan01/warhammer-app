@@ -17,11 +17,6 @@ import {
   insertPointsImportHistory,
   getLatestPointsImportHistory,
 } from "@/db/queries/pointsImportHistory";
-import {
-  replaceSyncedUnitPoints,
-  getSyncedUnitPointsMap,
-} from "@/db/queries/syncedUnitPoints";
-
 beforeEach(() => {
   selectMock.mockReset();
   executeMock.mockReset();
@@ -74,42 +69,4 @@ describe("pointsImportHistory schema contract", () => {
   });
 });
 
-describe("syncedUnitPoints schema contract", () => {
-  it("replaceSyncedUnitPoints DELETEs then INSERTs rows (batched — DBH-04, auto-commit)", async () => {
-    executeMock.mockResolvedValue(undefined);
-    await replaceSyncedUnitPoints(
-      [
-        { unit_name: "Intercessors", faction_id: "SM", points: 80 },
-        { unit_name: "Boyz", faction_id: null, points: 70 },
-      ],
-      "2026-05-13T12:00:00Z",
-    );
-    // DELETE + 1 batched INSERT = 2 calls (auto-commit, no BEGIN/COMMIT)
-    expect(executeMock).toHaveBeenCalledTimes(2);
-    const [deleteSql] = executeMock.mock.calls[0];
-    expect(deleteSql).toContain("DELETE FROM synced_unit_points");
-    const [insertSql, params] = executeMock.mock.calls[1];
-    expect(insertSql).toContain("INSERT INTO synced_unit_points");
-    expect(insertSql).toContain("unit_name");
-    expect(insertSql).toContain("faction_id");
-    expect(insertSql).toContain("points");
-    expect(insertSql).toContain("synced_at");
-    // Both rows in a single multi-row VALUES clause
-    expect(insertSql).toMatch(/VALUES.*\$1.*\$5/s);
-    expect(params).toEqual(["Intercessors", "SM", 80, "2026-05-13T12:00:00Z", "Boyz", null, 70, "2026-05-13T12:00:00Z"]);
-  });
-
-  it("getSyncedUnitPointsMap returns Map keyed by unit_name:faction_id", async () => {
-    selectMock.mockResolvedValue([
-      { unit_name: "Intercessors", faction_id: "SM", points: 80 },
-      { unit_name: "Boyz", faction_id: null, points: 70 },
-    ]);
-    const result = await getSyncedUnitPointsMap();
-    expect(selectMock).toHaveBeenCalledOnce();
-    const [sql] = selectMock.mock.calls[0];
-    expect(sql).toContain("synced_unit_points");
-    expect(result).toBeInstanceOf(Map);
-    expect(result.get("Intercessors:SM")).toBe(80);
-    expect(result.get("Boyz:null")).toBe(70);
-  });
-});
+// Phase 106: syncedUnitPoints tests removed — module deleted (ALI-03)

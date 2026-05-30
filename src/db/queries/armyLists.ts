@@ -67,6 +67,7 @@ export async function getArmyListWithUnits(listId: number): Promise<ArmyListUnit
        alu.points_override, alu.notes, alu.sort_order, alu.tactical_role, alu.created_at,
        COALESCE(u.name, alu.ghost_unit_name) AS unit_name,
        u.points AS unit_points,
+       u.udb_unit_id,
        u.faction_id,
        u.category AS unit_category,
        u.model_count AS unit_model_count,

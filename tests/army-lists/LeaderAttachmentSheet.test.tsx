@@ -62,6 +62,7 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
     created_at: "2024-01-01",
     unit_name: "Captain",
     unit_points: 80,
+    udb_unit_id: null,
     faction_id: 1,
     unit_category: null, unit_model_count: null,
     status_assembly: 1,

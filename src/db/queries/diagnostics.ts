@@ -21,7 +21,6 @@ export interface TableCounts {
   painting_recipes: number;
   unit_recipe_assignments: number;
   unit_recipe_step_progress: number;
-  synced_unit_points: number;
 }
 
 export interface DiagnosticFlag {
@@ -45,7 +44,7 @@ export interface SchemaVersions {
 export async function getTableCounts(): Promise<TableCounts> {
   const db = await getDb();
 
-  const [units, recipes, assignments, progress, points] = await Promise.all([
+  const [units, recipes, assignments, progress] = await Promise.all([
     db.select<{ c: number }[]>("SELECT COUNT(*) as c FROM units"),
     db.select<{ c: number }[]>("SELECT COUNT(*) as c FROM painting_recipes"),
     db.select<{ c: number }[]>(
@@ -54,9 +53,6 @@ export async function getTableCounts(): Promise<TableCounts> {
     db.select<{ c: number }[]>(
       "SELECT COUNT(*) as c FROM unit_recipe_step_progress"
     ),
-    db.select<{ c: number }[]>(
-      "SELECT COUNT(*) as c FROM synced_unit_points"
-    ),
   ]);
 
   return {
@@ -64,7 +60,6 @@ export async function getTableCounts(): Promise<TableCounts> {
     painting_recipes: recipes[0]?.c ?? 0,
     unit_recipe_assignments: assignments[0]?.c ?? 0,
     unit_recipe_step_progress: progress[0]?.c ?? 0,
-    synced_unit_points: points[0]?.c ?? 0,
   };
 }
 
@@ -118,47 +113,23 @@ export async function getOrphanedProgressRows(): Promise<DiagnosticFlag | null> 
 }
 
 /**
- * D-09: Detect units with ambiguous or missing point matches.
- * Queries hobbyforge.db for units linked via synced_unit_points, then
- * queries rules.db for all datasheet_points entries, and compares in JS.
- * Flags units whose name (case-insensitive) matches zero or more than one
- * datasheet_name in rw_datasheet_points.
+ * D-09: Detect collection units that are not linked to the canonical unit database.
+ * With FK-based points resolution (Phase 106), unlinked units have no path to
+ * database points and fall through to manual/override values.
  */
 export async function getAmbiguousPointMatches(): Promise<DiagnosticFlag | null> {
-  const [db, rulesDb] = await Promise.all([getDb(), getRulesDb()]);
+  const db = await getDb();
 
-  const [unitRows, pointRows] = await Promise.all([
-    db.select<{ id: number; name: string }[]>(
-      `SELECT u.id, u.name
-       FROM units u
-       JOIN synced_unit_points sup ON sup.unit_name = u.name`
-    ),
-    rulesDb.select<{ datasheet_name: string }[]>(
-      "SELECT datasheet_name FROM rw_datasheet_points"
-    ),
-  ]);
+  const rows = await db.select<{ c: number }[]>(
+    "SELECT COUNT(*) as c FROM units WHERE udb_unit_id IS NULL",
+  );
 
-  // Build a map of lowercase datasheet_name -> count of entries
-  const nameCountMap = new Map<string, number>();
-  for (const row of pointRows) {
-    const key = row.datasheet_name.toLowerCase();
-    nameCountMap.set(key, (nameCountMap.get(key) ?? 0) + 1);
-  }
-
-  // Count units with zero or >1 matches
-  let ambiguousCount = 0;
-  for (const unit of unitRows) {
-    const matchCount = nameCountMap.get(unit.name.toLowerCase()) ?? 0;
-    if (matchCount === 0 || matchCount > 1) {
-      ambiguousCount++;
-    }
-  }
-
-  if (ambiguousCount === 0) return null;
+  const count = rows[0]?.c ?? 0;
+  if (count === 0) return null;
   return {
     type: "ambiguous_points",
-    count: ambiguousCount,
-    description: `${ambiguousCount} units have ambiguous or missing point matches`,
+    count,
+    description: `${count} units are not linked to the unit database — points are manual`,
     severity: "warning",
   };
 }

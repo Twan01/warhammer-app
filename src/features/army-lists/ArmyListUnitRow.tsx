@@ -1,6 +1,5 @@
 import { memo, useEffect, useMemo, useState } from "react";
 import { AlertTriangle, ChevronDown, ChevronUp, Crown, GripVertical, Info, Link2, Settings2, Sparkles, Trash2 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +27,6 @@ import type { SyncFreshness } from "@/lib/syncFreshness";
 import type { ArmyListUnitRow as ArmyListUnitRowType } from "@/types/armyList";
 import type { SyncedLeaderTargetRow } from "@/db/queries/bsdataExtended";
 import { TACTICAL_ROLES, TACTICAL_ROLES_DISPLAY } from "@/types/armyList";
-import { findMatchingDatasheets } from "@/db/queries/unitRulesMapping";
 import { useUnitKeywords } from "@/hooks/useUnitKeywords";
 import { PointsSourceChip } from "./PointsSourceChip";
 import { MatchStatusIndicator } from "./MatchStatusIndicator";
@@ -111,13 +109,7 @@ export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, totalPoints
     [unit.points_override, unit.tier_points, unit.udb_base_points, unit.override_points, unit.unit_points],
   );
 
-  // Phase 76 — ambiguity detection (T-76-05: cached by React Query)
-  const { data: matchingDatasheets } = useQuery({
-    queryKey: ["matching-datasheets", unit.unit_name, unit.faction_id],
-    queryFn: () => findMatchingDatasheets(unit.unit_name, unit.faction_id),
-    staleTime: 5 * 60 * 1000,
-  });
-  const ambiguousCount = matchingDatasheets?.length ?? 0;
+  // Phase 106 — ambiguity detection removed (FK-based joins are deterministic)
 
   const activeLoadout = loadouts?.find((l) => l.is_active === 1);
 
@@ -220,7 +212,7 @@ export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, totalPoints
             {unit.unit_id != null && (
               <MatchStatusIndicator
                 matchStatus={rulesMapping?.match_status ?? null}
-                ambiguousCount={ambiguousCount}
+                ambiguousCount={0}
                 onClick={() => setMappingSheetOpen(true)}
               />
             )}

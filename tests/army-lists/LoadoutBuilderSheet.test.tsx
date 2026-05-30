@@ -66,7 +66,7 @@ let currentMockTiers = mockTiers;
 let currentMockWargear: SyncedLoadoutOptionRow[] = mockWargearOptions;
 
 vi.mock("@/hooks/useLoadoutOptions", () => ({
-  useTiersByUnitName: () => ({
+  useTiersByUdbUnitId: () => ({
     data: currentMockTiers,
     isLoading: false,
   }),
@@ -76,8 +76,8 @@ vi.mock("@/hooks/useLoadoutOptions", () => ({
   }),
   LOADOUT_OPTIONS_KEY: (unitName: string, factionId: string | null) =>
     ["loadout-options", unitName, factionId] as const,
-  SYNCED_TIERS_BY_NAME_KEY: (unitName: string, factionId: string | null) =>
-    ["synced-tiers-by-name", unitName, factionId] as const,
+  UDB_TIERS_KEY: (udbUnitId: string) =>
+    ["udb-tiers", udbUnitId] as const,
 }));
 
 // PointsSourceChip uses Tooltip internally â€” mock resolveUnitPoints to keep it simple
@@ -104,6 +104,7 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
     created_at: "2024-01-01",
     unit_name: "Intercessors",
     unit_points: 100,
+    udb_unit_id: null,
     faction_id: 1,
     unit_category: null, unit_model_count: null,
     status_assembly: 1,

@@ -24,10 +24,10 @@ import type { SyncDiff, ExtendedSnapshotData } from "@/lib/computeSyncDiff";
 import { getRulesDb } from "@/db/rules-client";
 import { computePointsDelta } from "@/lib/computePointsDelta";
 import type { PointsDelta } from "@/types/pointsDelta";
-import { replaceSyncedUnitPoints, replaceSyncedUnitPointTiers } from "@/db/queries/syncedUnitPoints";
+// Phase 106: replaceSyncedUnitPoints/replaceSyncedUnitPointTiers removed (ALI-03)
+// Points now resolved via FK join to udb_unit_points
 import { insertPointsImportHistory } from "@/db/queries/pointsImportHistory";
 import { parsePointsFromCatFiles } from "@/lib/fetchBsdataPoints";
-import type { PointsTier } from "@/lib/fetchBsdataPoints";
 import { fetchAllCatFiles } from "@/lib/bsdataCommon";
 import { parseExtendedFromCatFiles } from "@/lib/parseBsdataExtended";
 import {
@@ -121,13 +121,11 @@ export function useRulesSync() {
       // Fetch BSData .cat XML files once, parse for points + extended data.
       // Separate from main Wahapedia CSV sync so failure doesn't block rules import.
       let pointsRows: Record<string, string>[] = [];
-      let pointsTiers: Map<string, PointsTier[]> = new Map();
       let bsdataExtended: ReturnType<typeof parseExtendedFromCatFiles> | null = null;
       try {
         const catFiles = await fetchAllCatFiles();
         const bsdata = parsePointsFromCatFiles(catFiles);
         pointsRows = bsdata.rows;
-        pointsTiers = bsdata.tiers;
         bsdataExtended = parseExtendedFromCatFiles(catFiles);
       } catch {
         console.warn("[useRulesSync] BSData fetch failed — sync proceeds without points/extended data");
@@ -243,6 +241,16 @@ export function useRulesSync() {
         if (normResult.unmatched.length > 0) {
           console.warn(`[useRulesSync] ${normResult.unmatched.length} points still unmatched after normalization`);
         }
+        // Force WAL checkpoint so all normalization UPDATEs are flushed to the
+        // main database file. Without this, a pooled connection may still read
+        // stale (pre-normalization) BSData names from the WAL snapshot, causing
+        // downstream consumers to read wrong names.
+        try {
+          await rulesDb.execute("PRAGMA wal_checkpoint(TRUNCATE)", []);
+        } catch {
+          // Non-critical: checkpoint failure just means reads might be stale
+          // until the next checkpoint. DbHealthGate will repair on next startup.
+        }
       } catch {
         console.warn("[useRulesSync] points name normalization failed — some points may not match datasheets");
       }
@@ -293,39 +301,18 @@ export function useRulesSync() {
           [],
         );
 
-        // Build afterPointsMap
+        // Build afterPointsMap for delta computation
         const afterPointsMap: Record<string, number> = {};
-        const cacheRows: Array<{ unit_name: string; faction_id: string | null; points: number }> = [];
         for (const row of afterPointsRows) {
           afterPointsMap[`${row.datasheet_name}:${row.faction_id}`] = row.points;
-          cacheRows.push({ unit_name: row.datasheet_name, faction_id: row.faction_id, points: row.points });
         }
 
         // Compute delta
         pointsDelta = computePointsDelta(preSyncPointsMap, afterPointsMap);
 
-        // Populate synced_unit_points cache in hobbyforge.db
+        // Phase 106: synced_unit_points/tiers cache population removed (ALI-03)
+        // Points are now resolved via FK join to udb_unit_points
         const syncedAt = new Date().toISOString();
-        await replaceSyncedUnitPoints(cacheRows, syncedAt);
-
-        // Store point tiers (model count → points brackets)
-        if (pointsTiers.size > 0) {
-          const tierRows = Array.from(pointsTiers.entries()).flatMap(
-            ([key, tiers]) => {
-              const colonIdx = key.lastIndexOf(":");
-              const unitName = key.slice(0, colonIdx);
-              const rawFaction = key.slice(colonIdx + 1);
-              const factionId = rawFaction === "null" || rawFaction === "" ? null : rawFaction;
-              return tiers.map((t) => ({
-                unit_name: unitName,
-                faction_id: factionId,
-                model_count: t.modelCount,
-                points: t.points,
-              }));
-            },
-          );
-          await replaceSyncedUnitPointTiers(tierRows, syncedAt);
-        }
 
         // Store extended BSData data (enhancements, loadouts, model counts, leader targets)
         if (bsdataExtended) {

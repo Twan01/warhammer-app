@@ -84,29 +84,6 @@ export async function deleteUnitRulesMapping(unitId: number): Promise<void> {
 }
 
 /**
- * Find matching datasheets in the synced_unit_points cache (hobbyforge.db).
- * Used for ambiguity detection (D-10) — checks if multiple entries share
- * the unit's name, which indicates the auto-match may be ambiguous.
- *
- * T-76-02: Uses parameterized queries ($1/$2) for SQL injection prevention.
- */
-export async function findMatchingDatasheets(
-  unitName: string,
-  _factionId: number | null,
-): Promise<
-  Array<{ unit_name: string; faction_id: string | null; points: number }>
-> {
-  const db = await getDb();
-  return db.select(
-    `SELECT unit_name, faction_id, points
-     FROM synced_unit_points
-     WHERE unit_name = $1
-       OR unit_name LIKE $2 ESCAPE '\\'`,
-    [unitName, `%${escapeLike(unitName)}%`],
-  );
-}
-
-/**
  * Search rules.db datasheets for the RulesMappingSheet search UI.
  * Queries rw_datasheets in rules.db (separate connection).
  *

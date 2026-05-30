@@ -377,7 +377,7 @@ export function useSetSelectedModelCount() {
 
 /**
  * Phase 89 — Clear selected model count back to NULL (D-13).
- * NULL = use default/min tier — points fall through to synced_unit_points.
+ * NULL = use default/min tier — points fall through to udb_unit_points base tier.
  */
 export interface ClearSelectedModelCountVariables {
   army_list_unit_id: number;

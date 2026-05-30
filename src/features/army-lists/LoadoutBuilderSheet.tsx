@@ -31,7 +31,7 @@ import {
 } from "@/hooks/useArmyLists";
 import {
   useLoadoutOptionsForUnit,
-  useTiersByUnitName,
+  useTiersByUdbUnitId,
 } from "@/hooks/useLoadoutOptions";
 import { resolveUnitPoints } from "@/lib/resolveUnitPoints";
 import { PointsSourceChip } from "./PointsSourceChip";
@@ -76,18 +76,18 @@ export function LoadoutBuilderSheet({
   onClose,
 }: LoadoutBuilderSheetProps) {
   const unitName = unit?.unit_name;
-  const lookupName = unitName;
+  const udbUnitId = unit?.udb_unit_id ?? undefined;
 
-  // Pitfall 1 — faction_id must be string for synced table queries
+  // Faction ID as string for BSData-sourced queries (loadout options)
   const factionIdStr = unit?.faction_id !== null && unit?.faction_id !== undefined
     ? String(unit.faction_id)
     : listFactionId !== null && listFactionId !== undefined
       ? String(listFactionId)
       : null;
 
-  // Data hooks
-  const { data: tiers } = useTiersByUnitName(lookupName, factionIdStr);
-  const { data: wargearOptions } = useLoadoutOptionsForUnit(lookupName, factionIdStr);
+  // Data hooks — tiers use FK-based lookup via udb_unit_id (Phase 106)
+  const { data: tiers } = useTiersByUdbUnitId(udbUnitId);
+  const { data: wargearOptions } = useLoadoutOptionsForUnit(unitName, factionIdStr);
   const setModelCount = useSetSelectedModelCount();
   const clearModelCount = useClearSelectedModelCount();
 

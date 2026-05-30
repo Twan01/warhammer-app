@@ -11,14 +11,13 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 // NOTE: vi.mock factories are hoisted to the top of the file by Vitest.
 // Variables used inside factory functions must be declared with vi.hoisted()
 // to ensure they are initialized before the factory runs.
-const { invalidateQueriesMock, insertSyncErrorMock, capturePreSyncSnapshotMock, getRulesSyncMetaMock, getLatestSnapshotMock, getRulesDbSelectMock, replaceSyncedUnitPointsMock, insertPointsImportHistoryMock } = vi.hoisted(() => ({
+const { invalidateQueriesMock, insertSyncErrorMock, capturePreSyncSnapshotMock, getRulesSyncMetaMock, getLatestSnapshotMock, getRulesDbSelectMock, insertPointsImportHistoryMock } = vi.hoisted(() => ({
   invalidateQueriesMock: vi.fn(),
   insertSyncErrorMock: vi.fn(),
   capturePreSyncSnapshotMock: vi.fn(),
   getRulesSyncMetaMock: vi.fn(),
   getLatestSnapshotMock: vi.fn(),
   getRulesDbSelectMock: vi.fn(),
-  replaceSyncedUnitPointsMock: vi.fn(),
   insertPointsImportHistoryMock: vi.fn(),
 }));
 
@@ -79,10 +78,6 @@ vi.mock("@/lib/computePointsDelta", () => ({
   computePointsDelta: vi.fn(() => ({ added: 0, removed: 0, changed: 0, details: [] })),
 }));
 
-vi.mock("@/db/queries/syncedUnitPoints", () => ({
-  replaceSyncedUnitPoints: replaceSyncedUnitPointsMock,
-}));
-
 vi.mock("@/db/queries/pointsImportHistory", () => ({
   insertPointsImportHistory: insertPointsImportHistoryMock,
 }));
@@ -102,7 +97,6 @@ beforeEach(() => {
   vi.mocked(invoke).mockReset();
   getLatestSnapshotMock.mockReset();
   getRulesDbSelectMock.mockReset();
-  replaceSyncedUnitPointsMock.mockReset();
   insertPointsImportHistoryMock.mockReset();
 });
 

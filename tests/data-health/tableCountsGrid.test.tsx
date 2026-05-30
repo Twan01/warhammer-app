@@ -2,8 +2,8 @@
  * DX-02 -- Table counts query and grid rendering tests.
  *
  * Tests:
- *   - getTableCounts returns all 5 fields from DB queries
- *   - TableCountsGrid renders 5 StatCard instances with correct labels
+ *   - getTableCounts returns all 4 fields from DB queries
+ *   - TableCountsGrid renders 4 StatCard instances with correct labels
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -27,13 +27,12 @@ describe("getTableCounts", () => {
     mockSelect.mockReset();
   });
 
-  it("returns all 5 table count fields", async () => {
+  it("returns all 4 table count fields", async () => {
     mockSelect
       .mockResolvedValueOnce([{ c: 10 }])  // units
       .mockResolvedValueOnce([{ c: 5 }])   // painting_recipes
       .mockResolvedValueOnce([{ c: 3 }])   // unit_recipe_assignments
-      .mockResolvedValueOnce([{ c: 7 }])   // unit_recipe_step_progress
-      .mockResolvedValueOnce([{ c: 2 }]);  // synced_unit_points
+      .mockResolvedValueOnce([{ c: 7 }]);  // unit_recipe_step_progress
 
     const result = await getTableCounts();
 
@@ -42,13 +41,11 @@ describe("getTableCounts", () => {
       painting_recipes: 5,
       unit_recipe_assignments: 3,
       unit_recipe_step_progress: 7,
-      synced_unit_points: 2,
     });
   });
 
   it("defaults to 0 when query returns empty array", async () => {
     mockSelect
-      .mockResolvedValueOnce([])
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([])
@@ -60,7 +57,6 @@ describe("getTableCounts", () => {
     expect(result.painting_recipes).toBe(0);
     expect(result.unit_recipe_assignments).toBe(0);
     expect(result.unit_recipe_step_progress).toBe(0);
-    expect(result.synced_unit_points).toBe(0);
   });
 });
 
@@ -87,14 +83,13 @@ import { TableCountsGrid } from "@/features/data-health/TableCountsGrid";
 const mockUseTableCounts = vi.mocked(useTableCounts);
 
 describe("TableCountsGrid", () => {
-  it("renders 5 StatCard instances with correct labels when data is loaded", () => {
+  it("renders 4 StatCard instances with correct labels when data is loaded", () => {
     mockUseTableCounts.mockReturnValue({
       data: {
         units: 42,
         painting_recipes: 10,
         unit_recipe_assignments: 8,
         unit_recipe_step_progress: 15,
-        synced_unit_points: 5,
       },
       isLoading: false,
     } as ReturnType<typeof useTableCounts>);
@@ -105,17 +100,15 @@ describe("TableCountsGrid", () => {
     expect(screen.getByText("Recipes")).toBeInTheDocument();
     expect(screen.getByText("Assignments")).toBeInTheDocument();
     expect(screen.getByText("Step Progress")).toBeInTheDocument();
-    expect(screen.getByText("Synced Points")).toBeInTheDocument();
 
     // Verify values are rendered
     expect(screen.getByText("42")).toBeInTheDocument();
     expect(screen.getByText("10")).toBeInTheDocument();
     expect(screen.getByText("8")).toBeInTheDocument();
     expect(screen.getByText("15")).toBeInTheDocument();
-    expect(screen.getByText("5")).toBeInTheDocument();
   });
 
-  it("renders 5 skeleton cards when loading", () => {
+  it("renders 4 skeleton cards when loading", () => {
     mockUseTableCounts.mockReturnValue({
       data: undefined,
       isLoading: true,
@@ -129,6 +122,6 @@ describe("TableCountsGrid", () => {
     // Should have skeleton elements in grid
     const grid = container.querySelector(".grid");
     expect(grid).toBeInTheDocument();
-    expect(grid!.children.length).toBe(5);
+    expect(grid!.children.length).toBe(4);
   });
 });

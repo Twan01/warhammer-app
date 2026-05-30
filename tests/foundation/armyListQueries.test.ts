@@ -38,24 +38,22 @@ describe("armyLists queries â€” getArmyLists / getArmyListWithUnits", () =>
     expect(selectMock).toHaveBeenCalledWith("SELECT * FROM army_lists ORDER BY name ASC");
   });
 
-  it("getArmyListWithUnits(listId) LEFT JOINs units (ghost support) + unit_overrides + synced_unit_points + synced_unit_point_tiers and computes 6-level COALESCE effective_points (Phase 89)", async () => {
+  it("getArmyListWithUnits(listId) LEFT JOINs units + unit_overrides + udb_units + udb_unit_points and computes 5-level COALESCE effective_points (Phase 106)", async () => {
     selectMock.mockResolvedValueOnce([]);
     await getArmyListWithUnits(7);
 
     const [sql, params] = selectMock.mock.calls[0];
-    // Phase 89: LEFT JOIN (not INNER JOIN) to support ghost units (unit_id IS NULL)
+    // Phase 106: LEFT JOINs for FK-based points resolution
     expect(sql).toMatch(/LEFT JOIN units u ON u\.id = alu\.unit_id/);
     expect(sql).toMatch(/LEFT JOIN unit_overrides uo ON uo\.unit_id = u\.id/);
-    // unit_rules_mapping join for canonical datasheet name resolution
-    expect(sql).toMatch(/LEFT JOIN unit_rules_mapping urm ON urm\.unit_id = u\.id/);
-    // synced join uses COALESCE(urm.datasheet_name, u.name, alu.ghost_unit_name) for canonical name + ghost unit support
-    expect(sql).toMatch(/LEFT JOIN synced_unit_points sup/);
-    expect(sql).toMatch(/sup\.unit_name = COALESCE\(urm\.datasheet_name, u\.name, alu\.ghost_unit_name\)/);
-    // Phase 89: 6-level COALESCE includes tier.points at priority level 2
-    expect(sql).toMatch(/COALESCE\(alu\.points_override, tier\.points, sup\.points, uo\.points, u\.points, 0\) AS effective_points/);
+    expect(sql).toMatch(/LEFT JOIN udb_units udb ON udb\.id = u\.udb_unit_id/);
+    expect(sql).toMatch(/LEFT JOIN udb_unit_points udb_tier/);
+    expect(sql).toMatch(/LEFT JOIN udb_unit_points udb_base/);
+    // Phase 106: 5-level COALESCE via FK join
+    expect(sql).toMatch(/COALESCE\(alu\.points_override, udb_tier\.points, udb_base\.points, uo\.points, u\.points, 0\) AS effective_points/);
     expect(sql).toMatch(/WHERE alu\.list_id = \$1/);
-    // Phase 89: ORDER BY includes alu.id ASC tiebreaker (D-11)
-    expect(sql).toMatch(/ORDER BY alu\.created_at ASC, alu\.id ASC/);
+    // ORDER BY includes sort_order, created_at, id
+    expect(sql).toMatch(/ORDER BY alu\.sort_order ASC, alu\.created_at ASC, alu\.id ASC/);
     expect(params).toEqual([7]);
   });
 });

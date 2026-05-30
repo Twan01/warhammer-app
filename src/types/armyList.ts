@@ -55,6 +55,7 @@ export interface ArmyListUnit {
 export interface ArmyListUnitRow extends ArmyListUnit {
   unit_name: string;
   unit_points: number | null;
+  udb_unit_id: string | null;        // FK to canonical unit database (Phase 106)
   effective_points: number;
   faction_id: number | null;          // null for ghost units (Phase 89)
   unit_category: string | null;       // unit category (e.g. "HQ", "Battleline") for points grouping
