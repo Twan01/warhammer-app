@@ -8,6 +8,7 @@ import { FactionPicker } from "./FactionPicker";
 import { DatabaseBrowserFilters } from "./UdbFilterBar";
 import { UdbUnitList } from "./UdbUnitList";
 import { UdbSearchResults } from "./UdbSearchResults";
+import { UdbDatasheetSheet } from "./UdbDatasheetSheet";
 
 export function DatabaseBrowserPage() {
   const { data: factions = [], isLoading: factionsLoading } = useUdbFactions();
@@ -105,9 +106,13 @@ export function DatabaseBrowserPage() {
         </div>
       )}
 
-      {selectedUnitId && (
-        <div>Sheet placeholder for {selectedUnitId}</div>
-      )}
+      <UdbDatasheetSheet
+        unitId={selectedUnitId}
+        open={!!selectedUnitId}
+        onOpenChange={(open) => {
+          if (!open) setSelectedUnitId(null);
+        }}
+      />
     </div>
   );
 }
