@@ -4,8 +4,8 @@ milestone: v0.4.0
 milestone_name: Unit Database — Canonical 40k Data Hub
 status: executing
 stopped_at: Phase 104 complete — ready for Phase 105
-last_updated: "2026-05-30T10:00:00.000Z"
-last_activity: 2026-05-30 -- Phase 104 execution complete
+last_updated: "2026-05-30T11:00:00.000Z"
+last_activity: 2026-05-30 -- Phase 105 context gathered
 progress:
   total_phases: 5
   completed_phases: 2
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-05-29)
 
 Phase: 105
 Plan: Not started
-Status: Ready to discuss/plan
-Last activity: 2026-05-30 -- Phase 104 execution complete
+Status: Context gathered, ready to plan
+Last activity: 2026-05-30 -- Phase 105 context gathered
 
 Progress: [████████████████████] 40%
 
@@ -80,7 +80,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-30T10:00:00Z
-Stopped at: Phase 104 complete — ready for Phase 105
-Resume file: .planning/phases/104-database-browser-ui/104-CONTEXT.md
-Resume: Phase 104 complete. Next: `/gsd:discuss-phase 105` to start Collection Integration.
+Last session: 2026-05-30T11:00:00Z
+Stopped at: Phase 105 context gathered — ready for planning
+Resume file: .planning/phases/105-collection-integration/105-CONTEXT.md
+Resume: Phase 105 context gathered. Next: `/gsd:plan-phase 105` to plan Collection Integration.
