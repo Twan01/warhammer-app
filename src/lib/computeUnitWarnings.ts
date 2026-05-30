@@ -74,8 +74,15 @@ export function computeUnitWarnings(
  * Classifies warnings at the list level — conditions that apply once to the
  * entire army list, not per-unit. Separated from computeUnitWarnings in Phase 76
  * per D-11 to avoid duplicating "Points exceeded" across every unit row.
+ *
+ * Phase 106 (D-08): BATTLELINE count validation using database-sourced roles.
+ * Units parameter provides role data for structural army composition checks.
+ * Ghost/unlinked units (unit_id = null) are excluded from role counting.
  */
-export function computeListWarnings(context: WarningContext): UnitWarnings {
+export function computeListWarnings(
+  context: WarningContext,
+  units: Array<Pick<ArmyListUnitRow, "udb_role" | "unit_id">> = [],
+): UnitWarnings {
   const hard: string[] = [];
   const soft: string[] = [];
 
@@ -87,6 +94,21 @@ export function computeListWarnings(context: WarningContext): UnitWarnings {
   // Soft: stale or never-synced points data
   if (context.freshness === "stale" || context.freshness === "never") {
     soft.push("Stale points data");
+  }
+
+  // Soft: BATTLELINE count check (Phase 106, D-08)
+  // Only linked units (unit_id !== null) with a known role are counted
+  if (context.pointsLimit !== null) {
+    const battlelineCount = units.filter(
+      (u) => u.unit_id !== null && u.udb_role?.toLowerCase() === "battleline",
+    ).length;
+
+    const minBattleline =
+      context.pointsLimit >= 2000 ? 3 : context.pointsLimit >= 1000 ? 2 : 1;
+
+    if (battlelineCount < minBattleline) {
+      soft.push(`Needs ${minBattleline} Battleline (have ${battlelineCount})`);
+    }
   }
 
   return { hard, soft };
@@ -126,8 +148,8 @@ export function computeListHealthStats(
 
   const context: WarningContext = { totalPoints, pointsLimit, freshness };
 
-  // List-level warnings (counted once)
-  const listWarnings = computeListWarnings(context);
+  // List-level warnings (counted once) — pass units for BATTLELINE count (Phase 106)
+  const listWarnings = computeListWarnings(context, units);
   let hardWarningCount = listWarnings.hard.length;
   let softWarningCount = listWarnings.soft.length;
 

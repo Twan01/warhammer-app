@@ -44,8 +44,8 @@ export function ArmyListSummaryBar({ units, pointsLimit, freshness, enhancements
   );
 
   const listWarnings = useMemo(
-    () => computeListWarnings({ totalPoints: stats.totalPoints, pointsLimit, freshness }),
-    [stats.totalPoints, pointsLimit, freshness],
+    () => computeListWarnings({ totalPoints: stats.totalPoints, pointsLimit, freshness }, units),
+    [stats.totalPoints, pointsLimit, freshness, units],
   );
 
   const listWarningCount = listWarnings.hard.length + listWarnings.soft.length;

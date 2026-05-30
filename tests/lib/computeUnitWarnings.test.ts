@@ -164,16 +164,17 @@ describe("computeUnitWarnings", () => {
     expect(result.soft).toEqual([]);
   });
 
-  it("returns empty warnings for ghost unit (unit_id = null)", () => {
+  it("returns no role-based warnings for ghost unit (unit_id = null)", () => {
     const unit = makeUnit({
       unit_id: null,
       ghost_unit_name: "Ghost Intercessors",
-      status_painting: null,
-      status_assembly: null,
+      udb_role: null,
+      status_painting: "Completed",
+      status_assembly: 1,
     });
     const ctx = makeContext();
     const result = computeUnitWarnings(unit, ctx);
-    // Ghost units skip role validation (D-09)
+    // Ghost units skip role validation (D-09), no other warnings either
     expect(result.hard).toEqual([]);
     expect(result.soft).toEqual([]);
   });
@@ -252,7 +253,12 @@ describe("computeListWarnings", () => {
 
   it("returns empty hard and soft for a healthy list", () => {
     const ctx = makeContext({ totalPoints: 1500, pointsLimit: 2000, freshness: "fresh" });
-    const result = computeListWarnings(ctx, []);
+    const units = [
+      { udb_role: "Battleline", unit_id: 1 },
+      { udb_role: "Battleline", unit_id: 2 },
+      { udb_role: "Battleline", unit_id: 3 },
+    ];
+    const result = computeListWarnings(ctx, units);
     expect(result.hard).toEqual([]);
     expect(result.soft).toEqual([]);
   });
@@ -393,19 +399,23 @@ describe("computeListHealthStats", () => {
 
   it("counts softWarnings across all units plus list-level", () => {
     const units = [
-      makeUnit({ status_painting: "Not Started" }), // 1 soft (unit)
-      makeUnit({ status_assembly: 0 }), // 1 soft (unit)
+      makeUnit({ status_painting: "Not Started", udb_role: "Battleline" }), // 1 soft (unit)
+      makeUnit({ status_assembly: 0, udb_role: "Battleline" }), // 1 soft (unit)
+      makeUnit({ udb_role: "Battleline" }), // healthy unit for battleline threshold
     ];
     const stats = computeListHealthStats(units, 2000, "fresh");
+    // 2 unit-level + 0 list-level (3 Battleline meets 2000pt threshold, fresh)
     expect(stats.softWarningCount).toBe(2);
   });
 
   it("counts list-level soft warnings (stale) in addition to unit-level", () => {
     const units = [
-      makeUnit({ status_painting: "Not Started" }), // 1 soft (unit)
+      makeUnit({ status_painting: "Not Started", udb_role: "Battleline" }), // 1 soft (unit)
+      makeUnit({ udb_role: "Battleline" }),
+      makeUnit({ udb_role: "Battleline" }),
     ];
     const stats = computeListHealthStats(units, 2000, "stale");
-    // 1 unit-level (Not painted) + 1 list-level (Stale points data)
+    // 1 unit-level (Not painted) + 1 list-level (Stale points data), battleline met
     expect(stats.softWarningCount).toBe(2);
   });
 
