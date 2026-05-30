@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Unit Database — Canonical 40k Data Hub
 status: executing
-stopped_at: Phase 104 context gathered — ready to plan
-last_updated: "2026-05-29T12:45:46.906Z"
-last_activity: 2026-05-29 -- Phase 104 planning complete
+stopped_at: Phase 104 complete — ready for Phase 105
+last_updated: "2026-05-30T10:00:00.000Z"
+last_activity: 2026-05-30 -- Phase 104 execution complete
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 3
-  percent: 20
+  completed_plans: 6
+  percent: 40
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-29)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 104 — database browser ui
+**Current focus:** Phase 105 — Collection Integration
 
 ## Current Position
 
-Phase: 104
+Phase: 105
 Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-29 -- Phase 104 planning complete
+Status: Ready to discuss/plan
+Last activity: 2026-05-30 -- Phase 104 execution complete
 
-Progress: [██████████] 100%
+Progress: [████████████████████] 40%
 
 ## Performance Metrics
 
@@ -47,6 +47,7 @@ Progress: [██████████] 100%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 103 | 3 | - | - |
+| 104 | 3 | - | - |
 
 ## Accumulated Context
 
@@ -79,7 +80,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-29T15:00:00Z
-Stopped at: Phase 104 context gathered — ready to plan
+Last session: 2026-05-30T10:00:00Z
+Stopped at: Phase 104 complete — ready for Phase 105
 Resume file: .planning/phases/104-database-browser-ui/104-CONTEXT.md
-Resume: Run `/gsd:plan-phase 104` to plan Phase 104 (Database Browser UI).
+Resume: Phase 104 complete. Next: `/gsd:discuss-phase 105` to start Collection Integration.

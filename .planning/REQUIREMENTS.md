@@ -20,12 +20,12 @@ Requirements for v0.4.0 milestone. Each maps to roadmap phases.
 
 ### Database Browser UI
 
-- [ ] **BUI-01**: Faction picker page with alignment grouping (Imperium / Space Marines / Chaos / Xenos)
-- [ ] **BUI-02**: Unit list per faction grouped by 9 GW role categories with points on each row
-- [ ] **BUI-03**: Full datasheet detail view: stat block, ranged + melee weapon tables, abilities with full text, keywords, damaged profile
-- [ ] **BUI-04**: Global search across all factions via FTS5
-- [ ] **BUI-05**: Filters by role, keyword, and point range
-- [ ] **BUI-06**: Virtual scrolling for large unit lists (@tanstack/react-virtual)
+- [x] **BUI-01**: Faction picker page with alignment grouping (Imperium / Space Marines / Chaos / Xenos)
+- [x] **BUI-02**: Unit list per faction grouped by 9 GW role categories with points on each row
+- [x] **BUI-03**: Full datasheet detail view: stat block, ranged + melee weapon tables, abilities with full text, keywords, damaged profile
+- [x] **BUI-04**: Global search across all factions via FTS5
+- [x] **BUI-05**: Filters by role, keyword, and point range
+- [x] **BUI-06**: Virtual scrolling for large unit lists (@tanstack/react-virtual)
 
 ### Collection Integration
 

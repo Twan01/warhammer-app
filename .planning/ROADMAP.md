@@ -165,7 +165,7 @@ Full details: `.planning/milestones/v0.3.7-ROADMAP.md`
 **Milestone Goal:** Replace the fragile Wahapedia CSV + BSData XML runtime sync pipeline with a pre-built canonical unit database that ships inside the app. Every 40k unit is browsable, linkable to collection units by stable ID, and the app runs on a single SQLite database.
 
 - [ ] **Phase 103: Data Acquisition & Schema** — Canonical `udb_*` tables, Node.js build script, Rust import command, and bundled pre-built data
-- [ ] **Phase 104: Database Browser UI** — Faction picker, unit list by GW roles, full datasheet detail, FTS5 global search, filters, virtual scrolling
+- [x] **Phase 104: Database Browser UI** — Faction picker, unit list by GW roles, full datasheet detail, FTS5 global search, filters, virtual scrolling (completed 2026-05-30)
 - [ ] **Phase 105: Collection Integration** — FK link from collection units to database, "Add from Database" flow, ownership/readiness badges, Data Health diagnostic
 - [ ] **Phase 106: Army List Simplification** — Points resolved via database FK join, validation uses database keywords/roles, synced_unit_points cache eliminated
 - [ ] **Phase 107: Cleanup & Pipeline** — rules.db eliminated, dead sync code removed, single-database architecture, dev-side update script
@@ -202,9 +202,9 @@ Plans:
 **Plans**: 3 plans
 **UI hint**: yes
 Plans:
-- [ ] 104-01-PLAN.md — Data layer, filter infrastructure, route wiring
-- [ ] 104-02-PLAN.md — Page shell, faction picker, virtual unit list, search, filter bar
-- [ ] 104-03-PLAN.md — Datasheet detail Sheet (stat block, weapons, abilities, keywords)
+- [x] 104-01-PLAN.md — Data layer, filter infrastructure, route wiring
+- [x] 104-02-PLAN.md — Page shell, faction picker, virtual unit list, search, filter bar
+- [x] 104-03-PLAN.md — Datasheet detail Sheet (stat block, weapons, abilities, keywords)
 
 ### Phase 105: Collection Integration
 **Goal**: Collection units are linked to database entries by stable ID, users can add units directly from the browser, and ownership/readiness context is visible on database rows
