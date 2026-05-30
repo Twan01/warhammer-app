@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Unit Database — Canonical 40k Data Hub
 status: ready_to_plan
-stopped_at: Phase 105 complete (2/2) — ready to discuss Phase 106
-last_updated: 2026-05-30T13:15:17.068Z
-last_activity: 2026-05-30 -- Phase 105 execution started
+stopped_at: Phase 106 context gathered — ready for planning
+last_updated: 2026-05-30T14:00:00.000Z
+last_activity: 2026-05-30 -- Phase 106 context gathered
 progress:
   total_phases: 5
   completed_phases: 2
@@ -80,7 +80,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-30T11:00:00Z
-Stopped at: Phase 105 context gathered — ready for planning
-Resume file: .planning/phases/105-collection-integration/105-CONTEXT.md
-Resume: Phase 105 context gathered. Next: `/gsd:plan-phase 105` to plan Collection Integration.
+Last session: 2026-05-30T14:00:00Z
+Stopped at: Phase 106 context gathered — ready for planning
+Resume file: .planning/phases/106-army-list-simplification/106-CONTEXT.md
+Resume: Phase 106 context gathered. Next: `/gsd:plan-phase 106` to plan Army List Simplification.
