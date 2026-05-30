@@ -375,7 +375,7 @@ Plans:
 | 102. Smart Context Pre-Filling | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 | 103. Data Acquisition & Schema | v0.4.0 | 3/3 | Complete    | 2026-05-29 |
 | 104. Database Browser UI | v0.4.0 | 0/3 | Not started | - |
-| 105. Collection Integration | v0.4.0 | 2/2 | Complete   | 2026-05-30 |
+| 105. Collection Integration | v0.4.0 | 2/2 | Complete    | 2026-05-30 |
 | 106. Army List Simplification | v0.4.0 | 0/TBD | Not started | - |
 | 107. Cleanup & Pipeline | v0.4.0 | 0/TBD | Not started | - |
 

@@ -29,13 +29,13 @@ Requirements for v0.4.0 milestone. Each maps to roadmap phases.
 
 ### Collection Integration
 
-- [ ] **COL-01**: "Add from database" flow — browse/search → pick unit → add to collection with faction/role/keywords/points pre-filled
-- [ ] **COL-02**: FK link from collection `units.udb_unit_id` to `udb_units.id` (nullable, ON DELETE SET NULL)
-- [ ] **COL-03**: Migration backfills existing collection units to database FK by name matching (best-effort, advisory)
-- [ ] **COL-04**: Ownership badges on database browser rows (owned / not owned)
-- [ ] **COL-05**: Readiness badges on database browser rows (painting status)
-- [ ] **COL-06**: Data Health diagnostic surfaces unlinked collection units
-- [ ] **COL-07**: Custom/kitbash units can still be added manually without database link
+- [x] **COL-01**: "Add from database" flow — browse/search → pick unit → add to collection with faction/role/keywords/points pre-filled
+- [x] **COL-02**: FK link from collection `units.udb_unit_id` to `udb_units.id` (nullable, ON DELETE SET NULL)
+- [x] **COL-03**: Migration backfills existing collection units to database FK by name matching (best-effort, advisory)
+- [x] **COL-04**: Ownership badges on database browser rows (owned / not owned)
+- [x] **COL-05**: Readiness badges on database browser rows (painting status)
+- [x] **COL-06**: Data Health diagnostic surfaces unlinked collection units
+- [x] **COL-07**: Custom/kitbash units can still be added manually without database link
 
 ### Army List Integration
 
@@ -96,13 +96,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BUI-04 | Phase 104 | Pending |
 | BUI-05 | Phase 104 | Pending |
 | BUI-06 | Phase 104 | Pending |
-| COL-01 | Phase 105 | Pending |
-| COL-02 | Phase 105 | Pending |
-| COL-03 | Phase 105 | Pending |
-| COL-04 | Phase 105 | Pending |
-| COL-05 | Phase 105 | Pending |
-| COL-06 | Phase 105 | Pending |
-| COL-07 | Phase 105 | Pending |
+| COL-01 | Phase 105 | Complete |
+| COL-02 | Phase 105 | Complete |
+| COL-03 | Phase 105 | Complete |
+| COL-04 | Phase 105 | Complete |
+| COL-05 | Phase 105 | Complete |
+| COL-06 | Phase 105 | Complete |
+| COL-07 | Phase 105 | Complete |
 | ALI-01 | Phase 106 | Pending |
 | ALI-02 | Phase 106 | Pending |
 | ALI-03 | Phase 106 | Pending |
