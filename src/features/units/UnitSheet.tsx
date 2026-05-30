@@ -25,6 +25,8 @@ interface UnitSheetProps {
   unit: Unit | EnrichedUnit | null;
   defaultFactionId?: number;
   onClose: () => void;
+  prefill?: Partial<UnitFormValues>;
+  prefillUdbUnitId?: string | null;
 }
 
 function penceToRoundedPounds(pence: number | null): number | null {
@@ -32,7 +34,11 @@ function penceToRoundedPounds(pence: number | null): number | null {
   return Math.round(pence) / 100;
 }
 
-function buildDefaultValues(unit: Unit | null, defaultFactionId?: number): UnitFormValues {
+function buildDefaultValues(
+  unit: Unit | null,
+  defaultFactionId?: number,
+  prefill?: Partial<UnitFormValues>,
+): UnitFormValues {
   if (unit) {
     return {
       faction_id: unit.faction_id,
@@ -57,7 +63,8 @@ function buildDefaultValues(unit: Unit | null, defaultFactionId?: number): UnitF
       undercoat: unit.undercoat ?? null,
     };
   }
-  return {
+
+  const emptyDefaults: UnitFormValues = {
     faction_id: defaultFactionId ?? 0,
     name: "",
     category: "",
@@ -79,9 +86,22 @@ function buildDefaultValues(unit: Unit | null, defaultFactionId?: number): UnitF
     notes: null,
     undercoat: null,
   };
+
+  if (prefill) {
+    return { ...emptyDefaults, ...prefill };
+  }
+
+  return emptyDefaults;
 }
 
-export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetProps) {
+export function UnitSheet({
+  open,
+  unit,
+  defaultFactionId,
+  onClose,
+  prefill,
+  prefillUdbUnitId,
+}: UnitSheetProps) {
   const createUnit = useCreateUnit();
   const updateUnit = useUpdateUnit();
   const { data: factions, isLoading: factionsLoading } = useFactions();
@@ -91,18 +111,20 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
 
   const form = useForm<UnitFormValues>({
     resolver: zodResolver(unitSchema),
-    defaultValues: buildDefaultValues(unit, defaultFactionId),
+    defaultValues: buildDefaultValues(unit, defaultFactionId, prefill),
   });
 
   useEffect(() => {
-    form.reset(buildDefaultValues(unit, defaultFactionId));
-  }, [unit, defaultFactionId]);
+    form.reset(buildDefaultValues(unit, defaultFactionId, prefill));
+  }, [unit, defaultFactionId, prefill]);
 
   async function onSubmit(values: UnitFormValues) {
     try {
-      const pricePence = values.purchase_price_pounds !== null && values.purchase_price_pounds !== undefined
-        ? Math.round(values.purchase_price_pounds * 100)
-        : null;
+      const pricePence =
+        values.purchase_price_pounds !== null &&
+        values.purchase_price_pounds !== undefined
+          ? Math.round(values.purchase_price_pounds * 100)
+          : null;
 
       const payload = {
         faction_id: values.faction_id,
@@ -112,12 +134,12 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
         model_count: values.model_count ?? null,
         owned_count: values.owned_count ?? null,
         points: values.points ?? null,
-        status_assembly: values.status_assembly ? 1 : 0 as 0 | 1,
+        status_assembly: (values.status_assembly ? 1 : 0) as 0 | 1,
         status_painting: values.status_painting,
         painting_percentage: 0,
-        status_basing: values.status_basing ? 1 : 0 as 0 | 1,
-        status_varnished: values.status_varnished ? 1 : 0 as 0 | 1,
-        is_active_project: values.is_active_project ? 1 : 0 as 0 | 1,
+        status_basing: (values.status_basing ? 1 : 0) as 0 | 1,
+        status_varnished: (values.status_varnished ? 1 : 0) as 0 | 1,
+        is_active_project: (values.is_active_project ? 1 : 0) as 0 | 1,
         priority: values.priority ? priorityToNumber(values.priority) : null,
         target_completion_date: values.target_completion_date || null,
         purchase_date: values.purchase_date || null,
@@ -131,14 +153,22 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
         status_assembly_override: 0 as 0 | 1,
         status_basing_override: 0 as 0 | 1,
         status_varnished_override: 0 as 0 | 1,
-        // migration 039 — Phase 105 COL-02: preserve existing link or null for new units
-        udb_unit_id: (unit as { udb_unit_id?: string | null } | undefined)?.udb_unit_id ?? null,
+        // migration 039 — Phase 105 COL-02: udb_unit_id set explicitly on all paths
+        udb_unit_id: isEdit
+          ? ((unit as Unit).udb_unit_id ?? null)
+          : (prefillUdbUnitId ?? null),
       };
 
       if (isEdit && unit) {
         const {
-          painting_percentage: _pp, status_painting: _sp, status_basing: _sb, status_varnished: _sv, status_assembly: _sa,
-          status_assembly_override: _sao, status_basing_override: _sbo, status_varnished_override: _svo,
+          painting_percentage: _pp,
+          status_painting: _sp,
+          status_basing: _sb,
+          status_varnished: _sv,
+          status_assembly: _sa,
+          status_assembly_override: _sao,
+          status_basing_override: _sbo,
+          status_varnished_override: _svo,
           ...rest
         } = payload;
         await updateUnit.mutateAsync({ id: unit.id, ...rest });
@@ -153,6 +183,11 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
     }
   }
 
+  // Determine database link status for display
+  const isLinked = isEdit
+    ? !!(unit as Unit).udb_unit_id
+    : !!prefillUdbUnitId;
+
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <SheetContent className="overflow-y-auto">
@@ -165,8 +200,16 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
           </SheetDescription>
         </SheetHeader>
 
+        {/* Database Link status — per D-15, D-16 */}
+        <p className="text-xs text-muted-foreground px-4 pb-0">
+          {isLinked ? "Linked to unit database" : "Custom unit (no database link)"}
+        </p>
+
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4 p-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-4 p-4"
+          >
             <UnitFormRequired
               factions={factions ?? []}
               factionsLoading={factionsLoading}
@@ -196,10 +239,15 @@ export function UnitSheet({ open, unit, defaultFactionId, onClose }: UnitSheetPr
 
 function priorityToNumber(priority: string): number | null {
   switch (priority) {
-    case "Low": return 1;
-    case "Medium": return 2;
-    case "High": return 3;
-    case "Critical": return 4;
-    default: return null;
+    case "Low":
+      return 1;
+    case "Medium":
+      return 2;
+    case "High":
+      return 3;
+    case "Critical":
+      return 4;
+    default:
+      return null;
   }
 }
