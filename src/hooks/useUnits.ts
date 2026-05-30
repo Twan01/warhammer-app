@@ -44,6 +44,8 @@ export function useCreateUnit() {
       qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
       // Phase 32: army readiness depends on unit points + painting status
       qc.invalidateQueries({ queryKey: ["army-readiness"] });
+      // Phase 105 COL-04: refresh ownership badges
+      qc.invalidateQueries({ queryKey: ["udb-ownership"] });
     },
   });
 }
@@ -67,6 +69,8 @@ export function useUpdateUnit() {
       qc.invalidateQueries({ queryKey: ["army-lists"] });
       // Phase 32: army readiness depends on unit points + painting status
       qc.invalidateQueries({ queryKey: ["army-readiness"] });
+      // Phase 105 COL-04: refresh ownership badges
+      qc.invalidateQueries({ queryKey: ["udb-ownership"] });
     },
   });
 }
@@ -85,6 +89,8 @@ export function useDeleteUnit() {
       qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
       // Phase 32: army readiness depends on unit points + painting status
       qc.invalidateQueries({ queryKey: ["army-readiness"] });
+      // Phase 105 COL-04: refresh ownership badges
+      qc.invalidateQueries({ queryKey: ["udb-ownership"] });
     },
     // FK errors (unit in army_list_units) reject — handled by component try/catch with toast
   });

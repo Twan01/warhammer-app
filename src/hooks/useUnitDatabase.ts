@@ -16,7 +16,9 @@ import {
   getUdbUnitsByFaction,
   getUdbUnitDetail,
   searchUdbUnits,
+  getUdbOwnershipByFaction,
 } from "@/db/queries/unitDatabase";
+import type { UdbOwnershipEntry } from "@/db/queries/unitDatabase";
 
 export const UDB_FACTIONS_KEY = ["udb-factions"] as const;
 export const UDB_UNITS_KEY = (factionId: string) =>
@@ -78,5 +80,35 @@ export function useUdbSearch(query: string) {
     queryFn: () => searchUdbUnits(query),
     enabled: query.trim().length >= 2,
     staleTime: Infinity,
+  });
+}
+
+/**
+ * Phase 105 COL-02/COL-04: Ownership key factory for a faction.
+ * Uses ["udb-ownership"] prefix so invalidateQueries({ queryKey: ["udb-ownership"] })
+ * invalidates ALL faction ownership views at once.
+ */
+export const UDB_OWNERSHIP_KEY = (factionId: string) =>
+  ["udb-ownership", factionId] as const;
+
+/**
+ * Phase 105 COL-02/COL-04: Returns aggregated ownership data per udb_unit_id
+ * for a faction. staleTime is 0 (NOT Infinity) — ownership is dynamic and
+ * changes on unit create/delete. Follows the disabled pattern from useUdbUnits.
+ *
+ * Per RESEARCH.md Pitfall 3: never use Infinity for ownership data.
+ */
+export function useUdbOwnership(factionId: string | null): ReturnType<typeof useQuery<UdbOwnershipEntry[]>> {
+  return useQuery({
+    queryKey:
+      factionId !== null
+        ? UDB_OWNERSHIP_KEY(factionId)
+        : (["udb-ownership", "disabled"] as const),
+    queryFn: () =>
+      factionId !== null
+        ? getUdbOwnershipByFaction(factionId)
+        : Promise.resolve([]),
+    enabled: !!factionId,
+    staleTime: 0,
   });
 }

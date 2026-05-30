@@ -48,6 +48,7 @@ export const HOBBYFORGE_MIGRATIONS = [
   "036_unit_form_simplification.sql",
   "037_override_flags.sql",
   "038_udb_schema.sql",
+  "039_collection_udb_link.sql",
 ] as const;
 
 // Authoritative rules migration order — must match lib.rs get_rules_migrations()
@@ -58,7 +59,7 @@ export const RULES_MIGRATIONS = [
   "rules_004_datasheet_points.sql",
 ] as const;
 
-export const HOBBYFORGE_MIGRATION_COUNT = HOBBYFORGE_MIGRATIONS.length; // 38
+export const HOBBYFORGE_MIGRATION_COUNT = HOBBYFORGE_MIGRATIONS.length; // 39
 export const RULES_MIGRATION_COUNT = RULES_MIGRATIONS.length; // 4
 
 /**
