@@ -249,7 +249,15 @@ Plans:
   2. Army list validation warnings correctly use database-sourced keywords and roles (e.g., CHARACTER, BATTLELINE) for structural checks
   3. The `synced_unit_points` cache table and its query layer are removed; the army list SQL uses a direct FK join with a fallback COALESCE for any unlinked (manually-entered) units
 
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+**Wave 1**
+
+- [ ] 106-01-PLAN.md — FK-based points resolution + synced cache removal
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 106-02-PLAN.md — Keyword/role validation + DROP migration
 
 ### Phase 107: Cleanup & Pipeline
 
@@ -263,7 +271,15 @@ Plans:
   3. A dev-side Node.js update script re-runs the data acquisition pipeline and produces a diff report identifying changed units, points, or abilities
   4. A simplified "check for points updates" trigger remains available in the app for users to initiate a lightweight data refresh
 
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+**Wave 1**
+
+- [ ] 106-01-PLAN.md — FK-based points resolution + synced cache removal
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 106-02-PLAN.md — Keyword/role validation + DROP migration
 
 ## Progress
 
@@ -376,7 +392,7 @@ Plans:
 | 103. Data Acquisition & Schema | v0.4.0 | 3/3 | Complete    | 2026-05-29 |
 | 104. Database Browser UI | v0.4.0 | 0/3 | Not started | - |
 | 105. Collection Integration | v0.4.0 | 2/2 | Complete    | 2026-05-30 |
-| 106. Army List Simplification | v0.4.0 | 0/TBD | Not started | - |
+| 106. Army List Simplification | v0.4.0 | 0/2 | Not started | - |
 | 107. Cleanup & Pipeline | v0.4.0 | 0/TBD | Not started | - |
 
 <details>
