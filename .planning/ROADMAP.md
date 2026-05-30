@@ -215,7 +215,10 @@ Plans:
   2. Database browser rows show an "owned" badge for units already in the collection and a painting-status readiness badge
   3. Existing collection units have `udb_unit_id` FK back-filled by name matching on migration; any units that could not be matched appear flagged in the Data Health page
   4. User can still create a collection unit manually by name (for custom or kitbash models) without requiring a database link
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 105-01-PLAN.md — Schema migration, type extensions, query layer, and hooks
+- [ ] 105-02-PLAN.md — Ownership badges, readiness dots, and Add from Database flow
 **UI hint**: yes
 
 ### Phase 106: Army List Simplification
@@ -349,7 +352,7 @@ Plans:
 | 102. Smart Context Pre-Filling | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 | 103. Data Acquisition & Schema | v0.4.0 | 3/3 | Complete    | 2026-05-29 |
 | 104. Database Browser UI | v0.4.0 | 0/3 | Not started | - |
-| 105. Collection Integration | v0.4.0 | 0/TBD | Not started | - |
+| 105. Collection Integration | v0.4.0 | 0/2 | Not started | - |
 | 106. Army List Simplification | v0.4.0 | 0/TBD | Not started | - |
 | 107. Cleanup & Pipeline | v0.4.0 | 0/TBD | Not started | - |
 
