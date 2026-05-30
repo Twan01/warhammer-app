@@ -8,13 +8,14 @@ interface UdbUnitListProps {
   units: UdbUnitSummary[];
   isLoading: boolean;
   onOpenUnit: (id: string) => void;
+  ownershipMap?: Map<string, { owned_count: number; all_statuses: string }>;
 }
 
 type FlatItem =
   | { kind: "header"; role: string; count: number }
   | { kind: "unit"; unit: UdbUnitSummary };
 
-export function UdbUnitList({ units, isLoading, onOpenUnit }: UdbUnitListProps) {
+export function UdbUnitList({ units, isLoading, onOpenUnit, ownershipMap }: UdbUnitListProps) {
   const parentRef = useRef<HTMLDivElement>(null);
 
   const flatItems = useMemo<FlatItem[]>(() => {
@@ -91,7 +92,11 @@ export function UdbUnitList({ units, isLoading, onOpenUnit }: UdbUnitListProps) 
                   {item.role} ({item.count})
                 </div>
               ) : (
-                <UdbUnitRow unit={item.unit} onOpen={onOpenUnit} />
+                <UdbUnitRow
+                    unit={item.unit}
+                    onOpen={onOpenUnit}
+                    ownershipData={ownershipMap?.get(item.unit.id) ?? null}
+                  />
               )}
             </div>
           );
