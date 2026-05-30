@@ -20,10 +20,10 @@ describe("lazyRoutes", () => {
     expect(routerSource).toMatch(/import\s*\{[^}]*Suspense[^}]*\}\s*from\s*["']react["']/);
   });
 
-  it("router.tsx contains exactly 16 React.lazy dynamic imports (one per page)", () => {
+  it("router.tsx contains exactly 18 React.lazy dynamic imports (one per page)", () => {
     const lazyMatches = routerSource.match(/=\s*lazy\(\s*\(\)/g);
     expect(lazyMatches).not.toBeNull();
-    expect(lazyMatches!.length).toBe(16);
+    expect(lazyMatches!.length).toBe(18);
   });
 
   it("router.tsx has zero static page imports from route modules", () => {
@@ -87,6 +87,6 @@ describe("lazyRoutes", () => {
     const lazyDeclarationLines = routerSource
       .split("\n")
       .filter((line) => line.includes("= lazy(") && line.includes(".then(m => ({ default: m."));
-    expect(lazyDeclarationLines.length).toBe(16);
+    expect(lazyDeclarationLines.length).toBe(18);
   });
 });
