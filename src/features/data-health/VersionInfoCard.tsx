@@ -1,12 +1,13 @@
 /**
- * Phase 107 -- Version & Schema Info card.
+ * Phase 107 -- Version & Data Info card.
  *
- * Shows App Version, DB Schema, and Data Version.
- * Sync-era fields (Rules Schema, Last Sync, Sync Errors) removed.
+ * Shows App Version, DB Schema, and Unit Database details from udb_meta.
+ * Sync-era fields (Rules Schema, Last Sync, Sync Errors) fully removed.
  */
 import { useEffect, useState } from "react";
 import { getVersion } from "@tauri-apps/api/app";
-import { Card, CardContent } from "@/components/ui/card";
+import { Database } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSchemaVersions } from "@/hooks/useDiagnostics";
 import { useUdbMeta } from "@/hooks/useUdbMeta";
@@ -28,6 +29,23 @@ function InfoItem({
   );
 }
 
+function formatBuiltAt(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return iso;
+  }
+}
+
+const GAME_SYSTEM_LABELS: Record<string, string> = {
+  "40k-10th": "Warhammer 40,000 10th Edition",
+};
+
 export function VersionInfoCard() {
   const [appVersion, setAppVersion] = useState<string | null>(null);
   const { data: schemaVersions, isLoading: schemaLoading } =
@@ -38,9 +56,24 @@ export function VersionInfoCard() {
     getVersion().then(setAppVersion).catch(() => setAppVersion("unknown"));
   }, []);
 
+  const gameSystemLabel = udbMeta?.game_system
+    ? GAME_SYSTEM_LABELS[udbMeta.game_system] ?? udbMeta.game_system
+    : null;
+
   return (
     <Card>
-      <CardContent className="flex flex-wrap gap-8 p-6">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Database className="h-4 w-4" />
+          {udbMeta ? `Unit Database v${udbMeta.version}` : "Unit Database"}
+        </CardTitle>
+        {udbMeta?.built_at && (
+          <p className="text-xs text-muted-foreground">
+            Built: {formatBuiltAt(udbMeta.built_at)}
+          </p>
+        )}
+      </CardHeader>
+      <CardContent className="flex flex-wrap gap-8 pt-0">
         <InfoItem label="App Version">
           {appVersion === null ? (
             <Skeleton className="w-16 h-4" />
@@ -57,13 +90,19 @@ export function VersionInfoCard() {
           )}
         </InfoItem>
 
-        <InfoItem label="Data Version">
+        <InfoItem label="Units">
           {udbMetaLoading ? (
             <Skeleton className="w-16 h-4" />
+          ) : udbMeta ? (
+            `${udbMeta.unit_count ?? 0} units across ${udbMeta.faction_count ?? 0} factions`
           ) : (
-            udbMeta?.version ?? "Not imported"
+            "Not imported"
           )}
         </InfoItem>
+
+        {gameSystemLabel && (
+          <InfoItem label="Game System">{gameSystemLabel}</InfoItem>
+        )}
       </CardContent>
     </Card>
   );

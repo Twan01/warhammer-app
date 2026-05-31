@@ -1,6 +1,7 @@
 /**
  * DX-01 -- VersionInfoCard renders info items with correct labels.
- * Phase 107: simplified to App Version, DB Schema, Data Version.
+ * Phase 107-02: shows App Version, DB Schema, Units count, Game System,
+ * plus card title with data version and build date.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
@@ -40,12 +41,14 @@ beforeEach(() => {
 });
 
 describe("VersionInfoCard", () => {
-  it("renders all 3 info item labels", () => {
+  it("renders info item labels and card title with version", () => {
     render(<VersionInfoCard />);
 
     expect(screen.getByText("App Version")).toBeInTheDocument();
     expect(screen.getByText("DB Schema")).toBeInTheDocument();
-    expect(screen.getByText("Data Version")).toBeInTheDocument();
+    expect(screen.getByText("Units")).toBeInTheDocument();
+    expect(screen.getByText("Game System")).toBeInTheDocument();
+    expect(screen.getByText(/Unit Database v2026\.05\.20/)).toBeInTheDocument();
   });
 
   it("renders app version after getVersion resolves", async () => {
@@ -62,10 +65,22 @@ describe("VersionInfoCard", () => {
     expect(screen.getByText("v39")).toBeInTheDocument();
   });
 
-  it("renders udb data version", () => {
+  it("renders unit and faction counts from udb meta", () => {
     render(<VersionInfoCard />);
 
-    expect(screen.getByText("2026.05.20")).toBeInTheDocument();
+    expect(screen.getByText("500 units across 25 factions")).toBeInTheDocument();
+  });
+
+  it("renders game system label", () => {
+    render(<VersionInfoCard />);
+
+    expect(screen.getByText("Warhammer 40,000 10th Edition")).toBeInTheDocument();
+  });
+
+  it("renders build date from udb meta", () => {
+    render(<VersionInfoCard />);
+
+    expect(screen.getByText(/Built:/)).toBeInTheDocument();
   });
 
   it("shows skeleton when schema versions are loading", () => {
