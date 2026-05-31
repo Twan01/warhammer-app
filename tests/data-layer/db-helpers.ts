@@ -51,16 +51,11 @@ export const HOBBYFORGE_MIGRATIONS = [
   "039_collection_udb_link.sql",
 ] as const;
 
-// Authoritative rules migration order — must match lib.rs get_rules_migrations()
-export const RULES_MIGRATIONS = [
-  "rules_001_schema.sql",
-  "rules_002_wargear_abilities.sql",
-  "rules_003_sync_meta_counts.sql",
-  "rules_004_datasheet_points.sql",
-] as const;
+// Phase 107: rules.db eliminated — rules migrations removed
+export const RULES_MIGRATIONS = [] as const;
 
 export const HOBBYFORGE_MIGRATION_COUNT = HOBBYFORGE_MIGRATIONS.length; // 39
-export const RULES_MIGRATION_COUNT = RULES_MIGRATIONS.length; // 4
+export const RULES_MIGRATION_COUNT = RULES_MIGRATIONS.length; // 0
 
 /**
  * Creates an in-memory SQLite database with all hobbyforge migrations applied.
@@ -85,20 +80,7 @@ export function createHobbyforgeDb(): Database.Database {
   return db;
 }
 
-/**
- * Creates an in-memory SQLite database with all rules migrations applied.
- * No FK pragma needed — rules DB is a flat lookup store.
- */
-export function createRulesDb(): Database.Database {
-  const db = new Database(":memory:");
-
-  for (const file of RULES_MIGRATIONS) {
-    const sql = readFileSync(resolve(migrationsDir, file), "utf-8");
-    db.exec(sql);
-  }
-
-  return db;
-}
+// Phase 107: rules.db eliminated — createRulesDb removed
 
 // ── Factory helpers for test convenience ────────────────────────────────────
 

@@ -29,9 +29,9 @@ vi.mock("@/hooks/useDatasheet", () => ({
   useDatasheetsByFactionWithPoints: (factionId: string | undefined) => ({
     data: factionId === "SM"
       ? [
-          { id: "ds-1", name: "Intercessors", role: "Battleline", points: 80 },
-          { id: "ds-2", name: "Captain", role: "Character", points: 80 },
-          { id: "ds-3", name: "Eradicators", role: "Battleline", points: 95 },
+          { id: "ds-1", name: "Intercessors", role: "Battleline", base_points: 80 },
+          { id: "ds-2", name: "Captain", role: "Character", base_points: 80 },
+          { id: "ds-3", name: "Eradicators", role: "Battleline", base_points: 95 },
         ]
       : [],
   }),

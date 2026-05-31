@@ -6,9 +6,7 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   createHobbyforgeDb,
-  createRulesDb,
   HOBBYFORGE_MIGRATION_COUNT,
-  RULES_MIGRATION_COUNT,
 } from "./db-helpers";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -19,21 +17,17 @@ describe("migration parity", () => {
     db.close();
   });
 
-  it("all rules migrations execute without errors (D-05)", () => {
-    const db = createRulesDb();
-    db.close();
-  });
+  // Phase 107: rules.db eliminated — rules migration test removed
+  it.todo("all rules migrations execute without errors (D-05) — rules.db removed in Phase 107");
 
   it("lib.rs migration count matches helper count (D-06)", () => {
     const libRs = readFileSync(
       resolve(repoRoot, "src-tauri/src/lib.rs"),
       "utf-8",
     );
-    // Count all Migration { entries in lib.rs (both get_migrations and get_rules_migrations)
+    // Phase 107: only hobbyforge migrations remain (rules migrations removed)
     const matches = libRs.match(/Migration\s*\{/g);
-    expect(matches?.length).toBe(
-      HOBBYFORGE_MIGRATION_COUNT + RULES_MIGRATION_COUNT,
-    );
+    expect(matches?.length).toBe(HOBBYFORGE_MIGRATION_COUNT);
   });
 
   it("PRAGMA foreign_keys is ON after migration chain", () => {

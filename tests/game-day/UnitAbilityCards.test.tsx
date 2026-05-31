@@ -209,6 +209,6 @@ describe("UnitAbilityCard", () => {
     } as unknown as ReturnType<typeof useStrategyNote>);
 
     await renderCardExpanded();
-    expect(screen.getByText(/no abilities or strategy notes/i)).toBeInTheDocument();
+    expect(screen.getByText(/no ability data available/i)).toBeInTheDocument();
   });
 });

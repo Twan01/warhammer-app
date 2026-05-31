@@ -1,5 +1,5 @@
 ﻿/**
- * Phase 9 â€” PlaybookTab component tests.
+ * Phase 9  -- PlaybookTab component tests.
  *
  * Covers STRAT-01 through STRAT-05. Mocks @/db/queries/strategyNotes so
  * useStrategyNote / useUpsertStrategyNote hooks resolve without tauri-plugin-sql.
@@ -22,12 +22,12 @@ vi.mock("@/db/queries/strategyNotes", async () => ({
 
 vi.mock("@/hooks/useDatasheet", () => ({
   useDatasheet: vi.fn(() => ({ data: null })),
-  useRulesSyncMeta: vi.fn(() => ({ data: null })),
   useWahapediaFactionId: vi.fn(() => ({ data: null })),
   DATASHEET_KEY: (id: number) => ["datasheet", id] as const,
 }));
-vi.mock("@/hooks/useRulesSync", () => ({
-  useRulesSync: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+vi.mock("@/hooks/useUdbMeta", () => ({
+  useUdbMeta: vi.fn(() => ({ data: null })),
+  UDB_META_KEY: ["udb-meta"],
 }));
 vi.mock("@/hooks/useFactions", () => ({
   useFactions: vi.fn(() => ({ data: [{ id: 1, name: "Space Marines", color_theme: "#000", icon_path: null, game_system: "40k", description: null, created_at: "", updated_at: "" }] })),
@@ -53,13 +53,11 @@ vi.mock("@/hooks/useUnitLoadouts", () => ({
   useRemoveWargearFromLoadout: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
   UNIT_LOADOUTS_KEY: (id: number) => ["unit-loadouts", id] as const,
 }));
-vi.mock("@/db/queries/datasheets", () => ({
-  upsertDatasheetLink: vi.fn(async () => undefined),
-  getFullDatasheet: vi.fn(async () => null),
-  resolveWahapediaFactionIdByName: vi.fn(async () => null),
+vi.mock("@/db/queries/unitDatabase", () => ({
+  getUdbUnitDetail: vi.fn(async () => null),
 }));
 vi.mock("@/features/units/DatasheetPicker", () => ({
-  DatasheetPicker: () => null, // render nothing â€” picker is tested separately
+  DatasheetPicker: () => null, // render nothing  -- picker is tested separately
 }));
 
 vi.mock("@/hooks/useRulesFavorites", () => ({
@@ -73,26 +71,14 @@ vi.mock("@/hooks/useRulesNotes", () => ({
   useUpsertRulesNote: vi.fn(() => ({ mutate: vi.fn() })),
 }));
 
-const useStratagemsByFactionMock = vi.fn();
-const useDetachmentsByFactionMock = vi.fn();
-const useSharedAbilitiesByFactionMock = vi.fn();
-const useDetachmentAbilitiesByDetachmentMock = vi.fn();
-
-vi.mock("@/hooks/useRulesExtended", () => ({
-  useStratagemsByFaction: (factionId: string | undefined) => useStratagemsByFactionMock(factionId),
-  useDetachmentsByFaction: (factionId: string | undefined) => useDetachmentsByFactionMock(factionId),
-  useSharedAbilitiesByFaction: (factionId: string | undefined) => useSharedAbilitiesByFactionMock(factionId),
-  useDetachmentAbilitiesByDetachment: (detachmentId: string | undefined) => useDetachmentAbilitiesByDetachmentMock(detachmentId),
-}));
+// Phase 107: useRulesExtended mock removed (PlaybookRules returns null)
 
 import * as queries from "@/db/queries/strategyNotes";
 import * as datasheetHooks from "@/hooks/useDatasheet";
-import * as rulesFavoritesHooks from "@/hooks/useRulesFavorites";
-import * as rulesNotesHooks from "@/hooks/useRulesNotes";
+
 import { PlaybookTab } from "@/features/units/PlaybookTab";
 import type { StrategyNote } from "@/types/strategyNote";
-import type { RulesFavorite } from "@/types/rulesFavorite";
-import type { RulesNote } from "@/types/rulesNote";
+
 
 const getStrategyNoteMock = queries.getStrategyNote as unknown as ReturnType<typeof vi.fn>;
 const upsertStrategyNoteMock = queries.upsertStrategyNote as unknown as ReturnType<typeof vi.fn>;
@@ -156,18 +142,14 @@ beforeEach(() => {
   // Default: no existing note (most tests use this; specific tests override)
   getStrategyNoteMock.mockResolvedValue(null);
   upsertStrategyNoteMock.mockResolvedValue(undefined);
-  // Reset extended rules mocks to empty default
-  useStratagemsByFactionMock.mockReset().mockReturnValue({ data: [] });
-  useDetachmentsByFactionMock.mockReset().mockReturnValue({ data: [] });
-  useSharedAbilitiesByFactionMock.mockReset().mockReturnValue({ data: [] });
-  useDetachmentAbilitiesByDetachmentMock.mockReset().mockReturnValue({ data: [] });
+
 });
 
 afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("STRAT-01 â€” Playbook tab renders inside UnitDetailSheet", () => {
+describe("STRAT-01  -- Playbook tab renders inside UnitDetailSheet", () => {
   it("renders the Playbook tab trigger alongside the Details trigger", async () => {
     renderInsideTabs();
     expect(screen.getByRole("tab", { name: /Details/ })).toBeInTheDocument();
@@ -177,7 +159,7 @@ describe("STRAT-01 â€” Playbook tab renders inside UnitDetailSheet", () => 
   it("switches to Playbook tab content on click without closing the sheet", async () => {
     const user = userEvent.setup();
     renderInsideTabs();
-    // We start on Playbook (defaultValue) â€” verify Save Playbook is present
+    // We start on Playbook (defaultValue)  -- verify Save Playbook is present
     expect(await screen.findByRole("button", { name: /Save Playbook/ })).toBeInTheDocument();
     // Switch to Details
     await user.click(screen.getByRole("tab", { name: /Details/ }));
@@ -188,7 +170,7 @@ describe("STRAT-01 â€” Playbook tab renders inside UnitDetailSheet", () => 
   });
 });
 
-describe("STRAT-02 â€” Stats block displays values with suffixes", () => {
+describe("STRAT-02  -- Stats block displays values with suffixes", () => {
   it("renders six stat cells in order M, T, Sv, W, Ld, OC", async () => {
     renderInsideTabs();
     // Wait for hook query to settle
@@ -198,12 +180,12 @@ describe("STRAT-02 â€” Stats block displays values with suffixes", () => {
     expect(visibleOrder).toEqual(["M", "T", "Sv", "W", "Ld", "OC"]);
   });
 
-  it("displays â€” placeholder when a stat value is null", async () => {
+  it("displays  -- placeholder when a stat value is null", async () => {
     getStrategyNoteMock.mockResolvedValueOnce(makeNote()); // all stats null
     renderInsideTabs();
     await screen.findByRole("button", { name: /Save Playbook/ });
-    const dashes = screen.getAllByText("â€”");
-    // 6 stat cells, all null â†’ 6 em-dashes minimum (other em-dashes elsewhere are unlikely on this tab)
+    const dashes = screen.getAllByText("--");
+    // 6 stat cells, all null â†’ 6 double-hyphens minimum (other em-dashes elsewhere are unlikely on this tab)
     expect(dashes.length).toBeGreaterThanOrEqual(6);
   });
 
@@ -219,12 +201,12 @@ describe("STRAT-02 â€” Stats block displays values with suffixes", () => {
       })
     );
     renderInsideTabs();
-    // Wait for data to be rendered â€” 6" appears only after the hook resolves with stat data
+    // Wait for data to be rendered  -- 6" appears only after the hook resolves with stat data
     expect(await screen.findByText(`6"`)).toBeInTheDocument();
     expect(screen.getByText("3+")).toBeInTheDocument();
     expect(screen.getByText("7+")).toBeInTheDocument();
     expect(screen.getByText("1+")).toBeInTheDocument();
-    // T=4 and W=2 are raw integers â€” pick them up by their value text
+    // T=4 and W=2 are raw integers  -- pick them up by their value text
     expect(screen.getByText("4")).toBeInTheDocument();
     expect(screen.getByText("2")).toBeInTheDocument();
   });
@@ -242,7 +224,7 @@ describe("STRAT-02 â€” Stats block displays values with suffixes", () => {
   });
 });
 
-describe("STRAT-03 â€” Abilities and Keywords fields render", () => {
+describe("STRAT-03  -- Abilities and Keywords fields render", () => {
   it("renders Abilities textarea with rows=3 and accepts user input", async () => {
     const user = userEvent.setup();
     renderInsideTabs();
@@ -266,7 +248,7 @@ describe("STRAT-03 â€” Abilities and Keywords fields render", () => {
   });
 });
 
-describe("STRAT-04 â€” Eight strategy note fields render in correct order", () => {
+describe("STRAT-04  -- Eight strategy note fields render in correct order", () => {
   const EXPECTED_LABELS = [
     "Battlefield Role",
     "Strengths",
@@ -281,7 +263,7 @@ describe("STRAT-04 â€” Eight strategy note fields render in correct order",
   it("renders all 8 strategy note labels in the order specified by STRAT-04", async () => {
     renderInsideTabs();
     await screen.findByRole("button", { name: /Save Playbook/ });
-    // For each expected label, capture its DOM index â€” confirm strictly increasing
+    // For each expected label, capture its DOM index  -- confirm strictly increasing
     const positions = EXPECTED_LABELS.map((label) => {
       const el = screen.getByText(label);
       return Array.from(document.querySelectorAll("label, span")).indexOf(el);
@@ -305,7 +287,7 @@ describe("STRAT-04 â€” Eight strategy note fields render in correct order",
   });
 });
 
-describe("STRAT-05 â€” Save button dirty-state and inline save", () => {
+describe("STRAT-05  -- Save button dirty-state and inline save", () => {
   it("Save button is disabled when no field has changed since load", async () => {
     getStrategyNoteMock.mockResolvedValueOnce(makeNote({ battlefield_role: "Anvil" }));
     renderInsideTabs();
@@ -363,18 +345,17 @@ describe("STRAT-05 â€” Save button dirty-state and inline save", () => {
   });
 });
 
-describe("PlaybookTab â€” DS-09 Datasheet Abilities collapsible", () => {
+describe("PlaybookTab  -- DS-09 Datasheet Abilities collapsible", () => {
   it("DS-09: renders Core/Faction/Unit sub-groups when useDatasheet returns abilities of all 3 types", async () => {
     const fakeDatasheet = {
-      ds: { id: "001", name: "Intercessors", faction_id: "SM", source_id: "src1", role: "Battleline", damaged_w: null, damaged_description: null },
-      models: [{ datasheet_id: "001", line: 1, name: "Intercessor", M: "6\"", T: 4, Sv: "3+", inv_sv: null, W: 2, Ld: "6+", OC: 2 }],
+      id: "001", name: "Intercessors", faction_id: "SM", role: "Battleline", base_points: 80, damaged_w: null, damaged_desc: null,
+      models: [{ id: "m1", unit_id: "001", line_order: 1, name: "Intercessor", M: "6\"", T: "4", Sv: "3+", inv_sv: null, W: "2", Ld: "6+", OC: "2" }],
       abilities: [
-        { datasheet_id: "001", line: 1, ability_id: "a1", name: "Oath of Moment", description: "Re-roll hits", type: "Faction", parameter: null },
-        { datasheet_id: "001", line: 2, ability_id: "a2", name: "Bolter Discipline", description: "Sustained Hits 1", type: "Datasheet", parameter: null },
-        { datasheet_id: "001", line: 3, ability_id: "a3", name: "Tactical Battle Brothers", description: "Core thing", type: "Core", parameter: null },
+        { id: 1, unit_id: "001", line_order: 1, name: "Oath of Moment", description: "Re-roll hits", ability_type: "Faction" },
+        { id: 2, unit_id: "001", line_order: 2, name: "Bolter Discipline", description: "Sustained Hits 1", ability_type: "Datasheet" },
+        { id: 3, unit_id: "001", line_order: 3, name: "Tactical Battle Brothers", description: "Core thing", ability_type: "Core" },
       ],
-      keywords: [],
-      source: { id: "src1", name: "Codex: Space Marines", type: "Codex", edition: 10, version: "1.0", errata_date: null },
+      keywords: [], weapons: [], points: [], composition: [],
     };
     (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: fakeDatasheet });
     renderInsideTabs(42);
@@ -389,8 +370,8 @@ describe("PlaybookTab â€” DS-09 Datasheet Abilities collapsible", () => {
 
   it("DS-09: hides the entire Datasheet Abilities collapsible when datasheet has zero abilities", async () => {
     const fakeDatasheet = {
-      ds: { id: "001", name: "X", faction_id: "SM", source_id: null, role: null, damaged_w: null, damaged_description: null },
-      models: [], abilities: [], keywords: [], source: null,
+      id: "001", name: "X", faction_id: "SM", role: null, base_points: null, damaged_w: null, damaged_desc: null,
+      models: [], abilities: [], keywords: [], weapons: [], points: [], composition: [],
     };
     (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: fakeDatasheet });
     renderInsideTabs(42);
@@ -398,22 +379,12 @@ describe("PlaybookTab â€” DS-09 Datasheet Abilities collapsible", () => {
   });
 });
 
-describe("PlaybookTab â€” DS-10 Sources list", () => {
-  it("DS-10: renders Sources section with the source publication name when datasheet has a source", async () => {
-    const fakeDatasheet = {
-      ds: { id: "001", name: "Intercessors", faction_id: "SM", source_id: "src1", role: "Battleline", damaged_w: null, damaged_description: null },
-      models: [{ datasheet_id: "001", line: 1, name: "Intercessor", M: "6\"", T: 4, Sv: "3+", inv_sv: null, W: 2, Ld: "6+", OC: 2 }],
-      abilities: [], keywords: [],
-      source: { id: "src1", name: "Codex: Space Marines 10th Ed.", type: "Codex", edition: 10, version: "1.0", errata_date: null },
-    };
-    (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: fakeDatasheet });
-    renderInsideTabs(42);
-    await screen.findByText("Sources");
-    expect(screen.getByText("Codex: Space Marines 10th Ed.")).toBeInTheDocument();
-  });
+describe("PlaybookTab  -- DS-10 Sources list", () => {
+  // Phase 107: Sources section removed (UdbUnitDetail has no source field)
+  it.todo("DS-10: renders Sources section with the source publication name when datasheet has a source");
 });
 
-describe("PlaybookTab â€” DS-11 Personal Ability Notes textarea label rename", () => {
+describe("PlaybookTab  -- DS-11 Personal Ability Notes textarea label rename", () => {
   it("DS-11: textarea labeled 'Personal Ability Notes' (not 'Abilities') for the personal notes field with id='playbook-abilities'", () => {
     renderInsideTabs(42);
     expect(screen.getByLabelText("Personal Ability Notes")).toBeInTheDocument();
@@ -423,59 +394,57 @@ describe("PlaybookTab â€” DS-11 Personal Ability Notes textarea label renam
   });
 });
 
-describe("PlaybookTab â€” DS-12 multi-profile note", () => {
+describe("PlaybookTab  -- DS-12 multi-profile note", () => {
   it("DS-12: renders 'Additional model profiles available' note when datasheet.models has more than one row", async () => {
     const fakeDatasheet = {
-      ds: { id: "001", name: "X", faction_id: "SM", source_id: null, role: null, damaged_w: null, damaged_description: null },
+      id: "001", name: "X", faction_id: "SM", role: null, base_points: null, damaged_w: null, damaged_desc: null,
       models: [
-        { datasheet_id: "001", line: 1, name: "X (Sergeant)", M: "6\"", T: 4, Sv: "3+", inv_sv: null, W: 2, Ld: "6+", OC: 2 },
-        { datasheet_id: "001", line: 2, name: "X (Body)", M: "6\"", T: 4, Sv: "3+", inv_sv: null, W: 2, Ld: "7+", OC: 2 },
+        { id: "m1", unit_id: "001", line_order: 1, name: "X (Sergeant)", M: "6\"", T: "4", Sv: "3+", inv_sv: null, W: "2", Ld: "6+", OC: "2" },
+        { id: "m2", unit_id: "001", line_order: 2, name: "X (Body)", M: "6\"", T: "4", Sv: "3+", inv_sv: null, W: "2", Ld: "7+", OC: "2" },
       ],
-      abilities: [], keywords: [], source: null,
-      wargear: [],
+      abilities: [], keywords: [], weapons: [], points: [], composition: [],
     };
     (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: fakeDatasheet });
     renderInsideTabs(42);
-    expect(await screen.findByText("Additional model profiles available â€” see Datasheet Abilities for details.")).toBeInTheDocument();
+    expect(await screen.findByText("Additional model profiles available -- see Datasheet Abilities for details.")).toBeInTheDocument();
   });
 
   it("DS-12: does NOT render the multi-profile note when datasheet.models has exactly one row", async () => {
     const fakeDatasheet = {
-      ds: { id: "001", name: "X", faction_id: "SM", source_id: null, role: null, damaged_w: null, damaged_description: null },
-      models: [{ datasheet_id: "001", line: 1, name: "X", M: "6\"", T: 4, Sv: "3+", inv_sv: null, W: 2, Ld: "6+", OC: 2 }],
-      abilities: [], keywords: [], source: null,
-      wargear: [],
+      id: "001", name: "X", faction_id: "SM", role: null, base_points: null, damaged_w: null, damaged_desc: null,
+      models: [{ id: "m1", unit_id: "001", line_order: 1, name: "X", M: "6\"", T: "4", Sv: "3+", inv_sv: null, W: "2", Ld: "6+", OC: "2" }],
+      abilities: [], keywords: [], weapons: [], points: [], composition: [],
     };
     (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: fakeDatasheet });
     renderInsideTabs(42);
-    expect(screen.queryByText("Additional model profiles available â€” see Datasheet Abilities for details.")).toBeNull();
+    expect(screen.queryByText("Additional model profiles available -- see Datasheet Abilities for details.")).toBeNull();
   });
 });
 
-describe("PlaybookTab â€” Weapons section (Phase 15 wargear)", () => {
+describe("PlaybookTab  -- Weapons section (Phase 15 wargear)", () => {
   const boltRifle = {
-    datasheet_id: "001", line: 1, line_in_wargear: 1,
-    name: "Bolt Rifle", range: "24", type: "Ranged", A: "2", BS_WS: "3",
-    S: "4", AP: "-1", D: "1", dice: null, description: null,
+    id: 1, unit_id: "001", weapon_group: 1, line_order: 1,
+    name: "Bolt Rifle", range: "24", category: "Ranged", attacks: "2", skill: "3",
+    strength: "4", ap: "-1", damage: "1", keywords: null,
   };
 
-  function makeWargearDatasheet(wargear: typeof boltRifle[]) {
+  function makeWeaponsDatasheet(weapons: typeof boltRifle[]) {
     return {
-      ds: { id: "001", name: "Intercessors", faction_id: "SM", source_id: null, role: "Battleline", damaged_w: null, damaged_description: null },
-      models: [{ datasheet_id: "001", line: 1, name: "Intercessor", M: "6\"", T: 4, Sv: "3+", inv_sv: null, W: 2, Ld: "6+", OC: 2 }],
-      abilities: [], keywords: [], source: null,
-      wargear,
+      id: "001", name: "Intercessors", faction_id: "SM", role: "Battleline", base_points: 80, damaged_w: null, damaged_desc: null,
+      models: [{ id: "m1", unit_id: "001", line_order: 1, name: "Intercessor", M: "6\"", T: "4", Sv: "3+", inv_sv: null, W: "2", Ld: "6+", OC: "2" }],
+      abilities: [], keywords: [], points: [], composition: [],
+      weapons,
     };
   }
 
   it("G-5: renders 'Weapons' heading when wargear array is non-empty", async () => {
-    (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: makeWargearDatasheet([boltRifle]) });
+    (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: makeWeaponsDatasheet([boltRifle]) });
     renderInsideTabs(42);
     expect(await screen.findByText("Weapons")).toBeInTheDocument();
   });
 
   it("G-5: renders weapon name 'Bolt Rifle' and its stat values in the weapons table", async () => {
-    (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: makeWargearDatasheet([boltRifle]) });
+    (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: makeWeaponsDatasheet([boltRifle]) });
     renderInsideTabs(42);
     await screen.findByText("Weapons");
     expect(screen.getByText("Bolt Rifle")).toBeInTheDocument();
@@ -486,7 +455,7 @@ describe("PlaybookTab â€” Weapons section (Phase 15 wargear)", () => {
   });
 
   it("G-5: does NOT render 'Weapons' heading when wargear is an empty array", async () => {
-    (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: makeWargearDatasheet([]) });
+    (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({ data: makeWeaponsDatasheet([]) });
     renderInsideTabs(42);
     // Wait for the component to settle
     await screen.findByRole("button", { name: /Save Playbook/ });
@@ -494,147 +463,50 @@ describe("PlaybookTab â€” Weapons section (Phase 15 wargear)", () => {
   });
 });
 
-describe("PlaybookTab â€” SCHEMA-01 Stratagems", () => {
-  const sampleStratagem = {
-    id: "s1",
-    faction_id: "SM",
-    name: "Armour of Contempt",
-    type: "Battle Tactic",
-    cp_cost: "1",
-    legend: null,
-    turn: "Your turn",
-    phase: "Command phase",
-    detachment: null,
-    detachment_id: null,
-    description: "Improve AP by 1",
-  };
+// Phase 107: PlaybookRules returns null (rules.db eliminated)
+// All SCHEMA-* and PLAY-* annotation tests are deferred until EXT-03 adds
+// stratagems, detachments, and shared abilities to the canonical database.
 
-  it("SCHEMA-01: renders 'Stratagems' heading when useStratagemsByFaction returns data", async () => {
-    useStratagemsByFactionMock.mockReturnValue({ data: [sampleStratagem] });
-    renderInsideTabs(42);
-    expect(await screen.findByText("Stratagems")).toBeInTheDocument();
-  });
-
-  it("SCHEMA-01: renders stratagem name, CP cost, and phase group header", async () => {
-    useStratagemsByFactionMock.mockReturnValue({ data: [sampleStratagem] });
-    renderInsideTabs(42);
-    await screen.findByText("Stratagems");
-    expect(screen.getByText("Armour of Contempt")).toBeInTheDocument();
-    expect(screen.getByText("1 CP")).toBeInTheDocument();
-    expect(screen.getByText("Command phase")).toBeInTheDocument();
-  });
-
-  it("SCHEMA-01: renders stratagem description text", async () => {
-    useStratagemsByFactionMock.mockReturnValue({ data: [sampleStratagem] });
-    renderInsideTabs(42);
-    await screen.findByText("Stratagems");
-    expect(screen.getByText("Improve AP by 1")).toBeInTheDocument();
-  });
+describe("PlaybookTab — SCHEMA-01 Stratagems (Phase 107: deferred)", () => {
+  it.todo("SCHEMA-01: renders 'Stratagems' heading when useStratagemsByFaction returns data");
+  it.todo("SCHEMA-01: renders stratagem name, CP cost, and phase group header");
+  it.todo("SCHEMA-01: renders stratagem description text");
 
   it("SCHEMA-01: hides Stratagems section when hook returns empty array", async () => {
-    useStratagemsByFactionMock.mockReturnValue({ data: [] });
     renderInsideTabs(42);
     await screen.findByRole("button", { name: /Save Playbook/ });
     expect(screen.queryByText("Stratagems")).toBeNull();
   });
 });
 
-describe("PlaybookTab â€” SCHEMA-02 Detachments", () => {
-  const sampleDetachment = {
-    id: "d1",
-    faction_id: "SM",
-    name: "Gladius Task Force",
-    legend: "A versatile strike force",
-    type: "Standard",
-  };
-
-  it("SCHEMA-02: renders 'Detachments' heading when useDetachmentsByFaction returns data", async () => {
-    useDetachmentsByFactionMock.mockReturnValue({ data: [sampleDetachment] });
-    renderInsideTabs(42);
-    expect(await screen.findByText("Detachments")).toBeInTheDocument();
-  });
-
-  it("SCHEMA-02: renders detachment name and legend text", async () => {
-    useDetachmentsByFactionMock.mockReturnValue({ data: [sampleDetachment] });
-    renderInsideTabs(42);
-    await screen.findByText("Detachments");
-    expect(screen.getByText("Gladius Task Force")).toBeInTheDocument();
-    expect(screen.getByText("A versatile strike force")).toBeInTheDocument();
-  });
+describe("PlaybookTab — SCHEMA-02 Detachments (Phase 107: deferred)", () => {
+  it.todo("SCHEMA-02: renders 'Detachments' heading when useDetachmentsByFaction returns data");
+  it.todo("SCHEMA-02: renders detachment name and legend text");
 
   it("SCHEMA-02: hides Detachments section when hook returns empty array", async () => {
-    useDetachmentsByFactionMock.mockReturnValue({ data: [] });
     renderInsideTabs(42);
     await screen.findByRole("button", { name: /Save Playbook/ });
     expect(screen.queryByText("Detachments")).toBeNull();
   });
 });
 
-describe("PlaybookTab â€” SCHEMA-03 Detachment abilities nested under parent", () => {
-  const sampleDetachment = {
-    id: "d1",
-    faction_id: "SM",
-    name: "Gladius Task Force",
-    legend: null,
-    type: "Standard",
-  };
-  const sampleAbility = {
-    id: "da1",
-    faction_id: "SM",
-    name: "Combat Doctrines",
-    legend: null,
-    description: "Each time a unit fires",
-    detachment: "Gladius Task Force",
-    detachment_id: "d1",
-  };
-
-  it("SCHEMA-03: renders ability name nested under detachment when useDetachmentAbilitiesByDetachment returns data", async () => {
-    useDetachmentsByFactionMock.mockReturnValue({ data: [sampleDetachment] });
-    useDetachmentAbilitiesByDetachmentMock.mockReturnValue({ data: [sampleAbility] });
-    renderInsideTabs(42);
-    await screen.findByText("Detachments");
-    expect(screen.getByText("Gladius Task Force")).toBeInTheDocument();
-    expect(screen.getByText("Combat Doctrines")).toBeInTheDocument();
-    expect(screen.getByText("Each time a unit fires")).toBeInTheDocument();
-  });
+describe("PlaybookTab — SCHEMA-03 Detachment abilities (Phase 107: deferred)", () => {
+  it.todo("SCHEMA-03: renders ability name nested under detachment");
 });
 
-describe("PlaybookTab â€” SCHEMA-04 Shared Faction Abilities", () => {
-  const sampleAbility = {
-    id: "a1",
-    name: "Oath of Moment",
-    legend: null,
-    faction_id: "SM",
-    description: "Re-roll hits against one target",
-  };
-
-  it("SCHEMA-04: renders 'Shared Faction Abilities' heading when useSharedAbilitiesByFaction returns data", async () => {
-    useSharedAbilitiesByFactionMock.mockReturnValue({ data: [sampleAbility] });
-    renderInsideTabs(42);
-    expect(await screen.findByText("Shared Faction Abilities")).toBeInTheDocument();
-  });
-
-  it("SCHEMA-04: renders shared ability name and description", async () => {
-    useSharedAbilitiesByFactionMock.mockReturnValue({ data: [sampleAbility] });
-    renderInsideTabs(42);
-    await screen.findByText("Shared Faction Abilities");
-    expect(screen.getByText("Oath of Moment")).toBeInTheDocument();
-    expect(screen.getByText("Re-roll hits against one target")).toBeInTheDocument();
-  });
+describe("PlaybookTab — SCHEMA-04 Shared Faction Abilities (Phase 107: deferred)", () => {
+  it.todo("SCHEMA-04: renders 'Shared Faction Abilities' heading");
+  it.todo("SCHEMA-04: renders shared ability name and description");
 
   it("SCHEMA-04: hides section when hook returns empty array", async () => {
-    useSharedAbilitiesByFactionMock.mockReturnValue({ data: [] });
     renderInsideTabs(42);
     await screen.findByRole("button", { name: /Save Playbook/ });
     expect(screen.queryByText("Shared Faction Abilities")).toBeNull();
   });
 });
 
-describe("PlaybookTab â€” combined absence of extended sections", () => {
-  it("shows none of the extended section headings when all three hooks return empty arrays and wahapediaFactionId is null", async () => {
-    useStratagemsByFactionMock.mockReturnValue({ data: [] });
-    useDetachmentsByFactionMock.mockReturnValue({ data: [] });
-    useSharedAbilitiesByFactionMock.mockReturnValue({ data: [] });
+describe("PlaybookTab — combined absence of extended sections", () => {
+  it("shows none of the extended section headings when PlaybookRules returns null (Phase 107)", async () => {
     renderInsideTabs(42);
     await screen.findByRole("button", { name: /Save Playbook/ });
     expect(screen.queryByText("Stratagems")).toBeNull();
@@ -643,273 +515,23 @@ describe("PlaybookTab â€” combined absence of extended sections", () => {
   });
 });
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Phase 55 Plan 02 â€” Annotation controls in PlaybookTab sub-components
-// PLAY-01: Star toggle visible on all rule entries
-// PLAY-02: Flag toggle visible on all rule entries
-// PLAY-04: Annotation styling (border-l-primary bg-primary/5) on annotated entries
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-const sampleStratagemAnnotation = {
-  id: "s-ann",
-  faction_id: "SM",
-  name: "Transhuman Physiology",
-  type: "Battle Tactic",
-  cp_cost: "1",
-  legend: null,
-  turn: null,
-  phase: "Fight phase",
-  detachment: null,
-  detachment_id: null,
-  description: "Ignore wound modifiers.",
-};
-
-const sampleDetachmentAnnotation = {
-  id: "d-ann",
-  faction_id: "SM",
-  name: "Ironstorm Spearhead",
-  legend: null,
-  type: "Vehicle",
-};
-
-const sampleAbilityAnnotation = {
-  id: "a-ann",
-  faction_id: "SM",
-  name: "And They Shall Know No Fear",
-  detachment: "Ironstorm Spearhead",
-  detachment_id: "d-ann",
-  legend: null,
-  description: "Ignore morale modifiers.",
-};
-
-const sampleSharedAbilityAnnotation = {
-  id: "sa-ann",
-  name: "Oath of Moment",
-  legend: null,
-  faction_id: "SM",
-  description: "Re-roll hit rolls of 1.",
-};
-
-describe("PlaybookTab â€” PLAY-01/02 StratagemEntry annotation controls", () => {
-  it("PLAY-01: shows star button (Add to favorites) for each stratagem", async () => {
-    useStratagemsByFactionMock.mockReturnValue({ data: [sampleStratagemAnnotation] });
-    renderInsideTabs(42);
-    await screen.findByText("Transhuman Physiology");
-    expect(screen.getByRole("button", { name: "Add to favorites" })).toBeInTheDocument();
-  });
-
-  it("PLAY-02: shows flag button (Set as Game Day reminder) for each stratagem", async () => {
-    useStratagemsByFactionMock.mockReturnValue({ data: [sampleStratagemAnnotation] });
-    renderInsideTabs(42);
-    await screen.findByText("Transhuman Physiology");
-    expect(screen.getByRole("button", { name: "Set as Game Day reminder" })).toBeInTheDocument();
-  });
-
-  it("PLAY-01: shows filled yellow star when stratagem is in favorites (PLAY-01)", async () => {
-    const mockFav: RulesFavorite = {
-      id: 1,
-      rule_id: "s-ann",
-      rule_type: "stratagem",
-      rule_name: "Transhuman Physiology",
-      is_reminder: 0,
-      created_at: "2024-01-01T00:00:00Z",
-      updated_at: "2024-01-01T00:00:00Z",
-    };
-
-    vi.mocked(rulesFavoritesHooks.useRulesFavorites).mockReturnValueOnce(
-      { data: [mockFav] } as unknown as ReturnType<typeof rulesFavoritesHooks.useRulesFavorites>
-    );
-
-    useStratagemsByFactionMock.mockReturnValue({ data: [sampleStratagemAnnotation] });
-    renderInsideTabs(42);
-    await screen.findByText("Transhuman Physiology");
-
-    const starBtn = screen.getByRole("button", { name: "Remove from favorites" });
-    expect(starBtn.querySelector("svg")).toHaveClass("fill-yellow-500");
-  });
-
-  it("PLAY-04: applies border-l-primary and bg-primary/5 to annotated stratagem entry", async () => {
-    const mockFav: RulesFavorite = {
-      id: 1,
-      rule_id: "s-ann",
-      rule_type: "stratagem",
-      rule_name: "Transhuman Physiology",
-      is_reminder: 0,
-      created_at: "2024-01-01T00:00:00Z",
-      updated_at: "2024-01-01T00:00:00Z",
-    };
-
-    vi.mocked(rulesFavoritesHooks.useRulesFavorites).mockReturnValueOnce(
-      { data: [mockFav] } as unknown as ReturnType<typeof rulesFavoritesHooks.useRulesFavorites>
-    );
-
-    useStratagemsByFactionMock.mockReturnValue({ data: [sampleStratagemAnnotation] });
-    const { container } = renderInsideTabs(42);
-    await screen.findByText("Transhuman Physiology");
-
-    // The annotated entry div should have border-l-primary and bg-primary/5
-    const annotatedDiv = container.querySelector(".border-l-primary");
-    expect(annotatedDiv).toBeInTheDocument();
-    expect(annotatedDiv).toHaveClass("bg-primary/5");
-  });
+describe("PlaybookTab — PLAY-01/02 annotation controls (Phase 107: deferred)", () => {
+  it.todo("PLAY-01: shows star button for stratagems");
+  it.todo("PLAY-02: shows flag button for stratagems");
+  it.todo("PLAY-01: shows filled yellow star for favorited stratagem");
+  it.todo("PLAY-04: applies annotation styling to stratagem entry");
+  it.todo("PLAY-01: shows star button for detachment abilities");
+  it.todo("PLAY-02: shows flag button for detachment abilities");
+  it.todo("PLAY-01: shows filled yellow star for favorited detachment ability");
+  it.todo("PLAY-04: applies annotation styling to detachment ability entry");
+  it.todo("PLAY-01: shows star button for shared faction abilities");
+  it.todo("PLAY-02: shows flag button for shared faction abilities");
+  it.todo("PLAY-01: shows filled yellow star for favorited shared ability");
+  it.todo("PLAY-04: applies annotation styling to shared ability entry");
+  it.todo("PLAY-03: shows StickyNote indicator on shared ability when note exists");
 });
 
-describe("PlaybookTab â€” PLAY-01/02 DetachmentAbilityRow annotation controls", () => {
-  it("PLAY-01: shows star button for each detachment ability when rendered", async () => {
-    useDetachmentsByFactionMock.mockReturnValue({ data: [sampleDetachmentAnnotation] });
-    useDetachmentAbilitiesByDetachmentMock.mockReturnValue({ data: [sampleAbilityAnnotation] });
-    renderInsideTabs(42);
-    await screen.findByText("And They Shall Know No Fear");
-    expect(screen.getByRole("button", { name: "Add to favorites" })).toBeInTheDocument();
-  });
-
-  it("PLAY-02: shows flag button for each detachment ability when rendered", async () => {
-    useDetachmentsByFactionMock.mockReturnValue({ data: [sampleDetachmentAnnotation] });
-    useDetachmentAbilitiesByDetachmentMock.mockReturnValue({ data: [sampleAbilityAnnotation] });
-    renderInsideTabs(42);
-    await screen.findByText("And They Shall Know No Fear");
-    expect(screen.getByRole("button", { name: "Set as Game Day reminder" })).toBeInTheDocument();
-  });
-
-  it("PLAY-01: shows filled yellow star when detachment ability is in favorites", async () => {
-    const mockFav: RulesFavorite = {
-      id: 1,
-      rule_id: "a-ann",
-      rule_type: "detachment_ability",
-      rule_name: "And They Shall Know No Fear",
-      is_reminder: 0,
-      created_at: "2024-01-01T00:00:00Z",
-      updated_at: "2024-01-01T00:00:00Z",
-    };
-
-    vi.mocked(rulesFavoritesHooks.useRulesFavorites).mockReturnValueOnce(
-      { data: [mockFav] } as unknown as ReturnType<typeof rulesFavoritesHooks.useRulesFavorites>
-    );
-
-    useDetachmentsByFactionMock.mockReturnValue({ data: [sampleDetachmentAnnotation] });
-    useDetachmentAbilitiesByDetachmentMock.mockReturnValue({ data: [sampleAbilityAnnotation] });
-    renderInsideTabs(42);
-    await screen.findByText("And They Shall Know No Fear");
-
-    const starBtn = screen.getByRole("button", { name: "Remove from favorites" });
-    expect(starBtn.querySelector("svg")).toHaveClass("fill-yellow-500");
-  });
-
-  it("PLAY-04: applies border-l-primary to annotated detachment ability entry", async () => {
-    const mockFav: RulesFavorite = {
-      id: 1,
-      rule_id: "a-ann",
-      rule_type: "detachment_ability",
-      rule_name: "And They Shall Know No Fear",
-      is_reminder: 0,
-      created_at: "2024-01-01T00:00:00Z",
-      updated_at: "2024-01-01T00:00:00Z",
-    };
-
-    vi.mocked(rulesFavoritesHooks.useRulesFavorites).mockReturnValueOnce(
-      { data: [mockFav] } as unknown as ReturnType<typeof rulesFavoritesHooks.useRulesFavorites>
-    );
-
-    useDetachmentsByFactionMock.mockReturnValue({ data: [sampleDetachmentAnnotation] });
-    useDetachmentAbilitiesByDetachmentMock.mockReturnValue({ data: [sampleAbilityAnnotation] });
-    const { container } = renderInsideTabs(42);
-    await screen.findByText("And They Shall Know No Fear");
-
-    const annotatedDiv = container.querySelector(".border-l-primary");
-    expect(annotatedDiv).toBeInTheDocument();
-    expect(annotatedDiv).toHaveClass("bg-primary/5");
-  });
-});
-
-describe("PlaybookTab â€” PLAY-01/02 ExtendedAbilityEntry annotation controls (shared abilities)", () => {
-  it("PLAY-01: shows star button for each shared faction ability", async () => {
-    useSharedAbilitiesByFactionMock.mockReturnValue({ data: [sampleSharedAbilityAnnotation] });
-    renderInsideTabs(42);
-    await screen.findByText("Oath of Moment");
-    expect(screen.getByRole("button", { name: "Add to favorites" })).toBeInTheDocument();
-  });
-
-  it("PLAY-02: shows flag button for each shared faction ability", async () => {
-    useSharedAbilitiesByFactionMock.mockReturnValue({ data: [sampleSharedAbilityAnnotation] });
-    renderInsideTabs(42);
-    await screen.findByText("Oath of Moment");
-    expect(screen.getByRole("button", { name: "Set as Game Day reminder" })).toBeInTheDocument();
-  });
-
-  it("PLAY-01: shows filled yellow star when shared ability is in favorites", async () => {
-    const mockFav: RulesFavorite = {
-      id: 1,
-      rule_id: "sa-ann",
-      rule_type: "shared_ability",
-      rule_name: "Oath of Moment",
-      is_reminder: 0,
-      created_at: "2024-01-01T00:00:00Z",
-      updated_at: "2024-01-01T00:00:00Z",
-    };
-
-    vi.mocked(rulesFavoritesHooks.useRulesFavorites).mockReturnValueOnce(
-      { data: [mockFav] } as unknown as ReturnType<typeof rulesFavoritesHooks.useRulesFavorites>
-    );
-
-    useSharedAbilitiesByFactionMock.mockReturnValue({ data: [sampleSharedAbilityAnnotation] });
-    renderInsideTabs(42);
-    await screen.findByText("Oath of Moment");
-
-    const starBtn = screen.getByRole("button", { name: "Remove from favorites" });
-    expect(starBtn.querySelector("svg")).toHaveClass("fill-yellow-500");
-  });
-
-  it("PLAY-04: applies border-l-primary and bg-primary/5 to annotated shared ability entry", async () => {
-    const mockFav: RulesFavorite = {
-      id: 1,
-      rule_id: "sa-ann",
-      rule_type: "shared_ability",
-      rule_name: "Oath of Moment",
-      is_reminder: 0,
-      created_at: "2024-01-01T00:00:00Z",
-      updated_at: "2024-01-01T00:00:00Z",
-    };
-
-    vi.mocked(rulesFavoritesHooks.useRulesFavorites).mockReturnValueOnce(
-      { data: [mockFav] } as unknown as ReturnType<typeof rulesFavoritesHooks.useRulesFavorites>
-    );
-
-    useSharedAbilitiesByFactionMock.mockReturnValue({ data: [sampleSharedAbilityAnnotation] });
-    const { container } = renderInsideTabs(42);
-    await screen.findByText("Oath of Moment");
-
-    const annotatedDiv = container.querySelector(".border-l-primary");
-    expect(annotatedDiv).toBeInTheDocument();
-    expect(annotatedDiv).toHaveClass("bg-primary/5");
-  });
-
-  it("PLAY-03: shows StickyNote indicator on shared ability when note exists", async () => {
-    const mockNote: RulesNote = {
-      id: 1,
-      rule_id: "sa-ann",
-      rule_type: "shared_ability",
-      rule_name: "Oath of Moment",
-      note_text: "High priority target",
-      created_at: "2024-01-01T00:00:00Z",
-      updated_at: "2024-01-01T00:00:00Z",
-    };
-
-    vi.mocked(rulesNotesHooks.useRulesNotes).mockReturnValueOnce(
-      { data: [mockNote] } as unknown as ReturnType<typeof rulesNotesHooks.useRulesNotes>
-    );
-
-    useSharedAbilitiesByFactionMock.mockReturnValue({ data: [sampleSharedAbilityAnnotation] });
-    renderInsideTabs(42);
-    await screen.findByText("Oath of Moment");
-
-    // StickyNote renders as third SVG in the annotation controls div
-    const starBtn = screen.getByRole("button", { name: "Add to favorites" });
-    const controlsDiv = starBtn.parentElement;
-    expect(controlsDiv?.querySelectorAll("svg").length).toBeGreaterThanOrEqual(3);
-  });
-});
-
-describe("PlaybookTab â€” datasheet error state", () => {
+describe("PlaybookTab  -- datasheet error state", () => {
   it("renders error banner when useDatasheet returns an error", async () => {
     (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({
       data: undefined,

@@ -1,7 +1,10 @@
 /**
- * Phase 56 — StrategemsTab component tests.
+ * Phase 56 / 107 -- StrategemsTab component tests.
  *
- * Covers GAME-02 (phase grouping) and GAME-07 (reminders pinned at top).
+ * Phase 107: stratagems data source (rules.db) eliminated -- inline stub returns empty.
+ * Tests verify component renders correctly with the stub (always empty data).
+ * The reminders and phase-group tests are preserved as "todo" for when
+ * stratagems are re-added to the canonical database.
  */
 
 import { describe, it, expect, vi } from "vitest";
@@ -13,61 +16,6 @@ import { StrategemsTab } from "@/features/game-day/StrategemsTab";
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
-
-const mockStratagems = [
-  {
-    id: "s1",
-    faction_id: "SM",
-    name: "Honour the Chapter",
-    type: null,
-    cp_cost: "1",
-    legend: "A test legend",
-    turn: null,
-    phase: "Fight",
-    detachment: null,
-    detachment_id: "det-1",
-    description: "Re-roll melee hits.",
-  },
-  {
-    id: "s2",
-    faction_id: "SM",
-    name: "Adaptive Strategy",
-    type: null,
-    cp_cost: "1",
-    legend: null,
-    turn: null,
-    phase: "Command",
-    detachment: null,
-    detachment_id: "det-1",
-    description: "Choose a combat doctrine.",
-  },
-  {
-    id: "s3",
-    faction_id: "SM",
-    name: "Rapid Ingress",
-    type: null,
-    cp_cost: "1",
-    legend: null,
-    turn: null,
-    phase: "Movement",
-    detachment: null,
-    detachment_id: "det-1",
-    description: "Set up a unit from Reserves.",
-  },
-  {
-    id: "s4",
-    faction_id: "SM",
-    name: "Free Strat",
-    type: null,
-    cp_cost: "0",
-    legend: null,
-    turn: null,
-    phase: "Shooting",
-    detachment: null,
-    detachment_id: "det-1",
-    description: "Does something free.",
-  },
-];
 
 const mockFavorites = [
   {
@@ -89,13 +37,6 @@ const mockFavorites = [
     updated_at: "2026-01-01",
   },
 ];
-
-vi.mock("@/hooks/useRulesExtended", () => ({
-  useStratagemsByDetachment: (detachmentId: string | undefined) => ({
-    data: detachmentId ? mockStratagems : [],
-    isLoading: false,
-  }),
-}));
 
 vi.mock("@/hooks/useRulesFavorites", () => ({
   useRulesFavorites: () => ({
@@ -129,47 +70,6 @@ function createWrapper() {
 // ---------------------------------------------------------------------------
 
 describe("StrategemsTab", () => {
-  it("renders phase group headers for phases with stratagems", () => {
-    render(
-      <StrategemsTab detachmentId="det-1" listId={1} />,
-      { wrapper: createWrapper() },
-    );
-    // Phase text appears both in group headers and in stratagem card badges.
-    // Check that at least one element with each phase name exists.
-    expect(screen.getAllByText("Command").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("Movement").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("Shooting").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("Fight").length).toBeGreaterThanOrEqual(1);
-  });
-
-  it("does not render Charge phase header when no stratagems in that phase", () => {
-    render(
-      <StrategemsTab detachmentId="det-1" listId={1} />,
-      { wrapper: createWrapper() },
-    );
-    // "Charge" as a phase group header should not appear since no stratagems have that phase
-    const allText = screen.queryAllByText("Charge");
-    // Filter to only phase group headers (not badges inside stratagem cards)
-    expect(allText.length).toBe(0);
-  });
-
-  it("renders reminders section when is_reminder=1 favorites exist", () => {
-    render(
-      <StrategemsTab detachmentId="det-1" listId={1} />,
-      { wrapper: createWrapper() },
-    );
-    expect(screen.getByText("Reminders")).toBeInTheDocument();
-    expect(screen.getByText("Remember to use Oath")).toBeInTheDocument();
-  });
-
-  it("does not render non-reminder favorites in reminders section", () => {
-    render(
-      <StrategemsTab detachmentId="det-1" listId={1} />,
-      { wrapper: createWrapper() },
-    );
-    expect(screen.queryByText("Some Favorite")).not.toBeInTheDocument();
-  });
-
   it("shows empty state when no detachment selected", () => {
     render(
       <StrategemsTab detachmentId={null} listId={1} />,
@@ -180,13 +80,28 @@ describe("StrategemsTab", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders stratagem names within phase groups", () => {
+  it("shows 'No stratagems found' when detachment selected (data source removed in Phase 107)", () => {
     render(
       <StrategemsTab detachmentId="det-1" listId={1} />,
       { wrapper: createWrapper() },
     );
-    expect(screen.getByText("Honour the Chapter")).toBeInTheDocument();
-    expect(screen.getByText("Adaptive Strategy")).toBeInTheDocument();
-    expect(screen.getByText("Rapid Ingress")).toBeInTheDocument();
+    expect(
+      screen.getByText(/no stratagems found/i),
+    ).toBeInTheDocument();
   });
+
+  it("does not render Charge phase header when no stratagems exist", () => {
+    render(
+      <StrategemsTab detachmentId="det-1" listId={1} />,
+      { wrapper: createWrapper() },
+    );
+    const allText = screen.queryAllByText("Charge");
+    expect(allText.length).toBe(0);
+  });
+
+  // Phase 107: stratagems data source removed -- these tests are deferred
+  // until stratagems are re-added to the canonical database.
+  it.todo("renders phase group headers for phases with stratagems");
+  it.todo("renders reminders section when is_reminder=1 favorites exist");
+  it.todo("renders stratagem names within phase groups");
 });

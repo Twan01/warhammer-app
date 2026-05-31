@@ -17,15 +17,15 @@ import type { ArmyList } from "@/types/armyList";
 let mockLists: ArmyList[] | undefined = [];
 let mockListsLoading = false;
 let mockUnits: Array<{ effective_points: number; status_painting: string }> = [];
-let mockSyncMeta: { last_sync_at: string | null } | null = null;
+let mockSyncMeta: { built_at: string | null } | null = null;
 
 vi.mock("@/hooks/useArmyLists", () => ({
   useArmyLists: () => ({ data: mockLists, isLoading: mockListsLoading }),
   useArmyListWithUnits: () => ({ data: mockUnits }),
 }));
 
-vi.mock("@/hooks/useDatasheet", () => ({
-  useRulesSyncMeta: () => ({ data: mockSyncMeta }),
+vi.mock("@/hooks/useUdbMeta", () => ({
+  useUdbMeta: () => ({ data: mockSyncMeta }),
 }));
 
 import { ReadyToPlayCard } from "@/features/dashboard/ReadyToPlayCard";
@@ -131,10 +131,10 @@ describe("ReadyToPlayCard â€” data rendering", () => {
     expect(matches.length).toBeGreaterThan(0);
   });
 
-  it("renders sync age label from syncMeta", () => {
-    mockSyncMeta = null; // no sync
+  it("renders sync age label (Phase 107: always 'Data bundled with app')", () => {
+    mockSyncMeta = null;
     render(<ReadyToPlayCard />);
-    expect(screen.getByText("Never synced")).toBeInTheDocument();
+    expect(screen.getByText("Data bundled with app")).toBeInTheDocument();
   });
 
   it("renders warning badge when unpainted count > 0", () => {

@@ -17,14 +17,18 @@ import type { DiagnosticFlag } from "@/db/queries/diagnostics";
 import type { BackupStatus } from "@/hooks/useDiagnostics";
 
 // Controllable mock state
-let mockSyncMeta: { last_sync_at: string | null } | null = null;
+let mockSyncMeta: { built_at: string | null } | null = null;
 let mockSyncLoading = false;
 let mockFlags: DiagnosticFlag[] | undefined = [];
 let mockFlagsLoading = false;
 let mockBackup: BackupStatus | null = null;
 
-vi.mock("@/hooks/useDatasheet", () => ({
-  useRulesSyncMeta: () => ({ data: mockSyncMeta, isLoading: mockSyncLoading }),
+vi.mock("@tauri-apps/api/app", () => ({
+  getVersion: () => Promise.resolve("0.2.6"),
+}));
+
+vi.mock("@/hooks/useUdbMeta", () => ({
+  useUdbMeta: () => ({ data: mockSyncMeta, isLoading: mockSyncLoading }),
 }));
 
 vi.mock("@/hooks/useDiagnostics", () => ({
@@ -50,22 +54,21 @@ beforeEach(() => {
 });
 
 describe("DataHealthSummaryCard — sync dot and label", () => {
-  it("renders sync label 'Never synced' when no sync has occurred", () => {
+  it("renders sync label 'Data bundled with app' when no sync meta (Phase 107: always fresh)", () => {
     mockSyncMeta = null;
     render(<DataHealthSummaryCard />);
-    expect(screen.getByText("Never synced")).toBeInTheDocument();
+    expect(screen.getByText("Data bundled with app")).toBeInTheDocument();
   });
 
-  it("renders sync label with days when syncMeta has a recent date", () => {
-    // Use a date that is "today" so label reads "Synced today"
+  it("renders sync label 'Data bundled with app' when syncMeta has a date (Phase 107: always fresh)", () => {
     const today = new Date().toISOString();
-    mockSyncMeta = { last_sync_at: today };
+    mockSyncMeta = { built_at: today };
     render(<DataHealthSummaryCard />);
-    expect(screen.getByText("Synced today")).toBeInTheDocument();
+    expect(screen.getByText("Data bundled with app")).toBeInTheDocument();
   });
 
   it("renders a colored dot element for sync freshness", () => {
-    mockSyncMeta = { last_sync_at: new Date().toISOString() };
+    mockSyncMeta = { built_at: new Date().toISOString() };
     render(<DataHealthSummaryCard />);
     // fresh → bg-green-500 dot
     const dots = document.querySelectorAll(".bg-green-500");

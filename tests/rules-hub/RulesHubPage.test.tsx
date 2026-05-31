@@ -1,18 +1,15 @@
 /**
- * Phase 53 Plan 01 — RulesHubPage tests.
+ * Phase 53 / 107 -- RulesHubPage tests.
  *
- * RULES-02: sync button calls rulesSync.mutate
- * RULES-04: after mock sync success, diff summary shows counts
- * RULES-09: disclaimer text "community-sourced from Wahapedia" present in render
+ * Phase 107: sync infrastructure removed (no "Sync now" button, no diff summary).
+ * RULES-09: disclaimer text "community-sourced from Wahapedia" present in render.
+ * Sync-related tests (RULES-02, RULES-04) are marked as todo since sync was removed.
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import type { ReactNode } from "react";
-
-const mockMutate = vi.fn();
 
 vi.mock("@/hooks/useFactions", () => ({
   useFactions: vi.fn(() => ({
@@ -23,44 +20,15 @@ vi.mock("@/hooks/useFactions", () => ({
 }));
 
 vi.mock("@/hooks/useDatasheet", () => ({
-  useRulesSyncMeta: vi.fn(() => ({
-    data: {
-      id: 1,
-      last_sync_at: "2026-05-09T10:00:00Z",
-      wahapedia_version: "20260509",
-      factions_count: 30,
-      sources_count: 5,
-      datasheets_count: 1200,
-      models_count: 800,
-      abilities_count: 500,
-      keywords_count: 600,
-      wargear_count: 400,
-      shared_abilities_count: 100,
-      stratagems_count: 300,
-      detachments_count: 50,
-      detachment_abilities_count: 200,
-    },
-  })),
   useWahapediaFactionId: vi.fn(() => ({ data: "SM" })),
   useWahapediaFactions: vi.fn(() => ({ data: [] })),
   RULES_SYNC_META_KEY: ["rules-sync-meta"],
 }));
 
-vi.mock("@/hooks/useRulesSync", () => ({
-  useRulesSync: vi.fn(() => ({
-    mutate: mockMutate,
-    isPending: false,
+vi.mock("@/hooks/useUdbMeta", () => ({
+  useUdbMeta: vi.fn(() => ({
+    data: { built_at: "2026-05-09T10:00:00Z", version: "1.0" },
   })),
-}));
-
-vi.mock("@/hooks/useSyncErrors", () => ({
-  useRulesSyncErrors: vi.fn(() => ({ data: [] })),
-}));
-
-vi.mock("@/hooks/useRulesExtended", () => ({
-  useStratagemsByFaction: vi.fn(() => ({ data: [] })),
-  useDetachmentsByFaction: vi.fn(() => ({ data: [] })),
-  useSharedAbilitiesByFaction: vi.fn(() => ({ data: [] })),
 }));
 
 vi.mock("@/hooks/useRulesFavorites", () => ({
@@ -91,51 +59,17 @@ function makeWrapper() {
   };
 }
 
-beforeEach(() => {
-  mockMutate.mockReset();
-});
-
-describe("RulesHubPage — RULES-02: sync button fires mutation", () => {
-  it("calls rulesSync.mutate when Sync now button is clicked", async () => {
-    const user = userEvent.setup();
-    render(<RulesHubPage />, { wrapper: makeWrapper() });
-
-    const syncBtn = screen.getByRole("button", { name: /sync now/i });
-    await user.click(syncBtn);
-    expect(mockMutate).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe("RulesHubPage — RULES-04: diff summary after sync", () => {
-  it("shows diff summary after onSyncComplete is called", async () => {
-    const user = userEvent.setup();
-
-    // Make mutate call onSyncComplete via the first argument's onSuccess
-    mockMutate.mockImplementation((_input: undefined, options: { onSuccess?: (data: unknown) => void }) => {
-      options?.onSuccess?.({
-        wahapediaVersion: "20260510",
-        rowCounts: {},
-        diff: { added: [{ id: "a", name: "A" }], removed: [], modified: [], renamed: [], total_changed: 1 },
-        pointsDelta: { added: 0, removed: 0, changed: 0, details: [] },
-      });
-    });
-
-    render(<RulesHubPage />, { wrapper: makeWrapper() });
-
-    const syncBtn = screen.getByRole("button", { name: /sync now/i });
-    await user.click(syncBtn);
-
-    await waitFor(() => {
-      expect(screen.getByText(/\+1 added/)).toBeDefined();
-    });
-  });
-});
-
-describe("RulesHubPage — RULES-09: Wahapedia disclaimer", () => {
+describe("RulesHubPage -- RULES-09: Wahapedia disclaimer", () => {
   it("renders the disclaimer text", () => {
     render(<RulesHubPage />, { wrapper: makeWrapper() });
     expect(
       screen.getByText(/community-sourced from Wahapedia/i),
     ).toBeDefined();
   });
+});
+
+// Phase 107: sync infrastructure removed -- these tests are deferred
+describe("RulesHubPage -- sync features (removed in Phase 107)", () => {
+  it.todo("RULES-02: sync button fires mutation (sync removed)");
+  it.todo("RULES-04: diff summary after sync (sync removed)");
 });

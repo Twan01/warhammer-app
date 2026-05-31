@@ -2,7 +2,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import type Database from "better-sqlite3";
-import { createHobbyforgeDb, createRulesDb } from "./db-helpers";
+import { createHobbyforgeDb } from "./db-helpers";
 
 interface ColumnInfo {
   cid: number;
@@ -96,22 +96,6 @@ describe("schema shape", () => {
     ).toBe(0);
   });
 
-  it("rules DB tables exist (D-12 for rules)", () => {
-    db.close(); // close hobbyforge db from beforeEach
-    const rulesDb = createRulesDb();
-
-    const tables = rulesDb
-      .prepare(
-        "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name",
-      )
-      .all() as { name: string }[];
-    const tableNames = tables.map((t) => t.name);
-
-    // Rules tables use "rw_" prefix (e.g., rw_datasheets, rw_factions)
-    expect(tableNames).toContain("rw_datasheets");
-
-    rulesDb.close();
-    // Recreate hobbyforge db so afterEach close doesn't error
-    db = createHobbyforgeDb();
-  });
+  // Phase 107: rules.db eliminated — rules DB table test removed
+  it.todo("rules DB tables exist (D-12 for rules) — rules.db removed in Phase 107");
 });
