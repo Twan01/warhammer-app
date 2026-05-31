@@ -168,7 +168,7 @@ Full details: `.planning/milestones/v0.3.7-ROADMAP.md`
 - [x] **Phase 104: Database Browser UI** — Faction picker, unit list by GW roles, full datasheet detail, FTS5 global search, filters, virtual scrolling (completed 2026-05-30)
 - [ ] **Phase 105: Collection Integration** — FK link from collection units to database, "Add from Database" flow, ownership/readiness badges, Data Health diagnostic
 - [x] **Phase 106: Army List Simplification** — Points resolved via database FK join, validation uses database keywords/roles, synced_unit_points cache eliminated (completed 2026-05-30)
-- [ ] **Phase 107: Cleanup & Pipeline** — rules.db eliminated, dead sync code removed, single-database architecture, dev-side update script
+- [x] **Phase 107: Cleanup & Pipeline** — rules.db eliminated, dead sync code removed, single-database architecture, dev-side update script (completed 2026-05-31)
 
 ## Phase Details
 
@@ -279,7 +279,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 107-02-PLAN.md — Dev-side update script with diff reporting + data version display
+- [x] 107-02-PLAN.md — Dev-side update script with diff reporting + data version display (completed 2026-05-31)
 
 ## Progress
 
