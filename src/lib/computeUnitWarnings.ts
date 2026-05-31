@@ -92,7 +92,7 @@ export function computeListWarnings(
   }
 
   // Soft: stale or never-synced points data
-  if (context.freshness === "stale" || context.freshness === "never") {
+  if (context.freshness === "stale") {
     soft.push("Stale points data");
   }
 

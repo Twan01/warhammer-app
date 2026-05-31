@@ -1,9 +1,8 @@
-import { Loader2, Pencil, RefreshCw, X } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { getSyncFreshness, getSyncAgeLabel, FRESHNESS_DOT_CLASS } from "@/lib/syncFreshness";
-import type { RulesSyncMeta } from "@/types/datasheet";
+import type { UdbMeta } from "@/hooks/useUdbMeta";
 import type { UnitOverride } from "@/types/unitOverride";
 
 export type StatKey = "M" | "T" | "Sv" | "W" | "Ld" | "OC";
@@ -15,7 +14,7 @@ const SECTION_LABEL_CLASS =
 
 export function formatStatValue(key: StatKey, value: number | null): React.ReactNode {
   if (value === null) {
-    return <span className="text-muted-foreground">—</span>;
+    return <span className="text-muted-foreground">--</span>;
   }
   if (key === "M") return `${value}"`;
   if (key === "Sv" || key === "Ld" || key === "OC") return `${value}+`;
@@ -30,7 +29,7 @@ export function parseNumberInput(raw: string): number | null {
 
 interface PlaybookStatsProps {
   unitId: number;
-  syncMeta: RulesSyncMeta | null | undefined;
+  syncMeta: UdbMeta | null | undefined;
   overrideRow: UnitOverride | null | undefined;
   hasDatasheetLink: boolean;
   hasMultipleProfiles: boolean;
@@ -38,19 +37,14 @@ interface PlaybookStatsProps {
   onToggleStatsEditMode: () => void;
   wahapediaFactionId: string | null | undefined;
   onPickerOpen: () => void;
-  onSyncClick: () => void;
-  isSyncing: boolean;
   onDeleteOverride: (unitId: number) => void;
   statValue: (key: StatKey) => number | null;
   setStat: (key: StatKey, v: number | null) => void;
   importedStatValue: (key: StatKey) => number | null;
   isStatOverridden: (key: StatKey) => boolean;
-  // Points override
   pointsOverrideValue: string;
   onPointsOverrideChange: (value: string) => void;
   unitPoints: number | null | undefined;
-  // Sync freshness display
-  formatSyncDate: (iso: string | null) => string;
 }
 
 export function PlaybookStats({
@@ -62,8 +56,6 @@ export function PlaybookStats({
   onToggleStatsEditMode,
   wahapediaFactionId,
   onPickerOpen,
-  onSyncClick,
-  isSyncing,
   onDeleteOverride,
   statValue,
   setStat,
@@ -72,7 +64,6 @@ export function PlaybookStats({
   pointsOverrideValue,
   onPointsOverrideChange,
   unitPoints,
-  formatSyncDate,
   unitId,
 }: PlaybookStatsProps) {
   return (
@@ -80,25 +71,11 @@ export function PlaybookStats({
       <div className="flex items-center justify-between">
         <span className={SECTION_LABEL_CLASS}>Stats</span>
         <div className="flex items-center gap-2">
-          {syncMeta && (() => {
-            const freshness = getSyncFreshness(syncMeta.last_sync_at);
-            const ageLabel = getSyncAgeLabel(syncMeta.last_sync_at);
-            return (
-              <div className="flex items-center gap-1.5">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className={`inline-block w-2 h-2 rounded-full ${FRESHNESS_DOT_CLASS[freshness]}`} />
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">{ageLabel}</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <span className="text-xs text-muted-foreground">
-                  Last synced: {formatSyncDate(syncMeta.last_sync_at)}
-                </span>
-              </div>
-            );
-          })()}
+          {syncMeta && (
+            <span className="text-xs text-muted-foreground">
+              Data v{syncMeta.version}
+            </span>
+          )}
           {syncMeta && (
             <Button
               type="button"
@@ -107,23 +84,7 @@ export function PlaybookStats({
               onClick={onPickerOpen}
               disabled={!wahapediaFactionId}
             >
-              {hasDatasheetLink ? "Re-import" : "Import stats"}
-            </Button>
-          )}
-          {syncMeta && hasDatasheetLink && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label="Re-sync datasheets"
-              onClick={onSyncClick}
-              disabled={isSyncing}
-            >
-              {isSyncing ? (
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-              ) : (
-                <RefreshCw className="h-4 w-4" aria-hidden="true" />
-              )}
+              {hasDatasheetLink ? "Re-link" : "Link unit"}
             </Button>
           )}
           {overrideRow && (
@@ -160,29 +121,21 @@ export function PlaybookStats({
         </div>
       </div>
 
-      {/* Empty-rules-db banner */}
+      {/* No unit database banner */}
       {!syncMeta && (
         <div className="rounded-md border border-border bg-card px-3 py-2 text-sm text-muted-foreground">
-          Sync datasheets to auto-fill stats.{" "}
-          <button
-            type="button"
-            className="underline underline-offset-2 hover:text-foreground"
-            onClick={onSyncClick}
-            disabled={isSyncing}
-          >
-            {isSyncing ? "Syncing…" : "Sync now"}
-          </button>
+          Unit database not loaded. Stats can be entered manually.
         </div>
       )}
 
-      {/* Points override — edit mode */}
+      {/* Points override -- edit mode */}
       {hasDatasheetLink && statsEditMode && (
         <div className="flex items-center gap-2 px-1">
           <span className="text-xs font-medium text-muted-foreground w-16">Points</span>
           <Input
             type="number"
             min={0}
-            placeholder={unitPoints != null ? String(unitPoints) : "—"}
+            placeholder={unitPoints != null ? String(unitPoints) : "--"}
             value={pointsOverrideValue}
             onChange={(e) => onPointsOverrideChange(e.target.value)}
             className="h-7 w-24 text-sm tabular-nums"
@@ -190,13 +143,13 @@ export function PlaybookStats({
           />
           {overrideRow?.points != null && (
             <span className="text-[10px] text-muted-foreground">
-              (imported: {unitPoints ?? "—"})
+              (imported: {unitPoints ?? "--"})
             </span>
           )}
         </div>
       )}
 
-      {/* Points override — view mode */}
+      {/* Points override -- view mode */}
       {hasDatasheetLink && !statsEditMode && overrideRow?.points != null && (
         <div className="flex items-center gap-2 px-1">
           <span className="text-xs font-medium text-muted-foreground w-16">Points</span>
@@ -207,7 +160,7 @@ export function PlaybookStats({
                 <Pencil className="h-2.5 w-2.5 text-primary cursor-help" aria-hidden="true" />
               </TooltipTrigger>
               <TooltipContent side="top">
-                Manual override — imported value: {unitPoints ?? "—"} pts
+                Manual override -- imported value: {unitPoints ?? "--"} pts
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -232,7 +185,7 @@ export function PlaybookStats({
                     <Pencil className="h-2.5 w-2.5 text-primary absolute top-1 right-1 cursor-help" aria-hidden="true" />
                   </TooltipTrigger>
                   <TooltipContent side="top">
-                    Manual override — imported value: {formatStatValue(key, importedStatValue(key))}
+                    Manual override -- imported value: {formatStatValue(key, importedStatValue(key))}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -255,10 +208,10 @@ export function PlaybookStats({
         ))}
       </div>
 
-      {/* DS-12 multi-profile note */}
+      {/* Multi-profile note */}
       {hasMultipleProfiles && (
         <p className="text-xs text-muted-foreground mt-1">
-          Additional model profiles available — see Datasheet Abilities for details.
+          Additional model profiles available -- see Datasheet Abilities for details.
         </p>
       )}
     </div>

@@ -48,8 +48,7 @@
   "plugins": {
     "sql": {
       "preload": [
-        "sqlite:hobbyforge.db",
-        "sqlite:rules.db"
+        "sqlite:hobbyforge.db"
       ]
     },
     "updater": {

@@ -43,13 +43,12 @@ vi.mock("@/db/queries/bsdataExtended", () => ({
   ]),
 }));
 
-vi.mock("@/db/queries/datasheets", () => ({
-  getUnitKeywords: vi.fn().mockResolvedValue({ isCharacter: true, isEpicHero: false }),
-  getRulesSyncMeta: vi.fn().mockResolvedValue(null),
-  resolveWahapediaFactionIdByName: vi.fn().mockResolvedValue(null),
-  getDatasheetsByFaction: vi.fn().mockResolvedValue([]),
-  getDatasheetIdForUnit: vi.fn().mockResolvedValue(null),
-  getFullDatasheet: vi.fn().mockResolvedValue(null),
+vi.mock("@/hooks/useUnitKeywords", () => ({
+  useUnitKeywords: vi.fn().mockReturnValue({
+    data: { isCharacter: true, isEpicHero: false },
+    isLoading: false,
+  }),
+  SAFE_DEFAULT: { isCharacter: false, isEpicHero: false },
 }));
 
 vi.mock("@/db/queries/units", () => ({
@@ -247,8 +246,11 @@ describe("EnhancementPickerSheet â€” ENH-02 preventive validation", () => {
 
   it("Assign button disabled for Epic Hero unit", async () => {
     mockGetEnhancementsByList.mockResolvedValue([]);
-    const { getUnitKeywords } = await import("@/db/queries/datasheets");
-    vi.mocked(getUnitKeywords).mockResolvedValue({ isCharacter: true, isEpicHero: true });
+    const { useUnitKeywords } = await import("@/hooks/useUnitKeywords");
+    vi.mocked(useUnitKeywords).mockReturnValue({
+      data: { isCharacter: true, isEpicHero: true },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useUnitKeywords>);
 
     renderSheet();
 

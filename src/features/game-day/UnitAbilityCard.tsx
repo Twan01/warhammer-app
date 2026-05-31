@@ -13,7 +13,7 @@ import { useDatasheet } from "@/hooks/useDatasheet";
 import { useStrategyNote } from "@/hooks/useStrategyNote";
 import { useGameDayStore, useGameDayListState } from "./gameDayStore";
 import type { ArmyListUnitRow } from "@/types/armyList";
-import type { RwDatasheetAbility } from "@/types/datasheet";
+import type { UdbAbility } from "@/db/queries/unitDatabase";
 
 function getPaintingBadgeVariant(status: string): "default" | "secondary" | "outline" {
   if (status === "Completed" || status === "Varnished") return "default";
@@ -21,8 +21,8 @@ function getPaintingBadgeVariant(status: string): "default" | "secondary" | "out
   return "secondary";
 }
 
-function isOncePerGame(ability: RwDatasheetAbility): boolean {
-  const text = [ability.name ?? "", ability.description ?? "", ability.parameter ?? ""]
+function isOncePerGame(ability: UdbAbility): boolean {
+  const text = [ability.name ?? "", ability.description ?? ""]
     .join(" ")
     .toLowerCase();
   return text.includes("once per battle") || text.includes("once per game");
@@ -47,7 +47,7 @@ export function UnitAbilityCard({ unit, listId }: UnitAbilityCardProps) {
       .filter(isOncePerGame)
       .map((ability) => ({
         ability,
-        key: `${unit.unit_id}::${ability.ability_id ?? ability.name}`,
+        key: `${unit.unit_id}::${ability.id ?? ability.name}`,
       }));
   }, [datasheet?.abilities, unit.unit_id]);
 
@@ -75,7 +75,7 @@ export function UnitAbilityCard({ unit, listId }: UnitAbilityCardProps) {
       <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left [&[data-state=open]>svg:last-child]:rotate-180">
         <span className="flex-1 text-sm font-medium">{unit.unit_name}</span>
         <Badge variant={getPaintingBadgeVariant(unit.status_painting ?? "")} className="mx-2 shrink-0">
-          {unit.status_painting ?? "—"}
+          {unit.status_painting ?? "--"}
         </Badge>
         <span className="mr-2 shrink-0 text-xs text-muted-foreground">
           {unit.effective_points}pts
@@ -124,12 +124,12 @@ export function UnitAbilityCard({ unit, listId }: UnitAbilityCardProps) {
                   Abilities
                 </span>
                 {regularAbilities.map((ability) => (
-                  <div key={ability.ability_id ?? ability.name} className="flex flex-col gap-0.5">
+                  <div key={ability.id ?? ability.name} className="flex flex-col gap-0.5">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{ability.name}</span>
-                      {ability.type && (
+                      {ability.ability_type && (
                         <Badge variant="outline" className="text-xs">
-                          {ability.type}
+                          {ability.ability_type}
                         </Badge>
                       )}
                     </div>

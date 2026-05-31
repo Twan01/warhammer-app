@@ -22,7 +22,7 @@ import {
   useDatasheetsByFactionWithPoints,
 } from "@/hooks/useDatasheet";
 import { useAddGhostUnitToList } from "@/hooks/useArmyLists";
-import type { DatasheetWithPoints } from "@/db/queries/datasheets";
+import type { UdbUnitSummary } from "@/db/queries/unitDatabase";
 
 interface DatasheetBrowserDialogProps {
   open: boolean;
@@ -65,7 +65,7 @@ export function DatasheetBrowserDialog({
 
   // Group datasheets by role (D-02). Null role maps to "Other".
   const grouped = useMemo(() => {
-    const groups: Record<string, DatasheetWithPoints[]> = {};
+    const groups: Record<string, UdbUnitSummary[]> = {};
     for (const ds of datasheets) {
       const key = ds.role ?? "Other";
       (groups[key] ??= []).push(ds);
@@ -73,7 +73,7 @@ export function DatasheetBrowserDialog({
     return groups;
   }, [datasheets]);
 
-  function handleSelect(ds: DatasheetWithPoints) {
+  function handleSelect(ds: UdbUnitSummary) {
     if (listId === null) return;
     // CRITICAL (D-10): pass ds.name, NOT ds.id — the COALESCE chain joins on name.
     addGhostUnit.mutate(
@@ -123,9 +123,9 @@ export function DatasheetBrowserDialog({
                       <Badge variant="secondary" className="ml-2">
                         {ds.role ?? "Other"}
                       </Badge>
-                      {ds.points !== null && (
+                      {ds.base_points !== null && (
                         <span className="ml-2 text-xs text-muted-foreground">
-                          {ds.points}pts
+                          {ds.base_points}pts
                         </span>
                       )}
                     </CommandItem>

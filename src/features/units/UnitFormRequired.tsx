@@ -20,7 +20,26 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import type { Faction } from "@/types/faction";
 import type { UnitFormValues } from "./unitSchema";
 import { CategoryCombobox } from "./CategoryCombobox";
-import { useDatasheetRole } from "@/hooks/useUnitRulesMapping";
+import { useQuery } from "@tanstack/react-query";
+import { getDb } from "@/db/client";
+
+/** Phase 107: inline replacement for useDatasheetRole (rules mapping eliminated). */
+function useDatasheetRole(unitId: number | undefined) {
+  return useQuery({
+    queryKey: unitId !== undefined ? ["udb-role", unitId] : ["udb-role"],
+    queryFn: async () => {
+      if (unitId === undefined) return null;
+      const db = await getDb();
+      const rows = await db.select<{ role: string | null }[]>(
+        `SELECT uu.role FROM units u JOIN udb_units uu ON uu.id = u.udb_unit_id WHERE u.id = $1`,
+        [unitId],
+      );
+      return rows[0]?.role ?? null;
+    },
+    enabled: unitId !== undefined,
+    staleTime: Infinity,
+  });
+}
 
 interface UnitFormRequiredProps {
   factions: Faction[];

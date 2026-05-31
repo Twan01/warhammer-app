@@ -15,7 +15,7 @@ import {
   useRemoveWargearFromLoadout,
 } from "@/hooks/useUnitLoadouts";
 import { useDatasheet } from "@/hooks/useDatasheet";
-import type { RwDatasheetWargear } from "@/types/datasheet";
+import type { UdbWeapon } from "@/db/queries/unitDatabase";
 import type { UnitLoadout } from "@/types/unitLoadout";
 
 const SECTION_LABEL_CLASS =
@@ -38,20 +38,20 @@ export function LoadoutSection({ unitId }: LoadoutSectionProps) {
   const [expandedLoadoutId, setExpandedLoadoutId] = useState<number | null>(null);
   const [manualWeaponName, setManualWeaponName] = useState<string>("");
 
-  // Pattern 5: group wargear by line field, sorted ASC
-  const wargearByLine = useMemo<Array<[number, RwDatasheetWargear[]]>>(() => {
-    const groups = new Map<number, RwDatasheetWargear[]>();
-    for (const w of datasheet?.wargear ?? []) {
-      const bucket = groups.get(w.line) ?? [];
+  // Pattern 5: group weapons by weapon_group field, sorted ASC
+  const wargearByLine = useMemo<Array<[number, UdbWeapon[]]>>(() => {
+    const groups = new Map<number, UdbWeapon[]>();
+    for (const w of datasheet?.weapons ?? []) {
+      const bucket = groups.get(w.weapon_group) ?? [];
       bucket.push(w);
-      groups.set(w.line, bucket);
+      groups.set(w.weapon_group, bucket);
     }
     return [...groups.entries()].sort(([a], [b]) => a - b);
-  }, [datasheet?.wargear]);
+  }, [datasheet?.weapons]);
 
   const allDatasheetWeaponNames = useMemo(
-    () => new Set((datasheet?.wargear ?? []).map((w) => w.name)),
-    [datasheet?.wargear],
+    () => new Set((datasheet?.weapons ?? []).map((w) => w.name)),
+    [datasheet?.weapons],
   );
 
   function handleCreateLoadout() {
@@ -83,7 +83,7 @@ export function LoadoutSection({ unitId }: LoadoutSectionProps) {
     );
   }
 
-  function handleToggleWargear(loadout: UnitLoadout, weapon: RwDatasheetWargear) {
+  function handleToggleWargear(loadout: UnitLoadout, weapon: UdbWeapon) {
     const existing = loadout.wargear.find((w) => w.weapon_name === weapon.name);
     if (existing) {
       removeWargear.mutate(
@@ -92,7 +92,7 @@ export function LoadoutSection({ unitId }: LoadoutSectionProps) {
       );
     } else {
       addWargear.mutate(
-        { loadout_id: loadout.id, weapon_name: weapon.name, weapon_line: weapon.line, is_manual: false, unitId },
+        { loadout_id: loadout.id, weapon_name: weapon.name, weapon_line: weapon.weapon_group, is_manual: false, unitId },
         { onError: (err) => toast.error(`Failed to add wargear: ${err.message}`) },
       );
     }
@@ -229,10 +229,10 @@ export function LoadoutSection({ unitId }: LoadoutSectionProps) {
                         </span>
                         {weapons.map((weapon) => {
                           const isChecked = loadout.wargear.some((w) => w.weapon_name === weapon.name);
-                          const checkboxId = `wargear-${loadout.id}-${weapon.line}-${weapon.line_in_wargear}`;
+                          const checkboxId = `wargear-${loadout.id}-${weapon.weapon_group}-${weapon.line_order}`;
                           return (
                             <label
-                              key={`${weapon.line}-${weapon.line_in_wargear}`}
+                              key={`${weapon.weapon_group}-${weapon.line_order}`}
                               htmlFor={checkboxId}
                               className="flex items-center gap-2 cursor-pointer group"
                             >
@@ -246,9 +246,9 @@ export function LoadoutSection({ unitId }: LoadoutSectionProps) {
                               <span className="text-sm group-hover:text-foreground text-foreground/80">
                                 {weapon.name}
                               </span>
-                              {weapon.type && (
+                              {weapon.category && (
                                 <span className="text-[10px] text-muted-foreground">
-                                  {weapon.type}
+                                  {weapon.category}
                                 </span>
                               )}
                             </label>

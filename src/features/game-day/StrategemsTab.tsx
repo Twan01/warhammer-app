@@ -7,7 +7,11 @@ import {
   CollapsibleTrigger,
   CollapsibleContent,
 } from "@/components/ui/collapsible";
-import { useStratagemsByDetachment } from "@/hooks/useRulesExtended";
+// Phase 107: stratagems data source (rules.db) eliminated -- EXT-03 deferred
+// Stub hook returns empty array until stratagems are added to canonical DB
+function useStratagemsByDetachment(_detachmentId: string | undefined) {
+  return { data: [] as import("@/types/datasheet").RwStratagem[], isLoading: false };
+}
 import { useRulesFavorites } from "@/hooks/useRulesFavorites";
 import { useForgottenRules } from "@/hooks/useBattleLogs";
 import { useGameDayStore } from "./gameDayStore";

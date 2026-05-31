@@ -121,9 +121,9 @@ describe("ArmyListSummaryBar â€” list-level warning badges (PV-06)", () => 
     expect(screen.getByText("Stale points data")).toBeInTheDocument();
   });
 
-  it("renders 'Stale points data' badge when freshness is never", () => {
+  it("renders 'Stale points data' badge when freshness is stale (covers former 'never' case)", () => {
     const units = [makeUnit({ effective_points: 500 })];
-    renderBar(units, null, "never");
+    renderBar(units, null, "stale");
 
     expect(screen.getByText("Stale points data")).toBeInTheDocument();
   });

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { RulesFavorite } from "@/types/rulesFavorite";
 import type { RulesNote } from "@/types/rulesNote";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -12,14 +12,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SyncStatusCard } from "./SyncStatusCard";
-import { useRulesSyncMeta, useWahapediaFactions } from "@/hooks/useDatasheet";
+import { useWahapediaFactions } from "@/hooks/useDatasheet";
+import { useUdbMeta } from "@/hooks/useUdbMeta";
 import { useRulesHubFilters } from "./rulesHubFilters";
-import {
-  useStratagemsByFaction,
-  useDetachmentsByFaction,
-  useSharedAbilitiesByFaction,
-} from "@/hooks/useRulesExtended";
+// Phase 107: detachment/stratagem data source (rules.db) eliminated -- EXT-03 deferred
+import type { RwDetachmentAbility, RwStratagem } from "@/types/datasheet";
+function useStratagemsByFaction(_factionId: string | undefined) {
+  return { data: [] as RwStratagem[], isLoading: false };
+}
+function useDetachmentsByFaction(_factionId: string | undefined) {
+  return { data: [] as (import("@/types/datasheet").RwDetachment)[], isLoading: false };
+}
+function useSharedAbilitiesByFaction(_factionId: string | undefined) {
+  return { data: [] as RwDetachmentAbility[], isLoading: false };
+}
 import { applyStratagemFilters, STRATAGEM_PHASES } from "./applyRulesHubFilters";
 import { useRulesFavorites } from "@/hooks/useRulesFavorites";
 import { useRulesNotes } from "@/hooks/useRulesNotes";
@@ -27,18 +33,11 @@ import { StratagemCard } from "./StratagemCard";
 import { DetachmentCard } from "./DetachmentCard";
 import { SharedAbilityCard } from "./SharedAbilityCard";
 import { cn } from "@/lib/utils";
-import type { SyncDiff } from "@/lib/computeSyncDiff";
-import type { PointsDelta } from "@/types/pointsDelta";
-import { getArmyListUnitNames } from "@/db/queries/armyLists";
 import { DatasheetPointsTab } from "./DatasheetPointsTab";
 
 export function RulesHubPage() {
-  const [lastSyncDiff, setLastSyncDiff] = useState<SyncDiff | null>(null);
-  const [lastPointsDelta, setLastPointsDelta] = useState<PointsDelta | null>(null);
-  const [affectedLists, setAffectedLists] = useState<Array<{ id: number; name: string }>>([]);
-
   const { data: wahapediaFactions = [] } = useWahapediaFactions();
-  const { data: syncMeta } = useRulesSyncMeta();
+  const { data: udbMeta } = useUdbMeta();
 
   const {
     selectedFactionId,
@@ -51,7 +50,7 @@ export function RulesHubPage() {
     setCpFilter,
   } = useRulesHubFilters();
 
-  // Rules data for selected faction
+  // Rules data for selected faction (stubs -- EXT-03 deferred)
   const { data: stratagems = [], isLoading: stratagemLoading } = useStratagemsByFaction(selectedFactionId ?? undefined);
   const { data: detachments = [], isLoading: detachmentLoading } = useDetachmentsByFaction(selectedFactionId ?? undefined);
   const { data: sharedAbilities = [], isLoading: sharedAbilitiesLoading } = useSharedAbilitiesByFaction(selectedFactionId ?? undefined);
@@ -79,65 +78,29 @@ export function RulesHubPage() {
   const filteredDetachments = useMemo(() => {
     if (!searchText) return detachments;
     const lower = searchText.toLowerCase();
-    return detachments.filter((d) => d.name.toLowerCase().includes(lower));
+    return detachments.filter((d: { name: string }) => d.name.toLowerCase().includes(lower));
   }, [detachments, searchText]);
 
   const filteredAbilities = useMemo(() => {
     if (!searchText) return sharedAbilities;
     const lower = searchText.toLowerCase();
     return sharedAbilities.filter(
-      (a) =>
+      (a: { name: string; legend?: string | null }) =>
         a.name.toLowerCase().includes(lower) ||
         (a.legend ?? "").toLowerCase().includes(lower)
     );
   }, [sharedAbilities, searchText]);
 
-  async function handleSyncComplete(diff: SyncDiff, pointsDelta: PointsDelta) {
-    setLastSyncDiff(diff);
-    setLastPointsDelta(pointsDelta);
-
-    // Compute affected army lists: find lists containing units that had point changes
-    if (pointsDelta.details.length > 0) {
-      try {
-        const changedUnitNames = new Set(
-          pointsDelta.details.map((d) => d.unitName),
-        );
-        const allListUnits = await getArmyListUnitNames();
-        const affected = new Map<number, string>();
-        for (const row of allListUnits) {
-          if (changedUnitNames.has(row.unit_name)) {
-            affected.set(row.list_id, row.list_name);
-          }
-        }
-        setAffectedLists(
-          Array.from(affected, ([id, name]) => ({ id, name })),
-        );
-      } catch {
-        // Best-effort: affected lists display is non-critical
-        setAffectedLists([]);
-      }
-    } else {
-      setAffectedLists([]);
-    }
-  }
-
-  const noData = !syncMeta;
+  const noData = !udbMeta;
   const noFaction = !selectedFactionId;
 
   return (
     <div className="flex flex-col gap-6 p-6">
       <h1 className="text-3xl font-semibold tracking-tight">Rules Hub</h1>
 
-      <SyncStatusCard
-        lastSyncDiff={lastSyncDiff}
-        onSyncComplete={handleSyncComplete}
-        pointsDelta={lastPointsDelta}
-        affectedLists={affectedLists}
-      />
-
       {noData ? (
         <p className="text-sm text-muted-foreground">
-          Sync rules data to get started.
+          Unit database not loaded yet.
         </p>
       ) : (
         <>
@@ -149,7 +112,7 @@ export function RulesHubPage() {
               }
             >
               <SelectTrigger className="w-56">
-                <SelectValue placeholder="Select army…" />
+                <SelectValue placeholder="Select army..." />
               </SelectTrigger>
               <SelectContent>
                 {wahapediaFactions.map((f) => (
@@ -162,7 +125,7 @@ export function RulesHubPage() {
 
             <Input
               className="w-56"
-              placeholder="Search…"
+              placeholder="Search..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
             />

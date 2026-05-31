@@ -46,7 +46,7 @@ const PRIORITY_LABELS: Record<number, string> = {
   4: "Critical",
 };
 
-export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhotoClick, onDatasheetConflict, pendingImportResolution, onClearImportResolution }: UnitDetailSheetProps) {
+export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhotoClick }: UnitDetailSheetProps) {
   const { data: factions } = useFactions();
   const faction = useMemo(
     () => (unit ? (factions ?? []).find((f) => f.id === unit.faction_id) ?? null : null),
@@ -235,9 +235,6 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhoto
               <TabsContent value="playbook">
                 <PlaybookTab
                   unitId={unit.id}
-                  onDatasheetConflict={onDatasheetConflict}
-                  pendingImportResolution={pendingImportResolution}
-                  onClearImportResolution={onClearImportResolution}
                 />
               </TabsContent>
 

@@ -1,26 +1,25 @@
 import { ChevronDown } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import type { FullDatasheet, RwDatasheetAbility, RwDatasheetWargear } from "@/types/datasheet";
+import type { UdbUnitDetail, UdbWeapon, UdbAbility } from "@/db/queries/unitDatabase";
 
 const SECTION_LABEL_CLASS =
   "text-xs font-semibold text-muted-foreground uppercase tracking-wide";
 
 interface PlaybookDatasheetProps {
-  datasheet: FullDatasheet | null | undefined;
+  datasheet: UdbUnitDetail | null | undefined;
 }
 
 export function PlaybookDatasheet({ datasheet }: PlaybookDatasheetProps) {
-  const coreAbilities = (datasheet?.abilities ?? []).filter((a) => a.type === "Core");
-  const factionAbilities = (datasheet?.abilities ?? []).filter((a) => a.type === "Faction");
+  const coreAbilities = (datasheet?.abilities ?? []).filter((a) => a.ability_type === "Core");
+  const factionAbilities = (datasheet?.abilities ?? []).filter((a) => a.ability_type === "Faction");
   const unitAbilities = (datasheet?.abilities ?? []).filter((a) =>
-    a.type !== "Core" && a.type !== "Faction"
+    a.ability_type !== "Core" && a.ability_type !== "Faction"
   );
   const hasAnyDatasheetAbility = coreAbilities.length > 0 || factionAbilities.length > 0 || unitAbilities.length > 0;
-  const sources = datasheet?.source ? [datasheet.source] : [];
-  const rangedWeapons = (datasheet?.wargear ?? []).filter((w) => w.type === "Ranged");
-  const meleeWeapons = (datasheet?.wargear ?? []).filter((w) => w.type === "Melee" || (w.type !== "Ranged" && w.range === "Melee"));
-  const hasWeapons = (datasheet?.wargear ?? []).length > 0;
+  const rangedWeapons = (datasheet?.weapons ?? []).filter((w) => w.category === "Ranged");
+  const meleeWeapons = (datasheet?.weapons ?? []).filter((w) => w.category === "Melee" || (w.category !== "Ranged" && w.range === "Melee"));
+  const hasWeapons = (datasheet?.weapons ?? []).length > 0;
 
   return (
     <>
@@ -38,13 +37,13 @@ export function PlaybookDatasheet({ datasheet }: PlaybookDatasheetProps) {
               {rangedWeapons.length > 0 && (
                 <div className="flex flex-col gap-1">
                   <span className={SECTION_LABEL_CLASS}>Ranged</span>
-                  <WargearTable weapons={rangedWeapons} statLabel="BS" />
+                  <WeaponTable weapons={rangedWeapons} statLabel="BS" />
                 </div>
               )}
               {meleeWeapons.length > 0 && (
                 <div className="flex flex-col gap-1">
                   <span className={SECTION_LABEL_CLASS}>Melee</span>
-                  <WargearTable weapons={meleeWeapons} statLabel="WS" />
+                  <WeaponTable weapons={meleeWeapons} statLabel="WS" />
                 </div>
               )}
             </div>
@@ -75,7 +74,7 @@ export function PlaybookDatasheet({ datasheet }: PlaybookDatasheetProps) {
                 <div className="flex flex-col gap-2">
                   <span className={SECTION_LABEL_CLASS}>Core Abilities</span>
                   {coreAbilities.map((a, idx) => (
-                    <AbilityEntry key={`${a.datasheet_id}-${a.line}-${idx}`} ability={a} />
+                    <AbilityEntry key={`${a.unit_id}-${a.line_order}-${idx}`} ability={a} />
                   ))}
                 </div>
               )}
@@ -83,7 +82,7 @@ export function PlaybookDatasheet({ datasheet }: PlaybookDatasheetProps) {
                 <div className="flex flex-col gap-2">
                   <span className={SECTION_LABEL_CLASS}>Faction Abilities</span>
                   {factionAbilities.map((a, idx) => (
-                    <AbilityEntry key={`${a.datasheet_id}-${a.line}-${idx}`} ability={a} />
+                    <AbilityEntry key={`${a.unit_id}-${a.line_order}-${idx}`} ability={a} />
                   ))}
                 </div>
               )}
@@ -91,7 +90,7 @@ export function PlaybookDatasheet({ datasheet }: PlaybookDatasheetProps) {
                 <div className="flex flex-col gap-2">
                   <span className={SECTION_LABEL_CLASS}>Unit Abilities</span>
                   {unitAbilities.map((a, idx) => (
-                    <AbilityEntry key={`${a.datasheet_id}-${a.line}-${idx}`} ability={a} />
+                    <AbilityEntry key={`${a.unit_id}-${a.line_order}-${idx}`} ability={a} />
                   ))}
                 </div>
               )}
@@ -100,27 +99,13 @@ export function PlaybookDatasheet({ datasheet }: PlaybookDatasheetProps) {
         </Collapsible>
       )}
 
-      {/* DS-10 Sources list */}
-      {sources.length > 0 && (
-        <div className="flex flex-col gap-1">
-          <span className={SECTION_LABEL_CLASS}>Sources</span>
-          <ul className="flex flex-col gap-1 pl-2">
-            {sources.map((s) => (
-              <li key={s.id} className="text-sm text-muted-foreground">
-                {s.name}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {(hasAnyDatasheetAbility || sources.length > 0) && <Separator />}
+      {hasAnyDatasheetAbility && <Separator />}
     </>
   );
 }
 
-// WargearTable sub-component — renders a weapon stat table for one type (Ranged/Melee).
-function WargearTable({ weapons, statLabel }: { weapons: RwDatasheetWargear[]; statLabel: "BS" | "WS" }) {
+// WeaponTable sub-component -- renders a weapon stat table for one type (Ranged/Melee).
+function WeaponTable({ weapons, statLabel }: { weapons: UdbWeapon[]; statLabel: "BS" | "WS" }) {
   return (
     <div className="flex flex-col">
       {/* Header row */}
@@ -133,22 +118,21 @@ function WargearTable({ weapons, statLabel }: { weapons: RwDatasheetWargear[]; s
       </div>
       {weapons.map((w, i) => {
         const range = w.range && /^\d+$/.test(w.range) ? `${w.range}"` : (w.range ?? "—");
-        const attacks = w.dice ? `${w.dice}+${w.A ?? 0}` : (w.A ?? "—");
-        const bsws = w.BS_WS ? `${w.BS_WS}+` : "—";
+        const skill = w.skill ? `${w.skill}+` : "—";
         return (
-          <div key={`${w.datasheet_id}-${w.line}-${w.line_in_wargear}-${i}`} className="border-b border-border last:border-0">
+          <div key={`${w.unit_id}-${w.weapon_group}-${w.line_order}-${i}`} className="border-b border-border last:border-0">
             <div className="grid grid-cols-[1fr_36px_32px_36px_28px_32px_28px] gap-x-1 px-2 py-1.5 items-center">
               <span className="text-sm font-medium truncate">{w.name}</span>
               <span className="text-xs text-center tabular-nums">{range}</span>
-              <span className="text-xs text-center tabular-nums">{attacks}</span>
-              <span className="text-xs text-center tabular-nums">{bsws}</span>
-              <span className="text-xs text-center tabular-nums">{w.S ?? "—"}</span>
-              <span className="text-xs text-center tabular-nums">{w.AP ?? "0"}</span>
-              <span className="text-xs text-center tabular-nums">{w.D ?? "—"}</span>
+              <span className="text-xs text-center tabular-nums">{w.attacks ?? "—"}</span>
+              <span className="text-xs text-center tabular-nums">{skill}</span>
+              <span className="text-xs text-center tabular-nums">{w.strength ?? "—"}</span>
+              <span className="text-xs text-center tabular-nums">{w.ap ?? "0"}</span>
+              <span className="text-xs text-center tabular-nums">{w.damage ?? "—"}</span>
             </div>
-            {w.description && (
+            {w.keywords && (
               <p className="px-2 pb-1.5 text-xs text-muted-foreground leading-relaxed">
-                {w.description}
+                {w.keywords}
               </p>
             )}
           </div>
@@ -158,8 +142,8 @@ function WargearTable({ weapons, statLabel }: { weapons: RwDatasheetWargear[]; s
   );
 }
 
-// AbilityEntry sub-component — module-local, NOT exported.
-function AbilityEntry({ ability }: { ability: RwDatasheetAbility }) {
+// AbilityEntry sub-component -- module-local, NOT exported.
+function AbilityEntry({ ability }: { ability: UdbAbility }) {
   return (
     <div className="flex flex-col gap-1 pl-2 border-l border-border">
       <span className="text-sm font-semibold text-foreground">{ability.name}</span>

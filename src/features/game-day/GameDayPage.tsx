@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useArmyList, useArmyListWithUnits } from "@/hooks/useArmyLists";
 import { useFactions } from "@/hooks/useFactions";
-import { useRulesSyncMeta } from "@/hooks/useDatasheet";
+import { useUdbMeta } from "@/hooks/useUdbMeta";
 import { getSyncFreshness } from "@/lib/syncFreshness";
 import { GameDayHeader } from "./GameDayHeader";
 import { GameDayReadinessPanel } from "./GameDayReadinessPanel";
@@ -26,8 +26,8 @@ export function GameDayPage({ listId }: GameDayPageProps) {
   const { data: list, isLoading: listLoading } = useArmyList(listId);
   const { data: units } = useArmyListWithUnits(listId);
   const { data: factions } = useFactions();
-  const { data: syncMeta } = useRulesSyncMeta();
-  const freshness = getSyncFreshness(syncMeta?.last_sync_at ?? null);
+  const { data: udbMeta } = useUdbMeta();
+  const freshness = getSyncFreshness(udbMeta?.built_at ?? null);
 
   const faction = useMemo(
     () =>

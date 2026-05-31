@@ -3,54 +3,36 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useStrategyNote, useUpsertStrategyNote } from "@/hooks/useStrategyNote";
-import { useDatasheet, useRulesSyncMeta, useWahapediaFactionId, DATASHEET_KEY } from "@/hooks/useDatasheet";
-import { useRulesSync } from "@/hooks/useRulesSync";
+import { useDatasheet, useWahapediaFactionId, DATASHEET_KEY } from "@/hooks/useDatasheet";
+import { useUdbMeta } from "@/hooks/useUdbMeta";
 import { useUnitOverride, useUpsertUnitOverride, useDeleteUnitOverride } from "@/hooks/useUnitOverride";
-import type { SyncDiff } from "@/lib/computeSyncDiff";
 import type { UpsertUnitOverrideInput } from "@/types/unitOverride";
-import { useRulesSyncErrors } from "@/hooks/useSyncErrors";
 import { PlaybookStats, STAT_KEYS } from "@/features/units/PlaybookStats";
 import type { StatKey } from "@/features/units/PlaybookStats";
-import { PlaybookSyncDetails } from "@/features/units/PlaybookSyncDetails";
 import { PlaybookDatasheet } from "@/features/units/PlaybookDatasheet";
 import { PlaybookRules } from "@/features/units/PlaybookRules";
 import { PlaybookStrategy } from "@/features/units/PlaybookStrategy";
-import { useStratagemsByFaction, useDetachmentsByFaction, useSharedAbilitiesByFaction } from "@/hooks/useRulesExtended";
 import { useFactions } from "@/hooks/useFactions";
 import { useUnits } from "@/hooks/useUnits";
 import { useQueryClient } from "@tanstack/react-query";
-import { upsertDatasheetLink } from "@/db/queries/datasheets";
-import { upsertUnitRulesMapping } from "@/db/queries/unitRulesMapping";
-import type { DatasheetConflict, DatasheetImportPayload, FullDatasheet, RwDatasheetAbility } from "@/types/datasheet";
 import type { StrategyNote, UpsertStrategyNoteInput } from "@/types/strategyNote";
 import { DatasheetPicker } from "@/features/units/DatasheetPicker";
 import { TierManager } from "@/features/units/TierManager";
 import { LoadoutSection } from "@/features/units/LoadoutSection";
+import { getUdbUnitDetail } from "@/db/queries/unitDatabase";
+import { getDb } from "@/db/client";
+import type { UdbUnitDetail } from "@/db/queries/unitDatabase";
 
 interface PlaybookTabProps {
   unitId: number;
-  onDatasheetConflict?: (payload: DatasheetImportPayload) => void;
-  pendingImportResolution?: { resolution: import("@/types/datasheet").DatasheetImportResolution; payload: DatasheetImportPayload } | null;
-  onClearImportResolution?: () => void;
 }
 
-// Pure helpers — no hooks, defined outside the component
+// Pure helpers -- no hooks, defined outside the component
 function coerceStatToNumber(raw: string | number | null | undefined): number | null {
   if (raw === null || raw === undefined || raw === "") return null;
   if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
   const digits = raw.replace(/[^0-9]/g, "");
   return digits === "" ? null : Number(digits);
-}
-
-function formatAbilitiesAsText(list: RwDatasheetAbility[]): string {
-  return list.map((a) => `${a.name}${a.description ? ": " + a.description : ""}`).join("\n");
-}
-
-function formatSyncDate(iso: string | null): string {
-  if (!iso) return "---";
-  try {
-    return new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
-  } catch { return iso; }
 }
 
 /** Extract a human-readable message from an unknown caught value. */
@@ -60,7 +42,7 @@ function errorMessage(err: unknown): string {
   return "Unknown error";
 }
 
-export function PlaybookTab({ unitId, onDatasheetConflict, pendingImportResolution, onClearImportResolution }: PlaybookTabProps) {
+export function PlaybookTab({ unitId }: PlaybookTabProps) {
   const { data, isLoading } = useStrategyNote(unitId);
   const upsert = useUpsertStrategyNote();
   const qc = useQueryClient();
@@ -69,16 +51,11 @@ export function PlaybookTab({ unitId, onDatasheetConflict, pendingImportResoluti
   const unit = useMemo(() => units?.find((u) => u.id === unitId) ?? null, [units, unitId]);
   const localFaction = useMemo(() => (unit && factions ? factions.find((f) => f.id === unit.faction_id) ?? null : null), [unit, factions]);
   const { data: wahapediaFactionId } = useWahapediaFactionId(localFaction?.name);
-  const { data: syncMeta } = useRulesSyncMeta();
-  const { data: syncErrors = [] } = useRulesSyncErrors();
+  const { data: udbMeta } = useUdbMeta();
   const { data: datasheet, error: datasheetError } = useDatasheet(unitId);
-  const rulesSync = useRulesSync();
   const { data: overrideRow } = useUnitOverride(unitId);
   const upsertOverride = useUpsertUnitOverride();
   const deleteOverride = useDeleteUnitOverride();
-  const { data: stratagems = [] } = useStratagemsByFaction(wahapediaFactionId ?? undefined);
-  const { data: detachments = [] } = useDetachmentsByFaction(wahapediaFactionId ?? undefined);
-  const { data: sharedAbilities = [] } = useSharedAbilitiesByFaction(wahapediaFactionId ?? undefined);
 
   // Local state
   const [move, setMove] = useState<number | null>(null);
@@ -98,7 +75,6 @@ export function PlaybookTab({ unitId, onDatasheetConflict, pendingImportResoluti
   const [rulesReferences, setRulesReferences] = useState("");
   const [notes, setNotes] = useState("");
   const [statsEditMode, setStatsEditMode] = useState(false);
-  const [lastSyncDiff, setLastSyncDiff] = useState<SyncDiff | null>(null);
   const [pointsOverrideValue, setPointsOverrideValue] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
   const initialRef = useRef<StrategyNote | null | undefined>(undefined);
@@ -123,32 +99,13 @@ export function PlaybookTab({ unitId, onDatasheetConflict, pendingImportResoluti
     setPointsOverrideValue(overrideRow?.points != null ? String(overrideRow.points) : "");
   }, [overrideRow?.points]);
 
-  // DS-04 auto-open picker
+  // Auto-open picker when unit has no link and stats are empty
   useEffect(() => {
     if (autoOpenedRef.current || initialRef.current === undefined) return;
-    if (!hasDatasheetLink && move === null && toughness === null && saveStat === null && wounds === null && leadership === null && objectiveControl === null && syncMeta) {
+    if (!hasDatasheetLink && move === null && toughness === null && saveStat === null && wounds === null && leadership === null && objectiveControl === null && udbMeta) {
       setPickerOpen(true); autoOpenedRef.current = true;
     }
-  }, [hasDatasheetLink, syncMeta, move, toughness, saveStat, wounds, leadership, objectiveControl]);
-
-  // Import resolution subscription
-  useEffect(() => {
-    if (!pendingImportResolution) return;
-    const { resolution, payload } = pendingImportResolution;
-    const m0 = payload.datasheet.models[0] ?? null;
-    const abText = formatAbilitiesAsText(payload.datasheet.abilities);
-    const kwText = payload.datasheet.keywords.map((k) => k.keyword).join(", ");
-    if (resolution.M === "use" && m0) setMove(coerceStatToNumber(m0.M));
-    if (resolution.T === "use" && m0) setToughness(coerceStatToNumber(m0.T));
-    if (resolution.Sv === "use" && m0) setSaveStat(coerceStatToNumber(m0.Sv));
-    if (resolution.W === "use" && m0) setWounds(coerceStatToNumber(m0.W));
-    if (resolution.Ld === "use" && m0) setLeadership(coerceStatToNumber(m0.Ld));
-    if (resolution.OC === "use" && m0) setObjectiveControl(coerceStatToNumber(m0.OC));
-    if (resolution.abilities === "use") setAbilities(abText);
-    if (resolution.keywords === "use") setKeywords(kwText);
-    onClearImportResolution?.();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingImportResolution]);
+  }, [hasDatasheetLink, udbMeta, move, toughness, saveStat, wounds, leadership, objectiveControl]);
 
   const isDirty = useMemo(() => {
     const s = initialRef.current;
@@ -186,59 +143,36 @@ export function PlaybookTab({ unitId, onDatasheetConflict, pendingImportResoluti
   async function handlePickerSelect(datasheetId: string) {
     setPickerOpen(false);
     try {
-      await upsertDatasheetLink({ unit_id: unitId, datasheet_id: datasheetId });
+      // Link via udb_unit_id on the units table
+      const db = await getDb();
+      await db.execute("UPDATE units SET udb_unit_id = $1 WHERE id = $2", [datasheetId, unitId]);
       qc.invalidateQueries({ queryKey: DATASHEET_KEY(unitId) });
-      const { getFullDatasheet } = await import("@/db/queries/datasheets");
-      const fresh = await getFullDatasheet(datasheetId);
-      if (!fresh) { toast.error("Datasheet not found in rules database — try re-syncing."); return; }
-      await upsertUnitRulesMapping({ unit_id: unitId, rules_datasheet_id: datasheetId, datasheet_name: fresh.ds.name, match_status: "confirmed", source: "playbook-link" });
-      applyIncomingOrRouteConflicts(fresh);
+      const fresh = await getUdbUnitDetail(datasheetId);
+      if (!fresh) { toast.error("Unit not found in database."); return; }
+      applyIncomingStats(fresh);
     } catch (err) {
       console.error("[PlaybookTab] handlePickerSelect failed:", err);
       toast.error(`Failed to link datasheet: ${errorMessage(err)}`);
     }
   }
 
-  function applyIncomingOrRouteConflicts(fresh: FullDatasheet) {
+  function applyIncomingStats(fresh: UdbUnitDetail) {
     const m0 = fresh.models[0] ?? null;
-    const inc = { M: m0 ? coerceStatToNumber(m0.M) : null, T: m0 ? coerceStatToNumber(m0.T) : null,
-      Sv: m0 ? coerceStatToNumber(m0.Sv) : null, W: m0 ? coerceStatToNumber(m0.W) : null,
-      Ld: m0 ? coerceStatToNumber(m0.Ld) : null, OC: m0 ? coerceStatToNumber(m0.OC) : null,
-      ab: formatAbilitiesAsText(fresh.abilities), kw: fresh.keywords.map((k) => k.keyword).join(", ") };
-    const cur = { M: move, T: toughness, Sv: saveStat, W: wounds, Ld: leadership, OC: objectiveControl };
-    const conflicts: DatasheetConflict[] = [];
-    (["M","T","Sv","W","Ld","OC"] as const).forEach((k) => {
-      if (cur[k] !== null && inc[k] !== null && cur[k] !== inc[k])
-        conflicts.push({ key: k, label: k, currentValue: String(cur[k]), incomingValue: String(inc[k]), choice: "use" });
-    });
-    if (abilities.trim() && inc.ab.trim() && abilities.trim() !== inc.ab.trim())
-      conflicts.push({ key: "abilities", label: "Personal Ability Notes", currentValue: abilities, incomingValue: inc.ab, choice: "use" });
-    if (keywords.trim() && inc.kw.trim() && keywords.trim() !== inc.kw.trim())
-      conflicts.push({ key: "keywords", label: "Keywords", currentValue: keywords, incomingValue: inc.kw, choice: "use" });
-    if (conflicts.length === 0) {
-      if (inc.M !== null && move === null) setMove(inc.M); if (inc.T !== null && toughness === null) setToughness(inc.T);
-      if (inc.Sv !== null && saveStat === null) setSaveStat(inc.Sv); if (inc.W !== null && wounds === null) setWounds(inc.W);
-      if (inc.Ld !== null && leadership === null) setLeadership(inc.Ld); if (inc.OC !== null && objectiveControl === null) setObjectiveControl(inc.OC);
-      if (!abilities.trim() && inc.ab.trim()) setAbilities(inc.ab); if (!keywords.trim() && inc.kw.trim()) setKeywords(inc.kw);
-      return;
+    if (m0) {
+      if (move === null) setMove(coerceStatToNumber(m0.M));
+      if (toughness === null) setToughness(coerceStatToNumber(m0.T));
+      if (saveStat === null) setSaveStat(coerceStatToNumber(m0.Sv));
+      if (wounds === null) setWounds(coerceStatToNumber(m0.W));
+      if (leadership === null) setLeadership(coerceStatToNumber(m0.Ld));
+      if (objectiveControl === null) setObjectiveControl(coerceStatToNumber(m0.OC));
     }
-    onDatasheetConflict?.({ unitId, datasheet: fresh, conflicts });
-  }
-
-  function handleSyncClick() {
-    rulesSync.mutate(undefined, {
-      onSuccess: (d) => {
-        const c = d.rowCounts;
-        const summary = [`${c.datasheets} datasheets`, `${c.stratagems} stratagems`, `${c.abilities} abilities`, `${c.wargear} wargear`, `${c.keywords} keywords`].join(", ");
-        setLastSyncDiff(d.diff);
-        if (d.diff.total_changed > 0) {
-          const parts = [d.diff.added.length && `${d.diff.added.length} added`, d.diff.removed.length && `${d.diff.removed.length} removed`,
-            d.diff.renamed.length && `${d.diff.renamed.length} renamed`, d.diff.modified.length && `${d.diff.modified.length} modified`].filter(Boolean);
-          toast.success(`Synced: ${summary} (${parts.join(", ")})`);
-        } else toast.success(`Synced: ${summary}`);
-      },
-      onError: (err) => toast.error(`Sync failed: ${err.message}`),
-    });
+    if (!abilities.trim() && fresh.abilities.length > 0) {
+      const abText = fresh.abilities.map((a) => `${a.name}${a.description ? ": " + a.description : ""}`).join("\n");
+      setAbilities(abText);
+    }
+    if (!keywords.trim() && fresh.keywords.length > 0) {
+      setKeywords(fresh.keywords.map((k) => k.keyword).join(", "));
+    }
   }
 
   async function handleSave() {
@@ -280,21 +214,20 @@ export function PlaybookTab({ unitId, onDatasheetConflict, pendingImportResoluti
     <div className={`flex flex-col gap-6 p-4 ${isLoading ? "opacity-50 pointer-events-none" : ""}`} aria-busy={isLoading}>
       {datasheetError && (
         <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
-          Failed to load datasheet: {errorMessage(datasheetError)}. Try re-syncing rules data.
+          Failed to load datasheet: {errorMessage(datasheetError)}.
         </div>
       )}
-      <PlaybookStats unitId={unitId} syncMeta={syncMeta} overrideRow={overrideRow} hasDatasheetLink={hasDatasheetLink}
+      <PlaybookStats unitId={unitId} syncMeta={udbMeta} overrideRow={overrideRow} hasDatasheetLink={hasDatasheetLink}
         hasMultipleProfiles={(datasheet?.models?.length ?? 0) > 1} statsEditMode={statsEditMode}
         onToggleStatsEditMode={() => setStatsEditMode((v) => !v)} wahapediaFactionId={wahapediaFactionId}
-        onPickerOpen={() => setPickerOpen(true)} onSyncClick={handleSyncClick} isSyncing={rulesSync.isPending}
+        onPickerOpen={() => setPickerOpen(true)}
         onDeleteOverride={(id) => deleteOverride.mutate(id, { onSuccess: () => toast.success("Overrides cleared"), onError: () => toast.error("Failed to clear overrides") })}
         statValue={statValue} setStat={setStat} importedStatValue={importedStatValue} isStatOverridden={isStatOverridden}
         pointsOverrideValue={pointsOverrideValue} onPointsOverrideChange={setPointsOverrideValue}
-        unitPoints={unit?.points} formatSyncDate={formatSyncDate} />
-      {syncMeta && <PlaybookSyncDetails syncMeta={syncMeta} syncErrors={syncErrors} lastSyncDiff={lastSyncDiff} />}
+        unitPoints={unit?.points} />
       <Separator />
       <PlaybookDatasheet datasheet={datasheet} />
-      <PlaybookRules stratagems={stratagems} detachments={detachments} sharedAbilities={sharedAbilities} />
+      <PlaybookRules />
       <TierManager unitId={unitId} />
       <Separator />
       <LoadoutSection unitId={unitId} />

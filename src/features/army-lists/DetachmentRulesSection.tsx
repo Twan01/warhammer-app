@@ -1,9 +1,13 @@
 import { useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  useDetachmentAbilitiesByDetachment,
-  useStratagemsByDetachment,
-} from "@/hooks/useRulesExtended";
+// Phase 107: detachment/stratagem data source (rules.db) eliminated -- EXT-03 deferred
+import type { RwDetachmentAbility, RwStratagem } from "@/types/datasheet";
+function useDetachmentAbilitiesByDetachment(_id: string | undefined) {
+  return { data: [] as RwDetachmentAbility[], isLoading: false };
+}
+function useStratagemsByDetachment(_id: string | undefined) {
+  return { data: [] as RwStratagem[], isLoading: false };
+}
 import { useRulesFavorites } from "@/hooks/useRulesFavorites";
 import { useRulesNotes } from "@/hooks/useRulesNotes";
 import { StratagemCard } from "@/features/rules-hub/StratagemCard";
@@ -70,7 +74,7 @@ export function DetachmentRulesSection({ detachmentId }: DetachmentRulesSectionP
       {abilitiesList.length > 0 && (
         <div className="flex flex-col gap-2 px-4">
           <span className="text-sm font-semibold">Detachment Ability</span>
-          {abilitiesList.map((ability) => (
+          {abilitiesList.map((ability: RwDetachmentAbility) => (
             <div key={ability.id} className="rounded-lg border bg-card p-4">
               <p className="font-medium text-sm">{ability.name}</p>
               {ability.description && (
@@ -84,7 +88,7 @@ export function DetachmentRulesSection({ detachmentId }: DetachmentRulesSectionP
       {stratagemsList.length > 0 && (
         <div className="flex flex-col gap-2 px-4">
           <span className="text-sm font-semibold">Stratagems ({stratagemsList.length})</span>
-          {stratagemsList.map((s) => (
+          {stratagemsList.map((s: RwStratagem) => (
             <StratagemCard
               key={s.id}
               stratagem={s}

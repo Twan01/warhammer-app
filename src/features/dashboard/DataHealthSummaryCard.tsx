@@ -3,13 +3,13 @@ import { AlertTriangle, Database } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { getVersion } from "@tauri-apps/api/app";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useRulesSyncMeta } from "@/hooks/useDatasheet";
+import { useUdbMeta } from "@/hooks/useUdbMeta";
 import { useDiagnosticFlags, useBackupStatus } from "@/hooks/useDiagnostics";
 import { getSyncFreshness, getSyncAgeLabel, FRESHNESS_DOT_CLASS } from "@/lib/syncFreshness";
 import { getBackupFreshness, getBackupAgeLabel, hasVersionMismatch, BACKUP_FRESHNESS_DOT_CLASS } from "@/lib/backupFreshness";
 
 export function DataHealthSummaryCard() {
-  const { data: syncMeta, isLoading: syncLoading } = useRulesSyncMeta();
+  const { data: udbMeta, isLoading: syncLoading } = useUdbMeta();
   const { data: flags, isLoading: flagsLoading } = useDiagnosticFlags();
   const backup = useBackupStatus();
   const [appVersion, setAppVersion] = useState<string | null>(null);
@@ -18,8 +18,8 @@ export function DataHealthSummaryCard() {
     getVersion().then(setAppVersion).catch(() => setAppVersion("unknown"));
   }, []);
 
-  const freshness = getSyncFreshness(syncMeta?.last_sync_at ?? null);
-  const syncLabel = getSyncAgeLabel(syncMeta?.last_sync_at ?? null);
+  const freshness = getSyncFreshness(udbMeta?.built_at ?? null);
+  const syncLabel = getSyncAgeLabel(udbMeta?.built_at ?? null);
 
   const warningCount = flags
     ? flags.reduce((sum, f) => sum + f.count, 0)

@@ -1,7 +1,7 @@
 import { Shield, Clock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useArmyLists, useArmyListWithUnits } from "@/hooks/useArmyLists";
-import { useRulesSyncMeta } from "@/hooks/useDatasheet";
+import { useUdbMeta } from "@/hooks/useUdbMeta";
 import { getSyncFreshness, getSyncAgeLabel, FRESHNESS_DOT_CLASS } from "@/lib/syncFreshness";
 
 export function ReadyToPlayCard() {
@@ -32,10 +32,10 @@ export function ReadyToPlayCard() {
 
 function ReadyToPlayCardInner({ listId, listName }: { listId: number; listName: string }) {
   const { data: units } = useArmyListWithUnits(listId);
-  const { data: syncMeta } = useRulesSyncMeta();
+  const { data: udbMeta } = useUdbMeta();
 
-  const freshness = getSyncFreshness(syncMeta?.last_sync_at ?? null);
-  const syncLabel = getSyncAgeLabel(syncMeta?.last_sync_at ?? null);
+  const freshness = getSyncFreshness(udbMeta?.built_at ?? null);
+  const syncLabel = getSyncAgeLabel(udbMeta?.built_at ?? null);
 
   const totalPoints = units?.reduce((sum, u) => sum + u.effective_points, 0) ?? 0;
   const unpaintedCount = units?.filter((u) => u.status_painting !== "Completed").length ?? 0;

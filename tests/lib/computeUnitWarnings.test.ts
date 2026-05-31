@@ -133,9 +133,9 @@ describe("computeUnitWarnings", () => {
     expect(result.soft).not.toContain("Stale points data");
   });
 
-  it("does NOT return 'Stale points' for freshness 'never' (moved to list-level)", () => {
+  it("does NOT return 'Stale points' for freshness 'aging' (unit-level only)", () => {
     const unit = makeUnit();
-    const ctx = makeContext({ freshness: "never" });
+    const ctx = makeContext({ freshness: "aging" });
     const result = computeUnitWarnings(unit, ctx);
     expect(result.soft).not.toContain("Stale points");
     expect(result.soft).not.toContain("Stale points data");
@@ -233,10 +233,14 @@ describe("computeListWarnings", () => {
     expect(result.soft).toContain("Stale points data");
   });
 
-  it("returns soft 'Stale points data' when freshness is 'never'", () => {
-    const ctx = makeContext({ freshness: "never" });
-    const result = computeListWarnings(ctx, []);
+  it("returns soft 'Stale points data' only for stale (Phase 107: 'never' removed from SyncFreshness)", () => {
+    const stale = makeContext({ freshness: "stale" });
+    const result = computeListWarnings(stale, []);
     expect(result.soft).toContain("Stale points data");
+
+    const fresh = makeContext({ freshness: "fresh" });
+    const freshResult = computeListWarnings(fresh, []);
+    expect(freshResult.soft).not.toContain("Stale points data");
   });
 
   it("does NOT return 'Stale points data' when freshness is 'fresh'", () => {

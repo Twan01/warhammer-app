@@ -25,7 +25,8 @@ import {
   useClearArmyListDetachment,
   useEnhancementsByList,
 } from "@/hooks/useArmyLists";
-import { useWahapediaFactionId, useRulesSyncMeta } from "@/hooks/useDatasheet";
+import { useWahapediaFactionId } from "@/hooks/useDatasheet";
+import { useUdbMeta } from "@/hooks/useUdbMeta";
 import { useLeaderTargets } from "@/hooks/useLeaderTargets";
 import { useFactions } from "@/hooks/useFactions";
 import { groupUnitsWithLeaders } from "@/lib/groupUnitsWithLeaders";
@@ -45,7 +46,7 @@ import { ArmyListSummaryBar } from "./ArmyListSummaryBar";
 import { ArmyListUnitRow } from "./ArmyListUnitRow";
 import { ExportDropdown } from "./ExportDropdown";
 import { DetachmentPicker } from "./DetachmentPicker";
-import { StaleDataBanner } from "./StaleDataBanner";
+// Phase 107: StaleDataBanner removed
 import { DetachmentRulesSection } from "./DetachmentRulesSection";
 import { RemindersSection } from "./RemindersSection";
 
@@ -104,7 +105,7 @@ export function ArmyListDetailSheet({
   const removeUnitFromList = useRemoveUnitFromList();
   const updateArmyList = useUpdateArmyList();
   const clearDetachment = useClearArmyListDetachment();
-  const { data: syncMeta } = useRulesSyncMeta();
+  const { data: udbMeta } = useUdbMeta();
 
   const faction = useMemo(
     () => (list?.faction_id ? (factions ?? []).find((f) => f.id === list.faction_id) ?? null : null),
@@ -114,8 +115,8 @@ export function ArmyListDetailSheet({
   const { data: wahapediaFactionId } = useWahapediaFactionId(faction?.name);
 
   const freshness = useMemo(
-    () => getSyncFreshness(syncMeta?.last_sync_at ?? null),
-    [syncMeta?.last_sync_at],
+    () => getSyncFreshness(udbMeta?.built_at ?? null),
+    [udbMeta?.built_at],
   );
 
   // Phase 92 — Leader targets for this faction
@@ -493,12 +494,11 @@ export function ArmyListDetailSheet({
                   value={list.detachment_id}
                   valueName={list.detachment_name}
                   disabled={!faction}
-                  rulesSynced={syncMeta?.last_sync_at != null}
+                  rulesSynced={udbMeta != null}
                   onChange={handleDetachmentSelect}
                   onClear={handleDetachmentClear}
                 />
               </div>
-              <StaleDataBanner lastSyncAt={syncMeta?.last_sync_at} />
             </div>
 
             <DetachmentRulesSection detachmentId={list.detachment_id} />

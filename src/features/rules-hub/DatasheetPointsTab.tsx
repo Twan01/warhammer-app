@@ -2,7 +2,8 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useDatasheetsByFactionWithPoints } from "@/hooks/useDatasheet";
 import { getDb } from "@/db/client";
-import { getFullDatasheet } from "@/db/queries/datasheets";
+import { getUdbUnitDetail } from "@/db/queries/unitDatabase";
+import type { UdbUnitDetail, UdbWeapon } from "@/db/queries/unitDatabase";
 import {
   getLoadoutOptionsByFaction,
   getModelCountsByFaction,
@@ -14,11 +15,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { ChevronRight, Link, Swords } from "lucide-react";
-import type { FullDatasheet, RwDatasheetWargear } from "@/types/datasheet";
 import { EnhancementsList } from "./EnhancementsList";
 
 /**
- * Phase 106 — Fetch point tiers from canonical unit database (udb_unit_points)
+ * Phase 106 -- Fetch point tiers from canonical unit database (udb_unit_points)
  * filtered by faction via udb_units.faction_id FK join.
  */
 async function getUdbPointsByFaction(
@@ -75,7 +75,7 @@ function DatasheetDetail({
 }) {
   const { data, isLoading } = useQuery({
     queryKey: ["datasheet-detail", datasheetId] as const,
-    queryFn: () => getFullDatasheet(datasheetId),
+    queryFn: () => getUdbUnitDetail(datasheetId),
     staleTime: Infinity,
   });
 
@@ -109,24 +109,24 @@ function DatasheetContent({
   loadoutOptions,
   leaderTargets,
 }: {
-  ds: FullDatasheet;
+  ds: UdbUnitDetail;
   loadoutOptions: SyncedLoadoutOptionRow[];
   leaderTargets: SyncedLeaderTargetRow[];
 }) {
-  const rangedWeapons = ds.wargear.filter((w) => w.type === "Ranged");
-  const meleeWeapons = ds.wargear.filter(
-    (w) => w.type === "Melee" || (w.type !== "Ranged" && w.range === "Melee"),
+  const rangedWeapons = ds.weapons.filter((w) => w.category === "Ranged");
+  const meleeWeapons = ds.weapons.filter(
+    (w) => w.category === "Melee" || (w.category !== "Ranged" && w.range === "Melee"),
   );
   const abilities = ds.abilities.filter(
-    (a) => a.type !== "Wargear" && a.type !== "Wargear profile",
+    (a) => a.ability_type !== "Wargear" && a.ability_type !== "Wargear profile",
   );
-  const coreAbilities = abilities.filter((a) => a.type === "Core");
-  const factionAbilities = abilities.filter((a) => a.type === "Faction");
+  const coreAbilities = abilities.filter((a) => a.ability_type === "Core");
+  const factionAbilities = abilities.filter((a) => a.ability_type === "Faction");
   const datasheetAbilities = abilities.filter(
-    (a) => a.type !== "Core" && a.type !== "Faction",
+    (a) => a.ability_type !== "Core" && a.ability_type !== "Faction",
   );
-  const factionKeywords = ds.keywords.filter((k) => k.is_faction_keyword === 1);
-  const unitKeywords = ds.keywords.filter((k) => k.is_faction_keyword === 0);
+  const factionKeywords = ds.keywords.filter((k) => k.is_faction === 1);
+  const unitKeywords = ds.keywords.filter((k) => k.is_faction === 0);
 
   return (
     <div className="px-4 pb-4 space-y-3">
@@ -145,11 +145,11 @@ function DatasheetContent({
           </div>
           {ds.models.map((m, i) => (
             <div
-              key={`${m.datasheet_id}-${m.line}-${i}`}
+              key={`${m.unit_id}-${m.line_order}-${i}`}
               className="grid grid-cols-[1fr_32px_28px_28px_28px_28px_28px_28px] gap-x-1 px-2 py-1.5 border-b last:border-0"
             >
               <span className="text-sm font-medium truncate">
-                {m.name ?? ds.ds.name}
+                {m.name ?? ds.name}
               </span>
               <span className="text-xs text-center tabular-nums">
                 {m.M ?? "—"}
@@ -211,7 +211,7 @@ function DatasheetContent({
         <div>
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 flex items-center gap-1">
             <Link className="h-3 w-3" />
-            Leader — Can attach to
+            Leader -- Can attach to
           </h4>
           <div className="flex flex-wrap gap-1.5">
             {leaderTargets.map((t) => (
@@ -255,7 +255,7 @@ function DatasheetContent({
           {datasheetAbilities.length > 0 && (
             <div className="space-y-1.5">
               {datasheetAbilities.map((a) => (
-                <div key={`${a.name}-${a.line}`} className="pl-2 border-l-2 border-primary/30">
+                <div key={`${a.name}-${a.line_order}`} className="pl-2 border-l-2 border-primary/30">
                   <span className="text-sm font-medium">{a.name}</span>
                   {a.description && (
                     <p className="text-xs text-muted-foreground leading-relaxed">
@@ -290,9 +290,9 @@ function DatasheetContent({
       )}
 
       {/* Damaged profile */}
-      {ds.ds.damaged_description && (
+      {ds.damaged_desc && (
         <p className="text-xs text-destructive/80 italic">
-          Damaged ({ds.ds.damaged_w}+ wounds remaining): {ds.ds.damaged_description}
+          Damaged ({ds.damaged_w}+ wounds remaining): {ds.damaged_desc}
         </p>
       )}
     </div>
@@ -303,7 +303,7 @@ function WeaponTable({
   weapons,
   statLabel,
 }: {
-  weapons: RwDatasheetWargear[];
+  weapons: UdbWeapon[];
   statLabel: "BS" | "WS";
 }) {
   return (
@@ -321,35 +321,32 @@ function WeaponTable({
       {weapons.map((w, i) => {
         const range =
           w.range && /^\d+$/.test(w.range) ? `${w.range}"` : (w.range ?? "—");
-        const attacks = w.dice
-          ? `${w.dice}+${w.A ?? 0}`
-          : (w.A ?? "—");
-        const bsws = w.BS_WS ? `${w.BS_WS}+` : "—";
+        const skill = w.skill ? `${w.skill}+` : "—";
         return (
           <div
-            key={`${w.datasheet_id}-${w.line}-${w.line_in_wargear}-${i}`}
+            key={`${w.unit_id}-${w.weapon_group}-${w.line_order}-${i}`}
             className="border-b last:border-0"
           >
             <div className="grid grid-cols-[1fr_36px_32px_36px_28px_32px_28px] gap-x-1 px-2 py-1.5 items-center">
               <span className="text-sm font-medium truncate">{w.name}</span>
               <span className="text-xs text-center tabular-nums">{range}</span>
               <span className="text-xs text-center tabular-nums">
-                {attacks}
+                {w.attacks ?? "—"}
               </span>
-              <span className="text-xs text-center tabular-nums">{bsws}</span>
+              <span className="text-xs text-center tabular-nums">{skill}</span>
               <span className="text-xs text-center tabular-nums">
-                {w.S ?? "—"}
-              </span>
-              <span className="text-xs text-center tabular-nums">
-                {w.AP ?? "0"}
+                {w.strength ?? "—"}
               </span>
               <span className="text-xs text-center tabular-nums">
-                {w.D ?? "—"}
+                {w.ap ?? "0"}
+              </span>
+              <span className="text-xs text-center tabular-nums">
+                {w.damage ?? "—"}
               </span>
             </div>
-            {w.description && (
+            {w.keywords && (
               <p className="px-2 pb-1.5 text-xs text-muted-foreground leading-relaxed">
-                {w.description}
+                {w.keywords}
               </p>
             )}
           </div>
@@ -479,7 +476,7 @@ export function DatasheetPointsTab({ factionId }: { factionId: string }) {
       <p className="text-xs text-muted-foreground">
         {datasheets.length} datasheet{datasheets.length !== 1 ? "s" : ""}
         {" · "}
-        {datasheets.filter((d) => d.points != null).length} with points
+        {datasheets.filter((d) => d.base_points != null).length} with points
         {" · click a row to expand"}
       </p>
 
@@ -538,16 +535,16 @@ export function DatasheetPointsTab({ factionId }: { factionId: string }) {
                             </Badge>
                           ))}
                         </div>
-                      ) : ds.points != null ? (
+                      ) : ds.base_points != null ? (
                         <Badge
                           variant="secondary"
                           className="text-xs tabular-nums"
                         >
-                          {ds.points}pts
+                          {ds.base_points}pts
                         </Badge>
                       ) : (
                         <span className="text-xs text-muted-foreground/50 italic">
-                          —
+                          {"—"}
                         </span>
                       )}
                     </div>

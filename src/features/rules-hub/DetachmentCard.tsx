@@ -6,7 +6,10 @@ import {
   CollapsibleContent,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
-import { useDetachmentAbilitiesByDetachment } from "@/hooks/useRulesExtended";
+// Phase 107: detachment abilities data source (rules.db) eliminated -- EXT-03 deferred
+function useDetachmentAbilitiesByDetachment(_detachmentId: string) {
+  return { data: [] as import("@/types/datasheet").RwDetachmentAbility[], isLoading: false };
+}
 import { useUpsertRulesFavorite, useDeleteRulesFavorite } from "@/hooks/useRulesFavorites";
 import type { RwDetachment, RwDetachmentAbility } from "@/types/datasheet";
 import type { RulesFavorite } from "@/types/rulesFavorite";

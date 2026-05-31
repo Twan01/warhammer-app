@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useUpdateArmyListUnit } from "@/hooks/useArmyLists";
 import { useUnitLoadouts } from "@/hooks/useUnitLoadouts";
-import { useUnitRulesMapping } from "@/hooks/useUnitRulesMapping";
+// Phase 107: useUnitRulesMapping removed (rules.db eliminated)
 import { computeUnitWarnings } from "@/lib/computeUnitWarnings";
 import type { WarningContext } from "@/lib/computeUnitWarnings";
 import { resolveUnitPoints } from "@/lib/resolveUnitPoints";
@@ -29,8 +29,7 @@ import type { SyncedLeaderTargetRow } from "@/db/queries/bsdataExtended";
 import { TACTICAL_ROLES, TACTICAL_ROLES_DISPLAY } from "@/types/armyList";
 import { useUnitKeywords } from "@/hooks/useUnitKeywords";
 import { PointsSourceChip } from "./PointsSourceChip";
-import { MatchStatusIndicator } from "./MatchStatusIndicator";
-import { RulesMappingSheet } from "./RulesMappingSheet";
+// Phase 107: MatchStatusIndicator and RulesMappingSheet removed
 
 interface ArmyListUnitRowProps {
   unit: ArmyListUnitRowType;
@@ -74,11 +73,8 @@ export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, totalPoints
   const [expanded, setExpanded] = useState(false);
   const [notesDraft, setNotesDraft] = useState(unit.notes ?? "");
   useEffect(() => { setNotesDraft(unit.notes ?? ""); }, [unit.notes]);
-  const [mappingSheetOpen, setMappingSheetOpen] = useState(false);
-
   const unitIdOrUndefined = unit.unit_id ?? undefined;
   const { data: loadouts } = useUnitLoadouts(unitIdOrUndefined);
-  const { data: rulesMapping } = useUnitRulesMapping(unitIdOrUndefined);
 
   /**
    * Phase 91 — Unit keyword check for enhancement eligibility.
@@ -209,13 +205,7 @@ export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, totalPoints
                 <TooltipContent>{warnings.soft.join(", ")}</TooltipContent>
               </Tooltip>
             ) : null}
-            {unit.unit_id != null && (
-              <MatchStatusIndicator
-                matchStatus={rulesMapping?.match_status ?? null}
-                ambiguousCount={0}
-                onClick={() => setMappingSheetOpen(true)}
-              />
-            )}
+            {/* Phase 107: MatchStatusIndicator removed (rules mapping eliminated) */}
             <span className={isGhost ? "text-muted-foreground" : ""}>{unit.unit_name}</span>
             {isGhost && <Badge variant="outline" className="ml-1.5 text-xs">Planned</Badge>}
           </div>
@@ -404,15 +394,7 @@ export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, totalPoints
         </TableRow>
       )}
 
-      {mappingSheetOpen && unit.unit_id != null && unit.faction_id != null && (
-        <RulesMappingSheet
-          open={mappingSheetOpen}
-          unitId={unit.unit_id}
-          unitName={unit.unit_name}
-          factionId={unit.faction_id}
-          onClose={() => setMappingSheetOpen(false)}
-        />
-      )}
+      {/* Phase 107: RulesMappingSheet removed (rules mapping eliminated) */}
     </>
   );
 });

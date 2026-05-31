@@ -11,7 +11,10 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { useDetachmentsByFaction } from "@/hooks/useRulesExtended";
+// Phase 107: detachments data source (rules.db) eliminated -- EXT-03 deferred
+function useDetachmentsByFaction(_factionId: string | undefined) {
+  return { data: [] as { id: string; name: string }[] };
+}
 
 interface DetachmentPickerProps {
   factionWahapediaId: string | undefined;
