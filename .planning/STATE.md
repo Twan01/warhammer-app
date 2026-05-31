@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Unit Database — Canonical 40k Data Hub
 status: executing
-stopped_at: Phase 107 planned (2 plans in 2 waves)
-last_updated: 2026-05-30T19:00:00.000Z
-last_activity: 2026-05-30 -- Phase 107 planned (verified, 2 plans)
+stopped_at: Phase 107 planned
+last_updated: "2026-05-31T09:50:58.550Z"
+last_activity: 2026-05-30
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
-  percent: 80
+  total_plans: 12
+  completed_plans: 12
+  percent: 83
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-29)
 
 ## Current Position
 
-Phase: 106 complete, next: 107
-Plan: verified
+Phase: 107 (cleanup-pipeline)
+Plan: 01 of 02 complete
 Status: Executing
-Last activity: 2026-05-30
+Last activity: 2026-05-31
 
-Progress: [████████████████████████████████████████] 80%
+Progress: [████████████████████████████████████████████] 83%
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Progress: [███████████████████████
 | Phase 103 P01 | 15m | 2 tasks | 4 files |
 | Phase 106 P01 | 45m | 2 tasks | 38 files |
 | Phase 106 P02 | 5m | 2 tasks | 3 files |
+| Phase 107 P01 | ~3h | 2 tasks | 96 files |
 
 ### Key Decisions (v0.4.0)
 
@@ -61,6 +62,8 @@ Progress: [███████████████████████
 - rules.db must stay alive through Phases 103–106 — 7+ call sites use getRulesDb(); eliminate only in Phase 107
 - FK nullable: units.udb_unit_id uses ON DELETE SET NULL — collection units survive database re-import
 - Entity IDs: reuse Wahapedia string IDs for udb_units so existing rules_favorites_notes annotations survive the pivot
+- Inline stub pattern for deferred features (stratagems, detachments, shared abilities) rather than keeping empty hook files
+- getSyncFreshness/getSyncAgeLabel simplified to always return 'fresh'/'Data bundled with app' since data is now bundled
 
 ### Pending Todos
 
@@ -82,7 +85,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-30T17:00:00Z
-Stopped at: Phase 107 planned
-Resume file: .planning/phases/107-cleanup-pipeline/
-Resume: Phase 107 planned (2 plans, verified). Next: /gsd:execute-phase 107
+Last session: 2026-05-31T00:00:00Z
+Stopped at: Phase 107-01 complete
+Resume file: .planning/phases/107-cleanup-pipeline/107-02-PLAN.md
+Resume: Phase 107 Plan 01 complete. Next: execute 107-02

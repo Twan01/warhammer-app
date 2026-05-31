@@ -46,8 +46,8 @@ Requirements for v0.4.0 milestone. Each maps to roadmap phases.
 ### Cleanup & Pipeline
 
 - [ ] **CLN-01**: Dev-side update script for re-scraping and producing data diffs for future GW changes
-- [ ] **CLN-02**: Eliminate rules.db — all data in single hobbyforge.db
-- [ ] **CLN-03**: Remove dead sync code (rules-client.ts, rw_* query modules, CSV fetch pipeline)
+- [x] **CLN-02**: Eliminate rules.db — all data in single hobbyforge.db
+- [x] **CLN-03**: Remove dead sync code (rules-client.ts, rw_* query modules, CSV fetch pipeline)
 - [ ] **CLN-04**: Keep optional "check for points updates" as simplified sync feature
 
 ## v2 Requirements
@@ -107,8 +107,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ALI-02 | Phase 106 | Complete |
 | ALI-03 | Phase 106 | Complete |
 | CLN-01 | Phase 107 | Pending |
-| CLN-02 | Phase 107 | Pending |
-| CLN-03 | Phase 107 | Pending |
+| CLN-02 | Phase 107 | Complete |
+| CLN-03 | Phase 107 | Complete |
 | CLN-04 | Phase 107 | Pending |
 
 **Coverage:**

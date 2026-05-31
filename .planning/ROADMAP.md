@@ -275,7 +275,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 107-01-PLAN.md — Eliminate rules.db, delete dead sync infrastructure, redirect hooks to udb_* queries
+- [x] 107-01-PLAN.md — Eliminate rules.db, delete dead sync infrastructure, redirect hooks to udb_* queries
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -393,7 +393,7 @@ Plans:
 | 104. Database Browser UI | v0.4.0 | 0/3 | Not started | - |
 | 105. Collection Integration | v0.4.0 | 2/2 | Complete    | 2026-05-30 |
 | 106. Army List Simplification | v0.4.0 | 1/2 | In Progress | - |
-| 107. Cleanup & Pipeline | v0.4.0 | 0/2 | Not started | - |
+| 107. Cleanup & Pipeline | v0.4.0 | 1/2 | In Progress|  |
 
 <details>
 <summary>✅ v0.1.1 HobbyForge MVP (Phases 1-5) — SHIPPED 2024-05-01</summary>
