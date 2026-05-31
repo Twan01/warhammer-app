@@ -1,36 +1,30 @@
 /**
  * DX-03 -- Diagnostic flag logic tests.
  *
- * Tests getOrphanedProgressRows, getAmbiguousPointMatches, and
- * getDiagnosticFlags from diagnostics.ts. Mocks getDb/getRulesDb
- * to control query results. Verifies:
+ * Tests getOrphanedProgressRows, getAmbiguousPointMatches, getUnlinkedUnitsCount,
+ * and getDiagnosticFlags from diagnostics.ts. Mocks getDb to control query results.
+ * Verifies:
  *   - Returns null when count is 0
  *   - Returns DiagnosticFlag object when count > 0
- *   - getDiagnosticFlags aggregates and filters nulls
+ *   - getDiagnosticFlags aggregates 3 checks and filters nulls
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock both DB clients before importing the module under test
 const mockSelect = vi.fn();
-const mockRulesSelect = vi.fn();
 
 vi.mock("@/db/client", () => ({
   getDb: vi.fn(() => Promise.resolve({ select: mockSelect })),
 }));
 
-vi.mock("@/db/rules-client", () => ({
-  getRulesDb: vi.fn(() => Promise.resolve({ select: mockRulesSelect })),
-}));
-
 import {
   getOrphanedProgressRows,
   getAmbiguousPointMatches,
+  getUnlinkedUnitsCount,
   getDiagnosticFlags,
 } from "@/db/queries/diagnostics";
 
 beforeEach(() => {
   mockSelect.mockReset();
-  mockRulesSelect.mockReset();
 });
 
 describe("getOrphanedProgressRows", () => {
@@ -53,51 +47,54 @@ describe("getOrphanedProgressRows", () => {
 
 describe("getAmbiguousPointMatches", () => {
   it("returns null when all units are linked (udb_unit_id IS NOT NULL)", async () => {
-    // Phase 106: now queries COUNT(*) FROM units WHERE udb_unit_id IS NULL
     mockSelect.mockResolvedValueOnce([{ c: 0 }]);
     const result = await getAmbiguousPointMatches();
     expect(result).toBeNull();
   });
 
-  it("returns warning flag when a unit has zero matches", async () => {
-    // 1 unit has udb_unit_id IS NULL
-    mockSelect.mockResolvedValueOnce([{ c: 1 }]);
+  it("returns warning flag when units have no udb_unit_id", async () => {
+    mockSelect.mockResolvedValueOnce([{ c: 3 }]);
     const result = await getAmbiguousPointMatches();
     expect(result).not.toBeNull();
     expect(result!.type).toBe("ambiguous_points");
-    expect(result!.count).toBe(1);
+    expect(result!.count).toBe(3);
     expect(result!.severity).toBe("warning");
-  });
-
-  it("returns warning flag when a unit has more than one match", async () => {
-    // Phase 106: reinterpreted as unlinked units count
-    mockSelect.mockResolvedValueOnce([{ c: 1 }]);
-    const result = await getAmbiguousPointMatches();
-    expect(result).not.toBeNull();
-    expect(result!.count).toBe(1);
     expect(result!.description).toContain("not linked to the unit database");
   });
+});
 
-  it("performs case-insensitive matching", async () => {
-    // Phase 106: this test checks the zero-count path (all linked)
+describe("getUnlinkedUnitsCount", () => {
+  it("returns null when all units are linked", async () => {
     mockSelect.mockResolvedValueOnce([{ c: 0 }]);
-    const result = await getAmbiguousPointMatches();
-    // All linked, so null
+    const result = await getUnlinkedUnitsCount();
     expect(result).toBeNull();
+  });
+
+  it("returns warning flag with correct pluralization (singular)", async () => {
+    mockSelect.mockResolvedValueOnce([{ c: 1 }]);
+    const result = await getUnlinkedUnitsCount();
+    expect(result).not.toBeNull();
+    expect(result!.type).toBe("unlinked_units");
+    expect(result!.count).toBe(1);
+    expect(result!.severity).toBe("warning");
+    expect(result!.description).toContain("1 collection unit is not linked");
+  });
+
+  it("returns warning flag with correct pluralization (plural)", async () => {
+    mockSelect.mockResolvedValueOnce([{ c: 4 }]);
+    const result = await getUnlinkedUnitsCount();
+    expect(result).not.toBeNull();
+    expect(result!.description).toContain("4 collection units are not linked");
   });
 });
 
 describe("getDiagnosticFlags", () => {
   it("returns empty array when all diagnostics pass", async () => {
-    // getDiagnosticFlags calls 4 functions in Promise.all:
-    // getOrphanedProgressRows, getAmbiguousPointMatches, getUnmatchedPointsCount, getUnlinkedUnitsCount
+    // getDiagnosticFlags calls 3 functions in Promise.all:
+    // getOrphanedProgressRows, getAmbiguousPointMatches, getUnlinkedUnitsCount
     mockSelect.mockImplementation((sql: string) => {
       if (sql.includes("step_progress")) return Promise.resolve([{ c: 0 }]);
       if (sql.includes("udb_unit_id")) return Promise.resolve([{ c: 0 }]);
-      return Promise.resolve([{ c: 0 }]);
-    });
-    mockRulesSelect.mockImplementation((sql: string) => {
-      if (sql.includes("NOT EXISTS")) return Promise.resolve([{ c: 0 }]);
       return Promise.resolve([{ c: 0 }]);
     });
 
@@ -111,14 +108,20 @@ describe("getDiagnosticFlags", () => {
       if (sql.includes("udb_unit_id")) return Promise.resolve([{ c: 2 }]);
       return Promise.resolve([{ c: 0 }]);
     });
-    mockRulesSelect.mockImplementation((sql: string) => {
-      if (sql.includes("NOT EXISTS")) return Promise.resolve([{ c: 0 }]);
-      return Promise.resolve([{ c: 0 }]);
-    });
 
     const result = await getDiagnosticFlags();
-    // orphaned_progress + ambiguous_points + unlinked_units (both udb_unit_id queries return 2)
+    // orphaned_progress (step_progress query) + ambiguous_points + unlinked_units (both udb_unit_id queries)
     expect(result.length).toBeGreaterThanOrEqual(2);
     expect(result.map((f) => f.type)).toContain("orphaned_progress");
+    expect(result.map((f) => f.type)).toContain("ambiguous_points");
+  });
+
+  it("returns exactly 3 flags when all checks fail", async () => {
+    mockSelect.mockResolvedValue([{ c: 1 }]);
+
+    const result = await getDiagnosticFlags();
+    expect(result.length).toBe(3);
+    const types = result.map((f) => f.type).sort();
+    expect(types).toEqual(["ambiguous_points", "orphaned_progress", "unlinked_units"]);
   });
 });
