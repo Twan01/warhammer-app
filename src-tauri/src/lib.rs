@@ -1150,11 +1150,10 @@ pub fn run() {
             println!("[hobbyforge] app_data_dir = {}", app_data_dir.display());
 
             // D-06: Auto-import bundled unit_database.json on first launch or version mismatch.
-            // Runs synchronously in setup to ensure data is available before the UI queries it.
-            // The version check returns immediately on most launches (< 1ms); full import
-            // only runs on first launch or after a data update.
+            // Spawned async so the window appears immediately — block_on here caused
+            // the app to hang invisibly when the DB was locked or slow to respond.
             let handle = app.handle().clone();
-            tauri::async_runtime::block_on(async move {
+            tauri::async_runtime::spawn(async move {
                 match import_unit_database_inner(&handle).await {
                     Ok(result) => println!("[hobbyforge] udb import: {result:?}"),
                     Err(e) => eprintln!("[hobbyforge] udb import failed: {e}"),

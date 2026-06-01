@@ -34,7 +34,12 @@ export interface UnitPhotoWithUrl extends UnitPhoto {
 
 let appDirPromise: Promise<string> | null = null;
 function getAppDir(): Promise<string> {
-  if (!appDirPromise) appDirPromise = appDataDir();
+  if (!appDirPromise) {
+    appDirPromise = appDataDir().catch((err) => {
+      appDirPromise = null;
+      throw err;
+    });
+  }
   return appDirPromise;
 }
 
