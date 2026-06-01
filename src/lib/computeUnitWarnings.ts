@@ -115,6 +115,7 @@ export function computeListWarnings(
     ).length;
     const nonTransportNonCharacterCount = linkedUnits.filter(
       (u) =>
+        u.udb_role !== null &&
         u.udb_role?.toLowerCase() !== "dedicated transport" &&
         u.udb_role?.toLowerCase() !== "character",
     ).length;

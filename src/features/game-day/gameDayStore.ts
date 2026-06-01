@@ -77,11 +77,16 @@ export function migrateGameDayState(
   if (fromVersion === 0) {
     const old = persistedState as { listStates?: Record<string, GameDayListState> };
     if (old.listStates) {
-      for (const ls of Object.values(old.listStates)) {
-        if (Array.isArray(ls.usedAbilities)) {
-          ls.usedAbilities = ls.usedAbilities.filter((k) => !k.includes("::"));
-        }
+      const newStates: Record<string, GameDayListState> = {};
+      for (const [key, ls] of Object.entries(old.listStates)) {
+        newStates[key] = {
+          ...ls,
+          usedAbilities: Array.isArray(ls.usedAbilities)
+            ? ls.usedAbilities.filter((k) => !k.includes("::"))
+            : [],
+        };
       }
+      return { ...(persistedState as Record<string, unknown>), listStates: newStates } as GameDayStore;
     }
   }
   return persistedState as GameDayStore;

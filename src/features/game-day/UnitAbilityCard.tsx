@@ -42,6 +42,7 @@ export function UnitAbilityCard({ unit, listId }: UnitAbilityCardProps) {
   const toggleAbilityUsed = useGameDayStore((s) => s.toggleAbilityUsed);
 
   const opgAbilities = useMemo(() => {
+    if (unit.unit_id === null) return [];
     const abilities = datasheet?.abilities ?? [];
     if (abilities.length === 0) return [];
     return abilities
