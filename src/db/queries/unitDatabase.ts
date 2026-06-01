@@ -21,6 +21,7 @@ export interface UdbUnitSummary {
   faction_id: string;
   name: string;
   role: string | null;
+  sub_faction: string | null;
   base_points: number | null;
   min_models: number | null;
   max_models: number | null;
@@ -153,6 +154,7 @@ export async function getUdbUnitsByFaction(
        u.faction_id,
        u.name,
        u.role,
+       u.sub_faction,
        (SELECT MIN(p.points) FROM udb_unit_points p WHERE p.unit_id = u.id) AS base_points,
        (SELECT MIN(c.min_models) FROM udb_unit_composition c WHERE c.unit_id = u.id) AS min_models,
        (SELECT MAX(c.max_models) FROM udb_unit_composition c WHERE c.unit_id = u.id) AS max_models
@@ -315,4 +317,37 @@ export async function searchUdbUnits(
      LIMIT 50`,
     [ftsQuery],
   );
+}
+
+/**
+ * Phase 109 — Returns distinct non-null sub-faction names for a faction,
+ * sorted alphabetically. Returns empty array for factions without sub-factions.
+ */
+export async function getDistinctSubFactions(
+  factionId: string,
+): Promise<string[]> {
+  const db = await getDb();
+  const rows = await db.select<{ sub_faction: string }[]>(
+    `SELECT DISTINCT sub_faction FROM udb_units
+     WHERE faction_id = $1 AND sub_faction IS NOT NULL
+     ORDER BY sub_faction`,
+    [factionId],
+  );
+  return rows.map((r) => r.sub_faction);
+}
+
+/**
+ * Phase 109 — Returns UDB unit IDs matching a specific sub-faction within a faction.
+ * Used for Set-based client-side filtering in collection/picker surfaces.
+ */
+export async function getUdbUnitIdsBySubFaction(
+  factionId: string,
+  subFaction: string,
+): Promise<string[]> {
+  const db = await getDb();
+  const rows = await db.select<{ id: string }[]>(
+    `SELECT id FROM udb_units WHERE faction_id = $1 AND sub_faction = $2`,
+    [factionId, subFaction],
+  );
+  return rows.map((r) => r.id);
 }

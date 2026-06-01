@@ -19,6 +19,8 @@ import {
   getUdbOwnershipByFaction,
   getUdbOwnershipForUnit,
   getUdbKeywordsByFaction,
+  getDistinctSubFactions,
+  getUdbUnitIdsBySubFaction,
 } from "@/db/queries/unitDatabase";
 import type { UdbOwnershipEntry } from "@/db/queries/unitDatabase";
 
@@ -139,5 +141,51 @@ export function useUdbUnitOwnership(unitId: string | null) {
     queryFn: () => unitId ? getUdbOwnershipForUnit(unitId) : Promise.resolve(null),
     enabled: !!unitId,
     staleTime: 0,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Phase 109 — Sub-faction hooks
+// ---------------------------------------------------------------------------
+
+export const UDB_SUB_FACTIONS_KEY = (factionId: string) =>
+  ["udb-sub-factions", factionId] as const;
+
+/**
+ * Returns distinct sub-faction names for a faction. Disabled when factionId is null.
+ * Returns empty array for factions without sub-factions.
+ */
+export function useUdbSubFactions(factionId: string | null) {
+  return useQuery({
+    queryKey:
+      factionId !== null
+        ? UDB_SUB_FACTIONS_KEY(factionId)
+        : (["udb-sub-factions", "disabled"] as const),
+    queryFn: () =>
+      factionId !== null ? getDistinctSubFactions(factionId) : Promise.resolve([]),
+    enabled: !!factionId,
+    staleTime: Infinity,
+  });
+}
+
+export const UDB_SUB_FACTION_UNIT_IDS_KEY = (factionId: string, subFaction: string) =>
+  ["udb-sub-faction-unit-ids", factionId, subFaction] as const;
+
+/**
+ * Returns UDB unit IDs matching a sub-faction within a faction.
+ * Disabled when either param is null. Used for Set-based client-side filtering.
+ */
+export function useUdbSubFactionUnitIds(factionId: string | null, subFaction: string | null) {
+  return useQuery({
+    queryKey:
+      factionId !== null && subFaction !== null
+        ? UDB_SUB_FACTION_UNIT_IDS_KEY(factionId, subFaction)
+        : (["udb-sub-faction-unit-ids", "disabled"] as const),
+    queryFn: () =>
+      factionId !== null && subFaction !== null
+        ? getUdbUnitIdsBySubFaction(factionId, subFaction)
+        : Promise.resolve([]),
+    enabled: !!factionId && !!subFaction,
+    staleTime: Infinity,
   });
 }

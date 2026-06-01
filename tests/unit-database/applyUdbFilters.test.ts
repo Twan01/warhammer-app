@@ -13,11 +13,11 @@ import type { UdbUnitSummary } from "@/db/queries/unitDatabase";
 // ---------------------------------------------------------------------------
 
 const UNITS: UdbUnitSummary[] = [
-  { id: "u1", faction_id: "SM", name: "Intercessors", role: "Battleline", base_points: 80, min_models: 5, max_models: 10 },
-  { id: "u2", faction_id: "SM", name: "Captain", role: "Character", base_points: 80, min_models: 1, max_models: 1 },
-  { id: "u3", faction_id: "SM", name: "Eradicators", role: "Battleline", base_points: 95, min_models: 3, max_models: 6 },
-  { id: "u4", faction_id: "SM", name: "Repulsor", role: "Transport", base_points: 200, min_models: 1, max_models: 1 },
-  { id: "u5", faction_id: "SM", name: "Mystery Unit", role: "Epic Hero", base_points: null, min_models: null, max_models: null },
+  { id: "u1", faction_id: "SM", name: "Intercessors", role: "Battleline", sub_faction: "Ultramarines", base_points: 80, min_models: 5, max_models: 10 },
+  { id: "u2", faction_id: "SM", name: "Captain", role: "Character", sub_faction: null, base_points: 80, min_models: 1, max_models: 1 },
+  { id: "u3", faction_id: "SM", name: "Eradicators", role: "Battleline", sub_faction: "Ultramarines", base_points: 95, min_models: 3, max_models: 6 },
+  { id: "u4", faction_id: "SM", name: "Repulsor", role: "Transport", sub_faction: null, base_points: 200, min_models: 1, max_models: 1 },
+  { id: "u5", faction_id: "SM", name: "Mystery Unit", role: "Epic Hero", sub_faction: "Dark Angels", base_points: null, min_models: null, max_models: null },
 ];
 
 const NO_FILTER: UdbFiltersInput = {

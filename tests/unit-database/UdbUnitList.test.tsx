@@ -40,9 +40,9 @@ import { UdbUnitList } from "@/features/unit-database/UdbUnitList";
 // ---------------------------------------------------------------------------
 
 const UNITS: UdbUnitSummary[] = [
-  { id: "u1", faction_id: "SM", name: "Intercessors", role: "Battleline", base_points: 80, min_models: 5, max_models: 10 },
-  { id: "u2", faction_id: "SM", name: "Eradicators", role: "Battleline", base_points: 95, min_models: 3, max_models: 6 },
-  { id: "u3", faction_id: "SM", name: "Captain", role: "Character", base_points: 80, min_models: 1, max_models: 1 },
+  { id: "u1", faction_id: "SM", name: "Intercessors", role: "Battleline", sub_faction: null, base_points: 80, min_models: 5, max_models: 10 },
+  { id: "u2", faction_id: "SM", name: "Eradicators", role: "Battleline", sub_faction: null, base_points: 95, min_models: 3, max_models: 6 },
+  { id: "u3", faction_id: "SM", name: "Captain", role: "Character", sub_faction: null, base_points: 80, min_models: 1, max_models: 1 },
 ];
 
 // ---------------------------------------------------------------------------
