@@ -228,7 +228,7 @@ Phases execute in numeric order: 108 → 109 → 110 → 111
 | 105. Collection Integration | v0.4.0 | 2/2 | Complete | 2026-05-30 |
 | 106. Army List Simplification | v0.4.0 | 2/2 | Complete | 2026-05-30 |
 | 107. Cleanup & Pipeline | v0.4.0 | 2/2 | Complete | 2026-05-31 |
-| 108. Build Script Hardening & Schema Foundation | v0.4.2 | 0/3 | Not started | - |
+| 108. Build Script Hardening & Schema Foundation | v0.4.2 | 0/3 | Planned | - |
 | 109. Sub-faction Filter UI | v0.4.2 | 0/? | Not started | - |
 | 110. PlaybookTab & Game Day Revival | v0.4.2 | 0/? | Not started | - |
 | 111. Bilingual Infrastructure | v0.4.2 | 0/? | Not started | - |

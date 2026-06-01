@@ -385,17 +385,15 @@ ORDER BY f.name;
 | A2 | SM chapter catalogues process after base "Space Marines" in sorted order | Pitfall 3 | Sub-faction assignment priority may need explicit ordering |
 | A3 | ~50 alias entries will be sufficient for 85%+ coverage after normalization | Anti-Patterns | May need more aliases; iterative process |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Exact normalization patterns for 85%+ coverage**
    - What we know: BSData uses names like "Intercessor Squad", Wahapedia may use "Intercessors". Smart quotes and special characters cause mismatches.
-   - What's unclear: The exact set of normalization rules needed. Will stripping "Squad"/"Team" suffixes help? Need to run the build and examine unmatched units.
-   - Recommendation: Implement basic normalization first, run the build, collect unmatched units, then populate aliases.json iteratively.
+   - RESOLVED: Implement basic normalization first (lowercase, strip special chars, trim whitespace), run the build, collect unmatched units, then populate aliases.json iteratively. The exact patterns will be refined through iteration during execution.
 
 2. **Coverage data storage for Data Health UI**
    - What we know: D-05 says "coverage data read from udb_meta or computed query at import time."
-   - What's unclear: Whether to store coverage stats in udb_meta or compute them live via SQL query.
-   - Recommendation: Compute live via SQL query (shown in Code Examples). The query is fast (<10ms on ~600 units) and avoids storing stale statistics. No schema change needed.
+   - RESOLVED: Compute live via SQL query. The query is fast (<10ms on ~600 units) and avoids storing stale statistics. No schema change needed.
 
 ## Sources
 
