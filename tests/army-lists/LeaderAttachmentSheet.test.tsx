@@ -135,7 +135,7 @@ describe("LeaderAttachmentSheet", () => {
     const target = makeUnit({ id: 2, unit_name: "Intercessors", effective_points: 100 });
     renderSheet(leader, [leader, target]);
 
-    expect(screen.getByText(/Captain â€” Leader Attachment/)).toBeInTheDocument();
+    expect(screen.getByText(/Captain — Leader Attachment/)).toBeInTheDocument();
     expect(screen.getByText("Attach this leader to a valid target unit")).toBeInTheDocument();
   });
 

@@ -51,7 +51,7 @@ const missedGoal: HobbyGoal = {
 
 // computeGoalPeriod returns isExpired: true for missedGoal period "2026-03"
 // and false for active/completed goals period "2026-05"
-vi.mock("@/features/goals/computeGoalPeriod", () => ({
+vi.mock("@/lib/computeGoalPeriod", () => ({
   computeGoalPeriod: (_timeframe: string, period: string) => ({
     startDate: period + "-01",
     endDate: period + "-31",

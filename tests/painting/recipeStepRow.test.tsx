@@ -205,7 +205,7 @@ describe("RecipeStepRow â€” STEP-01/03 structured step inputs", () => {
   describe("notes input", () => {
     it("renders the notes Input on the third row", () => {
       renderRow();
-      expect(screen.getByPlaceholderText("Notesâ€¦")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Notes…")).toBeInTheDocument();
     });
   });
 
@@ -272,7 +272,7 @@ describe("RecipeStepRow â€” STEP-01/03 structured step inputs", () => {
       expect(screen.getByPlaceholderText("Technique")).toBeInTheDocument();
       expect(screen.getByPlaceholderText("Dilution")).toBeInTheDocument();
       expect(screen.getByPlaceholderText("Min")).toBeInTheDocument();
-      expect(screen.getByPlaceholderText("Notesâ€¦")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Notes…")).toBeInTheDocument();
     });
   });
 

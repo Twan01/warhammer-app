@@ -139,12 +139,12 @@ describe("resolveReadinessDotClass (Plan 02 Task 1 — RED until then)", () => {
     expect(resolveReadinessDotClass("Completed")).toContain("bg-emerald-400");
   });
 
-  it("returns bg-emerald-400 for Display Ready (D-11)", () => {
-    expect(resolveReadinessDotClass("Display Ready")).toContain("bg-emerald-400");
+  it("returns bg-amber-500 for Display Ready (D-11) — not in DONE_STATUSES", () => {
+    expect(resolveReadinessDotClass("Display Ready")).toContain("bg-amber-500");
   });
 
-  it("returns bg-emerald-400 for Battle Ready (D-11)", () => {
-    expect(resolveReadinessDotClass("Battle Ready")).toContain("bg-emerald-400");
+  it("returns bg-amber-500 for Battle Ready (D-11) — not in DONE_STATUSES", () => {
+    expect(resolveReadinessDotClass("Battle Ready")).toContain("bg-amber-500");
   });
 
   it("returns bg-muted-foreground/50 for all Not Started", () => {

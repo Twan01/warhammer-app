@@ -24,8 +24,8 @@ describe("completeStepWithSession", () => {
       duration_minutes: 30,
     });
 
-    // 3 calls: step progress upsert + session INSERT + painting % sync
-    expect(executeMock).toHaveBeenCalledTimes(3);
+    // 4 calls: step progress upsert + session INSERT + painting % sync (SELECT) + painting % sync (UPDATE)
+    expect(executeMock).toHaveBeenCalledTimes(4);
     expect(executeMock.mock.calls[0][0]).toContain(
       "ON CONFLICT(assignment_id, recipe_step_id)",
     );

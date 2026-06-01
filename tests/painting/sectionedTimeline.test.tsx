@@ -386,7 +386,7 @@ describe("SectionedTimeline â€” RUI-04 (dot-separated metadata)", () => {
     render(
       <SectionedTimeline sections={sections} steps={[]} paintMap={new Map()} />
     );
-    expect(screen.getByText("drybrush Â· sequential")).toBeInTheDocument();
+    expect(screen.getByText("drybrush · sequential")).toBeInTheDocument();
   });
 
   it("shows applies_to in dot string when set", () => {
@@ -412,7 +412,7 @@ describe("SectionedTimeline â€” RUI-04 (dot-separated metadata)", () => {
       <SectionedTimeline sections={sections} steps={[]} paintMap={new Map()} />
     );
     expect(screen.getByText("drybrush")).toBeInTheDocument();
-    expect(screen.queryByText(/Â·/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/·/)).not.toBeInTheDocument();
   });
 
   it("renders no metadata span when all workflow fields are null", () => {

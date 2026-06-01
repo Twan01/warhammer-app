@@ -161,9 +161,9 @@ describe("WishlistPage â€” WISH-02 (view items)", () => {
     expect(screen.getByText("Chaos Space Marines")).toBeInTheDocument();
     expect(screen.getByText("Ultramarines")).toBeInTheDocument();
 
-    // Estimated cost for item 1 (4500 pence = Â£45.00)
-    // Pitfall 6: Â£45.00 appears both in the row and the summary bar
-    expect(screen.getAllByText("Â£45.00").length).toBeGreaterThanOrEqual(1);
+    // Estimated cost for item 1 (4500 pence = £45.00)
+    // Pitfall 6: £45.00 appears both in the row and the summary bar
+    expect(screen.getAllByText("£45.00").length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows empty state when no items exist", () => {
@@ -179,14 +179,14 @@ describe("WishlistPage â€” WISH-02 (view items)", () => {
   it("shows total estimated cost summary bar when items exist", () => {
     render(<WishlistPage />, { wrapper: Wrapper });
 
-    // Total = 4500 pence = Â£45.00 (Rhino has null cost treated as 0)
+    // Total = 4500 pence = £45.00 (Rhino has null cost treated as 0)
     // The summary bar shows count + formatted total
     expect(screen.getByText("items")).toBeInTheDocument();
     expect(screen.getByText("estimated")).toBeInTheDocument();
 
-    // The total formatted amount should appear (Â£45.00 total from mockItems)
-    // Item 1 cost (Â£45.00) is also shown in the row, so use getAllByText
-    const fortyFive = screen.getAllByText("Â£45.00");
+    // The total formatted amount should appear (£45.00 total from mockItems)
+    // Item 1 cost (£45.00) is also shown in the row, so use getAllByText
+    const fortyFive = screen.getAllByText("£45.00");
     expect(fortyFive.length).toBeGreaterThanOrEqual(1);
   });
 });
