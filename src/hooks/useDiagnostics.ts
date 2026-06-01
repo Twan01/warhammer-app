@@ -14,6 +14,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   getDiagnosticFlags,
+  getPointsCoverage,
   getSchemaVersions,
   getTableCounts,
 } from "@/db/queries/diagnostics";
@@ -23,6 +24,7 @@ import {
 export const TABLE_COUNTS_KEY = ["diagnostics", "table-counts"] as const;
 export const DIAGNOSTIC_FLAGS_KEY = ["diagnostics", "flags"] as const;
 export const SCHEMA_VERSIONS_KEY = ["diagnostics", "schema-versions"] as const;
+export const POINTS_COVERAGE_KEY = ["diagnostics", "points-coverage"] as const;
 
 // ── localStorage key for backup status ──────────────────────────────────────
 
@@ -48,6 +50,13 @@ export function useSchemaVersions() {
   return useQuery({
     queryKey: SCHEMA_VERSIONS_KEY,
     queryFn: getSchemaVersions,
+  });
+}
+
+export function usePointsCoverage() {
+  return useQuery({
+    queryKey: POINTS_COVERAGE_KEY,
+    queryFn: getPointsCoverage,
   });
 }
 

@@ -33,6 +33,14 @@ export interface SchemaVersions {
   hobbyforge: number;
 }
 
+export interface FactionCoverage {
+  faction_id: string;
+  faction_name: string;
+  total_units: number;
+  units_with_points: number;
+  coverage_pct: number;
+}
+
 // ── Query functions ─────────────────────────────────────────────────────────
 
 /**
@@ -159,4 +167,25 @@ export async function getDiagnosticFlags(): Promise<DiagnosticFlag[]> {
     getUnlinkedUnitsCount(),
   ]);
   return results.filter((f): f is DiagnosticFlag => f !== null);
+}
+
+/**
+ * DQ-06: Per-faction points coverage for the Data Health page.
+ * Computes the percentage of units in each faction that have points data
+ * (either base_points on the unit row or entries in udb_unit_points).
+ */
+export async function getPointsCoverage(): Promise<FactionCoverage[]> {
+  const db = await getDb();
+  const rows = await db.select<FactionCoverage[]>(
+    `SELECT f.id AS faction_id, f.name AS faction_name,
+            COUNT(u.id) AS total_units,
+            COUNT(CASE WHEN u.base_points IS NOT NULL OR p.unit_id IS NOT NULL THEN 1 END) AS units_with_points,
+            ROUND(100.0 * COUNT(CASE WHEN u.base_points IS NOT NULL OR p.unit_id IS NOT NULL THEN 1 END) / COUNT(u.id), 1) AS coverage_pct
+     FROM udb_factions f
+     JOIN udb_units u ON u.faction_id = f.id
+     LEFT JOIN (SELECT DISTINCT unit_id FROM udb_unit_points) p ON p.unit_id = u.id
+     GROUP BY f.id
+     ORDER BY f.name`
+  );
+  return rows;
 }

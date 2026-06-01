@@ -13,6 +13,7 @@
 import { VersionInfoCard } from "./VersionInfoCard";
 import { TableCountsGrid } from "./TableCountsGrid";
 import { DiagnosticsCard } from "./DiagnosticsCard";
+import { PointsCoverageCard } from "./PointsCoverageCard";
 import { BackupCard } from "./BackupCard";
 import { SafetyBackupsList } from "./SafetyBackupsList";
 
@@ -29,6 +30,8 @@ export function DataHealthPage() {
       </div>
 
       <DiagnosticsCard />
+
+      <PointsCoverageCard />
 
       <BackupCard />
 
