@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { toggleArrayItem } from "@/lib/utils";
 import type { PaintingStatus } from "@/types/unit";
 
 interface CollectionFiltersState {
@@ -29,24 +30,11 @@ export const useCollectionFilters = create<CollectionFiltersState>((set) => ({
   subFactionFilter: null,
   setSearch: (v) => set({ search: v }),
   toggleFaction: (id) =>
-    set((s) => ({
-      factions: s.factions.includes(id)
-        ? s.factions.filter((f) => f !== id)
-        : [...s.factions, id],
-      subFactionFilter: null,
-    })),
+    set((s) => ({ factions: toggleArrayItem(s.factions, id), subFactionFilter: null })),
   toggleStatus: (status) =>
-    set((s) => ({
-      statuses: s.statuses.includes(status)
-        ? s.statuses.filter((x) => x !== status)
-        : [...s.statuses, status],
-    })),
+    set((s) => ({ statuses: toggleArrayItem(s.statuses, status) })),
   toggleCategory: (cat) =>
-    set((s) => ({
-      categories: s.categories.includes(cat)
-        ? s.categories.filter((c) => c !== cat)
-        : [...s.categories, cat],
-    })),
+    set((s) => ({ categories: toggleArrayItem(s.categories, cat) })),
   toggleActiveOnly: () => set((s) => ({ activeOnly: !s.activeOnly })),
   toggleBattleReady: () => set((s) => ({ battleReady: !s.battleReady })),
   setSubFactionFilter: (sf) => set({ subFactionFilter: sf }),

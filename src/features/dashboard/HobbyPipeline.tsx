@@ -8,6 +8,7 @@
  * Bucket colors are co-located here (not imported from status-badge.tsx)
  * because the 5-bucket palette differs from the 4-tier StatusBadge palette.
  */
+import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import type { PaintingStatus } from "@/types/unit";
 import type { Unit } from "@/types/unit";
@@ -37,34 +38,42 @@ export interface HobbyPipelineProps {
 }
 
 export function HobbyPipeline({ units }: HobbyPipelineProps) {
+  const bucketCounts = useMemo(() => {
+    const counts = {} as Record<Bucket, number>;
+    for (const bucket of BUCKET_ORDER) counts[bucket] = 0;
+    for (const unit of units) {
+      for (const bucket of BUCKET_ORDER) {
+        if (BUCKET_GROUPS[bucket].includes(unit.status_painting)) {
+          counts[bucket]++;
+          break;
+        }
+      }
+    }
+    return counts;
+  }, [units]);
+
   return (
     <Card className="bg-card border border-border/60 shadow-sm px-6 py-6 transition-shadow duration-150 hover:shadow-md">
       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
         Pipeline
       </p>
       <ol className="flex items-end gap-4" role="list">
-        {BUCKET_ORDER.map((bucket) => {
-          const count = BUCKET_GROUPS[bucket].reduce(
-            (sum, status) => sum + units.filter((u) => u.status_painting === status).length,
-            0
-          );
-          return (
-            <li
-              key={bucket}
-              className="flex flex-1 flex-col items-center gap-1"
-              aria-label={`${bucket}: ${count} units`}
+        {BUCKET_ORDER.map((bucket) => (
+          <li
+            key={bucket}
+            className="flex flex-1 flex-col items-center gap-1"
+            aria-label={`${bucket}: ${bucketCounts[bucket]} units`}
+          >
+            <span className="text-xs text-muted-foreground text-center">
+              {bucket}
+            </span>
+            <span
+              className={`inline-flex items-center justify-center min-w-[32px] h-7 px-2 rounded-full text-sm font-semibold tabular-nums ${BUCKET_BUBBLE_CLASS[bucket]}`}
             >
-              <span className="text-xs text-muted-foreground text-center">
-                {bucket}
-              </span>
-              <span
-                className={`inline-flex items-center justify-center min-w-[32px] h-7 px-2 rounded-full text-sm font-semibold tabular-nums ${BUCKET_BUBBLE_CLASS[bucket]}`}
-              >
-                {count}
-              </span>
-            </li>
-          );
-        })}
+              {bucketCounts[bucket]}
+            </span>
+          </li>
+        ))}
       </ol>
     </Card>
   );

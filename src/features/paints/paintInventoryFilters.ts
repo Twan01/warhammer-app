@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { toggleArrayItem } from "@/lib/utils";
 import type { PaintType } from "@/types/paint";
 
 interface PaintInventoryFiltersState {
@@ -21,20 +22,9 @@ export const usePaintInventoryFilters = create<PaintInventoryFiltersState>((set)
   colorFamilies: [],
   runningLow: false,
   wishlist: false,
-  toggleBrand: (b) =>
-    set((s) => ({
-      brands: s.brands.includes(b) ? s.brands.filter((x) => x !== b) : [...s.brands, b],
-    })),
-  toggleType: (t) =>
-    set((s) => ({
-      types: s.types.includes(t) ? s.types.filter((x) => x !== t) : [...s.types, t],
-    })),
-  toggleColorFamily: (cf) =>
-    set((s) => ({
-      colorFamilies: s.colorFamilies.includes(cf)
-        ? s.colorFamilies.filter((x) => x !== cf)
-        : [...s.colorFamilies, cf],
-    })),
+  toggleBrand: (b) => set((s) => ({ brands: toggleArrayItem(s.brands, b) })),
+  toggleType: (t) => set((s) => ({ types: toggleArrayItem(s.types, t) })),
+  toggleColorFamily: (cf) => set((s) => ({ colorFamilies: toggleArrayItem(s.colorFamilies, cf) })),
   toggleRunningLow: () => set((s) => ({ runningLow: !s.runningLow })),
   toggleWishlist: () => set((s) => ({ wishlist: !s.wishlist })),
   clearAll: () =>

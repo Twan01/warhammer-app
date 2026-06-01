@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import {
   getBattleLogs,
   getBattleLogSummary,
@@ -13,6 +13,13 @@ import type {
   CreateBattleLogInput,
   UpdateBattleLogInput,
 } from "@/types/battleLog";
+
+function invalidateBattleLogDeps(qc: QueryClient) {
+  qc.invalidateQueries({ queryKey: BATTLE_LOGS_KEY });
+  qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+  qc.invalidateQueries({ queryKey: ["recent-activity"] });
+  qc.invalidateQueries({ queryKey: ["forgotten-rules"], exact: false });
+}
 
 /**
  * Battle log query keys (BATTLE-01..05).
@@ -47,12 +54,7 @@ export function useCreateBattleLog() {
   const qc = useQueryClient();
   return useMutation<number, Error, CreateBattleLogInput>({
     mutationFn: createBattleLog,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: BATTLE_LOGS_KEY });
-      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      qc.invalidateQueries({ queryKey: ["recent-activity"] });
-      qc.invalidateQueries({ queryKey: ["forgotten-rules"], exact: false });
-    },
+    onSuccess: () => invalidateBattleLogDeps(qc),
   });
 }
 
@@ -60,12 +62,7 @@ export function useUpdateBattleLog() {
   const qc = useQueryClient();
   return useMutation<void, Error, UpdateBattleLogInput>({
     mutationFn: updateBattleLog,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: BATTLE_LOGS_KEY });
-      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      qc.invalidateQueries({ queryKey: ["recent-activity"] });
-      qc.invalidateQueries({ queryKey: ["forgotten-rules"], exact: false });
-    },
+    onSuccess: () => invalidateBattleLogDeps(qc),
   });
 }
 
@@ -73,12 +70,7 @@ export function useDeleteBattleLog() {
   const qc = useQueryClient();
   return useMutation<void, Error, number>({
     mutationFn: deleteBattleLog,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: BATTLE_LOGS_KEY });
-      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      qc.invalidateQueries({ queryKey: ["recent-activity"] });
-      qc.invalidateQueries({ queryKey: ["forgotten-rules"], exact: false });
-    },
+    onSuccess: () => invalidateBattleLogDeps(qc),
   });
 }
 

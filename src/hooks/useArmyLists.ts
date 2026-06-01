@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import {
   getArmyLists,
   getArmyListById,
@@ -60,6 +60,18 @@ export const ARMY_LIST_UNITS_KEY = (id: number) => ["army-lists", id, "units"] a
 export const ARMY_LIST_READINESS_KEY = (ids: number[]) =>
   ["army-list-readiness", ...[...ids].sort((a, b) => a - b)] as const;
 
+function invalidateListDetail(qc: QueryClient, id: number) {
+  qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
+  qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(id) });
+  qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(id) });
+  qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+}
+
+function invalidateListWithReadiness(qc: QueryClient, id: number) {
+  invalidateListDetail(qc, id);
+  qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
+}
+
 export function useArmyLists() {
   return useQuery({ queryKey: ARMY_LISTS_KEY, queryFn: getArmyLists });
 }
@@ -95,12 +107,7 @@ export function useUpdateArmyList() {
   const qc = useQueryClient();
   return useMutation<void, Error, UpdateArmyListInput>({
     mutationFn: updateArmyList,
-    onSuccess: (_, variables) => {
-      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
-      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.id) });
-      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.id) });
-      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
-    },
+    onSuccess: (_, variables) => invalidateListDetail(qc, variables.id),
   });
 }
 
@@ -108,12 +115,7 @@ export function useClearArmyListDetachment() {
   const qc = useQueryClient();
   return useMutation<void, Error, number>({
     mutationFn: clearArmyListDetachment,
-    onSuccess: (_, id) => {
-      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
-      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(id) });
-      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(id) });
-      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
-    },
+    onSuccess: (_, id) => invalidateListDetail(qc, id),
   });
 }
 
@@ -126,12 +128,7 @@ export function useClearArmyListPointsLimit() {
   const qc = useQueryClient();
   return useMutation<void, Error, number>({
     mutationFn: clearArmyListPointsLimit,
-    onSuccess: (_, id) => {
-      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
-      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(id) });
-      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(id) });
-      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
-    },
+    onSuccess: (_, id) => invalidateListDetail(qc, id),
   });
 }
 
@@ -155,13 +152,7 @@ export function useAddUnitToList() {
   const qc = useQueryClient();
   return useMutation<number, Error, AddUnitToListInput>({
     mutationFn: addUnitToList,
-    onSuccess: (_insertedId, variables) => {
-      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
-      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
-      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
-      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
-    },
+    onSuccess: (_insertedId, variables) => invalidateListWithReadiness(qc, variables.list_id),
   });
 }
 
@@ -179,13 +170,7 @@ export function useRemoveUnitFromList() {
   const qc = useQueryClient();
   return useMutation<void, Error, RemoveUnitFromListInput>({
     mutationFn: ({ army_list_unit_id }) => removeUnitFromList(army_list_unit_id),
-    onSuccess: (_, variables) => {
-      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
-      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
-      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
-      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
-    },
+    onSuccess: (_, variables) => invalidateListWithReadiness(qc, variables.list_id),
   });
 }
 
@@ -203,12 +188,7 @@ export function useUpdateArmyListUnit() {
   const qc = useQueryClient();
   return useMutation<void, Error, UpdateArmyListUnitVariables>({
     mutationFn: ({ list_id: _list_id, ...rest }) => updateArmyListUnit(rest),
-    onSuccess: (_, variables) => {
-      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
-      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
-      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
-    },
+    onSuccess: (_, variables) => invalidateListWithReadiness(qc, variables.list_id),
   });
 }
 
@@ -256,10 +236,8 @@ export function useSetWarlord() {
     onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
       qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
-      // PERF-02: ARMY_LISTS_KEY removed — warlord is a detail-level field not visible in
-      // the list index; ARMY_LIST_KEY(id) already covers the specific list detail.
-      qc.invalidateQueries({ queryKey: ["dashboard-stats"] }); // KEEP — DATA-09 forward-compat
-      qc.invalidateQueries({ queryKey: ["army-list-readiness"] }); // KEEP — warlord affects readiness display
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
     },
   });
 }
@@ -288,13 +266,7 @@ export function useAddGhostUnitToList() {
   const qc = useQueryClient();
   return useMutation<number, Error, AddGhostUnitToListInput>({
     mutationFn: addGhostUnitToList,
-    onSuccess: (_insertedId, variables) => {
-      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
-      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
-      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
-      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
-    },
+    onSuccess: (_insertedId, variables) => invalidateListWithReadiness(qc, variables.list_id),
   });
 }
 
@@ -365,13 +337,7 @@ export function useSetSelectedModelCount() {
   const qc = useQueryClient();
   return useMutation<void, Error, SetSelectedModelCountVariables>({
     mutationFn: ({ army_list_unit_id, count }) => setSelectedModelCount(army_list_unit_id, count),
-    onSuccess: (_, variables) => {
-      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
-      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
-      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
-      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
-    },
+    onSuccess: (_, variables) => invalidateListWithReadiness(qc, variables.list_id),
   });
 }
 
@@ -388,13 +354,7 @@ export function useClearSelectedModelCount() {
   const qc = useQueryClient();
   return useMutation<void, Error, ClearSelectedModelCountVariables>({
     mutationFn: ({ army_list_unit_id }) => clearSelectedModelCount(army_list_unit_id),
-    onSuccess: (_, variables) => {
-      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
-      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
-      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
-      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
-    },
+    onSuccess: (_, variables) => invalidateListWithReadiness(qc, variables.list_id),
   });
 }
 
@@ -407,11 +367,7 @@ export function useAddEnhancement() {
   return useMutation<number, Error, AddEnhancementInput>({
     mutationFn: addEnhancement,
     onSuccess: (_, variables) => {
-      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
-      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
-      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
-      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
+      invalidateListWithReadiness(qc, variables.list_id);
       qc.invalidateQueries({ queryKey: ["army-list-enhancements", variables.list_id] });
     },
   });
@@ -430,11 +386,7 @@ export function useRemoveEnhancement() {
   return useMutation<void, Error, RemoveEnhancementVariables>({
     mutationFn: ({ enhancement_id }) => removeEnhancement(enhancement_id),
     onSuccess: (_, variables) => {
-      qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(variables.list_id) });
-      qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(variables.list_id) });
-      qc.invalidateQueries({ queryKey: ARMY_LISTS_KEY });
-      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      qc.invalidateQueries({ queryKey: ["army-list-readiness"] });
+      invalidateListWithReadiness(qc, variables.list_id);
       qc.invalidateQueries({ queryKey: ["army-list-enhancements", variables.list_id] });
     },
   });

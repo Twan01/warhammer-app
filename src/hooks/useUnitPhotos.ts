@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { appDataDir, join } from "@tauri-apps/api/path";
@@ -33,42 +32,33 @@ export interface UnitPhotoWithUrl extends UnitPhoto {
   assetUrl: string;
 }
 
-/**
- * Loads photo timeline for a unit, with each row's assetUrl pre-derived so
- * <img src={photo.assetUrl}> works directly in the JournalTab.
- *
- * appDataDir() is resolved ONCE per hook (not per thumbnail) — 13-RESEARCH.md
- * §Open Question 3. Joining + converting per row is cheap.
- *
- * staleTime: Infinity — photos only change via the mutations in this file.
- */
+let appDirPromise: Promise<string> | null = null;
+function getAppDir(): Promise<string> {
+  if (!appDirPromise) appDirPromise = appDataDir();
+  return appDirPromise;
+}
+
+async function resolveAssetUrl(appDir: string, filePath: string): Promise<string> {
+  const absolute = await join(appDir, filePath);
+  return convertFileSrc(absolute);
+}
+
 export function useUnitPhotos(unitId: number | undefined) {
-  const [appDir, setAppDir] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    appDataDir().then((dir) => {
-      if (!cancelled) setAppDir(dir);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   return useQuery({
     queryKey:
       unitId !== undefined ? UNIT_PHOTOS_KEY(unitId) : (["unit-photos"] as const),
     queryFn: async (): Promise<UnitPhotoWithUrl[]> => {
-      if (unitId === undefined || appDir === null) return [];
+      if (unitId === undefined) return [];
+      const appDir = await getAppDir();
       const rows = await getPhotosByUnit(unitId);
       return Promise.all(
-        rows.map(async (row) => {
-          const absolute = await join(appDir, row.file_path);
-          return { ...row, assetUrl: convertFileSrc(absolute) };
-        })
+        rows.map(async (row) => ({
+          ...row,
+          assetUrl: await resolveAssetUrl(appDir, row.file_path),
+        }))
       );
     },
-    enabled: unitId !== undefined && appDir !== null,
+    enabled: unitId !== undefined,
     staleTime: Infinity,
   });
 }
@@ -118,30 +108,19 @@ export function useDeleteUnitPhoto(unitId: number) {
  * staleTime: Infinity — only photo create/delete mutations invalidate.
  */
 export function useLatestUnitPhotos() {
-  const [appDir, setAppDir] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    appDataDir().then((dir) => {
-      if (!cancelled) setAppDir(dir);
-    });
-    return () => { cancelled = true; };
-  }, []);
-
   return useQuery({
     queryKey: LATEST_UNIT_PHOTOS_KEY,
     queryFn: async (): Promise<Map<number, UnitPhotoWithUrl>> => {
-      if (appDir === null) return new Map();
+      const appDir = await getAppDir();
       const rows = await getLatestPhotoByUnit();
       const withUrls = await Promise.all(
-        rows.map(async (row) => {
-          const absolute = await join(appDir, row.file_path);
-          return { ...row, assetUrl: convertFileSrc(absolute) };
-        })
+        rows.map(async (row) => ({
+          ...row,
+          assetUrl: await resolveAssetUrl(appDir, row.file_path),
+        }))
       );
       return new Map(withUrls.map((r) => [r.entity_id, r]));
     },
-    enabled: appDir !== null,
     staleTime: Infinity,
   });
 }

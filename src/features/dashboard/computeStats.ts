@@ -59,10 +59,9 @@ export function computeStats(units: Unit[], factions: Faction[]): ComputedDashbo
   }
 
   const totalModels = units.length;
-  const fullyPainted = units.filter((u) => u.status_painting === "Completed").length;
-  const battleReadyPoints = units
-    .filter((u) => u.status_painting === "Completed")
-    .reduce((sum, u) => sum + (u.points ?? 0), 0);
+  const completedUnits = units.filter((u) => u.status_painting === "Completed");
+  const fullyPainted = completedUnits.length;
+  const battleReadyPoints = completedUnits.reduce((sum, u) => sum + (u.points ?? 0), 0);
   const activeProjectsCount = units.filter((u) => u.is_active_project === 1).length;
 
   const paintingPct = Math.round(
