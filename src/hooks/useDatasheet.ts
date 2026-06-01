@@ -108,6 +108,11 @@ export function useWahapediaFactions() {
 /**
  * Resolves a HobbyForge faction name to a Wahapedia/udb faction ID.
  * Searches udb_factions by case-insensitive name match.
+ *
+ * Note: intentionally fetches factions without locale — faction IDs are
+ * locale-independent, and English names are used for ID resolution.
+ * The query key does not include locale because switching locale does not
+ * change the mapping result (IDs are the same regardless of display name).
  */
 export function useWahapediaFactionId(localFactionName: string | undefined) {
   return useQuery({
