@@ -43,6 +43,7 @@ import type {
   UnitDatabaseJson,
   CoverageReport,
   FactionCoverage,
+  TranslationsFrOverlay,
 } from "./lib/types.ts";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -57,6 +58,7 @@ const BSDATA_DIR = join(DATA_DIR, "bsdata");
 const OUTPUT_DIR = join(REPO_ROOT, "src-tauri", "data");
 const OUTPUT_PATH = join(OUTPUT_DIR, "unit_database.json");
 const ALIASES_PATH = join(DATA_DIR, "aliases.json");
+const TRANSLATIONS_FR_PATH = join(DATA_DIR, "translations_fr.json");
 const COVERAGE_PATH = join(DATA_DIR, "coverage-report.json");
 
 // Required Wahapedia CSV files
@@ -77,6 +79,26 @@ function readCsv(filename: string): Record<string, string>[] {
   const filepath = join(DATA_DIR, filename);
   const raw = readFileSync(filepath, "utf-8");
   return parseWahapediaCsv(raw);
+}
+
+/**
+ * Load the French translation overlay from translations_fr.json.
+ * Returns the overlay object if the file exists and is valid JSON.
+ * Returns null and emits a console.warn if the file is missing or malformed.
+ * Follows the loadAliases graceful-degrade pattern from scripts/lib/normalize.ts.
+ */
+function loadTranslationsFr(): TranslationsFrOverlay | null {
+  if (!existsSync(TRANSLATIONS_FR_PATH)) {
+    console.warn("WARNING: translations_fr.json not found — _fr fields will be null");
+    return null;
+  }
+  try {
+    const raw = readFileSync(TRANSLATIONS_FR_PATH, "utf-8");
+    return JSON.parse(raw) as TranslationsFrOverlay;
+  } catch (e) {
+    console.warn("WARNING: Failed to parse translations_fr.json:", e);
+    return null;
+  }
 }
 
 function readBsdataCatFiles(): Array<{ xml: string; factionId: string | null; catalogueName: string }> {
@@ -591,6 +613,59 @@ async function main() {
   // Sub-faction stats
   const unitsWithSubFaction = units.filter((u) => u.sub_faction !== null).length;
   console.log("  Units with sub_faction: " + unitsWithSubFaction);
+
+  // ---------------------------------------------------------------------------
+  // Step 10.5 — Apply French overlay
+  // Applied after all entity arrays are finalized (points backfill, sub_faction
+  // assignment, empty faction pruning) and before JSON output assembly.
+  // Per RESEARCH Pitfall 5 and PATTERNS Pattern 1.
+  // ---------------------------------------------------------------------------
+  const frOverlay = loadTranslationsFr();
+  let frFactions = 0;
+  let frUnits = 0;
+  let frAbilities = 0;
+  let frWeapons = 0;
+  let frKeywords = 0;
+
+  if (frOverlay) {
+    for (const f of factions) {
+      if (frOverlay.factions?.[f.id]) {
+        f.name_fr = frOverlay.factions[f.id];
+        frFactions++;
+      }
+    }
+    for (const u of units) {
+      if (frOverlay.units?.[u.id]) {
+        u.name_fr = frOverlay.units[u.id];
+        frUnits++;
+      }
+    }
+    for (const a of abilities) {
+      const key = `${a.unit_id}:${a.name}`;
+      const t = frOverlay.abilities?.[key];
+      if (t) {
+        a.name_fr = t.name_fr ?? null;
+        a.description_fr = t.description_fr ?? null;
+        frAbilities++;
+      }
+    }
+    for (const w of weapons) {
+      const key = `${w.unit_id}:${w.name}`;
+      if (frOverlay.weapons?.[key]) {
+        w.name_fr = frOverlay.weapons[key];
+        frWeapons++;
+      }
+    }
+    for (const k of keywords) {
+      if (frOverlay.keywords?.[k.keyword]) {
+        k.keyword_fr = frOverlay.keywords[k.keyword];
+        frKeywords++;
+      }
+    }
+    console.log(
+      `  French overlay: ${frFactions} factions, ${frUnits} units, ${frAbilities} abilities, ${frWeapons} weapons, ${frKeywords} keywords translated`,
+    );
+  }
 
   // ---------------------------------------------------------------------------
   // Summary
