@@ -11,6 +11,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, fireEvent } from "@testing-library/react";
 import React from "react";
 
+// Override the global LocaleToggle mock from setup.ts — this file tests the real component
+vi.unmock("@/components/common/LocaleToggle");
+
 // ---------------------------------------------------------------------------
 // Mock useLocaleStore
 // ---------------------------------------------------------------------------
@@ -122,7 +125,7 @@ describe("LocaleToggle (expanded)", () => {
     );
     fireEvent.click(getByText("FR"));
     expect(mockSetLocale).toHaveBeenCalledWith("fr");
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(3);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(7);
   });
 
   it("does not call setLocale when clicking already-active locale", () => {
@@ -157,6 +160,6 @@ describe("LocaleToggle (collapsed)", () => {
     );
     fireEvent.click(getByText("EN"));
     expect(mockSetLocale).toHaveBeenCalledWith("fr");
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(3);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(7);
   });
 });

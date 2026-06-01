@@ -1,6 +1,20 @@
 import "@testing-library/jest-dom/vitest";
-import { afterEach } from "vitest";
+import { afterEach, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
+
+// Global mock for Zustand persist middleware — makes all persist stores
+// work as plain in-memory stores in tests (no localStorage dependency).
+// Per-file vi.mock("zustand/middleware") calls override this if needed.
+vi.mock("zustand/middleware", () => ({
+  persist: (fn: (...args: unknown[]) => unknown) => fn,
+}));
+
+// Global mock for LocaleToggle — prevents QueryClientProvider requirement
+// from cascading into every component test that renders AppSidebar.
+// LocaleToggle has its own dedicated test file for real behavior testing.
+vi.mock("@/components/common/LocaleToggle", () => ({
+  LocaleToggle: () => null,
+}));
 
 // Polyfill ResizeObserver — jsdom does not implement it but cmdk (Command) uses it.
 // Without this polyfill, any test rendering a <Command> component throws:

@@ -741,13 +741,14 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
     .await
     .map_err(|e| format!("rebuild udb_search: {e}"))?;
 
-    tx.commit().await.map_err(|e| format!("commit udb: {e}"))?;
+    let commit_result = tx.commit().await.map_err(|e| format!("commit udb: {e}"));
 
-    // Restore FK enforcement after transaction
-    sqlx::query("PRAGMA foreign_keys = ON")
+    // Restore FK enforcement unconditionally — even if commit failed
+    let _ = sqlx::query("PRAGMA foreign_keys = ON")
         .execute(&mut conn)
-        .await
-        .map_err(|e| format!("pragma fk on: {e}"))?;
+        .await;
+
+    commit_result?;
 
     // D-12: WAL checkpoint after commit, before returning
     sqlx::query("PRAGMA wal_checkpoint(TRUNCATE)")

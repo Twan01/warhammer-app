@@ -4,7 +4,7 @@
  * Tests Zustand persist store behavior for locale preference.
  * Verifies default value, setLocale action, and type constraints.
  */
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ---------------------------------------------------------------------------
 // Mock zustand persist middleware to use a plain in-memory store for tests

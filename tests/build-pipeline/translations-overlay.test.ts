@@ -10,7 +10,7 @@
  * TranslationsFrOverlay type and matching behavior patterns.
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { writeFileSync, mkdirSync, rmSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -27,7 +27,6 @@ function loadTranslationsFrFromPath(filePath: string): TranslationsFrOverlay | n
     return null;
   }
   try {
-    const { readFileSync } = require("node:fs");
     const raw = readFileSync(filePath, "utf-8");
     return JSON.parse(raw) as TranslationsFrOverlay;
   } catch (e) {

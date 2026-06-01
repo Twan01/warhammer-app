@@ -137,8 +137,9 @@ export interface UdbKeywordsMapEntry {
 export async function getUdbFactions(locale?: "en" | "fr"): Promise<UdbFaction[]> {
   const db = await getDb();
   const nameSql = locale === "fr" ? "COALESCE(name_fr, name) AS name" : "name";
+  const orderSql = locale === "fr" ? "ORDER BY COALESCE(name_fr, name) ASC" : "ORDER BY name ASC";
   return db.select<UdbFaction[]>(
-    `SELECT id, ${nameSql}, short_name FROM udb_factions ORDER BY name ASC`,
+    `SELECT id, ${nameSql}, short_name FROM udb_factions ${orderSql}`,
   );
 }
 
@@ -165,7 +166,7 @@ export async function getUdbUnitsByFaction(
        (SELECT MAX(c.max_models) FROM udb_unit_composition c WHERE c.unit_id = u.id) AS max_models
      FROM udb_units u
      WHERE u.faction_id = $1
-     ORDER BY u.role, u.name ASC`,
+     ORDER BY u.role, ${locale === "fr" ? "COALESCE(u.name_fr, u.name)" : "u.name"} ASC`,
     [factionId],
   );
 }

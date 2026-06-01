@@ -25,6 +25,7 @@ vi.mock("@/db/queries/unitDatabase", () => ({
   getUdbFactions: (...args: unknown[]) => mockGetUdbFactions(...args),
 }));
 
+
 import {
   useDatasheet,
   useDatasheetsByFaction,
@@ -67,7 +68,7 @@ describe("useDatasheet", () => {
       expect.stringContaining("udb_unit_id"),
       [42],
     );
-    expect(mockGetUdbUnitDetail).toHaveBeenCalledWith("SM-001");
+    expect(mockGetUdbUnitDetail).toHaveBeenCalledWith("SM-001", "en");
   });
 
   it("returns null when unit has no udb_unit_id link", async () => {
@@ -105,7 +106,7 @@ describe("useDatasheetsByFaction", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual(mockUnits);
-    expect(mockGetUdbUnitsByFaction).toHaveBeenCalledWith("SM");
+    expect(mockGetUdbUnitsByFaction).toHaveBeenCalledWith("SM", "en");
   });
 
   it("is disabled when factionId is undefined", () => {

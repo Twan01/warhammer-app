@@ -16,6 +16,10 @@ export function LocaleToggle({ collapsed }: { collapsed: boolean }) {
     queryClient.invalidateQueries({ queryKey: ["udb-factions"] });
     queryClient.invalidateQueries({ queryKey: ["udb-units"] });
     queryClient.invalidateQueries({ queryKey: ["udb-unit-detail"] });
+    queryClient.invalidateQueries({ queryKey: ["wahapedia-factions"] });
+    queryClient.invalidateQueries({ queryKey: ["datasheets-by-faction"] });
+    queryClient.invalidateQueries({ queryKey: ["datasheets-with-points"] });
+    queryClient.invalidateQueries({ queryKey: ["datasheet"] });
   }
 
   if (collapsed) {
