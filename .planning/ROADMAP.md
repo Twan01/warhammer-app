@@ -133,7 +133,7 @@ Plans:
 **Wave 1**
 
 - [x] 111-01-PLAN.md — Build script French overlay loading + translations_fr.json stub
-- [ ] 111-02-PLAN.md — Locale store + COALESCE query layer + locale-keyed hooks
+- [x] 111-02-PLAN.md — Locale store + COALESCE query layer + locale-keyed hooks
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -258,7 +258,7 @@ Phases execute in numeric order: 108 → 109 → 110 → 111
 | 108. Build Script Hardening & Schema Foundation | v0.4.2 | 3/3 | Complete | 2026-06-01 |
 | 109. Sub-faction Filter UI | v0.4.2 | 2/2 | Complete | 2026-06-01 |
 | 110. PlaybookTab & Game Day Revival | v0.4.2 | 3/3 | Complete    | 2026-06-01 |
-| 111. Bilingual Infrastructure | v0.4.2 | 1/3 | In Progress|  |
+| 111. Bilingual Infrastructure | v0.4.2 | 2/3 | In Progress|  |
 
 <details>
 <summary>✅ v0.2.14 Backup 2.0 (Phases 79-83) — SHIPPED 2026-05-19</summary>
