@@ -108,9 +108,9 @@ Plans:
   4. Searching in FTS5 with a French unit name returns the correct unit — French names are indexed alongside English names
 **Plans**: 3 plans
 Plans:
-- [ ] 108-01-PLAN.md — Shared lib extraction, determinism, normalization, aliases
-- [ ] 108-02-PLAN.md — Multi-pass matching, sub-faction mapping, coverage reporting
-- [ ] 108-03-PLAN.md — Migration 041, Rust import extension, Data Health coverage UI
+- [ ] 111-01-PLAN.md — Build script French overlay loading + translations_fr.json stub
+- [ ] 111-02-PLAN.md — Locale store + COALESCE query layer + locale-keyed hooks
+- [ ] 111-03-PLAN.md — LocaleToggle sidebar UI + FTS5 bilingual search extension
 **UI hint**: yes
 
 ## Progress
@@ -230,7 +230,7 @@ Phases execute in numeric order: 108 → 109 → 110 → 111
 | 108. Build Script Hardening & Schema Foundation | v0.4.2 | 3/3 | Complete | 2026-06-01 |
 | 109. Sub-faction Filter UI | v0.4.2 | 0/2 | Not started | - |
 | 110. PlaybookTab & Game Day Revival | v0.4.2 | 0/? | Not started | - |
-| 111. Bilingual Infrastructure | v0.4.2 | 0/? | Not started | - |
+| 111. Bilingual Infrastructure | v0.4.2 | 0/3 | Not started | - |
 
 <details>
 <summary>✅ v0.2.14 Backup 2.0 (Phases 79-83) — SHIPPED 2026-05-19</summary>
