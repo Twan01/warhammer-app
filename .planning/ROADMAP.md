@@ -60,7 +60,11 @@ Full details: `.planning/milestones/v0.4.0-ROADMAP.md`
   3. Points coverage reaches 85%+ across all factions (up from 37%), verified by the coverage report
   4. Data Health page shows per-faction points coverage badges (green/amber/red) so the user can spot low-coverage factions at a glance
   5. The `udb_units` table has `sub_faction` and `_fr` locale columns; the Rust import command handles `_fr` fields with `#[serde(default)]` so re-import does not wipe French data
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 108-01-PLAN.md — Shared lib extraction, determinism, normalization, aliases
+- [ ] 108-02-PLAN.md — Multi-pass matching, sub-faction mapping, coverage reporting
+- [ ] 108-03-PLAN.md — Migration 041, Rust import extension, Data Health coverage UI
 
 ### Phase 109: Sub-faction Filter UI
 **Goal**: Users can filter the database browser, army list unit picker, and collection browser by sub-faction (SM chapter, CSM warband, Aeldari sub-faction, etc.)
@@ -71,7 +75,11 @@ Full details: `.planning/milestones/v0.4.0-ROADMAP.md`
   2. The army list unit picker shows a sub-faction filter for applicable factions, narrowing the unit list correctly
   3. The collection browser shows a sub-faction filter for applicable factions
   4. Typing a chapter name (e.g., "Ultramarines") into the FTS5 search returns matching units via the indexed sub-faction field
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 108-01-PLAN.md — Shared lib extraction, determinism, normalization, aliases
+- [ ] 108-02-PLAN.md — Multi-pass matching, sub-faction mapping, coverage reporting
+- [ ] 108-03-PLAN.md — Migration 041, Rust import extension, Data Health coverage UI
 **UI hint**: yes
 
 ### Phase 110: PlaybookTab & Game Day Revival
@@ -83,7 +91,11 @@ Full details: `.planning/milestones/v0.4.0-ROADMAP.md`
   2. Game Day unit ability cards show a collapsible weapon profiles section sourced from the canonical database
   3. Once-per-game toggle state persists correctly across re-imports — keys are `unit_id:ability_name` composites, not reassignable AUTOINCREMENT IDs
   4. Army list validation uses canonical roles and keywords from `udb_*` for enhanced composition checks (BATTLELINE count, role coverage)
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 108-01-PLAN.md — Shared lib extraction, determinism, normalization, aliases
+- [ ] 108-02-PLAN.md — Multi-pass matching, sub-faction mapping, coverage reporting
+- [ ] 108-03-PLAN.md — Migration 041, Rust import extension, Data Health coverage UI
 **UI hint**: yes
 
 ### Phase 111: Bilingual Infrastructure
@@ -95,7 +107,11 @@ Full details: `.planning/milestones/v0.4.0-ROADMAP.md`
   2. The query layer uses `COALESCE(col_fr, col)` when the active locale is FR, falling back to English for any untranslated entry — no empty cells shown
   3. An EN/FR locale toggle is visible in the app (persisted to localStorage); switching it changes all canonical data labels (faction names, unit names, ability names) to French
   4. Searching in FTS5 with a French unit name returns the correct unit — French names are indexed alongside English names
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 108-01-PLAN.md — Shared lib extraction, determinism, normalization, aliases
+- [ ] 108-02-PLAN.md — Multi-pass matching, sub-faction mapping, coverage reporting
+- [ ] 108-03-PLAN.md — Migration 041, Rust import extension, Data Health coverage UI
 **UI hint**: yes
 
 ## Progress
@@ -212,7 +228,7 @@ Phases execute in numeric order: 108 → 109 → 110 → 111
 | 105. Collection Integration | v0.4.0 | 2/2 | Complete | 2026-05-30 |
 | 106. Army List Simplification | v0.4.0 | 2/2 | Complete | 2026-05-30 |
 | 107. Cleanup & Pipeline | v0.4.0 | 2/2 | Complete | 2026-05-31 |
-| 108. Build Script Hardening & Schema Foundation | v0.4.2 | 0/? | Not started | - |
+| 108. Build Script Hardening & Schema Foundation | v0.4.2 | 0/3 | Not started | - |
 | 109. Sub-faction Filter UI | v0.4.2 | 0/? | Not started | - |
 | 110. PlaybookTab & Game Day Revival | v0.4.2 | 0/? | Not started | - |
 | 111. Bilingual Infrastructure | v0.4.2 | 0/? | Not started | - |
