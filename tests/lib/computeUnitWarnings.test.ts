@@ -228,9 +228,9 @@ describe("computeListWarnings", () => {
   it("returns empty hard and soft for a healthy list", () => {
     const ctx = makeContext({ totalPoints: 1500, pointsLimit: 2000, freshness: "fresh" });
     const units = [
-      { udb_role: "Battleline", unit_id: 1 },
-      { udb_role: "Battleline", unit_id: 2 },
-      { udb_role: "Battleline", unit_id: 3 },
+      { udb_role: "Battleline", unit_id: 1, udb_unit_id: null, udb_keywords: null },
+      { udb_role: "Battleline", unit_id: 2, udb_unit_id: null, udb_keywords: null },
+      { udb_role: "Battleline", unit_id: 3, udb_unit_id: null, udb_keywords: null },
     ];
     const result = computeListWarnings(ctx, units);
     expect(result.hard).toEqual([]);
@@ -242,7 +242,7 @@ describe("computeListWarnings", () => {
   // -------------------------------------------------------------------------
   it("returns soft warning when 2000pt list has fewer than 3 Battleline units", () => {
     const units = [
-      { udb_role: "Battleline", unit_id: 1 },
+      { udb_role: "Battleline", unit_id: 1, udb_unit_id: null, udb_keywords: null },
     ];
     const ctx = makeContext({ totalPoints: 1500, pointsLimit: 2000 });
     const result = computeListWarnings(ctx, units);
@@ -251,7 +251,7 @@ describe("computeListWarnings", () => {
 
   it("returns soft warning when 1000pt list has 0 Battleline units", () => {
     const units = [
-      { udb_role: "Character", unit_id: 1 },
+      { udb_role: "Character", unit_id: 1, udb_unit_id: null, udb_keywords: null },
     ];
     const ctx = makeContext({ totalPoints: 800, pointsLimit: 1000 });
     const result = computeListWarnings(ctx, units);
@@ -260,9 +260,9 @@ describe("computeListWarnings", () => {
 
   it("returns no Battleline warning when threshold is met (3 battleline at 2000pt)", () => {
     const units = [
-      { udb_role: "Battleline", unit_id: 1 },
-      { udb_role: "Battleline", unit_id: 2 },
-      { udb_role: "Battleline", unit_id: 3 },
+      { udb_role: "Battleline", unit_id: 1, udb_unit_id: null, udb_keywords: null },
+      { udb_role: "Battleline", unit_id: 2, udb_unit_id: null, udb_keywords: null },
+      { udb_role: "Battleline", unit_id: 3, udb_unit_id: null, udb_keywords: null },
     ];
     const ctx = makeContext({ totalPoints: 1800, pointsLimit: 2000 });
     const result = computeListWarnings(ctx, units);
@@ -272,7 +272,7 @@ describe("computeListWarnings", () => {
 
   it("skips Battleline check when pointsLimit is null", () => {
     const units = [
-      { udb_role: "Character", unit_id: 1 },
+      { udb_role: "Character", unit_id: 1, udb_unit_id: null, udb_keywords: null },
     ];
     const ctx = makeContext({ pointsLimit: null });
     const result = computeListWarnings(ctx, units);
@@ -282,8 +282,8 @@ describe("computeListWarnings", () => {
 
   it("counts Battleline case-insensitively", () => {
     const units = [
-      { udb_role: "battleline", unit_id: 1 },
-      { udb_role: "BATTLELINE", unit_id: 2 },
+      { udb_role: "battleline", unit_id: 1, udb_unit_id: null, udb_keywords: null },
+      { udb_role: "BATTLELINE", unit_id: 2, udb_unit_id: null, udb_keywords: null },
     ];
     const ctx = makeContext({ pointsLimit: 1500 });
     const result = computeListWarnings(ctx, units);
@@ -293,8 +293,8 @@ describe("computeListWarnings", () => {
 
   it("skips unlinked units (unit_id = null) when counting Battleline", () => {
     const units = [
-      { udb_role: "Battleline", unit_id: null },  // ghost/unlinked — skipped
-      { udb_role: "Battleline", unit_id: 1 },
+      { udb_role: "Battleline", unit_id: null, udb_unit_id: null, udb_keywords: null },  // ghost/unlinked — skipped
+      { udb_role: "Battleline", unit_id: 1, udb_unit_id: null, udb_keywords: null },
     ];
     const ctx = makeContext({ pointsLimit: 2000 });
     const result = computeListWarnings(ctx, units);
