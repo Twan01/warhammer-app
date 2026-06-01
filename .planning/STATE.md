@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.4.2
 milestone_name: Unit Database 2.0 — Data Quality, Sub-factions & Integration
 status: verifying
-stopped_at: Phase 109 complete — all plans done
-last_updated: "2026-06-01T11:26:38Z"
+stopped_at: Phase 109 executed — verification passed (human_needed for 5 UI items)
+last_updated: "2026-06-01T11:51:35.913Z"
 last_activity: 2026-06-01
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 11
-  completed_plans: 6
-  percent: 54
+  completed_plans: 7
+  percent: 50
 ---
 
 # Project State
@@ -30,7 +30,7 @@ Plan: 2 of 2 (all done)
 Status: Phase complete — ready for verification
 Last activity: 2026-06-01
 
-Progress: [█████░░░░░] 54%
+Progress: [██████░░░░] 64%
 
 ## Performance Metrics
 
@@ -95,7 +95,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-01
+Last session: 2026-06-01T11:51:35.907Z
 Stopped at: Phase 109 executed — verification passed (human_needed for 5 UI items)
-Resume file: .planning/phases/109-sub-faction-filter-ui/109-VERIFICATION.md
+Resume file: None
 Resume: Human-test Phase 109 UI, then /gsd:discuss-phase 110 --auto
