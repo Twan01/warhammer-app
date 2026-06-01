@@ -1,6 +1,7 @@
 import type { UdbUnitSummary } from "@/db/queries/unitDatabase";
 
 export interface UdbFiltersInput {
+  subFactionFilter: string | null;
   roleFilter: string | null;
   keywordFilter: string;
   pointMin: number | null;
@@ -23,6 +24,11 @@ export function applyUdbFilters(
   const keyword = filters.keywordFilter.trim().toLowerCase();
 
   return units.filter((unit) => {
+    // Sub-faction filter (checked first per plan specification)
+    if (filters.subFactionFilter !== null && unit.sub_faction !== filters.subFactionFilter) {
+      return false;
+    }
+
     // Role filter
     if (filters.roleFilter !== null && unit.role !== filters.roleFilter) {
       return false;

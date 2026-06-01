@@ -21,6 +21,7 @@ const UNITS: UdbUnitSummary[] = [
 ];
 
 const NO_FILTER: UdbFiltersInput = {
+  subFactionFilter: null,
   roleFilter: null,
   keywordFilter: "",
   pointMin: null,
@@ -73,7 +74,7 @@ describe("applyUdbFilters", () => {
   it("AND logic combining multiple filters", () => {
     const result = applyUdbFilters(
       UNITS,
-      { roleFilter: "Battleline", keywordFilter: "tacticus", pointMin: null, pointMax: 90 },
+      { subFactionFilter: null, roleFilter: "Battleline", keywordFilter: "tacticus", pointMin: null, pointMax: 90 },
       KEYWORDS_MAP,
     );
     expect(result).toHaveLength(1);
@@ -94,11 +95,41 @@ describe("applyUdbFilters", () => {
     expect(result).toHaveLength(4);
   });
 
-  it("keyword filter without keywordsMap matches no units via keyword", () => {
+  it("keyword filter without keywordsMap excludes all units", () => {
     // When keywordsMap is not provided but keyword filter is set,
-    // the keyword check is skipped (unitKeywords is empty), so units pass through
+    // the keyword check returns false for all units (no map to match against)
     const result = applyUdbFilters(UNITS, { ...NO_FILTER, keywordFilter: "Infantry" });
-    // No keywordsMap => keyword check is skipped, all pass
+    expect(result).toHaveLength(0);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Phase 109: Sub-faction filter tests
+  // ---------------------------------------------------------------------------
+
+  it("filters by subFactionFilter", () => {
+    const result = applyUdbFilters(UNITS, { ...NO_FILTER, subFactionFilter: "Ultramarines" });
+    expect(result).toHaveLength(2);
+    expect(result.map((u) => u.name)).toEqual(["Intercessors", "Eradicators"]);
+  });
+
+  it("subFactionFilter excludes units with null sub_faction", () => {
+    const result = applyUdbFilters(UNITS, { ...NO_FILTER, subFactionFilter: "Dark Angels" });
+    expect(result).toHaveLength(1);
+    expect(result[0].name).toBe("Mystery Unit");
+  });
+
+  it("subFactionFilter null returns all units", () => {
+    const result = applyUdbFilters(UNITS, { ...NO_FILTER, subFactionFilter: null });
     expect(result).toHaveLength(5);
+  });
+
+  it("AND logic with subFactionFilter and roleFilter", () => {
+    const result = applyUdbFilters(UNITS, {
+      ...NO_FILTER,
+      subFactionFilter: "Ultramarines",
+      roleFilter: "Battleline",
+    });
+    expect(result).toHaveLength(2);
+    expect(result.map((u) => u.name)).toEqual(["Intercessors", "Eradicators"]);
   });
 });

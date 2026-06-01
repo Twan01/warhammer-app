@@ -28,6 +28,7 @@ export function DatabaseBrowserPage() {
   const {
     selectedFactionId,
     searchText,
+    subFactionFilter,
     roleFilter,
     keywordFilter,
     pointMin,
@@ -61,10 +62,10 @@ export function DatabaseBrowserPage() {
     () =>
       applyUdbFilters(
         units,
-        { roleFilter, keywordFilter, pointMin, pointMax },
+        { subFactionFilter, roleFilter, keywordFilter, pointMin, pointMax },
         keywordsMap,
       ),
-    [units, roleFilter, keywordFilter, pointMin, pointMax, keywordsMap],
+    [units, subFactionFilter, roleFilter, keywordFilter, pointMin, pointMax, keywordsMap],
   );
 
   const availableRoles = useMemo(() => {
