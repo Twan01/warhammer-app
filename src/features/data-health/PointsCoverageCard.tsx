@@ -6,6 +6,7 @@
  *   - Amber (50-84%): Partial coverage
  *   - Red (<50%): Low coverage
  */
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,17 +37,16 @@ function coverageBadge(pct: number) {
 export function PointsCoverageCard() {
   const { data: factions, isLoading } = usePointsCoverage();
 
-  const overall =
-    factions && factions.length > 0
-      ? {
-          totalUnits: factions.reduce((s, f) => s + f.total_units, 0),
-          withPoints: factions.reduce((s, f) => s + f.units_with_points, 0),
-          pct: Math.round(
-            (100 * factions.reduce((s, f) => s + f.units_with_points, 0)) /
-              factions.reduce((s, f) => s + f.total_units, 0)
-          ),
-        }
-      : null;
+  const overall = useMemo(() => {
+    if (!factions || factions.length === 0) return null;
+    const totalUnits = factions.reduce((s, f) => s + f.total_units, 0);
+    const withPoints = factions.reduce((s, f) => s + f.units_with_points, 0);
+    return {
+      totalUnits,
+      withPoints,
+      pct: totalUnits > 0 ? Math.round((100 * withPoints) / totalUnits) : 0,
+    };
+  }, [factions]);
 
   return (
     <Card>
