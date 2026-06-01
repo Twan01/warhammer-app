@@ -4,8 +4,6 @@
  * Extracted from build-unit-db.ts for shared use by both build scripts.
  */
 
-import { readFileSync } from "node:fs";
-
 /**
  * Parse a pipe-delimited Wahapedia CSV string into an array of record objects.
  * Each record maps header names to trimmed string values.
@@ -20,12 +18,4 @@ export function parseWahapediaCsv(raw: string): Record<string, string>[] {
       headers.map((h, i) => [h, (values[i] ?? "").trim()])
     );
   });
-}
-
-/**
- * Convenience wrapper: read a CSV file from disk and parse it.
- */
-export function readCsv(filepath: string): Record<string, string>[] {
-  const raw = readFileSync(filepath, "utf-8");
-  return parseWahapediaCsv(raw);
 }
