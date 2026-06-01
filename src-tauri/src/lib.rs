@@ -731,7 +731,9 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
         "INSERT INTO udb_search(unit_id, name, faction_name, keywords) \
          SELECT u.id, u.name, f.name, \
                 COALESCE(u.name_fr || ' ', '') || COALESCE(f.name_fr || ' ', '') || \
-                COALESCE(u.sub_faction || ' ', '') || COALESCE(GROUP_CONCAT(k.keyword, ' '), '') \
+                COALESCE(u.sub_faction || ' ', '') || \
+                COALESCE(GROUP_CONCAT(k.keyword, ' '), '') || ' ' || \
+                COALESCE(GROUP_CONCAT(k.keyword_fr, ' '), '') \
          FROM udb_units u \
          JOIN udb_factions f ON f.id = u.faction_id \
          LEFT JOIN udb_unit_keywords k ON k.unit_id = u.id \
