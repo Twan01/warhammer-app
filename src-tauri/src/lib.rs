@@ -547,11 +547,12 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
         let id = str_val(row, "id").unwrap_or_default();
         if id.is_empty() { continue; }
         let res = sqlx::query(
-            "INSERT INTO udb_factions (id, name, short_name) VALUES (?, ?, ?)",
+            "INSERT INTO udb_factions (id, name, short_name, name_fr) VALUES (?, ?, ?, ?)",
         )
         .bind(&id)
         .bind(str_val(row, "name").unwrap_or_default())
         .bind(str_val(row, "short_name"))
+        .bind(str_val(row, "name_fr"))
         .execute(&mut *tx)
         .await
         .map_err(|e| format!("insert faction {id}: {e}"))?;
@@ -563,7 +564,7 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
         let id = str_val(row, "id").unwrap_or_default();
         if id.is_empty() { continue; }
         let res = sqlx::query(
-            "INSERT INTO udb_units (id, faction_id, name, role, base_points, damaged_w, damaged_desc) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO udb_units (id, faction_id, name, role, base_points, damaged_w, damaged_desc, sub_faction, name_fr) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(&id)
         .bind(str_val(row, "faction_id").unwrap_or_default())
@@ -572,6 +573,8 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
         .bind(i64_val(row, "base_points"))
         .bind(str_val(row, "damaged_w"))
         .bind(str_val(row, "damaged_desc"))
+        .bind(str_val(row, "sub_faction"))
+        .bind(str_val(row, "name_fr"))
         .execute(&mut *tx)
         .await
         .map_err(|e| format!("insert unit {id}: {e}"))?;
@@ -606,7 +609,7 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
         let unit_id = str_val(row, "unit_id").unwrap_or_default();
         if unit_id.is_empty() { continue; }
         let res = sqlx::query(
-            "INSERT INTO udb_unit_weapons (unit_id, weapon_group, line_order, name, category, range, attacks, skill, strength, ap, damage, keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO udb_unit_weapons (unit_id, weapon_group, line_order, name, category, range, attacks, skill, strength, ap, damage, keywords, name_fr) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(&unit_id)
         .bind(i64_val(row, "weapon_group").unwrap_or(1))
@@ -620,6 +623,7 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
         .bind(str_val(row, "ap"))
         .bind(str_val(row, "damage"))
         .bind(str_val(row, "keywords"))
+        .bind(str_val(row, "name_fr"))
         .execute(&mut *tx)
         .await
         .map_err(|e| format!("insert weapon unit_id={unit_id}: {e}"))?;
@@ -631,13 +635,15 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
         let unit_id = str_val(row, "unit_id").unwrap_or_default();
         if unit_id.is_empty() { continue; }
         let res = sqlx::query(
-            "INSERT INTO udb_unit_abilities (unit_id, line_order, name, description, ability_type) VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO udb_unit_abilities (unit_id, line_order, name, description, ability_type, name_fr, description_fr) VALUES (?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(&unit_id)
         .bind(i64_val(row, "line_order").unwrap_or(0))
         .bind(str_val(row, "name").unwrap_or_default())
         .bind(str_val(row, "description"))
         .bind(str_val(row, "ability_type"))
+        .bind(str_val(row, "name_fr"))
+        .bind(str_val(row, "description_fr"))
         .execute(&mut *tx)
         .await
         .map_err(|e| format!("insert ability unit_id={unit_id}: {e}"))?;
@@ -651,11 +657,12 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
         if unit_id.is_empty() || keyword.is_empty() { continue; }
         let is_faction: i64 = i64_val(row, "is_faction").unwrap_or(0);
         let res = sqlx::query(
-            "INSERT OR IGNORE INTO udb_unit_keywords (unit_id, keyword, is_faction) VALUES (?, ?, ?)",
+            "INSERT OR IGNORE INTO udb_unit_keywords (unit_id, keyword, is_faction, keyword_fr) VALUES (?, ?, ?, ?)",
         )
         .bind(&unit_id)
         .bind(&keyword)
         .bind(is_faction)
+        .bind(str_val(row, "keyword_fr"))
         .execute(&mut *tx)
         .await
         .map_err(|e| format!("insert keyword unit_id={unit_id} keyword={keyword}: {e}"))?;
@@ -717,7 +724,7 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
     sqlx::query(
         "INSERT INTO udb_search(unit_id, name, faction_name, keywords) \
          SELECT u.id, u.name, f.name, \
-                COALESCE(GROUP_CONCAT(k.keyword, ' '), '') \
+                COALESCE(u.sub_faction || ' ', '') || COALESCE(GROUP_CONCAT(k.keyword, ' '), '') \
          FROM udb_units u \
          JOIN udb_factions f ON f.id = u.faction_id \
          LEFT JOIN udb_unit_keywords k ON k.unit_id = u.id \
