@@ -9,8 +9,8 @@ progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 3
-  completed_plans: 2
-  percent: 17
+  completed_plans: 3
+  percent: 25
 ---
 
 # Project State
@@ -24,12 +24,12 @@ See: .planning/PROJECT.md (updated 2026-06-01)
 
 ## Current Position
 
-Phase: 108 of 111 (Build Script Hardening & Schema Foundation)
-Plan: 3 of 3 (108-03 next)
+Phase: 109 of 111 (Sub-faction Filter UI)
+Plan: 1 of 3 (109-01 next)
 Status: Executing
-Last activity: 2026-06-01 — Completed 108-02 (multi-pass matching, sub-faction, coverage report)
+Last activity: 2026-06-01 — Completed 108-03 (migration 041, Rust import, coverage UI)
 
-Progress: [##░░░░░░░░] 17%
+Progress: [###░░░░░░░] 25%
 
 ## Performance Metrics
 
@@ -53,6 +53,8 @@ Progress: [##░░░░░░░░] 17%
 - Cross-faction matching for Drukhari (BSData AE -> Wahapedia DRU)
 - 85% Wahapedia coverage unachievable: BSData covers 62% of datasheets; match rate is 96.9%
 - 44 aliases for singular/plural and variant name mismatches
+- FTS5 rebuild includes sub_faction via COALESCE concatenation in keywords column
+- Coverage badges use computed SQL query (live) not coverage-report.json (static)
 
 ### Key Decisions (v0.4.0 — carried forward)
 
@@ -92,6 +94,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-06-01
-Stopped at: Completed 108-02 (multi-pass matching, sub-faction, coverage report)
-Resume file: .planning/phases/108-build-script-hardening-schema-foundation/108-03-PLAN.md
-Resume: Continue Phase 108 with /gsd:execute-phase 108
+Stopped at: Completed 108-03 (migration 041, Rust import, coverage UI) -- Phase 108 complete
+Resume file: .planning/phases/109-sub-faction-filter-ui/109-01-PLAN.md
+Resume: Continue with /gsd:execute-phase 109
