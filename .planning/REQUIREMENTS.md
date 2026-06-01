@@ -10,12 +10,12 @@ Requirements for Unit Database 2.0 — Data Quality, Sub-factions & Integration.
 ### Data Quality & Build Pipeline
 
 - [ ] **DQ-01**: Build script produces a per-faction coverage report (units with/without points, match rate) on every run
-- [ ] **DQ-02**: Build script sorts file reads (`files.sort()`) for deterministic output across machines
+- [x] **DQ-02**: Build script sorts file reads (`files.sort()`) for deterministic output across machines
 - [ ] **DQ-03**: Build script applies name normalization (lowercase, strip special chars, trim whitespace) before BSData matching
 - [ ] **DQ-04**: Build script loads a manual alias table (`scripts/data/aliases.json`) for units where automatic matching fails
 - [ ] **DQ-05**: Points coverage reaches 85%+ across all factions (up from 37%)
 - [ ] **DQ-06**: Data Health page shows per-faction points coverage badges (green/amber/red tiers)
-- [ ] **DQ-07**: Build script extracts shared parsing logic to `scripts/lib/` to eliminate duplication between build and update scripts
+- [x] **DQ-07**: Build script extracts shared parsing logic to `scripts/lib/` to eliminate duplication between build and update scripts
 
 ### Sub-faction Filtering
 
@@ -76,12 +76,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | DQ-01 | Phase 108 | Pending |
-| DQ-02 | Phase 108 | Pending |
+| DQ-02 | Phase 108 | Complete |
 | DQ-03 | Phase 108 | Pending |
 | DQ-04 | Phase 108 | Pending |
 | DQ-05 | Phase 108 | Pending |
 | DQ-06 | Phase 108 | Pending |
-| DQ-07 | Phase 108 | Pending |
+| DQ-07 | Phase 108 | Complete |
 | SF-01 | Phase 108 | Pending |
 | SF-02 | Phase 108 | Pending |
 | SF-03 | Phase 109 | Pending |

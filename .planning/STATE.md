@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.4.2
 milestone_name: Unit Database 2.0 — Data Quality, Sub-factions & Integration
-status: roadmap_complete
+status: executing
 last_updated: "2026-06-01"
 last_activity: 2026-06-01
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 3
+  completed_plans: 1
+  percent: 8
 ---
 
 # Project State
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-06-01)
 ## Current Position
 
 Phase: 108 of 111 (Build Script Hardening & Schema Foundation)
-Plan: 3 plans in 3 waves (108-01, 108-02, 108-03)
-Status: Ready to execute
-Last activity: 2026-06-01 — Phase 108 planned (3 plans, 11 requirements covered)
+Plan: 2 of 3 (108-02 next)
+Status: Executing
+Last activity: 2026-06-01 — Completed 108-01 (shared lib extraction, determinism, normalization)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [#░░░░░░░░░] 8%
 
 ## Performance Metrics
 
@@ -43,6 +43,12 @@ Progress: [░░░░░░░░░░] 0%
 - v0.2.14: 11 plans across 5 phases (2 days)
 
 ## Accumulated Context
+
+### Key Decisions (v0.4.2)
+
+- SUB_FACTION_MAP covers 17 entries: 11 SM chapters, 4 CSM warbands, 2 Aeldari sub-factions
+- aliases.json starts empty; populated iteratively after coverage analysis
+- Added .gitignore exception for aliases.json since scripts/data/ is globally ignored
 
 ### Key Decisions (v0.4.0 — carried forward)
 
@@ -82,6 +88,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-06-01
-Stopped at: Phase 108 planned — 3 plans in 3 waves
-Resume file: .planning/phases/108-build-script-hardening-schema-foundation/108-01-PLAN.md
-Resume: Execute Phase 108 with /gsd:execute-phase 108
+Stopped at: Completed 108-01 (shared lib extraction, determinism)
+Resume file: .planning/phases/108-build-script-hardening-schema-foundation/108-02-PLAN.md
+Resume: Continue Phase 108 with /gsd:execute-phase 108
