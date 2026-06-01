@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { ShowcaseMode } from "./ShowcaseMode";
 import { useUnitsEnriched, useUpdateUnit, UNITS_ENRICHED_KEY } from "@/hooks/useUnits";
 import { useFactions } from "@/hooks/useFactions";
+import { useUdbSubFactions, useUdbSubFactionUnitIds } from "@/hooks/useUnitDatabase";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Unit, EnrichedUnit } from "@/types/unit";
@@ -44,7 +45,22 @@ export function CollectionPage() {
   const categoriesSel = useCollectionFilters((s) => s.categories);
   const activeOnly = useCollectionFilters((s) => s.activeOnly);
   const battleReady = useCollectionFilters((s) => s.battleReady);
+  const subFactionFilter = useCollectionFilters((s) => s.subFactionFilter);
   const clearAll = useCollectionFilters((s) => s.clearAll);
+
+  // Sub-faction filtering: only when exactly 1 faction selected
+  const singleFactionId = factionsSel.length === 1 ? factionsSel[0] : null;
+  const udbFactionId = singleFactionId != null
+    ? factions?.find((f) => f.id === singleFactionId)?.wahapedia_faction_id ?? null
+    : null;
+
+  const { data: subFactions = [] } = useUdbSubFactions(udbFactionId);
+  const { data: subFactionUnitIds } = useUdbSubFactionUnitIds(udbFactionId, subFactionFilter);
+
+  const subFactionIdSet = useMemo(
+    () => new Set(subFactionUnitIds ?? []),
+    [subFactionUnitIds],
+  );
 
   const hasActiveFilters =
     search.length > 0 ||
@@ -52,14 +68,23 @@ export function CollectionPage() {
     statusesSel.length > 0 ||
     categoriesSel.length > 0 ||
     activeOnly ||
-    battleReady;
+    battleReady ||
+    subFactionFilter !== null;
 
-  const filteredUnits = useMemo(
+  const preFilteredUnits = useMemo(
     () =>
       applyUnitFilters(units ?? [], {
         search, factions: factionsSel, statuses: statusesSel, categories: categoriesSel, activeOnly, battleReady,
       }),
     [units, search, factionsSel, statusesSel, categoriesSel, activeOnly, battleReady]
+  );
+
+  const filteredUnits = useMemo(
+    () =>
+      subFactionFilter !== null && subFactionIdSet.size > 0
+        ? preFilteredUnits.filter((u) => u.udb_unit_id != null && subFactionIdSet.has(u.udb_unit_id))
+        : preFilteredUnits,
+    [preFilteredUnits, subFactionFilter, subFactionIdSet],
   );
 
   // COLL-01 — batch photo map for gallery thumbnails
@@ -198,7 +223,7 @@ export function CollectionPage() {
         }
       />
 
-      <UnitFilters units={units ?? []} />
+      <UnitFilters units={units ?? []} subFactions={subFactions} />
 
       {unitsError ? (
         <p className="text-sm text-destructive">

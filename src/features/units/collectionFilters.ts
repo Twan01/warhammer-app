@@ -8,12 +8,14 @@ interface CollectionFiltersState {
   categories: string[];
   activeOnly: boolean;
   battleReady: boolean;
+  subFactionFilter: string | null;
   setSearch: (v: string) => void;
   toggleFaction: (id: number) => void;
   toggleStatus: (s: PaintingStatus) => void;
   toggleCategory: (c: string) => void;
   toggleActiveOnly: () => void;
   toggleBattleReady: () => void;
+  setSubFactionFilter: (sf: string | null) => void;
   clearAll: () => void;
 }
 
@@ -24,12 +26,14 @@ export const useCollectionFilters = create<CollectionFiltersState>((set) => ({
   categories: [],
   activeOnly: false,
   battleReady: false,
+  subFactionFilter: null,
   setSearch: (v) => set({ search: v }),
   toggleFaction: (id) =>
     set((s) => ({
       factions: s.factions.includes(id)
         ? s.factions.filter((f) => f !== id)
         : [...s.factions, id],
+      subFactionFilter: null,
     })),
   toggleStatus: (status) =>
     set((s) => ({
@@ -45,6 +49,7 @@ export const useCollectionFilters = create<CollectionFiltersState>((set) => ({
     })),
   toggleActiveOnly: () => set((s) => ({ activeOnly: !s.activeOnly })),
   toggleBattleReady: () => set((s) => ({ battleReady: !s.battleReady })),
+  setSubFactionFilter: (sf) => set({ subFactionFilter: sf }),
   clearAll: () =>
-    set({ search: "", factions: [], statuses: [], categories: [], activeOnly: false, battleReady: false }),
+    set({ search: "", factions: [], statuses: [], categories: [], activeOnly: false, battleReady: false, subFactionFilter: null }),
 }));

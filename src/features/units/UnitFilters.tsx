@@ -2,6 +2,13 @@ import { useMemo } from "react";
 import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Command, CommandGroup, CommandInput, CommandItem, CommandList, CommandEmpty,
@@ -14,9 +21,10 @@ import { useCollectionFilters } from "./collectionFilters";
 
 interface UnitFiltersProps {
   units: Unit[]; // page passes the unfiltered list so we can derive available categories
+  subFactions?: string[];
 }
 
-export function UnitFilters({ units }: UnitFiltersProps) {
+export function UnitFilters({ units, subFactions = [] }: UnitFiltersProps) {
   const search = useCollectionFilters((s) => s.search);
   const factionsSel = useCollectionFilters((s) => s.factions);
   const statusesSel = useCollectionFilters((s) => s.statuses);
@@ -29,6 +37,8 @@ export function UnitFilters({ units }: UnitFiltersProps) {
   const toggleCategory = useCollectionFilters((s) => s.toggleCategory);
   const toggleActiveOnly = useCollectionFilters((s) => s.toggleActiveOnly);
   const toggleBattleReady = useCollectionFilters((s) => s.toggleBattleReady);
+  const subFactionFilter = useCollectionFilters((s) => s.subFactionFilter);
+  const setSubFactionFilter = useCollectionFilters((s) => s.setSubFactionFilter);
   const clearAll = useCollectionFilters((s) => s.clearAll);
 
   const { data: factions } = useFactions();
@@ -45,7 +55,8 @@ export function UnitFilters({ units }: UnitFiltersProps) {
     statusesSel.length > 0 ||
     categoriesSel.length > 0 ||
     activeOnly ||
-    battleReady;
+    battleReady ||
+    subFactionFilter !== null;
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
@@ -83,6 +94,27 @@ export function UnitFilters({ units }: UnitFiltersProps) {
         isSelected={(v) => categoriesSel.includes(v)}
         onToggle={(v) => toggleCategory(v)}
       />
+
+      {subFactions.length > 0 && (
+        <Select
+          value={subFactionFilter ?? ""}
+          onValueChange={(val) =>
+            setSubFactionFilter(val === "__clear__" ? null : val || null)
+          }
+        >
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Sub-faction" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__clear__">All sub-factions</SelectItem>
+            {subFactions.map((sf) => (
+              <SelectItem key={sf} value={sf}>
+                {sf}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
 
       <Button
         variant={activeOnly ? "default" : "outline"}
