@@ -1,0 +1,81 @@
+/**
+ * Faction and sub-faction mapping constants for the unit database build pipeline.
+ *
+ * FACTION_MAP: BSData catalogue filename -> Wahapedia faction_id
+ * SUB_FACTION_MAP: BSData catalogue filename -> sub-faction label (per D-09)
+ */
+
+/**
+ * Maps BSData catalogue names to Wahapedia faction IDs.
+ * Extracted verbatim from build-unit-db.ts.
+ */
+export const FACTION_MAP: Record<string, string> = {
+  "Imperium - Space Marines": "SM",
+  "Imperium - Black Templars": "SM",
+  "Imperium - Blood Angels": "SM",
+  "Imperium - Dark Angels": "SM",
+  "Imperium - Deathwatch": "SM",
+  "Imperium - Imperial Fists": "SM",
+  "Imperium - Iron Hands": "SM",
+  "Imperium - Raven Guard": "SM",
+  "Imperium - Salamanders": "SM",
+  "Imperium - Space Wolves": "SM",
+  "Imperium - Ultramarines": "SM",
+  "Imperium - White Scars": "SM",
+  "Imperium - Adeptus Custodes": "AC",
+  "Imperium - Adepta Sororitas": "AS",
+  "Imperium - Adeptus Mechanicus": "AdM",
+  "Imperium - Astra Militarum": "AM",
+  "Imperium - Grey Knights": "GK",
+  "Imperium - Agents of the Imperium": "AoI",
+  "Imperium - Imperial Knights": "QI",
+  "Imperium - Adeptus Titanicus": "TL",
+  "Chaos - Chaos Space Marines": "CSM",
+  "Chaos - Death Guard": "DG",
+  "Chaos - Thousand Sons": "TS",
+  "Chaos - World Eaters": "WE",
+  "Chaos - Emperor's Children": "EC",
+  "Chaos - Chaos Knights": "QT",
+  "Chaos - Chaos Daemons": "CD",
+  "Chaos - Titanicus Traitoris": "TL",
+  "Aeldari - Craftworlds": "AE",
+  "Aeldari - Drukhari": "DRU",
+  "Aeldari - Ynnari": "AE",
+  "Necrons": "NEC",
+  "Orks": "ORK",
+  "T'au Empire": "TAU",
+  "Tyranids": "TYR",
+  "Genestealer Cults": "GC",
+  "Leagues of Votann": "LoV",
+  "Unaligned Forces": "UN",
+};
+
+/**
+ * Maps BSData catalogue names to sub-faction labels (per D-09).
+ *
+ * Only chapter-specific / warband-specific catalogues are mapped here.
+ * Units from base catalogues (e.g., "Imperium - Space Marines") get
+ * sub_faction = null -- they are shared across all chapters.
+ */
+export const SUB_FACTION_MAP: Record<string, string> = {
+  // Space Marines chapters
+  "Imperium - Black Templars": "Black Templars",
+  "Imperium - Blood Angels": "Blood Angels",
+  "Imperium - Dark Angels": "Dark Angels",
+  "Imperium - Deathwatch": "Deathwatch",
+  "Imperium - Imperial Fists": "Imperial Fists",
+  "Imperium - Iron Hands": "Iron Hands",
+  "Imperium - Raven Guard": "Raven Guard",
+  "Imperium - Salamanders": "Salamanders",
+  "Imperium - Space Wolves": "Space Wolves",
+  "Imperium - Ultramarines": "Ultramarines",
+  "Imperium - White Scars": "White Scars",
+  // Chaos Space Marines warbands
+  "Chaos - Death Guard": "Death Guard",
+  "Chaos - Thousand Sons": "Thousand Sons",
+  "Chaos - World Eaters": "World Eaters",
+  "Chaos - Emperor's Children": "Emperor's Children",
+  // Aeldari sub-factions
+  "Aeldari - Drukhari": "Drukhari",
+  "Aeldari - Ynnari": "Ynnari",
+};

@@ -27,6 +27,8 @@ Thumbs.db
 
 # Build script source data (Wahapedia CSVs + BSData XML — downloaded by developer, not committed)
 scripts/data/
+# Exception: aliases.json is manually curated and committed
+!scripts/data/aliases.json
 
 # User-local launcher overrides (optional - uncomment to ignore)
 # launch-local.bat
