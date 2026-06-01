@@ -9,8 +9,8 @@ progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
-  percent: 8
+  completed_plans: 2
+  percent: 17
 ---
 
 # Project State
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-06-01)
 ## Current Position
 
 Phase: 108 of 111 (Build Script Hardening & Schema Foundation)
-Plan: 2 of 3 (108-02 next)
+Plan: 3 of 3 (108-03 next)
 Status: Executing
-Last activity: 2026-06-01 — Completed 108-01 (shared lib extraction, determinism, normalization)
+Last activity: 2026-06-01 — Completed 108-02 (multi-pass matching, sub-faction, coverage report)
 
-Progress: [#░░░░░░░░░] 8%
+Progress: [##░░░░░░░░] 17%
 
 ## Performance Metrics
 
@@ -49,6 +49,10 @@ Progress: [#░░░░░░░░░] 8%
 - SUB_FACTION_MAP covers 17 entries: 11 SM chapters, 4 CSM warbands, 2 Aeldari sub-factions
 - aliases.json starts empty; populated iteratively after coverage analysis
 - Added .gitignore exception for aliases.json since scripts/data/ is globally ignored
+- BSData Library .cat files must be included -- contain all points for AM/AE/CD/QT/QI/TL
+- Cross-faction matching for Drukhari (BSData AE -> Wahapedia DRU)
+- 85% Wahapedia coverage unachievable: BSData covers 62% of datasheets; match rate is 96.9%
+- 44 aliases for singular/plural and variant name mismatches
 
 ### Key Decisions (v0.4.0 — carried forward)
 
@@ -88,6 +92,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-06-01
-Stopped at: Completed 108-01 (shared lib extraction, determinism)
-Resume file: .planning/phases/108-build-script-hardening-schema-foundation/108-02-PLAN.md
+Stopped at: Completed 108-02 (multi-pass matching, sub-faction, coverage report)
+Resume file: .planning/phases/108-build-script-hardening-schema-foundation/108-03-PLAN.md
 Resume: Continue Phase 108 with /gsd:execute-phase 108
