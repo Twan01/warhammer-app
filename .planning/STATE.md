@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.4.2
 milestone_name: Unit Database 2.0 — Data Quality, Sub-factions & Integration
 status: executing
-stopped_at: Phase 111 UI-SPEC approved
-last_updated: "2026-06-01T10:36:01.856Z"
+stopped_at: Phase 110 UI-SPEC approved
+last_updated: "2026-06-01T10:37:58.849Z"
 last_activity: 2026-06-01 — Completed 108-03 (migration 041, Rust import, coverage UI)
 progress:
   total_phases: 4
@@ -94,7 +94,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-01T10:36:01.826Z
-Stopped at: Phase 111 UI-SPEC approved
-Resume file: .planning/phases/111-bilingual-infrastructure/111-UI-SPEC.md
+Last session: 2026-06-01T10:37:58.763Z
+Stopped at: Phase 110 UI-SPEC approved
+Resume file: .planning/phases/110-playbooktab-game-day-revival/110-UI-SPEC.md
 Resume: Continue Phase 109 with /gsd:plan-phase 109
