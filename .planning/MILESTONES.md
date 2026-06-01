@@ -1,4 +1,25 @@
 # Milestones
+## v0.4.2 Unit Database 2.0 — Data Quality, Sub-factions & Integration (Shipped: 2026-06-01)
+
+**Phases completed:** 4 phases (108-111), 11 plans
+**Timeline:** 2026-06-01 (single day)
+**Stats:** ~84 commits, 93 files changed, +8,092 / -245 lines, 23/23 requirements satisfied, Nyquist 3/4 compliant
+
+**Key accomplishments:**
+- Build pipeline overhaul: shared lib extraction, deterministic builds, 3-pass name matching with 44 manual aliases, cross-faction BSData support — points match rate from 37% to 96.9% (BSData coverage); per-faction coverage badges on Data Health page
+- Sub-faction filtering: sub_faction column populated from BSData catalogs (17 entries across SM/CSM/Aeldari), dropdown filters wired in database browser, army list unit picker, and collection browser; FTS5 sub-faction search
+- PlaybookTab & Game Day revival: canonical stats/weapons/abilities from udb_* tables replacing null stubs, shared WeaponTable component, Game Day weapon profiles section, stable unit_id:ability_name OPG composite keys, DEDICATED TRANSPORT + EPIC HERO army list validation
+- Bilingual infrastructure: EN/FR locale toggle (localStorage-persisted), French data overlay via translations_fr.json, COALESCE(col_fr, col) query layer, locale-keyed React Query hooks with 3-prefix cache invalidation, FTS5 bilingual search indexing French unit and faction names
+
+**Tech debt accepted:** Duplicate WeaponTable in DatasheetPointsTab.tsx (pre-existing); DQ-05 Wahapedia coverage 60.1% (BSData limitation); 15 human verification items pending
+
+**Archived:**
+- Roadmap: `.planning/milestones/v0.4.2-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.4.2-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.4.2-MILESTONE-AUDIT.md`
+
+---
+
 ## v0.4.0 Unit Database — Canonical 40k Data Hub (Shipped: 2026-05-31)
 
 **Phases completed:** 5 phases (103-107), 12 plans
