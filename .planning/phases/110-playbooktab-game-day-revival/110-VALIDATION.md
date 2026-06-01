@@ -44,6 +44,8 @@ audited: 2026-06-01
 | 110-02-01 | 02 | 1 | INT-03 | unit | `pnpm test -- tests/game-day/gameDayStore.test.ts` | ✅ green |
 | 110-03-01 | 03 | 2 | INT-04 | unit | `pnpm test -- tests/lib/computeUnitWarnings.test.ts` | ✅ green |
 | 110-01-03 | 01 | 1 | INT-01 | manual | PlaybookTab visual verification | ✅ green |
+| 110-02-02 | 02 | 1 | INT-01 | unit | `npx vitest run tests/collection/PlaybookTab.test.tsx -t "INT-01"` | ✅ green |
+| 110-02-03 | 02 | 1 | INT-04 | unit | `npx vitest run tests/army-lists/ArmyListSummaryBar.test.tsx -t "INT-04"` | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -82,10 +84,12 @@ Existing infrastructure covers all phase requirements. Vitest + RTL already conf
 
 | Metric | Count |
 |--------|-------|
-| Gaps found | 2 |
-| Resolved | 2 |
+| Gaps found | 4 |
+| Resolved | 4 |
 | Escalated | 0 |
 
 **Tests generated:**
 - `tests/units/WeaponTable.test.tsx` — 8 tests (weapon rendering, stat columns, empty state, keywords)
 - `tests/game-day/UnitAbilityCard.test.tsx` — 11 tests (weapons section, collapsed default, OPG key format)
+- `tests/collection/PlaybookTab.test.tsx` — 3 tests added (INT-01 canonical stat fallback, D-02 user value preservation, no-link placeholder)
+- `tests/army-lists/ArmyListSummaryBar.test.tsx` — 4 tests added (INT-04 role rendering, count accuracy, null exclusion, descending sort)
