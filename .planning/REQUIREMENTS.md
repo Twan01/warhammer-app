@@ -38,8 +38,8 @@ Requirements for Unit Database 2.0 — Data Quality, Sub-factions & Integration.
 - [x] **FR-01**: Migrations add `_fr` locale columns to udb_units, udb_factions, udb_unit_abilities, udb_unit_weapons, udb_unit_keywords tables
 - [x] **FR-02**: Build script loads French translations from `scripts/data/translations_fr.json` overlay and populates `_fr` columns
 - [x] **FR-03**: Query layer accepts optional `locale` parameter, uses `COALESCE(col_fr, col)` for bilingual fallback
-- [ ] **FR-04**: App shows EN/FR locale toggle (persisted to localStorage), switching all canonical data display language
-- [ ] **FR-05**: FTS5 search index includes French names for bilingual search
+- [x] **FR-04**: App shows EN/FR locale toggle (persisted to localStorage), switching all canonical data display language
+- [x] **FR-05**: FTS5 search index includes French names for bilingual search
 - [x] **FR-06**: Rust import command extended with `#[serde(default)]` bindings for all `_fr` fields in unit_database.json
 
 ## Future Requirements
@@ -95,8 +95,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FR-01 | Phase 108 | Complete |
 | FR-02 | Phase 111 | Complete |
 | FR-03 | Phase 111 | Complete |
-| FR-04 | Phase 111 | Pending |
-| FR-05 | Phase 111 | Pending |
+| FR-04 | Phase 111 | Complete |
+| FR-05 | Phase 111 | Complete |
 | FR-06 | Phase 108 | Complete |
 
 **Coverage:**
