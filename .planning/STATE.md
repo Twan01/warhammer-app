@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.4.0
-milestone_name: Unit Database — Canonical 40k Data Hub
-status: archived
-stopped_at: v0.4.0 milestone archived
-last_updated: "2026-06-01T12:00:00Z"
+milestone: v0.4.2
+milestone_name: Unit Database 2.0 — Data Quality, Sub-factions & Integration
+status: planning
+last_updated: "2026-06-01T08:52:08.255Z"
 last_activity: 2026-06-01
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 12
-  completed_plans: 12
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,12 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-01)
 
 ## Current Position
 
-Phase: 107 (cleanup-pipeline)
-Plan: 02 of 02 complete
-Status: Archived
-Last activity: 2026-06-01
-
-Progress: [████████████████████████████████████████████████] 100%
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-06-01 — Milestone v0.4.2 started
 
 ## Performance Metrics
 

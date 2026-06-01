@@ -236,7 +236,18 @@ A single personal command center that always answers "what do I own, what's pain
 
 ### Active
 
-*No active requirements — planning next milestone*
+*Current milestone: v0.4.2 — Unit Database 2.0*
+
+## Current Milestone: v0.4.2 Unit Database 2.0 — Data Quality, Sub-factions & Integration
+
+**Goal:** Transform the canonical unit database from a standalone browser into a deeply integrated, high-quality data backbone — with near-100% points coverage, sub-faction filtering, French translation support, and full integration across Playbook, Game Day, army lists, and collection.
+
+**Target features:**
+- Data quality overhaul: fix BSData points matching to reach near-100% coverage, fallback parsing, data validation
+- Sub-faction system: schema + build script support for sub-factions (SM chapters, CSM warbands, Aeldari sub-factions, etc.) with filter UI
+- French translation layer: source French data from Wahapedia FR, bilingual schema, locale toggle, manual correction support
+- Deep integration revival: revive PlaybookTab from canonical DB, enrich Game Day with canonical abilities/weapons, tighten army list validation
+- Data pipeline hardening: build script diagnostics, coverage reports, match rate reporting
 
 ### Out of Scope
 
@@ -391,4 +402,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-01 after v0.4.0 milestone completed*
+*Last updated: 2026-06-01 after v0.4.2 milestone started*
