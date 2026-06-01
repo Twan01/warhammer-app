@@ -77,7 +77,7 @@ export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, onRemove, o
    * isCharacter: false — the Enhance trigger won't show. This is expected
    * and correct per D-05 (ghost units can't receive enhancements).
    */
-  const { data: keywords } = useUnitKeywords(unit.unit_name);
+  const { data: keywords } = useUnitKeywords(unit.unit_name, unit.udb_unit_id);
   const isCharacter = keywords?.isCharacter ?? false;
   const isEpicHero = keywords?.isEpicHero ?? false;
   const showEnhanceTrigger = isCharacter && !isEpicHero;

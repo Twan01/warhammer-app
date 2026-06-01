@@ -61,7 +61,7 @@ export function EnhancementPickerSheet({ open, unit, list, onClose }: Enhancemen
   const { data: listEnhancements = [] } = useEnhancementsByList(list?.id);
 
   // Secondary guard: check if unit is an Epic Hero
-  const { data: keywords } = useUnitKeywords(unit?.unit_name);
+  const { data: keywords } = useUnitKeywords(unit?.unit_name, unit?.udb_unit_id);
 
   // Filter to current detachment only
   const detachmentEnhancements = useMemo(() => {
