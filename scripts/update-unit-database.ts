@@ -24,323 +24,26 @@ import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from 
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
+// Shared library imports
+import { parseWahapediaCsv } from "./lib/parseCsv.ts";
+import { parseCatXml, extractModelCounts } from "./lib/parseXml.ts";
+import { FACTION_MAP } from "./lib/factionMap.ts";
+import type {
+  BsdataModelCount,
+  UdbFactionRow,
+  UdbUnitRow,
+  UdbUnitModelRow,
+  UdbUnitWeaponRow,
+  UdbUnitAbilityRow,
+  UdbUnitKeywordRow,
+  UdbUnitPointsRow,
+  UdbUnitCompositionRow,
+  UnitDatabaseJson,
+} from "./lib/types.ts";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const REPO_ROOT = join(__dirname, "..");
-
-// ---------------------------------------------------------------------------
-// Inlined: parseWahapediaCsv (mirrors build-unit-db.ts)
-// ---------------------------------------------------------------------------
-function parseWahapediaCsv(raw: string): Record<string, string>[] {
-  const lines = raw.trim().split("\n");
-  if (lines.length < 2) return [];
-  const headers = lines[0].split("|").map((h) => h.trim()).filter(Boolean);
-  return lines.slice(1).map((line) => {
-    const values = line.split("|");
-    return Object.fromEntries(
-      headers.map((h, i) => [h, (values[i] ?? "").trim()])
-    );
-  });
-}
-
-// ---------------------------------------------------------------------------
-// FACTION_MAP (mirrors build-unit-db.ts)
-// ---------------------------------------------------------------------------
-const FACTION_MAP: Record<string, string> = {
-  "Imperium - Space Marines": "SM",
-  "Imperium - Black Templars": "SM",
-  "Imperium - Blood Angels": "SM",
-  "Imperium - Dark Angels": "SM",
-  "Imperium - Deathwatch": "SM",
-  "Imperium - Imperial Fists": "SM",
-  "Imperium - Iron Hands": "SM",
-  "Imperium - Raven Guard": "SM",
-  "Imperium - Salamanders": "SM",
-  "Imperium - Space Wolves": "SM",
-  "Imperium - Ultramarines": "SM",
-  "Imperium - White Scars": "SM",
-  "Imperium - Adeptus Custodes": "AC",
-  "Imperium - Adepta Sororitas": "AS",
-  "Imperium - Adeptus Mechanicus": "AdM",
-  "Imperium - Astra Militarum": "AM",
-  "Imperium - Grey Knights": "GK",
-  "Imperium - Agents of the Imperium": "AoI",
-  "Imperium - Imperial Knights": "QI",
-  "Imperium - Adeptus Titanicus": "TL",
-  "Chaos - Chaos Space Marines": "CSM",
-  "Chaos - Death Guard": "DG",
-  "Chaos - Thousand Sons": "TS",
-  "Chaos - World Eaters": "WE",
-  "Chaos - Emperor's Children": "EC",
-  "Chaos - Chaos Knights": "QT",
-  "Chaos - Chaos Daemons": "CD",
-  "Chaos - Titanicus Traitoris": "TL",
-  "Aeldari - Craftworlds": "AE",
-  "Aeldari - Drukhari": "DRU",
-  "Aeldari - Ynnari": "AE",
-  "Necrons": "NEC",
-  "Orks": "ORK",
-  "T'au Empire": "TAU",
-  "Tyranids": "TYR",
-  "Genestealer Cults": "GC",
-  "Leagues of Votann": "LoV",
-  "Unaligned Forces": "UN",
-};
-
-// ---------------------------------------------------------------------------
-// BSData points extraction (mirrors build-unit-db.ts)
-// ---------------------------------------------------------------------------
-interface PointsTier {
-  modelCount: number;
-  points: number;
-}
-
-interface BsdataUnitPoints {
-  datasheet_name: string;
-  faction_id: string;
-  points: string;
-  tiers: PointsTier[];
-}
-
-function extractTiers(el: Element): PointsTier[] {
-  const PTS_FIELD_ID = "51b2-306e-1021-d207";
-  const tiers: PointsTier[] = [];
-  const modifiers = el.getElementsByTagName("modifier");
-  for (let i = 0; i < modifiers.length; i++) {
-    const mod = modifiers[i];
-    if (mod.getAttribute("type") !== "set") continue;
-    if (mod.getAttribute("field") !== PTS_FIELD_ID) continue;
-    const value = parseInt(mod.getAttribute("value") ?? "0", 10);
-    if (value <= 0) continue;
-    const conditions = mod.getElementsByTagName("condition");
-    for (let j = 0; j < conditions.length; j++) {
-      const cond = conditions[j];
-      if (cond.getAttribute("childId") !== "model") continue;
-      if (cond.getAttribute("type") !== "atLeast") continue;
-      const modelCount = parseInt(cond.getAttribute("value") ?? "0", 10);
-      if (modelCount > 0) {
-        tiers.push({ modelCount, points: value });
-      }
-    }
-  }
-  tiers.sort((a, b) => a.modelCount - b.modelCount);
-  return tiers;
-}
-
-function parseCatXml(xml: string, factionId: string | null, catalogueName = ""): BsdataUnitPoints[] {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(xml, "text/xml") as unknown as Document;
-  const errors = doc.getElementsByTagName("parsererror");
-  if (errors.length > 0) {
-    console.error(`  XML parse error in ${catalogueName || "unknown catalogue"}, skipping`);
-    return [];
-  }
-  const rows: BsdataUnitPoints[] = [];
-  const seen = new Set<string>();
-
-  const entries = doc.getElementsByTagName("selectionEntry");
-  for (let i = 0; i < entries.length; i++) {
-    const el = entries[i];
-    const type = el.getAttribute("type");
-    if (type !== "unit" && type !== "model") continue;
-    const name = el.getAttribute("name");
-    if (!name || name.includes("[Legends]")) continue;
-
-    let pts = 0;
-    const children = el.childNodes;
-    for (let j = 0; j < children.length; j++) {
-      if (children[j].nodeName !== "costs") continue;
-      const costEls = (children[j] as Element).getElementsByTagName("cost");
-      for (let k = 0; k < costEls.length; k++) {
-        if (costEls[k].getAttribute("name") === "pts") {
-          pts = parseInt(costEls[k].getAttribute("value") ?? "0", 10);
-          break;
-        }
-      }
-      break;
-    }
-
-    const tiers = extractTiers(el as Element);
-    if (pts <= 0 && tiers.length === 0) continue;
-
-    const key = `${name}:${factionId}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-
-    rows.push({
-      datasheet_name: name,
-      faction_id: factionId ?? "",
-      points: String(pts),
-      tiers,
-    });
-  }
-
-  return rows;
-}
-
-// ---------------------------------------------------------------------------
-// BSData model counts extraction (mirrors build-unit-db.ts)
-// ---------------------------------------------------------------------------
-interface BsdataModelCount {
-  unit_name: string;
-  faction_id: string | null;
-  min_models: number;
-  max_models: number;
-}
-
-function extractModelCounts(doc: Document, factionId: string | null): BsdataModelCount[] {
-  const results: BsdataModelCount[] = [];
-  const seen = new Set<string>();
-
-  const unitEntries = doc.getElementsByTagName("selectionEntry");
-  for (let i = 0; i < unitEntries.length; i++) {
-    const el = unitEntries[i];
-    if (el.getAttribute("type") !== "unit") continue;
-    const unitName = el.getAttribute("name");
-    if (!unitName || unitName.includes("[Legends]")) continue;
-
-    const key = `${unitName}:${factionId}`;
-    if (seen.has(key)) continue;
-
-    const modelEntries = el.getElementsByTagName("selectionEntry");
-    let globalMin = Infinity;
-    let globalMax = 0;
-
-    for (let j = 0; j < modelEntries.length; j++) {
-      const modelEl = modelEntries[j];
-      if (modelEl.getAttribute("type") !== "model") continue;
-      const constraints = modelEl.getElementsByTagName("constraint");
-      for (let c = 0; c < constraints.length; c++) {
-        const ct = constraints[c];
-        if (ct.getAttribute("field") !== "selections") continue;
-        const val = parseInt(ct.getAttribute("value") ?? "0", 10);
-        if (ct.getAttribute("type") === "min" && val > 0 && val < globalMin) {
-          globalMin = val;
-        }
-        if (ct.getAttribute("type") === "max" && val > globalMax) {
-          globalMax = val;
-        }
-      }
-    }
-
-    if (globalMin === Infinity) globalMin = 1;
-    if (globalMax === 0) globalMax = globalMin;
-
-    if (globalMin > 0 && globalMax >= globalMin) {
-      seen.add(key);
-      results.push({
-        unit_name: unitName,
-        faction_id: factionId,
-        min_models: globalMin,
-        max_models: globalMax,
-      });
-    }
-  }
-
-  return results;
-}
-
-function parseBsdataModelCounts(
-  catFiles: Array<{ xml: string; factionId: string | null; catalogueName: string }>
-): BsdataModelCount[] {
-  const results: BsdataModelCount[] = [];
-  for (const entry of catFiles) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(entry.xml, "text/xml") as unknown as Document;
-    results.push(...extractModelCounts(doc, entry.factionId));
-  }
-  return results;
-}
-
-// ---------------------------------------------------------------------------
-// Types for the JSON output (same as build-unit-db.ts)
-// ---------------------------------------------------------------------------
-interface UdbFactionRow {
-  id: string;
-  name: string;
-  short_name: string;
-}
-
-interface UdbUnitRow {
-  id: string;
-  faction_id: string;
-  name: string;
-  role: string;
-  base_points: number | null;
-  damaged_w: string;
-  damaged_desc: string;
-}
-
-interface UdbUnitModelRow {
-  unit_id: string;
-  line_order: number;
-  name: string;
-  M: string;
-  T: string;
-  Sv: string;
-  inv_sv: string;
-  W: string;
-  Ld: string;
-  OC: string;
-}
-
-interface UdbUnitWeaponRow {
-  unit_id: string;
-  weapon_group: number;
-  line_order: number;
-  name: string;
-  category: string;
-  range: string;
-  attacks: string;
-  skill: string;
-  strength: string;
-  ap: string;
-  damage: string;
-  keywords: string;
-}
-
-interface UdbUnitAbilityRow {
-  unit_id: string;
-  line_order: number;
-  name: string;
-  description: string;
-  ability_type: string;
-}
-
-interface UdbUnitKeywordRow {
-  unit_id: string;
-  keyword: string;
-  is_faction: 0 | 1;
-}
-
-interface UdbUnitPointsRow {
-  unit_id: string;
-  model_count: number;
-  points: number;
-}
-
-interface UdbUnitCompositionRow {
-  unit_id: string;
-  min_models: number;
-  max_models: number;
-  notes: string;
-}
-
-interface UnitDatabaseJson {
-  version: string;
-  built_at: string;
-  game_system: string;
-  unit_count: number;
-  faction_count: number;
-  factions: UdbFactionRow[];
-  units: UdbUnitRow[];
-  models: UdbUnitModelRow[];
-  weapons: UdbUnitWeaponRow[];
-  abilities: UdbUnitAbilityRow[];
-  keywords: UdbUnitKeywordRow[];
-  points: UdbUnitPointsRow[];
-  composition: UdbUnitCompositionRow[];
-}
 
 // ---------------------------------------------------------------------------
 // Diff report types
@@ -372,7 +75,7 @@ interface DiffReport {
 }
 
 // ---------------------------------------------------------------------------
-// Data directory paths (same as build-unit-db.ts)
+// Data directory paths
 // ---------------------------------------------------------------------------
 const DATA_DIR = join(REPO_ROOT, "scripts", "data");
 const BSDATA_DIR = join(DATA_DIR, "bsdata");
@@ -389,7 +92,7 @@ const REQUIRED_CSVs = [
 ] as const;
 
 // ---------------------------------------------------------------------------
-// Helpers (same as build-unit-db.ts)
+// Helpers
 // ---------------------------------------------------------------------------
 function readCsv(filename: string): Record<string, string>[] {
   const filepath = join(DATA_DIR, filename);
@@ -400,9 +103,10 @@ function readCsv(filename: string): Record<string, string>[] {
 function readBsdataCatFiles(): Array<{ xml: string; factionId: string | null; catalogueName: string }> {
   if (!existsSync(BSDATA_DIR)) return [];
 
-  const files = readdirSync(BSDATA_DIR).filter(
-    (f) => f.endsWith(".cat") && !f.includes("Library")
-  );
+  // D-06: sort file list for deterministic output
+  const files = readdirSync(BSDATA_DIR)
+    .filter((f) => f.endsWith(".cat") && !f.includes("Library"))
+    .sort();
   if (files.length === 0) return [];
 
   const entries: Array<{ xml: string; factionId: string | null; catalogueName: string }> = [];
@@ -419,8 +123,20 @@ function readBsdataCatFiles(): Array<{ xml: string; factionId: string | null; ca
   return entries;
 }
 
+function parseBsdataModelCounts(
+  catFiles: Array<{ xml: string; factionId: string | null; catalogueName: string }>
+): BsdataModelCount[] {
+  const results: BsdataModelCount[] = [];
+  for (const entry of catFiles) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(entry.xml, "text/xml") as unknown as Document;
+    results.push(...extractModelCounts(doc, entry.factionId));
+  }
+  return results;
+}
+
 // ---------------------------------------------------------------------------
-// Build pipeline (reuses logic from build-unit-db.ts)
+// Build pipeline (reuses shared lib)
 // ---------------------------------------------------------------------------
 async function buildUnitDatabase(): Promise<UnitDatabaseJson> {
   // Verify required CSV files
