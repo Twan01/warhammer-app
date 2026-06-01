@@ -106,7 +106,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 110-01-PLAN.md — OPG key migration, DEDICATED TRANSPORT + EPIC HERO validation
+- [x] 110-01-PLAN.md — OPG key migration, DEDICATED TRANSPORT + EPIC HERO validation
 - [ ] 110-02-PLAN.md — WeaponTable extraction, Game Day weapons section, PlaybookTab audit
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -257,7 +257,7 @@ Phases execute in numeric order: 108 → 109 → 110 → 111
 | 107. Cleanup & Pipeline | v0.4.0 | 2/2 | Complete | 2026-05-31 |
 | 108. Build Script Hardening & Schema Foundation | v0.4.2 | 3/3 | Complete | 2026-06-01 |
 | 109. Sub-faction Filter UI | v0.4.2 | 1/2 | In progress | - |
-| 110. PlaybookTab & Game Day Revival | v0.4.2 | 0/3 | Not started | - |
+| 110. PlaybookTab & Game Day Revival | v0.4.2 | 1/3 | In Progress|  |
 | 111. Bilingual Infrastructure | v0.4.2 | 0/3 | Not started | - |
 
 <details>

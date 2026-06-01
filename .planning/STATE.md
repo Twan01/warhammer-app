@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.4.2
 milestone_name: Unit Database 2.0 — Data Quality, Sub-factions & Integration
-status: executing
-stopped_at: Phase 109 planned — 2 plans ready to execute
-last_updated: "2026-06-01T11:10:00.220Z"
-last_activity: 2026-06-01 -- Phase 110 execution started
+status: verifying
+stopped_at: Phase 109 Plan 01 complete — Plan 02 next
+last_updated: "2026-06-01T11:19:54.955Z"
+last_activity: 2026-06-01
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 11
   completed_plans: 5
-  percent: 30
+  percent: 25
 ---
 
 # Project State
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-06-01)
 
 Phase: 109 (Sub-faction Filter UI) — EXECUTING
 Plan: 2 of 2
-Status: Plan 01 complete, Plan 02 next
-Last activity: 2026-06-01 -- Phase 109 Plan 01 executed
+Status: Phase complete — ready for verification
+Last activity: 2026-06-01
 
-Progress: [###░░░░░░░] 30%
+Progress: [█████░░░░░] 45%
 
 ## Performance Metrics
 
@@ -91,10 +91,11 @@ None.
 | v2 scope | ADV-02: Faction overview page | Deferred | v0.4.0 planning |
 | v2 scope | FR-EXT-01: French ability/weapon text | Deferred | v0.4.2 planning |
 | v2 scope | FR-EXT-02: Full app UI translation | Deferred | v0.4.2 planning |
+| Phase 110-playbooktab-game-day-revival P01 | 12m | 1 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-06-01
+Last session: 2026-06-01T11:19:54.936Z
 Stopped at: Phase 109 Plan 01 complete — Plan 02 next
-Resume file: .planning/phases/109-sub-faction-filter-ui/109-02-PLAN.md
+Resume file: None
 Resume: Execute Phase 109 Plan 02 with /gsd:execute-phase 109

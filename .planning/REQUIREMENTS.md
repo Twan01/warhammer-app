@@ -30,8 +30,8 @@ Requirements for Unit Database 2.0 — Data Quality, Sub-factions & Integration.
 
 - [ ] **INT-01**: PlaybookTab shows canonical unit stats, weapons, and abilities from udb_* tables (replacing null stub)
 - [ ] **INT-02**: Game Day UnitAbilityCard shows weapon profiles from canonical database in a collapsible section
-- [ ] **INT-03**: Game Day uses stable `unit_id:ability_name` composite keys for OPG toggle persistence (not AUTOINCREMENT IDs)
-- [ ] **INT-04**: Army list validation uses canonical roles/keywords from udb_* for enhanced composition checks
+- [x] **INT-03**: Game Day uses stable `unit_id:ability_name` composite keys for OPG toggle persistence (not AUTOINCREMENT IDs)
+- [x] **INT-04**: Army list validation uses canonical roles/keywords from udb_* for enhanced composition checks
 
 ### French Translation
 
@@ -90,8 +90,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SF-06 | Phase 108 | Complete |
 | INT-01 | Phase 110 | Pending |
 | INT-02 | Phase 110 | Pending |
-| INT-03 | Phase 110 | Pending |
-| INT-04 | Phase 110 | Pending |
+| INT-03 | Phase 110 | Complete |
+| INT-04 | Phase 110 | Complete |
 | FR-01 | Phase 108 | Complete |
 | FR-02 | Phase 111 | Pending |
 | FR-03 | Phase 111 | Pending |
