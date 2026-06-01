@@ -95,7 +95,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-01T11:26:38Z
-Stopped at: Phase 109 complete — all plans done
-Resume file: None
-Resume: Verify Phase 109 or proceed to Phase 110
+Last session: 2026-06-01
+Stopped at: Phase 109 executed — verification passed (human_needed for 5 UI items)
+Resume file: .planning/phases/109-sub-faction-filter-ui/109-VERIFICATION.md
+Resume: Human-test Phase 109 UI, then /gsd:discuss-phase 110 --auto
