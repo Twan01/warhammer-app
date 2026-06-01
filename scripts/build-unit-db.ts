@@ -28,7 +28,8 @@ import { fileURLToPath } from "node:url";
 // Shared library imports
 import { parseWahapediaCsv } from "./lib/parseCsv.ts";
 import { parseCatXml, extractModelCounts } from "./lib/parseXml.ts";
-import { FACTION_MAP } from "./lib/factionMap.ts";
+import { normalizeName, loadAliases } from "./lib/normalize.ts";
+import { FACTION_MAP, SUB_FACTION_MAP, CROSS_FACTION_MAP } from "./lib/factionMap.ts";
 import type {
   BsdataModelCount,
   UdbFactionRow,
@@ -40,6 +41,8 @@ import type {
   UdbUnitPointsRow,
   UdbUnitCompositionRow,
   UnitDatabaseJson,
+  CoverageReport,
+  FactionCoverage,
 } from "./lib/types.ts";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -53,6 +56,8 @@ const DATA_DIR = join(REPO_ROOT, "scripts", "data");
 const BSDATA_DIR = join(DATA_DIR, "bsdata");
 const OUTPUT_DIR = join(REPO_ROOT, "src-tauri", "data");
 const OUTPUT_PATH = join(OUTPUT_DIR, "unit_database.json");
+const ALIASES_PATH = join(DATA_DIR, "aliases.json");
+const COVERAGE_PATH = join(DATA_DIR, "coverage-report.json");
 
 // Required Wahapedia CSV files
 const REQUIRED_CSVs = [
@@ -84,8 +89,9 @@ function readBsdataCatFiles(): Array<{ xml: string; factionId: string | null; ca
   }
 
   // D-06: sort file list for deterministic output
+  // Include Library catalogues -- they contain unit points data for many factions
   const files = readdirSync(BSDATA_DIR)
-    .filter((f) => f.endsWith(".cat") && !f.includes("Library"))
+    .filter((f) => f.endsWith(".cat"))
     .sort();
 
   if (files.length === 0) {
@@ -120,6 +126,39 @@ function parseBsdataModelCounts(
     results.push(...extractModelCounts(doc, entry.factionId));
   }
   return results;
+}
+
+// ---------------------------------------------------------------------------
+// Multi-pass matching (D-01: exact -> normalized -> alias)
+// ---------------------------------------------------------------------------
+
+function matchUnit(
+  bsdataName: string,
+  factionId: string,
+  aliases: Record<string, string>,
+  unitMap: Map<string, UdbUnitRow>
+): UdbUnitRow | undefined {
+  // Pass 1: exact lowercase match (current behavior)
+  const exactKey = bsdataName.toLowerCase() + ":" + factionId;
+  let unit = unitMap.get(exactKey);
+  if (unit) return unit;
+
+  // Pass 2: normalized match -- compare normalized names for matching faction_id
+  const normalizedBsdata = normalizeName(bsdataName);
+  for (const [key, u] of unitMap) {
+    if (key.endsWith(":" + factionId) && normalizeName(u.name) === normalizedBsdata) {
+      return u;
+    }
+  }
+
+  // Pass 3: alias table fallback
+  const aliasedName = aliases[bsdataName];
+  if (aliasedName) {
+    const aliasKey = aliasedName.toLowerCase() + ":" + factionId;
+    return unitMap.get(aliasKey);
+  }
+
+  return undefined;
 }
 
 // ---------------------------------------------------------------------------
@@ -159,6 +198,7 @@ async function main() {
       id: row["id"].trim(),
       name: row["name"].trim(),
       short_name: row["short_name"]?.trim() ?? row["id"].trim(),
+      name_fr: null,
     }));
   console.log("  Parsed " + factions.length + " factions");
 
@@ -190,6 +230,8 @@ async function main() {
       base_points: null, // filled later from BSData single-tier units
       damaged_w: row["damaged_w"]?.trim() ?? "",
       damaged_desc: row["damaged_description"]?.trim() ?? "",
+      sub_faction: null, // populated from SUB_FACTION_MAP during BSData matching
+      name_fr: null,
     });
   }
   console.log("  Parsed " + units.length + " units");
@@ -259,6 +301,7 @@ async function main() {
       ap: row["AP"]?.trim() ?? "",
       damage: row["D"]?.trim() ?? "",
       keywords: row["keywords"]?.trim() ?? "",
+      name_fr: null,
     });
   }
   console.log("  Parsed " + weapons.length + " weapon profiles");
@@ -278,6 +321,8 @@ async function main() {
       name: row["name"]?.trim() ?? "",
       description: row["description"]?.trim() ?? "",
       ability_type: row["type"]?.trim() ?? row["ability_type"]?.trim() ?? "",
+      name_fr: null,
+      description_fr: null,
     });
   }
   console.log("  Parsed " + abilities.length + " abilities");
@@ -300,9 +345,16 @@ async function main() {
     seenKeywords.add(dupeKey);
 
     const isFaction: 0 | 1 = row["is_faction_keyword"]?.trim() === "1" ? 1 : 0;
-    keywords.push({ unit_id: unitId, keyword, is_faction: isFaction });
+    keywords.push({ unit_id: unitId, keyword, is_faction: isFaction, keyword_fr: null });
   }
   console.log("  Parsed " + keywords.length + " keywords");
+
+  // 7b. Load alias table for multi-pass matching (D-01)
+  const aliases = loadAliases(ALIASES_PATH);
+  const aliasCount = Object.keys(aliases).length;
+  if (aliasCount > 0) {
+    console.log("  Loaded " + aliasCount + " alias mappings from aliases.json");
+  }
 
   // 8. Read and parse BSData .cat files for points tiers and composition
   console.log("Step 8: Reading BSData .cat files...");
@@ -312,15 +364,45 @@ async function main() {
   const composition: UdbUnitCompositionRow[] = [];
 
   if (catFiles.length > 0) {
-    // 8a. Extract points tiers
+    // 8a. Extract points tiers with multi-pass matching (D-01)
     const seenPoints = new Set<string>();
+    const matchedUnits = new Set<string>(); // track units that got points
+    let exactMatches = 0;
+    let normalizedMatches = 0;
+    let aliasMatches = 0;
+
     for (const catFile of catFiles) {
       const bsdataUnits = parseCatXml(catFile.xml, catFile.factionId, catFile.catalogueName);
+      const subFaction = SUB_FACTION_MAP[catFile.catalogueName] ?? null;
+
+      // Cross-faction alternate ID for this catalogue (e.g., Aeldari Library -> DRU)
+      const altFactionId = CROSS_FACTION_MAP[catFile.catalogueName] ?? null;
+
       for (const bsdataUnit of bsdataUnits) {
-        // Match BSData unit to Wahapedia unit by name + faction_id
-        const key = bsdataUnit.datasheet_name.toLowerCase() + ":" + bsdataUnit.faction_id;
-        const unit = unitByNameFaction.get(key);
+        // Multi-pass matching: exact -> normalized -> alias (D-01)
+        let unit = matchUnit(bsdataUnit.datasheet_name, bsdataUnit.faction_id, aliases, unitByNameFaction);
+
+        // Cross-faction fallback: try alternate faction_id (e.g., DRU for Aeldari Library units)
+        if (!unit && altFactionId) {
+          unit = matchUnit(bsdataUnit.datasheet_name, altFactionId, aliases, unitByNameFaction);
+        }
+
         if (!unit) continue;
+
+        // Track which pass matched (for diagnostics)
+        const exactKey = bsdataUnit.datasheet_name.toLowerCase() + ":" + bsdataUnit.faction_id;
+        if (unitByNameFaction.has(exactKey)) {
+          exactMatches++;
+        } else if (!aliases[bsdataUnit.datasheet_name]) {
+          normalizedMatches++;
+        } else {
+          aliasMatches++;
+        }
+
+        // Sub-faction population (D-09/SF-01/SF-02)
+        if (subFaction && unit.sub_faction === null) {
+          unit.sub_faction = subFaction;
+        }
 
         if (bsdataUnit.tiers.length > 0) {
           // Multi-tier unit: add one points row per model-count tier
@@ -329,6 +411,7 @@ async function main() {
             if (!seenPoints.has(pointsKey)) {
               seenPoints.add(pointsKey);
               points.push({ unit_id: unit.id, model_count: tier.modelCount, points: tier.points });
+              matchedUnits.add(unit.id);
             }
           }
         } else {
@@ -336,11 +419,13 @@ async function main() {
           const basePoints = parseInt(bsdataUnit.points, 10);
           if (basePoints > 0 && unit.base_points === null) {
             unit.base_points = basePoints;
+            matchedUnits.add(unit.id);
           }
         }
       }
     }
     console.log("  Extracted " + points.length + " points tier entries");
+    console.log("  Matching stats: " + exactMatches + " exact, " + normalizedMatches + " normalized, " + aliasMatches + " alias");
 
     // 8b. Extract composition (min/max model counts)
     const bsdataModelCounts = parseBsdataModelCounts(catFiles);
@@ -350,7 +435,7 @@ async function main() {
       let unit: UdbUnitRow | undefined;
 
       if (mc.faction_id) {
-        unit = unitByNameFaction.get(mc.unit_name.toLowerCase() + ":" + mc.faction_id);
+        unit = matchUnit(mc.unit_name, mc.faction_id, aliases, unitByNameFaction);
       }
 
       // Fallback: search all factions for unit name match
@@ -415,6 +500,97 @@ async function main() {
 
   console.log("  All " + factions.length + " factions have at least 1 unit");
   console.log("  Unit count " + units.length + " >= 100 (completeness check passed)");
+
+  // ---------------------------------------------------------------------------
+  // Coverage report (D-04/DQ-01)
+  // ---------------------------------------------------------------------------
+  console.log("");
+  console.log("Step 10: Computing coverage report...");
+
+  // Build set of unit IDs that have points (base_points or points tiers)
+  const unitsWithPointsSet = new Set<string>();
+  for (const unit of units) {
+    if (unit.base_points !== null) {
+      unitsWithPointsSet.add(unit.id);
+    }
+  }
+  for (const p of points) {
+    unitsWithPointsSet.add(p.unit_id);
+  }
+
+  // Per-faction coverage
+  const factionCoverages: FactionCoverage[] = [];
+  const unmatchedUnits: Array<{ name: string; faction_id: string }> = [];
+
+  for (const faction of factions) {
+    const factionUnits = units.filter((u) => u.faction_id === faction.id);
+    const totalUnits = factionUnits.length;
+    const withPoints = factionUnits.filter((u) => unitsWithPointsSet.has(u.id)).length;
+    const coveragePct = totalUnits > 0 ? Math.round((withPoints / totalUnits) * 1000) / 10 : 0;
+
+    factionCoverages.push({
+      faction_id: faction.id,
+      faction_name: faction.name,
+      total_units: totalUnits,
+      units_with_points: withPoints,
+      coverage_pct: coveragePct,
+    });
+
+    // Collect unmatched units for this faction
+    for (const u of factionUnits) {
+      if (!unitsWithPointsSet.has(u.id)) {
+        unmatchedUnits.push({ name: u.name, faction_id: u.faction_id });
+      }
+    }
+  }
+
+  const overallWithPoints = unitsWithPointsSet.size;
+  const overallCoveragePct = units.length > 0
+    ? Math.round((overallWithPoints / units.length) * 1000) / 10
+    : 0;
+
+  const coverageReport: CoverageReport = {
+    built_at: new Date().toISOString(),
+    overall_coverage_pct: overallCoveragePct,
+    total_units: units.length,
+    units_with_points: overallWithPoints,
+    factions: factionCoverages,
+    unmatched_units: unmatchedUnits,
+  };
+
+  writeFileSync(COVERAGE_PATH, JSON.stringify(coverageReport, null, 2), "utf-8");
+  console.log("  Written: " + COVERAGE_PATH);
+
+  // Print per-faction coverage table
+  console.log("");
+  console.log("=== Points Coverage ===");
+  console.log("  " + "Faction".padEnd(40) + "Units".padStart(8) + "Points".padStart(8) + "Coverage".padStart(10));
+  console.log("  " + "-".repeat(66));
+  for (const fc of factionCoverages) {
+    const badge = fc.coverage_pct >= 85 ? " [OK]" : fc.coverage_pct >= 50 ? " [!]" : " [X]";
+    console.log(
+      "  " +
+      fc.faction_name.padEnd(40) +
+      String(fc.total_units).padStart(8) +
+      String(fc.units_with_points).padStart(8) +
+      (fc.coverage_pct.toFixed(1) + "%").padStart(10) +
+      badge
+    );
+  }
+  console.log("  " + "-".repeat(66));
+  console.log(
+    "  " +
+    "OVERALL".padEnd(40) +
+    String(units.length).padStart(8) +
+    String(overallWithPoints).padStart(8) +
+    (overallCoveragePct.toFixed(1) + "%").padStart(10)
+  );
+  console.log("  Unmatched units: " + unmatchedUnits.length);
+  console.log("");
+
+  // Sub-faction stats
+  const unitsWithSubFaction = units.filter((u) => u.sub_faction !== null).length;
+  console.log("  Units with sub_faction: " + unitsWithSubFaction);
 
   // ---------------------------------------------------------------------------
   // Summary

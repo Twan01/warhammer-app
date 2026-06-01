@@ -26,9 +26,11 @@ export const FACTION_MAP: Record<string, string> = {
   "Imperium - Adepta Sororitas": "AS",
   "Imperium - Adeptus Mechanicus": "AdM",
   "Imperium - Astra Militarum": "AM",
+  "Imperium - Astra Militarum - Library": "AM",
   "Imperium - Grey Knights": "GK",
   "Imperium - Agents of the Imperium": "AoI",
   "Imperium - Imperial Knights": "QI",
+  "Imperium - Imperial Knights - Library": "QI",
   "Imperium - Adeptus Titanicus": "TL",
   "Chaos - Chaos Space Marines": "CSM",
   "Chaos - Death Guard": "DG",
@@ -36,18 +38,33 @@ export const FACTION_MAP: Record<string, string> = {
   "Chaos - World Eaters": "WE",
   "Chaos - Emperor's Children": "EC",
   "Chaos - Chaos Knights": "QT",
+  "Chaos - Chaos Knights Library": "QT",
   "Chaos - Chaos Daemons": "CD",
+  "Chaos - Chaos Daemons Library": "CD",
   "Chaos - Titanicus Traitoris": "TL",
   "Aeldari - Craftworlds": "AE",
+  "Aeldari - Aeldari Library": "AE",
   "Aeldari - Drukhari": "DRU",
   "Aeldari - Ynnari": "AE",
   "Necrons": "NEC",
   "Orks": "ORK",
   "T'au Empire": "TAU",
   "Tyranids": "TYR",
+  "Library - Tyranids": "TYR",
   "Genestealer Cults": "GC",
   "Leagues of Votann": "LoV",
   "Unaligned Forces": "UN",
+  "Library - Titans": "TL",
+  "Library - Astartes Heresy Legends": "SM",
+};
+
+/**
+ * Maps BSData faction_id + catalogue to alternative Wahapedia faction_id for cross-faction matching.
+ * Used when BSData groups units under a parent faction but Wahapedia has separate faction_ids.
+ * Key: "bsdataName:bsdataFactionId", Value: alternative Wahapedia faction_id to try.
+ */
+export const CROSS_FACTION_MAP: Record<string, string> = {
+  "Aeldari - Aeldari Library": "DRU", // Drukhari units live in Aeldari Library but Wahapedia uses DRU
 };
 
 /**

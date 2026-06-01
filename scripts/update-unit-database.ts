@@ -104,8 +104,9 @@ function readBsdataCatFiles(): Array<{ xml: string; factionId: string | null; ca
   if (!existsSync(BSDATA_DIR)) return [];
 
   // D-06: sort file list for deterministic output
+  // Include Library catalogues -- they contain unit points data for many factions
   const files = readdirSync(BSDATA_DIR)
-    .filter((f) => f.endsWith(".cat") && !f.includes("Library"))
+    .filter((f) => f.endsWith(".cat"))
     .sort();
   if (files.length === 0) return [];
 

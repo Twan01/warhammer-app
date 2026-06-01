@@ -35,6 +35,7 @@ export interface UdbFactionRow {
   id: string;
   name: string;
   short_name: string;
+  name_fr: string | null;
 }
 
 export interface UdbUnitRow {
@@ -45,6 +46,8 @@ export interface UdbUnitRow {
   base_points: number | null;
   damaged_w: string;
   damaged_desc: string;
+  sub_faction: string | null;
+  name_fr: string | null;
 }
 
 export interface UdbUnitModelRow {
@@ -73,6 +76,7 @@ export interface UdbUnitWeaponRow {
   ap: string;
   damage: string;
   keywords: string;
+  name_fr: string | null;
 }
 
 export interface UdbUnitAbilityRow {
@@ -81,12 +85,15 @@ export interface UdbUnitAbilityRow {
   name: string;
   description: string;
   ability_type: string;
+  name_fr: string | null;
+  description_fr: string | null;
 }
 
 export interface UdbUnitKeywordRow {
   unit_id: string;
   keyword: string;
   is_faction: 0 | 1;
+  keyword_fr: string | null;
 }
 
 export interface UdbUnitPointsRow {
@@ -100,6 +107,27 @@ export interface UdbUnitCompositionRow {
   min_models: number;
   max_models: number;
   notes: string;
+}
+
+// ---------------------------------------------------------------------------
+// Coverage report types
+// ---------------------------------------------------------------------------
+
+export interface FactionCoverage {
+  faction_id: string;
+  faction_name: string;
+  total_units: number;
+  units_with_points: number;
+  coverage_pct: number;
+}
+
+export interface CoverageReport {
+  built_at: string;
+  overall_coverage_pct: number;
+  total_units: number;
+  units_with_points: number;
+  factions: FactionCoverage[];
+  unmatched_units: Array<{ name: string; faction_id: string }>;
 }
 
 export interface UnitDatabaseJson {
