@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.4.2
 milestone_name: Unit Database 2.0 — Data Quality, Sub-factions & Integration
 status: executing
-stopped_at: Phase 110 UI-SPEC approved
-last_updated: "2026-06-01T10:37:58.849Z"
-last_activity: 2026-06-01 — Completed 108-03 (migration 041, Rust import, coverage UI)
+stopped_at: Phase 109 planned — 2 plans ready to execute
+last_updated: "2026-06-01T11:07:59.722Z"
+last_activity: 2026-06-01 -- Phase 111 planning complete
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 3
+  total_plans: 11
   completed_plans: 3
   percent: 25
 ---
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-01)
 Phase: 109 of 111 (Sub-faction Filter UI)
 Plan: 1 of 2 (109-01 next)
 Status: Ready to execute
-Last activity: 2026-06-01 — Phase 109 planned (2 plans, 2 waves)
+Last activity: 2026-06-01 -- Phase 111 planning complete
 
 Progress: [###░░░░░░░] 25%
 

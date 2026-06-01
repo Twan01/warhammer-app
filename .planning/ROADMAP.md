@@ -51,66 +51,94 @@ Full details: `.planning/milestones/v0.4.0-ROADMAP.md`
 ## Phase Details
 
 ### Phase 108: Build Script Hardening & Schema Foundation
+
 **Goal**: The canonical unit database has 85%+ points coverage and carries sub-faction + bilingual schema columns, all backed by a deterministic, diagnostic-rich build pipeline
 **Depends on**: Phase 107 (v0.4.0 Cleanup & Pipeline)
 **Requirements**: DQ-01, DQ-02, DQ-03, DQ-04, DQ-05, DQ-06, DQ-07, SF-01, SF-02, FR-01, FR-06
 **Success Criteria** (what must be TRUE):
+
   1. Running the build script produces a per-faction coverage report showing units with/without points and the overall match rate
   2. Build output is byte-for-byte identical across machines — file reads are sorted before processing
   3. Points coverage reaches 85%+ across all factions (up from 37%), verified by the coverage report
   4. Data Health page shows per-faction points coverage badges (green/amber/red) so the user can spot low-coverage factions at a glance
   5. The `udb_units` table has `sub_faction` and `_fr` locale columns; the Rust import command handles `_fr` fields with `#[serde(default)]` so re-import does not wipe French data
+
 **Plans**: 3 plans
 Plans:
+
 - [x] 108-01-PLAN.md — Shared lib extraction, determinism, normalization, aliases
 - [x] 108-02-PLAN.md — Multi-pass matching, sub-faction mapping, coverage reporting
 - [x] 108-03-PLAN.md — Migration 041, Rust import extension, Data Health coverage UI
 
 ### Phase 109: Sub-faction Filter UI
+
 **Goal**: Users can filter the database browser, army list unit picker, and collection browser by sub-faction (SM chapter, CSM warband, Aeldari sub-faction, etc.)
 **Depends on**: Phase 108
 **Requirements**: SF-03, SF-04, SF-05, SF-06
 **Success Criteria** (what must be TRUE):
+
   1. The database browser shows a sub-faction dropdown when browsing a faction that has sub-factions; factions without sub-factions show no extra control
   2. The army list unit picker shows a sub-faction filter for applicable factions, narrowing the unit list correctly
   3. The collection browser shows a sub-faction filter for applicable factions
   4. Typing a chapter name (e.g., "Ultramarines") into the FTS5 search returns matching units via the indexed sub-faction field
+
 **Plans**: 2 plans
 Plans:
+
 - [ ] 109-01-PLAN.md — Query layer, hook, Zustand store, filter function, tests
 - [ ] 109-02-PLAN.md — Sub-faction dropdowns in DB browser, army list picker, collection browser
+
 **UI hint**: yes
 
 ### Phase 110: PlaybookTab & Game Day Revival
+
 **Goal**: Users see canonical unit stats, weapons, and abilities from the database in PlaybookTab and Game Day — replacing null stubs with live canonical data
 **Depends on**: Phase 108
 **Requirements**: INT-01, INT-02, INT-03, INT-04
 **Success Criteria** (what must be TRUE):
+
   1. Opening a unit's PlaybookTab shows its canonical stat block (M/T/Sv/W/Ld/OC), weapon profiles, and ability text pulled from `udb_*` tables — no longer empty
   2. Game Day unit ability cards show a collapsible weapon profiles section sourced from the canonical database
   3. Once-per-game toggle state persists correctly across re-imports — keys are `unit_id:ability_name` composites, not reassignable AUTOINCREMENT IDs
   4. Army list validation uses canonical roles and keywords from `udb_*` for enhanced composition checks (BATTLELINE count, role coverage)
+
 **Plans**: 3 plans
 Plans:
+**Wave 1**
+
 - [ ] 110-01-PLAN.md — OPG key migration, DEDICATED TRANSPORT + EPIC HERO validation
 - [ ] 110-02-PLAN.md — WeaponTable extraction, Game Day weapons section, PlaybookTab audit
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 110-03-PLAN.md — Full test suite and human verification checkpoint
+
 **UI hint**: yes
 
 ### Phase 111: Bilingual Infrastructure
+
 **Goal**: Users can toggle between English and French for all canonical data display; the build pipeline populates French fields from a manual overlay; search works in both languages
 **Depends on**: Phase 108
 **Requirements**: FR-02, FR-03, FR-04, FR-05
 **Success Criteria** (what must be TRUE):
+
   1. Running the build script with a populated `scripts/data/translations_fr.json` writes French names and labels into the `_fr` columns of the bundled `unit_database.json`
   2. The query layer uses `COALESCE(col_fr, col)` when the active locale is FR, falling back to English for any untranslated entry — no empty cells shown
   3. An EN/FR locale toggle is visible in the app (persisted to localStorage); switching it changes all canonical data labels (faction names, unit names, ability names) to French
   4. Searching in FTS5 with a French unit name returns the correct unit — French names are indexed alongside English names
+
 **Plans**: 3 plans
 Plans:
+
+**Wave 1**
+
 - [ ] 111-01-PLAN.md — Build script French overlay loading + translations_fr.json stub
 - [ ] 111-02-PLAN.md — Locale store + COALESCE query layer + locale-keyed hooks
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 111-03-PLAN.md — LocaleToggle sidebar UI + FTS5 bilingual search extension
+
 **UI hint**: yes
 
 ## Progress
