@@ -96,6 +96,19 @@ export function ArmyListSummaryBar({ units, pointsLimit, freshness, enhancements
 
   const hasAnyCategory = units.some((u) => u.unit_category !== null);
 
+  // Canonical role distribution from udb_role (D-09 informational)
+  const canonicalRoleCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const u of units) {
+      if (u.udb_role) {
+        counts.set(u.udb_role, (counts.get(u.udb_role) ?? 0) + 1);
+      }
+    }
+    return counts;
+  }, [units]);
+
+  const hasCanonicalRoles = canonicalRoleCounts.size > 0;
+
   // Points display: "X / Y pts" when limit set, "X pts" otherwise
   const pointsValue = pointsLimit !== null
     ? `${stats.totalPoints} / ${pointsLimit} pts`
@@ -175,6 +188,16 @@ export function ArmyListSummaryBar({ units, pointsLimit, freshness, enhancements
             <Badge key={w} variant="outline">{w}</Badge>
           ))}
         </div>
+      )}
+
+      {/* Canonical role distribution (D-09 informational) */}
+      {hasCanonicalRoles && (
+        <p className="text-xs text-muted-foreground">
+          {"Roles: " + Array.from(canonicalRoleCounts.entries())
+            .sort((a, b) => b[1] - a[1])
+            .map(([role, count]) => `${count} ${role}`)
+            .join(", ")}
+        </p>
       )}
 
       {/* Role coverage — only when at least one unit has a role */}
