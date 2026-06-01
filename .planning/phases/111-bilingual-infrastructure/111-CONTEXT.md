@@ -20,7 +20,7 @@ This phase makes all canonical data (faction names, unit names, abilities, weapo
 - **D-02:** Build script loads `translations_fr.json` after parsing all English data. For each entity, if a French translation exists in the overlay, the `_fr` field is populated; otherwise it stays null (English fallback at query time).
 
 ### Query Layer Locale Strategy (FR-03)
-- **D-03:** Explicit `locale?: 'en' | 'fr'` parameter on query functions that return canonical data (e.g., `getUdbFactions(locale?)`, `getUdbUnitDetail(unitId, locale?)`, `searchUdbUnits(query, locale?)`). When `fr`, SELECT uses `COALESCE(name_fr, name) AS name` (and similar for description, keyword). When `en` or omitted, just the English column. No global state in the query layer — clean and testable.
+- **D-03:** Explicit `locale?: 'en' | 'fr'` parameter on query functions that return displayable canonical text (e.g., `getUdbFactions(locale?)`, `getUdbUnitsByFaction(factionId, locale?)`, `getUdbUnitDetail(unitId, locale?)`). When `fr`, SELECT uses `COALESCE(name_fr, name) AS name` (and similar for description, keyword). When `en` or omitted, just the English column. No global state in the query layer — clean and testable. Note: `searchUdbUnits` does NOT need a locale param — FTS5 indexes both languages in one table, and the result display name stays English for consistency.
 - **D-04:** The React Query hooks pass locale from a Zustand store to the query functions. The locale is part of the query key so React Query automatically refetches when locale changes (e.g., `["udb-factions", locale]`).
 
 ### Locale Toggle Placement & Persistence (FR-04)
