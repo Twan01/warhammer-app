@@ -730,6 +730,7 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
     sqlx::query(
         "INSERT INTO udb_search(unit_id, name, faction_name, keywords) \
          SELECT u.id, u.name, f.name, \
+                COALESCE(u.name_fr || ' ', '') || COALESCE(f.name_fr || ' ', '') || \
                 COALESCE(u.sub_faction || ' ', '') || COALESCE(GROUP_CONCAT(k.keyword, ' '), '') \
          FROM udb_units u \
          JOIN udb_factions f ON f.id = u.faction_id \
