@@ -518,17 +518,16 @@ export function computeListWarnings(
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **INT-01: Is there a real rendering gap or just the picker flow?**
    - What we know: `PlaybookDatasheet` correctly renders when `datasheet` is non-null. `PlaybookStats` reads stats from `strategy_notes` (user-editable), not live from `udb_unit_models`.
    - What's unclear: If a user links a unit via picker, `applyIncomingStats` fires and populates the stats form. But if the user opens the PlaybookTab on an already-linked unit and the strategy note was never saved, their stat fields would be null — even though canonical data exists. This is potentially a rendering gap not covered by the current pipeline.
-   - Recommendation: During implementation, test with a unit that has `udb_unit_id` set but an empty `strategy_notes` row. If stats show "—", a `useEffect` or render-time derivation is needed to fall back to canonical data.
+   - **Resolution:** Plan 02 Task 2 adds a `statValue` fallback that returns canonical data when local state is null and the unit is linked. This is the correct approach — test during implementation and apply the fallback.
 
 2. **INT-04: Role distribution summary — informational display location**
    - What we know: D-09 mentions "role distribution summary (count per role) — informational, not a warning". But `computeListWarnings` only returns `hard[]` and `soft[]` strings. A role distribution map is a different shape of data.
-   - What's unclear: Should this be a separate return value from `computeListWarnings`, or should it be computed in `ArmyListSummaryBar` separately?
-   - Recommendation: Do NOT add a third return field to `computeListWarnings` — this would break the existing `UnitWarnings` type used by all callers. Compute role distribution inline in `ArmyListSummaryBar.tsx` from the `units` array directly. This matches the existing `roleCounts` pattern already in that component.
+   - **Resolution:** Compute role distribution inline in `ArmyListSummaryBar.tsx` from the `units` array directly, NOT in `computeListWarnings`. This matches the existing `roleCounts` pattern already in that component. Render as a single `text-xs text-muted-foreground` line per UI-SPEC. Added as Plan 02 Task 3.
 
 ---
 

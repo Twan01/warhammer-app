@@ -2,8 +2,8 @@
 phase: 111
 slug: bilingual-infrastructure
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-01
 ---
 
@@ -39,9 +39,11 @@ created: 2026-06-01
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | Status |
 |---------|------|------|-------------|-----------|-------------------|--------|
 | 111-01-01 | 01 | 1 | FR-02 | unit | `pnpm test -- tests/build-pipeline/translations-overlay.test.ts` | ⬜ pending |
-| 111-02-01 | 02 | 2 | FR-03 | unit | `pnpm test -- tests/unit-database/locale-queries.test.ts` | ⬜ pending |
-| 111-02-02 | 02 | 2 | FR-04 | unit | `pnpm test -- tests/unit-database/locale-store.test.ts` | ⬜ pending |
-| 111-03-01 | 03 | 2 | FR-05 | manual | Build script output verification | ⬜ pending |
+| 111-01-02 | 01 | 1 | FR-02 | unit + integration | `pnpm test -- tests/build-pipeline/translations-overlay.test.ts && pnpm build` | ⬜ pending |
+| 111-02-01 | 02 | 1 | FR-03 | unit | `pnpm test -- tests/unit-database/locale-queries.test.ts tests/unit-database/locale-store.test.ts && pnpm build` | ⬜ pending |
+| 111-02-02 | 02 | 1 | FR-03 | build | `pnpm build` | ⬜ pending |
+| 111-03-01 | 03 | 2 | FR-04 | unit | `pnpm test -- tests/unit-database/locale-toggle.test.ts && pnpm build` | ⬜ pending |
+| 111-03-02 | 03 | 2 | FR-05 | build + grep | `cargo check --manifest-path src-tauri/Cargo.toml && grep -c "name_fr" src-tauri/src/lib.rs` | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -49,7 +51,11 @@ created: 2026-06-01
 
 ## Wave 0 Requirements
 
-*Existing infrastructure covers all phase requirements — vitest + React Testing Library already installed.*
+*Test stubs are created as the first action within each plan's tasks — no separate Wave 0 plan needed. Each plan creates its test files before implementing production code.*
+
+- Plan 01 Task 2: creates `tests/build-pipeline/translations-overlay.test.ts`
+- Plan 02 Task 1: creates `tests/unit-database/locale-queries.test.ts` and `tests/unit-database/locale-store.test.ts`
+- Plan 03 Task 1: creates `tests/unit-database/locale-toggle.test.ts`
 
 ---
 
@@ -57,18 +63,17 @@ created: 2026-06-01
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| FTS5 French search | FR-05 | FTS5 only works in SQLite (Tauri native); jsdom can't test | Run `pnpm tauri dev`, navigate to Database Browser, search for a French unit name |
-| Locale toggle persists | FR-04 | localStorage persistence requires app restart verification | Toggle EN→FR, close app, reopen — should remain FR |
+| Locale toggle persists | FR-04 | localStorage persistence requires app restart verification | Toggle EN->FR, close app, reopen — should remain FR |
 
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have automated verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have automated verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
