@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.4.2
 milestone_name: Unit Database 2.0 — Data Quality, Sub-factions & Integration
 status: verifying
-stopped_at: Phase 109 Plan 01 complete — Plan 02 next
-last_updated: "2026-06-01T11:19:54.955Z"
+stopped_at: Phase 109 complete — all plans done
+last_updated: "2026-06-01T11:26:38Z"
 last_activity: 2026-06-01
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 11
-  completed_plans: 5
-  percent: 25
+  completed_plans: 6
+  percent: 54
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-01)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with official points via bundled canonical database for personal use, and reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 109 — Sub-faction Filter UI (Plan 01 complete)
+**Current focus:** Phase 109 complete — Sub-faction Filter UI shipped
 
 ## Current Position
 
-Phase: 109 (Sub-faction Filter UI) — EXECUTING
-Plan: 2 of 2
+Phase: 109 (Sub-faction Filter UI) — COMPLETE
+Plan: 2 of 2 (all done)
 Status: Phase complete — ready for verification
 Last activity: 2026-06-01
 
-Progress: [█████░░░░░] 45%
+Progress: [█████░░░░░] 54%
 
 ## Performance Metrics
 
@@ -95,7 +95,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-01T11:19:54.936Z
-Stopped at: Phase 109 Plan 01 complete — Plan 02 next
+Last session: 2026-06-01T11:26:38Z
+Stopped at: Phase 109 complete — all plans done
 Resume file: None
-Resume: Execute Phase 109 Plan 02 with /gsd:execute-phase 109
+Resume: Verify Phase 109 or proceed to Phase 110

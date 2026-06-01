@@ -44,7 +44,7 @@ Full details: `.planning/milestones/v0.4.0-ROADMAP.md`
 **Milestone Goal:** Transform the canonical unit database from a standalone browser into a deeply integrated, high-quality data backbone — with near-100% points coverage, sub-faction filtering, French translation infrastructure, and full integration across Playbook, Game Day, army lists, and collection.
 
 - [x] **Phase 108: Build Script Hardening & Schema Foundation** - Deterministic builds, 85%+ points coverage, sub-faction column, bilingual columns, Rust import extended
-- [ ] **Phase 109: Sub-faction Filter UI** - Chapter/sub-faction filters wired in database browser, army list picker, and collection browser
+- [x] **Phase 109: Sub-faction Filter UI** - Chapter/sub-faction filters wired in database browser, army list picker, and collection browser
 - [ ] **Phase 110: PlaybookTab & Game Day Revival** - Canonical stats/weapons/abilities in PlaybookTab; weapon profiles and stable OPG keys in Game Day
 - [ ] **Phase 111: Bilingual Infrastructure** - EN/FR locale toggle, French data overlay, bilingual query layer, FR FTS5 search
 
@@ -86,7 +86,7 @@ Plans:
 Plans:
 
 - [x] 109-01-PLAN.md — Query layer, hook, Zustand store, filter function, tests
-- [ ] 109-02-PLAN.md — Sub-faction dropdowns in DB browser, army list picker, collection browser
+- [x] 109-02-PLAN.md — Sub-faction dropdowns in DB browser, army list picker, collection browser
 
 **UI hint**: yes
 
@@ -256,7 +256,7 @@ Phases execute in numeric order: 108 → 109 → 110 → 111
 | 106. Army List Simplification | v0.4.0 | 2/2 | Complete | 2026-05-30 |
 | 107. Cleanup & Pipeline | v0.4.0 | 2/2 | Complete | 2026-05-31 |
 | 108. Build Script Hardening & Schema Foundation | v0.4.2 | 3/3 | Complete | 2026-06-01 |
-| 109. Sub-faction Filter UI | v0.4.2 | 1/2 | In progress | - |
+| 109. Sub-faction Filter UI | v0.4.2 | 2/2 | Complete | 2026-06-01 |
 | 110. PlaybookTab & Game Day Revival | v0.4.2 | 1/3 | In Progress|  |
 | 111. Bilingual Infrastructure | v0.4.2 | 0/3 | Not started | - |
 

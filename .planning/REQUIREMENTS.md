@@ -21,9 +21,9 @@ Requirements for Unit Database 2.0 — Data Quality, Sub-factions & Integration.
 
 - [x] **SF-01**: `sub_faction TEXT` column added to `udb_units` table, populated from BSData catalogue names at build time
 - [x] **SF-02**: Build script maps BSData catalogues to sub-factions via a `SUB_FACTION_MAP` for SM chapters, CSM warbands, and Aeldari sub-factions
-- [ ] **SF-03**: Database browser shows a sub-faction filter dropdown when browsing factions that have sub-factions
-- [ ] **SF-04**: Army list unit picker shows a sub-faction filter for applicable factions
-- [ ] **SF-05**: Collection browser shows sub-faction filter for applicable factions
+- [x] **SF-03**: Database browser shows a sub-faction filter dropdown when browsing factions that have sub-factions
+- [x] **SF-04**: Army list unit picker shows a sub-faction filter for applicable factions
+- [x] **SF-05**: Collection browser shows sub-faction filter for applicable factions
 - [x] **SF-06**: FTS5 search index includes sub-faction names for discoverability
 
 ### PlaybookTab & Game Day Revival
@@ -84,9 +84,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DQ-07 | Phase 108 | Complete |
 | SF-01 | Phase 108 | Complete |
 | SF-02 | Phase 108 | Complete |
-| SF-03 | Phase 109 | Pending |
-| SF-04 | Phase 109 | Pending |
-| SF-05 | Phase 109 | Pending |
+| SF-03 | Phase 109 | Complete |
+| SF-04 | Phase 109 | Complete |
+| SF-05 | Phase 109 | Complete |
 | SF-06 | Phase 108 | Complete |
 | INT-01 | Phase 110 | Pending |
 | INT-02 | Phase 110 | Pending |
