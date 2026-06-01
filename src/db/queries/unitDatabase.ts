@@ -132,27 +132,32 @@ export interface UdbKeywordsMapEntry {
 
 /**
  * Returns all factions in the unit database, ordered by name.
+ * When locale='fr', uses COALESCE(name_fr, name) for display names.
  */
-export async function getUdbFactions(): Promise<UdbFaction[]> {
+export async function getUdbFactions(locale?: "en" | "fr"): Promise<UdbFaction[]> {
   const db = await getDb();
+  const nameSql = locale === "fr" ? "COALESCE(name_fr, name) AS name" : "name";
   return db.select<UdbFaction[]>(
-    "SELECT id, name, short_name FROM udb_factions ORDER BY name ASC",
+    `SELECT id, ${nameSql}, short_name FROM udb_factions ORDER BY name ASC`,
   );
 }
 
 /**
  * Returns unit summaries for a faction, with MIN(points) as base_points
  * and MIN/MAX model counts from composition. Ordered by role then name.
+ * When locale='fr', uses COALESCE(u.name_fr, u.name) for display names.
  */
 export async function getUdbUnitsByFaction(
   factionId: string,
+  locale?: "en" | "fr",
 ): Promise<UdbUnitSummary[]> {
   const db = await getDb();
+  const nameSql = locale === "fr" ? "COALESCE(u.name_fr, u.name)" : "u.name";
   return db.select<UdbUnitSummary[]>(
     `SELECT
        u.id,
        u.faction_id,
-       u.name,
+       ${nameSql} AS name,
        u.role,
        u.sub_faction,
        (SELECT MIN(p.points) FROM udb_unit_points p WHERE p.unit_id = u.id) AS base_points,
@@ -168,11 +173,20 @@ export async function getUdbUnitsByFaction(
 /**
  * Returns the full detail for a single unit, including all sub-tables.
  * Returns null if the unit does not exist.
+ * When locale='fr', uses COALESCE for unit name, ability names/descriptions, and weapon names.
  */
 export async function getUdbUnitDetail(
   unitId: string,
+  locale?: "en" | "fr",
 ): Promise<UdbUnitDetail | null> {
   const db = await getDb();
+  const fr = locale === "fr";
+  const unitNameSql = fr ? "COALESCE(name_fr, name) AS name" : "name";
+  const abilityFieldsSql = fr
+    ? "COALESCE(name_fr, name) AS name, COALESCE(description_fr, description) AS description"
+    : "name, description";
+  const weaponNameSql = fr ? "COALESCE(name_fr, name) AS name" : "name";
+
   const unitRows = await db.select<
     {
       id: string;
@@ -184,7 +198,7 @@ export async function getUdbUnitDetail(
       damaged_desc: string | null;
     }[]
   >(
-    "SELECT id, faction_id, name, role, base_points, damaged_w, damaged_desc FROM udb_units WHERE id = $1",
+    `SELECT id, faction_id, ${unitNameSql}, role, base_points, damaged_w, damaged_desc FROM udb_units WHERE id = $1`,
     [unitId],
   );
   const unit = unitRows[0];
@@ -197,11 +211,11 @@ export async function getUdbUnitDetail(
         [unitId],
       ),
       db.select<UdbWeapon[]>(
-        "SELECT * FROM udb_unit_weapons WHERE unit_id = $1 ORDER BY weapon_group, line_order",
+        `SELECT id, unit_id, weapon_group, line_order, ${weaponNameSql}, category, range, attacks, skill, strength, ap, damage, keywords FROM udb_unit_weapons WHERE unit_id = $1 ORDER BY weapon_group, line_order`,
         [unitId],
       ),
       db.select<UdbAbility[]>(
-        "SELECT * FROM udb_unit_abilities WHERE unit_id = $1 ORDER BY line_order",
+        `SELECT id, unit_id, line_order, ${abilityFieldsSql}, ability_type FROM udb_unit_abilities WHERE unit_id = $1 ORDER BY line_order`,
         [unitId],
       ),
       db.select<UdbKeyword[]>(

@@ -38,7 +38,7 @@ export const UDB_SEARCH_KEY = (query: string) =>
 export function useUdbFactions() {
   return useQuery({
     queryKey: UDB_FACTIONS_KEY,
-    queryFn: getUdbFactions,
+    queryFn: () => getUdbFactions(),
     staleTime: Infinity,
   });
 }

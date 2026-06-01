@@ -95,7 +95,7 @@ export function useDatasheetsByFactionWithPoints(factionId: string | undefined) 
 export function useWahapediaFactions() {
   return useQuery({
     queryKey: WAHAPEDIA_FACTIONS_KEY,
-    queryFn: getUdbFactions,
+    queryFn: () => getUdbFactions(),
     staleTime: Infinity,
   });
 }
