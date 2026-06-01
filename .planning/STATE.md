@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-06-01)
 ## Current Position
 
 Phase: 109 of 111 (Sub-faction Filter UI)
-Plan: 1 of 3 (109-01 next)
-Status: Executing
-Last activity: 2026-06-01 — Completed 108-03 (migration 041, Rust import, coverage UI)
+Plan: 1 of 2 (109-01 next)
+Status: Ready to execute
+Last activity: 2026-06-01 — Phase 109 planned (2 plans, 2 waves)
 
 Progress: [###░░░░░░░] 25%
 
@@ -94,7 +94,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-01T10:37:58.763Z
-Stopped at: Phase 110 UI-SPEC approved
-Resume file: .planning/phases/110-playbooktab-game-day-revival/110-UI-SPEC.md
-Resume: Continue Phase 109 with /gsd:plan-phase 109
+Last session: 2026-06-01
+Stopped at: Phase 109 planned — 2 plans ready to execute
+Resume file: .planning/phases/109-sub-faction-filter-ui/109-01-PLAN.md
+Resume: Execute Phase 109 with /gsd:execute-phase 109
