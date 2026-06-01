@@ -158,6 +158,7 @@ async function buildUnitDatabase(): Promise<UnitDatabaseJson> {
       id: row["id"].trim(),
       name: row["name"].trim(),
       short_name: row["short_name"]?.trim() ?? row["id"].trim(),
+      name_fr: null,
     }));
   const factionIds = new Set(factions.map((f) => f.id));
 
@@ -185,6 +186,8 @@ async function buildUnitDatabase(): Promise<UnitDatabaseJson> {
       base_points: null,
       damaged_w: row["damaged_w"]?.trim() ?? "",
       damaged_desc: row["damaged_description"]?.trim() ?? "",
+      sub_faction: null,
+      name_fr: null,
     });
   }
 
