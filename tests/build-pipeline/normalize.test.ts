@@ -53,8 +53,8 @@ describe("normalizeName: DQ-03 — name normalization", () => {
   it("handles combined: smart quote replacement + extra whitespace collapse", () => {
     // Smart quote (U+2019, right single quotation mark) gets replaced with straight
     // apostrophe (U+0027), extra spaces get collapsed, output is lowercased.
-    const rightSingleQuote = "’";
-    const straightApostrophe = "’";
+    const rightSingleQuote = String.fromCharCode(0x2019); // right single quotation mark
+    const straightApostrophe = String.fromCharCode(0x27);  // ASCII apostrophe
     const input = `T${rightSingleQuote}au Broadside  Battlesuit`;
     const result = normalizeName(input);
     // Result must use straight apostrophe (0x27), spaces collapsed, lowercased

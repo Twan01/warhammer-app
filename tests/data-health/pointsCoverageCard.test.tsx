@@ -108,8 +108,13 @@ describe("PointsCoverageCard: DQ-06 — coverage badge rendering", () => {
     const amberBadge = container.querySelector(".bg-amber-500\\/10");
     expect(greenBadge).toBeNull();
     expect(amberBadge).toBeNull();
-    // Should show the percentage
-    expect(screen.getByText("30%")).toBeInTheDocument();
+    // Should show the percentage (may appear in both overall and per-faction badge)
+    const badges = screen.getAllByText("30%");
+    expect(badges.length).toBeGreaterThanOrEqual(1);
+    // All badges should be destructive variant (no green or amber)
+    for (const badge of badges) {
+      expect(badge.closest("[data-variant='destructive']")).toBeInTheDocument();
+    }
   });
 
   it("renders overall coverage summary line showing total units", () => {
@@ -160,6 +165,11 @@ describe("PointsCoverageCard: DQ-06 — coverage badge rendering", () => {
     const amberBadge = container.querySelector(".bg-amber-500\\/10");
     expect(greenBadge).toBeNull();
     expect(amberBadge).toBeNull();
-    expect(screen.getByText("49%")).toBeInTheDocument();
+    // 49% may appear in both overall and per-faction badge
+    const badges = screen.getAllByText("49%");
+    expect(badges.length).toBeGreaterThanOrEqual(1);
+    for (const badge of badges) {
+      expect(badge.closest("[data-variant='destructive']")).toBeInTheDocument();
+    }
   });
 });
