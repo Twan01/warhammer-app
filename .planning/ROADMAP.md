@@ -111,7 +111,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 110-03-PLAN.md — Full test suite and human verification checkpoint
+- [x] 110-03-PLAN.md — Full test suite and human verification checkpoint
 
 **UI hint**: yes
 
@@ -257,7 +257,7 @@ Phases execute in numeric order: 108 → 109 → 110 → 111
 | 107. Cleanup & Pipeline | v0.4.0 | 2/2 | Complete | 2026-05-31 |
 | 108. Build Script Hardening & Schema Foundation | v0.4.2 | 3/3 | Complete | 2026-06-01 |
 | 109. Sub-faction Filter UI | v0.4.2 | 2/2 | Complete | 2026-06-01 |
-| 110. PlaybookTab & Game Day Revival | v0.4.2 | 2/3 | In Progress|  |
+| 110. PlaybookTab & Game Day Revival | v0.4.2 | 3/3 | Complete   | 2026-06-01 |
 | 111. Bilingual Infrastructure | v0.4.2 | 0/3 | Not started | - |
 
 <details>

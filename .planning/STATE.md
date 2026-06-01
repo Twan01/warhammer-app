@@ -4,7 +4,7 @@ milestone: v0.4.2
 milestone_name: Unit Database 2.0 — Data Quality, Sub-factions & Integration
 status: verifying
 stopped_at: Phase 109 executed — verification passed (human_needed for 5 UI items)
-last_updated: "2026-06-01T11:59:32.077Z"
+last_updated: "2026-06-01T12:00:05.813Z"
 last_activity: 2026-06-01
 progress:
   total_phases: 4
@@ -30,7 +30,7 @@ Plan: 2 of 2 (all done)
 Status: Phase complete — ready for verification
 Last activity: 2026-06-01
 
-Progress: [██████░░░░] 64%
+Progress: [███████░░░] 73%
 
 ## Performance Metrics
 
@@ -92,10 +92,11 @@ None.
 | v2 scope | FR-EXT-01: French ability/weapon text | Deferred | v0.4.2 planning |
 | v2 scope | FR-EXT-02: Full app UI translation | Deferred | v0.4.2 planning |
 | Phase 110-playbooktab-game-day-revival P01 | 12m | 1 tasks | 4 files |
+| Phase 110 P03 | 15 | 2 tasks | 0 files |
 
 ## Session Continuity
 
-Last session: 2026-06-01T11:51:35.907Z
+Last session: 2026-06-01T11:59:58.803Z
 Stopped at: Phase 109 executed — verification passed (human_needed for 5 UI items)
 Resume file: None
 Resume: Human-test Phase 109 UI, then /gsd:discuss-phase 110 --auto
