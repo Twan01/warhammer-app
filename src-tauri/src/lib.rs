@@ -261,6 +261,49 @@ fn get_migrations() -> Vec<Migration> {
 // panics on startup with no recovery path. This runs *before* the Tauri
 // builder so it completes before tauri-plugin-sql initializes.
 
+/// Resolves the WebView2 data directory on Windows (%LOCALAPPDATA%\<id>).
+/// Returns None on non-Windows or if the env var is missing.
+fn resolve_webview_data_dir() -> Option<std::path::PathBuf> {
+    const IDENTIFIER: &str = "com.hobbyforge.app";
+    #[cfg(target_os = "windows")]
+    {
+        std::env::var_os("LOCALAPPDATA")
+            .map(|p| std::path::PathBuf::from(p).join(IDENTIFIER).join("EBWebView"))
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        None
+    }
+}
+
+const LAUNCH_SENTINEL: &str = ".launch-sentinel";
+
+/// Self-healing: if the previous launch didn't complete (sentinel still exists),
+/// clear the WebView2 cache which is a known corruption point on Windows.
+fn preflight_webview_heal() {
+    let Some(app_data_dir) = resolve_app_data_dir() else { return };
+    let sentinel = app_data_dir.join(LAUNCH_SENTINEL);
+
+    if sentinel.exists() {
+        eprintln!("[hobbyforge] previous launch did not complete — clearing WebView2 cache");
+        if let Some(webview_dir) = resolve_webview_data_dir() {
+            if webview_dir.exists() {
+                match std::fs::remove_dir_all(&webview_dir) {
+                    Ok(_) => println!("[hobbyforge] WebView2 cache cleared: {}", webview_dir.display()),
+                    Err(e) => eprintln!("[hobbyforge] failed to clear WebView2 cache: {e}"),
+                }
+            }
+        }
+        let _ = std::fs::remove_file(&sentinel);
+    }
+
+    // Write sentinel — removed by ack_successful_launch once the UI loads.
+    let _ = std::fs::create_dir_all(&app_data_dir);
+    if let Err(e) = std::fs::write(&sentinel, b"launching") {
+        eprintln!("[hobbyforge] failed to write launch sentinel: {e}");
+    }
+}
+
 fn resolve_app_data_dir() -> Option<std::path::PathBuf> {
     const IDENTIFIER: &str = "com.hobbyforge.app";
     #[cfg(target_os = "windows")]
@@ -1135,8 +1178,22 @@ fn get_schema_version() -> u32 {
     get_migrations().len() as u32
 }
 
+/// Called by the frontend once the UI has loaded successfully.
+/// Removes the launch sentinel so the next startup knows this launch was healthy.
+#[tauri::command]
+fn ack_successful_launch(app: tauri::AppHandle) -> Result<(), String> {
+    let app_data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    let sentinel = app_data_dir.join(LAUNCH_SENTINEL);
+    if sentinel.exists() {
+        std::fs::remove_file(&sentinel).map_err(|e| e.to_string())?;
+        println!("[hobbyforge] launch sentinel cleared — startup healthy");
+    }
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    preflight_webview_heal();
     preflight_migration_repair();
 
     tauri::Builder::default()
@@ -1182,6 +1239,7 @@ pub fn run() {
             restore_from_backup,
             list_safety_backups,
             write_bytes_to_path,
+            ack_successful_launch,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

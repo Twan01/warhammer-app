@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, type ReactNode } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { getDb } from "@/db/client";
 import { DbDiagnosticScreen } from "@/components/common/DbDiagnosticScreen";
 
@@ -50,6 +51,7 @@ export function DbHealthGate({ children }: { children: ReactNode }) {
         );
       }
       setState("ok");
+      invoke("ack_successful_launch").catch(() => {});
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setState("failed");
