@@ -3,10 +3,12 @@
  *
  * Covers GAME-03: CP tracker store logic (spend, gain, undo, starting CP)
  * plus checklist and ability toggle operations.
+ *
+ * Phase 110: persist migration tests (D-07)
  */
 
 import { describe, it, expect, beforeEach } from "vitest";
-import { useGameDayStore } from "@/features/game-day/gameDayStore";
+import { useGameDayStore, migrateGameDayState } from "@/features/game-day/gameDayStore";
 
 describe("gameDayStore", () => {
   beforeEach(() => {
@@ -137,6 +139,86 @@ describe("gameDayStore", () => {
       useGameDayStore.getState().toggleAbilityUsed(1, "ds1:ability-a");
       state = useGameDayStore.getState().listStates["1"];
       expect(state.usedAbilities).not.toContain("ds1:ability-a");
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Phase 110 — persist migration (D-06, D-07, D-08)
+  // ---------------------------------------------------------------------------
+  describe("persist migration", () => {
+    it("removes :: keys from usedAbilities when migrating from v0", () => {
+      const v0State = {
+        listStates: {
+          "1": {
+            cp: 5,
+            cpHistory: [],
+            startingCp: 5,
+            checklistItems: [],
+            usedAbilities: ["unit::ability-old", "unit2::another-old"],
+          },
+        },
+      };
+      const result = migrateGameDayState(v0State, 0);
+      expect(result.listStates["1"].usedAbilities).toEqual([]);
+    });
+
+    it("preserves single-colon keys when migrating from v0", () => {
+      const v0State = {
+        listStates: {
+          "1": {
+            cp: 5,
+            cpHistory: [],
+            startingCp: 5,
+            checklistItems: [],
+            usedAbilities: ["unit:ability-new", "unit2:another-new"],
+          },
+        },
+      };
+      const result = migrateGameDayState(v0State, 0);
+      expect(result.listStates["1"].usedAbilities).toEqual([
+        "unit:ability-new",
+        "unit2:another-new",
+      ]);
+    });
+
+    it("handles empty usedAbilities unchanged when migrating from v0", () => {
+      const v0State = {
+        listStates: {
+          "1": {
+            cp: 0,
+            cpHistory: [],
+            startingCp: 0,
+            checklistItems: [],
+            usedAbilities: [],
+          },
+        },
+      };
+      const result = migrateGameDayState(v0State, 0);
+      expect(result.listStates["1"].usedAbilities).toEqual([]);
+    });
+
+    it("keeps only new-format keys and drops old :: keys in mixed state", () => {
+      const v0State = {
+        listStates: {
+          "1": {
+            cp: 3,
+            cpHistory: [],
+            startingCp: 3,
+            checklistItems: [],
+            usedAbilities: [
+              "unit::old-key",
+              "unit:new-key",
+              "other::another-old",
+              "other:another-new",
+            ],
+          },
+        },
+      };
+      const result = migrateGameDayState(v0State, 0);
+      expect(result.listStates["1"].usedAbilities).toEqual([
+        "unit:new-key",
+        "other:another-new",
+      ]);
     });
   });
 });

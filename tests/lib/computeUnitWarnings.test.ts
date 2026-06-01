@@ -301,6 +301,133 @@ describe("computeListWarnings", () => {
     // Only 1 linked battleline, need 3 for 2000pt
     expect(result.soft).toContain("Needs 3 Battleline (have 1)");
   });
+
+  // -------------------------------------------------------------------------
+  // DEDICATED TRANSPORT cap (Phase 110, D-09)
+  // -------------------------------------------------------------------------
+  describe("DEDICATED TRANSPORT cap", () => {
+    it("returns soft warning when transport count (3) exceeds non-transport non-character count (2) at 2000pts", () => {
+      const units = [
+        makeUnit({ unit_id: 1, udb_role: "Dedicated Transport", udb_unit_id: "t1", udb_keywords: "Transport" }),
+        makeUnit({ unit_id: 2, udb_role: "Dedicated Transport", udb_unit_id: "t2", udb_keywords: "Transport" }),
+        makeUnit({ unit_id: 3, udb_role: "Dedicated Transport", udb_unit_id: "t3", udb_keywords: "Transport" }),
+        makeUnit({ unit_id: 4, udb_role: "Battleline", udb_unit_id: "u1", udb_keywords: null }),
+        makeUnit({ unit_id: 5, udb_role: "Battleline", udb_unit_id: "u2", udb_keywords: null }),
+      ];
+      const ctx = makeContext({ pointsLimit: 2000 });
+      const result = computeListWarnings(ctx, units);
+      expect(result.soft).toContain("DEDICATED TRANSPORT count exceeds non-transport, non-character units");
+    });
+
+    it("no warning when transport count (1) does not exceed non-transport non-character count (3) at 2000pts", () => {
+      const units = [
+        makeUnit({ unit_id: 1, udb_role: "Dedicated Transport", udb_unit_id: "t1", udb_keywords: "Transport" }),
+        makeUnit({ unit_id: 2, udb_role: "Battleline", udb_unit_id: "u1", udb_keywords: null }),
+        makeUnit({ unit_id: 3, udb_role: "Battleline", udb_unit_id: "u2", udb_keywords: null }),
+        makeUnit({ unit_id: 4, udb_role: "Battleline", udb_unit_id: "u3", udb_keywords: null }),
+      ];
+      const ctx = makeContext({ pointsLimit: 2000 });
+      const result = computeListWarnings(ctx, units);
+      const transportWarnings = result.soft.filter(w => w.includes("DEDICATED TRANSPORT"));
+      expect(transportWarnings).toHaveLength(0);
+    });
+
+    it("no warning when transport count is 0", () => {
+      const units = [
+        makeUnit({ unit_id: 1, udb_role: "Battleline", udb_unit_id: "u1", udb_keywords: null }),
+        makeUnit({ unit_id: 2, udb_role: "Battleline", udb_unit_id: "u2", udb_keywords: null }),
+      ];
+      const ctx = makeContext({ pointsLimit: 2000 });
+      const result = computeListWarnings(ctx, units);
+      const transportWarnings = result.soft.filter(w => w.includes("DEDICATED TRANSPORT"));
+      expect(transportWarnings).toHaveLength(0);
+    });
+
+    it("skips check when pointsLimit is null", () => {
+      const units = [
+        makeUnit({ unit_id: 1, udb_role: "Dedicated Transport", udb_unit_id: "t1", udb_keywords: "Transport" }),
+        makeUnit({ unit_id: 2, udb_role: "Dedicated Transport", udb_unit_id: "t2", udb_keywords: "Transport" }),
+        makeUnit({ unit_id: 3, udb_role: "Dedicated Transport", udb_unit_id: "t3", udb_keywords: "Transport" }),
+      ];
+      const ctx = makeContext({ pointsLimit: null });
+      const result = computeListWarnings(ctx, units);
+      const transportWarnings = result.soft.filter(w => w.includes("DEDICATED TRANSPORT"));
+      expect(transportWarnings).toHaveLength(0);
+    });
+
+    it("ghost units (unit_id = null) are excluded from transport counting", () => {
+      const units = [
+        makeUnit({ unit_id: null, udb_role: "Dedicated Transport", udb_unit_id: "t1", udb_keywords: "Transport" }),
+        makeUnit({ unit_id: null, udb_role: "Dedicated Transport", udb_unit_id: "t2", udb_keywords: "Transport" }),
+        makeUnit({ unit_id: null, udb_role: "Dedicated Transport", udb_unit_id: "t3", udb_keywords: "Transport" }),
+        makeUnit({ unit_id: 1, udb_role: "Battleline", udb_unit_id: "u1", udb_keywords: null }),
+        makeUnit({ unit_id: 2, udb_role: "Battleline", udb_unit_id: "u2", udb_keywords: null }),
+      ];
+      const ctx = makeContext({ pointsLimit: 2000 });
+      const result = computeListWarnings(ctx, units);
+      const transportWarnings = result.soft.filter(w => w.includes("DEDICATED TRANSPORT"));
+      expect(transportWarnings).toHaveLength(0); // ghost transports not counted
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // EPIC HERO uniqueness (Phase 110, D-09)
+  // -------------------------------------------------------------------------
+  describe("EPIC HERO uniqueness", () => {
+    it("returns soft warning when two units share same udb_unit_id and both have 'Epic Hero' in udb_keywords", () => {
+      const units = [
+        makeUnit({ unit_id: 1, udb_role: "Character", udb_unit_id: "epic-hero-001", udb_keywords: "Epic Hero, Character" }),
+        makeUnit({ unit_id: 2, udb_role: "Character", udb_unit_id: "epic-hero-001", udb_keywords: "Epic Hero, Character" }),
+        makeUnit({ unit_id: 3, udb_role: "Battleline", udb_unit_id: "u1", udb_keywords: null }),
+      ];
+      const ctx = makeContext({ pointsLimit: 2000 });
+      const result = computeListWarnings(ctx, units);
+      expect(result.soft).toContain("EPIC HERO must be unique (duplicate detected)");
+    });
+
+    it("no warning when Epic Hero appears only once", () => {
+      const units = [
+        makeUnit({ unit_id: 1, udb_role: "Character", udb_unit_id: "epic-hero-001", udb_keywords: "Epic Hero, Character" }),
+        makeUnit({ unit_id: 2, udb_role: "Battleline", udb_unit_id: "u1", udb_keywords: null }),
+      ];
+      const ctx = makeContext({ pointsLimit: 2000 });
+      const result = computeListWarnings(ctx, units);
+      const epicWarnings = result.soft.filter(w => w.includes("EPIC HERO"));
+      expect(epicWarnings).toHaveLength(0);
+    });
+
+    it("no warning when no units have 'Epic Hero' keyword", () => {
+      const units = [
+        makeUnit({ unit_id: 1, udb_role: "Character", udb_unit_id: "char-001", udb_keywords: "Character, Infantry" }),
+        makeUnit({ unit_id: 2, udb_role: "Battleline", udb_unit_id: "u1", udb_keywords: "Infantry, Battleline" }),
+      ];
+      const ctx = makeContext({ pointsLimit: 2000 });
+      const result = computeListWarnings(ctx, units);
+      const epicWarnings = result.soft.filter(w => w.includes("EPIC HERO"));
+      expect(epicWarnings).toHaveLength(0);
+    });
+
+    it("skips check when pointsLimit is null", () => {
+      const units = [
+        makeUnit({ unit_id: 1, udb_role: "Character", udb_unit_id: "epic-hero-001", udb_keywords: "Epic Hero, Character" }),
+        makeUnit({ unit_id: 2, udb_role: "Character", udb_unit_id: "epic-hero-001", udb_keywords: "Epic Hero, Character" }),
+      ];
+      const ctx = makeContext({ pointsLimit: null });
+      const result = computeListWarnings(ctx, units);
+      const epicWarnings = result.soft.filter(w => w.includes("EPIC HERO"));
+      expect(epicWarnings).toHaveLength(0);
+    });
+
+    it("case-insensitive match on 'epic hero' keyword", () => {
+      const units = [
+        makeUnit({ unit_id: 1, udb_role: "Character", udb_unit_id: "epic-hero-001", udb_keywords: "EPIC HERO, Character" }),
+        makeUnit({ unit_id: 2, udb_role: "Character", udb_unit_id: "epic-hero-001", udb_keywords: "epic hero, Character" }),
+      ];
+      const ctx = makeContext({ pointsLimit: 2000 });
+      const result = computeListWarnings(ctx, units);
+      expect(result.soft).toContain("EPIC HERO must be unique (duplicate detected)");
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------

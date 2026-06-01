@@ -61,6 +61,32 @@ function setListState(
   };
 }
 
+/**
+ * Phase 110 (D-06, D-07): Persist migration function for Zustand store.
+ *
+ * v0 → v1: OPG keys changed from "unitId::abilityName" (AUTOINCREMENT-based)
+ * to "unitId:abilityName" (composite). Any key containing "::" is a stale
+ * v0 key and must be dropped — the user will simply re-toggle those abilities.
+ *
+ * Exported for direct testing without a full Zustand render environment.
+ */
+export function migrateGameDayState(
+  persistedState: unknown,
+  fromVersion: number,
+): GameDayStore {
+  if (fromVersion === 0) {
+    const old = persistedState as { listStates?: Record<string, GameDayListState> };
+    if (old.listStates) {
+      for (const ls of Object.values(old.listStates)) {
+        if (Array.isArray(ls.usedAbilities)) {
+          ls.usedAbilities = ls.usedAbilities.filter((k) => !k.includes("::"));
+        }
+      }
+    }
+  }
+  return persistedState as GameDayStore;
+}
+
 export const useGameDayStore = create<GameDayStore>()(
   persist(
     (set) => ({
@@ -144,7 +170,11 @@ export const useGameDayStore = create<GameDayStore>()(
           });
         }),
     }),
-    { name: "game-day-state" },
+    {
+      name: "game-day-state",
+      version: 1,
+      migrate: migrateGameDayState,
+    },
   ),
 );
 

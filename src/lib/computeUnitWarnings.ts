@@ -80,7 +80,7 @@ export function computeUnitWarnings(
  */
 export function computeListWarnings(
   context: WarningContext,
-  units: Array<Pick<ArmyListUnitRow, "udb_role" | "unit_id">> = [],
+  units: Array<Pick<ArmyListUnitRow, "udb_role" | "unit_id" | "udb_unit_id" | "udb_keywords">> = [],
 ): UnitWarnings {
   const hard: string[] = [];
   const soft: string[] = [];
@@ -105,6 +105,38 @@ export function computeListWarnings(
 
     if (battlelineCount < minBattleline) {
       soft.push(`Needs ${minBattleline} Battleline (have ${battlelineCount})`);
+    }
+
+    // Soft: DEDICATED TRANSPORT cap (Phase 110, D-09)
+    // Transport count must not exceed the number of non-transport, non-character units
+    const linkedUnits = units.filter((u) => u.unit_id !== null);
+    const transportCount = linkedUnits.filter(
+      (u) => u.udb_role?.toLowerCase() === "dedicated transport",
+    ).length;
+    const nonTransportNonCharacterCount = linkedUnits.filter(
+      (u) =>
+        u.udb_role?.toLowerCase() !== "dedicated transport" &&
+        u.udb_role?.toLowerCase() !== "character",
+    ).length;
+    if (transportCount > 0 && transportCount > nonTransportNonCharacterCount) {
+      soft.push("DEDICATED TRANSPORT count exceeds non-transport, non-character units");
+    }
+
+    // Soft: EPIC HERO uniqueness (Phase 110, D-09)
+    // An EPIC HERO unit (identified by udb_unit_id) must not appear more than once
+    const epicHeroIds = linkedUnits
+      .filter(
+        (u) =>
+          u.unit_id !== null &&
+          u.udb_keywords?.toLowerCase().includes("epic hero"),
+      )
+      .map((u) => u.udb_unit_id)
+      .filter((id): id is string => id !== null);
+    const hasDuplicateEpicHero = epicHeroIds.some(
+      (id, idx) => epicHeroIds.indexOf(id) !== idx,
+    );
+    if (hasDuplicateEpicHero) {
+      soft.push("EPIC HERO must be unique (duplicate detected)");
     }
   }
 
