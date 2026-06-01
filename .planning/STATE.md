@@ -94,6 +94,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-06-01
-Stopped at: Phase 108 complete — verification passed (human_needed for 2 UI items)
-Resume file: .planning/phases/108-build-script-hardening-schema-foundation/108-VERIFICATION.md
-Resume: Start Phase 109 with /gsd:discuss-phase 109
+Stopped at: Phase 109 context gathered
+Resume file: .planning/phases/109-sub-faction-filter-ui/109-CONTEXT.md
+Resume: Continue Phase 109 with /gsd:plan-phase 109
