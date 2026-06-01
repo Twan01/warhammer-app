@@ -29,6 +29,8 @@ Thumbs.db
 scripts/data/
 # Exception: aliases.json is manually curated and committed
 !scripts/data/aliases.json
+# Exception: coverage-report.json is a build artifact tracked for diagnostics
+!scripts/data/coverage-report.json
 
 # User-local launcher overrides (optional - uncomment to ignore)
 # launch-local.bat
