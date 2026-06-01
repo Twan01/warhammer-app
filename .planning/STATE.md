@@ -4,14 +4,14 @@ milestone: v0.4.2
 milestone_name: Unit Database 2.0 — Data Quality, Sub-factions & Integration
 status: executing
 stopped_at: Phase 109 planned — 2 plans ready to execute
-last_updated: "2026-06-01T11:07:59.722Z"
-last_activity: 2026-06-01 -- Phase 111 planning complete
+last_updated: "2026-06-01T11:10:00.220Z"
+last_activity: 2026-06-01 -- Phase 110 execution started
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 11
-  completed_plans: 3
-  percent: 25
+  completed_plans: 5
+  percent: 30
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-01)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with official points via bundled canonical database for personal use, and reliable backup/restore so local data is always recoverable
-**Current focus:** v0.4.2 Phase 109 — Sub-faction Filter UI
+**Current focus:** Phase 109 — Sub-faction Filter UI (Plan 01 complete)
 
 ## Current Position
 
-Phase: 109 of 111 (Sub-faction Filter UI)
-Plan: 1 of 2 (109-01 next)
-Status: Ready to execute
-Last activity: 2026-06-01 -- Phase 111 planning complete
+Phase: 109 (Sub-faction Filter UI) — EXECUTING
+Plan: 2 of 2
+Status: Plan 01 complete, Plan 02 next
+Last activity: 2026-06-01 -- Phase 109 Plan 01 executed
 
-Progress: [###░░░░░░░] 25%
+Progress: [###░░░░░░░] 30%
 
 ## Performance Metrics
 
@@ -95,6 +95,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-06-01
-Stopped at: Phase 109 planned — 2 plans ready to execute
-Resume file: .planning/phases/109-sub-faction-filter-ui/109-01-PLAN.md
-Resume: Execute Phase 109 with /gsd:execute-phase 109
+Stopped at: Phase 109 Plan 01 complete — Plan 02 next
+Resume file: .planning/phases/109-sub-faction-filter-ui/109-02-PLAN.md
+Resume: Execute Phase 109 Plan 02 with /gsd:execute-phase 109

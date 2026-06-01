@@ -85,7 +85,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 
-- [ ] 109-01-PLAN.md — Query layer, hook, Zustand store, filter function, tests
+- [x] 109-01-PLAN.md — Query layer, hook, Zustand store, filter function, tests
 - [ ] 109-02-PLAN.md — Sub-faction dropdowns in DB browser, army list picker, collection browser
 
 **UI hint**: yes
@@ -256,7 +256,7 @@ Phases execute in numeric order: 108 → 109 → 110 → 111
 | 106. Army List Simplification | v0.4.0 | 2/2 | Complete | 2026-05-30 |
 | 107. Cleanup & Pipeline | v0.4.0 | 2/2 | Complete | 2026-05-31 |
 | 108. Build Script Hardening & Schema Foundation | v0.4.2 | 3/3 | Complete | 2026-06-01 |
-| 109. Sub-faction Filter UI | v0.4.2 | 0/2 | Not started | - |
+| 109. Sub-faction Filter UI | v0.4.2 | 1/2 | In progress | - |
 | 110. PlaybookTab & Game Day Revival | v0.4.2 | 0/3 | Not started | - |
 | 111. Bilingual Infrastructure | v0.4.2 | 0/3 | Not started | - |
 

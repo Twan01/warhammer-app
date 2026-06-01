@@ -24,7 +24,7 @@ Requirements for Unit Database 2.0 — Data Quality, Sub-factions & Integration.
 - [ ] **SF-03**: Database browser shows a sub-faction filter dropdown when browsing factions that have sub-factions
 - [ ] **SF-04**: Army list unit picker shows a sub-faction filter for applicable factions
 - [ ] **SF-05**: Collection browser shows sub-faction filter for applicable factions
-- [ ] **SF-06**: FTS5 search index includes sub-faction names for discoverability
+- [x] **SF-06**: FTS5 search index includes sub-faction names for discoverability
 
 ### PlaybookTab & Game Day Revival
 
@@ -87,7 +87,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SF-03 | Phase 109 | Pending |
 | SF-04 | Phase 109 | Pending |
 | SF-05 | Phase 109 | Pending |
-| SF-06 | Phase 109 | Pending |
+| SF-06 | Phase 108 | Complete |
 | INT-01 | Phase 110 | Pending |
 | INT-02 | Phase 110 | Pending |
 | INT-03 | Phase 110 | Pending |
