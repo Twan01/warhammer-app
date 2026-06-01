@@ -42,7 +42,7 @@ Declared values (multiples of 4 only). Source: Tailwind 4 default scale as used 
 | 2xl | 48px | Page-level section breaks |
 | 3xl | 64px | Not used in this phase |
 
-Exceptions: WeaponTable column header row uses `py-1` (4px), data rows use `py-1.5` (6px) — established in PlaybookDatasheet and carried forward unchanged.
+Exceptions: None. WeaponTable column header row and data rows both use `py-1` (4px) for compact density.
 
 ---
 
@@ -101,7 +101,7 @@ Extracted from `PlaybookDatasheet.tsx` to `src/features/units/WeaponTable.tsx`. 
 - Header row: `text-[10px] font-semibold text-muted-foreground uppercase tracking-wide`, center-aligned except first column (Name, left-aligned)
 - Data rows: weapon name `text-sm font-medium truncate`, stat values `text-xs tabular-nums text-center`
 - Row dividers: `border-b border-border last:border-0`
-- Keywords sub-row: `text-xs text-muted-foreground leading-relaxed px-2 pb-1.5`
+- Keywords sub-row: `text-xs text-muted-foreground leading-relaxed px-2 pb-1`
 - Stat label parameter: `"BS"` for ranged, `"WS"` for melee
 
 The extracted `WeaponTable` is a pure display component receiving `weapons: UdbWeapon[]` and `statLabel: "BS" | "WS"`. No behavioral changes.
@@ -163,7 +163,7 @@ Soft warnings appear in the same location as existing warnings — the army list
 - `"DEDICATED TRANSPORT count exceeds non-transport, non-character units"`
 - `"EPIC HERO must be unique (duplicate detected)"`
 
-The role distribution summary (count per role) is informational — rendered as a stat row, not a warning chip. Format TBD by executor based on existing list summary panel layout (not a blocking UI contract question for this phase since it is informational only and mirrors existing BATTLELINE count display pattern).
+The role distribution summary (count per role) is informational — rendered as a single `text-xs text-muted-foreground` line below the existing BATTLELINE soft warning, format: `"Roles: 2 Battleline, 1 Character, 1 Dedicated Transport"`. No chips, no badges — plain comma-separated text matching existing warning line style.
 
 ---
 
