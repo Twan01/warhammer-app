@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -15,6 +15,13 @@ import {
   CommandGroup,
   CommandItem,
 } from "@/components/ui/command";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -29,6 +36,11 @@ import {
 } from "@/components/ui/status-badge";
 import { useUnitsEnriched } from "@/hooks/useUnits";
 import { useAddUnitToList } from "@/hooks/useArmyLists";
+import { useFactions } from "@/hooks/useFactions";
+import {
+  useUdbSubFactions,
+  useUdbSubFactionUnitIds,
+} from "@/hooks/useUnitDatabase";
 import { computeUnitReadiness } from "@/lib/readiness";
 
 interface UnitPickerDialogProps {
@@ -51,12 +63,36 @@ export function UnitPickerDialog({
   const { data: units = [] } = useUnitsEnriched();
   const addUnitToList = useAddUnitToList();
   const [fitsBudget, setFitsBudget] = useState(false);
+  const [subFactionFilter, setSubFactionFilter] = useState<string | null>(null);
+
+  // Resolve numeric factionId to UDB string ID
+  const { data: collectionFactions = [] } = useFactions();
+  const udbFactionId = factionId != null
+    ? collectionFactions.find((f) => f.id === factionId)?.wahapedia_faction_id ?? null
+    : null;
+
+  const { data: subFactions = [] } = useUdbSubFactions(udbFactionId);
+  const { data: subFactionUnitIds } = useUdbSubFactionUnitIds(udbFactionId, subFactionFilter);
+
+  const subFactionIdSet = useMemo(
+    () => new Set(subFactionUnitIds ?? []),
+    [subFactionUnitIds],
+  );
+
+  // Reset sub-faction filter when factionId changes or dialog reopens
+  useEffect(() => {
+    setSubFactionFilter(null);
+  }, [factionId, open]);
 
   const hasBudget = pointsLimit != null;
 
-  const filteredUnits = factionId === null
+  const factionFiltered = factionId === null
     ? units
     : units.filter((u) => u.faction_id === factionId);
+
+  const filteredUnits = subFactionFilter !== null && subFactionIdSet.size > 0
+    ? factionFiltered.filter((u) => u.udb_unit_id != null && subFactionIdSet.has(u.udb_unit_id))
+    : factionFiltered;
 
   const displayUnits =
     fitsBudget && remaining != null
@@ -90,6 +126,28 @@ export function UnitPickerDialog({
               : "Search units in this list's faction. Click to add — picker stays open for multiple adds."}
           </DialogDescription>
         </DialogHeader>
+        {subFactions.length > 0 && (
+          <div className="px-4 pb-2">
+            <Select
+              value={subFactionFilter ?? ""}
+              onValueChange={(val) =>
+                setSubFactionFilter(val === "__clear__" ? null : val || null)
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Sub-faction" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__clear__">All sub-factions</SelectItem>
+                {subFactions.map((sf) => (
+                  <SelectItem key={sf} value={sf}>
+                    {sf}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         {hasBudget && (
           <div className="flex items-center justify-between px-4 pb-2">
             <span
