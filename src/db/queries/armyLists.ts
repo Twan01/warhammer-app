@@ -466,10 +466,17 @@ export async function reorderArmyListUnits(
   updates: { id: number; sort_order: number }[],
 ): Promise<void> {
   const db = await getDb();
-  for (const { id, sort_order } of updates) {
-    await db.execute(
-      "UPDATE army_list_units SET sort_order = $1 WHERE id = $2",
-      [sort_order, id],
-    );
+  await db.execute("BEGIN TRANSACTION");
+  try {
+    for (const { id, sort_order } of updates) {
+      await db.execute(
+        "UPDATE army_list_units SET sort_order = $1 WHERE id = $2",
+        [sort_order, id],
+      );
+    }
+    await db.execute("COMMIT");
+  } catch (err) {
+    await db.execute("ROLLBACK");
+    throw err;
   }
 }
