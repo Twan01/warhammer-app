@@ -2,17 +2,17 @@
 
 ## What This Is
 
-HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, structured painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play." Official points and rules data are imported via Wahapedia sync for personal use.
+HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, structured painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play." All unit data (stats, weapons, abilities, keywords, points) ships as a pre-built canonical database for personal use.
 
-Shipped through v0.3.7 (102 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps, transactional graph save, recipe_step_id-keyed progress), a dedicated Painting Mode for focused step-by-step recipe execution (distraction-free full-page layout, keyboard shortcuts, section navigator, paint readiness warnings, atomic step completion with session logging, 6 entry points), army list builder with detachment selection, centralized points resolver with source labeling and user-confirmable unit-to-rules mapping, smart list builder (loadout builder, wargear/model count editor, enhancements with points, leader attachment with preventive validation, ghost/planned units, 4-format export, version snapshots with save/compare/restore, battle-readiness badges in unit picker, budget-aware filtering), battle log with after-action capture (forgotten rules, MVP/underperformer notes), spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard, KanbanCards, NextPaintingActionCard, ReadyToPlayCard, and DataHealthSummaryCard, a complete rules data hub with standalone browser (stratagems/detachments/shared abilities with filtering and search), user annotations (favorites, notes, reminders) on any imported rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist, pre-game readiness panel, end-game after-action with forgotten-rules-to-reminders pipeline), Data Health page with diagnostics, structured backup export (.zip with VACUUM INTO + metadata.json), full restore with preview/validation/atomic swap/restart, automatic safety backups before restore and rules sync, progressive backup diagnostics with version mismatch detection, a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK), version parity enforcement, auto-update via GitHub Releases with in-app banner, internal robustness hardening (WAL mode, FK indexes, CHECK constraints, route error boundaries, DB health gate, lazy route loading, React.memo, batched INSERTs, query-layer isolation, component decomposition), and smart automation (auto-derive assembly/basing/varnish statuses from recipe completion, auto-manage active projects, context-aware recipe pre-filling with faction grouping).
+Shipped through v0.4.0 (107 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps, transactional graph save, recipe_step_id-keyed progress), a dedicated Painting Mode for focused step-by-step recipe execution (distraction-free full-page layout, keyboard shortcuts, section navigator, paint readiness warnings, atomic step completion with session logging, 6 entry points), army list builder with detachment selection, FK-based points resolution from canonical database, smart list builder (loadout builder, wargear/model count editor, enhancements with points, leader attachment with preventive validation, ghost/planned units, 4-format export, version snapshots with save/compare/restore, battle-readiness badges in unit picker, budget-aware filtering), battle log with after-action capture (forgotten rules, MVP/underperformer notes), spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard, KanbanCards, NextPaintingActionCard, ReadyToPlayCard, and DataHealthSummaryCard, canonical unit database browser (1,711 units across 25 factions with stat blocks, weapon tables, ability text, keywords, points tiers, FTS5 search, role/keyword/point filters, virtual scrolling), collection-to-database FK linking with ownership/readiness badges, user annotations (favorites, notes, reminders) on any rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist, pre-game readiness panel, end-game after-action with forgotten-rules-to-reminders pipeline), Data Health page with diagnostics, structured backup export (.zip with VACUUM INTO + metadata.json), full restore with preview/validation/atomic swap/restart, automatic safety backups before restore, progressive backup diagnostics with version mismatch detection, a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK), version parity enforcement, auto-update via GitHub Releases with in-app banner, single-database architecture (hobbyforge.db only, rules.db eliminated), internal robustness hardening (WAL mode, FK indexes, CHECK constraints, route error boundaries, DB health gate, lazy route loading, React.memo, batched INSERTs, query-layer isolation, component decomposition), and smart automation (auto-derive assembly/basing/varnish statuses from recipe completion, auto-manage active projects, context-aware recipe pre-filling with faction grouping).
 
 ## Current State
 
-v0.3.7 complete. Smart automation milestone — syncDerivedStatuses with assembly auto-derivation + section_type dual-path + override guards, is_active_project lifecycle (auto-set on assign, auto-clear at 100%), computeUnitReadiness() canonical pure function, UnitPickerDialog with readiness badges + budget filter, RecipeFormSheet ActiveFactionContext auto-fill, ApplyRecipeDialog Suggested/Other faction grouping. 102 phases complete across 20 milestones. ~300+ TypeScript source files. 34 SQLite migrations (32 hobbyforge.db + 2 rules.db). 2,290+ automated tests. 8 Tauri Rust commands.
+v0.4.0 complete. Unit Database milestone — canonical 40k data hub with 1,711 units across 25 factions pre-built and bundled with the app. Database browser UI with faction picker, role-grouped unit lists, full datasheet detail, FTS5 search, and virtual scrolling. Collection units linked to database by stable FK. Army list points resolved via direct FK join, eliminating synced_unit_points cache. Single-database architecture — rules.db eliminated, all data in hobbyforge.db. Dev-side update script for future GW data changes. 107 phases complete across 21 milestones. ~300+ TypeScript source files. 40 SQLite migrations (hobbyforge.db). 2,290+ automated tests. 9 Tauri Rust commands.
 
 ## Core Value
 
-A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with official points via Wahapedia sync for personal use, and reliable backup/restore so local data is always recoverable.
+A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with official points via bundled canonical database for personal use, and reliable backup/restore so local data is always recoverable.
 
 ## Requirements
 
@@ -226,24 +226,17 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ BRP-01..BRP-03: computeUnitReadiness() canonical pure function, readiness badges in UnitPickerDialog, budget-aware filtering — Phase 101 — v0.3.7
 - ✓ SCP-01..SCP-03: RecipeFormSheet faction pre-fill from ActiveFactionContext, ApplyRecipeDialog Suggested/Other grouping, editable pre-fills — Phase 102 — v0.3.7
 
-## Current Milestone: v0.4.0 Unit Database — Canonical 40k Data Hub
+*All v0.4.0 requirements verified and shipped 2026-05-31*
 
-**Goal:** Replace the fragile Wahapedia CSV + BSData XML sync pipeline with a curated, pre-built unit database that ships with the app as the single source of truth for all 40k unit data.
-
-**Target features:**
-- Pre-built canonical unit database with all 40k 10th edition factions and units
-- Full datasheet data: stats, weapons, abilities, keywords, points, composition
-- Faction browser UI with role-grouped unit list and datasheet detail view
-- Global search and filtering across all factions
-- "Add from database" collection flow replacing manual name entry
-- Collection units linked to database by ID (not name matching)
-- Army list points resolved directly from database
-- Dev-side update pipeline for future GW changes
-- Migrate to single database (eliminate rules.db)
+- ✓ DAS-01..DAS-08: Canonical unit database — build script, udb_* schema, Rust import, 1,711 units/25 factions, points tiers, composition, FTS5 search, bundled data — Phase 103 — v0.4.0
+- ✓ BUI-01..BUI-06: Database browser UI — faction picker with alignment grouping, role-grouped unit lists, datasheet detail, FTS5 global search, role/keyword/point filters, virtual scrolling — Phase 104 — v0.4.0
+- ✓ COL-01..COL-07: Collection integration — "Add from Database" flow, FK link (ON DELETE SET NULL), migration backfill, ownership/readiness badges, Data Health diagnostic, manual units preserved — Phase 105 — v0.4.0
+- ✓ ALI-01..ALI-03: Army list simplification — FK-based points via direct join, database keywords/roles for validation, synced_unit_points cache eliminated — Phase 106 — v0.4.0
+- ✓ CLN-01..CLN-04: Cleanup & pipeline — dev-side update script, rules.db eliminated, dead sync code removed, data ships with app releases — Phase 107 — v0.4.0
 
 ### Active
 
-*Defining requirements for v0.4.0*
+*No active requirements — planning next milestone*
 
 ### Out of Scope
 
@@ -255,12 +248,13 @@ A single personal command center that always answers "what do I own, what's pain
 - AI features (recipe generator, battle summarizer, recommendations) — deferred
 - Competitive list optimization or rules validation — explicitly not the goal
 - Real-time multiplayer / cloud sync / accounts — local-first by design
-- Real-time auto-sync (scheduled Wahapedia fetch) — local-first, user triggers manually
-- ATTACH DATABASE for cross-DB queries — tauri-plugin-sql limitation; dual-query merge pattern continues
+- Runtime auto-sync of unit data — offline-first; updates via app releases
+- Leader attachment targets, enhancement data, stratagems in canonical DB — deferred to v2 (EXT-01..03)
+- Unit comparison view, faction overview page — deferred to v2 (ADV-01..02)
 
 ## Context
 
-- **Current state:** v0.3.7 shipped (102 phases across 20 milestones). ~300+ TypeScript source files. ~110,000+ LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 13 main pages (lazy-loaded via React.lazy). Dual-DB architecture (hobbyforge.db + rules.db) with WAL mode, FK indexes, CHECK constraints, and hardened sync pipeline. 34 SQLite migrations (32 hobbyforge.db + 2 rules.db). 8 Rust Tauri commands. Route error boundaries + DB health gate at startup. Structured backup/restore with preview + atomic swap + restart. Automatic safety backups before restore and rules sync. Progressive backup diagnostics. Transactional recipe graph save, recipe_step_id-keyed progress, centralized points resolver, Painting Mode with full-page execution view + keyboard shortcuts + 6 entry points, dashboard command center (NextPaintingAction, ReadyToPlay, DataHealthSummary), Game Day after-action loop. Smart list builder with loadout config, enhancements, leader attachment, ghost units, 4-format export, version snapshots. Smart automation: auto-derive assembly/basing/varnish from recipe completion, is_active_project lifecycle, computeUnitReadiness() canonical function, battle-readiness badges + budget filter in UnitPickerDialog, faction-aware recipe pre-filling. 2,290+ automated tests. Version parity enforcement. Auto-update via GitHub Releases.
+- **Current state:** v0.4.0 shipped (107 phases across 21 milestones). ~300+ TypeScript source files. ~120,000+ LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 18 main pages (lazy-loaded via React.lazy). Single-DB architecture (hobbyforge.db only) with WAL mode, FK indexes, CHECK constraints. 40 SQLite migrations. 9 Rust Tauri commands. Canonical unit database (1,711 units / 25 factions) with browser UI, FTS5 search, collection FK linking. Route error boundaries + DB health gate at startup. Structured backup/restore with preview + atomic swap + restart. Automatic safety backups before restore. Progressive backup diagnostics. Transactional recipe graph save, recipe_step_id-keyed progress, FK-based points resolution, Painting Mode with full-page execution view + keyboard shortcuts + 6 entry points, dashboard command center (NextPaintingAction, ReadyToPlay, DataHealthSummary), Game Day after-action loop. Smart list builder with loadout config, enhancements, leader attachment, ghost units, 4-format export, version snapshots. Smart automation: auto-derive assembly/basing/varnish from recipe completion, is_active_project lifecycle, computeUnitReadiness() canonical function, battle-readiness badges + budget filter in UnitPickerDialog, faction-aware recipe pre-filling. 2,290+ automated tests. Version parity enforcement. Auto-update via GitHub Releases.
 - **Personal tool** — single user (the owner), local-first, no accounts or sync
 - **Domain:** Warhammer 40K 10th edition, hobby management (collecting → painting → playing)
 - **User journey priority:** painter/collector → ready-to-play, *not* competitive optimization
@@ -370,6 +364,13 @@ A single personal command center that always answers "what do I own, what's pain
 | useReducer for ArmyListsPage state | Discriminated union actions replace 14 individual useState calls; centralized, testable | ✓ Good — 5 unit tests on pure reducer |
 | Orchestrator + sub-component pattern for large tabs | PlaybookTab slim orchestrator delegates to 5 focused sub-components | ✓ Good — each file under 300 lines |
 | useFormContext for UnitSheet decomposition | Form sections access RHF context without prop drilling; parent remains the FormProvider | ✓ Good — clean extraction, each file under 200 lines |
+| Pre-built canonical unit database (not runtime sync) | Wahapedia CSV + BSData XML parsed at dev time into bundled JSON; eliminates fragile runtime sync | ✓ Excellent — 1,711 units, zero runtime network calls, instant browsing |
+| Reuse Wahapedia string IDs for udb_units | Existing rules_favorites_notes annotations survive the pivot to canonical DB | ✓ Good — zero data loss for user annotations |
+| ON DELETE SET NULL for units.udb_unit_id | Collection units survive database re-import; link cleared not orphaned | ✓ Good — consistent with session → recipe FK pattern |
+| FK-based points resolution (not synced_unit_points cache) | Direct JOIN through udb_unit_id → udb_points_tiers replaces intermediate cache table | ✓ Excellent — simpler SQL, one less table, real-time accuracy |
+| Single-database architecture (rules.db eliminated) | All data in hobbyforge.db; rules.db was destroyed on every sync, causing data loss | ✓ Excellent — simpler backup, no cross-DB complexity |
+| Inline stub pattern for deferred features | Components return empty data for stratagems/detachments instead of keeping dead hook files | ✓ Good — clean imports, deferred features clearly marked |
+| getSyncFreshness always returns 'fresh' | Data bundled with app = always fresh; 12 consumers preserved for backward compat | — Accepted tech debt (intentional stub) |
 
 ---
 ## Evolution
@@ -390,4 +391,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-29 after v0.4.0 milestone started*
+*Last updated: 2026-06-01 after v0.4.0 milestone completed*

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Unit Database — Canonical 40k Data Hub
-status: executing
-stopped_at: Phase 107 complete
-last_updated: "2026-05-31T12:10:00Z"
-last_activity: 2026-05-31
+status: archived
+stopped_at: v0.4.0 milestone archived
+last_updated: "2026-06-01T12:00:00Z"
+last_activity: 2026-06-01
 progress:
   total_phases: 5
   completed_phases: 5
-  total_plans: 14
-  completed_plans: 14
+  total_plans: 12
+  completed_plans: 12
   percent: 100
 ---
 
@@ -18,17 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-29)
+See: .planning/PROJECT.md (updated 2026-06-01)
 
-**Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 107 — cleanup & pipeline (rules.db elimination)
+**Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with official points via bundled canonical database for personal use, and reliable backup/restore so local data is always recoverable
+**Current focus:** v0.4.0 archived — planning next milestone
 
 ## Current Position
 
 Phase: 107 (cleanup-pipeline)
 Plan: 02 of 02 complete
-Status: Complete
-Last activity: 2026-05-31
+Status: Archived
+Last activity: 2026-06-01
 
 Progress: [████████████████████████████████████████████████] 100%
 
@@ -36,35 +36,23 @@ Progress: [███████████████████████
 
 **Velocity (recent milestones):**
 
+- v0.4.0: 12 plans across 5 phases (3 days)
 - v0.3.7: 6 plans across 3 phases (single day)
 - v0.3.0: 9 plans across 4 phases (single day)
 - v0.2.18: 14 plans across 7 phases (2 days)
 - v0.2.15: 11 plans across 5 phases (2 days)
 - v0.2.14: 11 plans across 5 phases (2 days)
 
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 103 | 3 | - | - |
-| 104 | 3 | - | - |
-
 ## Accumulated Context
-
-| Phase 103 P01 | 15m | 2 tasks | 4 files |
-| Phase 106 P01 | 45m | 2 tasks | 38 files |
-| Phase 106 P02 | 5m | 2 tasks | 3 files |
-| Phase 107 P01 | ~3h | 2 tasks | 96 files |
-| Phase 107 P02 | 15m | 2 tasks | 3 files |
 
 ### Key Decisions (v0.4.0)
 
-- Phase ordering is non-negotiable: schema and data before UI, UI before FK integration, FK integration before army list simplification, army list simplification before rules.db removal
-- rules.db must stay alive through Phases 103–106 — 7+ call sites use getRulesDb(); eliminate only in Phase 107
-- FK nullable: units.udb_unit_id uses ON DELETE SET NULL — collection units survive database re-import
-- Entity IDs: reuse Wahapedia string IDs for udb_units so existing rules_favorites_notes annotations survive the pivot
-- Inline stub pattern for deferred features (stratagems, detachments, shared abilities) rather than keeping empty hook files
-- getSyncFreshness/getSyncAgeLabel simplified to always return 'fresh'/'Data bundled with app' since data is now bundled
+- Pre-built canonical unit database (not runtime sync) — eliminates fragile Wahapedia CSV fetch
+- Reuse Wahapedia string IDs for udb_units — existing annotations survive
+- ON DELETE SET NULL for units.udb_unit_id — collection units survive re-import
+- FK-based points resolution replacing synced_unit_points cache
+- Single-database architecture — rules.db eliminated
+- Inline stub pattern for deferred features (stratagems, detachments, shared abilities)
 
 ### Pending Todos
 
@@ -86,7 +74,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-31T12:10:00Z
-Stopped at: Phase 107 complete — v0.4.0 milestone done
+Last session: 2026-06-01T12:00:00Z
+Stopped at: v0.4.0 milestone archived
 Resume file: None
-Resume: All phases and plans for v0.4.0 milestone complete
+Resume: Start next milestone with /gsd:new-milestone

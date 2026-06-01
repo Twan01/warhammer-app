@@ -21,9 +21,22 @@
 - ✅ **v0.2.18 Army Lists 3.0 — Smart List Builder** — Phases 89-95 (shipped 2026-05-22)
 - ✅ **v0.3.0 Robustness & Architecture Hardening** — Phases 96-99 (shipped 2026-05-22)
 - ✅ **v0.3.7 Smart Automation** — Phases 100-102 (shipped 2026-05-28)
-- 🚧 **v0.4.0 Unit Database — Canonical 40k Data Hub** — Phases 103-107 (in progress)
+- ✅ **v0.4.0 Unit Database — Canonical 40k Data Hub** — Phases 103-107 (shipped 2026-05-31)
 
 ## Phases
+
+<details>
+<summary>✅ v0.4.0 Unit Database — Canonical 40k Data Hub (Phases 103-107) — SHIPPED 2026-05-31</summary>
+
+- [x] Phase 103: Data Acquisition & Schema (3/3 plans) — completed 2026-05-29
+- [x] Phase 104: Database Browser UI (3/3 plans) — completed 2026-05-30
+- [x] Phase 105: Collection Integration (2/2 plans) — completed 2026-05-30
+- [x] Phase 106: Army List Simplification (2/2 plans) — completed 2026-05-30
+- [x] Phase 107: Cleanup & Pipeline (2/2 plans) — completed 2026-05-31
+
+Full details: `.planning/milestones/v0.4.0-ROADMAP.md`
+
+</details>
 
 <details>
 <summary>✅ v0.2.14 Backup 2.0 (Phases 79-83) — SHIPPED 2026-05-19</summary>
@@ -158,132 +171,7 @@ Full details: `.planning/milestones/v0.3.7-ROADMAP.md`
 
 </details>
 
----
-
-### 🚧 v0.4.0 Unit Database — Canonical 40k Data Hub (In Progress)
-
-**Milestone Goal:** Replace the fragile Wahapedia CSV + BSData XML runtime sync pipeline with a pre-built canonical unit database that ships inside the app. Every 40k unit is browsable, linkable to collection units by stable ID, and the app runs on a single SQLite database.
-
-- [ ] **Phase 103: Data Acquisition & Schema** — Canonical `udb_*` tables, Node.js build script, Rust import command, and bundled pre-built data
-- [x] **Phase 104: Database Browser UI** — Faction picker, unit list by GW roles, full datasheet detail, FTS5 global search, filters, virtual scrolling (completed 2026-05-30)
-- [ ] **Phase 105: Collection Integration** — FK link from collection units to database, "Add from Database" flow, ownership/readiness badges, Data Health diagnostic
-- [x] **Phase 106: Army List Simplification** — Points resolved via database FK join, validation uses database keywords/roles, synced_unit_points cache eliminated (completed 2026-05-30)
-- [x] **Phase 107: Cleanup & Pipeline** — rules.db eliminated, dead sync code removed, single-database architecture, dev-side update script (completed 2026-05-31)
-
-## Phase Details
-
-### Phase 103: Data Acquisition & Schema
-
-**Goal**: The canonical unit database exists in hobbyforge.db, populated with all 40k 10th edition factions and units, and can be imported atomically via Rust command
-**Depends on**: Phase 102 (continues from v0.3.7)
-**Requirements**: DAS-01, DAS-02, DAS-03, DAS-04, DAS-05, DAS-06, DAS-07, DAS-08
-**Success Criteria** (what must be TRUE):
-
-  1. Running the Node.js build script produces a valid `unit_database.json` artifact covering all 40k 10th edition factions and units with stats, weapons, abilities, keywords, points tiers, and composition data
-  2. Fresh app install automatically loads the bundled data into `udb_*` tables via the Rust setup hook — no manual import step required
-  3. The `import_unit_database` Rust command inserts all rows into `udb_*` tables within a single WAL-checkpointed transaction with no duplicate or orphaned rows after re-import
-  4. FTS5 virtual table is created and populated, enabling cross-faction full-text search by unit name and keyword
-  5. Point tier rows correctly represent model-count brackets (e.g., 5 models: 90 pts, 10 models: 180 pts) and composition rows carry min/max model counts
-
-**Plans**: 3 plans
-Plans:
-
-- [x] 103-01-PLAN.md — Schema migration (udb_* tables + FTS5) and verification tests
-- [x] 103-02-PLAN.md — Build script (Wahapedia CSV + BSData XML -> unit_database.json)
-- [x] 103-03-PLAN.md — Rust import command, setup hook, and Tauri resource bundling
-
-### Phase 104: Database Browser UI
-
-**Goal**: Users can browse all 40k factions and units through a dedicated in-app browser with filtering, full-text search, and complete datasheet detail
-**Depends on**: Phase 103
-**Requirements**: BUI-01, BUI-02, BUI-03, BUI-04, BUI-05, BUI-06
-**Success Criteria** (what must be TRUE):
-
-  1. User can open the database browser and see all factions grouped by alignment (Imperium / Space Marines / Chaos / Xenos)
-  2. Selecting a faction shows its units grouped by the 9 official GW role categories, with points displayed on each row
-  3. Selecting a unit shows its full datasheet: stat block, ranged and melee weapon tables, ability text, keywords, and damaged profile
-  4. Typing in the global search box returns matching units across all factions via FTS5 with near-instant results
-  5. User can filter the unit list by role, keyword, and point range independently or in combination
-  6. Unit lists with 100+ entries scroll smoothly without sluggishness via virtual scrolling
-
-**Plans**: 3 plans
-**UI hint**: yes
-Plans:
-
-- [x] 104-01-PLAN.md — Data layer, filter infrastructure, route wiring
-- [x] 104-02-PLAN.md — Page shell, faction picker, virtual unit list, search, filter bar
-- [x] 104-03-PLAN.md — Datasheet detail Sheet (stat block, weapons, abilities, keywords)
-
-### Phase 105: Collection Integration
-
-**Goal**: Collection units are linked to database entries by stable ID, users can add units directly from the browser, and ownership/readiness context is visible on database rows
-**Depends on**: Phase 104
-**Requirements**: COL-01, COL-02, COL-03, COL-04, COL-05, COL-06, COL-07
-**Success Criteria** (what must be TRUE):
-
-  1. User can select a unit in the database browser and add it to their collection in one action — faction, role, keywords, and points pre-fill from the database automatically
-  2. Database browser rows show an "owned" badge for units already in the collection and a painting-status readiness badge
-  3. Existing collection units have `udb_unit_id` FK back-filled by name matching on migration; any units that could not be matched appear flagged in the Data Health page
-  4. User can still create a collection unit manually by name (for custom or kitbash models) without requiring a database link
-
-**Plans**: 2 plans
-Plans:
-**Wave 1**
-
-- [x] 105-01-PLAN.md — Schema migration, type extensions, query layer, and hooks
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 105-02-PLAN.md — Ownership badges, readiness dots, and Add from Database flow
-
-**UI hint**: yes
-
-### Phase 106: Army List Simplification
-
-**Goal**: Army list points are resolved directly from the canonical database via FK join, eliminating the synced_unit_points cache and the complex COALESCE chain
-**Depends on**: Phase 105
-**Requirements**: ALI-01, ALI-02, ALI-03
-**Success Criteria** (what must be TRUE):
-
-  1. Army list point totals are correct and drawn from the database's points tiers via FK join — no intermediate synced_unit_points cache row is consulted for linked units
-  2. Army list validation warnings correctly use database-sourced keywords and roles (e.g., CHARACTER, BATTLELINE) for structural checks
-  3. The `synced_unit_points` cache table and its query layer are removed; the army list SQL uses a direct FK join with a fallback COALESCE for any unlinked (manually-entered) units
-
-**Plans**: 2 plans
-Plans:
-**Wave 1**
-
-- [x] 106-01-PLAN.md — FK-based points resolution + synced cache removal (completed 2026-05-30)
-
-**Wave 2**
-
-- [x] 106-02-PLAN.md — Keyword/role validation + DROP migration (completed 2026-05-30)
-
-### Phase 107: Cleanup & Pipeline
-
-**Goal**: The app runs on a single hobbyforge.db with no rules.db dependency, all dead sync code is removed, and a dev-side update script exists for future GW data changes
-**Depends on**: Phase 106
-**Requirements**: CLN-01, CLN-02, CLN-03, CLN-04
-**Success Criteria** (what must be TRUE):
-
-  1. App launches and all features work with no reference to rules.db — the file, `rules-client.ts`, and all `rw_*` query modules are gone from the codebase
-  2. The Wahapedia CSV fetch pipeline, `getRulesDb()` call sites, and dead sync hooks are removed; TypeScript compilation passes with no new errors
-  3. A dev-side Node.js update script re-runs the data acquisition pipeline and produces a diff report identifying changed units, points, or abilities
-  4. A simplified "check for points updates" trigger remains available in the app for users to initiate a lightweight data refresh
-
-**Plans**: 2 plans
-Plans:
-**Wave 1**
-
-- [x] 107-01-PLAN.md — Eliminate rules.db, delete dead sync infrastructure, redirect hooks to udb_* queries
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 107-02-PLAN.md — Dev-side update script with diff reporting + data version display (completed 2026-05-31)
-
 ## Progress
-
-**Execution Order:** 103 → 104 → 105 → 106 → 107
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -390,10 +278,10 @@ Plans:
 | 101. Battle-Readiness Pure Function & Unit Picker | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 | 102. Smart Context Pre-Filling | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 | 103. Data Acquisition & Schema | v0.4.0 | 3/3 | Complete    | 2026-05-29 |
-| 104. Database Browser UI | v0.4.0 | 0/3 | Not started | - |
+| 104. Database Browser UI | v0.4.0 | 3/3 | Complete    | 2026-05-30 |
 | 105. Collection Integration | v0.4.0 | 2/2 | Complete    | 2026-05-30 |
-| 106. Army List Simplification | v0.4.0 | 1/2 | In Progress | - |
-| 107. Cleanup & Pipeline | v0.4.0 | 1/2 | In Progress|  |
+| 106. Army List Simplification | v0.4.0 | 2/2 | Complete    | 2026-05-30 |
+| 107. Cleanup & Pipeline | v0.4.0 | 2/2 | Complete    | 2026-05-31 |
 
 <details>
 <summary>✅ v0.1.1 HobbyForge MVP (Phases 1-5) — SHIPPED 2024-05-01</summary>

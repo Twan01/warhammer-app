@@ -1,4 +1,26 @@
 # Milestones
+## v0.4.0 Unit Database — Canonical 40k Data Hub (Shipped: 2026-05-31)
+
+**Phases completed:** 5 phases (103-107), 12 plans
+**Timeline:** 2026-05-29 → 2026-05-31 (3 days)
+**Stats:** ~100 commits, 346 files changed, +294,423 / -27,701 lines (includes bundled unit_database.json), 28/28 requirements satisfied, Nyquist fully compliant
+
+**Key accomplishments:**
+- Canonical unit database: Node.js build script parses Wahapedia CSVs + BSData XML into 1,711 units across 25 factions with stats, weapons, abilities, keywords, points tiers, composition data; Rust import command with WAL checkpoint; FTS5 search; pre-built data bundled with app
+- Database browser UI: faction picker with alignment grouping, role-grouped unit lists with virtual scrolling, full datasheet detail sheets (stat block, weapon tables, ability text, keywords, damaged profile), global FTS5 search, role/keyword/point range filters
+- Collection integration: "Add from Database" flow with pre-fill, FK link (units.udb_unit_id → udb_units.id, ON DELETE SET NULL), migration backfill by name matching, ownership/readiness badges on browser rows, Data Health diagnostic for unlinked units
+- Army list simplification: points resolved via direct FK join eliminating synced_unit_points cache, BATTLELINE count validation using database roles/keywords, simplified COALESCE chain
+- Single-database architecture: rules.db eliminated, dead sync code removed (rules-client.ts, rw_* query modules, CSV fetch pipeline, bulk_sync_rules command), dev-side update script with diff reporting, data version display in VersionInfoCard
+
+**Tech debt accepted:** syncFreshness stub returns 'fresh' always (intentional); 7 components stub empty for deferred EXT-03 features; update script duplicates build logic (intentional for standalone execution)
+
+**Archived:**
+- Roadmap: `.planning/milestones/v0.4.0-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.4.0-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.4.0-MILESTONE-AUDIT.md`
+
+---
+
 ## v0.3.7 Smart Automation (Shipped: 2026-05-28)
 
 **Phases completed:** 3 phases (100-102), 6 plans
