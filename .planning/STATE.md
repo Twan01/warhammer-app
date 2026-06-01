@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v0.4.2
 milestone_name: Unit Database 2.0 — Data Quality, Sub-factions & Integration
-status: executing
+status: phase_complete
 last_updated: "2026-06-01"
 last_activity: 2026-06-01
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
   completed_plans: 3
   percent: 25
@@ -20,7 +20,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-01)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with official points via bundled canonical database for personal use, and reliable backup/restore so local data is always recoverable
-**Current focus:** v0.4.2 Phase 108 — Build Script Hardening & Schema Foundation
+**Current focus:** v0.4.2 Phase 109 — Sub-faction Filter UI
 
 ## Current Position
 
@@ -94,6 +94,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-06-01
-Stopped at: Completed 108-03 (migration 041, Rust import, coverage UI) -- Phase 108 complete
-Resume file: .planning/phases/109-sub-faction-filter-ui/109-01-PLAN.md
-Resume: Continue with /gsd:execute-phase 109
+Stopped at: Phase 108 complete — verification passed (human_needed for 2 UI items)
+Resume file: .planning/phases/108-build-script-hardening-schema-foundation/108-VERIFICATION.md
+Resume: Start Phase 109 with /gsd:discuss-phase 109
