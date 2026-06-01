@@ -1,6 +1,6 @@
 {
   "version": "1.0.0+b3badac8",
-  "built_at": "2026-06-01T10:00:33.168Z",
+  "built_at": "2026-06-01T12:44:48.325Z",
   "game_system": "40k-10th",
   "unit_count": 1711,
   "faction_count": 25,
@@ -9,31 +9,31 @@
       "id": "AoI",
       "name": "Imperial Agents",
       "short_name": "AoI",
-      "name_fr": null
+      "name_fr": "Agents Impériaux"
     },
     {
       "id": "AM",
       "name": "Astra Militarum",
       "short_name": "AM",
-      "name_fr": null
+      "name_fr": "Astra Militarum"
     },
     {
       "id": "GC",
       "name": "Genestealer Cults",
       "short_name": "GC",
-      "name_fr": null
+      "name_fr": "Cultes Genestealer"
     },
     {
       "id": "NEC",
       "name": "Necrons",
       "short_name": "NEC",
-      "name_fr": null
+      "name_fr": "Nécrons"
     },
     {
       "id": "AE",
       "name": "Aeldari",
       "short_name": "AE",
-      "name_fr": null
+      "name_fr": "Aeldari"
     },
     {
       "id": "TL",
@@ -45,7 +45,7 @@
       "id": "ORK",
       "name": "Orks",
       "short_name": "ORK",
-      "name_fr": null
+      "name_fr": "Orks"
     },
     {
       "id": "UN",
@@ -57,37 +57,37 @@
       "id": "GK",
       "name": "Grey Knights",
       "short_name": "GK",
-      "name_fr": null
+      "name_fr": "Chevaliers Gris"
     },
     {
       "id": "TAU",
       "name": "T’au Empire",
       "short_name": "TAU",
-      "name_fr": null
+      "name_fr": "Empire T'au"
     },
     {
       "id": "LoV",
       "name": "Leagues of Votann",
       "short_name": "LoV",
-      "name_fr": null
+      "name_fr": "Ligues de Votann"
     },
     {
       "id": "AdM",
       "name": "Adeptus Mechanicus",
       "short_name": "AdM",
-      "name_fr": null
+      "name_fr": "Adeptus Mechanicus"
     },
     {
       "id": "TS",
       "name": "Thousand Sons",
       "short_name": "TS",
-      "name_fr": null
+      "name_fr": "Mille Fils"
     },
     {
       "id": "DG",
       "name": "Death Guard",
       "short_name": "DG",
-      "name_fr": null
+      "name_fr": "Garde de la Mort"
     },
     {
       "id": "EC",
@@ -99,61 +99,61 @@
       "id": "WE",
       "name": "World Eaters",
       "short_name": "WE",
-      "name_fr": null
+      "name_fr": "World Eaters"
     },
     {
       "id": "QT",
       "name": "Chaos Knights",
       "short_name": "QT",
-      "name_fr": null
+      "name_fr": "Chevaliers du Chaos"
     },
     {
       "id": "CD",
       "name": "Chaos Daemons",
       "short_name": "CD",
-      "name_fr": null
+      "name_fr": "Démons du Chaos"
     },
     {
       "id": "QI",
       "name": "Imperial Knights",
       "short_name": "QI",
-      "name_fr": null
+      "name_fr": "Chevaliers Impériaux"
     },
     {
       "id": "SM",
       "name": "Space Marines",
       "short_name": "SM",
-      "name_fr": null
+      "name_fr": "Space Marines"
     },
     {
       "id": "TYR",
       "name": "Tyranids",
       "short_name": "TYR",
-      "name_fr": null
+      "name_fr": "Tyranides"
     },
     {
       "id": "AC",
       "name": "Adeptus Custodes",
       "short_name": "AC",
-      "name_fr": null
+      "name_fr": "Adeptus Custodes"
     },
     {
       "id": "AS",
       "name": "Adepta Sororitas",
       "short_name": "AS",
-      "name_fr": null
+      "name_fr": "Adepta Sororitas"
     },
     {
       "id": "CSM",
       "name": "Chaos Space Marines",
       "short_name": "CSM",
-      "name_fr": null
+      "name_fr": "Space Marines du Chaos"
     },
     {
       "id": "DRU",
       "name": "Drukhari",
       "short_name": "DRU",
-      "name_fr": null
+      "name_fr": "Drukhari"
     }
   ],
   "units": [
@@ -166,7 +166,7 @@
       "damaged_w": "",
       "damaged_desc": "",
       "sub_faction": null,
-      "name_fr": null
+      "name_fr": "Garde Custodien"
     },
     {
       "id": "000000883",
@@ -199,7 +199,7 @@
       "damaged_w": "",
       "damaged_desc": "",
       "sub_faction": null,
-      "name_fr": null
+      "name_fr": "Trajann Valoris"
     },
     {
       "id": "000001447",
@@ -210,7 +210,7 @@
       "damaged_w": "",
       "damaged_desc": "",
       "sub_faction": null,
-      "name_fr": null
+      "name_fr": "Capitaine-Bouclier"
     },
     {
       "id": "000001448",
@@ -81374,7 +81374,7 @@
       "ap": "-1",
       "damage": "2",
       "keywords": "",
-      "name_fr": null
+      "name_fr": "Lance gardienne"
     },
     {
       "unit_id": "000000882",
@@ -81404,7 +81404,7 @@
       "ap": "-2",
       "damage": "2",
       "keywords": "",
-      "name_fr": null
+      "name_fr": "Lance gardienne"
     },
     {
       "unit_id": "000000882",
@@ -178887,8 +178887,8 @@
       "name": "Might is Right",
       "description": "While this model is leading a unit, each time a model in that unit makes a melee attack, add 1 to the Hit roll.",
       "ability_type": "Datasheet",
-      "name_fr": null,
-      "description_fr": null
+      "name_fr": "La Force Fait Loi",
+      "description_fr": "Tant que ce modèle dirige une unité, à chaque fois qu'un modèle de cette unité effectue une attaque de mêlée, ajoutez 1 au jet de touche."
     },
     {
       "unit_id": "000000001",
