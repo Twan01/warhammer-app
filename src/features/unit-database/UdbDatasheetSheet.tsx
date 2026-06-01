@@ -222,7 +222,7 @@ export function UdbDatasheetSheet({
               )}
 
               {/* Damaged Profile */}
-              {unit.damaged_w != null && (
+              {unit.damaged_w != null && unit.damaged_w !== "" && (
                 <>
                   <Separator />
                   <div className="flex flex-col gap-1">
