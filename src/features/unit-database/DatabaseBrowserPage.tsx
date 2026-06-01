@@ -8,6 +8,7 @@ import {
   useUdbOwnership,
   useUdbUnitOwnership,
   useUdbKeywords,
+  useUdbSubFactions,
 } from "@/hooks/useUnitDatabase";
 import { useFactions } from "@/hooks/useFactions";
 import { useDatabaseBrowserFilters } from "./databaseBrowserFilters";
@@ -43,6 +44,7 @@ export function DatabaseBrowserPage() {
 
   const { data: ownershipEntries = [] } = useUdbOwnership(selectedFactionId);
   const { data: keywordsMap } = useUdbKeywords(selectedFactionId);
+  const { data: subFactions = [] } = useUdbSubFactions(selectedFactionId);
 
   // Debounced search text — local state + useEffect pattern
   const [localSearch, setLocalSearch] = useState(searchText);
@@ -172,7 +174,7 @@ export function DatabaseBrowserPage() {
           <div className="flex-1 overflow-hidden flex flex-col">
             {selectedFactionId ? (
               <>
-                <DatabaseBrowserFilters roles={availableRoles} />
+                <DatabaseBrowserFilters roles={availableRoles} subFactions={subFactions} />
                 <UdbUnitList
                   units={filteredUnits}
                   isLoading={unitsLoading}
