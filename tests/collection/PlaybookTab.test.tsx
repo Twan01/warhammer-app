@@ -532,6 +532,58 @@ describe("PlaybookTab — PLAY-01/02 annotation controls (Phase 107: deferred)",
   it.todo("PLAY-03: shows StickyNote indicator on shared ability when note exists");
 });
 
+describe("PlaybookTab -- INT-01 statValue canonical fallback", () => {
+  const canonicalDatasheet = {
+    id: "001", name: "Intercessors", faction_id: "SM", role: "Battleline",
+    base_points: 80, damaged_w: null, damaged_desc: null,
+    models: [{
+      id: "m1", unit_id: "001", line_order: 1, name: "Intercessor",
+      M: "6\"", T: "4", Sv: "3+", inv_sv: null, W: "2", Ld: "6+", OC: "2",
+    }],
+    abilities: [], keywords: [], weapons: [], points: [], composition: [],
+  };
+
+  it("INT-01: when hasDatasheetLink is true and local stats are null, stat cells show canonical values from useDatasheet", async () => {
+    // Strategy note exists but all stats are null
+    getStrategyNoteMock.mockResolvedValueOnce(makeNote());
+    // Datasheet provides canonical stats
+    (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValue({ data: canonicalDatasheet });
+    renderInsideTabs(42);
+    await screen.findByRole("button", { name: /Save Playbook/ });
+    // Canonical stats should render: M=6 -> 6", T=4, Sv=3 -> 3+, W=2, Ld=6 -> 6+, OC=2 -> 2+
+    expect(screen.getByText('6"')).toBeInTheDocument();
+    expect(screen.getByText("4")).toBeInTheDocument();
+    expect(screen.getAllByText("3+").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("2")).toBeInTheDocument();
+    expect(screen.getByText("6+")).toBeInTheDocument();
+    expect(screen.getByText("2+")).toBeInTheDocument();
+  });
+
+  it("INT-01 / D-02: when hasDatasheetLink is true and local stat is non-null, stat cell shows user value (not canonical)", async () => {
+    // User entered move=12 but canonical M is 6
+    getStrategyNoteMock.mockResolvedValueOnce(makeNote({ move: 12 }));
+    (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValue({ data: canonicalDatasheet });
+    renderInsideTabs(42);
+    // Wait for the strategy note to resolve and populate local state
+    await vi.waitFor(() => {
+      expect(screen.getByText('12"')).toBeInTheDocument();
+    });
+    // User's move=12 should display as 12", NOT canonical 6"
+    expect(screen.queryByText('6"')).not.toBeInTheDocument();
+  });
+
+  it("INT-01: when hasDatasheetLink is false and local stat is null, stat cell shows placeholder dash", async () => {
+    // No datasheet link (useDatasheet returns null)
+    getStrategyNoteMock.mockResolvedValueOnce(makeNote());
+    (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValue({ data: null });
+    renderInsideTabs(42);
+    await screen.findByRole("button", { name: /Save Playbook/ });
+    // All 6 stats are null with no datasheet -> should show "--" for each
+    const dashes = screen.getAllByText("--");
+    expect(dashes.length).toBeGreaterThanOrEqual(6);
+  });
+});
+
 describe("PlaybookTab  -- datasheet error state", () => {
   it("renders error banner when useDatasheet returns an error", async () => {
     (datasheetHooks.useDatasheet as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({

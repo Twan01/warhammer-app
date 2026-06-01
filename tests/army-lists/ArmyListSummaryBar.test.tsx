@@ -173,6 +173,59 @@ describe("ArmyListSummaryBar -- list-level warning badges (PV-06)", () => {
   // Tooltip text distinguishes list vs unit warnings (PV-06 requirement)
   // -------------------------------------------------------------------------
 
+});
+
+describe("ArmyListSummaryBar -- INT-04 canonical role distribution", () => {
+  it("renders 'Roles:' text when units have canonical udb_role values", () => {
+    const units = [
+      makeUnit({ id: 1, udb_role: "Battleline", effective_points: 100 }),
+      makeUnit({ id: 2, udb_role: "Character", effective_points: 80 }),
+    ];
+    renderBar(units, null, "fresh");
+    expect(screen.getByText(/^Roles:/)).toBeInTheDocument();
+  });
+
+  it("shows correct counts per role (e.g. '2 Battleline, 1 Character')", () => {
+    const units = [
+      makeUnit({ id: 1, udb_role: "Battleline", effective_points: 100 }),
+      makeUnit({ id: 2, udb_role: "Battleline", effective_points: 100 }),
+      makeUnit({ id: 3, udb_role: "Character", effective_points: 80 }),
+    ];
+    renderBar(units, null, "fresh");
+    const rolesText = screen.getByText(/^Roles:/).textContent!;
+    expect(rolesText).toContain("2 Battleline");
+    expect(rolesText).toContain("1 Character");
+  });
+
+  it("does NOT render 'Roles:' when all units have udb_role: null", () => {
+    const units = [
+      makeUnit({ id: 1, udb_role: null, effective_points: 100 }),
+      makeUnit({ id: 2, udb_role: null, effective_points: 100 }),
+    ];
+    renderBar(units, null, "fresh");
+    expect(screen.queryByText(/^Roles:/)).not.toBeInTheDocument();
+  });
+
+  it("sorts roles by count descending", () => {
+    const units = [
+      makeUnit({ id: 1, udb_role: "Character", effective_points: 80 }),
+      makeUnit({ id: 2, udb_role: "Battleline", effective_points: 100 }),
+      makeUnit({ id: 3, udb_role: "Battleline", effective_points: 100 }),
+      makeUnit({ id: 4, udb_role: "Battleline", effective_points: 100 }),
+      makeUnit({ id: 5, udb_role: "Dedicated Transport", effective_points: 70 }),
+    ];
+    renderBar(units, null, "fresh");
+    const rolesText = screen.getByText(/^Roles:/).textContent!;
+    // "3 Battleline" should come before "1 Character" and "1 Dedicated Transport"
+    const battlelineIdx = rolesText.indexOf("3 Battleline");
+    const characterIdx = rolesText.indexOf("1 Character");
+    const transportIdx = rolesText.indexOf("1 Dedicated Transport");
+    expect(battlelineIdx).toBeLessThan(characterIdx);
+    expect(battlelineIdx).toBeLessThan(transportIdx);
+  });
+});
+
+describe("ArmyListSummaryBar -- list-level warning badges (PV-06) continued", () => {
   it("warning count trigger shows combined count that sums list and unit warnings", () => {
     // exceeded + Battleline short -> 2 list warnings; not-painted unit -> 1 unit warning -> total 3
     const units = [
