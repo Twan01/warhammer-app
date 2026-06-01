@@ -347,10 +347,9 @@ async function buildUnitDatabase(): Promise<UnitDatabaseJson> {
   );
   const filteredFactions = factions.filter((f) => !emptyIds.has(f.id));
 
-  // Derive version from content hash
+  // Derive version from content hash so re-imports detect any data change
   const crypto = await import("node:crypto");
-  const contentSeed = `${filteredFactions.length}-${units.length}-${weapons.length}-${points.length}-${abilities.length}-${keywords.length}`;
-  const hash = crypto.createHash("sha256").update(contentSeed).digest("hex").slice(0, 8);
+  const hash = crypto.createHash("sha256").update(JSON.stringify({ factions: filteredFactions, units, weapons, points, abilities, keywords, composition })).digest("hex").slice(0, 8);
   const buildVersion = `1.0.0+${hash}`;
 
   return {

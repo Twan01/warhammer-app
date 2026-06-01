@@ -685,10 +685,9 @@ async function main() {
   // ---------------------------------------------------------------------------
   // Assemble and write output JSON (D-05)
   // ---------------------------------------------------------------------------
-  // CR-04 fix: derive version from content hash so re-imports detect changes
+  // Derive version from content hash so re-imports detect any data change
   const { createHash } = await import("node:crypto");
-  const contentSeed = `${factions.length}-${units.length}-${weapons.length}-${points.length}-${abilities.length}-${keywords.length}`;
-  const hash = createHash("sha256").update(contentSeed).digest("hex").slice(0, 8);
+  const hash = createHash("sha256").update(JSON.stringify({ factions, units, weapons, points, abilities, keywords, composition })).digest("hex").slice(0, 8);
   const buildVersion = `1.0.0+${hash}`;
 
   const output: UnitDatabaseJson = {
