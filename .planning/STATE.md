@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.4.2
 milestone_name: Unit Database 2.0 — Data Quality, Sub-factions & Integration
-status: executing
-stopped_at: Phase 111 Plan 01 complete — FR-02 overlay loading delivered
-last_updated: "2026-06-01T12:44:31.796Z"
+status: milestone_complete
+stopped_at: Milestone complete (Phase 111 was final phase)
+last_updated: 2026-06-01T12:56:54.080Z
 last_activity: 2026-06-01
 progress:
   total_phases: 4
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-01)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with official points via bundled canonical database for personal use, and reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 111 — bilingual infrastructure
+**Current focus:** Milestone complete
 
 ## Current Position
 
-Phase: 111 (Bilingual Infrastructure) — EXECUTING
-Plan: 3 of 3 — COMPLETE
-Status: Ready to execute
+Phase: 111
+Plan: Not started
+Status: Milestone complete
 Last activity: 2026-06-01
 
 Progress: [██████████] 100%
