@@ -1,320 +1,276 @@
-# Domain Pitfalls: Unit Database / Canonical 40k Data Hub
+# Pitfalls Research
 
-**Domain:** Adding a canonical unit database to an existing Tauri 2 + React 19 + SQLite desktop app (HobbyForge v0.4.0)
-**Researched:** 2026-05-29
-**Sources:** Codebase archaeology (37 migrations, debug logs, source code), prior incident reports from .planning/debug/
+**Domain:** Extending an existing SQLite-backed Tauri 2 desktop app with sub-faction schema, bilingual data layer, and improved BSData XML parsing (v0.4.2 Unit Database 2.0)
+**Researched:** 2026-06-01
+**Confidence:** HIGH — all findings are grounded in direct codebase inspection of migration files, build scripts, Rust import command, and TypeScript query layer
 
 ---
 
 ## Critical Pitfalls
 
-Mistakes that cause rewrites or major data loss.
+### Pitfall 1: Seeding Data Inside a Migration File Causes a Boot-Loop
+
+**What goes wrong:**
+A new migration file that contains both DDL (CREATE TABLE) and DML (INSERT) rows will run the INSERTs on every install and on fresh database creation. If a subsequent migration is added that alters the same tables, the mismatch between the checked-in migration file and the checksum stored in `_sqlx_migrations` causes the app to panic on startup with no recovery path — or worse, silently duplicates rows on re-install. Migration 038 already has a comment documenting an actual boot-loop incident caused by exactly this pattern.
+
+**Why it happens:**
+Sub-faction data (chapter names, subfaction identifiers, French translation seed rows) is tempting to insert in the same migration that creates the table, because it keeps everything in one place. But tauri-plugin-sql treats every registered migration as immutable after first application.
+
+**How to avoid:**
+Schema DDL only in migration files. All initial data population goes through the Rust `import_unit_database_inner` path (or a new parallel command for sub-faction/translation data). The JSON payload already handles version-check logic (udb_meta version comparison); extend that pattern — do not split it into migrations.
+
+If sub-faction rows or translation columns need seeding, add them to `unit_database.json` as new top-level arrays and extend `UnitDatabasePayload` in `lib.rs`. The existing DELETE-all + re-INSERT transaction in `import_unit_database_inner` is the safe path.
+
+**Warning signs:**
+- A migration file that contains any line beginning with `INSERT INTO udb_` or `INSERT INTO translation_`
+- Startup error "checksum mismatch" or "already applied migration differs"
+
+**Phase to address:**
+Sub-faction schema phase and translation schema phase — enforce the rule at the start of each, before any migration file is written.
 
 ---
 
-### Pitfall 1: Migration registration omission silently creates missing tables on fresh installs
+### Pitfall 2: Adding Columns to udb_* Tables Without Rebuilding the FTS5 Index Produces Stale or Broken Search
 
-**What goes wrong:** A new migration file added to `src-tauri/migrations/` is never registered in `src-tauri/src/lib.rs` `get_migrations()`. The app appears to work on a developer machine (because the table already exists in their local DB), but fresh installs and the data-layer test suite fail with "no such table" errors.
+**What goes wrong:**
+`udb_search` is an FTS5 virtual table populated by a single INSERT...SELECT at the end of `import_unit_database_inner`. It mirrors `unit_id`, `name`, `faction_name`, and `keywords`. If a new migration adds a `subfaction_id` or `name_fr` column to `udb_units` or `udb_factions`, the FTS5 table is NOT automatically updated — it still references the old column set.
 
-**Why it happens:** Tauri plugin-sql does not auto-discover migration files — every migration must be explicitly listed in the Rust migration array. Because the developer's local DB already has all tables from prior runs, the app never triggers the missing-migration path during development.
+More dangerous: adding a new FTS5 column (e.g. `name_fr`) to the `udb_search` CREATE VIRTUAL TABLE definition requires a DROP + recreate of the virtual table. `ALTER TABLE udb_search ADD COLUMN` is not valid SQLite syntax for FTS5. A migration that drops and recreates `udb_search` leaves it empty until the Rust import runs. Since migrations run before the setup hook that triggers import, there is a window where `SELECT ... FROM udb_search WHERE udb_search MATCH $1` returns zero results on every cold start.
 
-**Consequences:** Production build ships with broken schema. Users on fresh installs get cryptic runtime errors. The `unit_database` tables are never created.
+**Why it happens:**
+Developers extend the data model and forget that FTS5 virtual tables are not normal tables. The only way to add a column to an FTS5 table is DROP + recreate.
 
-**Prevention:**
-- Always add migration registrations in `lib.rs` in the same commit as the SQL file.
-- The migration parity test in `tests/data-layer/` catches this — run it before every build.
-- Set `EXPECTED_SCHEMA_VERSION` in `DbHealthGate.tsx` to match the new highest-numbered migration prefix.
-- Real incident: Migration 032 (army_list_snapshots) was missing from lib.rs and caused the army list delete crash (see `.planning/debug/army-list-delete-crash.md`).
+**How to avoid:**
+Do not add columns to `udb_search`. Instead, keep the FTS5 table's schema fixed (4 columns: `unit_id`, `name`, `faction_name`, `keywords`) and concatenate French names into the existing `name` column during the INSERT...SELECT rebuild step, separated by a pipe: `u.name || '|' || COALESCE(u.name_fr, '')`. This lets FTS5 find French queries without a schema change to the virtual table.
 
-**Detection:** Fresh-install test or migration parity test fails with "no such table: unit_database".
+If a new FTS5 column is unavoidable, the migration must DROP and recreate `udb_search` as empty, and the Rust setup hook must re-run the import even if the version hash has not changed. Add an empty-FTS5 detection gate.
 
-**Phase:** Phase 1 (Data Acquisition & Schema) — every new table must pass the parity test before moving to Phase 2.
+**Warning signs:**
+- Any migration containing `DROP TABLE udb_search` without a guaranteed import trigger
+- Search returning 0 results immediately after a fresh install or data update
+- `SELECT COUNT(*) FROM udb_search` less than `SELECT COUNT(*) FROM udb_units`
 
----
-
-### Pitfall 2: Name-based migration of collection units has a documented ~20% mismatch rate
-
-**What goes wrong:** Migrating existing collection `units.name` values to a FK pointing at `unit_database.id` requires matching the user's free-text name ("Canoptek Spyder") against the canonical database name ("Canoptek Spyders"). The 20% mismatch rate documented in the debug files is a floor — user-entered names include abbreviations, kitbash names, wrong capitalisation, and names not in the database at all.
-
-**Why it happens:** The existing system allowed completely free-text unit names. The `unit_rules_mapping` table and `normalizePointsNames()` function were built because exact matching fails at scale. The same problem resurfaces for the ID migration without any fuzzy-match infrastructure on the hobbyforge side.
-
-**Consequences:** A migration that does `UPDATE units SET unit_database_id = (SELECT id FROM unit_database WHERE name = units.name)` will silently leave ~20% of collection units with `unit_database_id = NULL`. Army list points then fall back to the manual `units.points` column with no indication the FK migration failed.
-
-**Prevention:**
-- Never do an automatic hard migration to a NOT NULL FK for `unit_database_id`. Keep the column nullable.
-- Run the backfill as a best-effort pass using fuzzy-matching logic mirroring `normalizePointsNames`, not exact string equality.
-- After migration, expose an "unlinked units" diagnostic in Data Health showing how many collection units lack a database FK, with a one-click picker to resolve each one.
-- Do not remove `units.name`, `units.points`, or the `synced_unit_points` cache until all units are confirmed linked by the user.
-- The migration must be additive: add `unit_database_id INTEGER REFERENCES unit_database(id) ON DELETE SET NULL`, populate what can be auto-matched, leave the rest NULL.
-
-**Detection:** Post-migration diagnostic shows X of N units without `unit_database_id`.
-
-**Phase:** Phase 3 (Collection Integration) — the migration backfill must be treated as advisory, not authoritative.
+**Phase to address:**
+Data quality / build script phase — define the FTS5 extension strategy before writing any migration that touches `udb_units` or `udb_factions` schema.
 
 ---
 
-### Pitfall 3: Seeding canonical data via the migration system causes an unrecoverable boot loop on any bad row
+### Pitfall 3: BSData Name-Matching is Non-Deterministic Across Machines and Silently Drops Units
 
-**What goes wrong:** If the canonical database is seeded via a large INSERT migration (inserting 2,500+ datasheets and related rows in one SQL file), tauri-plugin-sql will attempt to run the entire migration as one transaction. Any failure — a constraint violation, a NULL in a NOT NULL column, a name encoding issue — rolls back the entire migration. The DB is left at the previous schema version. On re-launch, the migration runs again and fails again indefinitely. The app is unlaunchable.
+**What goes wrong:**
+The current match key is `unit.name.toLowerCase() + ":" + unit.faction_id`. This fails silently for:
+- Apostrophe differences between Wahapedia and BSData (smart quotes vs ASCII)
+- Units in multiple sub-faction `.cat` files all mapped to the same `faction_id` — e.g. all 12 Space Marine chapter `.cat` files map to `"SM"`, so the `seenPoints` set uses `name:SM` as the deduplication key, and the first matching `.cat` file wins
 
-**Why it happens:** tauri-plugin-sql migrations are one-shot. There is no rollback mechanism beyond restoring from backup. A single bad row in a 2,500-row seed file makes the app permanently broken on fresh install.
+The root problem: `readdirSync` has no guaranteed ordering on Windows NTFS. The first-wins deduplication means the build is not reproducible between machines — running on a different machine or after adding a new `.cat` file can produce a different content hash and thus trigger a full re-import in users' apps.
 
-**Prevention:**
-- Do not seed canonical data through the migration system at all. Use a dedicated Rust command (`load_unit_database`) called once at startup if the `unit_database` table is empty.
-- The command reads a bundled JSON/SQLite file from the Tauri resource directory and bulk-inserts with FK checks temporarily disabled, mirroring the existing `bulk_sync_rules` pattern.
-- Migrations should contain only schema (CREATE TABLE, ALTER TABLE, CREATE INDEX) — never data.
+Additionally, both `build-unit-db.ts` and `update-unit-database.ts` contain full duplicated copies of the BSData parsing logic. Any fix to name matching must be applied to both files or they will diverge.
 
-**Detection:** Fresh install fails at startup with a migration error; app is stuck in a boot loop.
+**Why it happens:**
+`readdirSync` ordering is implementation-defined. No `files.sort()` call exists in either script. The duplication of the build pipeline means fixes are frequently applied to one script and forgotten in the other.
 
-**Phase:** Phase 1 — the data loading strategy must be decided before any schema is finalized.
+**How to avoid:**
+Add `files.sort()` immediately after `readdirSync` in both build scripts. This makes the first-wins deduplication deterministic. Add a normalization step for unit names before matching: strip smart quotes, normalize apostrophes to ASCII, trim whitespace. Log unmatched BSData units as a coverage report — currently these are silently skipped.
 
----
+Extract the shared parsing logic into a `scripts/lib/bsdataParsing.ts` module imported by both scripts. This is the only safe way to ensure both scripts stay in sync.
 
-### Pitfall 4: Removing rules.db before all cross-DB query patterns are migrated causes silent NULL cascades
+**Warning signs:**
+- Running the build on two different machines produces different `version` hashes for the same source CSV and `.cat` files
+- The build log shows the same unit name appearing from multiple `.cat` files
 
-**What goes wrong:** The current architecture has 7+ query sites that read from `rules.db` via `getRulesDb()`: faction pickers, datasheet detail views, stratagem browsers, Game Day mode, detachment pickers, points resolvers, and the sync diff engine. Removing `rules.db` before every one of these is migrated to query `hobbyforge.db` will silently return empty results — not errors — because the queries are guarded by `enabled: !!rulesSynced` or similar conditional hooks.
-
-**Why it happens:** The dual-DB pattern means query failures look exactly like "no data synced yet" — the UI shows empty states rather than error states. There is no compiler error when `getRulesDb()` is removed; only runtime query failures surface the gap.
-
-**Consequences:** Game Day mode shows no stratagems. Detachment picker is empty. Playbook tab shows no datasheet. These are silent failures that look like normal "unsynced" states, making them very hard to detect in testing.
-
-**Prevention:**
-- Grep for all `getRulesDb()` call sites before touching rules.db elimination. Currently: `useRulesSync.ts`, `DbHealthGate.tsx`, `datasheets.ts`, `rulesExtended.ts`, and every query function touching `rw_*` tables.
-- Create a checklist of every `rw_*` table reference and mark each one migrated before dropping `rules-client.ts`.
-- Keep `rules.db` and `getRulesDb()` alive until Phase 5 (Cleanup), even if empty, to avoid breaking import chains.
-- Add a test per query function that verifies it returns data from the new `unit_database` path, not the old `rw_*` path.
-
-**Detection:** Integration test that queries each formerly-rules.db-backed hook and asserts non-empty results.
-
-**Phase:** Phase 5 (Cleanup & Data Update Pipeline) — do not attempt rules.db elimination until all consumers are migrated in Phases 2–4.
+**Phase to address:**
+Data quality / build script phase — sort files and add a coverage report before attempting sub-faction work. Sub-faction matching adds another layer of ambiguity if the name-match problem is not solved first.
 
 ---
 
-### Pitfall 5: The tauri-plugin-sql connection pool causes stale reads after bulk writes — this is a documented recurring issue in this codebase
+### Pitfall 4: Implementing Sub-factions as New udb_factions Rows Breaks FK Backfill, Army List Joins, and FTS5 in a Chain
 
-**What goes wrong:** After the `bulk_sync_rules` Rust command writes thousands of rows, TypeScript queries via the connection pool read stale data because a different pool connection holds an older WAL snapshot. This is exactly what caused the "synced_unit_points stores BSData names" incident (`.planning/debug/rules-sync-full-loss.md`). The same issue will occur when loading the canonical unit database: a Rust command writes 2,500+ units, and the immediate React Query `onSuccess` invalidation triggers reads before the WAL checkpoint propagates.
+**What goes wrong:**
+Adding a `subfaction_id` as a new top-level faction (e.g. a row `{id: "BA", name: "Blood Angels"}` in `udb_factions`) triggers a chain of downstream impacts:
 
-**Why it happens:** SQLite WAL mode allows readers to continue from an older snapshot while a writer is active. After the writer commits, pool readers may still hold their snapshot reference until the pool creates a new connection or an explicit checkpoint is issued.
+1. **Collection FK backfill**: Migration 039 backfills `units.udb_unit_id` via `WHERE uu.faction_id = f.wahapedia_faction_id`. If Blood Angels units now live under faction `"BA"` instead of `"SM"`, the existing collection units with `wahapedia_faction_id = "SM"` will fail to match. Their `udb_unit_id` is cleared on next re-import.
 
-**Consequences:** The unit database browser loads but `SELECT COUNT(*) FROM unit_database` returns 0 or a stale count. Users see an empty faction browser immediately after database load, then correct results on next app launch.
+2. **Army list points JOIN**: `army_list_units` resolves points via `JOIN udb_unit_points ON udb_unit_points.unit_id = alu.udb_unit_id`. If some SM units now have different IDs due to sub-faction splitting, existing army list units referencing the old ID get NULL points silently.
 
-**Prevention:**
-- After any Rust command that bulk-writes to hobbyforge.db, emit `PRAGMA wal_checkpoint(TRUNCATE)` via a follow-up TypeScript query before invalidating React Query caches.
-- This is already implemented in `useRulesSync.ts` for `rules.db` — apply the same pattern to the new `load_unit_database` Rust command.
-- Add a startup-time checkpoint in `DbHealthGate` for hobbyforge.db (mirroring the existing rules.db checkpoint logic) to recover from any missed checkpoints.
+3. **FTS5 faction_name**: `udb_search` is populated with `f.name` from `udb_factions`. If Blood Angels becomes a separate faction, searching "Space Marines" will no longer surface Blood Angels units. The faction picker on the database browser also breaks — "Space Marines" no longer shows chapter-specific units.
 
-**Detection:** Unit browser shows 0 factions immediately after first database load, then works after restart.
+4. **getUdbOwnershipByFaction**: `WHERE uu.faction_id = $1` — calling with `"SM"` will miss Blood Angels units if they moved to `"BA"`.
 
-**Phase:** Phase 1 — the data loading Rust command must include a checkpoint call. `DbHealthGate` must check `unit_database` row count on startup.
+**Why it happens:**
+Sub-faction is conceptually a filter on top of a faction, not a new faction. Implementing it as a new top-level faction ID creates an apparent clean separation but breaks every query that uses `faction_id` as the primary grouping key. The Wahapedia canonical IDs (SM, NEC, etc.) are the stable anchors for the entire system.
 
----
+**How to avoid:**
+Model sub-factions as an additive column on `udb_units` (`subfaction TEXT`), not as a new `udb_factions` row. The faction picker stays faction-based; sub-faction becomes a secondary filter within the faction view. This preserves all existing FK joins, the FTS5 rebuild query, and the `getUdbOwnershipByFaction` aggregation. Keep `udb_factions` rows identical to the current set — never add new rows for chapters.
 
-## Moderate Pitfalls
+**Warning signs:**
+- A new row in `udb_factions` whose `id` is not a canonical Wahapedia faction ID
+- `getUdbOwnershipByFaction("SM")` returning a different count after the sub-faction migration than before
 
----
-
-### Pitfall 6: Army list snapshots reference units by collection ID — backfill migration must not change existing unit IDs
-
-**What goes wrong:** `army_list_snapshots` stores a JSON blob of army list state keyed by `unit_id` (the collection's integer PK). After Phase 3 adds `unit_database_id` to collection units, old snapshot blobs still contain the original integer `unit_id` references. These remain valid as long as collection unit IDs are unchanged.
-
-**Prevention:**
-- The migration must add `unit_database_id` as a new column — it must never change or remove the `unit_id` column.
-- Document explicitly that snapshots are keyed by collection unit ID, not database unit ID. Do not add a `unit_database_id` key to snapshot blobs.
-
-**Phase:** Phase 3 — verify snapshot restore works before and after migration.
+**Phase to address:**
+Sub-faction schema and build script phase — validate the additive-column approach before writing the migration. Verify that `getUdbOwnershipByFaction` and the army list points JOIN return identical results with a data-layer test before and after the migration.
 
 ---
 
-### Pitfall 7: `army_list_units.unit_id ON DELETE RESTRICT` blocks collection unit deletion even when the user wants to replace with a database-linked unit
+### Pitfall 5: The Rust Import Deletes and Re-inserts All udb_* Rows — French Translation Data Must Be in the JSON Payload, Not Applied Separately
 
-**What goes wrong:** The current schema has `army_list_units.unit_id REFERENCES units(id) ON DELETE RESTRICT`. When a user tries to delete a collection unit that is in an army list, the delete fails. After Phase 3, users will want to "replace" a manually-entered collection unit with its database-linked equivalent. The RESTRICT constraint will block simple deletion.
+**What goes wrong:**
+`import_unit_database_inner` runs `DELETE FROM udb_units` (and all other udb_* tables) inside a transaction on every version change. Any French translation data stored directly in the database as a post-import fixup step (e.g. a separate UPDATE or a second migration) will be wiped on the next `pnpm build:udb` + redeploy cycle.
 
-**Prevention:**
-- Do not relax the RESTRICT constraint — it prevents accidental data loss and is intentional.
-- Build a "replace unit" flow: creates a new collection unit linked to the database, migrates army list membership from old to new unit in a transaction, then deletes the old unit.
-- The transaction must clear `leader_attached_to_id` self-references before the cascade fires — this pattern is already implemented in `deleteArmyList` (see `.planning/debug/army-list-delete-crash.md`).
+The pattern that fails: a migration adds `name_fr TEXT` columns to `udb_units`, then a separate Tauri command or startup script applies French translations via UPDATE. The next app update with a new `unit_database.json` triggers a full re-import, which DELETEs all rows and re-INSERTs without the French data.
 
-**Phase:** Phase 3 (Collection Integration).
+**Why it happens:**
+The DELETE-all + re-INSERT pattern is correct for canonical read-only data. Translation data has a more complex lifecycle — it comes from Wahapedia FR, may need manual corrections, and must survive re-imports. The import command has no "preserve this column" semantics.
 
----
+**How to avoid:**
+Include `name_fr`, `description_fr`, etc. as columns in `unit_database.json` arrays and bind them in the Rust INSERT statements. Translation data is baked into the JSON at `pnpm build:udb` time. Manual corrections are applied in the build script (a correction CSV or JSON overlay), not in the live database.
 
-### Pitfall 8: BSData XML .cat file format is not stable — parse it offline, never at runtime
+This requires extending `UnitDatabasePayload` in `lib.rs` with new optional fields (use `#[serde(default)]` so old JSON without the field parses cleanly) and adding `str_val(row, "name_fr")` bindings to each INSERT statement. Both build scripts and the Rust command must be updated in the same commit.
 
-**What goes wrong:** BSData uses a complex nested XML schema (`gameSystemRef`, `selectionEntries`, `selectionEntryGroups`, `constraints`, `profiles`) that is frequently reorganised. The existing `parseBsdataExtended.ts` and `fetchBsdataPoints.ts` parse a specific version of this format. Any BSData schema change makes the parser silently produce empty results (0 enhancements, 0 leader targets) with no error.
+**Warning signs:**
+- A migration that adds `name_fr TEXT` to `udb_units` without a corresponding change to `import_unit_database_inner`'s INSERT statement
+- French data visible after first import but gone after a data update (install new app version)
 
-**Prevention:**
-- For the canonical database build, parse BSData XML exactly once offline during the dev-side data acquisition script. Commit the parsed output to source control.
-- Do not include BSData XML parsing in the app binary.
-- The dev-side update script should validate parsed row counts against known minimums (e.g., "Space Marines must have at least 80 datasheets") and fail loudly if counts are suspiciously low.
-
-**Phase:** Phase 1 (Data Acquisition) — the data pipeline is offline; the app itself never touches XML.
+**Phase to address:**
+Translation schema phase — establish the JSON payload extension + Rust INSERT binding pattern before any UI work touches French columns.
 
 ---
 
-### Pitfall 9: 40k.app scraping is legally and technically fragile — use it as UX reference only
+### Pitfall 6: PlaybookRules Currently Returns null — Reviving It Requires Understanding What Data Was Lost When rules.db Was Eliminated
 
-**What goes wrong:** 40k.app may have rate limiting, Cloudflare protection, or terms of service prohibiting scraping. Even if it works initially, the site can change its HTML structure at any time, breaking the scraper silently.
+**What goes wrong:**
+`PlaybookRules` (`src/features/units/PlaybookRules.tsx`) explicitly returns `null` with a comment that says stratagems, detachments, and shared abilities lost their data source when `rules.db` was eliminated (Phase 107). Reviving PlaybookTab content without checking what those old queries returned will produce either empty state or runtime errors.
 
-**Prevention:**
-- The dev-side data acquisition script is the only thing that talks to external sites — the app is fully offline.
-- Treat 40k.app as a UX reference, not a primary data source. Wahapedia CSVs are more stable (pipe-delimited, versioned) and already have working parsers in the codebase.
-- BSData XML is the authoritative source for points tiers and composition rules.
-- For the initial build: Wahapedia CSVs for stats/abilities/keywords + BSData XML for points/composition. This mirrors the existing sync pipeline but produces a one-time offline artifact.
-- Add a `--dry-run` mode to the data acquisition script that reports row counts per faction without writing to DB.
+The risk: `udb_unit_abilities` exists and has ability data, but it does not contain stratagems. Stratagems are detachment-specific rules that were in `rules_stratagems` (the old rules.db table). Attempting to display stratagems from `udb_unit_abilities` will return nothing — the `ability_type` values in Wahapedia CSV data do not include stratagem data. The EXT-01..03 deferral in `PROJECT.md` explicitly says "stratagems/detachments in canonical DB — deferred to v2."
 
-**Phase:** Phase 1 — the acquisition strategy must be validated before committing to a data source.
+**Why it happens:**
+The PlaybookTab revival requirement in this milestone likely means using `udb_unit_abilities` for the datasheet abilities section — not restoring the full old PlaybookRules behavior. If the requirement is not explicit about scope, developers may attempt to restore the stratagem view, discover the data does not exist, and either stub it out again or introduce dead code paths.
 
----
+**How to avoid:**
+Define the exact scope of PlaybookTab revival: it means surfacing `udb_unit_abilities` grouped by `ability_type` more prominently. The existing `PlaybookDatasheet` component already renders these. PlaybookRules (stratagems, detachments) remains `return null` unless EXT-01..03 is explicitly in scope.
 
-### Pitfall 10: DELETE-all + re-INSERT for data updates destroys FKs from collection and army list tables
+Audit actual `ability_type` values in the bundled data before writing any UI. Check what `ability_type` strings appear in `udb_unit_abilities` before assuming any specific grouping will have data.
 
-**What goes wrong:** The existing `replaceSyncedEnhancements`, `replaceSyncedLoadoutOptions`, etc. use DELETE-all + re-INSERT. This is acceptable for cache tables that have no user-authored children. But once collection units or army lists reference `unit_database` by FK, any DELETE-all re-INSERT of `unit_database` would set all `unit_database_id` FKs to NULL (via ON DELETE SET NULL) or fail (via ON DELETE RESTRICT), destroying the linking work of Phase 3.
+**Warning signs:**
+- Any new import of `getRulesDb`, `rules_stratagems`, or `rulesExtended.ts` — those are gone
+- A component that queries `udb_unit_abilities WHERE ability_type = 'Stratagem'` expecting results
 
-**Prevention:**
-- The canonical `unit_database` table must never be DELETE-all + re-INSERTed once collection units or army lists reference it by FK.
-- Dev-side updates must use UPSERT (`INSERT OR REPLACE`) keyed on a stable canonical ID (the Wahapedia `id` field, a 9-digit zero-padded string already used as the PK in `rw_datasheets`).
-
-**Phase:** Phase 5 (Data Update Pipeline) — the update strategy must be UPSERT-safe before any FKs point into `unit_database`.
+**Phase to address:**
+PlaybookTab revival phase — audit actual `ability_type` values in the bundled data before writing a single line of UI. Document the scope explicitly as "canonical abilities only, no stratagems."
 
 ---
 
-### Pitfall 11: Loading 2,500+ datasheets eagerly blocks the faction browser UI
+### Pitfall 7: Game Day Zustand State Becomes Stale When udb_unit_abilities Rows Are Reassigned New IDs on Re-import
 
-**What goes wrong:** Loading all datasheets with all related tables (stats, weapons, abilities, keywords) eagerly on the faction browser page will cause a visible stall (300–800ms). The initial load and any post-update invalidation will block the UI thread.
+**What goes wrong:**
+`GameDayPage` uses Zustand with localStorage persistence for CP tracker, checklist state, and OPG (once-per-game) ability toggles. If Game Day enrichment extends to use `udb_unit_abilities` for ability cards, those cards may be keyed by `ability.id` (the SQLite AUTOINCREMENT column).
 
-**Prevention:**
-- Load only the faction list on the faction picker page (a cheap `SELECT DISTINCT faction_id, faction_name FROM unit_database` — ~30 rows).
-- Load unit list (names + roles only, no stats/weapons) only when a faction is selected.
-- Load full datasheet data only when a specific unit is selected.
-- Use `staleTime: Infinity` for all `unit_database` queries — this data only changes on app updates, not at runtime.
-- The global search query must be debounced (300ms) and search against a pre-built search index (unit name + keywords denormalized into a single searchable TEXT column) rather than full-table LIKE queries across joined tables.
+After a re-import (`import_unit_database_inner` runs DELETE-all + re-INSERT), all `udb_unit_abilities.id` values are reassigned because AUTOINCREMENT only guarantees monotonically increasing values, not value stability across delete-insert cycles. Previously-checked OPG abilities are now referenced by stale IDs that point to different abilities or nothing.
 
-**Phase:** Phase 2 (Database Browser UI) — lazy loading is an architectural requirement, not an optimization.
+**Why it happens:**
+AUTOINCREMENT in SQLite does not preserve IDs across DELETE + INSERT cycles. The row with ability text "Oath of Moment" may have had `id = 142` before re-import and `id = 219` after. Zustand with localStorage persistence has no awareness of this.
 
----
+**How to avoid:**
+Never key persistent Game Day state by `udb_unit_abilities.id`. Use a stable composite key: `unit_id + ":" + ability_name`. Both `udb_units.id` (Wahapedia string IDs) and ability names are stable across re-imports unless GW renames them. If an ability is renamed, the old key becomes dangling and defaults to "unused" — which is safe (user just re-toggles it).
 
-### Pitfall 12: Pre-v0.4.0 backups cannot be restored on a v0.4.0 app — update version mismatch warnings
+Establish this key scheme before the Game Day enrichment phase adds any new Zustand persistence keys.
 
-**What goes wrong:** After absorbing rules.db content into hobbyforge.db, the canonical unit database is not regenerable from a sync — it is the source of truth. A backup predating v0.4.0 migration will be missing the `unit_database` tables entirely. The restore preview/validation flow already checks schema compatibility, but the minimum compatible version needs updating.
+**Warning signs:**
+- Any new Zustand key that stores an integer referencing a `udb_unit_abilities.id`
+- A Game Day test with a hardcoded ability `id` integer
 
-**Prevention:**
-- The backup mechanism itself (VACUUM INTO via Rust) is unchanged and correct.
-- Update the schema compatibility check in the restore flow to warn if the backup's schema version predates the first `unit_database` migration.
-- Test the version mismatch warning with the new minimum version before shipping.
-
-**Phase:** Phase 1 (Schema) — determine the new minimum backup schema version and document it.
+**Phase to address:**
+Game Day enrichment phase — define the stable key scheme in the Zustand store shape before writing any new persistence keys.
 
 ---
 
-### Pitfall 13: `cmdk` CommandItem value collision on duplicate unit names in the database picker
+## Technical Debt Patterns
 
-**What goes wrong:** The existing `UnitPickerDialog` had a bug where `value={unit.name}` caused duplicate-named units (multiple "Intercessors" from different factions) to collide in cmdk's internal state, preventing `onSelect` from firing correctly (see `.planning/debug/army-list-detachment-units.md`). The new "add from database" picker will have the same pattern — Space Marine and Death Guard units sharing names.
-
-**Prevention:**
-- Always use `value={String(unit.id)}` or `value={\`${unit.faction_id}-${unit.id}\`}` as the cmdk `CommandItem` value, never the unit name.
-- This fix is already applied to the collection unit picker — copy the same pattern to any new database pickers.
-
-**Phase:** Phases 2–3 (Browser UI and Collection Integration).
-
----
-
-### Pitfall 14: `NULL` `unit_database_id` must propagate correctly through the points COALESCE chain
-
-**What goes wrong:** After Phase 3, the points resolution COALESCE chain must handle `unit_database_id = NULL` for unlinked units. If the JOIN to `unit_database` is written as INNER JOIN (not LEFT JOIN), unlinked units are excluded from army list total calculations silently.
-
-**Prevention:**
-- Use `LEFT JOIN unit_database ud ON ud.id = u.unit_database_id` — never INNER JOIN.
-- Test the COALESCE chain with four cases: (a) database link + no override, (b) database link + override, (c) no database link + manual points, (d) no database link + no points.
-- Update `resolveUnitPoints()` in `src/lib/` — it is the single source of truth for points computation.
-
-**Phase:** Phase 4 (Army List Integration).
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| `update-unit-database.ts` as a full copy of `build-unit-db.ts` logic | No shared module boundary, runs standalone | Every BSData parsing fix must be applied twice; the two scripts will diverge | Acceptable until a fix is applied to one and forgotten in the other — extract a shared module at that point |
+| Hard-coded `FACTION_MAP` in both build scripts | Simple, readable | Adding a new GW faction requires editing both scripts and both maps | Acceptable while faction count is stable at 25 |
+| `getSyncFreshness` stub always returning `'fresh'` | 12 consumers preserved for backward compat | Any new consumer that tries to use freshness semantics will be misled | Never acceptable for new consumers — document as "always returns 'fresh'" and do not add new callers |
+| FTS5 with only 4 columns, no `name_fr` | No migration required | French queries miss French-only unit names unless `name_fr` is concatenated into existing columns | Acceptable if names are concatenated with pipe separator; not acceptable if French data is omitted from FTS5 entirely |
+| Manual correction overlay for BSData mismatches | Low complexity | Corrections accumulate over GW updates and become maintenance debt | Acceptable for initial coverage improvement; must be reviewed on each GW data update |
 
 ---
 
-## Minor Pitfalls
+## Integration Gotchas
+
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| BSData XML + Wahapedia CSV matching | Using raw `name` strings from both sources without normalization | Normalize apostrophes (smart → ASCII), strip trailing whitespace, then lowercase before building the match key |
+| Wahapedia FR as a translation source | Assuming FR CSV column names match EN CSV exactly | FR CSV headers may differ; validate headers against EN headers before use and log mismatches |
+| Rust `UnitDatabasePayload` extension | Adding new fields to the JSON without `#[serde(default)]` on the Rust struct field | New fields without defaults will cause parse errors on users with a mismatched app + JSON version — always `#[serde(default)]` on new optional fields |
+| FTS5 search with French accented characters | Assuming default tokenizer handles all French characters | SQLite FTS5 `unicode61` tokenizer handles basic accented characters; test `é`, `è`, `ç`, `à` explicitly before shipping |
+| tauri-plugin-sql with new nullable columns | Running `ALTER TABLE udb_units ADD COLUMN name_fr TEXT` and querying it in TypeScript | The SQL works; but TypeScript query types must be updated or strict mode will flag missing properties |
 
 ---
 
-### Pitfall 15: `catch` blocks without `console.error` make production debugging impossible — a recurring pattern in this codebase
+## Performance Traps
 
-**What goes wrong:** Three separate debug incidents (faction-creation-fails.md, collection-datasheet-link.md, army-list-detachment-units.md) were caused or prolonged by catch blocks that showed a generic toast without logging the actual error. The unit database introduces new mutation paths (load_unit_database, backfill collection links) that will fail in unanticipated ways.
-
-**Prevention:**
-- Every catch block in mutation handlers must include `console.error("[ComponentName]", err)` before the toast.
-- Pattern: `catch (err) { console.error("[useLoadUnitDatabase]", err); toast.error(\`Failed: \${err instanceof Error ? err.message : String(err)}\`); }`.
-- This is a code review gate — no new mutation handler ships without error logging.
-
-**Phase:** All phases — apply to every new handler as it is written.
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| FTS5 rebuild with long ability text in two languages | Import takes noticeably longer at startup on first launch or version change | Keep FTS5 columns minimal; concatenate `name_fr` into `name` rather than adding a new column | At 3,000+ units with full ability text in two languages |
+| Loading all `udb_unit_abilities` for all army list units in Game Day | GameDayPage stalls during initial render | Batch fetch by unit IDs: `WHERE unit_id IN (...)` or a JOIN on the army list unit IDs | At 30+ units in a game list |
+| `getUdbUnitDetail` making 6 parallel SELECT queries per unit | Fine for single unit view; breaks in multi-unit contexts | Never call `getUdbUnitDetail` in a loop; use a batched join query for multi-unit contexts | At 10+ units queried simultaneously |
+| React Query cache miss on sub-faction filter change | Every filter toggle triggers a DB round-trip | If `subfaction` is added to the query key, implement client-side filtering on the faction-level cache instead | Immediately on first filter toggle if not designed for client-side filtering |
 
 ---
 
-### Pitfall 16: Self-referencing FK deletion order on `army_list_units.leader_attached_to_id` — already caused one production crash
+## "Looks Done But Isn't" Checklist
 
-**What goes wrong:** This has burned the project once already (`.planning/debug/army-list-delete-crash.md`). When deleting army list units during a "replace with database unit" flow, the self-referencing FK (`leader_attached_to_id REFERENCES army_list_units(id) ON DELETE SET NULL`) requires that leader attachment references be cleared before the referenced rows are deleted. SQLite does not guarantee deletion order within a CASCADE.
-
-**Prevention:**
-- Any mutation that deletes `army_list_units` rows must first `UPDATE army_list_units SET leader_attached_to_id = NULL WHERE leader_attached_to_id IN (...)` before the DELETE.
-- This pattern is already implemented in `deleteArmyList` — copy it exactly for any new unit deletion path.
-
-**Phase:** Phase 3 (Collection Integration) — any flow that deletes or replaces collection units must follow this pattern.
-
----
-
-## Integration Pitfalls Specific to This Codebase
-
-### The dual-DB client singleton problem during single-DB migration
-
-During the transition period (Phases 1–4), both `getRulesDb()` and `getDb()` are active. Any new query code written in Phase 2 or 3 that accidentally imports `getRulesDb()` instead of `getDb()` for a `unit_database` query will appear to work in development (both singletons are healthy) but will fail for users who have never synced (rules.db is empty). The singleton pattern in both `client.ts` and `rules-client.ts` has no type-level distinction — a wrong import is a silent runtime failure.
-
-**Prevention:** Add a lint comment to `rules-client.ts` explicitly marking it as deprecated after Phase 1. Grep for new `getRulesDb()` imports in code review as a mandatory step.
-
-### The "no nested transactions" constraint applies to all new bulk operations
-
-`tauri-plugin-sql` cannot nest transactions (documented in PROJECT.md Key Decisions). The unit database load command, any backfill migration code, and any "replace unit" flow must follow the flat inline transaction pattern established in `saveRecipeGraph` and `deleteArmyList` — not call helper functions that internally issue `BEGIN`. Wrapping a helper that calls `BEGIN` inside another `BEGIN` crashes the plugin.
-
-### React Query `staleTime: Infinity` requires explicit invalidation on database updates
-
-All `unit_database` queries should use `staleTime: Infinity` because the data never changes at runtime. But this means that after a dev-side data update (the Phase 5 update pipeline), React Query will serve the old cached data until the app is restarted or queries are explicitly invalidated. The dev-side update must invalidate all `unit_database`-related keys, or the user must restart the app. This is acceptable behaviour for a desktop app — document it explicitly.
+- [ ] **Build script coverage report:** The script prints `points.length` but does not print how many Wahapedia units had no BSData match. "Extracted 1,200 points tier entries" looks complete even if 600 units have zero points. Add an explicit "X of N units have no points data" warning before declaring the data quality improvement done.
+- [ ] **French columns in Rust INSERT:** Adding `name_fr` to the migration and to TypeScript types but forgetting to add `str_val(row, "name_fr")` to the Rust INSERT in `import_unit_database_inner` will silently write NULL to every row. The TypeScript type will claim the column exists; queries will return NULL for all French names with no error.
+- [ ] **Migration registered in lib.rs:** Every new `.sql` file in `src-tauri/migrations/` must have a corresponding `Migration { version: N, ... }` entry in `get_migrations()`. The Rust build compiles without it; the migration simply never runs. The app appears to work but the new columns do not exist.
+- [ ] **FTS5 content after import:** After extending the FTS5 rebuild query to concatenate French names, verify `SELECT COUNT(*) FROM udb_search` equals `SELECT COUNT(*) FROM udb_units`. A JOIN error in the INSERT...SELECT silently inserts zero rows without failing the transaction.
+- [ ] **Sub-faction filter with no results:** A sub-faction filter UI returning 0 results looks identical to a broken filter. Add an explicit "No units for this sub-faction" empty state rather than showing the default "no faction selected" empty state.
+- [ ] **PlaybookRules revival scope:** If `PlaybookRules` is changed from `return null` to render something, confirm the data source. The old implementation used `getRulesDb()` hooks that no longer exist. Any import of `useStratagems`, `useDetachmentAbilities`, or `getRulesDb` is a runtime error in the current architecture.
+- [ ] **Zustand persist key versioning for Game Day:** If any existing Zustand store key changes shape (e.g. ability cards now use `unit_id:ability_name` instead of an integer index), add a Zustand `version` and `migrate` function. Without it, stale localStorage values cause hydration mismatches on first launch after update.
+- [ ] **BSData sort determinism verified:** After adding `files.sort()`, run the build script twice from a clean state and confirm the output `version` hash is identical on both runs.
 
 ---
 
-## Phase-Specific Warnings
+## Recovery Strategies
 
-| Phase | Likely Pitfall | Mitigation |
-|-------|---------------|------------|
-| Phase 1: Data Acquisition & Schema | Data seed via migration causes boot loop on bad row | Use Rust startup command, not migration, for data population |
-| Phase 1: Data Acquisition & Schema | Migration not registered in lib.rs | Run migration parity test before every build |
-| Phase 1: Data Acquisition & Schema | WAL stale reads after bulk write | Add explicit WAL checkpoint in Rust command after load |
-| Phase 1: Data Acquisition & Schema | Pre-v0.4.0 backups incompatible after schema change | Update restore version mismatch warning with new minimum version |
-| Phase 2: Database Browser UI | Eager load of 2,500+ datasheets blocks UI | Faction → unit list → unit detail lazy load; staleTime: Infinity |
-| Phase 2: Database Browser UI | cmdk value collision on duplicate unit names | value={String(unit.id)}, never value={unit.name} |
-| Phase 3: Collection Integration | 20% name mismatch in backfill migration | Nullable FK, fuzzy match, Data Health diagnostic for unlinked units |
-| Phase 3: Collection Integration | RESTRICT FK blocks unit replacement | Build explicit "replace unit" transaction flow |
-| Phase 3: Collection Integration | Self-referencing leader FK deletion order | Clear leader_attached_to_id before DELETE (copy deleteArmyList pattern) |
-| Phase 3: Collection Integration | Army list snapshots break if collection unit IDs change | Never change collection unit_id; only add unit_database_id |
-| Phase 4: Army List Integration | NULL unit_database_id excluded by INNER JOIN | LEFT JOIN only; test all four null/non-null combinations |
-| Phase 5: Cleanup & Data Update Pipeline | DELETE-all re-INSERT destroys FKs from collection/army lists | UPSERT pattern using stable Wahapedia ID as PK |
-| Phase 5: Cleanup & Data Update Pipeline | rules.db consumers not fully migrated before drop | Grep all getRulesDb() call sites; checklist per rw_* table |
-| All phases | Catch blocks without error logging | console.error required in every mutation catch block |
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| Boot-loop from seeded migration | HIGH | Requires manual database reset via restore-from-backup, or deleting `_sqlx_migrations` row directly. The migration repair system in `lib.rs` handles checksum mismatches but not semantic conflicts from re-applied DML. |
+| French columns missing from Rust INSERT | LOW | Add the binding, bump the `unit_database.json` version hash (change any count by 1 in the build), re-build app. Version mismatch triggers a full re-import. No migration needed. |
+| Sub-faction as new udb_factions rows breaks FK backfill | HIGH | Requires a new migration to re-backfill `units.udb_unit_id` for affected units and update `wahapedia_faction_id` on the `factions` table. High risk of silently unlinking collection units. Prevent by design — do not add new faction rows. |
+| FTS5 empty after failed rebuild | MEDIUM | Trigger a manual re-import via the existing `import_unit_database` Tauri command. The version check bypasses re-import unless the JSON version is bumped — bump it by changing any count. |
+| OPG state keyed by stale ability IDs | LOW | Old stale keys in localStorage are ignored (Zustand uses default "unused" state for unknown keys). User loses in-session OPG tracking, which resets per game anyway. No data loss. |
+| BSData non-deterministic ordering | LOW | Add `files.sort()` to both build scripts — a one-line fix each. Re-build produces a new hash; re-import runs automatically on next user launch. |
+
+---
+
+## Pitfall-to-Phase Mapping
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| Boot-loop from seeded migration | Sub-faction schema phase + Translation schema phase | Confirm migration files contain only DDL; data is in JSON payload |
+| FTS5 schema change requires DROP + recreate | Data quality / build script phase | Confirm `udb_search` column list unchanged after all schema migrations; `name_fr` concatenated into existing `name` column |
+| BSData name-match non-determinism | Data quality / build script phase | `files.sort()` added to both scripts; build produces identical hash on two separate runs |
+| Sub-faction as new udb_factions rows | Sub-faction schema phase | `udb_factions` row count unchanged after migration; `getUdbOwnershipByFaction("SM")` count unchanged |
+| French columns wiped on re-import | Translation schema phase | `import_unit_database_inner` binds `name_fr`; re-import shows non-null French names for tested units |
+| PlaybookRules scope confusion | PlaybookTab revival phase | No imports of `getRulesDb` or `rules_stratagems`; only `udb_unit_abilities` used; no stratagem data expected |
+| Game Day OPG state keyed by mutable AUTOINCREMENT ID | Game Day enrichment phase | Zustand keys use `unit_id:ability_name` composite strings, not integer IDs |
+| Migration not registered in lib.rs | Every new migration phase | `get_migrations().len()` matches migration file count; data-layer test passes on fresh install |
 
 ---
 
 ## Sources
 
-- `src-tauri/migrations/` — 37 migration files; schema evolution history and FK patterns
-- `src/hooks/useRulesSync.ts` — existing sync pipeline with WAL checkpoint workarounds (Pitfall 5 precedent)
-- `src/components/common/DbHealthGate.tsx` — startup repair logic for stale points cache
-- `.planning/debug/rules-sync-full-loss.md` — WAL stale read incident 2026-05-29 (Pitfall 5 real evidence)
-- `.planning/debug/rules-sync-not-persisting.md` — 20% name mismatch documentation (Pitfall 2 real evidence)
-- `.planning/debug/army-list-delete-crash.md` — migration registration omission + self-FK deletion order (Pitfalls 1 and 16)
-- `.planning/debug/army-list-detachment-units.md` — cmdk value collision + silent error swallowing (Pitfalls 13 and 15)
-- `.planning/debug/faction-creation-fails.md` — catch block anti-pattern (Pitfall 15)
-- `.planning/debug/collection-datasheet-link.md` — cross-DB query failure invisibility (Pitfall 15)
-- `src-tauri/migrations/030_bsdata_extended.sql` — DELETE-all + re-INSERT pattern for synced tables (Pitfall 10)
-- `src-tauri/migrations/031_army_list_v3.sql` — self-referencing FK on army_list_units (Pitfall 16)
-- `src/db/rules-client.ts` — dual-DB singleton pattern
-- `.planning/milestone-unit-database.md` — milestone brief with stated risks and mitigations
+- Direct inspection: `src-tauri/migrations/038_udb_schema.sql` — boot-loop incident note in migration DDL comment
+- Direct inspection: `src-tauri/migrations/039_collection_udb_link.sql` — backfill approach and FK structure
+- Direct inspection: `src-tauri/src/lib.rs` — `import_unit_database_inner` DELETE-all + re-INSERT transaction, FTS5 rebuild query, version check logic, `UnitDatabasePayload` struct
+- Direct inspection: `scripts/build-unit-db.ts` — BSData name matching, deduplication, `readdirSync` without sort
+- Direct inspection: `scripts/update-unit-database.ts` — full code duplication of build pipeline confirmed
+- Direct inspection: `src/features/units/PlaybookRules.tsx` — explicit `return null` with EXT-03 deferral comment
+- Direct inspection: `src/features/game-day/GameDayPage.tsx` — Zustand usage pattern
+- Direct inspection: `src/db/queries/unitDatabase.ts` — FTS5 query pattern, FK join structure, `getUdbOwnershipByFaction`
+- Codebase decision log in `PROJECT.md` — "Inline stub pattern for deferred features", "getSyncFreshness always returns 'fresh'", "Pre-built canonical unit database", "Reuse Wahapedia string IDs for udb_units"
 
 ---
-*Pitfalls research for: v0.4.0 Unit Database — Canonical 40k Data Hub*
-*Researched: 2026-05-29*
+*Pitfalls research for: HobbyForge v0.4.2 Unit Database 2.0 — sub-factions, French translation, BSData quality improvements*
+*Researched: 2026-06-01*

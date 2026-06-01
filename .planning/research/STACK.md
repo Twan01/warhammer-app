@@ -1,297 +1,349 @@
-# Technology Stack — v0.4.0 Unit Database / Canonical 40k Data Hub
+# Stack Research — v0.4.2 Unit Database 2.0
 
-**Project:** HobbyForge v0.4.0
-**Researched:** 2026-05-29
-**Confidence:** HIGH for new additions; MEDIUM for single-DB migration timing
-
----
-
-## Context: Existing Stack (Do Not Re-Research)
-
-The following are validated and shipped. They are referenced here so decisions below can state integration points precisely.
-
-| Layer | Tech | Notes |
-|---|---|---|
-| App shell | Tauri 2 + Rust + sqlx 0.8 | 8 commands, preflight repair, VACUUM INTO backup |
-| Frontend | React 19 + TypeScript 5 + Vite 6 + TailwindCSS 4 + shadcn/ui | Stable |
-| DB access (JS) | tauri-plugin-sql 2.x — parameterized `$1, $2` syntax | hobbyforge.db + rules.db |
-| DB access (Rust) | sqlx 0.8 direct connection | `bulk_sync_rules`, backup commands |
-| Migrations | 37 hobbyforge.db + 4 rules.db — auto-run at startup | rules.db to be eliminated |
-| XML parsing (runtime) | Browser `DOMParser` in `src/lib/fetchBsdataPoints.ts` | Not available in Node.js scripts |
-| CSV parsing | `src/lib/parseWahapediaCsv.ts` (custom) | Reusable for build script |
-| Data-layer tests | `better-sqlite3` ^12.10.0 (devDependency, already installed) | 14 tests in production |
-| State | React Query 5, Zustand 5, React Context | Unchanged |
+**Domain:** Tauri 2 desktop app — incremental feature additions to existing validated stack
+**Researched:** 2026-06-01
+**Confidence:** HIGH (i18n), MEDIUM (BSData XML improvements), HIGH (sub-faction schema)
 
 ---
 
-## Recommended Additions
+## Scope
 
-### 1. Virtual Scrolling: `@tanstack/react-virtual`
-
-**Version:** `^3.13.26` (latest as of 2026-05-29, per npm)
-
-**Why needed:** The unit database browser will display 2,500+ datasheets across 30+ factions in a scrollable list. Rendering all items simultaneously causes frame drops. TanStack Virtual renders only the visible items plus a small overscan buffer, achieving 60 fps even for 100k-item lists (cold mount ~4.5ms per TanStack benchmark).
-
-**Why TanStack Virtual specifically:**
-- Same vendor ecosystem as `@tanstack/react-query` and `@tanstack/react-router` already in use — React 19 compatibility is guaranteed
-- Headless — no layout opinion; integrates with existing zinc/dark shadcn/ui card and table components without style overrides
-- `react-window` is in maintenance mode since 2022 with no React 19 roadmap
-- `react-virtuoso` imposes opinionated scroll containers that conflict with the existing shadcn Sheet/Dialog overlay pattern
-
-**Where it applies:** The faction unit list inside the database browser page (2,500+ items across all factions, or ~50–300 per faction when filtered). Not needed for the faction picker grid (30 factions) or unit detail view (single item).
-
-**Integration pattern:**
-```ts
-// src/features/unit-database/UnitList.tsx
-import { useVirtualizer } from "@tanstack/react-virtual";
-
-const rowVirtualizer = useVirtualizer({
-  count: units.length,
-  getScrollElement: () => parentRef.current,
-  estimateSize: () => 72,   // card height in px
-  overscan: 5,
-});
-```
-
-**Install:**
-```bash
-pnpm add @tanstack/react-virtual@^3.13.26
-```
+This research covers ONLY new capabilities needed for v0.4.2. The existing stack
+(Tauri 2, React 19, TypeScript 5, Vite 6, TailwindCSS 4, shadcn/ui, SQLite via
+tauri-plugin-sql, React Query, Zustand, FTS5, @xmldom/xmldom, better-sqlite3) is
+validated and not re-researched here.
 
 ---
 
-### 2. SQLite FTS5 Full-Text Search: No New Dependency
+## 1. i18n Framework — Data-Level Translation with Locale Toggle
 
-**Why needed:** Global search across 2,500+ unit names, keywords, faction names, and ability text.
+### Decision: i18next + react-i18next, no backend, in-memory resources
 
-**Why no library:** FTS5 is compiled into the SQLite binary that ships with Tauri 2 (via sqlx's bundled SQLite). `CREATE VIRTUAL TABLE ... USING fts5` works as a migration DDL statement through tauri-plugin-sql.
+**Why:** The scope is data-level translation only — unit names, ability descriptions, and
+faction names stored bilingually in the database, surfaced to the UI via locale-aware
+React Query hooks. i18next handles the locale toggle state (`i18n.changeLanguage('fr')`)
+and provides the `useTranslation` hook consumed by data-display components. No UI
+string translation is planned (menus, labels stay English), so no backend plugin or
+file-loading infrastructure is needed for v0.4.2. All translations come from the DB.
 
-**Migration approach (new migration `038_unit_database_schema.sql` or later):**
-```sql
-CREATE VIRTUAL TABLE IF NOT EXISTS udb_search USING fts5(
-  name,
-  keywords,
-  faction_name,
-  content='udb_units',
-  content_rowid='rowid'
-);
-```
+**Versions (current as of 2026-06-01):**
+- `i18next` — v26.3.0
+- `react-i18next` — v17.0.8
 
-**Query pattern (via tauri-plugin-sql `$1` positional syntax):**
-```sql
-SELECT u.*
-FROM udb_units u
-JOIN udb_search s ON u.rowid = s.rowid
-WHERE udb_search MATCH $1
-ORDER BY rank
-LIMIT 50;
-```
+Both are actively maintained with weekly releases. v26 of i18next changed the minimum
+peer dependency on several plugins; v17 of react-i18next aligns with that. React 19
+compatibility is confirmed — the library explicitly targets React 18+ with hooks-based
+API.
 
-**Confidence note (MEDIUM):** FTS5 `CREATE VIRTUAL TABLE` is confirmed to work as DDL through tauri-plugin-sql migrations based on community reports. The content table sync pattern (keeping the FTS index in sync with `udb_units` on INSERT/UPDATE/DELETE) is standard SQLite but needs validation in Phase 1 — the plugin's transaction model may require triggers to be set up through the Rust `setup` hook rather than a migration file. Fall back to `LIKE '%query%'` on indexed TEXT columns if trigger registration proves incompatible.
+### Core Technologies
 
----
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `i18next` | ^26.3.0 | Locale state machine + `changeLanguage` | Industry standard; works offline with in-memory resources; no backend required for static/DB-sourced translations |
+| `react-i18next` | ^17.0.8 | `useTranslation` hook + `I18nextProvider` | React 19 compatible; integrates cleanly with existing Zustand + React Query architecture |
 
-### 3. Build-Time XML Parsing: `fast-xml-parser`
+### Supporting Libraries
 
-**Version:** `^4.5.3` (v4 stable; v5 is experimental beta as of 2025)
+| Library | Version | Purpose | When to Use |
+|---------|---------|---------|-------------|
+| `i18next-resources-to-backend` | ^1.2.1 | Lazy-load namespaces from dynamic imports | Only if translation JSON files grow large enough to warrant code-splitting. Not needed for v0.4.2 — data comes from DB, not JSON files |
 
-**Why needed:** The dev-side import script that builds the pre-populated unit database must parse BSData `.cat` XML files in a Node.js context. The existing `DOMParser`-based parsers in `src/lib/fetchBsdataPoints.ts` and `src/lib/parseBsdataExtended.ts` use the browser DOM API, which is unavailable outside Tauri/browser.
+**Do NOT install:** `i18next-http-backend`, `i18next-browser-languagedetector`. The
+app is offline-first and locale is user-toggled in-app, not detected from browser/OS.
 
-**Why fast-xml-parser over alternatives:**
-- 80M+ weekly npm downloads — most widely used pure-JS XML parser
-- Zero dependencies; works identically in Node.js and browser (future-proof if browser-side parsing is needed)
-- Benchmarked faster than `xml2js` on large files (BSData `.cat` files can exceed 10MB per faction)
-- `xml2js` is older, uses callbacks by default, and requires more config to get clean attribute access
+### Integration Pattern
 
-**Usage in build script:**
-```ts
-import { XMLParser } from "fast-xml-parser";
+The i18n instance is initialized once at app startup with an empty (or minimal)
+resource bundle. The active locale is stored in a lightweight Zustand slice (one key:
+`locale: 'en' | 'fr'`) that mirrors the i18next state. React Query hooks that serve
+unit/ability data accept the locale as a query key segment — `['udb-units', factionId, locale]`
+— so changing locale invalidates and refetches the bilingual data from SQLite without
+touching any other cache.
 
-const parser = new XMLParser({
-  ignoreAttributes: false,
-  attributeNamePrefix: "@_",
-  isArray: (name) => ["selectionEntry", "modifier", "condition"].includes(name),
-});
-const result = parser.parse(catFileXml);
-```
+```typescript
+// src/lib/i18n.ts — initialize once, no backend
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
 
-**Install (devDependency — never bundled into the app):**
-```bash
-pnpm add -D fast-xml-parser@^4.5.3
-```
-
----
-
-### 4. Build-Time SQLite Writing: `better-sqlite3` (Already Installed)
-
-**Version:** `^12.10.0` (already in `devDependencies`)
-
-**Why adequate:** `better-sqlite3` is already installed for the 14-test data-layer test suite. Its synchronous API makes bulk-insert scripting simple and performant. Wrapping inserts in a transaction provides a 10–100x speedup over row-by-row autocommit for large datasets.
-
-**Build script pattern:**
-```ts
-// scripts/build-unit-db.mjs
-import Database from "better-sqlite3";
-
-const db = new Database("src-tauri/resources/unit_database.db");
-db.pragma("journal_mode = WAL");
-db.pragma("foreign_keys = ON");
-
-const insertUnit = db.prepare(`
-  INSERT OR REPLACE INTO udb_units (id, name, faction_id, role, ...)
-  VALUES (@id, @name, @faction_id, @role, ...)
-`);
-
-const insertBatch = db.transaction((units) => {
-  for (const u of units) insertUnit.run(u);
+i18n.use(initReactI18next).init({
+  lng: 'en',
+  fallbackLng: 'en',
+  resources: {}, // translations come from DB, not static JSON
+  interpolation: { escapeValue: false },
 });
 
-insertBatch(parsedUnits);
-db.close();
+export default i18n;
 ```
 
-**Script location:** `scripts/build-unit-db.mjs` — run manually by the developer when GW data changes, produces `src-tauri/resources/unit_database.db`. Not part of `pnpm build`.
-
----
-
-### 5. Bundled Pre-Populated Database: Tauri Resources + Rust File Copy
-
-**Problem:** `tauri-plugin-sql` does not support loading pre-populated databases from bundled resources. This is an open feature request (issue #1155 in tauri-apps/plugins-workspace, unresolved as of 2025). The plugin only opens databases in `app_data_dir`.
-
-**Solution (validated community pattern):** Bundle the pre-built `.db` file as a Tauri resource, then copy it to `app_data_dir` on first launch from the Rust `setup` hook.
-
-**`tauri.conf.json`:**
-```json
-{
-  "bundle": {
-    "resources": ["resources/unit_database.db"]
-  }
+```typescript
+// Locale Zustand slice
+interface LocaleState {
+  locale: 'en' | 'fr';
+  setLocale: (l: 'en' | 'fr') => void;
 }
 ```
 
-**Rust `setup` in `lib.rs`:**
-```rust
-.setup(|app| {
-    let app_data_dir = app.path().app_data_dir()?;
-    std::fs::create_dir_all(&app_data_dir)?;
+The React Query hook passes `locale` into the SQL query to select either the
+`name` or `name_fr` column (dual-column schema — see section 3). This keeps the
+i18n library as thin locale-state infrastructure; the actual translation is a
+DB query concern.
 
-    let unit_db_dest = app_data_dir.join("unit_database.db");
-    if !unit_db_dest.exists() {
-        let resource_path = app.path()
-            .resolve("unit_database.db", tauri::path::BaseDirectory::Resource)?;
-        std::fs::copy(&resource_path, &unit_db_dest)?;
-        println!("[hobbyforge] unit_database.db copied to app_data_dir");
-    }
+### Installation
 
-    // ... existing app_data_dir creation
-    Ok(())
-})
+```bash
+pnpm add i18next react-i18next
 ```
-
-**After copy, open normally via tauri-plugin-sql:**
-```ts
-// src/db/unit-db-client.ts
-const db = await Database.load("sqlite:unit_database.db");
-```
-
-**Update strategy:** When GW publishes points changes, the developer runs `scripts/build-unit-db.mjs` and ships a new app version. To force overwrite (not just first-run copy), store a `data_version` INTEGER in the bundled db and compare against the copy in `app_data_dir`. If bundled version is higher, overwrite.
-
-**Size:** Estimated 20–50MB uncompressed for 2,500+ units with full stats/weapons/abilities. Acceptable for a Windows desktop installer.
-
-**No new Rust crates.** `std::fs::copy` and `tauri::path::BaseDirectory::Resource` are in the already-imported `tauri` crate.
 
 ---
 
-### 6. Rust Changes for Single-DB Migration
+## 2. BSData XML Parsing — Points Match Rate Improvement
 
-**Remove from `lib.rs`:**
-- `get_rules_migrations()` function and the `.add_migrations("sqlite:rules.db", ...)` plugin builder call
-- `bulk_sync_rules` Tauri command (keep as a stub returning an error for one version to avoid crashes from cached frontend calls, then remove in Phase 5)
+### Decision: Keep @xmldom/xmldom; improve matching algorithm, not the parser
 
-**Add to `lib.rs`:**
-- File-copy logic in `setup` hook (above)
-- Optional: `get_unit_db_migrations()` if the unit_database.db schema needs to evolve post-ship (or handle it via the build script regenerating the file from scratch)
+**Why:** The current parser (`@xmldom/xmldom` v0.9.10) is the correct tool — the existing
+build script uses DOM API methods (`getElementsByTagName`, `getAttribute`,
+`childNodes`) that would require a full rewrite to switch to an object-based parser
+like `fast-xml-parser`. The root cause of points matching failures is not parser
+quality; it is the name-normalisation strategy and BSData XML structural patterns.
 
-**hobbyforge.db: new migrations (sequential after current 037):**
+**Root causes of current match failures (from code analysis):**
 
-| Migration | Content |
-|---|---|
-| `038_unit_database_factions.sql` | `udb_factions` table — canonical faction list |
-| `039_unit_database_units.sql` | `udb_units` — name, faction_id, role, damaged_w, damaged_description |
-| `040_unit_database_models.sql` | `udb_models` — stat profiles (M/T/Sv/inv/W/Ld/OC per line) |
-| `041_unit_database_weapons.sql` | `udb_weapons` — ranged + melee with A/BS_WS/S/AP/D |
-| `042_unit_database_abilities.sql` | `udb_abilities` — datasheet + faction + shared abilities |
-| `043_unit_database_keywords.sql` | `udb_keywords` — per-unit, is_faction_keyword flag |
-| `044_unit_database_points.sql` | `udb_point_tiers` — model_count + points per tier |
-| `045_unit_database_composition.sql` | `udb_compositions` — min/max models, default equipment |
-| `046_unit_database_leader_targets.sql` | `udb_leader_targets` — character attachment rules |
-| `047_unit_database_enhancements.sql` | `udb_enhancements` — per-faction/detachment upgrades |
-| `048_collection_db_link.sql` | ADD COLUMN `db_unit_id TEXT` on `units` table with FK to `udb_units.id` |
-| `049_unit_database_fts.sql` | FTS5 virtual table `udb_search` |
+1. **Exact lowercase name match** — `unit.name.toLowerCase() + ':' + faction_id`. BSData
+   names sometimes include apostrophes, hyphens, or spacing variants not present in
+   Wahapedia (e.g., "T'au" vs "T'au"). No normalisation beyond `.toLowerCase()`.
 
-**Existing hobbyforge.db tables to preserve (not drop):**
-`synced_unit_points`, `unit_rules_mapping`, `synced_enhancements`, `synced_loadout_options`, `synced_model_counts`, `synced_leader_targets` — keep through Phase 3, drop in Phase 5 cleanup. This allows gradual migration without breaking existing collection/army-list pages during development.
+2. **Library .cat files excluded** — `!f.includes("Library")` filter drops
+   "Imperium - Astra Militarum - Library.cat" which contains shared entries for units
+   that appear only there, not in the main catalogue file. Points for units defined in
+   library catalogues are silently missed.
+
+3. **No sharedSelectionEntries cross-reference** — BSData uses `entryLink` elements
+   pointing to `sharedSelectionEntries` defined in library catalogues. The current
+   script only reads `selectionEntry` elements directly inside the parsed file; linked
+   entries from other catalogues are ignored.
+
+4. **Single-cost units only set `base_points`** — units that BSData defines with a
+   flat `pts` cost (not tiered) set `unit.base_points` on the row. If BSData has a
+   tiered structure and Wahapedia expects base_points = null (using the tiers table),
+   the mismatch creates a unit with both base_points and points tiers, which may
+   confuse the resolver.
+
+### Improvements (no new libraries required)
+
+| Improvement | What to Change | Expected Impact |
+|-------------|---------------|-----------------|
+| Name normalisation | Strip punctuation, collapse whitespace, normalise apostrophes before key lookup | Fixes cross-character-encoding mismatches |
+| Include library catalogues in parsing pass | Remove `!f.includes("Library")` filter; parse all .cat files | Recovers shared entries that only appear in library files |
+| Fuzzy fallback match | After exact match fails, try Levenshtein distance <= 2 on unit names within same faction | Recovers minor spelling variants |
+| Coverage report | Print `unmatched BSData units` and `units with no points` counts at end of build | Surfaces remaining misses for manual review |
+| Tiers-vs-base_points precedence | If a unit has tiers, set `base_points = null`; if flat cost only, set `base_points`; never both | Prevents resolver ambiguity |
+
+**Levenshtein for fuzzy match** — no new library needed. A simple 20-line pure-JS
+Levenshtein implementation is sufficient for the small string sizes involved (<60
+chars). Do not add a fuzzy-search library as a prod dependency; this runs only in
+the dev-side build script.
+
+### @xmldom/xmldom stays at current version
+
+`@xmldom/xmldom` v0.9.10 is already in devDependencies. No version change needed.
 
 ---
 
-## What NOT to Add
+## 3. Sub-Faction Data Modeling — SQLite Schema
+
+### Decision: Dual-table sub-faction schema (udb_subfactions + udb_unit_subfactions)
+
+**Why:** Sub-factions (Space Marine chapters, Chaos Space Marine warbands, Aeldari
+sub-factions) are a many-to-many relationship: a unit can belong to multiple
+sub-factions (e.g., Tactical Squad is valid for all SM chapters), and a sub-faction
+contains many units. A join table is the correct normalised model. This avoids
+column proliferation on `udb_units` and allows filter queries to use a simple
+`WHERE us.subfaction_id = ?` without parsing JSON or splitting delimited strings.
+
+**Source:** BSData `.cat` files already encode sub-faction membership via catalogue
+file identity (one `.cat` per sub-faction). The build script currently maps catalogue
+name to `faction_id` via `FACTION_MAP`. The same mapping can be extended to derive
+`subfaction_id` from the catalogue name.
+
+### Schema (new migration)
+
+```sql
+-- udb_subfactions: Space Marine chapters, CSM warbands, Aeldari paths, etc.
+CREATE TABLE IF NOT EXISTS udb_subfactions (
+  id         TEXT PRIMARY KEY,          -- e.g. "SM_BloodAngels", "AE_Craftworlds"
+  faction_id TEXT NOT NULL REFERENCES udb_factions(id),
+  name       TEXT NOT NULL,
+  name_fr    TEXT,                      -- bilingual (see section 4)
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- udb_unit_subfactions: many-to-many join
+CREATE TABLE IF NOT EXISTS udb_unit_subfactions (
+  unit_id       TEXT NOT NULL REFERENCES udb_units(id) ON DELETE CASCADE,
+  subfaction_id TEXT NOT NULL REFERENCES udb_subfactions(id) ON DELETE CASCADE,
+  PRIMARY KEY (unit_id, subfaction_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_udb_subfactions_faction_id
+  ON udb_subfactions(faction_id);
+
+CREATE INDEX IF NOT EXISTS idx_udb_unit_subfactions_subfaction_id
+  ON udb_unit_subfactions(subfaction_id);
+
+CREATE INDEX IF NOT EXISTS idx_udb_unit_subfactions_unit_id
+  ON udb_unit_subfactions(unit_id);
+```
+
+**Filter query pattern:**
+
+```sql
+SELECT u.*
+FROM udb_units u
+JOIN udb_unit_subfactions us ON us.unit_id = u.id
+WHERE u.faction_id = $1
+  AND us.subfaction_id = $2
+ORDER BY u.role, u.name;
+```
+
+**Build script extension:** `FACTION_MAP` in `build-unit-db.ts` maps catalogue name
+to `faction_id`. Add a parallel `SUBFACTION_MAP` that maps catalogue name to subfaction
+id. Units parsed from a sub-faction catalogue get a row in `udb_unit_subfactions`.
+Units parsed from a generic catalogue (e.g. "Imperium - Space Marines") get no
+sub-faction row (they appear for all chapters).
+
+---
+
+## 4. Bilingual Data Storage — Schema Pattern
+
+### Decision: Dual-column (not translation table) for two fixed locales
+
+**Why:** The project supports exactly two locales (EN + FR). A translation table
+(separate rows per locale) adds JOIN complexity to every read query with no
+compensating benefit at two locales. The dual-column approach (`name TEXT, name_fr TEXT`)
+keeps queries simple: selecting the French column with COALESCE fallback to English
+is a single expression with no JOIN. All bilingual columns are nullable on the FR
+side — a missing French translation falls back to English at query time, not
+application time.
+
+If a third locale were ever needed, the translation table approach becomes preferable.
+At two locales, dual-column wins on simplicity and query performance.
+
+### Columns to add (via new migration)
+
+| Table | New column | Notes |
+|-------|-----------|-------|
+| `udb_units` | `name_fr TEXT` | Datasheet name in French |
+| `udb_unit_abilities` | `name_fr TEXT`, `description_fr TEXT` | Ability title + body text |
+| `udb_unit_weapons` | `name_fr TEXT` | Weapon profile name |
+| `udb_factions` | `name_fr TEXT` | Faction name |
+| `udb_subfactions` | `name_fr TEXT` | Sub-faction name (already in schema above) |
+
+**Columns NOT bilingualized** in v0.4.2:
+- Stat values (M, T, Sv, W, etc.) — numbers, language-neutral
+- Keywords — canonical 40k keywords, not translated
+- Points — numeric
+- `base_points`, `model_count` — numeric
+
+### French data source
+
+Wahapedia (wahapedia.ru) publishes EN-only CSV exports. There is no official French
+CSV from Wahapedia. French translation data must come from one of:
+
+1. **Manual curation** — translate high-priority unit/ability names by hand, stored
+   in a separate `scripts/data/translations_fr.json` override file loaded by the build
+   script. Most practical for v0.4.2 given scope (personal tool, single user).
+
+2. **Community BSData French repo** — BSData hosts a French translation project
+   (github.com/BSData/catalogue-development/issues/123) but coverage is incomplete
+   and the format does not map cleanly to the Wahapedia CSV structure.
+
+3. **Games Workshop FR downloads** — warhammer-community.com/fr provides official FR
+   PDFs but no machine-readable CSV. Not usable directly without manual extraction.
+
+**Recommendation for v0.4.2:** Start with approach 1 (manual JSON override file in
+`scripts/data/`). The build script merges EN data from Wahapedia CSVs with FR
+overrides from the JSON file. This is the only approach that gives controlled quality
+for a personal tool with a single curator.
+
+Schema is bilingual from day 1 (columns present), but FR data is populated
+incrementally as translations are entered. `COALESCE(name_fr, name)` fallback
+ensures EN always renders when FR is absent.
+
+---
+
+## Alternatives Considered
+
+| Recommended | Alternative | Why Not |
+|-------------|-------------|---------|
+| i18next + react-i18next | `react-intl` (FormatJS) | FormatJS is primarily message-format translation; i18next is simpler for a locale-state toggle with DB-sourced data |
+| i18next + react-i18next | Custom Zustand locale context | Re-inventing locale switching, plural forms, and React context integration; i18next is battle-tested and 8 KB |
+| Dual-column bilingual schema | Separate translation table | Translation table adds JOIN to every read; two fixed locales don't justify it |
+| Dual-column bilingual schema | JSON column for translations | No type safety, no index-friendly COALESCE fallback |
+| Keep @xmldom/xmldom + better algorithm | Switch to fast-xml-parser | fast-xml-parser returns objects, not DOM; entire build script uses DOM API; a parser switch would require a full rewrite with no quality benefit |
+| Manual FR JSON override file | Wahapedia FR CSV (doesn't exist) | No machine-readable FR CSV source exists from Wahapedia |
+| many-to-many sub-faction join table | `subfaction_ids` TEXT column on units | Delimited strings break index-based filtering and FK integrity |
+
+---
+
+## What NOT to Use
 
 | Avoid | Why | Use Instead |
-|---|---|---|
-| `xml2js` | Older API, callback-first, slower than fast-xml-parser on large files | `fast-xml-parser` |
-| `react-window` | Maintenance mode since 2022, no React 19 roadmap | `@tanstack/react-virtual` |
-| `react-virtuoso` | Opinionated scroll container conflicts with shadcn Sheet/Dialog overlay z-index pattern | `@tanstack/react-virtual` |
-| Drizzle ORM | Adds proxy complexity; documented dead-end note in PROJECT.md Key Decisions | Continue typed raw queries |
-| Prisma | Freezes in Tauri production builds — documented in PROJECT.md Key Decisions | Continue typed raw queries |
-| `node:sqlite` (Node built-in) | Vitest 4.x import-stripping bug (#7177) confirmed in v0.2.11 — breaks data-layer tests | `better-sqlite3` (already installed) |
-| Python scraping tools | Adds non-JS dependency; `fast-xml-parser` in Node.js handles BSData XML equivalently to the existing DOMParser-based parsers | Node.js script with `fast-xml-parser` |
-| Runtime Wahapedia sync as primary data source | Persistent WAL checkpoint bugs, ~20% name-matching failures, requires network on first launch — root cause of issues across 3 milestones | Pre-built bundled database |
-| Opening `unit_database.db` as a second tauri-plugin-sql connection | Plugin supports multiple `Database.load()` calls, but adds a second singleton file → same WAL/checkpoint complexity that caused rules.db issues | Single `hobbyforge.db` via migration path; OR separate `unit_database.db` opened only after the file-copy setup is confirmed |
-| Separate `unit_database.db` managed by tauri-plugin-sql migrations | plugin-sql cannot initialize a DB from a bundled resource (issue #1155, open) — migrations would run on an empty file ignoring the pre-built data | Bundled resource + Rust file copy (see Section 5) |
+|-------|-----|-------------|
+| `i18next-http-backend` | Fetches translations from HTTP; app is offline-first | In-memory resources + DB data |
+| `i18next-browser-languagedetector` | Detects locale from browser/OS; locale is user-toggled, not auto-detected | Zustand `locale` slice persisted to localStorage |
+| `next-i18next` | Next.js-specific SSR wrapper | Not applicable to Tauri/React |
+| Full-app UI string translation in v0.4.2 | Doubles translation surface; UI strings are English only | Data-level translation only (names, abilities, weapons) |
+| BSData French translation catalogue | Incomplete coverage, format mismatch with Wahapedia CSV | Manual `translations_fr.json` override file |
+| ORM for new migrations | Prisma confirmed dead-end in Tauri; Drizzle adds proxy complexity | Continue raw SQL migrations in `src-tauri/migrations/` |
 
 ---
 
 ## Version Compatibility
 
-| Package | Version | Compatible With | Notes |
-|---|---|---|---|
-| `@tanstack/react-virtual` | ^3.13.26 | React 19, TypeScript 5 | Same TanStack vendor as existing query/router |
-| `fast-xml-parser` | ^4.5.3 | Node.js 18+ | devDependency — build script only, never bundled |
-| `better-sqlite3` | ^12.10.0 | Node.js 18+ | Already installed as devDependency |
-| FTS5 virtual tables | — | SQLite (bundled with Tauri 2 sqlx) | FTS5 compiled in by default; DDL via migrations |
+| Package | Compatible With | Notes |
+|---------|-----------------|-------|
+| `i18next@^26.3.0` | `react@^19.0.0`, `react-i18next@^17.x` | i18next v26 requires react-i18next v15+ for type compatibility; v17 exceeds that |
+| `react-i18next@^17.0.8` | `i18next@^26.x`, `react@^19.0.0` | v17 removes legacy class component APIs; hooks-only, matches project conventions |
+| `@xmldom/xmldom@^0.9.10` | Node.js 18+, no browser runtime | Already in devDependencies; stays at current version |
 
 ---
 
-## Installation Summary
+## Installation
 
 ```bash
-# New runtime dependency
-pnpm add @tanstack/react-virtual@^3.13.26
+# New prod dependencies for i18n locale toggle
+pnpm add i18next react-i18next
 
-# New devDependency (build script only)
-pnpm add -D fast-xml-parser@^4.5.3
-
-# Already installed — no action needed
-# better-sqlite3 ^12.10.0  (devDependency, existing)
-# @tauri-apps/plugin-fs    (existing, needed for fs capability)
+# No new devDependencies needed
+# @xmldom/xmldom already in devDependencies
+# better-sqlite3 already in devDependencies
 ```
 
-**Rust — no new crates.** `std::fs::copy` is in std. `tauri::path::BaseDirectory::Resource` is in the existing `tauri` crate. FTS5 is in the bundled SQLite.
+New migration files (in `src-tauri/migrations/`):
+- `041_udb_subfactions.sql` — sub-faction tables + indexes
+- `042_udb_bilingual.sql` — `name_fr` columns on udb_* tables
+
+New source files:
+- `src/lib/i18n.ts` — i18next initialization
+- `src/store/localeStore.ts` — Zustand locale slice
+- `scripts/data/translations_fr.json` — manual FR overrides fed to build script
 
 ---
 
 ## Sources
 
-- [@tanstack/react-virtual npm](https://www.npmjs.com/package/@tanstack/react-virtual) — v3.13.26 confirmed latest (2026-05-29)
-- [TanStack Virtual docs](https://tanstack.com/virtual/latest) — useVirtualizer API, React 19 support confirmed
-- [TanStack Virtual perf blog](https://tanstack.com/blog/tanstack-virtual-perf-and-ios) — cold mount 4.5ms on 100k items benchmark
-- [tauri-plugin-sql bundled resources issue #1155](https://github.com/tauri-apps/plugins-workspace/issues/1155) — confirmed read-only bundled DB unsupported; copy workaround is the documented pattern
-- [Tauri 2 resources docs](https://v2.tauri.app/develop/resources/) — `bundle.resources` + `PathResolver::resolve` + `BaseDirectory::Resource`
-- [fast-xml-parser npm](https://www.npmjs.com/package/fast-xml-parser) — 80M weekly downloads, v4.5.x stable (2025)
-- [BSData wh40k-10e GitHub](https://github.com/BSData/wh40k-10e) — .cat XML format, publicly accessible, community maintained
-- [SQLite FTS5 guide](https://blog.sqlite.ai/fts5-sqlite-text-search-extension) — CREATE VIRTUAL TABLE USING fts5 syntax
-- [better-sqlite3 npm](https://www.npmjs.com/package/better-sqlite3) — v12.10.0, fastest synchronous SQLite for Node.js
+- [react-i18next npm](https://www.npmjs.com/package/react-i18next) — version 17.0.8 confirmed, React 19 compatible
+- [i18next npm](https://www.npmjs.com/package/i18next) — version 26.3.0 confirmed
+- [react-i18next GitHub Releases](https://github.com/i18next/react-i18next/releases) — changelog verified for v15+ through v17
+- [i18next: Add or Load Translations](https://www.i18next.com/how-to/add-or-load-translations) — in-memory resources pattern confirmed
+- [@xmldom/xmldom npm](https://www.npmjs.com/package/@xmldom/xmldom) — v0.9.10 current, DOM API maintained
+- [fast-xml-parser vs xmldom comparison](https://npm-compare.com/fast-xml-parser,xml-js,xml2js,xmldom) — xmldom chosen for DOM API compatibility
+- [SQLite bilingual schema patterns](https://colinchsql.github.io/2023-10-13/10-17-39-132717-sqlite-database-internationalization-and-localization/) — dual-column vs translation table tradeoffs
+- [BSData wh40k-10e](https://github.com/BSData/wh40k-10e) — XML structure reference for sub-faction catalogues
+- [BSData catalogue development wiki](https://github.com/BSData/catalogue-development/wiki/Data-structure-overview) — sharedSelectionEntries and entryLinks structure
+- [Wahapedia Data Export](https://wahapedia.ru/wh40k10ed/the-rules/data-export/) — EN-only CSV confirmed; no FR variant exists
+- [BSData French translation issue](https://github.com/BSData/catalogue-development/issues/123) — community FR project incomplete, not usable as data source
 
 ---
-*Stack research for: HobbyForge v0.4.0 — Unit Database / Canonical 40k Data Hub*
-*Researched: 2026-05-29*
+*Stack research for: v0.4.2 Unit Database 2.0 — i18n, BSData XML improvements, sub-faction schema*
+*Researched: 2026-06-01*

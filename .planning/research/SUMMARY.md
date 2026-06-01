@@ -1,79 +1,73 @@
-# Research Summary: v0.4.0 Unit Database — Canonical 40k Data Hub
+# Research Summary: HobbyForge v0.4.2
 
-**Synthesized:** 2026-05-29
-**Confidence:** HIGH
-**Sources:** STACK.md, FEATURES.md, ARCHITECTURE.md, PITFALLS.md
+**Domain:** Tauri 2 desktop app — incremental feature additions to existing canonical unit database
+**Researched:** 2026-06-01
+**Confidence:** HIGH (architecture, pitfalls, build script, sub-factions); MEDIUM (French data availability)
 
 ## Executive Summary
 
-v0.4.0 is an architectural pivot replacing a fragile runtime sync pipeline (Wahapedia CSV + BSData XML) with a pre-built canonical SQLite database bundled with the app. This eliminates WAL checkpoint race conditions, 20% name-matching failures, and cross-database query limitations. The product is a fully offline unit database browser where every unit links to the user's collection and army lists by stable ID.
+v0.4.2 extends the shipped canonical unit database (1,711 units, 25 factions) with four capabilities: improving points coverage from 37% to 85%+, adding sub-faction chapter filtering, wiring bilingual infrastructure for French translation, and reviving PlaybookTab and Game Day enrichment from canonical data.
 
-Strict five-phase build: schema and data first (blocking everything), then browser UI, then collection FK integration, then army list points simplification, then rules.db elimination. Only two new dependencies needed. The key risk is data acquisition — parsing BSData XML and Wahapedia CSVs into a well-structured JSON artifact is the hardest part and blocks all UI work.
+**Data quality first.** At 37% points coverage, army lists — the core product value — show 0 pts for most units. The build script needs diagnostic output, deterministic file ordering (`files.sort()`), name normalization, and a manual alias override file before any UI work depends on its output.
+
+**Sub-factions and PlaybookTab revival are quick wins** once data is solid — both require only UI wiring to data already in the database. French translation requires new schema but contributes zero data until manual entry occurs; scaffold early, populate incrementally.
 
 ## Stack Additions
 
-| Library | Version | Type | Purpose |
-|---------|---------|------|---------|
-| @tanstack/react-virtual | ^3.13.26 | Runtime | Virtual scrolling for 2500+ unit lists |
-| fast-xml-parser | ^4.5.3 | devDependency | BSData XML parsing in build script |
-| better-sqlite3 | ^12.10.0 | Already installed | Build script DB writes |
-| SQLite FTS5 | Built-in | N/A | Full-text search via migration DDL |
+| Addition | Version | Why |
+|----------|---------|-----|
+| `i18next` | ^26.3.0 | Locale state machine (EN/FR toggle), offline-first, in-memory resources |
+| `react-i18next` | ^17.0.8 | React 19 compatible hooks for locale context |
 
-No new Rust crates. Tauri resource bundling + `std::fs::copy` in setup hook.
+No other dependencies. `@xmldom/xmldom` stays — matching failures are algorithm problems, not parser problems.
 
-**What NOT to add:** New ORM, separate SQLite file for unit data (defeats single-DB goal), runtime scraping libraries, react-window (maintenance mode).
+## Key Technical Decisions
 
-## Feature Table Stakes
-
-- Faction picker grouped by alignment (Imperium / Space Marines / Chaos / Xenos)
-- Unit list per faction in 9 official GW role categories (confirmed from 40k.app)
-- Points on unit list row ("from X pts" for tiered units) — present in every reference tool
-- Full datasheet detail: stat block with Inv Sv, ranged + melee weapon tables, abilities, keywords, damaged profile
-- Offline-first — zero network dependency after install
-- Composition text (min/max model counts)
-
-## Key Differentiators (unique to HobbyForge)
-
-- "Add to Collection" from datasheet — faction/role/keywords pre-populated, FK set on creation
-- Ownership + readiness badges on unit list rows (LEFT JOIN against collection)
-- Global FTS5 cross-faction search
-- Points tier table with all model-count brackets
-
-## Explicitly Defer
-
-- Leader attachment bidirectional links (BSData parsing risk)
-- Unit comparison / competitive tier ratings
-- Multi-game-system support
-- GW-visual-style datasheet layout (use HobbyForge design system)
-
-## Architecture Direction
-
-- Single `hobbyforge.db` with `udb_*` tables; `rules.db` eliminated in Phase 5
-- Data pipeline: Node.js build script → `unit_database.json` → Rust `import_unit_database` command → `udb_*` tables
-- Army list points: 6-level COALESCE → 2-level FK join
-- React Query `staleTime: Infinity` for all `udb_*` queries
-- Lazy loading: faction list (~30 rows) → unit names on select → full detail on unit select
-- Entity IDs: reuse Wahapedia string IDs so existing `rules_favorites_notes` annotations survive
+- **Sub-factions:** Denormalized `sub_faction TEXT` column on `udb_units` (not a new table). New `udb_factions` rows would break FK backfill, army list joins, and FTS5.
+- **Bilingual:** `_fr` suffix columns with `COALESCE(col_fr, col)` at query layer. Two fixed locales makes a translation table over-engineered.
+- **FTS5:** Cannot ALTER — concatenate French names into existing `name` column with pipe separator, or DROP+CREATE with import trigger.
+- **French source:** No machine-readable FR data source exists. Manual `scripts/data/translations_fr.json` overlay is the only viable path.
+- **PlaybookTab:** 7-line null stub → rewrite using `useUdbRules.ts` hooks against udb_* tables. Data already exists.
 
 ## Critical Pitfalls
 
-1. **Migration not registered in lib.rs** — real incident (migration 032); run parity test before every build
-2. **Data seeded via migrations causes boot loop** — keep migrations schema-only; use Rust command for data
-3. **WAL stale reads after bulk write** — emit `PRAGMA wal_checkpoint(TRUNCATE)` before React Query invalidation
-4. **20% name mismatch in collection backfill** — nullable FK, fuzzy match, Data Health diagnostic for unlinked units
-5. **Removing rules.db before all consumers migrated** — 7+ call sites use `getRulesDb()`; keep alive through Phases 1–4
+1. **Boot-loop trap:** Migration 038 has documented incident. DDL only in migrations; all data through JSON payload + Rust import.
+2. **FTS5 columns immutable:** Cannot `ALTER TABLE ADD COLUMN` on virtual tables.
+3. **Non-deterministic build:** `readdirSync` without `.sort()` in both build scripts. One-line fix, must apply to both.
+4. **Sub-faction FK chain:** New `udb_factions` rows silently break migration 039 backfill, `getUdbOwnershipByFaction`, army list joins.
+5. **French data wiped on re-import:** `_fr` fields must travel in `unit_database.json` with `#[serde(default)]` in Rust.
+6. **Game Day OPG keys:** AUTOINCREMENT IDs reassigned on re-import. Use `unit_id:ability_name` composite.
 
-## Suggested Phase Order
+## Feature Priorities
 
-| # | Phase | Risk | Key Deliverable |
-|---|-------|------|-----------------|
-| 1 | Data Acquisition & Schema | HIGH | Canonical data exists; `import_unit_database` Rust command works |
-| 2 | Database Browser UI | LOW | Browsable product; validates data completeness |
-| 3 | Collection Integration | MEDIUM | FK migration; "Add from Database"; ownership badges |
-| 4 | Army List Simplification | LOW | COALESCE chain simplified; points from FK join |
-| 5 | Cleanup: rules.db Elimination | MEDIUM | Single database; dead code removed |
+**P1 (Must have):**
+- Build script diagnostics + alias table + name normalization
+- Points coverage 85%+ (from 37%)
+- PlaybookTab revival (stats/weapons/abilities from udb_*)
+- Game Day canonical ability cards
 
-Phase ordering is non-negotiable — each has hard dependencies on the previous.
+**P2 (Should have):**
+- Sub-faction chapter filter (database browser + army list picker)
+- Coverage badge in Data Health
+- Army list composition enforcement (min/max models)
+
+**P3 (Defer partial):**
+- French translation infrastructure (schema + locale toggle — ships empty)
+- French ability/weapon text (many weeks of manual data entry)
+
+## Suggested Build Order (4 phases)
+
+1. **Build Script Hardening + Schema Foundation** — deterministic build, coverage report, alias table, migrations 041–044, Rust import extended, points at 85%+
+2. **Sub-faction Filter UI** — chapter filter in browser/army list/collection using static keyword map
+3. **PlaybookTab + Game Day Revival** — revive null stubs, wire canonical data, weapon profiles in Game Day
+4. **Bilingual Infrastructure** — EN/FR locale toggle, `_fr` columns populated via build script, manual FR JSON overlay
+
+## Gaps to Address
+
+- French data: no automated source; manual curation is the only path
+- Stratagem CSV availability: verify `Detachments.csv` etc. exist in `scripts/data/` before Phase 1
+- `update-unit-database.ts` duplicates full BSData parsing logic — fixes must be applied to both scripts
+- `ability_type` values audit needed before Phase 3 PlaybookRules UI
 
 ---
-*Synthesized: 2026-05-29 from STACK.md, FEATURES.md, ARCHITECTURE.md, PITFALLS.md*
+*Synthesized: 2026-06-01*
