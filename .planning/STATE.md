@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.4.2
 milestone_name: Unit Database 2.0 — Data Quality, Sub-factions & Integration
-status: verifying
-stopped_at: Phase 109 executed — verification passed (human_needed for 5 UI items)
-last_updated: "2026-06-01T12:00:05.813Z"
-last_activity: 2026-06-01
+status: ready_to_plan
+stopped_at: Phase 110 complete (3/3) — ready to discuss Phase 111
+last_updated: 2026-06-01T12:17:32.892Z
+last_activity: 2026-06-01 -- Phase 111 execution started
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 11
   completed_plans: 8
-  percent: 73
+  percent: 75
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-01)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with official points via bundled canonical database for personal use, and reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 109 complete — Sub-faction Filter UI shipped
+**Current focus:** Phase 111 — bilingual infrastructure
 
 ## Current Position
 
-Phase: 109 (Sub-faction Filter UI) — COMPLETE
-Plan: 2 of 2 (all done)
-Status: Phase complete — ready for verification
+Phase: 111
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-06-01
 
 Progress: [███████░░░] 73%
