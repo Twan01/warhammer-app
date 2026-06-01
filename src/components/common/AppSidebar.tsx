@@ -22,6 +22,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { NavItem } from "./NavItem";
+import { LocaleToggle } from "./LocaleToggle";
 import { useSidebarCollapsed } from "./useSidebarCollapsed";
 import { useQuickAdd } from "@/context/QuickAddContext";
 import {
@@ -217,6 +218,9 @@ export function AppSidebar() {
           ))}
         </ul>
       </nav>
+
+      {/* Locale toggle (above collapse toggle, per 111-UI-SPEC) */}
+      <LocaleToggle collapsed={collapsed} />
 
       {/* Collapse toggle (above Settings, per UI-SPEC §4) */}
       <div className="px-2 pb-1">
