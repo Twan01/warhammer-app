@@ -17,6 +17,15 @@ import type { SyncFreshness } from "@/lib/syncFreshness";
 import type { ArmyListUnitRow } from "@/types/armyList";
 
 // ---------------------------------------------------------------------------
+// Constants — 10th edition matched play Battleline requirements
+// ---------------------------------------------------------------------------
+const BATTLELINE_THRESHOLD_HIGH = 2000;
+const BATTLELINE_MIN_HIGH = 3;
+const BATTLELINE_THRESHOLD_LOW = 1000;
+const BATTLELINE_MIN_LOW = 2;
+const BATTLELINE_MIN_DEFAULT = 1;
+
+// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
@@ -95,13 +104,16 @@ export function computeListWarnings(
 
   // Soft: BATTLELINE count check (Phase 106, D-08)
   // Only linked units (unit_id !== null) with a known role are counted
+  // 10th edition matched play minimum Battleline requirements
   if (context.pointsLimit !== null) {
     const battlelineCount = units.filter(
       (u) => u.unit_id !== null && u.udb_role?.toLowerCase() === "battleline",
     ).length;
 
     const minBattleline =
-      context.pointsLimit >= 2000 ? 3 : context.pointsLimit >= 1000 ? 2 : 1;
+      context.pointsLimit >= BATTLELINE_THRESHOLD_HIGH ? BATTLELINE_MIN_HIGH
+        : context.pointsLimit >= BATTLELINE_THRESHOLD_LOW ? BATTLELINE_MIN_LOW
+        : BATTLELINE_MIN_DEFAULT;
 
     if (battlelineCount < minBattleline) {
       soft.push(`Needs ${minBattleline} Battleline (have ${battlelineCount})`);
