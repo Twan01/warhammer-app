@@ -17,6 +17,8 @@ import {
   getUdbUnitDetail,
   searchUdbUnits,
   getUdbOwnershipByFaction,
+  getUdbOwnershipForUnit,
+  getUdbKeywordsByFaction,
 } from "@/db/queries/unitDatabase";
 import type { UdbOwnershipEntry } from "@/db/queries/unitDatabase";
 
@@ -83,6 +85,24 @@ export function useUdbSearch(query: string) {
   });
 }
 
+export const UDB_KEYWORDS_KEY = (factionId: string) =>
+  ["udb-keywords", factionId] as const;
+
+export function useUdbKeywords(factionId: string | null) {
+  return useQuery({
+    queryKey:
+      factionId !== null
+        ? UDB_KEYWORDS_KEY(factionId)
+        : (["udb-keywords", "disabled"] as const),
+    queryFn: () =>
+      factionId !== null
+        ? getUdbKeywordsByFaction(factionId)
+        : Promise.resolve(new Map<string, string>()),
+    enabled: !!factionId,
+    staleTime: Infinity,
+  });
+}
+
 /**
  * Phase 105 COL-02/COL-04: Ownership key factory for a faction.
  * Uses ["udb-ownership"] prefix so invalidateQueries({ queryKey: ["udb-ownership"] })
@@ -109,6 +129,15 @@ export function useUdbOwnership(factionId: string | null): ReturnType<typeof use
         ? getUdbOwnershipByFaction(factionId)
         : Promise.resolve([]),
     enabled: !!factionId,
+    staleTime: 0,
+  });
+}
+
+export function useUdbUnitOwnership(unitId: string | null) {
+  return useQuery({
+    queryKey: unitId ? ["udb-ownership-unit", unitId] as const : ["udb-ownership-unit", "disabled"] as const,
+    queryFn: () => unitId ? getUdbOwnershipForUnit(unitId) : Promise.resolve(null),
+    enabled: !!unitId,
     staleTime: 0,
   });
 }

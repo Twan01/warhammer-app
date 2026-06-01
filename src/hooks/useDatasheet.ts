@@ -43,9 +43,9 @@ export function useDatasheet(unitId: number | undefined) {
         "SELECT udb_unit_id FROM units WHERE id = $1",
         [unitId],
       );
-      const udbUnitId = rows[0]?.udb_unit_id ?? null;
-      if (!udbUnitId) return null;
-      return getUdbUnitDetail(udbUnitId);
+      const row = rows[0];
+      if (!row || !row.udb_unit_id) return null;
+      return getUdbUnitDetail(row.udb_unit_id);
     },
     enabled: unitId !== undefined,
     staleTime: Infinity,

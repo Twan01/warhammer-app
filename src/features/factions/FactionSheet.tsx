@@ -101,8 +101,7 @@ export function FactionSheet({ open, faction, onClose }: FactionSheetProps) {
         toast.success("Faction created.");
       }
       onClose();
-    } catch (err) {
-      console.error("[FactionSheet] save failed:", err);
+    } catch {
       toast.error("Something went wrong. Please try again.");
       // Sheet stays open so user can retry
     }

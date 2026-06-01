@@ -31,6 +31,6 @@ export const useDatabaseBrowserFilters = create<DatabaseBrowserFiltersState>(
     setPointMin: (min) => set({ pointMin: min }),
     setPointMax: (max) => set({ pointMax: max }),
     clearFilters: () =>
-      set({ roleFilter: null, keywordFilter: "", pointMin: null, pointMax: null }),
+      set({ searchText: "", roleFilter: null, keywordFilter: "", pointMin: null, pointMax: null }),
   }),
 );

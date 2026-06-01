@@ -109,16 +109,6 @@ export function LoadoutBuilderSheet({
     [wargearOptions],
   );
 
-  // Delta preview: compute difference between current tier and selected tier
-  const currentTierPoints = unit?.tier_points ?? null;
-  function computeDelta(selectedValue: string): number {
-    if (selectedValue === "__default__" || !tiers) return 0;
-    const count = Number(selectedValue);
-    const selectedTier = tiers.find((t) => t.model_count === count);
-    if (!selectedTier || currentTierPoints === null) return 0;
-    return selectedTier.points - currentTierPoints;
-  }
-
   function handleTierChange(value: string) {
     if (!unit || !listId) return;
     if (value === "__default__") {
@@ -194,25 +184,6 @@ export function LoadoutBuilderSheet({
                     </SelectContent>
                   </Select>
 
-                  {/* Delta badge: shows when user has selected a tier and a new
-                      selection would change the points */}
-                  {unit.selected_model_count !== null &&
-                    currentTierPoints !== null &&
-                    (() => {
-                      const delta = computeDelta(String(unit.selected_model_count));
-                      return delta !== 0 ? (
-                        <Badge
-                          variant="outline"
-                          className={
-                            delta > 0
-                              ? "text-destructive border-destructive"
-                              : "text-green-600 border-green-600"
-                          }
-                        >
-                          {delta > 0 ? `+${delta}` : `${delta}`}
-                        </Badge>
-                      ) : null;
-                    })()}
                 </div>
               )}
             </div>

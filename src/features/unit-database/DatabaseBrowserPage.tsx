@@ -6,6 +6,8 @@ import {
   useUdbFactions,
   useUdbUnits,
   useUdbOwnership,
+  useUdbUnitOwnership,
+  useUdbKeywords,
 } from "@/hooks/useUnitDatabase";
 import { useFactions } from "@/hooks/useFactions";
 import { useDatabaseBrowserFilters } from "./databaseBrowserFilters";
@@ -39,6 +41,7 @@ export function DatabaseBrowserPage() {
   );
 
   const { data: ownershipEntries = [] } = useUdbOwnership(selectedFactionId);
+  const { data: keywordsMap } = useUdbKeywords(selectedFactionId);
 
   // Debounced search text — local state + useEffect pattern
   const [localSearch, setLocalSearch] = useState(searchText);
@@ -56,14 +59,21 @@ export function DatabaseBrowserPage() {
 
   const filteredUnits = useMemo(
     () =>
-      applyUdbFilters(units, {
-        roleFilter,
-        keywordFilter,
-        pointMin,
-        pointMax,
-      }),
-    [units, roleFilter, keywordFilter, pointMin, pointMax],
+      applyUdbFilters(
+        units,
+        { roleFilter, keywordFilter, pointMin, pointMax },
+        keywordsMap,
+      ),
+    [units, roleFilter, keywordFilter, pointMin, pointMax, keywordsMap],
   );
+
+  const availableRoles = useMemo(() => {
+    const roles = new Set<string>();
+    for (const unit of units) {
+      if (unit.role) roles.add(unit.role);
+    }
+    return Array.from(roles).sort();
+  }, [units]);
 
   // Build ownership map: udb_unit_id → { owned_count, all_statuses }
   const ownershipMap = useMemo(() => {
@@ -78,6 +88,7 @@ export function DatabaseBrowserPage() {
   }, [ownershipEntries]);
 
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
+  const { data: unitOwnership } = useUdbUnitOwnership(selectedUnitId);
   const isSearching = searchText.trim().length > 0;
 
   // UnitSheet state for the "Add to Collection" flow
@@ -97,8 +108,9 @@ export function DatabaseBrowserPage() {
     }
     const factionId = matchedFaction.id;
 
-    // Lowest points tier
-    const basePoints = unit.points[0]?.points ?? null;
+    const basePoints = unit.points.length > 0
+      ? Math.min(...unit.points.map((p) => p.points))
+      : null;
 
     // Min models from first composition entry
     const minModels = unit.composition[0]?.min_models ?? 1;
@@ -159,7 +171,7 @@ export function DatabaseBrowserPage() {
           <div className="flex-1 overflow-hidden flex flex-col">
             {selectedFactionId ? (
               <>
-                <DatabaseBrowserFilters />
+                <DatabaseBrowserFilters roles={availableRoles} />
                 <UdbUnitList
                   units={filteredUnits}
                   isLoading={unitsLoading}
@@ -183,9 +195,7 @@ export function DatabaseBrowserPage() {
           if (!open) setSelectedUnitId(null);
         }}
         onAddToCollection={handleAddToCollection}
-        ownershipData={
-          selectedUnitId ? (ownershipMap.get(selectedUnitId) ?? null) : null
-        }
+        ownershipData={unitOwnership ?? null}
       />
 
       <UnitSheet

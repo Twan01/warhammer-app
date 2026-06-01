@@ -14,7 +14,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Table, TableBody } from "@/components/ui/table";
 import { ArmyListUnitRow } from "@/features/army-lists/ArmyListUnitRow";
 import type { ArmyListUnitRow as ArmyListUnitRowType } from "@/types/armyList";
-import type { SyncFreshness } from "@/lib/syncFreshness";
 
 // ---------------------------------------------------------------------------
 // Mocks â€” ArmyListUnitRow has many internal dependencies
@@ -100,8 +99,6 @@ function makeUnit(overrides: Partial<ArmyListUnitRowType> = {}): ArmyListUnitRow
 // Render helper
 // ---------------------------------------------------------------------------
 
-const defaultFreshness: SyncFreshness = "fresh";
-
 function renderRow(
   unit: ArmyListUnitRowType,
   overrides: {
@@ -119,9 +116,6 @@ function renderRow(
           <TableBody>
             <ArmyListUnitRow
               unit={unit}
-              totalPoints={100}
-              pointsLimit={2000}
-              freshness={defaultFreshness}
               onRemove={overrides.onRemove ?? vi.fn()}
               onConfigure={overrides.onConfigure ?? vi.fn()}
               onEnhance={overrides.onEnhance ?? vi.fn()}

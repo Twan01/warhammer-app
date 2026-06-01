@@ -8,7 +8,7 @@ import type { WarningContext } from "@/lib/computeUnitWarnings";
 import type { ArmyListUnitRow } from "@/types/armyList";
 
 // ---------------------------------------------------------------------------
-// Factory helper â€” creates a healthy unit by default
+// Factory helper -- creates a healthy unit by default
 // ---------------------------------------------------------------------------
 function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
   return {
@@ -57,109 +57,93 @@ function makeContext(overrides: Partial<WarningContext> = {}): WarningContext {
 describe("computeUnitWarnings", () => {
   it("does NOT return 'Points exceeded' even when totalPoints > pointsLimit (list-level)", () => {
     const unit = makeUnit();
-    const ctx = makeContext({ totalPoints: 2100, pointsLimit: 2000 });
-    const result = computeUnitWarnings(unit, ctx);
+    const result = computeUnitWarnings(unit);
     expect(result.hard).not.toContain("Points exceeded");
   });
 
   it("does NOT return 'Points exceeded' when pointsLimit is null", () => {
     const unit = makeUnit();
-    const ctx = makeContext({ totalPoints: 9999, pointsLimit: null });
-    const result = computeUnitWarnings(unit, ctx);
+    const result = computeUnitWarnings(unit);
     expect(result.hard).not.toContain("Points exceeded");
   });
 
   it("returns soft 'Not painted' when status_painting !== 'Completed'", () => {
     const unit = makeUnit({ status_painting: "Primed" });
-    const ctx = makeContext();
-    const result = computeUnitWarnings(unit, ctx);
+    const result = computeUnitWarnings(unit);
     expect(result.soft).toContain("Not painted");
   });
 
   it("does NOT return 'Not painted' when status_painting === 'Completed'", () => {
     const unit = makeUnit({ status_painting: "Completed" });
-    const ctx = makeContext();
-    const result = computeUnitWarnings(unit, ctx);
+    const result = computeUnitWarnings(unit);
     expect(result.soft).not.toContain("Not painted");
   });
 
   it("returns soft 'Not assembled' when status_assembly === 0", () => {
     const unit = makeUnit({ status_assembly: 0 });
-    const ctx = makeContext();
-    const result = computeUnitWarnings(unit, ctx);
+    const result = computeUnitWarnings(unit);
     expect(result.soft).toContain("Not assembled");
   });
 
   it("does NOT return 'Not assembled' when status_assembly === 1", () => {
     const unit = makeUnit({ status_assembly: 1 });
-    const ctx = makeContext();
-    const result = computeUnitWarnings(unit, ctx);
+    const result = computeUnitWarnings(unit);
     expect(result.soft).not.toContain("Not assembled");
   });
 
   it("returns soft 'Manual override' when points_override !== null", () => {
     const unit = makeUnit({ points_override: 150 });
-    const ctx = makeContext();
-    const result = computeUnitWarnings(unit, ctx);
+    const result = computeUnitWarnings(unit);
     expect(result.soft).toContain("Manual override");
   });
 
   it("does NOT return 'Manual override' when points_override is null", () => {
     const unit = makeUnit({ points_override: null });
-    const ctx = makeContext();
-    const result = computeUnitWarnings(unit, ctx);
+    const result = computeUnitWarnings(unit);
     expect(result.soft).not.toContain("Manual override");
   });
 
   it("returns soft 'Unknown points' when effective_points === 0", () => {
     const unit = makeUnit({ effective_points: 0 });
-    const ctx = makeContext();
-    const result = computeUnitWarnings(unit, ctx);
+    const result = computeUnitWarnings(unit);
     expect(result.soft).toContain("Unknown points");
   });
 
   it("does NOT return 'Unknown points' when effective_points > 0", () => {
     const unit = makeUnit({ effective_points: 100 });
-    const ctx = makeContext();
-    const result = computeUnitWarnings(unit, ctx);
+    const result = computeUnitWarnings(unit);
     expect(result.soft).not.toContain("Unknown points");
   });
 
   it("does NOT return 'Stale points' (moved to list-level)", () => {
     const unit = makeUnit();
-    const ctx = makeContext({ freshness: "stale" });
-    const result = computeUnitWarnings(unit, ctx);
+    const result = computeUnitWarnings(unit);
     expect(result.soft).not.toContain("Stale points");
     expect(result.soft).not.toContain("Stale points data");
   });
 
   it("does NOT return 'Stale points' for freshness 'aging' (unit-level only)", () => {
     const unit = makeUnit();
-    const ctx = makeContext({ freshness: "aging" });
-    const result = computeUnitWarnings(unit, ctx);
+    const result = computeUnitWarnings(unit);
     expect(result.soft).not.toContain("Stale points");
     expect(result.soft).not.toContain("Stale points data");
   });
 
   it("does NOT return 'Stale points' when freshness is 'fresh'", () => {
     const unit = makeUnit();
-    const ctx = makeContext({ freshness: "fresh" });
-    const result = computeUnitWarnings(unit, ctx);
+    const result = computeUnitWarnings(unit);
     expect(result.soft).not.toContain("Stale points");
   });
 
   it("does NOT return 'Stale points' when freshness is 'aging'", () => {
     const unit = makeUnit();
-    const ctx = makeContext({ freshness: "aging" });
-    const result = computeUnitWarnings(unit, ctx);
+    const result = computeUnitWarnings(unit);
     expect(result.soft).not.toContain("Stale points");
   });
 
   it("returns empty warnings for unlinked unit (udb_role = null)", () => {
     const unit = makeUnit({ udb_role: null, udb_unit_id: null });
-    const ctx = makeContext();
-    const result = computeUnitWarnings(unit, ctx);
-    // Unlinked units skip role validation entirely (D-09)
+    const result = computeUnitWarnings(unit);
     expect(result.hard).toEqual([]);
     expect(result.soft).toEqual([]);
   });
@@ -172,17 +156,14 @@ describe("computeUnitWarnings", () => {
       status_painting: "Completed",
       status_assembly: 1,
     });
-    const ctx = makeContext();
-    const result = computeUnitWarnings(unit, ctx);
-    // Ghost units skip role validation (D-09), no other warnings either
+    const result = computeUnitWarnings(unit);
     expect(result.hard).toEqual([]);
     expect(result.soft).toEqual([]);
   });
 
   it("returns empty hard and soft for a fully healthy unit", () => {
     const unit = makeUnit();
-    const ctx = makeContext({ freshness: "fresh" });
-    const result = computeUnitWarnings(unit, ctx);
+    const result = computeUnitWarnings(unit);
     expect(result.hard).toEqual([]);
     expect(result.soft).toEqual([]);
   });
@@ -194,8 +175,7 @@ describe("computeUnitWarnings", () => {
       points_override: 50,
       effective_points: 0,
     });
-    const ctx = makeContext({ freshness: "stale" });
-    const result = computeUnitWarnings(unit, ctx);
+    const result = computeUnitWarnings(unit);
     expect(result.soft).toContain("Not painted");
     expect(result.soft).toContain("Not assembled");
     expect(result.soft).toContain("Manual override");
@@ -227,20 +207,10 @@ describe("computeListWarnings", () => {
     expect(result.hard).not.toContain("Points exceeded");
   });
 
-  it("returns soft 'Stale points data' when freshness is 'stale'", () => {
+  it("does NOT return 'Stale points data' even when freshness is 'stale' (removed in Phase 107)", () => {
     const ctx = makeContext({ freshness: "stale" });
     const result = computeListWarnings(ctx, []);
-    expect(result.soft).toContain("Stale points data");
-  });
-
-  it("returns soft 'Stale points data' only for stale (Phase 107: 'never' removed from SyncFreshness)", () => {
-    const stale = makeContext({ freshness: "stale" });
-    const result = computeListWarnings(stale, []);
-    expect(result.soft).toContain("Stale points data");
-
-    const fresh = makeContext({ freshness: "fresh" });
-    const freshResult = computeListWarnings(fresh, []);
-    expect(freshResult.soft).not.toContain("Stale points data");
+    expect(result.soft).not.toContain("Stale points data");
   });
 
   it("does NOT return 'Stale points data' when freshness is 'fresh'", () => {
@@ -393,7 +363,7 @@ describe("computeListHealthStats", () => {
     expect(stats.pointsExceeded).toBe(false);
   });
 
-  it("counts hardWarnings â€” points exceeded counted once at list level", () => {
+  it("counts hardWarnings -- points exceeded counted once at list level", () => {
     const units = [makeUnit(), makeUnit()];
     // Points exceeded is list-level, counted once (not per-unit)
     const stats = computeListHealthStats(units, 100, "fresh");
@@ -412,15 +382,15 @@ describe("computeListHealthStats", () => {
     expect(stats.softWarningCount).toBe(2);
   });
 
-  it("counts list-level soft warnings (stale) in addition to unit-level", () => {
+  it("counts list-level soft warnings (Battleline) in addition to unit-level", () => {
     const units = [
       makeUnit({ status_painting: "Not Started", udb_role: "Battleline" }), // 1 soft (unit)
       makeUnit({ udb_role: "Battleline" }),
       makeUnit({ udb_role: "Battleline" }),
     ];
-    const stats = computeListHealthStats(units, 2000, "stale");
-    // 1 unit-level (Not painted) + 1 list-level (Stale points data), battleline met
-    expect(stats.softWarningCount).toBe(2);
+    const stats = computeListHealthStats(units, 2000, "fresh");
+    // 1 unit-level (Not painted) + 0 list-level (3 Battleline meets threshold, no stale)
+    expect(stats.softWarningCount).toBe(1);
   });
 
   it("preserves pointsLimit in stats", () => {

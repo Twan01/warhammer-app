@@ -27,7 +27,7 @@ export function useUnitKeywords(unitName: string | undefined) {
         ? UNIT_KEYWORDS_KEY(unitName)
         : (["unit-keywords"] as const),
     queryFn: async () => {
-      if (unitName === undefined) return SAFE_DEFAULT;
+      if (unitName === undefined) return { ...SAFE_DEFAULT };
       const db = await getDb();
       const rows = await db.select<{ keyword: string }[]>(
         `SELECT k.keyword FROM udb_units u

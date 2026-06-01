@@ -102,11 +102,10 @@ export async function updateUnit(input: UpdateUnitInput): Promise<void> {
             status_assembly_override  = COALESCE($24, status_assembly_override),
             status_basing_override    = COALESCE($25, status_basing_override),
             status_varnished_override = COALESCE($26, status_varnished_override),
-            udb_unit_id             = $27,
+            udb_unit_id             = COALESCE($27, udb_unit_id),
             updated_at              = datetime('now')
       WHERE id = $1`,
     [
-      // udb_unit_id ($27): no COALESCE — NULL means unlinked, call sites must always provide
       input.id,
       input.faction_id ?? null, input.name ?? null,
       input.category ?? null, input.unit_type ?? null,

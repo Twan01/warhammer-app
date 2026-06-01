@@ -120,6 +120,11 @@ export interface UdbOwnershipEntry {
   all_statuses: string;
 }
 
+export interface UdbKeywordsMapEntry {
+  unit_id: string;
+  keywords: string;
+}
+
 // ---------------------------------------------------------------------------
 // Queries
 // ---------------------------------------------------------------------------
@@ -222,6 +227,22 @@ export async function getUdbUnitDetail(
   };
 }
 
+export async function getUdbOwnershipForUnit(
+  udbUnitId: string,
+): Promise<UdbOwnershipEntry | null> {
+  const db = await getDb();
+  const rows = await db.select<UdbOwnershipEntry[]>(
+    `SELECT u.udb_unit_id,
+            COUNT(*) AS owned_count,
+            GROUP_CONCAT(u.status_painting, '|') AS all_statuses
+     FROM units u
+     WHERE u.udb_unit_id = $1
+     GROUP BY u.udb_unit_id`,
+    [udbUnitId],
+  );
+  return rows[0] ?? null;
+}
+
 /**
  * Phase 105 COL-02/COL-04: Returns aggregated ownership data per udb_unit_id
  * for a given faction. Joins collection units to udb_units via the FK column.
@@ -248,6 +269,25 @@ export async function getUdbOwnershipByFaction(
   );
 }
 
+export async function getUdbKeywordsByFaction(
+  factionId: string,
+): Promise<Map<string, string>> {
+  const db = await getDb();
+  const rows = await db.select<UdbKeywordsMapEntry[]>(
+    `SELECT k.unit_id, GROUP_CONCAT(k.keyword, ', ') AS keywords
+     FROM udb_unit_keywords k
+     JOIN udb_units u ON u.id = k.unit_id
+     WHERE u.faction_id = $1
+     GROUP BY k.unit_id`,
+    [factionId],
+  );
+  const map = new Map<string, string>();
+  for (const row of rows) {
+    map.set(row.unit_id, row.keywords);
+  }
+  return map;
+}
+
 /**
  * Full-text search across the udb_search FTS5 table.
  * Returns empty array for queries shorter than 2 characters.
@@ -259,8 +299,11 @@ export async function searchUdbUnits(
   const trimmed = query.trim();
   if (trimmed.length < 2) return [];
 
-  // Strip FTS5 special characters that could cause syntax errors
-  const sanitized = trimmed.replace(/["'*^()]/g, "");
+  const sanitized = trimmed
+    .replace(/["'*^(){}:+\-]/g, "")
+    .replace(/\b(AND|OR|NOT|NEAR)\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
   if (sanitized.length === 0) return [];
 
   const ftsQuery = sanitized + "*";

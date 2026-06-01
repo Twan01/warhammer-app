@@ -160,10 +160,6 @@ export function ArmyListDetailSheet({
     return map;
   }, [units]);
 
-  const totalPoints = useMemo(
-    () => (units ?? []).reduce((sum, u) => sum + u.effective_points, 0),
-    [units],
-  );
 
   // Local draft for the list-level notes textarea.
   const [notesDraft, setNotesDraft] = useState(list?.notes ?? "");
@@ -463,9 +459,6 @@ export function ArmyListDetailSheet({
                           <ArmyListUnitRow
                             key={alu.id}
                             unit={alu}
-                            totalPoints={totalPoints}
-                            pointsLimit={list.points_limit}
-                            freshness={freshness}
                             onRemove={() => handleRemoveUnit(alu.id)}
                             onConfigure={() => onConfigureUnit(alu.id)}
                             onEnhance={() => onEnhanceUnit(alu.id)}

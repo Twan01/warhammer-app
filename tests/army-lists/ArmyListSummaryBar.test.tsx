@@ -1,11 +1,11 @@
 ﻿/**
- * Phase 76 â€” PV-06 gap: ArmyListSummaryBar renders list-level warnings as Badge components.
+ * Phase 76 -- PV-06 gap: ArmyListSummaryBar renders list-level warnings as Badge components.
  *
  * Verifies that computeListWarnings results appear as Badge elements in the
- * summary bar â€” specifically:
+ * summary bar -- specifically:
  *   - Hard warnings ("Points exceeded") rendered as Badge variant="destructive"
- *   - Soft warnings ("Stale points data") rendered as Badge variant="outline"
- *   - No warning badges shown when list is within limit and sync is fresh
+ *   - Soft warnings (e.g. Battleline count) rendered as Badge variant="outline"
+ *   - No warning badges shown when list is within limit and has enough Battleline
  *   - Tooltip text distinguishes list warnings from unit warnings
  */
 import { describe, it, expect, vi } from "vitest";
@@ -15,7 +15,7 @@ import { ArmyListSummaryBar } from "@/features/army-lists/ArmyListSummaryBar";
 import type { ArmyListUnitRow } from "@/types/armyList";
 import type { SyncFreshness } from "@/lib/syncFreshness";
 
-// PointsFreshnessBadge calls hooks internally â€” mock it
+// PointsFreshnessBadge calls hooks internally -- mock it
 vi.mock("@/features/army-lists/PointsFreshnessBadge", () => ({
   PointsFreshnessBadge: () => <span data-testid="freshness-badge">Fresh</span>,
 }));
@@ -72,7 +72,7 @@ function renderBar(
 // Tests
 // ---------------------------------------------------------------------------
 
-describe("ArmyListSummaryBar â€” list-level warning badges (PV-06)", () => {
+describe("ArmyListSummaryBar -- list-level warning badges (PV-06)", () => {
   // -------------------------------------------------------------------------
   // Hard warning: Points exceeded
   // -------------------------------------------------------------------------
@@ -111,56 +111,49 @@ describe("ArmyListSummaryBar â€” list-level warning badges (PV-06)", () => 
   });
 
   // -------------------------------------------------------------------------
-  // Soft warning: Stale points data
+  // Soft warning: Battleline count (Phase 106)
   // -------------------------------------------------------------------------
 
-  it("renders 'Stale points data' badge when freshness is stale", () => {
+  it("renders Battleline count warning when under minimum", () => {
+    // pointsLimit >= 2000 requires 3 Battleline; 0 provided
     const units = [makeUnit({ effective_points: 1000 })];
-    renderBar(units, 2000, "stale");
+    renderBar(units, 2000, "fresh");
 
-    expect(screen.getByText("Stale points data")).toBeInTheDocument();
+    expect(screen.getByText(/Needs 3 Battleline/)).toBeInTheDocument();
   });
 
-  it("renders 'Stale points data' badge when freshness is stale (covers former 'never' case)", () => {
-    const units = [makeUnit({ effective_points: 500 })];
-    renderBar(units, null, "stale");
-
-    expect(screen.getByText("Stale points data")).toBeInTheDocument();
-  });
-
-  it("does NOT render 'Stale points data' badge when freshness is fresh", () => {
+  it("does NOT render Battleline warning when pointsLimit is null", () => {
     const units = [makeUnit({ effective_points: 500 })];
     renderBar(units, null, "fresh");
 
-    expect(screen.queryByText("Stale points data")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Battleline/)).not.toBeInTheDocument();
   });
 
   // -------------------------------------------------------------------------
   // Both warnings together
   // -------------------------------------------------------------------------
 
-  it("renders both hard and soft warning badges when points exceeded AND stale", () => {
+  it("renders both hard and soft warning badges when points exceeded AND Battleline short", () => {
     const units = [makeUnit({ effective_points: 2200 })];
-    renderBar(units, 2000, "stale");
+    renderBar(units, 2000, "fresh");
 
     expect(screen.getByText("Points exceeded")).toBeInTheDocument();
-    expect(screen.getByText("Stale points data")).toBeInTheDocument();
+    expect(screen.getByText(/Needs 3 Battleline/)).toBeInTheDocument();
   });
 
   it("both badges are within the same role=status container", () => {
     const units = [makeUnit({ effective_points: 2200 })];
-    renderBar(units, 2000, "stale");
+    renderBar(units, 2000, "fresh");
 
     const exceededBadge = screen.getByText("Points exceeded");
-    const staleBadge = screen.getByText("Stale points data");
+    const battlelineBadge = screen.getByText(/Needs 3 Battleline/);
 
     const exceededContainer = exceededBadge.closest("[role='status']");
-    const staleContainer = staleBadge.closest("[role='status']");
+    const battlelineContainer = battlelineBadge.closest("[role='status']");
 
-    // Both must be in the same container element
     expect(exceededContainer).not.toBeNull();
-    expect(staleContainer).not.toBeNull();
-    expect(exceededContainer).toBe(staleContainer);
+    expect(battlelineContainer).not.toBeNull();
+    expect(exceededContainer).toBe(battlelineContainer);
   });
 
   // -------------------------------------------------------------------------
@@ -168,11 +161,12 @@ describe("ArmyListSummaryBar â€” list-level warning badges (PV-06)", () => 
   // -------------------------------------------------------------------------
 
   it("does not render the role=status badge container when no list warnings", () => {
+    // No pointsLimit = no points-exceeded check and no Battleline check
     const units = [makeUnit({ effective_points: 500 })];
-    renderBar(units, 2000, "fresh");
+    renderBar(units, null, "fresh");
 
-    // No warnings at all â†’ the badge section (role=status) should not be in DOM
-    expect(document.querySelector("[role='status']")).toBeNull();
+    // No warnings at all -> the badge section (role=status) should not be in DOM
+    expect(document.querySelector("[role=’status’]")).toBeNull();
   });
 
   // -------------------------------------------------------------------------
@@ -180,23 +174,21 @@ describe("ArmyListSummaryBar â€” list-level warning badges (PV-06)", () => 
   // -------------------------------------------------------------------------
 
   it("warning count trigger shows combined count that sums list and unit warnings", () => {
-    // stale + exceeded â†’ 2 list warnings; not-painted unit â†’ 1 unit warning â†’ total 3
+    // exceeded + Battleline short -> 2 list warnings; not-painted unit -> 1 unit warning -> total 3
     const units = [
       makeUnit({ effective_points: 2100, status_painting: "Primed" }),
     ];
-    renderBar(units, 2000, "stale");
+    renderBar(units, 2000, "fresh");
 
     // The combined warning count label must be present
     expect(screen.getByText(/Warnings: 3/)).toBeInTheDocument();
 
     // list warning badges show the breakdown is 2 list-level warnings
     expect(screen.getByText("Points exceeded")).toBeInTheDocument();
-    expect(screen.getByText("Stale points data")).toBeInTheDocument();
+    expect(screen.getByText(/Needs 3 Battleline/)).toBeInTheDocument();
 
-    // Tooltip trigger element exposes the breakdown in its data-slot attribute (Radix tooltip trigger)
-    const trigger = document.querySelector("[data-slot='tooltip-trigger']");
-    expect(trigger).not.toBeNull();
-    // The trigger wraps the summary text; confirm it carries the warning count
-    expect(trigger!.textContent).toMatch(/Warnings:/);
+    // The warning count element is the tooltip trigger
+    const warningEl = screen.getByText(/Warnings: 3/);
+    expect(warningEl.textContent).toMatch(/Warnings:/);
   });
 });

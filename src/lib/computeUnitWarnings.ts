@@ -52,14 +52,13 @@ export interface ListHealthStats {
  */
 export function computeUnitWarnings(
   unit: Pick<ArmyListUnitRow, "effective_points" | "points_override" | "status_painting" | "status_assembly">,
-  _context: WarningContext,
 ): UnitWarnings {
   const hard: string[] = [];
   const soft: string[] = [];
 
-  // Soft warnings (unit-level only)
-  if (unit.status_painting !== "Completed") soft.push("Not painted");
-  if (unit.status_assembly === 0) soft.push("Not assembled");
+  // Soft warnings (unit-level only) — skip for null statuses (ghost/planned units)
+  if (unit.status_painting !== null && unit.status_painting !== "Completed") soft.push("Not painted");
+  if (unit.status_assembly !== null && unit.status_assembly === 0) soft.push("Not assembled");
   if (unit.points_override !== null) soft.push("Manual override");
   if (unit.effective_points === 0) soft.push("Unknown points");
 
@@ -91,10 +90,8 @@ export function computeListWarnings(
     hard.push("Points exceeded");
   }
 
-  // Soft: stale or never-synced points data
-  if (context.freshness === "stale") {
-    soft.push("Stale points data");
-  }
+  // Data is bundled with the app — freshness is always "fresh".
+  // Stale warning removed (was unreachable since Phase 107).
 
   // Soft: BATTLELINE count check (Phase 106, D-08)
   // Only linked units (unit_id !== null) with a known role are counted
@@ -141,7 +138,7 @@ export function computeListHealthStats(
     .reduce((sum, u) => sum + u.effective_points, 0);
 
   const battleReadyPct =
-    totalPoints > 0 ? Math.round((paintedPoints / totalPoints) * 100) : 0;
+    unitPoints > 0 ? Math.round((paintedPoints / unitPoints) * 100) : 0;
 
   const pointsExceeded =
     pointsLimit !== null && totalPoints > pointsLimit;
@@ -155,7 +152,7 @@ export function computeListHealthStats(
 
   // Unit-level warnings (accumulated across all units)
   for (const unit of units) {
-    const warnings = computeUnitWarnings(unit, context);
+    const warnings = computeUnitWarnings(unit);
     hardWarningCount += warnings.hard.length;
     softWarningCount += warnings.soft.length;
   }

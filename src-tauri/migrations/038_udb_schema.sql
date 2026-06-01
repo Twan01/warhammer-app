@@ -123,5 +123,3 @@ CREATE INDEX IF NOT EXISTS idx_udb_unit_points_unit_id
 
 CREATE INDEX IF NOT EXISTS idx_udb_unit_composition_unit_id
   ON udb_unit_composition(unit_id);
-
-PRAGMA user_version = 38;

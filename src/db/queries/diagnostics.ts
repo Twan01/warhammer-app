@@ -156,7 +156,6 @@ export async function getUnlinkedUnitsCount(): Promise<DiagnosticFlag | null> {
 export async function getDiagnosticFlags(): Promise<DiagnosticFlag[]> {
   const results = await Promise.all([
     getOrphanedProgressRows(),
-    getAmbiguousPointMatches(),
     getUnlinkedUnitsCount(),
   ]);
   return results.filter((f): f is DiagnosticFlag => f !== null);

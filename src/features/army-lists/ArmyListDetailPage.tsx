@@ -200,16 +200,12 @@ function detailPortalReducer(
 
 import type { ArmyListUnitRow as ArmyListUnitRowType } from "@/types/armyList";
 import type { SyncedLeaderTargetRow } from "@/db/queries/bsdataExtended";
-import type { SyncFreshness } from "@/lib/syncFreshness";
 
 function SortableUnitRow({
-  unit, totalPoints, pointsLimit, freshness, onRemove, onConfigure, onEnhance, onAttachLeader, onToggleWarlord,
+  unit, onRemove, onConfigure, onEnhance, onAttachLeader, onToggleWarlord,
   enhancementName, isIndentedLeader, leaderName, leaderTargets,
 }: {
   unit: ArmyListUnitRowType;
-  totalPoints: number;
-  pointsLimit: number | null;
-  freshness: SyncFreshness;
   onRemove: () => void;
   onConfigure: () => void;
   onEnhance: () => void;
@@ -232,9 +228,6 @@ function SortableUnitRow({
         <table className="w-full"><tbody>
           <ArmyListUnitRow
             unit={unit}
-            totalPoints={totalPoints}
-            pointsLimit={pointsLimit}
-            freshness={freshness}
             onRemove={onRemove}
             onConfigure={onConfigure}
             onEnhance={onEnhance}
@@ -787,9 +780,6 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
                           <SortableUnitRow
                             key={alu.id}
                             unit={alu}
-                            totalPoints={totalPoints}
-                            pointsLimit={list.points_limit}
-                            freshness={freshness}
                             onRemove={() => handleRemoveUnit(alu.id)}
                             onConfigure={() => dispatch({ type: "OPEN_LOADOUT", unitId: alu.id })}
                             onEnhance={() => dispatch({ type: "OPEN_ENHANCEMENT", unitId: alu.id })}

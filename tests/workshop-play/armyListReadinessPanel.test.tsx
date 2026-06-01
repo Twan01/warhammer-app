@@ -60,16 +60,14 @@ describe("ArmyListSummaryBar readiness panel (PLAY-01)", () => {
     expect(progressBar).toHaveClass("bg-battle-gold");
   });
 
-  it("renders not-ready unit list with StatusBadge per non-Completed unit", () => {
+  it("renders not-ready count when some units are not Completed", () => {
     const units = [
       makeUnit({ id: 1, unit_name: "Intercessors", status_painting: "Completed", effective_points: 100 }),
       makeUnit({ id: 2, unit_name: "Hellblaster", status_painting: "Primed", effective_points: 100 }),
     ];
     render(<TooltipProvider><ArmyListSummaryBar units={units} {...defaultProps} enhancements={[]} /></TooltipProvider>);
 
-    expect(screen.getByText("Hellblaster")).toBeInTheDocument();
-    expect(screen.getByText("Primed")).toBeInTheDocument();
-    expect(screen.getByText("Not ready (1)")).toBeInTheDocument();
+    expect(screen.getByText(/1 of 2 units not battle-ready/)).toBeInTheDocument();
   });
 
   it("hides not-ready list when all units are Completed", () => {

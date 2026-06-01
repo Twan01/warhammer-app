@@ -10,17 +10,7 @@ import {
 import { X } from "lucide-react";
 import { useDatabaseBrowserFilters } from "./databaseBrowserFilters";
 
-const UNIT_ROLES = [
-  "Character",
-  "Battleline",
-  "Dedicated Transport",
-  "Epic Hero",
-  "Fortification",
-  "Lord of War",
-  "Allied Units",
-] as const;
-
-export function DatabaseBrowserFilters() {
+export function DatabaseBrowserFilters({ roles = [] }: { roles?: string[] }) {
   const {
     roleFilter,
     keywordFilter,
@@ -50,7 +40,7 @@ export function DatabaseBrowserFilters() {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="__clear__">All roles</SelectItem>
-          {UNIT_ROLES.map((role) => (
+          {roles.map((role) => (
             <SelectItem key={role} value={role}>
               {role}
             </SelectItem>

@@ -8,12 +8,7 @@ interface UdbUnitRowProps {
   ownershipData?: { owned_count: number; all_statuses: string } | null;
 }
 
-const DONE_STATUSES = new Set([
-  "Varnished",
-  "Completed",
-  "Display Ready",
-  "Battle Ready",
-]);
+const DONE_STATUSES = new Set(["Varnished", "Completed"]);
 
 /**
  * Returns the painting status with the lowest index in PAINTING_STATUS_ORDER

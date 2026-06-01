@@ -162,7 +162,6 @@ export function UnitSheet({
       if (isEdit && unit) {
         const {
           painting_percentage: _pp,
-          status_painting: _sp,
           status_basing: _sb,
           status_varnished: _sv,
           status_assembly: _sa,

@@ -135,9 +135,14 @@ function extractTiers(el: Element): PointsTier[] {
   return tiers;
 }
 
-function parseCatXml(xml: string, factionId: string | null): BsdataUnitPoints[] {
+function parseCatXml(xml: string, factionId: string | null, catalogueName = ""): BsdataUnitPoints[] {
   const parser = new DOMParser();
   const doc = parser.parseFromString(xml, "text/xml") as unknown as Document;
+  const errors = doc.getElementsByTagName("parsererror");
+  if (errors.length > 0) {
+    console.error(`  XML parse error in ${catalogueName || "unknown catalogue"}, skipping`);
+    return [];
+  }
   const rows: BsdataUnitPoints[] = [];
   const seen = new Set<string>();
 
@@ -163,13 +168,13 @@ function parseCatXml(xml: string, factionId: string | null): BsdataUnitPoints[] 
       break;
     }
 
-    if (pts <= 0) continue;
+    const tiers = extractTiers(el as Element);
+    if (pts <= 0 && tiers.length === 0) continue;
 
     const key = `${name}:${factionId}`;
     if (seen.has(key)) continue;
     seen.add(key);
 
-    const tiers = extractTiers(el as Element);
     rows.push({
       datasheet_name: name,
       faction_id: factionId ?? "",
@@ -462,7 +467,10 @@ async function main() {
     const factionId = row["faction_id"]?.trim();
     const name = row["name"]?.trim();
     if (!id || !name) continue;
-    if (factionId && !factionIds.has(factionId)) continue;
+    if (factionId && !factionIds.has(factionId)) {
+      console.warn(`  WARNING: Skipping unit "${name}" (id=${id}) — unknown faction_id "${factionId}"`);
+      continue;
+    }
 
     validUnitIds.add(id);
     units.push({
@@ -598,7 +606,7 @@ async function main() {
     // 8a. Extract points tiers
     const seenPoints = new Set<string>();
     for (const catFile of catFiles) {
-      const bsdataUnits = parseCatXml(catFile.xml, catFile.factionId);
+      const bsdataUnits = parseCatXml(catFile.xml, catFile.factionId, catFile.catalogueName);
       for (const bsdataUnit of bsdataUnits) {
         // Match BSData unit to Wahapedia unit by name + faction_id
         const key = bsdataUnit.datasheet_name.toLowerCase() + ":" + bsdataUnit.faction_id;
@@ -719,7 +727,7 @@ async function main() {
   // ---------------------------------------------------------------------------
   // CR-04 fix: derive version from content hash so re-imports detect changes
   const { createHash } = await import("node:crypto");
-  const contentSeed = `${factions.length}-${units.length}-${weapons.length}-${points.length}-${new Date().toISOString().slice(0, 10)}`;
+  const contentSeed = `${factions.length}-${units.length}-${weapons.length}-${points.length}-${abilities.length}-${keywords.length}`;
   const hash = createHash("sha256").update(contentSeed).digest("hex").slice(0, 8);
   const buildVersion = `1.0.0+${hash}`;
 

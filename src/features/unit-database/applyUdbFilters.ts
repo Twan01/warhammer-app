@@ -29,11 +29,10 @@ export function applyUdbFilters(
     }
 
     // Keyword filter (case-insensitive substring match against keywords map)
-    if (keyword.length > 0 && keywordsMap) {
+    if (keyword.length > 0) {
+      if (!keywordsMap) return false;
       const unitKeywords = keywordsMap.get(unit.id)?.toLowerCase() ?? "";
-      if (!unitKeywords.includes(keyword)) {
-        return false;
-      }
+      if (!unitKeywords.includes(keyword)) return false;
     }
 
     // Point min filter — units with null base_points pass through

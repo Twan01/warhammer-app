@@ -262,11 +262,11 @@ function CollapsibleSection({
       <CollapsibleTrigger asChild>
         <button
           type="button"
-          className="flex items-center justify-between w-full py-2 text-left"
+          className="group flex items-center justify-between w-full py-2 text-left"
         >
           <span className="text-base font-semibold">{title}</span>
           <ChevronDown
-            className="h-4 w-4 text-muted-foreground transition-transform data-[state=open]:rotate-180"
+            className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180"
             aria-hidden="true"
           />
         </button>

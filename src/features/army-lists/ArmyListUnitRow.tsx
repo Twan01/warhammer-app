@@ -21,9 +21,7 @@ import { useUpdateArmyListUnit } from "@/hooks/useArmyLists";
 import { useUnitLoadouts } from "@/hooks/useUnitLoadouts";
 // Phase 107: useUnitRulesMapping removed (rules.db eliminated)
 import { computeUnitWarnings } from "@/lib/computeUnitWarnings";
-import type { WarningContext } from "@/lib/computeUnitWarnings";
 import { resolveUnitPoints } from "@/lib/resolveUnitPoints";
-import type { SyncFreshness } from "@/lib/syncFreshness";
 import type { ArmyListUnitRow as ArmyListUnitRowType } from "@/types/armyList";
 import type { SyncedLeaderTargetRow } from "@/db/queries/bsdataExtended";
 import { TACTICAL_ROLES, TACTICAL_ROLES_DISPLAY } from "@/types/armyList";
@@ -33,9 +31,6 @@ import { PointsSourceChip } from "./PointsSourceChip";
 
 interface ArmyListUnitRowProps {
   unit: ArmyListUnitRowType;
-  totalPoints: number;
-  pointsLimit: number | null;
-  freshness: SyncFreshness;
   onRemove: () => void;
   onConfigure: () => void;
   onEnhance: () => void;
@@ -67,7 +62,7 @@ interface ArmyListUnitRowProps {
  * Configure trigger that opens the LoadoutBuilderSheet (D-02, D-04).
  * Tier selection now writes to army_list_units.selected_model_count (per-list).
  */
-export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, totalPoints, pointsLimit, freshness, onRemove, onConfigure, onEnhance, onAttachLeader, onToggleWarlord, enhancementName, isIndentedLeader = false, leaderName, leaderTargets = [], dragHandleProps }: ArmyListUnitRowProps) {
+export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, onRemove, onConfigure, onEnhance, onAttachLeader, onToggleWarlord, enhancementName, isIndentedLeader = false, leaderName, leaderTargets = [], dragHandleProps }: ArmyListUnitRowProps) {
   const isGhost = unit.unit_id === null;
   const updateArmyListUnit = useUpdateArmyListUnit();
   const [expanded, setExpanded] = useState(false);
@@ -111,9 +106,8 @@ export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, totalPoints
 
   // Phase 66 — per-unit warning computation
   const warnings = useMemo(() => {
-    const ctx: WarningContext = { totalPoints, pointsLimit, freshness };
-    return computeUnitWarnings(unit, ctx);
-  }, [unit, totalPoints, pointsLimit, freshness]);
+    return computeUnitWarnings(unit);
+  }, [unit]);
 
   // Phase 90 — Configure trigger label showing active tier
   const tierLabel = unit.selected_model_count !== null && unit.tier_points !== null

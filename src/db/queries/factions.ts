@@ -35,9 +35,10 @@ export async function updateFaction(input: UpdateFactionInput): Promise<void> {
             color_theme = COALESCE($5, color_theme),
             icon_path = $6,
             lore_notes = $7,
+            wahapedia_faction_id = COALESCE($8, wahapedia_faction_id),
             updated_at = datetime('now')
       WHERE id = $1`,
-    [input.id, input.name ?? null, input.game_system ?? null, input.description ?? null, input.color_theme ?? null, input.icon_path ?? null, input.lore_notes ?? null]
+    [input.id, input.name ?? null, input.game_system ?? null, input.description ?? null, input.color_theme ?? null, input.icon_path ?? null, input.lore_notes ?? null, input.wahapedia_faction_id ?? null]
   );
 }
 

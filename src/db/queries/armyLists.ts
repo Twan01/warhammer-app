@@ -121,8 +121,8 @@ export async function updateArmyList(input: UpdateArmyListInput): Promise<void> 
         SET name            = COALESCE($2, name),
             faction_id      = COALESCE($3, faction_id),
             points_limit    = COALESCE($4, points_limit),
-            list_type       = $5,
-            notes           = $6,
+            list_type       = COALESCE($5, list_type),
+            notes           = COALESCE($6, notes),
             detachment_id   = COALESCE($7, detachment_id),
             detachment_name = COALESCE($8, detachment_name),
             updated_at      = datetime('now')
@@ -190,11 +190,18 @@ export async function clearArmyListPointsLimit(id: number): Promise<void> {
  */
 export async function deleteArmyList(id: number): Promise<void> {
   const db = await getDb();
-  await db.execute("DELETE FROM army_list_enhancements WHERE list_id = $1", [id]);
-  await db.execute("DELETE FROM army_list_snapshots WHERE list_id = $1", [id]);
-  await db.execute("UPDATE army_list_units SET leader_attached_to_id = NULL WHERE list_id = $1", [id]);
-  await db.execute("DELETE FROM army_list_units WHERE list_id = $1", [id]);
-  await db.execute("DELETE FROM army_lists WHERE id = $1", [id]);
+  await db.execute("BEGIN TRANSACTION");
+  try {
+    await db.execute("DELETE FROM army_list_enhancements WHERE list_id = $1", [id]);
+    await db.execute("DELETE FROM army_list_snapshots WHERE list_id = $1", [id]);
+    await db.execute("UPDATE army_list_units SET leader_attached_to_id = NULL WHERE list_id = $1", [id]);
+    await db.execute("DELETE FROM army_list_units WHERE list_id = $1", [id]);
+    await db.execute("DELETE FROM army_lists WHERE id = $1", [id]);
+    await db.execute("COMMIT");
+  } catch (err) {
+    await db.execute("ROLLBACK");
+    throw err;
+  }
 }
 
 export async function addUnitToList(input: AddUnitToListInput): Promise<number> {
@@ -218,17 +225,22 @@ export async function addUnitToList(input: AddUnitToListInput): Promise<number> 
  */
 export async function removeUnitFromList(armyListUnitId: number): Promise<void> {
   const db = await getDb();
-  // Clear leader attachments pointing to this unit (prevents FK errors)
-  await db.execute(
-    "UPDATE army_list_units SET leader_attached_to_id = NULL WHERE leader_attached_to_id = $1",
-    [armyListUnitId]
-  );
-  // Delete enhancements assigned to this unit (prevents FK errors)
-  await db.execute(
-    "DELETE FROM army_list_enhancements WHERE army_list_unit_id = $1",
-    [armyListUnitId]
-  );
-  await db.execute("DELETE FROM army_list_units WHERE id = $1", [armyListUnitId]);
+  await db.execute("BEGIN TRANSACTION");
+  try {
+    await db.execute(
+      "UPDATE army_list_units SET leader_attached_to_id = NULL WHERE leader_attached_to_id = $1",
+      [armyListUnitId]
+    );
+    await db.execute(
+      "DELETE FROM army_list_enhancements WHERE army_list_unit_id = $1",
+      [armyListUnitId]
+    );
+    await db.execute("DELETE FROM army_list_units WHERE id = $1", [armyListUnitId]);
+    await db.execute("COMMIT");
+  } catch (err) {
+    await db.execute("ROLLBACK");
+    throw err;
+  }
 }
 
 /**

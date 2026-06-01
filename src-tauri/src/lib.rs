@@ -520,7 +520,6 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
 
     // D-09/D-08: DELETE all udb_* tables (FK OFF so order doesn't matter)
     for table in [
-        "udb_search",
         "udb_unit_keywords",
         "udb_unit_points",
         "udb_unit_composition",
@@ -723,6 +722,12 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
     .map_err(|e| format!("rebuild udb_search: {e}"))?;
 
     tx.commit().await.map_err(|e| format!("commit udb: {e}"))?;
+
+    // Restore FK enforcement after transaction
+    sqlx::query("PRAGMA foreign_keys = ON")
+        .execute(&mut conn)
+        .await
+        .map_err(|e| format!("pragma fk on: {e}"))?;
 
     // D-12: WAL checkpoint after commit, before returning
     sqlx::query("PRAGMA wal_checkpoint(TRUNCATE)")
@@ -1088,10 +1093,15 @@ fn list_safety_backups(app: tauri::AppHandle) -> Vec<SafetyBackupEntry> {
 }
 
 /// Write raw bytes to a user-chosen path (from save dialog).
-/// Used for PDF binary export — bypasses fs capability scope.
+/// Restricted to .pdf extension to limit blast radius.
 #[tauri::command]
 fn write_bytes_to_path(destination: String, bytes: Vec<u8>) -> Result<(), String> {
-    std::fs::write(&destination, &bytes).map_err(|e| format!("write error: {e}"))
+    let path = std::path::Path::new(&destination);
+    match path.extension().and_then(|e| e.to_str()) {
+        Some(ext) if ext.eq_ignore_ascii_case("pdf") => {}
+        _ => return Err("Only .pdf exports are supported".to_string()),
+    }
+    std::fs::write(path, &bytes).map_err(|e| format!("write error: {e}"))
 }
 
 /// Return the app's expected schema version (migration count).
@@ -1117,9 +1127,11 @@ pub fn run() {
             println!("[hobbyforge] app_data_dir = {}", app_data_dir.display());
 
             // D-06: Auto-import bundled unit_database.json on first launch or version mismatch.
-            // Spawned as async task — does not block window creation (T-103-07).
+            // Runs synchronously in setup to ensure data is available before the UI queries it.
+            // The version check returns immediately on most launches (< 1ms); full import
+            // only runs on first launch or after a data update.
             let handle = app.handle().clone();
-            tauri::async_runtime::spawn(async move {
+            tauri::async_runtime::block_on(async move {
                 match import_unit_database_inner(&handle).await {
                     Ok(result) => println!("[hobbyforge] udb import: {result:?}"),
                     Err(e) => eprintln!("[hobbyforge] udb import failed: {e}"),

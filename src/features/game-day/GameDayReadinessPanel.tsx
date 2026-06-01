@@ -24,7 +24,6 @@ import {
   computeListHealthStats,
   computeUnitWarnings,
 } from "@/lib/computeUnitWarnings";
-import type { WarningContext } from "@/lib/computeUnitWarnings";
 import { PointsFreshnessBadge } from "@/features/army-lists/PointsFreshnessBadge";
 import type { ArmyListUnitRow } from "@/types/armyList";
 import {
@@ -56,23 +55,14 @@ export function GameDayReadinessPanel({
 
   const totalWarnings = stats.hardWarningCount + stats.softWarningCount;
 
-  const context: WarningContext = useMemo(
-    () => ({
-      totalPoints: stats.totalPoints,
-      pointsLimit,
-      freshness,
-    }),
-    [stats.totalPoints, pointsLimit, freshness],
-  );
-
   const unitsWithWarnings = useMemo(
     () =>
       units
-        .map((u) => ({ unit: u, warnings: computeUnitWarnings(u, context) }))
+        .map((u) => ({ unit: u, warnings: computeUnitWarnings(u) }))
         .filter(
           ({ warnings }) => warnings.hard.length + warnings.soft.length > 0,
         ),
-    [units, context],
+    [units],
   );
 
   const notReadyUnits = useMemo(

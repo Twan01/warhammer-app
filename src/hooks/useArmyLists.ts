@@ -353,7 +353,7 @@ export function useClearLeaderAttachment() {
 
 /**
  * Phase 89 — Set selected model count for tier-based points resolution (D-08).
- * Triggers re-resolution of points via synced_unit_point_tiers JOIN.
+ * Triggers re-resolution of points via udb_unit_points FK join.
  */
 export interface SetSelectedModelCountVariables {
   army_list_unit_id: number;
