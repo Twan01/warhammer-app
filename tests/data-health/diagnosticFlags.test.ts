@@ -110,18 +110,18 @@ describe("getDiagnosticFlags", () => {
     });
 
     const result = await getDiagnosticFlags();
-    // orphaned_progress (step_progress query) + ambiguous_points + unlinked_units (both udb_unit_id queries)
+    // orphaned_progress (step_progress query) + unlinked_units (udb_unit_id query)
     expect(result.length).toBeGreaterThanOrEqual(2);
     expect(result.map((f) => f.type)).toContain("orphaned_progress");
-    expect(result.map((f) => f.type)).toContain("ambiguous_points");
+    expect(result.map((f) => f.type)).toContain("unlinked_units");
   });
 
-  it("returns exactly 3 flags when all checks fail", async () => {
+  it("returns exactly 2 flags when all checks fail", async () => {
     mockSelect.mockResolvedValue([{ c: 1 }]);
 
     const result = await getDiagnosticFlags();
-    expect(result.length).toBe(3);
+    expect(result.length).toBe(2);
     const types = result.map((f) => f.type).sort();
-    expect(types).toEqual(["ambiguous_points", "orphaned_progress", "unlinked_units"]);
+    expect(types).toEqual(["orphaned_progress", "unlinked_units"]);
   });
 });

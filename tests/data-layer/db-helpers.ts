@@ -49,12 +49,14 @@ export const HOBBYFORGE_MIGRATIONS = [
   "037_override_flags.sql",
   "038_udb_schema.sql",
   "039_collection_udb_link.sql",
+  "040_drop_synced_points.sql",
+  "041_udb_sub_faction_fr.sql",
 ] as const;
 
 // Phase 107: rules.db eliminated — rules migrations removed
 export const RULES_MIGRATIONS = [] as const;
 
-export const HOBBYFORGE_MIGRATION_COUNT = HOBBYFORGE_MIGRATIONS.length; // 39
+export const HOBBYFORGE_MIGRATION_COUNT = HOBBYFORGE_MIGRATIONS.length; // 41
 export const RULES_MIGRATION_COUNT = RULES_MIGRATIONS.length; // 0
 
 /**

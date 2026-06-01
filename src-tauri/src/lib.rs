@@ -245,6 +245,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/040_drop_synced_points.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 41,
+            description: "udb_sub_faction_fr",
+            sql: include_str!("../migrations/041_udb_sub_faction_fr.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
