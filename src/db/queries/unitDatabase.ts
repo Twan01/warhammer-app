@@ -136,10 +136,13 @@ export interface UdbKeywordsMapEntry {
  */
 export async function getUdbFactions(locale?: "en" | "fr"): Promise<UdbFaction[]> {
   const db = await getDb();
-  const nameSql = locale === "fr" ? "COALESCE(name_fr, name) AS name" : "name";
-  const orderSql = locale === "fr" ? "ORDER BY COALESCE(name_fr, name) ASC" : "ORDER BY name ASC";
+  if (locale === "fr") {
+    return db.select<UdbFaction[]>(
+      "SELECT id, COALESCE(name_fr, name) AS name, short_name FROM udb_factions ORDER BY COALESCE(name_fr, name) ASC",
+    );
+  }
   return db.select<UdbFaction[]>(
-    `SELECT id, ${nameSql}, short_name FROM udb_factions ${orderSql}`,
+    "SELECT id, name, short_name FROM udb_factions ORDER BY name ASC",
   );
 }
 
@@ -153,12 +156,28 @@ export async function getUdbUnitsByFaction(
   locale?: "en" | "fr",
 ): Promise<UdbUnitSummary[]> {
   const db = await getDb();
-  const nameSql = locale === "fr" ? "COALESCE(u.name_fr, u.name)" : "u.name";
+  if (locale === "fr") {
+    return db.select<UdbUnitSummary[]>(
+      `SELECT
+         u.id,
+         u.faction_id,
+         COALESCE(u.name_fr, u.name) AS name,
+         u.role,
+         u.sub_faction,
+         (SELECT MIN(p.points) FROM udb_unit_points p WHERE p.unit_id = u.id) AS base_points,
+         (SELECT MIN(c.min_models) FROM udb_unit_composition c WHERE c.unit_id = u.id) AS min_models,
+         (SELECT MAX(c.max_models) FROM udb_unit_composition c WHERE c.unit_id = u.id) AS max_models
+       FROM udb_units u
+       WHERE u.faction_id = $1
+       ORDER BY u.role, COALESCE(u.name_fr, u.name) ASC`,
+      [factionId],
+    );
+  }
   return db.select<UdbUnitSummary[]>(
     `SELECT
        u.id,
        u.faction_id,
-       ${nameSql} AS name,
+       u.name,
        u.role,
        u.sub_faction,
        (SELECT MIN(p.points) FROM udb_unit_points p WHERE p.unit_id = u.id) AS base_points,
@@ -166,7 +185,7 @@ export async function getUdbUnitsByFaction(
        (SELECT MAX(c.max_models) FROM udb_unit_composition c WHERE c.unit_id = u.id) AS max_models
      FROM udb_units u
      WHERE u.faction_id = $1
-     ORDER BY u.role, ${locale === "fr" ? "COALESCE(u.name_fr, u.name)" : "u.name"} ASC`,
+     ORDER BY u.role, u.name ASC`,
     [factionId],
   );
 }
@@ -182,11 +201,6 @@ export async function getUdbUnitDetail(
 ): Promise<UdbUnitDetail | null> {
   const db = await getDb();
   const fr = locale === "fr";
-  const unitNameSql = fr ? "COALESCE(name_fr, name) AS name" : "name";
-  const abilityFieldsSql = fr
-    ? "COALESCE(name_fr, name) AS name, COALESCE(description_fr, description) AS description"
-    : "name, description";
-  const weaponNameSql = fr ? "COALESCE(name_fr, name) AS name" : "name";
 
   const unitRows = await db.select<
     {
@@ -199,7 +213,9 @@ export async function getUdbUnitDetail(
       damaged_desc: string | null;
     }[]
   >(
-    `SELECT id, faction_id, ${unitNameSql}, role, base_points, damaged_w, damaged_desc FROM udb_units WHERE id = $1`,
+    fr
+      ? "SELECT id, faction_id, COALESCE(name_fr, name) AS name, role, base_points, damaged_w, damaged_desc FROM udb_units WHERE id = $1"
+      : "SELECT id, faction_id, name, role, base_points, damaged_w, damaged_desc FROM udb_units WHERE id = $1",
     [unitId],
   );
   const unit = unitRows[0];
@@ -212,11 +228,15 @@ export async function getUdbUnitDetail(
         [unitId],
       ),
       db.select<UdbWeapon[]>(
-        `SELECT id, unit_id, weapon_group, line_order, ${weaponNameSql}, category, range, attacks, skill, strength, ap, damage, keywords FROM udb_unit_weapons WHERE unit_id = $1 ORDER BY weapon_group, line_order`,
+        fr
+          ? "SELECT id, unit_id, weapon_group, line_order, COALESCE(name_fr, name) AS name, category, range, attacks, skill, strength, ap, damage, keywords FROM udb_unit_weapons WHERE unit_id = $1 ORDER BY weapon_group, line_order"
+          : "SELECT id, unit_id, weapon_group, line_order, name, category, range, attacks, skill, strength, ap, damage, keywords FROM udb_unit_weapons WHERE unit_id = $1 ORDER BY weapon_group, line_order",
         [unitId],
       ),
       db.select<UdbAbility[]>(
-        `SELECT id, unit_id, line_order, ${abilityFieldsSql}, ability_type FROM udb_unit_abilities WHERE unit_id = $1 ORDER BY line_order`,
+        fr
+          ? "SELECT id, unit_id, line_order, COALESCE(name_fr, name) AS name, COALESCE(description_fr, description) AS description, ability_type FROM udb_unit_abilities WHERE unit_id = $1 ORDER BY line_order"
+          : "SELECT id, unit_id, line_order, name, description, ability_type FROM udb_unit_abilities WHERE unit_id = $1 ORDER BY line_order",
         [unitId],
       ),
       db.select<UdbKeyword[]>(
