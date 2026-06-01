@@ -734,6 +734,51 @@
 
 ---
 
+## Milestone: v0.4.2 — Unit Database 2.0
+
+**Shipped:** 2026-06-01
+**Phases:** 4 | **Plans:** 11 | **Timeline:** single day (2026-06-01)
+
+### What Was Built
+
+- Build pipeline overhaul: shared lib extraction to `scripts/lib/`, deterministic sorted file reads, 3-pass name matching cascade (exact → normalized → alias), 44 manual aliases, cross-faction BSData matching (Drukhari via AE), coverage reporting — BSData match rate 96.9%
+- Sub-faction filtering: `sub_faction TEXT` on `udb_units`, SUB_FACTION_MAP (17 entries: 11 SM chapters, 4 CSM warbands, 2 Aeldari), dropdown filters in database browser, army list unit picker, collection browser; FTS5 sub-faction search
+- PlaybookTab & Game Day revival: canonical stat blocks, WeaponTable shared component (2 consumers), Game Day weapon profiles section, stable `unit_id:ability_name` OPG composite keys, DEDICATED TRANSPORT + EPIC HERO army list validation warnings
+- Bilingual infrastructure: `_fr` locale columns on 5 tables, French overlay via `translations_fr.json`, `localeStore` (Zustand persist), COALESCE(col_fr, col) query layer, locale-keyed React Query hooks with 3-prefix cache invalidation, LocaleToggle pill in sidebar, FTS5 bilingual search
+
+### What Worked
+
+- **Parallel phase execution (109/110/111 independent of each other):** All three depended only on Phase 108, enabling interleaved planning and execution. No blocked phases, no wasted idle time.
+- **Composite key patterns reused across features:** OPG keys (`unit_id:ability_name`), translation overlay keys (`${unit_id}:${name}`), sub-faction map keys — all follow the same composite pattern established in earlier milestones.
+- **COALESCE pattern scaled to bilingual:** The `COALESCE(col_fr, col)` pattern for French fallback is structurally identical to the points COALESCE chain (v0.2.6) and override COALESCE (v0.2.10), making it immediately trustworthy.
+- **FTS5 bag-of-words extension:** Rather than DROP+CREATE the FTS5 table (would need import trigger), piping French names and sub-faction names into the existing `keywords` column kept the approach simple.
+
+### What Was Inefficient
+
+- **BSData coverage ceiling uncontrollable:** Significant effort analyzing match failures before realizing BSData simply doesn't cover 38% of Wahapedia datasheets. The 85% target was unachievable regardless of matching quality.
+- **Phase 109 missing Nyquist validation:** Sub-faction filter UI phase completed without formal VALIDATION.md — procedural gap caught at audit, not during execution.
+
+### Patterns Established
+
+- **French overlay pattern:** `translations_fr.json` with composite keys + `loadTranslationsFr()` graceful degrade + `COALESCE(col_fr, col)` in query layer — reusable for any future locale.
+- **Locale-keyed React Query:** Including locale in query keys + `queryClient.invalidateQueries` on locale change + `localeStore` Zustand persist — clean cache invalidation on language switch.
+- **Coverage badge pattern:** Live SQL COUNT query for per-faction badges (green/amber/red) — reusable for any diagnostic metric.
+- **Shared component extraction mid-milestone:** WeaponTable extracted from PlaybookTab for reuse in Game Day during the same phase — opportunistic but clean.
+
+### Key Lessons
+
+1. **Target metrics need feasibility research upfront.** DQ-05 (85% coverage) was impossible due to external data limitations. Early coverage analysis would have saved requirements rework.
+2. **Parallel phase dependencies reduce milestone risk.** When phases 109/110/111 all depend only on 108, any phase can be worked independently — no cascading delays.
+3. **Nyquist validation needs to be part of phase execution, not a post-audit retrofit.** Phase 109 missing VALIDATION.md is a recurring procedural gap.
+
+### Cost Observations
+
+- Model: Claude Opus 4.6 throughout
+- Sessions: multiple (parallel phase execution)
+- Notable: 4 phases with 11 plans and 23 requirements in a single day — parallel phase independence enabled high throughput; 22nd milestone overall
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -756,6 +801,9 @@
 | v0.2.14 | 5 | 11 | Structured backup/restore; Rust-first foundation (6 new commands); safety backups; progressive diagnostics; no gap closure needed |
 | v0.2.15 | 5 | 11 | Painting Mode: full-page execution view, keyboard shortcuts, 6 entry points, atomic session logging; zero new migrations (pure UI milestone); 7th consecutive clean audit |
 | v0.3.0 | 4 | 9 | First pure-refactoring milestone: WAL + indexes + CHECK constraints, error boundaries, code splitting, component decomposition; 8th consecutive clean audit |
+| v0.3.7 | 3 | 6 | Smart automation: auto-derive statuses, active project lifecycle, battle-readiness function, context pre-filling |
+| v0.4.0 | 5 | 12 | Canonical unit database: pre-built data, browser UI, collection FK, army list simplification, single-DB architecture |
+| v0.4.2 | 4 | 11 | Data quality overhaul, sub-faction filtering, PlaybookTab/Game Day revival, bilingual EN/FR infrastructure |
 
 ### Cumulative Quality
 
@@ -777,6 +825,9 @@
 | v0.2.14 | 1,831 | All passing (26/26 requirements satisfied, Nyquist 3/5 compliant, no gap closure, 6th consecutive clean audit) |
 | v0.2.15 | 1,831+ | All passing (39/39 requirements satisfied, Nyquist fully compliant, no gap closure, 7th consecutive clean audit) |
 | v0.3.0 | 2,268 | All passing (17/17 requirements satisfied, Nyquist fully compliant, no gap closure, 8th consecutive clean audit) |
+| v0.3.7 | 2,268+ | All passing (13/13 requirements satisfied, Nyquist fully compliant) |
+| v0.4.0 | 2,290+ | All passing (28/28 requirements satisfied, Nyquist fully compliant) |
+| v0.4.2 | 2,290+ | All passing (23/23 requirements satisfied, Nyquist 3/4 compliant — Phase 109 missing VALIDATION.md) |
 
 ### Top Lessons (Verified Across Milestones)
 
