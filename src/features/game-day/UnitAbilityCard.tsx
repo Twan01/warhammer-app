@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { useDatasheet } from "@/hooks/useDatasheet";
 import { useStrategyNote } from "@/hooks/useStrategyNote";
 import { useGameDayStore, useGameDayListState } from "./gameDayStore";
+import { WeaponTable } from "@/features/units/WeaponTable";
 import type { ArmyListUnitRow } from "@/types/armyList";
 import type { UdbAbility } from "@/db/queries/unitDatabase";
 
@@ -47,7 +48,7 @@ export function UnitAbilityCard({ unit, listId }: UnitAbilityCardProps) {
       .filter(isOncePerGame)
       .map((ability) => ({
         ability,
-        key: `${unit.unit_id}::${ability.id ?? ability.name}`,
+        key: `${unit.unit_id}:${ability.name}`,
       }));
   }, [datasheet?.abilities, unit.unit_id]);
 
@@ -68,6 +69,7 @@ export function UnitAbilityCard({ unit, listId }: UnitAbilityCardProps) {
   }, [strategyNote]);
 
   const hasAbilities = opgAbilities.length > 0 || regularAbilities.length > 0;
+  const hasWeapons = (datasheet?.weapons ?? []).length > 0;
   const hasNotes = strategyFields.length > 0;
 
   return (
@@ -118,6 +120,39 @@ export function UnitAbilityCard({ unit, listId }: UnitAbilityCardProps) {
               </div>
             )}
 
+            {hasWeapons && (() => {
+              const rangedWeapons = (datasheet?.weapons ?? []).filter((w) => w.category === "Ranged");
+              const meleeWeapons = (datasheet?.weapons ?? []).filter((w) => w.category === "Melee" || (w.category !== "Ranged" && w.range === "Melee"));
+              return (rangedWeapons.length > 0 || meleeWeapons.length > 0) ? (
+                <div className="flex flex-col gap-2 pt-2">
+                  <Collapsible defaultOpen={false}>
+                    <CollapsibleTrigger asChild>
+                      <button type="button" className="flex items-center justify-between w-full py-1 text-left">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Weapons</span>
+                        <ChevronDown className="h-3 w-3 text-muted-foreground transition-transform duration-200 data-[state=open]:rotate-180" />
+                      </button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="flex flex-col gap-2">
+                        {rangedWeapons.length > 0 && (
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[10px] font-semibold text-muted-foreground uppercase">Ranged</span>
+                            <WeaponTable weapons={rangedWeapons} statLabel="BS" />
+                          </div>
+                        )}
+                        {meleeWeapons.length > 0 && (
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[10px] font-semibold text-muted-foreground uppercase">Melee</span>
+                            <WeaponTable weapons={meleeWeapons} statLabel="WS" />
+                          </div>
+                        )}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
+              ) : null;
+            })()}
+
             {regularAbilities.length > 0 && (
               <div className="flex flex-col gap-2 pt-2">
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -155,7 +190,7 @@ export function UnitAbilityCard({ unit, listId }: UnitAbilityCardProps) {
               </div>
             )}
 
-            {!hasAbilities && !hasNotes && (
+            {!hasAbilities && !hasWeapons && !hasNotes && (
               <p className="py-2 text-xs text-muted-foreground">
                 No ability data available. Link a datasheet or add notes in the Playbook tab.
               </p>

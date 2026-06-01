@@ -121,7 +121,9 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
 
   // Stat helpers
   function statValue(key: StatKey): number | null {
-    switch (key) { case "M": return move; case "T": return toughness; case "Sv": return saveStat; case "W": return wounds; case "Ld": return leadership; case "OC": return objectiveControl; }
+    const local = (() => { switch (key) { case "M": return move; case "T": return toughness; case "Sv": return saveStat; case "W": return wounds; case "Ld": return leadership; case "OC": return objectiveControl; } })();
+    if (local === null && hasDatasheetLink) return importedStatValue(key);
+    return local;
   }
   function setStat(key: StatKey, v: number | null) {
     switch (key) { case "M": return setMove(v); case "T": return setToughness(v); case "Sv": return setSaveStat(v); case "W": return setWounds(v); case "Ld": return setLeadership(v); case "OC": return setObjectiveControl(v); }
