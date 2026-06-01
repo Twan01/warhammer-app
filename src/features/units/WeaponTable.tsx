@@ -18,7 +18,7 @@ export function WeaponTable({ weapons, statLabel }: WeaponTableProps) {
       </div>
       {weapons.map((w, i) => {
         const range = w.range && /^\d+$/.test(w.range) ? `${w.range}"` : (w.range ?? "—");
-        const skill = w.skill ? `${w.skill}+` : "—";
+        const skill = w.skill ? (w.skill.endsWith("+") ? w.skill : `${w.skill}+`) : "—";
         return (
           <div key={`${w.unit_id}-${w.weapon_group}-${w.line_order}-${i}`} className="border-b border-border last:border-0">
             <div className="grid grid-cols-[1fr_36px_32px_36px_28px_32px_28px] gap-x-1 px-2 py-1.5 items-center">
