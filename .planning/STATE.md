@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v0.4.2
 milestone_name: Unit Database 2.0 — Data Quality, Sub-factions & Integration
-status: planning
-last_updated: "2026-06-01T08:52:08.255Z"
+status: roadmap_complete
+last_updated: "2026-06-01"
 last_activity: 2026-06-01
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-01)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with official points via bundled canonical database for personal use, and reliable backup/restore so local data is always recoverable
-**Current focus:** v0.4.0 archived — planning next milestone
+**Current focus:** v0.4.2 Phase 108 — Build Script Hardening & Schema Foundation
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-06-01 — Milestone v0.4.2 started
+Phase: 108 of 111 (Build Script Hardening & Schema Foundation)
+Plan: — (not yet planned)
+Status: Ready to plan
+Last activity: 2026-06-01 — Roadmap created for v0.4.2 (4 phases, 23 requirements)
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -42,14 +44,20 @@ Last activity: 2026-06-01 — Milestone v0.4.2 started
 
 ## Accumulated Context
 
-### Key Decisions (v0.4.0)
+### Key Decisions (v0.4.0 — carried forward)
 
-- Pre-built canonical unit database (not runtime sync) — eliminates fragile Wahapedia CSV fetch
-- Reuse Wahapedia string IDs for udb_units — existing annotations survive
+- Pre-built canonical unit database (not runtime sync) — eliminates fragile CSV fetch
+- Single-database architecture — rules.db eliminated; all data in hobbyforge.db
 - ON DELETE SET NULL for units.udb_unit_id — collection units survive re-import
 - FK-based points resolution replacing synced_unit_points cache
-- Single-database architecture — rules.db eliminated
-- Inline stub pattern for deferred features (stratagems, detachments, shared abilities)
+
+### Key Constraints (v0.4.2 — from research)
+
+- Sub-factions: denormalized `sub_faction TEXT` on `udb_units` only — new `udb_factions` rows break FK backfill and army list joins
+- FTS5 cannot ALTER — must DROP+CREATE with import trigger or pipe French names into existing column
+- French `_fr` fields must travel in `unit_database.json` with `#[serde(default)]` in Rust or re-import wipes them
+- Game Day OPG keys must be `unit_id:ability_name` composites — AUTOINCREMENT IDs reassigned on re-import
+- Build script: apply `files.sort()` to both `build-unit-database.ts` and `update-unit-database.ts`
 
 ### Pending Todos
 
@@ -68,10 +76,12 @@ None.
 | v2 scope | EXT-03: Stratagems in canonical DB | Deferred | v0.4.0 planning |
 | v2 scope | ADV-01: Unit comparison view | Deferred | v0.4.0 planning |
 | v2 scope | ADV-02: Faction overview page | Deferred | v0.4.0 planning |
+| v2 scope | FR-EXT-01: French ability/weapon text | Deferred | v0.4.2 planning |
+| v2 scope | FR-EXT-02: Full app UI translation | Deferred | v0.4.2 planning |
 
 ## Session Continuity
 
-Last session: 2026-06-01T12:00:00Z
-Stopped at: v0.4.0 milestone archived
+Last session: 2026-06-01
+Stopped at: Roadmap created — 4 phases (108-111), 23/23 requirements mapped
 Resume file: None
-Resume: Start next milestone with /gsd:new-milestone
+Resume: Start Phase 108 with /gsd:plan-phase 108

@@ -22,6 +22,7 @@
 - ✅ **v0.3.0 Robustness & Architecture Hardening** — Phases 96-99 (shipped 2026-05-22)
 - ✅ **v0.3.7 Smart Automation** — Phases 100-102 (shipped 2026-05-28)
 - ✅ **v0.4.0 Unit Database — Canonical 40k Data Hub** — Phases 103-107 (shipped 2026-05-31)
+- 🚧 **v0.4.2 Unit Database 2.0 — Data Quality, Sub-factions & Integration** — Phases 108-111 (in progress)
 
 ## Phases
 
@@ -38,165 +39,94 @@ Full details: `.planning/milestones/v0.4.0-ROADMAP.md`
 
 </details>
 
-<details>
-<summary>✅ v0.2.14 Backup 2.0 (Phases 79-83) — SHIPPED 2026-05-19</summary>
+### 🚧 v0.4.2 Unit Database 2.0 — Data Quality, Sub-factions & Integration
 
-- [x] Phase 79: Rust Backup Foundation (2/2 plans) — completed 2026-05-18
-- [x] Phase 80: Export UI + Backup Status (2/2 plans) — completed 2026-05-18
-- [x] Phase 81: Restore Preview + Validation (2/2 plans) — completed 2026-05-18
-- [x] Phase 82: Restore Execution + Safety Backups (3/3 plans) — completed 2026-05-19
-- [x] Phase 83: Backup Diagnostics (2/2 plans) — completed 2026-05-19
+**Milestone Goal:** Transform the canonical unit database from a standalone browser into a deeply integrated, high-quality data backbone — with near-100% points coverage, sub-faction filtering, French translation infrastructure, and full integration across Playbook, Game Day, army lists, and collection.
 
-Full details: `.planning/milestones/v0.2.14-ROADMAP.md`
+- [ ] **Phase 108: Build Script Hardening & Schema Foundation** - Deterministic builds, 85%+ points coverage, sub-faction column, bilingual columns, Rust import extended
+- [ ] **Phase 109: Sub-faction Filter UI** - Chapter/sub-faction filters wired in database browser, army list picker, and collection browser
+- [ ] **Phase 110: PlaybookTab & Game Day Revival** - Canonical stats/weapons/abilities in PlaybookTab; weapon profiles and stable OPG keys in Game Day
+- [ ] **Phase 111: Bilingual Infrastructure** - EN/FR locale toggle, French data overlay, bilingual query layer, FR FTS5 search
 
-</details>
+## Phase Details
 
-<details>
-<summary>✅ v0.2.8 Rules Data Hub UI / Army Lists 2.0 / Game Day (Phases 52-56) — SHIPPED 2026-05-11</summary>
+### Phase 108: Build Script Hardening & Schema Foundation
+**Goal**: The canonical unit database has 85%+ points coverage and carries sub-faction + bilingual schema columns, all backed by a deterministic, diagnostic-rich build pipeline
+**Depends on**: Phase 107 (v0.4.0 Cleanup & Pipeline)
+**Requirements**: DQ-01, DQ-02, DQ-03, DQ-04, DQ-05, DQ-06, DQ-07, SF-01, SF-02, FR-01, FR-06
+**Success Criteria** (what must be TRUE):
+  1. Running the build script produces a per-faction coverage report showing units with/without points and the overall match rate
+  2. Build output is byte-for-byte identical across machines — file reads are sorted before processing
+  3. Points coverage reaches 85%+ across all factions (up from 37%), verified by the coverage report
+  4. Data Health page shows per-faction points coverage badges (green/amber/red) so the user can spot low-coverage factions at a glance
+  5. The `udb_units` table has `sub_faction` and `_fr` locale columns; the Rust import command handles `_fr` fields with `#[serde(default)]` so re-import does not wipe French data
+**Plans**: TBD
 
-- [x] Phase 52: Schema + Data Layer Foundation (3/3 plans) — completed 2026-05-10
-- [x] Phase 53: Rules Data Hub UI (3/3 plans) — completed 2026-05-11
-- [x] Phase 54: Army Lists 2.0 — Detachment Selection (2/2 plans) — completed 2026-05-11
-- [x] Phase 55: Playbook Enhancements — Favorites and Notes (2/2 plans) — completed 2026-05-11
-- [x] Phase 56: Game Day Mode (2/2 plans) — completed 2026-05-11
+### Phase 109: Sub-faction Filter UI
+**Goal**: Users can filter the database browser, army list unit picker, and collection browser by sub-faction (SM chapter, CSM warband, Aeldari sub-faction, etc.)
+**Depends on**: Phase 108
+**Requirements**: SF-03, SF-04, SF-05, SF-06
+**Success Criteria** (what must be TRUE):
+  1. The database browser shows a sub-faction dropdown when browsing a faction that has sub-factions; factions without sub-factions show no extra control
+  2. The army list unit picker shows a sub-faction filter for applicable factions, narrowing the unit list correctly
+  3. The collection browser shows a sub-faction filter for applicable factions
+  4. Typing a chapter name (e.g., "Ultramarines") into the FTS5 search returns matching units via the indexed sub-faction field
+**Plans**: TBD
+**UI hint**: yes
 
-Full details: `.planning/milestones/v0.2.8-ROADMAP.md`
+### Phase 110: PlaybookTab & Game Day Revival
+**Goal**: Users see canonical unit stats, weapons, and abilities from the database in PlaybookTab and Game Day — replacing null stubs with live canonical data
+**Depends on**: Phase 108
+**Requirements**: INT-01, INT-02, INT-03, INT-04
+**Success Criteria** (what must be TRUE):
+  1. Opening a unit's PlaybookTab shows its canonical stat block (M/T/Sv/W/Ld/OC), weapon profiles, and ability text pulled from `udb_*` tables — no longer empty
+  2. Game Day unit ability cards show a collapsible weapon profiles section sourced from the canonical database
+  3. Once-per-game toggle state persists correctly across re-imports — keys are `unit_id:ability_name` composites, not reassignable AUTOINCREMENT IDs
+  4. Army list validation uses canonical roles and keywords from `udb_*` for enhanced composition checks (BATTLELINE count, role coverage)
+**Plans**: TBD
+**UI hint**: yes
 
-</details>
-
-<details>
-<summary>✅ v0.2.9 Recipes 3.1 / Workflow Semantics & Integrations (Phases 57-60) — SHIPPED 2026-05-12</summary>
-
-- [x] Phase 57: Schema & Data Layer - Migration + types + queries for workflow metadata columns and session section linking
-- [x] Phase 58: Recipe Form & Timeline Display - Workflow metadata editing with progressive disclosure and compact timeline badges (2/2 plans) — completed 2026-05-12
-- [x] Phase 59: Session Section Cascade - LogSessionSheet 3-level cascading selector (recipe -> section -> step) (2/2 plans) — completed 2026-05-12
-- [x] Phase 60: Kanban & CurrentFocus Integration - Section-aware workflow display on project cards and dashboard focus (2/2 plans) — completed 2026-05-12
-
-Full details: `.planning/milestones/v0.2.9-ROADMAP.md`
-
-</details>
-
-<details>
-<summary>✅ v0.2.10 Applied Recipes, Points Import & List Validation (Phases 61-67) — SHIPPED 2026-05-13</summary>
-
-- [x] Phase 61: Recipe Workflow Hardening (2/2 plans) — completed 2026-05-13
-- [x] Phase 62: Applied Recipe Data Layer (2/2 plans) — completed 2026-05-13
-- [x] Phase 63: Applied Recipe UX (3/3 plans) — completed 2026-05-13
-- [x] Phase 64: Applied Recipe Integrations (3/3 plans) — completed 2026-05-13
-- [x] Phase 65: Points Import Pipeline (3/3 plans) — completed 2026-05-13
-- [x] Phase 66: Army List Validation (3/3 plans) — completed 2026-05-13
-- [x] Phase 67: Game Day Integration (1/1 plan) — completed 2026-05-13
-
-Full details: `.planning/milestones/v0.2.10-ROADMAP.md`
-
-</details>
-
-<details>
-<summary>✅ v0.2.11 Foundation Hardening (Phases 68-72) — SHIPPED 2026-05-13</summary>
-
-- [x] Phase 68: Infrastructure Quick Wins (2/2 plans) — completed 2026-05-13
-- [x] Phase 69: Paintless Recipe Steps (1/1 plan) — completed 2026-05-13
-- [x] Phase 70: Non-Destructive Recipe Save (2/2 plans) — completed 2026-05-13
-- [x] Phase 71: Stable Session Section FK (2/2 plans) — completed 2026-05-13
-- [x] Phase 72: Data-Layer Test Suite (2/2 plans) — completed 2026-05-13
-
-Full details: `.planning/milestones/v0.2.11-ROADMAP.md`
-
-</details>
-
-<details>
-<summary>✅ v0.2.13 Data Integrity, Diagnostics & Product Coherence (Phases 73-78) — SHIPPED 2026-05-15</summary>
-
-- [x] Phase 73: Schema Foundation + Version Parity (2/2 plans) — completed 2026-05-14
-- [x] Phase 74: Applied Recipe Identity Hardening (2/2 plans) — completed 2026-05-14
-- [x] Phase 75: Transactional Recipe Graph Save (2/2 plans) — completed 2026-05-15
-- [x] Phase 76: Points Resolver + Unit Rules Mapping + Split Warnings (2/2 plans) — completed 2026-05-15
-- [x] Phase 77: Data Health Page + Backup/Export (2/2 plans) — completed 2026-05-15
-- [x] Phase 78: Dashboard Command Center + Game Day After-Action (3/3 plans) — completed 2026-05-15
-
-Full details: `.planning/milestones/v0.2.13-ROADMAP.md`
-
-</details>
-
----
-
-<details>
-<summary>✅ v0.2.15 Painting Mode (Phases 84-88) — SHIPPED 2026-05-20</summary>
-
-- [x] Phase 84: Data Layer + Early Tests (2/2 plans) — completed 2026-05-19
-- [x] Phase 85: Core Execution UI (3/3 plans) — completed 2026-05-19
-- [x] Phase 86: Shell, Route & Keyboard Shortcuts (2/2 plans) — completed 2026-05-19
-- [x] Phase 87: Session Integration + Entry Points (2/2 plans) — completed 2026-05-19
-- [x] Phase 88: Polish + Test Coverage (2/2 plans) — completed 2026-05-20
-
-Full details: `.planning/milestones/v0.2.15-ROADMAP.md`
-
-</details>
-
-<details>
-<summary>✅ v0.2.18 Army Lists 3.0 — Smart List Builder (Phases 89-95) — SHIPPED 2026-05-22</summary>
-
-- [x] Phase 89: Schema + Data Layer (2/2 plans) — completed 2026-05-20
-- [x] Phase 90: Loadout Builder (2/2 plans) — completed 2026-05-20
-- [x] Phase 91: Enhancement Assignment (2/2 plans) — completed 2026-05-22
-- [x] Phase 92: Leader Attachment (2/2 plans) — completed 2026-05-22
-- [x] Phase 93: Datasheet Browser + Ghost Units (2/2 plans) — completed 2026-05-22
-- [x] Phase 94: List Export (2/2 plans) — completed 2026-05-21
-- [x] Phase 95: Version Snapshots (2/2 plans) — completed 2026-05-22
-
-Full details: `.planning/milestones/v0.2.18-ROADMAP.md`
-
-</details>
-
-<details>
-<summary>✅ v0.3.0 Robustness & Architecture Hardening (Phases 96-99) — SHIPPED 2026-05-22</summary>
-
-- [x] Phase 96: Database Hardening (1/1 plans) — completed 2026-05-22
-- [x] Phase 97: Error Resilience (2/2 plans) — completed 2026-05-22
-- [x] Phase 98: Performance Optimization (3/3 plans) — completed 2026-05-22
-- [x] Phase 99: Architecture Cleanup (3/3 plans) — completed 2026-05-22
-
-Full details: `.planning/milestones/v0.3.0-ROADMAP.md`
-
-</details>
-
-<details>
-<summary>✅ v0.3.7 Smart Automation (Phases 100-102) — SHIPPED 2026-05-28</summary>
-
-- [x] Phase 100: Query-Layer Automation (2/2 plans) — completed 2026-05-28
-- [x] Phase 101: Battle-Readiness Pure Function & Unit Picker (2/2 plans) — completed 2026-05-28
-- [x] Phase 102: Smart Context Pre-Filling (2/2 plans) — completed 2026-05-28
-
-Full details: `.planning/milestones/v0.3.7-ROADMAP.md`
-
-</details>
+### Phase 111: Bilingual Infrastructure
+**Goal**: Users can toggle between English and French for all canonical data display; the build pipeline populates French fields from a manual overlay; search works in both languages
+**Depends on**: Phase 108
+**Requirements**: FR-02, FR-03, FR-04, FR-05
+**Success Criteria** (what must be TRUE):
+  1. Running the build script with a populated `scripts/data/translations_fr.json` writes French names and labels into the `_fr` columns of the bundled `unit_database.json`
+  2. The query layer uses `COALESCE(col_fr, col)` when the active locale is FR, falling back to English for any untranslated entry — no empty cells shown
+  3. An EN/FR locale toggle is visible in the app (persisted to localStorage); switching it changes all canonical data labels (faction names, unit names, ability names) to French
+  4. Searching in FTS5 with a French unit name returns the correct unit — French names are indexed alongside English names
+**Plans**: TBD
+**UI hint**: yes
 
 ## Progress
 
+**Execution Order:**
+Phases execute in numeric order: 108 → 109 → 110 → 111
+
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. App Shell | v0.1.1 | 3/3 | Complete | 2024-04-30 |
+| 1. App Shell | v0.1.1 | 4/4 | Complete | 2024-04-30 |
 | 2. Data Layer + Entity CRUD | v0.1.1 | 4/4 | Complete | 2024-04-30 |
 | 3. Collection Module | v0.1.1 | 5/5 | Complete | 2024-05-01 |
-| 4. Painting Module | v0.1.1 | 4/4 | Complete | 2024-05-01 |
+| 4. Painting Module | v0.1.1 | 5/5 | Complete | 2024-05-01 |
 | 5. Dashboard | v0.1.1 | 4/4 | Complete | 2024-05-01 |
-| 6. Foundation | v0.2.0 | 5/5 | Complete | 2024-05-01 |
-| 7. Paint Inventory | v0.2.0 | 5/5 | Complete | 2024-05-02 |
-| 8. Army List Builder | v0.2.0 | 6/6 | Complete | 2024-05-03 |
-| 9. Unit Playbook | v0.2.0 | 4/4 | Complete | 2024-05-02 |
-| 10. Theming Foundation | v0.2.1 | 4/4 | Complete | 2026-05-03 |
+| 6. Foundation | v0.2.0 | 3/3 | Complete | 2024-05-01 |
+| 7. Paint Inventory | v0.2.0 | 4/4 | Complete | 2024-05-02 |
+| 8. Army List Builder | v0.2.0 | 4/4 | Complete | 2024-05-02 |
+| 9. Unit Playbook | v0.2.0 | 5/5 | Complete | 2024-05-03 |
+| 10. Theming Foundation | v0.2.1 | 3/3 | Complete | 2026-05-03 |
 | 11. Dashboard Command Center | v0.2.1 | 4/4 | Complete | 2026-05-03 |
-| 12. Collection Gallery View | v0.2.1 | 4/4 | Complete | 2026-05-04 |
-| 13. Hobby Journal | v0.2.1 | 6/6 | Complete | 2026-05-04 |
-| 14. Spending Tracker | v0.2.1 | 5/5 | Complete | 2026-05-04 |
-| 15. 40K Datasheet Integration | v0.2.1 | 7/7 | Complete | 2026-05-04 |
-| 16. Design Overhaul | v0.2.1 | 8/8 | Complete | 2026-05-04 |
-| 17. Schema Foundation + Enrichment | v0.2.2 | 1/1 | Complete | 2026-05-04 |
-| 18. Battle Log | v0.2.2 | 4/4 | Complete | 2026-05-04 |
-| 19. Analytics Core | v0.2.2 | 4/4 | Complete | 2026-05-04 |
-| 20. v0.2.1 Polish & Gap Closure | v0.2.1 | 3/3 | Complete | 2026-05-04 |
-| 21. Wishlist | v0.2.2 | 3/3 | Complete | 2026-05-05 |
-| 22. Hobby Goals | v0.2.2 | 4/4 | Complete | 2026-05-05 |
+| 12. Collection Gallery View | v0.2.1 | 2/2 | Complete | 2026-05-04 |
+| 13. Hobby Journal | v0.2.1 | 5/5 | Complete | 2026-05-04 |
+| 14. Spending Tracker | v0.2.1 | 3/3 | Complete | 2026-05-04 |
+| 15. 40K Datasheet Integration | v0.2.1 | 4/4 | Complete | 2026-05-04 |
+| 16. Design Overhaul | v0.2.1 | 3/3 | Complete | 2026-05-04 |
+| 20. v0.2.1 Polish & Gap Closure | v0.2.1 | 2/2 | Complete | 2026-05-04 |
+| 17. Schema Foundation + Enrichment | v0.2.2 | 2/2 | Complete | 2026-05-04 |
+| 18. Battle Log | v0.2.2 | 3/3 | Complete | 2026-05-04 |
+| 19. Analytics Core | v0.2.2 | 3/3 | Complete | 2026-05-04 |
+| 21. Wishlist | v0.2.2 | 2/2 | Complete | 2026-05-05 |
+| 22. Hobby Goals | v0.2.2 | 3/3 | Complete | 2026-05-05 |
 | 23. Display Features | v0.2.2 | 2/2 | Complete | 2026-05-05 |
 | 24. Unit Point Calculator | v0.2.2 | 4/4 | Complete | 2026-05-05 |
 | 35. v0.2.2 Gap Closure | v0.2.2 | 1/1 | Complete | 2026-05-05 |
@@ -277,11 +207,68 @@ Full details: `.planning/milestones/v0.3.7-ROADMAP.md`
 | 100. Query-Layer Automation | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 | 101. Battle-Readiness Pure Function & Unit Picker | v0.3.7 | 2/2 | Complete | 2026-05-28 |
 | 102. Smart Context Pre-Filling | v0.3.7 | 2/2 | Complete | 2026-05-28 |
-| 103. Data Acquisition & Schema | v0.4.0 | 3/3 | Complete    | 2026-05-29 |
-| 104. Database Browser UI | v0.4.0 | 3/3 | Complete    | 2026-05-30 |
-| 105. Collection Integration | v0.4.0 | 2/2 | Complete    | 2026-05-30 |
-| 106. Army List Simplification | v0.4.0 | 2/2 | Complete    | 2026-05-30 |
-| 107. Cleanup & Pipeline | v0.4.0 | 2/2 | Complete    | 2026-05-31 |
+| 103. Data Acquisition & Schema | v0.4.0 | 3/3 | Complete | 2026-05-29 |
+| 104. Database Browser UI | v0.4.0 | 3/3 | Complete | 2026-05-30 |
+| 105. Collection Integration | v0.4.0 | 2/2 | Complete | 2026-05-30 |
+| 106. Army List Simplification | v0.4.0 | 2/2 | Complete | 2026-05-30 |
+| 107. Cleanup & Pipeline | v0.4.0 | 2/2 | Complete | 2026-05-31 |
+| 108. Build Script Hardening & Schema Foundation | v0.4.2 | 0/? | Not started | - |
+| 109. Sub-faction Filter UI | v0.4.2 | 0/? | Not started | - |
+| 110. PlaybookTab & Game Day Revival | v0.4.2 | 0/? | Not started | - |
+| 111. Bilingual Infrastructure | v0.4.2 | 0/? | Not started | - |
+
+<details>
+<summary>✅ v0.2.14 Backup 2.0 (Phases 79-83) — SHIPPED 2026-05-19</summary>
+
+- [x] Phase 79: Rust Backup Foundation (2/2 plans) — completed 2026-05-18
+- [x] Phase 80: Export UI + Backup Status (2/2 plans) — completed 2026-05-18
+- [x] Phase 81: Restore Preview + Validation (2/2 plans) — completed 2026-05-18
+- [x] Phase 82: Restore Execution + Safety Backups (3/3 plans) — completed 2026-05-19
+- [x] Phase 83: Backup Diagnostics (2/2 plans) — completed 2026-05-19
+
+Full details: `.planning/milestones/v0.2.14-ROADMAP.md`
+
+</details>
+
+<details>
+<summary>✅ v0.2.8 Rules Data Hub UI / Army Lists 2.0 / Game Day (Phases 52-56) — SHIPPED 2026-05-11</summary>
+
+- [x] Phase 52: Schema + Data Layer Foundation (3/3 plans) — completed 2026-05-10
+- [x] Phase 53: Rules Data Hub UI (3/3 plans) — completed 2026-05-11
+- [x] Phase 54: Army Lists 2.0 — Detachment Selection (2/2 plans) — completed 2026-05-11
+- [x] Phase 55: Playbook Enhancements — Favorites and Notes (2/2 plans) — completed 2026-05-11
+- [x] Phase 56: Game Day Mode (2/2 plans) — completed 2026-05-11
+
+Full details: `.planning/milestones/v0.2.8-ROADMAP.md`
+
+</details>
+
+<details>
+<summary>✅ v0.2.9 Recipes 3.1 / Workflow Semantics & Integrations (Phases 57-60) — SHIPPED 2026-05-12</summary>
+
+- [x] Phase 57: Schema & Data Layer - Migration + types + queries for workflow metadata columns and session section linking
+- [x] Phase 58: Recipe Form & Timeline Display - Workflow metadata editing with progressive disclosure and compact timeline badges (2/2 plans) — completed 2026-05-12
+- [x] Phase 59: Session Section Cascade - LogSessionSheet 3-level cascading selector (recipe -> section -> step) (2/2 plans) — completed 2026-05-12
+- [x] Phase 60: Kanban & CurrentFocus Integration - Section-aware workflow display on project cards and dashboard focus (2/2 plans) — completed 2026-05-12
+
+Full details: `.planning/milestones/v0.2.9-ROADMAP.md`
+
+</details>
+
+<details>
+<summary>✅ v0.2.10 Applied Recipes, Points Import & List Validation (Phases 61-67) — SHIPPED 2026-05-13</summary>
+
+- [x] Phase 61: Recipe Workflow Hardening (2/2 plans) — completed 2026-05-13
+- [x] Phase 62: Applied Recipe Data Layer (2/2 plans) — completed 2026-05-13
+- [x] Phase 63: Applied Recipe UX (3/3 plans) — completed 2026-05-13
+- [x] Phase 64: Applied Recipe Integrations (3/3 plans) — completed 2026-05-13
+- [x] Phase 65: Points Import Pipeline (3/3 plans) — completed 2026-05-13
+- [x] Phase 66: Army List Validation (3/3 plans) — completed 2026-05-13
+- [x] Phase 67: Game Day Integration (1/1 plans) — completed 2026-05-13
+
+Full details: `.planning/milestones/v0.2.10-ROADMAP.md`
+
+</details>
 
 <details>
 <summary>✅ v0.1.1 HobbyForge MVP (Phases 1-5) — SHIPPED 2024-05-01</summary>

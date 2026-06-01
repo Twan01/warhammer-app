@@ -75,35 +75,35 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DQ-01 | — | Pending |
-| DQ-02 | — | Pending |
-| DQ-03 | — | Pending |
-| DQ-04 | — | Pending |
-| DQ-05 | — | Pending |
-| DQ-06 | — | Pending |
-| DQ-07 | — | Pending |
-| SF-01 | — | Pending |
-| SF-02 | — | Pending |
-| SF-03 | — | Pending |
-| SF-04 | — | Pending |
-| SF-05 | — | Pending |
-| SF-06 | — | Pending |
-| INT-01 | — | Pending |
-| INT-02 | — | Pending |
-| INT-03 | — | Pending |
-| INT-04 | — | Pending |
-| FR-01 | — | Pending |
-| FR-02 | — | Pending |
-| FR-03 | — | Pending |
-| FR-04 | — | Pending |
-| FR-05 | — | Pending |
-| FR-06 | — | Pending |
+| DQ-01 | Phase 108 | Pending |
+| DQ-02 | Phase 108 | Pending |
+| DQ-03 | Phase 108 | Pending |
+| DQ-04 | Phase 108 | Pending |
+| DQ-05 | Phase 108 | Pending |
+| DQ-06 | Phase 108 | Pending |
+| DQ-07 | Phase 108 | Pending |
+| SF-01 | Phase 108 | Pending |
+| SF-02 | Phase 108 | Pending |
+| SF-03 | Phase 109 | Pending |
+| SF-04 | Phase 109 | Pending |
+| SF-05 | Phase 109 | Pending |
+| SF-06 | Phase 109 | Pending |
+| INT-01 | Phase 110 | Pending |
+| INT-02 | Phase 110 | Pending |
+| INT-03 | Phase 110 | Pending |
+| INT-04 | Phase 110 | Pending |
+| FR-01 | Phase 108 | Pending |
+| FR-02 | Phase 111 | Pending |
+| FR-03 | Phase 111 | Pending |
+| FR-04 | Phase 111 | Pending |
+| FR-05 | Phase 111 | Pending |
+| FR-06 | Phase 108 | Pending |
 
 **Coverage:**
 - v0.4.2 requirements: 23 total
-- Mapped to phases: 0
-- Unmapped: 23 ⚠️
+- Mapped to phases: 23
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-06-01*
-*Last updated: 2026-06-01 after initial definition*
+*Last updated: 2026-06-01 — traceability mapped after roadmap creation*
