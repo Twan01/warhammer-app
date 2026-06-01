@@ -1,0 +1,54 @@
+{
+  "factions": {
+    "SM": "Space Marines",
+    "NEC": "Nécrons",
+    "AE": "Aeldari",
+    "AM": "Astra Militarum",
+    "CSM": "Space Marines du Chaos",
+    "TYR": "Tyranides",
+    "ORK": "Orks",
+    "DRU": "Drukhari",
+    "GK": "Chevaliers Gris",
+    "AC": "Adeptus Custodes",
+    "AS": "Adepta Sororitas",
+    "AdM": "Adeptus Mechanicus",
+    "DG": "Garde de la Mort",
+    "TS": "Mille Fils",
+    "CD": "Démons du Chaos",
+    "WE": "World Eaters",
+    "GC": "Cultes Genestealer",
+    "TAU": "Empire T'au",
+    "LoV": "Ligues de Votann",
+    "QI": "Chevaliers Impériaux",
+    "QT": "Chevaliers du Chaos",
+    "AoI": "Agents Impériaux"
+  },
+  "units": {
+    "000000882": "Garde Custodien",
+    "000001446": "Trajann Valoris",
+    "000001447": "Capitaine-Bouclier"
+  },
+  "abilities": {
+    "000000001:Might is Right": {
+      "name_fr": "La Force Fait Loi",
+      "description_fr": "Tant que ce modèle dirige une unité, à chaque fois qu'un modèle de cette unité effectue une attaque de mêlée, ajoutez 1 au jet de touche."
+    }
+  },
+  "weapons": {
+    "000000882:Guardian spear": "Lance gardienne"
+  },
+  "keywords": {
+    "INFANTRY": "INFANTERIE",
+    "CHARACTER": "PERSONNAGE",
+    "MONSTER": "MONSTRE",
+    "VEHICLE": "VÉHICULE",
+    "CAVALRY": "CAVALERIE",
+    "FLY": "VOL",
+    "WALKER": "MARCHEUR",
+    "BATTLELINE": "LIGNE DE BATAILLE",
+    "CHAOS": "CHAOS",
+    "IMPERIUM": "IMPÉRIUM",
+    "PSYKER": "PSYKER",
+    "GRENADES": "GRENADES"
+  }
+}

@@ -448,9 +448,9 @@ describe("PlaybookTab  -- Weapons section (Phase 15 wargear)", () => {
     renderInsideTabs(42);
     await screen.findByText("Weapons");
     expect(screen.getByText("Bolt Rifle")).toBeInTheDocument();
-    // range: "24" â†’ displayed as 24"
-    expect(screen.getByText(‘24"’)).toBeInTheDocument();
-    // A: "2", BS_WS: "3" â†’ displayed as "3+" in the weapon table; stat block also shows "3+" for Sv
+    // range: "24" -> displayed as 24"
+    expect(screen.getByText('24"')).toBeInTheDocument();
+    // A: "2", BS_WS: "3" -> displayed as "3+" in the weapon table; stat block also shows "3+" for Sv
     // Use getAllByText since statValue fallback now renders canonical Sv stat AND weapon skill both as "3+"
     expect(screen.getAllByText("3+").length).toBeGreaterThanOrEqual(1);
   });

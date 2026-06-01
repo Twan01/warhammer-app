@@ -130,6 +130,18 @@ export interface CoverageReport {
   unmatched_units: Array<{ name: string; faction_id: string }>;
 }
 
+// ---------------------------------------------------------------------------
+// Translation overlay types
+// ---------------------------------------------------------------------------
+
+export interface TranslationsFrOverlay {
+  factions?: Record<string, string>;
+  units?: Record<string, string>;
+  abilities?: Record<string, { name_fr?: string | null; description_fr?: string | null }>;
+  weapons?: Record<string, string>;
+  keywords?: Record<string, string>;
+}
+
 export interface UnitDatabaseJson {
   version: string;
   built_at: string;

@@ -29,6 +29,8 @@ Thumbs.db
 scripts/data/
 # Exception: aliases.json is manually curated and committed
 !scripts/data/aliases.json
+# Exception: translations_fr.json is a manually curated translation overlay
+!scripts/data/translations_fr.json
 # Exception: coverage-report.json is a build artifact tracked for diagnostics
 !scripts/data/coverage-report.json
 
