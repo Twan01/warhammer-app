@@ -177,8 +177,7 @@ export function ArmyListDetailSheet({
       { army_list_unit_id: armyListUnitId, list_id: list.id },
       {
         onSuccess: () => toast.success("Unit removed."),
-        onError: (err) => {
-          console.error("[ArmyListDetailSheet] Failed to remove unit:", err);
+        onError: () => {
           toast.error("Failed to remove unit. Please try again.");
         },
       },
@@ -200,8 +199,7 @@ export function ArmyListDetailSheet({
       },
       {
         onSuccess: () => toast.success("Notes saved."),
-        onError: (err) => {
-          console.error("[ArmyListDetailSheet] Failed to save notes:", err);
+        onError: () => {
           toast.error("Failed to save notes. Please try again.");
         },
       },
@@ -231,8 +229,7 @@ export function ArmyListDetailSheet({
       const text = buildClipboardText(data);
       await writeText(text);
       toast.success("List copied to clipboard");
-    } catch (err) {
-      console.error("[ArmyListDetailSheet] Clipboard copy failed:", err);
+    } catch {
       toast.error("Failed to copy — check clipboard permissions");
     }
   }, [list, units, listEnhancements, faction]);
@@ -250,8 +247,7 @@ export function ArmyListDetailSheet({
       if (!destination) return; // user cancelled
       await writeTextFile(destination, jsonString);
       toast.success("List saved as JSON");
-    } catch (err) {
-      console.error("[ArmyListDetailSheet] JSON save failed:", err);
+    } catch {
       toast.error("Failed to save JSON — check file permissions");
     }
   }, [list, units, listEnhancements, faction]);
@@ -351,8 +347,7 @@ export function ArmyListDetailSheet({
         bytes: Array.from(new Uint8Array(buffer)),
       });
       toast.success("List saved as PDF");
-    } catch (err) {
-      console.error("[ArmyListDetailSheet] PDF export failed:", err);
+    } catch {
       toast.error("Failed to generate PDF");
     }
   }, [list, units, listEnhancements, faction]);
