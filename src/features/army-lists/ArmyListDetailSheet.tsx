@@ -463,7 +463,7 @@ export function ArmyListDetailSheet({
                             onConfigure={() => onConfigureUnit(alu.id)}
                             onEnhance={() => onEnhanceUnit(alu.id)}
                             onAttachLeader={() => onAttachLeader(alu.id)}
-                            onToggleWarlord={() => {}}
+                            onToggleWarlord={undefined}
                             enhancementName={(listEnhancements ?? []).find((le) => le.army_list_unit_id === alu.id)?.enhancement_name}
                             isIndentedLeader={isIndentedLeader}
                             leaderName={leaderNameMap.get(alu.id)}

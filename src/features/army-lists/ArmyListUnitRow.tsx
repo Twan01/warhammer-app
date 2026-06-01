@@ -35,7 +35,7 @@ interface ArmyListUnitRowProps {
   onConfigure: () => void;
   onEnhance: () => void;
   onAttachLeader: () => void;
-  onToggleWarlord: () => void;
+  onToggleWarlord?: () => void;
   enhancementName?: string;
   isIndentedLeader?: boolean;
   leaderName?: string;
@@ -170,16 +170,18 @@ export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, onRemove, o
                 <GripVertical className="h-4 w-4" />
               </span>
             )}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className={`h-6 w-6 mr-1 ${unit.is_warlord === 1 ? "text-yellow-500" : "text-muted-foreground/40 hover:text-yellow-500"}`}
-              onClick={onToggleWarlord}
-              aria-label={unit.is_warlord === 1 ? "Remove warlord designation" : "Set as warlord"}
-            >
-              <Crown className="h-3.5 w-3.5" />
-            </Button>
+            {onToggleWarlord && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className={`h-6 w-6 mr-1 ${unit.is_warlord === 1 ? "text-yellow-500" : "text-muted-foreground/40 hover:text-yellow-500"}`}
+                onClick={onToggleWarlord}
+                aria-label={unit.is_warlord === 1 ? "Remove warlord designation" : "Set as warlord"}
+              >
+                <Crown className="h-3.5 w-3.5" />
+              </Button>
+            )}
             {warnings.hard.length > 0 ? (
               <Tooltip>
                 <TooltipTrigger asChild>
