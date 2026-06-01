@@ -2,9 +2,10 @@
 gsd_state_version: 1.0
 milestone: v0.4.2
 milestone_name: Unit Database 2.0 — Data Quality, Sub-factions & Integration
-status: phase_complete
-last_updated: "2026-06-01"
-last_activity: 2026-06-01
+status: executing
+stopped_at: Phase 110 context gathered
+last_updated: "2026-06-01T10:30:06.962Z"
+last_activity: 2026-06-01 — Completed 108-03 (migration 041, Rust import, coverage UI)
 progress:
   total_phases: 4
   completed_phases: 1
@@ -93,7 +94,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-01
-Stopped at: Phase 109 context gathered
-Resume file: .planning/phases/109-sub-faction-filter-ui/109-CONTEXT.md
+Last session: 2026-06-01T10:30:06.954Z
+Stopped at: Phase 110 context gathered
+Resume file: .planning/phases/110-playbooktab-game-day-revival/110-CONTEXT.md
 Resume: Continue Phase 109 with /gsd:plan-phase 109
