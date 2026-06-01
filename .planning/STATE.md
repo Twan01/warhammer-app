@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.4.2
 milestone_name: Unit Database 2.0 — Data Quality, Sub-factions & Integration
-status: ready_to_plan
-stopped_at: Phase 110 complete (3/3) — ready to discuss Phase 111
-last_updated: 2026-06-01T12:17:32.892Z
-last_activity: 2026-06-01 -- Phase 111 execution started
+status: executing
+stopped_at: Phase 111 Plan 01 executed — FR-02 overlay loading complete
+last_updated: "2026-06-01T14:20:00.000Z"
+last_activity: 2026-06-01
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 11
-  completed_plans: 8
+  completed_plans: 9
   percent: 75
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-01)
 
 ## Current Position
 
-Phase: 111
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-06-01
+Phase: 111 (Bilingual Infrastructure) — EXECUTING
+Plan: 1 of 3 — COMPLETE
+Status: Executing Phase 111
+Last activity: 2026-06-01 — Phase 111 Plan 01 complete (FR-02 overlay loading)
 
 Progress: [███████░░░] 73%
 
@@ -47,6 +47,10 @@ Progress: [███████░░░] 73%
 
 ### Key Decisions (v0.4.2)
 
+- translations_fr.json overlay uses composite key format '${unit_id}:${name}' for abilities/weapons (name-based, not line_order)
+- loadTranslationsFr() inlined in build-unit-db.ts (not exported from lib/); graceful degrade on missing/malformed file
+- Step 10.5 overlay applied after all entity mutations and before JSON assembly — per RESEARCH Pitfall 5
+- translations_fr.json added via .gitignore force-exception matching aliases.json pattern
 - SUB_FACTION_MAP covers 17 entries: 11 SM chapters, 4 CSM warbands, 2 Aeldari sub-factions
 - aliases.json starts empty; populated iteratively after coverage analysis
 - Added .gitignore exception for aliases.json since scripts/data/ is globally ignored
@@ -96,7 +100,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-01T11:59:58.803Z
-Stopped at: Phase 109 executed — verification passed (human_needed for 5 UI items)
+Last session: 2026-06-01T14:20:00.000Z
+Stopped at: Phase 111 Plan 01 complete — FR-02 overlay loading delivered
 Resume file: None
-Resume: Human-test Phase 109 UI, then /gsd:discuss-phase 110 --auto
+Resume: Execute Phase 111 Plan 02 (locale-aware query layer)
