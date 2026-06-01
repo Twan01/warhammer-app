@@ -127,3 +127,18 @@ export async function deleteUnit(id: number): Promise<void> {
   await db.execute("DELETE FROM units WHERE id = $1", [id]);
   // FK violation throws — caller catches via error message
 }
+
+/**
+ * Link a collection unit to a canonical UDB datasheet entry.
+ * Pass null to unlink.
+ */
+export async function linkUdbUnit(
+  unitId: number,
+  udbUnitId: string | null,
+): Promise<void> {
+  const db = await getDb();
+  await db.execute("UPDATE units SET udb_unit_id = $1 WHERE id = $2", [
+    udbUnitId,
+    unitId,
+  ]);
+}

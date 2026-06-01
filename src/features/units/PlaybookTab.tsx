@@ -20,7 +20,8 @@ import { DatasheetPicker } from "@/features/units/DatasheetPicker";
 import { TierManager } from "@/features/units/TierManager";
 import { LoadoutSection } from "@/features/units/LoadoutSection";
 import { getUdbUnitDetail } from "@/db/queries/unitDatabase";
-import { getDb } from "@/db/client";
+import { linkUdbUnit } from "@/db/queries/units";
+import { UNITS_KEY, UNITS_ENRICHED_KEY } from "@/hooks/useUnits";
 import type { UdbUnitDetail } from "@/db/queries/unitDatabase";
 
 interface PlaybookTabProps {
@@ -146,9 +147,10 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
     setPickerOpen(false);
     try {
       // Link via udb_unit_id on the units table
-      const db = await getDb();
-      await db.execute("UPDATE units SET udb_unit_id = $1 WHERE id = $2", [datasheetId, unitId]);
+      await linkUdbUnit(unitId, datasheetId);
       qc.invalidateQueries({ queryKey: DATASHEET_KEY(unitId) });
+      qc.invalidateQueries({ queryKey: UNITS_KEY });
+      qc.invalidateQueries({ queryKey: UNITS_ENRICHED_KEY });
       const fresh = await getUdbUnitDetail(datasheetId);
       if (!fresh) { toast.error("Unit not found in database."); return; }
       applyIncomingStats(fresh);
