@@ -296,6 +296,15 @@ async function main() {
   const points: UdbUnitPointsRow[] = [];
   const composition: UdbUnitCompositionRow[] = [];
 
+  // BPH-01: Per-faction match method counter map (initialized per faction)
+  const factionMatchStats = new Map<string, { exact: number; normalized: number; alias: number }>();
+  for (const faction of factions) {
+    factionMatchStats.set(faction.id, { exact: 0, normalized: 0, alias: 0 });
+  }
+
+  // BPH-04: Accumulate all BSData datasheet names seen (for alias validation)
+  const allBsdataNames = new Set<string>();
+
   if (catFiles.length > 0) {
     // 8a. Extract points tiers with multi-pass matching (D-01)
     const seenPoints = new Set<string>();
@@ -312,6 +321,9 @@ async function main() {
       const altFactionId = CROSS_FACTION_MAP[catFile.catalogueName] ?? null;
 
       for (const bsdataUnit of bsdataUnits) {
+        // BPH-04: Collect ALL BSData names regardless of match result
+        allBsdataNames.add(bsdataUnit.datasheet_name);
+
         // Multi-pass matching: exact -> normalized -> alias (D-01)
         let result = matchUnit(bsdataUnit.datasheet_name, bsdataUnit.faction_id, aliases, unitByNameFaction);
 
@@ -331,6 +343,12 @@ async function main() {
           normalizedMatches++;
         } else {
           aliasMatches++;
+        }
+
+        // BPH-01: Per-faction match method tracking
+        const factionStat = factionMatchStats.get(unit.faction_id);
+        if (factionStat) {
+          factionStat[method]++;
         }
 
         // Sub-faction population (D-09/SF-01/SF-02)
@@ -462,20 +480,29 @@ async function main() {
     const withPoints = factionUnits.filter((u) => unitsWithPointsSet.has(u.id)).length;
     const coveragePct = totalUnits > 0 ? Math.round((withPoints / totalUnits) * 1000) / 10 : 0;
 
+    // BPH-01: Collect unmatched names for this faction
+    const factionUnmatchedNames: string[] = [];
+    for (const u of factionUnits) {
+      if (!unitsWithPointsSet.has(u.id)) {
+        factionUnmatchedNames.push(u.name);
+        unmatchedUnits.push({ name: u.name, faction_id: u.faction_id });
+      }
+    }
+
+    // BPH-01: Get per-faction match method stats
+    const stats = factionMatchStats.get(faction.id) ?? { exact: 0, normalized: 0, alias: 0 };
+
     factionCoverages.push({
       faction_id: faction.id,
       faction_name: faction.name,
       total_units: totalUnits,
       units_with_points: withPoints,
       coverage_pct: coveragePct,
+      matched_exact: stats.exact,
+      matched_normalized: stats.normalized,
+      matched_alias: stats.alias,
+      unmatched_names: factionUnmatchedNames,
     });
-
-    // Collect unmatched units for this faction
-    for (const u of factionUnits) {
-      if (!unitsWithPointsSet.has(u.id)) {
-        unmatchedUnits.push({ name: u.name, faction_id: u.faction_id });
-      }
-    }
   }
 
   const overallWithPoints = unitsWithPointsSet.size;
@@ -495,31 +522,58 @@ async function main() {
   writeFileSync(COVERAGE_PATH, JSON.stringify(coverageReport, null, 2), "utf-8");
   console.log("  Written: " + COVERAGE_PATH);
 
-  // Print per-faction coverage table
+  // Print per-faction coverage table (BPH-01: enhanced with match method columns)
   console.log("");
   console.log("=== Points Coverage ===");
-  console.log("  " + "Faction".padEnd(40) + "Units".padStart(8) + "Points".padStart(8) + "Coverage".padStart(10));
-  console.log("  " + "-".repeat(66));
+  console.log(
+    "  " +
+    "Faction".padEnd(40) +
+    "Units".padStart(7) +
+    "Matched".padStart(9) +
+    "Exact".padStart(7) +
+    "Norm".padStart(6) +
+    "Alias".padStart(7) +
+    "Coverage".padStart(10)
+  );
+  console.log("  " + "-".repeat(86));
   for (const fc of factionCoverages) {
     const badge = fc.coverage_pct >= 85 ? " [OK]" : fc.coverage_pct >= 50 ? " [!]" : " [X]";
+    const matched = (fc.matched_exact ?? 0) + (fc.matched_normalized ?? 0) + (fc.matched_alias ?? 0);
     console.log(
       "  " +
       fc.faction_name.padEnd(40) +
-      String(fc.total_units).padStart(8) +
-      String(fc.units_with_points).padStart(8) +
+      String(fc.total_units).padStart(7) +
+      String(matched).padStart(9) +
+      String(fc.matched_exact ?? 0).padStart(7) +
+      String(fc.matched_normalized ?? 0).padStart(6) +
+      String(fc.matched_alias ?? 0).padStart(7) +
       (fc.coverage_pct.toFixed(1) + "%").padStart(10) +
       badge
     );
   }
-  console.log("  " + "-".repeat(66));
+  console.log("  " + "-".repeat(86));
   console.log(
     "  " +
     "OVERALL".padEnd(40) +
-    String(units.length).padStart(8) +
-    String(overallWithPoints).padStart(8) +
+    String(units.length).padStart(7) +
+    "".padStart(9) +
+    "".padStart(7) +
+    "".padStart(6) +
+    "".padStart(7) +
     (overallCoveragePct.toFixed(1) + "%").padStart(10)
   );
   console.log("  Unmatched units: " + unmatchedUnits.length);
+  console.log("");
+
+  // BPH-01: Print unmatched unit names grouped by faction (D-02)
+  for (const fc of factionCoverages) {
+    if (fc.unmatched_names && fc.unmatched_names.length > 0) {
+      console.log("  " + fc.faction_name + " — " + fc.unmatched_names.length + " unmatched:");
+      for (const name of fc.unmatched_names) {
+        console.log("    - " + name);
+      }
+    }
+  }
   console.log("");
 
   // Sub-faction stats
@@ -593,6 +647,36 @@ async function main() {
   console.log("  Points tiers:    " + points.length);
   console.log("  Composition:     " + composition.length);
   console.log("");
+
+  // ---------------------------------------------------------------------------
+  // BPH-02: Deterministic output sorting (D-03)
+  // Sort BEFORE hash computation so the hash itself is deterministic.
+  // ---------------------------------------------------------------------------
+  factions.sort((a, b) => a.id.localeCompare(b.id));
+  units.sort((a, b) => a.id.localeCompare(b.id));
+  models.sort((a, b) => {
+    const c = a.unit_id.localeCompare(b.unit_id);
+    return c !== 0 ? c : a.line_order - b.line_order;
+  });
+  weapons.sort((a, b) => {
+    const c = a.unit_id.localeCompare(b.unit_id);
+    if (c !== 0) return c;
+    const g = a.weapon_group - b.weapon_group;
+    return g !== 0 ? g : a.line_order - b.line_order;
+  });
+  abilities.sort((a, b) => {
+    const c = a.unit_id.localeCompare(b.unit_id);
+    return c !== 0 ? c : a.line_order - b.line_order;
+  });
+  keywords.sort((a, b) => {
+    const c = a.unit_id.localeCompare(b.unit_id);
+    return c !== 0 ? c : a.keyword.localeCompare(b.keyword);
+  });
+  points.sort((a, b) => {
+    const c = a.unit_id.localeCompare(b.unit_id);
+    return c !== 0 ? c : a.model_count - b.model_count;
+  });
+  composition.sort((a, b) => a.unit_id.localeCompare(b.unit_id));
 
   // ---------------------------------------------------------------------------
   // Assemble and write output JSON (D-05)
