@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v0.4.5
 milestone_name: Data Quality Audit & Pipeline Improvement
-status: planning
-last_updated: "2026-06-02T06:25:30.665Z"
+status: roadmapped
+last_updated: "2026-06-02T00:00:00.000Z"
 last_activity: 2026-06-02
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,32 +17,36 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-01)
+See: .planning/PROJECT.md (updated 2026-06-02)
 
-**Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with official points via bundled canonical database for personal use, and reliable backup/restore so local data is always recoverable
-**Current focus:** Planning next milestone
+**Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore so local data is always recoverable
+**Current focus:** Phase 112 — Build Pipeline Hardening
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 112 (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-02 — Milestone v0.4.5 started
+Status: Roadmap defined, ready to plan Phase 112
+Last activity: 2026-06-02 — Roadmap created for v0.4.5
+
+```
+[░░░░░░░░░░░░░░░░░░░░] 0% — 0/4 phases complete
+```
 
 ## Performance Metrics
 
 **Velocity (recent milestones):**
 
+- v0.4.2: 11 plans across 4 phases (single day)
 - v0.4.0: 12 plans across 5 phases (3 days)
 - v0.3.7: 6 plans across 3 phases (single day)
 - v0.3.0: 9 plans across 4 phases (single day)
 - v0.2.18: 14 plans across 7 phases (2 days)
 - v0.2.15: 11 plans across 5 phases (2 days)
-- v0.2.14: 11 plans across 5 phases (2 days)
 
 ## Accumulated Context
 
-### Key Decisions (v0.4.2)
+### Key Decisions (v0.4.2 — carried forward)
 
 - translations_fr.json overlay uses composite key format '${unit_id}:${name}' for abilities/weapons (name-based, not line_order)
 - loadTranslationsFr() inlined in build-unit-db.ts (not exported from lib/); graceful degrade on missing/malformed file
@@ -51,7 +55,7 @@ Last activity: 2026-06-02 — Milestone v0.4.5 started
 - SUB_FACTION_MAP covers 17 entries: 11 SM chapters, 4 CSM warbands, 2 Aeldari sub-factions
 - aliases.json starts empty; populated iteratively after coverage analysis
 - Added .gitignore exception for aliases.json since scripts/data/ is globally ignored
-- BSData Library .cat files must be included -- contain all points for AM/AE/CD/QT/QI/TL
+- BSData Library .cat files must be included — contain all points for AM/AE/CD/QT/QI/TL
 - Cross-faction matching for Drukhari (BSData AE -> Wahapedia DRU)
 - 85% Wahapedia coverage unachievable: BSData covers 62% of datasheets; match rate is 96.9%
 - 44 aliases for singular/plural and variant name mismatches
@@ -65,17 +69,17 @@ Last activity: 2026-06-02 — Milestone v0.4.5 started
 - ON DELETE SET NULL for units.udb_unit_id — collection units survive re-import
 - FK-based points resolution replacing synced_unit_points cache
 
-### Key Constraints (v0.4.2 — from research)
+### Key Constraints (v0.4.5 — from requirements)
 
-- Sub-factions: denormalized `sub_faction TEXT` on `udb_units` only — new `udb_factions` rows break FK backfill and army list joins
-- FTS5 cannot ALTER — must DROP+CREATE with import trigger or pipe French names into existing column
-- French `_fr` fields must travel in `unit_database.json` with `#[serde(default)]` in Rust or re-import wipes them
-- Game Day OPG keys must be `unit_id:ability_name` composites — AUTOINCREMENT IDs reassigned on re-import
-- Build script: apply `files.sort()` to both `build-unit-database.ts` and `update-unit-database.ts`
+- Data audit approach: cross-check against Wahapedia, GW app, and community sources — not automated
+- Pipeline fixes must be in build script code, not in aliases.json where possible (PFX-01/02 vs PFX-03)
+- Sub-faction filter: use `sub_faction IS NULL` to identify parent faction generic units (existing column)
+- French translation source: manual translations_fr.json overlay — no automated source exists
+- Audit order: SM first (largest faction), then Necrons, then Death Guard
 
 ### Pending Todos
 
-None.
+None — roadmap complete, ready to plan Phase 112.
 
 ### Open Blockers
 
@@ -92,13 +96,11 @@ None.
 | v2 scope | ADV-02: Faction overview page | Deferred | v0.4.0 planning |
 | v2 scope | FR-EXT-01: French ability/weapon text | Deferred | v0.4.2 planning |
 | v2 scope | FR-EXT-02: Full app UI translation | Deferred | v0.4.2 planning |
-| Phase 110-playbooktab-game-day-revival P01 | 12m | 1 tasks | 4 files |
-| Phase 110 P03 | 15 | 2 tasks | 0 files |
-| Phase 111 P02 | 15m | 2 tasks | 6 files |
+| v0.4.5 out of scope | EFA-01..03: Extended faction audits (22 remaining factions) | Future milestone | v0.4.5 planning |
 
 ## Session Continuity
 
-Last session: 2026-06-01T12:44:31.790Z
-Stopped at: Phase 111 Plan 01 complete — FR-02 overlay loading delivered
+Last session: 2026-06-02
+Stopped at: Roadmap defined for v0.4.5 (4 phases, 24 requirements)
 Resume file: None
-Resume: Execute Phase 111 Plan 02 (locale-aware query layer)
+Resume: Run `/gsd:plan-phase 112` to create the execution plan for Phase 112

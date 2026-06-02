@@ -81,36 +81,36 @@ Requirements for Data Quality Audit & Pipeline Improvement milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BPH-01 | — | Pending |
-| BPH-02 | — | Pending |
-| BPH-03 | — | Pending |
-| BPH-04 | — | Pending |
-| BPH-05 | — | Pending |
-| SM-01 | — | Pending |
-| SM-02 | — | Pending |
-| SM-03 | — | Pending |
-| SM-04 | — | Pending |
-| NEC-01 | — | Pending |
-| NEC-02 | — | Pending |
-| NEC-03 | — | Pending |
-| NEC-04 | — | Pending |
-| DG-01 | — | Pending |
-| DG-02 | — | Pending |
-| DG-03 | — | Pending |
-| DG-04 | — | Pending |
-| PFX-01 | — | Pending |
-| PFX-02 | — | Pending |
-| PFX-03 | — | Pending |
-| PFX-04 | — | Pending |
-| SUB-01 | — | Pending |
-| SUB-02 | — | Pending |
-| SUB-03 | — | Pending |
+| BPH-01 | Phase 112 | Pending |
+| BPH-02 | Phase 112 | Pending |
+| BPH-03 | Phase 112 | Pending |
+| BPH-04 | Phase 112 | Pending |
+| BPH-05 | Phase 112 | Pending |
+| SM-01 | Phase 113 | Pending |
+| SM-02 | Phase 113 | Pending |
+| SM-03 | Phase 113 | Pending |
+| SM-04 | Phase 113 | Pending |
+| NEC-01 | Phase 113 | Pending |
+| NEC-02 | Phase 113 | Pending |
+| NEC-03 | Phase 113 | Pending |
+| NEC-04 | Phase 113 | Pending |
+| DG-01 | Phase 113 | Pending |
+| DG-02 | Phase 113 | Pending |
+| DG-03 | Phase 113 | Pending |
+| DG-04 | Phase 113 | Pending |
+| PFX-01 | Phase 114 | Pending |
+| PFX-02 | Phase 114 | Pending |
+| PFX-03 | Phase 114 | Pending |
+| PFX-04 | Phase 114 | Pending |
+| SUB-01 | Phase 115 | Pending |
+| SUB-02 | Phase 115 | Pending |
+| SUB-03 | Phase 115 | Pending |
 
 **Coverage:**
 - v0.4.5 requirements: 24 total
-- Mapped to phases: 0
-- Unmapped: 24
+- Mapped to phases: 24
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-02*
-*Last updated: 2026-06-02 after initial definition*
+*Last updated: 2026-06-02 — traceability updated after roadmap creation*
