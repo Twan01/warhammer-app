@@ -49,6 +49,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const REPO_ROOT = join(__dirname, "..");
 
+/**
+ * BPH-05: Minimum acceptable overall coverage percentage.
+ *
+ * Current coverage is ~60.1%. This threshold is set to 55 (safely below current)
+ * to catch regressions without blocking normal builds.
+ *
+ * Raise this threshold after Phase 113/114 audit work improves coverage.
+ * Target: 90% after all faction audits complete.
+ */
+const MIN_COVERAGE_PCT = 55;
+
 // ---------------------------------------------------------------------------
 // Data directory paths
 // ---------------------------------------------------------------------------
@@ -92,6 +103,44 @@ function loadTranslationsFr(): TranslationsFrOverlay | null {
     console.warn("WARNING: Failed to parse translations_fr.json:", e);
     return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// BPH-04: Alias validation
+// ---------------------------------------------------------------------------
+
+/**
+ * Validates the aliases.json entries against the set of BSData names seen
+ * in .cat files and the Wahapedia unit map.
+ *
+ * Returns counts of: used aliases, unused (stale) aliases, and aliases whose
+ * Wahapedia target name is not found in the unit map.
+ */
+function validateAliases(
+  aliases: Record<string, string>,
+  allBsdataNames: Set<string>,
+  unitByNameFaction: Map<string, UdbUnitRow>
+): { used: number; unused: string[]; unknownTargets: string[] } {
+  const unused: string[] = [];
+  const unknownTargets: string[] = [];
+  let used = 0;
+
+  for (const [bsdataName, wahapediaName] of Object.entries(aliases)) {
+    const inBsdata = allBsdataNames.has(bsdataName);
+    const targetExists = [...unitByNameFaction.keys()].some((key) =>
+      key.startsWith(wahapediaName.toLowerCase() + ":")
+    );
+
+    if (!inBsdata) {
+      unused.push(bsdataName);
+    } else if (!targetExists) {
+      unknownTargets.push(`"${bsdataName}" -> "${wahapediaName}"`);
+    } else {
+      used++;
+    }
+  }
+
+  return { used, unused, unknownTargets };
 }
 
 // ---------------------------------------------------------------------------
@@ -418,6 +467,28 @@ async function main() {
   }
 
   // ---------------------------------------------------------------------------
+  // BPH-04: Alias validation
+  // ---------------------------------------------------------------------------
+  console.log("");
+  console.log("Step 8c: Validating aliases...");
+  {
+    const { used, unused, unknownTargets } = validateAliases(aliases, allBsdataNames, unitByNameFaction);
+    if (unused.length > 0) {
+      console.warn("  UNUSED aliases (BSData name not in any .cat file):");
+      for (const name of unused) {
+        console.warn("    " + name);
+      }
+    }
+    if (unknownTargets.length > 0) {
+      console.warn("  UNKNOWN TARGET aliases (Wahapedia name not found):");
+      for (const entry of unknownTargets) {
+        console.warn("    " + entry);
+      }
+    }
+    console.log("  Alias validation: " + used + " used, " + unused.length + " unused, " + unknownTargets.length + " unknown target");
+  }
+
+  // ---------------------------------------------------------------------------
   // Validation (T-103-05: partial dataset detection)
   // ---------------------------------------------------------------------------
   console.log("");
@@ -575,6 +646,16 @@ async function main() {
     }
   }
   console.log("");
+
+  // BPH-05: Coverage failure threshold check (D-09, D-10)
+  // Uses overall (all factions combined) percentage, not per-faction.
+  if (overallCoveragePct < MIN_COVERAGE_PCT) {
+    console.error(
+      "ERROR: Overall coverage " + overallCoveragePct.toFixed(1) + "% is below minimum threshold of " + MIN_COVERAGE_PCT + "%"
+    );
+    console.error("This indicates a regression. Check BSData .cat files or Wahapedia CSV freshness.");
+    process.exit(1);
+  }
 
   // Sub-faction stats
   const unitsWithSubFaction = units.filter((u) => u.sub_faction !== null).length;
