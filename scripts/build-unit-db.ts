@@ -21,17 +21,16 @@ import { DOMParser } from "@xmldom/xmldom";
 // @ts-ignore - globalThis.DOMParser polyfill for Node.js
 globalThis.DOMParser = DOMParser as unknown as typeof globalThis.DOMParser;
 
-import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // Shared library imports
-import { parseWahapediaCsv } from "./lib/parseCsv.ts";
-import { parseCatXml, extractModelCounts } from "./lib/parseXml.ts";
-import { normalizeName, loadAliases } from "./lib/normalize.ts";
-import { FACTION_MAP, SUB_FACTION_MAP, CROSS_FACTION_MAP } from "./lib/factionMap.ts";
+import { parseCatXml } from "./lib/parseXml.ts";
+import { loadAliases } from "./lib/normalize.ts";
+import { SUB_FACTION_MAP, CROSS_FACTION_MAP } from "./lib/factionMap.ts";
+import { readCsvFile, readBsdataCatFiles, parseBsdataModelCounts, matchUnit } from "./lib/bsdata.ts";
 import type {
-  BsdataModelCount,
   UdbFactionRow,
   UdbUnitRow,
   UdbUnitModelRow,
@@ -75,12 +74,6 @@ const REQUIRED_CSVs = [
 // Helpers
 // ---------------------------------------------------------------------------
 
-function readCsv(filename: string): Record<string, string>[] {
-  const filepath = join(DATA_DIR, filename);
-  const raw = readFileSync(filepath, "utf-8");
-  return parseWahapediaCsv(raw);
-}
-
 /**
  * Load the French translation overlay from translations_fr.json.
  * Returns the overlay object if the file exists and is valid JSON.
@@ -99,88 +92,6 @@ function loadTranslationsFr(): TranslationsFrOverlay | null {
     console.warn("WARNING: Failed to parse translations_fr.json:", e);
     return null;
   }
-}
-
-function readBsdataCatFiles(): Array<{ xml: string; factionId: string | null; catalogueName: string }> {
-  if (!existsSync(BSDATA_DIR)) {
-    console.warn("WARNING: BSData directory not found: " + BSDATA_DIR);
-    console.warn("  Points tiers and composition data will be empty.");
-    console.warn("  To include: clone https://github.com/BSData/wh40k-10e");
-    console.warn("  and copy *.cat files to scripts/data/bsdata/");
-    return [];
-  }
-
-  // D-06: sort file list for deterministic output
-  // Include Library catalogues -- they contain unit points data for many factions
-  const files = readdirSync(BSDATA_DIR)
-    .filter((f) => f.endsWith(".cat"))
-    .sort();
-
-  if (files.length === 0) {
-    console.warn("WARNING: No .cat files found in " + BSDATA_DIR);
-    return [];
-  }
-
-  console.log("Reading " + files.length + " BSData .cat files...");
-  const entries: Array<{ xml: string; factionId: string | null; catalogueName: string }> = [];
-
-  for (const filename of files) {
-    try {
-      const xml = readFileSync(join(BSDATA_DIR, filename), "utf-8");
-      const catalogueName = filename.replace(/\.cat$/, "");
-      const factionId = FACTION_MAP[catalogueName] ?? null;
-      entries.push({ xml, factionId, catalogueName });
-    } catch (e) {
-      console.warn("WARNING: Failed to read " + filename + ":", e);
-    }
-  }
-
-  return entries;
-}
-
-function parseBsdataModelCounts(
-  catFiles: Array<{ xml: string; factionId: string | null; catalogueName: string }>
-): BsdataModelCount[] {
-  const results: BsdataModelCount[] = [];
-  for (const entry of catFiles) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(entry.xml, "text/xml") as unknown as Document;
-    results.push(...extractModelCounts(doc, entry.factionId));
-  }
-  return results;
-}
-
-// ---------------------------------------------------------------------------
-// Multi-pass matching (D-01: exact -> normalized -> alias)
-// ---------------------------------------------------------------------------
-
-function matchUnit(
-  bsdataName: string,
-  factionId: string,
-  aliases: Record<string, string>,
-  unitMap: Map<string, UdbUnitRow>
-): UdbUnitRow | undefined {
-  // Pass 1: exact lowercase match (current behavior)
-  const exactKey = bsdataName.toLowerCase() + ":" + factionId;
-  let unit = unitMap.get(exactKey);
-  if (unit) return unit;
-
-  // Pass 2: normalized match -- compare normalized names for matching faction_id
-  const normalizedBsdata = normalizeName(bsdataName);
-  for (const [key, u] of unitMap) {
-    if (key.endsWith(":" + factionId) && normalizeName(u.name) === normalizedBsdata) {
-      return u;
-    }
-  }
-
-  // Pass 3: alias table fallback
-  const aliasedName = aliases[bsdataName];
-  if (aliasedName) {
-    const aliasKey = aliasedName.toLowerCase() + ":" + factionId;
-    return unitMap.get(aliasKey);
-  }
-
-  return undefined;
 }
 
 // ---------------------------------------------------------------------------
@@ -213,7 +124,7 @@ async function main() {
 
   // 2. Parse Wahapedia Factions.csv -> udb_factions rows (D-04: reuse Wahapedia text IDs)
   console.log("Step 2: Parsing Factions.csv...");
-  const factionsRaw = readCsv("Factions.csv");
+  const factionsRaw = readCsvFile(DATA_DIR, "Factions.csv");
   const factions: UdbFactionRow[] = factionsRaw
     .filter((row) => row["id"] && row["name"])
     .map((row) => ({
@@ -229,7 +140,7 @@ async function main() {
 
   // 3. Parse Wahapedia Datasheets.csv -> udb_units rows (D-03: reuse Wahapedia string IDs)
   console.log("Step 3: Parsing Datasheets.csv...");
-  const datasheetsRaw = readCsv("Datasheets.csv");
+  const datasheetsRaw = readCsvFile(DATA_DIR, "Datasheets.csv");
   const units: UdbUnitRow[] = [];
   const validUnitIds = new Set<string>();
 
@@ -267,7 +178,7 @@ async function main() {
 
   // 4. Parse Datasheets_models.csv -> udb_unit_models rows
   console.log("Step 4: Parsing Datasheets_models.csv...");
-  const modelsRaw = readCsv("Datasheets_models.csv");
+  const modelsRaw = readCsvFile(DATA_DIR, "Datasheets_models.csv");
   const models: UdbUnitModelRow[] = [];
 
   for (const row of modelsRaw) {
@@ -291,7 +202,7 @@ async function main() {
 
   // 5. Parse Datasheets_wargear.csv -> udb_unit_weapons rows
   console.log("Step 5: Parsing Datasheets_wargear.csv...");
-  const wargearRaw = readCsv("Datasheets_wargear.csv");
+  const wargearRaw = readCsvFile(DATA_DIR, "Datasheets_wargear.csv");
   const weapons: UdbUnitWeaponRow[] = [];
 
   // Track weapon_group per unit: each new entry with line_order == 1 starts a new group
@@ -330,7 +241,7 @@ async function main() {
 
   // 6. Parse Datasheets_abilities.csv -> udb_unit_abilities rows
   console.log("Step 6: Parsing Datasheets_abilities.csv...");
-  const abilitiesRaw = readCsv("Datasheets_abilities.csv");
+  const abilitiesRaw = readCsvFile(DATA_DIR, "Datasheets_abilities.csv");
   const abilities: UdbUnitAbilityRow[] = [];
 
   for (const row of abilitiesRaw) {
@@ -351,7 +262,7 @@ async function main() {
 
   // 7. Parse Datasheets_keywords.csv -> udb_unit_keywords rows
   console.log("Step 7: Parsing Datasheets_keywords.csv...");
-  const keywordsRaw = readCsv("Datasheets_keywords.csv");
+  const keywordsRaw = readCsvFile(DATA_DIR, "Datasheets_keywords.csv");
   const keywords: UdbUnitKeywordRow[] = [];
   const seenKeywords = new Set<string>();
 
@@ -380,7 +291,7 @@ async function main() {
 
   // 8. Read and parse BSData .cat files for points tiers and composition
   console.log("Step 8: Reading BSData .cat files...");
-  const catFiles = readBsdataCatFiles();
+  const catFiles = readBsdataCatFiles(BSDATA_DIR);
 
   const points: UdbUnitPointsRow[] = [];
   const composition: UdbUnitCompositionRow[] = [];
@@ -402,20 +313,21 @@ async function main() {
 
       for (const bsdataUnit of bsdataUnits) {
         // Multi-pass matching: exact -> normalized -> alias (D-01)
-        let unit = matchUnit(bsdataUnit.datasheet_name, bsdataUnit.faction_id, aliases, unitByNameFaction);
+        let result = matchUnit(bsdataUnit.datasheet_name, bsdataUnit.faction_id, aliases, unitByNameFaction);
 
         // Cross-faction fallback: try alternate faction_id (e.g., DRU for Aeldari Library units)
-        if (!unit && altFactionId) {
-          unit = matchUnit(bsdataUnit.datasheet_name, altFactionId, aliases, unitByNameFaction);
+        if (!result && altFactionId) {
+          result = matchUnit(bsdataUnit.datasheet_name, altFactionId, aliases, unitByNameFaction);
         }
 
-        if (!unit) continue;
+        if (!result) continue;
 
-        // Track which pass matched (for diagnostics)
-        const exactKey = bsdataUnit.datasheet_name.toLowerCase() + ":" + bsdataUnit.faction_id;
-        if (unitByNameFaction.has(exactKey)) {
+        const { unit, method } = result;
+
+        // Track which pass matched (method comes from MatchResult, not re-derived)
+        if (method === "exact") {
           exactMatches++;
-        } else if (!aliases[bsdataUnit.datasheet_name]) {
+        } else if (method === "normalized") {
           normalizedMatches++;
         } else {
           aliasMatches++;
