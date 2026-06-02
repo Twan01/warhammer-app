@@ -119,6 +119,14 @@ export interface FactionCoverage {
   total_units: number;
   units_with_points: number;
   coverage_pct: number;
+  /** Number of BSData units matched via exact lowercase key (Plan 02 BPH-01). */
+  matched_exact?: number;
+  /** Number of BSData units matched via normalized name comparison (Plan 02 BPH-01). */
+  matched_normalized?: number;
+  /** Number of BSData units matched via aliases.json lookup (Plan 02 BPH-01). */
+  matched_alias?: number;
+  /** Names of BSData units that could not be matched to any Wahapedia unit (Plan 02 BPH-01). */
+  unmatched_names?: string[];
 }
 
 export interface CoverageReport {
