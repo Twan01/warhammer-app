@@ -6,9 +6,19 @@ HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby 
 
 Shipped through v0.4.2 (111 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps, transactional graph save, recipe_step_id-keyed progress), a dedicated Painting Mode for focused step-by-step recipe execution (distraction-free full-page layout, keyboard shortcuts, section navigator, paint readiness warnings, atomic step completion with session logging, 6 entry points), army list builder with detachment selection, FK-based points resolution from canonical database, smart list builder (loadout builder, wargear/model count editor, enhancements with points, leader attachment with preventive validation, ghost/planned units, 4-format export, version snapshots with save/compare/restore, battle-readiness badges in unit picker, budget-aware filtering), battle log with after-action capture (forgotten rules, MVP/underperformer notes), spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard, KanbanCards, NextPaintingActionCard, ReadyToPlayCard, and DataHealthSummaryCard, canonical unit database browser (1,711 units across 25 factions with stat blocks, weapon tables, ability text, keywords, points tiers, FTS5 search, role/keyword/point filters, virtual scrolling), collection-to-database FK linking with ownership/readiness badges, user annotations (favorites, notes, reminders) on any rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist, pre-game readiness panel, end-game after-action with forgotten-rules-to-reminders pipeline), Data Health page with diagnostics, structured backup export (.zip with VACUUM INTO + metadata.json), full restore with preview/validation/atomic swap/restart, automatic safety backups before restore, progressive backup diagnostics with version mismatch detection, a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK), version parity enforcement, auto-update via GitHub Releases with in-app banner, single-database architecture (hobbyforge.db only, rules.db eliminated), internal robustness hardening (WAL mode, FK indexes, CHECK constraints, route error boundaries, DB health gate, lazy route loading, React.memo, batched INSERTs, query-layer isolation, component decomposition), and smart automation (auto-derive assembly/basing/varnish statuses from recipe completion, auto-manage active projects, context-aware recipe pre-filling with faction grouping).
 
+## Current Milestone: v0.4.5 Data Quality Audit & Pipeline Improvement
+
+**Goal:** Audit canonical unit data for priority factions against official sources, fix all errors found, improve the automated build pipeline to prevent those errors from recurring, and fix sub-faction filtering to include parent faction units.
+
+**Target features:**
+- Full data audit for Space Marines, Necrons, Death Guard — points, stats/weapons/abilities, keywords/roles, French translations — cross-checked against Wahapedia, GW app, and community sources
+- Fix all data errors discovered during audit
+- Pipeline improvement: use audit findings to fix build-unit-db.ts — better parsing, name matching, French translation extraction — so future rebuilds produce correct data automatically
+- Sub-faction filtering fix: sub-faction selection shows sub-faction-specific units + parent faction's generic units everywhere (database browser, army list picker, collection browser)
+
 ## Current State
 
-v0.4.2 complete. Unit Database 2.0 — data quality overhaul (96.9% BSData match rate, up from 37%), sub-faction filtering across database browser/army list picker/collection, PlaybookTab & Game Day revival with canonical stats/weapons/abilities from udb_* tables, bilingual EN/FR infrastructure with locale toggle and COALESCE query layer. 111 phases complete across 22 milestones. ~300+ TypeScript source files. 41 SQLite migrations (hobbyforge.db). 2,290+ automated tests. 9 Tauri Rust commands.
+v0.4.5 in progress. 111 phases complete across 22 milestones. ~300+ TypeScript source files. 41 SQLite migrations (hobbyforge.db). 2,290+ automated tests. 9 Tauri Rust commands.
 
 ## Core Value
 
@@ -243,7 +253,10 @@ A single personal command center that always answers "what do I own, what's pain
 
 ### Active
 
-*No active milestone — run `/gsd:new-milestone` to start next*
+- [ ] Full data audit for Space Marines, Necrons, Death Guard (points, stats, weapons, abilities, keywords, French translations)
+- [ ] Fix data errors discovered during audit
+- [ ] Pipeline improvement from audit learnings (build-unit-db.ts fixes)
+- [ ] Sub-faction filtering: show parent faction's generic units when sub-faction selected (DB browser, army list picker, collection)
 
 ### Out of Scope
 
@@ -398,4 +411,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-01 after v0.4.2 milestone shipped*
+*Last updated: 2026-06-02 after v0.4.5 milestone started*
