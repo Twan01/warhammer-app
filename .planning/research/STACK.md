@@ -1,273 +1,89 @@
-# Stack Research — v0.4.2 Unit Database 2.0
+# Stack Research
 
-**Domain:** Tauri 2 desktop app — incremental feature additions to existing validated stack
-**Researched:** 2026-06-01
-**Confidence:** HIGH (i18n), MEDIUM (BSData XML improvements), HIGH (sub-faction schema)
-
----
-
-## Scope
-
-This research covers ONLY new capabilities needed for v0.4.2. The existing stack
-(Tauri 2, React 19, TypeScript 5, Vite 6, TailwindCSS 4, shadcn/ui, SQLite via
-tauri-plugin-sql, React Query, Zustand, FTS5, @xmldom/xmldom, better-sqlite3) is
-validated and not re-researched here.
+**Domain:** Data quality audit tooling + pipeline improvement for a dev-side build script
+**Researched:** 2026-06-02
+**Confidence:** HIGH
 
 ---
 
-## 1. i18n Framework — Data-Level Translation with Locale Toggle
+## Context: What Already Exists (Do Not Re-Research)
 
-### Decision: i18next + react-i18next, no backend, in-memory resources
+The app stack is fully validated: Tauri 2 + React 19 + TypeScript 5 + Vite 6 + TailwindCSS 4 + SQLite. This research covers only the NEW capabilities needed for v0.4.5.
 
-**Why:** The scope is data-level translation only — unit names, ability descriptions, and
-faction names stored bilingually in the database, surfaced to the UI via locale-aware
-React Query hooks. i18next handles the locale toggle state (`i18n.changeLanguage('fr')`)
-and provides the `useTranslation` hook consumed by data-display components. No UI
-string translation is planned (menus, labels stay English), so no backend plugin or
-file-loading infrastructure is needed for v0.4.2. All translations come from the DB.
+The build pipeline already has:
+- `@xmldom/xmldom` ^0.9.10 — XML/DOM parsing for BSData .cat files
+- `better-sqlite3` ^12.10.0 — SQLite for data-layer tests
+- Node `--experimental-strip-types` to run `.ts` scripts without compilation
+- `scripts/lib/` shared library: `parseCsv.ts`, `parseXml.ts`, `normalize.ts`, `factionMap.ts`, `types.ts`
+- `scripts/data/coverage-report.json` — per-faction points coverage output
+- `scripts/data/aliases.json` — 44 manual name-mapping overrides
+- `scripts/data/translations_fr.json` — French overlay keyed by unit/ability/weapon/keyword IDs
 
-**Versions (current as of 2026-06-01):**
-- `i18next` — v26.3.0
-- `react-i18next` — v17.0.8
+**Current points coverage: 60.1% overall** (SM: 58.1%, NEC: 79.7%, DG: 50.7%). The gap is largely Forge World / Legends units in Wahapedia CSVs that don't exist in BSData — not a parsing bug.
 
-Both are actively maintained with weekly releases. v26 of i18next changed the minimum
-peer dependency on several plugins; v17 of react-i18next aligns with that. React 19
-compatibility is confirmed — the library explicitly targets React 18+ with hooks-based
-API.
+---
+
+## Recommended Stack Additions
 
 ### Core Technologies
 
+No new runtime dependencies are needed. All new tooling is dev-side scripts only, matching the established `scripts/` pattern.
+
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| `i18next` | ^26.3.0 | Locale state machine + `changeLanguage` | Industry standard; works offline with in-memory resources; no backend required for static/DB-sourced translations |
-| `react-i18next` | ^17.0.8 | `useTranslation` hook + `I18nextProvider` | React 19 compatible; integrates cleanly with existing Zustand + React Query architecture |
+| Node.js built-ins (`node:fs`, `node:path`, `node:crypto`) | bundled | File I/O for audit scripts | Already used throughout `scripts/`; no new dep |
+| `@xmldom/xmldom` | ^0.9.10 (already installed) | XML parsing for deeper BSData field extraction | Already declared in devDependencies; no version bump needed |
+| `better-sqlite3` | ^12.10.0 (already installed) | Read `hobbyforge.db` to cross-check imported data | Already used for data-layer tests; no version bump needed |
 
 ### Supporting Libraries
 
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| `i18next-resources-to-backend` | ^1.2.1 | Lazy-load namespaces from dynamic imports | Only if translation JSON files grow large enough to warrant code-splitting. Not needed for v0.4.2 — data comes from DB, not JSON files |
+| None new | — | — | All needed capabilities exist in already-installed packages |
 
-**Do NOT install:** `i18next-http-backend`, `i18next-browser-languagedetector`. The
-app is offline-first and locale is user-toggled in-app, not detected from browser/OS.
+### Development Tools
 
-### Integration Pattern
+| Tool | Purpose | Notes |
+|------|---------|-------|
+| `node --experimental-strip-types` | Run `.ts` audit scripts directly | Same invocation pattern as `build:udb`; no `tsc` or separate tsconfig needed |
+| `pnpm audit:udb` (new npm script) | Entry point for the audit runner | Add to `package.json` scripts, not a new package |
 
-The i18n instance is initialized once at app startup with an empty (or minimal)
-resource bundle. The active locale is stored in a lightweight Zustand slice (one key:
-`locale: 'en' | 'fr'`) that mirrors the i18next state. React Query hooks that serve
-unit/ability data accept the locale as a query key segment — `['udb-units', factionId, locale]`
-— so changing locale invalidates and refetches the bilingual data from SQLite without
-touching any other cache.
+---
 
-```typescript
-// src/lib/i18n.ts — initialize once, no backend
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
+## Installation
 
-i18n.use(initReactI18next).init({
-  lng: 'en',
-  fallbackLng: 'en',
-  resources: {}, // translations come from DB, not static JSON
-  interpolation: { escapeValue: false },
-});
-
-export default i18n;
-```
-
-```typescript
-// Locale Zustand slice
-interface LocaleState {
-  locale: 'en' | 'fr';
-  setLocale: (l: 'en' | 'fr') => void;
-}
-```
-
-The React Query hook passes `locale` into the SQL query to select either the
-`name` or `name_fr` column (dual-column schema — see section 3). This keeps the
-i18n library as thin locale-state infrastructure; the actual translation is a
-DB query concern.
-
-### Installation
+No new packages needed. The v0.4.5 work adds only new `.ts` files under `scripts/`.
 
 ```bash
-pnpm add i18next react-i18next
+# Nothing to install — use existing devDependencies
 ```
 
 ---
 
-## 2. BSData XML Parsing — Points Match Rate Improvement
+## What the New Scripts Should Look Like
 
-### Decision: Keep @xmldom/xmldom; improve matching algorithm, not the parser
+Based on the existing pipeline patterns, here is the recommended structure for new audit tooling:
 
-**Why:** The current parser (`@xmldom/xmldom` v0.9.10) is the correct tool — the existing
-build script uses DOM API methods (`getElementsByTagName`, `getAttribute`,
-`childNodes`) that would require a full rewrite to switch to an object-based parser
-like `fast-xml-parser`. The root cause of points matching failures is not parser
-quality; it is the name-normalisation strategy and BSData XML structural patterns.
+**`scripts/audit-faction.ts`** — per-faction audit runner
+- Accepts a faction ID argument (e.g., `SM`, `NEC`, `DG`)
+- Reads `unit_database.json` (already built)
+- Reads raw Wahapedia CSVs again for ground-truth comparison
+- Reads BSData .cat files for points cross-check
+- Outputs a human-readable report: missing points, stat mismatches, unmatched units, French coverage gaps
+- Follows the `build-unit-db.ts` pattern: shared lib imports, graceful degrades, `process.exit(1)` on fatal errors
 
-**Root causes of current match failures (from code analysis):**
+**`scripts/audit-subfaction.ts`** — sub-faction parent/child relationship audit
+- Reads `unit_database.json`
+- For each faction with sub-factions (SM chapters, DG, etc.), computes which units have `sub_faction = null` (generic/parent) vs a specific sub-faction label
+- Reports units that are in a chapter catalogue but are missing `sub_faction = null` — these need to appear when the parent faction is selected
+- Output feeds directly into `SUB_FACTION_MAP` corrections and the UI filter fix
 
-1. **Exact lowercase name match** — `unit.name.toLowerCase() + ':' + faction_id`. BSData
-   names sometimes include apostrophes, hyphens, or spacing variants not present in
-   Wahapedia (e.g., "T'au" vs "T'au"). No normalisation beyond `.toLowerCase()`.
-
-2. **Library .cat files excluded** — `!f.includes("Library")` filter drops
-   "Imperium - Astra Militarum - Library.cat" which contains shared entries for units
-   that appear only there, not in the main catalogue file. Points for units defined in
-   library catalogues are silently missed.
-
-3. **No sharedSelectionEntries cross-reference** — BSData uses `entryLink` elements
-   pointing to `sharedSelectionEntries` defined in library catalogues. The current
-   script only reads `selectionEntry` elements directly inside the parsed file; linked
-   entries from other catalogues are ignored.
-
-4. **Single-cost units only set `base_points`** — units that BSData defines with a
-   flat `pts` cost (not tiered) set `unit.base_points` on the row. If BSData has a
-   tiered structure and Wahapedia expects base_points = null (using the tiers table),
-   the mismatch creates a unit with both base_points and points tiers, which may
-   confuse the resolver.
-
-### Improvements (no new libraries required)
-
-| Improvement | What to Change | Expected Impact |
-|-------------|---------------|-----------------|
-| Name normalisation | Strip punctuation, collapse whitespace, normalise apostrophes before key lookup | Fixes cross-character-encoding mismatches |
-| Include library catalogues in parsing pass | Remove `!f.includes("Library")` filter; parse all .cat files | Recovers shared entries that only appear in library files |
-| Fuzzy fallback match | After exact match fails, try Levenshtein distance <= 2 on unit names within same faction | Recovers minor spelling variants |
-| Coverage report | Print `unmatched BSData units` and `units with no points` counts at end of build | Surfaces remaining misses for manual review |
-| Tiers-vs-base_points precedence | If a unit has tiers, set `base_points = null`; if flat cost only, set `base_points`; never both | Prevents resolver ambiguity |
-
-**Levenshtein for fuzzy match** — no new library needed. A simple 20-line pure-JS
-Levenshtein implementation is sufficient for the small string sizes involved (<60
-chars). Do not add a fuzzy-search library as a prod dependency; this runs only in
-the dev-side build script.
-
-### @xmldom/xmldom stays at current version
-
-`@xmldom/xmldom` v0.9.10 is already in devDependencies. No version change needed.
-
----
-
-## 3. Sub-Faction Data Modeling — SQLite Schema
-
-### Decision: Dual-table sub-faction schema (udb_subfactions + udb_unit_subfactions)
-
-**Why:** Sub-factions (Space Marine chapters, Chaos Space Marine warbands, Aeldari
-sub-factions) are a many-to-many relationship: a unit can belong to multiple
-sub-factions (e.g., Tactical Squad is valid for all SM chapters), and a sub-faction
-contains many units. A join table is the correct normalised model. This avoids
-column proliferation on `udb_units` and allows filter queries to use a simple
-`WHERE us.subfaction_id = ?` without parsing JSON or splitting delimited strings.
-
-**Source:** BSData `.cat` files already encode sub-faction membership via catalogue
-file identity (one `.cat` per sub-faction). The build script currently maps catalogue
-name to `faction_id` via `FACTION_MAP`. The same mapping can be extended to derive
-`subfaction_id` from the catalogue name.
-
-### Schema (new migration)
-
-```sql
--- udb_subfactions: Space Marine chapters, CSM warbands, Aeldari paths, etc.
-CREATE TABLE IF NOT EXISTS udb_subfactions (
-  id         TEXT PRIMARY KEY,          -- e.g. "SM_BloodAngels", "AE_Craftworlds"
-  faction_id TEXT NOT NULL REFERENCES udb_factions(id),
-  name       TEXT NOT NULL,
-  name_fr    TEXT,                      -- bilingual (see section 4)
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
--- udb_unit_subfactions: many-to-many join
-CREATE TABLE IF NOT EXISTS udb_unit_subfactions (
-  unit_id       TEXT NOT NULL REFERENCES udb_units(id) ON DELETE CASCADE,
-  subfaction_id TEXT NOT NULL REFERENCES udb_subfactions(id) ON DELETE CASCADE,
-  PRIMARY KEY (unit_id, subfaction_id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_udb_subfactions_faction_id
-  ON udb_subfactions(faction_id);
-
-CREATE INDEX IF NOT EXISTS idx_udb_unit_subfactions_subfaction_id
-  ON udb_unit_subfactions(subfaction_id);
-
-CREATE INDEX IF NOT EXISTS idx_udb_unit_subfactions_unit_id
-  ON udb_unit_subfactions(unit_id);
-```
-
-**Filter query pattern:**
-
-```sql
-SELECT u.*
-FROM udb_units u
-JOIN udb_unit_subfactions us ON us.unit_id = u.id
-WHERE u.faction_id = $1
-  AND us.subfaction_id = $2
-ORDER BY u.role, u.name;
-```
-
-**Build script extension:** `FACTION_MAP` in `build-unit-db.ts` maps catalogue name
-to `faction_id`. Add a parallel `SUBFACTION_MAP` that maps catalogue name to subfaction
-id. Units parsed from a sub-faction catalogue get a row in `udb_unit_subfactions`.
-Units parsed from a generic catalogue (e.g. "Imperium - Space Marines") get no
-sub-faction row (they appear for all chapters).
-
----
-
-## 4. Bilingual Data Storage — Schema Pattern
-
-### Decision: Dual-column (not translation table) for two fixed locales
-
-**Why:** The project supports exactly two locales (EN + FR). A translation table
-(separate rows per locale) adds JOIN complexity to every read query with no
-compensating benefit at two locales. The dual-column approach (`name TEXT, name_fr TEXT`)
-keeps queries simple: selecting the French column with COALESCE fallback to English
-is a single expression with no JOIN. All bilingual columns are nullable on the FR
-side — a missing French translation falls back to English at query time, not
-application time.
-
-If a third locale were ever needed, the translation table approach becomes preferable.
-At two locales, dual-column wins on simplicity and query performance.
-
-### Columns to add (via new migration)
-
-| Table | New column | Notes |
-|-------|-----------|-------|
-| `udb_units` | `name_fr TEXT` | Datasheet name in French |
-| `udb_unit_abilities` | `name_fr TEXT`, `description_fr TEXT` | Ability title + body text |
-| `udb_unit_weapons` | `name_fr TEXT` | Weapon profile name |
-| `udb_factions` | `name_fr TEXT` | Faction name |
-| `udb_subfactions` | `name_fr TEXT` | Sub-faction name (already in schema above) |
-
-**Columns NOT bilingualized** in v0.4.2:
-- Stat values (M, T, Sv, W, etc.) — numbers, language-neutral
-- Keywords — canonical 40k keywords, not translated
-- Points — numeric
-- `base_points`, `model_count` — numeric
-
-### French data source
-
-Wahapedia (wahapedia.ru) publishes EN-only CSV exports. There is no official French
-CSV from Wahapedia. French translation data must come from one of:
-
-1. **Manual curation** — translate high-priority unit/ability names by hand, stored
-   in a separate `scripts/data/translations_fr.json` override file loaded by the build
-   script. Most practical for v0.4.2 given scope (personal tool, single user).
-
-2. **Community BSData French repo** — BSData hosts a French translation project
-   (github.com/BSData/catalogue-development/issues/123) but coverage is incomplete
-   and the format does not map cleanly to the Wahapedia CSV structure.
-
-3. **Games Workshop FR downloads** — warhammer-community.com/fr provides official FR
-   PDFs but no machine-readable CSV. Not usable directly without manual extraction.
-
-**Recommendation for v0.4.2:** Start with approach 1 (manual JSON override file in
-`scripts/data/`). The build script merges EN data from Wahapedia CSVs with FR
-overrides from the JSON file. This is the only approach that gives controlled quality
-for a personal tool with a single curator.
-
-Schema is bilingual from day 1 (columns present), but FR data is populated
-incrementally as translations are entered. `COALESCE(name_fr, name)` fallback
-ensures EN always renders when FR is absent.
+**`scripts/audit-translations.ts`** — French translation coverage report
+- Reads `unit_database.json`
+- Reads `translations_fr.json`
+- Reports per-faction EN/FR coverage: units, abilities, weapons, keywords
+- Identifies which ability/weapon keys in the database don't match any key in the overlay (key format mismatch is the primary bug source: `${unit_id}:${name}` vs other patterns)
+- Outputs a sorted list of untranslated entries for manual addition
 
 ---
 
@@ -275,26 +91,77 @@ ensures EN always renders when FR is absent.
 
 | Recommended | Alternative | Why Not |
 |-------------|-------------|---------|
-| i18next + react-i18next | `react-intl` (FormatJS) | FormatJS is primarily message-format translation; i18next is simpler for a locale-state toggle with DB-sourced data |
-| i18next + react-i18next | Custom Zustand locale context | Re-inventing locale switching, plural forms, and React context integration; i18next is battle-tested and 8 KB |
-| Dual-column bilingual schema | Separate translation table | Translation table adds JOIN to every read; two fixed locales don't justify it |
-| Dual-column bilingual schema | JSON column for translations | No type safety, no index-friendly COALESCE fallback |
-| Keep @xmldom/xmldom + better algorithm | Switch to fast-xml-parser | fast-xml-parser returns objects, not DOM; entire build script uses DOM API; a parser switch would require a full rewrite with no quality benefit |
-| Manual FR JSON override file | Wahapedia FR CSV (doesn't exist) | No machine-readable FR CSV source exists from Wahapedia |
-| many-to-many sub-faction join table | `subfaction_ids` TEXT column on units | Delimited strings break index-based filtering and FK integrity |
+| New `.ts` scripts in `scripts/` | A separate audit package (e.g., `scripts/audit/package.json`) | Unnecessary complexity — `--experimental-strip-types` handles `.ts` directly, same as existing scripts |
+| Reuse `@xmldom/xmldom` already installed | `fast-xml-parser` or `sax` | Would add a dep for zero benefit; `@xmldom/xmldom` already polyfills `DOMParser` correctly for the BSData XML structure |
+| `better-sqlite3` for DB reads | `tauri-plugin-sql` | `tauri-plugin-sql` requires a Tauri runtime; `better-sqlite3` runs in plain Node for scripts |
+| Manual `aliases.json` additions | Automated fuzzy matching with Levenshtein distance | Levenshtein produces too many false positives on unit names (e.g., "Terminator Squad" vs "Terminator Champion"); manual aliases are more precise and already have a working loader |
+| Extend `scripts/lib/types.ts` with audit types | New file `scripts/lib/audit-types.ts` | Keep audit types co-located with audit scripts unless they become shared — premature abstraction at this stage |
 
 ---
 
-## What NOT to Use
+## What NOT to Add
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| `i18next-http-backend` | Fetches translations from HTTP; app is offline-first | In-memory resources + DB data |
-| `i18next-browser-languagedetector` | Detects locale from browser/OS; locale is user-toggled, not auto-detected | Zustand `locale` slice persisted to localStorage |
-| `next-i18next` | Next.js-specific SSR wrapper | Not applicable to Tauri/React |
-| Full-app UI string translation in v0.4.2 | Doubles translation surface; UI strings are English only | Data-level translation only (names, abilities, weapons) |
-| BSData French translation catalogue | Incomplete coverage, format mismatch with Wahapedia CSV | Manual `translations_fr.json` override file |
-| ORM for new migrations | Prisma confirmed dead-end in Tauri; Drizzle adds proxy complexity | Continue raw SQL migrations in `src-tauri/migrations/` |
+| `fast-xml-parser` | Redundant; `@xmldom/xmldom` already handles BSData XML correctly | `@xmldom/xmldom` (already installed) |
+| `csv-parse` or `papaparse` | Wahapedia CSVs are pipe-delimited with non-standard trailing pipes; `parseWahapediaCsv()` in `scripts/lib/parseCsv.ts` already handles this correctly | Existing `parseWahapediaCsv()` |
+| `diff` npm package | Not needed; audit scripts produce human-readable reports, not patch files; `update-unit-database.ts` already has a `computeDiff()` | Plain `Map`-based comparison in script |
+| `chalk` or `kleur` for colorized output | Scripts run in PowerShell/bash; color support is environment-dependent; the existing pipeline uses plain `console.log` with `[OK]`/`[!]`/`[X]` text badges | Text badges (already established pattern) |
+| `ts-node` | The project uses `node --experimental-strip-types` which is the modern equivalent with zero additional deps | `node --experimental-strip-types` |
+| Any ORM for reading `hobbyforge.db` in scripts | `better-sqlite3` is already present and is the right tool for script-level DB reads | `better-sqlite3` directly |
+
+---
+
+## Sub-Faction Parent/Child Modeling
+
+The current `sub_faction` column design is correct. The issue is purely in the UI query layer: when a sub-faction is selected, the query filters `WHERE sub_faction = $1` and misses units where `sub_faction IS NULL` (generic Space Marine units shared by all chapters).
+
+**No schema change needed.** The fix is a SQL query change:
+
+```sql
+-- Current (broken): only returns chapter-specific units
+WHERE faction_id = $1 AND sub_faction = $2
+
+-- Fixed: returns chapter-specific units + generic parent units
+WHERE faction_id = $1 AND (sub_faction = $2 OR sub_faction IS NULL)
+```
+
+This same fix applies to three call sites:
+1. Database browser faction/sub-faction filter query
+2. Army list unit picker query
+3. Collection browser faction filter query
+
+The audit script (`audit-subfaction.ts`) should verify for each sub-faction that the expected generic units (e.g., Intercessors, Primaris Librarian) have `sub_faction = null` in the built database, and the chapter-specific units (e.g., Blood Angels Death Company) have the correct sub-faction label.
+
+---
+
+## French Translation Key Format
+
+The current overlay keys work as follows:
+- `factions`: keyed by `faction_id` (string)
+- `units`: keyed by `unit_id` (Wahapedia string ID)
+- `abilities`: keyed by `${unit_id}:${ability_name}` (composite)
+- `weapons`: keyed by `${unit_id}:${weapon_name}` (composite)
+- `keywords`: keyed by `keyword` (plain string, shared across units)
+
+The composite key format for abilities and weapons is fragile: if a unit's ability name changes in Wahapedia (e.g., capitalization, punctuation), the key no longer matches. The audit script should surface these mismatches by:
+1. Building a set of all `${unit_id}:${name}` keys actually present in the database
+2. Diffing against the keys in `translations_fr.json`
+3. Reporting keys in the overlay that don't match any database entry (stale translations) and database entries with no overlay match (untranslated)
+
+**No new library needed** — plain `Set` and `Map` operations.
+
+---
+
+## Coverage Gap Reality Check
+
+The 60.1% overall points coverage is not a pipeline bug — it is expected. The unmatched units in `coverage-report.json` are overwhelmingly:
+
+1. **Forge World / Legends units** — present in Wahapedia CSVs but not in BSData community files (Forgeworld content is separate from the main BSData wh40k-10e repo). These will never match BSData parsing because the data simply is not there. Examples: most of the 683 unmatched units across DG/TS/WE/CSM/SM are Forge World vehicles.
+
+2. **Units with naming mismatches** — a smaller subset where BSData uses a different name than Wahapedia (e.g., "Chaos Lord On Juggernaut" vs "Lord On Juggernaut"). These are fixable via `aliases.json` additions.
+
+The audit goal for the milestone is to fix the **fixable** mismatches for SM, NEC, and DG — not to reach 100% coverage (which would require sourcing Forge World points data separately).
 
 ---
 
@@ -302,48 +169,19 @@ ensures EN always renders when FR is absent.
 
 | Package | Compatible With | Notes |
 |---------|-----------------|-------|
-| `i18next@^26.3.0` | `react@^19.0.0`, `react-i18next@^17.x` | i18next v26 requires react-i18next v15+ for type compatibility; v17 exceeds that |
-| `react-i18next@^17.0.8` | `i18next@^26.x`, `react@^19.0.0` | v17 removes legacy class component APIs; hooks-only, matches project conventions |
-| `@xmldom/xmldom@^0.9.10` | Node.js 18+, no browser runtime | Already in devDependencies; stays at current version |
-
----
-
-## Installation
-
-```bash
-# New prod dependencies for i18n locale toggle
-pnpm add i18next react-i18next
-
-# No new devDependencies needed
-# @xmldom/xmldom already in devDependencies
-# better-sqlite3 already in devDependencies
-```
-
-New migration files (in `src-tauri/migrations/`):
-- `041_udb_subfactions.sql` — sub-faction tables + indexes
-- `042_udb_bilingual.sql` — `name_fr` columns on udb_* tables
-
-New source files:
-- `src/lib/i18n.ts` — i18next initialization
-- `src/store/localeStore.ts` — Zustand locale slice
-- `scripts/data/translations_fr.json` — manual FR overrides fed to build script
+| `@xmldom/xmldom` ^0.9.10 | Node 18+ | No peer dep issues with current setup |
+| `better-sqlite3` ^12.10.0 | Node 18+ | Requires native rebuild (already in `pnpm.onlyBuiltDependencies`) |
+| `node --experimental-strip-types` | Node 22.6+ | Already used for `build:udb`; no change needed |
 
 ---
 
 ## Sources
 
-- [react-i18next npm](https://www.npmjs.com/package/react-i18next) — version 17.0.8 confirmed, React 19 compatible
-- [i18next npm](https://www.npmjs.com/package/i18next) — version 26.3.0 confirmed
-- [react-i18next GitHub Releases](https://github.com/i18next/react-i18next/releases) — changelog verified for v15+ through v17
-- [i18next: Add or Load Translations](https://www.i18next.com/how-to/add-or-load-translations) — in-memory resources pattern confirmed
-- [@xmldom/xmldom npm](https://www.npmjs.com/package/@xmldom/xmldom) — v0.9.10 current, DOM API maintained
-- [fast-xml-parser vs xmldom comparison](https://npm-compare.com/fast-xml-parser,xml-js,xml2js,xmldom) — xmldom chosen for DOM API compatibility
-- [SQLite bilingual schema patterns](https://colinchsql.github.io/2023-10-13/10-17-39-132717-sqlite-database-internationalization-and-localization/) — dual-column vs translation table tradeoffs
-- [BSData wh40k-10e](https://github.com/BSData/wh40k-10e) — XML structure reference for sub-faction catalogues
-- [BSData catalogue development wiki](https://github.com/BSData/catalogue-development/wiki/Data-structure-overview) — sharedSelectionEntries and entryLinks structure
-- [Wahapedia Data Export](https://wahapedia.ru/wh40k10ed/the-rules/data-export/) — EN-only CSV confirmed; no FR variant exists
-- [BSData French translation issue](https://github.com/BSData/catalogue-development/issues/123) — community FR project incomplete, not usable as data source
+- Direct code inspection of `scripts/build-unit-db.ts`, `scripts/update-unit-database.ts`, `scripts/lib/*.ts` — HIGH confidence
+- Direct inspection of `scripts/data/coverage-report.json` — actual coverage numbers verified (60.1% overall, SM 58.1%, NEC 79.7%, DG 50.7%)
+- Direct inspection of `package.json` — exact installed versions confirmed
+- Project context in `.planning/PROJECT.md` — milestone goals confirmed
 
 ---
-*Stack research for: v0.4.2 Unit Database 2.0 — i18n, BSData XML improvements, sub-faction schema*
-*Researched: 2026-06-01*
+*Stack research for: v0.4.5 Data Quality Audit & Pipeline Improvement*
+*Researched: 2026-06-02*
