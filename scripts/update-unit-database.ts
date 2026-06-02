@@ -20,16 +20,16 @@ import { DOMParser } from "@xmldom/xmldom";
 // @ts-ignore - globalThis.DOMParser polyfill for Node.js
 globalThis.DOMParser = DOMParser as unknown as typeof globalThis.DOMParser;
 
-import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // Shared library imports
-import { parseWahapediaCsv } from "./lib/parseCsv.ts";
-import { parseCatXml, extractModelCounts } from "./lib/parseXml.ts";
-import { FACTION_MAP } from "./lib/factionMap.ts";
+import { parseCatXml } from "./lib/parseXml.ts";
+import { SUB_FACTION_MAP, CROSS_FACTION_MAP } from "./lib/factionMap.ts";
+import { loadAliases } from "./lib/normalize.ts";
+import { readCsvFile, readBsdataCatFiles, parseBsdataModelCounts, matchUnit } from "./lib/bsdata.ts";
 import type {
-  BsdataModelCount,
   UdbFactionRow,
   UdbUnitRow,
   UdbUnitModelRow,
@@ -92,51 +92,6 @@ const REQUIRED_CSVs = [
 ] as const;
 
 // ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-function readCsv(filename: string): Record<string, string>[] {
-  const filepath = join(DATA_DIR, filename);
-  const raw = readFileSync(filepath, "utf-8");
-  return parseWahapediaCsv(raw);
-}
-
-function readBsdataCatFiles(): Array<{ xml: string; factionId: string | null; catalogueName: string }> {
-  if (!existsSync(BSDATA_DIR)) return [];
-
-  // D-06: sort file list for deterministic output
-  // Include Library catalogues -- they contain unit points data for many factions
-  const files = readdirSync(BSDATA_DIR)
-    .filter((f) => f.endsWith(".cat"))
-    .sort();
-  if (files.length === 0) return [];
-
-  const entries: Array<{ xml: string; factionId: string | null; catalogueName: string }> = [];
-  for (const filename of files) {
-    try {
-      const xml = readFileSync(join(BSDATA_DIR, filename), "utf-8");
-      const catalogueName = filename.replace(/\.cat$/, "");
-      const factionId = FACTION_MAP[catalogueName] ?? null;
-      entries.push({ xml, factionId, catalogueName });
-    } catch (_e) {
-      // Skip unreadable files
-    }
-  }
-  return entries;
-}
-
-function parseBsdataModelCounts(
-  catFiles: Array<{ xml: string; factionId: string | null; catalogueName: string }>
-): BsdataModelCount[] {
-  const results: BsdataModelCount[] = [];
-  for (const entry of catFiles) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(entry.xml, "text/xml") as unknown as Document;
-    results.push(...extractModelCounts(doc, entry.factionId));
-  }
-  return results;
-}
-
-// ---------------------------------------------------------------------------
 // Build pipeline (reuses shared lib)
 // ---------------------------------------------------------------------------
 async function buildUnitDatabase(): Promise<UnitDatabaseJson> {
@@ -151,7 +106,7 @@ async function buildUnitDatabase(): Promise<UnitDatabaseJson> {
   }
 
   // Parse factions
-  const factionsRaw = readCsv("Factions.csv");
+  const factionsRaw = readCsvFile(DATA_DIR, "Factions.csv");
   const factions: UdbFactionRow[] = factionsRaw
     .filter((row) => row["id"] && row["name"])
     .map((row) => ({
@@ -163,7 +118,7 @@ async function buildUnitDatabase(): Promise<UnitDatabaseJson> {
   const factionIds = new Set(factions.map((f) => f.id));
 
   // Parse units
-  const datasheetsRaw = readCsv("Datasheets.csv");
+  const datasheetsRaw = readCsvFile(DATA_DIR, "Datasheets.csv");
   const units: UdbUnitRow[] = [];
   const validUnitIds = new Set<string>();
 
@@ -197,7 +152,7 @@ async function buildUnitDatabase(): Promise<UnitDatabaseJson> {
   }
 
   // Parse models
-  const modelsRaw = readCsv("Datasheets_models.csv");
+  const modelsRaw = readCsvFile(DATA_DIR, "Datasheets_models.csv");
   const models: UdbUnitModelRow[] = [];
   for (const row of modelsRaw) {
     const unitId = row["datasheet_id"]?.trim();
@@ -217,7 +172,7 @@ async function buildUnitDatabase(): Promise<UnitDatabaseJson> {
   }
 
   // Parse weapons
-  const wargearRaw = readCsv("Datasheets_wargear.csv");
+  const wargearRaw = readCsvFile(DATA_DIR, "Datasheets_wargear.csv");
   const weapons: UdbUnitWeaponRow[] = [];
   const weaponGroupTracker = new Map<string, number>();
 
@@ -244,11 +199,12 @@ async function buildUnitDatabase(): Promise<UnitDatabaseJson> {
       ap: row["AP"]?.trim() ?? "",
       damage: row["D"]?.trim() ?? "",
       keywords: row["keywords"]?.trim() ?? "",
+      name_fr: null,
     });
   }
 
   // Parse abilities
-  const abilitiesRaw = readCsv("Datasheets_abilities.csv");
+  const abilitiesRaw = readCsvFile(DATA_DIR, "Datasheets_abilities.csv");
   const abilities: UdbUnitAbilityRow[] = [];
   for (const row of abilitiesRaw) {
     const unitId = row["datasheet_id"]?.trim();
@@ -259,11 +215,13 @@ async function buildUnitDatabase(): Promise<UnitDatabaseJson> {
       name: row["name"]?.trim() ?? "",
       description: row["description"]?.trim() ?? "",
       ability_type: row["type"]?.trim() ?? row["ability_type"]?.trim() ?? "",
+      name_fr: null,
+      description_fr: null,
     });
   }
 
   // Parse keywords
-  const keywordsRaw = readCsv("Datasheets_keywords.csv");
+  const keywordsRaw = readCsvFile(DATA_DIR, "Datasheets_keywords.csv");
   const keywords: UdbUnitKeywordRow[] = [];
   const seenKeywords = new Set<string>();
   for (const row of keywordsRaw) {
@@ -275,11 +233,15 @@ async function buildUnitDatabase(): Promise<UnitDatabaseJson> {
     if (seenKeywords.has(dupeKey)) continue;
     seenKeywords.add(dupeKey);
     const isFaction: 0 | 1 = row["is_faction_keyword"]?.trim() === "1" ? 1 : 0;
-    keywords.push({ unit_id: unitId, keyword, is_faction: isFaction });
+    keywords.push({ unit_id: unitId, keyword, is_faction: isFaction, keyword_fr: null });
   }
 
+  // Load alias table for multi-pass matching (matches build-unit-db.ts pipeline)
+  const ALIASES_PATH = join(DATA_DIR, "aliases.json");
+  const aliases = loadAliases(ALIASES_PATH);
+
   // Parse BSData
-  const catFiles = readBsdataCatFiles();
+  const catFiles = readBsdataCatFiles(BSDATA_DIR);
   const points: UdbUnitPointsRow[] = [];
   const composition: UdbUnitCompositionRow[] = [];
 
@@ -287,10 +249,25 @@ async function buildUnitDatabase(): Promise<UnitDatabaseJson> {
     const seenPoints = new Set<string>();
     for (const catFile of catFiles) {
       const bsdataUnits = parseCatXml(catFile.xml, catFile.factionId, catFile.catalogueName);
+      const subFaction = SUB_FACTION_MAP[catFile.catalogueName] ?? null;
+      const altFactionId = CROSS_FACTION_MAP[catFile.catalogueName] ?? null;
+
       for (const bsdataUnit of bsdataUnits) {
-        const key = bsdataUnit.datasheet_name.toLowerCase() + ":" + bsdataUnit.faction_id;
-        const unit = unitByNameFaction.get(key);
-        if (!unit) continue;
+        // 3-pass matching: exact -> normalized -> alias (matches build-unit-db.ts)
+        let result = matchUnit(bsdataUnit.datasheet_name, bsdataUnit.faction_id, aliases, unitByNameFaction);
+
+        // Cross-faction fallback (e.g., DRU for Aeldari Library units)
+        if (!result && altFactionId) {
+          result = matchUnit(bsdataUnit.datasheet_name, altFactionId, aliases, unitByNameFaction);
+        }
+
+        if (!result) continue;
+        const { unit } = result;
+
+        // Sub-faction population (mirrors build-unit-db.ts SUB_FACTION_MAP usage)
+        if (subFaction && unit.sub_faction === null) {
+          unit.sub_faction = subFaction;
+        }
 
         if (bsdataUnit.tiers.length > 0) {
           for (const tier of bsdataUnit.tiers) {
