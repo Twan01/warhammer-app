@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.4.5
 milestone_name: Data Quality Audit & Pipeline Improvement
-status: executing
-stopped_at: Phase 112 context gathered
-last_updated: "2026-06-02T20:51:06.057Z"
+status: verifying
+stopped_at: Phase 112 Plan 02 complete
+last_updated: "2026-06-02T21:20:00.000Z"
 last_activity: 2026-06-02
 progress:
   total_phases: 1
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 0
+  completed_plans: 2
+  percent: 100
 ---
 
 # Project State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-06-02)
 
 ## Current Position
 
-Phase: 112 (Build Pipeline Hardening) — EXECUTING
-Plan: 2 of 2
-Status: Ready to execute
+Phase: 112 (Build Pipeline Hardening) — COMPLETE
+Plan: 2 of 2 (all plans done)
+Status: Phase complete — ready for verification
 Last activity: 2026-06-02
 
 ```
@@ -78,9 +78,16 @@ Last activity: 2026-06-02
 - French translation source: manual translations_fr.json overlay — no automated source exists
 - Audit order: SM first (largest faction), then Necrons, then Death Guard
 
+### Key Decisions (Phase 112 Plan 02)
+
+- allBsdataNames collects from ALL BSData units (not just matched) — alias unused detection requires it
+- MIN_COVERAGE_PCT=55 safely below current 60.1%; raise to 90 after Phase 113/114 audits
+- Coverage threshold is overall not per-faction to prevent false failures on sparse factions
+- validateAliases() is local to build-unit-db.ts (not exported to shared lib) — single consumer
+
 ### Pending Todos
 
-None — roadmap complete, ready to plan Phase 112.
+None — Phase 112 complete.
 
 ### Open Blockers
 
@@ -101,7 +108,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-02T20:51:06.051Z
-Stopped at: Phase 112 context gathered
+Last session: 2026-06-02T21:20:00.000Z
+Stopped at: Phase 112 Plan 02 complete (all plans done)
 Resume file: None
-Resume: Run `/gsd:plan-phase 112` to create the execution plan for Phase 112
+Resume: Phase 112 complete. Start next phase planning.

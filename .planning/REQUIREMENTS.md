@@ -9,11 +9,11 @@ Requirements for Data Quality Audit & Pipeline Improvement milestone.
 
 ### Build Pipeline Hardening
 
-- [ ] **BPH-01**: Build script prints per-faction coverage report showing matched/unmatched unit counts after BSData matching
-- [ ] **BPH-02**: Build script uses `files.sort()` on BSData directory reads for deterministic, reproducible builds across machines
+- [x] **BPH-01**: Build script prints per-faction coverage report showing matched/unmatched unit counts after BSData matching
+- [x] **BPH-02**: Build script uses `files.sort()` on BSData directory reads for deterministic, reproducible builds across machines
 - [x] **BPH-03**: Shared BSData parsing logic extracted to `scripts/lib/` module imported by both `build-unit-db.ts` and `update-unit-database.ts`
-- [ ] **BPH-04**: Build script validates `aliases.json` entries at build time — warns on unused aliases and unknown unit names
-- [ ] **BPH-05**: Build script exits non-zero when overall BSData points coverage drops below a configured threshold
+- [x] **BPH-04**: Build script validates `aliases.json` entries at build time — warns on unused aliases and unknown unit names
+- [x] **BPH-05**: Build script exits non-zero when overall BSData points coverage drops below a configured threshold
 
 ### Data Audit — Space Marines
 
@@ -81,11 +81,11 @@ Requirements for Data Quality Audit & Pipeline Improvement milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BPH-01 | Phase 112 | Pending |
-| BPH-02 | Phase 112 | Pending |
+| BPH-01 | Phase 112 | Complete |
+| BPH-02 | Phase 112 | Complete |
 | BPH-03 | Phase 112 | Complete |
-| BPH-04 | Phase 112 | Pending |
-| BPH-05 | Phase 112 | Pending |
+| BPH-04 | Phase 112 | Complete |
+| BPH-05 | Phase 112 | Complete |
 | SM-01 | Phase 113 | Pending |
 | SM-02 | Phase 113 | Pending |
 | SM-03 | Phase 113 | Pending |
