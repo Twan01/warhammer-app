@@ -75,7 +75,10 @@ Full details: `.planning/milestones/v0.4.0-ROADMAP.md`
   3. `build-unit-db.ts` and `update-unit-database.ts` share a single parsing library from `scripts/lib/` — a fix in one automatically applies to the other
   4. Running with a stale or mismatched `aliases.json` prints a warning identifying the unused or unknown alias entries
   5. The build exits with a non-zero code when BSData points coverage falls below the configured threshold, blocking silent regressions
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 112-01-PLAN.md — Shared library extraction (bsdata.ts) and script rewiring
+- [ ] 112-02-PLAN.md — Coverage reporting, deterministic output, alias validation, threshold
 
 ### Phase 113: Priority Faction Data Audit
 **Goal**: Space Marines, Necrons, and Death Guard unit data is fully verified correct — every points value, stat line, weapon profile, ability text, keyword, role, and French translation cross-checked against official sources and corrected in source data
@@ -118,7 +121,7 @@ Phases execute in numeric order: 112 → 113 → 114 → 115
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 112. Build Pipeline Hardening | 0/? | Not started | - |
+| 112. Build Pipeline Hardening | 0/2 | Not started | - |
 | 113. Priority Faction Data Audit | 0/? | Not started | - |
 | 114. Pipeline Fixes & Database Rebuild | 0/? | Not started | - |
 | 115. Sub-faction Filter Fix | 0/? | Not started | - |
