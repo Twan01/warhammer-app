@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-02)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 113 complete -- French translations populated for SM/NEC/DG
+**Current focus:** Phase 114 planned -- Pipeline fixes ready to execute
 
 ## Current Position
 
-Phase: 113 (Priority Faction Data Audit) -- COMPLETE
-Plan: 2 of 2
-Status: Phase 113 complete
+Phase: 114 (Pipeline Fixes & Database Rebuild) -- PLANNED
+Plan: 0 of 2
+Status: Ready to execute
 Last activity: 2026-06-03
 
 ```
@@ -120,6 +120,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-06-03
-Stopped at: Phase 114 context gathered
-Resume file: .planning/phases/114-pipeline-fixes-database-rebuild/114-CONTEXT.md
-Resume: Phase 114 context captured. Ready for planning. Key fixes: weapon range/keywords CSV column bugs, per-unit weapon stat investigation, name normalization improvements, targeted aliases.
+Stopped at: Phase 114 planned — 2 plans ready to execute
+Resume file: .planning/phases/114-pipeline-fixes-database-rebuild/114-01-PLAN.md
+Resume: Phase 114 planned. 2 plans in 2 waves: (1) Fix 3 CSV parsing bugs + tests, (2) Aliases + rebuild + verify coverage. Execute with /gsd:execute-phase 114.
