@@ -59,7 +59,7 @@ const REPO_ROOT = join(__dirname, "..");
  * Raise this threshold after Phase 113/114 audit work improves coverage.
  * Target: 90% after all faction audits complete.
  */
-const MIN_COVERAGE_PCT = 55;
+const MIN_COVERAGE_PCT = 58;
 
 // ---------------------------------------------------------------------------
 // Data directory paths
