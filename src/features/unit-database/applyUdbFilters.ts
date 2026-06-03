@@ -25,7 +25,13 @@ export function applyUdbFilters(
 
   return units.filter((unit) => {
     // Sub-faction filter (checked first per plan specification)
-    if (filters.subFactionFilter !== null && unit.sub_faction !== filters.subFactionFilter) {
+    // Units pass through if: no sub-faction filter active, OR unit matches the selected sub-faction,
+    // OR unit has no sub-faction (generic parent faction unit available to all sub-factions)
+    if (
+      filters.subFactionFilter !== null &&
+      unit.sub_faction !== filters.subFactionFilter &&
+      unit.sub_faction !== null
+    ) {
       return false;
     }
 
