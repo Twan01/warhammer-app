@@ -32,7 +32,7 @@
 
 - [ ] **Phase 112: Build Pipeline Hardening** - Per-faction coverage report, deterministic builds, shared lib, alias validation, failure threshold
 - [x] **Phase 113: Priority Faction Data Audit** (2/2 plans) — completed 2026-06-03
-- [ ] **Phase 114: Pipeline Fixes & Database Rebuild** - Fix parsing bugs found during audit, improve normalization, add aliases, rebuild and verify coverage
+- [x] **Phase 114: Pipeline Fixes & Database Rebuild** (2/2 plans) -- completed 2026-06-03
 - [ ] **Phase 115: Sub-faction Filter Fix** - Sub-faction selection includes parent faction generic units across DB browser, army list picker, collection browser
 
 </details>
@@ -103,10 +103,10 @@ Plans:
   2. Units with apostrophe variants, spacing differences, or common formatting mismatches in source data are matched automatically without requiring a new alias entry
   3. The Data Health page shows improved coverage percentages for Space Marines, Necrons, and Death Guard compared to the pre-audit baseline
   4. `aliases.json` contains entries only for genuine edge cases that cannot be resolved by improved parsing — the alias count does not grow to mask fixable parser bugs
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 114-01-PLAN.md -- Fix three systematic CSV parsing bugs (weapon range, keywords, group mapping) + tests
-- [ ] 114-02-PLAN.md -- Investigate aliases, rebuild database, verify coverage improvements
+- [x] 114-01-PLAN.md -- Fix three systematic CSV parsing bugs (weapon range, keywords, group mapping) + tests
+- [x] 114-02-PLAN.md -- Investigate aliases, rebuild database, verify coverage improvements
 
 ### Phase 115: Sub-faction Filter Fix
 **Goal**: Selecting a sub-faction anywhere in the app shows both sub-faction-specific units and the parent faction's generic units, so a player filtering to "Ultramarines" sees Space Marines generic units alongside Ultramarines-specific ones

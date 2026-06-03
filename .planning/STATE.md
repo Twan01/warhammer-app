@@ -25,13 +25,13 @@ See: .planning/PROJECT.md (updated 2026-06-02)
 
 ## Current Position
 
-Phase: 114 (Pipeline Fixes & Database Rebuild) -- IN PROGRESS
-Plan: 1 of 2
-Status: Plan 01 complete, Plan 02 next
+Phase: 114 (Pipeline Fixes & Database Rebuild) -- COMPLETE
+Plan: 2 of 2
+Status: Phase 114 complete
 Last activity: 2026-06-03
 
 ```
-[░░░░░░░░░░░░░░░░░░░░] 0% — 0/4 phases complete
+[██████████░░░░░░░░░░] 50% — 2/4 phases complete
 ```
 
 ## Performance Metrics
@@ -91,6 +91,13 @@ Last activity: 2026-06-03
 - Curly apostrophes in Wahapedia data required separate handling for composite key matching
 - Core/Faction ability types with empty names intentionally skipped per D-09
 
+### Key Decisions (Phase 114)
+
+- No new aliases needed: all 94 missing_alias units are Wahapedia-only (no non-Legends BSData equivalent)
+- Alias keys must use straight apostrophe (U+0027) to match BSData XML entity encoding
+- MIN_COVERAGE_PCT raised from 55% to 58% (conservative ratchet below 60.1% floor)
+- Coverage gap (60.1%) is structural -- Wahapedia-only units with no BSData source, not fixable via aliases
+
 ### Key Decisions (Phase 115)
 
 - Dual-site fix: applyUdbFilters null check (SUB-01) + SQL OR sub_faction IS NULL (SUB-02/03) — both needed for their respective filter surfaces
@@ -120,6 +127,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-06-03
-Stopped at: Phase 114 Plan 01 complete — 3 CSV weapon parsing bugs fixed
-Resume file: .planning/phases/114-pipeline-fixes-database-rebuild/114-02-PLAN.md
-Resume: Plan 01 done (3 CSV bugs fixed, tests green). Plan 02 next: aliases + rebuild + verify coverage.
+Stopped at: Phase 114 complete — database rebuilt with all pipeline fixes
+Resume file: None
+Resume: Phase 114 done. All pipeline bugs fixed, database rebuilt, coverage verified at 60.1%.
