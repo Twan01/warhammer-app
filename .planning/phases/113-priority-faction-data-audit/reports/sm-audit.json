@@ -1,0 +1,998 @@
+{
+  "faction_id": "SM",
+  "faction_name": "Space Marines",
+  "audited_at": "2026-06-03T06:35:33.885Z",
+  "systematic_issues": [
+    {
+      "field": "weapon.range",
+      "description": "All 1899 weapons have empty range in DB, but 1897 CSV rows have range data. Pipeline bug: reads row[\"Range\"] but CSV header is \"range\" (lowercase).",
+      "affected_count": 1899
+    },
+    {
+      "field": "weapon.keywords",
+      "description": "All 1899 weapons have empty keywords in DB, but 1402 CSV rows have keyword/special rules data. Pipeline bug: reads row[\"keywords\"] but CSV field is \"description\".",
+      "affected_count": 1899
+    }
+  ],
+  "unit_errors": [
+    {
+      "unit_id": "000000138",
+      "unit_name": "Roboute Guilliman",
+      "field": "weapon.category",
+      "expected": "Ranged",
+      "actual": "Melee",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000000138",
+      "unit_name": "Roboute Guilliman",
+      "field": "weapon.attacks",
+      "expected": "2",
+      "actual": "7",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000000138",
+      "unit_name": "Roboute Guilliman",
+      "field": "weapon.strength",
+      "expected": "6",
+      "actual": "14",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000000138",
+      "unit_name": "Roboute Guilliman",
+      "field": "weapon.ap",
+      "expected": "-2",
+      "actual": "-4",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000000138",
+      "unit_name": "Roboute Guilliman",
+      "field": "weapon.damage",
+      "expected": "2",
+      "actual": "4",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000000317",
+      "unit_name": "Arjac Rockfist",
+      "field": "weapon.category",
+      "expected": "Ranged",
+      "actual": "Melee",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000000317",
+      "unit_name": "Arjac Rockfist",
+      "field": "weapon.attacks",
+      "expected": "1",
+      "actual": "5",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000002780",
+      "unit_name": "Fortis Kill Team",
+      "field": "weapon.strength",
+      "expected": "4",
+      "actual": "9",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000002780",
+      "unit_name": "Fortis Kill Team",
+      "field": "weapon.ap",
+      "expected": "0",
+      "actual": "-2",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000002780",
+      "unit_name": "Fortis Kill Team",
+      "field": "weapon.damage",
+      "expected": "1",
+      "actual": "D3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003871",
+      "unit_name": "Watch Master",
+      "field": "weapon.category",
+      "expected": "Ranged",
+      "actual": "Melee",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003871",
+      "unit_name": "Watch Master",
+      "field": "weapon.attacks",
+      "expected": "2",
+      "actual": "6",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003871",
+      "unit_name": "Watch Master",
+      "field": "weapon.strength",
+      "expected": "4",
+      "actual": "6",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003871",
+      "unit_name": "Watch Master",
+      "field": "weapon.ap",
+      "expected": "-1",
+      "actual": "-2",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003871",
+      "unit_name": "Watch Master",
+      "field": "weapon.damage",
+      "expected": "2",
+      "actual": "D3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000004175",
+      "unit_name": "Decimus Kill Team",
+      "field": "weapon.strength",
+      "expected": "4",
+      "actual": "9",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000004175",
+      "unit_name": "Decimus Kill Team",
+      "field": "weapon.ap",
+      "expected": "0",
+      "actual": "-2",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000004175",
+      "unit_name": "Decimus Kill Team",
+      "field": "weapon.damage",
+      "expected": "1",
+      "actual": "D3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000004183",
+      "unit_name": "Marneus Calgar in Armour of Antilochus",
+      "field": "weapon.category",
+      "expected": "Ranged",
+      "actual": "Melee",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000004183",
+      "unit_name": "Marneus Calgar in Armour of Antilochus",
+      "field": "weapon.attacks",
+      "expected": "4",
+      "actual": "6",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000004183",
+      "unit_name": "Marneus Calgar in Armour of Antilochus",
+      "field": "weapon.strength",
+      "expected": "4",
+      "actual": "8",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000004183",
+      "unit_name": "Marneus Calgar in Armour of Antilochus",
+      "field": "weapon.ap",
+      "expected": "-1",
+      "actual": "-3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000004183",
+      "unit_name": "Marneus Calgar in Armour of Antilochus",
+      "field": "weapon.damage",
+      "expected": "2",
+      "actual": "3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    }
+  ],
+  "unmatched_classifications": [
+    {
+      "unit_name": "Assault Squad",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000061) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Apothecary on Bike",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000063) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Assault Squad with Jump Packs",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000064) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Land Raider Crusader",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000004139) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Land Raider Excelsior",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Caestus Assault Ram",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Rhino Primaris",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000085) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Sicaran Venator",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Typhon",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Ultramarines Honour Guard",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000095) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Carab Culln The Risen",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Tarantula Sentry Battery",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Tarantula Air Defence Battery",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Relic Terminator Squad",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Javelin Attack Speeder",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Rapier Carrier",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Mortis Dreadnought",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Storm Eagle Gunship",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Bike Squad",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000116) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Venerable Dreadnought (Legendary)",
+      "faction_id": "SM",
+      "category": "legends",
+      "evidence": "Name matches Legends pattern: /\\(legendary\\)$/i"
+    },
+    {
+      "unit_name": "Dreadnought Drop Pod",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Sicaran Punisher",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Leviathan Dreadnought",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Land Speeder Storm",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000132) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Astartes Servitors",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000134) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Scout Bike Squad",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000137) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Hunter",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000146) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Imperial Space Marine",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000148) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Captain Tycho",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000152) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Tycho The Lost",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000153) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Librarian Dreadnought",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000154) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Sanguinary Priest on Bike",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000159) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Brother Corbulo",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000160) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Furioso Dreadnought",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000167) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Gabriel Seth",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000169) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Logan Grimnar On Stormrider",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000283) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Wolf Lord on Thunderwolf",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000284) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Krom Dragongaze",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000286) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Harald Deathwolf",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000287) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Canis Wolfborn",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000288) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Wolf Guard Battle Leader In Terminator Armour",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000300) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Wolf Guard Battle Leader On Thunderwolf",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000301) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Lukas The Trickster",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000304) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Iron Priest On Thunderwolf",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000308) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Wolf Scouts (Legendary)",
+      "faction_id": "SM",
+      "category": "legends",
+      "evidence": "Name matches Legends pattern: /\\(legendary\\)$/i"
+    },
+    {
+      "unit_name": "Wolf Guard",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000315) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Stormwolf",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000321) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Skyclaws",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000324) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Stormfang Gunship",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000325) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Long Fangs",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000326) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Cerberus",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Vanguard Veteran Squad",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000001154) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Sicaran Arcus",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Sergeant Telion",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000001162) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Sicaran Omega",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Thunderfire Cannon",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000001164) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Company Veterans On Bikes",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000001166) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Company Champion On Bike",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000001167) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Land Speeder Tempest",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Land Speeder Tornado",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000001169) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Kratos",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Vindicator Laser Destroyer",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Sokar-pattern Stormbird",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Ancient on Bike",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000001182) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Terminator Squad",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000004138) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Terminus Ultra",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Sicaran Battle Tank",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Mastodon",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Chaplain Venerable Dreadnought",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Librarian with Jump Pack",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000001344) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Land Raider Prometheus",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Librarian on Bike",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000001348) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Ravenwing Talonmaster",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000001423) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Scout Sniper Squad",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000001523) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Sergeant Chronus",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000001524) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Techmarine on Bike",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000001527) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Land Raider Achilles",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Land Raider Proteus",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Fire Raptor Gunship",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Falchion",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Gladiator Reaper",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002789) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Gladiator Valiant",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002788) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Terrax-pattern Termite",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Land Speeder Typhoon",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002102) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Command Squad",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002103) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Primaris Company Champion",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002234) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Spartan",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Sternguard Veteran Squad",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000004137) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Stalker",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002258) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Deathstorm Drop Pod",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Deimos Predator",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Deredeo Dreadnought",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Deathwing Command Squad",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002302) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Deathwing Strikemaster",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002468) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Impulsor",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002786) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Chaplain Cassius",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002678) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Captain on Bike",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002702) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Fellblade",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Gladiator Lancer",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002787) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Ironclad Dreadnought",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002706) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Land Raider Helios",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Land Speeder",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002711) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Relic Contemptor Dreadnought",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Relic Razorback",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Repulsor",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002791) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Repulsor Executioner",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002790) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Thunderhawk Transporter",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Tyrannic War Veterans",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002725) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Whirlwind Scorpius",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Xiphon Interceptor",
+      "faction_id": "SM",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Sanguinary Priest With Jump Pack",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002738) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Wolf Guard Pack Leader With Jump Pack",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002802) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Wolf Guard Pack Leader In Terminator Armour",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002803) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Wolf Guard Pack Leader",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002804) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Cyberwolf",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002805) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Hounds Of Morkai",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002806) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Example Wargear",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000003708) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Death Company Dreadnought with Magna-grapple",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000003835) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Death Company Marines with Boltguns",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000003836) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Death Company Marines with Boltguns and Jump Packs",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000003837) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Kill Team Cassius",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000003875) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Crusader Squad (Legendary)",
+      "faction_id": "SM",
+      "category": "legends",
+      "evidence": "Name matches Legends pattern: /\\(legendary\\)$/i"
+    },
+    {
+      "unit_name": "Judiciar Xacharus",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000004179) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Chaplain Kastiel",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000004180) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Ferren Areios",
+      "faction_id": "SM",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000004204) but not matched by BSData. Likely name mismatch requiring alias."
+    }
+  ],
+  "translation_gaps": {
+    "units_missing": 298,
+    "weapons_missing": 1899,
+    "abilities_missing": 643
+  },
+  "summary": {
+    "total_matched": 298,
+    "total_unmatched": 125,
+    "total_errors": 23,
+    "errors_by_field": {
+      "weapon.category": 4,
+      "weapon.attacks": 4,
+      "weapon.strength": 5,
+      "weapon.ap": 5,
+      "weapon.damage": 5
+    },
+    "errors_by_severity": {
+      "error": 23
+    }
+  }
+}
