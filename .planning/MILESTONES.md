@@ -1,4 +1,25 @@
 # Milestones
+## v0.4.5 Data Quality Audit & Pipeline Improvement (Shipped: 2026-06-03)
+
+**Phases completed:** 4 phases (112-115), 7 plans
+**Timeline:** 2026-06-02 → 2026-06-03 (2 days)
+**Stats:** ~61 commits, 24/24 requirements satisfied, Nyquist 3/4 compliant
+
+**Key accomplishments:**
+- Build pipeline hardening: shared BSData library extraction (`scripts/lib/bsdata.ts`), deterministic builds, per-faction coverage reporting with match-method breakdown, alias validation, coverage threshold gate (MIN_COVERAGE_PCT=58%)
+- Priority faction data audit: audit script (`audit-faction.ts`) for systematic field-by-field comparison, SM/NEC/DG audited against Wahapedia CSVs, French translations added for all 3 factions
+- Pipeline fixes: 3 systematic CSV weapon parsing bugs fixed (range, keywords, weapon grouping), `mapWeaponRow` helper extracted with 6 tests, Emperor's Champion alias apostrophe fix, database rebuilt with correct data
+- Sub-faction filter: dual-site fix (SQL + client-side) — selecting a sub-faction now shows both sub-faction-specific units and parent faction generic units across database browser, army list picker, and collection browser
+
+**Tech debt accepted:** French translation unit names lack accents (cosmetic); Phase 112 Nyquist validation missing; 3 UI flows pending human verification
+
+**Archived:**
+- Roadmap: `.planning/milestones/v0.4.5-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.4.5-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.4.5-MILESTONE-AUDIT.md`
+
+---
+
 ## v0.4.2 Unit Database 2.0 — Data Quality, Sub-factions & Integration (Shipped: 2026-06-01)
 
 **Phases completed:** 4 phases (108-111), 11 plans
