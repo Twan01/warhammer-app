@@ -34,8 +34,7 @@ export function mapWeaponRow(row: Record<string, string>): WeaponMappingResult {
   const unitId = row["datasheet_id"]?.trim() ?? "";
   const name = row["name"]?.trim() ?? "";
 
-  // BUG: reads "Range" (uppercase) instead of "range" (lowercase CSV header)
-  const range = row["Range"]?.trim() ?? "";
+  const range = row["range"]?.trim() ?? "";
 
   const weaponGroup = parseInt(row["line"]?.trim() ?? "1", 10) || 1;
   const lineOrder = parseInt(row["line_in_wargear"]?.trim() ?? "1", 10) || 1;
@@ -52,7 +51,6 @@ export function mapWeaponRow(row: Record<string, string>): WeaponMappingResult {
     strength: row["S"]?.trim() ?? "",
     ap: row["AP"]?.trim() ?? "",
     damage: row["D"]?.trim() ?? "",
-    // BUG: reads "keywords" instead of "description"
-    keywords: row["keywords"]?.trim() ?? "",
+    keywords: row["description"]?.trim() ?? "",
   };
 }
