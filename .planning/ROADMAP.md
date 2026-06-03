@@ -103,7 +103,10 @@ Plans:
   2. Units with apostrophe variants, spacing differences, or common formatting mismatches in source data are matched automatically without requiring a new alias entry
   3. The Data Health page shows improved coverage percentages for Space Marines, Necrons, and Death Guard compared to the pre-audit baseline
   4. `aliases.json` contains entries only for genuine edge cases that cannot be resolved by improved parsing — the alias count does not grow to mask fixable parser bugs
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 114-01-PLAN.md -- Fix three systematic CSV parsing bugs (weapon range, keywords, group mapping) + tests
+- [ ] 114-02-PLAN.md -- Investigate aliases, rebuild database, verify coverage improvements
 
 ### Phase 115: Sub-faction Filter Fix
 **Goal**: Selecting a sub-faction anywhere in the app shows both sub-faction-specific units and the parent faction's generic units, so a player filtering to "Ultramarines" sees Space Marines generic units alongside Ultramarines-specific ones
@@ -128,7 +131,7 @@ Phases execute in numeric order: 112 → 113 → 114 → 115
 |-------|----------------|--------|-----------|
 | 112. Build Pipeline Hardening | 2/2 | Complete    | 2026-06-02 |
 | 113. Priority Faction Data Audit | 2/2 | Complete    | 2026-06-03 |
-| 114. Pipeline Fixes & Database Rebuild | 0/? | Not started | - |
+| 114. Pipeline Fixes & Database Rebuild | 0/2 | Not started | - |
 | 115. Sub-faction Filter Fix | 1/1 | Complete    | 2026-06-03 |
 
 ---
