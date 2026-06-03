@@ -1,7 +1,7 @@
 {
   "faction_id": "DG",
   "faction_name": "Death Guard",
-  "audited_at": "2026-06-03T06:36:39.389Z",
+  "audited_at": "2026-06-03T06:52:33.887Z",
   "systematic_issues": [
     {
       "field": "weapon.range",
@@ -274,9 +274,9 @@
     }
   ],
   "translation_gaps": {
-    "units_missing": 71,
-    "weapons_missing": 401,
-    "abilities_missing": 122
+    "units_missing": 0,
+    "weapons_missing": 1,
+    "abilities_missing": 25
   },
   "summary": {
     "total_matched": 71,

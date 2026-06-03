@@ -1,7 +1,7 @@
 {
   "faction_id": "SM",
   "faction_name": "Space Marines",
-  "audited_at": "2026-06-03T06:35:33.885Z",
+  "audited_at": "2026-06-03T06:52:26.189Z",
   "systematic_issues": [
     {
       "field": "weapon.range",
@@ -976,9 +976,9 @@
     }
   ],
   "translation_gaps": {
-    "units_missing": 298,
-    "weapons_missing": 1899,
-    "abilities_missing": 643
+    "units_missing": 0,
+    "weapons_missing": 2,
+    "abilities_missing": 174
   },
   "summary": {
     "total_matched": 298,

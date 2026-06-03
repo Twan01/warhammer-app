@@ -1,6 +1,6 @@
 # Death Guard (DG) Data Audit Report
 
-**Audited:** 2026-06-03T06:36:39.389Z
+**Audited:** 2026-06-03T06:52:33.887Z
 **Matched units:** 71
 **Unmatched units:** 35
 **Per-unit errors:** 5
@@ -94,6 +94,6 @@
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 71 |
-| Weapons (name_fr) | 401 |
-| Abilities (name_fr) | 122 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 1 |
+| Abilities (name_fr) | 25 |

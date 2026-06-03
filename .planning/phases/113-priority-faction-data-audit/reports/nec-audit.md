@@ -1,6 +1,6 @@
 # Necrons (NEC) Data Audit Report
 
-**Audited:** 2026-06-03T06:36:35.919Z
+**Audited:** 2026-06-03T06:52:33.654Z
 **Matched units:** 64
 **Unmatched units:** 13
 **Per-unit errors:** 23
@@ -85,6 +85,6 @@
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 64 |
-| Weapons (name_fr) | 172 |
-| Abilities (name_fr) | 139 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 0 |
+| Abilities (name_fr) | 38 |

@@ -1,6 +1,6 @@
 # Space Marines (SM) Data Audit Report
 
-**Audited:** 2026-06-03T06:35:33.885Z
+**Audited:** 2026-06-03T06:52:26.189Z
 **Matched units:** 298
 **Unmatched units:** 125
 **Per-unit errors:** 23
@@ -200,6 +200,6 @@
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 298 |
-| Weapons (name_fr) | 1899 |
-| Abilities (name_fr) | 643 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 2 |
+| Abilities (name_fr) | 174 |

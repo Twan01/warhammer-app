@@ -1,7 +1,7 @@
 {
   "faction_id": "NEC",
   "faction_name": "Necrons",
-  "audited_at": "2026-06-03T06:36:35.919Z",
+  "audited_at": "2026-06-03T06:52:33.654Z",
   "systematic_issues": [
     {
       "field": "weapon.range",
@@ -304,9 +304,9 @@
     }
   ],
   "translation_gaps": {
-    "units_missing": 64,
-    "weapons_missing": 172,
-    "abilities_missing": 139
+    "units_missing": 0,
+    "weapons_missing": 0,
+    "abilities_missing": 38
   },
   "summary": {
     "total_matched": 64,
