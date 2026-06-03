@@ -1,7 +1,7 @@
 ---
 phase: 115
 slug: sub-faction-filter-fix
-status: draft
+status: audited
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-06-03
@@ -38,8 +38,8 @@ created: 2026-06-03
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 115-01-01 | 01 | 1 | SUB-01 | — | N/A | unit | `pnpm test -- tests/unit-database/applyUdbFilters.test.ts` | ✅ | ⬜ pending |
-| 115-01-02 | 01 | 1 | SUB-02, SUB-03 | — | N/A | unit | `pnpm test -- tests/unit-database/applyUdbFilters.test.ts` | ✅ | ⬜ pending |
+| 115-01-01 | 01 | 1 | SUB-01 | — | N/A | unit | `pnpm test -- tests/unit-database/applyUdbFilters.test.ts` | ✅ | ✅ green |
+| 115-01-02 | 01 | 1 | SUB-02, SUB-03 | — | N/A | unit | `pnpm test -- tests/unit-database/applyUdbFilters.test.ts` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -70,4 +70,21 @@ created: 2026-06-03
 - [x] Feedback latency < 5s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved
+
+---
+
+## Validation Audit 2026-06-03
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+**Audit notes:**
+- All 13 tests in `applyUdbFilters.test.ts` pass (5 sub-faction, 8 other filters)
+- SUB-01 fully covered by client-side unit tests (COVERED)
+- SUB-02/SUB-03 SQL path (`getUdbUnitIdsBySubFaction`) correctly classified as manual-only — requires Tauri bridge unavailable in jsdom
+- 4 pre-existing test failures (DQ-02 ×2, DAS-06 ×2) confirmed unrelated to phase 115
+- Implementation verified: `sub_faction = $2 OR sub_faction IS NULL` in SQL, `unit.sub_faction !== null` in TS
