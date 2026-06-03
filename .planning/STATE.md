@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.4.5
 milestone_name: Data Quality Audit & Pipeline Improvement
 status: executing
-stopped_at: Phase 113 context gathered
-last_updated: "2026-06-03T06:23:52.750Z"
-last_activity: 2026-06-03 -- Phase 115 planning complete
+stopped_at: Phase 113 planned (2 plans, 2 waves)
+last_updated: "2026-06-03T12:30:00.000Z"
+last_activity: 2026-06-03
 progress:
-  total_phases: 3
+  total_phases: 4
   completed_phases: 1
-  total_plans: 3
+  total_plans: 6
   completed_plans: 2
-  percent: 33
+  percent: 25
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-02)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore so local data is always recoverable
-**Current focus:** Milestone complete
+**Current focus:** Phase 115 — Sub-faction Filter Fix
 
 ## Current Position
 
-Phase: 112
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-03 -- Phase 115 planning complete
+Phase: 115 (Sub-faction Filter Fix) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 115
+Last activity: 2026-06-03 -- Phase 115 execution started
 
 ```
 [░░░░░░░░░░░░░░░░░░░░] 0% — 0/4 phases complete
