@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.4.5
 milestone_name: Data Quality Audit & Pipeline Improvement
-status: executing
-stopped_at: Phase 113 planned (2 plans, 2 waves)
-last_updated: "2026-06-03T12:30:00.000Z"
+status: verifying
+stopped_at: Phase 113 context gathered
+last_updated: "2026-06-03T06:33:00.246Z"
 last_activity: 2026-06-03
 progress:
-  total_phases: 4
-  completed_phases: 1
-  total_plans: 6
-  completed_plans: 2
-  percent: 25
+  total_phases: 3
+  completed_phases: 2
+  total_plans: 5
+  completed_plans: 3
+  percent: 60
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-02)
 
 ## Current Position
 
-Phase: 115 (Sub-faction Filter Fix) — EXECUTING
+Phase: 115 (Sub-faction Filter Fix) — COMPLETE
 Plan: 1 of 1
-Status: Executing Phase 115
-Last activity: 2026-06-03 -- Phase 115 execution started
+Status: Phase 115 complete — all tasks executed, tests green, build passed
+Last activity: 2026-06-03
 
 ```
 [░░░░░░░░░░░░░░░░░░░░] 0% — 0/4 phases complete
@@ -85,9 +85,14 @@ Last activity: 2026-06-03 -- Phase 115 execution started
 - Coverage threshold is overall not per-faction to prevent false failures on sparse factions
 - validateAliases() is local to build-unit-db.ts (not exported to shared lib) — single consumer
 
+### Key Decisions (Phase 115)
+
+- Dual-site fix: applyUdbFilters null check (SUB-01) + SQL OR sub_faction IS NULL (SUB-02/03) — both needed for their respective filter surfaces
+- No changes to hook layer, filter stores, or consumer components — fix confined to two one-line changes
+
 ### Pending Todos
 
-None — Phase 112 complete.
+None — Phase 115 complete.
 
 ### Open Blockers
 
@@ -108,7 +113,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-03T12:00:00.000Z
+Last session: 2026-06-03T06:33:00.238Z
 Stopped at: Phase 113 context gathered
-Resume file: .planning/phases/113-priority-faction-data-audit/113-CONTEXT.md
+Resume file: None
 Resume: Phase 113 context captured. Ready for planning.

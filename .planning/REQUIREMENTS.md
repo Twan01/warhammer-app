@@ -45,9 +45,9 @@ Requirements for Data Quality Audit & Pipeline Improvement milestone.
 
 ### Sub-faction Filtering
 
-- [ ] **SUB-01**: Selecting a sub-faction in the database browser shows sub-faction-specific units PLUS all generic parent faction units (sub_faction IS NULL)
-- [ ] **SUB-02**: Selecting a sub-faction in the army list unit picker shows sub-faction-specific units PLUS generic parent faction units
-- [ ] **SUB-03**: Selecting a sub-faction in the collection browser shows sub-faction-specific units PLUS generic parent faction units
+- [x] **SUB-01**: Selecting a sub-faction in the database browser shows sub-faction-specific units PLUS all generic parent faction units (sub_faction IS NULL)
+- [x] **SUB-02**: Selecting a sub-faction in the army list unit picker shows sub-faction-specific units PLUS generic parent faction units
+- [x] **SUB-03**: Selecting a sub-faction in the collection browser shows sub-faction-specific units PLUS generic parent faction units
 
 ## Future Requirements
 
@@ -102,9 +102,9 @@ Requirements for Data Quality Audit & Pipeline Improvement milestone.
 | PFX-02 | Phase 114 | Pending |
 | PFX-03 | Phase 114 | Pending |
 | PFX-04 | Phase 114 | Pending |
-| SUB-01 | Phase 115 | Pending |
-| SUB-02 | Phase 115 | Pending |
-| SUB-03 | Phase 115 | Pending |
+| SUB-01 | Phase 115 | Complete |
+| SUB-02 | Phase 115 | Complete |
+| SUB-03 | Phase 115 | Complete |
 
 **Coverage:**
 - v0.4.5 requirements: 24 total

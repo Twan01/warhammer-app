@@ -113,9 +113,9 @@ Plans:
   1. In the database browser, selecting a sub-faction (e.g. Ultramarines) shows both units tagged with that sub-faction AND all units from the parent faction with no sub-faction tag — not just the sub-faction-specific units
   2. In the army list unit picker, selecting a sub-faction shows the same combined result: sub-faction units plus parent faction generic units available for selection
   3. In the collection browser, filtering by a sub-faction shows owned units from that sub-faction plus owned generic parent faction units — no generic parent-faction units are hidden by the sub-faction filter
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
-- [ ] 115-01-PLAN.md -- Fix sub-faction filter in SQL query, client-side filter, and tests
+- [x] 115-01-PLAN.md -- Fix sub-faction filter in SQL query, client-side filter, and tests
 **UI hint**: yes
 
 
@@ -129,7 +129,7 @@ Phases execute in numeric order: 112 → 113 → 114 → 115
 | 112. Build Pipeline Hardening | 2/2 | Complete    | 2026-06-02 |
 | 113. Priority Faction Data Audit | 0/2 | Not started | - |
 | 114. Pipeline Fixes & Database Rebuild | 0/? | Not started | - |
-| 115. Sub-faction Filter Fix | 0/? | Not started | - |
+| 115. Sub-faction Filter Fix | 1/1 | Complete   | 2026-06-03 |
 
 ---
 
