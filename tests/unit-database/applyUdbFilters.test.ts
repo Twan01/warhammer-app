@@ -107,15 +107,17 @@ describe("applyUdbFilters", () => {
   // ---------------------------------------------------------------------------
 
   it("filters by subFactionFilter", () => {
+    // After fix: sub-faction filter includes specific units AND generic (null sub_faction) units
     const result = applyUdbFilters(UNITS, { ...NO_FILTER, subFactionFilter: "Ultramarines" });
-    expect(result).toHaveLength(2);
-    expect(result.map((u) => u.name)).toEqual(["Intercessors", "Eradicators"]);
+    expect(result).toHaveLength(4);
+    expect(result.map((u) => u.name)).toEqual(["Intercessors", "Captain", "Eradicators", "Repulsor"]);
   });
 
-  it("subFactionFilter excludes units with null sub_faction", () => {
+  it("subFactionFilter includes generic (null sub_faction) units", () => {
+    // Dark Angels filter returns: Mystery Unit (Dark Angels specific) + Captain + Repulsor (generic null)
     const result = applyUdbFilters(UNITS, { ...NO_FILTER, subFactionFilter: "Dark Angels" });
-    expect(result).toHaveLength(1);
-    expect(result[0].name).toBe("Mystery Unit");
+    expect(result).toHaveLength(3);
+    expect(result.map((u) => u.name)).toEqual(["Captain", "Repulsor", "Mystery Unit"]);
   });
 
   it("subFactionFilter null returns all units", () => {
@@ -129,7 +131,21 @@ describe("applyUdbFilters", () => {
       subFactionFilter: "Ultramarines",
       roleFilter: "Battleline",
     });
+    // After fix, Ultramarines filter includes generic (null) units, but no generic fixture has role Battleline -- count stays 2.
     expect(result).toHaveLength(2);
     expect(result.map((u) => u.name)).toEqual(["Intercessors", "Eradicators"]);
+  });
+
+  it("subFactionFilter: includes sub-faction-specific AND null sub_faction units, excludes other sub-factions", () => {
+    const result = applyUdbFilters(UNITS, { ...NO_FILTER, subFactionFilter: "Ultramarines" });
+    const names = result.map((u) => u.name);
+    // Sub-faction-specific units included
+    expect(names).toContain("Intercessors");
+    expect(names).toContain("Eradicators");
+    // Generic (null sub_faction) units included
+    expect(names).toContain("Captain");
+    expect(names).toContain("Repulsor");
+    // Other sub-faction units excluded
+    expect(names).not.toContain("Mystery Unit");
   });
 });
