@@ -13,21 +13,14 @@ import { fileURLToPath } from "node:url";
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 describe("DQ-02 — build scripts apply .sort() on readdirSync for deterministic file reads", () => {
-  it("build-unit-db.ts calls .sort() on the readdirSync result for BSData files", () => {
+  it("build-unit-db.ts imports from shared bsdata lib which handles sorted file reads", () => {
     const source = readFileSync(resolve(repoRoot, "scripts/build-unit-db.ts"), "utf-8");
-
-    // The sort must appear in proximity to readdirSync — check that both are present
-    // and that .sort() immediately follows the readdirSync/filter chain
-    expect(source).toMatch(/readdirSync/);
-    // .sort() must appear in the file — verify it's applied on file listing
-    // The pattern: readdirSync(...).filter(...).sort() or .filter(...)\n    .sort()
-    const sortAfterReaddir = /readdirSync[\s\S]{0,200}\.sort\(\)/;
-    expect(source).toMatch(sortAfterReaddir);
+    expect(source).toMatch(/from\s+["']\.\/lib\/bsdata/);
   });
 
-  it("update-unit-database.ts calls .sort() on the readdirSync result for BSData files", () => {
+  it("shared bsdata.ts lib calls .sort() on the readdirSync result for BSData files", () => {
     const source = readFileSync(
-      resolve(repoRoot, "scripts/update-unit-database.ts"),
+      resolve(repoRoot, "scripts/lib/bsdata.ts"),
       "utf-8"
     );
 
