@@ -1,0 +1,324 @@
+{
+  "faction_id": "NEC",
+  "faction_name": "Necrons",
+  "audited_at": "2026-06-03T06:36:35.919Z",
+  "systematic_issues": [
+    {
+      "field": "weapon.range",
+      "description": "All 172 weapons have empty range in DB, but 172 CSV rows have range data. Pipeline bug: reads row[\"Range\"] but CSV header is \"range\" (lowercase).",
+      "affected_count": 172
+    },
+    {
+      "field": "weapon.keywords",
+      "description": "All 172 weapons have empty keywords in DB, but 98 CSV rows have keyword/special rules data. Pipeline bug: reads row[\"keywords\"] but CSV field is \"description\".",
+      "affected_count": 172
+    }
+  ],
+  "unit_errors": [
+    {
+      "unit_id": "000000522",
+      "unit_name": "Imotekh The Stormlord",
+      "field": "weapon.category",
+      "expected": "Ranged",
+      "actual": "Melee",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000000522",
+      "unit_name": "Imotekh The Stormlord",
+      "field": "weapon.attacks",
+      "expected": "3",
+      "actual": "4",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000000523",
+      "unit_name": "Overlord",
+      "field": "weapon.category",
+      "expected": "Ranged",
+      "actual": "Melee",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000000523",
+      "unit_name": "Overlord",
+      "field": "weapon.attacks",
+      "expected": "3",
+      "actual": "4",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000000524",
+      "unit_name": "Lord",
+      "field": "weapon.category",
+      "expected": "Ranged",
+      "actual": "Melee",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000000527",
+      "unit_name": "Nemesor Zahndrekh",
+      "field": "weapon.category",
+      "expected": "Ranged",
+      "actual": "Melee",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000000527",
+      "unit_name": "Nemesor Zahndrekh",
+      "field": "weapon.attacks",
+      "expected": "3",
+      "actual": "4",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000000533",
+      "unit_name": "Catacomb Command Barge",
+      "field": "weapon.category",
+      "expected": "Ranged",
+      "actual": "Melee",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000000533",
+      "unit_name": "Catacomb Command Barge",
+      "field": "weapon.attacks",
+      "expected": "3",
+      "actual": "4",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000000533",
+      "unit_name": "Catacomb Command Barge",
+      "field": "weapon.skill",
+      "expected": "2",
+      "actual": "3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000000539",
+      "unit_name": "Triarch Praetorians",
+      "field": "weapon.category",
+      "expected": "Ranged",
+      "actual": "Melee",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000000539",
+      "unit_name": "Triarch Praetorians",
+      "field": "weapon.attacks",
+      "expected": "1",
+      "actual": "3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000002092",
+      "unit_name": "Illuminor Szeras",
+      "field": "weapon.category",
+      "expected": "Ranged",
+      "actual": "Melee",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000002092",
+      "unit_name": "Illuminor Szeras",
+      "field": "weapon.attacks",
+      "expected": "3",
+      "actual": "4",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000002108",
+      "unit_name": "Plasmancer",
+      "field": "weapon.category",
+      "expected": "Ranged",
+      "actual": "Melee",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000002108",
+      "unit_name": "Plasmancer",
+      "field": "weapon.attacks",
+      "expected": "3",
+      "actual": "2",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000002351",
+      "unit_name": "Lokhust Lord",
+      "field": "weapon.category",
+      "expected": "Ranged",
+      "actual": "Melee",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000002351",
+      "unit_name": "Lokhust Lord",
+      "field": "weapon.attacks",
+      "expected": "3",
+      "actual": "4",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000002352",
+      "unit_name": "Technomancer",
+      "field": "weapon.category",
+      "expected": "Ranged",
+      "actual": "Melee",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000002352",
+      "unit_name": "Technomancer",
+      "field": "weapon.attacks",
+      "expected": "3",
+      "actual": "2",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000002353",
+      "unit_name": "Psychomancer",
+      "field": "weapon.category",
+      "expected": "Ranged",
+      "actual": "Melee",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000002354",
+      "unit_name": "Chronomancer",
+      "field": "weapon.category",
+      "expected": "Ranged",
+      "actual": "Melee",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000002354",
+      "unit_name": "Chronomancer",
+      "field": "weapon.attacks",
+      "expected": "D6",
+      "actual": "3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    }
+  ],
+  "unmatched_classifications": [
+    {
+      "unit_name": "Lord",
+      "faction_id": "NEC",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000524) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Nemesor Zahndrekh",
+      "faction_id": "NEC",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000527) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Vargard Obyron",
+      "faction_id": "NEC",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000528) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Anrakyr The Traveller",
+      "faction_id": "NEC",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000000531) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Canoptek Tomb Stalker",
+      "faction_id": "NEC",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Canoptek Acanthrites",
+      "faction_id": "NEC",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Canoptek Tomb Sentinel",
+      "faction_id": "NEC",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Night Shroud",
+      "faction_id": "NEC",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Sentry Pylon",
+      "faction_id": "NEC",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Tesseract Ark",
+      "faction_id": "NEC",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Gauss Pylon",
+      "faction_id": "NEC",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Lokhust Heavy Destroyers",
+      "faction_id": "NEC",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002116) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Tomb Citadel Walls",
+      "faction_id": "NEC",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000002362) but not matched by BSData. Likely name mismatch requiring alias."
+    }
+  ],
+  "translation_gaps": {
+    "units_missing": 64,
+    "weapons_missing": 172,
+    "abilities_missing": 139
+  },
+  "summary": {
+    "total_matched": 64,
+    "total_unmatched": 13,
+    "total_errors": 23,
+    "errors_by_field": {
+      "weapon.category": 12,
+      "weapon.attacks": 10,
+      "weapon.skill": 1
+    },
+    "errors_by_severity": {
+      "error": 23
+    }
+  }
+}

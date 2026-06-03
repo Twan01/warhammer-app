@@ -1,0 +1,296 @@
+{
+  "faction_id": "DG",
+  "faction_name": "Death Guard",
+  "audited_at": "2026-06-03T06:36:39.389Z",
+  "systematic_issues": [
+    {
+      "field": "weapon.range",
+      "description": "All 401 weapons have empty range in DB, but 400 CSV rows have range data. Pipeline bug: reads row[\"Range\"] but CSV header is \"range\" (lowercase).",
+      "affected_count": 401
+    },
+    {
+      "field": "weapon.keywords",
+      "description": "All 401 weapons have empty keywords in DB, but 320 CSV rows have keyword/special rules data. Pipeline bug: reads row[\"keywords\"] but CSV field is \"description\".",
+      "affected_count": 401
+    }
+  ],
+  "unit_errors": [
+    {
+      "unit_id": "000003652",
+      "unit_name": "Fellblade",
+      "field": "weapon.attacks",
+      "expected": "1",
+      "actual": "4",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003652",
+      "unit_name": "Fellblade",
+      "field": "weapon.skill",
+      "expected": "4",
+      "actual": "3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003652",
+      "unit_name": "Fellblade",
+      "field": "weapon.strength",
+      "expected": "4",
+      "actual": "12",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003652",
+      "unit_name": "Fellblade",
+      "field": "weapon.ap",
+      "expected": "0",
+      "actual": "-3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003652",
+      "unit_name": "Fellblade",
+      "field": "weapon.damage",
+      "expected": "1",
+      "actual": "D6+1",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    }
+  ],
+  "unmatched_classifications": [
+    {
+      "unit_name": "Death Guard Chaos Lord",
+      "faction_id": "DG",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000001037) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Death Guard Chaos Lord In Terminator Armour",
+      "faction_id": "DG",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000001038) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Death Guard Sorcerer In Terminator Armour",
+      "faction_id": "DG",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000001041) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Death Guard Cultists",
+      "faction_id": "DG",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000001043) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Death Guard Possessed",
+      "faction_id": "DG",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000001045) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Chaos Thunderhawk",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Greater Blight Drone",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Chaos Lord On Palanquin Of Nurgle",
+      "faction_id": "DG",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000003592) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Gellerpox Infected",
+      "faction_id": "DG",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000003593) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Hell Blade",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Hell Talon",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known Forge World / Imperial Armour unit"
+    },
+    {
+      "unit_name": "Mutoid Vermin",
+      "faction_id": "DG",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000003596) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Sorcerer On Palanquin Of Nurgle",
+      "faction_id": "DG",
+      "category": "missing_alias",
+      "evidence": "Unit exists in Wahapedia CSV (id: 000003600) but not matched by BSData. Likely name mismatch requiring alias."
+    },
+    {
+      "unit_name": "Terrax-pattern Termite",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Land Raider Achilles",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Land Raider Proteus",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Fire Raptor Gunship",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Spartan",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Deredeo Dreadnought",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Cerberus",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Kratos",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Sokar-pattern Stormbird",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Sicaran Battle Tank",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Mastodon",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Leviathan Dreadnought",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Fellblade",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Relic Contemptor Dreadnought",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Whirlwind Scorpius",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Xiphon Interceptor",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Rapier Carrier",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Storm Eagle Gunship",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Sicaran Venator",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Typhon",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Sicaran Punisher",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    },
+    {
+      "unit_name": "Falchion",
+      "faction_id": "DG",
+      "category": "forge_world",
+      "evidence": "Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)"
+    }
+  ],
+  "translation_gaps": {
+    "units_missing": 71,
+    "weapons_missing": 401,
+    "abilities_missing": 122
+  },
+  "summary": {
+    "total_matched": 71,
+    "total_unmatched": 35,
+    "total_errors": 5,
+    "errors_by_field": {
+      "weapon.attacks": 1,
+      "weapon.skill": 1,
+      "weapon.strength": 1,
+      "weapon.ap": 1,
+      "weapon.damage": 1
+    },
+    "errors_by_severity": {
+      "error": 5
+    }
+  }
+}
