@@ -397,22 +397,25 @@ const ABILITIES_COLUMNS = {
 | A3 | French Wahapedia pages exist for SM/NEC/DG and can be fetched for translation verification | D-10 | If French Wahapedia incomplete, translations would need manual creation |
 | A4 | Core/Faction ability placeholders (empty name) use ability_id references to a separate lookup table | Pitfall 2 | If Wahapedia has a downloadable abilities lookup CSV, we could resolve these |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Wahapedia French pages availability**
+1. **Wahapedia French pages availability** (RESOLVED)
    - What we know: French Wahapedia exists at wahapedia.ru with French locale
    - What's unclear: Whether all 3 factions have complete French pages, and whether fetching them for 300+ units is practical within this phase
    - Recommendation: Start with French faction/unit names (most impactful for UI), defer weapon/ability French text to future milestone per existing EFA scope
+   - Resolution: Plan 02 uses known French terminology + French Wahapedia as reference source. Focus on unit/weapon/ability name_fr only; description_fr deferred per FR-EXT-01.
 
-2. **Unit composition audit scope**
+2. **Unit composition audit scope** (RESOLVED)
    - What we know: Only 12 composition entries exist total across all factions (vs hundreds of units)
    - What's unclear: Whether the sparse composition data is worth auditing vs deferring
    - Recommendation: Per Claude's discretion in CONTEXT.md, defer composition audit to Phase 114 since the data is too sparse to meaningfully verify
+   - Resolution: Composition audit deferred to Phase 114. Only 12 entries exist; not worth auditing separately.
 
-3. **BSData points freshness**
+3. **BSData points freshness** (RESOLVED)
    - What we know: BSData .cat files are a local snapshot; GW updates points via Munitorum Field Manual
    - What's unclear: How current the local BSData snapshot is relative to latest Munitorum
    - Recommendation: The audit should note the BSData snapshot date and flag if known recent points changes aren't reflected
+   - Resolution: Plan 01 audit compares against local BSData snapshot only. Snapshot date noted in report header. Per D-13, GW app/Munitorum is authoritative for points if discrepancies arise.
 
 ## Validation Architecture
 
