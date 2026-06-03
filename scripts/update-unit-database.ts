@@ -29,6 +29,7 @@ import { parseCatXml } from "./lib/parseXml.ts";
 import { SUB_FACTION_MAP, CROSS_FACTION_MAP } from "./lib/factionMap.ts";
 import { loadAliases } from "./lib/normalize.ts";
 import { readCsvFile, readBsdataCatFiles, parseBsdataModelCounts, matchUnit } from "./lib/bsdata.ts";
+import { mapWeaponRow } from "./lib/weaponMapping.ts";
 import type {
   UdbFactionRow,
   UdbUnitRow,
@@ -174,33 +175,11 @@ async function buildUnitDatabase(): Promise<UnitDatabaseJson> {
   // Parse weapons
   const wargearRaw = readCsvFile(DATA_DIR, "Datasheets_wargear.csv");
   const weapons: UdbUnitWeaponRow[] = [];
-  const weaponGroupTracker = new Map<string, number>();
-
   for (const row of wargearRaw) {
     const unitId = row["datasheet_id"]?.trim();
     if (!unitId || !validUnitIds.has(unitId)) continue;
-    const name = row["name"]?.trim() ?? "";
-    const lineOrder = parseInt(row["line"]?.trim() ?? "1", 10) || 1;
-    let weaponGroup = weaponGroupTracker.get(unitId) ?? 0;
-    if (lineOrder === 1) {
-      weaponGroup++;
-      weaponGroupTracker.set(unitId, weaponGroup);
-    }
-    weapons.push({
-      unit_id: unitId,
-      weapon_group: weaponGroup,
-      line_order: lineOrder,
-      name,
-      category: row["wargear_role"]?.trim() ?? row["type"]?.trim() ?? "",
-      range: row["Range"]?.trim() ?? "",
-      attacks: row["A"]?.trim() ?? "",
-      skill: row["BS_WS"]?.trim() ?? row["BS/WS"]?.trim() ?? "",
-      strength: row["S"]?.trim() ?? "",
-      ap: row["AP"]?.trim() ?? "",
-      damage: row["D"]?.trim() ?? "",
-      keywords: row["keywords"]?.trim() ?? "",
-      name_fr: null,
-    });
+    const mapped = mapWeaponRow(row);
+    weapons.push({ ...mapped, name_fr: null });
   }
 
   // Parse abilities
