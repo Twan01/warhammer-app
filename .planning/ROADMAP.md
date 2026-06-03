@@ -131,7 +131,7 @@ Phases execute in numeric order: 112 → 113 → 114 → 115
 |-------|----------------|--------|-----------|
 | 112. Build Pipeline Hardening | 2/2 | Complete    | 2026-06-02 |
 | 113. Priority Faction Data Audit | 2/2 | Complete    | 2026-06-03 |
-| 114. Pipeline Fixes & Database Rebuild | 0/2 | Not started | - |
+| 114. Pipeline Fixes & Database Rebuild | 1/2 | In progress | - |
 | 115. Sub-faction Filter Fix | 1/1 | Complete    | 2026-06-03 |
 
 ---

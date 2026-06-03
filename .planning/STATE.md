@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-06-02)
 
 ## Current Position
 
-Phase: 114 (Pipeline Fixes & Database Rebuild) -- PLANNED
-Plan: 0 of 2
-Status: Ready to execute
+Phase: 114 (Pipeline Fixes & Database Rebuild) -- IN PROGRESS
+Plan: 1 of 2
+Status: Plan 01 complete, Plan 02 next
 Last activity: 2026-06-03
 
 ```
@@ -120,6 +120,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-06-03
-Stopped at: Phase 114 planned — 2 plans ready to execute
-Resume file: .planning/phases/114-pipeline-fixes-database-rebuild/114-01-PLAN.md
-Resume: Phase 114 planned. 2 plans in 2 waves: (1) Fix 3 CSV parsing bugs + tests, (2) Aliases + rebuild + verify coverage. Execute with /gsd:execute-phase 114.
+Stopped at: Phase 114 Plan 01 complete — 3 CSV weapon parsing bugs fixed
+Resume file: .planning/phases/114-pipeline-fixes-database-rebuild/114-02-PLAN.md
+Resume: Plan 01 done (3 CSV bugs fixed, tests green). Plan 02 next: aliases + rebuild + verify coverage.

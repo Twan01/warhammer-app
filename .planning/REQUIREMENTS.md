@@ -38,7 +38,7 @@ Requirements for Data Quality Audit & Pipeline Improvement milestone.
 
 ### Pipeline Fixes
 
-- [ ] **PFX-01**: Build script parsing bugs discovered during audit are fixed in the pipeline (not just aliased)
+- [x] **PFX-01**: Build script parsing bugs discovered during audit are fixed in the pipeline (not just aliased)
 - [ ] **PFX-02**: Name normalization improved to handle apostrophe variants, spacing differences, and common formatting mismatches automatically
 - [ ] **PFX-03**: New aliases added to aliases.json for edge cases that cannot be fixed by parsing improvements
 - [ ] **PFX-04**: Unit database rebuilt with pipeline fixes — coverage improvement verified for audited factions
@@ -98,7 +98,7 @@ Requirements for Data Quality Audit & Pipeline Improvement milestone.
 | DG-02 | Phase 113 | Pending |
 | DG-03 | Phase 113 | Pending |
 | DG-04 | Phase 113 | Complete |
-| PFX-01 | Phase 114 | Pending |
+| PFX-01 | Phase 114 | Complete |
 | PFX-02 | Phase 114 | Pending |
 | PFX-03 | Phase 114 | Pending |
 | PFX-04 | Phase 114 | Pending |
