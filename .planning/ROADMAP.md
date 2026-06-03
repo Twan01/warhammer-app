@@ -23,17 +23,17 @@
 - ✅ **v0.3.7 Smart Automation** — Phases 100-102 (shipped 2026-05-28)
 - ✅ **v0.4.0 Unit Database — Canonical 40k Data Hub** — Phases 103-107 (shipped 2026-05-31)
 - ✅ **v0.4.2 Unit Database 2.0 — Data Quality, Sub-factions & Integration** — Phases 108-111 (shipped 2026-06-01)
-- 🔄 **v0.4.5 Data Quality Audit & Pipeline Improvement** — Phases 112-115 (in progress)
+- ✅ **v0.4.5 Data Quality Audit & Pipeline Improvement** — Phases 112-115 (shipped 2026-06-03)
 
 ## Phases
 
 <details>
-<summary>🔄 v0.4.5 Data Quality Audit & Pipeline Improvement (Phases 112-115) — IN PROGRESS</summary>
+<summary>✅ v0.4.5 Data Quality Audit & Pipeline Improvement (Phases 112-115) — SHIPPED 2026-06-03</summary>
 
-- [ ] **Phase 112: Build Pipeline Hardening** - Per-faction coverage report, deterministic builds, shared lib, alias validation, failure threshold
+- [x] **Phase 112: Build Pipeline Hardening** (2/2 plans) — completed 2026-06-02
 - [x] **Phase 113: Priority Faction Data Audit** (2/2 plans) — completed 2026-06-03
-- [x] **Phase 114: Pipeline Fixes & Database Rebuild** (2/2 plans) -- completed 2026-06-03
-- [ ] **Phase 115: Sub-faction Filter Fix** - Sub-faction selection includes parent faction generic units across DB browser, army list picker, collection browser
+- [x] **Phase 114: Pipeline Fixes & Database Rebuild** (2/2 plans) — completed 2026-06-03
+- [x] **Phase 115: Sub-faction Filter Fix** (1/1 plans) — completed 2026-06-03
 
 </details>
 
@@ -131,7 +131,7 @@ Phases execute in numeric order: 112 → 113 → 114 → 115
 |-------|----------------|--------|-----------|
 | 112. Build Pipeline Hardening | 2/2 | Complete    | 2026-06-02 |
 | 113. Priority Faction Data Audit | 2/2 | Complete    | 2026-06-03 |
-| 114. Pipeline Fixes & Database Rebuild | 1/2 | In progress | - |
+| 114. Pipeline Fixes & Database Rebuild | 2/2 | Complete    | 2026-06-03 |
 | 115. Sub-faction Filter Fix | 1/1 | Complete    | 2026-06-03 |
 
 ---
