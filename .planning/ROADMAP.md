@@ -91,7 +91,7 @@ Plans:
   4. French locale display for SM, Necrons, and Death Guard units shows correct translated unit names, weapon names, and ability names from `translations_fr.json`
 **Plans:** 2 plans
 Plans:
-- [ ] 113-01-PLAN.md — Audit script + run for SM/NEC/DG (error reports + unmatched classification)
+- [x] 113-01-PLAN.md — Audit script + run for SM/NEC/DG (error reports + unmatched classification)
 - [ ] 113-02-PLAN.md — French translations for SM/NEC/DG + database rebuild
 
 ### Phase 114: Pipeline Fixes & Database Rebuild
@@ -127,7 +127,7 @@ Phases execute in numeric order: 112 → 113 → 114 → 115
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 112. Build Pipeline Hardening | 2/2 | Complete    | 2026-06-02 |
-| 113. Priority Faction Data Audit | 0/2 | Not started | - |
+| 113. Priority Faction Data Audit | 1/2 | In progress | - |
 | 114. Pipeline Fixes & Database Rebuild | 0/? | Not started | - |
 | 115. Sub-faction Filter Fix | 1/1 | Complete   | 2026-06-03 |
 

@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-02)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 115 — Sub-faction Filter Fix
+**Current focus:** Phase 113 — Priority Faction Data Audit
 
 ## Current Position
 
-Phase: 115 (Sub-faction Filter Fix) — COMPLETE
-Plan: 1 of 1
-Status: Phase 115 complete — all tasks executed, tests green, build passed
+Phase: 113 (Priority Faction Data Audit) — EXECUTING
+Plan: 2 of 2
+Status: Plan 113-01 complete, Plan 113-02 next
 Last activity: 2026-06-03
 
 ```
@@ -113,7 +113,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-03T06:33:00.238Z
-Stopped at: Phase 113 context gathered
-Resume file: None
-Resume: Phase 113 context captured. Ready for planning.
+Last session: 2026-06-03T06:37:00Z
+Stopped at: Completed 113-01-PLAN.md
+Resume file: .planning/phases/113-priority-faction-data-audit/113-01-SUMMARY.md
+Resume: Plan 113-01 complete. All 3 faction audit reports generated. Plan 113-02 (French translations) next.
