@@ -119,7 +119,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-03T06:53:00Z
-Stopped at: Completed 113-02-PLAN.md
-Resume file: .planning/phases/113-priority-faction-data-audit/113-02-SUMMARY.md
-Resume: Phase 113 complete. All French translations populated for SM/NEC/DG. Phase 114 (Pipeline Fixes) next.
+Last session: 2026-06-03
+Stopped at: Phase 114 context gathered
+Resume file: .planning/phases/114-pipeline-fixes-database-rebuild/114-CONTEXT.md
+Resume: Phase 114 context captured. Ready for planning. Key fixes: weapon range/keywords CSV column bugs, per-unit weapon stat investigation, name normalization improvements, targeted aliases.
