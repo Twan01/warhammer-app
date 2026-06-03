@@ -110,7 +110,9 @@ Plans:
   1. In the database browser, selecting a sub-faction (e.g. Ultramarines) shows both units tagged with that sub-faction AND all units from the parent faction with no sub-faction tag — not just the sub-faction-specific units
   2. In the army list unit picker, selecting a sub-faction shows the same combined result: sub-faction units plus parent faction generic units available for selection
   3. In the collection browser, filtering by a sub-faction shows owned units from that sub-faction plus owned generic parent faction units — no generic parent-faction units are hidden by the sub-faction filter
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 115-01-PLAN.md -- Fix sub-faction filter in SQL query, client-side filter, and tests
 **UI hint**: yes
 
 
