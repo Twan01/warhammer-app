@@ -31,7 +31,7 @@
 <summary>🔄 v0.4.5 Data Quality Audit & Pipeline Improvement (Phases 112-115) — IN PROGRESS</summary>
 
 - [ ] **Phase 112: Build Pipeline Hardening** - Per-faction coverage report, deterministic builds, shared lib, alias validation, failure threshold
-- [ ] **Phase 113: Priority Faction Data Audit** - Space Marines, Necrons, Death Guard — points, stats, weapons, abilities, keywords, French translations
+- [x] **Phase 113: Priority Faction Data Audit** (2/2 plans) — completed 2026-06-03
 - [ ] **Phase 114: Pipeline Fixes & Database Rebuild** - Fix parsing bugs found during audit, improve normalization, add aliases, rebuild and verify coverage
 - [ ] **Phase 115: Sub-faction Filter Fix** - Sub-faction selection includes parent faction generic units across DB browser, army list picker, collection browser
 
@@ -127,7 +127,7 @@ Phases execute in numeric order: 112 → 113 → 114 → 115
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 112. Build Pipeline Hardening | 2/2 | Complete    | 2026-06-02 |
-| 113. Priority Faction Data Audit | 1/2 | In progress | - |
+| 113. Priority Faction Data Audit | 2/2 | Complete    | 2026-06-03 |
 | 114. Pipeline Fixes & Database Rebuild | 0/? | Not started | - |
 | 115. Sub-faction Filter Fix | 1/1 | Complete    | 2026-06-03 |
 
