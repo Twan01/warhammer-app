@@ -89,10 +89,10 @@ Plans:
   2. Opening any Necrons unit shows correct points, stat block, weapon profiles, and ability text with no values pulled from a wrong or mismatched unit
   3. Opening any Death Guard unit shows correct points, stats, weapons, abilities, and keyword/role assignments with no errors
   4. French locale display for SM, Necrons, and Death Guard units shows correct translated unit names, weapon names, and ability names from `translations_fr.json`
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
 - [x] 113-01-PLAN.md — Audit script + run for SM/NEC/DG (error reports + unmatched classification)
-- [ ] 113-02-PLAN.md — French translations for SM/NEC/DG + database rebuild
+- [x] 113-02-PLAN.md — French translations for SM/NEC/DG + database rebuild
 
 ### Phase 114: Pipeline Fixes & Database Rebuild
 **Goal**: Every error class discovered during the audit is fixed in `build-unit-db.ts` so that a fresh database rebuild produces correct data automatically — no manual patches, no post-hoc overrides

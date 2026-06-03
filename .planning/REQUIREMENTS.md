@@ -20,21 +20,21 @@ Requirements for Data Quality Audit & Pipeline Improvement milestone.
 - [ ] **SM-01**: All Space Marines unit points values verified correct against Wahapedia, GW app, and community sources
 - [ ] **SM-02**: All Space Marines unit stats (M/T/Sv/W/Ld/OC), weapon profiles, and ability text verified correct
 - [ ] **SM-03**: All Space Marines unit keywords and roles verified correct
-- [ ] **SM-04**: All Space Marines unit French translations (unit names, ability names, weapon names) verified and corrected in translations_fr.json
+- [x] **SM-04**: All Space Marines unit French translations (unit names, ability names, weapon names) verified and corrected in translations_fr.json
 
 ### Data Audit — Necrons
 
 - [ ] **NEC-01**: All Necrons unit points values verified correct against official sources
 - [ ] **NEC-02**: All Necrons unit stats, weapon profiles, and ability text verified correct
 - [ ] **NEC-03**: All Necrons unit keywords and roles verified correct
-- [ ] **NEC-04**: All Necrons unit French translations verified and corrected in translations_fr.json
+- [x] **NEC-04**: All Necrons unit French translations verified and corrected in translations_fr.json
 
 ### Data Audit — Death Guard
 
 - [ ] **DG-01**: All Death Guard unit points values verified correct against official sources
 - [ ] **DG-02**: All Death Guard unit stats, weapon profiles, and ability text verified correct
 - [ ] **DG-03**: All Death Guard unit keywords and roles verified correct
-- [ ] **DG-04**: All Death Guard unit French translations verified and corrected in translations_fr.json
+- [x] **DG-04**: All Death Guard unit French translations verified and corrected in translations_fr.json
 
 ### Pipeline Fixes
 
@@ -89,15 +89,15 @@ Requirements for Data Quality Audit & Pipeline Improvement milestone.
 | SM-01 | Phase 113 | Pending |
 | SM-02 | Phase 113 | Pending |
 | SM-03 | Phase 113 | Pending |
-| SM-04 | Phase 113 | Pending |
+| SM-04 | Phase 113 | Complete |
 | NEC-01 | Phase 113 | Pending |
 | NEC-02 | Phase 113 | Pending |
 | NEC-03 | Phase 113 | Pending |
-| NEC-04 | Phase 113 | Pending |
+| NEC-04 | Phase 113 | Complete |
 | DG-01 | Phase 113 | Pending |
 | DG-02 | Phase 113 | Pending |
 | DG-03 | Phase 113 | Pending |
-| DG-04 | Phase 113 | Pending |
+| DG-04 | Phase 113 | Complete |
 | PFX-01 | Phase 114 | Pending |
 | PFX-02 | Phase 114 | Pending |
 | PFX-03 | Phase 114 | Pending |

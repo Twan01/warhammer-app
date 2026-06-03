@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.4.5
 milestone_name: Data Quality Audit & Pipeline Improvement
-status: milestone_complete
-stopped_at: Milestone complete (Phase 115 was final phase)
-last_updated: 2026-06-03T06:41:37.429Z
+status: executing
+stopped_at: Phase 113 Plan 02 complete
+last_updated: 2026-06-03T06:53:00Z
 last_activity: 2026-06-03
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 5
-  completed_plans: 4
-  percent: 67
+  completed_plans: 5
+  percent: 80
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-02)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore so local data is always recoverable
-**Current focus:** Milestone complete
+**Current focus:** Phase 113 complete -- French translations populated for SM/NEC/DG
 
 ## Current Position
 
-Phase: 115
-Plan: Not started
-Status: Milestone complete
+Phase: 113 (Priority Faction Data Audit) -- COMPLETE
+Plan: 2 of 2
+Status: Phase 113 complete
 Last activity: 2026-06-03
 
 ```
@@ -85,6 +85,12 @@ Last activity: 2026-06-03
 - Coverage threshold is overall not per-faction to prevent false failures on sparse factions
 - validateAliases() is local to build-unit-db.ts (not exported to shared lib) — single consumer
 
+### Key Decisions (Phase 113)
+
+- Gothic/Latin weapon names (Crozius, Volkite, etc.) kept as-is in French -- standard GW practice
+- Curly apostrophes in Wahapedia data required separate handling for composite key matching
+- Core/Faction ability types with empty names intentionally skipped per D-09
+
 ### Key Decisions (Phase 115)
 
 - Dual-site fix: applyUdbFilters null check (SUB-01) + SQL OR sub_faction IS NULL (SUB-02/03) — both needed for their respective filter surfaces
@@ -113,7 +119,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-03T06:37:00Z
-Stopped at: Completed 113-01-PLAN.md
-Resume file: .planning/phases/113-priority-faction-data-audit/113-01-SUMMARY.md
-Resume: Plan 113-01 complete. All 3 faction audit reports generated. Plan 113-02 (French translations) next.
+Last session: 2026-06-03T06:53:00Z
+Stopped at: Completed 113-02-PLAN.md
+Resume file: .planning/phases/113-priority-faction-data-audit/113-02-SUMMARY.md
+Resume: Phase 113 complete. All French translations populated for SM/NEC/DG. Phase 114 (Pipeline Fixes) next.
