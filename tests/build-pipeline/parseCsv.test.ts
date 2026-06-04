@@ -5,7 +5,7 @@
  * DQ-07: parseWahapediaCsv parses pipe-delimited CSV into Record array.
  */
 import { describe, it, expect } from "vitest";
-import { parseWahapediaCsv } from "../../scripts/lib/parseCsv.ts";
+import { parseWahapediaCsv, extractModelCount } from "../../scripts/lib/parseCsv.ts";
 
 describe("parseWahapediaCsv: DQ-07 — Wahapedia pipe-delimited CSV parsing", () => {
   it("parses a minimal two-row CSV into an array of records", () => {
@@ -78,6 +78,38 @@ SM||`;
     }
     const result = parseWahapediaCsv(lines.join("\n"));
     expect(result).toHaveLength(10);
+  });
+});
+
+describe("extractModelCount: PTS-01 — model count extraction from cost CSV description", () => {
+  it("sums two number groups: '1 Spanner and 4 Burna Boyz' returns 5", () => {
+    // The real-world mix pattern: leader (1) + squad (N)
+    expect(extractModelCount("1 Spanner and 4 Burna Boyz", 99)).toBe(5);
+  });
+
+  it("extracts single number: '10 models' returns 10", () => {
+    expect(extractModelCount("10 models", 99)).toBe(10);
+  });
+
+  it("falls back to line param when description has no digits: '' returns line", () => {
+    // Empty description — the tier index (line) is the fallback
+    expect(extractModelCount("", 3)).toBe(3);
+    expect(extractModelCount("no numbers here", 7)).toBe(7);
+  });
+
+  it("extracts single number: '5 Nobz' returns 5", () => {
+    expect(extractModelCount("5 Nobz", 99)).toBe(5);
+  });
+
+  it("sums three number groups: '3 TypeA, 2 TypeB and 1 TypeC' returns 6", () => {
+    // Three-part composition — must sum all digit groups, not just first
+    expect(extractModelCount("3 TypeA, 2 TypeB and 1 TypeC", 99)).toBe(6);
+  });
+
+  it("line fallback uses the exact numeric value passed, not 1", () => {
+    // Confirm fallback is parameterised — if it always returned 1 the test would catch it
+    expect(extractModelCount("", 42)).toBe(42);
+    expect(extractModelCount("", 1)).toBe(1);
   });
 });
 
