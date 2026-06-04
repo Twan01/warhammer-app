@@ -146,7 +146,7 @@ Plans:
 | 116. Pipeline Foundation | 2/2 | Complete    | 2026-06-04 |
 | 117. Points Coverage | 2/2 | Complete | 2026-06-04 |
 | 118. Detachments Import | 2/2 | Complete    | 2026-06-04 |
-| 119. Stratagems & Enhancements Import | 2/2 | Complete   | 2026-06-04 |
+| 119. Stratagems & Enhancements Import | 2/2 | Complete    | 2026-06-04 |
 | 120. UI Wiring | 0/? | Not started | - |
 
 ---
