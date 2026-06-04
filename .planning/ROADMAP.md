@@ -92,7 +92,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 118-01-PLAN.md — Migration, TypeScript types, build script detachment parsing
+- [x] 118-01-PLAN.md — Migration, TypeScript types, build script detachment parsing
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -137,7 +137,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 116. Pipeline Foundation | 2/2 | Complete    | 2026-06-04 |
 | 117. Points Coverage | 0/2 | Planned | - |
-| 118. Detachments Import | 0/? | Not started | - |
+| 118. Detachments Import | 1/2 | In Progress|  |
 | 119. Stratagems & Enhancements Import | 0/? | Not started | - |
 | 120. UI Wiring | 0/? | Not started | - |
 

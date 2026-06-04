@@ -36,8 +36,8 @@ Requirements for Wahapedia Pipeline & Full Data Import milestone.
 
 ### Detachment Abilities
 
-- [ ] **DET-01**: Detachments imported from Wahapedia CSV into udb_detachments table (faction, name)
-- [ ] **DET-02**: Detachment abilities imported into udb_detachment_abilities table (detachment, name, description)
+- [x] **DET-01**: Detachments imported from Wahapedia CSV into udb_detachments table (faction, name)
+- [x] **DET-02**: Detachment abilities imported into udb_detachment_abilities table (detachment, name, description)
 - [ ] **DET-03**: Army list detachment picker shows real detachment data from canonical database
 - [ ] **DET-04**: PlaybookTab detachment abilities section shows real data
 
@@ -72,8 +72,8 @@ Requirements for Wahapedia Pipeline & Full Data Import milestone.
 | PTS-02 | Phase 117 | Pending |
 | PTS-03 | Phase 117 | Pending |
 | PTS-04 | Phase 117 | Pending |
-| DET-01 | Phase 118 | Pending |
-| DET-02 | Phase 118 | Pending |
+| DET-01 | Phase 118 | Complete |
+| DET-02 | Phase 118 | Complete |
 | STR-01 | Phase 119 | Pending |
 | STR-02 | Phase 119 | Pending |
 | ENH-01 | Phase 119 | Pending |

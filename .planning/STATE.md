@@ -4,13 +4,13 @@ milestone: v0.4.7
 milestone_name: Wahapedia Pipeline & Full Data Import
 status: executing
 stopped_at: Phase 117 planned (2/2 plans)
-last_updated: "2026-06-04T07:18:50.170Z"
-last_activity: 2026-06-04 -- Phase 118 planning complete
+last_updated: "2026-06-04T07:29:37.427Z"
+last_activity: 2026-06-04
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 6
-  completed_plans: 2
+  completed_plans: 4
   percent: 20
 ---
 
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 117 — points coverage
+**Current focus:** Phase 118 — Detachments Import
 
 ## Current Position
 
-Phase: 117
-Plan: 2 plans (Wave 1: cost CSV + sub-faction, Wave 2: BSData removal)
+Phase: 118 (Detachments Import) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-06-04 -- Phase 118 planning complete
+Last activity: 2026-06-04
 
 ```
-Progress: [██████████] 100%
+Progress: [███████░░░] 67%
 ```
 
 ## Performance Metrics
@@ -104,7 +104,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-04T09:00:00.000Z
+Last session: 2026-06-04T07:29:37.421Z
 Stopped at: Phase 117 planned (2/2 plans)
-Resume file: .planning/phases/117-points-coverage/117-01-PLAN.md
+Resume file: None
 Resume: Execute Phase 117 (Points Coverage). Run `/gsd:execute-phase 117` to start.
