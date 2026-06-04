@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.4.7
 milestone_name: Wahapedia Pipeline & Full Data Import
 status: executing
-stopped_at: Phase 116 context gathered
-last_updated: "2026-06-04T06:25:25.582Z"
-last_activity: 2026-06-04 -- Phase 116 planning complete
+stopped_at: Completed 116-01-PLAN.md
+last_updated: "2026-06-04T06:34:46.033Z"
+last_activity: 2026-06-04
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 2
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore so local data is always recoverable
-**Current focus:** v0.4.7 Wahapedia Pipeline & Full Data Import — Phase 116 next
+**Current focus:** Phase 116 — Pipeline Foundation
 
 ## Current Position
 
-Phase: 116 (Pipeline Foundation) — Not started
-Plan: —
+Phase: 116 (Pipeline Foundation) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-06-04 -- Phase 116 planning complete
+Last activity: 2026-06-04
 
 ```
-Progress: [__________] 0% (0/5 phases)
+Progress: [█████░░░░░] 50%
 ```
 
 ## Performance Metrics
@@ -58,6 +58,8 @@ Progress: [__________] 0% (0/5 phases)
 - FTS5 rebuild includes sub_faction via COALESCE concatenation in keywords column
 - Coverage badges use computed SQL query (live) not coverage-report.json (static)
 - Gothic/Latin weapon names kept as-is in French — standard GW practice
+- BOM already stripped by JS trim() but explicit replace(/^﻿/, '') added per D-01 for documentation intent and forward-compatibility
+- download:wahapedia is separate from build:udb to keep builds deterministic (CSVs pre-fetched)
 
 ### Key Context (v0.4.7)
 
@@ -93,9 +95,15 @@ None.
 | v0.4.7 out of scope | French translations for stratagems/enhancements | Future milestone | v0.4.7 planning |
 | v0.4.7 out of scope | Sub-faction derivation from Wahapedia CSV | Future milestone | v0.4.7 planning |
 
+## Performance Metrics History
+
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| 116-pipeline-foundation | 01 | 15 min | 2 | 4 |
+
 ## Session Continuity
 
-Last session: 2026-06-04T06:03:29.457Z
-Stopped at: Phase 116 context gathered
-Resume file: .planning/phases/116-pipeline-foundation/116-CONTEXT.md
+Last session: 2026-06-04T06:34:46.028Z
+Stopped at: Completed 116-01-PLAN.md
+Resume file: None
 Resume: Start Phase 116 (Pipeline Foundation). Run `/gsd:plan-phase 116` to generate the execution plan.

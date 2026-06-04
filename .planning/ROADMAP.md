@@ -52,7 +52,7 @@
   5. Sub-faction assignment for all supported chapters/warbands comes from the static mapping file (not BSData)
 **Plans:** 2 plans
 Plans:
-- [ ] 116-01-PLAN.md — BOM fix in CSV parser + Wahapedia auto-download command
+- [x] 116-01-PLAN.md — BOM fix in CSV parser + Wahapedia auto-download command
 - [ ] 116-02-PLAN.md — Legends unit filtering and name+faction deduplication
 
 ### Phase 117: Points Coverage
@@ -107,7 +107,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 116. Pipeline Foundation | 0/2 | Not started | - |
+| 116. Pipeline Foundation | 1/2 | In Progress|  |
 | 117. Points Coverage | 0/? | Not started | - |
 | 118. Detachments Import | 0/? | Not started | - |
 | 119. Stratagems & Enhancements Import | 0/? | Not started | - |
