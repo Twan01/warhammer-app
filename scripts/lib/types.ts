@@ -109,6 +109,20 @@ export interface UdbUnitCompositionRow {
   notes: string;
 }
 
+export interface UdbDetachmentRow {
+  id: string;           // Wahapedia detachment_id (TEXT PK)
+  faction_id: string;
+  name: string;
+}
+
+export interface UdbDetachmentAbilityRow {
+  id: string;           // Wahapedia ability id (TEXT PK)
+  detachment_id: string;
+  faction_id: string;
+  name: string;
+  description: string;  // Raw HTML from Wahapedia — kept as-is for UI rendering (Phase 120)
+}
+
 // ---------------------------------------------------------------------------
 // Coverage report types
 // ---------------------------------------------------------------------------
@@ -164,4 +178,6 @@ export interface UnitDatabaseJson {
   keywords: UdbUnitKeywordRow[];
   points: UdbUnitPointsRow[];
   composition: UdbUnitCompositionRow[];
+  detachments: UdbDetachmentRow[];
+  detachment_abilities: UdbDetachmentAbilityRow[];
 }
