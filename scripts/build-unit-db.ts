@@ -1,5 +1,5 @@
 /**
- * Dev-side build script: parses Wahapedia CSV + BSData XML files and produces
+ * Dev-side build script: parses Wahapedia CSV files and produces
  * src-tauri/data/unit_database.json.
  *
  * Per D-02: runs offline, dev-side only, never imported by app runtime code.
@@ -12,28 +12,15 @@
  *   - Wahapedia CSV files in scripts/data/:
  *     Factions.csv, Datasheets.csv, Datasheets_models.csv,
  *     Datasheets_abilities.csv, Datasheets_keywords.csv, Datasheets_wargear.csv
- *   - BSData .cat XML files in scripts/data/bsdata/*.cat
- *     Clone https://github.com/BSData/wh40k-10e and copy *.cat files there.
  */
-
-// Must be first: polyfill DOMParser for XML parsing (browser API not in Node.js).
-import { DOMParser } from "@xmldom/xmldom";
-// @ts-ignore - globalThis.DOMParser polyfill for Node.js
-globalThis.DOMParser = DOMParser as unknown as typeof globalThis.DOMParser;
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// Shared library imports
-import { SUB_FACTION_MAP, CROSS_FACTION_MAP } from "./lib/factionMap.ts";
+import { SUB_FACTION_MAP } from "./lib/factionMap.ts";
 import { readCsvFile, extractModelCount } from "./lib/parseCsv.ts";
 import { mapWeaponRow } from "./lib/weaponMapping.ts";
-
-// Legacy BSData imports — kept for compilation, removed in Plan 02
-import { parseCatXml } from "./lib/parseXml.ts";
-import { loadAliases } from "./lib/normalize.ts";
-import { readBsdataCatFiles, parseBsdataModelCounts, matchUnit } from "./lib/bsdata.ts";
 import type {
   UdbFactionRow,
   UdbUnitRow,
@@ -56,24 +43,18 @@ const __dirname = dirname(__filename);
 const REPO_ROOT = join(__dirname, "..");
 
 /**
- * BPH-05: Minimum acceptable overall coverage percentage.
- *
- * Current coverage is ~60.1%. This threshold is set to 55 (safely below current)
- * to catch regressions without blocking normal builds.
- *
- * Raise this threshold after Phase 113/114 audit work improves coverage.
- * Target: 90% after all faction audits complete.
+ * Minimum acceptable overall coverage percentage.
+ * Wahapedia cost CSV achieves ~99.8% coverage; threshold set to 90%
+ * to catch regressions without blocking builds for minor edge cases.
  */
-const MIN_COVERAGE_PCT = 58;
+const MIN_COVERAGE_PCT = 90;
 
 // ---------------------------------------------------------------------------
 // Data directory paths
 // ---------------------------------------------------------------------------
 const DATA_DIR = join(REPO_ROOT, "scripts", "data");
-const BSDATA_DIR = join(DATA_DIR, "bsdata");
 const OUTPUT_DIR = join(REPO_ROOT, "src-tauri", "data");
 const OUTPUT_PATH = join(OUTPUT_DIR, "unit_database.json");
-const ALIASES_PATH = join(DATA_DIR, "aliases.json");
 const TRANSLATIONS_FR_PATH = join(DATA_DIR, "translations_fr.json");
 const COVERAGE_PATH = join(DATA_DIR, "coverage-report.json");
 
@@ -96,7 +77,7 @@ const REQUIRED_CSVs = [
  * Load the French translation overlay from translations_fr.json.
  * Returns the overlay object if the file exists and is valid JSON.
  * Returns null and emits a console.warn if the file is missing or malformed.
- * Follows the loadAliases graceful-degrade pattern from scripts/lib/normalize.ts.
+ * Returns null and emits a console.warn if the file is missing or malformed.
  */
 function loadTranslationsFr(): TranslationsFrOverlay | null {
   if (!existsSync(TRANSLATIONS_FR_PATH)) {
@@ -110,44 +91,6 @@ function loadTranslationsFr(): TranslationsFrOverlay | null {
     console.warn("WARNING: Failed to parse translations_fr.json:", e);
     return null;
   }
-}
-
-// ---------------------------------------------------------------------------
-// BPH-04: Alias validation
-// ---------------------------------------------------------------------------
-
-/**
- * Validates the aliases.json entries against the set of BSData names seen
- * in .cat files and the Wahapedia unit map.
- *
- * Returns counts of: used aliases, unused (stale) aliases, and aliases whose
- * Wahapedia target name is not found in the unit map.
- */
-function validateAliases(
-  aliases: Record<string, string>,
-  allBsdataNames: Set<string>,
-  unitByNameFaction: Map<string, UdbUnitRow>
-): { used: number; unused: string[]; unknownTargets: string[] } {
-  const unused: string[] = [];
-  const unknownTargets: string[] = [];
-  let used = 0;
-
-  for (const [bsdataName, wahapediaName] of Object.entries(aliases)) {
-    const inBsdata = allBsdataNames.has(bsdataName);
-    const targetExists = [...unitByNameFaction.keys()].some((key) =>
-      key.startsWith(wahapediaName.toLowerCase() + ":")
-    );
-
-    if (!inBsdata) {
-      unused.push(bsdataName);
-    } else if (!targetExists) {
-      unknownTargets.push(`"${bsdataName}" -> "${wahapediaName}"`);
-    } else {
-      used++;
-    }
-  }
-
-  return { used, unused, unknownTargets };
 }
 
 // ---------------------------------------------------------------------------
@@ -225,10 +168,10 @@ async function main() {
       faction_id: factionId ?? "",
       name,
       role: row["role"]?.trim() ?? "",
-      base_points: null, // filled later from BSData single-tier units
+      base_points: null, // filled later from cost CSV
       damaged_w: row["damaged_w"]?.trim() ?? "",
       damaged_desc: row["damaged_description"]?.trim() ?? "",
-      sub_faction: null, // populated from SUB_FACTION_MAP during BSData matching
+      sub_faction: null, // populated from keyword matching via SUB_FACTION_MAP
       name_fr: null,
     });
   }
@@ -254,13 +197,6 @@ async function main() {
   for (const u of units) validUnitIds.add(u.id);
 
   console.log(`  Parsed ${units.length} units (${legendsSkipped} Legends excluded${dupsFound > 0 ? `, ${dupsFound} duplicates discarded` : ""})`);
-
-  // Build unit lookup by (name lowercase, faction_id) for BSData matching
-  const unitByNameFaction = new Map<string, UdbUnitRow>();
-  for (const unit of units) {
-    const key = unit.name.toLowerCase() + ":" + unit.faction_id;
-    unitByNameFaction.set(key, unit);
-  }
 
   // 4. Parse Datasheets_models.csv -> udb_unit_models rows
   console.log("Step 4: Parsing Datasheets_models.csv...");
@@ -403,7 +339,7 @@ async function main() {
   console.log(`  Matched ${matchedUnits.size} units via cost CSV (${points.length} tier entries)`);
   console.log(`  Extracted ${composition.length} composition entries`);
 
-  // 8b. Assign sub-factions from keywords (D-10) — replaces BSData catalogue-based assignment
+  // 8b. Assign sub-factions from keywords (D-10)
   const subFactionValues = new Set(Object.values(SUB_FACTION_MAP));
   const unitById = new Map(units.map(u => [u.id, u]));
   let subFactionAssigned = 0;
@@ -569,7 +505,7 @@ async function main() {
     console.error(
       "ERROR: Overall coverage " + overallCoveragePct.toFixed(1) + "% is below minimum threshold of " + MIN_COVERAGE_PCT + "%"
     );
-    console.error("This indicates a regression. Check BSData .cat files or Wahapedia CSV freshness.");
+    console.error("This indicates a regression. Check Wahapedia CSV freshness.");
     process.exit(1);
   }
 

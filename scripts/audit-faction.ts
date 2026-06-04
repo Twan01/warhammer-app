@@ -12,16 +12,11 @@
  *   .planning/phases/113-priority-faction-data-audit/reports/{faction}-audit.md
  */
 
-// Polyfill DOMParser for XML parsing (same pattern as build-unit-db.ts)
-import { DOMParser } from "@xmldom/xmldom";
-// @ts-ignore - globalThis.DOMParser polyfill for Node.js
-globalThis.DOMParser = DOMParser as unknown as typeof globalThis.DOMParser;
-
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { readCsvFile } from "./lib/bsdata.ts";
+import { readCsvFile } from "./lib/parseCsv.ts";
 import type {
   UnitDatabaseJson,
   CoverageReport,
@@ -46,7 +41,7 @@ interface AuditError {
   field: string;
   expected: string;
   actual: string;
-  source: "wahapedia_csv" | "bsdata_xml" | "translations_fr";
+  source: "wahapedia_csv" | "translations_fr";
   severity: "error" | "missing" | "extra";
 }
 
@@ -162,7 +157,7 @@ const FORGE_WORLD_NAMES = new Set([
 ]);
 
 /**
- * Known shared Chaos vehicles that exist in BSData under CSM but Wahapedia
+ * Known shared Chaos vehicles that exist under CSM but Wahapedia
  * lists under each Chaos faction separately.
  */
 const SHARED_CHAOS_VEHICLES = new Set([
@@ -631,7 +626,7 @@ function classifyUnmatchedUnit(
         unit_name: name,
         faction_id: factionId,
         category: "forge_world",
-        evidence: `Known FW/Heresy unit; shared Chaos vehicle (exists in BSData under CSM)`,
+        evidence: `Known FW/Heresy unit; shared Chaos vehicle (listed under CSM)`,
       };
     }
     return {
@@ -649,7 +644,7 @@ function classifyUnmatchedUnit(
       unit_name: name,
       faction_id: factionId,
       category: "missing_alias",
-      evidence: `Unit exists in Wahapedia CSV (id: ${csvRow["id"]?.trim()}) but not matched by BSData. Likely name mismatch requiring alias.`,
+      evidence: `Unit exists in Wahapedia CSV (id: ${csvRow["id"]?.trim()}) but not matched in unit database.`,
     };
   }
 
@@ -658,7 +653,7 @@ function classifyUnmatchedUnit(
     unit_name: name,
     faction_id: factionId,
     category: "genuinely_missing",
-    evidence: `No matching CSV row found for this faction. May be a cross-faction unit or BSData-only entry.`,
+    evidence: `No matching CSV row found for this faction. May be a cross-faction unit.`,
   };
 }
 

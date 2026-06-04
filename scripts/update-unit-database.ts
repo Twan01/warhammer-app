@@ -12,27 +12,16 @@
  *
  * With --write: writes the new unit_database.json to src-tauri/data/.
  *
- * Prerequisites: same as build-unit-db.ts (Wahapedia CSVs + BSData .cat files).
+ * Prerequisites: same as build-unit-db.ts (Wahapedia CSVs in scripts/data/).
  */
-
-// Must be first: polyfill DOMParser for XML parsing (browser API not in Node.js).
-import { DOMParser } from "@xmldom/xmldom";
-// @ts-ignore - globalThis.DOMParser polyfill for Node.js
-globalThis.DOMParser = DOMParser as unknown as typeof globalThis.DOMParser;
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// Shared library imports
-import { SUB_FACTION_MAP, CROSS_FACTION_MAP } from "./lib/factionMap.ts";
+import { SUB_FACTION_MAP } from "./lib/factionMap.ts";
 import { readCsvFile, extractModelCount } from "./lib/parseCsv.ts";
 import { mapWeaponRow } from "./lib/weaponMapping.ts";
-
-// Legacy BSData imports — kept for compilation, removed in Plan 02
-import { parseCatXml } from "./lib/parseXml.ts";
-import { loadAliases } from "./lib/normalize.ts";
-import { readBsdataCatFiles, parseBsdataModelCounts, matchUnit } from "./lib/bsdata.ts";
 import type {
   UdbFactionRow,
   UdbUnitRow,
@@ -84,7 +73,6 @@ interface DiffReport {
 // Data directory paths
 // ---------------------------------------------------------------------------
 const DATA_DIR = join(REPO_ROOT, "scripts", "data");
-const BSDATA_DIR = join(DATA_DIR, "bsdata");
 const OUTPUT_DIR = join(REPO_ROOT, "src-tauri", "data");
 const OUTPUT_PATH = join(OUTPUT_DIR, "unit_database.json");
 
