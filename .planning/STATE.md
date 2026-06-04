@@ -1,111 +1,71 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.4.5
-milestone_name: Data Quality Audit & Pipeline Improvement
-status: milestone_complete
-stopped_at: v0.4.5 milestone complete — all 4 phases shipped
-last_updated: 2026-06-03
-last_activity: 2026-06-03
+milestone: v0.4.7
+milestone_name: Wahapedia Pipeline & Full Data Import
+status: planning
+stopped_at: Defining requirements for v0.4.7
+last_updated: 2026-06-04
+last_activity: 2026-06-04
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 7
-  completed_plans: 7
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-03)
+See: .planning/PROJECT.md (updated 2026-06-04)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore so local data is always recoverable
-**Current focus:** v0.4.5 archived — planning next milestone
+**Current focus:** v0.4.7 Wahapedia Pipeline & Full Data Import — defining requirements
 
 ## Current Position
 
-Phase: 114 (Pipeline Fixes & Database Rebuild) -- COMPLETE
-Plan: 2 of 2
-Status: v0.4.5 milestone complete
-Last activity: 2026-06-03
-
-```
-[████████████████████] 100% — 4/4 phases complete
-```
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-06-04 — Milestone v0.4.7 started
 
 ## Performance Metrics
 
 **Velocity (recent milestones):**
 
+- v0.4.5: 7 plans across 4 phases (2 days)
 - v0.4.2: 11 plans across 4 phases (single day)
 - v0.4.0: 12 plans across 5 phases (3 days)
 - v0.3.7: 6 plans across 3 phases (single day)
 - v0.3.0: 9 plans across 4 phases (single day)
 - v0.2.18: 14 plans across 7 phases (2 days)
-- v0.2.15: 11 plans across 5 phases (2 days)
 
 ## Accumulated Context
 
-### Key Decisions (v0.4.2 — carried forward)
-
-- translations_fr.json overlay uses composite key format '${unit_id}:${name}' for abilities/weapons (name-based, not line_order)
-- loadTranslationsFr() inlined in build-unit-db.ts (not exported from lib/); graceful degrade on missing/malformed file
-- Step 10.5 overlay applied after all entity mutations and before JSON assembly — per RESEARCH Pitfall 5
-- translations_fr.json added via .gitignore force-exception matching aliases.json pattern
-- SUB_FACTION_MAP covers 17 entries: 11 SM chapters, 4 CSM warbands, 2 Aeldari sub-factions
-- aliases.json starts empty; populated iteratively after coverage analysis
-- Added .gitignore exception for aliases.json since scripts/data/ is globally ignored
-- BSData Library .cat files must be included — contain all points for AM/AE/CD/QT/QI/TL
-- Cross-faction matching for Drukhari (BSData AE -> Wahapedia DRU)
-- 85% Wahapedia coverage unachievable: BSData covers 62% of datasheets; match rate is 96.9%
-- 44 aliases for singular/plural and variant name mismatches
-- FTS5 rebuild includes sub_faction via COALESCE concatenation in keywords column
-- Coverage badges use computed SQL query (live) not coverage-report.json (static)
-
-### Key Decisions (v0.4.0 — carried forward)
+### Key Decisions (carried forward)
 
 - Pre-built canonical unit database (not runtime sync) — eliminates fragile CSV fetch
 - Single-database architecture — rules.db eliminated; all data in hobbyforge.db
 - ON DELETE SET NULL for units.udb_unit_id — collection units survive re-import
 - FK-based points resolution replacing synced_unit_points cache
+- translations_fr.json overlay uses composite key format '${unit_id}:${name}' for abilities/weapons
+- SUB_FACTION_MAP covers 17 entries: 11 SM chapters, 4 CSM warbands, 2 Aeldari sub-factions
+- FTS5 rebuild includes sub_faction via COALESCE concatenation in keywords column
+- Coverage badges use computed SQL query (live) not coverage-report.json (static)
+- Gothic/Latin weapon names kept as-is in French -- standard GW practice
 
-### Key Constraints (v0.4.5 — from requirements)
+### Key Context (v0.4.7)
 
-- Data audit approach: cross-check against Wahapedia, GW app, and community sources — not automated
-- Pipeline fixes must be in build script code, not in aliases.json where possible (PFX-01/02 vs PFX-03)
-- Sub-faction filter: use `sub_faction IS NULL` to identify parent faction generic units (existing column)
-- French translation source: manual translations_fr.json overlay — no automated source exists
-- Audit order: SM first (largest faction), then Necrons, then Death Guard
-
-### Key Decisions (Phase 112 Plan 02)
-
-- allBsdataNames collects from ALL BSData units (not just matched) — alias unused detection requires it
-- MIN_COVERAGE_PCT=55 safely below current 60.1%; raise to 90 after Phase 113/114 audits
-- Coverage threshold is overall not per-faction to prevent false failures on sparse factions
-- validateAliases() is local to build-unit-db.ts (not exported to shared lib) — single consumer
-
-### Key Decisions (Phase 113)
-
-- Gothic/Latin weapon names (Crozius, Volkite, etc.) kept as-is in French -- standard GW practice
-- Curly apostrophes in Wahapedia data required separate handling for composite key matching
-- Core/Faction ability types with empty names intentionally skipped per D-09
-
-### Key Decisions (Phase 114)
-
-- No new aliases needed: all 94 missing_alias units are Wahapedia-only (no non-Legends BSData equivalent)
-- Alias keys must use straight apostrophe (U+0027) to match BSData XML entity encoding
-- MIN_COVERAGE_PCT raised from 55% to 58% (conservative ratchet below 60.1% floor)
-- Coverage gap (60.1%) is structural -- Wahapedia-only units with no BSData source, not fixable via aliases
-
-### Key Decisions (Phase 115)
-
-- Dual-site fix: applyUdbFilters null check (SUB-01) + SQL OR sub_faction IS NULL (SUB-02/03) — both needed for their respective filter surfaces
-- No changes to hook layer, filter stores, or consumer components — fix confined to two one-line changes
+- Wahapedia exports Datasheets_models_cost.csv with complete points data keyed by datasheet_id
+- BSData XML only covers ~60% of Wahapedia units — structural limitation, not a matching issue
+- Wahapedia CSVs have duplicate unit entries (9 SM duplicates found: Legends + current)
+- Wahapedia also exports Stratagems.csv, Enhancements.csv, Detachment_abilities.csv
+- Auto-download from wahapedia.ru/wh40k10ed/ — CSVs are pipe-delimited, UTF-8
 
 ### Pending Todos
 
-None — Phase 115 complete.
+None.
 
 ### Open Blockers
 
@@ -116,8 +76,6 @@ None.
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
 | v2 scope | EXT-01: Leader attachment targets | Deferred | v0.4.0 planning |
-| v2 scope | EXT-02: Enhancement data per faction | Deferred | v0.4.0 planning |
-| v2 scope | EXT-03: Stratagems in canonical DB | Deferred | v0.4.0 planning |
 | v2 scope | ADV-01: Unit comparison view | Deferred | v0.4.0 planning |
 | v2 scope | ADV-02: Faction overview page | Deferred | v0.4.0 planning |
 | v2 scope | FR-EXT-01: French ability/weapon text | Deferred | v0.4.2 planning |
@@ -126,7 +84,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-03
-Stopped at: v0.4.5 milestone complete — all 4 phases shipped
+Last session: 2026-06-04
+Stopped at: Defining requirements for v0.4.7
 Resume file: .planning/ROADMAP.md
-Resume: v0.4.5 Data Quality Audit & Pipeline Improvement complete. All phases (112-115) shipped. Next: new milestone planning.
+Resume: v0.4.7 milestone started. Defining requirements for Wahapedia Pipeline & Full Data Import.

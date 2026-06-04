@@ -6,6 +6,20 @@ HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby 
 
 Shipped through v0.4.2 (111 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps, transactional graph save, recipe_step_id-keyed progress), a dedicated Painting Mode for focused step-by-step recipe execution (distraction-free full-page layout, keyboard shortcuts, section navigator, paint readiness warnings, atomic step completion with session logging, 6 entry points), army list builder with detachment selection, FK-based points resolution from canonical database, smart list builder (loadout builder, wargear/model count editor, enhancements with points, leader attachment with preventive validation, ghost/planned units, 4-format export, version snapshots with save/compare/restore, battle-readiness badges in unit picker, budget-aware filtering), battle log with after-action capture (forgotten rules, MVP/underperformer notes), spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard, KanbanCards, NextPaintingActionCard, ReadyToPlayCard, and DataHealthSummaryCard, canonical unit database browser (1,711 units across 25 factions with stat blocks, weapon tables, ability text, keywords, points tiers, FTS5 search, role/keyword/point filters, virtual scrolling), collection-to-database FK linking with ownership/readiness badges, user annotations (favorites, notes, reminders) on any rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist, pre-game readiness panel, end-game after-action with forgotten-rules-to-reminders pipeline), Data Health page with diagnostics, structured backup export (.zip with VACUUM INTO + metadata.json), full restore with preview/validation/atomic swap/restart, automatic safety backups before restore, progressive backup diagnostics with version mismatch detection, a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK), version parity enforcement, auto-update via GitHub Releases with in-app banner, single-database architecture (hobbyforge.db only, rules.db eliminated), internal robustness hardening (WAL mode, FK indexes, CHECK constraints, route error boundaries, DB health gate, lazy route loading, React.memo, batched INSERTs, query-layer isolation, component decomposition), and smart automation (auto-derive assembly/basing/varnish statuses from recipe completion, auto-manage active projects, context-aware recipe pre-filling with faction grouping).
 
+## Current Milestone: v0.4.7 Wahapedia Pipeline & Full Data Import
+
+**Goal:** Replace the BSData-dependent build pipeline with a Wahapedia-only pipeline that auto-downloads CSVs and imports all available game data — points, stratagems, enhancements, and detachment abilities — with 100% unit coverage.
+
+**Target features:**
+- Auto-download Wahapedia CSVs at build time (no manual file placement)
+- Points from Datasheets_models_cost.csv (replaces BSData XML matching)
+- Deduplicate Wahapedia units (Legends vs current)
+- Import stratagems (Stratagems.csv)
+- Import enhancements (Enhancements.csv)
+- Import detachment abilities (Detachment_abilities.csv)
+- Remove BSData dependency from build pipeline
+- Wire new data into existing UI (PlaybookTab, Game Day, Rules Hub)
+
 ## Current State
 
 v0.4.5 shipped. 115 phases complete across 23 milestones. ~300+ TypeScript source files. 41 SQLite migrations (hobbyforge.db). 2,290+ automated tests. 9 Tauri Rust commands. Build pipeline with shared BSData library, deterministic builds, coverage threshold gate, alias validation. Priority factions (SM/NEC/DG) data-audited with French translations.
@@ -250,7 +264,14 @@ A single personal command center that always answers "what do I own, what's pain
 
 ### Active
 
-(No active requirements — next milestone not yet defined)
+- [ ] Auto-download Wahapedia CSVs at build time
+- [ ] Points from Datasheets_models_cost.csv (100% coverage, no BSData matching)
+- [ ] Deduplicate Wahapedia units (Legends vs current)
+- [ ] Import stratagems from Stratagems.csv into canonical database
+- [ ] Import enhancements from Enhancements.csv into canonical database
+- [ ] Import detachment abilities from Detachment_abilities.csv into canonical database
+- [ ] Remove BSData dependency from build pipeline
+- [ ] Wire stratagems/enhancements/detachments into existing UI
 
 ### Out of Scope
 
@@ -405,4 +426,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-03 after v0.4.5 milestone completed*
+*Last updated: 2026-06-04 after v0.4.7 milestone started*
