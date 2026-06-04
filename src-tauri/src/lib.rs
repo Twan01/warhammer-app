@@ -251,6 +251,18 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/041_udb_sub_faction_fr.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 42,
+            description: "udb_detachments",
+            sql: include_str!("../migrations/042_udb_detachments.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 43,
+            description: "udb_stratagems_enhancements",
+            sql: include_str!("../migrations/043_udb_stratagems_enhancements.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
@@ -500,6 +512,10 @@ pub struct UnitDatabasePayload {
     detachments: Vec<JsRow>,
     #[serde(default)]
     detachment_abilities: Vec<JsRow>,
+    #[serde(default)]
+    stratagems: Vec<JsRow>,
+    #[serde(default)]
+    enhancements: Vec<JsRow>,
 }
 
 #[derive(serde::Serialize, Debug)]
@@ -514,6 +530,8 @@ pub struct UdbImportResult {
     pub composition: u64,
     pub detachments: u64,
     pub detachment_abilities: u64,
+    pub stratagems: u64,
+    pub enhancements: u64,
 }
 
 /// Core import logic for unit_database.json into udb_* tables.
@@ -563,6 +581,7 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
                 factions: 0, units: 0, models: 0, weapons: 0,
                 abilities: 0, keywords: 0, points: 0, composition: 0,
                 detachments: 0, detachment_abilities: 0,
+                stratagems: 0, enhancements: 0,
             });
         }
     }
@@ -579,6 +598,7 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
         factions: 0, units: 0, models: 0, weapons: 0,
         abilities: 0, keywords: 0, points: 0, composition: 0,
         detachments: 0, detachment_abilities: 0,
+        stratagems: 0, enhancements: 0,
     };
 
     // D-09/D-08: DELETE all udb_* tables (FK OFF so order doesn't matter)
@@ -590,6 +610,8 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
         "udb_unit_weapons",
         "udb_unit_models",
         "udb_units",
+        "udb_stratagems",
+        "udb_enhancements",
         "udb_detachment_abilities",
         "udb_detachments",
         "udb_factions",
@@ -793,6 +815,51 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
         .await
         .map_err(|e| format!("insert detachment_ability {id}: {e}"))?;
         counts.detachment_abilities += res.rows_affected();
+    }
+
+    // INSERT stratagems
+    for row in &payload.stratagems {
+        let id = str_val(row, "id").unwrap_or_default();
+        if id.is_empty() { continue; }
+        let res = sqlx::query(
+            "INSERT INTO udb_stratagems \
+             (id, faction_id, detachment_id, name, type, cp_cost, turn, phase, description) \
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        )
+        .bind(&id)
+        .bind(str_val(row, "faction_id"))
+        .bind(str_val(row, "detachment_id"))
+        .bind(str_val(row, "name").unwrap_or_default())
+        .bind(str_val(row, "type"))
+        .bind(i64_val(row, "cp_cost").unwrap_or(0))
+        .bind(str_val(row, "turn"))
+        .bind(str_val(row, "phase"))
+        .bind(str_val(row, "description").unwrap_or_default())
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert stratagem {id}: {e}"))?;
+        counts.stratagems += res.rows_affected();
+    }
+
+    // INSERT enhancements
+    for row in &payload.enhancements {
+        let id = str_val(row, "id").unwrap_or_default();
+        if id.is_empty() { continue; }
+        let res = sqlx::query(
+            "INSERT INTO udb_enhancements \
+             (id, faction_id, detachment_id, name, cost, description) \
+             VALUES (?, ?, ?, ?, ?, ?)",
+        )
+        .bind(&id)
+        .bind(str_val(row, "faction_id").unwrap_or_default())
+        .bind(str_val(row, "detachment_id"))
+        .bind(str_val(row, "name").unwrap_or_default())
+        .bind(i64_val(row, "cost").unwrap_or(0))
+        .bind(str_val(row, "description").unwrap_or_default())
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert enhancement {id}: {e}"))?;
+        counts.enhancements += res.rows_affected();
     }
 
     // INSERT udb_meta (single row, id=1)
