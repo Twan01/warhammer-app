@@ -1,236 +1,291 @@
-# Pitfalls Research
+# Domain Pitfalls: v0.4.7 Wahapedia Pipeline Migration
 
-**Domain:** Warhammer 40K unit database — data quality audit, pipeline improvement, sub-faction filtering (v0.4.5)
-**Researched:** 2026-06-02
-**Confidence:** HIGH — derived from direct codebase inspection of build pipeline, Rust import command, query layer, and known failure modes from previous milestones
+**Domain:** Dev-side build pipeline migration (BSData+Wahapedia to Wahapedia-only), new entity types (stratagems/enhancements/detachments), auto-download, FK preservation
+**Researched:** 2026-06-04
+**Based on:** Direct codebase analysis of `scripts/build-unit-db.ts`, `scripts/lib/*.ts`, `src-tauri/src/lib.rs`, `src-tauri/migrations/038-041`, and `scripts/data/` CSV samples
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: FTS5 Index Becomes Stale After Pipeline Data Fixes
-
-**What goes wrong:**
-The `udb_search` FTS5 virtual table is populated only inside `import_unit_database_inner()` in `lib.rs`. Any time a pipeline fix changes the content of `udb_units`, `udb_unit_keywords`, `udb_unit_abilities`, or `udb_unit_weapons` — corrected stats, fixed French translations, updated names — the FTS5 index remains stale unless the import path explicitly runs the `INSERT INTO udb_search` rebuild query. If the version hash is unchanged (because the developer forgot to rebuild the JSON), the entire import is skipped via the early-exit check in `import_unit_database_inner`, leaving FTS5 pointing at old rows.
-
-**Why it happens:**
-The version is a content hash (`1.0.0+<sha256_of_data>`), so identical JSON always produces the same hash and the import is skipped. Developers testing partial fixes may manually patch rows in SQLite without rebuilding the JSON, causing FTS5 and the underlying tables to diverge silently.
-
-**How to avoid:**
-Always go through the full rebuild cycle: run `pnpm build:udb` → produce a new `unit_database.json` → trigger the app import. Never directly INSERT/UPDATE udb_* rows in SQLite outside the import transaction. Add a post-build assertion that verifies `SELECT COUNT(*) FROM udb_search` equals `SELECT COUNT(*) FROM udb_units` as a completion criterion for every data fix phase.
-
-**Warning signs:**
-- FTS5 search finds units that no longer exist after a name correction
-- FTS5 search misses newly corrected unit names
-- `SELECT COUNT(*) FROM udb_search` does not match `SELECT COUNT(*) FROM udb_units`
-
-**Phase to address:**
-Every pipeline fix phase — each phase that corrects records in `unit_database.json` must rebuild via `pnpm build:udb` and verify FTS5 count parity before marking complete.
+These mistakes cause silent data loss, FK breakage, or incorrect points for every user.
 
 ---
 
-### Pitfall 2: Sub-faction Filter Silently Drops Parent-Faction Generic Units
+### Pitfall C-1: Legends units silently win the deduplication race
 
-**What goes wrong:**
-The current `getUdbUnitIdsBySubFaction` query uses `WHERE faction_id = $1 AND sub_faction = $2`. When the DB browser, army list picker, or collection browser filters to a sub-faction (e.g. "Blood Angels"), client-side code keeps only units whose `sub_faction` matches the selection. Units with `sub_faction = null` — parent-faction generics like Tactical Squad, Rhino, Repulsor — are dropped from the display. The user sees only chapter-exclusive units with no generic Space Marines.
+**What goes wrong:** `Datasheets.csv` contains both current-edition units and Legends units with the same name (e.g., "Land Raider Crusader" appears for SM current and SM Legends). The current pipeline builds `unitByNameFaction` as a `Map<name:faction_id, UdbUnitRow>`, so whichever row is parsed last wins. If Legends rows appear after current rows in the CSV (which they sometimes do — they share the same faction_id), Legends points/stats silently replace the current ones.
 
-**Why it happens:**
-The filter predicate was written to isolate a sub-faction's exclusive units. The intended UX is different: a sub-faction selection should show the chapter's specific units PLUS the shared parent faction units. The null-vs-value distinction is easy to miss when writing a first-pass filter.
+**Why it happens:** The CSV `legend` column exists (visible in `Datasheets.csv` header: `id|name|faction_id|source_id|legend|...`) but the build pipeline ignores it entirely. It is never read, never filtered.
 
-**How to avoid:**
-The filter predicate must be: show unit if `sub_faction === selected OR sub_faction === null`. In SQL: `WHERE faction_id = $1 AND (sub_faction = $2 OR sub_faction IS NULL)`. Apply this consistently in all three surfaces (DB browser, army list UnitPickerDialog, collection Add-from-Database). Test by selecting "Blood Angels" in DB browser and confirming Tactical Squad (null sub_faction) remains visible.
+**Consequences:**
+- Wrong points for affected units in army lists
+- Stale or removed abilities/keywords showing in PlaybookTab
+- Silent — no warning emitted, coverage % unchanged, content hash changes but nobody checks why
 
-**Warning signs:**
-- Only 10-20 units visible when a Space Marines chapter is selected (chapter-exclusive only), when the full faction has 100+
-- Generic transport units (Rhino, Repulsor) absent from any sub-faction-filtered view
-- "No units" state shown for sub-factions with few chapter-exclusive datasheets
+**Prevention:** Filter out Legends rows at parse time in `build-unit-db.ts` step 3. The field is named `legend` and is a non-empty string (the legends lore text) for Legends units, versus empty for current units. Add a build-step log: "Filtered N Legends datasheets." Verify the exact sentinel before relying on it — inspect a known Legends unit row to confirm.
 
-**Phase to address:**
-Sub-faction filtering fix phase — first fix applied before any data audit work to establish a correct baseline.
+**Detection warning signs:** Points for well-known units change between builds even when no GW update happened. Coverage % is stable but army list points diverge from official sources.
+
+**Phase:** Must be addressed in the deduplication phase (before points import phase).
 
 ---
 
-### Pitfall 3: Audit Source Version Skew Produces False Positives
+### Pitfall C-2: udb_unit_id FKs on collection units become NULL after re-import when Wahapedia reassigns IDs
 
-**What goes wrong:**
-Wahapedia, the GW app, and BSData community sources update at different rates after GW releases an errata or Munitorum Field Manual update. An audit comparing points without pinning the exact source version produces contradictory findings: Wahapedia may reflect an errata that BSData hasn't merged yet, or vice versa. Mismatches that appear to be data errors are actually version lag.
+**What goes wrong:** The `Datasheets.csv` ID field (e.g., `000000882`) is a Wahapedia-internal integer. Wahapedia has historically reassigned these IDs when units are restructured (e.g., a datasheet split into two). If the ID for "Intercessor Squad" changes from `000000100` to `000000250`, the re-import inserts the new row under the new ID, the old row is DELETEd, and `units.udb_unit_id = '000000100'` becomes NULL (ON DELETE SET NULL fires). The user loses their collection-to-datasheet links silently.
 
-**Why it happens:**
-Warhammer 40K points change 2-4 times per year via Munitorum Field Manual updates. Community sources have variable lag (days to weeks). Multi-day audit sessions mean the source itself may update mid-audit.
+**Why it happens:** Migration 039 backfills by name match but subsequent pipeline runs (when the developer runs `build:udb` to update) DELETE and re-INSERT all udb_units. ON DELETE SET NULL fires for any ID that disappears, even if a unit with the same name is re-inserted under a new ID.
 
-**How to avoid:**
-Before starting the audit, record and lock the exact version of each source:
-- Wahapedia: note the "Last updated" date shown per datasheet
-- GW app: note the app version and season
-- BSData: note the git commit hash of the `wh40k-10e` repo used for `.cat` files
+**Consequences:**
+- Collection units lose their database link — FK-based points resolution stops working
+- Ownership/readiness badges disappear from database browser
+- No error shown to user; units simply show "no points" and "not linked"
 
-Any discrepancy found must be validated against the pinned version, not re-checked live against a potentially updated source.
+**Prevention:** The Rust import command (`import_unit_database_inner`) should run a re-link pass after DELETE+INSERT: `UPDATE units SET udb_unit_id = (SELECT id FROM udb_units WHERE LOWER(name) = LOWER(units.name) AND ...) WHERE udb_unit_id IS NULL`. This already exists as a one-time backfill in migration 039 — replicate that exact logic in the import transaction, inside the same BEGIN/COMMIT block. The build pipeline should also log units whose Wahapedia ID changed between builds.
 
-**Warning signs:**
-- Same unit shows different point values depending on which source you check at a given moment
-- Points corrections applied during the audit are immediately contradicted by new source updates
-- Coverage report shows regression after rebuild when BSData file dates have changed
+**Detection warning signs:** After running `build:udb` with refreshed CSV data, the Data Health page shows increased "unlinked collection units." Running `update-unit-database.ts` diff shows `removedUnits` count that matches `newUnits` count with the same names — that is the signature of ID reassignment.
 
-**Phase to address:**
-Pre-audit scoping — define and lock source versions before any comparison work begins.
+**Phase:** Must be addressed in the points import phase (same phase that removes BSData dependency), as this is the first time a Wahapedia-only re-import replaces production IDs.
 
 ---
 
-### Pitfall 4: aliases.json Becomes a Crutch That Masks Real Pipeline Bugs
+### Pitfall C-3: Datasheets_models_cost.csv does not yet exist in scripts/data/ — a truncated or missing download causes silent 0-coverage
 
-**What goes wrong:**
-The 44 existing aliases were designed as a fallback for genuinely ambiguous naming differences between BSData and Wahapedia (singular vs. plural, variant suffixes, etc.). When a pipeline parsing bug causes systematic mismatches — a CSV column mis-mapped, a name normalization regex too aggressive — the temptation is to add more aliases rather than fix the root cause. This inflates aliases.json into a band-aid list that hides a structural parser defect.
+**What goes wrong:** The milestone relies on `Datasheets_models_cost.csv` for points. This file does not currently exist in `scripts/data/`. If the auto-download is partial (network interrupted, file truncated), the build script will either fail loudly (good) or parse a partial file and emit 0 points for many units. The `parseWahapediaCsv` function returns `[]` for any file with fewer than 2 lines — no error thrown.
 
-**Why it happens:**
-Adding an alias takes 30 seconds. Diagnosing whether a mismatch is structural takes much longer. Under time pressure, the alias path is taken every time a match fails without checking the pattern.
+**Why it happens:** Auto-download scripts typically do not validate file integrity. A 0-byte or header-only CSV parses as 0 data rows with no exception.
 
-**How to avoid:**
-Before adding any new alias, check whether the mismatch follows a pattern affecting multiple units. If 3+ units have the same structural mismatch (e.g., all BSData names have a trailing wargear variant in parentheses), fix `parseCatXml` or `normalizeName` instead. Reserve aliases for genuine one-off naming differences (a unit renamed by GW, a clear typo on one side). The build output already logs exact/normalized/alias match counts — if the alias count grows disproportionately, that is a signal.
+**Consequences:**
+- Coverage drops toward 0% if the cost CSV is malformed
+- The MIN_COVERAGE_PCT gate (currently 58%) would catch a total failure — but a partial file that parses 200 rows instead of 2000 rows would not trigger the gate
 
-**Warning signs:**
-- aliases.json growing beyond 60-70 entries
-- Multiple aliases that differ only by a suffix pattern (e.g., " (variant A)", " (variant B)" all pointing to the same target)
-- The build log shows alias-match count above 10% of total matched units
+**Prevention:**
+1. After downloading each CSV, validate row count >= expected minimum (e.g., Datasheets_models_cost.csv should have >= 500 rows for 40k 10th edition).
+2. Make the download script atomic: download to a `.tmp` file, validate row count, then rename to final path. Never write a partial file to the canonical location.
+3. Do not lower the MIN_COVERAGE_PCT threshold during the migration — raise it. Wahapedia points should push coverage to 95%+.
 
-**Phase to address:**
-Pipeline improvement phase — check alias-match count in build output before adding any new aliases during audit.
+**Detection warning signs:** Coverage drops sharply between builds. Build output shows "0 points tier entries" for the new cost CSV source.
 
----
-
-### Pitfall 5: French Translation Key Rot After Weapon or Ability Name Corrections
-
-**What goes wrong:**
-The French overlay for weapons uses a composite key `${unit_id}:${weapon_name}` (for weapons) or `${unit_id}:${ability_name}` (for abilities) in `translations_fr.json`. If an audit finds that a weapon or ability name is wrong in Wahapedia CSV data and the pipeline corrects it (e.g. "Bolt pistol" → "Bolt Pistol" capitalization), the translation key stored under the old name becomes unresolvable. The correction silently falls back to `null` for that weapon's French name, and the build output's `frWeapons` count drops — which is easy to miss.
-
-**Why it happens:**
-Name corrections in the pipeline (CSV parse step) happen before the French overlay is applied (Step 10.5 in the build script). The overlay key must match the corrected name exactly, but the correction and the overlay update are done in separate files and can easily fall out of sync.
-
-**How to avoid:**
-After any weapon or ability name correction in the pipeline, search `translations_fr.json` for the old name and update the key to the new name in the same commit. Add a validation step in the build script that logs "X weapon keys in translations_fr.json had no match" — a nonzero count after a pipeline fix is a signal that key rot occurred. The build script already outputs `frWeapons` count; track it as a non-regression metric.
-
-**Warning signs:**
-- French weapon or ability count drops between two consecutive builds
-- Weapons that previously displayed French names show English only after a pipeline fix
-- `translations_fr.json` keys contain old or mismatched capitalization compared to corrected pipeline output
-
-**Phase to address:**
-Pipeline improvement phase — add a post-overlay validation pass before marking any translation-touching fix complete.
+**Phase:** Auto-download phase. Validation must be in place before the points import phase.
 
 ---
 
-### Pitfall 6: Rust Import Column Mismatch After Pipeline Adds a New JSON Field
+### Pitfall C-4: The FTS5 index udb_search is not updated when new entity tables are added
 
-**What goes wrong:**
-The Rust `import_unit_database_inner` has hardcoded INSERT statements for all udb_* tables. If the build pipeline is improved to output a new field (e.g., a corrected `damaged_desc` variant, or a new `description_short` on abilities), the corresponding Rust INSERT must also be updated. Without the update, `serde_json::Value` deserialization succeeds (the field is simply unused), but the column is silently written as NULL for every row. No error is thrown; the data is just wrong.
+**What goes wrong:** The Rust import command (`import_unit_database_inner`) currently rebuilds `udb_search` by joining `udb_units`, `udb_factions`, and `udb_unit_keywords`. When new tables (stratagems, enhancements, detachments) are added, their text content is NOT included in the FTS5 index unless the rebuild query is explicitly updated. Searches for stratagem names or enhancement names in the Rules Hub will return no results.
 
-**Why it happens:**
-The Rust INSERT strings are maintained independently of the TypeScript build pipeline types. There is no compile-time check that JSON field names in `unit_database.json` correspond to Rust `bind()` calls.
+**Why it happens:** The FTS5 rebuild query is hardcoded in `lib.rs` and only covers unit-side tables. The struct `UnitDatabasePayload` uses `#[serde(default)]` so unknown JSON fields are silently ignored — new entity arrays in the JSON won't cause a parse error, they will simply be no-ops if the INSERT loops are not added.
 
-**How to avoid:**
-Any change to the TypeScript types in `scripts/lib/types.ts` that adds or removes fields in the JSON output must be paired with a corresponding Rust INSERT change. Treat the Rust INSERT strings as a schema contract. After any such change, verify by checking that the new field is non-null for at least one known unit after re-import.
+**Consequences:**
+- New entity types are imported but not searchable
+- Rules Hub search returns incomplete results
+- No error — silent omission
 
-**Warning signs:**
-- A newly added field is always NULL in the database despite being present in `unit_database.json`
-- `scripts/lib/types.ts` was modified but `lib.rs` was not in the same change
-- Rust import result counts look correct (row counts match) but data values are wrong
+**Prevention:** When adding new entity types to the JSON and Rust structs, update the FTS5 rebuild query in the same PR. Consider a separate `udb_rules_search` FTS5 virtual table for stratagems/enhancements to avoid mixing unit and rule search results and to allow independent filtering.
 
-**Phase to address:**
-Any pipeline improvement phase that adds or changes JSON output fields — check this explicitly before marking the phase complete.
+**Phase:** Schema expansion phase (when new tables are added). The FTS rebuild is in the same `lib.rs` file as the import command.
 
 ---
 
-## Technical Debt Patterns
+### Pitfall C-5: rules_favorites_notes annotations use entity IDs — new entity IDs must match what existing annotations stored
 
-| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| Add alias to aliases.json instead of fixing parsing bug | 30-second fix, audit continues | Aliases grow unbounded; root cause stays hidden | Only for genuine one-off name differences with no structural pattern |
-| Hardcode corrections in translations_fr.json | Fast for known errors | Key rot when source names change on next GW update | Acceptable for proper nouns unlikely to change; risky for common weapon names |
-| Manual SQLite edits during development | Faster than full rebuild | FTS5 and source diverge; version hash not updated | Only during exploratory debugging; never shipped |
-| Skip FTS5 rebuild count validation | Saves one query | Stale FTS5 silently breaks search for corrected unit names | Never acceptable in a completed phase |
-| First-wins sub_faction assignment (current approach) | Simple logic | Units in multiple catalogues get sub_faction from whichever .cat file is processed first | Acceptable unless a unit genuinely needs multiple sub-factions |
+**What goes wrong:** Migration 019 creates `rules_favorites_notes(entity_id TEXT, entity_type TEXT)` where `entity_id` reuses Wahapedia string IDs. If stratagems/enhancements in the new canonical DB use different IDs from what the old rules.db sync pipeline stored in hobbyforge.db, existing user annotations (favorites, notes, Game Day reminders) are orphaned.
 
----
+**Why it happens:** The old rules.db stratagems had their own ID scheme from the CSV sync. The new canonical DB stratagems will use Wahapedia CSV IDs. If those IDs differ from what was previously stored in `rules_favorites_notes`, existing annotations will not join correctly.
 
-## Integration Gotchas
+**Consequences:**
+- User loses all stratagem favorites and Game Day reminders accumulated before v0.4.7
+- No error — IDs simply do not match, JOIN returns NULL
 
-| Integration | Common Mistake | Correct Approach |
-|-------------|----------------|------------------|
-| Wahapedia CSV encoding | Assuming pure ASCII; names contain smart quotes, en-dashes, Unicode apostrophes | Read with `utf-8`; normalize to NFC before matching; treat `'` and `'` as equivalent |
-| BSData .cat XML variant entries | Only parsing `<selectionEntry>` leaf nodes, missing nested entries with variant-specific points | `parseCatXml` must recurse; verify against a known multi-variant unit (e.g., Mek Gunz with different weapons) |
-| BSData FACTION_MAP completeness | New BSData catalogue added for a new GW supplement not in FACTION_MAP | New `.cat` files are silently skipped; coverage report shows zero matched units from that file |
-| French translations_fr.json | Keying ability translations as `unit_id:ability_name` for abilities shared across factions | For shared abilities, must add one entry per unit_id — or switch to ability-name-only keying for shared names |
-| FTS5 MATCH query after name corrections | FTS5 search may fail on corrected names containing special characters not handled by sanitization regex | Verify the sanitization in `searchUdbUnits` handles all characters present in corrected unit names |
+**Prevention:** Before locking the new entity IDs, query `rules_favorites_notes` for `entity_type IN ('stratagem', 'enhancement', 'detachment_ability')` and document what ID format those rows use. Then either use the same IDs, or write a one-time migration that maps old IDs to new ones. The Wahapedia CSV `id` field for Stratagems.csv should be inspected against any stored values before finalizing the schema.
+
+**Phase:** Schema expansion phase, before any UI wiring. Audit existing `rules_favorites_notes` data first.
 
 ---
 
-## Performance Traps
-
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| Sub-faction filter triggers full re-query on every toggle | UI pause when switching sub-factions | Sub-faction filtering done client-side on the faction-level cache — keep it that way; do not add sub_faction as a React Query key dimension | Not a scaling issue at current unit counts (~100/faction) |
-| FTS5 search on large bilingual keyword content | Slower search after French keywords are added | FTS5 `keywords` column already concatenates EN + FR; monitor search latency after FR rollout | No issue expected at <3000 units |
-| Full JSON parse of unit_database.json at every startup | Slow startup | Version check short-circuits import if already up to date — keep the fast path working | Would be an issue above ~50 MB JSON; current size is ~1-2 MB |
+## Moderate Pitfalls
 
 ---
 
-## UX Pitfalls
+### Pitfall M-1: Auto-download embedded in the build command makes builds non-reproducible
 
-| Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| Sub-faction dropdown visible for factions without sub-factions | User confused by empty dropdown for Necrons, Orks, etc. | Only render sub-faction dropdown when `getDistinctSubFactions` returns >= 1 entry |
-| Sub-faction filter clears when user switches faction and returns | Selection lost; user must reselect | Persist sub-faction selection per faction_id in Zustand filter store, not as a single global value |
-| Audit corrections look inconsistent if some units are patched and others not | User notices two units in the same army list show points from different sources | Complete all corrections for a faction before shipping; never ship a partial faction audit |
-| French locale toggle in DB browser not reflected in army list picker | User switches to FR, adds unit, army list shows EN name | Locale preference must come from a shared app-level context, not component-local state |
+**What goes wrong:** If auto-download runs inside `pnpm build:udb`, two developers building from the same commit on different days will produce different `unit_database.json` because Wahapedia updates CSVs when GW releases FAQs or balance dataslates. The content hash in `udb_meta.version` will differ, causing the Rust import to re-import every app launch for one developer while the other stays on old data.
 
----
+**Why it happens:** External HTTP sources are not version-pinned. Build reproducibility (BPH-02) depends on committed CSVs in `scripts/data/`.
 
-## "Looks Done But Isn't" Checklist
+**Consequences:**
+- "Deterministic builds" invariant (BPH-02) is broken
+- Two developers see different coverage percentages for the same git SHA
+- CI may pass while local has stale data or vice versa
 
-- [ ] **Sub-faction filtering (all three surfaces):** Select "Blood Angels" in DB browser, army list UnitPickerDialog, and collection Add-from-Database — confirm generic units (Tactical Squad, Rhino) appear alongside chapter-exclusive units
-- [ ] **FTS5 count parity after rebuild:** `SELECT COUNT(*) FROM udb_search` equals `SELECT COUNT(*) FROM udb_units` — verify after every build that modifies data
-- [ ] **French overlay non-regression:** `frWeapons` + `frAbilities` counts in build output are >= previous build counts — any drop signals key rot
-- [ ] **Points coverage rate non-regression:** Overall coverage stays >= 96.9% after pipeline fixes — any regression must be explained before shipping
-- [ ] **Rust INSERT alignment:** All columns in migration 041 (`sub_faction`, `name_fr`, `description_fr`, `keyword_fr`) are bound in the corresponding Rust INSERT statements — spot-check by verifying non-null values for known translated units after import
-- [ ] **Alias count not growing from pipeline fixes:** aliases.json entry count is not higher than 44 as a result of pipeline improvement work — new entries must have documented justification
-- [ ] **Source versions documented:** Audit notes contain exact Wahapedia date, BSData commit, and GW app version used for each faction before first comparison
+**Prevention:** Auto-download must be a separate, explicitly-invoked script (`pnpm download:wahapedia`) that writes files to `scripts/data/` on demand. The build pipeline (`pnpm build:udb`) reads from committed CSV files and does not trigger a download. Developers run the download step deliberately when they want to refresh data. This preserves BPH-02 exactly as designed.
+
+**Phase:** Auto-download phase. Design the download as an opt-in separate command from the start.
 
 ---
 
-## Recovery Strategies
+### Pitfall M-2: BSData alias table becomes invalid noise when BSData is removed
 
-| Pitfall | Recovery Cost | Recovery Steps |
-|---------|---------------|----------------|
-| FTS5 stale after manual SQLite edits | LOW | Run `pnpm build:udb` — even without data changes, the version hash will be the same, so bump any count by 1 in the JSON header to force re-import |
-| Sub-faction filter drops generic units (shipped) | MEDIUM | Hotfix: update filter predicate in all three surfaces to include `sub_faction IS NULL`; rebuild; ship patch release |
-| French key mismatch after name correction | LOW | Find old key in `translations_fr.json`, update to new name, rebuild — `frWeapons` count must match previous |
-| Coverage regression after BSData update | MEDIUM | Check `coverage-report.json` unmatched_units list; add aliases or update FACTION_MAP for new catalogue names |
-| Rust INSERT missing column after pipeline change | HIGH | No migration needed (udb_* tables are fully replaced on import); update the INSERT binding, rebuild JSON, ship new app version |
+**What goes wrong:** `aliases.json` maps BSData unit names to Wahapedia names (44 entries). When BSData is removed, `allBsdataNames` is empty and all 44 aliases report as "unused" every build. If the validation step ever has a hard-fail mode for unused aliases, it blocks the build.
+
+**Why it happens:** The alias system was designed as a BSData-to-Wahapedia bridge. With Wahapedia-only points, there is no other source to bridge from.
+
+**Consequences:**
+- Noisy build output (44 "unused" aliases)
+- `aliases.json` remains as dead code confusing future developers
+
+**Prevention:** When removing BSData from the pipeline, also remove the alias system from `build-unit-db.ts` in the same PR. Archive `aliases.json` as a historical reference or delete it. The `validateAliases` function and `allBsdataNames` accumulator should be removed. The coverage gate (MIN_COVERAGE_PCT) becomes the sole regression detector.
+
+**Phase:** BSData removal phase. Remove alias infrastructure in the same commit that removes BSData `.cat` parsing.
 
 ---
 
-## Pitfall-to-Phase Mapping
+### Pitfall M-3: New Wahapedia CSV files have a UTF-8 BOM that the current parser does not strip
 
-| Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| FTS5 stale after pipeline fixes | Every pipeline fix phase | `SELECT COUNT(*) FROM udb_search` == `SELECT COUNT(*) FROM udb_units` after rebuild |
-| Sub-faction drops parent-faction generics | Sub-faction filtering fix phase | Select Blood Angels in DB browser; confirm Tactical Squad visible |
-| Audit source version skew | Pre-audit scoping phase | Source versions documented in audit notes before first comparison |
-| aliases.json masking pipeline bugs | Pipeline improvement phase | Alias-match count in build output checked before adding any new entry |
-| French key rot after name corrections | Pipeline improvement phase | `frWeapons` count in build output >= previous count after every fix |
-| Rust INSERT column mismatch | Any phase that adds a JSON field | New field is non-null for a known translated unit after re-import |
+**What goes wrong:** Wahapedia CSVs are UTF-8 with BOM (`\xEF\xBB\xBF`). The current `parseCsv.ts` reads with `readFileSync(filepath, "utf-8")` and calls `.trim()` on headers, but `.trim()` does not strip the BOM. The very first header reads as `﻿id` instead of `id`.
+
+**Why it happens:** Node.js `fs.readFileSync` with `'utf-8'` preserves the BOM. JavaScript's `.trim()` strips ASCII whitespace but not the Unicode BOM character.
+
+**Consequences:**
+- For any new CSV where the first column is `id` (Stratagems.csv, Enhancements.csv, Datasheets_models_cost.csv), the ID field returns `undefined` for every row
+- All rows are silently skipped (the pipeline checks `if (!id) continue`)
+- Parses as 0 data rows with no error thrown
+
+**Prevention:** Add BOM stripping to `parseWahapediaCsv` at the top: `const cleaned = rawContent.replace(/^﻿/, "")`. This is a one-line fix. Add a unit test for a BOM-prefixed CSV string before adding any new CSV file types. The existing CSVs may have worked because the first column (`id`) is checked with `row["id"]?.trim()` and the BOM may be partially absorbed — but do not rely on this.
+
+**Detection warning signs:** New CSV parses to 0 rows. First header name starts with a non-printable character when logged.
+
+**Phase:** Must be fixed in `parseCsv.ts` before adding any new CSV file types. This is the first fix in the pipeline phase.
+
+---
+
+### Pitfall M-4: Expanding UnitDatabasePayload in Rust requires changes in four places — missing any one is a silent no-op
+
+**What goes wrong:** `UdbImportResult` lists exactly the entity types currently imported: `factions, units, models, weapons, abilities, keywords, points, composition`. When `stratagems`, `enhancements`, and `detachments` are added, the Rust code must be expanded in four places: (1) `UnitDatabasePayload` deserialization struct, (2) `UdbImportResult` count reporting struct, (3) the DELETE list array in `import_unit_database_inner`, (4) the INSERT loop body. Missing any one silently no-ops that entity type.
+
+**Why it happens:** The Rust code is verbose by design. `#[serde(default)]` on `UnitDatabasePayload` means unknown fields are silently ignored — no compile error if the JSON has the array but Rust does not have the loop.
+
+**Consequences:**
+- Entity type silently imported as 0 rows
+- The count in `UdbImportResult` reports 0, which may be misread as "empty source data" rather than "bug"
+
+**Prevention:** Use a 4-point checklist when adding each entity type: (1) add field to `UnitDatabasePayload`, (2) add field to `UdbImportResult`, (3) add table to DELETE list, (4) add INSERT loop. Add a post-import assertion that counts are non-zero. All four changes must be in the same commit.
+
+**Phase:** Rust import expansion phase.
+
+---
+
+### Pitfall M-5: New entity tables not added to the DELETE list cause duplicate rows on every re-import
+
+**What goes wrong:** The Rust import runs `DELETE FROM <table>` for each udb_* table with FK checks OFF. If a new table (e.g., `udb_stratagems`) is created in the migration but not added to the DELETE list, old rows from the previous import survive alongside the new rows. Since each import does DELETE-all + INSERT-all, omitting the DELETE step means rows accumulate.
+
+**Why it happens:** The DELETE list is a hardcoded array in `lib.rs`. It is not derived from the schema. New tables must be manually added.
+
+**Consequences:**
+- Duplicate stratagems/enhancements in the database after each re-import
+- PlaybookTab and Game Day show duplicates
+- Only detectable by checking row counts against expected CSV row counts
+
+**Prevention:** Add new entity tables to the DELETE list immediately when creating their schema migration. The DELETE list in `import_unit_database_inner` must be updated in the same PR as the new SQL migration. Consider adding a post-import row count assertion.
+
+**Phase:** Schema migration phase. The DELETE list update is in `lib.rs`, not in the migration file.
+
+---
+
+### Pitfall M-6: Datasheets_models_cost.csv may store single-model units as model_count=1 rows, conflicting with the base_points column convention
+
+**What goes wrong:** The existing pipeline stores single-cost units as `base_points` on the `udb_units` row, and multi-tier units as rows in `udb_unit_points`. Wahapedia's cost CSV may store all units uniformly as `(datasheet_id, model_count, points)` — including single-model units with `model_count=1`. If both `base_points` and a `model_count=1` tier row exist, `resolveUnitPoints()` and the army list SQL COALESCE chain must be audited for which takes priority.
+
+**Why it happens:** BSData distinguished single-tier and multi-tier units structurally. The Wahapedia cost CSV likely does not make this distinction.
+
+**Consequences:**
+- If `base_points` takes priority and is stale from a previous BSData build, army lists show old points even after migration
+- If the cost CSV sets `model_count=1` but the code looks at `base_points` first, newly imported Wahapedia points are silently ignored
+
+**Prevention:** When switching to Wahapedia points, explicitly null out `base_points` for all units in the import transaction and rely exclusively on `udb_unit_points` rows. Audit the cost CSV column names before writing the parser — confirm the exact column name for datasheet_id and verify it matches the `id` field from `Datasheets.csv`.
+
+**Phase:** Points import phase. Audit the CSV structure first; then write the parser.
+
+---
+
+### Pitfall M-7: army_lists.detachment_name denormalized copy survives — new canonical detachment IDs must be wired without breaking existing display
+
+**What goes wrong:** Migration 031 stores `detachment_name TEXT` as a denormalized copy on `army_lists` (because rules.db was wiped on sync). Now that detachments will be in the canonical DB, if a new `udb_detachment_id` FK is added to `army_lists`, it must use stable IDs. ID reassignment (same as C-2) would break the FK link, leaving the name display correct but the abilities JOIN empty.
+
+**Prevention:** Treat `udb_detachment_id` on `army_lists` the same as `udb_unit_id` on `units`: nullable FK with ON DELETE SET NULL + re-link pass in the import transaction, matching on `detachment_name = udb_detachments.name AND faction_id`. Do not remove the TEXT copy — it remains the display fallback.
+
+**Phase:** Schema expansion phase (when `udb_detachments` table is added).
+
+---
+
+## Minor Pitfalls
+
+---
+
+### Pitfall S-1: HTTP auto-download on Windows — use Node.js built-in fetch, not a package
+
+**What goes wrong:** If the download script uses a third-party HTTP library that bundles its own TLS certificate store, Windows certificate validation may behave differently from Linux CI. This is more complex to debug than a standard Node.js fetch call.
+
+**Prevention:** Use Node.js built-in `fetch` (available in Node 22 which `node --experimental-strip-types` requires). Validate response status code and `Content-Type` before writing to disk.
+
+**Phase:** Auto-download phase.
+
+---
+
+### Pitfall S-2: MIN_COVERAGE_PCT must only move up during this migration, never down
+
+**What goes wrong:** The temptation during migration is to lower the threshold temporarily to accommodate the transition period. If it is lowered to e.g. 30% "temporarily," future regressions go undetected and the threshold is never raised.
+
+**Prevention:** Keep MIN_COVERAGE_PCT at 58% while BSData is still present. After Wahapedia points are wired and coverage reaches 90%+, raise the threshold to 85% or 90%, then remove BSData. Never lower the threshold. Wahapedia provides points for all non-Legends current units — 95%+ coverage is achievable and should be the target.
+
+**Phase:** Points import phase.
+
+---
+
+### Pitfall S-3: update-unit-database.ts duplicates pipeline logic and will silently miss new entity types
+
+**What goes wrong:** `update-unit-database.ts` contains its own copy of the full parsing pipeline inside `buildUnitDatabase()`. When new CSVs (stratagems, enhancements, detachments) are added to `build-unit-db.ts`, they must also be added to `update-unit-database.ts` — otherwise the diff script produces a "clean" diff even when new entities were added or changed.
+
+**Prevention:** Extract the shared pipeline into `scripts/lib/pipeline.ts` so both scripts call the same function. This refactor should happen before adding new entity types, not after. The `DiffReport` type must also be extended to cover new entity types.
+
+**Phase:** The first phase that adds a new CSV type to the pipeline. Refactor before adding new entity types.
+
+---
+
+### Pitfall S-4: FTS5 schema for new entity search requires a design decision upfront
+
+**What goes wrong:** The current `udb_search` is an external-content FTS5 table covering units. If stratagems need to be searchable, the options are: (a) extend `udb_search` with new columns (breaks existing queries that assume the current column layout), or (b) create a separate `udb_rules_search` FTS5 table. Making the wrong choice requires a schema migration to undo.
+
+**Prevention:** Create a separate `udb_rules_search` FTS5 table for stratagems/enhancements/detachments. Keep unit and rule search indices separate to allow independent filtering in the UI and to avoid breaking existing `udb_search` consumers. Design this table in the schema expansion phase migration, not as an afterthought.
+
+**Phase:** Schema expansion phase.
+
+---
+
+## Phase-Specific Warnings
+
+| Phase Topic | Likely Pitfall | Mitigation |
+|---|---|---|
+| Auto-download CSVs | M-1 (non-reproducible builds), M-3 (BOM stripping), S-1 (TLS/fetch) | Separate download command; validate row counts; fix BOM in parseCsv.ts first |
+| Legends deduplication | C-1 (Legends win race) | Filter `legend != ""` at build step 3; log filtered count |
+| Points from Datasheets_models_cost.csv | C-3 (malformed file), M-6 (tier vs base_points mapping) | Validate row count post-download; audit CSV columns before coding |
+| Schema expansion (stratagems/enhancements/detachments) | C-4 (FTS5 not updated), C-5 (annotation ID mismatch), M-5 (DELETE list missing), S-4 (FTS5 design) | 4-point checklist per entity type; audit rules_favorites_notes IDs first |
+| BSData removal | M-2 (stale aliases), S-2 (threshold must rise) | Remove alias system in same PR; raise MIN_COVERAGE_PCT |
+| Rust import expansion | M-4 (struct expansion checklist), M-7 (detachment denormalization) | 4-point checklist; add re-link pass for detachment FKs |
+| FK preservation (udb_unit_id) | C-2 (ID reassignment causes NULL FKs) | Add re-link pass after DELETE+INSERT in import transaction |
+| update-unit-database.ts | S-3 (duplicated pipeline logic) | Refactor to shared `scripts/lib/pipeline.ts` before adding new CSV types |
+| Coverage gate | S-2 (threshold direction) | Only raise, never lower MIN_COVERAGE_PCT during migration |
 
 ---
 
 ## Sources
 
-- Direct inspection: `scripts/build-unit-db.ts` — multi-pass matching, alias loading, French overlay application, version hash, coverage report
-- Direct inspection: `src-tauri/src/lib.rs` — `import_unit_database_inner` DELETE-all + re-INSERT, FTS5 rebuild query, version check early-exit, Rust INSERT statements
-- Direct inspection: `src/db/queries/unitDatabase.ts` — `getUdbUnitIdsBySubFaction`, `getUdbUnitsByFaction`, FTS5 `searchUdbUnits`, `getUdbOwnershipByFaction`
-- Direct inspection: `src-tauri/migrations/038_udb_schema.sql` and `041_udb_sub_faction_fr.sql`
-- Direct inspection: `scripts/data/aliases.json` — 44 existing entries; pattern analysis of alias types
-- Direct inspection: `scripts/lib/factionMap.ts` — FACTION_MAP and SUB_FACTION_MAP (17 entries)
-- PROJECT.md milestone history — boot-loop incident documented in migration 038 comment; decisions log patterns
-
----
-*Pitfalls research for: HobbyForge v0.4.5 — data quality audit, pipeline improvement, sub-faction filtering*
-*Researched: 2026-06-02*
+- Direct analysis of `scripts/build-unit-db.ts` (build steps 1-10, BSData matching, coverage gate logic)
+- `scripts/lib/parseCsv.ts` (BOM behavior: no stripping present, confirmed by code inspection)
+- `scripts/lib/bsdata.ts` (`matchUnit` 3-pass logic, alias system, FACTION_MAP)
+- `src-tauri/src/lib.rs` (`import_unit_database_inner`: DELETE list, INSERT loops, FTS5 rebuild, FK OFF pattern)
+- `src-tauri/migrations/038_udb_schema.sql` (table definitions, FK structure, FTS5 virtual table)
+- `src-tauri/migrations/039_collection_udb_link.sql` (ON DELETE SET NULL, re-link backfill pattern)
+- `scripts/data/Datasheets.csv` line 1 header inspection: `legend` column confirmed present
+- `.planning/PROJECT.md` Key Decisions table (ID reuse D-02/D-03/D-04, ON DELETE SET NULL pattern, denormalized TEXT copies pattern, BPH-02 deterministic builds)

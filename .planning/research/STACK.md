@@ -1,187 +1,440 @@
-# Stack Research
+# Technology Stack: v0.4.7 Wahapedia Pipeline & Full Data Import
 
-**Domain:** Data quality audit tooling + pipeline improvement for a dev-side build script
-**Researched:** 2026-06-02
-**Confidence:** HIGH
-
----
-
-## Context: What Already Exists (Do Not Re-Research)
-
-The app stack is fully validated: Tauri 2 + React 19 + TypeScript 5 + Vite 6 + TailwindCSS 4 + SQLite. This research covers only the NEW capabilities needed for v0.4.5.
-
-The build pipeline already has:
-- `@xmldom/xmldom` ^0.9.10 — XML/DOM parsing for BSData .cat files
-- `better-sqlite3` ^12.10.0 — SQLite for data-layer tests
-- Node `--experimental-strip-types` to run `.ts` scripts without compilation
-- `scripts/lib/` shared library: `parseCsv.ts`, `parseXml.ts`, `normalize.ts`, `factionMap.ts`, `types.ts`
-- `scripts/data/coverage-report.json` — per-faction points coverage output
-- `scripts/data/aliases.json` — 44 manual name-mapping overrides
-- `scripts/data/translations_fr.json` — French overlay keyed by unit/ability/weapon/keyword IDs
-
-**Current points coverage: 60.1% overall** (SM: 58.1%, NEC: 79.7%, DG: 50.7%). The gap is largely Forge World / Legends units in Wahapedia CSVs that don't exist in BSData — not a parsing bug.
+**Project:** HobbyForge v0.4.7
+**Researched:** 2026-06-04
+**Scope:** New capabilities only — auto-download, new CSV schemas, SQLite schema additions
+**Overall confidence:** HIGH
 
 ---
 
-## Recommended Stack Additions
+## What Does NOT Change
 
-### Core Technologies
+The existing stack (Tauri 2, React 19, TypeScript 5, Vite 6, TailwindCSS 4, SQLite,
+tauri-plugin-sql, React Query, Zustand, shadcn/ui) is unchanged. The canonical unit
+database architecture (hobbyforge.db, udb_* tables, Rust bulk import, Wahapedia CSV
+parsing via `parseWahapediaCsv()`) is already proven and reused as-is.
 
-No new runtime dependencies are needed. All new tooling is dev-side scripts only, matching the established `scripts/` pattern.
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| Node.js built-ins (`node:fs`, `node:path`, `node:crypto`) | bundled | File I/O for audit scripts | Already used throughout `scripts/`; no new dep |
-| `@xmldom/xmldom` | ^0.9.10 (already installed) | XML parsing for deeper BSData field extraction | Already declared in devDependencies; no version bump needed |
-| `better-sqlite3` | ^12.10.0 (already installed) | Read `hobbyforge.db` to cross-check imported data | Already used for data-layer tests; no version bump needed |
-
-### Supporting Libraries
-
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| None new | — | — | All needed capabilities exist in already-installed packages |
-
-### Development Tools
-
-| Tool | Purpose | Notes |
-|------|---------|-------|
-| `node --experimental-strip-types` | Run `.ts` audit scripts directly | Same invocation pattern as `build:udb`; no `tsc` or separate tsconfig needed |
-| `pnpm audit:udb` (new npm script) | Entry point for the audit runner | Add to `package.json` scripts, not a new package |
+The research below covers only the NET NEW capabilities required for v0.4.7.
 
 ---
 
-## Installation
+## New Capability 1: Auto-Download Wahapedia CSVs
 
-No new packages needed. The v0.4.5 work adds only new `.ts` files under `scripts/`.
+**Requirement:** Download CSVs from `https://wahapedia.ru/wh40k10ed/*.csv` at
+`pnpm build:udb` time instead of requiring manual file placement.
 
-```bash
-# Nothing to install — use existing devDependencies
+**Recommendation: Use native `fetch` in Node.js — no new dependency.**
+
+Node.js 18+ ships `fetch` as a stable global. The project runs Node 24
+(confirmed: `node --version` → v24.13.0). Native fetch is sufficient for simple
+HTTPS GET requests to static CSV files. The response body is retrieved with `.text()`.
+
+```typescript
+// No import needed — fetch is global in Node 18+
+const res = await fetch("https://wahapedia.ru/wh40k10ed/Stratagems.csv");
+if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.url}`);
+const raw = await res.text();
 ```
 
----
+**Why not `node-fetch` or `axios`?** Both add devDependencies and version-pinning
+burden for what is a build-script-only use case. Native fetch is battle-tested in
+Node 18+ and has zero licensing concerns.
 
-## What the New Scripts Should Look Like
+**Cache strategy:** Download only if the file is absent, or when a `--refresh` flag
+is passed. This preserves the offline/air-gapped rebuild path (important: the build
+must still work when CSVs are already in `scripts/data/`). The download function
+wraps the existing `existsSync` check:
 
-Based on the existing pipeline patterns, here is the recommended structure for new audit tooling:
+```typescript
+async function downloadCsvIfNeeded(
+  dataDir: string,
+  filename: string,
+  force = false,
+  baseUrl = "https://wahapedia.ru/wh40k10ed/"
+): Promise<void> {
+  const filepath = join(dataDir, filename);
+  if (!force && existsSync(filepath)) return; // local cache hit
+  console.log(`Downloading ${filename}...`);
+  const res = await fetch(baseUrl + filename);
+  if (!res.ok) throw new Error(`Download failed ${filename}: HTTP ${res.status}`);
+  writeFileSync(filepath, await res.text(), "utf-8");
+}
+```
 
-**`scripts/audit-faction.ts`** — per-faction audit runner
-- Accepts a faction ID argument (e.g., `SM`, `NEC`, `DG`)
-- Reads `unit_database.json` (already built)
-- Reads raw Wahapedia CSVs again for ground-truth comparison
-- Reads BSData .cat files for points cross-check
-- Outputs a human-readable report: missing points, stat mismatches, unmatched units, French coverage gaps
-- Follows the `build-unit-db.ts` pattern: shared lib imports, graceful degrades, `process.exit(1)` on fatal errors
+This function lives in `scripts/lib/download.ts` and is called from `build-unit-db.ts`
+before the CSV verification loop.
 
-**`scripts/audit-subfaction.ts`** — sub-faction parent/child relationship audit
-- Reads `unit_database.json`
-- For each faction with sub-factions (SM chapters, DG, etc.), computes which units have `sub_faction = null` (generic/parent) vs a specific sub-faction label
-- Reports units that are in a chapter catalogue but are missing `sub_faction = null` — these need to appear when the parent faction is selected
-- Output feeds directly into `SUB_FACTION_MAP` corrections and the UI filter fix
+**Note on `@tauri-apps/plugin-http`:** This package is already in `package.json`
+dependencies as a runtime plugin for the Tauri app. It is NOT usable from Node.js
+build scripts. Do not use it here. Node.js native fetch and the Tauri HTTP plugin are
+completely separate execution environments.
 
-**`scripts/audit-translations.ts`** — French translation coverage report
-- Reads `unit_database.json`
-- Reads `translations_fr.json`
-- Reports per-faction EN/FR coverage: units, abilities, weapons, keywords
-- Identifies which ability/weapon keys in the database don't match any key in the overlay (key format mismatch is the primary bug source: `${unit_id}:${name}` vs other patterns)
-- Outputs a sorted list of untranslated entries for manual addition
-
----
-
-## Alternatives Considered
-
-| Recommended | Alternative | Why Not |
-|-------------|-------------|---------|
-| New `.ts` scripts in `scripts/` | A separate audit package (e.g., `scripts/audit/package.json`) | Unnecessary complexity — `--experimental-strip-types` handles `.ts` directly, same as existing scripts |
-| Reuse `@xmldom/xmldom` already installed | `fast-xml-parser` or `sax` | Would add a dep for zero benefit; `@xmldom/xmldom` already polyfills `DOMParser` correctly for the BSData XML structure |
-| `better-sqlite3` for DB reads | `tauri-plugin-sql` | `tauri-plugin-sql` requires a Tauri runtime; `better-sqlite3` runs in plain Node for scripts |
-| Manual `aliases.json` additions | Automated fuzzy matching with Levenshtein distance | Levenshtein produces too many false positives on unit names (e.g., "Terminator Squad" vs "Terminator Champion"); manual aliases are more precise and already have a working loader |
-| Extend `scripts/lib/types.ts` with audit types | New file `scripts/lib/audit-types.ts` | Keep audit types co-located with audit scripts unless they become shared — premature abstraction at this stage |
+**Confidence:** HIGH — Node 24 confirmed, native fetch stable since Node 18.
 
 ---
 
-## What NOT to Add
+## New Capability 2: Points from Datasheets_models_cost.csv
 
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| `fast-xml-parser` | Redundant; `@xmldom/xmldom` already handles BSData XML correctly | `@xmldom/xmldom` (already installed) |
-| `csv-parse` or `papaparse` | Wahapedia CSVs are pipe-delimited with non-standard trailing pipes; `parseWahapediaCsv()` in `scripts/lib/parseCsv.ts` already handles this correctly | Existing `parseWahapediaCsv()` |
-| `diff` npm package | Not needed; audit scripts produce human-readable reports, not patch files; `update-unit-database.ts` already has a `computeDiff()` | Plain `Map`-based comparison in script |
-| `chalk` or `kleur` for colorized output | Scripts run in PowerShell/bash; color support is environment-dependent; the existing pipeline uses plain `console.log` with `[OK]`/`[!]`/`[X]` text badges | Text badges (already established pattern) |
-| `ts-node` | The project uses `node --experimental-strip-types` which is the modern equivalent with zero additional deps | `node --experimental-strip-types` |
-| Any ORM for reading `hobbyforge.db` in scripts | `better-sqlite3` is already present and is the right tool for script-level DB reads | `better-sqlite3` directly |
+**CSV schema** (confirmed from live `https://wahapedia.ru/wh40k10ed/Datasheets_models_cost.csv`):
+
+```
+datasheet_id | line | description | cost
+```
+
+- `datasheet_id`: Wahapedia unit ID — matches `udb_units.id` directly (primary key)
+- `line`: 1-based tier index (integer)
+- `description`: free text like `"1 model"`, `"5 models"`, `"10 models"`
+- `cost`: integer points value
+
+**Multi-tier example from live data:**
+```
+000000016|1|10 models|80|
+000000016|2|20 models|170|
+000000024|1|2 models|65|
+000000024|2|3 models|95|
+000000024|3|5 models|160|
+000000024|4|6 models|190|
+```
+
+**Why this replaces BSData for points:** The `datasheet_id` is the exact Wahapedia
+string ID that `udb_units.id` already stores. This gives 100% theoretical match rate
+via primary key — no name normalization, no alias table, no 3-pass matching, no XML
+parsing. The entire `matchUnit()` / alias / normalization infrastructure was only
+needed because BSData uses different names than Wahapedia. That problem disappears.
+
+**Model count parsing:** The `description` field ("5 models", "1 model") contains the
+integer model count. Extract with a regex:
+
+```typescript
+function parseModelCount(description: string): number {
+  const match = description.match(/(\d+)\s+model/i);
+  return match ? parseInt(match[1], 10) : 1;
+}
+```
+
+The existing `UdbUnitPointsRow` type (`unit_id`, `model_count`, `points`) maps
+directly — no type changes required.
+
+**Single-tier units:** When a unit has exactly one line in `Datasheets_models_cost.csv`,
+set `base_points` on `udb_units` directly (same behavior as the BSData single-cost
+path). This preserves the existing query logic (`COALESCE(base_points, ...)`) unchanged.
+
+**Coverage expectation:** Some units may genuinely be absent from `Datasheets_models_cost.csv`
+(Legends/Forge World units that Wahapedia does not price). The existing
+`MIN_COVERAGE_PCT` threshold check (currently 58%) should be raised after this
+migration since direct-PK matching eliminates all name-mismatch gaps.
+
+**Confidence:** HIGH — schema confirmed from live file, direct PK match eliminates
+matching complexity.
 
 ---
 
-## Sub-Faction Parent/Child Modeling
+## New Capability 3: New CSV Schemas (Stratagems, Enhancements, Detachment Abilities)
 
-The current `sub_faction` column design is correct. The issue is purely in the UI query layer: when a sub-faction is selected, the query filters `WHERE sub_faction = $1` and misses units where `sub_faction IS NULL` (generic Space Marine units shared by all chapters).
+All three schemas confirmed from live Wahapedia CSVs. All are pipe-delimited with a
+trailing pipe, consistent with the existing format parsed by `parseWahapediaCsv()`.
 
-**No schema change needed.** The fix is a SQL query change:
+### Stratagems.csv
+
+**URL:** `https://wahapedia.ru/wh40k10ed/Stratagems.csv`
+
+**Confirmed columns (11):**
+```
+faction_id | name | id | type | cp_cost | legend | turn | phase | detachment | detachment_id | description
+```
+
+Column notes:
+- `faction_id`: Wahapedia faction ID. Some rows have an empty `faction_id`
+  (e.g., generic Boarding Actions stratagems not tied to a faction — handle as NULL).
+- `id`: Wahapedia string ID, reuse as primary key.
+- `type`: category string e.g. `"Boarding Actions – Battle Tactic Stratagem"`,
+  `"Epic Deed Stratagem"`. Contains faction name prefix for faction-scoped stratagems.
+- `cp_cost`: integer (typically 1 or 2).
+- `detachment`: detachment name (empty string for non-detachment stratagems).
+- `detachment_id`: Wahapedia detachment ID (empty string when not applicable).
+- `description`: HTML-formatted rules text (same as existing ability descriptions).
+
+### Enhancements.csv
+
+**URL:** `https://wahapedia.ru/wh40k10ed/Enhancements.csv`
+
+**Confirmed columns (8):**
+```
+faction_id | id | name | cost | detachment | detachment_id | legend | description
+```
+
+Column notes:
+- `cost`: integer points cost (0–45 in observed data).
+- `detachment`/`detachment_id`: same pattern as stratagems.
+
+### Detachment_abilities.csv
+
+**URL:** `https://wahapedia.ru/wh40k10ed/Detachment_abilities.csv`
+
+**Confirmed columns (7, trailing pipe):**
+```
+id | faction_id | name | legend | description | detachment | detachment_id
+```
+
+Column notes:
+- Column order differs from Stratagems/Enhancements — `id` is first, `faction_id` is second.
+- `legend`: flavor text (same pattern as unit abilities).
+- `description`: rules text.
+
+**All three parsers** follow the same pattern and can reuse `parseWahapediaCsv()`
+unchanged. The field-name differences are handled by accessing the returned record
+by column name (e.g., `row["faction_id"]`, `row["cp_cost"]`), which is how all
+existing CSV parsing works in `build-unit-db.ts`.
+
+**Confidence:** HIGH — all three schemas confirmed from live CSV files.
+
+---
+
+## New Capability 4: New SQLite Tables
+
+Three new migrations are required. All follow the established project pattern
+(one `.sql` file per migration, added to `src-tauri/migrations/`, numbered
+sequentially, registered in `src-tauri/src/lib.rs`).
+
+### Migration 042 — `udb_stratagems`
 
 ```sql
--- Current (broken): only returns chapter-specific units
-WHERE faction_id = $1 AND sub_faction = $2
-
--- Fixed: returns chapter-specific units + generic parent units
-WHERE faction_id = $1 AND (sub_faction = $2 OR sub_faction IS NULL)
+CREATE TABLE IF NOT EXISTS udb_stratagems (
+  id            TEXT PRIMARY KEY,
+  faction_id    TEXT REFERENCES udb_factions(id),  -- nullable: some stratagems are generic
+  name          TEXT NOT NULL,
+  type          TEXT,
+  cp_cost       INTEGER NOT NULL DEFAULT 1,
+  legend        TEXT,
+  turn          TEXT,
+  phase         TEXT,
+  detachment    TEXT,
+  detachment_id TEXT,
+  description   TEXT,
+  updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_udb_stratagems_faction_id ON udb_stratagems(faction_id);
+CREATE INDEX IF NOT EXISTS idx_udb_stratagems_detachment_id ON udb_stratagems(detachment_id);
 ```
 
-This same fix applies to three call sites:
-1. Database browser faction/sub-faction filter query
-2. Army list unit picker query
-3. Collection browser faction filter query
+Key design decision: `faction_id` is nullable (REFERENCES but no NOT NULL) because
+live Stratagems.csv has rows with empty faction_id for generic stratagems. A NOT NULL
+FK would either silently drop these rows or require a synthetic faction ID.
 
-The audit script (`audit-subfaction.ts`) should verify for each sub-faction that the expected generic units (e.g., Intercessors, Primaris Librarian) have `sub_faction = null` in the built database, and the chapter-specific units (e.g., Blood Angels Death Company) have the correct sub-faction label.
+### Migration 043 — `udb_enhancements`
+
+```sql
+CREATE TABLE IF NOT EXISTS udb_enhancements (
+  id            TEXT PRIMARY KEY,
+  faction_id    TEXT REFERENCES udb_factions(id),
+  name          TEXT NOT NULL,
+  cost          INTEGER NOT NULL DEFAULT 0,
+  detachment    TEXT,
+  detachment_id TEXT,
+  legend        TEXT,
+  description   TEXT,
+  updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_udb_enhancements_faction_id ON udb_enhancements(faction_id);
+CREATE INDEX IF NOT EXISTS idx_udb_enhancements_detachment_id ON udb_enhancements(detachment_id);
+```
+
+### Migration 044 — `udb_detachment_abilities`
+
+```sql
+CREATE TABLE IF NOT EXISTS udb_detachment_abilities (
+  id            TEXT PRIMARY KEY,
+  faction_id    TEXT REFERENCES udb_factions(id),
+  name          TEXT NOT NULL,
+  legend        TEXT,
+  description   TEXT,
+  detachment    TEXT,
+  detachment_id TEXT,
+  updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_udb_detachment_abilities_faction_id ON udb_detachment_abilities(faction_id);
+CREATE INDEX IF NOT EXISTS idx_udb_detachment_abilities_detachment_id ON udb_detachment_abilities(detachment_id);
+```
+
+**Why `detachment_id` is TEXT (not FK to a detachment table):** There is no
+`udb_detachments` table in the schema (migrations 038–041). Adding one is out of
+scope per PROJECT.md (EXT-01..03 deferred to v2). Storing the raw Wahapedia string ID
+preserves the cross-reference for future use without requiring a parent table now.
+
+**Why separate migrations per table:** The established pattern is one concern per
+migration file. Combining all three into one file works technically but breaks the
+naming convention and makes rollback reasoning harder. Follow the existing pattern.
+
+**Confidence:** HIGH — same migration tooling used 41 times.
 
 ---
 
-## French Translation Key Format
+## New Capability 5: JSON Schema Extensions for unit_database.json
 
-The current overlay keys work as follows:
-- `factions`: keyed by `faction_id` (string)
-- `units`: keyed by `unit_id` (Wahapedia string ID)
-- `abilities`: keyed by `${unit_id}:${ability_name}` (composite)
-- `weapons`: keyed by `${unit_id}:${weapon_name}` (composite)
-- `keywords`: keyed by `keyword` (plain string, shared across units)
+The build script assembles `src-tauri/data/unit_database.json`. The Rust import
+command bulk-INSERTs from this JSON. The JSON must include three new arrays.
 
-The composite key format for abilities and weapons is fragile: if a unit's ability name changes in Wahapedia (e.g., capitalization, punctuation), the key no longer matches. The audit script should surface these mismatches by:
-1. Building a set of all `${unit_id}:${name}` keys actually present in the database
-2. Diffing against the keys in `translations_fr.json`
-3. Reporting keys in the overlay that don't match any database entry (stale translations) and database entries with no overlay match (untranslated)
+**New types to add to `scripts/lib/types.ts`:**
 
-**No new library needed** — plain `Set` and `Map` operations.
+```typescript
+export interface UdbStratagem {
+  id: string;
+  faction_id: string;   // empty string when not faction-scoped
+  name: string;
+  type: string;
+  cp_cost: number;
+  legend: string;
+  turn: string;
+  phase: string;
+  detachment: string;
+  detachment_id: string;
+  description: string;
+}
+
+export interface UdbEnhancement {
+  id: string;
+  faction_id: string;
+  name: string;
+  cost: number;
+  detachment: string;
+  detachment_id: string;
+  legend: string;
+  description: string;
+}
+
+export interface UdbDetachmentAbility {
+  id: string;
+  faction_id: string;
+  name: string;
+  legend: string;
+  description: string;
+  detachment: string;
+  detachment_id: string;
+}
+```
+
+**Extension to `UnitDatabaseJson`:**
+```typescript
+// Add these three fields to the existing interface
+stratagems: UdbStratagem[];
+enhancements: UdbEnhancement[];
+detachment_abilities: UdbDetachmentAbility[];
+```
+
+Use empty string (not null) for empty CSV fields in these types. The Rust serde
+deserializer already handles empty strings for optional fields (established in v0.4.2
+with `serde(default)`). Keeping nullable as empty string avoids an `Option<String>`
+proliferation in the Rust structs.
+
+**Confidence:** HIGH — direct mapping from confirmed CSV columns.
 
 ---
 
-## Coverage Gap Reality Check
+## Dependency Changes Summary
 
-The 60.1% overall points coverage is not a pipeline bug — it is expected. The unmatched units in `coverage-report.json` are overwhelmingly:
+| Dependency | Action | Reason |
+|------------|--------|--------|
+| `@xmldom/xmldom` (devDep) | **Remove** after BSData code deletion | XML parsing only needed for BSData .cat files; becomes dead code |
+| `better-sqlite3` (devDep) | **Keep** | Still used by data-layer tests (14 tests) |
+| Native `fetch` (Node 24 built-in) | **Use** | HTTP download — zero new packages |
+| `node:fs`, `node:path`, `node:url` | **Keep** | Already used throughout `scripts/` |
 
-1. **Forge World / Legends units** — present in Wahapedia CSVs but not in BSData community files (Forgeworld content is separate from the main BSData wh40k-10e repo). These will never match BSData parsing because the data simply is not there. Examples: most of the 683 unmatched units across DG/TS/WE/CSM/SM are Forge World vehicles.
-
-2. **Units with naming mismatches** — a smaller subset where BSData uses a different name than Wahapedia (e.g., "Chaos Lord On Juggernaut" vs "Lord On Juggernaut"). These are fixable via `aliases.json` additions.
-
-The audit goal for the milestone is to fix the **fixable** mismatches for SM, NEC, and DG — not to reach 100% coverage (which would require sourcing Forge World points data separately).
+**No `pnpm add` or `pnpm install` required for new capabilities.**
+The only `package.json` change is removing `@xmldom/xmldom` from devDependencies
+after the BSData code is fully deleted.
 
 ---
 
-## Version Compatibility
+## BSData Removal Scope
 
-| Package | Compatible With | Notes |
-|---------|-----------------|-------|
-| `@xmldom/xmldom` ^0.9.10 | Node 18+ | No peer dep issues with current setup |
-| `better-sqlite3` ^12.10.0 | Node 18+ | Requires native rebuild (already in `pnpm.onlyBuiltDependencies`) |
-| `node --experimental-strip-types` | Node 22.6+ | Already used for `build:udb`; no change needed |
+After `Datasheets_models_cost.csv` replaces BSData as the points source, the
+following code becomes dead:
+
+| File | Action |
+|------|--------|
+| `scripts/lib/parseXml.ts` | Delete entirely |
+| `scripts/lib/bsdata.ts` | Delete (after extracting `readCsvFile` to `parseCsv.ts`) |
+| `scripts/lib/factionMap.ts` | Partial: `FACTION_MAP` + `CROSS_FACTION_MAP` delete; `SUB_FACTION_MAP` needs replacement strategy |
+| `scripts/lib/normalize.ts` | Keep — `normalizeName` still useful for defensive deduplication |
+| `scripts/data/bsdata/` directory | Not tracked in git (gitignored); no action |
+
+**`readCsvFile` extraction:** The `readCsvFile()` function in `bsdata.ts` (readFileSync
++ parseWahapediaCsv wrapper) is used by `build-unit-db.ts`. Before deleting `bsdata.ts`,
+move `readCsvFile` into `scripts/lib/parseCsv.ts` so `build-unit-db.ts` imports it
+from there.
+
+**Sub-faction without BSData:** `SUB_FACTION_MAP` currently assigns `sub_faction` by
+matching BSData catalogue filenames (e.g., `"Space Marines - Black Templars"` →
+`"Black Templars"`). Without BSData, this data source disappears. Options:
+1. Derive sub-faction from the unit's relationship to stratagems/enhancements
+   (units whose detachment_id appears in a sub-faction stratagem are that sub-faction)
+2. Static JSON file `scripts/data/sub_faction_map.json` keyed by `unit_id` ranges
+3. Leave sub_faction populated from the last BSData-era build (no regression for
+   existing data, just no new sub-faction assignments going forward)
+
+This is a design decision for the roadmap, not a stack question.
+
+**Confidence for BSData removal:** HIGH for what can be deleted; MEDIUM for sub-faction
+re-sourcing (design decision needed).
+
+---
+
+## Existing Code to Reuse Unchanged
+
+| Asset | How Reused |
+|-------|-----------|
+| `scripts/lib/parseCsv.ts` → `parseWahapediaCsv()` | Parses all three new CSV files — no changes |
+| `scripts/lib/normalize.ts` → `normalizeName()` | Optional deduplication for duplicate detection |
+| `scripts/lib/types.ts` | Extended with new interfaces above |
+| `src-tauri/migrations/038_udb_schema.sql` | Schema reference only — not modified |
+| Rust `bulk_sync_rules` command pattern | Reuse (or add a separate bulk command) for new tables |
+| `MIN_COVERAGE_PCT` threshold gate | Raise from 58% → 90%+ after this milestone |
+
+---
+
+## Open Questions for Roadmap Phases
+
+1. **Empty faction_id in Stratagems.csv:** Generic stratagems (Boarding Actions, Core
+   stratagems) have empty `faction_id`. The `udb_stratagems` migration uses a nullable
+   FK (above). The parser must convert empty string → NULL when inserting. Confirm
+   this behavior in the Rust serde layer.
+
+2. **Sub-faction re-sourcing without BSData:** Design decision needed before Phase 1.
+   Recommendation: static `scripts/data/sub_faction_units.json` keyed by unit_id,
+   maintained manually alongside `aliases.json`. This follows the established manual-
+   data-file pattern and is the lowest-risk replacement.
+
+3. **Legends deduplication:** Wahapedia `Datasheets.csv` has a `legend` column
+   (currently parsed but not stored in `udb_units`). For deduplication, a boolean
+   `is_legend INTEGER NOT NULL DEFAULT 0` column should be added to `udb_units`
+   via a separate migration (045). This allows filtering Legends units out of the
+   DB browser and army list picker. This is a v0.4.7 feature concern, not a stack
+   concern — but the migration needs to be planned.
+
+4. **Coverage threshold after migration:** Once `Datasheets_models_cost.csv` drives
+   points, the `MIN_COVERAGE_PCT = 58` threshold should be raised immediately.
+   Based on live data, the new coverage should approach 95%+ (only genuine Legends/
+   no-cost units will remain unmatched). Raise to 90 initially, then audit.
+
+5. **`@tauri-apps/plugin-http` vs native fetch confusion risk:** The existing
+   `package.json` `dependencies` section includes `@tauri-apps/plugin-http ~2.5.9`.
+   This is the Tauri app runtime plugin. Any developer reading the package.json might
+   assume it covers the build script HTTP need. Add a comment in `download.ts` making
+   clear that native `fetch` is used here, not the Tauri plugin.
 
 ---
 
 ## Sources
 
-- Direct code inspection of `scripts/build-unit-db.ts`, `scripts/update-unit-database.ts`, `scripts/lib/*.ts` — HIGH confidence
-- Direct inspection of `scripts/data/coverage-report.json` — actual coverage numbers verified (60.1% overall, SM 58.1%, NEC 79.7%, DG 50.7%)
-- Direct inspection of `package.json` — exact installed versions confirmed
-- Project context in `.planning/PROJECT.md` — milestone goals confirmed
+- Direct code inspection: `scripts/build-unit-db.ts`, `scripts/lib/*.ts`, `package.json`,
+  `src-tauri/migrations/038_udb_schema.sql` — HIGH confidence
+- Live CSV inspection: `https://wahapedia.ru/wh40k10ed/Stratagems.csv` (11 cols confirmed)
+- Live CSV inspection: `https://wahapedia.ru/wh40k10ed/Enhancements.csv` (8 cols confirmed)
+- Live CSV inspection: `https://wahapedia.ru/wh40k10ed/Detachment_abilities.csv` (7 cols confirmed)
+- Live CSV inspection: `https://wahapedia.ru/wh40k10ed/Datasheets_models_cost.csv` (4 cols, multi-tier confirmed)
+- Node.js v24.13.0 confirmed via `node --version`
 
 ---
-*Stack research for: v0.4.5 Data Quality Audit & Pipeline Improvement*
-*Researched: 2026-06-02*
+
+*Stack research for: v0.4.7 Wahapedia Pipeline & Full Data Import*
+*Researched: 2026-06-04*
