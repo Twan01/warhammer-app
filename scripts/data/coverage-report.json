@@ -1,7 +1,7 @@
 {
-  "built_at": "2026-06-03T08:01:06.081Z",
-  "overall_coverage_pct": 60.1,
-  "total_units": 1711,
+  "built_at": "2026-06-04T06:36:44.050Z",
+  "overall_coverage_pct": 60.4,
+  "total_units": 1701,
   "units_with_points": 1028,
   "factions": [
     {
@@ -618,14 +618,13 @@
     {
       "faction_id": "CD",
       "faction_name": "Chaos Daemons",
-      "total_units": 106,
+      "total_units": 105,
       "units_with_points": 54,
-      "coverage_pct": 50.9,
+      "coverage_pct": 51.4,
       "matched_exact": 50,
       "matched_normalized": 2,
       "matched_alias": 5,
       "unmatched_names": [
-        "Karanak",
         "Herald Of Slaanesh On Steed Of Slaanesh",
         "Tormentbringer On Exalted Seeker Chariot",
         "Hellflayers",
@@ -700,9 +699,9 @@
     {
       "faction_id": "SM",
       "faction_name": "Space Marines",
-      "total_units": 298,
+      "total_units": 289,
       "units_with_points": 173,
-      "coverage_pct": 58.1,
+      "coverage_pct": 59.9,
       "matched_exact": 175,
       "matched_normalized": 4,
       "matched_alias": 4,
@@ -710,7 +709,6 @@
         "Assault Squad",
         "Apothecary on Bike",
         "Assault Squad with Jump Packs",
-        "Land Raider Crusader",
         "Land Raider Excelsior",
         "Caestus Assault Ram",
         "Rhino Primaris",
@@ -771,7 +769,6 @@
         "Vindicator Laser Destroyer",
         "Sokar-pattern Stormbird",
         "Ancient on Bike",
-        "Terminator Squad",
         "Terminus Ultra",
         "Sicaran Battle Tank",
         "Mastodon",
@@ -787,32 +784,25 @@
         "Land Raider Proteus",
         "Fire Raptor Gunship",
         "Falchion",
-        "Gladiator Reaper",
-        "Gladiator Valiant",
         "Terrax-pattern Termite",
         "Land Speeder Typhoon",
         "Command Squad",
         "Primaris Company Champion",
         "Spartan",
-        "Sternguard Veteran Squad",
         "Stalker",
         "Deathstorm Drop Pod",
         "Deimos Predator",
         "Deredeo Dreadnought",
         "Deathwing Command Squad",
         "Deathwing Strikemaster",
-        "Impulsor",
         "Chaplain Cassius",
         "Captain on Bike",
         "Fellblade",
-        "Gladiator Lancer",
         "Ironclad Dreadnought",
         "Land Raider Helios",
         "Land Speeder",
         "Relic Contemptor Dreadnought",
         "Relic Razorback",
-        "Repulsor",
-        "Repulsor Executioner",
         "Thunderhawk Transporter",
         "Tyrannic War Veterans",
         "Whirlwind Scorpius",
@@ -2626,10 +2616,6 @@
       "faction_id": "QT"
     },
     {
-      "name": "Karanak",
-      "faction_id": "CD"
-    },
-    {
       "name": "Herald Of Slaanesh On Steed Of Slaanesh",
       "faction_id": "CD"
     },
@@ -2867,10 +2853,6 @@
     },
     {
       "name": "Assault Squad with Jump Packs",
-      "faction_id": "SM"
-    },
-    {
-      "name": "Land Raider Crusader",
       "faction_id": "SM"
     },
     {
@@ -3114,10 +3096,6 @@
       "faction_id": "SM"
     },
     {
-      "name": "Terminator Squad",
-      "faction_id": "SM"
-    },
-    {
       "name": "Terminus Ultra",
       "faction_id": "SM"
     },
@@ -3178,14 +3156,6 @@
       "faction_id": "SM"
     },
     {
-      "name": "Gladiator Reaper",
-      "faction_id": "SM"
-    },
-    {
-      "name": "Gladiator Valiant",
-      "faction_id": "SM"
-    },
-    {
       "name": "Terrax-pattern Termite",
       "faction_id": "SM"
     },
@@ -3203,10 +3173,6 @@
     },
     {
       "name": "Spartan",
-      "faction_id": "SM"
-    },
-    {
-      "name": "Sternguard Veteran Squad",
       "faction_id": "SM"
     },
     {
@@ -3234,10 +3200,6 @@
       "faction_id": "SM"
     },
     {
-      "name": "Impulsor",
-      "faction_id": "SM"
-    },
-    {
       "name": "Chaplain Cassius",
       "faction_id": "SM"
     },
@@ -3247,10 +3209,6 @@
     },
     {
       "name": "Fellblade",
-      "faction_id": "SM"
-    },
-    {
-      "name": "Gladiator Lancer",
       "faction_id": "SM"
     },
     {
@@ -3271,14 +3229,6 @@
     },
     {
       "name": "Relic Razorback",
-      "faction_id": "SM"
-    },
-    {
-      "name": "Repulsor",
-      "faction_id": "SM"
-    },
-    {
-      "name": "Repulsor Executioner",
       "faction_id": "SM"
     },
     {
