@@ -496,6 +496,10 @@ pub struct UnitDatabasePayload {
     points: Vec<JsRow>,
     #[serde(default)]
     composition: Vec<JsRow>,
+    #[serde(default)]
+    detachments: Vec<JsRow>,
+    #[serde(default)]
+    detachment_abilities: Vec<JsRow>,
 }
 
 #[derive(serde::Serialize, Debug)]
@@ -508,6 +512,8 @@ pub struct UdbImportResult {
     pub keywords: u64,
     pub points: u64,
     pub composition: u64,
+    pub detachments: u64,
+    pub detachment_abilities: u64,
 }
 
 /// Core import logic for unit_database.json into udb_* tables.
@@ -556,6 +562,7 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
             return Ok(UdbImportResult {
                 factions: 0, units: 0, models: 0, weapons: 0,
                 abilities: 0, keywords: 0, points: 0, composition: 0,
+                detachments: 0, detachment_abilities: 0,
             });
         }
     }
@@ -571,6 +578,7 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
     let mut counts = UdbImportResult {
         factions: 0, units: 0, models: 0, weapons: 0,
         abilities: 0, keywords: 0, points: 0, composition: 0,
+        detachments: 0, detachment_abilities: 0,
     };
 
     // D-09/D-08: DELETE all udb_* tables (FK OFF so order doesn't matter)
@@ -582,6 +590,8 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
         "udb_unit_weapons",
         "udb_unit_models",
         "udb_units",
+        "udb_detachment_abilities",
+        "udb_detachments",
         "udb_factions",
         "udb_meta",
     ] {
