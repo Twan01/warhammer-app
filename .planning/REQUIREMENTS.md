@@ -23,14 +23,14 @@ Requirements for Wahapedia Pipeline & Full Data Import milestone.
 
 ### Stratagems
 
-- [ ] **STR-01**: Stratagems imported from Stratagems.csv into udb_stratagems table (faction, detachment, name, CP cost, phase, turn, description)
-- [ ] **STR-02**: Universal/core stratagems (empty faction_id) included alongside faction-specific ones
+- [x] **STR-01**: Stratagems imported from Stratagems.csv into udb_stratagems table (faction, detachment, name, CP cost, phase, turn, description)
+- [x] **STR-02**: Universal/core stratagems (empty faction_id) included alongside faction-specific ones
 - [ ] **STR-03**: Game Day page shows real stratagems from canonical database grouped by battle phase
 - [ ] **STR-04**: Rules Hub stratagems tab shows real data from canonical database with search/filter
 
 ### Enhancements
 
-- [ ] **ENH-01**: Enhancements imported from Enhancements.csv into udb_enhancements table (faction, detachment, name, cost, description)
+- [x] **ENH-01**: Enhancements imported from Enhancements.csv into udb_enhancements table (faction, detachment, name, cost, description)
 - [ ] **ENH-02**: Army list enhancement picker shows descriptions from canonical database
 - [ ] **ENH-03**: Enhancement points resolved from canonical database (replaces manual input)
 
@@ -74,9 +74,9 @@ Requirements for Wahapedia Pipeline & Full Data Import milestone.
 | PTS-04 | Phase 117 | Pending |
 | DET-01 | Phase 118 | Complete |
 | DET-02 | Phase 118 | Complete |
-| STR-01 | Phase 119 | Pending |
-| STR-02 | Phase 119 | Pending |
-| ENH-01 | Phase 119 | Pending |
+| STR-01 | Phase 119 | Complete |
+| STR-02 | Phase 119 | Complete |
+| ENH-01 | Phase 119 | Complete |
 | STR-03 | Phase 120 | Pending |
 | STR-04 | Phase 120 | Pending |
 | ENH-02 | Phase 120 | Pending |

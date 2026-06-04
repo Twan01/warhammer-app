@@ -114,7 +114,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 119-01-PLAN.md — Migration DDL, TypeScript types, build script parsing for stratagems and enhancements
+- [x] 119-01-PLAN.md — Migration DDL, TypeScript types, build script parsing for stratagems and enhancements
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -146,7 +146,7 @@ Plans:
 | 116. Pipeline Foundation | 2/2 | Complete    | 2026-06-04 |
 | 117. Points Coverage | 2/2 | Complete | 2026-06-04 |
 | 118. Detachments Import | 2/2 | Complete    | 2026-06-04 |
-| 119. Stratagems & Enhancements Import | 0/2 | Not started | - |
+| 119. Stratagems & Enhancements Import | 1/2 | In Progress|  |
 | 120. UI Wiring | 0/? | Not started | - |
 
 ---
