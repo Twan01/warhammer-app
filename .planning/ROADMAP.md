@@ -64,7 +64,10 @@ Plans:
   2. Points coverage reaches 90% or higher across all factions (measurable via the existing coverage report)
   3. The build pipeline has no reference to @xmldom/xmldom and the dependency is removed from package.json
   4. Sub-faction assignments are preserved correctly in the rebuilt database without any BSData catalogue parsing
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 117-01-PLAN.md — Cost CSV points resolution + keyword-based sub-faction assignment
+- [ ] 117-02-PLAN.md — BSData removal, dependency cleanup, threshold raise to 90%
 
 ### Phase 118: Detachments Import
 **Goal**: The canonical database contains all Wahapedia detachments and their abilities, ready to be consumed by army lists and PlaybookTab
@@ -108,7 +111,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 116. Pipeline Foundation | 2/2 | Complete    | 2026-06-04 |
-| 117. Points Coverage | 0/? | Not started | - |
+| 117. Points Coverage | 0/2 | Not started | - |
 | 118. Detachments Import | 0/? | Not started | - |
 | 119. Stratagems & Enhancements Import | 0/? | Not started | - |
 | 120. UI Wiring | 0/? | Not started | - |
@@ -116,37 +119,37 @@ Plans:
 ---
 
 <details>
-<summary>✅ v0.4.5 Data Quality Audit & Pipeline Improvement (Phases 112-115) — SHIPPED 2026-06-03</summary>
+<summary>v0.4.5 Data Quality Audit & Pipeline Improvement (Phases 112-115) -- SHIPPED 2026-06-03</summary>
 
-- [x] **Phase 112: Build Pipeline Hardening** (2/2 plans) — completed 2026-06-02
-- [x] **Phase 113: Priority Faction Data Audit** (2/2 plans) — completed 2026-06-03
-- [x] **Phase 114: Pipeline Fixes & Database Rebuild** (2/2 plans) — completed 2026-06-03
-- [x] **Phase 115: Sub-faction Filter Fix** (1/1 plans) — completed 2026-06-03
+- [x] **Phase 112: Build Pipeline Hardening** (2/2 plans) -- completed 2026-06-02
+- [x] **Phase 113: Priority Faction Data Audit** (2/2 plans) -- completed 2026-06-03
+- [x] **Phase 114: Pipeline Fixes & Database Rebuild** (2/2 plans) -- completed 2026-06-03
+- [x] **Phase 115: Sub-faction Filter Fix** (1/1 plans) -- completed 2026-06-03
 
 Full details: `.planning/milestones/v0.4.5-ROADMAP.md`
 
 </details>
 
 <details>
-<summary>✅ v0.4.2 Unit Database 2.0 (Phases 108-111) — SHIPPED 2026-06-01</summary>
+<summary>v0.4.2 Unit Database 2.0 (Phases 108-111) -- SHIPPED 2026-06-01</summary>
 
-- [x] Phase 108: Build Script Hardening & Schema Foundation (3/3 plans) — completed 2026-06-01
-- [x] Phase 109: Sub-faction Filter UI (2/2 plans) — completed 2026-06-01
-- [x] Phase 110: PlaybookTab & Game Day Revival (3/3 plans) — completed 2026-06-01
-- [x] Phase 111: Bilingual Infrastructure (3/3 plans) — completed 2026-06-01
+- [x] Phase 108: Build Script Hardening & Schema Foundation (3/3 plans) -- completed 2026-06-01
+- [x] Phase 109: Sub-faction Filter UI (2/2 plans) -- completed 2026-06-01
+- [x] Phase 110: PlaybookTab & Game Day Revival (3/3 plans) -- completed 2026-06-01
+- [x] Phase 111: Bilingual Infrastructure (3/3 plans) -- completed 2026-06-01
 
 Full details: `.planning/milestones/v0.4.2-ROADMAP.md`
 
 </details>
 
 <details>
-<summary>✅ v0.4.0 Unit Database — Canonical 40k Data Hub (Phases 103-107) — SHIPPED 2026-05-31</summary>
+<summary>v0.4.0 Unit Database -- Canonical 40k Data Hub (Phases 103-107) -- SHIPPED 2026-05-31</summary>
 
-- [x] Phase 103: Data Acquisition & Schema (3/3 plans) — completed 2026-05-29
-- [x] Phase 104: Database Browser UI (3/3 plans) — completed 2026-05-30
-- [x] Phase 105: Collection Integration (2/2 plans) — completed 2026-05-30
-- [x] Phase 106: Army List Simplification (2/2 plans) — completed 2026-05-30
-- [x] Phase 107: Cleanup & Pipeline (2/2 plans) — completed 2026-05-31
+- [x] Phase 103: Data Acquisition & Schema (3/3 plans) -- completed 2026-05-29
+- [x] Phase 104: Database Browser UI (3/3 plans) -- completed 2026-05-30
+- [x] Phase 105: Collection Integration (2/2 plans) -- completed 2026-05-30
+- [x] Phase 106: Army List Simplification (2/2 plans) -- completed 2026-05-30
+- [x] Phase 107: Cleanup & Pipeline (2/2 plans) -- completed 2026-05-31
 
 Full details: `.planning/milestones/v0.4.0-ROADMAP.md`
 
