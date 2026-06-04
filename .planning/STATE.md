@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.4.7
 milestone_name: Wahapedia Pipeline & Full Data Import
-status: executing
+status: verifying
 stopped_at: Phase 117 planned (2/2 plans)
-last_updated: "2026-06-04T07:29:37.427Z"
+last_updated: "2026-06-04T07:40:04.456Z"
 last_activity: 2026-06-04
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 4
-  percent: 20
+  completed_plans: 6
+  percent: 60
 ---
 
 # Project State
@@ -27,11 +27,11 @@ See: .planning/PROJECT.md (updated 2026-06-04)
 
 Phase: 118 (Detachments Import) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-04
 
 ```
-Progress: [███████░░░] 67%
+Progress: [██████████] 100%
 ```
 
 ## Performance Metrics
@@ -95,6 +95,7 @@ None.
 | v0.4.7 out of scope | French translations for stratagems/enhancements | Future milestone | v0.4.7 planning |
 | v0.4.7 out of scope | Sub-faction derivation from Wahapedia CSV | Future milestone | v0.4.7 planning |
 | Phase 116-pipeline-foundation P02 | 10 min | 2 tasks | 2 files |
+| Phase 118-detachments-import P02 | 15min | 2 tasks | 2 files |
 
 ## Performance Metrics History
 
@@ -104,7 +105,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-04T07:29:37.421Z
+Last session: 2026-06-04T07:40:04.450Z
 Stopped at: Phase 117 planned (2/2 plans)
 Resume file: None
 Resume: Execute Phase 117 (Points Coverage). Run `/gsd:execute-phase 117` to start.

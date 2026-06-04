@@ -74,8 +74,8 @@ Plans:
 **Plans:** 2 plans
 Plans:
 
-- [ ] 117-01-PLAN.md — Cost CSV points resolution + keyword-based sub-faction assignment
-- [ ] 117-02-PLAN.md — BSData removal, dependency cleanup, threshold raise to 90%
+- [x] 117-01-PLAN.md — Cost CSV points resolution + keyword-based sub-faction assignment
+- [x] 117-02-PLAN.md — BSData removal, dependency cleanup, threshold raise to 90%
 
 ### Phase 118: Detachments Import
 
@@ -96,7 +96,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 118-02-PLAN.md — Rust importer extension for detachments and abilities
+- [x] 118-02-PLAN.md — Rust importer extension for detachments and abilities
 
 ### Phase 119: Stratagems & Enhancements Import
 
@@ -136,8 +136,8 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 116. Pipeline Foundation | 2/2 | Complete    | 2026-06-04 |
-| 117. Points Coverage | 0/2 | Planned | - |
-| 118. Detachments Import | 1/2 | In Progress|  |
+| 117. Points Coverage | 2/2 | Complete | 2026-06-04 |
+| 118. Detachments Import | 2/2 | Complete   | 2026-06-04 |
 | 119. Stratagems & Enhancements Import | 0/? | Not started | - |
 | 120. UI Wiring | 0/? | Not started | - |
 
