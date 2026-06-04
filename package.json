@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "tauri": "tauri",
     "check:version": "node scripts/check-version.mjs",
-    "build:udb": "node --experimental-strip-types scripts/build-unit-db.ts"
+    "build:udb": "node --experimental-strip-types scripts/build-unit-db.ts",
+    "download:wahapedia": "node --experimental-strip-types scripts/download-wahapedia.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "6.3.1",
