@@ -80,3 +80,29 @@ SM||`;
     expect(result).toHaveLength(10);
   });
 });
+
+describe("parseWahapediaCsv: BOM handling (PF-01) — UTF-8 BOM strip", () => {
+  it("BOM-prefixed CSV produces records where first key is 'id' not '\\uFEFFid'", () => {
+    // BOM (﻿) prepended to CSV — simulates real Wahapedia export
+    const raw = "﻿id|name|\nSM|Space Marines|\n";
+    const result = parseWahapediaCsv(raw);
+    expect(result).toHaveLength(1);
+    expect(Object.keys(result[0])).toContain("id");
+    expect(Object.keys(result[0])).not.toContain("﻿id");
+    expect(result[0]["id"]).toBe("SM");
+  });
+
+  it("non-BOM CSV still produces correct records with key 'id' (regression guard)", () => {
+    const raw = "id|name|\nSM|Space Marines|\n";
+    const result = parseWahapediaCsv(raw);
+    expect(result).toHaveLength(1);
+    expect(result[0]["id"]).toBe("SM");
+    expect(result[0]["name"]).toBe("Space Marines");
+  });
+
+  it("empty string with BOM returns empty array (edge case)", () => {
+    const raw = "﻿";
+    const result = parseWahapediaCsv(raw);
+    expect(result).toHaveLength(0);
+  });
+});

@@ -9,7 +9,8 @@
  * Each record maps header names to trimmed string values.
  */
 export function parseWahapediaCsv(raw: string): Record<string, string>[] {
-  const lines = raw.trim().split("\n");
+  const cleaned = raw.replace(/^﻿/, "");
+  const lines = cleaned.trim().split("\n");
   if (lines.length < 2) return [];
   const headers = lines[0].split("|").map((h) => h.trim()).filter(Boolean);
   return lines.slice(1).map((line) => {
