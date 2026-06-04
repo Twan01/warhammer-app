@@ -29,6 +29,8 @@ describe("DAS-01: unit_database.json artifact structure", () => {
       "keywords",
       "points",
       "composition",
+      "detachments",
+      "detachment_abilities",
     ];
     for (const key of requiredKeys) {
       expect(db).toHaveProperty(key);
@@ -146,5 +148,97 @@ describe("DAS-06: composition data (min/max models)", () => {
       }
     }
     expect(violations, `min > max violations:\n${violations.join("\n")}`).toHaveLength(0);
+  });
+});
+
+describe("DET-01: detachments array structure", () => {
+  const db = loadDb();
+  const detachments = db.detachments as { id: string; faction_id: string; name: string }[];
+
+  it("detachments array has at least 200 entries", () => {
+    expect(Array.isArray(detachments)).toBe(true);
+    expect(detachments.length).toBeGreaterThanOrEqual(200);
+  });
+
+  it("every detachment has non-empty string id, faction_id, and name fields", () => {
+    const violations: string[] = [];
+    for (let i = 0; i < detachments.length; i++) {
+      const d = detachments[i];
+      if (typeof d.id !== "string" || d.id === "") {
+        violations.push(`detachments[${i}] missing or empty id`);
+      }
+      if (typeof d.faction_id !== "string" || d.faction_id === "") {
+        violations.push(`detachments[${i}] (id=${d.id}) missing or empty faction_id`);
+      }
+      if (typeof d.name !== "string" || d.name === "") {
+        violations.push(`detachments[${i}] (id=${d.id}) missing or empty name`);
+      }
+    }
+    expect(violations, `Field violations:\n${violations.join("\n")}`).toHaveLength(0);
+  });
+});
+
+describe("DET-02: detachment_abilities array structure", () => {
+  const db = loadDb();
+  const abilities = db.detachment_abilities as {
+    id: string;
+    detachment_id: string;
+    faction_id: string;
+    name: string;
+    description: string | null;
+  }[];
+
+  it("detachment_abilities array has at least 200 entries", () => {
+    expect(Array.isArray(abilities)).toBe(true);
+    expect(abilities.length).toBeGreaterThanOrEqual(200);
+  });
+
+  it("every detachment_ability has non-empty string id, detachment_id, faction_id, and name fields", () => {
+    const violations: string[] = [];
+    for (let i = 0; i < abilities.length; i++) {
+      const a = abilities[i];
+      if (typeof a.id !== "string" || a.id === "") {
+        violations.push(`detachment_abilities[${i}] missing or empty id`);
+      }
+      if (typeof a.detachment_id !== "string" || a.detachment_id === "") {
+        violations.push(`detachment_abilities[${i}] (id=${a.id}) missing or empty detachment_id`);
+      }
+      if (typeof a.faction_id !== "string" || a.faction_id === "") {
+        violations.push(`detachment_abilities[${i}] (id=${a.id}) missing or empty faction_id`);
+      }
+      if (typeof a.name !== "string" || a.name === "") {
+        violations.push(`detachment_abilities[${i}] (id=${a.id}) missing or empty name`);
+      }
+    }
+    expect(violations, `Field violations:\n${violations.join("\n")}`).toHaveLength(0);
+  });
+
+  it("every detachment_ability has a description field (may be null or empty)", () => {
+    const violations: string[] = [];
+    for (let i = 0; i < abilities.length; i++) {
+      const a = abilities[i];
+      if (!Object.prototype.hasOwnProperty.call(a, "description")) {
+        violations.push(`detachment_abilities[${i}] (id=${a.id}) has no description property`);
+      }
+    }
+    expect(violations, `Missing description property:\n${violations.join("\n")}`).toHaveLength(0);
+  });
+});
+
+describe("DET-01: detachment FK integrity — every detachment.faction_id exists in factions", () => {
+  const db = loadDb();
+  const factions = db.factions as { id: string; name: string }[];
+  const detachments = db.detachments as { id: string; faction_id: string; name: string }[];
+
+  it("every detachment faction_id references a known faction", () => {
+    const factionIds = new Set(factions.map((f) => f.id));
+    const violations: string[] = [];
+    for (let i = 0; i < detachments.length; i++) {
+      const d = detachments[i];
+      if (!factionIds.has(d.faction_id)) {
+        violations.push(`detachments[${i}] id=${d.id} name="${d.name}" has unknown faction_id="${d.faction_id}"`);
+      }
+    }
+    expect(violations, `FK violations:\n${violations.join("\n")}`).toHaveLength(0);
   });
 });

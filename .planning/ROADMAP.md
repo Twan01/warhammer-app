@@ -110,7 +110,15 @@ Plans:
   3. Stratagems with an empty faction_id (universal/core) are imported and queryable alongside faction-specific ones
   4. Running the build + import pipeline populates both tables with data from Stratagems.csv and Enhancements.csv
 
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+**Wave 1**
+
+- [ ] 119-01-PLAN.md — Migration DDL, TypeScript types, build script parsing for stratagems and enhancements
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 119-02-PLAN.md — Rust importer extension for stratagems and enhancements
 
 ### Phase 120: UI Wiring
 
@@ -138,7 +146,7 @@ Plans:
 | 116. Pipeline Foundation | 2/2 | Complete    | 2026-06-04 |
 | 117. Points Coverage | 2/2 | Complete | 2026-06-04 |
 | 118. Detachments Import | 2/2 | Complete    | 2026-06-04 |
-| 119. Stratagems & Enhancements Import | 0/? | Not started | - |
+| 119. Stratagems & Enhancements Import | 0/2 | Not started | - |
 | 120. UI Wiring | 0/? | Not started | - |
 
 ---
