@@ -100,6 +100,27 @@ export interface UdbDetachmentAbilityRow {
   description: string;  // Raw HTML from Wahapedia — kept as-is for UI rendering (Phase 120)
 }
 
+export interface UdbStratagemRow {
+  id: string;
+  faction_id: string | null;      // NULL for universal/core stratagems (Boarding Actions etc.)
+  detachment_id: string | null;   // NULL for universal/core stratagems
+  name: string;
+  type: string;                   // e.g. "Battle Tactic Stratagem", "Epic Deed Stratagem"
+  cp_cost: number;
+  turn: string;                   // e.g. "Your turn", "Either player's turn"
+  phase: string;                  // e.g. "Shooting phase", "Any phase"
+  description: string;            // Raw HTML — kept as-is for UI rendering (Phase 120)
+}
+
+export interface UdbEnhancementRow {
+  id: string;
+  faction_id: string;             // always populated (NOT NULL in schema)
+  detachment_id: string | null;   // nullable safety measure
+  name: string;
+  cost: number;
+  description: string;            // Raw HTML — kept as-is
+}
+
 // ---------------------------------------------------------------------------
 // Coverage report types
 // ---------------------------------------------------------------------------
@@ -151,4 +172,6 @@ export interface UnitDatabaseJson {
   composition: UdbUnitCompositionRow[];
   detachments: UdbDetachmentRow[];
   detachment_abilities: UdbDetachmentAbilityRow[];
+  stratagems: UdbStratagemRow[];
+  enhancements: UdbEnhancementRow[];
 }
