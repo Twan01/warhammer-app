@@ -77,7 +77,10 @@ Plans:
   1. The hobbyforge.db schema includes udb_detachments and udb_detachment_abilities tables with faction, name, and description columns
   2. Running the build + import pipeline populates detachments and their abilities from Detachment_abilities.csv with correct faction associations
   3. Detachment records are queryable by faction_id and are stable across re-imports (no AUTOINCREMENT drift for downstream FK use)
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 118-01-PLAN.md — Migration, TypeScript types, build script detachment parsing
+- [ ] 118-02-PLAN.md — Rust importer extension for detachments and abilities
 
 ### Phase 119: Stratagems & Enhancements Import
 **Goal**: The canonical database contains all Wahapedia stratagems and enhancements, including universal/core stratagems
