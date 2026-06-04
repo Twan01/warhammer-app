@@ -193,12 +193,21 @@ async function main() {
   const datasheetsRaw = readCsvFile(DATA_DIR, "Datasheets.csv");
   const units: UdbUnitRow[] = [];
   const validUnitIds = new Set<string>();
+  let legendsSkipped = 0;
 
   for (const row of datasheetsRaw) {
     const id = row["id"]?.trim();
     const factionId = row["faction_id"]?.trim();
     const name = row["name"]?.trim();
     if (!id || !name) continue;
+
+    // PF-03: Filter out Legends (deprecated) units before adding to validUnitIds
+    const isLegend = row["legend"] === "1" || row["legend"] === "true";
+    if (isLegend) {
+      legendsSkipped++;
+      continue;
+    }
+
     if (factionId && !factionIds.has(factionId)) {
       console.warn(`  WARNING: Skipping unit "${name}" (id=${id}) — unknown faction_id "${factionId}"`);
       continue;
@@ -217,7 +226,28 @@ async function main() {
       name_fr: null,
     });
   }
-  console.log("  Parsed " + units.length + " units");
+
+  // PF-04: Dedup pass — warn on name+faction duplicates (after Legends filter)
+  const dedupMap = new Map<string, UdbUnitRow>();
+  let dupsFound = 0;
+  for (const unit of units) {
+    const key = unit.name.toLowerCase() + ":" + unit.faction_id;
+    if (dedupMap.has(key)) {
+      console.warn(`  WARNING: Duplicate unit "${unit.name}" (faction_id=${unit.faction_id}) — discarding id=${unit.id}`);
+      dupsFound++;
+    } else {
+      dedupMap.set(key, unit);
+    }
+  }
+  const dedupedUnits = Array.from(dedupMap.values());
+  // Replace units array reference for downstream steps
+  units.length = 0;
+  for (const u of dedupedUnits) units.push(u);
+  // Rebuild validUnitIds to match deduped set
+  validUnitIds.clear();
+  for (const u of units) validUnitIds.add(u.id);
+
+  console.log(`  Parsed ${units.length} units (${legendsSkipped} Legends excluded${dupsFound > 0 ? `, ${dupsFound} duplicates discarded` : ""})`);
 
   // Build unit lookup by (name lowercase, faction_id) for BSData matching
   const unitByNameFaction = new Map<string, UdbUnitRow>();
