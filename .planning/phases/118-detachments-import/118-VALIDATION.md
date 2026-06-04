@@ -1,9 +1,9 @@
 ---
 phase: 118
 slug: detachments-import
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-04
 ---
 
@@ -38,9 +38,11 @@ created: 2026-06-04
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 118-01-01 | 01 | 1 | DET-01 | — | N/A | integration | `pnpm build:udb` | ✅ | ⬜ pending |
-| 118-01-02 | 01 | 1 | DET-02 | — | N/A | integration | `pnpm build:udb` | ✅ | ⬜ pending |
-| 118-01-03 | 01 | 1 | DET-01, DET-02 | — | N/A | build | `pnpm build` | ✅ | ⬜ pending |
+| 118-01-01 | 01 | 1 | DET-01 | — | N/A | integration | `pnpm test -- tests/data-layer/unit-database-artifact.test.ts` | ✅ | ✅ green |
+| 118-01-02 | 01 | 1 | DET-02 | — | N/A | integration | `pnpm test -- tests/data-layer/unit-database-artifact.test.ts` | ✅ | ✅ green |
+| 118-01-03 | 01 | 1 | DET-01, DET-02 | — | N/A | build | `pnpm build` | ✅ | ✅ green |
+| 118-02-01 | 02 | 2 | DET-01, DET-02 | T-118-03 | Parameterized SQL | build | `cargo check` | ✅ | ✅ green |
+| 118-02-02 | 02 | 2 | DET-01, DET-02 | T-118-03 | Parameterized SQL | build | `cargo check && pnpm build` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -48,7 +50,11 @@ created: 2026-06-04
 
 ## Wave 0 Requirements
 
-Existing infrastructure covers all phase requirements. The build pipeline (`pnpm build:udb`) validates CSV parsing and JSON output. TypeScript strict mode validates type correctness. The Rust build validates importer struct changes.
+All requirements now have automated test coverage in `tests/data-layer/unit-database-artifact.test.ts`:
+
+- **DET-01**: detachments array >= 200 entries, valid field structure, FK integrity (every faction_id exists in factions)
+- **DET-02**: detachment_abilities array >= 200 entries, valid field structure (id, detachment_id, faction_id, name, description)
+- **DAS-01 extension**: `detachments` and `detachment_abilities` added to required top-level keys
 
 ---
 
@@ -56,18 +62,34 @@ Existing infrastructure covers all phase requirements. The build pipeline (`pnpm
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Detachment records queryable by faction_id | DET-01 | Requires running app with real DB | Build, launch app, check DB with SQLite CLI |
-| Stable across re-imports (no AUTOINCREMENT drift) | DET-01 | Requires two consecutive imports | Run `pnpm build:udb` twice, compare detachment IDs |
+| Rust importer runtime INSERT correctness | DET-01 | Requires running app with real DB; cargo check validates compile-time only | Build, launch app via `pnpm tauri dev`, verify detachment counts in SQLite CLI |
+| Stable across re-imports (no AUTOINCREMENT drift) | DET-01 | Requires two consecutive imports | Run `pnpm build:udb` twice, compare detachment IDs in output JSON |
 
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** complete
+
+---
+
+## Validation Audit 2026-06-04
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 4 |
+| Resolved | 4 |
+| Escalated | 0 |
+
+### Tests Added
+
+| File | Tests | Status |
+|------|-------|--------|
+| `tests/data-layer/unit-database-artifact.test.ts` | DET-01 detachments structure (2 tests), DET-02 abilities structure (3 tests), DET-01 FK integrity (1 test), DAS-01 required keys updated | All green |
