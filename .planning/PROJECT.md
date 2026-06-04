@@ -22,7 +22,7 @@ Shipped through v0.4.2 (111 phases): full hobby command center with collection m
 
 ## Current State
 
-v0.4.5 shipped. 115 phases complete across 23 milestones. ~300+ TypeScript source files. 41 SQLite migrations (hobbyforge.db). 2,290+ automated tests. 9 Tauri Rust commands. Build pipeline with shared BSData library, deterministic builds, coverage threshold gate, alias validation. Priority factions (SM/NEC/DG) data-audited with French translations.
+v0.4.5 shipped. 118 phases complete across 23 milestones. ~300+ TypeScript source files. 42 SQLite migrations (hobbyforge.db). 2,400+ automated tests. 9 Tauri Rust commands. Build pipeline: Wahapedia-only (BSData removed), deterministic builds, BOM-safe CSV parsing, Legends dedup, auto-download, detachment import (261 detachments, 284 abilities across 26 factions). Priority factions (SM/NEC/DG) data-audited with French translations.
 
 ## Core Value
 
