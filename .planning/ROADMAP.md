@@ -118,7 +118,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 119-02-PLAN.md — Rust importer extension for stratagems and enhancements
+- [x] 119-02-PLAN.md — Rust importer extension for stratagems and enhancements
 
 ### Phase 120: UI Wiring
 
@@ -146,7 +146,7 @@ Plans:
 | 116. Pipeline Foundation | 2/2 | Complete    | 2026-06-04 |
 | 117. Points Coverage | 2/2 | Complete | 2026-06-04 |
 | 118. Detachments Import | 2/2 | Complete    | 2026-06-04 |
-| 119. Stratagems & Enhancements Import | 1/2 | In Progress|  |
+| 119. Stratagems & Enhancements Import | 2/2 | Complete   | 2026-06-04 |
 | 120. UI Wiring | 0/? | Not started | - |
 
 ---
