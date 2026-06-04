@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.4.7
 milestone_name: Wahapedia Pipeline & Full Data Import
-status: ready_to_execute
+status: executing
 stopped_at: Phase 117 planned (2/2 plans)
-last_updated: "2026-06-04T09:00:00.000Z"
-last_activity: 2026-06-04
+last_updated: "2026-06-04T07:18:50.170Z"
+last_activity: 2026-06-04 -- Phase 118 planning complete
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 4
+  total_plans: 6
   completed_plans: 2
   percent: 20
 ---
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-04)
 Phase: 117
 Plan: 2 plans (Wave 1: cost CSV + sub-faction, Wave 2: BSData removal)
 Status: Ready to execute
-Last activity: 2026-06-04
+Last activity: 2026-06-04 -- Phase 118 planning complete
 
 ```
 Progress: [██████████] 100%

@@ -41,69 +41,91 @@
 ## Phase Details
 
 ### Phase 116: Pipeline Foundation
+
 **Goal**: The build pipeline reliably parses all Wahapedia CSVs and produces a clean, deduplicated unit dataset
 **Depends on**: Nothing (first phase of milestone)
 **Requirements**: PF-01, PF-02, PF-03, PF-04
 **Success Criteria** (what must be TRUE):
+
   1. Running the build script on any Wahapedia CSV never silently drops rows due to BOM characters in headers
   2. Developer can run `pnpm download:wahapedia` to fetch all required CSVs from wahapedia.ru into scripts/data/ without manual file placement
   3. Units marked as Legends in Datasheets.csv are excluded from the output database before any matching or points assignment
   4. When two units share the same name and faction, only the non-Legends entry survives in the built database
   5. Sub-faction assignment for all supported chapters/warbands comes from the static mapping file (not BSData)
+
 **Plans:** 2 plans
 Plans:
+
 - [x] 116-01-PLAN.md — BOM fix in CSV parser + Wahapedia auto-download command
 - [x] 116-02-PLAN.md — Legends unit filtering and name+faction deduplication
 
 ### Phase 117: Points Coverage
+
 **Goal**: Every unit in the canonical database has points resolved directly from Wahapedia's cost CSV, with BSData XML eliminated from the pipeline
 **Depends on**: Phase 116
 **Requirements**: PTS-01, PTS-02, PTS-03, PTS-04
 **Success Criteria** (what must be TRUE):
+
   1. Points for each unit are resolved by joining on datasheet_id from Datasheets_models_cost.csv — no fuzzy name matching against BSData XML
   2. Points coverage reaches 90% or higher across all factions (measurable via the existing coverage report)
   3. The build pipeline has no reference to @xmldom/xmldom and the dependency is removed from package.json
   4. Sub-faction assignments are preserved correctly in the rebuilt database without any BSData catalogue parsing
+
 **Plans:** 2 plans
 Plans:
+
 - [ ] 117-01-PLAN.md — Cost CSV points resolution + keyword-based sub-faction assignment
 - [ ] 117-02-PLAN.md — BSData removal, dependency cleanup, threshold raise to 90%
 
 ### Phase 118: Detachments Import
+
 **Goal**: The canonical database contains all Wahapedia detachments and their abilities, ready to be consumed by army lists and PlaybookTab
 **Depends on**: Phase 116
 **Requirements**: DET-01, DET-02
 **Success Criteria** (what must be TRUE):
+
   1. The hobbyforge.db schema includes udb_detachments and udb_detachment_abilities tables with faction, name, and description columns
   2. Running the build + import pipeline populates detachments and their abilities from Detachment_abilities.csv with correct faction associations
   3. Detachment records are queryable by faction_id and are stable across re-imports (no AUTOINCREMENT drift for downstream FK use)
+
 **Plans:** 2 plans
 Plans:
+**Wave 1**
+
 - [ ] 118-01-PLAN.md — Migration, TypeScript types, build script detachment parsing
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 118-02-PLAN.md — Rust importer extension for detachments and abilities
 
 ### Phase 119: Stratagems & Enhancements Import
+
 **Goal**: The canonical database contains all Wahapedia stratagems and enhancements, including universal/core stratagems
 **Depends on**: Phase 118
 **Requirements**: STR-01, STR-02, ENH-01
 **Success Criteria** (what must be TRUE):
+
   1. The hobbyforge.db schema includes udb_stratagems with faction, detachment, name, CP cost, phase, turn, and description columns
   2. The hobbyforge.db schema includes udb_enhancements with faction, detachment, name, cost, and description columns
   3. Stratagems with an empty faction_id (universal/core) are imported and queryable alongside faction-specific ones
   4. Running the build + import pipeline populates both tables with data from Stratagems.csv and Enhancements.csv
+
 **Plans**: TBD
 
 ### Phase 120: UI Wiring
+
 **Goal**: Users see real game data from the canonical database everywhere stratagems, enhancements, and detachment abilities previously showed empty stubs or placeholder text
 **Depends on**: Phase 119
 **Requirements**: STR-03, STR-04, ENH-02, ENH-03, DET-03, DET-04
 **Success Criteria** (what must be TRUE):
+
   1. Game Day page shows real faction stratagems from the canonical database grouped by battle phase, replacing the previous empty state
   2. Rules Hub stratagems tab shows real stratagem data with working search and faction filter
   3. Army list enhancement picker displays description and points cost from the canonical database when assigning an enhancement
   4. Enhancement points are resolved from the canonical database — no manual numeric input required
   5. Army list detachment picker shows real detachment names sourced from udb_detachments for the selected faction
   6. PlaybookTab detachment abilities section shows actual ability text from udb_detachment_abilities for the unit's faction
+
 **Plans**: TBD
 **UI hint**: yes
 
