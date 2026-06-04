@@ -64,30 +64,30 @@ Requirements for Wahapedia Pipeline & Full Data Import milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PF-01 | — | Pending |
-| PF-02 | — | Pending |
-| PF-03 | — | Pending |
-| PF-04 | — | Pending |
-| PTS-01 | — | Pending |
-| PTS-02 | — | Pending |
-| PTS-03 | — | Pending |
-| PTS-04 | — | Pending |
-| STR-01 | — | Pending |
-| STR-02 | — | Pending |
-| STR-03 | — | Pending |
-| STR-04 | — | Pending |
-| ENH-01 | — | Pending |
-| ENH-02 | — | Pending |
-| ENH-03 | — | Pending |
-| DET-01 | — | Pending |
-| DET-02 | — | Pending |
-| DET-03 | — | Pending |
-| DET-04 | — | Pending |
+| PF-01 | Phase 116 | Pending |
+| PF-02 | Phase 116 | Pending |
+| PF-03 | Phase 116 | Pending |
+| PF-04 | Phase 116 | Pending |
+| PTS-01 | Phase 117 | Pending |
+| PTS-02 | Phase 117 | Pending |
+| PTS-03 | Phase 117 | Pending |
+| PTS-04 | Phase 117 | Pending |
+| DET-01 | Phase 118 | Pending |
+| DET-02 | Phase 118 | Pending |
+| STR-01 | Phase 119 | Pending |
+| STR-02 | Phase 119 | Pending |
+| ENH-01 | Phase 119 | Pending |
+| STR-03 | Phase 120 | Pending |
+| STR-04 | Phase 120 | Pending |
+| ENH-02 | Phase 120 | Pending |
+| ENH-03 | Phase 120 | Pending |
+| DET-03 | Phase 120 | Pending |
+| DET-04 | Phase 120 | Pending |
 
 **Coverage:**
 - v0.4.7 requirements: 19 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 19
+- Mapped to phases: 19/19
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-04*

@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v0.4.7
 milestone_name: Wahapedia Pipeline & Full Data Import
-status: planning
-stopped_at: Defining requirements for v0.4.7
+status: in_progress
+stopped_at: Roadmap created — ready for Phase 116
 last_updated: 2026-06-04
 last_activity: 2026-06-04
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore so local data is always recoverable
-**Current focus:** v0.4.7 Wahapedia Pipeline & Full Data Import — defining requirements
+**Current focus:** v0.4.7 Wahapedia Pipeline & Full Data Import — Phase 116 next
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 116 (Pipeline Foundation) — Not started
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-04 — Milestone v0.4.7 started
+Status: Roadmap created, ready to plan Phase 116
+Last activity: 2026-06-04 — Roadmap created for v0.4.7
+
+```
+Progress: [__________] 0% (0/5 phases)
+```
 
 ## Performance Metrics
 
@@ -53,15 +57,20 @@ Last activity: 2026-06-04 — Milestone v0.4.7 started
 - SUB_FACTION_MAP covers 17 entries: 11 SM chapters, 4 CSM warbands, 2 Aeldari sub-factions
 - FTS5 rebuild includes sub_faction via COALESCE concatenation in keywords column
 - Coverage badges use computed SQL query (live) not coverage-report.json (static)
-- Gothic/Latin weapon names kept as-is in French -- standard GW practice
+- Gothic/Latin weapon names kept as-is in French — standard GW practice
 
 ### Key Context (v0.4.7)
 
 - Wahapedia exports Datasheets_models_cost.csv with complete points data keyed by datasheet_id
 - BSData XML only covers ~60% of Wahapedia units — structural limitation, not a matching issue
-- Wahapedia CSVs have duplicate unit entries (9 SM duplicates found: Legends + current)
+- Wahapedia CSVs have duplicate unit entries (e.g. SM Legends duplicates): legend column flags them
 - Wahapedia also exports Stratagems.csv, Enhancements.csv, Detachment_abilities.csv
-- Auto-download from wahapedia.ru/wh40k10ed/ — CSVs are pipe-delimited, UTF-8
+- Auto-download from wahapedia.ru/wh40k10ed/ — CSVs are pipe-delimited, UTF-8 with potential BOM
+- BOM fix (PF-01) must land first — it is a prerequisite for all new CSV parsing
+- `pnpm download:wahapedia` must be a separate command from the build (deterministic builds)
+- Detachments must be parsed before stratagems/enhancements (FK prerequisite in schema)
+- 5 UI stub locations to wire: DetachmentPicker, DetachmentRulesSection, StrategemsTab, RulesHubPage, LoadoutBuilderSheet
+- Rust import expansion follows 4-point checklist per entity type: schema migration, JSON payload type, Rust INSERT block, TypeScript query/hook layer
 
 ### Pending Todos
 
@@ -81,10 +90,12 @@ None.
 | v2 scope | FR-EXT-01: French ability/weapon text | Deferred | v0.4.2 planning |
 | v2 scope | FR-EXT-02: Full app UI translation | Deferred | v0.4.2 planning |
 | v0.4.5 out of scope | EFA-01..03: Extended faction audits (22 remaining factions) | Future milestone | v0.4.5 planning |
+| v0.4.7 out of scope | French translations for stratagems/enhancements | Future milestone | v0.4.7 planning |
+| v0.4.7 out of scope | Sub-faction derivation from Wahapedia CSV | Future milestone | v0.4.7 planning |
 
 ## Session Continuity
 
 Last session: 2026-06-04
-Stopped at: Defining requirements for v0.4.7
+Stopped at: Roadmap created for v0.4.7
 Resume file: .planning/ROADMAP.md
-Resume: v0.4.7 milestone started. Defining requirements for Wahapedia Pipeline & Full Data Import.
+Resume: Start Phase 116 (Pipeline Foundation). Run `/gsd:plan-phase 116` to generate the execution plan.
