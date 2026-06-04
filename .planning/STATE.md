@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.4.7
 milestone_name: Wahapedia Pipeline & Full Data Import
-status: verifying
-stopped_at: Phase 117 planned (2/2 plans)
-last_updated: "2026-06-04T07:40:04.456Z"
+status: ready_to_plan
+stopped_at: Phase 118 complete (2/2) — ready to discuss Phase 119
+last_updated: 2026-06-04T07:47:40.418Z
 last_activity: 2026-06-04
 progress:
   total_phases: 5
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 118 — Detachments Import
+**Current focus:** Phase 119 — stratagems & enhancements import
 
 ## Current Position
 
-Phase: 118 (Detachments Import) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
+Phase: 119
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-06-04
 
 ```
