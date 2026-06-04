@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.4.7
 milestone_name: Wahapedia Pipeline & Full Data Import
-status: planning
-stopped_at: Phase 117 context gathered
-last_updated: "2026-06-04T08:00:00.000Z"
+status: ready_to_execute
+stopped_at: Phase 117 planned (2/2 plans)
+last_updated: "2026-06-04T09:00:00.000Z"
 last_activity: 2026-06-04
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 2
+  total_plans: 4
   completed_plans: 2
   percent: 20
 ---
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-06-04)
 ## Current Position
 
 Phase: 117
-Plan: Not started
-Status: Ready to plan
+Plan: 2 plans (Wave 1: cost CSV + sub-faction, Wave 2: BSData removal)
+Status: Ready to execute
 Last activity: 2026-06-04
 
 ```
@@ -104,7 +104,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-04T08:00:00.000Z
-Stopped at: Phase 117 context gathered
-Resume file: .planning/phases/117-points-coverage/117-CONTEXT.md
-Resume: Plan Phase 117 (Points Coverage). Run `/gsd:plan-phase 117` to generate the execution plan.
+Last session: 2026-06-04T09:00:00.000Z
+Stopped at: Phase 117 planned (2/2 plans)
+Resume file: .planning/phases/117-points-coverage/117-01-PLAN.md
+Resume: Execute Phase 117 (Points Coverage). Run `/gsd:execute-phase 117` to start.

@@ -114,7 +114,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 116. Pipeline Foundation | 2/2 | Complete    | 2026-06-04 |
-| 117. Points Coverage | 0/2 | Not started | - |
+| 117. Points Coverage | 0/2 | Planned | - |
 | 118. Detachments Import | 0/? | Not started | - |
 | 119. Stratagems & Enhancements Import | 0/? | Not started | - |
 | 120. UI Wiring | 0/? | Not started | - |
