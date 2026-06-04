@@ -761,6 +761,40 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
         counts.composition += res.rows_affected();
     }
 
+    // INSERT detachments
+    for row in &payload.detachments {
+        let id = str_val(row, "id").unwrap_or_default();
+        if id.is_empty() { continue; }
+        let res = sqlx::query(
+            "INSERT INTO udb_detachments (id, faction_id, name) VALUES (?, ?, ?)",
+        )
+        .bind(&id)
+        .bind(str_val(row, "faction_id").unwrap_or_default())
+        .bind(str_val(row, "name").unwrap_or_default())
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert detachment {id}: {e}"))?;
+        counts.detachments += res.rows_affected();
+    }
+
+    // INSERT detachment_abilities
+    for row in &payload.detachment_abilities {
+        let id = str_val(row, "id").unwrap_or_default();
+        if id.is_empty() { continue; }
+        let res = sqlx::query(
+            "INSERT INTO udb_detachment_abilities (id, detachment_id, faction_id, name, description) VALUES (?, ?, ?, ?, ?)",
+        )
+        .bind(&id)
+        .bind(str_val(row, "detachment_id").unwrap_or_default())
+        .bind(str_val(row, "faction_id").unwrap_or_default())
+        .bind(str_val(row, "name").unwrap_or_default())
+        .bind(str_val(row, "description"))
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert detachment_ability {id}: {e}"))?;
+        counts.detachment_abilities += res.rows_affected();
+    }
+
     // INSERT udb_meta (single row, id=1)
     sqlx::query(
         "INSERT INTO udb_meta (id, version, built_at, game_system, unit_count, faction_count) VALUES (1, ?, ?, ?, ?, ?)",
