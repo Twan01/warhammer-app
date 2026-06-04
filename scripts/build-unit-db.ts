@@ -43,6 +43,8 @@ import type {
   UdbUnitKeywordRow,
   UdbUnitPointsRow,
   UdbUnitCompositionRow,
+  UdbDetachmentRow,
+  UdbDetachmentAbilityRow,
   UnitDatabaseJson,
   CoverageReport,
   FactionCoverage,
@@ -83,6 +85,7 @@ const REQUIRED_CSVs = [
   "Datasheets_abilities.csv",
   "Datasheets_keywords.csv",
   "Datasheets_wargear.csv",
+  "Detachment_abilities.csv",
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -628,6 +631,48 @@ async function main() {
   }
 
   // ---------------------------------------------------------------------------
+  // Step 11: Parse Detachment_abilities.csv -> udb_detachments + udb_detachment_abilities rows
+  // NOTE: No Legends filter — the `legend` column in Detachment_abilities.csv
+  // contains lore/flavor text, NOT a boolean flag (unlike Datasheets.csv).
+  // ---------------------------------------------------------------------------
+  console.log("Step 11: Parsing Detachment_abilities.csv...");
+  const detachAbilitiesRaw = readCsvFile(DATA_DIR, "Detachment_abilities.csv");
+  const detachments: UdbDetachmentRow[] = [];
+  const detachmentAbilities: UdbDetachmentAbilityRow[] = [];
+  const seenDetachmentIds = new Set<string>();
+
+  for (const row of detachAbilitiesRaw) {
+    const detachmentId = row["detachment_id"]?.trim();
+    const factionId = row["faction_id"]?.trim();
+    const abilityId = row["id"]?.trim();
+    const detachmentName = row["detachment"]?.trim();
+    const abilityName = row["name"]?.trim();
+
+    if (!detachmentId || !factionId || !abilityId || !abilityName) continue;
+
+    if (factionId && !factionIds.has(factionId)) {
+      console.warn(`  WARNING: Skipping detachment ability "${abilityName}" — unknown faction_id "${factionId}"`);
+      continue;
+    }
+
+    // Collect unique detachments (first occurrence wins) — D-02: PK = detachment_id TEXT
+    if (!seenDetachmentIds.has(detachmentId)) {
+      seenDetachmentIds.add(detachmentId);
+      detachments.push({ id: detachmentId, faction_id: factionId, name: detachmentName ?? "" });
+    }
+
+    // Collect abilities — D-03: PK = ability id TEXT
+    detachmentAbilities.push({
+      id: abilityId,
+      detachment_id: detachmentId,
+      faction_id: factionId,
+      name: abilityName,
+      description: row["description"]?.trim() ?? "",
+    });
+  }
+  console.log(`  Parsed ${detachments.length} detachments, ${detachmentAbilities.length} detachment abilities`);
+
+  // ---------------------------------------------------------------------------
   // Summary
   // ---------------------------------------------------------------------------
   console.log("");
@@ -640,6 +685,8 @@ async function main() {
   console.log("  Keywords:        " + keywords.length);
   console.log("  Points tiers:    " + points.length);
   console.log("  Composition:     " + composition.length);
+  console.log("  Detachments:     " + detachments.length);
+  console.log("  Det. abilities:  " + detachmentAbilities.length);
   console.log("");
 
   // ---------------------------------------------------------------------------
@@ -677,7 +724,7 @@ async function main() {
   // ---------------------------------------------------------------------------
   // Derive version from content hash so re-imports detect any data change
   const { createHash } = await import("node:crypto");
-  const hash = createHash("sha256").update(JSON.stringify({ factions, units, weapons, points, abilities, keywords, composition })).digest("hex").slice(0, 8);
+  const hash = createHash("sha256").update(JSON.stringify({ factions, units, weapons, points, abilities, keywords, composition, detachments, detachmentAbilities })).digest("hex").slice(0, 8);
   const buildVersion = `1.0.0+${hash}`;
 
   const output: UnitDatabaseJson = {
@@ -694,6 +741,8 @@ async function main() {
     keywords,
     points,
     composition,
+    detachments,
+    detachment_abilities: detachmentAbilities,
   };
 
   if (!existsSync(OUTPUT_DIR)) {
