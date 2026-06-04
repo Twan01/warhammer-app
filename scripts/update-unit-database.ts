@@ -25,11 +25,14 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // Shared library imports
-import { parseCatXml } from "./lib/parseXml.ts";
 import { SUB_FACTION_MAP, CROSS_FACTION_MAP } from "./lib/factionMap.ts";
-import { loadAliases } from "./lib/normalize.ts";
-import { readCsvFile, readBsdataCatFiles, parseBsdataModelCounts, matchUnit } from "./lib/bsdata.ts";
+import { readCsvFile, extractModelCount } from "./lib/parseCsv.ts";
 import { mapWeaponRow } from "./lib/weaponMapping.ts";
+
+// Legacy BSData imports — kept for compilation, removed in Plan 02
+import { parseCatXml } from "./lib/parseXml.ts";
+import { loadAliases } from "./lib/normalize.ts";
+import { readBsdataCatFiles, parseBsdataModelCounts, matchUnit } from "./lib/bsdata.ts";
 import type {
   UdbFactionRow,
   UdbUnitRow,
@@ -246,81 +249,64 @@ async function buildUnitDatabase(): Promise<UnitDatabaseJson> {
     keywords.push({ unit_id: unitId, keyword, is_faction: isFaction, keyword_fr: null });
   }
 
-  // Load alias table for multi-pass matching (matches build-unit-db.ts pipeline)
-  const ALIASES_PATH = join(DATA_DIR, "aliases.json");
-  const aliases = loadAliases(ALIASES_PATH);
-
-  // Parse BSData
-  const catFiles = readBsdataCatFiles(BSDATA_DIR);
+  // 8. Parse Datasheets_models_cost.csv for points and composition (D-01, D-02, D-03)
+  const costRows = readCsvFile(DATA_DIR, "Datasheets_models_cost.csv");
   const points: UdbUnitPointsRow[] = [];
   const composition: UdbUnitCompositionRow[] = [];
 
-  if (catFiles.length > 0) {
-    const seenPoints = new Set<string>();
-    for (const catFile of catFiles) {
-      const bsdataUnits = parseCatXml(catFile.xml, catFile.factionId, catFile.catalogueName);
-      const subFaction = SUB_FACTION_MAP[catFile.catalogueName] ?? null;
-      const altFactionId = CROSS_FACTION_MAP[catFile.catalogueName] ?? null;
+  // Group cost rows by datasheet_id
+  const costByUnit = new Map<string, Array<{ line: number; description: string; cost: number }>>();
+  for (const row of costRows) {
+    const id = row["datasheet_id"]?.trim();
+    if (!id || !validUnitIds.has(id)) continue;
+    const cost = parseInt(row["cost"]?.trim() ?? "0", 10);
+    if (cost <= 0) continue;
+    const arr = costByUnit.get(id) ?? [];
+    arr.push({
+      line: parseInt(row["line"]?.trim() ?? "0", 10) || 0,
+      description: row["description"]?.trim() ?? "",
+      cost,
+    });
+    costByUnit.set(id, arr);
+  }
 
-      for (const bsdataUnit of bsdataUnits) {
-        // 3-pass matching: exact -> normalized -> alias (matches build-unit-db.ts)
-        let result = matchUnit(bsdataUnit.datasheet_name, bsdataUnit.faction_id, aliases, unitByNameFaction);
+  for (const [unitId, tiers] of costByUnit) {
+    const unit = units.find(u => u.id === unitId);
+    if (!unit) continue;
 
-        // Cross-faction fallback (e.g., DRU for Aeldari Library units)
-        if (!result && altFactionId) {
-          result = matchUnit(bsdataUnit.datasheet_name, altFactionId, aliases, unitByNameFaction);
-        }
-
-        if (!result) continue;
-        const { unit } = result;
-
-        // Sub-faction population (mirrors build-unit-db.ts SUB_FACTION_MAP usage)
-        if (subFaction && unit.sub_faction === null) {
-          unit.sub_faction = subFaction;
-        }
-
-        if (bsdataUnit.tiers.length > 0) {
-          for (const tier of bsdataUnit.tiers) {
-            const pointsKey = unit.id + ":" + tier.modelCount;
-            if (!seenPoints.has(pointsKey)) {
-              seenPoints.add(pointsKey);
-              points.push({ unit_id: unit.id, model_count: tier.modelCount, points: tier.points });
-            }
-          }
-        } else {
-          const basePoints = parseInt(bsdataUnit.points, 10);
-          if (basePoints > 0 && unit.base_points === null) {
-            unit.base_points = basePoints;
-          }
-        }
+    if (tiers.length === 1) {
+      // Single-tier: set base_points directly (D-03)
+      if (unit.base_points === null) {
+        unit.base_points = tiers[0].cost;
+      }
+    } else {
+      // Multi-tier: create one UdbUnitPointsRow per tier (D-02)
+      for (const tier of tiers) {
+        const modelCount = extractModelCount(tier.description, tier.line);
+        points.push({ unit_id: unitId, model_count: modelCount, points: tier.cost });
       }
     }
 
-    const bsdataModelCounts = parseBsdataModelCounts(catFiles);
-    const seenComposition = new Set<string>();
-    for (const mc of bsdataModelCounts) {
-      let unit: UdbUnitRow | undefined;
-      if (mc.faction_id) {
-        unit = unitByNameFaction.get(mc.unit_name.toLowerCase() + ":" + mc.faction_id);
+    // Composition: derive min/max model counts from tier descriptions (D-09)
+    const counts = tiers.map(t => extractModelCount(t.description, t.line));
+    composition.push({
+      unit_id: unitId,
+      min_models: Math.min(...counts),
+      max_models: Math.max(...counts),
+      notes: "",
+    });
+  }
+
+  // 8b. Assign sub-factions from keywords (D-10)
+  const subFactionValues = new Set(Object.values(SUB_FACTION_MAP));
+  const unitById = new Map(units.map(u => [u.id, u]));
+
+  for (const kw of keywords) {
+    if (subFactionValues.has(kw.keyword)) {
+      const unit = unitById.get(kw.unit_id);
+      if (unit && unit.sub_faction === null) {
+        unit.sub_faction = kw.keyword;
       }
-      if (!unit) {
-        const prefix = mc.unit_name.toLowerCase() + ":";
-        for (const [mapKey, mapUnit] of unitByNameFaction) {
-          if (mapKey.startsWith(prefix)) {
-            unit = mapUnit;
-            break;
-          }
-        }
-      }
-      if (!unit) continue;
-      if (seenComposition.has(unit.id)) continue;
-      seenComposition.add(unit.id);
-      composition.push({
-        unit_id: unit.id,
-        min_models: mc.min_models,
-        max_models: mc.max_models,
-        notes: "",
-      });
     }
   }
 
