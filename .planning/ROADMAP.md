@@ -53,7 +53,7 @@
 **Plans:** 2 plans
 Plans:
 - [x] 116-01-PLAN.md — BOM fix in CSV parser + Wahapedia auto-download command
-- [ ] 116-02-PLAN.md — Legends unit filtering and name+faction deduplication
+- [x] 116-02-PLAN.md — Legends unit filtering and name+faction deduplication
 
 ### Phase 117: Points Coverage
 **Goal**: Every unit in the canonical database has points resolved directly from Wahapedia's cost CSV, with BSData XML eliminated from the pipeline
@@ -107,7 +107,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 116. Pipeline Foundation | 1/2 | In Progress|  |
+| 116. Pipeline Foundation | 2/2 | Complete   | 2026-06-04 |
 | 117. Points Coverage | 0/? | Not started | - |
 | 118. Detachments Import | 0/? | Not started | - |
 | 119. Stratagems & Enhancements Import | 0/? | Not started | - |

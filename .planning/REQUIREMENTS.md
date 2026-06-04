@@ -11,8 +11,8 @@ Requirements for Wahapedia Pipeline & Full Data Import milestone.
 
 - [x] **PF-01**: Build script strips UTF-8 BOM from CSV headers before parsing (fixes silent row-drop bug for new CSV files)
 - [x] **PF-02**: `pnpm download:wahapedia` command fetches all required CSVs from wahapedia.ru to scripts/data/ (separate from build, preserves deterministic builds)
-- [ ] **PF-03**: Build script filters out Legends units (legend column in Datasheets.csv) before any matching or points assignment
-- [ ] **PF-04**: Duplicate Wahapedia units with the same name+faction are deduplicated (keep current, discard Legends)
+- [x] **PF-03**: Build script filters out Legends units (legend column in Datasheets.csv) before any matching or points assignment
+- [x] **PF-04**: Duplicate Wahapedia units with the same name+faction are deduplicated (keep current, discard Legends)
 
 ### Points & Coverage
 
@@ -66,8 +66,8 @@ Requirements for Wahapedia Pipeline & Full Data Import milestone.
 |-------------|-------|--------|
 | PF-01 | Phase 116 | Complete |
 | PF-02 | Phase 116 | Complete |
-| PF-03 | Phase 116 | Pending |
-| PF-04 | Phase 116 | Pending |
+| PF-03 | Phase 116 | Complete |
+| PF-04 | Phase 116 | Complete |
 | PTS-01 | Phase 117 | Pending |
 | PTS-02 | Phase 117 | Pending |
 | PTS-03 | Phase 117 | Pending |
