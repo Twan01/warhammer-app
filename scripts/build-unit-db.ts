@@ -32,6 +32,8 @@ import type {
   UdbUnitCompositionRow,
   UdbDetachmentRow,
   UdbDetachmentAbilityRow,
+  UdbStratagemRow,
+  UdbEnhancementRow,
   UnitDatabaseJson,
   CoverageReport,
   FactionCoverage,
@@ -67,6 +69,8 @@ const REQUIRED_CSVs = [
   "Datasheets_keywords.csv",
   "Datasheets_wargear.csv",
   "Detachment_abilities.csv",
+  "Stratagems.csv",
+  "Enhancements.csv",
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -609,6 +613,66 @@ async function main() {
   console.log(`  Parsed ${detachments.length} detachments, ${detachmentAbilities.length} detachment abilities`);
 
   // ---------------------------------------------------------------------------
+  // Step 12: Parse Stratagems.csv -> udb_stratagems rows
+  // D-09: Filter Legends. D-02: Empty faction_id/detachment_id → null (nullable FK).
+  // ---------------------------------------------------------------------------
+  console.log("Step 12: Parsing Stratagems.csv...");
+  const stratagems_raw = readCsvFile(DATA_DIR, "Stratagems.csv");
+  const stratagems: UdbStratagemRow[] = [];
+  let stratagemLegendsSkipped = 0;
+
+  for (const row of stratagems_raw) {
+    const id = row["id"]?.trim();
+    const name = row["name"]?.trim();
+    if (!id || !name) continue;
+
+    const isLegend = row["legend"] === "1" || row["legend"] === "true";
+    if (isLegend) { stratagemLegendsSkipped++; continue; }
+
+    stratagems.push({
+      id,
+      faction_id: row["faction_id"]?.trim() || null,      // "" → null for universal stratagems
+      detachment_id: row["detachment_id"]?.trim() || null, // "" → null for universal stratagems
+      name,
+      type: row["type"]?.trim() ?? "",
+      cp_cost: parseInt(row["cp_cost"]?.trim() ?? "0", 10) || 0,
+      turn: row["turn"]?.trim() ?? "",
+      phase: row["phase"]?.trim() ?? "",
+      description: row["description"]?.trim() ?? "",
+    });
+  }
+  console.log(`  Parsed ${stratagems.length} stratagems (${stratagemLegendsSkipped} Legends excluded)`);
+
+  // ---------------------------------------------------------------------------
+  // Step 13: Parse Enhancements.csv -> udb_enhancements rows
+  // D-09: Filter Legends. D-06: faction_id always populated.
+  // ---------------------------------------------------------------------------
+  console.log("Step 13: Parsing Enhancements.csv...");
+  const enhancements_raw = readCsvFile(DATA_DIR, "Enhancements.csv");
+  const enhancements: UdbEnhancementRow[] = [];
+  let enhancementLegendsSkipped = 0;
+
+  for (const row of enhancements_raw) {
+    const id = row["id"]?.trim();
+    const name = row["name"]?.trim();
+    const faction_id = row["faction_id"]?.trim();
+    if (!id || !name || !faction_id) continue;
+
+    const isLegend = row["legend"] === "1" || row["legend"] === "true";
+    if (isLegend) { enhancementLegendsSkipped++; continue; }
+
+    enhancements.push({
+      id,
+      faction_id,
+      detachment_id: row["detachment_id"]?.trim() || null,
+      name,
+      cost: parseInt(row["cost"]?.trim() ?? "0", 10) || 0,
+      description: row["description"]?.trim() ?? "",
+    });
+  }
+  console.log(`  Parsed ${enhancements.length} enhancements (${enhancementLegendsSkipped} Legends excluded)`);
+
+  // ---------------------------------------------------------------------------
   // Summary
   // ---------------------------------------------------------------------------
   console.log("");
@@ -623,6 +687,8 @@ async function main() {
   console.log("  Composition:     " + composition.length);
   console.log("  Detachments:     " + detachments.length);
   console.log("  Det. abilities:  " + detachmentAbilities.length);
+  console.log("  Stratagems:      " + stratagems.length);
+  console.log("  Enhancements:    " + enhancements.length);
   console.log("");
 
   // ---------------------------------------------------------------------------
@@ -660,7 +726,7 @@ async function main() {
   // ---------------------------------------------------------------------------
   // Derive version from content hash so re-imports detect any data change
   const { createHash } = await import("node:crypto");
-  const hash = createHash("sha256").update(JSON.stringify({ factions, units, weapons, points, abilities, keywords, composition, detachments, detachmentAbilities })).digest("hex").slice(0, 8);
+  const hash = createHash("sha256").update(JSON.stringify({ factions, units, weapons, points, abilities, keywords, composition, detachments, detachmentAbilities, stratagems, enhancements })).digest("hex").slice(0, 8);
   const buildVersion = `1.0.0+${hash}`;
 
   const output: UnitDatabaseJson = {
@@ -679,6 +745,8 @@ async function main() {
     composition,
     detachments,
     detachment_abilities: detachmentAbilities,
+    stratagems,
+    enhancements,
   };
 
   if (!existsSync(OUTPUT_DIR)) {
