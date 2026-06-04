@@ -373,17 +373,11 @@ if (subFaction && unit.sub_faction === null) {
 | A2 | Wahapedia CSVs are available at `https://wahapedia.ru/wh40k10ed/[Filename].csv` without authentication | Download script | Download script fails at runtime if URL pattern wrong |
 | A3 | All 10 CSV filenames in D-02 exist at the wahapedia.ru endpoint | Download script | Download script throws for missing files; may need `--skip-missing` flag |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **legend column value format**
-   - What we know: Current local CSV has text in the `legend` column position; Wahapedia is supposed to export a boolean flag
-   - What's unclear: Will the freshly downloaded CSV use `"1"`/`"0"` or `"true"`/`"false"`?
-   - Recommendation: Check `row["legend"] === "1" || row["legend"] === "true"` to handle both. The download script should be run first so developer can manually inspect the header before running the build.
+1. **legend column value format** — RESOLVED: Plan 116-02 handles both formats with `row["legend"] === "1" || row["legend"] === "true"`. Download script (PF-02) must run first to get fresh CSVs with proper legend column.
 
-2. **Wahapedia URL accessibility**
-   - What we know: CONTEXT says CSVs are at `wahapedia.ru/wh40k10ed/` and the format is `https://wahapedia.ru/wh40k10ed/[Filename].csv`
-   - What's unclear: Whether Wahapedia blocks automated downloads (rate limiting, CORS, bot detection)
-   - Recommendation: Add a `User-Agent` header to the fetch call; include retry logic for transient failures (1 retry is sufficient for dev script).
+2. **Wahapedia URL accessibility** — RESOLVED: Plan 116-01 includes `User-Agent` header in fetch calls as a precaution. Dev-side script with single retry is sufficient.
 
 ## Environment Availability
 
