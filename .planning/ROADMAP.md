@@ -50,7 +50,10 @@
   3. Units marked as Legends in Datasheets.csv are excluded from the output database before any matching or points assignment
   4. When two units share the same name and faction, only the non-Legends entry survives in the built database
   5. Sub-faction assignment for all supported chapters/warbands comes from the static mapping file (not BSData)
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 116-01-PLAN.md — BOM fix in CSV parser + Wahapedia auto-download command
+- [ ] 116-02-PLAN.md — Legends unit filtering and name+faction deduplication
 
 ### Phase 117: Points Coverage
 **Goal**: Every unit in the canonical database has points resolved directly from Wahapedia's cost CSV, with BSData XML eliminated from the pipeline
@@ -104,7 +107,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 116. Pipeline Foundation | 0/? | Not started | - |
+| 116. Pipeline Foundation | 0/2 | Not started | - |
 | 117. Points Coverage | 0/? | Not started | - |
 | 118. Detachments Import | 0/? | Not started | - |
 | 119. Stratagems & Enhancements Import | 0/? | Not started | - |
