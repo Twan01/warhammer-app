@@ -142,7 +142,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 120-02-PLAN.md — Wire page components to real data, enhancement migration, PlaybookTab abilities
+- [x] 120-02-PLAN.md — Wire page components to real data, enhancement migration, PlaybookTab abilities
 
 **UI hint**: yes
 
@@ -156,7 +156,7 @@ Plans:
 | 117. Points Coverage | 2/2 | Complete | 2026-06-04 |
 | 118. Detachments Import | 2/2 | Complete    | 2026-06-04 |
 | 119. Stratagems & Enhancements Import | 2/2 | Complete    | 2026-06-04 |
-| 120. UI Wiring | 1/2 | In Progress|  |
+| 120. UI Wiring | 2/2 | Complete   | 2026-06-08 |
 
 ---
 
