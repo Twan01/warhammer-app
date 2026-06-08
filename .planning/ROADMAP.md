@@ -156,7 +156,7 @@ Plans:
 | 117. Points Coverage | 2/2 | Complete | 2026-06-04 |
 | 118. Detachments Import | 2/2 | Complete    | 2026-06-04 |
 | 119. Stratagems & Enhancements Import | 2/2 | Complete    | 2026-06-04 |
-| 120. UI Wiring | 2/2 | Complete   | 2026-06-08 |
+| 120. UI Wiring | 2/2 | Complete    | 2026-06-08 |
 
 ---
 
