@@ -19,6 +19,7 @@ import type { StrategyNote, UpsertStrategyNoteInput } from "@/types/strategyNote
 import { DatasheetPicker } from "@/features/units/DatasheetPicker";
 import { TierManager } from "@/features/units/TierManager";
 import { LoadoutSection } from "@/features/units/LoadoutSection";
+import { PlaybookDetachmentAbilities } from "@/features/units/PlaybookDetachmentAbilities";
 import { getUdbUnitDetail } from "@/db/queries/unitDatabase";
 import { linkUdbUnit } from "@/db/queries/units";
 import { UNITS_KEY, UNITS_ENRICHED_KEY } from "@/hooks/useUnits";
@@ -232,6 +233,7 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
       <Separator />
       <PlaybookDatasheet datasheet={datasheet} />
       <PlaybookRules />
+      {wahapediaFactionId && <PlaybookDetachmentAbilities factionId={wahapediaFactionId} />}
       <TierManager unitId={unitId} />
       <Separator />
       <LoadoutSection unitId={unitId} />
