@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.4.7
 milestone_name: Wahapedia Pipeline & Full Data Import
 status: ready_to_plan
-stopped_at: Phase 119 complete (2/2) — ready to discuss Phase 120
-last_updated: 2026-06-04T09:09:25.386Z
-last_activity: 2026-06-04
+stopped_at: Phase 120 context gathered — ready to plan
+last_updated: 2026-06-08T00:00:00.000Z
+last_activity: 2026-06-08
 progress:
   total_phases: 5
   completed_phases: 4
@@ -106,7 +106,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-04T09:03:06.992Z
-Stopped at: Phase 119 context gathered
-Resume file: None
-Resume: Execute Phase 117 (Points Coverage). Run `/gsd:execute-phase 117` to start.
+Last session: 2026-06-08
+Stopped at: Phase 120 context gathered
+Resume file: .planning/phases/120-ui-wiring/120-CONTEXT.md
+Resume: Plan Phase 120 (UI Wiring). Run `/gsd:plan-phase 120` to start.
