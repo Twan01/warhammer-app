@@ -134,7 +134,16 @@ Plans:
   5. Army list detachment picker shows real detachment names sourced from udb_detachments for the selected faction
   6. PlaybookTab detachment abilities section shows actual ability text from udb_detachment_abilities for the unit's faction
 
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+**Wave 1**
+
+- [ ] 120-01-PLAN.md — Types, queries, hooks foundation + card component type migrations
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 120-02-PLAN.md — Wire page components to real data, enhancement migration, PlaybookTab abilities
+
 **UI hint**: yes
 
 ---
@@ -147,7 +156,7 @@ Plans:
 | 117. Points Coverage | 2/2 | Complete | 2026-06-04 |
 | 118. Detachments Import | 2/2 | Complete    | 2026-06-04 |
 | 119. Stratagems & Enhancements Import | 2/2 | Complete    | 2026-06-04 |
-| 120. UI Wiring | 0/? | Not started | - |
+| 120. UI Wiring | 0/2 | Not started | - |
 
 ---
 
