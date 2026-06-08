@@ -11,10 +11,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-// Phase 107: detachments data source (rules.db) eliminated -- EXT-03 deferred
-function useDetachmentsByFaction(_factionId: string | undefined) {
-  return { data: [] as { id: string; name: string }[] };
-}
+import { useDetachmentsByFaction } from "@/hooks/useGameData";
 
 interface DetachmentPickerProps {
   factionWahapediaId: string | undefined;
@@ -57,7 +54,7 @@ export function DetachmentPicker({
 
   // Determine the empty-state message based on why detachments are empty
   const emptyMessage = !rulesSynced
-    ? "Sync rules from the Rules Hub to load detachments."
+    ? "Import unit database to load detachments."
     : factionWahapediaId === undefined
       ? "Could not match faction to rules data. Try syncing rules."
       : "No detachments found for this faction.";

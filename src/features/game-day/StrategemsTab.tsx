@@ -7,16 +7,12 @@ import {
   CollapsibleTrigger,
   CollapsibleContent,
 } from "@/components/ui/collapsible";
-// Phase 107: stratagems data source (rules.db) eliminated -- EXT-03 deferred
-// Stub hook returns empty array until stratagems are added to canonical DB
-function useStratagemsByDetachment(_detachmentId: string | undefined) {
-  return { data: [] as import("@/types/datasheet").RwStratagem[], isLoading: false };
-}
+import { useStratagemsByDetachment } from "@/hooks/useGameData";
+import type { UdbStratagem } from "@/types/gameData";
 import { useRulesFavorites } from "@/hooks/useRulesFavorites";
 import { useForgottenRules } from "@/hooks/useBattleLogs";
 import { useGameDayStore } from "./gameDayStore";
 import { GameDayStratagemCard } from "./GameDayStratagemCard";
-import type { RwStratagem } from "@/types/datasheet";
 
 const PHASE_ORDER = ["Command", "Movement", "Shooting", "Charge", "Fight"] as const;
 
@@ -39,6 +35,12 @@ interface StrategemsTabProps {
   listId: number;
 }
 
+/** Normalize Wahapedia phase strings like "Shooting phase" -> "Shooting" for PHASE_ORDER matching. */
+function normalizePhase(phase: string | null): string | null {
+  if (!phase) return null;
+  return phase.replace(/ phase$/i, "").trim();
+}
+
 export function StrategemsTab({ detachmentId, listId }: StrategemsTabProps) {
   const { data: stratagems, isLoading } = useStratagemsByDetachment(
     detachmentId ?? undefined,
@@ -53,13 +55,14 @@ export function StrategemsTab({ detachmentId, listId }: StrategemsTabProps) {
   );
 
   const grouped = useMemo(() => {
-    const map = new Map<string, RwStratagem[]>();
+    const map = new Map<string, UdbStratagem[]>();
     for (const phase of PHASE_ORDER) map.set(phase, []);
     map.set("Other", []);
     for (const s of stratagems ?? []) {
+      const normalized = normalizePhase(s.phase);
       const key =
-        s.phase && PHASE_ORDER.includes(s.phase as (typeof PHASE_ORDER)[number])
-          ? s.phase
+        normalized && PHASE_ORDER.includes(normalized as (typeof PHASE_ORDER)[number])
+          ? normalized
           : "Other";
       map.get(key)!.push(s);
     }
@@ -168,4 +171,3 @@ export function StrategemsTab({ detachmentId, listId }: StrategemsTabProps) {
     </div>
   );
 }
-

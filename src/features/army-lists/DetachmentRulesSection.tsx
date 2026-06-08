@@ -1,13 +1,7 @@
 import { useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-// Phase 107: detachment/stratagem data source (rules.db) eliminated -- EXT-03 deferred
-import type { RwDetachmentAbility, RwStratagem } from "@/types/datasheet";
-function useDetachmentAbilitiesByDetachment(_id: string | undefined) {
-  return { data: [] as RwDetachmentAbility[], isLoading: false };
-}
-function useStratagemsByDetachment(_id: string | undefined) {
-  return { data: [] as RwStratagem[], isLoading: false };
-}
+import { useDetachmentAbilitiesByDetachment, useStratagemsByDetachment } from "@/hooks/useGameData";
+import type { UdbDetachmentAbility } from "@/types/gameData";
 import { useRulesFavorites } from "@/hooks/useRulesFavorites";
 import { useRulesNotes } from "@/hooks/useRulesNotes";
 import { StratagemCard } from "@/features/rules-hub/StratagemCard";
@@ -20,7 +14,7 @@ interface DetachmentRulesSectionProps {
 
 export function DetachmentRulesSection({ detachmentId }: DetachmentRulesSectionProps) {
   const { data: abilities, isLoading: abilitiesLoading } =
-    useDetachmentAbilitiesByDetachment(detachmentId ?? undefined);
+    useDetachmentAbilitiesByDetachment(detachmentId ?? "");
   const { data: stratagems, isLoading: stratagemsLoading } =
     useStratagemsByDetachment(detachmentId ?? undefined);
   const { data: favorites = [] } = useRulesFavorites();
@@ -64,7 +58,7 @@ export function DetachmentRulesSection({ detachmentId }: DetachmentRulesSectionP
   if (abilitiesList.length === 0 && stratagemsList.length === 0) {
     return (
       <p className="px-4 py-3 text-sm text-muted-foreground">
-        No rules data available — sync rules from the Rules Hub
+        No rules data available — import unit database from the Rules Hub
       </p>
     );
   }
@@ -74,11 +68,14 @@ export function DetachmentRulesSection({ detachmentId }: DetachmentRulesSectionP
       {abilitiesList.length > 0 && (
         <div className="flex flex-col gap-2 px-4">
           <span className="text-sm font-semibold">Detachment Ability</span>
-          {abilitiesList.map((ability: RwDetachmentAbility) => (
+          {abilitiesList.map((ability: UdbDetachmentAbility) => (
             <div key={ability.id} className="rounded-lg border bg-card p-4">
               <p className="font-medium text-sm">{ability.name}</p>
               {ability.description && (
-                <p className="mt-1 text-sm text-muted-foreground">{ability.description}</p>
+                <div
+                  className="mt-1 text-sm text-muted-foreground [&_b]:font-semibold [&_.kwb]:text-foreground"
+                  dangerouslySetInnerHTML={{ __html: ability.description }}
+                />
               )}
             </div>
           ))}
@@ -88,7 +85,7 @@ export function DetachmentRulesSection({ detachmentId }: DetachmentRulesSectionP
       {stratagemsList.length > 0 && (
         <div className="flex flex-col gap-2 px-4">
           <span className="text-sm font-semibold">Stratagems ({stratagemsList.length})</span>
-          {stratagemsList.map((s: RwStratagem) => (
+          {stratagemsList.map((s) => (
             <StratagemCard
               key={s.id}
               stratagem={s}

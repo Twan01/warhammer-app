@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { RulesFavorite } from "@/types/rulesFavorite";
 import type { RulesNote } from "@/types/rulesNote";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -15,16 +15,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useWahapediaFactions } from "@/hooks/useDatasheet";
 import { useUdbMeta } from "@/hooks/useUdbMeta";
 import { useRulesHubFilters } from "./rulesHubFilters";
-// Phase 107: detachment/stratagem data source (rules.db) eliminated -- EXT-03 deferred
-import type { RwDetachmentAbility, RwStratagem } from "@/types/datasheet";
-function useStratagemsByFaction(_factionId: string | undefined) {
-  return { data: [] as RwStratagem[], isLoading: false };
-}
-function useDetachmentsByFaction(_factionId: string | undefined) {
-  return { data: [] as (import("@/types/datasheet").RwDetachment)[], isLoading: false };
-}
+import { useStratagemsByFaction, useDetachmentsByFaction } from "@/hooks/useGameData";
+// useSharedAbilitiesByFaction: shared abilities are out of Phase 120 scope — stub retained
 function useSharedAbilitiesByFaction(_factionId: string | undefined) {
-  return { data: [] as RwDetachmentAbility[], isLoading: false };
+  return { data: [] as { id: string; name: string; description: string | null; legend: string | null; faction_id: string | null }[], isLoading: false };
 }
 import { applyStratagemFilters, STRATAGEM_PHASES } from "./applyRulesHubFilters";
 import { useRulesFavorites } from "@/hooks/useRulesFavorites";
@@ -50,7 +44,10 @@ export function RulesHubPage() {
     setCpFilter,
   } = useRulesHubFilters();
 
-  // Rules data for selected faction (stubs -- EXT-03 deferred)
+  // Detachment filter for stratagems tab (local state — not persisted)
+  const [selectedDetachmentId, setSelectedDetachmentId] = useState<string | null>(null);
+
+  // Rules data for selected faction
   const { data: stratagems = [], isLoading: stratagemLoading } = useStratagemsByFaction(selectedFactionId ?? undefined);
   const { data: detachments = [], isLoading: detachmentLoading } = useDetachmentsByFaction(selectedFactionId ?? undefined);
   const { data: sharedAbilities = [], isLoading: sharedAbilitiesLoading } = useSharedAbilitiesByFaction(selectedFactionId ?? undefined);
@@ -70,9 +67,15 @@ export function RulesHubPage() {
     return m;
   }, [rulesNotes]);
 
+  // Apply detachment filter before text/phase/cp filters
+  const detachmentFilteredStratagems = useMemo(() => {
+    if (!selectedDetachmentId) return stratagems;
+    return stratagems.filter((s) => s.detachment_id === selectedDetachmentId);
+  }, [stratagems, selectedDetachmentId]);
+
   const filteredStratagems = useMemo(
-    () => applyStratagemFilters(stratagems, { searchText, phaseFilter, cpFilter }),
-    [stratagems, searchText, phaseFilter, cpFilter]
+    () => applyStratagemFilters(detachmentFilteredStratagems, { searchText, phaseFilter, cpFilter }),
+    [detachmentFilteredStratagems, searchText, phaseFilter, cpFilter]
   );
 
   const filteredDetachments = useMemo(() => {
@@ -85,7 +88,7 @@ export function RulesHubPage() {
     if (!searchText) return sharedAbilities;
     const lower = searchText.toLowerCase();
     return sharedAbilities.filter(
-      (a: { name: string; legend?: string | null }) =>
+      (a: { name: string; legend: string | null }) =>
         a.name.toLowerCase().includes(lower) ||
         (a.legend ?? "").toLowerCase().includes(lower)
     );
@@ -107,9 +110,10 @@ export function RulesHubPage() {
           <div className="flex flex-wrap items-center gap-3">
             <Select
               value={selectedFactionId ?? ""}
-              onValueChange={(val) =>
-                setSelectedFactionId(val || null)
-              }
+              onValueChange={(val) => {
+                setSelectedFactionId(val || null);
+                setSelectedDetachmentId(null);
+              }}
             >
               <SelectTrigger className="w-56">
                 <SelectValue placeholder="Select army..." />
@@ -149,6 +153,23 @@ export function RulesHubPage() {
               </TabsContent>
 
               <TabsContent value="stratagems" className="mt-4 space-y-4">
+                {/* Detachment filter dropdown (D-05) */}
+                <Select
+                  value={selectedDetachmentId ?? ""}
+                  onValueChange={(val) => setSelectedDetachmentId(val || null)}
+                >
+                  <SelectTrigger className="w-64">
+                    <SelectValue placeholder="All detachments..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {detachments.map((d) => (
+                      <SelectItem key={d.id} value={d.id}>
+                        {d.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
                 {/* Phase filter chips */}
                 <div className="flex flex-wrap gap-2">
                   {STRATAGEM_PHASES.map((phase) => (
