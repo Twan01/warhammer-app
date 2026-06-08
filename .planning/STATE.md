@@ -4,13 +4,13 @@ milestone: v0.4.7
 milestone_name: Wahapedia Pipeline & Full Data Import
 status: executing
 stopped_at: Phase 120 context gathered
-last_updated: "2026-06-08T18:14:34.660Z"
-last_activity: 2026-06-08 -- Phase 120 planning complete
+last_updated: "2026-06-08T18:26:05.143Z"
+last_activity: 2026-06-08
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
   percent: 80
 ---
 
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 120 — ui wiring
+**Current focus:** Phase 120 — UI Wiring
 
 ## Current Position
 
-Phase: 120
-Plan: Not started
+Phase: 120 (UI Wiring) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-06-08 -- Phase 120 planning complete
+Last activity: 2026-06-08
 
 ```
-Progress: [██████████] 100%
+Progress: [█████████░] 90%
 ```
 
 ## Performance Metrics
@@ -106,7 +106,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-08
+Last session: 2026-06-08T18:26:05.137Z
 Stopped at: Phase 120 context gathered
-Resume file: .planning/phases/120-ui-wiring/120-CONTEXT.md
+Resume file: None
 Resume: Plan Phase 120 (UI Wiring). Run `/gsd:plan-phase 120` to start.

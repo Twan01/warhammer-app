@@ -25,21 +25,21 @@ Requirements for Wahapedia Pipeline & Full Data Import milestone.
 
 - [x] **STR-01**: Stratagems imported from Stratagems.csv into udb_stratagems table (faction, detachment, name, CP cost, phase, turn, description)
 - [x] **STR-02**: Universal/core stratagems (empty faction_id) included alongside faction-specific ones
-- [ ] **STR-03**: Game Day page shows real stratagems from canonical database grouped by battle phase
-- [ ] **STR-04**: Rules Hub stratagems tab shows real data from canonical database with search/filter
+- [x] **STR-03**: Game Day page shows real stratagems from canonical database grouped by battle phase
+- [x] **STR-04**: Rules Hub stratagems tab shows real data from canonical database with search/filter
 
 ### Enhancements
 
 - [x] **ENH-01**: Enhancements imported from Enhancements.csv into udb_enhancements table (faction, detachment, name, cost, description)
-- [ ] **ENH-02**: Army list enhancement picker shows descriptions from canonical database
-- [ ] **ENH-03**: Enhancement points resolved from canonical database (replaces manual input)
+- [x] **ENH-02**: Army list enhancement picker shows descriptions from canonical database
+- [x] **ENH-03**: Enhancement points resolved from canonical database (replaces manual input)
 
 ### Detachment Abilities
 
 - [x] **DET-01**: Detachments imported from Wahapedia CSV into udb_detachments table (faction, name)
 - [x] **DET-02**: Detachment abilities imported into udb_detachment_abilities table (detachment, name, description)
-- [ ] **DET-03**: Army list detachment picker shows real detachment data from canonical database
-- [ ] **DET-04**: PlaybookTab detachment abilities section shows real data
+- [x] **DET-03**: Army list detachment picker shows real detachment data from canonical database
+- [x] **DET-04**: PlaybookTab detachment abilities section shows real data
 
 ## Future Requirements
 
@@ -77,12 +77,12 @@ Requirements for Wahapedia Pipeline & Full Data Import milestone.
 | STR-01 | Phase 119 | Complete |
 | STR-02 | Phase 119 | Complete |
 | ENH-01 | Phase 119 | Complete |
-| STR-03 | Phase 120 | Pending |
-| STR-04 | Phase 120 | Pending |
-| ENH-02 | Phase 120 | Pending |
-| ENH-03 | Phase 120 | Pending |
-| DET-03 | Phase 120 | Pending |
-| DET-04 | Phase 120 | Pending |
+| STR-03 | Phase 120 | Complete |
+| STR-04 | Phase 120 | Complete |
+| ENH-02 | Phase 120 | Complete |
+| ENH-03 | Phase 120 | Complete |
+| DET-03 | Phase 120 | Complete |
+| DET-04 | Phase 120 | Complete |
 
 **Coverage:**
 - v0.4.7 requirements: 19 total

@@ -138,7 +138,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 120-01-PLAN.md — Types, queries, hooks foundation + card component type migrations
+- [x] 120-01-PLAN.md — Types, queries, hooks foundation + card component type migrations
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -156,7 +156,7 @@ Plans:
 | 117. Points Coverage | 2/2 | Complete | 2026-06-04 |
 | 118. Detachments Import | 2/2 | Complete    | 2026-06-04 |
 | 119. Stratagems & Enhancements Import | 2/2 | Complete    | 2026-06-04 |
-| 120. UI Wiring | 0/2 | Not started | - |
+| 120. UI Wiring | 1/2 | In Progress|  |
 
 ---
 
