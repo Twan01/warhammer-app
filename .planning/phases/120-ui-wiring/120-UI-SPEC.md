@@ -1,7 +1,7 @@
 ---
 phase: 120
 slug: ui-wiring
-status: draft
+status: approved
 shadcn_initialized: true
 preset: new-york / zinc / css-variables
 created: 2026-06-08
@@ -41,7 +41,7 @@ Declared values (must be multiples of 4):
 | 2xl | 48px | Major section breaks (between PlaybookTab sections) |
 | 3xl | 64px | Page-level empty state vertical centering (`py-8`) |
 
-Exceptions: Touch target minimum 44px for the CP "Spend" button in GameDayStratagemCard. Combobox trigger width uses `w-[--radix-popover-trigger-width]` (responsive, not fixed).
+Exceptions: Touch target minimum 48px for the CP "Spend" button in GameDayStratagemCard (accessibility — WCAG 2.5.5). Combobox trigger width uses `w-[--radix-popover-trigger-width]` (responsive, not fixed).
 
 Source: Observed from `StrategemsTab.tsx`, `GameDayStratagemCard.tsx`, `EnhancementPickerSheet.tsx`
 
@@ -53,10 +53,10 @@ Source: Observed from `StrategemsTab.tsx`, `GameDayStratagemCard.tsx`, `Enhancem
 |------|------|--------|-------------|
 | Body | 14px (`text-sm`) | 400 (regular) | 1.5 |
 | Label | 12px (`text-xs`) | 400 (regular) | 1.4 |
-| Card title / stratagem name | 14px (`text-sm`) | 500 (`font-medium`) | 1.4 |
+| Card title / stratagem name | 14px (`text-sm`) | 600 (`font-semibold`) | 1.4 |
 | Page heading | 30px (`text-3xl`) | 600 (`font-semibold`) | 1.2 |
 
-Rules: Body is `text-sm` throughout all card-based views. Page headings (`<h1>`) use `text-3xl font-semibold tracking-tight`. Section headings within cards (phase group headers, enhancement section headers) use `text-sm font-medium`. Counts and metadata use `text-xs text-muted-foreground`. No sizes outside this set.
+Rules: Body is `text-sm` throughout all card-based views. Page headings (`<h1>`) use `text-3xl font-semibold tracking-tight`. Section headings within cards (phase group headers, enhancement section headers) use `text-sm font-semibold`. Counts and metadata use `text-xs text-muted-foreground`. No sizes outside this set. Two weights only: 400 (regular) and 600 (semibold).
 
 Source: `RulesHubPage.tsx` line 99, `StrategemsTab.tsx` lines 104/147, `EnhancementPickerSheet.tsx` line 159
 
@@ -108,10 +108,10 @@ Location: `src/features/units/PlaybookDetachmentAbilities.tsx`
 
 Structure:
 - Outer: `<Collapsible defaultOpen>` wrapping a titled section
-- Trigger: `text-sm font-medium` label "Detachment Abilities" + chevron
+- Trigger: `text-sm font-semibold` label "Detachment Abilities" + chevron
 - Content: `flex flex-col gap-2` list of ability cards
-- Ability card: `rounded-md border bg-card px-4 py-3` with ability name (`text-sm font-medium`) and HTML description (`text-sm text-muted-foreground` wrapper with `dangerouslySetInnerHTML`)
-- Detachment name grouping header (when showing all detachments): `text-xs font-semibold text-muted-foreground uppercase tracking-wide`
+- Ability card: `rounded-md border bg-card px-4 py-3` with ability name (`text-sm font-semibold`) and HTML description (`text-sm text-muted-foreground` wrapper with `dangerouslySetInnerHTML`)
+- Detachment name grouping header (when showing all detachments): `text-xs font-semibold text-muted-foreground uppercase tracking-wider`
 
 Placement in `PlaybookTab.tsx`: After `<PlaybookRules />`, before `<TierManager />`.
 
@@ -239,11 +239,11 @@ Source: CONTEXT.md decisions D-01 through D-19; existing component copy preserve
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: FLAG (non-blocking — single-word CTAs acceptable for inline buttons)
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS (fixed: collapsed to 2 weights — 400 regular + 600 semibold)
+- [x] Dimension 5 Spacing: PASS (fixed: touch target updated to 48px)
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved (2026-06-08, auto-mode with fixes applied)
