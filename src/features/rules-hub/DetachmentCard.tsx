@@ -6,19 +6,16 @@ import {
   CollapsibleContent,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
-// Phase 107: detachment abilities data source (rules.db) eliminated -- EXT-03 deferred
-function useDetachmentAbilitiesByDetachment(_detachmentId: string) {
-  return { data: [] as import("@/types/datasheet").RwDetachmentAbility[], isLoading: false };
-}
+import { useDetachmentAbilitiesByDetachment } from "@/hooks/useGameData";
 import { useUpsertRulesFavorite, useDeleteRulesFavorite } from "@/hooks/useRulesFavorites";
-import type { RwDetachment, RwDetachmentAbility } from "@/types/datasheet";
+import type { UdbDetachment, UdbDetachmentAbility } from "@/types/gameData";
 import type { RulesFavorite } from "@/types/rulesFavorite";
 import type { RulesNote } from "@/types/rulesNote";
 import { RuleAnnotationControls } from "./RuleAnnotationControls";
 import { RuleNoteEditor } from "./RuleNoteEditor";
 
 interface DetachmentAbilityRowProps {
-  ability: RwDetachmentAbility;
+  ability: UdbDetachmentAbility;
   favorite: RulesFavorite | null;
   note: RulesNote | null;
 }
@@ -64,10 +61,10 @@ function DetachmentAbilityRow({ ability, favorite, note }: DetachmentAbilityRowP
         <p className="font-semibold">{ability.name}</p>
       </div>
       {ability.description && (
-        <p className="text-muted-foreground mt-0.5">{ability.description}</p>
-      )}
-      {!ability.description && ability.legend && (
-        <p className="text-muted-foreground italic mt-0.5">{ability.legend}</p>
+        <div
+          className="text-muted-foreground mt-0.5 [&_b]:font-semibold [&_.kwb]:text-foreground"
+          dangerouslySetInnerHTML={{ __html: ability.description }}
+        />
       )}
       <RuleNoteEditor
         ruleId={ability.id}
@@ -80,7 +77,7 @@ function DetachmentAbilityRow({ ability, favorite, note }: DetachmentAbilityRowP
 }
 
 interface DetachmentCardProps {
-  detachment: RwDetachment;
+  detachment: UdbDetachment;
   favoritesMap: Map<string, RulesFavorite>;
   notesMap: Map<string, RulesNote>;
 }

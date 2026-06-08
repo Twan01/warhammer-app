@@ -6,7 +6,7 @@ import {
   CollapsibleContent,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
-import type { RwStratagem } from "@/types/datasheet";
+import type { UdbStratagem } from "@/types/gameData";
 import type { RulesFavorite } from "@/types/rulesFavorite";
 import type { RulesNote } from "@/types/rulesNote";
 import { RuleAnnotationControls } from "./RuleAnnotationControls";
@@ -26,13 +26,13 @@ function getPhaseBadgeClass(phase: string | null): string {
   return PHASE_STYLES[phase] ?? "bg-muted text-muted-foreground";
 }
 
-function cpLabel(cost: string | null): string {
-  if (!cost || cost === "0") return "Free";
+function cpLabel(cost: number): string {
+  if (cost === 0) return "Free";
   return `${cost} CP`;
 }
 
 interface StratagemCardProps {
-  stratagem: RwStratagem;
+  stratagem: UdbStratagem;
   favorite: RulesFavorite | null;
   note: RulesNote | null;
 }
@@ -94,6 +94,14 @@ export function StratagemCard({ stratagem, favorite, note }: StratagemCardProps)
             {stratagem.phase}
           </Badge>
         )}
+        {stratagem.turn && (
+          <Badge
+            variant="outline"
+            className="shrink-0 border-transparent bg-muted text-muted-foreground text-xs"
+          >
+            {stratagem.turn}
+          </Badge>
+        )}
         <Badge
           variant="outline"
           className="shrink-0 border-transparent bg-muted text-muted-foreground"
@@ -104,13 +112,10 @@ export function StratagemCard({ stratagem, favorite, note }: StratagemCardProps)
       </CollapsibleTrigger>
 
       <CollapsibleContent className="px-4 pb-4 pt-1 text-sm text-muted-foreground space-y-2">
-        {stratagem.legend && (
-          <p className="italic text-xs">{stratagem.legend}</p>
-        )}
-        {stratagem.description && <p>{stratagem.description}</p>}
-        {!stratagem.legend && !stratagem.description && (
-          <p className="italic">No description available.</p>
-        )}
+        <div
+          className="text-sm text-muted-foreground [&_b]:font-semibold [&_.kwb]:text-foreground"
+          dangerouslySetInnerHTML={{ __html: stratagem.description }}
+        />
         <RuleNoteEditor
           ruleId={stratagem.id}
           ruleType="stratagem"

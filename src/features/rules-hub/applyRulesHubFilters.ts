@@ -1,4 +1,4 @@
-import type { RwStratagem } from "@/types/datasheet";
+import type { UdbStratagem } from "@/types/gameData";
 
 const STRATAGEM_PHASES = ["Command", "Movement", "Shooting", "Charge", "Fight"] as const;
 export type StratagemPhase = (typeof STRATAGEM_PHASES)[number];
@@ -11,22 +11,22 @@ export interface StratagemFilterOptions {
 }
 
 export function applyStratagemFilters(
-  stratagems: RwStratagem[],
+  stratagems: UdbStratagem[],
   options: StratagemFilterOptions
-): RwStratagem[] {
+): UdbStratagem[] {
   let result = stratagems;
   if (options.phaseFilter) {
     result = result.filter((s) => s.phase === options.phaseFilter);
   }
   if (options.cpFilter) {
-    result = result.filter((s) => s.cp_cost === options.cpFilter);
+    result = result.filter((s) => String(s.cp_cost) === options.cpFilter);
   }
   if (options.searchText) {
     const lower = options.searchText.toLowerCase();
     result = result.filter(
       (s) =>
         s.name.toLowerCase().includes(lower) ||
-        (s.legend ?? "").toLowerCase().includes(lower)
+        (s.type ?? "").toLowerCase().includes(lower)
     );
   }
   return result;

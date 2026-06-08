@@ -7,7 +7,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import type { RwStratagem } from "@/types/datasheet";
+import type { UdbStratagem } from "@/types/gameData";
 import type { RulesFavorite } from "@/types/rulesFavorite";
 import type { RulesNote } from "@/types/rulesNote";
 import type { UseMutationResult } from "@tanstack/react-query";
@@ -34,17 +34,15 @@ function wrapper({ children }: { children: ReactNode }) {
 // Import component AFTER mocks
 import { StratagemCard } from "@/features/rules-hub/StratagemCard";
 
-const mockStratagem: RwStratagem = {
+const mockStratagem: UdbStratagem = {
   id: "s-1",
   faction_id: "SM",
+  detachment_id: null,
   name: "Honour the Chapter",
   type: null,
-  cp_cost: "1",
+  cp_cost: 1,
   phase: "Fight",
   turn: null,
-  legend: null,
-  detachment: null,
-  detachment_id: null,
   description: "Use this stratagem in the fight phase.",
 };
 

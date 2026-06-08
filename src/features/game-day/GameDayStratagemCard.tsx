@@ -7,7 +7,7 @@ import {
   CollapsibleContent,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
-import type { RwStratagem } from "@/types/datasheet";
+import type { UdbStratagem } from "@/types/gameData";
 
 const PHASE_STYLES: Record<string, string> = {
   Command: "bg-purple-500/20 text-purple-700 dark:text-purple-300",
@@ -22,13 +22,13 @@ function getPhaseBadgeClass(phase: string | null): string {
   return PHASE_STYLES[phase] ?? "bg-muted text-muted-foreground";
 }
 
-function cpLabel(cost: string | null): string {
-  if (!cost || cost === "0") return "Free";
+function cpLabel(cost: number): string {
+  if (cost === 0) return "Free";
   return `${cost} CP`;
 }
 
 interface GameDayStratagemCardProps {
-  stratagem: RwStratagem;
+  stratagem: UdbStratagem;
   onSpendCp: (cost: number) => void;
 }
 
@@ -36,7 +36,7 @@ export function GameDayStratagemCard({
   stratagem,
   onSpendCp,
 }: GameDayStratagemCardProps) {
-  const cost = parseInt(stratagem.cp_cost ?? "0", 10) || 0;
+  const cost = stratagem.cp_cost;
   const isFree = cost === 0;
 
   return (
@@ -54,11 +54,19 @@ export function GameDayStratagemCard({
             {stratagem.phase}
           </Badge>
         )}
+        {stratagem.turn && (
+          <Badge
+            variant="outline"
+            className="shrink-0 border-transparent bg-muted text-muted-foreground text-xs"
+          >
+            {stratagem.turn}
+          </Badge>
+        )}
         <Badge
           variant="outline"
           className="shrink-0 border-transparent bg-muted text-muted-foreground"
         >
-          {cpLabel(stratagem.cp_cost)}
+          {cpLabel(cost)}
         </Badge>
         {!isFree && (
           <Button
@@ -77,13 +85,10 @@ export function GameDayStratagemCard({
       </CollapsibleTrigger>
 
       <CollapsibleContent className="px-4 pb-4 pt-1 text-sm text-muted-foreground space-y-2">
-        {stratagem.legend && (
-          <p className="italic text-xs">{stratagem.legend}</p>
-        )}
-        {stratagem.description && <p>{stratagem.description}</p>}
-        {!stratagem.legend && !stratagem.description && (
-          <p className="italic">No description available.</p>
-        )}
+        <div
+          className="text-sm text-muted-foreground [&_b]:font-semibold [&_.kwb]:text-foreground"
+          dangerouslySetInnerHTML={{ __html: stratagem.description }}
+        />
       </CollapsibleContent>
     </Collapsible>
   );

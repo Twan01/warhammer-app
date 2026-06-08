@@ -1,14 +1,14 @@
 /**
- * Phase 53/107 -- DetachmentCard tests.
+ * Phase 53/107/120 -- DetachmentCard tests.
  * Phase 107: detachment abilities data source (rules.db) eliminated -- stub returns empty.
- * Tests verify component renders correctly with the inline stub (always empty data).
+ * Phase 120: migrated to UdbDetachment type; mock useDetachmentAbilitiesByDetachment from useGameData.
  */
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import type { RwDetachment } from "@/types/datasheet";
+import type { UdbDetachment } from "@/types/gameData";
 
 vi.mock("@/hooks/useRulesFavorites", () => ({
   useUpsertRulesFavorite: () => ({ mutate: vi.fn() }),
@@ -19,17 +19,19 @@ vi.mock("@/hooks/useRulesNotes", () => ({
   useUpsertRulesNote: () => ({ mutate: vi.fn() }),
 }));
 
+vi.mock("@/hooks/useGameData", () => ({
+  useDetachmentAbilitiesByDetachment: () => ({ data: [], isLoading: false }),
+}));
+
 function wrapper({ children }: { children: ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
 }
 
-const mockDetachment: RwDetachment = {
+const mockDetachment: UdbDetachment = {
   id: "det-1",
   faction_id: "SM",
   name: "Gladius Task Force",
-  legend: null,
-  type: null,
 };
 
 import { DetachmentCard } from "@/features/rules-hub/DetachmentCard";
@@ -43,7 +45,7 @@ describe("DetachmentCard", () => {
     expect(screen.getByText("Gladius Task Force")).toBeInTheDocument();
   });
 
-  it("shows '0 abilities' badge (data source removed in Phase 107)", () => {
+  it("shows '0 abilities' badge when no abilities loaded", () => {
     render(
       <DetachmentCard detachment={mockDetachment} favoritesMap={new Map()} notesMap={new Map()} />,
       { wrapper },
