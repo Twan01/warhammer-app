@@ -4,25 +4,11 @@
 
 HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby collection. It tracks owned units, painting progress, structured painting recipes, army lists, battle logs, spending, and a premium live dashboard answering "what do I own, what's painted, and what's ready to play." All unit data (stats, weapons, abilities, keywords, points) ships as a pre-built canonical database for personal use.
 
-Shipped through v0.4.7 (120 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps, transactional graph save, recipe_step_id-keyed progress), a dedicated Painting Mode for focused step-by-step recipe execution (distraction-free full-page layout, keyboard shortcuts, section navigator, paint readiness warnings, atomic step completion with session logging, 6 entry points), army list builder with detachment selection, FK-based points resolution from canonical database, smart list builder (loadout builder, wargear/model count editor, enhancements with points, leader attachment with preventive validation, ghost/planned units, 4-format export, version snapshots with save/compare/restore, battle-readiness badges in unit picker, budget-aware filtering), battle log with after-action capture (forgotten rules, MVP/underperformer notes), spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard, KanbanCards, NextPaintingActionCard, ReadyToPlayCard, and DataHealthSummaryCard, canonical unit database browser (1,711 units across 25 factions with stat blocks, weapon tables, ability text, keywords, points tiers, FTS5 search, role/keyword/point filters, virtual scrolling), collection-to-database FK linking with ownership/readiness badges, user annotations (favorites, notes, reminders) on any rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped stratagems, unit ability cards, pre-game checklist, pre-game readiness panel, end-game after-action with forgotten-rules-to-reminders pipeline), Data Health page with diagnostics, structured backup export (.zip with VACUUM INTO + metadata.json), full restore with preview/validation/atomic swap/restart, automatic safety backups before restore, progressive backup diagnostics with version mismatch detection, a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK), version parity enforcement, auto-update via GitHub Releases with in-app banner, single-database architecture (hobbyforge.db only, rules.db eliminated), internal robustness hardening (WAL mode, FK indexes, CHECK constraints, route error boundaries, DB health gate, lazy route loading, React.memo, batched INSERTs, query-layer isolation, component decomposition), and smart automation (auto-derive assembly/basing/varnish statuses from recipe completion, auto-manage active projects, context-aware recipe pre-filling with faction grouping).
-
-## Current Milestone: v0.4.7 Wahapedia Pipeline & Full Data Import — SHIPPED 2026-06-08
-
-**Goal:** Replace the BSData-dependent build pipeline with a Wahapedia-only pipeline that auto-downloads CSVs and imports all available game data — points, stratagems, enhancements, and detachment abilities — with 100% unit coverage.
-
-**Shipped features:**
-- Auto-download Wahapedia CSVs at build time (no manual file placement)
-- Points from Datasheets_models_cost.csv (replaces BSData XML matching)
-- Deduplicate Wahapedia units (Legends vs current)
-- Import stratagems (Stratagems.csv) — 1,482 stratagems including 28 universal/core
-- Import enhancements (Enhancements.csv) — 927 enhancements
-- Import detachment abilities (Detachment_abilities.csv) — 261 detachments, 284 abilities
-- Remove BSData dependency from build pipeline
-- Wire new data into existing UI (PlaybookTab, Game Day, Rules Hub, Army Lists)
+Shipped through v0.4.7 (120 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps, transactional graph save, recipe_step_id-keyed progress), a dedicated Painting Mode for focused step-by-step recipe execution (distraction-free full-page layout, keyboard shortcuts, section navigator, paint readiness warnings, atomic step completion with session logging, 6 entry points), army list builder with detachment selection, FK-based points resolution from canonical database, smart list builder (loadout builder, wargear/model count editor, enhancements with auto-resolved points from canonical DB, leader attachment with preventive validation, ghost/planned units, 4-format export, version snapshots with save/compare/restore, battle-readiness badges in unit picker, budget-aware filtering), battle log with after-action capture (forgotten rules, MVP/underperformer notes), spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard, KanbanCards, NextPaintingActionCard, ReadyToPlayCard, and DataHealthSummaryCard, canonical unit database browser (1,711 units across 25 factions with stat blocks, weapon tables, ability text, keywords, points tiers, FTS5 search, role/keyword/point filters, virtual scrolling), collection-to-database FK linking with ownership/readiness badges, user annotations (favorites, notes, reminders) on any rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped real stratagems from canonical DB, unit ability cards, pre-game checklist, pre-game readiness panel, end-game after-action with forgotten-rules-to-reminders pipeline), Rules Hub with live stratagem/detachment data and search/filter, Data Health page with diagnostics, structured backup export (.zip with VACUUM INTO + metadata.json), full restore with preview/validation/atomic swap/restart, automatic safety backups before restore, progressive backup diagnostics with version mismatch detection, a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK), version parity enforcement, auto-update via GitHub Releases with in-app banner, single-database architecture (hobbyforge.db only, rules.db eliminated), Wahapedia-only build pipeline (auto-download CSVs, BOM-safe parsing, Legends dedup, 99.8% points coverage, 1,482 stratagems, 927 enhancements, 261 detachments with 284 abilities), internal robustness hardening (WAL mode, FK indexes, CHECK constraints, route error boundaries, DB health gate, lazy route loading, React.memo, batched INSERTs, query-layer isolation, component decomposition), and smart automation (auto-derive assembly/basing/varnish statuses from recipe completion, auto-manage active projects, context-aware recipe pre-filling with faction grouping).
 
 ## Current State
 
-v0.4.7 shipped. 120 phases complete across 24 milestones. ~300+ TypeScript source files. 43 SQLite migrations (hobbyforge.db). 2,400+ automated tests. 9 Tauri Rust commands. Build pipeline: Wahapedia-only (BSData removed), deterministic builds, BOM-safe CSV parsing, Legends dedup, auto-download, detachment import (261 detachments, 284 abilities across 26 factions), stratagems import (1,482 stratagems including 28 universal/core with nullable FKs), enhancements import (927 enhancements). Game Day shows real stratagems grouped by battle phase. Rules Hub has live stratagem/detachment data with search and filters. Enhancement picker uses canonical DB with HTML descriptions and auto-resolved points. PlaybookTab shows detachment abilities. Priority factions (SM/NEC/DG) data-audited with French translations.
+v0.4.7 shipped (2026-06-09). 120 phases complete across 25 milestones. ~300+ TypeScript source files. 43 SQLite migrations (hobbyforge.db). 2,400+ automated tests. 9 Tauri Rust commands. Build pipeline: Wahapedia-only (BSData removed), deterministic builds, BOM-safe CSV parsing, Legends dedup, auto-download, detachment import (261 detachments, 284 abilities across 26 factions), stratagems import (1,482 stratagems including 28 universal/core with nullable FKs), enhancements import (927 enhancements). Game Day shows real stratagems grouped by battle phase. Rules Hub has live stratagem/detachment data with search and filters. Enhancement picker uses canonical DB with HTML descriptions and auto-resolved points. PlaybookTab shows detachment abilities. Priority factions (SM/NEC/DG) data-audited with French translations.
 
 ## Core Value
 
@@ -262,16 +248,20 @@ A single personal command center that always answers "what do I own, what's pain
 - ✓ PFX-01..04: Pipeline fixes — 3 weapon parsing bugs fixed, mapWeaponRow extracted, database rebuilt with correct data — Phase 114 — v0.4.5
 - ✓ SUB-01..03: Sub-faction filter — dual-site fix shows parent faction generic units alongside sub-faction-specific units — Phase 115 — v0.4.5
 
+*All v0.4.7 requirements verified and shipped 2026-06-09*
+
+- ✓ Auto-download Wahapedia CSVs at build time (`pnpm download:wahapedia`) — Phase 116 — v0.4.7
+- ✓ Points from Datasheets_models_cost.csv (99.8% coverage, BSData removed) — Phase 117 — v0.4.7
+- ✓ Deduplicate Wahapedia units (Legends vs current) — Phase 116 — v0.4.7
+- ✓ Import stratagems (1,482 including 28 universal/core) — Phase 119 — v0.4.7
+- ✓ Import enhancements (927 with points and descriptions) — Phase 119 — v0.4.7
+- ✓ Import detachments (261 detachments, 284 abilities) — Phase 118 — v0.4.7
+- ✓ BSData dependency eliminated from build pipeline — Phase 117 — v0.4.7
+- ✓ Wire stratagems/enhancements/detachments into Game Day, Rules Hub, Army Lists, PlaybookTab — Phase 120 — v0.4.7
+
 ### Active
 
-- [ ] Auto-download Wahapedia CSVs at build time
-- [ ] Points from Datasheets_models_cost.csv (100% coverage, no BSData matching)
-- [ ] Deduplicate Wahapedia units (Legends vs current)
-- [ ] Import stratagems from Stratagems.csv into canonical database
-- [ ] Import enhancements from Enhancements.csv into canonical database
-- [ ] Import detachment abilities from Detachment_abilities.csv into canonical database
-- [ ] Remove BSData dependency from build pipeline
-- [ ] Wire stratagems/enhancements/detachments into existing UI
+(No active requirements — next milestone not yet planned)
 
 ### Out of Scope
 
@@ -284,12 +274,16 @@ A single personal command center that always answers "what do I own, what's pain
 - Competitive list optimization or rules validation — explicitly not the goal
 - Real-time multiplayer / cloud sync / accounts — local-first by design
 - Runtime auto-sync of unit data — offline-first; updates via app releases
-- Leader attachment targets, enhancement data, stratagems in canonical DB — deferred to v2 (EXT-01..03)
-- Unit comparison view, faction overview page — deferred to v2 (ADV-01..02)
+- Leader attachment targets in canonical DB — deferred (EXT-01)
+- Unit comparison view, faction overview page — deferred (ADV-01..02)
+- French ability/weapon descriptions, full app UI translation — deferred (FR-EXT-01..02)
+- Extended faction audits (22 remaining factions) — deferred (EFA-01..03)
+- French translations for stratagems/enhancements — deferred
+- Sub-faction derivation from Wahapedia CSV — static mapping sufficient
 
 ## Context
 
-- **Current state:** v0.4.5 shipped (115 phases across 23 milestones). ~300+ TypeScript source files. ~120,000+ LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 18 main pages (lazy-loaded via React.lazy). Single-DB architecture (hobbyforge.db only) with WAL mode, FK indexes, CHECK constraints. 41 SQLite migrations. 9 Rust Tauri commands. Canonical unit database (1,711 units / 25 factions) with browser UI, FTS5 search, collection FK linking, sub-faction filtering (including parent faction generic units), bilingual EN/FR support. Build pipeline with shared BSData library, 96.9% BSData match rate, 44 aliases, deterministic builds, coverage reporting with match-method breakdown, alias validation, coverage threshold gate (MIN_COVERAGE_PCT=58%). Priority faction data audited (SM/NEC/DG) with French translations. PlaybookTab showing canonical stats/weapons/abilities. Game Day with weapon profiles and stable OPG composite keys. Route error boundaries + DB health gate at startup. Structured backup/restore with preview + atomic swap + restart. Automatic safety backups before restore. Progressive backup diagnostics. Transactional recipe graph save, recipe_step_id-keyed progress, FK-based points resolution, Painting Mode with full-page execution view + keyboard shortcuts + 6 entry points, dashboard command center (NextPaintingAction, ReadyToPlay, DataHealthSummary), Game Day after-action loop. Smart list builder with loadout config, enhancements, leader attachment, ghost units, 4-format export, version snapshots. Smart automation: auto-derive assembly/basing/varnish from recipe completion, is_active_project lifecycle, computeUnitReadiness() canonical function, battle-readiness badges + budget filter in UnitPickerDialog, faction-aware recipe pre-filling. 2,290+ automated tests. Version parity enforcement. Auto-update via GitHub Releases.
+- **Current state:** v0.4.7 shipped (120 phases across 25 milestones). ~300+ TypeScript source files. ~120,000+ LOC. Tauri 2 + React 19 + Tailwind v4 + shadcn/ui (new-york/zinc). 18 main pages (lazy-loaded via React.lazy). Single-DB architecture (hobbyforge.db only) with WAL mode, FK indexes, CHECK constraints. 43 SQLite migrations. 9 Rust Tauri commands. Canonical unit database (1,711 units / 25 factions) with browser UI, FTS5 search, collection FK linking, sub-faction filtering, bilingual EN/FR support. Wahapedia-only build pipeline: auto-download CSVs, BOM-safe parsing, Legends dedup, 99.8% points coverage (from Datasheets_models_cost.csv), 1,482 stratagems (28 universal/core), 927 enhancements, 261 detachments with 284 abilities. BSData XML eliminated. Priority faction data audited (SM/NEC/DG) with French translations. Game Day shows real stratagems by battle phase. Rules Hub has live stratagem/detachment data. Enhancement picker auto-resolves points from canonical DB. PlaybookTab shows detachment abilities. Route error boundaries + DB health gate at startup. Structured backup/restore with preview + atomic swap + restart. Automatic safety backups. Transactional recipe graph save, recipe_step_id-keyed progress, FK-based points resolution, Painting Mode with full-page execution view + keyboard shortcuts + 6 entry points, dashboard command center, Game Day after-action loop. Smart list builder with loadout config, enhancements with canonical points, leader attachment, ghost units, 4-format export, version snapshots. Smart automation: auto-derive statuses, active project lifecycle, battle-readiness badges + budget filter. 2,400+ automated tests. Version parity enforcement. Auto-update via GitHub Releases.
 - **Personal tool** — single user (the owner), local-first, no accounts or sync
 - **Domain:** Warhammer 40K 10th edition, hobby management (collecting → painting → playing)
 - **User journey priority:** painter/collector → ready-to-play, *not* competitive optimization
@@ -406,6 +400,11 @@ A single personal command center that always answers "what do I own, what's pain
 | Single-database architecture (rules.db eliminated) | All data in hobbyforge.db; rules.db was destroyed on every sync, causing data loss | ✓ Excellent — simpler backup, no cross-DB complexity |
 | Inline stub pattern for deferred features | Components return empty data for stratagems/detachments instead of keeping dead hook files | ✓ Good — clean imports, deferred features clearly marked |
 | getSyncFreshness always returns 'fresh' | Data bundled with app = always fresh; 12 consumers preserved for backward compat | — Accepted tech debt (intentional stub) |
+| Separate download:wahapedia from build:udb | Deterministic builds — CSVs pre-fetched, build uses local files only | ✓ Good — clean separation of network and build |
+| Nullable FK for universal stratagems | faction_id NULL avoids dummy faction rows for core/universal stratagems | ✓ Good — clean SQL queries with IS NULL check |
+| Content hash dedup for universal stratagems | Wahapedia duplicates universal stratagems across factions; hash dedup prevents duplicates | ✓ Good — 28 unique universal stratagems from potentially hundreds of rows |
+| staleTime Infinity for game data hooks | Data only changes on rebuild/import; prevents spurious refetches | ✓ Good — consistent with read-heavy, write-rare pattern |
+| HTML sanitization for stratagem/enhancement descriptions | Wahapedia descriptions contain HTML markup that must be rendered safely | ✓ Good — sanitizeHtml utility shared across StratagemCard and EnhancementPickerSheet |
 
 ---
 ## Evolution
@@ -426,4 +425,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-04 after v0.4.7 milestone started*
+*Last updated: 2026-06-09 after v0.4.7 milestone shipped*

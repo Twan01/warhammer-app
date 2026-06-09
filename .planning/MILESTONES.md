@@ -1,4 +1,26 @@
 # Milestones
+## v0.4.7 Wahapedia Pipeline & Full Data Import (Shipped: 2026-06-09)
+
+**Phases completed:** 5 phases (116-120), 10 plans
+**Timeline:** 2026-06-04 → 2026-06-09 (6 days)
+**Stats:** 27 commits, 19/19 requirements satisfied, Nyquist 4/5 compliant
+
+**Key accomplishments:**
+- Wahapedia-only pipeline: replaced BSData XML with direct CSV parsing, auto-download command (`pnpm download:wahapedia`), BOM-safe parsing, Legends dedup — points coverage from 60% to 99.8%
+- Detachments import: 261 detachments and 284 abilities across 26 factions in udb_detachments/udb_detachment_abilities tables with FK integrity
+- Stratagems & enhancements import: 1,482 stratagems (28 universal/core with nullable FK) and 927 enhancements in udb_stratagems/udb_enhancements tables
+- Full UI wiring: Game Day real stratagems by battle phase, Rules Hub live stratagem/detachment data with search/filter, enhancement picker with auto-resolved points and HTML descriptions, PlaybookTab detachment abilities
+- BSData dependency eliminated: @xmldom/xmldom removed, no more XML parsing in build pipeline
+
+**Tech debt accepted:** Datasheets_models_cost.csv not in REQUIRED_CSVs validation; Phase 119 Nyquist incomplete; useSharedAbilitiesByFaction empty stub; unnecessary empty-string query in DetachmentRulesSection
+
+**Archived:**
+- Roadmap: `.planning/milestones/v0.4.7-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.4.7-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.4.7-MILESTONE-AUDIT.md`
+
+---
+
 ## v0.4.5 Data Quality Audit & Pipeline Improvement (Shipped: 2026-06-03)
 
 **Phases completed:** 4 phases (112-115), 7 plans
