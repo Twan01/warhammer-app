@@ -5,7 +5,8 @@ import {
   MutationCache,
 } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
+import { listen } from "@tauri-apps/api/event";
 
 /**
  * Desktop-tuned QueryClient defaults (SETUP-05 / ARCHITECTURE Anti-Pattern 3):
@@ -50,6 +51,13 @@ export function QueryProvider({ children }: { children: ReactNode }) {
         },
       })
   );
+
+  useEffect(() => {
+    const unlisten = listen("udb-import-complete", () => {
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey[0]).startsWith("udb-") });
+    });
+    return () => { unlisten.then((fn) => fn()); };
+  }, [queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>

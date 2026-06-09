@@ -1,4 +1,4 @@
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 use tauri_plugin_sql::{Migration, MigrationKind};
 use std::collections::HashMap;
 use sha2::{Digest, Sha384};
@@ -1323,7 +1323,12 @@ pub fn run() {
             let handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
                 match import_unit_database_inner(&handle).await {
-                    Ok(result) => println!("[hobbyforge] udb import: {result:?}"),
+                    Ok(result) => {
+                        println!("[hobbyforge] udb import: {result:?}");
+                        if result.units > 0 {
+                            let _ = handle.emit("udb-import-complete", &result);
+                        }
+                    }
                     Err(e) => eprintln!("[hobbyforge] udb import failed: {e}"),
                 }
             });

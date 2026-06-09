@@ -148,4 +148,54 @@ describe("applyUdbFilters", () => {
     // Other sub-faction units excluded
     expect(names).not.toContain("Mystery Unit");
   });
+
+  // Regression: Deathwing (Dark Angels) must not appear under Ultramarines
+  it("excludes cross-chapter units — Deathwing must not appear under Ultramarines", () => {
+    const smUnits: UdbUnitSummary[] = [
+      { id: "sm01", faction_id: "SM", name: "Intercessor Squad", role: "Battleline", sub_faction: null, base_points: 80, min_models: 5, max_models: 10 },
+      { id: "sm02", faction_id: "SM", name: "Calgar", role: "Character", sub_faction: "Ultramarines", base_points: 200, min_models: 1, max_models: 1 },
+      { id: "sm03", faction_id: "SM", name: "Deathwing Knights", role: "Other", sub_faction: "Dark Angels", base_points: 235, min_models: 5, max_models: 10 },
+      { id: "sm04", faction_id: "SM", name: "Deathwing Terminator Squad", role: "Other", sub_faction: "Dark Angels", base_points: 205, min_models: 5, max_models: 10 },
+      { id: "sm05", faction_id: "SM", name: "Blood Claws", role: "Battleline", sub_faction: "Space Wolves", base_points: 110, min_models: 5, max_models: 15 },
+      { id: "sm06", faction_id: "SM", name: "Bladeguard Veterans", role: "Other", sub_faction: null, base_points: 90, min_models: 3, max_models: 6 },
+    ];
+
+    const result = applyUdbFilters(smUnits, { ...NO_FILTER, subFactionFilter: "Ultramarines" });
+    const names = result.map((u) => u.name);
+
+    // Ultramarines-specific unit included
+    expect(names).toContain("Calgar");
+    // Generic (null sub_faction) units included
+    expect(names).toContain("Intercessor Squad");
+    expect(names).toContain("Bladeguard Veterans");
+    // Dark Angels units excluded
+    expect(names).not.toContain("Deathwing Knights");
+    expect(names).not.toContain("Deathwing Terminator Squad");
+    // Space Wolves units excluded
+    expect(names).not.toContain("Blood Claws");
+
+    expect(result).toHaveLength(3);
+  });
+
+  // Regression: units with NULL sub_faction must pass through any sub-faction filter
+  it("null sub_faction units always pass sub-faction filter (they are shared across chapters)", () => {
+    const units: UdbUnitSummary[] = [
+      { id: "g1", faction_id: "SM", name: "Generic Marine", role: "Battleline", sub_faction: null, base_points: 80, min_models: 5, max_models: 10 },
+      { id: "g2", faction_id: "SM", name: "Specific Marine", role: "Battleline", sub_faction: "Iron Hands", base_points: 80, min_models: 5, max_models: 10 },
+    ];
+
+    for (const chapter of ["Ultramarines", "Dark Angels", "Space Wolves", "Iron Hands"]) {
+      const result = applyUdbFilters(units, { ...NO_FILTER, subFactionFilter: chapter });
+      expect(result.map((u) => u.name)).toContain("Generic Marine");
+    }
+
+    // Iron Hands filter should include both
+    const ironHandsResult = applyUdbFilters(units, { ...NO_FILTER, subFactionFilter: "Iron Hands" });
+    expect(ironHandsResult).toHaveLength(2);
+
+    // Ultramarines filter should exclude Iron Hands-specific unit
+    const umResult = applyUdbFilters(units, { ...NO_FILTER, subFactionFilter: "Ultramarines" });
+    expect(umResult).toHaveLength(1);
+    expect(umResult[0].name).toBe("Generic Marine");
+  });
 });
