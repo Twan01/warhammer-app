@@ -1,8 +1,8 @@
 {
-  "built_at": "2026-06-04T08:56:29.068Z",
+  "built_at": "2026-06-09T15:01:37.625Z",
   "overall_coverage_pct": 99.8,
-  "total_units": 1701,
-  "units_with_points": 1697,
+  "total_units": 1710,
+  "units_with_points": 1706,
   "factions": [
     {
       "faction_id": "AoI",
@@ -164,8 +164,8 @@
     {
       "faction_id": "SM",
       "faction_name": "Space Marines",
-      "total_units": 289,
-      "units_with_points": 288,
+      "total_units": 298,
+      "units_with_points": 297,
       "coverage_pct": 99.7,
       "unmatched_names": [
         "Example Wargear"

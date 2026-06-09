@@ -96,3 +96,37 @@ export const SUB_FACTION_MAP: Record<string, string> = {
   "Aeldari - Drukhari": "Drukhari",
   "Aeldari - Ynnari": "Ynnari",
 };
+
+/**
+ * Maps faction keywords found in Datasheets_keywords.csv to sub-faction labels.
+ *
+ * Used during the pre-dedup sub-faction scan: if a unit's faction keywords include
+ * one of these, it gets assigned the corresponding sub_faction BEFORE dedup runs.
+ * This prevents chapter-specific unit variants (e.g., Black Templars Impulsor)
+ * from being deduped away as duplicates of the generic SM version.
+ *
+ * Only keywords that appear as is_faction_keyword=true in the CSV are included.
+ */
+export const KEYWORD_SUB_FACTION_MAP: Record<string, string> = {
+  // Space Marines chapters
+  "Black Templars": "Black Templars",
+  "Blood Angels": "Blood Angels",
+  "Blood Ravens": "Blood Ravens",
+  "Dark Angels": "Dark Angels",
+  "Deathwatch": "Deathwatch",
+  "Imperial Fists": "Imperial Fists",
+  "Iron Hands": "Iron Hands",
+  "Raven Guard": "Raven Guard",
+  "Salamanders": "Salamanders",
+  "Space Wolves": "Space Wolves",
+  "Ultramarines": "Ultramarines",
+  "White Scars": "White Scars",
+  // Chaos warbands (faction keywords on CSM units)
+  "Death Guard": "Death Guard",
+  "Thousand Sons": "Thousand Sons",
+  "World Eaters": "World Eaters",
+  "Emperor's Children": "Emperor's Children",
+  // Aeldari
+  "Drukhari": "Drukhari",
+  "Ynnari": "Ynnari",
+};

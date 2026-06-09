@@ -18,7 +18,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { SUB_FACTION_MAP } from "./lib/factionMap.ts";
+import { SUB_FACTION_MAP, KEYWORD_SUB_FACTION_MAP } from "./lib/factionMap.ts";
 import { readCsvFile, extractModelCount } from "./lib/parseCsv.ts";
 import { mapWeaponRow } from "./lib/weaponMapping.ts";
 import type {
@@ -175,18 +175,62 @@ async function main() {
       base_points: null, // filled later from cost CSV
       damaged_w: row["damaged_w"]?.trim() ?? "",
       damaged_desc: row["damaged_description"]?.trim() ?? "",
-      sub_faction: null, // populated from keyword matching via SUB_FACTION_MAP
+      sub_faction: null, // populated from keyword matching below
       name_fr: null,
     });
   }
 
-  // PF-04: Dedup pass — warn on name+faction duplicates (after Legends filter)
+  // ---------------------------------------------------------------------------
+  // 3b. Pre-dedup sub-faction scan from keywords (DQ-AUDIT)
+  //
+  // Before dedup, scan Datasheets_keywords.csv to assign sub_faction based on
+  // faction keywords (is_faction_keyword=true). This ensures chapter-specific
+  // unit variants (e.g., Black Templars Impulsor vs generic SM Impulsor) are
+  // recognized as distinct entries and NOT merged by the dedup pass.
+  //
+  // Only faction keywords are used here — non-faction keywords like "Deathwing"
+  // on a generic Land Raider do NOT restrict that unit to Dark Angels.
+  // ---------------------------------------------------------------------------
+  console.log("  Pre-dedup sub-faction scan from keywords...");
+  const keywordSubFactionValues = new Set(Object.values(KEYWORD_SUB_FACTION_MAP));
+  const preKeywordsRaw = readCsvFile(DATA_DIR, "Datasheets_keywords.csv");
+  const preSubFactionMap = new Map<string, string>(); // unit_id -> sub_faction
+  let preScanAssigned = 0;
+
+  for (const row of preKeywordsRaw) {
+    const unitId = row["datasheet_id"]?.trim();
+    if (!unitId || !validUnitIds.has(unitId)) continue;
+
+    const keyword = row["keyword"]?.trim();
+    if (!keyword) continue;
+
+    // Only use faction keywords (is_faction_keyword=true) for sub-faction assignment
+    const isFaction = row["is_faction_keyword"]?.trim() === "1" || row["is_faction_keyword"]?.trim() === "true";
+    if (!isFaction) continue;
+
+    if (keywordSubFactionValues.has(keyword) && !preSubFactionMap.has(unitId)) {
+      preSubFactionMap.set(unitId, keyword);
+    }
+  }
+
+  // Apply pre-scan results to units
+  for (const unit of units) {
+    const sf = preSubFactionMap.get(unit.id);
+    if (sf) {
+      unit.sub_faction = sf;
+      preScanAssigned++;
+    }
+  }
+  console.log(`  Pre-dedup sub-faction assigned to ${preScanAssigned} units`);
+
+  // PF-04: Dedup pass — warn on name+faction+sub_faction duplicates (after Legends filter)
+  // Key includes sub_faction so chapter-specific variants are preserved as distinct entries.
   const dedupMap = new Map<string, UdbUnitRow>();
   let dupsFound = 0;
   for (const unit of units) {
-    const key = unit.name.toLowerCase() + ":" + unit.faction_id;
+    const key = unit.name.toLowerCase() + ":" + unit.faction_id + ":" + (unit.sub_faction ?? "");
     if (dedupMap.has(key)) {
-      console.warn(`  WARNING: Duplicate unit "${unit.name}" (faction_id=${unit.faction_id}) — discarding id=${unit.id}`);
+      console.warn(`  WARNING: Duplicate unit "${unit.name}" (faction_id=${unit.faction_id}, sub_faction=${unit.sub_faction ?? "null"}) — discarding id=${unit.id}`);
       dupsFound++;
     } else {
       dedupMap.set(key, unit);
@@ -344,12 +388,15 @@ async function main() {
   console.log(`  Extracted ${composition.length} composition entries`);
 
   // 8b. Assign sub-factions from keywords (D-10)
-  const subFactionValues = new Set(Object.values(SUB_FACTION_MAP));
+  // This is the post-dedup pass using the same KEYWORD_SUB_FACTION_MAP.
+  // It catches any units that were not assigned during the pre-dedup scan
+  // (e.g., if they only gained keywords from merged data).
+  const subFactionValues = new Set(Object.values(KEYWORD_SUB_FACTION_MAP));
   const unitById = new Map(units.map(u => [u.id, u]));
   let subFactionAssigned = 0;
 
   for (const kw of keywords) {
-    if (subFactionValues.has(kw.keyword)) {
+    if (kw.is_faction === 1 && subFactionValues.has(kw.keyword)) {
       const unit = unitById.get(kw.unit_id);
       if (unit && unit.sub_faction === null) {
         unit.sub_faction = kw.keyword;
@@ -358,7 +405,7 @@ async function main() {
     }
   }
 
-  console.log(`  Sub-faction assigned to ${subFactionAssigned} units via keyword matching`);
+  console.log(`  Sub-faction assigned to ${subFactionAssigned} additional units via post-dedup keyword matching`);
 
   // ---------------------------------------------------------------------------
   // Validation (T-103-05: partial dataset detection)
@@ -515,7 +562,29 @@ async function main() {
 
   // Sub-faction stats
   const unitsWithSubFaction = units.filter((u) => u.sub_faction !== null).length;
+  const unitsWithoutSubFaction = units.length - unitsWithSubFaction;
   console.log("  Units with sub_faction: " + unitsWithSubFaction);
+  console.log("  Units without sub_faction (generic): " + unitsWithoutSubFaction);
+
+  // Per-faction sub_faction breakdown
+  const subFactionCounts = new Map<string, Map<string, number>>();
+  for (const unit of units) {
+    if (!subFactionCounts.has(unit.faction_id)) subFactionCounts.set(unit.faction_id, new Map());
+    const sf = unit.sub_faction ?? "(generic)";
+    const fMap = subFactionCounts.get(unit.faction_id)!;
+    fMap.set(sf, (fMap.get(sf) ?? 0) + 1);
+  }
+  console.log("");
+  console.log("=== Sub-faction Distribution ===");
+  for (const [fid, sfMap] of [...subFactionCounts.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+    if (sfMap.size > 1 || !sfMap.has("(generic)")) {
+      const entries = [...sfMap.entries()].sort((a, b) => b[1] - a[1]);
+      console.log(`  ${fid}:`);
+      for (const [sf, count] of entries) {
+        console.log(`    ${sf}: ${count}`);
+      }
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // Step 10.5 — Apply French overlay
@@ -614,7 +683,7 @@ async function main() {
 
   // ---------------------------------------------------------------------------
   // Step 12: Parse Stratagems.csv -> udb_stratagems rows
-  // D-09: Filter Legends. D-02: Empty faction_id/detachment_id → null (nullable FK).
+  // D-09: Filter Legends. D-02: Empty faction_id/detachment_id -> null (nullable FK).
   // ---------------------------------------------------------------------------
   console.log("Step 12: Parsing Stratagems.csv...");
   const stratagems_raw = readCsvFile(DATA_DIR, "Stratagems.csv");

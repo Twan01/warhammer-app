@@ -16,6 +16,11 @@ vi.mock("@/components/common/LocaleToggle", () => ({
   LocaleToggle: () => null,
 }));
 
+// Mock Tauri event API — jsdom has no native bridge.
+vi.mock("@tauri-apps/api/event", () => ({
+  listen: () => Promise.resolve(() => {}),
+}));
+
 // Polyfill ResizeObserver — jsdom does not implement it but cmdk (Command) uses it.
 // Without this polyfill, any test rendering a <Command> component throws:
 // "ReferenceError: ResizeObserver is not defined"
