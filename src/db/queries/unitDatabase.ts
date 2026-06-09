@@ -164,7 +164,7 @@ export async function getUdbUnitsByFaction(
          COALESCE(u.name_fr, u.name) AS name,
          u.role,
          u.sub_faction,
-         (SELECT MIN(p.points) FROM udb_unit_points p WHERE p.unit_id = u.id) AS base_points,
+         COALESCE((SELECT MIN(p.points) FROM udb_unit_points p WHERE p.unit_id = u.id), u.base_points) AS base_points,
          (SELECT MIN(c.min_models) FROM udb_unit_composition c WHERE c.unit_id = u.id) AS min_models,
          (SELECT MAX(c.max_models) FROM udb_unit_composition c WHERE c.unit_id = u.id) AS max_models
        FROM udb_units u
@@ -180,7 +180,7 @@ export async function getUdbUnitsByFaction(
        u.name,
        u.role,
        u.sub_faction,
-       (SELECT MIN(p.points) FROM udb_unit_points p WHERE p.unit_id = u.id) AS base_points,
+       COALESCE((SELECT MIN(p.points) FROM udb_unit_points p WHERE p.unit_id = u.id), u.base_points) AS base_points,
        (SELECT MIN(c.min_models) FROM udb_unit_composition c WHERE c.unit_id = u.id) AS min_models,
        (SELECT MAX(c.max_models) FROM udb_unit_composition c WHERE c.unit_id = u.id) AS max_models
      FROM udb_units u

@@ -77,7 +77,7 @@ describe("getUdbUnitsByFaction", () => {
     mockSelect.mockResolvedValue([]);
     await getUdbUnitsByFaction("SM");
     const sql: string = mockSelect.mock.calls[0][0];
-    expect(sql).not.toContain("COALESCE");
+    expect(sql).not.toContain("name_fr");
   });
 });
 
