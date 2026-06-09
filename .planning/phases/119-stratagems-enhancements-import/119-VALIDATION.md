@@ -1,9 +1,9 @@
 ---
 phase: 119
 slug: stratagems-enhancements-import
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-04
 ---
 
@@ -38,9 +38,9 @@ created: 2026-06-04
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 119-01-01 | 01 | 1 | STR-01 | — | N/A | build | `pnpm build:udb` | ✅ | ⬜ pending |
-| 119-01-02 | 01 | 1 | STR-02 | — | N/A | build | `pnpm build:udb` | ✅ | ⬜ pending |
-| 119-01-03 | 01 | 1 | ENH-01 | — | N/A | build | `pnpm build:udb` | ✅ | ⬜ pending |
+| 119-01-01 | 01 | 1 | STR-01 | — | N/A | unit | `pnpm test -- tests/unit-database/stratagemEnhancementParsing.test.ts` | ✅ | ✅ green |
+| 119-01-02 | 01 | 1 | STR-02 | — | N/A | unit | `pnpm test -- tests/unit-database/stratagemEnhancementParsing.test.ts` | ✅ | ✅ green |
+| 119-01-03 | 01 | 1 | ENH-01 | — | N/A | unit | `pnpm test -- tests/unit-database/stratagemEnhancementParsing.test.ts` | ✅ | ✅ green |
 | 119-02-01 | 02 | 1 | STR-01 | — | N/A | build | `pnpm tauri dev` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
@@ -62,13 +62,31 @@ Existing infrastructure covers all phase requirements. Build pipeline validates 
 
 ---
 
+## Validation Audit 2026-06-09
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 3 |
+| Resolved | 3 |
+| Escalated | 0 |
+
+**Tests created:** `tests/unit-database/stratagemEnhancementParsing.test.ts` (14 tests)
+
+| Gap | Requirement | Resolution |
+|-----|-------------|------------|
+| STR-01 | Stratagem CSV parsing | 4 unit tests — legends filter, row shape, cp_cost parsing, free stratagems |
+| STR-02 | Universal stratagems null FK | 4 unit tests — empty→null conversion, negative case, real JSON verification |
+| ENH-01 | Enhancement CSV parsing | 6 unit tests — legends filter, missing faction_id skip, row shape, cost parsing, null detachment_id |
+
+---
+
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** complete
