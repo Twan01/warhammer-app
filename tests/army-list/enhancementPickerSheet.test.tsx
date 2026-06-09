@@ -1,8 +1,12 @@
-﻿/**
- * Phase 91 â€” ENH-01, ENH-02: EnhancementPickerSheet component tests.
+/**
+ * Phase 120 — ENH-02, ENH-03: EnhancementPickerSheet component tests.
  *
- * Tests enhancement listing, assignment, and preventive validation
- * (max 3, no duplicates, Epic Hero guard).
+ * Phase 120: migrated from BSData (bsdataExtended) to canonical udb_enhancements.
+ * Mocks must target @/hooks/useGameData (useEnhancementsByDetachment), not bsdataExtended.
+ * Tests verify:
+ *   - ENH-02: enhancements listed by detachment_id; cost field used (not points)
+ *   - ENH-03: HTML descriptions rendered via dangerouslySetInnerHTML
+ *   - Validation: max 3, duplicate, Epic Hero guards preserved
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
@@ -10,6 +14,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { EnhancementPickerSheet } from "@/features/army-lists/EnhancementPickerSheet";
 import type { ArmyList, ArmyListUnitRow, ArmyListEnhancement } from "@/types/armyList";
+import type { UdbEnhancement } from "@/types/gameData";
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -18,6 +23,11 @@ import type { ArmyList, ArmyListUnitRow, ArmyListEnhancement } from "@/types/arm
 const mockAddEnhancement = vi.fn().mockResolvedValue(1);
 const mockRemoveEnhancement = vi.fn().mockResolvedValue(undefined);
 const mockGetEnhancementsByList = vi.fn().mockResolvedValue([]);
+
+// Phase 120: mock useGameData, NOT bsdataExtended
+vi.mock("@/hooks/useGameData", () => ({
+  useEnhancementsByDetachment: vi.fn(),
+}));
 
 vi.mock("@/db/queries/armyLists", () => ({
   getArmyLists: vi.fn().mockResolvedValue([]),
@@ -34,13 +44,6 @@ vi.mock("@/db/queries/armyLists", () => ({
   addEnhancement: (...args: unknown[]) => mockAddEnhancement(...args),
   removeEnhancement: (...args: unknown[]) => mockRemoveEnhancement(...args),
   getEnhancementsByList: (...args: unknown[]) => mockGetEnhancementsByList(...args),
-}));
-
-vi.mock("@/db/queries/bsdataExtended", () => ({
-  getEnhancementsByFaction: vi.fn().mockResolvedValue([
-    { name: "Adeptus Command", faction_id: "1", detachment_name: "Gladius Task Force", points: 30 },
-    { name: "Fire Discipline", faction_id: "1", detachment_name: "Gladius Task Force", points: 25 },
-  ]),
 }));
 
 vi.mock("@/hooks/useUnitKeywords", () => ({
@@ -70,6 +73,25 @@ vi.mock("@/db/queries/factions", () => ({
 // ---------------------------------------------------------------------------
 // Fixtures
 // ---------------------------------------------------------------------------
+
+const mockUdbEnhancements: UdbEnhancement[] = [
+  {
+    id: "enh-1",
+    faction_id: "SM",
+    detachment_id: "det-1",
+    name: "Adeptus Command",
+    cost: 30,
+    description: "<b>Once per battle</b>, reroll a command check.",
+  },
+  {
+    id: "enh-2",
+    faction_id: "SM",
+    detachment_id: "det-1",
+    name: "Fire Discipline",
+    cost: 0,
+    description: "Add 1 to hit rolls.",
+  },
+];
 
 function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
   return {
@@ -135,6 +157,14 @@ function makeEnhancement(overrides: Partial<ArmyListEnhancement> = {}): ArmyList
 // Helper
 // ---------------------------------------------------------------------------
 
+async function setupEnhancementsMock(enhancements: UdbEnhancement[] = mockUdbEnhancements) {
+  const { useEnhancementsByDetachment } = await import("@/hooks/useGameData");
+  vi.mocked(useEnhancementsByDetachment).mockReturnValue({
+    data: enhancements,
+    isLoading: false,
+  } as unknown as ReturnType<typeof useEnhancementsByDetachment>);
+}
+
 function renderSheet(
   props: Partial<React.ComponentProps<typeof EnhancementPickerSheet>> = {},
 ) {
@@ -155,16 +185,17 @@ function renderSheet(
 }
 
 // ---------------------------------------------------------------------------
-// Tests: ENH-01
+// Tests: ENH-02 — canonical udb_enhancements data source
 // ---------------------------------------------------------------------------
 
-describe("EnhancementPickerSheet â€” ENH-01 enhancement listing", () => {
-  beforeEach(() => {
+describe("EnhancementPickerSheet — ENH-02 canonical data source (useGameData)", () => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     mockGetEnhancementsByList.mockResolvedValue([]);
+    await setupEnhancementsMock();
   });
 
-  it("renders enhancement list for detachment", async () => {
+  it("renders enhancement list from useEnhancementsByDetachment (not bsdataExtended)", async () => {
     renderSheet();
     await waitFor(() => {
       expect(screen.getByText("Adeptus Command")).toBeInTheDocument();
@@ -172,22 +203,40 @@ describe("EnhancementPickerSheet â€” ENH-01 enhancement listing", () => {
     });
   });
 
-  it("Assign button is enabled and clickable for unassigned enhancements", async () => {
+  it("shows cost badge using enhancement.cost field — '30 pts' for cost=30", async () => {
     renderSheet();
+    await waitFor(() => {
+      expect(screen.getByText("30 pts")).toBeInTheDocument();
+    });
+  });
 
+  it("shows 'Free' badge when enhancement.cost is 0", async () => {
+    renderSheet();
+    await waitFor(() => {
+      expect(screen.getByText("Free")).toBeInTheDocument();
+    });
+  });
+
+  it("Assign button is enabled for unassigned enhancements", async () => {
+    renderSheet();
     await waitFor(() => {
       expect(screen.getByText("Adeptus Command")).toBeInTheDocument();
     });
 
     const assignButtons = screen.getAllByRole("button", { name: /assign/i });
-    // Both enhancements should have enabled Assign buttons
     expect(assignButtons).toHaveLength(2);
     expect(assignButtons[0]).not.toBeDisabled();
     expect(assignButtons[1]).not.toBeDisabled();
   });
 
-  it("shows no-detachment message when list.detachment_name is null", async () => {
-    renderSheet({ list: makeList({ detachment_name: null }) });
+  it("shows no-detachment message when list.detachment_id is null", async () => {
+    const { useEnhancementsByDetachment } = await import("@/hooks/useGameData");
+    vi.mocked(useEnhancementsByDetachment).mockReturnValue({
+      data: [],
+      isLoading: false,
+    } as unknown as ReturnType<typeof useEnhancementsByDetachment>);
+
+    renderSheet({ list: makeList({ detachment_id: null, detachment_name: null }) });
     await waitFor(() => {
       expect(screen.getByText(/select a detachment first/i)).toBeInTheDocument();
     });
@@ -195,15 +244,58 @@ describe("EnhancementPickerSheet â€” ENH-01 enhancement listing", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests: ENH-02
+// Tests: ENH-03 — HTML description rendering
 // ---------------------------------------------------------------------------
 
-describe("EnhancementPickerSheet â€” ENH-02 preventive validation", () => {
-  beforeEach(() => {
+describe("EnhancementPickerSheet — ENH-03 HTML descriptions via dangerouslySetInnerHTML", () => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+    mockGetEnhancementsByList.mockResolvedValue([]);
+    await setupEnhancementsMock();
   });
 
-  it("Assign button disabled when 3 enhancements already assigned", async () => {
+  it("renders HTML description content (bold text from <b> tag is visible)", async () => {
+    renderSheet();
+    await waitFor(() => {
+      // The description "<b>Once per battle</b>, reroll a command check."
+      // should render the text as DOM content (the <b> tag is processed by the browser)
+      expect(screen.getByText(/once per battle/i)).toBeInTheDocument();
+    });
+  });
+
+  it("description innerHTML contains raw HTML markup (not escaped text)", async () => {
+    renderSheet();
+    await waitFor(() => {
+      expect(screen.getByText("Adeptus Command")).toBeInTheDocument();
+    });
+
+    // Sheet renders in a portal — query document.body, not container.
+    // dangerouslySetInnerHTML: the div's innerHTML must contain the HTML tag,
+    // NOT escaped entities like &lt;b&gt;. We find all divs with mt-1 class.
+    const allDivs = Array.from(document.body.querySelectorAll("div"));
+    const descriptionDivs = allDivs.filter(
+      (div) => div.className.includes("mt-1"),
+    );
+    expect(descriptionDivs.length).toBeGreaterThan(0);
+    // The innerHTML must contain "<b>" as a real tag, not "&lt;b&gt;" (escaped)
+    const htmlContents = descriptionDivs.map((d) => d.innerHTML);
+    const hasRealHtmlTag = htmlContents.some((html) => html.includes("<b>"));
+    expect(hasRealHtmlTag).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tests: Validation logic preserved
+// ---------------------------------------------------------------------------
+
+describe("EnhancementPickerSheet — validation logic preserved (D-11)", () => {
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    mockGetEnhancementsByList.mockResolvedValue([]);
+    await setupEnhancementsMock();
+  });
+
+  it("Assign button disabled when 3 enhancements already assigned (max 3 rule)", async () => {
     mockGetEnhancementsByList.mockResolvedValue([
       makeEnhancement({ id: 1, enhancement_name: "Enh A", army_list_unit_id: 20 }),
       makeEnhancement({ id: 2, enhancement_name: "Enh B", army_list_unit_id: 21 }),
@@ -212,36 +304,34 @@ describe("EnhancementPickerSheet â€” ENH-02 preventive validation", () => {
 
     renderSheet();
 
+    // Wait until enhancements are visible AND all Assign buttons are disabled
     await waitFor(() => {
       expect(screen.getByText("Adeptus Command")).toBeInTheDocument();
+      const assignButtons = screen.getAllByRole("button", { name: /assign/i });
+      expect(assignButtons.length).toBeGreaterThan(0);
+      for (const btn of assignButtons) {
+        expect(btn).toBeDisabled();
+      }
     });
-
-    // All Assign buttons should be disabled
-    const assignButtons = screen.getAllByRole("button", { name: /assign/i });
-    for (const btn of assignButtons) {
-      expect(btn).toBeDisabled();
-    }
   });
 
-  it("Assign button disabled when enhancement is a duplicate", async () => {
+  it("Assign button disabled when enhancement is already assigned (duplicate rule)", async () => {
     mockGetEnhancementsByList.mockResolvedValue([
       makeEnhancement({ id: 1, enhancement_name: "Adeptus Command", army_list_unit_id: 20 }),
     ]);
 
     renderSheet();
 
+    // Wait until React Query resolves both useEnhancementsByDetachment and useEnhancementsByList
     await waitFor(() => {
       expect(screen.getByText("Adeptus Command")).toBeInTheDocument();
+      const assignButtons = screen.getAllByRole("button", { name: /assign/i });
+      expect(assignButtons).toHaveLength(2);
+      // Adeptus Command is duplicated — its button is disabled
+      expect(assignButtons[0]).toBeDisabled();
+      // Fire Discipline is not duplicated — its button is enabled
+      expect(assignButtons[1]).not.toBeDisabled();
     });
-
-    // The "Adeptus Command" row should have a disabled Assign button
-    // The "Fire Discipline" row should have an enabled Assign button
-    const assignButtons = screen.getAllByRole("button", { name: /assign/i });
-    expect(assignButtons).toHaveLength(2);
-    // First button (Adeptus Command) is disabled
-    expect(assignButtons[0]).toBeDisabled();
-    // Second button (Fire Discipline) is enabled
-    expect(assignButtons[1]).not.toBeDisabled();
   });
 
   it("Assign button disabled for Epic Hero unit", async () => {
