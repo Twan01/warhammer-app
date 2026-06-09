@@ -1,6 +1,6 @@
 {
-  "version": "1.0.0+8dc96a6a",
-  "built_at": "2026-06-09T15:01:37.822Z",
+  "version": "1.0.0+b1b21694",
+  "built_at": "2026-06-09T15:27:06.896Z",
   "game_system": "40k-10th",
   "unit_count": 1710,
   "faction_count": 25,
@@ -2692,7 +2692,7 @@
       "faction_id": "TAU",
       "name": "Tidewall Shieldline",
       "role": "Fortifications",
-      "base_points": null,
+      "base_points": 85,
       "damaged_w": "",
       "damaged_desc": "",
       "sub_faction": null,
@@ -313340,11 +313340,6 @@
     },
     {
       "unit_id": "000000116",
-      "model_count": 3,
-      "points": 55
-    },
-    {
-      "unit_id": "000000116",
       "model_count": 6,
       "points": 160
     },
@@ -313712,16 +313707,6 @@
       "unit_id": "000000433",
       "model_count": 3,
       "points": 270
-    },
-    {
-      "unit_id": "000000436",
-      "model_count": 1,
-      "points": 85
-    },
-    {
-      "unit_id": "000000436",
-      "model_count": 2,
-      "points": 20
     },
     {
       "unit_id": "000000443",
@@ -314190,11 +314175,6 @@
     },
     {
       "unit_id": "000000615",
-      "model_count": 3,
-      "points": 30
-    },
-    {
-      "unit_id": "000000615",
       "model_count": 5,
       "points": 115
     },
@@ -314544,19 +314524,9 @@
       "points": 110
     },
     {
-      "unit_id": "000000870",
-      "model_count": 1,
-      "points": 125
-    },
-    {
       "unit_id": "000000872",
       "model_count": 1,
       "points": 110
-    },
-    {
-      "unit_id": "000000872",
-      "model_count": 1,
-      "points": 120
     },
     {
       "unit_id": "000000876",
@@ -314564,19 +314534,9 @@
       "points": 75
     },
     {
-      "unit_id": "000000876",
-      "model_count": 1,
-      "points": 95
-    },
-    {
       "unit_id": "000000877",
       "model_count": 1,
       "points": 55
-    },
-    {
-      "unit_id": "000000877",
-      "model_count": 1,
-      "points": 65
     },
     {
       "unit_id": "000000882",
@@ -315259,11 +315219,6 @@
       "points": 75
     },
     {
-      "unit_id": "000002090",
-      "model_count": 1,
-      "points": 110
-    },
-    {
       "unit_id": "000002098",
       "model_count": 5,
       "points": 110
@@ -315437,11 +315392,6 @@
       "unit_id": "000002509",
       "model_count": 6,
       "points": 50
-    },
-    {
-      "unit_id": "000002509",
-      "model_count": 6,
-      "points": 70
     },
     {
       "unit_id": "000002521",
@@ -315719,11 +315669,6 @@
       "points": 85
     },
     {
-      "unit_id": "000002684",
-      "model_count": 11,
-      "points": 100
-    },
-    {
       "unit_id": "000002686",
       "model_count": 5,
       "points": 55
@@ -315790,11 +315735,6 @@
     },
     {
       "unit_id": "000002712",
-      "model_count": 3,
-      "points": 60
-    },
-    {
-      "unit_id": "000002712",
       "model_count": 6,
       "points": 160
     },
@@ -315854,19 +315794,9 @@
       "points": 75
     },
     {
-      "unit_id": "000002762",
-      "model_count": 4,
-      "points": 105
-    },
-    {
       "unit_id": "000002765",
       "model_count": 1,
       "points": 60
-    },
-    {
-      "unit_id": "000002765",
-      "model_count": 1,
-      "points": 75
     },
     {
       "unit_id": "000002767",
@@ -315875,18 +315805,8 @@
     },
     {
       "unit_id": "000002767",
-      "model_count": 6,
-      "points": 60
-    },
-    {
-      "unit_id": "000002767",
       "model_count": 12,
       "points": 100
-    },
-    {
-      "unit_id": "000002767",
-      "model_count": 12,
-      "points": 120
     },
     {
       "unit_id": "000002776",
@@ -316054,19 +315974,9 @@
       "points": 190
     },
     {
-      "unit_id": "000003813",
-      "model_count": 5,
-      "points": 210
-    },
-    {
       "unit_id": "000003815",
       "model_count": 1,
       "points": 95
-    },
-    {
-      "unit_id": "000003815",
-      "model_count": 1,
-      "points": 105
     },
     {
       "unit_id": "000003816",
@@ -316079,11 +315989,6 @@
       "points": 190
     },
     {
-      "unit_id": "000003816",
-      "model_count": 10,
-      "points": 200
-    },
-    {
       "unit_id": "000003818",
       "model_count": 1,
       "points": 115
@@ -316097,11 +316002,6 @@
       "unit_id": "000003819",
       "model_count": 1,
       "points": 100
-    },
-    {
-      "unit_id": "000003819",
-      "model_count": 1,
-      "points": 115
     },
     {
       "unit_id": "000003822",
@@ -316695,11 +316595,6 @@
     },
     {
       "unit_id": "000004131",
-      "model_count": 6,
-      "points": 170
-    },
-    {
-      "unit_id": "000004131",
       "model_count": 12,
       "points": 220
     },
@@ -316772,11 +316667,6 @@
       "unit_id": "000004154",
       "model_count": 10,
       "points": 150
-    },
-    {
-      "unit_id": "000004154",
-      "model_count": 10,
-      "points": 135
     },
     {
       "unit_id": "000004154",
@@ -316982,11 +316872,6 @@
       "unit_id": "000004200",
       "model_count": 2,
       "points": 150
-    },
-    {
-      "unit_id": "000004214",
-      "model_count": 1,
-      "points": 100
     },
     {
       "unit_id": "000004214",
@@ -318398,7 +318283,7 @@
     {
       "unit_id": "000000436",
       "min_models": 1,
-      "max_models": 2,
+      "max_models": 1,
       "notes": ""
     },
     {
@@ -319285,7 +319170,7 @@
     },
     {
       "unit_id": "000000615",
-      "min_models": 3,
+      "min_models": 5,
       "max_models": 10,
       "notes": ""
     },

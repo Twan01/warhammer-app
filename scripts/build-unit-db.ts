@@ -338,11 +338,16 @@ async function main() {
   const composition: UdbUnitCompositionRow[] = [];
 
   // Group cost rows by datasheet_id
+  // Skip rows where cost starts with "+" — these are per-model upgrade add-ons
+  // (e.g., "Attack Bike|+55|"), not standalone point tiers.
   const costByUnit = new Map<string, Array<{ line: number; description: string; cost: number }>>();
+  let upgradesSkipped = 0;
   for (const row of costRows) {
     const id = row["datasheet_id"]?.trim();
     if (!id || !validUnitIds.has(id)) continue;
-    const cost = parseInt(row["cost"]?.trim() ?? "0", 10);
+    const costRaw = row["cost"]?.trim() ?? "0";
+    if (costRaw.startsWith("+")) { upgradesSkipped++; continue; }
+    const cost = parseInt(costRaw, 10);
     if (cost <= 0) continue;
     const arr = costByUnit.get(id) ?? [];
     arr.push({
@@ -352,6 +357,7 @@ async function main() {
     });
     costByUnit.set(id, arr);
   }
+  if (upgradesSkipped > 0) console.log(`  Skipped ${upgradesSkipped} per-model upgrade cost rows (+N format)`);
 
   const matchedUnits = new Set<string>();
 
@@ -367,8 +373,13 @@ async function main() {
       }
     } else {
       // Multi-tier: create one UdbUnitPointsRow per tier (D-02)
+      // Dedup by (unit_id, model_count) — keep first occurrence
+      const seenTierKeys = new Set<string>();
       for (const tier of tiers) {
         const modelCount = extractModelCount(tier.description, tier.line);
+        const tierKey = `${unitId}:${modelCount}`;
+        if (seenTierKeys.has(tierKey)) continue;
+        seenTierKeys.add(tierKey);
         points.push({ unit_id: unitId, model_count: modelCount, points: tier.cost });
         matchedUnits.add(unitId);
       }
