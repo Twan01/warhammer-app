@@ -219,6 +219,7 @@ export function UnitSheet({
               hasTiers={hasTiers}
               tiersCount={tiers?.length ?? 0}
               unit={unit}
+              udbUnitId={isEdit ? ((unit as Unit).udb_unit_id ?? null) : (prefillUdbUnitId ?? null)}
             />
 
             <SheetFooter className="mt-6 gap-2 sm:gap-2">

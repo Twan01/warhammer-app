@@ -63,12 +63,12 @@ export function TierManager({ unitId }: TierManagerProps) {
     );
   }
 
-  function handleSetActive(points: number) {
+  function handleSetActive(modelCount: number, points: number) {
     updateUnit.mutate(
-      { id: unitId, points },
+      { id: unitId, points, model_count: modelCount },
       {
         onSuccess: () => {
-          toast.success(`Points updated to ${points} pts`);
+          toast.success(`Set to ${modelCount} models — ${points} pts`);
         },
         onError: (err) => {
           toast.error(`Failed to update points: ${err.message}`);
@@ -117,7 +117,7 @@ export function TierManager({ unitId }: TierManagerProps) {
                         variant="outline"
                         size="sm"
                         className="h-6 px-2 text-xs"
-                        onClick={() => handleSetActive(tier.points)}
+                        onClick={() => handleSetActive(tier.model_count, tier.points)}
                         disabled={updateUnit.isPending}
                       >
                         Set Active

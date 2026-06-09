@@ -28,19 +28,23 @@ import {
   NullableTextField,
   NullableTextareaField,
 } from "./UnitFormFields";
+import { useUdbPointsTiers } from "@/hooks/useUnitDatabase";
 
 interface UnitFormOptionalProps {
   hasTiers: boolean;
   tiersCount: number;
   unit: Unit | EnrichedUnit | null;
+  udbUnitId: string | null;
 }
 
-export function UnitFormOptional({ hasTiers, tiersCount, unit }: UnitFormOptionalProps) {
+export function UnitFormOptional({ hasTiers, tiersCount, unit, udbUnitId }: UnitFormOptionalProps) {
   const { control, setValue } = useFormContext<UnitFormValues>();
   const [expanded, setExpanded] = useState(false);
 
   const udbBasePoints = unit && "udb_base_points" in unit ? (unit as EnrichedUnit).udb_base_points : null;
-  const isLinked = unit && "is_linked" in unit ? (unit as EnrichedUnit).is_linked : false;
+  const isLinked = unit && "is_linked" in unit ? (unit as EnrichedUnit).is_linked : !!udbUnitId;
+  const { data: udbTiers = [] } = useUdbPointsTiers(udbUnitId);
+  const hasUdbTiers = udbTiers.length > 0;
 
   async function handlePickImage() {
     const path = await openDialog({
@@ -106,7 +110,53 @@ export function UnitFormOptional({ hasTiers, tiersCount, unit }: UnitFormOptiona
           <Separator />
 
           {/* Counts & points */}
-          <NullableNumberField name="model_count" label="Model Count" min={0} />
+          {hasUdbTiers ? (
+            <FormField
+              name="model_count"
+              control={control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Model Count</FormLabel>
+                  <Select
+                    value={field.value !== null && field.value !== undefined ? String(field.value) : "__none__"}
+                    onValueChange={(v) => {
+                      if (v === "__none__") {
+                        field.onChange(null);
+                        if (!hasTiers) setValue("points", null, { shouldValidate: true });
+                        return;
+                      }
+                      const mc = parseInt(v, 10);
+                      field.onChange(mc);
+                      const tier = udbTiers.find((t) => t.model_count === mc);
+                      if (tier && !hasTiers) {
+                        setValue("points", tier.points, { shouldValidate: true });
+                      }
+                    }}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select model count" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="__none__">None</SelectItem>
+                      {udbTiers.map((tier) => (
+                        <SelectItem key={tier.model_count} value={String(tier.model_count)}>
+                          {tier.model_count} models — {tier.points} pts
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Valid sizes from unit database
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ) : (
+            <NullableNumberField name="model_count" label="Model Count" min={0} />
+          )}
           <NullableNumberField name="owned_count" label="Owned Count" min={0} />
 
           <FormField
@@ -127,13 +177,17 @@ export function UnitFormOptional({ hasTiers, tiersCount, unit }: UnitFormOptiona
                         e.target.value === "" ? null : e.target.valueAsNumber
                       )
                     }
-                    disabled={hasTiers}
-                    className={hasTiers ? "cursor-not-allowed opacity-60" : undefined}
+                    disabled={hasTiers || hasUdbTiers}
+                    className={hasTiers || hasUdbTiers ? "cursor-not-allowed opacity-60" : undefined}
                   />
                 </FormControl>
                 {hasTiers ? (
                   <p className="text-xs text-muted-foreground mt-1">
                     Managed by point tiers ({tiersCount} tier{tiersCount !== 1 ? "s" : ""} defined)
+                  </p>
+                ) : hasUdbTiers ? (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Auto-set from model count tier
                   </p>
                 ) : isLinked && udbBasePoints !== null && field.value === null ? (
                   <p className="text-xs text-muted-foreground mt-1">

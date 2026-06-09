@@ -21,6 +21,7 @@ import {
   getUdbKeywordsByFaction,
   getDistinctSubFactions,
   getUdbUnitIdsBySubFaction,
+  getUdbPointsTiers,
 } from "@/db/queries/unitDatabase";
 import type { UdbOwnershipEntry } from "@/db/queries/unitDatabase";
 import { useLocaleStore } from "@/stores/localeStore";
@@ -192,6 +193,26 @@ export function useUdbSubFactionUnitIds(factionId: string | null, subFaction: st
         ? getUdbUnitIdsBySubFaction(factionId, subFaction)
         : Promise.resolve([]),
     enabled: !!factionId && !!subFaction,
+    staleTime: Infinity,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// UDB Points Tiers — for collection form tier dropdown
+// ---------------------------------------------------------------------------
+
+export const UDB_POINTS_TIERS_KEY = (udbUnitId: string) =>
+  ["udb-points-tiers", udbUnitId] as const;
+
+export function useUdbPointsTiers(udbUnitId: string | null | undefined) {
+  return useQuery({
+    queryKey:
+      udbUnitId
+        ? UDB_POINTS_TIERS_KEY(udbUnitId)
+        : (["udb-points-tiers", "disabled"] as const),
+    queryFn: () =>
+      udbUnitId ? getUdbPointsTiers(udbUnitId) : Promise.resolve([]),
+    enabled: !!udbUnitId,
     staleTime: Infinity,
   });
 }

@@ -358,6 +358,16 @@ export async function searchUdbUnits(
  * Phase 109 — Returns distinct non-null sub-faction names for a faction,
  * sorted alphabetically. Returns empty array for factions without sub-factions.
  */
+export async function getUdbPointsTiers(
+  udbUnitId: string,
+): Promise<UdbPointsTier[]> {
+  const db = await getDb();
+  return db.select<UdbPointsTier[]>(
+    "SELECT * FROM udb_unit_points WHERE unit_id = $1 ORDER BY model_count ASC",
+    [udbUnitId],
+  );
+}
+
 export async function getDistinctSubFactions(
   factionId: string,
 ): Promise<string[]> {

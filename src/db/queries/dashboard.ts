@@ -90,13 +90,16 @@ export async function getArmyReadinessByFaction(): Promise<FactionReadiness[]> {
        f.id AS faction_id,
        f.name AS faction_name,
        f.color_theme,
-       SUM(COALESCE(udb_base.points, uo.points, u.points, 0)) AS points_owned,
+       SUM(COALESCE(udb_tier.points, udb_base.points, uo.points, u.points, 0)) AS points_owned,
        SUM(CASE WHEN u.status_painting = 'Completed'
-                THEN COALESCE(udb_base.points, uo.points, u.points, 0)
+                THEN COALESCE(udb_tier.points, udb_base.points, uo.points, u.points, 0)
                 ELSE 0 END) AS points_painted
      FROM factions f
      JOIN units u ON u.faction_id = f.id
      LEFT JOIN unit_overrides uo ON uo.unit_id = u.id
+     LEFT JOIN udb_unit_points udb_tier
+       ON udb_tier.unit_id = u.udb_unit_id
+       AND udb_tier.model_count = u.model_count
      LEFT JOIN udb_unit_points udb_base
        ON udb_base.unit_id = u.udb_unit_id
        AND udb_base.model_count = (

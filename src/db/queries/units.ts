@@ -19,11 +19,14 @@ export async function getUnitsWithPoints(): Promise<EnrichedUnit[]> {
   const db = await getDb();
   const rows = await db.select<Array<Unit & { udb_base_points: number | null }>>(
     `SELECT u.*,
-            udb_base.points AS udb_base_points
+            COALESCE(udb_tier.points, udb_min.points) AS udb_base_points
      FROM units u
-     LEFT JOIN udb_unit_points udb_base
-       ON udb_base.unit_id = u.udb_unit_id
-       AND udb_base.model_count = (
+     LEFT JOIN udb_unit_points udb_tier
+       ON udb_tier.unit_id = u.udb_unit_id
+       AND udb_tier.model_count = u.model_count
+     LEFT JOIN udb_unit_points udb_min
+       ON udb_min.unit_id = u.udb_unit_id
+       AND udb_min.model_count = (
          SELECT MIN(model_count)
          FROM udb_unit_points
          WHERE unit_id = u.udb_unit_id
