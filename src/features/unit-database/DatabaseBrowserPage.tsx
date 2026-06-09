@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -10,10 +10,11 @@ import {
   useUdbKeywords,
   useUdbSubFactions,
 } from "@/hooks/useUnitDatabase";
-import { useFactions } from "@/hooks/useFactions";
+import { useFactions, useUpdateFaction } from "@/hooks/useFactions";
 import { useDatabaseBrowserFilters } from "./databaseBrowserFilters";
 import { applyUdbFilters } from "./applyUdbFilters";
 import { FactionPicker } from "./FactionPicker";
+import { FactionLinkDialog } from "./FactionLinkDialog";
 import { DatabaseBrowserFilters } from "./UdbFilterBar";
 import { UdbUnitList } from "./UdbUnitList";
 import { UdbSearchResults } from "./UdbSearchResults";
@@ -25,6 +26,7 @@ import type { UnitFormValues } from "@/features/units/unitSchema";
 export function DatabaseBrowserPage() {
   const { data: factions = [], isLoading: factionsLoading } = useUdbFactions();
   const { data: collectionFactions = [] } = useFactions();
+  const updateFaction = useUpdateFaction();
 
   const {
     selectedFactionId,
@@ -100,38 +102,75 @@ export function DatabaseBrowserPage() {
     useState<Partial<UnitFormValues> | null>(null);
   const [unitSheetUdbId, setUnitSheetUdbId] = useState<string | null>(null);
 
+  // Faction link dialog state
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [pendingUnit, setPendingUnit] = useState<UdbUnitDetail | null>(null);
+
+  /** Open the UnitSheet pre-filled from a UDB unit + resolved collection faction */
+  const openUnitSheet = useCallback(
+    (unit: UdbUnitDetail, collectionFactionId: number) => {
+      const basePoints =
+        unit.points.length > 0
+          ? Math.min(...unit.points.map((p) => p.points))
+          : null;
+      const minModels = unit.composition[0]?.min_models ?? 1;
+
+      const prefill: Partial<UnitFormValues> = {
+        name: unit.name,
+        faction_id: collectionFactionId,
+        category: unit.role ?? "",
+        points: basePoints,
+        model_count: minModels,
+      };
+
+      setUnitSheetPrefill(prefill);
+      setUnitSheetUdbId(unit.id);
+      setSelectedUnitId(null);
+      setUnitSheetOpen(true);
+    },
+    [],
+  );
+
   function handleAddToCollection(unit: UdbUnitDetail) {
-    // Map udb faction_id (text) → collection faction_id (integer)
+    // Try automatic match: collection faction's wahapedia_faction_id === UDB unit's faction_id
     const matchedFaction = collectionFactions.find(
       (f) => f.wahapedia_faction_id === unit.faction_id,
     );
-    if (!matchedFaction) {
-      toast.error("No matching collection faction found. Create the faction first.");
+
+    if (matchedFaction) {
+      openUnitSheet(unit, matchedFaction.id);
       return;
     }
-    const factionId = matchedFaction.id;
 
-    const basePoints = unit.points.length > 0
-      ? Math.min(...unit.points.map((p) => p.points))
-      : null;
+    // No automatic match — show faction link dialog so the user can pick
+    if (collectionFactions.length === 0) {
+      toast.error("No collection factions found. Create a faction first.");
+      return;
+    }
 
-    // Min models from first composition entry
-    const minModels = unit.composition[0]?.min_models ?? 1;
+    setPendingUnit(unit);
+    setLinkDialogOpen(true);
+  }
 
-    const prefill: Partial<UnitFormValues> = {
-      name: unit.name,
-      faction_id: factionId,
-      category: unit.role ?? "",
-      points: basePoints,
-      model_count: minModels,
-    };
+  async function handleFactionLinkConfirm(collectionFactionId: number) {
+    if (!pendingUnit) return;
 
-    setUnitSheetPrefill(prefill);
-    setUnitSheetUdbId(unit.id);
-    // Close datasheet sheet
-    setSelectedUnitId(null);
-    // Open UnitSheet in create mode
-    setUnitSheetOpen(true);
+    // Persist the link so future adds match automatically
+    try {
+      await updateFaction.mutateAsync({
+        id: collectionFactionId,
+        wahapedia_faction_id: pendingUnit.faction_id,
+      });
+    } catch {
+      toast.error("Failed to link faction. Please try again.");
+      return;
+    }
+
+    setLinkDialogOpen(false);
+    openUnitSheet(pendingUnit, collectionFactionId);
+    setPendingUnit(null);
+
+    toast.success("Faction linked. Future adds will match automatically.");
   }
 
   function handleUnitSheetClose() {
@@ -139,6 +178,13 @@ export function DatabaseBrowserPage() {
     setUnitSheetPrefill(null);
     setUnitSheetUdbId(null);
   }
+
+  // Resolve UDB faction name for the link dialog
+  const pendingUdbFactionName = useMemo(() => {
+    if (!pendingUnit) return "";
+    const udbFaction = factions.find((f) => f.id === pendingUnit.faction_id);
+    return udbFaction?.name ?? pendingUnit.faction_id;
+  }, [pendingUnit, factions]);
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -207,6 +253,19 @@ export function DatabaseBrowserPage() {
         prefill={unitSheetPrefill ?? undefined}
         prefillUdbUnitId={unitSheetUdbId}
         onClose={handleUnitSheetClose}
+      />
+
+      <FactionLinkDialog
+        open={linkDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setLinkDialogOpen(false);
+            setPendingUnit(null);
+          }
+        }}
+        factions={collectionFactions}
+        udbFactionName={pendingUdbFactionName}
+        onConfirm={handleFactionLinkConfirm}
       />
     </div>
   );
