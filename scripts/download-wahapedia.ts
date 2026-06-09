@@ -14,7 +14,7 @@
  *   pnpm download:wahapedia -- --force   # re-download all files
  */
 
-import { writeFileSync, existsSync } from "node:fs";
+import { writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -22,6 +22,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const DATA_DIR = join(__dirname, "data");
+if (!existsSync(DATA_DIR)) {
+  mkdirSync(DATA_DIR, { recursive: true });
+}
 const BASE_URL = "https://wahapedia.ru/wh40k10ed/";
 
 const CSV_FILES = [

@@ -68,6 +68,7 @@ const REQUIRED_CSVs = [
   "Datasheets_abilities.csv",
   "Datasheets_keywords.csv",
   "Datasheets_wargear.csv",
+  "Datasheets_models_cost.csv",
   "Detachment_abilities.csv",
   "Stratagems.csv",
   "Enhancements.csv",
@@ -80,7 +81,6 @@ const REQUIRED_CSVs = [
 /**
  * Load the French translation overlay from translations_fr.json.
  * Returns the overlay object if the file exists and is valid JSON.
- * Returns null and emits a console.warn if the file is missing or malformed.
  * Returns null and emits a console.warn if the file is missing or malformed.
  */
 function loadTranslationsFr(): TranslationsFrOverlay | null {
@@ -590,7 +590,7 @@ async function main() {
 
     if (!detachmentId || !factionId || !abilityId || !abilityName) continue;
 
-    if (factionId && !factionIds.has(factionId)) {
+    if (!factionIds.has(factionId)) {
       console.warn(`  WARNING: Skipping detachment ability "${abilityName}" — unknown faction_id "${factionId}"`);
       continue;
     }
@@ -629,10 +629,18 @@ async function main() {
     const isLegend = row["legend"] === "1" || row["legend"] === "true";
     if (isLegend) { stratagemLegendsSkipped++; continue; }
 
+    const fid = row["faction_id"]?.trim() || null;
+    const did = row["detachment_id"]?.trim() || null;
+
+    if (fid && !factionIds.has(fid)) {
+      console.warn(`  WARNING: Skipping stratagem "${name}" — unknown faction_id "${fid}"`);
+      continue;
+    }
+
     stratagems.push({
       id,
-      faction_id: row["faction_id"]?.trim() || null,      // "" → null for universal stratagems
-      detachment_id: row["detachment_id"]?.trim() || null, // "" → null for universal stratagems
+      faction_id: fid,
+      detachment_id: did && seenDetachmentIds.has(did) ? did : null,
       name,
       type: row["type"]?.trim() ?? "",
       cp_cost: parseInt(row["cp_cost"]?.trim() ?? "0", 10) || 0,
@@ -661,10 +669,16 @@ async function main() {
     const isLegend = row["legend"] === "1" || row["legend"] === "true";
     if (isLegend) { enhancementLegendsSkipped++; continue; }
 
+    if (!factionIds.has(faction_id)) {
+      console.warn(`  WARNING: Skipping enhancement "${name}" — unknown faction_id "${faction_id}"`);
+      continue;
+    }
+
+    const enh_did = row["detachment_id"]?.trim() || null;
     enhancements.push({
       id,
       faction_id,
-      detachment_id: row["detachment_id"]?.trim() || null,
+      detachment_id: enh_did && seenDetachmentIds.has(enh_did) ? enh_did : null,
       name,
       cost: parseInt(row["cost"]?.trim() ?? "0", 10) || 0,
       description: row["description"]?.trim() ?? "",
@@ -720,13 +734,17 @@ async function main() {
     return c !== 0 ? c : a.model_count - b.model_count;
   });
   composition.sort((a, b) => a.unit_id.localeCompare(b.unit_id));
+  detachments.sort((a, b) => a.id.localeCompare(b.id));
+  detachmentAbilities.sort((a, b) => a.id.localeCompare(b.id));
+  stratagems.sort((a, b) => a.id.localeCompare(b.id));
+  enhancements.sort((a, b) => a.id.localeCompare(b.id));
 
   // ---------------------------------------------------------------------------
   // Assemble and write output JSON (D-05)
   // ---------------------------------------------------------------------------
   // Derive version from content hash so re-imports detect any data change
   const { createHash } = await import("node:crypto");
-  const hash = createHash("sha256").update(JSON.stringify({ factions, units, weapons, points, abilities, keywords, composition, detachments, detachmentAbilities, stratagems, enhancements })).digest("hex").slice(0, 8);
+  const hash = createHash("sha256").update(JSON.stringify({ factions, units, models, weapons, points, abilities, keywords, composition, detachments, detachmentAbilities, stratagems, enhancements })).digest("hex").slice(0, 8);
   const buildVersion = `1.0.0+${hash}`;
 
   const output: UnitDatabaseJson = {

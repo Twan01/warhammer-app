@@ -9,20 +9,13 @@ import {
 } from "@/components/ui/collapsible";
 import { useStratagemsByDetachment } from "@/hooks/useGameData";
 import type { UdbStratagem } from "@/types/gameData";
+import { PHASE_STYLES, normalizePhase } from "@/lib/stratagemStyles";
 import { useRulesFavorites } from "@/hooks/useRulesFavorites";
 import { useForgottenRules } from "@/hooks/useBattleLogs";
 import { useGameDayStore } from "./gameDayStore";
 import { GameDayStratagemCard } from "./GameDayStratagemCard";
 
 const PHASE_ORDER = ["Command", "Movement", "Shooting", "Charge", "Fight"] as const;
-
-const PHASE_STYLES: Record<string, string> = {
-  Command: "bg-purple-500/20 text-purple-700 dark:text-purple-300",
-  Movement: "bg-blue-500/20 text-blue-700 dark:text-blue-300",
-  Shooting: "bg-amber-500/20 text-amber-700 dark:text-amber-300",
-  Charge: "bg-orange-500/20 text-orange-700 dark:text-orange-300",
-  Fight: "bg-red-500/20 text-red-700 dark:text-red-300",
-};
 
 const RULE_TYPE_LABELS: Record<string, string> = {
   stratagem: "Stratagem",
@@ -35,11 +28,6 @@ interface StrategemsTabProps {
   listId: number;
 }
 
-/** Normalize Wahapedia phase strings like "Shooting phase" -> "Shooting" for PHASE_ORDER matching. */
-function normalizePhase(phase: string | null): string | null {
-  if (!phase) return null;
-  return phase.replace(/ phase$/i, "").trim();
-}
 
 export function StrategemsTab({ detachmentId, listId }: StrategemsTabProps) {
   const { data: stratagems, isLoading } = useStratagemsByDetachment(

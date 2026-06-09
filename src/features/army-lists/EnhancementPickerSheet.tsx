@@ -14,6 +14,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+import { sanitizeRulesHtml } from "@/lib/sanitizeHtml";
 import { useEnhancementsByDetachment } from "@/hooks/useGameData";
 import type { UdbEnhancement } from "@/types/gameData";
 import { useEnhancementsByList, useAddEnhancement, useRemoveEnhancement } from "@/hooks/useArmyLists";
@@ -50,7 +51,7 @@ export function EnhancementPickerSheet({ open, unit, list, onClose }: Enhancemen
   const { data: listEnhancements = [] } = useEnhancementsByList(list?.id);
 
   // Secondary guard: check if unit is an Epic Hero
-  const { data: keywords } = useUnitKeywords(unit?.unit_name, unit?.udb_unit_id);
+  const { data: keywords, isLoading: keywordsLoading } = useUnitKeywords(unit?.unit_name, unit?.udb_unit_id);
 
   const addEnhancement = useAddEnhancement();
   const removeEnhancement = useRemoveEnhancement();
@@ -127,12 +128,12 @@ export function EnhancementPickerSheet({ open, unit, list, onClose }: Enhancemen
                       const isMaxed = listEnhancements.length >= 3;
                       const isEpicHero = keywords?.isEpicHero ?? false;
 
-                      // Determine disable reason (first match wins)
                       let disableReason: string | null = null;
                       if (!existingOnThisUnit) {
-                        if (isMaxed) disableReason = "Max 3 enhancements per army";
-                        else if (isDuplicate) disableReason = "Enhancement already assigned";
+                        if (keywordsLoading) disableReason = "Loading unit data...";
                         else if (isEpicHero) disableReason = "Epic Heroes cannot receive enhancements";
+                        else if (isMaxed) disableReason = "Max 3 enhancements per army";
+                        else if (isDuplicate) disableReason = "Enhancement already assigned";
                       }
 
                       return (
@@ -159,7 +160,7 @@ export function EnhancementPickerSheet({ open, unit, list, onClose }: Enhancemen
                             </div>
                             <div
                               className="text-xs text-muted-foreground [&_b]:font-semibold [&_.kwb]:text-foreground mt-1"
-                              dangerouslySetInnerHTML={{ __html: enhancement.description }}
+                              dangerouslySetInnerHTML={{ __html: sanitizeRulesHtml(enhancement.description) }}
                             />
                           </div>
 

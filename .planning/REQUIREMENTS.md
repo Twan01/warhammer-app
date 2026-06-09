@@ -16,10 +16,10 @@ Requirements for Wahapedia Pipeline & Full Data Import milestone.
 
 ### Points & Coverage
 
-- [ ] **PTS-01**: Points imported from Datasheets_models_cost.csv via direct datasheet_id join (no BSData name matching)
-- [ ] **PTS-02**: Points coverage reaches 90%+ for all factions (up from 60%)
-- [ ] **PTS-03**: BSData XML parsing removed from build pipeline (@xmldom/xmldom dependency removed)
-- [ ] **PTS-04**: Sub-faction assignment preserved via static mapping file (replaces BSData catalogue-based assignment)
+- [x] **PTS-01**: Points imported from Datasheets_models_cost.csv via direct datasheet_id join (no BSData name matching)
+- [x] **PTS-02**: Points coverage reaches 90%+ for all factions (up from 60%)
+- [x] **PTS-03**: BSData XML parsing removed from build pipeline (@xmldom/xmldom dependency removed)
+- [x] **PTS-04**: Sub-faction assignment preserved via static mapping file (replaces BSData catalogue-based assignment)
 
 ### Stratagems
 
@@ -68,10 +68,10 @@ Requirements for Wahapedia Pipeline & Full Data Import milestone.
 | PF-02 | Phase 116 | Complete |
 | PF-03 | Phase 116 | Complete |
 | PF-04 | Phase 116 | Complete |
-| PTS-01 | Phase 117 | Pending |
-| PTS-02 | Phase 117 | Pending |
-| PTS-03 | Phase 117 | Pending |
-| PTS-04 | Phase 117 | Pending |
+| PTS-01 | Phase 117 | Complete |
+| PTS-02 | Phase 117 | Complete |
+| PTS-03 | Phase 117 | Complete |
+| PTS-04 | Phase 117 | Complete |
 | DET-01 | Phase 118 | Complete |
 | DET-02 | Phase 118 | Complete |
 | STR-01 | Phase 119 | Complete |

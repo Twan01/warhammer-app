@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { sanitizeRulesHtml } from "@/lib/sanitizeHtml";
 import { useDetachmentAbilitiesByDetachment, useStratagemsByDetachment } from "@/hooks/useGameData";
 import type { UdbDetachmentAbility } from "@/types/gameData";
 import { useRulesFavorites } from "@/hooks/useRulesFavorites";
@@ -14,7 +15,7 @@ interface DetachmentRulesSectionProps {
 
 export function DetachmentRulesSection({ detachmentId }: DetachmentRulesSectionProps) {
   const { data: abilities, isLoading: abilitiesLoading } =
-    useDetachmentAbilitiesByDetachment(detachmentId ?? "");
+    useDetachmentAbilitiesByDetachment(detachmentId ?? undefined);
   const { data: stratagems, isLoading: stratagemsLoading } =
     useStratagemsByDetachment(detachmentId ?? undefined);
   const { data: favorites = [] } = useRulesFavorites();
@@ -74,7 +75,7 @@ export function DetachmentRulesSection({ detachmentId }: DetachmentRulesSectionP
               {ability.description && (
                 <div
                   className="mt-1 text-sm text-muted-foreground [&_b]:font-semibold [&_.kwb]:text-foreground"
-                  dangerouslySetInnerHTML={{ __html: ability.description }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeRulesHtml(ability.description) }}
                 />
               )}
             </div>

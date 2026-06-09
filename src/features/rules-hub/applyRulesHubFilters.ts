@@ -1,4 +1,5 @@
 import type { UdbStratagem } from "@/types/gameData";
+import { normalizePhase } from "@/lib/stratagemStyles";
 
 const STRATAGEM_PHASES = ["Command", "Movement", "Shooting", "Charge", "Fight"] as const;
 export type StratagemPhase = (typeof STRATAGEM_PHASES)[number];
@@ -16,7 +17,7 @@ export function applyStratagemFilters(
 ): UdbStratagem[] {
   let result = stratagems;
   if (options.phaseFilter) {
-    result = result.filter((s) => s.phase === options.phaseFilter);
+    result = result.filter((s) => normalizePhase(s.phase) === options.phaseFilter);
   }
   if (options.cpFilter) {
     result = result.filter((s) => String(s.cp_cost) === options.cpFilter);

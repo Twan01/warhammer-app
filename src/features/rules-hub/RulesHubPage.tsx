@@ -29,6 +29,8 @@ import { SharedAbilityCard } from "./SharedAbilityCard";
 import { cn } from "@/lib/utils";
 import { DatasheetPointsTab } from "./DatasheetPointsTab";
 
+const ALL_DETACHMENTS = "__all__";
+
 export function RulesHubPage() {
   const { data: wahapediaFactions = [] } = useWahapediaFactions();
   const { data: udbMeta } = useUdbMeta();
@@ -70,7 +72,10 @@ export function RulesHubPage() {
   // Apply detachment filter before text/phase/cp filters
   const detachmentFilteredStratagems = useMemo(() => {
     if (!selectedDetachmentId) return stratagems;
-    return stratagems.filter((s) => s.detachment_id === selectedDetachmentId);
+    return stratagems.filter(
+      (s) => s.detachment_id === selectedDetachmentId ||
+             (s.faction_id === null && s.detachment_id === null)
+    );
   }, [stratagems, selectedDetachmentId]);
 
   const filteredStratagems = useMemo(
@@ -155,13 +160,14 @@ export function RulesHubPage() {
               <TabsContent value="stratagems" className="mt-4 space-y-4">
                 {/* Detachment filter dropdown (D-05) */}
                 <Select
-                  value={selectedDetachmentId ?? ""}
-                  onValueChange={(val) => setSelectedDetachmentId(val || null)}
+                  value={selectedDetachmentId ?? ALL_DETACHMENTS}
+                  onValueChange={(val) => setSelectedDetachmentId(val === ALL_DETACHMENTS ? null : val)}
                 >
                   <SelectTrigger className="w-64">
                     <SelectValue placeholder="All detachments..." />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value={ALL_DETACHMENTS}>All detachments</SelectItem>
                     {detachments.map((d) => (
                       <SelectItem key={d.id} value={d.id}>
                         {d.name}

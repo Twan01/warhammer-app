@@ -127,14 +127,16 @@ export function useDetachmentAbilities(factionId: string | null) {
   });
 }
 
-/**
- * Returns detachment abilities for a single detachment.
- * Used by DetachmentCard — always enabled (no null guard).
- */
-export function useDetachmentAbilitiesByDetachment(detachmentId: string) {
+export function useDetachmentAbilitiesByDetachment(detachmentId: string | undefined) {
   return useQuery({
-    queryKey: DETACHMENT_ABILITIES_BY_DETACHMENT_KEY(detachmentId),
-    queryFn: () => getDetachmentAbilitiesByDetachment(detachmentId),
+    queryKey: detachmentId
+      ? DETACHMENT_ABILITIES_BY_DETACHMENT_KEY(detachmentId)
+      : (["udb-detachment-abilities-detachment", "disabled"] as const),
+    queryFn: () =>
+      detachmentId
+        ? getDetachmentAbilitiesByDetachment(detachmentId)
+        : Promise.resolve([]),
+    enabled: !!detachmentId,
     staleTime: Infinity,
   });
 }

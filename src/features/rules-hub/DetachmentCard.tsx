@@ -6,6 +6,7 @@ import {
   CollapsibleContent,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { sanitizeRulesHtml } from "@/lib/sanitizeHtml";
 import { useDetachmentAbilitiesByDetachment } from "@/hooks/useGameData";
 import { useUpsertRulesFavorite, useDeleteRulesFavorite } from "@/hooks/useRulesFavorites";
 import type { UdbDetachment, UdbDetachmentAbility } from "@/types/gameData";
@@ -63,7 +64,7 @@ function DetachmentAbilityRow({ ability, favorite, note }: DetachmentAbilityRowP
       {ability.description && (
         <div
           className="text-muted-foreground mt-0.5 [&_b]:font-semibold [&_.kwb]:text-foreground"
-          dangerouslySetInnerHTML={{ __html: ability.description }}
+          dangerouslySetInnerHTML={{ __html: sanitizeRulesHtml(ability.description) }}
         />
       )}
       <RuleNoteEditor

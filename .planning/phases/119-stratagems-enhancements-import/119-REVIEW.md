@@ -1,6 +1,6 @@
 ---
 phase: 119-stratagems-enhancements-import
-reviewed: 2026-06-04T00:00:00Z
+reviewed: 2026-06-09T12:00:00Z
 depth: standard
 files_reviewed: 5
 files_reviewed_list:
@@ -10,182 +10,95 @@ files_reviewed_list:
   - scripts/update-unit-database.ts
   - src-tauri/src/lib.rs
 findings:
-  critical: 2
-  warning: 4
-  info: 3
-  total: 9
+  critical: 1
+  warning: 3
+  info: 1
+  total: 5
 status: issues_found
 ---
 
 # Phase 119: Code Review Report
 
-**Reviewed:** 2026-06-04T00:00:00Z
+**Reviewed:** 2026-06-09T12:00:00Z
 **Depth:** standard
 **Files Reviewed:** 5
 **Status:** issues_found
 
 ## Summary
 
-Phase 119 adds `udb_stratagems` and `udb_enhancements` tables via a new migration, extends the build pipeline (both `build-unit-db.ts` and `update-unit-database.ts`) to parse the matching Wahapedia CSVs, extends the Rust importer in `lib.rs` to INSERT those rows atomically, and adds the shared TypeScript types in `types.ts`.
+Phase 119 adds `udb_stratagems` and `udb_enhancements` tables via migration 043, extends both TypeScript build scripts to parse Stratagems.csv and Enhancements.csv, adds shared type interfaces, and extends the Rust importer with INSERT blocks for both new entity types. The migration DDL is well-structured with appropriate indexes. The Rust importer correctly handles nullable FKs via `str_val()` which maps empty/missing values to `Option::None` (SQL NULL). The TypeScript types accurately model the nullable FK semantics.
 
-The pipeline logic is broadly correct. The two critical defects both concern the same root cause: the `UdbStratagemRow` TypeScript type omits the `updated_at` field that the SQL schema requires as `NOT NULL DEFAULT`, which causes the mismatch between the JSON serialised form and the Rust INSERT statement. A secondary critical issue is that stratagems with a non-null `faction_id` are never validated against `factionIds`, so unknown faction IDs silently reach the database and can cause FK constraint violations at import time (when FK enforcement is re-enabled after the transaction).
-
-The four warnings are real correctness hazards: the diff tool in `update-unit-database.ts` does not cover stratagems or enhancements at all (silent regressions), the `PRAGMA foreign_keys = ON` restoration in `lib.rs` runs on the wrong connection object after `tx.commit()` borrows `conn`, the duplicate-comment in `build-unit-db.ts` signals a copy-paste problem, and the stratagem validation gap also applies to `update-unit-database.ts`.
-
----
+The primary data integrity gap is that the build pipeline does not validate `faction_id` or `detachment_id` FK references for stratagems and enhancements against known entities, unlike all other entity types which are validated. The deterministic output sorting (BPH-02) was not extended to cover the new arrays, and the update-tool diff report has no visibility into stratagem/enhancement changes.
 
 ## Critical Issues
 
-### CR-01: Stratagems with non-empty `faction_id` are never validated against known factions
+### CR-01: Stratagem and enhancement FK references (faction_id, detachment_id) are not validated against known entities
 
-**File:** `scripts/build-unit-db.ts:632-643` (and `scripts/update-unit-database.ts:361-373`)
+**File:** `scripts/build-unit-db.ts:625-643` and `scripts/build-unit-db.ts:652-674`
+**Issue:** The build pipeline validates `faction_id` references for units (line 165-166) and detachment abilities (line 594) against the `factionIds` set, skipping rows with unknown factions. However, the stratagem parsing (step 12) and enhancement parsing (step 13) perform no equivalent validation. A stratagem or enhancement that references a faction pruned as "empty" (line 384), or a `detachment_id` not present in the `seenDetachmentIds` set, will be written to the JSON with orphaned FK references.
 
-**Issue:** For detachments and units the build pipeline calls `factionIds.has(factionId)` and skips rows with unknown factions, emitting a warning. For stratagems (step 12) and enhancements (step 13) there is no equivalent guard. A stratagem that references an unknown faction ID is silently inserted into the JSON. When `lib.rs` later imports that row with `PRAGMA foreign_keys = ON` restored, the insert into `udb_stratagems` will fail with a FK violation because `faction_id REFERENCES udb_factions(id)`. Because the entire import runs inside a single transaction and an individual insert error propagates as `Err(String)` which causes an early return, the whole import is aborted, leaving the database tables empty until the next successful run.
+The Rust importer runs with `PRAGMA foreign_keys = OFF` during the transaction (line 590), so these orphaned references are silently inserted. After commit, FK enforcement is restored (line 903), but the invalid data is already persisted. Any subsequent `PRAGMA foreign_key_check` will report violations, and JOIN queries against `udb_factions` or `udb_detachments` will silently drop these rows.
 
-Note: `faction_id` is nullable in `udb_stratagems` (universal stratagems legitimately have `NULL`), so the guard must only apply when the value is non-null.
-
+The same gap exists in `update-unit-database.ts:354-399` which duplicates the parsing logic.
 **Fix:**
 ```typescript
-// In the stratagems loop, after the isLegend check:
-const factionId = row["faction_id"]?.trim() || null;
-if (factionId && !factionIds.has(factionId)) {
-  console.warn(`  WARNING: Skipping stratagem "${name}" (id=${id}) — unknown faction_id "${factionId}"`);
-  stratagemLegendsSkipped++; // or a separate counter
+// In the stratagems loop (build-unit-db.ts ~line 631), after Legends filter:
+const fid = row["faction_id"]?.trim() || null;
+const did = row["detachment_id"]?.trim() || null;
+
+if (fid && !factionIds.has(fid)) {
+  console.warn(`  WARNING: Skipping stratagem "${name}" — unknown faction_id "${fid}"`);
   continue;
+}
+if (did && !seenDetachmentIds.has(did)) {
+  console.warn(`  WARNING: Stratagem "${name}" has unknown detachment_id "${did}" — nullifying`);
+  // Set to null to avoid FK violation
 }
 
 stratagems.push({
   id,
-  faction_id: factionId,
-  detachment_id: row["detachment_id"]?.trim() || null,
+  faction_id: fid,
+  detachment_id: did && seenDetachmentIds.has(did) ? did : null,
   // ...
 });
 ```
-Apply the same pattern for enhancements (where `faction_id` is mandatory; any non-null value that fails the check should abort that row with a warning).
-
----
-
-### CR-02: `PRAGMA foreign_keys = ON` is issued on a connection that may have been consumed by `conn.begin()`
-
-**File:** `src-tauri/src/lib.rs:903-905`
-
-**Issue:** The SQLx `Connection::begin()` call at line 595 moves (or mutably borrows) `conn` to start the transaction. After `tx.commit()` the code calls:
-
-```rust
-let _ = sqlx::query("PRAGMA foreign_keys = ON")
-    .execute(&mut conn)
-    .await;
-```
-
-In SQLx, `begin()` takes `&mut self` and returns a `Transaction<'_, Sqlite>` that holds an exclusive mutable borrow of the underlying connection for its lifetime. After `tx.commit()` (which consumes `tx`), the borrow is released and `conn` is usable again — so in the happy path this works. However, if any earlier `map_err(...)?` short-circuits (an INSERT fails), `tx` is dropped without commit, but `conn` is still borrowed mutably by the implicit `Drop` path until `tx` goes out of scope. Because all the early-return paths do `return Err(...)` before `tx` is dropped explicitly, the `PRAGMA foreign_keys = ON` line is never reached on the error path — FK enforcement is left OFF on that connection for the lifetime of the connection pool, affecting any subsequent queries that reuse this connection.
-
-The existing comment "Restore FK enforcement unconditionally — even if commit failed" expresses the intent but the code does not honour it on any error path inside the transaction loop.
-
-**Fix:** Restructure to ensure `PRAGMA foreign_keys = ON` is executed even when an early `?` returns:
-
-```rust
-// Hoist FK restoration into a drop guard, or use a dedicated helper:
-let result = async {
-    // ... all DELETE + INSERT + commit logic ...
-    tx.commit().await.map_err(|e| format!("commit udb: {e}"))
-}.await;
-
-// Restore FK enforcement regardless of success or failure
-let _ = sqlx::query("PRAGMA foreign_keys = ON")
-    .execute(&mut conn)
-    .await;
-
-result?;
-```
-This guarantees the PRAGMA runs whether the inner block returns Ok or Err.
-
----
+Apply the identical pattern to the enhancements loop and to both loops in `update-unit-database.ts`.
 
 ## Warnings
 
-### WR-01: `update-unit-database.ts` diff report does not cover stratagems or enhancements
+### WR-01: Stratagems and enhancements arrays are not sorted before output -- breaks deterministic output guarantee
 
-**File:** `scripts/update-unit-database.ts:440-565`
-
-**Issue:** `computeDiff` builds `DiffReport` which tracks `newUnits`, `removedUnits`, `pointsChanges`, `abilityChanges`, and `keywordChanges`. There is no equivalent tracking for changes to stratagems or enhancements. A Wahapedia update that adds, removes, or reprices stratagems/enhancements will run silently through `update-unit-database.ts --write` with no mention in the diff output. The `totalChanges` counter will be 0 and the tool will report "No changes detected" even when the actual data changed significantly. This defeats the purpose of the update tool for the newly imported data types.
-
-**Fix:** Extend `DiffReport` with `stratagemChanges` and `enhancementChanges` fields, populate them in `computeDiff`, and add corresponding sections to `formatReport`.
-
----
-
-### WR-02: `faction_id` validation gap also present in `update-unit-database.ts`
-
-**File:** `scripts/update-unit-database.ts:353-399`
-
-**Issue:** The same missing faction-ID validation from CR-01 is present in the `buildUnitDatabase()` function in `update-unit-database.ts`. Since this function is called every time the update tool runs, any Wahapedia CSV with a bad stratagem faction reference will produce a corrupt JSON that will fail to import on the next app launch.
-
-**Fix:** Apply the same guard as CR-01 to `update-unit-database.ts:353-399`.
-
----
-
-### WR-03: `udb_stratagems` schema inconsistency — `faction_id` uses `ON DELETE SET NULL` but `udb_enhancements.faction_id` uses `ON DELETE CASCADE`
-
-**File:** `src-tauri/migrations/043_udb_stratagems_enhancements.sql:6-7` and `19`
-
-**Issue:** The two tables have different referential-action semantics for `faction_id`:
-- `udb_stratagems.faction_id` uses `ON DELETE SET NULL` — if a faction is deleted, the stratagem loses its faction association and becomes a "universal" stratagem.
-- `udb_enhancements.faction_id` uses `ON DELETE CASCADE` — if a faction is deleted, all its enhancements are deleted.
-
-In practice this distinction doesn't matter because factions are never deleted in normal operation (the whole udb_* set is replaced atomically with FK OFF). However, it creates an inconsistent contract. More importantly, for `udb_enhancements`, the schema marks `faction_id` as `NOT NULL` — a `CASCADE` delete would leave orphaned rows in child tables referencing the now-deleted enhancement (none currently, but this is a future hazard). The inconsistency is also confusing for anyone writing queries that JOINs both tables.
-
-**Fix:** Align both to `ON DELETE SET NULL` (consistent with the nullable-FK approach used in `udb_stratagems`), or document clearly in the migration comment why the difference is intentional.
-
----
-
-### WR-04: Duplicate comment on `loadTranslationsFr` in `build-unit-db.ts`
-
-**File:** `scripts/build-unit-db.ts:84-85`
-
-**Issue:** The JSDoc comment for `loadTranslationsFr` has a duplicated line:
+**File:** `scripts/build-unit-db.ts:699-723`
+**Issue:** All existing entity arrays are sorted deterministically before the content hash is computed (BPH-02, lines 699-723). The new `stratagems` and `enhancements` arrays are included in the hash computation (line 730) but are NOT sorted. This means the content hash and JSON output order depend on the CSV row ordering from Wahapedia. If Wahapedia reorders rows without changing data, the hash changes, triggering an unnecessary re-import on every app launch (the version check at `lib.rs:579` will see a different version string).
+**Fix:**
+```typescript
+// Add after composition sort (line 723):
+stratagems.sort((a, b) => a.id.localeCompare(b.id));
+enhancements.sort((a, b) => a.id.localeCompare(b.id));
 ```
- * Returns null and emits a console.warn if the file is missing or malformed.
- * Returns null and emits a console.warn if the file is missing or malformed.
-```
-Lines 84–85 are identical. While cosmetic, this is a sign of a copy-paste error that should be cleaned up to avoid confusion about whether both cases are actually distinct.
 
-**Fix:** Remove the duplicated line 85.
+### WR-02: update-unit-database.ts diff report has no coverage for stratagems or enhancements
 
----
+**File:** `scripts/update-unit-database.ts:441-566`
+**Issue:** The `computeDiff` function compares units, points, abilities, and keywords between old and new databases. There is no logic to detect added, removed, or changed stratagems or enhancements. The `totalChanges` counter (line 583-588) will report 0 changes and the tool will print "No changes detected" even when stratagem CP costs changed or enhancements were added/removed. This defeats the purpose of the update tool for the newly imported data types.
+**Fix:** Extend `DiffReport` with `stratagemChanges` and `enhancementChanges` fields. Add comparison logic following the existing keyword/ability pattern. Include the new counts in `totalChanges` and add formatted sections in `formatReport`.
+
+### WR-03: Massive code duplication between build-unit-db.ts and update-unit-database.ts
+
+**File:** `scripts/update-unit-database.ts:97-436`
+**Issue:** `buildUnitDatabase()` in `update-unit-database.ts` is a near-complete copy of `main()` in `build-unit-db.ts` (~340 lines of duplicated parsing logic). Phase 119 extended this duplication by copy-pasting the new stratagem/enhancement blocks into both files. Any future bug fix (including the fixes for CR-01 and WR-01 above) must be applied in both places. The scripts have already diverged: `build-unit-db.ts` applies a French translation overlay (lines 527-572) and runs coverage validation, while `update-unit-database.ts` does neither.
+**Fix:** Extract the shared CSV-to-JSON build pipeline into a common module (e.g., `scripts/lib/buildPipeline.ts`) that both scripts import and extend.
 
 ## Info
 
-### IN-01: `UdbStratagemRow` type does not include `updated_at` — inconsistent with schema
+### IN-01: Duplicate JSDoc comment line in loadTranslationsFr
 
-**File:** `scripts/lib/types.ts:103-113`
-
-**Issue:** The `udb_stratagems` SQL table (migration 043, line 14) has `updated_at TEXT NOT NULL DEFAULT (datetime('now'))`. The `UdbStratagemRow` TypeScript interface does not include an `updated_at` field. The same omission exists for `UdbEnhancementRow` (schema line 24). Because the Rust importer uses the `DEFAULT` value and never explicitly inserts `updated_at`, this is not a runtime error. However, if any future code reads `updated_at` back from the DB via a typed response object, it will find an unexpected field absent from the type.
-
-The sibling `UdbDetachmentRow` also omits `updated_at` (migration 042), so this is a pre-existing pattern, not introduced in phase 119. Flagged for awareness.
-
-**Fix:** Either add `updated_at?: string` to both interfaces, or add a comment noting that `updated_at` is DB-managed and intentionally excluded from the JSON/type surface.
+**File:** `scripts/build-unit-db.ts:85-86`
+**Issue:** The JSDoc comment for `loadTranslationsFr` has line 85 and line 86 both reading: "Returns null and emits a console.warn if the file is missing or malformed." This is a copy-paste artifact.
+**Fix:** Remove the duplicated line 86.
 
 ---
 
-### IN-02: `build-unit-db.ts` step numbering skips — "Step 9" follows "Step 8b"
-
-**File:** `scripts/build-unit-db.ts:366`
-
-**Issue:** The step counter in `main()` goes: Step 2, 3, 4, 5, 6, 7, 8, 8b, 9, 10, 10.5, 11, 12, 13. Steps 8b and 10.5 are unnumbered, and there are no steps for detachments (11), stratagems (12), or enhancements (13) in the build summary console output labels. These are cosmetic, but make the pipeline harder to audit quickly.
-
-**Fix:** Renumber steps sequentially and add proper console labels for steps 12 and 13 consistent with the numbered format already used for steps 11 and below.
-
----
-
-### IN-03: `update-unit-database.ts` silently ignores `Datasheets_models_cost.csv` absence
-
-**File:** `scripts/update-unit-database.ts:81-91`
-
-**Issue:** `REQUIRED_CSVs` in `update-unit-database.ts` does not include `"Datasheets_models_cost.csv"` even though `buildUnitDatabase()` calls `readCsvFile(DATA_DIR, "Datasheets_models_cost.csv")` at line 248. If that file is absent, `readCsvFile` will likely throw an unhandled error at runtime rather than producing the clean "Missing required file" message. The same omission exists in `build-unit-db.ts:64-74` — `Datasheets_models_cost.csv` is not in `REQUIRED_CSVs` there either, though this appears to be a pre-existing issue.
-
-**Fix:** Add `"Datasheets_models_cost.csv"` to the `REQUIRED_CSVs` array in both scripts so the preflight check covers it.
-
----
-
-_Reviewed: 2026-06-04T00:00:00Z_
+_Reviewed: 2026-06-09T12:00:00Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_

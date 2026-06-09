@@ -36,6 +36,7 @@ import type {
   UdbStratagemRow,
   UdbEnhancementRow,
   UnitDatabaseJson,
+  TranslationsFrOverlay,
 } from "./lib/types.ts";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -69,6 +70,18 @@ interface DiffReport {
     added: string[];
     removed: string[];
   }>;
+  stratagemChanges: Array<{
+    type: "added" | "removed" | "changed";
+    id: string;
+    name: string;
+    detail: string;
+  }>;
+  enhancementChanges: Array<{
+    type: "added" | "removed" | "changed";
+    id: string;
+    name: string;
+    detail: string;
+  }>;
 }
 
 // ---------------------------------------------------------------------------
@@ -77,6 +90,21 @@ interface DiffReport {
 const DATA_DIR = join(REPO_ROOT, "scripts", "data");
 const OUTPUT_DIR = join(REPO_ROOT, "src-tauri", "data");
 const OUTPUT_PATH = join(OUTPUT_DIR, "unit_database.json");
+const TRANSLATIONS_FR_PATH = join(DATA_DIR, "translations_fr.json");
+
+function loadTranslationsFr(): TranslationsFrOverlay | null {
+  if (!existsSync(TRANSLATIONS_FR_PATH)) {
+    console.warn("WARNING: translations_fr.json not found — _fr fields will be null");
+    return null;
+  }
+  try {
+    const raw = readFileSync(TRANSLATIONS_FR_PATH, "utf-8");
+    return JSON.parse(raw) as TranslationsFrOverlay;
+  } catch (e) {
+    console.warn("WARNING: Failed to parse translations_fr.json:", e);
+    return null;
+  }
+}
 
 const REQUIRED_CSVs = [
   "Factions.csv",
@@ -85,6 +113,7 @@ const REQUIRED_CSVs = [
   "Datasheets_abilities.csv",
   "Datasheets_keywords.csv",
   "Datasheets_wargear.csv",
+  "Datasheets_models_cost.csv",
   "Detachment_abilities.csv",
   "Stratagems.csv",
   "Enhancements.csv",
@@ -175,11 +204,6 @@ async function buildUnitDatabase(): Promise<UnitDatabaseJson> {
   for (const u of units) validUnitIds.add(u.id);
 
   console.log(`  Parsed ${units.length} units (${legendsSkipped} Legends excluded${dupsFound > 0 ? `, ${dupsFound} duplicates discarded` : ""})`);
-
-  const unitByNameFaction = new Map<string, UdbUnitRow>();
-  for (const unit of units) {
-    unitByNameFaction.set(unit.name.toLowerCase() + ":" + unit.faction_id, unit);
-  }
 
   // Parse models
   const modelsRaw = readCsvFile(DATA_DIR, "Datasheets_models.csv");
@@ -322,7 +346,7 @@ async function buildUnitDatabase(): Promise<UnitDatabaseJson> {
 
     if (!detachmentId || !factionId || !abilityId || !abilityName) continue;
 
-    if (factionId && !factionIds.has(factionId)) {
+    if (!factionIds.has(factionId)) {
       console.warn(`  WARNING: Skipping detachment ability "${abilityName}" — unknown faction_id "${factionId}"`);
       continue;
     }
@@ -358,10 +382,18 @@ async function buildUnitDatabase(): Promise<UnitDatabaseJson> {
     const isLegend = row["legend"] === "1" || row["legend"] === "true";
     if (isLegend) { stratagemLegendsSkipped++; continue; }
 
+    const fid = row["faction_id"]?.trim() || null;
+    const did = row["detachment_id"]?.trim() || null;
+
+    if (fid && !factionIds.has(fid)) {
+      console.warn(`  WARNING: Skipping stratagem "${name}" — unknown faction_id "${fid}"`);
+      continue;
+    }
+
     stratagems.push({
       id,
-      faction_id: row["faction_id"]?.trim() || null,      // "" → null for universal stratagems
-      detachment_id: row["detachment_id"]?.trim() || null, // "" → null for universal stratagems
+      faction_id: fid,
+      detachment_id: did && seenDetachmentIds.has(did) ? did : null,
       name,
       type: row["type"]?.trim() ?? "",
       cp_cost: parseInt(row["cp_cost"]?.trim() ?? "0", 10) || 0,
@@ -387,10 +419,16 @@ async function buildUnitDatabase(): Promise<UnitDatabaseJson> {
     const isLegend = row["legend"] === "1" || row["legend"] === "true";
     if (isLegend) { enhancementLegendsSkipped++; continue; }
 
+    if (!factionIds.has(faction_id)) {
+      console.warn(`  WARNING: Skipping enhancement "${name}" — unknown faction_id "${faction_id}"`);
+      continue;
+    }
+
+    const enh_did = row["detachment_id"]?.trim() || null;
     enhancements.push({
       id,
       faction_id,
-      detachment_id: row["detachment_id"]?.trim() || null,
+      detachment_id: enh_did && seenDetachmentIds.has(enh_did) ? enh_did : null,
       name,
       cost: parseInt(row["cost"]?.trim() ?? "0", 10) || 0,
       description: row["description"]?.trim() ?? "",
@@ -408,9 +446,63 @@ async function buildUnitDatabase(): Promise<UnitDatabaseJson> {
   );
   const filteredFactions = factions.filter((f) => !emptyIds.has(f.id));
 
+  // Apply French translation overlay (match build-unit-db.ts)
+  const frOverlay = loadTranslationsFr();
+  if (frOverlay) {
+    for (const f of filteredFactions) {
+      if (frOverlay.factions?.[f.id]) f.name_fr = frOverlay.factions[f.id];
+    }
+    for (const u of units) {
+      if (frOverlay.units?.[u.id]) u.name_fr = frOverlay.units[u.id];
+    }
+    for (const a of abilities) {
+      const key = `${a.unit_id}:${a.name}`;
+      const t = frOverlay.abilities?.[key];
+      if (t) { a.name_fr = t.name_fr ?? null; a.description_fr = t.description_fr ?? null; }
+    }
+    for (const w of weapons) {
+      const key = `${w.unit_id}:${w.name}`;
+      if (frOverlay.weapons?.[key]) w.name_fr = frOverlay.weapons[key];
+    }
+    for (const k of keywords) {
+      if (frOverlay.keywords?.[k.keyword]) k.keyword_fr = frOverlay.keywords[k.keyword];
+    }
+  }
+
+  // Deterministic sorting (match build-unit-db.ts)
+  filteredFactions.sort((a, b) => a.id.localeCompare(b.id));
+  units.sort((a, b) => a.id.localeCompare(b.id));
+  models.sort((a, b) => {
+    const c = a.unit_id.localeCompare(b.unit_id);
+    return c !== 0 ? c : a.line_order - b.line_order;
+  });
+  weapons.sort((a, b) => {
+    const c = a.unit_id.localeCompare(b.unit_id);
+    if (c !== 0) return c;
+    const g = a.weapon_group - b.weapon_group;
+    return g !== 0 ? g : a.line_order - b.line_order;
+  });
+  abilities.sort((a, b) => {
+    const c = a.unit_id.localeCompare(b.unit_id);
+    return c !== 0 ? c : a.line_order - b.line_order;
+  });
+  keywords.sort((a, b) => {
+    const c = a.unit_id.localeCompare(b.unit_id);
+    return c !== 0 ? c : a.keyword.localeCompare(b.keyword);
+  });
+  points.sort((a, b) => {
+    const c = a.unit_id.localeCompare(b.unit_id);
+    return c !== 0 ? c : a.model_count - b.model_count;
+  });
+  composition.sort((a, b) => a.unit_id.localeCompare(b.unit_id));
+  detachments.sort((a, b) => a.id.localeCompare(b.id));
+  detachmentAbilities.sort((a, b) => a.id.localeCompare(b.id));
+  stratagems.sort((a, b) => a.id.localeCompare(b.id));
+  enhancements.sort((a, b) => a.id.localeCompare(b.id));
+
   // Derive version from content hash so re-imports detect any data change
   const crypto = await import("node:crypto");
-  const hash = crypto.createHash("sha256").update(JSON.stringify({ factions: filteredFactions, units, weapons, points, abilities, keywords, composition, detachments, detachmentAbilities, stratagems, enhancements })).digest("hex").slice(0, 8);
+  const hash = crypto.createHash("sha256").update(JSON.stringify({ factions: filteredFactions, units, models, weapons, points, abilities, keywords, composition, detachments, detachmentAbilities, stratagems, enhancements })).digest("hex").slice(0, 8);
   const buildVersion = `1.0.0+${hash}`;
 
   return {
@@ -444,6 +536,8 @@ function computeDiff(oldDb: UnitDatabaseJson, newDb: UnitDatabaseJson): DiffRepo
     pointsChanges: [],
     abilityChanges: [],
     keywordChanges: [],
+    stratagemChanges: [],
+    enhancementChanges: [],
   };
 
   // Build unit maps by id
@@ -561,6 +655,44 @@ function computeDiff(oldDb: UnitDatabaseJson, newDb: UnitDatabaseJson): DiffRepo
     }
   }
 
+  // Stratagem changes
+  const oldStratagems = new Map((oldDb.stratagems ?? []).map((s) => [s.id, s]));
+  const newStratagems = new Map((newDb.stratagems ?? []).map((s) => [s.id, s]));
+  for (const [id, s] of newStratagems) {
+    if (!oldStratagems.has(id)) {
+      report.stratagemChanges.push({ type: "added", id, name: s.name, detail: `CP: ${s.cp_cost}` });
+    } else {
+      const old = oldStratagems.get(id)!;
+      if (old.cp_cost !== s.cp_cost || old.description !== s.description) {
+        report.stratagemChanges.push({ type: "changed", id, name: s.name, detail: `CP: ${old.cp_cost} → ${s.cp_cost}` });
+      }
+    }
+  }
+  for (const [id, s] of oldStratagems) {
+    if (!newStratagems.has(id)) {
+      report.stratagemChanges.push({ type: "removed", id, name: s.name, detail: "" });
+    }
+  }
+
+  // Enhancement changes
+  const oldEnhancements = new Map((oldDb.enhancements ?? []).map((e) => [e.id, e]));
+  const newEnhancements = new Map((newDb.enhancements ?? []).map((e) => [e.id, e]));
+  for (const [id, e] of newEnhancements) {
+    if (!oldEnhancements.has(id)) {
+      report.enhancementChanges.push({ type: "added", id, name: e.name, detail: `Cost: ${e.cost}` });
+    } else {
+      const old = oldEnhancements.get(id)!;
+      if (old.cost !== e.cost || old.description !== e.description) {
+        report.enhancementChanges.push({ type: "changed", id, name: e.name, detail: `Cost: ${old.cost} → ${e.cost}` });
+      }
+    }
+  }
+  for (const [id, e] of oldEnhancements) {
+    if (!newEnhancements.has(id)) {
+      report.enhancementChanges.push({ type: "removed", id, name: e.name, detail: "" });
+    }
+  }
+
   return report;
 }
 
@@ -584,7 +716,9 @@ function formatReport(report: DiffReport, oldDb: UnitDatabaseJson, newDb: UnitDa
     report.removedUnits.length +
     report.pointsChanges.length +
     report.abilityChanges.length +
-    report.keywordChanges.length;
+    report.keywordChanges.length +
+    report.stratagemChanges.length +
+    report.enhancementChanges.length;
 
   if (totalChanges === 0) {
     lines.push("No changes detected.");
@@ -645,6 +779,28 @@ function formatReport(report: DiffReport, oldDb: UnitDatabaseJson, newDb: UnitDa
     lines.push("|---------|-----------|-------|---------|");
     for (const c of report.keywordChanges) {
       lines.push(`| ${c.faction_id} | ${c.name} | ${c.added.join(", ") || "-"} | ${c.removed.join(", ") || "-"} |`);
+    }
+    lines.push("");
+  }
+
+  if (report.stratagemChanges.length > 0) {
+    lines.push("## Stratagem Changes");
+    lines.push("");
+    lines.push("| Type | Name | Detail |");
+    lines.push("|------|------|--------|");
+    for (const c of report.stratagemChanges) {
+      lines.push(`| ${c.type} | ${c.name} | ${c.detail} |`);
+    }
+    lines.push("");
+  }
+
+  if (report.enhancementChanges.length > 0) {
+    lines.push("## Enhancement Changes");
+    lines.push("");
+    lines.push("| Type | Name | Detail |");
+    lines.push("|------|------|--------|");
+    for (const c of report.enhancementChanges) {
+      lines.push(`| ${c.type} | ${c.name} | ${c.detail} |`);
     }
     lines.push("");
   }

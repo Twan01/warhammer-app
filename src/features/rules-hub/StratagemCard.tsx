@@ -6,30 +6,14 @@ import {
   CollapsibleContent,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { sanitizeRulesHtml } from "@/lib/sanitizeHtml";
+import { getPhaseBadgeClass, cpLabel } from "@/lib/stratagemStyles";
 import type { UdbStratagem } from "@/types/gameData";
 import type { RulesFavorite } from "@/types/rulesFavorite";
 import type { RulesNote } from "@/types/rulesNote";
 import { RuleAnnotationControls } from "./RuleAnnotationControls";
 import { RuleNoteEditor } from "./RuleNoteEditor";
 import { useUpsertRulesFavorite, useDeleteRulesFavorite } from "@/hooks/useRulesFavorites";
-
-const PHASE_STYLES: Record<string, string> = {
-  Command: "bg-purple-500/20 text-purple-700 dark:text-purple-300",
-  Movement: "bg-blue-500/20 text-blue-700 dark:text-blue-300",
-  Shooting: "bg-amber-500/20 text-amber-700 dark:text-amber-300",
-  Charge: "bg-orange-500/20 text-orange-700 dark:text-orange-300",
-  Fight: "bg-red-500/20 text-red-700 dark:text-red-300",
-};
-
-function getPhaseBadgeClass(phase: string | null): string {
-  if (!phase) return "bg-muted text-muted-foreground";
-  return PHASE_STYLES[phase] ?? "bg-muted text-muted-foreground";
-}
-
-function cpLabel(cost: number): string {
-  if (cost === 0) return "Free";
-  return `${cost} CP`;
-}
 
 interface StratagemCardProps {
   stratagem: UdbStratagem;
@@ -114,7 +98,7 @@ export function StratagemCard({ stratagem, favorite, note }: StratagemCardProps)
       <CollapsibleContent className="px-4 pb-4 pt-1 text-sm text-muted-foreground space-y-2">
         <div
           className="text-sm text-muted-foreground [&_b]:font-semibold [&_.kwb]:text-foreground"
-          dangerouslySetInnerHTML={{ __html: stratagem.description }}
+          dangerouslySetInnerHTML={{ __html: sanitizeRulesHtml(stratagem.description) }}
         />
         <RuleNoteEditor
           ruleId={stratagem.id}

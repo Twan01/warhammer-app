@@ -5,6 +5,8 @@ import {
   CollapsibleTrigger,
   CollapsibleContent,
 } from "@/components/ui/collapsible";
+import { Skeleton } from "@/components/ui/skeleton";
+import { sanitizeRulesHtml } from "@/lib/sanitizeHtml";
 import { useDetachmentAbilities } from "@/hooks/useGameData";
 import type { UdbDetachmentAbilityWithDetachment } from "@/types/gameData";
 
@@ -32,7 +34,11 @@ export function PlaybookDetachmentAbilities({ factionId }: PlaybookDetachmentAbi
     return map;
   }, [abilities]);
 
-  if (isLoading || abilities.length === 0) {
+  if (isLoading) {
+    return <Skeleton className="h-12 w-full" />;
+  }
+
+  if (abilities.length === 0) {
     return null;
   }
 
@@ -54,7 +60,7 @@ export function PlaybookDetachmentAbilities({ factionId }: PlaybookDetachmentAbi
                 {ability.description && (
                   <div
                     className="text-sm text-muted-foreground [&_b]:font-semibold [&_.kwb]:text-foreground mt-1"
-                    dangerouslySetInnerHTML={{ __html: ability.description }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeRulesHtml(ability.description) }}
                   />
                 )}
               </div>

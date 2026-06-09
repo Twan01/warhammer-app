@@ -1,6 +1,6 @@
 /**
  * ARMY-02 / ARMY-03 -- DetachmentRulesSection tests.
- * Phase 107: detachment/stratagem data source (rules.db) eliminated -- stubs return empty.
+ * Phase 120: wired to real canonical DB data via useGameData hooks.
  */
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -22,8 +22,8 @@ describe("DetachmentRulesSection", () => {
     expect(screen.getByText("Select a detachment to see its rules")).toBeInTheDocument();
   });
 
-  it("renders 'No rules data available' when detachmentId set (data source removed in Phase 107)", () => {
+  it("renders loading skeletons when detachmentId is set and data is pending", () => {
     renderSection("DET001");
-    expect(screen.getByText(/No rules data available/)).toBeInTheDocument();
+    expect(screen.getAllByRole("generic").filter((el) => el.dataset.slot === "skeleton")).toHaveLength(3);
   });
 });

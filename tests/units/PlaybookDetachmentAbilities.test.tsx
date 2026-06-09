@@ -93,10 +93,10 @@ function renderComponent(factionId = "SM") {
 // ---------------------------------------------------------------------------
 
 describe("PlaybookDetachmentAbilities — returns null when no data", () => {
-  it("returns null when isLoading is true", async () => {
+  it("renders loading skeleton when isLoading is true", async () => {
     await setupAbilitiesMock([], true);
     const { container } = renderComponent();
-    expect(container.firstChild).toBeNull();
+    expect(container.querySelector("[data-slot='skeleton']")).toBeTruthy();
   });
 
   it("returns null when abilities array is empty", async () => {
