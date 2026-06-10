@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: Settings & Preferences
 status: executing
-stopped_at: Phase 123 UI-SPEC approved
-last_updated: "2026-06-10T18:52:06.564Z"
-last_activity: 2026-06-10 -- Phase 125 planning complete
+stopped_at: Phase 124 planned — ready to execute
+last_updated: "2026-06-10T20:30:00.000Z"
+last_activity: 2026-06-10
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 5
+  total_plans: 6
   completed_plans: 2
   percent: 20
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-10)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 122 — preferences-tab
+**Current focus:** Phase 125 — About Tab
 
 ## Current Position
 
-Phase: 122 (preferences-tab) — CONTEXT GATHERED
-Plan: 0 of 0
-Status: Ready to execute
-Last activity: 2026-06-10 -- Phase 125 planning complete
+Phase: 125 (About Tab) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 125
+Last activity: 2026-06-10 -- Phase 125 execution started
 
 Progress: [██████████] 100%
 
