@@ -152,7 +152,7 @@ Phase 121 first (foundation), then 122 + 123 + 124 + 125 in parallel (all tabs i
 |-------|----------------|--------|-----------|
 | 121. Settings Foundation | 2/2 | Complete   | 2026-06-10 |
 | 122. Preferences Tab | 0/TBD | Not started | - |
-| 123. Hobby Defaults Tab | 0/2 | Planned | - |
+| 123. Hobby Defaults Tab | 2/2 | Complete   | 2026-06-10 |
 | 124. Data Management Tab | 1/2 | In Progress|  |
 | 125. About Tab | 1/1 | Complete | 2026-06-10 |
 
