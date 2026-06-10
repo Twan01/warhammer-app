@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: Settings & Preferences
-status: planning
-stopped_at: Phase 125 context gathered
-last_updated: "2026-06-10T18:30:56.831Z"
-last_activity: 2026-06-10
+status: executing
+stopped_at: Phase 123 UI-SPEC approved
+last_updated: "2026-06-10T18:52:06.564Z"
+last_activity: 2026-06-10 -- Phase 125 planning complete
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 2
+  total_plans: 5
   completed_plans: 2
   percent: 20
 ---
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 
 Phase: 122 (preferences-tab) — CONTEXT GATHERED
 Plan: 0 of 0
-Status: Context gathered — ready for planning
-Last activity: 2026-06-10
+Status: Ready to execute
+Last activity: 2026-06-10 -- Phase 125 planning complete
 
 Progress: [██████████] 100%
 
@@ -84,7 +84,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-10T18:30:56.822Z
-Stopped at: Phase 125 context gathered
-Resume file: .planning/phases/125-about-tab/125-CONTEXT.md
+Last session: 2026-06-10T18:39:50.522Z
+Stopped at: Phase 123 UI-SPEC approved
+Resume file: .planning/phases/123-hobby-defaults-tab/123-UI-SPEC.md
 Resume: Phase 122 context captured — ready for planning.
