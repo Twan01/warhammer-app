@@ -4,13 +4,13 @@ milestone: v0.5.0
 milestone_name: Settings & Preferences
 status: executing
 stopped_at: Phase 121 UI-SPEC approved
-last_updated: "2026-06-10T07:20:47.027Z"
-last_activity: 2026-06-10 -- Phase 121 planning complete
+last_updated: "2026-06-10T07:35:15.597Z"
+last_activity: 2026-06-10
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 2
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-10)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 121 - Settings Foundation
+**Current focus:** Phase 121 — settings-foundation
 
 ## Current Position
 
-Phase: 121 of 125 (Settings Foundation)
-Plan: 0 of TBD in current phase
+Phase: 121 (settings-foundation) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-06-10 -- Phase 121 planning complete
+Last activity: 2026-06-10
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -41,6 +41,9 @@ Progress: [░░░░░░░░░░] 0%
 - v0.4.2: 11 plans across 4 phases (single day)
 - v0.4.0: 12 plans across 5 phases (3 days)
 - v0.3.7: 6 plans across 3 phases (single day)
+
+**Phase 121 (settings-foundation):**
+- Plan 01: 18min, 3 tasks, 9 files
 
 ## Accumulated Context
 
@@ -54,6 +57,9 @@ Progress: [░░░░░░░░░░] 0%
 - Currency integration targets spending tracker (formatCurrency)
 - Default faction integration targets ActiveFactionContext
 - DB browser locale toggle (localStorage) must coexist with PREF-01 setting
+- DDL-only migration 044 — no seed data, defaults in hook layer (boot-loop prevention per migration 038 precedent)
+- AppSettingsMap = Record<string,string> — generic typed map, no convenience wrappers in Phase 121
+- INSERT OR REPLACE upsert pattern for app_settings (idiomatic SQLite)
 
 ### Pending Todos
 
@@ -75,7 +81,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-10T07:06:43.584Z
-Stopped at: Phase 121 UI-SPEC approved
-Resume file: .planning/phases/121-settings-foundation/121-UI-SPEC.md
-Resume: Plan Phase 121 (Settings Foundation). Run `/gsd:plan-phase 121` to start.
+Last session: 2026-06-10T09:38:00Z
+Stopped at: Completed Phase 121 Plan 01 (settings data layer)
+Resume file: .planning/phases/121-settings-foundation/121-02-PLAN.md
+Resume: Execute Phase 121 Plan 02.
