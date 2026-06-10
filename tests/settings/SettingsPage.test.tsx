@@ -6,6 +6,17 @@ vi.mock("@/hooks/useAppSettings", () => ({
   useAppSettings: vi.fn(),
 }));
 
+vi.mock("@tauri-apps/api/app", () => ({
+  getVersion: vi.fn(() => Promise.resolve("0.4.14")),
+}));
+
+vi.mock("@/hooks/useUdbMeta", () => ({
+  useUdbMeta: vi.fn().mockReturnValue({
+    data: null,
+    isLoading: false,
+  }),
+}));
+
 import { useAppSettings } from "@/hooks/useAppSettings";
 
 type MockReturn = {
