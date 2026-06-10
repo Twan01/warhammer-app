@@ -61,7 +61,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 121-02-PLAN.md — Tabbed Settings page shell with placeholder content (INF-03)
+- [x] 121-02-PLAN.md — Tabbed Settings page shell with placeholder content (INF-03)
 
 **UI hint**: yes
 
@@ -130,7 +130,7 @@ Phase 121 first (foundation), then 122 + 123 + 124 + 125 in parallel (all tabs i
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 121. Settings Foundation | 1/2 | In Progress|  |
+| 121. Settings Foundation | 2/2 | Complete   | 2026-06-10 |
 | 122. Preferences Tab | 0/TBD | Not started | - |
 | 123. Hobby Defaults Tab | 0/TBD | Not started | - |
 | 124. Data Management Tab | 0/TBD | Not started | - |

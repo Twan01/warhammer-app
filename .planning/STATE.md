@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: Settings & Preferences
-status: executing
-stopped_at: Phase 121 UI-SPEC approved
-last_updated: "2026-06-10T07:35:15.597Z"
+status: verifying
+stopped_at: Completed Phase 121 Plan 01 (settings data layer)
+last_updated: "2026-06-10T07:44:54.090Z"
 last_activity: 2026-06-10
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 0
+  completed_plans: 2
+  percent: 20
 ---
 
 # Project State
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 
 Phase: 121 (settings-foundation) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-10
 
-Progress: [█████░░░░░] 50%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -43,6 +43,7 @@ Progress: [█████░░░░░] 50%
 - v0.3.7: 6 plans across 3 phases (single day)
 
 **Phase 121 (settings-foundation):**
+
 - Plan 01: 18min, 3 tasks, 9 files
 
 ## Accumulated Context
@@ -60,6 +61,8 @@ Progress: [█████░░░░░] 50%
 - DDL-only migration 044 — no seed data, defaults in hook layer (boot-loop prevention per migration 038 precedent)
 - AppSettingsMap = Record<string,string> — generic typed map, no convenience wrappers in Phase 121
 - INSERT OR REPLACE upsert pattern for app_settings (idiomatic SQLite)
+- Loading/error guard only on Preferences tab — Data and About are static placeholders in Phase 121
+- No QueryClientProvider wrapper in SettingsPage tests — useAppSettings fully mocked at module level
 
 ### Pending Todos
 
@@ -81,7 +84,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-10T09:38:00Z
-Stopped at: Completed Phase 121 Plan 01 (settings data layer)
-Resume file: .planning/phases/121-settings-foundation/121-02-PLAN.md
-Resume: Execute Phase 121 Plan 02.
+Last session: 2026-06-10T09:50:00Z
+Stopped at: Completed Phase 121 Plan 02 (Settings UI shell)
+Resume file: None
+Resume: Phase 121 complete — advance to Phase 122.

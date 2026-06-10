@@ -9,7 +9,7 @@
 
 - [x] **INF-01**: `app_settings` table (migration) with key-value storage for all settings
 - [x] **INF-02**: Settings query/hook layer (`useAppSettings`, `useUpdateSetting`) with React Query integration
-- [ ] **INF-03**: Settings page with 3-tab layout (Preferences / Data / About) using shadcn Tabs
+- [x] **INF-03**: Settings page with 3-tab layout (Preferences / Data / About) using shadcn Tabs
 
 ### Preferences
 
@@ -61,7 +61,7 @@
 |-------------|-------|--------|
 | INF-01 | Phase 121 | Complete |
 | INF-02 | Phase 121 | Complete |
-| INF-03 | Phase 121 | Pending |
+| INF-03 | Phase 121 | Complete |
 | PREF-01 | Phase 122 | Pending |
 | PREF-02 | Phase 122 | Pending |
 | PREF-03 | Phase 122 | Pending |
