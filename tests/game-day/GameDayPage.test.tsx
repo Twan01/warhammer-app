@@ -92,6 +92,16 @@ vi.mock("@/hooks/useDatasheet", () => ({
   useRulesSyncMeta: () => ({ data: null }),
 }));
 
+vi.mock("@/hooks/useUdbMeta", () => ({
+  useUdbMeta: () => ({ data: null }),
+}));
+
+vi.mock("@/db/queries/appSettings", () => ({
+  getAppSetting: () => Promise.resolve(null),
+  getAppSettings: () => Promise.resolve([]),
+  upsertAppSetting: () => Promise.resolve(),
+}));
+
 vi.mock("@/features/army-lists/PointsFreshnessBadge", () => ({
   PointsFreshnessBadge: () => <span data-testid="freshness-badge">Fresh</span>,
 }));
