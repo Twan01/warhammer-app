@@ -53,10 +53,11 @@ Follows project-wide Geist Variable type scale. Identical to DataHealthPage and 
 
 | Role | Size | Weight | Line Height | Usage |
 |------|------|--------|-------------|-------|
-| Body | 14px (text-sm) | 400 (normal) | 1.5 | Tab placeholder content, descriptive copy |
-| Label | 14px (text-sm) | 500 (medium) | 1.4 | Tab labels inside shadcn Tabs trigger |
-| Heading (section) | 18px (text-lg) | 600 (semibold) | 1.2 | Section sub-titles within tab panels |
+| Body | 14px (text-sm) | 400 (normal) | 1.5 | Tab placeholder content, descriptive copy, tab labels inside shadcn Tabs trigger |
+| Heading (section) | 18px (text-lg) | 600 (semibold) | 1.2 | Section sub-titles within tab panels, placeholder headings |
 | Page title | 20px (text-xl) | 600 (semibold) | 1.2 | "Settings" h1 — matches DataHealthPage `text-xl font-semibold` |
+
+Declared weights: 2 — 400 (normal) and 600 (semibold).
 
 Source: DataHealthPage.tsx pattern `text-xl font-semibold` (h1) and `text-lg font-semibold` (h2).
 
@@ -136,7 +137,7 @@ Each tab panel in Phase 121 renders placeholder content until the downstream pha
 | Data | "Data Management" | "Data health link, factory reset, and preference backup — coming in the next update." |
 | About | "About HobbyForge" | "App version, data statistics, and attribution — coming in the next update." |
 
-Placeholder text color: `text-muted-foreground`. Placeholder headings: `text-sm font-medium`.
+Placeholder text color: `text-muted-foreground`. Placeholder headings: `text-lg font-semibold`.
 
 ---
 
