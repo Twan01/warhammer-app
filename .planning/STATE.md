@@ -2,9 +2,10 @@
 gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: Settings & Preferences
-status: ready_to_plan
-last_updated: "2026-06-10"
-last_activity: 2026-06-10
+status: planning
+stopped_at: Phase 121 context gathered
+last_updated: "2026-06-10T07:00:03.466Z"
+last_activity: 2026-06-10 — Roadmap created for v0.5.0 (5 phases, 17 requirements)
 progress:
   total_phases: 5
   completed_phases: 0
@@ -74,7 +75,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-10
-Stopped at: Roadmap created for v0.5.0 Settings & Preferences
-Resume file: None
+Last session: 2026-06-10T07:00:03.452Z
+Stopped at: Phase 121 context gathered
+Resume file: .planning/phases/121-settings-foundation/121-CONTEXT.md
 Resume: Plan Phase 121 (Settings Foundation). Run `/gsd:plan-phase 121` to start.
