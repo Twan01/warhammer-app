@@ -469,17 +469,17 @@ export function HobbyPipeline({ units }: HobbyPipelineProps) {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **gameDayStore async init strategy**
    - What we know: `createDefaultState()` is synchronous; `getAppSetting` is async; Zustand store is initialized synchronously from localStorage persist.
    - What's unclear: Whether the lazy async init should be triggered from the store itself (e.g., an async `initListIfNeeded` action) or from the React component layer (Game Day page calls async fetch + calls `initListState` Zustand action).
-   - Recommendation: Component-layer approach — Game Day page reads `useAppSettings()` (already in React Query cache), detects no existing list state, and calls a new Zustand action `setDefaultItems(listId, items)` with the parsed checklist. This avoids making the store dependent on an async import.
+   - RESOLVED: Component-layer approach — Game Day page reads `useAppSettings()` (already in React Query cache), detects no existing list state, and calls a new Zustand action `setDefaultItems(listId, items)` with the parsed checklist. This avoids making the store dependent on an async import.
 
 2. **KanbanColumn bucket label integration scope**
    - What we know: KanbanColumn shows individual `status: PaintingStatus` as column headers (the 11 statuses, not 5 buckets). HobbyPipeline shows the 5 bucket labels.
    - What's unclear: The CONTEXT.md D-05 lists KanbanBoard as a consumer of the label resolver, but the bucket grouping only exists in HobbyPipeline. KanbanColumn headers show individual status names (e.g., "Built", "Primed") — these are not the customizable bucket labels.
-   - Recommendation: KanbanColumn does NOT need HOB-01 integration. Only HobbyPipeline (bucket labels) needs updating. The planner should clarify this scope boundary.
+   - RESOLVED: KanbanColumn does NOT need HOB-01 integration. Only HobbyPipeline (bucket labels) needs updating. CONTEXT.md D-05 updated to reflect this scope boundary.
 
 ---
 

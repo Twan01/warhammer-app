@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: Settings & Preferences
 status: executing
-stopped_at: Phase 124 planned — ready to execute
-last_updated: "2026-06-10T20:30:00.000Z"
-last_activity: 2026-06-10
+stopped_at: Phase 123 UI-SPEC approved
+last_updated: "2026-06-10T19:06:07.712Z"
+last_activity: 2026-06-10 -- Phase 123 planning complete
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 6
+  total_plans: 7
   completed_plans: 2
   percent: 20
 ---
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 
 Phase: 125 (About Tab) — EXECUTING
 Plan: 1 of 1
-Status: Executing Phase 125
-Last activity: 2026-06-10 -- Phase 125 execution started
+Status: Ready to execute
+Last activity: 2026-06-10 -- Phase 123 planning complete
 
 Progress: [██████████] 100%
 
