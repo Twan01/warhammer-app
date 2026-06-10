@@ -2,6 +2,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppSettings } from "@/hooks/useAppSettings";
 import { AboutTab } from "@/features/settings/AboutTab";
+import { DataManagementTab } from "@/features/settings/DataManagementTab";
 
 export function SettingsPage() {
   const { isLoading, isError } = useAppSettings();
@@ -32,10 +33,7 @@ export function SettingsPage() {
           )}
         </TabsContent>
         <TabsContent value="data" className="mt-4">
-          <h2 className="text-lg font-semibold">Data Management</h2>
-          <p className="text-muted-foreground text-sm">
-            Data health link, factory reset, and preference backup — coming in the next update.
-          </p>
+          <DataManagementTab />
         </TabsContent>
         <TabsContent value="about" className="mt-4">
           <AboutTab />
