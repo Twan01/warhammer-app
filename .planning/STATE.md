@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: Settings & Preferences
 status: executing
-stopped_at: Phase 124 executed — all plans complete
-last_updated: "2026-06-10T21:30:00.000Z"
+stopped_at: Phase 123 Plan 02 complete — all plans in phase 123 done
+last_updated: "2026-06-10T19:37:00.000Z"
 last_activity: 2026-06-10
 progress:
   total_phases: 5
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 ## Current Position
 
 Phase: 123 (hobby-defaults-tab) — EXECUTING
-Plan: 2 of 2
-Status: Executing Phase 123
-Last activity: 2026-06-10 -- Plan 123-01 complete (2 tasks, 8 files)
+Plan: 2 of 2 (COMPLETE)
+Status: Phase 123 complete
+Last activity: 2026-06-10 -- Plan 123-02 complete (2 tasks, 6 files)
 
-Progress: [██████░░░░] 57%
+Progress: [█████████░] 89%
 
 ## Performance Metrics
 
@@ -56,6 +56,10 @@ Progress: [██████░░░░] 57%
 - Sidebar link already wired for Settings
 - Pipeline stage labels now have getBucketLabel() utility with custom label support via app_settings
 - Hobby Defaults section in Settings Preferences tab with pipeline labels, checklist, mission format editors
+- HobbyPipeline renders dynamic bucket labels from app_settings (only bucket-label consumer per D-05)
+- BattleLogSheet pre-fills mission from default_mission_format on create only (D-11)
+- gameDayStore exports getDefaultChecklist async + setDefaultChecklist action with existing-session guard
+- GameDayPage wires async checklist defaults for new sessions via Zustand vanilla access
 - Currency integration targets spending tracker (formatCurrency)
 - Default faction integration targets ActiveFactionContext
 - DB browser locale toggle (localStorage) must coexist with PREF-01 setting
@@ -85,7 +89,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-10T19:25:00.000Z
-Stopped at: Plan 123-01 complete — ready for 123-02
+Last session: 2026-06-10T19:37:00.000Z
+Stopped at: Phase 123 complete — all 2 plans executed
 Resume file: None
-Resume: Plan 123-01 delivered hobby defaults editors + tests. Plan 123-02 wires consumers.
+Resume: Phase 123 complete. Plan 01 delivered editors + utility, Plan 02 wired consumers (pipeline labels, mission pre-fill, checklist defaults).

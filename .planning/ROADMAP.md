@@ -35,7 +35,7 @@
 
 - [ ] **Phase 121: Settings Foundation** - app_settings table, query/hook layer, and tabbed UI shell
 - [ ] **Phase 122: Preferences Tab** - language, currency, default faction, and points target settings
-- [ ] **Phase 123: Hobby Defaults Tab** - customizable pipeline stages, pre-game checklist, and mission format
+- [x] **Phase 123: Hobby Defaults Tab** - customizable pipeline stages, pre-game checklist, and mission format
 - [x] **Phase 124: Data Management Tab** - Data Health link, factory reset, preference export/import
 - [ ] **Phase 125: About Tab** - app version, data stats, credits and attribution
 
@@ -99,7 +99,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 123-02-PLAN.md — Wire consumers: HobbyPipeline labels, BattleLogSheet mission pre-fill, gameDayStore checklist defaults + tests (HOB-01, HOB-02, HOB-03)
+- [x] 123-02-PLAN.md — Wire consumers: HobbyPipeline labels, BattleLogSheet mission pre-fill, gameDayStore checklist defaults + tests (HOB-01, HOB-02, HOB-03)
 
 **UI hint**: yes
 

@@ -20,9 +20,9 @@
 
 ### Hobby Defaults
 
-- [ ] **HOB-01**: User can rename the 5 painting pipeline stage labels from Settings
-- [ ] **HOB-02**: User can customize default pre-game checklist items from Settings
-- [ ] **HOB-03**: User can set a default mission format for new battle logs
+- [x] **HOB-01**: User can rename the 5 painting pipeline stage labels from Settings
+- [x] **HOB-02**: User can customize default pre-game checklist items from Settings
+- [x] **HOB-03**: User can set a default mission format for new battle logs
 
 ### Data Management
 
@@ -66,9 +66,9 @@
 | PREF-02 | Phase 122 | Pending |
 | PREF-03 | Phase 122 | Pending |
 | PREF-04 | Phase 122 | Pending |
-| HOB-01 | Phase 123 | Pending |
-| HOB-02 | Phase 123 | Pending |
-| HOB-03 | Phase 123 | Pending |
+| HOB-01 | Phase 123 | Complete |
+| HOB-02 | Phase 123 | Complete |
+| HOB-03 | Phase 123 | Complete |
 | DAT-01 | Phase 124 | Pending |
 | DAT-02 | Phase 124 | Complete |
 | DAT-03 | Phase 124 | Pending |
