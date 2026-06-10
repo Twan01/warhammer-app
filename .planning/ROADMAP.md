@@ -50,7 +50,10 @@
   2. Settings page loads at `/settings` with three visible tabs (Preferences / Data / About)
   3. A setting value written via `useUpdateSetting` persists across app restarts
   4. React Query cache invalidates correctly after a setting mutation (UI reflects new value without manual refresh)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 121-01-PLAN.md — Migration 044 + query module + React Query hooks (INF-01, INF-02)
+- [ ] 121-02-PLAN.md — Tabbed Settings page shell with placeholder content (INF-03)
 **UI hint**: yes
 
 ### Phase 122: Preferences Tab
@@ -102,11 +105,11 @@
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 121 -> 122 -> 123 -> 124 -> 125
+Phase 121 first (foundation), then 122 + 123 + 124 + 125 in parallel (all tabs independent after foundation)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 121. Settings Foundation | 0/TBD | Not started | - |
+| 121. Settings Foundation | 0/2 | Planning complete | - |
 | 122. Preferences Tab | 0/TBD | Not started | - |
 | 123. Hobby Defaults Tab | 0/TBD | Not started | - |
 | 124. Data Management Tab | 0/TBD | Not started | - |
