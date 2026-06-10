@@ -6,6 +6,16 @@ HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby 
 
 Shipped through v0.4.7 (120 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps, transactional graph save, recipe_step_id-keyed progress), a dedicated Painting Mode for focused step-by-step recipe execution (distraction-free full-page layout, keyboard shortcuts, section navigator, paint readiness warnings, atomic step completion with session logging, 6 entry points), army list builder with detachment selection, FK-based points resolution from canonical database, smart list builder (loadout builder, wargear/model count editor, enhancements with auto-resolved points from canonical DB, leader attachment with preventive validation, ghost/planned units, 4-format export, version snapshots with save/compare/restore, battle-readiness badges in unit picker, budget-aware filtering), battle log with after-action capture (forgotten rules, MVP/underperformer notes), spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard, KanbanCards, NextPaintingActionCard, ReadyToPlayCard, and DataHealthSummaryCard, canonical unit database browser (1,711 units across 25 factions with stat blocks, weapon tables, ability text, keywords, points tiers, FTS5 search, role/keyword/point filters, virtual scrolling), collection-to-database FK linking with ownership/readiness badges, user annotations (favorites, notes, reminders) on any rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped real stratagems from canonical DB, unit ability cards, pre-game checklist, pre-game readiness panel, end-game after-action with forgotten-rules-to-reminders pipeline), Rules Hub with live stratagem/detachment data and search/filter, Data Health page with diagnostics, structured backup export (.zip with VACUUM INTO + metadata.json), full restore with preview/validation/atomic swap/restart, automatic safety backups before restore, progressive backup diagnostics with version mismatch detection, a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK), version parity enforcement, auto-update via GitHub Releases with in-app banner, single-database architecture (hobbyforge.db only, rules.db eliminated), Wahapedia-only build pipeline (auto-download CSVs, BOM-safe parsing, Legends dedup, 99.8% points coverage, 1,482 stratagems, 927 enhancements, 261 detachments with 284 abilities), internal robustness hardening (WAL mode, FK indexes, CHECK constraints, route error boundaries, DB health gate, lazy route loading, React.memo, batched INSERTs, query-layer isolation, component decomposition), and smart automation (auto-derive assembly/basing/varnish statuses from recipe completion, auto-manage active projects, context-aware recipe pre-filling with faction grouping).
 
+## Current Milestone: v0.5.0 Settings & Preferences
+
+**Goal:** Build a comprehensive Settings page with tabbed navigation (Preferences / Data / About) to centralize app configuration, hobby defaults, data management shortcuts, and version info.
+
+**Target features:**
+- Preferences tab: language default (EN/FR), currency picker, default faction, default points target, sidebar behavior
+- Hobby defaults: customizable painting pipeline stages, Game Day defaults (mission format, pre-game checklist)
+- Data tab: link to Data Health, database/factory reset, export/import user preferences
+- About tab: app version, data version, Wahapedia data date, credits/links
+
 ## Current State
 
 v0.4.7 shipped (2026-06-09). 120 phases complete across 25 milestones. ~300+ TypeScript source files. 43 SQLite migrations (hobbyforge.db). 2,400+ automated tests. 9 Tauri Rust commands. Build pipeline: Wahapedia-only (BSData removed), deterministic builds, BOM-safe CSV parsing, Legends dedup, auto-download, detachment import (261 detachments, 284 abilities across 26 factions), stratagems import (1,482 stratagems including 28 universal/core with nullable FKs), enhancements import (927 enhancements). Game Day shows real stratagems grouped by battle phase. Rules Hub has live stratagem/detachment data with search and filters. Enhancement picker uses canonical DB with HTML descriptions and auto-resolved points. PlaybookTab shows detachment abilities. Priority factions (SM/NEC/DG) data-audited with French translations.
@@ -261,12 +271,12 @@ A single personal command center that always answers "what do I own, what's pain
 
 ### Active
 
-(No active requirements — next milestone not yet planned)
+(Requirements defined in REQUIREMENTS.md — v0.5.0 Settings & Preferences)
 
 ### Out of Scope
 
 - Auto-backup on schedule — manual backup + safety backups before risky operations sufficient for now
-- Settings page — deferred
+- Settings page — **in progress (v0.5.0)**
 - Multi-game-system support (AoS, Horus Heresy, etc.) — 40K 10th edition only
 - macOS / Linux builds — Windows-only
 - Mobile companion app — desktop only
@@ -425,4 +435,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-09 after v0.4.7 milestone shipped*
+*Last updated: 2026-06-10 — v0.5.0 Settings & Preferences milestone started*
