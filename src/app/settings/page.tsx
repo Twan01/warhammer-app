@@ -3,6 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAppSettings } from "@/hooks/useAppSettings";
 import { AboutTab } from "@/features/settings/AboutTab";
 import { DataManagementTab } from "@/features/settings/DataManagementTab";
+import { HobbyDefaultsSection } from "@/features/settings/HobbyDefaultsSection";
 
 export function SettingsPage() {
   const { isLoading, isError } = useAppSettings();
@@ -29,6 +30,7 @@ export function SettingsPage() {
               <p className="text-muted-foreground text-sm">
                 Language, currency, default faction, and points target — coming in the next update.
               </p>
+              <HobbyDefaultsSection />
             </>
           )}
         </TabsContent>
