@@ -263,6 +263,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/043_udb_stratagems_enhancements.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 44,
+            description: "app_settings",
+            sql: include_str!("../migrations/044_app_settings.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
