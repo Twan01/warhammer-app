@@ -42,63 +42,84 @@
 ## Phase Details
 
 ### Phase 121: Settings Foundation
+
 **Goal**: Settings page has a working tabbed layout backed by persistent key-value storage
 **Depends on**: Nothing (first phase of milestone)
 **Requirements**: INF-01, INF-02, INF-03
 **Success Criteria** (what must be TRUE):
+
   1. App launches with `app_settings` table created (migration runs without error on fresh install and existing installs)
   2. Settings page loads at `/settings` with three visible tabs (Preferences / Data / About)
   3. A setting value written via `useUpdateSetting` persists across app restarts
   4. React Query cache invalidates correctly after a setting mutation (UI reflects new value without manual refresh)
+
 **Plans**: 2 plans
 Plans:
+**Wave 1**
+
 - [ ] 121-01-PLAN.md — Migration 044 + query module + React Query hooks (INF-01, INF-02)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 121-02-PLAN.md — Tabbed Settings page shell with placeholder content (INF-03)
+
 **UI hint**: yes
 
 ### Phase 122: Preferences Tab
+
 **Goal**: Users can configure their core app preferences and see them applied across the app
 **Depends on**: Phase 121
 **Requirements**: PREF-01, PREF-02, PREF-03, PREF-04
 **Success Criteria** (what must be TRUE):
+
   1. User can switch language between EN and FR from Settings, and the DB browser locale toggle stays in sync
   2. User can pick a currency (EUR/GBP/USD/CAD/AUD/JPY), and the spending tracker displays amounts in the selected currency
   3. User can set a default faction that loads as the active faction on app startup (integrates with ActiveFactionContext)
   4. User can set a default army readiness points target (preset or custom), and the ArmyReadinessCard uses it on load
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 123: Hobby Defaults Tab
+
 **Goal**: Users can customize their hobby workflow defaults without editing code
 **Depends on**: Phase 121
 **Requirements**: HOB-01, HOB-02, HOB-03
 **Success Criteria** (what must be TRUE):
+
   1. User can rename any of the 5 painting pipeline stage labels, and the new labels appear on the Dashboard pipeline, Collection filters, and Kanban columns
   2. User can add, remove, and reorder default pre-game checklist items, and new Game Day sessions start with the customized checklist
   3. User can set a default mission format, and new battle logs pre-fill with that format
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 124: Data Management Tab
+
 **Goal**: Users can manage their data health, reset the app, and transfer preferences between installs
 **Depends on**: Phase 121
 **Requirements**: DAT-01, DAT-02, DAT-03, DAT-04
 **Success Criteria** (what must be TRUE):
+
   1. Data tab shows a clickable link that navigates to the Data Health page
   2. User can trigger a factory reset with multi-step confirmation (type confirmation text), and after reset the app restarts with a clean database
   3. User can export current preferences to a `.json` file via file picker
   4. User can import a previously exported preferences JSON file, and all settings update to the imported values
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 125: About Tab
+
 **Goal**: Users can see app identity, data provenance, and attribution at a glance
 **Depends on**: Phase 121
 **Requirements**: ABT-01, ABT-02, ABT-03
 **Success Criteria** (what must be TRUE):
+
   1. About tab displays the current app version matching package.json/tauri.conf.json
   2. About tab shows data stats: total unit count, faction count, and Wahapedia data date
   3. About tab displays credits with Wahapedia attribution and tech stack information
+
 **Plans**: TBD
 **UI hint**: yes
 
