@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: Settings & Preferences
-status: verifying
-stopped_at: Phase 124 context gathered
-last_updated: "2026-06-10T19:00:00.000Z"
+status: planning
+stopped_at: Phase 125 context gathered
+last_updated: "2026-06-10T18:30:56.831Z"
 last_activity: 2026-06-10
 progress:
   total_phases: 5
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-10)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 121 — settings-foundation
+**Current focus:** Phase 122 — preferences-tab
 
 ## Current Position
 
-Phase: 121 (settings-foundation) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
+Phase: 122 (preferences-tab) — CONTEXT GATHERED
+Plan: 0 of 0
+Status: Context gathered — ready for planning
 Last activity: 2026-06-10
 
 Progress: [██████████] 100%
@@ -84,7 +84,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-10T19:00:00Z
-Stopped at: Phase 124 context gathered
-Resume file: .planning/phases/124-data-management-tab/124-CONTEXT.md
-Resume: Phase 124 context captured — ready for planning.
+Last session: 2026-06-10T18:30:56.822Z
+Stopped at: Phase 125 context gathered
+Resume file: .planning/phases/125-about-tab/125-CONTEXT.md
+Resume: Phase 122 context captured — ready for planning.
