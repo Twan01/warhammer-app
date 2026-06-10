@@ -52,15 +52,16 @@ Source: default 8-point scale; consistent with existing Settings page `p-6 space
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Page heading | 20px (text-xl) | 600 (semibold) | 1.2 |
-| Section/setting label | 14px (text-sm) | 500 (medium) | 1.5 |
+| Section/setting label | 14px (text-sm) | 600 (semibold) | 1.5 |
 | Setting description | 14px (text-sm) | 400 (regular) | 1.5 |
 | Control label / option | 12px (text-xs) | 400 (regular) | 1.5 |
 
 Notes:
 - Page heading "Settings" uses `text-xl font-semibold` — already established in Phase 121 shell.
-- Setting labels use `text-sm font-medium` to distinguish from muted description text.
+- Setting labels use `text-sm font-semibold` — distinguished from descriptions by weight + color contrast (`text-muted-foreground`).
 - Setting descriptions use `text-sm text-muted-foreground`.
 - Preset button values (500/1000/1500/2000) use `text-xs tabular-nums` — matching ArmyReadinessCard pattern.
+- Two weights only: 600 (semibold) for headings/labels, 400 (regular) for body/descriptions/controls.
 
 Source: Phase 121 shell (`src/app/settings/page.tsx`) + `ArmyReadinessCard.tsx`.
 
@@ -106,13 +107,15 @@ Each setting row uses a two-column layout: description on the left, control on t
 ```
 div.flex.items-start.justify-between.gap-4
   ├── div (left: label + description)
-  │     ├── p.text-sm.font-medium          — setting name
+  │     ├── p.text-sm.font-semibold          — setting name
   │     └── p.text-sm.text-muted-foreground — description
   └── div (right: control)
         └── [control — see per-setting spec below]
 ```
 
 Min width on the right control column: `min-w-[160px]` to prevent layout collapse on narrow windows.
+
+No dominant focal point by design — all four setting rows are visually equal weight.
 
 ### Language Control
 
@@ -276,11 +279,11 @@ No third-party registries declared.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS (revised: 2 weights)
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** APPROVED (2026-06-10)
