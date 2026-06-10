@@ -1,6 +1,7 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppSettings } from "@/hooks/useAppSettings";
+import { AboutTab } from "@/features/settings/AboutTab";
 
 export function SettingsPage() {
   const { isLoading, isError } = useAppSettings();
@@ -37,10 +38,7 @@ export function SettingsPage() {
           </p>
         </TabsContent>
         <TabsContent value="about" className="mt-4">
-          <h2 className="text-lg font-semibold">About HobbyForge</h2>
-          <p className="text-muted-foreground text-sm">
-            App version, data statistics, and attribution — coming in the next update.
-          </p>
+          <AboutTab />
         </TabsContent>
       </Tabs>
     </div>
