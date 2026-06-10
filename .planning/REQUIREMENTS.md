@@ -27,7 +27,7 @@
 ### Data Management
 
 - [ ] **DAT-01**: Settings Data tab shows a link to navigate to Data Health page
-- [ ] **DAT-02**: User can trigger a factory reset (wipe all user data) with multi-step confirmation
+- [x] **DAT-02**: User can trigger a factory reset (wipe all user data) with multi-step confirmation
 - [ ] **DAT-03**: User can export current preferences to a JSON file
 - [ ] **DAT-04**: User can import preferences from a previously exported JSON file
 
@@ -70,7 +70,7 @@
 | HOB-02 | Phase 123 | Pending |
 | HOB-03 | Phase 123 | Pending |
 | DAT-01 | Phase 124 | Pending |
-| DAT-02 | Phase 124 | Pending |
+| DAT-02 | Phase 124 | Complete |
 | DAT-03 | Phase 124 | Pending |
 | DAT-04 | Phase 124 | Pending |
 | ABT-01 | Phase 125 | Pending |
