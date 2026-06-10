@@ -4,6 +4,9 @@ import { SettingsPage } from "@/app/settings/page";
 
 vi.mock("@/hooks/useAppSettings", () => ({
   useAppSettings: vi.fn(),
+  useUpdateSetting: vi.fn().mockReturnValue({
+    mutateAsync: vi.fn(),
+  }),
 }));
 
 vi.mock("@tauri-apps/api/app", () => ({
