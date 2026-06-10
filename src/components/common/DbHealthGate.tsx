@@ -7,7 +7,7 @@ import { DbDiagnosticScreen } from "@/components/common/DbDiagnosticScreen";
  * Expected schema version for hobbyforge.db.
  * Must match the highest-numbered migration prefix in get_migrations().
  */
-export const EXPECTED_SCHEMA_VERSION = 43;
+export const EXPECTED_SCHEMA_VERSION = 44;
 
 /**
  * Extract user_version from a PRAGMA result row.
