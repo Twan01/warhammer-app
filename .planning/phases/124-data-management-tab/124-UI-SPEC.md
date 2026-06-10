@@ -91,6 +91,8 @@ Destructive (`--destructive`) reserved for:
 
 The `DataManagementTab` component renders inside `<TabsContent value="data" className="mt-4">`. It is a vertical stack of 4 Cards with `space-y-4` between them. No horizontal split. No sidebar. No grid.
 
+Primary focal point: the Factory Reset card at the bottom, distinguished by the `variant="destructive"` button. All other cards use `variant="outline"` — the red destructive button is the single chromatic anchor that draws the eye and signals danger.
+
 ### Section Order (top to bottom)
 
 ```
@@ -180,10 +182,10 @@ Multi-step confirmation flow (3 steps):
 AlertDialog state machine:
 - `open`: boolean — controls dialog visibility
 - `phrase`: string — typed confirmation phrase; reset to `""` on `onOpenChange(false)`
-- `isResetting`: boolean — disables both Cancel and Reset buttons; shows spinner on Reset button
+- `isResetting`: boolean — disables both "Keep My Data" and Reset buttons; shows spinner on Reset button
 
 During reset (`isResetting === true`):
-- Both "Cancel" and "Reset App" buttons are disabled
+- Both "Keep My Data" and "Reset App" buttons are disabled
 - Reset button renders: `<Loader2 className="mr-2 h-4 w-4 animate-spin" />Resetting...`
 - No way to dismiss — app will relaunch automatically on success
 
@@ -217,7 +219,7 @@ On error (invoke throws):
 | AlertDialog description (line 2) | "A safety backup will be created first. The app will restart automatically." | D-04/D-05 |
 | AlertDialog confirmation label | 'Type "RESET" to confirm' | D-03 |
 | AlertDialog confirmation placeholder | "RESET" | D-03 |
-| AlertDialog cancel button | "Cancel" | Default |
+| AlertDialog cancel button | "Keep My Data" | Checker revision — specific consequence label |
 | AlertDialog confirm button (disabled) | "Reset App" | D-03 |
 | AlertDialog confirm button (loading) | "Resetting..." | Default |
 
