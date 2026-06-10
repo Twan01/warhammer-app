@@ -12,12 +12,10 @@ import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import type { PaintingStatus } from "@/types/unit";
 import type { Unit } from "@/types/unit";
+import { useAppSettings } from "@/hooks/useAppSettings";
+import { getBucketLabel, BUCKET_ORDER, type PipelineBucket } from "@/lib/stageLabel";
 
-type Bucket = "Not Started" | "Assembly" | "Painting" | "Finishing" | "Done";
-
-const BUCKET_ORDER: Bucket[] = ["Not Started", "Assembly", "Painting", "Finishing", "Done"];
-
-const BUCKET_GROUPS: Record<Bucket, PaintingStatus[]> = {
+const BUCKET_GROUPS: Record<PipelineBucket, PaintingStatus[]> = {
   "Not Started": ["Not Started"],
   "Assembly":    ["Built", "Primed"],
   "Painting":    ["Basecoated", "Shaded", "Layered", "Highlighted", "Details Done"],
@@ -25,7 +23,7 @@ const BUCKET_GROUPS: Record<Bucket, PaintingStatus[]> = {
   "Done":        ["Completed"],
 };
 
-const BUCKET_BUBBLE_CLASS: Record<Bucket, string> = {
+const BUCKET_BUBBLE_CLASS: Record<PipelineBucket, string> = {
   "Not Started": "bg-muted-foreground/30 text-foreground",
   "Assembly":    "bg-slate-400/30 text-foreground",
   "Painting":    "bg-violet-400/30 text-foreground",
@@ -38,8 +36,10 @@ export interface HobbyPipelineProps {
 }
 
 export function HobbyPipeline({ units }: HobbyPipelineProps) {
+  const { data: settings = {} } = useAppSettings();
+
   const bucketCounts = useMemo(() => {
-    const counts = {} as Record<Bucket, number>;
+    const counts = {} as Record<PipelineBucket, number>;
     for (const bucket of BUCKET_ORDER) counts[bucket] = 0;
     for (const unit of units) {
       for (const bucket of BUCKET_ORDER) {
@@ -62,10 +62,10 @@ export function HobbyPipeline({ units }: HobbyPipelineProps) {
           <li
             key={bucket}
             className="flex flex-1 flex-col items-center gap-1"
-            aria-label={`${bucket}: ${bucketCounts[bucket]} units`}
+            aria-label={`${getBucketLabel(bucket, settings)}: ${bucketCounts[bucket]} units`}
           >
             <span className="text-xs text-muted-foreground text-center">
-              {bucket}
+              {getBucketLabel(bucket, settings)}
             </span>
             <span
               className={`inline-flex items-center justify-center min-w-[32px] h-7 px-2 rounded-full text-sm font-semibold tabular-nums ${BUCKET_BUBBLE_CLASS[bucket]}`}

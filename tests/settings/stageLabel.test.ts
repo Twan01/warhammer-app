@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   getBucketLabel,
   BUCKET_ORDER,
-  type PipelineBucket,
 } from "@/lib/stageLabel";
 
 describe("BUCKET_ORDER", () => {
