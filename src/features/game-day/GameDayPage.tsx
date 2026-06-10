@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Swords, Users, ClipboardList } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -13,6 +13,7 @@ import { GameDayReadinessPanel } from "./GameDayReadinessPanel";
 import { StrategemsTab } from "./StrategemsTab";
 import { UnitsTab } from "./UnitsTab";
 import { ChecklistTab } from "./ChecklistTab";
+import { useGameDayStore, getDefaultChecklist } from "./gameDayStore";
 import { BattleLogSheet } from "@/features/battle-log/BattleLogSheet";
 import { todayISO } from "@/lib/dates";
 
@@ -28,6 +29,14 @@ export function GameDayPage({ listId }: GameDayPageProps) {
   const { data: factions } = useFactions();
   const { data: udbMeta } = useUdbMeta();
   const freshness = getSyncFreshness(udbMeta?.built_at ?? null);
+
+  useEffect(() => {
+    const existing = useGameDayStore.getState().listStates[String(listId)];
+    if (existing) return; // existing session — do not overwrite
+    getDefaultChecklist().then((items) => {
+      useGameDayStore.getState().setDefaultChecklist(listId, items);
+    });
+  }, [listId]);
 
   const faction = useMemo(
     () =>

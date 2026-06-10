@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { getAppSetting } from "@/db/queries/appSettings";
 
 export interface ChecklistItem {
   id: string;
@@ -26,6 +27,7 @@ interface GameDayStore {
   addChecklistItem: (listId: number, text: string) => void;
   resetChecklist: (listId: number) => void;
   toggleAbilityUsed: (listId: number, abilityKey: string) => void;
+  setDefaultChecklist: (listId: number, items: ChecklistItem[]) => void;
 }
 
 export const DEFAULT_CHECKLIST: ChecklistItem[] = [
@@ -174,6 +176,18 @@ export const useGameDayStore = create<GameDayStore>()(
                 : [...cur.usedAbilities, abilityKey],
           });
         }),
+
+      setDefaultChecklist: (listId, items) =>
+        set((s) => {
+          const key = String(listId);
+          if (s.listStates[key]) return s; // never overwrite existing sessions
+          return {
+            listStates: {
+              ...s.listStates,
+              [key]: { ...createDefaultState(), checklistItems: items },
+            },
+          };
+        }),
     }),
     {
       name: "game-day-state",
@@ -197,4 +211,20 @@ export function useGameDayListState(listId: number): GameDayListState {
   return (
     useGameDayStore((s) => s.listStates[String(listId)]) ?? createDefaultState()
   );
+}
+
+/** Reads custom checklist defaults from app_settings, falling back to DEFAULT_CHECKLIST. */
+export async function getDefaultChecklist(): Promise<ChecklistItem[]> {
+  const raw = await getAppSetting("default_checklist");
+  if (!raw) return DEFAULT_CHECKLIST.map((item) => ({ ...item }));
+  try {
+    const parsed = JSON.parse(raw) as Array<{ text: string }>;
+    return parsed.map((entry) => ({
+      id: crypto.randomUUID(),
+      text: entry.text,
+      checked: false,
+    }));
+  } catch {
+    return DEFAULT_CHECKLIST.map((item) => ({ ...item }));
+  }
 }

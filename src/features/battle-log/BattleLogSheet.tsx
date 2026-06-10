@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAppSettings } from "@/hooks/useAppSettings";
 import { useCreateBattleLog, useUpdateBattleLog } from "@/hooks/useBattleLogs";
 import { useAppendStrategyNotes } from "@/hooks/useStrategyNote";
 import { useArmyLists } from "@/hooks/useArmyLists";
@@ -128,6 +129,8 @@ export function BattleLogSheet({
 }) {
   const isEdit = log !== null;
   const isPrefilled = prefill !== undefined && log === null;
+  const { data: settings } = useAppSettings();
+  const missionDefault = (!log && settings?.["default_mission_format"]) ? settings["default_mission_format"] : "";
   const createBattleLog = useCreateBattleLog();
   const updateBattleLog = useUpdateBattleLog();
   const appendNotes = useAppendStrategyNotes();
@@ -140,8 +143,8 @@ export function BattleLogSheet({
   });
 
   useEffect(() => {
-    form.reset(buildDefaultValues(log, prefill));
-  }, [log, prefill]);
+    form.reset(buildDefaultValues(log, { ...prefill, mission: missionDefault || prefill?.mission || "" }));
+  }, [log, prefill, missionDefault]);
 
   async function onSubmit(values: BattleLogFormValues) {
     try {

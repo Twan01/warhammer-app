@@ -1,7 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { HobbyPipeline } from "@/features/dashboard/HobbyPipeline";
 import type { Unit } from "@/types/unit";
+
+vi.mock("@/hooks/useAppSettings", () => ({
+  useAppSettings: vi.fn().mockReturnValue({ data: {}, isLoading: false, isError: false }),
+}));
 
 function u(over: Partial<Unit> = {}): Unit {
   return {
