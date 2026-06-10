@@ -32,10 +32,14 @@ export function GameDayPage({ listId }: GameDayPageProps) {
 
   useEffect(() => {
     const existing = useGameDayStore.getState().listStates[String(listId)];
-    if (existing) return; // existing session — do not overwrite
+    if (existing) return;
+    let cancelled = false;
     getDefaultChecklist().then((items) => {
-      useGameDayStore.getState().setDefaultChecklist(listId, items);
+      if (!cancelled) {
+        useGameDayStore.getState().setDefaultChecklist(listId, items);
+      }
     });
+    return () => { cancelled = true; };
   }, [listId]);
 
   const faction = useMemo(

@@ -639,7 +639,7 @@ export function BattleLogSheet({
                 Discard changes
               </Button>
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                {isEdit ? "Update Game" : isPrefilled ? "Log Game" : "Log Game"}
+                {isEdit ? "Update Game" : "Log Game"}
               </Button>
             </SheetFooter>
           </form>

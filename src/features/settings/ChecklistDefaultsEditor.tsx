@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   DndContext,
   PointerSensor,
@@ -116,8 +116,7 @@ export function ChecklistDefaultsEditor({
   const [items, setItems] = useState<ChecklistEditorItem[]>(initialItems);
   const [newItemText, setNewItemText] = useState("");
 
-  // Sync local state when settings change externally
-  useMemo(() => {
+  useEffect(() => {
     setItems(initialItems);
   }, [initialItems]);
 

@@ -218,8 +218,11 @@ export async function getDefaultChecklist(): Promise<ChecklistItem[]> {
   const raw = await getAppSetting("default_checklist");
   if (!raw) return DEFAULT_CHECKLIST.map((item) => ({ ...item }));
   try {
-    const parsed = JSON.parse(raw) as Array<{ text: string }>;
-    return parsed.map((entry) => ({
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || !parsed.every((e: unknown) => typeof e === "object" && e !== null && typeof (e as Record<string, unknown>).text === "string")) {
+      return DEFAULT_CHECKLIST.map((item) => ({ ...item }));
+    }
+    return (parsed as Array<{ text: string }>).map((entry) => ({
       id: crypto.randomUUID(),
       text: entry.text,
       checked: false,
