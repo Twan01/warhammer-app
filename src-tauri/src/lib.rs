@@ -1221,6 +1221,52 @@ async fn restore_from_backup(
     Ok(())
 }
 
+/// Delete hobbyforge.db and all user photos after creating a safety backup.
+/// The JS caller must call localStorage.clear() + relaunch() after this
+/// succeeds — migration plugin recreates the DB on startup.
+#[tauri::command]
+async fn factory_reset(app: tauri::AppHandle) -> Result<(), String> {
+    // 1. Safety backup — abort if it fails
+    create_safety_backup(app.clone()).await?;
+
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("app_data_dir: {e}"))?;
+
+    // 2. Delete sidecar files (WAL, SHM, journal) — tolerate NotFound
+    for sidecar in ["-wal", "-shm", "-journal"] {
+        let sidecar_path = app_data_dir.join(format!("hobbyforge.db{sidecar}"));
+        if let Err(e) = std::fs::remove_file(&sidecar_path) {
+            if e.kind() != std::io::ErrorKind::NotFound {
+                return Err(format!("remove sidecar {sidecar}: {e}"));
+            }
+        }
+    }
+
+    // 3. Delete hobbyforge.db — must exist
+    let db_path = app_data_dir.join("hobbyforge.db");
+    std::fs::remove_file(&db_path)
+        .map_err(|e| format!("remove hobbyforge.db: {e}"))?;
+
+    // 4. Delete user photo files (flat UUID-named images in app_data_dir root)
+    let image_extensions = ["jpg", "jpeg", "png", "webp", "gif"];
+    if let Ok(entries) = std::fs::read_dir(&app_data_dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_file() {
+                if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
+                    if image_extensions.contains(&ext.to_lowercase().as_str()) {
+                        let _ = std::fs::remove_file(&path);
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
+
 /// List safety backup files in app_data_dir/backups/, sorted newest first.
 /// Returns an empty vec if the backups directory does not exist (normal on
 /// first run). This is a read-only, infallible command.
@@ -1362,6 +1408,7 @@ pub fn run() {
             list_safety_backups,
             write_bytes_to_path,
             ack_successful_launch,
+            factory_reset,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
