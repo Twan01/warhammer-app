@@ -36,7 +36,7 @@
 - [ ] **Phase 121: Settings Foundation** - app_settings table, query/hook layer, and tabbed UI shell
 - [ ] **Phase 122: Preferences Tab** - language, currency, default faction, and points target settings
 - [ ] **Phase 123: Hobby Defaults Tab** - customizable pipeline stages, pre-game checklist, and mission format
-- [ ] **Phase 124: Data Management Tab** - Data Health link, factory reset, preference export/import
+- [x] **Phase 124: Data Management Tab** - Data Health link, factory reset, preference export/import
 - [ ] **Phase 125: About Tab** - app version, data stats, credits and attribution
 
 ## Phase Details
@@ -95,7 +95,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 123-01-PLAN.md — Stage label utility + Hobby Defaults editors + SettingsPage wiring + tests (HOB-01, HOB-02, HOB-03)
+- [x] 123-01-PLAN.md — Stage label utility + Hobby Defaults editors + SettingsPage wiring + tests (HOB-01, HOB-02, HOB-03)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: Settings & Preferences
-status: completed
-stopped_at: Phase 123 UI-SPEC approved
-last_updated: "2026-06-10T19:10:12.530Z"
+status: executing
+stopped_at: Phase 124 executed — all plans complete
+last_updated: "2026-06-10T21:30:00.000Z"
 last_activity: 2026-06-10
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 7
-  completed_plans: 4
-  percent: 40
+  completed_phases: 4
+  total_plans: 9
+  completed_plans: 7
+  percent: 80
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-10)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 125 — About Tab
+**Current focus:** Phase 123 — hobby-defaults-tab
 
 ## Current Position
 
-Phase: 125 (About Tab) — COMPLETE
-Plan: 1 of 1
-Status: Phase 125 complete — About tab shipped
-Last activity: 2026-06-10
+Phase: 123 (hobby-defaults-tab) — EXECUTING
+Plan: 2 of 2
+Status: Executing Phase 123
+Last activity: 2026-06-10 -- Plan 123-01 complete (2 tasks, 8 files)
 
 Progress: [██████░░░░] 57%
 
@@ -54,7 +54,8 @@ Progress: [██████░░░░] 57%
 - Pre-built canonical unit database (not runtime sync)
 - Settings page route stub exists at src/app/settings/page.tsx
 - Sidebar link already wired for Settings
-- Pipeline stage labels currently hardcoded as const arrays in types/
+- Pipeline stage labels now have getBucketLabel() utility with custom label support via app_settings
+- Hobby Defaults section in Settings Preferences tab with pipeline labels, checklist, mission format editors
 - Currency integration targets spending tracker (formatCurrency)
 - Default faction integration targets ActiveFactionContext
 - DB browser locale toggle (localStorage) must coexist with PREF-01 setting
@@ -84,7 +85,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-10T19:10:12.521Z
-Stopped at: Phase 123 UI-SPEC approved
+Last session: 2026-06-10T19:25:00.000Z
+Stopped at: Plan 123-01 complete — ready for 123-02
 Resume file: None
-Resume: Phase 122 context captured — ready for planning.
+Resume: Plan 123-01 delivered hobby defaults editors + tests. Plan 123-02 wires consumers.
