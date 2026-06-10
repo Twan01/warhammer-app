@@ -53,12 +53,12 @@ Source: Existing `SettingsPage` uses `p-6 space-y-6` (24px padding, 24px gaps) �
 |------|------|--------|-------------|
 | Page heading ("Settings") | 20px / `text-xl` | 600 / `font-semibold` | 1.2 |
 | Section heading ("Hobby Defaults", sub-headings) | 18px / `text-lg` | 600 / `font-semibold` | 1.2 |
-| Field label | 14px / `text-sm` | 500 / `font-medium` | 1.5 |
+| Field label | 14px / `text-sm` | 600 / `font-semibold` | 1.5 |
 | Body / description / helper text | 14px / `text-sm` | 400 / `font-normal` | 1.5 |
 
 Notes:
 - Exactly 3 distinct sizes in use: 20px (page heading), 18px (section heading), 14px (labels + body).
-- Exactly 2 weights: 400 (body/helper) and 600 (headings); 500 is used only for `<Label>` components per shadcn default.
+- Exactly 2 weights: 400 (body/helper) and 600 (headings + field labels). shadcn `<Label>` default of `font-medium` (500) is overridden to `font-semibold` (600) to stay within the 2-weight contract.
 - Helper/description text uses `text-muted-foreground` color token.
 - Pipeline bucket label inputs inherit `text-sm` (14px) from the shadcn `Input` component.
 
@@ -114,7 +114,7 @@ Layout: Vertical stack of 5 labeled input rows.
 ```
 <div className="space-y-4">
   <div>
-    <h3 className="text-sm font-medium">Pipeline Stage Labels</h3>
+    <h3 className="text-sm font-semibold">Pipeline Stage Labels</h3>
     <p className="text-sm text-muted-foreground mt-0.5">
       Rename the 5 stages shown on the Dashboard and collection filters.
       Internal values are unchanged.
@@ -122,7 +122,7 @@ Layout: Vertical stack of 5 labeled input rows.
   </div>
   {BUCKET_ORDER.map(bucket => (
     <div className="flex items-center gap-3" key={bucket}>
-      <Label className="w-28 shrink-0 text-muted-foreground">{bucket}</Label>
+      <Label className="w-28 shrink-0 font-semibold text-muted-foreground">{bucket}</Label>
       <Input
         defaultValue={resolvedLabel}
         placeholder={bucket}
@@ -147,7 +147,7 @@ Layout: Inline editable list with DnD reorder.
 ```
 <div className="space-y-3">
   <div>
-    <h3 className="text-sm font-medium">Default Pre-Game Checklist</h3>
+    <h3 className="text-sm font-semibold">Default Pre-Game Checklist</h3>
     <p className="text-sm text-muted-foreground mt-0.5">
       Items copied into every new Game Day session. Drag to reorder.
     </p>
@@ -158,7 +158,7 @@ Layout: Inline editable list with DnD reorder.
   <div className="flex gap-2">
     <Input placeholder="Add checklist item…" className="flex-1" />
     <Button variant="outline" size="sm">
-      <Plus className="h-4 w-4 mr-1" /> Add
+      <Plus className="h-4 w-4 mr-1" /> Add Item
     </Button>
   </div>
 </div>
@@ -180,13 +180,13 @@ Layout: Single labeled input.
 ```
 <div className="space-y-3">
   <div>
-    <h3 className="text-sm font-medium">Default Mission Format</h3>
+    <h3 className="text-sm font-semibold">Default Mission Format</h3>
     <p className="text-sm text-muted-foreground mt-0.5">
       Pre-fills the Mission field when creating a new battle log.
     </p>
   </div>
   <div className="flex items-center gap-3">
-    <Label className="w-28 shrink-0">Mission Format</Label>
+    <Label className="w-28 shrink-0 font-semibold">Mission Format</Label>
     <Input
       placeholder="e.g., Take and Hold, Leviathan…"
       className="max-w-xs"
@@ -217,7 +217,7 @@ Use `@dnd-kit/sortable` (already in project dependencies). Keyboard accessibilit
 Drag constraints: vertical axis only (`restrictToVerticalAxis` modifier).
 
 ### Add Checklist Item
-- User types in the add input and presses Enter OR clicks Add button
+- User types in the add input and presses Enter OR clicks Add Item button
 - Input clears after successful add
 - New item appears at the bottom of the list
 - Instant save to `app_settings`
@@ -262,7 +262,7 @@ This matches the existing `SettingsPage` error pattern exactly.
 | Mission format sub-heading | "Default Mission Format" |
 | Mission format description | "Pre-fills the Mission field when creating a new battle log." |
 | Add item input placeholder | "Add checklist item…" |
-| Add item button label | "Add" |
+| Add item button label | "Add Item" |
 | Mission input placeholder | "e.g., Take and Hold, Leviathan…" |
 | Pipeline label input placeholder | (default bucket name, e.g., "Assembly") |
 | Save error toast | "Could not save setting. Try again." |
@@ -286,14 +286,14 @@ Components to use from existing shadcn installation (no new installs required):
 | Component | Source | Usage |
 |-----------|--------|-------|
 | `Input` | `@/components/ui/input` | Pipeline labels, mission format, add-item field |
-| `Label` | `@/components/ui/label` | Field labels |
-| `Button` | `@/components/ui/button` | Add item button, delete icon button |
+| `Label` | `@/components/ui/label` | Field labels (override default `font-medium` to `font-semibold`) |
+| `Button` | `@/components/ui/button` | Add Item button, delete icon button |
 | `Separator` | `@/components/ui/separator` | Between General Preferences and Hobby Defaults |
 | `Skeleton` | `@/components/ui/skeleton` | Loading placeholders |
 | `Tabs / TabsContent` | `@/components/ui/tabs` | Already present in SettingsPage |
 | Lucide `GripVertical` | `lucide-react` | Drag handle icon |
 | Lucide `Trash2` | `lucide-react` | Delete item icon |
-| Lucide `Plus` | `lucide-react` | Add item button icon |
+| Lucide `Plus` | `lucide-react` | Add Item button icon |
 | `@dnd-kit/sortable` | Already in project deps | Checklist drag-to-reorder |
 
 No new shadcn components to install. No third-party registries.
@@ -316,7 +316,7 @@ No new shadcn components to install. No third-party registries.
 - Delete buttons have `aria-label="Remove '{item}' from checklist"` (not just icon)
 - Sortable list has `role="list"` with `role="listitem"` children
 - Disabled delete button (last item) has `aria-disabled="true"` and a tooltip explaining why
-- Focus order: pipeline label inputs top-to-bottom, then checklist rows (handle → text → delete), then add input → add button, then mission input
+- Focus order: pipeline label inputs top-to-bottom, then checklist rows (handle → text → delete), then add input → add Item button, then mission input
 
 ---
 
