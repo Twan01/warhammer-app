@@ -63,7 +63,7 @@ None — discussion stayed within phase scope
 
 Phase 124 replaces the Data tab placeholder in `src/app/settings/page.tsx` with four real features. All four rely exclusively on patterns that already exist in the codebase — there is nothing net-new to discover architecturally. The work splits cleanly into frontend (React component composition) and backend (one new Rust command).
 
-The most complex piece is the `factory_reset` Rust command (DAT-02). The pattern for it is clear from the existing `restore_from_backup` command: safety backup first, then destructive file-system operation, then the caller relaunches. The difference is that factory reset deletes the DB file rather than replacing it — Tauri's migration plugin recreates a fresh DB on the next startup. Photo files stored in `appDataDir()` also need deletion, which requires a directory scan of known photo subdirectories.
+The most complex piece is the `factory_reset` Rust command (DAT-02). The pattern for it is clear from the existing `restore_from_backup` command: safety backup first, then destructive file-system operation, then the caller relaunches. The difference is that factory reset deletes the DB file rather than replacing it — Tauri's migration plugin recreates a fresh DB on the next startup. Photo files are stored as flat UUID-named files (e.g. `a3f8c1d2-xxxx.jpg`) directly in `appDataDir()` — NOT in subdirectories — and must be enumerated and deleted by extension.
 
 The export/import flow (DAT-03, DAT-04) is a thin wrapper around `getAppSettings()` / `upsertAppSetting()` with file I/O using already-imported Tauri plugins. The main correctness requirement for import is all-or-nothing validation: read the entire file, check structure, then write — never write partial state.
 
@@ -80,6 +80,7 @@ The export/import flow (DAT-03, DAT-04) is a thin wrapper around `getAppSettings
 | Factory reset confirmation UI | Frontend (React) | — | Multi-step dialog is pure UI state |
 | Safety backup before reset | Rust backend | — | Delegates to existing `create_safety_backup` command |
 | App restart after reset | Frontend (React) | — | `relaunch()` called from JS after Rust command succeeds |
+| localStorage clearing | Frontend (React) | — | `localStorage.clear()` called from JS after invoke succeeds, before `relaunch()` |
 | Preference export | Frontend (React) | — | JS reads DB via existing hook, writes file via plugin-fs |
 | Preference import | Frontend (React) | — | JS reads file, validates, writes DB via existing query function |
 | Import cache invalidation | Frontend (React Query) | — | Standard `invalidateQueries` on `APP_SETTINGS_KEY` |
@@ -119,33 +120,34 @@ The export/import flow (DAT-03, DAT-04) is a thin wrapper around `getAppSettings
 ### System Architecture Diagram
 
 ```
-User interaction (Settings page → Data tab)
+User interaction (Settings page -> Data tab)
          |
          v
 DataManagementTab component
-   ├── DataHealthLinkSection
-   │       └── useNavigate() → /data-health route
-   │
-   ├── FactoryResetSection
-   │       └── AlertDialog (step 1 explanation)
-   │               └── text input "RESET" confirmation (step 2)
-   │                       └── invoke("factory_reset")  ──→  Rust: factory_reset
-   │                               ├── create_safety_backup (existing Rust fn)
-   │                               ├── delete hobbyforge.db file
-   │                               └── delete photo directories
-   │                       └── relaunch() → app restarts, migrations recreate DB
-   │
-   ├── PreferenceExportSection
-   │       └── getAppSettings() ──→ DB: SELECT * FROM app_settings
-   │               └── save() dialog → writeTextFile(path, json)
-   │                       └── toast.success
-   │
-   └── PreferenceImportSection
-           └── open() dialog → readTextFile(path)
-                   └── JSON.parse + validate (version field + settings object)
-                           └── upsertAppSetting(key, value) × N
-                                   └── invalidateQueries(APP_SETTINGS_KEY)
-                                           └── toast.success(count)
+   |-- DataHealthLinkSection
+   |       +-- useNavigate() -> /data-health route
+   |
+   |-- FactoryResetSection
+   |       +-- AlertDialog (step 1 explanation)
+   |               +-- text input "RESET" confirmation (step 2)
+   |                       +-- invoke("factory_reset")  --> Rust: factory_reset
+   |                               |-- create_safety_backup (existing Rust fn)
+   |                               |-- delete hobbyforge.db file
+   |                               +-- delete flat UUID photo files (by extension)
+   |                       +-- localStorage.clear()
+   |                       +-- relaunch() -> app restarts, migrations recreate DB
+   |
+   |-- PreferenceExportSection
+   |       +-- getAppSettings() --> DB: SELECT * FROM app_settings
+   |               +-- save() dialog -> writeTextFile(path, json)
+   |                       +-- toast.success
+   |
+   +-- PreferenceImportSection
+           +-- open() dialog -> readTextFile(path)
+                   +-- JSON.parse + validate (version field + settings object)
+                           +-- upsertAppSetting(key, value) x N
+                                   +-- invalidateQueries(APP_SETTINGS_KEY)
+                                           +-- toast.success(count)
 ```
 
 ### Recommended Project Structure
@@ -215,13 +217,13 @@ const canConfirm = phrase === CONFIRM_PHRASE;
 </AlertDialogFooter>
 ```
 
-### Pattern 3: Safety backup + Rust command + relaunch
+### Pattern 3: Safety backup + Rust command + localStorage clear + relaunch
 
-**What:** Call `create_safety_backup`, then invoke the destructive command, then call `relaunch()`.
+**What:** Call `create_safety_backup`, then invoke the destructive command, clear localStorage, then call `relaunch()`.
 **When to use:** Any action that irreversibly destroys user data.
 
 ```typescript
-// Source: BackupCard.tsx handleConfirmRestore pattern
+// Source: BackupCard.tsx handleConfirmRestore pattern (extended with localStorage.clear)
 import { invoke } from "@tauri-apps/api/core";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { toast } from "sonner";
@@ -230,6 +232,7 @@ async function handleFactoryReset() {
   setIsResetting(true);
   try {
     await invoke("factory_reset"); // Rust handles safety backup internally
+    localStorage.clear(); // Clear stale sidebar state, backup status, view modes
     await relaunch();
   } catch (error) {
     toast.error(`Reset failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -323,8 +326,10 @@ async function handleImport() {
 
 ### Pattern 6: Rust `factory_reset` command
 
-**What:** Tauri command that creates a safety backup, deletes hobbyforge.db (and sidecars + photos), then returns. The JS caller handles `relaunch()`.
+**What:** Tauri command that creates a safety backup, deletes hobbyforge.db (and sidecars + flat UUID photo files), then returns. The JS caller handles `localStorage.clear()` + `relaunch()`.
 **Key insight:** The safety backup is best handled inside the Rust command rather than called separately from JS — this mirrors how `restore_from_backup` calls `create_safety_backup` internally. Simpler JS caller, atomic guarantee.
+
+> **CORRECTION (post-research):** Photos are stored as flat UUID-named files (e.g. `a3f8c1d2-xxxx.jpg`) directly in `appDataDir()`, NOT in subdirectories like `unit-photos/` or `step-photos/`. The Rust command must enumerate the directory and delete files matching image extensions, not call `remove_dir_all` on subdirectories.
 
 ```rust
 // Source: restore_from_backup + create_safety_backup patterns in lib.rs
@@ -348,17 +353,21 @@ async fn factory_reset(app: tauri::AppHandle) -> Result<(), String> {
         }
     }
 
-    // 3. Delete photo directories (unit-photos/, step-photos/, etc.)
-    for dir in ["unit-photos", "step-photos"] {
-        let p = app_data_dir.join(dir);
-        if p.exists() {
-            std::fs::remove_dir_all(&p)
-                .map_err(|e| format!("delete {dir}: {e}"))?;
+    // 3. Delete flat UUID photo files by extension (NOT subdirectories)
+    let image_extensions = ["jpg", "jpeg", "png", "webp", "gif"];
+    if let Ok(entries) = std::fs::read_dir(&app_data_dir) {
+        for entry in entries.flatten() {
+            if let Some(ext) = entry.path().extension() {
+                if image_extensions.contains(&ext.to_string_lossy().to_lowercase().as_str()) {
+                    let _ = std::fs::remove_file(entry.path()); // best-effort
+                }
+            }
         }
     }
 
     Ok(())
-    // JS caller then calls relaunch() — migration plugin recreates hobbyforge.db on startup
+    // JS caller then calls localStorage.clear() + relaunch()
+    // Migration plugin recreates hobbyforge.db on startup
 }
 ```
 
@@ -377,6 +386,7 @@ async fn factory_reset(app: tauri::AppHandle) -> Result<(), String> {
 - **Skipping the safety backup:** The factory reset is irreversible. Safety backup must succeed before deleting — if `create_safety_backup` throws, abort the reset entirely.
 - **Using `readFile` (bytes) instead of `readTextFile` (string) for JSON:** The codebase uses `readFile` for binary (photos), `readTextFile` for text. JSON import uses `readTextFile`.
 - **Resetting the AlertDialog phrase input state on open:** If the dialog is opened, then cancelled, then reopened, the phrase input must be cleared. Reset `phrase` state `onOpenChange` when dialog closes.
+- **Using `remove_dir_all` for photo cleanup:** Photos are NOT in subdirectories. They are flat UUID files in appDataDir root. Use `read_dir` + extension filter + `remove_file` instead.
 
 ---
 
@@ -416,10 +426,10 @@ async fn factory_reset(app: tauri::AppHandle) -> Result<(), String> {
 **Why it happens:** `std::fs::remove_file` with NotFound tolerance can mask path mismatches.
 **How to avoid:** After deleting, do NOT tolerate errors other than `NotFound` for the main `hobbyforge.db` file (only sidecars can be NotFound-tolerated). Return an error to JS if the main file deletion fails.
 
-### Pitfall 5: Photo directories may not be the expected names
-**What goes wrong:** Photos are stored under subdirectories of `appDataDir()`, but if the exact directory names differ from assumed values, the cleanup leaves orphaned files.
-**Why it happens:** D-02 specifies "photo files in appDataDir() are deleted" but doesn't enumerate directory names.
-**How to avoid:** Check actual photo storage directories in the codebase before implementing. Use `std::fs::remove_dir_all` with existence check (not error-propagating) for photo dirs so the reset still succeeds even if dirs are unexpectedly named.
+### Pitfall 5: Photo files are flat UUID files, not in subdirectories
+**What goes wrong:** Using `remove_dir_all("unit-photos")` or `remove_dir_all("step-photos")` finds no such directories — photos are never cleaned up.
+**Why it happens:** The initial assumption (A1) was wrong. Photos are stored as flat UUID-named files (e.g. `a3f8c1d2-xxxx.jpg`) directly in `appDataDir()` root, not in subdirectories.
+**How to avoid:** Enumerate `appDataDir()` with `std::fs::read_dir`, filter by image extensions (`jpg`, `jpeg`, `png`, `webp`, `gif`), delete each file individually (best-effort).
 
 ### Pitfall 6: Import validation allows wrong types for setting values
 **What goes wrong:** A preferences JSON from a future version might have numeric or boolean values. Importing these as-is breaks `app_settings` (which is string-typed).
@@ -492,10 +502,8 @@ export function useUpdateSetting() {
 | Stored data | `_sqlx_migrations` tracking table | Deleted with the DB file — recreated on relaunch |
 | OS-registered state | None — no OS-level registrations | None |
 | Secrets/env vars | None — no user secrets stored | None |
-| Build artifacts / photos | Unit photos, step photos, recipe cover images in `appDataDir()` subdirs | `remove_dir_all` per photo directory in Rust command |
-| localStorage | `lastBackup`, sidebar state, view modes | Not cleared by factory reset (per D-02 scope: only `hobbyforge.db` + photos) |
-
-**Note on localStorage:** D-02 specifies wipe of `hobbyforge.db` + photo files. localStorage is not mentioned. The planner should decide whether to include localStorage clearing in the reset. This is left to Claude's Discretion per the context.
+| Photos | Unit photos, step photos, recipe cover images — flat UUID files in `appDataDir()` root | Enumerate by extension + `remove_file` in Rust command |
+| localStorage | `lastBackup`, sidebar state, view modes | `localStorage.clear()` in JS caller after invoke succeeds, before `relaunch()` |
 
 ---
 
@@ -518,22 +526,22 @@ All required APIs (`@tauri-apps/plugin-dialog`, `@tauri-apps/plugin-fs`, `@tauri
 | Quick run command | `pnpm test -- tests/settings/` |
 | Full suite command | `pnpm test` |
 
-### Phase Requirements → Test Map
+### Phase Requirements -> Test Map
 
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| DAT-01 | Data tab renders Data Health link section with button | unit | `pnpm test -- tests/settings/DataManagementTab.test.tsx` | ❌ Wave 0 |
-| DAT-01 | Clicking "Open Data Health" calls `useNavigate` with `{ to: "/data-health" }` | unit | same file | ❌ Wave 0 |
-| DAT-02 | Factory Reset button is present and styled destructive | unit | same file | ❌ Wave 0 |
-| DAT-02 | Confirmation dialog opens on click; Reset button disabled until phrase typed | unit | same file | ❌ Wave 0 |
-| DAT-02 | Correct phrase enables button; invoke("factory_reset") + relaunch() called on confirm | unit | same file | ❌ Wave 0 |
-| DAT-02 | Error toast shown and dialog not relaunched if invoke throws | unit | same file | ❌ Wave 0 |
-| DAT-03 | Export calls `save()` dialog with JSON filter and `writeTextFile` | unit | same file | ❌ Wave 0 |
-| DAT-03 | Export cancelled if save dialog returns null | unit | same file | ❌ Wave 0 |
-| DAT-04 | Import calls `open()` dialog, reads file, calls upsertAppSetting per key | unit | same file | ❌ Wave 0 |
-| DAT-04 | Import shows error toast if JSON is malformed | unit | same file | ❌ Wave 0 |
-| DAT-04 | Import shows error toast if version field missing | unit | same file | ❌ Wave 0 |
-| DAT-04 | Import invalidates APP_SETTINGS_KEY cache on success | unit | same file | ❌ Wave 0 |
+| DAT-01 | Data tab renders Data Health link section with button | unit | `pnpm test -- tests/settings/DataManagementTab.test.tsx` | No (Wave 0) |
+| DAT-01 | Clicking "Open Data Health" calls `useNavigate` with `{ to: "/data-health" }` | unit | same file | No (Wave 0) |
+| DAT-02 | Factory Reset button is present and styled destructive | unit | same file | No (Wave 0) |
+| DAT-02 | Confirmation dialog opens on click; Reset button disabled until phrase typed | unit | same file | No (Wave 0) |
+| DAT-02 | Correct phrase enables button; invoke("factory_reset") + relaunch() called on confirm | unit | same file | No (Wave 0) |
+| DAT-02 | Error toast shown and dialog not relaunched if invoke throws | unit | same file | No (Wave 0) |
+| DAT-03 | Export calls `save()` dialog with JSON filter and `writeTextFile` | unit | same file | No (Wave 0) |
+| DAT-03 | Export cancelled if save dialog returns null | unit | same file | No (Wave 0) |
+| DAT-04 | Import calls `open()` dialog, reads file, calls upsertAppSetting per key | unit | same file | No (Wave 0) |
+| DAT-04 | Import shows error toast if JSON is malformed | unit | same file | No (Wave 0) |
+| DAT-04 | Import shows error toast if version field missing | unit | same file | No (Wave 0) |
+| DAT-04 | Import invalidates APP_SETTINGS_KEY cache on success | unit | same file | No (Wave 0) |
 
 ### Mock Strategy (mirrors BackupCard test pattern)
 
@@ -577,7 +585,7 @@ vi.mock("@tanstack/react-router", () => ({ useNavigate: () => mockNavigate }));
 |---------|--------|---------------------|
 | Malformed import JSON causing partial DB corruption | Tampering | Validate entire payload before writing any key (D-11 decision) |
 | Path traversal via `save()` destination | Tampering | Tauri plugin-dialog handles path selection; user explicitly chooses location |
-| Factory reset triggered without confirmation | Elevation of privilege | Three-step flow: button → dialog → typed phrase → action |
+| Factory reset triggered without confirmation | Elevation of privilege | Three-step flow: button -> dialog -> typed phrase -> action |
 
 ---
 
@@ -592,25 +600,19 @@ vi.mock("@tanstack/react-router", () => ({ useNavigate: () => mockNavigate }));
 
 ## Assumptions Log
 
-| # | Claim | Section | Risk if Wrong |
-|---|-------|---------|---------------|
-| A1 | Photo files are stored in subdirectories named `unit-photos` and `step-photos` under `appDataDir()` | Pitfall 5 / factory_reset pattern | Reset leaves orphaned photo files; cosmetic issue only — data is gone, files are just wasted disk space |
-
-**Verification action for A1:** Planner should grep `appDataDir` + `writeFile`/`readFile` in the codebase to confirm exact photo directory names before writing the Rust `factory_reset` implementation.
+| # | Claim | Section | Risk if Wrong | Status |
+|---|-------|---------|---------------|--------|
+| A1 | ~~Photo files are stored in subdirectories named `unit-photos` and `step-photos` under `appDataDir()`~~ | Pitfall 5 / factory_reset pattern | N/A | **RESOLVED — WRONG.** Photos are flat UUID files directly in `appDataDir()` root. Plan 01 and Pattern 6 updated to enumerate by extension. |
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Exact photo directory names under `appDataDir()`**
-   - What we know: D-02 says "photo files in appDataDir() are deleted during reset"
-   - What's unclear: The exact directory names (`unit-photos`? `photos`? `step-photos`?)
-   - Recommendation: Implementation task should grep codebase (`BaseDirectory`, `writeFile` calls in JournalTab/RecipeStepRow) to confirm names before writing the Rust deletion code
+1. **Exact photo directory names under `appDataDir()`** (RESOLVED)
+   - **Resolution:** Photos are stored as flat UUID-named files (e.g. `a3f8c1d2-xxxx.jpg`) directly in `appDataDir()` root, NOT in subdirectories. Confirmed by PATTERNS.md investigation. The Rust `factory_reset` command enumerates the directory and deletes files matching image extensions (`jpg`, `jpeg`, `png`, `webp`, `gif`). Plan 01 Task 1 and Pattern 6 updated accordingly.
 
-2. **localStorage clearing on factory reset**
-   - What we know: D-02 scopes reset to `hobbyforge.db` + photos; localStorage not mentioned
-   - What's unclear: Should sidebar state, backup status, and view modes be cleared?
-   - Recommendation: Planner should include a step to clear localStorage in the JS caller after `invoke("factory_reset")` resolves but before `relaunch()` — this is safer than leaving stale localStorage state that references a now-deleted DB
+2. **localStorage clearing on factory reset** (RESOLVED)
+   - **Resolution:** Factory reset WILL clear localStorage via `localStorage.clear()` in the JS caller, after `invoke("factory_reset")` succeeds but before `relaunch()`. Rationale: sidebar collapsed state, backup status timestamps, view mode preferences, etc. all reference data from the now-deleted DB — leaving them creates stale state. This falls under Claude's Discretion per CONTEXT.md. Plan 02 Task 1 handleFactoryReset updated to include `localStorage.clear()`.
 
 ---
 
