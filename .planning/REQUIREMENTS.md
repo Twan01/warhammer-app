@@ -59,29 +59,29 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INF-01 | — | Pending |
-| INF-02 | — | Pending |
-| INF-03 | — | Pending |
-| PREF-01 | — | Pending |
-| PREF-02 | — | Pending |
-| PREF-03 | — | Pending |
-| PREF-04 | — | Pending |
-| HOB-01 | — | Pending |
-| HOB-02 | — | Pending |
-| HOB-03 | — | Pending |
-| DAT-01 | — | Pending |
-| DAT-02 | — | Pending |
-| DAT-03 | — | Pending |
-| DAT-04 | — | Pending |
-| ABT-01 | — | Pending |
-| ABT-02 | — | Pending |
-| ABT-03 | — | Pending |
+| INF-01 | Phase 121 | Pending |
+| INF-02 | Phase 121 | Pending |
+| INF-03 | Phase 121 | Pending |
+| PREF-01 | Phase 122 | Pending |
+| PREF-02 | Phase 122 | Pending |
+| PREF-03 | Phase 122 | Pending |
+| PREF-04 | Phase 122 | Pending |
+| HOB-01 | Phase 123 | Pending |
+| HOB-02 | Phase 123 | Pending |
+| HOB-03 | Phase 123 | Pending |
+| DAT-01 | Phase 124 | Pending |
+| DAT-02 | Phase 124 | Pending |
+| DAT-03 | Phase 124 | Pending |
+| DAT-04 | Phase 124 | Pending |
+| ABT-01 | Phase 125 | Pending |
+| ABT-02 | Phase 125 | Pending |
+| ABT-03 | Phase 125 | Pending |
 
 **Coverage:**
 - v1 requirements: 17 total
-- Mapped to phases: 0
-- Unmapped: 17 ⚠️
+- Mapped to phases: 17
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-10*
-*Last updated: 2026-06-10 after initial definition*
+*Last updated: 2026-06-10 after roadmap creation*
