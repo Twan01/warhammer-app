@@ -779,6 +779,54 @@
 
 ---
 
+## Milestone: v0.5.0 — Settings & Preferences
+
+**Shipped:** 2026-06-11
+**Phases:** 5 (121–125) | **Plans:** 9 | **Timeline:** 2 days (2026-06-10 → 2026-06-11)
+
+### What Was Built
+
+- Phase 121: Settings infrastructure — `app_settings` key-value SQLite table (migration 044), parameterized query module, React Query hook pair (`useAppSettings`, `useUpdateSetting`), tabbed Settings page shell (Preferences/Data/About)
+- Phase 122: Preferences tab — GeneralPreferencesSection with 4 auto-save controls (language, currency, default faction, readiness target), full consumer integration: locale migrated from Zustand to app_settings, currency wired to all formatCurrency sites, ActiveFactionContext reads default on cold start, useArmyReadinessTarget migrated from localStorage to app_settings
+- Phase 123: Hobby defaults — pipeline stage label editors, pre-game checklist with DnD reorder, mission format picker; consumers wired: Dashboard HobbyPipeline, BattleLogSheet create-mode pre-fill, gameDayStore async checklist defaults
+- Phase 124: Data management — factory reset via Rust command with safety backup + typed confirmation dialog, preference export/import via JSON with 7-key allowlist, Data Health navigation link
+- Phase 125: About tab — app version via `getVersion()`, unit/faction data stats from `useUdbMeta()`, Wahapedia attribution section
+
+### What Worked
+
+- **Foundation phase pattern (Phase 121):** Isolating migration + queries + hooks + page shell before tab content phases meant Phases 122–125 had zero infrastructure surprises. Consistent with the proven pattern from v0.2.0/v0.2.5/v0.2.7 etc.
+- **Parallel tab execution:** Phases 122–125 all depended only on Phase 121, enabling interleaved execution. No blocked phases, maximum throughput.
+- **Consumer integration as separate plans:** Phase 122 split setting UI (Plan 01) from consumer wiring (Plan 02). This caught integration issues (locale migration, currency sites, faction context) in focused scope rather than mixed with UI work.
+- **Milestone audit caught and closed all gaps inline:** 4 documentation gaps (Phase 124 VERIFICATION.md missing, Phase 123/124 Nyquist non-compliant, REQUIREMENTS.md checkboxes unchecked) were identified and resolved during the audit session — clean first-pass score after remediation.
+- **Code review as quality gate:** Full milestone code review found 8 findings (import allowlist, dead props, dep arrays, stale mocks) — all fixed before version bump. The review → fix cycle adds ~30 minutes but prevents shipped bugs.
+
+### What Was Inefficient
+
+- **Audit remediation still needed:** 4 documentation gaps required inline fixing during the audit — Phase 124 VERIFICATION.md was missing, Phase 123/124 VALIDATION.md frontmatter needed updating, 6 REQUIREMENTS.md checkboxes were unchecked. The gaps are smaller than early milestones but still present.
+- **getBucketLabel() dead export:** Exported from stageLabel.ts but never called — HobbyPipeline inlines the same fallback logic. Planning should have verified the consumption site before building the utility.
+
+### Patterns Established
+
+- **app_settings key-value pattern:** DDL-only migration, INSERT OR REPLACE upsert, React Query hooks with staleTime: 5min. Reusable for any future settings.
+- **Consumer integration as separate plan:** When a setting affects multiple downstream components, split UI creation (Plan 01) from consumer wiring (Plan 02). Each plan has clear scope and testable outcome.
+- **Preference export/import with allowlist:** Only explicitly listed keys are exported/imported — prevents malformed JSON from corrupting settings. Pattern reusable for any structured data import.
+- **Factory reset via Rust with pre-delete safety backup:** Always create a safety backup before destructive operations on the database file.
+
+### Key Lessons
+
+1. **Parallel tab phases are fast.** 4 independent tabs after a foundation phase completed in 2 days with zero coordination overhead. When features share only a foundation, fan out.
+2. **Consumer integration plans catch real bugs.** Locale migration (removing Zustand store), currency wiring (5 files), faction context cold-start — each had non-trivial integration work that benefited from focused scope.
+3. **Code review before version bump is worth the overhead.** 8 findings fixed (import allowlist validation, dead props, dependency arrays, stale test mocks). The fixes were all small but would have been shipped bugs without the review.
+4. **Dead exports persist as a recurring pattern.** getBucketLabel() joins useReorderRecipeSections, useSectionStepCounts, and useDetachmentById as unused proactive exports. Verify consumption sites before building utilities.
+
+### Cost Observations
+
+- Model: Claude Opus 4.6 throughout
+- Sessions: multiple (foundation, parallel tab execution, audit + review + completion)
+- Notable: 5 phases with 9 plans and 17 requirements in 2 days — fastest settings/preferences milestone; parallel tab independence was the main velocity driver
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -804,6 +852,9 @@
 | v0.3.7 | 3 | 6 | Smart automation: auto-derive statuses, active project lifecycle, battle-readiness function, context pre-filling |
 | v0.4.0 | 5 | 12 | Canonical unit database: pre-built data, browser UI, collection FK, army list simplification, single-DB architecture |
 | v0.4.2 | 4 | 11 | Data quality overhaul, sub-faction filtering, PlaybookTab/Game Day revival, bilingual EN/FR infrastructure |
+| v0.4.5 | 4 | 7 | Build pipeline hardening, priority faction data audit, pipeline fixes, sub-faction filter fix |
+| v0.4.7 | 5 | 10 | Wahapedia-only pipeline, stratagems/enhancements/detachments import, BSData eliminated |
+| v0.5.0 | 5 | 9 | Settings page: key-value storage, preferences, hobby defaults, data management, about tab; parallel tab execution |
 
 ### Cumulative Quality
 
@@ -828,6 +879,9 @@
 | v0.3.7 | 2,268+ | All passing (13/13 requirements satisfied, Nyquist fully compliant) |
 | v0.4.0 | 2,290+ | All passing (28/28 requirements satisfied, Nyquist fully compliant) |
 | v0.4.2 | 2,290+ | All passing (23/23 requirements satisfied, Nyquist 3/4 compliant — Phase 109 missing VALIDATION.md) |
+| v0.4.5 | 2,290+ | All passing (24/24 requirements satisfied, Nyquist 3/4 compliant) |
+| v0.4.7 | 2,400+ | All passing (19/19 requirements satisfied, Nyquist 4/5 compliant) |
+| v0.5.0 | 2,400+ | All passing (17/17 requirements satisfied, Nyquist 5/5 compliant, no gap closure needed) |
 
 ### Top Lessons (Verified Across Milestones)
 

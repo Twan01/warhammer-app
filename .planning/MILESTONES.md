@@ -1,4 +1,26 @@
 # Milestones
+## v0.5.0 Settings & Preferences (Shipped: 2026-06-11)
+
+**Phases completed:** 5 phases (121-125), 9 plans
+**Timeline:** 2026-06-10 → 2026-06-11 (2 days)
+**Stats:** ~69 commits, 17/17 requirements satisfied, Nyquist 5/5 compliant
+
+**Key accomplishments:**
+- Settings infrastructure: `app_settings` key-value SQLite table (migration 044) with React Query hooks (`useAppSettings`, `useUpdateSetting`) and tabbed Settings page shell (Preferences / Data / About)
+- Preferences tab: language (EN/FR), currency (6 options), default faction, army readiness target — all wired to downstream consumers (locale toggle, formatCurrency, ActiveFactionContext, ArmyReadinessCard)
+- Hobby defaults: customizable pipeline stage labels (Dashboard HobbyPipeline), pre-game checklist with DnD reorder (Game Day), default mission format (BattleLogSheet create-mode pre-fill)
+- Data management: factory reset with safety backup via Rust command, preference export/import via JSON with 7-key allowlist validation, Data Health navigation link
+- About tab: app version via `getVersion()`, unit/faction data stats from `useUdbMeta()`, Wahapedia attribution and tech stack credits
+
+**Tech debt accepted:** getBucketLabel() exported but unused in production (dead code in stageLabel.ts)
+
+**Archived:**
+- Roadmap: `.planning/milestones/v0.5.0-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.5.0-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.5.0-MILESTONE-AUDIT.md`
+
+---
+
 ## v0.4.7 Wahapedia Pipeline & Full Data Import (Shipped: 2026-06-09)
 
 **Phases completed:** 5 phases (116-120), 10 plans
