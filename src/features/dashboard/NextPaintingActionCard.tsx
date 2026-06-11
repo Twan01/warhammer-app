@@ -64,6 +64,7 @@ export function NextPaintingActionCard() {
         <Link
           to="/painting-mode/$assignmentId"
           params={{ assignmentId: String(data.assignment_id) }}
+          search={{ returnTo: "/" }}
           className="text-xs text-muted-foreground underline-offset-2 hover:underline"
         >
           Start Painting

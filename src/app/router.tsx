@@ -200,9 +200,10 @@ const unitDatabaseRoute = createRoute({
 // Painting mode route (child of bareLayoutRoute — no sidebar)
 // ---------------------------------------------------------------------------
 
-const paintingModeRoute = createRoute({
+export const paintingModeRoute = createRoute({
   getParentRoute: () => bareLayoutRoute,
   path: "/painting-mode/$assignmentId",
+  validateSearch: z.object({ returnTo: z.string().optional() }),
   component: PaintingModePage,
 });
 

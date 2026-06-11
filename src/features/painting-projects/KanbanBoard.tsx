@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useLocation } from "@tanstack/react-router";
 import {
   DndContext,
   DragOverlay,
@@ -39,6 +39,7 @@ export interface KanbanBoardProps {
 
 export function KanbanBoard({ onEditUnit, onAddProject, onLogSession }: KanbanBoardProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { data: units = [], isLoading } = useUnits();
   const { data: factions = [] } = useFactions();
   const qc = useQueryClient();
@@ -91,6 +92,7 @@ export function KanbanBoard({ onEditUnit, onAddProject, onLogSession }: KanbanBo
     navigate({
       to: "/painting-mode/$assignmentId",
       params: { assignmentId: String(assignmentId) },
+      search: { returnTo: location.pathname },
     });
   }
 

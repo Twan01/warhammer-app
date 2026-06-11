@@ -21,7 +21,7 @@
  * access stats fields in subtitle (Pitfall 7).
  */
 import { useMemo, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useLocation } from "@tanstack/react-router";
 import { Plus, Paintbrush } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -67,6 +67,7 @@ import { PageHeader } from "@/components/common/PageHeader";
 
 export function DashboardPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { data: stats, isLoading, isError } = useDashboardStats();
   const { data: analytics, isLoading: analyticsLoading } = useHobbyAnalytics();
   const { data: activityEvents } = useRecentActivity(stats?.units);
@@ -361,6 +362,7 @@ export function DashboardPage() {
               ? () => navigate({
                   to: "/painting-mode/$assignmentId",
                   params: { assignmentId: String(primaryAssignment.id) },
+                  search: { returnTo: location.pathname },
                 })
               : undefined
             }
