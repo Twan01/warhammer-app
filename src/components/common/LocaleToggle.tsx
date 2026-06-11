@@ -5,14 +5,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useAppSettings, useUpdateSetting } from "@/hooks/useAppSettings";
+import { useUpdateSetting } from "@/hooks/useAppSettings";
 import { LOCALE_QUERY_KEYS } from "@/lib/localeQueryKeys";
-import type { Locale } from "@/stores/localeStore";
+import { useLocale, type Locale } from "@/stores/localeStore";
 
 export function LocaleToggle({ collapsed }: { collapsed: boolean }) {
-  const { data: settings } = useAppSettings();
-  const raw = settings?.["locale"];
-  const locale: Locale = raw === "en" || raw === "fr" ? raw : "en";
+  const locale = useLocale();
   const updateSetting = useUpdateSetting();
   const queryClient = useQueryClient();
 

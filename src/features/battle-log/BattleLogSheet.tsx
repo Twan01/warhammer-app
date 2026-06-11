@@ -144,7 +144,7 @@ export function BattleLogSheet({
 
   useEffect(() => {
     form.reset(buildDefaultValues(log, { ...prefill, mission: missionDefault || prefill?.mission || "" }));
-  }, [log, prefill, missionDefault]);
+  }, [form, log, prefill, missionDefault]);
 
   async function onSubmit(values: BattleLogFormValues) {
     try {

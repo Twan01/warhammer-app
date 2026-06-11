@@ -39,7 +39,7 @@ import { UnitDetailSheet } from "@/features/units/UnitDetailSheet";
 import { UnitSheet } from "@/features/units/UnitSheet";
 import { UnitDeleteDialog } from "@/features/units/UnitDeleteDialog";
 import { DatasheetImportDialog } from "@/features/units/DatasheetImportDialog";
-import type { DatasheetImportPayload, DatasheetImportResolution } from "@/types/datasheet";
+import type { DatasheetImportPayload } from "@/types/datasheet";
 import {
   Dialog,
   DialogContent,
@@ -126,10 +126,6 @@ export function DashboardPage() {
 
   // DS-08 — conflict-resolution dialog state
   const [conflictPayload, setConflictPayload] = useState<DatasheetImportPayload | null>(null);
-  const [pendingResolution, setPendingResolution] = useState<{
-    resolution: DatasheetImportResolution;
-    payload: DatasheetImportPayload;
-  } | null>(null);
 
   // Pitfall 3 — selectedUnit derives from the full units array (Wave 1 added stats.units)
   const allDisplayedUnits = useMemo<Unit[]>(() => stats?.units ?? [], [stats]);
@@ -475,9 +471,6 @@ export function DashboardPage() {
         onEdit={handleEdit}
         onDelete={handleDelete}
         onPhotoClick={(photo) => setLightboxPhoto(photo)}
-        onDatasheetConflict={(payload) => setConflictPayload(payload)}
-        pendingImportResolution={pendingResolution}
-        onClearImportResolution={() => setPendingResolution(null)}
       />
 
       {/* Edit-mode UnitSheet (existing) */}
@@ -534,10 +527,7 @@ export function DashboardPage() {
       <DatasheetImportDialog
         open={conflictPayload !== null}
         conflicts={conflictPayload?.conflicts ?? []}
-        onConfirm={(resolution) => {
-          if (conflictPayload) setPendingResolution({ resolution, payload: conflictPayload });
-          setConflictPayload(null);
-        }}
+        onConfirm={() => setConflictPayload(null)}
         onClose={() => setConflictPayload(null)}
       />
     </>

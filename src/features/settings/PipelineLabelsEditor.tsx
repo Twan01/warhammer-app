@@ -56,7 +56,7 @@ export function PipelineLabelsEditor({
                 {bucket}
               </span>
               <Input
-                key={currentLabel}
+                key={`${bucket}-${currentLabel}`}
                 defaultValue={currentLabel}
                 placeholder={bucket}
                 className="max-w-xs"

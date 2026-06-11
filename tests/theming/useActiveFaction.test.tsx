@@ -172,7 +172,7 @@ describe("useActiveFaction -- PREF-03 (default faction boot from app_settings)",
       data: { default_faction_id: "2" },
       isLoading: false,
       isError: false,
-    } as ReturnType<typeof useAppSettings>);
+    } as unknown as ReturnType<typeof useAppSettings>);
 
     const { result } = renderHook(() => useActiveFaction(), { wrapper });
 
@@ -195,7 +195,7 @@ describe("useActiveFaction -- PREF-03 (default faction boot from app_settings)",
       data: { default_faction_id: "2" },
       isLoading: false,
       isError: false,
-    } as ReturnType<typeof useAppSettings>);
+    } as unknown as ReturnType<typeof useAppSettings>);
 
     const { result } = renderHook(() => useActiveFaction(), { wrapper });
 
@@ -211,7 +211,7 @@ describe("useActiveFaction -- PREF-03 (default faction boot from app_settings)",
       data: { default_faction_id: "" },
       isLoading: false,
       isError: false,
-    } as ReturnType<typeof useAppSettings>);
+    } as unknown as ReturnType<typeof useAppSettings>);
 
     const { result } = renderHook(() => useActiveFaction(), { wrapper });
 

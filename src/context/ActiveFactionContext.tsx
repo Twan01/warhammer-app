@@ -20,6 +20,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -54,11 +55,10 @@ export function ActiveFactionProvider({ children }: { children: ReactNode }) {
     }
   });
 
-  // Phase 122 D-06: On cold start, if localStorage has no faction but app_settings
-  // has a default_faction_id, use the DB value. One-time boot migration — after this,
-  // localStorage stays in sync via the persistence effect below.
+  const bootAttempted = useRef(false);
   useEffect(() => {
-    if (activeFactionId !== null) return; // localStorage already has a value
+    if (bootAttempted.current || activeFactionId !== null) return;
+    bootAttempted.current = true;
     const defaultId = settings?.["default_faction_id"];
     if (!defaultId || defaultId === "") return;
     const parsed = Number(defaultId);

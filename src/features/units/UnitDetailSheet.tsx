@@ -35,9 +35,6 @@ interface UnitDetailSheetProps {
   onEdit: (unit: Unit) => void;
   onDelete: (unit: Unit) => void;
   onPhotoClick: (photo: UnitPhotoWithUrl) => void;
-  onDatasheetConflict?: (payload: import("@/types/datasheet").DatasheetImportPayload) => void;
-  pendingImportResolution?: { resolution: import("@/types/datasheet").DatasheetImportResolution; payload: import("@/types/datasheet").DatasheetImportPayload } | null;
-  onClearImportResolution?: () => void;
 }
 
 const PRIORITY_LABELS: Record<number, string> = {

@@ -85,9 +85,18 @@ export function DataManagementTab() {
       }
       const settings = (payload as { settings: Record<string, unknown> })
         .settings;
+      const ALLOWED_KEYS = new Set([
+        "locale",
+        "currency",
+        "default_faction_id",
+        "army_readiness_target",
+        "pipeline_labels",
+        "default_checklist",
+        "default_mission_format",
+      ]);
       let count = 0;
       for (const [key, value] of Object.entries(settings)) {
-        if (typeof value === "string") {
+        if (typeof value === "string" && ALLOWED_KEYS.has(key)) {
           await upsertAppSetting(key, value);
           count++;
         }

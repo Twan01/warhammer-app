@@ -28,7 +28,7 @@ import { useLatestUnitPhotos } from "@/hooks/useUnitPhotos";
 import { useCollectionViewMode } from "@/hooks/useCollectionViewMode";
 import { UnitGallery } from "./UnitGallery";
 import { DatasheetImportDialog } from "./DatasheetImportDialog";
-import type { DatasheetImportPayload, DatasheetImportResolution } from "@/types/datasheet";
+import type { DatasheetImportPayload } from "@/types/datasheet";
 import { PageHeader } from "@/components/common/PageHeader";
 
 export function CollectionPage() {
@@ -116,10 +116,6 @@ export function CollectionPage() {
   // DS-08 — conflict-resolution dialog state. Owned by CollectionPage so the
   // Dialog is a sibling of UnitDetailSheet's Sheet portal (not nested).
   const [conflictPayload, setConflictPayload] = useState<DatasheetImportPayload | null>(null);
-  const [pendingResolution, setPendingResolution] = useState<{
-    resolution: DatasheetImportResolution;
-    payload: DatasheetImportPayload;
-  } | null>(null);
 
   const [viewMode, setViewMode] = useCollectionViewMode();
   const [showcaseOpen, setShowcaseOpen] = useState(false);
@@ -164,11 +160,14 @@ export function CollectionPage() {
 
   const handleCloseDelete = () => {
     setDeleteDialogOpen(false);
-    setDeletingUnit(null);
-    // If we deleted the currently-open detail, close that too
-    if (selectedUnit && deletingUnit && selectedUnit.id === deletingUnit.id) {
+    // Close the detail sheet if the deleted unit was being viewed.
+    // Use selectedUnitId (not derived selectedUnit) because React Query
+    // invalidation may have already removed the unit from the cache,
+    // making selectedUnit null before this handler runs.
+    if (deletingUnit && selectedUnitId === deletingUnit.id) {
       setSelectedUnitId(null);
     }
+    setDeletingUnit(null);
   };
 
   return (
@@ -264,9 +263,6 @@ export function CollectionPage() {
         onEdit={handleEdit}
         onDelete={handleDelete}
         onPhotoClick={(photo) => setLightboxPhoto(photo)}
-        onDatasheetConflict={(payload) => setConflictPayload(payload)}
-        pendingImportResolution={pendingResolution}
-        onClearImportResolution={() => setPendingResolution(null)}
       />
 
       <UnitSheet
@@ -301,18 +297,10 @@ export function CollectionPage() {
         </DialogContent>
       </Dialog>
 
-      {/* DS-08 — conflict-resolution dialog. Sibling to Sheet portal — NEVER nested.
-          PlaybookTab raises onDatasheetConflict via UnitDetailSheet → setConflictPayload.
-          When the user confirms, we drop the payload back into pendingResolution and
-          PlaybookTab subscribes via useEffect, applies the resolution, then calls
-          onClearImportResolution to reset state. */}
       <DatasheetImportDialog
         open={conflictPayload !== null}
         conflicts={conflictPayload?.conflicts ?? []}
-        onConfirm={(resolution) => {
-          if (conflictPayload) setPendingResolution({ resolution, payload: conflictPayload });
-          setConflictPayload(null);
-        }}
+        onConfirm={() => setConflictPayload(null)}
         onClose={() => setConflictPayload(null)}
       />
 

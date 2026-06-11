@@ -224,7 +224,7 @@ describe("DashboardPage — DS-08 conflict dialog wiring", () => {
     expect(dialog.getAttribute("data-open")).toBe("false");
   });
 
-  it("DS-08: populated UnitDetailSheet receives onDatasheetConflict, pendingImportResolution, and onClearImportResolution props", async () => {
+  it("DS-08: UnitDetailSheet does not receive conflict props (removed in v0.5.0 review)", async () => {
     const tau = f();
     vi.mocked(getDashboardStats).mockResolvedValue({
       units: [u({ id: 1, faction_id: 1, name: "Fire Warrior" })],
@@ -233,44 +233,13 @@ describe("DashboardPage — DS-08 conflict dialog wiring", () => {
 
     renderWithProviders(<DashboardPage />);
 
-    // Wait for populated state
     expect(await screen.findByText("Total Models")).toBeInTheDocument();
 
-    // The populated UnitDetailSheet (open={selectedUnitId !== null}) starts with open=false
-    // because no unit has been clicked yet. After data loads, it renders with open=false.
-    // Both sheet stubs are in the DOM; the populated one uses the unit id key variant.
-    // We verify props by checking the data attributes on the stub.
-    // The populated sheet (key={selectedUnit?.id ?? "none-detail"}, open={selectedUnitId !== null})
-    // is open=false until a row is clicked — but the stub renders regardless of open value,
-    // and we key them by open prop in the mock. Since selectedUnitId starts as null, both
-    // sheets start with open=false. We distinguish by checking which sheet has conflict props.
-
-    // The populated-state sheet receives conflict props regardless of open state
-    const sheetsWithConflictProps = screen
-      .getAllByTestId(/unit-detail-sheet/)
-      .filter((el) => el.getAttribute("data-has-conflict-prop") === "true");
-
-    expect(sheetsWithConflictProps).toHaveLength(1);
-
-    const populatedSheet = sheetsWithConflictProps[0];
-    expect(populatedSheet.getAttribute("data-has-conflict-prop")).toBe("true");
-    expect(populatedSheet.getAttribute("data-has-pending-prop")).toBe("true");
-    expect(populatedSheet.getAttribute("data-has-clear-prop")).toBe("true");
-  });
-
-  it("DS-08: empty-state no-op UnitDetailSheet does NOT receive conflict props", async () => {
-    // Empty state branch: no units
-    vi.mocked(getDashboardStats).mockResolvedValue({ units: [], factions: [] });
-
-    renderWithProviders(<DashboardPage />);
-
-    // Wait for empty state (DashboardEmptyState renders "HobbyForge" heading)
-    expect(await screen.findByText("HobbyForge")).toBeInTheDocument();
-
-    // The no-op UnitDetailSheet in the empty-state branch has no conflict props
-    const noopSheet = screen.getByTestId("unit-detail-sheet-noop");
-    expect(noopSheet.getAttribute("data-has-conflict-prop")).toBe("false");
-    expect(noopSheet.getAttribute("data-has-pending-prop")).toBe("false");
-    expect(noopSheet.getAttribute("data-has-clear-prop")).toBe("false");
+    const sheets = screen.getAllByTestId(/unit-detail-sheet/);
+    for (const sheet of sheets) {
+      expect(sheet.getAttribute("data-has-conflict-prop")).toBe("false");
+      expect(sheet.getAttribute("data-has-pending-prop")).toBe("false");
+      expect(sheet.getAttribute("data-has-clear-prop")).toBe("false");
+    }
   });
 });

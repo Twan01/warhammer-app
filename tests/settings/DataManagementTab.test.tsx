@@ -180,16 +180,16 @@ describe("DataManagementTab", () => {
   it("Import reads file and upserts settings", async () => {
     mockOpenDialog.mockResolvedValue("/tmp/prefs.json");
     mockReadTextFile.mockResolvedValue(
-      JSON.stringify({ version: 1, settings: { theme: "light", lang: "fr" } }),
+      JSON.stringify({ version: 1, settings: { locale: "fr", currency: "USD" } }),
     );
     const user = userEvent.setup();
     render(<DataManagementTab />);
     await user.click(screen.getByRole("button", { name: "Import Preferences" }));
 
     await waitFor(() => {
-      expect(mockUpsertAppSetting).toHaveBeenCalledWith("theme", "light");
+      expect(mockUpsertAppSetting).toHaveBeenCalledWith("locale", "fr");
     });
-    expect(mockUpsertAppSetting).toHaveBeenCalledWith("lang", "fr");
+    expect(mockUpsertAppSetting).toHaveBeenCalledWith("currency", "USD");
     expect(mockInvalidateQueries).toHaveBeenCalled();
     expect(mockToastSuccess).toHaveBeenCalledWith("Imported 2 setting(s)");
   });

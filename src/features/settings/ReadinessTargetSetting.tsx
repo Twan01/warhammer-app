@@ -25,8 +25,8 @@ export function ReadinessTargetSetting({
   }
 
   function handleBlur() {
-    const parsed = parseInt(customValue, 10);
-    if (!Number.isFinite(parsed) || parsed < 1 || parsed > 99999) {
+    const parsed = Number(customValue);
+    if (!Number.isInteger(parsed) || parsed < 1 || parsed > 99999) {
       // Revert to last valid value
       setCustomValue("");
       return;

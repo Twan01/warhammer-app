@@ -34,11 +34,13 @@ export function GameDayPage({ listId }: GameDayPageProps) {
     const existing = useGameDayStore.getState().listStates[String(listId)];
     if (existing) return;
     let cancelled = false;
-    getDefaultChecklist().then((items) => {
-      if (!cancelled) {
-        useGameDayStore.getState().setDefaultChecklist(listId, items);
-      }
-    });
+    getDefaultChecklist()
+      .then((items) => {
+        if (!cancelled) {
+          useGameDayStore.getState().setDefaultChecklist(listId, items);
+        }
+      })
+      .catch(() => {});
     return () => { cancelled = true; };
   }, [listId]);
 
