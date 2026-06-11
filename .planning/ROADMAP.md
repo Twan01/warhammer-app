@@ -106,7 +106,7 @@ Full details: `.planning/milestones/v0.4.0-ROADMAP.md`
 - [x] **Phase 126: Critical Fixes & Dead Ends** - Eliminate broken flows and runtime errors across Painting Mode, Army Lists, and shared utilities — completed 2026-06-11
 - [x] **Phase 127: Visual Consistency & PageHeader Unification** - Standardize headers, spacing, empty states, and theme tokens across all pages — completed 2026-06-11
 - [x] **Phase 128: Feedback Hardening & Form UX** - Add missing action confirmations, loading states, auto-save indicators, and error recovery paths (completed 2026-06-11)
-- [ ] **Phase 129: Navigation, Cross-Links & Technical Cleanup** - Improve routing, add cross-page links, and remove dead code/performance regressions
+- [x] **Phase 129: Navigation, Cross-Links & Technical Cleanup** - Improve routing, add cross-page links, and remove dead code/performance regressions (completed 2026-06-11)
 
 ## Phase Details
 
@@ -191,7 +191,7 @@ Plans:
   4. The Game Day sidebar item is highlighted when Game Day is the active page
   5. Battle Log entries link directly to the army list used in that battle
 
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 **UI hint**: yes
 
 Plans:
@@ -203,7 +203,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 129-04-PLAN.md — Sidebar: Game Day entry, collapsed dividers, transition polish (NAV-04, NAV-05, NAV-10)
+- [x] 129-04-PLAN.md — Sidebar: Game Day entry, collapsed dividers, transition polish (NAV-04, NAV-05, NAV-10)
 
 ## Progress
 
@@ -212,4 +212,4 @@ Plans:
 | 126. Critical Fixes & Dead Ends | 4/4 | Complete | 2026-06-11 |
 | 127. Visual Consistency & PageHeader Unification | 3/3 | Complete | 2026-06-11 |
 | 128. Feedback Hardening & Form UX | 2/2 | Complete    | 2026-06-11 |
-| 129. Navigation, Cross-Links & Technical Cleanup | 3/4 | In Progress|  |
+| 129. Navigation, Cross-Links & Technical Cleanup | 4/4 | Complete   | 2026-06-11 |
