@@ -103,7 +103,7 @@ Full details: `.planning/milestones/v0.4.0-ROADMAP.md`
 
 **Milestone Goal:** Deep audit and improvement of every page — fix navigation friction, inconsistent feel, missing feedback, and technical polish across the entire app without adding new features.
 
-- [ ] **Phase 126: Critical Fixes & Dead Ends** - Eliminate broken flows and runtime errors across Painting Mode, Army Lists, and shared utilities
+- [x] **Phase 126: Critical Fixes & Dead Ends** - Eliminate broken flows and runtime errors across Painting Mode, Army Lists, and shared utilities — completed 2026-06-11
 - [ ] **Phase 127: Visual Consistency & PageHeader Unification** - Standardize headers, spacing, empty states, and theme tokens across all pages
 - [ ] **Phase 128: Feedback Hardening & Form UX** - Add missing action confirmations, loading states, auto-save indicators, and error recovery paths
 - [ ] **Phase 129: Navigation, Cross-Links & Technical Cleanup** - Improve routing, add cross-page links, and remove dead code/performance regressions
@@ -141,8 +141,13 @@ Plans:
   3. Spending page uses standard p-6 gap-6 padding (visually consistent with other pages)
   4. Paints filtered empty state uses the icon-pill pattern matching other empty states in the app
   5. Status dots and button icon sizes follow a single pattern (theme tokens, h-4 w-4 + mr-2) with no hardcoded hex values
-**Plans**: TBD
+**Plans:** 3 plans (Wave 1: 01, 02, 03 — all parallel)
 **UI hint**: yes
+
+Plans:
+- [ ] 127-01-PLAN.md — PageHeader adoption and GoalsPage heading standardization (VIS-01, VIS-02, VIS-03)
+- [ ] 127-02-PLAN.md — Spacing normalization, heading standardization, and empty state fixes (VIS-03, VIS-04, VIS-05, VIS-08, VIS-09)
+- [ ] 127-03-PLAN.md — Status dot tokens and button icon sizing (VIS-06, VIS-07)
 
 ### Phase 128: Feedback Hardening & Form UX
 **Goal**: Every significant user action produces appropriate feedback — pending states, success confirmations, auto-save indicators, and actionable error messages
@@ -175,6 +180,6 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 126. Critical Fixes & Dead Ends | 4/4 | Complete | 2026-06-11 |
-| 127. Visual Consistency & PageHeader Unification | 0/TBD | Not started | - |
+| 127. Visual Consistency & PageHeader Unification | 0/3 | Not started | - |
 | 128. Feedback Hardening & Form UX | 0/TBD | Not started | - |
 | 129. Navigation, Cross-Links & Technical Cleanup | 0/TBD | Not started | - |
