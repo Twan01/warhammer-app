@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Clock, Layers, LayoutList, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -87,7 +88,7 @@ function AvailabilityBadge({ availability }: { availability: AvailabilityStats }
   );
 }
 
-export function RecipeCard({
+export const RecipeCard = memo(function RecipeCard({
   recipe,
   faction,
   stepCount,
@@ -213,4 +214,4 @@ export function RecipeCard({
       </CardContent>
     </Card>
   );
-}
+});

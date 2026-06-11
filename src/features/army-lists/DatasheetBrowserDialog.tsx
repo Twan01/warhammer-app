@@ -38,7 +38,7 @@ interface DatasheetBrowserDialogProps {
  * adding ghost/planned units to an army list.
  *
  * Architecture:
- *   - Rendered as a SIBLING to ArmyListDetailSheet at ArmyListsPage root.
+ *   - Rendered as a SIBLING to ArmyListDetailPage portals at ArmyListsPage root.
  *     NEVER nest inside another Radix portal (Pitfall 1).
  *   - Stays OPEN after each add for multi-add UX (D-04).
  *   - Resolves Wahapedia faction via useFactions + useWahapediaFactionId (D-03).

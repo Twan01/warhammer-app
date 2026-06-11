@@ -6,7 +6,7 @@
  *   Section 2: Wargear options display (DL-02, read-only)
  *
  * Opened as a sibling portal from ArmyListsPage (D-01, Pitfall 5).
- * Never nested inside ArmyListDetailSheet.
+ * Never nested inside ArmyListDetailPage portals.
  */
 import { useMemo } from "react";
 import {
