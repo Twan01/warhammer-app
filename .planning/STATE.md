@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.5.2
 milestone_name: UX Polish & Consistency
-status: executing
-stopped_at: Phase 128 context gathered
-last_updated: "2026-06-11T14:26:14.258Z"
+status: ready_to_plan
+stopped_at: Phase 128 complete (2/2) — ready to discuss Phase 129
+last_updated: 2026-06-11T14:36:52.894Z
 last_activity: 2026-06-11
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 13
   completed_plans: 9
-  percent: 69
+  percent: 75
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-11)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore
-**Current focus:** Phase 129 — navigation-cross-links-technical-cleanup
+**Current focus:** Phase 129 — navigation cross links technical cleanup
 
 ## Current Position
 
-Phase: 129 (navigation-cross-links-technical-cleanup) — EXECUTING
-Plan: 2 of 4
-Status: Ready to execute
+Phase: 129
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-06-11
 
 Progress: [██████░░░░] 62%

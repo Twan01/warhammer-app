@@ -211,5 +211,5 @@ Plans:
 |-------|----------------|--------|-----------|
 | 126. Critical Fixes & Dead Ends | 4/4 | Complete | 2026-06-11 |
 | 127. Visual Consistency & PageHeader Unification | 3/3 | Complete | 2026-06-11 |
-| 128. Feedback Hardening & Form UX | 2/2 | Complete   | 2026-06-11 |
+| 128. Feedback Hardening & Form UX | 2/2 | Complete    | 2026-06-11 |
 | 129. Navigation, Cross-Links & Technical Cleanup | 0/4 | Not started | - |
