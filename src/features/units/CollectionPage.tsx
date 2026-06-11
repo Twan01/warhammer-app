@@ -251,9 +251,13 @@ export function CollectionPage() {
         />
       )}
 
-      {/* Pitfall 4: siblings, not nested children. POLISH-04: key forces fresh mount per unit. */}
+      {/* Pitfall 4: siblings, not nested children.
+          NOTE: Do NOT use key={unit?.id} on Radix Dialog/Sheet wrappers — changing
+          the key while open transitions to false causes React to unmount the component
+          before Radix can run close cleanup (focus trap release, body pointer-events
+          reset, scroll lock removal), freezing the entire UI. These components already
+          guard null unit via conditional rendering. */}
       <UnitDetailSheet
-        key={selectedUnit?.id ?? "none-detail"}
         open={selectedUnitId !== null}
         unit={selectedUnit}
         onClose={handleCloseDetail}
@@ -263,14 +267,12 @@ export function CollectionPage() {
       />
 
       <UnitSheet
-        key={editingUnit?.id ?? "new-edit"}
         open={editSheetOpen}
         unit={editingUnit}
         onClose={handleCloseEdit}
       />
 
       <UnitDeleteDialog
-        key={deletingUnit?.id ?? "none-delete"}
         open={deleteDialogOpen}
         unit={deletingUnit}
         onClose={handleCloseDelete}

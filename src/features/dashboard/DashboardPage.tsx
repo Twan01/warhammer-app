@@ -462,9 +462,10 @@ export function DashboardPage() {
         </div>
       </div>
 
-      {/* Pitfall 1: SIBLINGS, never nested. POLISH-04: key forces fresh mount per unit. */}
+      {/* Pitfall 1: SIBLINGS, never nested. Do NOT use key={unit?.id} on Radix
+          Dialog/Sheet — key change during close prevents Radix cleanup (focus trap,
+          body pointer-events lock), freezing the UI. */}
       <UnitDetailSheet
-        key={selectedUnit?.id ?? "none-detail"}
         open={selectedUnitId !== null}
         unit={selectedUnit}
         onClose={handleCloseDetail}
@@ -475,7 +476,6 @@ export function DashboardPage() {
 
       {/* Edit-mode UnitSheet (existing) */}
       <UnitSheet
-        key={editingUnit?.id ?? "new-edit"}
         open={editSheetOpen}
         unit={editingUnit}
         onClose={handleCloseEdit}
@@ -500,7 +500,6 @@ export function DashboardPage() {
       />
 
       <UnitDeleteDialog
-        key={deletingUnit?.id ?? "none-delete"}
         open={deleteDialogOpen}
         unit={deletingUnit}
         onClose={handleCloseDelete}

@@ -85,7 +85,6 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhoto
     <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <SheetContent
         side="right"
-        key={unit?.id ?? "none"}
         className="overflow-y-auto sm:max-w-md"
       >
         {unit && (

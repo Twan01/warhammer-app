@@ -114,25 +114,21 @@ export function FactionsPage() {
         </div>
       )}
 
-      {/* POLISH-04 / Pitfall 3: key forces a fresh mount when switching between create/edit modes
-          and between different factions. */}
+      {/* Do NOT use key={entity?.id} on Radix Dialog/Sheet — key change during
+          close prevents Radix cleanup (focus trap, body pointer-events lock). */}
       <FactionSheet
-        key={editing?.id ?? "new"}
         open={sheetOpen}
         faction={editing}
         onClose={closeSheet}
       />
 
       <FactionDeleteDialog
-        key={deleting?.id ?? "none"}
         open={dialogOpen}
         faction={deleting}
         onClose={closeDialog}
       />
 
-      {/* POLISH-04 / Pitfall 3: key forces fresh mount when switching between units. */}
       <UnitSheet
-        key={editingUnit?.id ?? `new-${defaultFactionIdForCreate}`}
         open={unitSheetOpen}
         unit={editingUnit}
         defaultFactionId={defaultFactionIdForCreate ?? undefined}
@@ -140,7 +136,6 @@ export function FactionsPage() {
       />
 
       <UnitDeleteDialog
-        key={deletingUnit?.id ?? "none-unit"}
         open={unitDialogOpen}
         unit={deletingUnit}
         onClose={closeUnitDialog}

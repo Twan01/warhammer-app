@@ -35,7 +35,6 @@ export function PaintingProjectsPage() {
       />
 
       <UnitSheet
-        key={editingUnit?.id ?? "none"}
         open={unitSheetOpen}
         unit={editingUnit}
         onClose={closeSheet}
