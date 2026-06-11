@@ -126,7 +126,7 @@ Full details: `.planning/milestones/v0.4.0-ROADMAP.md`
 Plans:
 - [x] 0126-01-PLAN.md — Painting Mode exit UX (FIX-01, FIX-02)
 - [x] 0126-02-PLAN.md — CSS tokens, scrollbar, PageHeaders (FIX-05, FIX-06, FIX-11)
-- [ ] 0126-03-PLAN.md — Army List fixes and Recipes error state (FIX-03, FIX-04, FIX-10)
+- [x] 0126-03-PLAN.md — Army List fixes and Recipes error state (FIX-03, FIX-04, FIX-10)
 - [ ] 0126-04-PLAN.md — Toast discipline fixes (FIX-07, FIX-08, FIX-09)
 
 **UI hint**: yes
