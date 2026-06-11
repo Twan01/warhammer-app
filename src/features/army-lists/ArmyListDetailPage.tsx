@@ -46,7 +46,6 @@ import { useUdbMeta } from "@/hooks/useUdbMeta";
 import { useLeaderTargets } from "@/hooks/useLeaderTargets";
 import { useFactions } from "@/hooks/useFactions";
 import { groupUnitsWithLeaders } from "@/lib/groupUnitsWithLeaders";
-import type { ArmyList } from "@/types/armyList";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
@@ -80,8 +79,6 @@ import { SnapshotCompareDialog } from "./SnapshotCompareDialog";
 import {
   detailPortalReducer,
   initialDetailPortalState,
-  type DetailPortalState,
-  type DetailPortalAction,
 } from "./armyListDetailReducer";
 
 // ---------------------------------------------------------------------------
