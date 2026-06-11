@@ -5,7 +5,6 @@
  * Tests the SQL contract for getArmyReadinessByFaction and the
  * useArmyReadinessTarget hook behaviour (app_settings default/read/fallback/session override).
  */
-import React from "react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 
