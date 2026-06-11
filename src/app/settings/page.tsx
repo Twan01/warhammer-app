@@ -5,13 +5,14 @@ import { AboutTab } from "@/features/settings/AboutTab";
 import { DataManagementTab } from "@/features/settings/DataManagementTab";
 import { GeneralPreferencesSection } from "@/features/settings/GeneralPreferencesSection";
 import { HobbyDefaultsSection } from "@/features/settings/HobbyDefaultsSection";
+import { PageHeader } from "@/components/common/PageHeader";
 
 export function SettingsPage() {
   const { isLoading, isError } = useAppSettings();
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-xl font-semibold">Settings</h1>
+      <PageHeader title="Settings" />
       <Tabs defaultValue="preferences">
         <TabsList>
           <TabsTrigger value="preferences">Preferences</TabsTrigger>

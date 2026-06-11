@@ -16,11 +16,12 @@ import { DiagnosticsCard } from "./DiagnosticsCard";
 import { PointsCoverageCard } from "./PointsCoverageCard";
 import { BackupCard } from "./BackupCard";
 import { SafetyBackupsList } from "./SafetyBackupsList";
+import { PageHeader } from "@/components/common/PageHeader";
 
 export function DataHealthPage() {
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-xl font-semibold">Data Health</h1>
+      <PageHeader title="Data Health" />
 
       <VersionInfoCard />
 
