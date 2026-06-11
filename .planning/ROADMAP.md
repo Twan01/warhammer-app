@@ -172,8 +172,14 @@ Plans:
   3. Rules Hub and Unit Database pages have visible cross-links to each other
   4. The Game Day sidebar item is highlighted when Game Day is the active page
   5. Battle Log entries link directly to the army list used in that battle
-**Plans**: TBD
+**Plans:** 4 plans (Wave 1: 01, 02, 03 — parallel; Wave 2: 04)
 **UI hint**: yes
+
+Plans:
+- [ ] 129-01-PLAN.md — Painting Mode returnTo navigation (NAV-01)
+- [ ] 129-02-PLAN.md — Cross-links: UnitDetailSheet, Rules/UDB, BattleLogRow (NAV-02, NAV-03, NAV-06)
+- [ ] 129-03-PLAN.md — Code cleanup: dead code, memo, reducer extraction (NAV-07, NAV-08, NAV-09, NAV-11)
+- [ ] 129-04-PLAN.md — Sidebar: Game Day entry, collapsed dividers, transition polish (NAV-04, NAV-05, NAV-10)
 
 ## Progress
 
@@ -182,4 +188,4 @@ Plans:
 | 126. Critical Fixes & Dead Ends | 4/4 | Complete | 2026-06-11 |
 | 127. Visual Consistency & PageHeader Unification | 0/3 | Not started | - |
 | 128. Feedback Hardening & Form UX | 0/TBD | Not started | - |
-| 129. Navigation, Cross-Links & Technical Cleanup | 0/TBD | Not started | - |
+| 129. Navigation, Cross-Links & Technical Cleanup | 0/4 | Not started | - |
