@@ -69,5 +69,6 @@ export function useUnitKeywords(
     },
     enabled: cacheKey !== undefined && cacheKey !== null,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }

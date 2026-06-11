@@ -51,6 +51,7 @@ export function useDatasheet(unitId: number | undefined) {
     },
     enabled: unitId !== undefined,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 
@@ -70,6 +71,7 @@ export function useDatasheetsByFaction(factionId: string | undefined) {
         : Promise.resolve([]),
     enabled: factionId !== undefined,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 
@@ -90,6 +92,7 @@ export function useDatasheetsByFactionWithPoints(factionId: string | undefined) 
         : Promise.resolve([]),
     enabled: factionId !== undefined,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 
@@ -102,6 +105,7 @@ export function useWahapediaFactions() {
     queryKey: [...WAHAPEDIA_FACTIONS_KEY, locale] as const,
     queryFn: () => getUdbFactions(locale),
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 
@@ -130,5 +134,6 @@ export function useWahapediaFactionId(localFactionName: string | undefined) {
     },
     enabled: localFactionName !== undefined,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }

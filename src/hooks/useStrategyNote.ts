@@ -25,6 +25,7 @@ export function useStrategyNote(unitId: number | undefined) {
     queryFn: () => (unitId !== undefined ? getStrategyNote(unitId) : Promise.resolve(null)),
     enabled: unitId !== undefined,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 

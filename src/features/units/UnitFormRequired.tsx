@@ -38,6 +38,7 @@ function useDatasheetRole(unitId: number | undefined) {
     },
     enabled: unitId !== undefined,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 

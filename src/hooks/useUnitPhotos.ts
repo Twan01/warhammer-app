@@ -65,6 +65,7 @@ export function useUnitPhotos(unitId: number | undefined) {
     },
     enabled: unitId !== undefined,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 
@@ -127,5 +128,6 @@ export function useLatestUnitPhotos() {
       return new Map(withUrls.map((r) => [r.entity_id, r]));
     },
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }

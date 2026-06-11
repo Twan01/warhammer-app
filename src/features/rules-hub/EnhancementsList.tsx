@@ -9,6 +9,7 @@ export function EnhancementsList({ factionId }: { factionId: string }) {
     queryKey: ["enhancements-by-faction", factionId] as const,
     queryFn: () => getEnhancementsByFaction(factionId),
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 
   const grouped = useMemo(() => {

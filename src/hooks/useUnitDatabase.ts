@@ -45,6 +45,7 @@ export function useUdbFactions() {
     queryKey: UDB_FACTIONS_KEY(locale),
     queryFn: () => getUdbFactions(locale),
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 
@@ -62,6 +63,7 @@ export function useUdbUnits(factionId: string | null) {
       factionId !== null ? getUdbUnitsByFaction(factionId, locale) : Promise.resolve([]),
     enabled: !!factionId,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 
@@ -79,6 +81,7 @@ export function useUdbUnitDetail(unitId: string | null) {
       unitId !== null ? getUdbUnitDetail(unitId, locale) : Promise.resolve(null),
     enabled: !!unitId,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 
@@ -91,6 +94,7 @@ export function useUdbSearch(query: string) {
     queryFn: () => searchUdbUnits(query),
     enabled: query.trim().length >= 2,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 
@@ -109,6 +113,7 @@ export function useUdbKeywords(factionId: string | null) {
         : Promise.resolve(new Map<string, string>()),
     enabled: !!factionId,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 
@@ -172,6 +177,7 @@ export function useUdbSubFactions(factionId: string | null) {
       factionId !== null ? getDistinctSubFactions(factionId) : Promise.resolve([]),
     enabled: !!factionId,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 
@@ -194,6 +200,7 @@ export function useUdbSubFactionUnitIds(factionId: string | null, subFaction: st
         : Promise.resolve([]),
     enabled: !!factionId && !!subFaction,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 
@@ -214,5 +221,6 @@ export function useUdbPointsTiers(udbUnitId: string | null | undefined) {
       udbUnitId ? getUdbPointsTiers(udbUnitId) : Promise.resolve([]),
     enabled: !!udbUnitId,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }

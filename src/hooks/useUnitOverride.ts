@@ -29,6 +29,7 @@ export function useUnitOverride(unitId: number | undefined) {
       unitId !== undefined ? getUnitOverride(unitId) : Promise.resolve(null),
     enabled: unitId !== undefined,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 

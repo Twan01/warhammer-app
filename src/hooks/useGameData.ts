@@ -56,6 +56,7 @@ export function useStratagemsByDetachment(detachmentId: string | undefined) {
         : Promise.resolve([]),
     enabled: !!detachmentId,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 
@@ -72,6 +73,7 @@ export function useStratagemsByFaction(factionId: string | undefined) {
       factionId ? getStratagemsByFaction(factionId) : Promise.resolve([]),
     enabled: !!factionId,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 
@@ -90,6 +92,7 @@ export function useEnhancementsByDetachment(detachmentId: string | undefined) {
         : Promise.resolve([]),
     enabled: !!detachmentId,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 
@@ -106,6 +109,7 @@ export function useDetachmentsByFaction(factionId: string | undefined) {
       factionId ? getDetachmentsByFaction(factionId) : Promise.resolve([]),
     enabled: !!factionId,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 
@@ -124,6 +128,7 @@ export function useDetachmentAbilities(factionId: string | null) {
         : Promise.resolve([]),
     enabled: !!factionId,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 
@@ -138,5 +143,6 @@ export function useDetachmentAbilitiesByDetachment(detachmentId: string | undefi
         : Promise.resolve([]),
     enabled: !!detachmentId,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }

@@ -47,6 +47,7 @@ function usePointTiers(factionId: string | undefined) {
         : Promise.resolve([]),
     enabled: factionId !== undefined,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 
@@ -77,6 +78,7 @@ function DatasheetDetail({
     queryKey: ["datasheet-detail", datasheetId] as const,
     queryFn: () => getUdbUnitDetail(datasheetId),
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 
   if (isLoading) {
@@ -411,16 +413,19 @@ export function DatasheetPointsTab({ factionId }: { factionId: string }) {
     queryKey: ["model-counts-by-faction", factionId] as const,
     queryFn: () => getModelCountsByFaction(factionId),
     staleTime: Infinity,
+    gcTime: Infinity,
   });
   const { data: loadoutOptions = [] } = useQuery({
     queryKey: ["loadout-options-by-faction", factionId] as const,
     queryFn: () => getLoadoutOptionsByFaction(factionId),
     staleTime: Infinity,
+    gcTime: Infinity,
   });
   const { data: leaderTargets = [] } = useQuery({
     queryKey: ["leader-targets-by-faction", factionId] as const,
     queryFn: () => getLeaderTargetsByFaction(factionId),
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 
   const modelCountsMap = useMemo(() => {

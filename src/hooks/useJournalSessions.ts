@@ -33,6 +33,7 @@ export function useJournalSessions(unitId: number | undefined) {
       unitId !== undefined ? getSessionsByUnit(unitId) : Promise.resolve([] as PaintingSession[]),
     enabled: unitId !== undefined,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 
@@ -48,6 +49,7 @@ export function useSessionsByRecipe(recipeId: number | undefined) {
         : Promise.resolve([] as PaintingSession[]),
     enabled: recipeId !== undefined,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 

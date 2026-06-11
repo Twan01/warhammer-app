@@ -32,5 +32,6 @@ export function useUdbMeta() {
       return rows[0] ?? null;
     },
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
