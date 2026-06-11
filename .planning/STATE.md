@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: Settings & Preferences
 status: executing
-stopped_at: Phase 123 Plan 02 complete — all plans in phase 123 done
+stopped_at: Phase 124 complete — only Phase 122 (Preferences Tab) remains
 last_updated: "2026-06-10T19:37:00.000Z"
 last_activity: 2026-06-10
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 9
-  completed_plans: 7
-  percent: 80
+  total_plans: 10
+  completed_plans: 9
+  percent: 90
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-10)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 123 — hobby-defaults-tab
+**Current focus:** Phase 122 — preferences-tab
 
 ## Current Position
 
-Phase: 123 (hobby-defaults-tab) — EXECUTING
-Plan: 2 of 2 (COMPLETE)
-Status: Phase 123 complete
-Last activity: 2026-06-10 -- Plan 123-02 complete (2 tasks, 6 files)
+Phase: 122 (preferences-tab) — NEEDS PLANNING
+Plan: 0 of TBD
+Status: Phases 121, 123, 124, 125 complete — Phase 122 remains
+Last activity: 2026-06-10 -- Phase 124 Plan 02 complete
 
-Progress: [█████████░] 89%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -89,7 +89,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-10T19:37:00.000Z
-Stopped at: Phase 123 complete — all 2 plans executed
+Last session: 2026-06-11T00:00:00.000Z
+Stopped at: Phase 124 complete — only Phase 122 (Preferences Tab) remains
 Resume file: None
-Resume: Phase 123 complete. Plan 01 delivered editors + utility, Plan 02 wired consumers (pipeline labels, mission pre-fill, checklist defaults).
+Resume: Phases 121, 123, 124, 125 all complete. Phase 122 (Preferences Tab) has discussion log and UI spec but needs planning.
