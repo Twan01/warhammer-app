@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.5.2
 milestone_name: UX Polish & Consistency
 status: executing
-stopped_at: Phase 127 context gathered
-last_updated: "2026-06-11T13:24:12.019Z"
-last_activity: 2026-06-11 -- Phase 127 planning complete
+stopped_at: Phase 127 complete
+last_updated: "2026-06-11T15:45:00.000Z"
+last_activity: 2026-06-11 -- Phase 127 executed and verified (9/9 must-haves passed)
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 7
-  completed_plans: 4
-  percent: 25
+  completed_phases: 2
+  total_plans: 10
+  completed_plans: 7
+  percent: 50
 ---
 
 # Project State
@@ -21,21 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-11)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore
-**Current focus:** Phase 126 — Critical Fixes & Dead Ends
+**Current focus:** Phase 128 — Feedback Hardening & Form UX
 
 ## Current Position
 
-Phase: 126 of 129 (Critical Fixes & Dead Ends)
-Plan: 4/4 plans complete
-Status: Ready to execute
-Last activity: 2026-06-11 -- Phase 127 planning complete
+Phase: 128 of 129 (Feedback Hardening & Form UX)
+Plan: 0/? plans
+Status: Ready to discuss
+Last activity: 2026-06-11 -- Phase 127 executed and verified (9/9 must-haves passed)
 
-Progress: [██████████] 100%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity (recent milestones):**
 
+- v0.5.2: 7 plans across 2 phases (1 day, in progress)
 - v0.5.0: 9 plans across 5 phases (2 days)
 - v0.4.7: 10 plans across 5 phases (6 days)
 - v0.4.5: 7 plans across 4 phases (2 days)
@@ -53,6 +54,7 @@ Progress: [██████████] 100%
 - Settings page shipped: app_settings key-value storage, locale/currency/faction wired
 - Factory reset via Rust command with safety backup
 - No schema changes in v0.5.2 — polish-only milestone
+- Phase 127: all pages use PageHeader, section headings standardized, spacing normalized, status dots use Tailwind tokens
 
 ### Pending Todos
 
@@ -79,7 +81,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-11T12:52:52.307Z
-Stopped at: Phase 127 context gathered
-Resume file: .planning/phases/127-visual-consistency-pageheader-unification/127-CONTEXT.md
-Resume: Run `/gsd:plan-phase 127` to begin Visual Consistency & PageHeader Unification.
+Last session: 2026-06-11T15:45:00.000Z
+Stopped at: Phase 127 complete
+Resume file: .planning/phases/127-visual-consistency-pageheader-unification/127-VERIFICATION.md
+Resume: Run `/gsd:discuss-phase 128` to begin Feedback Hardening & Form UX.
