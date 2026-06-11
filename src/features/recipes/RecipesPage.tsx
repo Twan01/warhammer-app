@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+import { Plus, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -34,7 +34,7 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { applyRecipeFilters } from "./applyRecipeFilters";
 
 export function RecipesPage() {
-  const { data: recipes = [], isLoading } = useRecipes();
+  const { data: recipes = [], isLoading, isError, refetch } = useRecipes();
   const { data: factions = [] } = useFactions();
   const { data: units = [] } = useUnits();
   const { data: stepCountByRecipe = new Map<number, number>() } = useAllStepCounts();
@@ -145,6 +145,19 @@ export function RecipesPage() {
     styleFilter !== null ||
     difficultyFilter !== null ||
     hasMissingFilter;
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 gap-4">
+        <AlertCircle className="h-12 w-12 text-destructive" />
+        <div className="text-center">
+          <h2 className="text-lg font-semibold">Failed to load recipes</h2>
+          <p className="text-sm text-muted-foreground mt-1">Check your connection and try again.</p>
+        </div>
+        <Button variant="outline" onClick={() => refetch()}>Reload Recipes</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 p-6">
