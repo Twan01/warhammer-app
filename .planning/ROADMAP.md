@@ -85,7 +85,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 122-02-PLAN.md — Consumer integration: LocaleToggle migration, formatCurrency wiring, ActiveFactionContext boot, useArmyReadinessTarget refactor + tests (PREF-01, PREF-02, PREF-03, PREF-04)
+- [x] 122-02-PLAN.md — Consumer integration: LocaleToggle migration, formatCurrency wiring, ActiveFactionContext boot, useArmyReadinessTarget refactor + tests (PREF-01, PREF-02, PREF-03, PREF-04)
 
 **UI hint**: yes
 

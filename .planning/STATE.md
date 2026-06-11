@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: Settings & Preferences
 status: executing
-stopped_at: Phase 124 complete — only Phase 122 (Preferences Tab) remains
-last_updated: "2026-06-10T19:37:00.000Z"
-last_activity: 2026-06-10
+stopped_at: Phase 122 complete — only Phase 125 (About Tab) remains
+last_updated: "2026-06-11T10:00:00.000Z"
+last_activity: 2026-06-11
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 12
+  completed_plans: 12
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-10)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore so local data is always recoverable
-**Current focus:** Phase 122 — preferences-tab
+**Current focus:** Phase 125 — about-tab (only remaining phase)
 
 ## Current Position
 
-Phase: 122 (preferences-tab) — Plan 02 complete (phase complete)
-Plan: 2 of 2
-Status: Phase 122 complete — all 4 preferences wired to consumers (locale, currency, faction, readiness)
-Last activity: 2026-06-11 -- Phase 122 Plan 02 complete
+Phase: 125 (about-tab) — next up
+Plan: 0 of 1
+Status: Phase 122 complete — all 4 preferences wired to consumers. Phase 125 is the only remaining phase.
+Last activity: 2026-06-11 -- Phase 122 verified and complete
 
 Progress: [██████████] 100%
 
@@ -98,7 +98,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-11T09:40:00.000Z
-Stopped at: Phase 122 complete — all preferences wired to consumers
+Last session: 2026-06-11T10:00:00.000Z
+Stopped at: Phase 122 verified and complete with code review fixes
 Resume file: None
-Resume: Phase 122 complete. All 4 preferences (locale, currency, default faction, readiness target) persist to app_settings and wire through to their consumer systems.
+Resume: Phase 122 complete. All 4 preferences persist to app_settings and wire through to consumers. Code review findings fixed. Only Phase 125 (About Tab) remains in v0.5.0.
