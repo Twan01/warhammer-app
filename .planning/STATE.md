@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.5.0
-milestone_name: Settings & Preferences
-status: completed
-stopped_at: Milestone complete — archived to milestones/
-last_updated: "2026-06-11T12:00:00.000Z"
+milestone: v0.5.1
+milestone_name: UX Polish & Consistency
+status: planning
+last_updated: "2026-06-11T10:25:07.829Z"
 last_activity: 2026-06-11
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 9
-  completed_plans: 9
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,12 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-11)
 
 ## Current Position
 
-Phase: (none — milestone complete)
-Plan: (none)
-Status: v0.5.0 shipped. All 17 requirements satisfied, 5/5 phases complete, Nyquist 5/5 compliant.
-Last activity: 2026-06-11 -- v0.5.0 milestone archived
-
-Progress: [██████████] 100%
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-06-11 — Milestone v0.5.1 started
 
 ## Performance Metrics
 
