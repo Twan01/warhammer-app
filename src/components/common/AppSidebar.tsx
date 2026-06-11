@@ -49,6 +49,7 @@ const WORKSHOP_NAV = [
 const PLAY_NAV = [
   { to: "/army-lists", label: "Army Lists", icon: ClipboardList },
   { to: "/battle-log", label: "Battle Log", icon: Swords },
+  { to: "/game-day", label: "Game Day", icon: Sword },
   { to: "/rules-hub", label: "Rules Hub", icon: Library },
   { to: "/unit-database", label: "Unit Database", icon: BookMarked },
 ] as const;
@@ -67,7 +68,7 @@ export function AppSidebar() {
   return (
     <aside
       data-collapsed={collapsed}
-      className="flex h-screen flex-col border-r border-border bg-card transition-[width] duration-200 ease-in-out shrink-0"
+      className="flex h-screen flex-col border-r border-border bg-card transition-[width] duration-200 ease-in-out shrink-0 overflow-hidden"
       style={{ width: collapsed ? 48 : 240 }}
     >
       {/* App wordmark (Phase 16 §Sidebar Polish Contract) */}
@@ -167,6 +168,7 @@ export function AppSidebar() {
           ))}
         </ul>
 
+        {collapsed && <div className="my-1 border-b border-border/40" />}
         {!collapsed && (
           <p className="px-3 pt-4 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-widest">
             Workshop
@@ -184,6 +186,7 @@ export function AppSidebar() {
           ))}
         </ul>
 
+        {collapsed && <div className="my-1 border-b border-border/40" />}
         {!collapsed && (
           <p className="px-3 pt-4 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-widest">
             Play
@@ -201,6 +204,7 @@ export function AppSidebar() {
           ))}
         </ul>
 
+        {collapsed && <div className="my-1 border-b border-border/40" />}
         {!collapsed && (
           <p className="px-3 pt-4 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-widest">
             Management

@@ -3,6 +3,7 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  Link,
   Outlet,
 } from "@tanstack/react-router";
 import { z } from "zod";
@@ -178,6 +179,19 @@ const rulesHubRoute = createRoute({
   component: RulesHubPageShell,
 });
 
+const gameDayIndexRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: "/game-day",
+  component: () => (
+    <div className="flex h-full flex-col items-center justify-center gap-4 text-muted-foreground">
+      <p className="text-base">Select an army list to start Game Day.</p>
+      <Link to="/army-lists" className="text-sm underline hover:text-foreground">
+        Go to Army Lists
+      </Link>
+    </div>
+  ),
+});
+
 const gameDayRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/game-day/$listId",
@@ -227,6 +241,7 @@ const routeTree = rootRoute.addChildren([
     battleLogRoute,
     settingsRoute,
     rulesHubRoute,
+    gameDayIndexRoute,
     gameDayRoute,
     dataHealthRoute,
     unitDatabaseRoute,
