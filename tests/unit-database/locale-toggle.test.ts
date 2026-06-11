@@ -132,7 +132,7 @@ describe("LocaleToggle (expanded)", () => {
     );
   });
 
-  it("invalidates 7 query keys on successful locale change", () => {
+  it("invalidates 8 query keys on successful locale change", () => {
     // Simulate onSuccess callback
     mockMutate.mockImplementation((_data: unknown, opts: { onSuccess?: () => void }) => {
       opts?.onSuccess?.();
@@ -142,7 +142,7 @@ describe("LocaleToggle (expanded)", () => {
       React.createElement(LocaleToggle, { collapsed: false }),
     );
     fireEvent.click(getByText("FR"));
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(7);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(8);
   });
 
   it("does not call mutate when clicking already-active locale", () => {

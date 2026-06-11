@@ -13,7 +13,7 @@ import { Card } from "@/components/ui/card";
 import type { PaintingStatus } from "@/types/unit";
 import type { Unit } from "@/types/unit";
 import { useAppSettings } from "@/hooks/useAppSettings";
-import { getBucketLabel, BUCKET_ORDER, type PipelineBucket } from "@/lib/stageLabel";
+import { parsePipelineLabels, BUCKET_ORDER, type PipelineBucket } from "@/lib/stageLabel";
 
 const BUCKET_GROUPS: Record<PipelineBucket, PaintingStatus[]> = {
   "Not Started": ["Not Started"],
@@ -37,6 +37,11 @@ export interface HobbyPipelineProps {
 
 export function HobbyPipeline({ units }: HobbyPipelineProps) {
   const { data: settings = {} } = useAppSettings();
+
+  const labels = useMemo(
+    () => parsePipelineLabels(settings),
+    [settings],
+  );
 
   const bucketCounts = useMemo(() => {
     const counts = {} as Record<PipelineBucket, number>;
@@ -62,10 +67,10 @@ export function HobbyPipeline({ units }: HobbyPipelineProps) {
           <li
             key={bucket}
             className="flex flex-1 flex-col items-center gap-1"
-            aria-label={`${getBucketLabel(bucket, settings)}: ${bucketCounts[bucket]} units`}
+            aria-label={`${(labels[bucket] || bucket)}: ${bucketCounts[bucket]} units`}
           >
             <span className="text-xs text-muted-foreground text-center">
-              {getBucketLabel(bucket, settings)}
+              {(labels[bucket] || bucket)}
             </span>
             <span
               className={`inline-flex items-center justify-center min-w-[32px] h-7 px-2 rounded-full text-sm font-semibold tabular-nums ${BUCKET_BUBBLE_CLASS[bucket]}`}

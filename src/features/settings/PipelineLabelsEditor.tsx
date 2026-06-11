@@ -1,8 +1,9 @@
+import { useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { useUpdateSetting } from "@/hooks/useAppSettings";
 import { toast } from "sonner";
 import type { AppSettingsMap } from "@/db/queries/appSettings";
-import { BUCKET_ORDER, type PipelineBucket } from "@/lib/stageLabel";
+import { parsePipelineLabels, BUCKET_ORDER, type PipelineBucket } from "@/lib/stageLabel";
 
 export function PipelineLabelsEditor({
   settings,
@@ -11,20 +12,12 @@ export function PipelineLabelsEditor({
 }) {
   const updateSetting = useUpdateSetting();
 
-  function parseLabels(): Record<string, string> {
-    const raw = settings["pipeline_labels"];
-    if (!raw) return {};
-    try {
-      return JSON.parse(raw) as Record<string, string>;
-    } catch {
-      return {};
-    }
-  }
+  const parsed = useMemo(() => parsePipelineLabels(settings), [settings]);
 
   function handleBlur(bucket: PipelineBucket, value: string) {
     const trimmed = value.trim();
     const label = trimmed || bucket;
-    const existing = parseLabels();
+    const existing = { ...parsed };
     if (label === bucket) {
       delete existing[bucket];
     } else {
@@ -35,8 +28,6 @@ export function PipelineLabelsEditor({
       { onError: () => toast.error("Could not save setting. Try again.") },
     );
   }
-
-  const parsed = parseLabels();
 
   return (
     <div className="space-y-3">

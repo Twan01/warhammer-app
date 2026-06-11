@@ -160,10 +160,7 @@ export function CollectionPage() {
 
   const handleCloseDelete = () => {
     setDeleteDialogOpen(false);
-    // Close the detail sheet if the deleted unit was being viewed.
-    // Use selectedUnitId (not derived selectedUnit) because React Query
-    // invalidation may have already removed the unit from the cache,
-    // making selectedUnit null before this handler runs.
+    // Compare by ID — selectedUnit may already be null from cache invalidation.
     if (deletingUnit && selectedUnitId === deletingUnit.id) {
       setSelectedUnitId(null);
     }

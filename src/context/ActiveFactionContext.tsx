@@ -58,8 +58,9 @@ export function ActiveFactionProvider({ children }: { children: ReactNode }) {
   const bootAttempted = useRef(false);
   useEffect(() => {
     if (bootAttempted.current || activeFactionId !== null) return;
+    if (!settings) return;
     bootAttempted.current = true;
-    const defaultId = settings?.["default_faction_id"];
+    const defaultId = settings["default_faction_id"];
     if (!defaultId || defaultId === "") return;
     const parsed = Number(defaultId);
     if (Number.isFinite(parsed) && parsed > 0) {

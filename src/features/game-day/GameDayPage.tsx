@@ -44,6 +44,11 @@ export function GameDayPage({ listId }: GameDayPageProps) {
     return () => { cancelled = true; };
   }, [listId]);
 
+  const battlePrefill = useMemo(
+    () => ({ army_list_id: listId, battle_date: todayISO() }),
+    [listId],
+  );
+
   const faction = useMemo(
     () =>
       list?.faction_id
@@ -128,7 +133,7 @@ export function GameDayPage({ listId }: GameDayPageProps) {
       <BattleLogSheet
         open={endGameOpen}
         log={null}
-        prefill={{ army_list_id: listId, battle_date: todayISO() }}
+        prefill={battlePrefill}
         onClose={() => setEndGameOpen(false)}
       />
     </div>

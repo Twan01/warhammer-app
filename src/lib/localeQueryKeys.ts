@@ -9,6 +9,7 @@ export const LOCALE_QUERY_KEYS = [
   "udb-factions",
   "udb-units",
   "udb-unit-detail",
+  "udb-search",
   "wahapedia-factions",
   "datasheets-by-faction",
   "datasheets-with-points",

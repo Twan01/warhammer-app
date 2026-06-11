@@ -22,6 +22,34 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getAppSettings, upsertAppSetting } from "@/db/queries/appSettings";
 import { APP_SETTINGS_KEY } from "@/hooks/useAppSettings";
+import { SUPPORTED_CURRENCIES } from "@/hooks/useCurrencyPreference";
+
+const ALLOWED_IMPORT_KEYS = new Set([
+  "locale",
+  "currency",
+  "default_faction_id",
+  "army_readiness_target",
+  "pipeline_labels",
+  "default_checklist",
+  "default_mission_format",
+]);
+
+const MAX_SETTING_VALUE_LENGTH = 102400;
+
+function isValidImportValue(key: string, value: string): boolean {
+  if (key === "locale") return value === "en" || value === "fr";
+  if (key === "currency")
+    return (SUPPORTED_CURRENCIES as readonly string[]).includes(value);
+  if (key === "army_readiness_target") {
+    const n = Number(value);
+    return Number.isFinite(n) && n > 0 && n <= 99999;
+  }
+  if (key === "default_faction_id") {
+    const n = Number(value);
+    return Number.isFinite(n) && n > 0;
+  }
+  return value.length <= MAX_SETTING_VALUE_LENGTH;
+}
 
 export function DataManagementTab() {
   const navigate = useNavigate();
@@ -85,18 +113,13 @@ export function DataManagementTab() {
       }
       const settings = (payload as { settings: Record<string, unknown> })
         .settings;
-      const ALLOWED_KEYS = new Set([
-        "locale",
-        "currency",
-        "default_faction_id",
-        "army_readiness_target",
-        "pipeline_labels",
-        "default_checklist",
-        "default_mission_format",
-      ]);
       let count = 0;
       for (const [key, value] of Object.entries(settings)) {
-        if (typeof value === "string" && ALLOWED_KEYS.has(key)) {
+        if (
+          typeof value === "string" &&
+          ALLOWED_IMPORT_KEYS.has(key) &&
+          isValidImportValue(key, value)
+        ) {
           await upsertAppSetting(key, value);
           count++;
         }

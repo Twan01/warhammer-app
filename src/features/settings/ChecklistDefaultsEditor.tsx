@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   DndContext,
   PointerSensor,
@@ -92,31 +92,26 @@ export function ChecklistDefaultsEditor({
 
   const initialItems = useMemo(() => {
     const raw = settings["default_checklist"];
-    if (!raw) {
-      return DEFAULT_CHECKLIST.map((i) => ({
-        id: crypto.randomUUID(),
-        text: i.text,
-      }));
-    }
+    const toItems = (arr: Array<{ text: string }>) =>
+      arr.map((e, i) => ({ id: `checklist-${i}-${e.text}`, text: e.text }));
+    if (!raw) return toItems(DEFAULT_CHECKLIST);
     try {
-      const entries = JSON.parse(raw) as Array<{ text: string }>;
-      return entries.map((e) => ({
-        id: crypto.randomUUID(),
-        text: e.text,
-      }));
+      return toItems(JSON.parse(raw) as Array<{ text: string }>);
     } catch {
-      return DEFAULT_CHECKLIST.map((i) => ({
-        id: crypto.randomUUID(),
-        text: i.text,
-      }));
+      return toItems(DEFAULT_CHECKLIST);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings["default_checklist"]]);
 
   const [items, setItems] = useState<ChecklistEditorItem[]>(initialItems);
   const [newItemText, setNewItemText] = useState("");
+  const savingRef = useRef(false);
 
   useEffect(() => {
+    if (savingRef.current) {
+      savingRef.current = false;
+      return;
+    }
     setItems(initialItems);
   }, [initialItems]);
 
@@ -128,6 +123,7 @@ export function ChecklistDefaultsEditor({
   );
 
   function saveItems(next: ChecklistEditorItem[]) {
+    savingRef.current = true;
     setItems(next);
     const toStore = next.map(({ text }) => ({ text }));
     updateSetting.mutate(
@@ -148,7 +144,10 @@ export function ChecklistDefaultsEditor({
   function handleAddItem() {
     const trimmed = newItemText.trim();
     if (!trimmed) return;
-    const next = [...items, { id: crypto.randomUUID(), text: trimmed }];
+    const next = [
+      ...items,
+      { id: `checklist-${items.length}-${trimmed}`, text: trimmed },
+    ];
     saveItems(next);
     setNewItemText("");
   }
