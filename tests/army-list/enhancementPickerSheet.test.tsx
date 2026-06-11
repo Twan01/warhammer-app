@@ -288,6 +288,36 @@ describe("EnhancementPickerSheet — ENH-03 HTML descriptions via dangerouslySet
 // Tests: Validation logic preserved
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// FIX-08: Success toasts on assign/remove — structural verification
+// ---------------------------------------------------------------------------
+
+describe("EnhancementPickerSheet — FIX-08 success toasts", () => {
+  it("source contains toast.success for assign and remove operations", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/army-lists/EnhancementPickerSheet.tsx"),
+      "utf-8",
+    );
+
+    // Verify toast.success calls exist for both assign and remove
+    expect(source).toContain('toast.success("Enhancement assigned.")');
+    expect(source).toContain('toast.success("Enhancement removed.")');
+  });
+
+  it("source contains toast.error for assign and remove failure", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/army-lists/EnhancementPickerSheet.tsx"),
+      "utf-8",
+    );
+
+    expect(source).toContain("toast.error");
+  });
+});
+
 describe("EnhancementPickerSheet — validation logic preserved (D-11)", () => {
   beforeEach(async () => {
     vi.clearAllMocks();

@@ -202,6 +202,37 @@ describe("StepFocalView", () => {
   });
 
   // ---------------------------------------------------------------------------
+  // FIX-01: Completion screen exit button and Escape hint
+  // ---------------------------------------------------------------------------
+
+  it("FIX-01: renders 'Exit Painting Mode' button when isAllComplete and onExit provided", () => {
+    const onExit = vi.fn();
+    renderFocalView({ isAllComplete: true, onExit });
+    const exitBtn = screen.getByRole("button", { name: /exit painting mode/i });
+    expect(exitBtn).toBeInTheDocument();
+  });
+
+  it("FIX-01: 'Exit Painting Mode' button calls onExit when clicked", async () => {
+    const user = userEvent.setup();
+    const onExit = vi.fn();
+    renderFocalView({ isAllComplete: true, onExit });
+    await user.click(screen.getByRole("button", { name: /exit painting mode/i }));
+    expect(onExit).toHaveBeenCalledOnce();
+  });
+
+  it("FIX-01: renders 'Press Escape to exit' hint when isAllComplete and onExit provided", () => {
+    const onExit = vi.fn();
+    renderFocalView({ isAllComplete: true, onExit });
+    expect(screen.getByText(/press escape to exit/i)).toBeInTheDocument();
+  });
+
+  it("FIX-01: does NOT render exit button when isAllComplete but onExit is undefined", () => {
+    renderFocalView({ isAllComplete: true, onExit: undefined });
+    expect(screen.queryByRole("button", { name: /exit painting mode/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/press escape to exit/i)).not.toBeInTheDocument();
+  });
+
+  // ---------------------------------------------------------------------------
   // SL-03: "Done + Log Session" button vs "Mark Done" button
   // ---------------------------------------------------------------------------
 

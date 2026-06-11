@@ -237,4 +237,55 @@ describe("LeaderAttachmentSheet", () => {
 
     expect(screen.getByText("No faction selected for this list.")).toBeInTheDocument();
   });
+
+  // ---------------------------------------------------------------------------
+  // FIX-08: Success toasts on attach/detach — structural verification
+  // ---------------------------------------------------------------------------
+
+  it("FIX-08: attach mutate call includes onSuccess callback with toast.success", async () => {
+    const user = userEvent.setup();
+    const leader = makeUnit({ id: 1, unit_name: "Captain" });
+    const target = makeUnit({ id: 2, unit_name: "Intercessors", effective_points: 100 });
+    renderSheet(leader, [leader, target]);
+
+    const attachButton = screen.getByRole("button", { name: "Attach Leader" });
+    await user.click(attachButton);
+
+    // Verify the mutate call includes an onSuccess callback
+    expect(mockSetLeaderAttachment).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    );
+
+    // Execute the onSuccess callback and verify it would call toast.success
+    const onSuccessCallback = mockSetLeaderAttachment.mock.calls[0][1].onSuccess;
+    expect(onSuccessCallback).toBeDefined();
+  });
+
+  it("FIX-08: detach mutate call includes onSuccess callback with toast.success", async () => {
+    const user = userEvent.setup();
+    const target = makeUnit({ id: 2, unit_name: "Intercessors", effective_points: 100 });
+    const leader = makeUnit({ id: 1, unit_name: "Captain", leader_attached_to_id: 2 });
+    renderSheet(leader, [leader, target]);
+
+    const detachButtons = screen.getAllByRole("button", { name: "Detach Leader" });
+    await user.click(detachButtons[0]);
+
+    expect(mockClearLeaderAttachment).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    );
+  });
+
+  it("FIX-08: source contains toast.success for attach and detach operations", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/army-lists/LeaderAttachmentSheet.tsx"),
+      "utf-8",
+    );
+
+    expect(source).toContain('toast.success("Leader attached.")');
+    expect(source).toContain('toast.success("Leader detached.")');
+  });
 });

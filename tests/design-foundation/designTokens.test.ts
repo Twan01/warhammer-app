@@ -52,6 +52,62 @@ describe("DSFD-01 — design tokens defined in globals.css", () => {
     });
   });
 
+  // -------------------------------------------------------------------------
+  // FIX-06: :root block light-mode fallback token declarations
+  // -------------------------------------------------------------------------
+
+  describe(":root block — light-mode fallback token declarations (FIX-06)", () => {
+    // Extract only the :root block content for targeted assertions
+    const rootBlockMatch = cssContent.match(/:root\s*\{([^}]+)\}/);
+    const rootBlock = rootBlockMatch ? rootBlockMatch[1] : "";
+
+    it(":root block exists in globals.css", () => {
+      expect(rootBlock.length).toBeGreaterThan(0);
+    });
+
+    it(":root contains --forge-black fallback", () => {
+      expect(rootBlock).toContain("--forge-black");
+    });
+
+    it(":root contains --panel-elevated fallback", () => {
+      expect(rootBlock).toContain("--panel-elevated");
+    });
+
+    it(":root contains --panel-surface fallback", () => {
+      expect(rootBlock).toContain("--panel-surface");
+    });
+
+    it(":root contains --battle-gold fallback", () => {
+      expect(rootBlock).toContain("--battle-gold");
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // FIX-11: Dark-mode scrollbar CSS rules
+  // -------------------------------------------------------------------------
+
+  describe("dark mode scrollbar CSS rules (FIX-11)", () => {
+    it("contains .dark ::-webkit-scrollbar rule", () => {
+      expect(cssContent).toContain(".dark ::-webkit-scrollbar");
+    });
+
+    it("contains .dark ::-webkit-scrollbar-track rule", () => {
+      expect(cssContent).toContain(".dark ::-webkit-scrollbar-track");
+    });
+
+    it("contains .dark ::-webkit-scrollbar-thumb rule", () => {
+      expect(cssContent).toContain(".dark ::-webkit-scrollbar-thumb");
+    });
+
+    it("contains scrollbar-width: thin for Firefox", () => {
+      expect(cssContent).toContain("scrollbar-width: thin");
+    });
+
+    it("contains scrollbar-color for Firefox", () => {
+      expect(cssContent).toContain("scrollbar-color:");
+    });
+  });
+
   describe("token wiring — aliases reference existing tokens", () => {
     it("--forge-black aliases the background token", () => {
       expect(cssContent).toContain("--forge-black: hsl(var(--background))");

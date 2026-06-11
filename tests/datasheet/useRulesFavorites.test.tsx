@@ -119,3 +119,62 @@ describe("RULES_FAVORITES_KEY", () => {
     expect(RULES_FAVORITES_KEY).toEqual(["rules-favorites"]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// FIX-09: Error toast on optimistic rollback
+// ---------------------------------------------------------------------------
+
+describe("useUpsertRulesFavorite — FIX-09 error toast on rollback", () => {
+  it("calls toast.error when upsert mutation fails", async () => {
+    const { toast } = await import("sonner");
+    vi.mock("sonner", () => ({
+      toast: { error: vi.fn(), success: vi.fn() },
+    }));
+
+    // Make the mutation fail
+    upsertRulesFavoriteMock.mockRejectedValueOnce(new Error("DB write failed"));
+    getRulesFavoritesMock.mockResolvedValue([]);
+
+    const { result } = renderHook(() => useUpsertRulesFavorite(), { wrapper: makeWrapper() });
+
+    await act(async () => {
+      result.current.mutate({
+        rule_id: "strat-test",
+        rule_type: "stratagem",
+        rule_name: "Test Strat",
+        is_reminder: 0,
+      });
+    });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(toast.error).toHaveBeenCalledWith("Failed to update favorite. Please try again.");
+  });
+});
+
+describe("useDeleteRulesFavorite — FIX-09 error toast on rollback", () => {
+  it("calls toast.error when delete mutation fails", async () => {
+    const { toast } = await import("sonner");
+
+    deleteRulesFavoriteMock.mockRejectedValueOnce(new Error("DB delete failed"));
+    getRulesFavoritesMock.mockResolvedValue([
+      {
+        id: 1,
+        rule_id: "strat-aoc",
+        rule_type: "stratagem",
+        rule_name: "Armour of Contempt",
+        is_reminder: 0,
+        created_at: "2026-05-10T00:00:00.000Z",
+        updated_at: "2026-05-10T00:00:00.000Z",
+      },
+    ]);
+
+    const { result } = renderHook(() => useDeleteRulesFavorite(), { wrapper: makeWrapper() });
+
+    await act(async () => {
+      result.current.mutate({ ruleId: "strat-aoc", ruleType: "stratagem" });
+    });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(toast.error).toHaveBeenCalledWith("Failed to update favorite. Please try again.");
+  });
+});

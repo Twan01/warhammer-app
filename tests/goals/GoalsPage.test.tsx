@@ -184,3 +184,29 @@ describe("GoalsPage (ANLY-03)", () => {
     expect(screen.getByText("No goals set yet")).toBeInTheDocument();
   });
 });
+
+// ---------------------------------------------------------------------------
+// FIX-07: Goal delete catch block does NOT call toast.error (dedup to hook)
+// ---------------------------------------------------------------------------
+
+describe("GoalsPage — FIX-07 delete toast dedup", () => {
+  it("GoalsPage source catch block does not contain toast.error call", () => {
+    // Structural verification: the handleDeleteConfirm catch block must NOT
+    // call toast.error — the hook-level onError handles error toasts.
+    // We verify by reading the source and checking the catch block.
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/goals/GoalsPage.tsx"),
+      "utf-8",
+    );
+
+    // Extract the catch block from handleDeleteConfirm
+    const catchMatch = source.match(/catch\s*(\([^)]*\))?\s*\{([^}]*)\}/g);
+    expect(catchMatch).not.toBeNull();
+    // Verify none of the catch blocks contain toast.error
+    for (const block of catchMatch!) {
+      expect(block).not.toContain("toast.error");
+    }
+  });
+});

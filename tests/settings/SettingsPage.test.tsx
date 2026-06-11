@@ -102,4 +102,27 @@ describe("SettingsPage", () => {
     renderWithQC(<SettingsPage />);
     expect(screen.getByText(/Could not load settings/)).toBeInTheDocument();
   });
+
+  // ---------------------------------------------------------------------------
+  // FIX-05: PageHeader usage — text-3xl heading instead of inline h1
+  // ---------------------------------------------------------------------------
+
+  it("FIX-05: renders heading with text-3xl class (PageHeader component)", () => {
+    renderWithQC(<SettingsPage />);
+    const heading = screen.getByRole("heading", { level: 1 });
+    expect(heading).toHaveTextContent("Settings");
+    expect(heading.className).toContain("text-3xl");
+  });
+
+  it("FIX-05: renders border-b container (PageHeader layout)", () => {
+    renderWithQC(<SettingsPage />);
+    const heading = screen.getByRole("heading", { level: 1 });
+    // PageHeader wraps h1 in inner div, which sits inside outer div with border-b
+    // Walk up from h1 -> inner div -> outer div (PageHeader root)
+    const innerDiv = heading.closest("div");
+    expect(innerDiv).not.toBeNull();
+    const outerDiv = innerDiv!.parentElement;
+    expect(outerDiv).not.toBeNull();
+    expect(outerDiv!.className).toContain("border-b");
+  });
 });
