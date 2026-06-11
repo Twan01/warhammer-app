@@ -9,8 +9,8 @@ Requirements for UX Polish & Consistency milestone. Each maps to roadmap phases.
 
 ### Critical Fixes & Dead Ends
 
-- [ ] **FIX-01**: Painting Mode completion screen has an exit button and visible Escape hint — no dead end
-- [ ] **FIX-02**: Painting Mode "assignment not found" error shows a back button and working Escape key
+- [x] **FIX-01**: Painting Mode completion screen has an exit button and visible Escape hint — no dead end
+- [x] **FIX-02**: Painting Mode "assignment not found" error shows a back button and working Escape key
 - [ ] **FIX-03**: Notes save on Army List only fires toast when mutation actually runs (no no-op success toast)
 - [ ] **FIX-04**: RecipesPage shows error state when query fails (not empty state)
 - [ ] **FIX-05**: Settings and Data Health page headers use PageHeader with text-3xl (consistent with all other pages)
@@ -92,8 +92,8 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FIX-01 | Phase 126 | Pending |
-| FIX-02 | Phase 126 | Pending |
+| FIX-01 | Phase 126 | Complete |
+| FIX-02 | Phase 126 | Complete |
 | FIX-03 | Phase 126 | Pending |
 | FIX-04 | Phase 126 | Pending |
 | FIX-05 | Phase 126 | Pending |
