@@ -77,7 +77,16 @@ Plans:
   3. User can set a default faction that loads as the active faction on app startup (integrates with ActiveFactionContext)
   4. User can set a default army readiness points target (preset or custom), and the ArmyReadinessCard uses it on load
 
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+**Wave 1**
+
+- [ ] 122-01-PLAN.md — GeneralPreferencesSection UI + useCurrencyPreference hook + locale query keys + tests (PREF-01, PREF-02, PREF-03, PREF-04)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 122-02-PLAN.md — Consumer integration: LocaleToggle migration, formatCurrency wiring, ActiveFactionContext boot, useArmyReadinessTarget refactor + tests (PREF-01, PREF-02, PREF-03, PREF-04)
+
 **UI hint**: yes
 
 ### Phase 123: Hobby Defaults Tab
@@ -120,7 +129,7 @@ Plans:
 **Wave 1** *(both plans run in parallel)*
 
 - [x] 124-01-PLAN.md — Rust factory_reset Tauri command (DAT-02)
-- [ ] 124-02-PLAN.md — DataManagementTab component + Settings page wiring + tests (DAT-01, DAT-02, DAT-03, DAT-04)
+- [x] 124-02-PLAN.md — DataManagementTab component + Settings page wiring + tests (DAT-01, DAT-02, DAT-03, DAT-04)
 
 **UI hint**: yes
 
@@ -151,9 +160,9 @@ Phase 121 first (foundation), then 122 + 123 + 124 + 125 in parallel (all tabs i
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 121. Settings Foundation | 2/2 | Complete   | 2026-06-10 |
-| 122. Preferences Tab | 0/TBD | Not started | - |
+| 122. Preferences Tab | 0/2 | Not started | - |
 | 123. Hobby Defaults Tab | 2/2 | Complete   | 2026-06-10 |
-| 124. Data Management Tab | 1/2 | In Progress|  |
+| 124. Data Management Tab | 2/2 | Complete   | 2026-06-10 |
 | 125. About Tab | 1/1 | Complete | 2026-06-10 |
 
 ---
