@@ -112,7 +112,7 @@ export function GoalsPage() {
         <div className="flex flex-col gap-0">
           {active.length > 0 && (
             <section>
-              <h2 className="text-base font-semibold mb-3">Active Goals</h2>
+              <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">Active Goals</p>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {active.map((goal) => (
                   <GoalCard
@@ -129,9 +129,9 @@ export function GoalsPage() {
 
           {completed.length > 0 && (
             <section>
-              <h2 className="text-base font-semibold mb-3 mt-6 text-battle-gold">
+              <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
                 Completed
-              </h2>
+              </p>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {completed.map((goal) => (
                   <GoalCard
@@ -148,9 +148,9 @@ export function GoalsPage() {
 
           {missed.length > 0 && (
             <section>
-              <h2 className="text-base font-semibold mb-3 mt-6 text-muted-foreground">
+              <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
                 Missed
-              </h2>
+              </p>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {missed.map((goal) => (
                   <GoalCard
