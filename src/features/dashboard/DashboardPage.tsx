@@ -253,7 +253,7 @@ export function DashboardPage() {
                   size="sm"
                   onClick={() => setQuickAddOpen(true)}
                 >
-                  <Plus size={14} className="mr-1.5" aria-hidden={true} />
+                  <Plus className="h-4 w-4 mr-2" aria-hidden={true} />
                   Quick Add
                 </Button>
               }
@@ -321,7 +321,7 @@ export function DashboardPage() {
                       setLogSessionOpen(true);
                     }}
                   >
-                    <Paintbrush size={14} className="mr-1.5" aria-hidden={true} />
+                    <Paintbrush className="h-4 w-4 mr-2" aria-hidden={true} />
                     Log Session
                   </Button>
                   <Button
@@ -329,7 +329,7 @@ export function DashboardPage() {
                     size="sm"
                     onClick={() => setQuickAddOpen(true)}
                   >
-                    <Plus size={14} className="mr-1.5" aria-hidden={true} />
+                    <Plus className="h-4 w-4 mr-2" aria-hidden={true} />
                     Quick Add
                   </Button>
                 </>
