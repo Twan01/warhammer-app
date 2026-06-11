@@ -398,17 +398,13 @@ No state-of-the-art research needed — this phase exclusively uses existing pro
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **SpendingPage centering: remove `max-w-3xl mx-auto` or keep it?**
-   - What we know: D-04 specifies `p-6 gap-6` explicitly. Other pages do not use max-width centering.
-   - What's unclear: Whether the `max-w-3xl` centering was intentional as a Spending-page-only aesthetic decision.
-   - Recommendation: Remove `max-w-3xl mx-auto` to fully match standard page container. If user wants to keep it, a follow-up decision is trivial.
+   - **RESOLVED:** Plan 02 removes `max-w-3xl mx-auto` to fully match standard page container per D-04 intent. Other pages do not use max-width centering.
 
 2. **Goals headings: remove `text-battle-gold` from "Completed"?**
-   - What we know: The standard heading pattern uses `text-muted-foreground`. The `text-battle-gold` custom property is a dark-only CSS var.
-   - What's unclear: Whether the gold color on "Completed" was intentional branding vs. accidental inconsistency.
-   - Recommendation: Per VIS-03 (standardize to one pattern), remove `text-battle-gold` and use the standard muted foreground pattern.
+   - **RESOLVED:** Plan 01 removes `text-battle-gold` per VIS-03 (standardize to one pattern). The standard heading pattern uses `text-muted-foreground` only.
 
 ---
 

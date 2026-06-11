@@ -2,7 +2,7 @@
 phase: 127
 slug: visual-consistency-pageheader-unification
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-06-11
 ---
@@ -38,15 +38,12 @@ created: 2026-06-11
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 127-01-01 | 01 | 1 | VIS-01 | — | N/A | manual | Visual inspection | N/A | ⬜ pending |
-| 127-01-02 | 01 | 1 | VIS-02 | — | N/A | manual | Visual inspection | N/A | ⬜ pending |
-| 127-01-03 | 01 | 1 | VIS-03 | — | N/A | manual | Visual inspection | N/A | ⬜ pending |
-| 127-02-01 | 02 | 1 | VIS-04 | — | N/A | manual | Visual inspection | N/A | ⬜ pending |
-| 127-02-02 | 02 | 1 | VIS-05 | — | N/A | manual | Visual inspection | N/A | ⬜ pending |
-| 127-02-03 | 02 | 1 | VIS-06 | — | N/A | source | `grep -c "backgroundColor" src/features/recipes/RecipeCard.tsx` returns 0 | N/A | ⬜ pending |
-| 127-02-04 | 02 | 1 | VIS-07 | — | N/A | source | `grep "size={14}" src/features/dashboard/DashboardPage.tsx` returns 0 | N/A | ⬜ pending |
-| 127-02-05 | 02 | 1 | VIS-08 | — | N/A | source | `grep "max-w-xs" src/features/factions/FactionsEmptyState.tsx` returns match | N/A | ⬜ pending |
-| 127-02-06 | 02 | 1 | VIS-09 | — | N/A | source | `grep "flex flex-col gap-6" src/features/data-health/DataHealthPage.tsx` returns match | N/A | ⬜ pending |
+| 127-01-01 | 01 | 1 | VIS-01, VIS-02 | — | N/A | source | `pnpm build && grep -c "PageHeader" src/features/rules-hub/RulesHubPage.tsx \| grep -v "^0$"` | N/A | ⬜ pending |
+| 127-01-02 | 01 | 1 | VIS-03 | — | N/A | source | `pnpm build && grep -c "text-sm font-semibold uppercase tracking-widest" src/features/goals/GoalsPage.tsx \| grep -v "^0$"` | N/A | ⬜ pending |
+| 127-02-01 | 02 | 1 | VIS-03, VIS-04, VIS-09 | — | N/A | source | `pnpm build && grep -c "max-w-3xl" src/features/spending/SpendingPage.tsx \| grep "^0$"` | N/A | ⬜ pending |
+| 127-02-02 | 02 | 1 | VIS-05, VIS-08 | — | N/A | source | `pnpm build && grep -c "rounded-xl bg-muted/40 p-4" src/features/paints/PaintsPage.tsx \| grep -v "^0$" && grep -c "max-w-xs" src/features/factions/FactionsEmptyState.tsx \| grep -v "^0$"` | N/A | ⬜ pending |
+| 127-03-01 | 03 | 1 | VIS-06 | — | N/A | source | `pnpm build && grep -c "backgroundColor" src/features/recipes/RecipeCard.tsx \| grep "^0$"` | N/A | ⬜ pending |
+| 127-03-02 | 03 | 1 | VIS-07 | — | N/A | source | `pnpm build && grep -c "size={14}" src/features/dashboard/DashboardPage.tsx \| grep "^0$"` | N/A | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -54,7 +51,7 @@ created: 2026-06-11
 
 ## Wave 0 Requirements
 
-Existing infrastructure covers all phase requirements. All VIS requirements are CSS/class changes verified by source assertions and visual inspection. No new test files needed.
+Existing infrastructure covers all phase requirements. All VIS requirements are CSS/class changes verified by source assertions and build checks. No new test files needed.
 
 ---
 
@@ -73,11 +70,11 @@ Existing infrastructure covers all phase requirements. All VIS requirements are 
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify with source assertions
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
