@@ -105,3 +105,13 @@ validated: 2026-06-10
 | Escalated | 0 |
 
 **Notes:** Phase 125 requirements (ABT-01/02/03) were fully COVERED with 9/9 tests green. One pre-existing gap was found in `tests/settings/SettingsPage.test.tsx` — the mock for `@/hooks/useAppSettings` was missing the `useUpdateSetting` export (introduced by phase 123 components). Fixed by adding the mock. All 52 settings tests now pass across 7 test files.
+
+## Validation Audit 2026-06-11
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+**Notes:** Re-audit confirms all 9/9 AboutTab tests and 5/5 SettingsPage tests still pass. ABT-01 (3 tests), ABT-02 (4 tests), ABT-03 (2 tests) all COVERED. No new gaps. 2 unrelated failures in `tests/build-pipeline/determinism.test.ts` (missing `scripts/lib/bsdata.ts`) — outside phase 125 scope.
