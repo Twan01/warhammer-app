@@ -127,7 +127,7 @@ Plans:
 - [x] 0126-01-PLAN.md — Painting Mode exit UX (FIX-01, FIX-02)
 - [x] 0126-02-PLAN.md — CSS tokens, scrollbar, PageHeaders (FIX-05, FIX-06, FIX-11)
 - [x] 0126-03-PLAN.md — Army List fixes and Recipes error state (FIX-03, FIX-04, FIX-10)
-- [ ] 0126-04-PLAN.md — Toast discipline fixes (FIX-07, FIX-08, FIX-09)
+- [x] 0126-04-PLAN.md — Toast discipline fixes (FIX-07, FIX-08, FIX-09)
 
 **UI hint**: yes
 
@@ -174,7 +174,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 126. Critical Fixes & Dead Ends | 2/4 | In progress | - |
+| 126. Critical Fixes & Dead Ends | 4/4 | Complete | 2026-06-11 |
 | 127. Visual Consistency & PageHeader Unification | 0/TBD | Not started | - |
 | 128. Feedback Hardening & Form UX | 0/TBD | Not started | - |
 | 129. Navigation, Cross-Links & Technical Cleanup | 0/TBD | Not started | - |

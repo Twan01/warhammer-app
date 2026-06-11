@@ -15,9 +15,9 @@ Requirements for UX Polish & Consistency milestone. Each maps to roadmap phases.
 - [x] **FIX-04**: RecipesPage shows error state when query fails (not empty state)
 - [x] **FIX-05**: Settings and Data Health page headers use PageHeader with text-3xl (consistent with all other pages)
 - [x] **FIX-06**: `--battle-gold` and other dark-only tokens have light-mode fallbacks in `:root`
-- [ ] **FIX-07**: Goal delete fires only one error toast (deduplicate hook and component catch)
-- [ ] **FIX-08**: Enhancement assign/remove and leader attach/detach show success toasts
-- [ ] **FIX-09**: Rules favorites optimistic rollback shows error toast on failure
+- [x] **FIX-07**: Goal delete fires only one error toast (deduplicate hook and component catch)
+- [x] **FIX-08**: Enhancement assign/remove and leader attach/detach show success toasts
+- [x] **FIX-09**: Rules favorites optimistic rollback shows error toast on failure
 - [x] **FIX-10**: ArmyListDetailPage distinguishes loading from not-found (no infinite skeleton for deleted lists)
 - [x] **FIX-11**: Custom scrollbar styling matches dark zinc theme (thin, subtle, all scrollable areas)
 
