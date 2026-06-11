@@ -73,3 +73,42 @@ describe("RulesHubPage -- sync features (removed in Phase 107)", () => {
   it.todo("RULES-02: sync button fires mutation (sync removed)");
   it.todo("RULES-04: diff summary after sync (sync removed)");
 });
+
+// ---------------------------------------------------------------------------
+// Phase 127 — VIS-01: PageHeader adoption on Rules Hub
+// ---------------------------------------------------------------------------
+describe("RulesHubPage — VIS-01: PageHeader with title and subtitle", () => {
+  it("renders PageHeader with title 'Rules Hub'", () => {
+    render(<RulesHubPage />, { wrapper: makeWrapper() });
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Rules Hub" }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders PageHeader subtitle text", () => {
+    render(<RulesHubPage />, { wrapper: makeWrapper() });
+    expect(
+      screen.getByText("Browse army rules, stratagems, and detachments"),
+    ).toBeInTheDocument();
+  });
+
+  it("source imports PageHeader from @/components/common/PageHeader", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/rules-hub/RulesHubPage.tsx"),
+      "utf-8",
+    );
+    expect(source).toContain('import { PageHeader } from "@/components/common/PageHeader"');
+  });
+
+  it("source has no bare h1 elements", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/rules-hub/RulesHubPage.tsx"),
+      "utf-8",
+    );
+    expect(source).not.toMatch(/<h1[\s>]/);
+  });
+});

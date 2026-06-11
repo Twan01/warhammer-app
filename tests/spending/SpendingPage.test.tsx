@@ -116,6 +116,64 @@ describe("SpendingPage — SPEND-03/04 (hero total + faction breakdown)", () => 
   });
 });
 
+// ---------------------------------------------------------------------------
+// Phase 127 — VIS-03/VIS-04/VIS-09: Layout and heading standardization
+// ---------------------------------------------------------------------------
+describe("SpendingPage — VIS-03/VIS-04: source-level layout and heading checks", () => {
+  it("no max-w-3xl class remains in SpendingPage source", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/spending/SpendingPage.tsx"),
+      "utf-8",
+    );
+    expect(source).not.toContain("max-w-3xl");
+  });
+
+  it("no p-8 class remains in SpendingPage source", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/spending/SpendingPage.tsx"),
+      "utf-8",
+    );
+    expect(source).not.toMatch(/\bp-8\b/);
+  });
+
+  it("no gap-12 class remains in SpendingPage source", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/spending/SpendingPage.tsx"),
+      "utf-8",
+    );
+    expect(source).not.toMatch(/\bgap-12\b/);
+  });
+
+  it("section headings use standardized text-sm font-semibold uppercase tracking-widest text-muted-foreground", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/spending/SpendingPage.tsx"),
+      "utf-8",
+    );
+    const standardClass = "text-sm font-semibold uppercase tracking-widest text-muted-foreground";
+    const matches = source.match(new RegExp(standardClass.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"));
+    expect(matches).not.toBeNull();
+    expect(matches!.length).toBe(2);
+  });
+
+  it("no h2 elements with text-base font-semibold remain", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/spending/SpendingPage.tsx"),
+      "utf-8",
+    );
+    expect(source).not.toMatch(/<h2[^>]*text-base font-semibold/);
+  });
+});
+
 describe("SpendingPage — DATA-03/04 (spending intelligence metrics)", () => {
   it("renders 'Cost Per Completed Model' card with formatted currency when data has Completed units (DATA-03)", () => {
     vi.mocked(useSpendingStats).mockReturnValue({

@@ -361,6 +361,38 @@ describe("DashboardPage", () => {
     expect(totalModelsButton).toBeDefined();
   });
 
+  it("source has no size={14} icon prop remaining — VIS-07", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/dashboard/DashboardPage.tsx"),
+      "utf-8",
+    );
+    expect(source).not.toContain("size={14}");
+  });
+
+  it("source has no mr-1.5 on icon elements — VIS-07", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/dashboard/DashboardPage.tsx"),
+      "utf-8",
+    );
+    expect(source).not.toContain("mr-1.5");
+  });
+
+  it("source has at least 3 occurrences of h-4 w-4 mr-2 icon standard — VIS-07", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/dashboard/DashboardPage.tsx"),
+      "utf-8",
+    );
+    const matches = source.match(/h-4 w-4 mr-2/g);
+    expect(matches).not.toBeNull();
+    expect(matches!.length).toBeGreaterThanOrEqual(3);
+  });
+
   it("Hobby Health StatCards do NOT have role='button' (no to prop — LAYOUT-02 backward compat)", async () => {
     vi.spyOn(window, "matchMedia").mockReturnValue({
       matches: true,

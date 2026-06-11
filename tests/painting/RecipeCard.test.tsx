@@ -143,3 +143,56 @@ describe("RecipeCard", () => {
     expect(screen.queryByText(/sections/)).not.toBeInTheDocument();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Phase 127 — VIS-06: No hardcoded hex backgroundColor on status dots
+// ---------------------------------------------------------------------------
+describe("RecipeCard — VIS-06: status dots use Tailwind classes, not hardcoded hex", () => {
+  it("RecipeCard.tsx has no hardcoded hex backgroundColor for status dots", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/recipes/RecipeCard.tsx"),
+      "utf-8",
+    );
+    // Match backgroundColor with hardcoded hex values like #22c55e, #f59e0b, #ef4444
+    const hardcodedHexPattern = /backgroundColor:\s*["']#[0-9a-fA-F]{3,8}["']/g;
+    const matches = source.match(hardcodedHexPattern);
+    expect(matches).toBeNull();
+  });
+
+  it("RecipeCard.tsx uses Tailwind bg-green-500, bg-amber-500, bg-red-500 for status dots", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/recipes/RecipeCard.tsx"),
+      "utf-8",
+    );
+    expect(source).toContain("bg-green-500");
+    expect(source).toContain("bg-amber-500");
+    expect(source).toContain("bg-red-500");
+  });
+
+  it("SectionedTimeline.tsx has no hardcoded hex backgroundColor", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/recipes/SectionedTimeline.tsx"),
+      "utf-8",
+    );
+    const hardcodedHexPattern = /backgroundColor:\s*["']#[0-9a-fA-F]{3,8}["']/g;
+    const matches = source.match(hardcodedHexPattern);
+    expect(matches).toBeNull();
+  });
+
+  it("SectionedTimeline.tsx uses Tailwind bg-green-500 and bg-red-500 for status dots", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/recipes/SectionedTimeline.tsx"),
+      "utf-8",
+    );
+    expect(source).toContain("bg-green-500");
+    expect(source).toContain("bg-red-500");
+  });
+});

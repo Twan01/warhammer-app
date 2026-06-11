@@ -186,6 +186,45 @@ describe("GoalsPage (ANLY-03)", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Phase 127 — VIS-03: Section heading CSS standardization
+// ---------------------------------------------------------------------------
+describe("GoalsPage — VIS-03: section headings use standardized classes", () => {
+  it("all section headings use text-sm font-semibold uppercase tracking-widest text-muted-foreground", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/goals/GoalsPage.tsx"),
+      "utf-8",
+    );
+    const standardClass = "text-sm font-semibold uppercase tracking-widest text-muted-foreground";
+    // Must have exactly 3 occurrences (Active Goals, Completed, Missed)
+    const matches = source.match(new RegExp(standardClass.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"));
+    expect(matches).not.toBeNull();
+    expect(matches!.length).toBe(3);
+  });
+
+  it("no h2 elements with text-base class remain", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/goals/GoalsPage.tsx"),
+      "utf-8",
+    );
+    expect(source).not.toMatch(/<h2[^>]*text-base/);
+  });
+
+  it("no text-battle-gold class remains", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../src/features/goals/GoalsPage.tsx"),
+      "utf-8",
+    );
+    expect(source).not.toContain("text-battle-gold");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // FIX-07: Goal delete catch block does NOT call toast.error (dedup to hook)
 // ---------------------------------------------------------------------------
 
