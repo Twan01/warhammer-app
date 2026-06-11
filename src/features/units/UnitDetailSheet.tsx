@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Flame } from "lucide-react";
+import { Flame, BookMarked } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { useCurrencyPreference } from "@/hooks/useCurrencyPreference";
 import { useNavigate } from "@tanstack/react-router";
@@ -103,6 +103,20 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhoto
                   <span className="text-muted-foreground">Unknown faction</span>
                 )}
               </SheetDescription>
+              {unit.udb_unit_id && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mt-1 h-auto px-0 text-xs text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    onClose();
+                    navigate({ to: "/unit-database" });
+                  }}
+                >
+                  <BookMarked className="mr-1 h-3 w-3" aria-hidden="true" />
+                  View Datasheet
+                </Button>
+              )}
             </SheetHeader>
 
             <Tabs defaultValue="details" className="px-4">

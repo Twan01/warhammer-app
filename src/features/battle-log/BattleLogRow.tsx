@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import {
   Collapsible,
   CollapsibleContent,
@@ -84,7 +85,14 @@ export function BattleLogRow({
           <p className="text-sm text-muted-foreground mt-0.5">
             {armyListName ? (
               <>
-                {armyListName}
+                <Link
+                  to="/army-lists/$listId"
+                  params={{ listId: String(log.army_list_id) }}
+                  className="hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {armyListName}
+                </Link>
                 {armyListReadiness && (
                   <span className="tabular-nums">
                     {" "}({armyListReadiness.battleReady}/{armyListReadiness.total} pts ready)

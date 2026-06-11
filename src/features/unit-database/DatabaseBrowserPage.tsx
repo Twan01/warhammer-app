@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
-import { Search } from "lucide-react";
+import { Search, ArrowRight } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   useUdbFactions,
   useUdbUnits,
@@ -189,7 +191,18 @@ export function DatabaseBrowserPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <PageHeader title="Unit Database" subtitle="Browse canonical Warhammer 40,000 unit datasheets" />
+      <PageHeader
+        title="Unit Database"
+        subtitle="Browse canonical Warhammer 40,000 unit datasheets"
+        actions={
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/rules-hub">
+              <ArrowRight className="mr-1 h-4 w-4" aria-hidden="true" />
+              View Rules
+            </Link>
+          </Button>
+        }
+      />
 
       {/* Search bar */}
       <div className="relative">

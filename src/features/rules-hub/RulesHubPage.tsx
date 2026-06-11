@@ -12,6 +12,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowRight } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { useWahapediaFactions } from "@/hooks/useDatasheet";
 import { useUdbMeta } from "@/hooks/useUdbMeta";
 import { useRulesHubFilters } from "./rulesHubFilters";
@@ -105,7 +107,18 @@ export function RulesHubPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <PageHeader title="Rules Hub" subtitle="Browse army rules, stratagems, and detachments" />
+      <PageHeader
+        title="Rules Hub"
+        subtitle="Browse army rules, stratagems, and detachments"
+        actions={
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/unit-database">
+              <ArrowRight className="mr-1 h-4 w-4" aria-hidden="true" />
+              Browse Units
+            </Link>
+          </Button>
+        }
+      />
 
       {noData ? (
         <p className="text-sm text-muted-foreground">
