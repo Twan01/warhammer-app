@@ -22,6 +22,7 @@ import { UdbDatasheetSheet } from "./UdbDatasheetSheet";
 import { UnitSheet } from "@/features/units/UnitSheet";
 import type { UdbUnitDetail } from "@/db/queries/unitDatabase";
 import type { UnitFormValues } from "@/features/units/unitSchema";
+import { PageHeader } from "@/components/common/PageHeader";
 
 export function DatabaseBrowserPage() {
   const { data: factions = [], isLoading: factionsLoading } = useUdbFactions();
@@ -188,7 +189,7 @@ export function DatabaseBrowserPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <h1 className="text-3xl font-semibold tracking-tight">Unit Database</h1>
+      <PageHeader title="Unit Database" subtitle="Browse canonical Warhammer 40,000 unit datasheets" />
 
       {/* Search bar */}
       <div className="relative">

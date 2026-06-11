@@ -28,6 +28,7 @@ import { DetachmentCard } from "./DetachmentCard";
 import { SharedAbilityCard } from "./SharedAbilityCard";
 import { cn } from "@/lib/utils";
 import { DatasheetPointsTab } from "./DatasheetPointsTab";
+import { PageHeader } from "@/components/common/PageHeader";
 
 const ALL_DETACHMENTS = "__all__";
 
@@ -104,7 +105,7 @@ export function RulesHubPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <h1 className="text-3xl font-semibold tracking-tight">Rules Hub</h1>
+      <PageHeader title="Rules Hub" subtitle="Browse army rules, stratagems, and detachments" />
 
       {noData ? (
         <p className="text-sm text-muted-foreground">

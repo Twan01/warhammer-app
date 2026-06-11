@@ -72,6 +72,7 @@ export function FactionsPage() {
     <div className="flex flex-col gap-6 p-6">
       <PageHeader
         title="Factions"
+        subtitle="Manage your army factions"
         actions={
           <Button onClick={openCreate}>
             <Plus className="mr-2 h-4 w-4" /> Add Faction
