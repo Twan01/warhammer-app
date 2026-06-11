@@ -36,7 +36,7 @@ export function SpendingPage() {
   if (isLoading) {
     return (
       <div
-        className="max-w-3xl mx-auto p-8 flex flex-col gap-12"
+        className="flex flex-col gap-6 p-6"
         aria-label="Loading spending data"
       >
         <Skeleton className="h-20 w-full rounded-lg" />
@@ -54,7 +54,7 @@ export function SpendingPage() {
 
   if (isError || !data) {
     return (
-      <div className="max-w-3xl mx-auto p-8">
+      <div className="p-6">
         <p className="text-sm text-muted-foreground">
           Could not load spending data. Restart the app or try again.
         </p>
@@ -65,7 +65,7 @@ export function SpendingPage() {
   const isEmpty = data.totalPence === 0 && data.factionBreakdown.length === 0 && data.paintsPence === 0;
 
   return (
-    <div className="max-w-3xl mx-auto p-8 flex flex-col gap-12">
+    <div className="flex flex-col gap-6 p-6">
       <PageHeader
         title="Spending"
         subtitle="Total hobby spend tracked to the penny"
@@ -121,7 +121,7 @@ export function SpendingPage() {
 
           {/* Monthly Trend section (Phase 19 ANLY-06, ANLY-07) */}
           <section className="flex flex-col gap-4">
-            <h2 className="text-base font-semibold">Monthly Trend</h2>
+            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">Monthly Trend</p>
             {analyticsLoading ? (
               <Skeleton className="h-60 w-full rounded-lg" />
             ) : (
@@ -130,7 +130,7 @@ export function SpendingPage() {
           </section>
 
           <section className="flex flex-col gap-4">
-            <h2 className="text-base font-semibold">Breakdown</h2>
+            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">Breakdown</p>
             <Table>
               <TableHeader>
                 <TableRow>

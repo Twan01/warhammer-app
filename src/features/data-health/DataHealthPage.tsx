@@ -20,13 +20,13 @@ import { PageHeader } from "@/components/common/PageHeader";
 
 export function DataHealthPage() {
   return (
-    <div className="p-6 space-y-6">
+    <div className="flex flex-col gap-6 p-6">
       <PageHeader title="Data Health" />
 
       <VersionInfoCard />
 
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold">Table Counts</h2>
+        <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">Table Counts</p>
         <TableCountsGrid />
       </div>
 
@@ -37,7 +37,7 @@ export function DataHealthPage() {
       <BackupCard />
 
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold">Safety Backups</h2>
+        <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">Safety Backups</p>
         <SafetyBackupsList />
       </div>
     </div>
