@@ -1,7 +1,7 @@
 # Phase 122: Preferences Tab - Context
 
-**Gathered:** 2026-06-10
-**Status:** Ready for planning
+**Gathered:** 2026-06-11
+**Status:** Ready for planning (updated — verified against shipped phases 123/124)
 
 <domain>
 ## Phase Boundary
@@ -14,7 +14,7 @@ Replace the Preferences tab placeholder with 4 real settings controls: language 
 ## Implementation Decisions
 
 ### Language Setting & Locale Sync
-- **D-01:** Single source of truth in `app_settings` (key: `locale`). The Zustand `localeStore` is either removed or converted to a derived cache seeded from `app_settings` on boot. Both the Settings language picker and the sidebar LocaleToggle write to `app_settings` via `useUpdateSetting`.
+- **D-01:** Single source of truth in `app_settings` (key: `locale`). The Zustand `localeStore` (`src/stores/localeStore.ts`, persists to localStorage key `"app:locale"`) is either removed or converted to a derived cache seeded from `app_settings` on boot. Both the Settings language picker and the sidebar LocaleToggle write to `app_settings` via `useUpdateSetting`. The `Locale` type (`"en" | "fr"`) is currently exported from `localeStore.ts` — if removing, re-export from a shared types file or inline.
 - **D-02:** On locale change, invalidate the same query keys the current `LocaleToggle` invalidates (`udb-factions`, `udb-units`, `udb-unit-detail`, `wahapedia-factions`, `datasheets-by-faction`, `datasheets-with-points`, `datasheet`).
 
 ### Currency Picker
@@ -32,10 +32,12 @@ Replace the Preferences tab placeholder with 4 real settings controls: language 
 - **D-10:** Preset values remain 500/1000/1500/2000, plus a custom numeric input. The Settings UI shows the same presets as buttons (matching the ArmyReadinessCard pattern) plus a custom input field.
 - **D-11:** The ArmyReadinessCard on the dashboard reads the persisted default on load but can still be overridden within the card's button group for the current session.
 
+### Preferences Tab Layout
+- **D-12:** The Preferences tab currently contains a placeholder text block followed by `<HobbyDefaultsSection />` (Phase 123). Phase 122 replaces the placeholder with 4 real settings controls (language, currency, default faction, points target) positioned ABOVE the `<HobbyDefaultsSection />`. Group the 4 controls under a "General" or "App Preferences" heading with a visual separator before Hobby Defaults.
+
 ### Claude's Discretion
-- Layout and visual arrangement of the 4 settings controls within the Preferences tab
-- Whether to use a form-based approach or inline controls (selects, buttons, combobox)
-- Whether to add a "Save" button or auto-save each setting on change
+- Exact visual arrangement of the 4 settings controls within the General section
+- Whether to use a form-based approach or inline controls (selects, buttons, combobox) — Phase 123 used inline auto-save editors as the established pattern
 - How to surface the locale mapping table (hidden implementation detail vs. shown to user)
 
 </decisions>
@@ -56,11 +58,11 @@ Replace the Preferences tab placeholder with 4 real settings controls: language 
 - `src/app/settings/page.tsx` — Settings page shell with Tabs (replace Preferences placeholder)
 
 ### Existing Patterns (code)
-- `src/stores/localeStore.ts` — Current Zustand locale store (to be replaced/refactored)
-- `src/components/common/LocaleToggle.tsx` — Sidebar locale toggle (must sync with new setting)
-- `src/lib/formatCurrency.ts` — Currency formatter accepting locale + currency params
-- `src/context/ActiveFactionContext.tsx` — Faction context with localStorage persistence (integrate default)
-- `src/hooks/useArmyReadiness.ts` — Army readiness hooks with localStorage target (migrate to DB)
+- `src/stores/localeStore.ts` — Zustand locale store with `persist` middleware (localStorage key `"app:locale"`) — to be replaced/refactored
+- `src/components/common/LocaleToggle.tsx` — Sidebar locale toggle consuming `useLocaleStore` + invalidating 7 query keys — must sync with new setting
+- `src/lib/formatCurrency.ts` — Currency formatter accepting `(pence, locale="en-GB", currency="GBP")` — wire settings values through
+- `src/context/ActiveFactionContext.tsx` — Faction context with localStorage key `"active-faction-id"` — integrate `default_faction_id` from `app_settings` as boot initializer
+- `src/hooks/useArmyReadiness.ts` — Army readiness hooks with localStorage key `"army-readiness:target"` — migrate to `app_settings`
 - `src/features/dashboard/ArmyReadinessCard.tsx` — Dashboard card consuming readiness target
 
 </canonical_refs>
@@ -74,6 +76,8 @@ Replace the Preferences tab placeholder with 4 real settings controls: language 
 - `src/components/ui/button.tsx`: Button group pattern for points target presets (matches ArmyReadinessCard)
 - `src/components/ui/input.tsx`: Number input for custom points target
 - `src/hooks/useFactions.ts`: Faction list for the default faction dropdown
+- `src/features/settings/HobbyDefaultsSection.tsx`: Phase 123 pattern — section wrapper with editors that auto-save via `useUpdateSetting`. Follow this same structural pattern for the General Preferences section.
+- `src/features/settings/PipelineLabelsEditor.tsx`: Reference for inline auto-save editor pattern using `useUpdateSetting`
 
 ### Established Patterns
 - Settings stored as TEXT in `app_settings`; type coercion in hook layer
@@ -106,4 +110,4 @@ None — discussion stayed within phase scope
 ---
 
 *Phase: 122-Preferences Tab*
-*Context gathered: 2026-06-10*
+*Context gathered: 2026-06-10 (updated 2026-06-11)*

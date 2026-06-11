@@ -3,10 +3,10 @@
 > **Audit trail only.** Do not use as input to planning, research, or execution agents.
 > Decisions are captured in CONTEXT.md — this log preserves the alternatives considered.
 
-**Date:** 2026-06-10
+**Date:** 2026-06-10 (updated 2026-06-11)
 **Phase:** 122-Preferences Tab
 **Areas discussed:** Language sync, Currency mapping, Default faction boot, Readiness target migration
-**Mode:** --auto (all decisions auto-selected)
+**Mode:** --auto (all decisions auto-selected; update pass on 2026-06-11)
 
 ---
 
@@ -58,11 +58,18 @@
 
 ---
 
+## Update Pass (2026-06-11)
+
+Verified all 11 decisions against current codebase after Phases 123/124 shipped:
+- All referenced files confirmed to exist in their expected state
+- Added D-12: Preferences controls go ABOVE HobbyDefaultsSection
+- Refined D-01: Added specific localStorage key and Locale type export detail
+- Added HobbyDefaultsSection + PipelineLabelsEditor as pattern references
+
 ## Claude's Discretion
 
 - Layout and arrangement of settings controls within Preferences tab
-- Form-based vs. inline controls approach
-- Auto-save vs. explicit save button
+- Auto-save approach (recommended, matching Phase 123 inline editors)
 - Locale mapping visibility
 
 ## Deferred Ideas
