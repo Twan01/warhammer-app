@@ -4,12 +4,12 @@ milestone: v0.5.2
 milestone_name: UX Polish & Consistency
 status: executing
 stopped_at: Phase 128 context gathered
-last_updated: "2026-06-11T14:06:23.720Z"
-last_activity: 2026-06-11 -- Phase 129 planning complete
+last_updated: "2026-06-11T14:15:27.784Z"
+last_activity: 2026-06-11 -- Phase 128 planning complete
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 11
+  total_plans: 13
   completed_plans: 7
   percent: 50
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-11)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore
-**Current focus:** Phase 128 — Feedback Hardening & Form UX
+**Current focus:** Phase 129 — navigation-cross-links-technical-cleanup
 
 ## Current Position
 
-Phase: 129 of 129 (Navigation, Cross-Links & Technical Cleanup)
-Plan: 0/? plans
+Phase: 129 (navigation-cross-links-technical-cleanup) — EXECUTING
+Plan: 1 of 4
 Status: Ready to execute
-Last activity: 2026-06-11 -- Phase 129 planning complete
+Last activity: 2026-06-11 -- Phase 128 planning complete
 
 Progress: [█████░░░░░] 50%
 
