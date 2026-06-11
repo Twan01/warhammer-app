@@ -175,7 +175,10 @@ export function EnhancementPickerSheet({ open, unit, list, onClose }: Enhancemen
                                 onClick={() => {
                                   removeEnhancement.mutate(
                                     { enhancement_id: existingOnThisUnit.id, list_id: list!.id },
-                                    { onError: () => toast.error("Failed to remove enhancement. Please try again.") },
+                                    {
+                                      onSuccess: () => toast.success("Enhancement removed."),
+                                      onError: () => toast.error("Failed to remove enhancement. Please try again."),
+                                    },
                                   );
                                 }}
                               >
@@ -214,7 +217,10 @@ export function EnhancementPickerSheet({ open, unit, list, onClose }: Enhancemen
                                       enhancement_name: enhancement.name,
                                       enhancement_points: enhancement.cost,
                                     },
-                                    { onError: () => toast.error("Failed to assign enhancement. Please try again.") },
+                                    {
+                                      onSuccess: () => toast.success("Enhancement assigned."),
+                                      onError: () => toast.error("Failed to assign enhancement. Please try again."),
+                                    },
                                   );
                                 }}
                               >

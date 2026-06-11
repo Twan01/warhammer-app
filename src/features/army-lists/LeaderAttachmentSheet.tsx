@@ -117,7 +117,10 @@ export function LeaderAttachmentSheet({ open, unit, list, units, onClose }: Lead
                     onClick={() => {
                       clearLeaderAttachment.mutate(
                         { army_list_unit_id: unit.id, list_id: list!.id },
-                        { onError: () => toast.error("Failed to detach leader. Please try again.") },
+                        {
+                          onSuccess: () => toast.success("Leader detached."),
+                          onError: () => toast.error("Failed to detach leader. Please try again."),
+                        },
                       );
                     }}
                   >
@@ -159,7 +162,10 @@ export function LeaderAttachmentSheet({ open, unit, list, units, onClose }: Lead
                               onClick={() => {
                                 clearLeaderAttachment.mutate(
                                   { army_list_unit_id: unit.id, list_id: list!.id },
-                                  { onError: () => toast.error("Failed to detach leader. Please try again.") },
+                                  {
+                                    onSuccess: () => toast.success("Leader detached."),
+                                    onError: () => toast.error("Failed to detach leader. Please try again."),
+                                  },
                                 );
                               }}
                             >
@@ -193,7 +199,10 @@ export function LeaderAttachmentSheet({ open, unit, list, units, onClose }: Lead
                               onClick={() => {
                                 setLeaderAttachment.mutate(
                                   { army_list_unit_id: unit.id, target_id: target.id, list_id: list!.id },
-                                  { onError: () => toast.error("Failed to attach leader. Please try again.") },
+                                  {
+                                    onSuccess: () => toast.success("Leader attached."),
+                                    onError: () => toast.error("Failed to attach leader. Please try again."),
+                                  },
                                 );
                               }}
                             >
