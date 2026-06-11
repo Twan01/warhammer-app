@@ -32,6 +32,9 @@ import {
   ActiveFactionProvider,
   useActiveFaction,
 } from "@/context/ActiveFactionContext";
+import { useAppSettings } from "@/hooks/useAppSettings";
+
+const useAppSettingsMock = vi.mocked(useAppSettings);
 
 function makeFaction(over: Partial<Faction> = {}): Faction {
   return {
@@ -156,5 +159,64 @@ describe("useActiveFaction -- THEME-02 (localStorage persistence)", () => {
     });
 
     expect(window.localStorage.getItem("active-faction-id")).toBe(null);
+  });
+});
+
+describe("useActiveFaction -- PREF-03 (default faction boot from app_settings)", () => {
+  it("reads default_faction_id from app_settings on cold start when localStorage is empty", async () => {
+    // Arrange: no localStorage value, useAppSettings returns default_faction_id
+    window.localStorage.removeItem("active-faction-id");
+    const faction2 = makeFaction({ id: 2, name: "Necrons", color_theme: "#00ff88" });
+    useFactionsMock.mockReturnValue({ data: [faction2] });
+    useAppSettingsMock.mockReturnValue({
+      data: { default_faction_id: "2" },
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof useAppSettings>);
+
+    const { result } = renderHook(() => useActiveFaction(), { wrapper });
+
+    // The boot useEffect fires after initial render — wait for it
+    await vi.waitFor(() => {
+      expect(result.current.activeFactionId).toBe(2);
+    });
+    expect(result.current.activeFactionHex).toBe("#00ff88");
+    // Verify it also persisted to localStorage
+    expect(window.localStorage.getItem("active-faction-id")).toBe("2");
+  });
+
+  it("does NOT override localStorage value with default_faction_id from settings", () => {
+    // Arrange: localStorage already has faction 5, settings says default is 2
+    window.localStorage.setItem("active-faction-id", "5");
+    const faction5 = makeFaction({ id: 5, name: "Tau", color_theme: "#3a4f96" });
+    const faction2 = makeFaction({ id: 2, name: "Necrons", color_theme: "#00ff88" });
+    useFactionsMock.mockReturnValue({ data: [faction5, faction2] });
+    useAppSettingsMock.mockReturnValue({
+      data: { default_faction_id: "2" },
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof useAppSettings>);
+
+    const { result } = renderHook(() => useActiveFaction(), { wrapper });
+
+    // localStorage value (5) takes precedence — boot effect should NOT fire
+    expect(result.current.activeFactionId).toBe(5);
+    expect(result.current.activeFactionHex).toBe("#3a4f96");
+  });
+
+  it("does nothing when default_faction_id is empty string", async () => {
+    window.localStorage.removeItem("active-faction-id");
+    useFactionsMock.mockReturnValue({ data: [] });
+    useAppSettingsMock.mockReturnValue({
+      data: { default_faction_id: "" },
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof useAppSettings>);
+
+    const { result } = renderHook(() => useActiveFaction(), { wrapper });
+
+    // Should remain null — empty string is not a valid default
+    expect(result.current.activeFactionId).toBe(null);
+    expect(result.current.activeFactionHex).toBe("#71717a");
   });
 });
