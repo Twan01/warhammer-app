@@ -75,6 +75,7 @@ export function JournalTab({ unitId, onPhotoClick }: JournalTabProps) {
         duration_minutes: Math.floor(minutes),
         notes: notes.trim() || null,
       });
+      toast.success("Session logged.");
       // Reset form to defaults
       setSessionDate(todayISO());
       setDuration("");

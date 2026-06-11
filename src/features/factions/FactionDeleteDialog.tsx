@@ -63,7 +63,7 @@ export function FactionDeleteDialog({
             onClick={handleConfirm}
             disabled={deleteFaction.isPending}
           >
-            Delete
+            {deleteFaction.isPending ? "Deleting..." : "Delete"}
           </Button>
         </DialogFooter>
       </DialogContent>

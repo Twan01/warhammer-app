@@ -55,7 +55,7 @@ export function PaintDeleteDialog({ open, paint, onClose }: PaintDeleteDialogPro
             onClick={handleConfirm}
             disabled={deletePaint.isPending}
           >
-            Delete
+            {deletePaint.isPending ? "Deleting..." : "Delete"}
           </Button>
         </DialogFooter>
       </DialogContent>

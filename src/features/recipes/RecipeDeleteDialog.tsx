@@ -52,7 +52,7 @@ export function RecipeDeleteDialog({ open, recipe, onClose }: RecipeDeleteDialog
             onClick={handleConfirm}
             disabled={deleteRecipe.isPending}
           >
-            Delete recipe
+            {deleteRecipe.isPending ? "Deleting..." : "Delete"}
           </Button>
         </DialogFooter>
       </DialogContent>

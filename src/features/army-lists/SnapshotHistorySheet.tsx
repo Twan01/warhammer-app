@@ -179,7 +179,7 @@ export function SnapshotHistorySheet({
         { snapshotId: snapshot.id, list_id: listId },
         {
           onSuccess: () => {
-            toast("Snapshot deleted.", {
+            toast.success("Snapshot deleted.", {
               action: savedData
                 ? {
                     label: "Undo",

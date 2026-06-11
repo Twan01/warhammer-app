@@ -50,7 +50,7 @@ export function BattleLogDeleteDialog({ open, log, onClose }: BattleLogDeleteDia
             onClick={handleConfirm}
             disabled={deleteBattleLog.isPending}
           >
-            Delete
+            {deleteBattleLog.isPending ? "Deleting..." : "Delete"}
           </Button>
         </DialogFooter>
       </DialogContent>
