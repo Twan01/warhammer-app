@@ -56,14 +56,14 @@ Source: existing RecipesPage error pattern confirmed at `src/features/recipes/Re
 | Body | 14px (text-sm) | 400 regular | 1.5 |
 | Label | 12px (text-xs) | 400 regular | 1.5 |
 | Heading | 18px (text-lg) | 600 semibold | 1.2 |
-| Display | 20px (text-xl) | 700 bold | 1.2 |
+| Display | 18px (text-lg) | 600 semibold | 1.2 |
 
 Phase-specific notes:
 - Error state heading: `text-lg font-semibold` — matches RecipesPage "Failed to load recipes" pattern
 - Error state body: `text-sm text-muted-foreground` — matches RecipesPage `mt-1` description
 - Tooltip text: `text-xs` (shadcn Tooltip default) — for PlaybookTab disabled-button tooltip (FBK-06)
 - "Saved" indicator: `text-xs text-muted-foreground` — subtle, below primary reading line (FBK-05)
-- Delete dialog title: `text-base font-semibold` (shadcn DialogTitle default) — no change from current
+- Delete dialog title: `text-lg font-semibold` (aligned with heading role) — no change from current
 
 Source: CONTEXT.md D-05, D-06; RecipesPage reference pattern
 
