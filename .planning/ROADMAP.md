@@ -191,15 +191,15 @@ Plans:
   4. The Game Day sidebar item is highlighted when Game Day is the active page
   5. Battle Log entries link directly to the army list used in that battle
 
-**Plans:** 4 plans (Wave 1: 01, 02, 03 — parallel; Wave 2: 04)
+**Plans:** 3/4 plans executed
 **UI hint**: yes
 
 Plans:
 **Wave 1**
 
-- [ ] 129-01-PLAN.md — Painting Mode returnTo navigation (NAV-01)
-- [ ] 129-02-PLAN.md — Cross-links: UnitDetailSheet, Rules/UDB, BattleLogRow (NAV-02, NAV-03, NAV-06)
-- [ ] 129-03-PLAN.md — Code cleanup: dead code, memo, reducer extraction (NAV-07, NAV-08, NAV-09, NAV-11)
+- [x] 129-01-PLAN.md — Painting Mode returnTo navigation (NAV-01)
+- [x] 129-02-PLAN.md — Cross-links: UnitDetailSheet, Rules/UDB, BattleLogRow (NAV-02, NAV-03, NAV-06)
+- [x] 129-03-PLAN.md — Code cleanup: dead code, memo, reducer extraction (NAV-07, NAV-08, NAV-09, NAV-11)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -212,4 +212,4 @@ Plans:
 | 126. Critical Fixes & Dead Ends | 4/4 | Complete | 2026-06-11 |
 | 127. Visual Consistency & PageHeader Unification | 3/3 | Complete | 2026-06-11 |
 | 128. Feedback Hardening & Form UX | 2/2 | Complete    | 2026-06-11 |
-| 129. Navigation, Cross-Links & Technical Cleanup | 0/4 | Not started | - |
+| 129. Navigation, Cross-Links & Technical Cleanup | 3/4 | In Progress|  |
