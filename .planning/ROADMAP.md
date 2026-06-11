@@ -105,7 +105,7 @@ Full details: `.planning/milestones/v0.4.0-ROADMAP.md`
 
 - [x] **Phase 126: Critical Fixes & Dead Ends** - Eliminate broken flows and runtime errors across Painting Mode, Army Lists, and shared utilities — completed 2026-06-11
 - [x] **Phase 127: Visual Consistency & PageHeader Unification** - Standardize headers, spacing, empty states, and theme tokens across all pages — completed 2026-06-11
-- [ ] **Phase 128: Feedback Hardening & Form UX** - Add missing action confirmations, loading states, auto-save indicators, and error recovery paths
+- [x] **Phase 128: Feedback Hardening & Form UX** - Add missing action confirmations, loading states, auto-save indicators, and error recovery paths (completed 2026-06-11)
 - [ ] **Phase 129: Navigation, Cross-Links & Technical Cleanup** - Improve routing, add cross-page links, and remove dead code/performance regressions
 
 ## Phase Details
@@ -170,12 +170,12 @@ Plans:
   4. The RuleNoteEditor shows a subtle "Saved" indicator after auto-saving
   5. PlaybookTab disabled save button has a tooltip explaining the reason, and shows a Retry button on error
 
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 **UI hint**: yes
 
 Plans:
 
-- [ ] 128-01-PLAN.md — Mechanical feedback fixes: delete pending text, autoFocus, toast upgrades, gcTime alignment (FBK-01, FBK-03, FBK-04, FBK-08, FBK-09, FBK-10)
+- [x] 128-01-PLAN.md — Mechanical feedback fixes: delete pending text, autoFocus, toast upgrades, gcTime alignment (FBK-01, FBK-03, FBK-04, FBK-08, FBK-09, FBK-10)
 - [x] 128-02-PLAN.md — Structural JSX: GameDay error state, RuleNoteEditor saved indicator, PlaybookTab tooltip + retry (FBK-02, FBK-05, FBK-06, FBK-07)
 
 ### Phase 129: Navigation, Cross-Links & Technical Cleanup
@@ -211,5 +211,5 @@ Plans:
 |-------|----------------|--------|-----------|
 | 126. Critical Fixes & Dead Ends | 4/4 | Complete | 2026-06-11 |
 | 127. Visual Consistency & PageHeader Unification | 3/3 | Complete | 2026-06-11 |
-| 128. Feedback Hardening & Form UX | 1/2 | In Progress|  |
+| 128. Feedback Hardening & Form UX | 2/2 | Complete   | 2026-06-11 |
 | 129. Navigation, Cross-Links & Technical Cleanup | 0/4 | Not started | - |
