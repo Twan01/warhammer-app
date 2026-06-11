@@ -1,10 +1,10 @@
 /**
- * Phase 111 — FR-04: LocaleToggle component tests.
+ * Phase 122 — LocaleToggle component tests (migrated from Zustand to app_settings).
  *
  * Tests EN/FR pill toggle component behavior:
  * - Expanded mode renders both EN and FR buttons
  * - Active locale button has secondary variant
- * - Clicking inactive locale calls setLocale and invalidateQueries
+ * - Clicking inactive locale calls useUpdateSetting.mutate and invalidateQueries
  * - Collapsed mode renders single button with tooltip
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -15,17 +15,19 @@ import React from "react";
 vi.unmock("@/components/common/LocaleToggle");
 
 // ---------------------------------------------------------------------------
-// Mock useLocaleStore
+// Mock useAppSettings + useUpdateSetting
 // ---------------------------------------------------------------------------
 
-const mockSetLocale = vi.fn();
-let mockLocale = "en";
+const mockMutate = vi.fn();
+let mockSettings: Record<string, string> = {};
 
-vi.mock("@/stores/localeStore", () => ({
-  useLocaleStore: () => ({
-    locale: mockLocale,
-    setLocale: mockSetLocale,
-  }),
+vi.mock("@/hooks/useAppSettings", () => ({
+  useAppSettings: vi.fn(() => ({
+    data: mockSettings,
+    isLoading: false,
+    isError: false,
+  })),
+  useUpdateSetting: vi.fn(() => ({ mutate: mockMutate })),
 }));
 
 // ---------------------------------------------------------------------------
@@ -91,9 +93,9 @@ import { LocaleToggle } from "@/components/common/LocaleToggle";
 // ---------------------------------------------------------------------------
 
 beforeEach(() => {
-  mockSetLocale.mockReset();
+  mockMutate.mockReset();
   mockInvalidateQueries.mockReset();
-  mockLocale = "en";
+  mockSettings = { locale: "en" };
 });
 
 // ---------------------------------------------------------------------------
@@ -119,21 +121,36 @@ describe("LocaleToggle (expanded)", () => {
     expect(frButton?.getAttribute("data-variant")).toBe("ghost");
   });
 
-  it("calls setLocale and invalidateQueries when clicking inactive locale", () => {
+  it("calls useUpdateSetting.mutate when clicking inactive locale", () => {
     const { getByText } = render(
       React.createElement(LocaleToggle, { collapsed: false }),
     );
     fireEvent.click(getByText("FR"));
-    expect(mockSetLocale).toHaveBeenCalledWith("fr");
+    expect(mockMutate).toHaveBeenCalledWith(
+      { key: "locale", value: "fr" },
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    );
+  });
+
+  it("invalidates 7 query keys on successful locale change", () => {
+    // Simulate onSuccess callback
+    mockMutate.mockImplementation((_data: unknown, opts: { onSuccess?: () => void }) => {
+      opts?.onSuccess?.();
+    });
+
+    const { getByText } = render(
+      React.createElement(LocaleToggle, { collapsed: false }),
+    );
+    fireEvent.click(getByText("FR"));
     expect(mockInvalidateQueries).toHaveBeenCalledTimes(7);
   });
 
-  it("does not call setLocale when clicking already-active locale", () => {
+  it("does not call mutate when clicking already-active locale", () => {
     const { getByText } = render(
       React.createElement(LocaleToggle, { collapsed: false }),
     );
     fireEvent.click(getByText("EN"));
-    expect(mockSetLocale).not.toHaveBeenCalled();
+    expect(mockMutate).not.toHaveBeenCalled();
   });
 });
 
@@ -154,12 +171,14 @@ describe("LocaleToggle (collapsed)", () => {
     expect(queryByText("FR")).toBeFalsy();
   });
 
-  it("toggles locale when clicking collapsed button", () => {
+  it("calls mutate when clicking collapsed button", () => {
     const { getByText } = render(
       React.createElement(LocaleToggle, { collapsed: true }),
     );
     fireEvent.click(getByText("EN"));
-    expect(mockSetLocale).toHaveBeenCalledWith("fr");
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(7);
+    expect(mockMutate).toHaveBeenCalledWith(
+      { key: "locale", value: "fr" },
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    );
   });
 });

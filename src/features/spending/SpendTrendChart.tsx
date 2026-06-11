@@ -34,6 +34,8 @@ import { formatCurrency } from "@/lib/formatCurrency";
 
 interface SpendTrendChartProps {
   data: { month: string; pence: number }[];
+  currencyLocale?: string;
+  currency?: string;
 }
 
 const chartConfig = {
@@ -43,7 +45,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function SpendTrendChart({ data }: SpendTrendChartProps) {
+export function SpendTrendChart({ data, currencyLocale, currency }: SpendTrendChartProps) {
   const allZero = data.length > 0 && data.every((d) => d.pence === 0);
 
   return (
@@ -58,7 +60,7 @@ export function SpendTrendChart({ data }: SpendTrendChartProps) {
             tickMargin={8}
           />
           <YAxis
-            tickFormatter={(value: number) => formatCurrency(value)}
+            tickFormatter={(value: number) => formatCurrency(value, currencyLocale, currency)}
             tickLine={false}
             axisLine={false}
             width={64}
@@ -66,7 +68,7 @@ export function SpendTrendChart({ data }: SpendTrendChartProps) {
           <ChartTooltip
             content={
               <ChartTooltipContent
-                formatter={(value) => formatCurrency(Number(value))}
+                formatter={(value) => formatCurrency(Number(value), currencyLocale, currency)}
               />
             }
           />

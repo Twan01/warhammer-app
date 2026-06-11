@@ -15,6 +15,16 @@ vi.mock("@/db/client", () => ({
   getDb: vi.fn(() => Promise.resolve({ select: mockSelect })),
 }));
 
+// Phase 122: useDatasheet now reads locale from useAppSettings via useLocale()
+vi.mock("@/hooks/useAppSettings", () => ({
+  useAppSettings: vi.fn(() => ({
+    data: { locale: "en" },
+    isLoading: false,
+    isError: false,
+  })),
+  useUpdateSetting: vi.fn(() => ({ mutate: vi.fn() })),
+}));
+
 const mockGetUdbUnitDetail = vi.fn();
 const mockGetUdbUnitsByFaction = vi.fn();
 const mockGetUdbFactions = vi.fn();

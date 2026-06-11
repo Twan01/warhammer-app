@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useWishlistItems } from "@/hooks/useWishlistItems";
 import { useFactions } from "@/hooks/useFactions";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { useCurrencyPreference } from "@/hooks/useCurrencyPreference";
 import type { WishlistItem } from "@/types/wishlistItem";
 import { WishlistItemRow } from "./WishlistItemRow";
 import { WishlistItemSheet } from "./WishlistItemSheet";
@@ -23,6 +24,7 @@ import { PageHeader } from "@/components/common/PageHeader";
 export function WishlistPage() {
   const { data: items, isLoading, isError } = useWishlistItems();
   const { data: factions } = useFactions();
+  const { locale: currencyLocale, currency } = useCurrencyPreference();
 
   // Page-level portal state
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -87,7 +89,7 @@ export function WishlistPage() {
             <span className="font-semibold text-foreground tabular-nums">{items!.length}</span>
             <span>items</span>
             <span className="text-border">·</span>
-            <span className="font-semibold text-foreground">{formatCurrency(totalPence)}</span>
+            <span className="font-semibold text-foreground">{formatCurrency(totalPence, currencyLocale, currency)}</span>
             <span>estimated</span>
           </div>
 
@@ -98,6 +100,8 @@ export function WishlistPage() {
                 key={item.id}
                 item={item}
                 factionName={factionNameById.get(item.faction_id) ?? null}
+                currencyLocale={currencyLocale}
+                currency={currency}
                 onEdit={openEdit}
                 onDelete={openDelete}
               />

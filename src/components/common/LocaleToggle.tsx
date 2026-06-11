@@ -5,21 +5,27 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useLocaleStore, type Locale } from "@/stores/localeStore";
+import { useAppSettings, useUpdateSetting } from "@/hooks/useAppSettings";
+import { LOCALE_QUERY_KEYS } from "@/lib/localeQueryKeys";
+import type { Locale } from "@/stores/localeStore";
 
 export function LocaleToggle({ collapsed }: { collapsed: boolean }) {
-  const { locale, setLocale } = useLocaleStore();
+  const { data: settings } = useAppSettings();
+  const locale: Locale = (settings?.["locale"] as Locale) ?? "en";
+  const updateSetting = useUpdateSetting();
   const queryClient = useQueryClient();
 
   function handleLocaleSwitch(next: Locale) {
-    setLocale(next);
-    queryClient.invalidateQueries({ queryKey: ["udb-factions"] });
-    queryClient.invalidateQueries({ queryKey: ["udb-units"] });
-    queryClient.invalidateQueries({ queryKey: ["udb-unit-detail"] });
-    queryClient.invalidateQueries({ queryKey: ["wahapedia-factions"] });
-    queryClient.invalidateQueries({ queryKey: ["datasheets-by-faction"] });
-    queryClient.invalidateQueries({ queryKey: ["datasheets-with-points"] });
-    queryClient.invalidateQueries({ queryKey: ["datasheet"] });
+    updateSetting.mutate(
+      { key: "locale", value: next },
+      {
+        onSuccess: () => {
+          LOCALE_QUERY_KEYS.forEach((k) =>
+            queryClient.invalidateQueries({ queryKey: [k] }),
+          );
+        },
+      },
+    );
   }
 
   if (collapsed) {

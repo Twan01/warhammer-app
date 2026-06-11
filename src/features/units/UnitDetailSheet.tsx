@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Flame } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { useCurrencyPreference } from "@/hooks/useCurrencyPreference";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -55,6 +56,7 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhoto
 
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { locale: currencyLocale, currency } = useCurrencyPreference();
   const updateUnit = useUpdateUnit();
   const [applyDialogOpen, setApplyDialogOpen] = useState(false);
   const { data: recipes = [] } = useRecipes();
@@ -178,7 +180,7 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhoto
                       )}
                       {unit.purchase_price_pence !== null && (
                         <Field label="Purchase Price">
-                          <span className="text-sm tabular-nums">{formatCurrency(unit.purchase_price_pence)}</span>
+                          <span className="text-sm tabular-nums">{formatCurrency(unit.purchase_price_pence, currencyLocale, currency)}</span>
                         </Field>
                       )}
                       {unit.storage_location && (

@@ -24,7 +24,7 @@ import {
   getUdbPointsTiers,
 } from "@/db/queries/unitDatabase";
 import type { UdbOwnershipEntry } from "@/db/queries/unitDatabase";
-import { useLocaleStore } from "@/stores/localeStore";
+import { useLocale } from "@/stores/localeStore";
 import type { Locale } from "@/stores/localeStore";
 
 export const UDB_FACTIONS_KEY = (locale: Locale) =>
@@ -40,7 +40,7 @@ export const UDB_SEARCH_KEY = (query: string) =>
  * Returns all factions in the unit database for the sidebar picker.
  */
 export function useUdbFactions() {
-  const locale = useLocaleStore((s) => s.locale);
+  const locale = useLocale();
   return useQuery({
     queryKey: UDB_FACTIONS_KEY(locale),
     queryFn: () => getUdbFactions(locale),
@@ -52,7 +52,7 @@ export function useUdbFactions() {
  * Returns unit summaries for a faction. Disabled when no faction is selected.
  */
 export function useUdbUnits(factionId: string | null) {
-  const locale = useLocaleStore((s) => s.locale);
+  const locale = useLocale();
   return useQuery({
     queryKey:
       factionId !== null
@@ -69,7 +69,7 @@ export function useUdbUnits(factionId: string | null) {
  * Returns the full detail for a single unit. Disabled when no unit is selected.
  */
 export function useUdbUnitDetail(unitId: string | null) {
-  const locale = useLocaleStore((s) => s.locale);
+  const locale = useLocale();
   return useQuery({
     queryKey:
       unitId !== null

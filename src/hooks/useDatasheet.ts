@@ -14,7 +14,7 @@ import {
   getUdbUnitsByFaction,
   getUdbFactions,
 } from "@/db/queries/unitDatabase";
-import { useLocaleStore } from "@/stores/localeStore";
+import { useLocale } from "@/stores/localeStore";
 
 // ── Cache keys (backward-compatible exports) ────────────────────────────────
 
@@ -32,7 +32,7 @@ export const WAHAPEDIA_FACTION_KEY = (name: string) =>
  * Returns null when the unit has no udb_unit_id link.
  */
 export function useDatasheet(unitId: number | undefined) {
-  const locale = useLocaleStore((s) => s.locale);
+  const locale = useLocale();
   return useQuery({
     queryKey:
       unitId !== undefined
@@ -58,7 +58,7 @@ export function useDatasheet(unitId: number | undefined) {
  * Returns unit summaries for a faction from the canonical unit database.
  */
 export function useDatasheetsByFaction(factionId: string | undefined) {
-  const locale = useLocaleStore((s) => s.locale);
+  const locale = useLocale();
   return useQuery({
     queryKey:
       factionId !== undefined
@@ -78,7 +78,7 @@ export function useDatasheetsByFaction(factionId: string | undefined) {
  * database, units already include points -- same query as useDatasheetsByFaction.
  */
 export function useDatasheetsByFactionWithPoints(factionId: string | undefined) {
-  const locale = useLocaleStore((s) => s.locale);
+  const locale = useLocale();
   return useQuery({
     queryKey:
       factionId !== undefined
@@ -97,7 +97,7 @@ export function useDatasheetsByFactionWithPoints(factionId: string | undefined) 
  * Returns all factions from the canonical unit database.
  */
 export function useWahapediaFactions() {
-  const locale = useLocaleStore((s) => s.locale);
+  const locale = useLocale();
   return useQuery({
     queryKey: [...WAHAPEDIA_FACTIONS_KEY, locale] as const,
     queryFn: () => getUdbFactions(locale),

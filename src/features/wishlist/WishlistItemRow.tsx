@@ -6,6 +6,8 @@ import type { WishlistItem } from "@/types/wishlistItem";
 interface WishlistItemRowProps {
   item: WishlistItem;
   factionName: string | null;
+  currencyLocale?: string;
+  currency?: string;
   onEdit: (item: WishlistItem) => void;
   onDelete: (item: WishlistItem) => void;
 }
@@ -17,6 +19,8 @@ interface WishlistItemRowProps {
 export function WishlistItemRow({
   item,
   factionName,
+  currencyLocale,
+  currency,
   onEdit,
   onDelete,
 }: WishlistItemRowProps) {
@@ -53,7 +57,7 @@ export function WishlistItemRow({
         {/* Row 2: cost + notes */}
         <div className="flex items-center gap-3 mt-0.5">
           <span className="text-xs tabular-nums text-muted-foreground">
-            {formatCurrency(item.estimated_cost_pence)}
+            {formatCurrency(item.estimated_cost_pence, currencyLocale, currency)}
           </span>
           {item.notes && (
             <span

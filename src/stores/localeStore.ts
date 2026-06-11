@@ -1,19 +1,21 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+/**
+ * Phase 122 — Locale store migration shim.
+ *
+ * The Zustand locale store has been replaced by app_settings persistence.
+ * This file re-exports the Locale type and provides a useLocale() convenience
+ * hook that reads from useAppSettings().
+ *
+ * All previous consumers of useLocaleStore should migrate to useLocale().
+ */
+import { useAppSettings } from "@/hooks/useAppSettings";
 
 export type Locale = "en" | "fr";
 
-interface LocaleStore {
-  locale: Locale;
-  setLocale: (locale: Locale) => void;
+/**
+ * Convenience hook returning the current locale from app_settings.
+ * Falls back to "en" when settings haven't loaded yet.
+ */
+export function useLocale(): Locale {
+  const { data: settings } = useAppSettings();
+  return (settings?.["locale"] as Locale) ?? "en";
 }
-
-export const useLocaleStore = create<LocaleStore>()(
-  persist(
-    (set) => ({
-      locale: "en",
-      setLocale: (locale) => set({ locale }),
-    }),
-    { name: "app:locale" },
-  ),
-);

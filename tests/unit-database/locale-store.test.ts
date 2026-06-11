@@ -1,54 +1,76 @@
 /**
- * Phase 111 — FR-03: locale store tests.
+ * Phase 122 — useLocale convenience hook tests.
  *
- * Tests Zustand persist store behavior for locale preference.
- * Verifies default value, setLocale action, and type constraints.
+ * Replaced Zustand store tests with app_settings-backed useLocale() hook tests.
+ * Verifies default value and locale extraction from settings.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ---------------------------------------------------------------------------
-// Mock zustand persist middleware to use a plain in-memory store for tests
+// Mock useAppSettings
 // ---------------------------------------------------------------------------
 
-vi.mock("zustand/middleware", () => ({
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  persist: (fn: any) => fn,
+vi.mock("@/hooks/useAppSettings", () => ({
+  useAppSettings: vi.fn(),
+  useUpdateSetting: vi.fn(() => ({ mutate: vi.fn() })),
 }));
 
-import { useLocaleStore } from "@/stores/localeStore";
-import type { Locale } from "@/stores/localeStore";
+import { useAppSettings } from "@/hooks/useAppSettings";
+import { useLocale, type Locale } from "@/stores/localeStore";
 
 // ---------------------------------------------------------------------------
-// Reset store state between tests
+// Helper: mock renderHook without QueryClientProvider
+// ---------------------------------------------------------------------------
+
+import { renderHook } from "@testing-library/react";
+
+function mockSettings(data?: Record<string, string>) {
+  vi.mocked(useAppSettings).mockReturnValue({
+    data,
+    isLoading: false,
+    isError: false,
+  } as ReturnType<typeof useAppSettings>);
+}
+
+// ---------------------------------------------------------------------------
+// Reset
 // ---------------------------------------------------------------------------
 
 beforeEach(() => {
-  useLocaleStore.setState({ locale: "en" });
+  vi.clearAllMocks();
+  mockSettings();
 });
 
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
-describe("useLocaleStore", () => {
-  it("defaults to 'en'", () => {
-    const { locale } = useLocaleStore.getState();
-    expect(locale).toBe("en");
+describe("useLocale", () => {
+  it("defaults to 'en' when no settings loaded", () => {
+    mockSettings(undefined);
+    const { result } = renderHook(() => useLocale());
+    expect(result.current).toBe("en");
   });
 
-  it("setLocale switches to 'fr'", () => {
-    useLocaleStore.getState().setLocale("fr");
-    expect(useLocaleStore.getState().locale).toBe("fr");
+  it("defaults to 'en' when settings empty", () => {
+    mockSettings({});
+    const { result } = renderHook(() => useLocale());
+    expect(result.current).toBe("en");
   });
 
-  it("setLocale switches back to 'en'", () => {
-    useLocaleStore.getState().setLocale("fr");
-    useLocaleStore.getState().setLocale("en");
-    expect(useLocaleStore.getState().locale).toBe("en");
+  it("returns 'fr' when locale setting is 'fr'", () => {
+    mockSettings({ locale: "fr" });
+    const { result } = renderHook(() => useLocale());
+    expect(result.current).toBe("fr");
+  });
+
+  it("returns 'en' when locale setting is 'en'", () => {
+    mockSettings({ locale: "en" });
+    const { result } = renderHook(() => useLocale());
+    expect(result.current).toBe("en");
   });
 
   it("Locale type only accepts 'en' or 'fr' — type-level validation", () => {
-    // This is a compile-time check; at runtime we verify the valid values work
     const validLocales: Locale[] = ["en", "fr"];
     expect(validLocales).toHaveLength(2);
     expect(validLocales).toContain("en");

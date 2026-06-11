@@ -25,11 +25,13 @@ import { useSpendingStats } from "@/hooks/useSpendingStats";
 import { useHobbyAnalytics } from "@/hooks/useHobbyAnalytics";
 import { SpendTrendChart } from "./SpendTrendChart";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { useCurrencyPreference } from "@/hooks/useCurrencyPreference";
 import { PageHeader } from "@/components/common/PageHeader";
 
 export function SpendingPage() {
   const { data, isLoading, isError } = useSpendingStats();
   const { data: analytics, isLoading: analyticsLoading } = useHobbyAnalytics();
+  const { locale: currencyLocale, currency } = useCurrencyPreference();
 
   if (isLoading) {
     return (
@@ -86,7 +88,7 @@ export function SpendingPage() {
           <Card className="ring-2 ring-faction-accent rounded-lg px-6 py-6 flex flex-col gap-2">
             <span className="text-sm text-muted-foreground">Total Hobby Spend</span>
             <span className="text-3xl font-semibold tabular-nums">
-              {formatCurrency(data.totalPence)}
+              {formatCurrency(data.totalPence, currencyLocale, currency)}
             </span>
           </Card>
 
@@ -96,7 +98,7 @@ export function SpendingPage() {
               <span className="text-sm text-muted-foreground">Cost Per Completed Model</span>
               <span className="text-3xl font-semibold tabular-nums">
                 {data.costPerCompletedModelPence !== null
-                  ? formatCurrency(data.costPerCompletedModelPence)
+                  ? formatCurrency(data.costPerCompletedModelPence, currencyLocale, currency)
                   : "—"}
               </span>
             </Card>
@@ -104,13 +106,13 @@ export function SpendingPage() {
               <span className="text-sm text-muted-foreground">Painted vs Unpainted Value</span>
               <div className="flex items-baseline gap-3">
                 <span className="text-2xl font-semibold tabular-nums">
-                  {formatCurrency(data.paintedValuePence)}
+                  {formatCurrency(data.paintedValuePence, currencyLocale, currency)}
                 </span>
                 <span className="text-sm text-muted-foreground">painted</span>
               </div>
               <div className="flex items-baseline gap-3">
                 <span className="text-2xl font-semibold tabular-nums">
-                  {formatCurrency(data.unpaintedValuePence)}
+                  {formatCurrency(data.unpaintedValuePence, currencyLocale, currency)}
                 </span>
                 <span className="text-sm text-muted-foreground">unpainted</span>
               </div>
@@ -123,7 +125,7 @@ export function SpendingPage() {
             {analyticsLoading ? (
               <Skeleton className="h-60 w-full rounded-lg" />
             ) : (
-              <SpendTrendChart data={analytics?.monthlyData ?? []} />
+              <SpendTrendChart data={analytics?.monthlyData ?? []} currencyLocale={currencyLocale} currency={currency} />
             )}
           </section>
 
@@ -140,12 +142,12 @@ export function SpendingPage() {
                 {data.factionBreakdown.map((row) => (
                   <TableRow key={row.faction.id}>
                     <TableCell>{row.faction.name}</TableCell>
-                    <TableCell className="tabular-nums">{formatCurrency(row.pence)}</TableCell>
+                    <TableCell className="tabular-nums">{formatCurrency(row.pence, currencyLocale, currency)}</TableCell>
                   </TableRow>
                 ))}
                 <TableRow className="border-t-2">
                   <TableCell>Paints</TableCell>
-                  <TableCell className="tabular-nums">{formatCurrency(data.paintsPence)}</TableCell>
+                  <TableCell className="tabular-nums">{formatCurrency(data.paintsPence, currencyLocale, currency)}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
