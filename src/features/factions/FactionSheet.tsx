@@ -128,7 +128,7 @@ export function FactionSheet({ open, faction, onClose }: FactionSheetProps) {
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. Tau Empire" {...field} />
+                    <Input autoFocus placeholder="e.g. Tau Empire" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

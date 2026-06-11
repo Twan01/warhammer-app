@@ -108,7 +108,7 @@ export function GoalSheet({ open, onOpenChange, editingGoal }: GoalSheetProps) {
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. Paint 10 infantry this month" {...field} />
+                    <Input autoFocus placeholder="e.g. Paint 10 infantry this month" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

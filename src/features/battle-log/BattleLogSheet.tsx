@@ -245,6 +245,7 @@ export function BattleLogSheet({
                   <FormLabel>Opponent Faction</FormLabel>
                   <FormControl>
                     <Input
+                      autoFocus
                       placeholder="e.g. Tau Empire, Tyranids"
                       {...field}
                     />

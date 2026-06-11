@@ -55,7 +55,7 @@ export function SpendingPage() {
   if (isError || !data) {
     return (
       <div className="p-6">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-destructive">
           Could not load spending data. Restart the app or try again.
         </p>
       </div>

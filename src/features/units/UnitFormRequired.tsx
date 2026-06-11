@@ -63,7 +63,7 @@ export function UnitFormRequired({ factions, factionsLoading, unitId }: UnitForm
           <FormItem>
             <FormLabel>Name</FormLabel>
             <FormControl>
-              <Input placeholder="e.g. Tau Fire Warriors" {...field} />
+              <Input autoFocus placeholder="e.g. Tau Fire Warriors" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>

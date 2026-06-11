@@ -143,7 +143,7 @@ export function PaintSheet({ open, paint, onClose }: PaintSheetProps) {
                 <FormItem>
                   <FormLabel>Brand</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. Citadel" {...field} />
+                    <Input autoFocus placeholder="e.g. Citadel" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

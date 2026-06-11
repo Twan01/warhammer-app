@@ -277,7 +277,7 @@ export function RecipeFormSheet({ open, recipe, onClose, defaultFactionId, defau
                   <FormItem>
                     <FormLabel>Recipe name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Tau White Armor" {...field} />
+                      <Input autoFocus placeholder="e.g. Tau White Armor" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
