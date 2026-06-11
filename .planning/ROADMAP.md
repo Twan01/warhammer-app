@@ -99,7 +99,7 @@ Full details: `.planning/milestones/v0.4.0-ROADMAP.md`
 
 ---
 
-### 🚧 v0.5.2 UX Polish & Consistency (In Progress)
+### v0.5.2 UX Polish & Consistency (In Progress)
 
 **Milestone Goal:** Deep audit and improvement of every page — fix navigation friction, inconsistent feel, missing feedback, and technical polish across the entire app without adding new features.
 
@@ -170,8 +170,13 @@ Plans:
   4. The RuleNoteEditor shows a subtle "Saved" indicator after auto-saving
   5. PlaybookTab disabled save button has a tooltip explaining the reason, and shows a Retry button on error
 
-**Plans**: TBD
+**Plans:** 2 plans (Wave 1: 01, 02 — parallel)
 **UI hint**: yes
+
+Plans:
+
+- [ ] 128-01-PLAN.md — Mechanical feedback fixes: delete pending text, autoFocus, toast upgrades, gcTime alignment (FBK-01, FBK-03, FBK-04, FBK-08, FBK-09, FBK-10)
+- [ ] 128-02-PLAN.md — Structural JSX: GameDay error state, RuleNoteEditor saved indicator, PlaybookTab tooltip + retry (FBK-02, FBK-05, FBK-06, FBK-07)
 
 ### Phase 129: Navigation, Cross-Links & Technical Cleanup
 
@@ -205,6 +210,6 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 126. Critical Fixes & Dead Ends | 4/4 | Complete | 2026-06-11 |
-| 127. Visual Consistency & PageHeader Unification | 0/3 | Not started | - |
-| 128. Feedback Hardening & Form UX | 0/TBD | Not started | - |
+| 127. Visual Consistency & PageHeader Unification | 3/3 | Complete | 2026-06-11 |
+| 128. Feedback Hardening & Form UX | 0/2 | Not started | - |
 | 129. Navigation, Cross-Links & Technical Cleanup | 0/4 | Not started | - |
