@@ -81,7 +81,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 122-01-PLAN.md — GeneralPreferencesSection UI + useCurrencyPreference hook + locale query keys + tests (PREF-01, PREF-02, PREF-03, PREF-04)
+- [x] 122-01-PLAN.md — GeneralPreferencesSection UI + useCurrencyPreference hook + locale query keys + tests (PREF-01, PREF-02, PREF-03, PREF-04)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

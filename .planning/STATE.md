@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 
 ## Current Position
 
-Phase: 122 (preferences-tab) — NEEDS PLANNING
-Plan: 0 of TBD
-Status: Phases 121, 123, 124, 125 complete — Phase 122 remains
-Last activity: 2026-06-10 -- Phase 124 Plan 02 complete
+Phase: 122 (preferences-tab) — Plan 01 complete
+Plan: 1 of 2
+Status: Plan 01 complete — GeneralPreferencesSection with 4 setting controls wired into Settings page
+Last activity: 2026-06-11 -- Phase 122 Plan 01 complete
 
 Progress: [█████████░] 90%
 
@@ -63,6 +63,10 @@ Progress: [█████████░] 90%
 - Currency integration targets spending tracker (formatCurrency)
 - Default faction integration targets ActiveFactionContext
 - DB browser locale toggle (localStorage) must coexist with PREF-01 setting
+- GeneralPreferencesSection renders 4 auto-save controls above HobbyDefaultsSection
+- useCurrencyPreference hook returns {locale, currency} from app_settings with GBP/en-GB default
+- LOCALE_QUERY_KEYS shared const used by LanguageSetting (Plan 02 will migrate LocaleToggle)
+- DefaultFactionSetting uses __none__ sentinel for Radix Select empty-value workaround
 - DDL-only migration 044 — no seed data, defaults in hook layer (boot-loop prevention per migration 038 precedent)
 - AppSettingsMap = Record<string,string> — generic typed map, no convenience wrappers in Phase 121
 - INSERT OR REPLACE upsert pattern for app_settings (idiomatic SQLite)
@@ -89,7 +93,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-11T00:00:00.000Z
-Stopped at: Phase 124 complete — only Phase 122 (Preferences Tab) remains
-Resume file: None
-Resume: Phases 121, 123, 124, 125 all complete. Phase 122 (Preferences Tab) has discussion log and UI spec but needs planning.
+Last session: 2026-06-11T07:10:00.000Z
+Stopped at: Phase 122 Plan 01 complete — Plan 02 (consumer integration) remains
+Resume file: .planning/phases/122-preferences-tab/122-02-PLAN.md
+Resume: Plan 01 delivered GeneralPreferencesSection with 4 setting controls, useCurrencyPreference hook, and LOCALE_QUERY_KEYS. Plan 02 wires consumers (LocaleToggle, formatCurrency, ActiveFactionContext, useArmyReadinessTarget).
