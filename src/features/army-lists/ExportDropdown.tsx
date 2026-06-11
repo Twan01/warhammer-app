@@ -2,7 +2,7 @@
  * Phase 94 — Export DropdownMenu (EXP-01..04, D-01).
  *
  * Presentational component: 4-item dropdown for export actions.
- * All async logic lives in the parent (ArmyListDetailSheet).
+ * All async logic lives in the parent (ArmyListDetailPage).
  */
 import { Download, Clipboard, Printer, FileJson, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";

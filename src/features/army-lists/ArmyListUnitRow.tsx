@@ -44,7 +44,7 @@ interface ArmyListUnitRowProps {
 }
 
 /**
- * ARMY-03, ARMY-04 — One unit row inside ArmyListDetailSheet's unit table.
+ * ARMY-03, ARMY-04 — One unit row inside ArmyListDetailPage's unit table.
  *
  * Layout (UI-SPEC, in this exact column order):
  *   1. Unit name (+ category badge, active loadout name below if set)
