@@ -13,13 +13,13 @@ Requirements for UX Polish & Consistency milestone. Each maps to roadmap phases.
 - [x] **FIX-02**: Painting Mode "assignment not found" error shows a back button and working Escape key
 - [ ] **FIX-03**: Notes save on Army List only fires toast when mutation actually runs (no no-op success toast)
 - [ ] **FIX-04**: RecipesPage shows error state when query fails (not empty state)
-- [ ] **FIX-05**: Settings and Data Health page headers use PageHeader with text-3xl (consistent with all other pages)
-- [ ] **FIX-06**: `--battle-gold` and other dark-only tokens have light-mode fallbacks in `:root`
+- [x] **FIX-05**: Settings and Data Health page headers use PageHeader with text-3xl (consistent with all other pages)
+- [x] **FIX-06**: `--battle-gold` and other dark-only tokens have light-mode fallbacks in `:root`
 - [ ] **FIX-07**: Goal delete fires only one error toast (deduplicate hook and component catch)
 - [ ] **FIX-08**: Enhancement assign/remove and leader attach/detach show success toasts
 - [ ] **FIX-09**: Rules favorites optimistic rollback shows error toast on failure
 - [ ] **FIX-10**: ArmyListDetailPage distinguishes loading from not-found (no infinite skeleton for deleted lists)
-- [ ] **FIX-11**: Custom scrollbar styling matches dark zinc theme (thin, subtle, all scrollable areas)
+- [x] **FIX-11**: Custom scrollbar styling matches dark zinc theme (thin, subtle, all scrollable areas)
 
 ### Visual Consistency
 
@@ -96,13 +96,13 @@ Deferred to future release. Tracked but not in current roadmap.
 | FIX-02 | Phase 126 | Complete |
 | FIX-03 | Phase 126 | Pending |
 | FIX-04 | Phase 126 | Pending |
-| FIX-05 | Phase 126 | Pending |
-| FIX-06 | Phase 126 | Pending |
+| FIX-05 | Phase 126 | Complete |
+| FIX-06 | Phase 126 | Complete |
 | FIX-07 | Phase 126 | Pending |
 | FIX-08 | Phase 126 | Pending |
 | FIX-09 | Phase 126 | Pending |
 | FIX-10 | Phase 126 | Pending |
-| FIX-11 | Phase 126 | Pending |
+| FIX-11 | Phase 126 | Complete |
 | VIS-01 | Phase 127 | Pending |
 | VIS-02 | Phase 127 | Pending |
 | VIS-03 | Phase 127 | Pending |
