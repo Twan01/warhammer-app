@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
-import { Search } from "lucide-react";
+import { Search, ArrowRight } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   useUdbFactions,
   useUdbUnits,
@@ -188,7 +190,15 @@ export function DatabaseBrowserPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <h1 className="text-3xl font-semibold tracking-tight">Unit Database</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-semibold tracking-tight">Unit Database</h1>
+        <Button variant="ghost" size="sm" asChild>
+          <Link to="/rules-hub">
+            <ArrowRight className="mr-1 h-4 w-4" aria-hidden="true" />
+            View Rules
+          </Link>
+        </Button>
+      </div>
 
       {/* Search bar */}
       <div className="relative">
