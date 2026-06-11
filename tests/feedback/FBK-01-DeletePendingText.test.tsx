@@ -95,7 +95,7 @@ describe("FBK-01: Delete pending text", () => {
       render(
         <BattleLogDeleteDialog
           open={true}
-          log={{ id: 1, battle_date: "2026-01-01", opponent_faction: "Orks", mission: "Hold", result: "Win", opponent: null, points_played: null, my_score: null, opponent_score: null, army_list_id: null, mvp_unit_id: null, underperforming_unit_id: null, lessons_learned: null, changes_next_time: null, notes: null, forgotten_rules: null, mvp_notes: null, underperformer_notes: null, promoted_to_reminder: 0, created_at: "", updated_at: "" }}
+          log={{ id: 1, battle_date: "2026-01-01", opponent_faction: "Orks", mission: "Hold", result: "Win", opponent: null, points_played: null, my_score: null, opponent_score: null, army_list_id: null, mvp_unit_id: null, underperforming_unit_id: null, lessons_learned: null, changes_next_time: null, notes: null, forgotten_rules: null, mvp_notes: null, underperformer_notes: null, promoted_to_reminder: 0, created_at: "" }}
           onClose={vi.fn()}
         />,
         { wrapper: Wrapper },
@@ -110,7 +110,7 @@ describe("FBK-01: Delete pending text", () => {
       render(
         <RecipeDeleteDialog
           open={true}
-          recipe={{ id: 1, name: "Test Recipe", faction_id: null, unit_id: null, area: null, notes: null, tutorial_link: null, style: null, surface: null, effect: null, difficulty: null, estimated_minutes: null, result_photo_path: null, created_at: "", updated_at: "" }}
+          recipe={{ id: 1, name: "Test Recipe", faction_id: null, unit_id: null, area: null, primer: null, basecoat: null, shade: null, layer: null, highlight: null, glaze_filter: null, weathering: null, technical: null, basing: null, notes: null, tutorial_link: null, style: null, surface: null, effect: null, difficulty: null, estimated_minutes: null, result_photo_path: null, created_at: "", updated_at: "" }}
           onClose={vi.fn()}
         />,
         { wrapper: Wrapper },
@@ -123,7 +123,7 @@ describe("FBK-01: Delete pending text", () => {
       render(
         <RecipeDeleteDialog
           open={true}
-          recipe={{ id: 1, name: "Test Recipe", faction_id: null, unit_id: null, area: null, notes: null, tutorial_link: null, style: null, surface: null, effect: null, difficulty: null, estimated_minutes: null, result_photo_path: null, created_at: "", updated_at: "" }}
+          recipe={{ id: 1, name: "Test Recipe", faction_id: null, unit_id: null, area: null, primer: null, basecoat: null, shade: null, layer: null, highlight: null, glaze_filter: null, weathering: null, technical: null, basing: null, notes: null, tutorial_link: null, style: null, surface: null, effect: null, difficulty: null, estimated_minutes: null, result_photo_path: null, created_at: "", updated_at: "" }}
           onClose={vi.fn()}
         />,
         { wrapper: Wrapper },
