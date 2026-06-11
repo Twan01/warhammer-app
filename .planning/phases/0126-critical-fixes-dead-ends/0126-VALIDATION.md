@@ -3,6 +3,7 @@ phase: 126
 slug: critical-fixes-dead-ends
 status: draft
 nyquist_compliant: false
+nyquist_override: "UI fix phase — 11 small visual/behavioral fixes across 12 files. Manual visual verification is the appropriate strategy. pnpm build confirms type safety; visual testing confirms behavioral correctness (toast presence/absence, button visibility, CSS rendering). Automated behavioral tests for these changes would test React rendering internals rather than user-visible behavior."
 wave_0_complete: false
 created: 2026-06-11
 ---

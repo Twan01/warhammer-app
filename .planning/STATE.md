@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.5.2
 milestone_name: UX Polish & Consistency
-status: ready_to_plan
+status: ready_to_execute
 last_updated: "2026-06-11"
 last_activity: 2026-06-11
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
+  total_plans: 4
   completed_plans: 0
   percent: 0
 ---
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-06-11)
 ## Current Position
 
 Phase: 126 of 129 (Critical Fixes & Dead Ends)
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-06-11 — Roadmap created for v0.5.2
+Plan: 4 plans in 1 wave (all parallel)
+Status: Ready to execute
+Last activity: 2026-06-11 — Phase 126 planned (4 plans)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -79,6 +79,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-06-11
-Stopped at: Phase 126 context gathered
-Resume file: .planning/phases/0126-critical-fixes-dead-ends/0126-CONTEXT.md
-Resume: Run `/gsd:plan-phase 126` to begin planning.
+Stopped at: Phase 126 planned — ready to execute
+Resume file: .planning/phases/0126-critical-fixes-dead-ends/0126-01-PLAN.md
+Resume: Run `/gsd:execute-phase 126` to begin execution.

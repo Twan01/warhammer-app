@@ -120,7 +120,8 @@ Full details: `.planning/milestones/v0.4.0-ROADMAP.md`
   3. Army List notes save fires a success toast only when a mutation actually runs (no silent no-op toast)
   4. RecipesPage shows a distinct error state (not an empty list) when the query fails
   5. Settings, Data Health, and all page headers use a consistent text-3xl PageHeader with border-b separator
-**Plans:** 4 plans
+**Plans:** 4 plans (Wave 1: 01, 02, 03, 04 — all parallel)
+**UI hint**: yes
 
 Plans:
 - [ ] 0126-01-PLAN.md — Painting Mode exit UX (FIX-01, FIX-02)
@@ -173,7 +174,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 126. Critical Fixes & Dead Ends | 0/4 | Not started | - |
+| 126. Critical Fixes & Dead Ends | 0/4 | Planned | - |
 | 127. Visual Consistency & PageHeader Unification | 0/TBD | Not started | - |
 | 128. Feedback Hardening & Form UX | 0/TBD | Not started | - |
 | 129. Navigation, Cross-Links & Technical Cleanup | 0/TBD | Not started | - |
