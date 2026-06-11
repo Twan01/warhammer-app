@@ -36,12 +36,12 @@ Requirements for UX Polish & Consistency milestone. Each maps to roadmap phases.
 ### Feedback & Form UX
 
 - [ ] **FBK-01**: 4 delete dialogs (Faction, BattleLog, Recipe, Paint) show "Deleting..." pending text
-- [ ] **FBK-02**: GameDayPage has isError handler with user-friendly message
+- [x] **FBK-02**: GameDayPage has isError handler with user-friendly message
 - [ ] **FBK-03**: Spending error message uses text-destructive (not text-muted-foreground)
 - [ ] **FBK-04**: All Sheet forms autoFocus on first input field when opened
-- [ ] **FBK-05**: RuleNoteEditor auto-save shows subtle "Saved" indicator
-- [ ] **FBK-06**: PlaybookTab disabled save button has tooltip explaining why
-- [ ] **FBK-07**: PlaybookTab error state includes Retry button
+- [x] **FBK-05**: RuleNoteEditor auto-save shows subtle "Saved" indicator
+- [x] **FBK-06**: PlaybookTab disabled save button has tooltip explaining why
+- [x] **FBK-07**: PlaybookTab error state includes Retry button
 - [ ] **FBK-08**: JournalTab session create shows success toast
 - [ ] **FBK-09**: Snapshot delete uses toast.success (not neutral toast)
 - [ ] **FBK-10**: staleTime: Infinity hooks also set gcTime: Infinity (cache not evicted after 10min)
@@ -113,12 +113,12 @@ Deferred to future release. Tracked but not in current roadmap.
 | VIS-08 | Phase 127 | Pending |
 | VIS-09 | Phase 127 | Pending |
 | FBK-01 | Phase 128 | Pending |
-| FBK-02 | Phase 128 | Pending |
+| FBK-02 | Phase 128 | Complete |
 | FBK-03 | Phase 128 | Pending |
 | FBK-04 | Phase 128 | Pending |
-| FBK-05 | Phase 128 | Pending |
-| FBK-06 | Phase 128 | Pending |
-| FBK-07 | Phase 128 | Pending |
+| FBK-05 | Phase 128 | Complete |
+| FBK-06 | Phase 128 | Complete |
+| FBK-07 | Phase 128 | Complete |
 | FBK-08 | Phase 128 | Pending |
 | FBK-09 | Phase 128 | Pending |
 | FBK-10 | Phase 128 | Pending |
