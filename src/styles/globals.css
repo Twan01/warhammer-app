@@ -37,6 +37,13 @@
 
   /* Phase 10 — runtime-mutable faction accent (default zinc-500) */
   --faction-accent: #71717a;
+
+  /* Phase 126 (FIX-06) — Light-mode fallbacks for dark-only tokens.
+     Safety net so tokens never resolve to undefined in light mode. */
+  --forge-black: hsl(var(--background));
+  --panel-elevated: hsl(var(--card));
+  --panel-surface: hsl(var(--secondary));
+  --battle-gold: oklch(0.55 0.17 85);
 }
 
 .dark {
@@ -127,6 +134,27 @@ body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   font-family: var(--font-sans);
+}
+
+/* Phase 126 (FIX-11) — Dark-mode custom scrollbar: thin, zinc-themed, rounded */
+.dark ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.dark ::-webkit-scrollbar-track {
+  background: hsl(240 5.9% 10%); /* zinc-900 */
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: hsl(240 3.7% 30%); /* zinc-700 */
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: hsl(240 3.7% 40%); /* zinc-600 */
+}
+/* Firefox scrollbar */
+.dark {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(240 3.7% 30%) hsl(240 5.9% 10%);
 }
 
 /* Phase 94 — Print layout: hide app shell, show only #print-content */
