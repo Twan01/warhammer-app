@@ -5,6 +5,7 @@
  * NOT invalidated by rules sync — favorites live in hobbyforge.db.
  */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   getRulesFavorites,
   upsertRulesFavorite,
@@ -55,6 +56,7 @@ export function useUpsertRulesFavorite() {
       if (context?.previous !== undefined) {
         qc.setQueryData(RULES_FAVORITES_KEY, context.previous);
       }
+      toast.error("Failed to update favorite. Please try again.");
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: RULES_FAVORITES_KEY });
@@ -80,6 +82,7 @@ export function useDeleteRulesFavorite() {
       if (context?.previous !== undefined) {
         qc.setQueryData(RULES_FAVORITES_KEY, context.previous);
       }
+      toast.error("Failed to update favorite. Please try again.");
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: RULES_FAVORITES_KEY });
