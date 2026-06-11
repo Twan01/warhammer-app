@@ -17,5 +17,6 @@ export type Locale = "en" | "fr";
  */
 export function useLocale(): Locale {
   const { data: settings } = useAppSettings();
-  return (settings?.["locale"] as Locale) ?? "en";
+  const raw = settings?.["locale"];
+  return raw === "en" || raw === "fr" ? raw : "en";
 }

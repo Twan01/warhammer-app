@@ -28,6 +28,7 @@ export function CurrencySetting({
   const current = settings["currency"] ?? "GBP";
 
   function handleChange(value: string) {
+    if (!(SUPPORTED_CURRENCIES as readonly string[]).includes(value)) return;
     updateSetting.mutate(
       { key: "currency", value },
       { onError: () => toast.error("Could not save setting. Try again.") },

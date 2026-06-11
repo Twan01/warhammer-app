@@ -20,6 +20,7 @@ import { useAppSettings } from "@/hooks/useAppSettings";
 
 export const ARMY_READINESS_KEY = ["army-readiness"] as const;
 export const ARMY_READINESS_TARGETS = [500, 1000, 1500, 2000] as const;
+/** @deprecated Preset values only — the hook now returns arbitrary `number` including custom values. */
 export type ArmyReadinessTarget = (typeof ARMY_READINESS_TARGETS)[number];
 
 // Re-export for component convenience

@@ -67,6 +67,7 @@ export function ReadinessTargetSetting({
           value={customValue || (showCustomActive ? String(persisted) : "")}
           onChange={(e) => setCustomValue(e.target.value)}
           onBlur={handleBlur}
+          onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
           className="w-[120px] h-7 text-xs text-right [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         />
       </div>

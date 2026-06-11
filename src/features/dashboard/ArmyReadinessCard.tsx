@@ -3,7 +3,7 @@
  *
  * Shows per-faction battle-ready points against a user-selected target threshold.
  * Target buttons: 500 / 1000 / 1500 / 2000 pts (default 2000).
- * Target persists in localStorage via useArmyReadinessTarget.
+ * Target persists in app_settings via useArmyReadinessTarget.
  *
  * Each faction row shows:
  * - Faction name

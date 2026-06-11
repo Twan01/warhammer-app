@@ -11,7 +11,8 @@ import type { Locale } from "@/stores/localeStore";
 
 export function LocaleToggle({ collapsed }: { collapsed: boolean }) {
   const { data: settings } = useAppSettings();
-  const locale: Locale = (settings?.["locale"] as Locale) ?? "en";
+  const raw = settings?.["locale"];
+  const locale: Locale = raw === "en" || raw === "fr" ? raw : "en";
   const updateSetting = useUpdateSetting();
   const queryClient = useQueryClient();
 
