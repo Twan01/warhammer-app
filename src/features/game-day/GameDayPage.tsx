@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Swords, Users, ClipboardList } from "lucide-react";
+import { Swords, Users, ClipboardList, AlertCircle } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ interface GameDayPageProps {
 export function GameDayPage({ listId }: GameDayPageProps) {
   const navigate = useNavigate();
   const [endGameOpen, setEndGameOpen] = useState(false);
-  const { data: list, isLoading: listLoading } = useArmyList(listId);
+  const { data: list, isLoading: listLoading, isError: listError, refetch: refetchList } = useArmyList(listId);
   const { data: units } = useArmyListWithUnits(listId);
   const { data: factions } = useFactions();
   const { data: udbMeta } = useUdbMeta();
@@ -64,6 +64,19 @@ export function GameDayPage({ listId }: GameDayPageProps) {
         <Skeleton className="h-16 w-full" />
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  if (listError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 gap-4">
+        <AlertCircle className="h-12 w-12 text-destructive" />
+        <div className="text-center">
+          <h2 className="text-lg font-semibold">Failed to load game day data</h2>
+          <p className="text-sm text-muted-foreground mt-1">Check your connection and try again.</p>
+        </div>
+        <Button variant="outline" onClick={() => refetchList()}>Try Again</Button>
       </div>
     );
   }
