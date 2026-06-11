@@ -1,10 +1,9 @@
 ---
 phase: 126
 slug: critical-fixes-dead-ends
-status: draft
-nyquist_compliant: false
-nyquist_override: "UI fix phase — 11 small visual/behavioral fixes across 12 files. Manual visual verification is the appropriate strategy. pnpm build confirms type safety; visual testing confirms behavioral correctness (toast presence/absence, button visibility, CSS rendering). Automated behavioral tests for these changes would test React rendering internals rather than user-visible behavior."
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-11
 ---
 
@@ -39,17 +38,17 @@ created: 2026-06-11
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 126-01-01 | 01 | 1 | FIX-01 | — | N/A | manual | Visual: completion screen has exit button + Escape hint | N/A | ⬜ pending |
-| 126-01-02 | 01 | 1 | FIX-02 | — | N/A | manual | Visual: error screen has back button + Escape hint | N/A | ⬜ pending |
-| 126-01-03 | 01 | 1 | FIX-03 | — | N/A | unit | `pnpm test` | ❌ W0 | ⬜ pending |
-| 126-01-04 | 01 | 1 | FIX-04 | — | N/A | manual | Visual: RecipesPage shows error state on query failure | N/A | ⬜ pending |
-| 126-01-05 | 01 | 1 | FIX-05 | — | N/A | manual | Visual: Settings/DataHealth use PageHeader | N/A | ⬜ pending |
-| 126-01-06 | 01 | 1 | FIX-06 | — | N/A | manual | Visual: tokens defined in :root | N/A | ⬜ pending |
-| 126-01-07 | 01 | 1 | FIX-07 | — | N/A | unit | `pnpm test` | ❌ W0 | ⬜ pending |
-| 126-01-08 | 01 | 1 | FIX-08 | — | N/A | manual | Visual: success toasts appear on enhancement/leader mutations | N/A | ⬜ pending |
-| 126-01-09 | 01 | 1 | FIX-09 | — | N/A | manual | Visual: error toast on favorite rollback | N/A | ⬜ pending |
-| 126-01-10 | 01 | 1 | FIX-10 | — | N/A | manual | Visual: loading skeleton vs not-found message | N/A | ⬜ pending |
-| 126-01-11 | 01 | 1 | FIX-11 | — | N/A | manual | Visual: dark scrollbars with zinc colors | N/A | ⬜ pending |
+| 126-01-01 | 01 | 1 | FIX-01 | — | N/A | unit | `pnpm test -- tests/painting-mode/StepFocalView.test.tsx` | ✅ | ✅ green |
+| 126-01-02 | 01 | 1 | FIX-02 | — | N/A | unit | `pnpm test -- tests/painting-mode/PaintingModeNotFound.test.tsx` | ✅ | ✅ green |
+| 126-01-03 | 01 | 1 | FIX-03 | — | N/A | unit | `pnpm test -- tests/army-list/ArmyListNotesNoOp.test.tsx` | ✅ | ✅ green |
+| 126-01-04 | 01 | 1 | FIX-04 | — | N/A | unit | `pnpm test -- tests/recipes/RecipesPageError.test.tsx` | ✅ | ✅ green |
+| 126-01-05 | 01 | 1 | FIX-05 | — | N/A | unit | `pnpm test -- tests/settings/SettingsPage.test.tsx` | ✅ | ✅ green |
+| 126-01-06 | 01 | 1 | FIX-06 | — | N/A | unit | `pnpm test -- tests/design-foundation/designTokens.test.ts` | ✅ | ✅ green |
+| 126-01-07 | 01 | 1 | FIX-07 | — | N/A | unit | `pnpm test -- tests/goals/GoalsPage.test.tsx` | ✅ | ✅ green |
+| 126-01-08 | 01 | 1 | FIX-08 | — | N/A | unit | `pnpm test -- tests/army-list/enhancementPickerSheet.test.tsx tests/army-lists/LeaderAttachmentSheet.test.tsx` | ✅ | ✅ green |
+| 126-01-09 | 01 | 1 | FIX-09 | — | N/A | unit | `pnpm test -- tests/datasheet/useRulesFavorites.test.tsx` | ✅ | ✅ green |
+| 126-01-10 | 01 | 1 | FIX-10 | — | N/A | unit | `pnpm test -- tests/army-list/ArmyListDetailNotFound.test.tsx` | ✅ | ✅ green |
+| 126-01-11 | 01 | 1 | FIX-11 | — | N/A | unit | `pnpm test -- tests/design-foundation/designTokens.test.ts` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -81,11 +80,23 @@ created: 2026-06-11
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved
+
+---
+
+## Validation Audit 2026-06-11
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 11 |
+| Resolved | 11 |
+| Escalated | 0 |
+
+Tests added/updated: StepFocalView.test.tsx, PaintingModeNotFound.test.tsx (new), ArmyListNotesNoOp.test.tsx (new), RecipesPageError.test.tsx (new), SettingsPage.test.tsx, designTokens.test.ts, GoalsPage.test.tsx, enhancementPickerSheet.test.tsx, LeaderAttachmentSheet.test.tsx, useRulesFavorites.test.tsx, ArmyListDetailNotFound.test.tsx (new). Suite: 2609 pass, 2 pre-existing failures (unrelated determinism.test.ts).
