@@ -1,12 +1,12 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.5.1
+milestone: v0.5.2
 milestone_name: UX Polish & Consistency
-status: planning
-last_updated: "2026-06-11T10:25:07.829Z"
+status: ready_to_plan
+last_updated: "2026-06-11"
 last_activity: 2026-06-11
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -19,15 +19,17 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-06-11)
 
-**Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore so local data is always recoverable
-**Current focus:** Planning next milestone
+**Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore
+**Current focus:** Phase 126 — Critical Fixes & Dead Ends
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-06-11 — Milestone v0.5.1 started
+Phase: 126 of 129 (Critical Fixes & Dead Ends)
+Plan: — (not yet planned)
+Status: Ready to plan
+Last activity: 2026-06-11 — Roadmap created for v0.5.2
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -38,7 +40,8 @@ Last activity: 2026-06-11 — Milestone v0.5.1 started
 - v0.4.5: 7 plans across 4 phases (2 days)
 - v0.4.2: 11 plans across 4 phases (single day)
 - v0.4.0: 12 plans across 5 phases (3 days)
-- v0.3.7: 6 plans across 3 phases (single day)
+
+*Updated after each plan completion*
 
 ## Accumulated Context
 
@@ -46,10 +49,9 @@ Last activity: 2026-06-11 — Milestone v0.5.1 started
 
 - Single-database architecture — all data in hobbyforge.db
 - Pre-built canonical unit database (not runtime sync)
-- Settings page shipped with persistent key-value storage (app_settings table)
-- Locale managed via app_settings (Zustand localeStore removed)
-- Currency preference wired to all formatCurrency consumers
+- Settings page shipped: app_settings key-value storage, locale/currency/faction wired
 - Factory reset via Rust command with safety backup
+- No schema changes in v0.5.2 — polish-only milestone
 
 ### Pending Todos
 
@@ -72,10 +74,11 @@ None.
 | Future | HOB-04: Custom painting status labels | Future milestone | v0.5.0 |
 | Future | DAT-05: Auto-backup on schedule | Future milestone | v0.5.0 |
 | Future | DAT-06: Settings sync across devices | Future milestone | v0.5.0 |
+| v2 polish | FUT-01..FUT-10: Global Ctrl+K, crossfade transitions, dirty-state guards, etc. | Deferred | v0.5.2 planning |
 
 ## Session Continuity
 
 Last session: 2026-06-11
-Stopped at: v0.5.0 milestone complete and archived
+Stopped at: Roadmap created — ready to plan Phase 126
 Resume file: None
-Resume: Milestone complete. Run `/gsd:new-milestone` to start next version.
+Resume: Run `/gsd:plan-phase 126` to begin planning.

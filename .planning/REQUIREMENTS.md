@@ -3,7 +3,7 @@
 **Defined:** 2026-06-11
 **Core Value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play"
 
-## v0.5.1 Requirements
+## v0.5.2 Requirements
 
 Requirements for UX Polish & Consistency milestone. Each maps to roadmap phases.
 
@@ -92,16 +92,53 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FIX-01..FIX-11 | TBD | Pending |
-| VIS-01..VIS-09 | TBD | Pending |
-| FBK-01..FBK-10 | TBD | Pending |
-| NAV-01..NAV-11 | TBD | Pending |
+| FIX-01 | Phase 126 | Pending |
+| FIX-02 | Phase 126 | Pending |
+| FIX-03 | Phase 126 | Pending |
+| FIX-04 | Phase 126 | Pending |
+| FIX-05 | Phase 126 | Pending |
+| FIX-06 | Phase 126 | Pending |
+| FIX-07 | Phase 126 | Pending |
+| FIX-08 | Phase 126 | Pending |
+| FIX-09 | Phase 126 | Pending |
+| FIX-10 | Phase 126 | Pending |
+| FIX-11 | Phase 126 | Pending |
+| VIS-01 | Phase 127 | Pending |
+| VIS-02 | Phase 127 | Pending |
+| VIS-03 | Phase 127 | Pending |
+| VIS-04 | Phase 127 | Pending |
+| VIS-05 | Phase 127 | Pending |
+| VIS-06 | Phase 127 | Pending |
+| VIS-07 | Phase 127 | Pending |
+| VIS-08 | Phase 127 | Pending |
+| VIS-09 | Phase 127 | Pending |
+| FBK-01 | Phase 128 | Pending |
+| FBK-02 | Phase 128 | Pending |
+| FBK-03 | Phase 128 | Pending |
+| FBK-04 | Phase 128 | Pending |
+| FBK-05 | Phase 128 | Pending |
+| FBK-06 | Phase 128 | Pending |
+| FBK-07 | Phase 128 | Pending |
+| FBK-08 | Phase 128 | Pending |
+| FBK-09 | Phase 128 | Pending |
+| FBK-10 | Phase 128 | Pending |
+| NAV-01 | Phase 129 | Pending |
+| NAV-02 | Phase 129 | Pending |
+| NAV-03 | Phase 129 | Pending |
+| NAV-04 | Phase 129 | Pending |
+| NAV-05 | Phase 129 | Pending |
+| NAV-06 | Phase 129 | Pending |
+| NAV-07 | Phase 129 | Pending |
+| NAV-08 | Phase 129 | Pending |
+| NAV-09 | Phase 129 | Pending |
+| NAV-10 | Phase 129 | Pending |
+| NAV-11 | Phase 129 | Pending |
 
 **Coverage:**
-- v0.5.1 requirements: 41 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 41
+- v0.5.2 requirements: 41 total
+- Mapped to phases: 41/41
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-11*
-*Last updated: 2026-06-11 after initial definition*
+*Last updated: 2026-06-11 after roadmap creation*
