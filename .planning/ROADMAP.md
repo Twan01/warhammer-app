@@ -111,19 +111,23 @@ Full details: `.planning/milestones/v0.4.0-ROADMAP.md`
 ## Phase Details
 
 ### Phase 126: Critical Fixes & Dead Ends
+
 **Goal**: Every user action has an exit path and every error surface has a recovery option — no dead ends, no confusing no-op feedback
 **Depends on**: Nothing (first phase of milestone)
 **Requirements**: FIX-01, FIX-02, FIX-03, FIX-04, FIX-05, FIX-06, FIX-07, FIX-08, FIX-09, FIX-10, FIX-11
 **Success Criteria** (what must be TRUE):
+
   1. Painting Mode completion screen shows an exit button and visible Escape hint — user is never trapped
   2. The "assignment not found" error in Painting Mode displays a back button and the Escape key works
   3. Army List notes save fires a success toast only when a mutation actually runs (no silent no-op toast)
   4. RecipesPage shows a distinct error state (not an empty list) when the query fails
   5. Settings, Data Health, and all page headers use a consistent text-3xl PageHeader with border-b separator
+
 **Plans:** 4 plans (Wave 1: 01, 02, 03, 04 — all parallel)
 **UI hint**: yes
 
 Plans:
+
 - [x] 0126-01-PLAN.md — Painting Mode exit UX (FIX-01, FIX-02)
 - [x] 0126-02-PLAN.md — CSS tokens, scrollbar, PageHeaders (FIX-05, FIX-06, FIX-11)
 - [x] 0126-03-PLAN.md — Army List fixes and Recipes error state (FIX-03, FIX-04, FIX-10)
@@ -132,53 +136,68 @@ Plans:
 **UI hint**: yes
 
 ### Phase 127: Visual Consistency & PageHeader Unification
+
 **Goal**: Every page looks like it belongs to the same app — consistent headers, spacing, empty states, and design tokens throughout
 **Depends on**: Phase 126
 **Requirements**: VIS-01, VIS-02, VIS-03, VIS-04, VIS-05, VIS-06, VIS-07, VIS-08, VIS-09
 **Success Criteria** (what must be TRUE):
+
   1. Rules Hub and Unit Database pages show a PageHeader with border-b separator and subtitle — matching all other pages
   2. Section heading sizes are the same pattern across Dashboard, Goals, Spending, and Data Health
   3. Spending page uses standard p-6 gap-6 padding (visually consistent with other pages)
   4. Paints filtered empty state uses the icon-pill pattern matching other empty states in the app
   5. Status dots and button icon sizes follow a single pattern (theme tokens, h-4 w-4 + mr-2) with no hardcoded hex values
+
 **Plans:** 3 plans (Wave 1: 01, 02, 03 — all parallel)
 **UI hint**: yes
 
 Plans:
+
 - [x] 127-01-PLAN.md — PageHeader adoption and GoalsPage heading standardization (VIS-01, VIS-02, VIS-03)
 - [x] 127-02-PLAN.md — Spacing normalization, heading standardization, and empty state fixes (VIS-03, VIS-04, VIS-05, VIS-08, VIS-09)
 - [x] 127-03-PLAN.md — Status dot tokens and button icon sizing (VIS-06, VIS-07)
 
 ### Phase 128: Feedback Hardening & Form UX
+
 **Goal**: Every significant user action produces appropriate feedback — pending states, success confirmations, auto-save indicators, and actionable error messages
 **Depends on**: Phase 127 (can run in parallel with Phase 129)
 **Requirements**: FBK-01, FBK-02, FBK-03, FBK-04, FBK-05, FBK-06, FBK-07, FBK-08, FBK-09, FBK-10
 **Success Criteria** (what must be TRUE):
+
   1. Delete dialogs for Faction, Battle Log, Recipe, and Paint show "Deleting..." during the pending mutation
   2. Game Day page shows a user-friendly error message (not a blank screen) when data fails to load
   3. All Sheet forms focus the first input field automatically when opened
   4. The RuleNoteEditor shows a subtle "Saved" indicator after auto-saving
   5. PlaybookTab disabled save button has a tooltip explaining the reason, and shows a Retry button on error
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 129: Navigation, Cross-Links & Technical Cleanup
+
 **Goal**: Navigation between related pages is effortless, the sidebar always reflects the active route, and dead code no longer burdens the codebase
 **Depends on**: Phase 127 (can run in parallel with Phase 128)
 **Requirements**: NAV-01, NAV-02, NAV-03, NAV-04, NAV-05, NAV-06, NAV-07, NAV-08, NAV-09, NAV-10, NAV-11
 **Success Criteria** (what must be TRUE):
+
   1. Painting Mode exit returns to the page that launched it (Collection, Kanban, Recipe, etc.) — not always Dashboard
   2. Collection unit detail sheet has a "View Datasheet" link to the Unit Database for that unit
   3. Rules Hub and Unit Database pages have visible cross-links to each other
   4. The Game Day sidebar item is highlighted when Game Day is the active page
   5. Battle Log entries link directly to the army list used in that battle
+
 **Plans:** 4 plans (Wave 1: 01, 02, 03 — parallel; Wave 2: 04)
 **UI hint**: yes
 
 Plans:
+**Wave 1**
+
 - [ ] 129-01-PLAN.md — Painting Mode returnTo navigation (NAV-01)
 - [ ] 129-02-PLAN.md — Cross-links: UnitDetailSheet, Rules/UDB, BattleLogRow (NAV-02, NAV-03, NAV-06)
 - [ ] 129-03-PLAN.md — Code cleanup: dead code, memo, reducer extraction (NAV-07, NAV-08, NAV-09, NAV-11)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 129-04-PLAN.md — Sidebar: Game Day entry, collapsed dividers, transition polish (NAV-04, NAV-05, NAV-10)
 
 ## Progress
