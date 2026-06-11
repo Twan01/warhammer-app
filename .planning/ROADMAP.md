@@ -138,7 +138,7 @@ Full details: `.planning/milestones/v0.4.0-ROADMAP.md`
 
 ### Phase 128: Feedback Hardening & Form UX
 **Goal**: Every significant user action produces appropriate feedback — pending states, success confirmations, auto-save indicators, and actionable error messages
-**Depends on**: Phase 127
+**Depends on**: Phase 127 (can run in parallel with Phase 129)
 **Requirements**: FBK-01, FBK-02, FBK-03, FBK-04, FBK-05, FBK-06, FBK-07, FBK-08, FBK-09, FBK-10
 **Success Criteria** (what must be TRUE):
   1. Delete dialogs for Faction, Battle Log, Recipe, and Paint show "Deleting..." during the pending mutation
@@ -151,7 +151,7 @@ Full details: `.planning/milestones/v0.4.0-ROADMAP.md`
 
 ### Phase 129: Navigation, Cross-Links & Technical Cleanup
 **Goal**: Navigation between related pages is effortless, the sidebar always reflects the active route, and dead code no longer burdens the codebase
-**Depends on**: Phase 128
+**Depends on**: Phase 127 (can run in parallel with Phase 128)
 **Requirements**: NAV-01, NAV-02, NAV-03, NAV-04, NAV-05, NAV-06, NAV-07, NAV-08, NAV-09, NAV-10, NAV-11
 **Success Criteria** (what must be TRUE):
   1. Painting Mode exit returns to the page that launched it (Collection, Kanban, Recipe, etc.) — not always Dashboard
