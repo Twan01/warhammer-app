@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useLocation } from "@tanstack/react-router";
 import { ClipboardList, Palette, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ interface AppliedRecipesTabProps {
  */
 export function AppliedRecipesTab({ unitId, onApplyRecipe }: AppliedRecipesTabProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { data: assignments = [], isLoading } = useAssignmentsByUnit(unitId);
   const { data: recipes = [] } = useRecipes();
   const deleteAssignment = useDeleteAssignment();
@@ -78,6 +79,7 @@ export function AppliedRecipesTab({ unitId, onApplyRecipe }: AppliedRecipesTabPr
                   navigate({
                     to: "/painting-mode/$assignmentId",
                     params: { assignmentId: String(assignment.id) },
+                    search: { returnTo: location.pathname },
                   })
                 }
                 data-testid={`paint-btn-${assignment.id}`}
