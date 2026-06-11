@@ -13,7 +13,7 @@ export function FactionsEmptyState({ onAdd }: FactionsEmptyStateProps) {
       </div>
       <div className="space-y-1">
         <p className="text-base font-semibold">No factions yet</p>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground max-w-xs">
           Add your first faction to start organizing your collection.
         </p>
       </div>

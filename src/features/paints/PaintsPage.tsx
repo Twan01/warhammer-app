@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { Palette, Plus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -126,9 +126,15 @@ export function PaintsPage() {
 
       {/* Filtered empty state — paints exist but filters narrowed to zero */}
       {!isLoading && !isError && (paints?.length ?? 0) > 0 && filtered.length === 0 && hasAny && (
-        <div className="flex flex-col items-start gap-2">
-          <p className="text-sm text-muted-foreground">No paints match your filters.</p>
-          <Button variant="ghost" size="sm" onClick={clearAll}>Clear filters</Button>
+        <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+          <div className="rounded-xl bg-muted/40 p-4">
+            <Palette className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-base font-semibold">No paints match your filters</p>
+            <p className="text-sm text-muted-foreground max-w-xs">Try adjusting or clearing your filters to see more results.</p>
+          </div>
+          <Button variant="ghost" size="sm" className="mt-2" onClick={clearAll}>Clear filters</Button>
         </div>
       )}
 
