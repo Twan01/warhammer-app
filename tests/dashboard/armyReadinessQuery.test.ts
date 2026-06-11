@@ -1,19 +1,31 @@
 /**
  * Phase 32 — Army Readiness data layer tests.
+ * Phase 122 — Updated: useArmyReadinessTarget now reads from app_settings (not localStorage).
  *
  * Tests the SQL contract for getArmyReadinessByFaction and the
- * useArmyReadinessTarget hook behaviour (localStorage default/read/fallback/persist).
+ * useArmyReadinessTarget hook behaviour (app_settings default/read/fallback/session override).
  */
 import React from "react";
-import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
+import { vi, describe, it, expect, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Mock @/db/client so the query function resolves without tauri IPC.
 const dbSelectMock = vi.fn();
 
 vi.mock("@/db/client", () => ({
   getDb: async () => ({ select: dbSelectMock }),
+}));
+
+// Phase 122: useArmyReadinessTarget reads from useAppSettings
+let mockSettingsData: Record<string, string> = {};
+
+vi.mock("@/hooks/useAppSettings", () => ({
+  useAppSettings: vi.fn(() => ({
+    data: mockSettingsData,
+    isLoading: false,
+    isError: false,
+  })),
+  useUpdateSetting: vi.fn(() => ({ mutate: vi.fn() })),
 }));
 
 import { getArmyReadinessByFaction } from "@/db/queries/dashboard";
@@ -23,20 +35,9 @@ import {
   useArmyReadinessTarget,
 } from "@/hooks/useArmyReadiness";
 
-function makeWrapper() {
-  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const wrapper = ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: qc }, children);
-  return { qc, wrapper };
-}
-
 beforeEach(() => {
   dbSelectMock.mockReset();
-  localStorage.clear();
-});
-
-afterEach(() => {
-  localStorage.clear();
+  mockSettingsData = {};
 });
 
 // ---- SQL contract tests ----
@@ -109,38 +110,41 @@ describe("ARMY_READINESS_TARGETS constant (Phase 32)", () => {
   });
 });
 
-// ---- useArmyReadinessTarget hook tests ----
+// ---- useArmyReadinessTarget hook tests (Phase 122: migrated from localStorage to app_settings) ----
 
-describe("useArmyReadinessTarget hook (Phase 32)", () => {
-  it("Test 7: defaults to 2000 when no localStorage value exists", () => {
-    const { wrapper } = makeWrapper();
-    const { result } = renderHook(() => useArmyReadinessTarget(), { wrapper });
+describe("useArmyReadinessTarget hook (Phase 32 + 122)", () => {
+  it("Test 7: defaults to 2000 when no app_settings value exists", () => {
+    mockSettingsData = {};
+    const { result } = renderHook(() => useArmyReadinessTarget());
     expect(result.current[0]).toBe(2000);
   });
 
-  it("Test 8: reads valid stored value from localStorage", () => {
-    localStorage.setItem("army-readiness:target", "1000");
-    const { wrapper } = makeWrapper();
-    const { result } = renderHook(() => useArmyReadinessTarget(), { wrapper });
+  it("Test 8: reads valid stored value from app_settings", () => {
+    mockSettingsData = { army_readiness_target: "1000" };
+    const { result } = renderHook(() => useArmyReadinessTarget());
     expect(result.current[0]).toBe(1000);
   });
 
-  it("Test 9: falls back to 2000 for invalid/corrupt localStorage value", () => {
-    localStorage.setItem("army-readiness:target", "750");
-    const { wrapper } = makeWrapper();
-    const { result } = renderHook(() => useArmyReadinessTarget(), { wrapper });
+  it("Test 9: falls back to 2000 for invalid app_settings value", () => {
+    mockSettingsData = { army_readiness_target: "bad" };
+    const { result } = renderHook(() => useArmyReadinessTarget());
     expect(result.current[0]).toBe(2000);
   });
 
-  it("Test 10: persists new value to localStorage on change", () => {
-    const { wrapper } = makeWrapper();
-    const { result } = renderHook(() => useArmyReadinessTarget(), { wrapper });
+  it("Test 10: session override changes target without persisting", () => {
+    mockSettingsData = { army_readiness_target: "2000" };
+    const { result } = renderHook(() => useArmyReadinessTarget());
 
     act(() => {
       result.current[1](500);
     });
 
-    expect(localStorage.getItem("army-readiness:target")).toBe("500");
     expect(result.current[0]).toBe(500);
+  });
+
+  it("Test 11: supports custom numeric values (D-10)", () => {
+    mockSettingsData = { army_readiness_target: "1250" };
+    const { result } = renderHook(() => useArmyReadinessTarget());
+    expect(result.current[0]).toBe(1250);
   });
 });

@@ -24,6 +24,7 @@ import {
   type ReactNode,
 } from "react";
 import { useFactions } from "@/hooks/useFactions";
+import { useAppSettings } from "@/hooks/useAppSettings";
 import type { Faction } from "@/types/faction";
 
 const STORAGE_KEY = "active-faction-id";
@@ -39,6 +40,7 @@ const ActiveFactionContext = createContext<ActiveFactionState | null>(null);
 
 export function ActiveFactionProvider({ children }: { children: ReactNode }) {
   const { data: factions = [] } = useFactions();
+  const { data: settings } = useAppSettings();
 
   const [activeFactionId, setActiveFactionId] = useState<number | null>(() => {
     if (typeof window === "undefined") return null;
@@ -51,6 +53,19 @@ export function ActiveFactionProvider({ children }: { children: ReactNode }) {
       return null;
     }
   });
+
+  // Phase 122 D-06: On cold start, if localStorage has no faction but app_settings
+  // has a default_faction_id, use the DB value. One-time boot migration — after this,
+  // localStorage stays in sync via the persistence effect below.
+  useEffect(() => {
+    if (activeFactionId !== null) return; // localStorage already has a value
+    const defaultId = settings?.["default_faction_id"];
+    if (!defaultId || defaultId === "") return;
+    const parsed = Number(defaultId);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      setActiveFactionId(parsed);
+    }
+  }, [activeFactionId, settings]);
 
   // Resolve hex from factions list — DEFAULT when no faction OR factions still loading
   const activeFaction = factions.find((f) => f.id === activeFactionId) ?? null;
