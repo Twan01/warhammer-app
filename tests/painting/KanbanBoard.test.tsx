@@ -10,6 +10,11 @@ import { FACTIONS_KEY } from "@/hooks/useFactions";
 import type { Unit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
 
+vi.mock("@tanstack/react-router", () => ({
+  useNavigate: () => vi.fn(),
+  useLocation: () => ({ pathname: "/" }),
+}));
+
 function makeUnit(over: Partial<Unit> = {}): Unit {
   return {
     id: 1,

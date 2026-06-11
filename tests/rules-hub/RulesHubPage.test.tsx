@@ -11,6 +11,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import type { ReactNode } from "react";
 
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children, ...props }: any) => <a {...props}>{children}</a>,
+}));
+
 vi.mock("@/hooks/useFactions", () => ({
   useFactions: vi.fn(() => ({
     data: [

@@ -18,6 +18,7 @@ const mockNavigate = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => mockNavigate,
+  useLocation: () => ({ pathname: "/" }),
 }));
 
 vi.mock("@/hooks/useRecipeAssignments", () => ({
@@ -76,6 +77,7 @@ describe("EP-03: AppliedRecipesTab Paint buttons", () => {
     expect(mockNavigate).toHaveBeenCalledWith({
       to: "/painting-mode/$assignmentId",
       params: { assignmentId: "100" },
+      search: { returnTo: "/" },
     });
   });
 

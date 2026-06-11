@@ -23,6 +23,10 @@ vi.mock("@/db/queries/armyLists", async (importOriginal) => {
   };
 });
 
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children, ...props }: any) => <a {...props}>{children}</a>,
+}));
+
 // Mock Collapsible and its sub-components to avoid Radix portal issues in jsdom
 vi.mock("@/components/ui/collapsible", () => ({
   Collapsible: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,

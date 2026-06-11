@@ -17,6 +17,11 @@ const mockNavigate = vi.fn();
 vi.mock("@tanstack/react-router", () => ({
   useParams: () => ({ assignmentId: "999" }),
   useNavigate: () => mockNavigate,
+  useLocation: () => ({ pathname: "/" }),
+}));
+
+vi.mock("@/app/router", () => ({
+  paintingModeRoute: { useSearch: () => ({}) },
 }));
 
 // Assignment returns undefined (not found)

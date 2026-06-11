@@ -26,6 +26,11 @@ const mockGoToStep = vi.fn();
 vi.mock("@tanstack/react-router", () => ({
   useParams: () => ({ assignmentId: "1" }),
   useNavigate: () => mockNavigate,
+  useLocation: () => ({ pathname: "/" }),
+}));
+
+vi.mock("@/app/router", () => ({
+  paintingModeRoute: { useSearch: () => ({}) },
 }));
 
 vi.mock("@/hooks/useRecipeAssignments", () => ({

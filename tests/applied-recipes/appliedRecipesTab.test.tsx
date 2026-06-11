@@ -45,6 +45,11 @@ const mockDeleteMutate = vi.fn();
 
 let currentAssignments = mockAssignments;
 
+vi.mock("@tanstack/react-router", () => ({
+  useNavigate: () => vi.fn(),
+  useLocation: () => ({ pathname: "/" }),
+}));
+
 vi.mock("@/hooks/useRecipeAssignments", () => ({
   useAssignmentsByUnit: () => ({ data: currentAssignments, isLoading: false }),
   useDeleteAssignment: () => ({ mutate: mockDeleteMutate, isPending: false }),

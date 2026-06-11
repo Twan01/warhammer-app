@@ -23,6 +23,7 @@ const mockNavigate = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => mockNavigate,
+  useLocation: () => ({ pathname: "/" }),
 }));
 
 vi.mock("@/hooks/useFactions", () => ({
