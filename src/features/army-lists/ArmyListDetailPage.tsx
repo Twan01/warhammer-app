@@ -252,7 +252,7 @@ function SortableUnitRow({
 
 export function ArmyListDetailPage({ listId }: { listId: number }) {
   const navigate = useNavigate();
-  const { data: list } = useArmyList(listId);
+  const { data: list, isLoading: listLoading } = useArmyList(listId);
   const { data: units, isLoading } = useArmyListWithUnits(listId);
   const { data: listEnhancements } = useEnhancementsByList(listId);
   const { data: factions } = useFactions();
@@ -433,7 +433,6 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
   function handleSaveListNotes() {
     if (!list) return;
     if (notesDraft === (list.notes ?? "")) {
-      toast.success("Notes saved.");
       return;
     }
     updateArmyList.mutate(
@@ -523,7 +522,7 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
     }
   }, [deletingList, listId, navigate]);
 
-  if (!list) {
+  if (listLoading) {
     return (
       <div className="flex flex-col gap-6 p-6">
         <div className="flex items-center gap-2">
@@ -537,6 +536,23 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
         <div className="flex flex-col gap-2">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-4 w-48" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!list) {
+    return (
+      <div className="flex flex-col gap-6 p-6">
+        <Button variant="ghost" size="sm" asChild>
+          <Link to="/army-lists">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Army Lists
+          </Link>
+        </Button>
+        <div className="text-center py-12">
+          <h2 className="text-lg font-semibold">List not found</h2>
+          <p className="text-sm text-muted-foreground mt-1">This army list may have been deleted.</p>
         </div>
       </div>
     );
