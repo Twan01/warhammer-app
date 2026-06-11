@@ -7,7 +7,6 @@
 
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import type { RecipeStep } from "@/types/recipePaint";
 
 // ---------------------------------------------------------------------------
 // Mocks — assignment NOT found
@@ -31,27 +30,6 @@ vi.mock("@/hooks/useRecipeAssignments", () => ({
     isPending: false,
   }),
 }));
-
-function makeStep(overrides: Partial<RecipeStep> = {}): RecipeStep {
-  return {
-    id: 1,
-    recipe_id: 0,
-    paint_id: null,
-    step_name: "Stub",
-    order_index: 0,
-    notes: null,
-    painting_phase: null,
-    tool: null,
-    technique: null,
-    dilution: null,
-    time_estimate_minutes: null,
-    step_photo_path: null,
-    alt_paint_id: null,
-    section_id: null,
-    created_at: "2026-01-01",
-    ...overrides,
-  };
-}
 
 vi.mock("@/hooks/usePaintingModeState", () => ({
   usePaintingModeState: () => ({

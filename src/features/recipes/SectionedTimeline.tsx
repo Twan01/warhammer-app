@@ -122,16 +122,14 @@ export function SectionedTimeline({
                 {availability && (availability.owned > 0 || availability.missing > 0) && (
                   <span className="flex items-center gap-1">
                     <span
-                      className="inline-block h-2 w-2 rounded-full shrink-0"
-                      style={{ backgroundColor: "#22c55e" }}
+                      className="inline-block h-2 w-2 rounded-full shrink-0 bg-green-500"
                     />
                     {availability.owned} owned
                     {availability.missing > 0 && (
                       <>
                         <span className="mx-0.5">·</span>
                         <span
-                          className="inline-block h-2 w-2 rounded-full shrink-0"
-                          style={{ backgroundColor: "#ef4444" }}
+                          className="inline-block h-2 w-2 rounded-full shrink-0 bg-red-500"
                         />
                         {availability.missing} missing
                       </>

@@ -32,20 +32,17 @@ function AvailabilityBadge({ availability }: { availability: AvailabilityStats }
     return (
       <span className="flex items-center gap-1 text-xs text-muted-foreground">
         <span
-          className="inline-block h-2 w-2 rounded-full shrink-0"
-          style={{ backgroundColor: "#22c55e" }}
+          className="inline-block h-2 w-2 rounded-full shrink-0 bg-green-500"
         />
         {owned} owned
         <span className="mx-0.5">·</span>
         <span
-          className="inline-block h-2 w-2 rounded-full shrink-0"
-          style={{ backgroundColor: "#f59e0b" }}
+          className="inline-block h-2 w-2 rounded-full shrink-0 bg-amber-500"
         />
         {runningLow} low
         <span className="mx-0.5">·</span>
         <span
-          className="inline-block h-2 w-2 rounded-full shrink-0"
-          style={{ backgroundColor: "#ef4444" }}
+          className="inline-block h-2 w-2 rounded-full shrink-0 bg-red-500"
         />
         {missing} missing
       </span>
@@ -56,8 +53,7 @@ function AvailabilityBadge({ availability }: { availability: AvailabilityStats }
     return (
       <span className="flex items-center gap-1 text-xs text-muted-foreground">
         <span
-          className="inline-block h-2 w-2 rounded-full shrink-0"
-          style={{ backgroundColor: "#ef4444" }}
+          className="inline-block h-2 w-2 rounded-full shrink-0 bg-red-500"
         />
         {missing} missing
         {owned > 0 && (
@@ -74,8 +70,7 @@ function AvailabilityBadge({ availability }: { availability: AvailabilityStats }
     return (
       <span className="flex items-center gap-1 text-xs text-muted-foreground">
         <span
-          className="inline-block h-2 w-2 rounded-full shrink-0"
-          style={{ backgroundColor: "#f59e0b" }}
+          className="inline-block h-2 w-2 rounded-full shrink-0 bg-amber-500"
         />
         {runningLow} low
       </span>
@@ -85,8 +80,7 @@ function AvailabilityBadge({ availability }: { availability: AvailabilityStats }
   return (
     <span className="flex items-center gap-1 text-xs text-muted-foreground">
       <span
-        className="inline-block h-2 w-2 rounded-full shrink-0"
-        style={{ backgroundColor: "#22c55e" }}
+        className="inline-block h-2 w-2 rounded-full shrink-0 bg-green-500"
       />
       {owned} owned
     </span>
