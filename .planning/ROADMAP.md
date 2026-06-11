@@ -33,8 +33,8 @@
 
 **Milestone Goal:** Build a comprehensive Settings page with tabbed navigation centralizing app configuration, hobby defaults, data management shortcuts, and version info.
 
-- [ ] **Phase 121: Settings Foundation** - app_settings table, query/hook layer, and tabbed UI shell
-- [ ] **Phase 122: Preferences Tab** - language, currency, default faction, and points target settings
+- [x] **Phase 121: Settings Foundation** - app_settings table, query/hook layer, and tabbed UI shell
+- [x] **Phase 122: Preferences Tab** - language, currency, default faction, and points target settings
 - [x] **Phase 123: Hobby Defaults Tab** - customizable pipeline stages, pre-game checklist, and mission format
 - [x] **Phase 124: Data Management Tab** - Data Health link, factory reset, preference export/import
 - [ ] **Phase 125: About Tab** - app version, data stats, credits and attribution

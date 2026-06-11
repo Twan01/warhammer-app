@@ -13,10 +13,10 @@
 
 ### Preferences
 
-- [ ] **PREF-01**: User can set default language (EN/FR) from Settings, persisted in `app_settings` table
-- [ ] **PREF-02**: User can pick currency (EUR/GBP/USD/CAD/AUD/JPY) from Settings; spending tracker uses selected currency
-- [ ] **PREF-03**: User can set a default faction that loads as active on app start
-- [ ] **PREF-04**: User can set a default army readiness points target (500/1000/1500/2000 or custom)
+- [x] **PREF-01**: User can set default language (EN/FR) from Settings, persisted in `app_settings` table
+- [x] **PREF-02**: User can pick currency (EUR/GBP/USD/CAD/AUD/JPY) from Settings; spending tracker uses selected currency
+- [x] **PREF-03**: User can set a default faction that loads as active on app start
+- [x] **PREF-04**: User can set a default army readiness points target (500/1000/1500/2000 or custom)
 
 ### Hobby Defaults
 
@@ -62,10 +62,10 @@
 | INF-01 | Phase 121 | Complete |
 | INF-02 | Phase 121 | Complete |
 | INF-03 | Phase 121 | Complete |
-| PREF-01 | Phase 122 | Pending |
-| PREF-02 | Phase 122 | Pending |
-| PREF-03 | Phase 122 | Pending |
-| PREF-04 | Phase 122 | Pending |
+| PREF-01 | Phase 122 | Complete |
+| PREF-02 | Phase 122 | Complete |
+| PREF-03 | Phase 122 | Complete |
+| PREF-04 | Phase 122 | Complete |
 | HOB-01 | Phase 123 | Complete |
 | HOB-02 | Phase 123 | Complete |
 | HOB-03 | Phase 123 | Complete |

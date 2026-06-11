@@ -10,8 +10,8 @@ progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 10
-  completed_plans: 9
-  percent: 90
+  completed_plans: 10
+  percent: 100
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 
 ## Current Position
 
-Phase: 122 (preferences-tab) — Plan 01 complete
-Plan: 1 of 2
-Status: Plan 01 complete — GeneralPreferencesSection with 4 setting controls wired into Settings page
-Last activity: 2026-06-11 -- Phase 122 Plan 01 complete
+Phase: 122 (preferences-tab) — Plan 02 complete (phase complete)
+Plan: 2 of 2
+Status: Phase 122 complete — all 4 preferences wired to consumers (locale, currency, faction, readiness)
+Last activity: 2026-06-11 -- Phase 122 Plan 02 complete
 
-Progress: [█████████░] 90%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -72,6 +72,11 @@ Progress: [█████████░] 90%
 - INSERT OR REPLACE upsert pattern for app_settings (idiomatic SQLite)
 - Loading/error guard only on Preferences tab — Data and About are static placeholders in Phase 121
 - No QueryClientProvider wrapper in SettingsPage tests — useAppSettings fully mocked at module level
+- localeStore gutted to useLocale() shim reading from app_settings — Zustand store removed
+- LocaleToggle reads/writes via useAppSettings + useUpdateSetting (not Zustand)
+- useCurrencyPreference wired to all 5 formatCurrency consumer files
+- ActiveFactionContext reads default_faction_id from app_settings on cold start (localStorage fallback preserved)
+- useArmyReadinessTarget reads from app_settings with session-only override for ArmyReadinessCard
 
 ### Pending Todos
 
@@ -93,7 +98,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-11T07:10:00.000Z
-Stopped at: Phase 122 Plan 01 complete — Plan 02 (consumer integration) remains
-Resume file: .planning/phases/122-preferences-tab/122-02-PLAN.md
-Resume: Plan 01 delivered GeneralPreferencesSection with 4 setting controls, useCurrencyPreference hook, and LOCALE_QUERY_KEYS. Plan 02 wires consumers (LocaleToggle, formatCurrency, ActiveFactionContext, useArmyReadinessTarget).
+Last session: 2026-06-11T09:40:00.000Z
+Stopped at: Phase 122 complete — all preferences wired to consumers
+Resume file: None
+Resume: Phase 122 complete. All 4 preferences (locale, currency, default faction, readiness target) persist to app_settings and wire through to their consumer systems.
