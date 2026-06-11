@@ -83,7 +83,7 @@ export function BattleLogRow({
             )}
           </p>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {armyListName ? (
+            {armyListName && log.army_list_id != null ? (
               <>
                 <Link
                   to="/army-lists/$listId"

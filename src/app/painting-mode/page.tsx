@@ -111,7 +111,8 @@ function PaintingModePageInner({ assignmentId }: { assignmentId: number }) {
 
   // Exit handler (D-07) — safe navigation back
   const handleExit = () => {
-    navigate({ to: returnTo ?? "/" });
+    const target = returnTo && returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : "/";
+    navigate({ to: target });
   };
 
   // Keyboard shortcuts enabled only when assignment loaded and state ready

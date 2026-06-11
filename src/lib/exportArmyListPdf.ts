@@ -1,8 +1,7 @@
 /**
  * Shared PDF generation for army list export.
  *
- * Used by both ArmyListDetailPage and ArmyListDetailSheet to avoid
- * duplicating the ~80-line jsPDF + autoTable rendering logic.
+ * Used by ArmyListDetailPage for jsPDF + autoTable rendering.
  */
 
 import type { ExportData } from "@/lib/exportArmyList";
