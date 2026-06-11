@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "@tanstack/react-router";
+import { paintingModeRoute } from "@/app/router";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import { useRecipeAssignment, useCompleteStep } from "@/hooks/useRecipeAssignments";
@@ -32,6 +33,7 @@ export function PaintingModePage() {
 
 function PaintingModePageInner({ assignmentId }: { assignmentId: number }) {
   const navigate = useNavigate();
+  const { returnTo } = paintingModeRoute.useSearch();
   const { data: assignment, isLoading: assignmentLoading } =
     useRecipeAssignment(assignmentId);
 
@@ -109,7 +111,7 @@ function PaintingModePageInner({ assignmentId }: { assignmentId: number }) {
 
   // Exit handler (D-07) — safe navigation back
   const handleExit = () => {
-    navigate({ to: "/" });
+    navigate({ to: returnTo ?? "/" });
   };
 
   // Keyboard shortcuts enabled only when assignment loaded and state ready
