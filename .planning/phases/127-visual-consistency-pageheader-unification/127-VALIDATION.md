@@ -1,9 +1,9 @@
 ---
 phase: 127
 slug: visual-consistency-pageheader-unification
-status: draft
+status: complete
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-06-11
 ---
 
@@ -38,12 +38,12 @@ created: 2026-06-11
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 127-01-01 | 01 | 1 | VIS-01, VIS-02 | — | N/A | source | `pnpm build && grep -c "PageHeader" src/features/rules-hub/RulesHubPage.tsx \| grep -v "^0$"` | N/A | ⬜ pending |
-| 127-01-02 | 01 | 1 | VIS-03 | — | N/A | source | `pnpm build && grep -c "text-sm font-semibold uppercase tracking-widest" src/features/goals/GoalsPage.tsx \| grep -v "^0$"` | N/A | ⬜ pending |
-| 127-02-01 | 02 | 1 | VIS-03, VIS-04, VIS-09 | — | N/A | source | `pnpm build && grep -c "max-w-3xl" src/features/spending/SpendingPage.tsx \| grep "^0$"` | N/A | ⬜ pending |
-| 127-02-02 | 02 | 1 | VIS-05, VIS-08 | — | N/A | source | `pnpm build && grep -c "rounded-xl bg-muted/40 p-4" src/features/paints/PaintsPage.tsx \| grep -v "^0$" && grep -c "max-w-xs" src/features/factions/FactionsEmptyState.tsx \| grep -v "^0$"` | N/A | ⬜ pending |
-| 127-03-01 | 03 | 1 | VIS-06 | — | N/A | source | `pnpm build && grep -c "backgroundColor" src/features/recipes/RecipeCard.tsx \| grep "^0$"` | N/A | ⬜ pending |
-| 127-03-02 | 03 | 1 | VIS-07 | — | N/A | source | `pnpm build && grep -c "size={14}" src/features/dashboard/DashboardPage.tsx \| grep "^0$"` | N/A | ⬜ pending |
+| 127-01-01 | 01 | 1 | VIS-01, VIS-02 | — | N/A | unit | `pnpm test -- tests/rules-hub/RulesHubPage.test.tsx tests/visual-consistency/Phase127VisualConsistency.test.tsx` | Yes | ✅ green |
+| 127-01-02 | 01 | 1 | VIS-03 | — | N/A | unit | `pnpm test -- tests/goals/GoalsPage.test.tsx` | Yes | ✅ green |
+| 127-02-01 | 02 | 1 | VIS-03, VIS-04, VIS-09 | — | N/A | unit | `pnpm test -- tests/spending/SpendingPage.test.tsx` | Yes | ✅ green |
+| 127-02-02 | 02 | 1 | VIS-05, VIS-08 | — | N/A | unit | `pnpm test -- tests/visual-consistency/Phase127VisualConsistency.test.tsx` | Yes | ✅ green |
+| 127-03-01 | 03 | 1 | VIS-06 | — | N/A | unit | `pnpm test -- tests/painting/RecipeCard.test.tsx` | Yes | ✅ green |
+| 127-03-02 | 03 | 1 | VIS-07 | — | N/A | unit | `pnpm test -- tests/dashboard/DashboardPage.test.tsx` | Yes | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -77,4 +77,16 @@ Existing infrastructure covers all phase requirements. All VIS requirements are 
 - [x] Feedback latency < 15s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved
+
+---
+
+## Validation Audit 2026-06-11
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 6 |
+| Resolved | 6 |
+| Escalated | 0 |
+
+Tests added: 32 assertions across 6 test files (5 extended, 1 new). All use source-reading pattern (readFileSync) to verify CSS class changes since jsdom doesn't process Tailwind.
