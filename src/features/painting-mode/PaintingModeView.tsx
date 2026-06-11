@@ -20,6 +20,7 @@ interface PaintingModeViewProps {
   onMarkDoneWithSession: () => void;
   recipeId: number;
   isMutating: boolean;
+  onExit?: () => void;
 }
 
 export function PaintingModeView({
@@ -28,6 +29,7 @@ export function PaintingModeView({
   onMarkDoneWithSession,
   recipeId,
   isMutating,
+  onExit,
 }: PaintingModeViewProps) {
   const { data: paints = [] } = usePaints();
   const { data: sections = [] } = useRecipeSections(recipeId);
@@ -174,6 +176,7 @@ export function PaintingModeView({
           sectionName={sectionName}
           isAllComplete={isAllComplete}
           isMutating={isMutating}
+          onExit={onExit}
         />
       </div>
     </div>

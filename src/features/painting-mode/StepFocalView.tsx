@@ -20,6 +20,7 @@ export interface StepFocalViewProps {
   sectionName: string | null;
   isAllComplete: boolean;
   isMutating?: boolean;
+  onExit?: () => void;
 }
 
 export function StepFocalView({
@@ -38,12 +39,19 @@ export function StepFocalView({
   sectionName,
   isAllComplete,
   isMutating,
+  onExit,
 }: StepFocalViewProps) {
   if (isAllComplete) {
     return (
       <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center gap-4">
         <CheckCircle className="h-16 w-16 text-green-500" />
         <p className="text-2xl font-semibold">All steps complete!</p>
+        {onExit && (
+          <>
+            <Button onClick={onExit}>Exit Painting Mode</Button>
+            <p className="text-xs text-muted-foreground">Press Escape to exit</p>
+          </>
+        )}
       </div>
     );
   }
@@ -169,6 +177,8 @@ export function StepFocalView({
           Done + Log Session
         </Button>
       </div>
+
+      <p className="text-xs text-muted-foreground text-center mt-2">Esc to exit</p>
     </div>
   );
 }
