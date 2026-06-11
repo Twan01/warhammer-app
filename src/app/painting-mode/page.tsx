@@ -9,7 +9,9 @@ import { useUnit } from "@/hooks/useUnits";
 import { useRecipe } from "@/hooks/useRecipes";
 import { todayISO } from "@/lib/dates";
 
+import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { PaintingModeView } from "@/features/painting-mode/PaintingModeView";
 import { PaintingSessionSheet } from "@/features/painting-mode/PaintingSessionSheet";
 
@@ -128,10 +130,20 @@ function PaintingModePageInner({ assignmentId }: { assignmentId: number }) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate({ to: "/" })}
+            className="mb-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Go Back
+          </Button>
           <h2 className="text-xl font-semibold mb-2">Assignment not found</h2>
           <p className="text-muted-foreground">
             The painting assignment could not be found.
           </p>
+          <p className="text-xs text-muted-foreground mt-2">Press Escape to exit</p>
         </div>
       </div>
     );
@@ -146,6 +158,7 @@ function PaintingModePageInner({ assignmentId }: { assignmentId: number }) {
           onMarkDoneWithSession={() => setPaintingSessionOpen(true)}
           recipeId={assignment.recipe_id}
           isMutating={completeMutation.isPending}
+          onExit={handleExit}
         />
       </div>
       {/* Sibling sheet — never nested inside PaintingModeView */}
