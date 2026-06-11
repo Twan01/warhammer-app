@@ -26,6 +26,7 @@ export function RuleNoteEditor({
   const [localText, setLocalText] = useState(note?.note_text ?? "");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const upsertNote = useUpsertRulesNote();
+  const [showSaved, setShowSaved] = useState(false);
 
   const pendingTextRef = useRef(localText);
   pendingTextRef.current = localText;
@@ -62,6 +63,11 @@ export function RuleNoteEditor({
         rule_type: ruleType,
         rule_name: ruleName,
         note_text: value,
+      }, {
+        onSuccess: () => {
+          setShowSaved(true);
+          setTimeout(() => setShowSaved(false), 2000);
+        },
       });
     }, 500);
   }
@@ -77,6 +83,9 @@ export function RuleNoteEditor({
         onChange={handleChange}
         placeholder="Add personal notes..."
       />
+      <span className={`text-xs text-muted-foreground transition-opacity duration-300 ${showSaved ? "opacity-100" : "opacity-0"}`}>
+        Saved
+      </span>
     </>
   );
 }

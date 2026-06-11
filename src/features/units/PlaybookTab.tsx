@@ -2,6 +2,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useStrategyNote, useUpsertStrategyNote } from "@/hooks/useStrategyNote";
 import { useDatasheet, useWahapediaFactionId, DATASHEET_KEY } from "@/hooks/useDatasheet";
 import { useUdbMeta } from "@/hooks/useUdbMeta";
@@ -54,7 +60,7 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
   const localFaction = useMemo(() => (unit && factions ? factions.find((f) => f.id === unit.faction_id) ?? null : null), [unit, factions]);
   const { data: wahapediaFactionId } = useWahapediaFactionId(localFaction?.name);
   const { data: udbMeta } = useUdbMeta();
-  const { data: datasheet, error: datasheetError } = useDatasheet(unitId);
+  const { data: datasheet, error: datasheetError, refetch: refetchDatasheet } = useDatasheet(unitId);
   const { data: overrideRow } = useUnitOverride(unitId);
   const upsertOverride = useUpsertUnitOverride();
   const deleteOverride = useDeleteUnitOverride();
@@ -218,8 +224,11 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
   return (
     <div className={`flex flex-col gap-6 p-4 ${isLoading ? "opacity-50 pointer-events-none" : ""}`} aria-busy={isLoading}>
       {datasheetError && (
-        <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
-          Failed to load datasheet: {errorMessage(datasheetError)}.
+        <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive flex items-center justify-between gap-2">
+          <span>Failed to load datasheet: {errorMessage(datasheetError)}.</span>
+          <Button variant="outline" size="sm" onClick={() => refetchDatasheet()}>
+            Retry
+          </Button>
         </div>
       )}
       <PlaybookStats unitId={unitId} syncMeta={udbMeta} overrideRow={overrideRow} hasDatasheetLink={hasDatasheetLink}
@@ -241,9 +250,26 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
       <PlaybookStrategy abilities={abilities} keywords={keywords} battlefieldRole={battlefieldRole} strengths={strengths}
         weaknesses={weaknesses} bestTargets={bestTargets} synergies={synergies} mistakesToAvoid={mistakesToAvoid}
         rulesReferences={rulesReferences} notes={notes} onFieldChange={handleFieldChange} />
-      <Button type="button" variant="default" className="w-full mt-4" disabled={!isDirty || isLoading || upsert.isPending} onClick={handleSave}>
-        Save Playbook
-      </Button>
+      {(() => {
+        const saveDisabled = !isDirty || isLoading || upsert.isPending;
+        const tooltipMessage = isLoading ? "Loading..." : "No changes to save";
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={saveDisabled ? "w-full" : undefined}>
+                  <Button type="button" variant="default" className="w-full mt-4" disabled={saveDisabled} onClick={handleSave}>
+                    Save Playbook
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {saveDisabled && (
+                <TooltipContent>{tooltipMessage}</TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
+        );
+      })()}
       <DatasheetPicker open={pickerOpen} factionId={wahapediaFactionId ?? undefined}
         factionName={localFaction?.name ?? "this faction"}
         onSelect={(id) => { void handlePickerSelect(id); }} onClose={() => setPickerOpen(false)} />
