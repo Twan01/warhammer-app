@@ -47,10 +47,10 @@ Exceptions: none
 
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
-| Body | 14px (text-sm) | 400 (normal) | 1.5 |
-| Label | 14px (text-sm) | 500 (medium) | 1.4 |
-| Heading | 18px (text-lg) | 600 (semibold) | 1.3 |
-| Display | 30px (text-3xl) | 600 (semibold) | 1.2 |
+| Body / Label | 14px (text-sm) | 400 (normal) | 1.5 |
+| Heading / Display | 18px–30px (text-lg / text-3xl) | 600 (semibold) | 1.2–1.3 |
+
+2 weights only: 400 (normal) for body text and labels, 600 (semibold) for headings and display.
 
 Phase-specific usage:
 - **Page headers (FIX-05):** text-3xl font-semibold tracking-tight (Display role via PageHeader component)
@@ -107,8 +107,8 @@ Convention: short imperative past tense, period at end.
 | Element | Copy |
 |---------|------|
 | RecipesPage error heading | "Failed to load recipes" |
-| RecipesPage error body | "Something went wrong" |
-| RecipesPage error CTA | "Try again" (Button variant="outline", calls refetch()) |
+| RecipesPage error body | "Check your connection and try again." |
+| RecipesPage error CTA | "Reload Recipes" (Button variant="outline", calls refetch()) |
 | Army list not-found heading | "List not found" |
 | Army list not-found body | "This army list may have been deleted." |
 | Army list not-found CTA | "Back to Army Lists" (Button variant="ghost" size="sm" with ArrowLeft icon) |
@@ -150,8 +150,8 @@ Convention: short imperative past tense, period at end.
 | Query error | flex flex-col items-center justify-center py-12 gap-4 | Retry button calls refetch() |
 | Error icon | AlertCircle h-12 w-12 text-destructive | Decorative |
 | Heading | text-lg font-semibold, "Failed to load recipes" | Static text |
-| Description | text-sm text-muted-foreground mt-1, "Something went wrong" | Static text |
-| Retry button | Button variant="outline" | onClick calls refetch() |
+| Description | text-sm text-muted-foreground mt-1, "Check your connection and try again." | Static text |
+| Retry button | Button variant="outline", "Reload Recipes" | onClick calls refetch() |
 
 ### FIX-05: Page Header Consistency
 
@@ -223,4 +223,4 @@ No new components are created in this phase. All fixes modify existing component
 - [ ] Dimension 5 Spacing: PASS
 - [ ] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-06-11
