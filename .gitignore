@@ -25,6 +25,10 @@ Thumbs.db
 # pnpm
 .pnpm-debug.log*
 
+# Claude Code session artifacts (transient — agent worktrees, locks)
+.claude/worktrees/
+.claude/scheduled_tasks.lock
+
 # Build script source data (Wahapedia CSVs + BSData XML — downloaded by developer, not committed)
 scripts/data/
 # Exception: aliases.json is manually curated and committed
