@@ -100,3 +100,25 @@ created: 2026-06-11
 | Escalated | 0 |
 
 Tests added/updated: StepFocalView.test.tsx, PaintingModeNotFound.test.tsx (new), ArmyListNotesNoOp.test.tsx (new), RecipesPageError.test.tsx (new), SettingsPage.test.tsx, designTokens.test.ts, GoalsPage.test.tsx, enhancementPickerSheet.test.tsx, LeaderAttachmentSheet.test.tsx, useRulesFavorites.test.tsx, ArmyListDetailNotFound.test.tsx (new). Suite: 2609 pass, 2 pre-existing failures (unrelated determinism.test.ts).
+
+## Validation Audit 2026-06-12
+
+Re-audit triggered by milestone v0.5.2 audit (`/gsd:audit-milestone`), which flagged
+the absence of a formal `126-VERIFICATION.md`. This phase's VALIDATION.md was already
+State-A complete and `nyquist_compliant: true`; this pass confirms coverage still holds.
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+- All 11 per-task validation test files confirmed present on disk.
+- Full suite re-run: **2695 pass / 6 skip / 38 todo / 0 failures** (the 2 pre-existing
+  determinism.test.ts failures noted on 2026-06-11 are now resolved).
+- Includes FIX-02 follow-up: the assignment-not-found "Go Back" button now routes through
+  `handleExit` → `resolveReturnTo(returnTo)` (was hardcoded `/`), exercised by
+  `PaintingModeNotFound.test.tsx`. Closes the FIX-02/NAV-01 inconsistency flagged in
+  `.planning/v0.5.2-MILESTONE-AUDIT.md`.
+
+**Phase 126 remains NYQUIST-COMPLIANT.**
