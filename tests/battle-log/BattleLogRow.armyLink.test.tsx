@@ -7,7 +7,7 @@
  *   (c) without army_list_id → no link, plain text shown instead
  */
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import type { BattleLog } from "@/types/battleLog";
 
 // Link renders as <a href=...> so we can assert on the href
