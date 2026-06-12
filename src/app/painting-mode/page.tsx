@@ -140,7 +140,7 @@ function PaintingModePageInner({ assignmentId }: { assignmentId: number }) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate({ to: "/" })}
+            onClick={handleExit}
             className="mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
