@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { useParams, useNavigate } from "@tanstack/react-router";
 import { paintingModeRoute } from "@/app/router";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -77,6 +78,7 @@ function PaintingModePageInner({ assignmentId }: { assignmentId: number }) {
       },
       {
         onSuccess: () => state.goNext(),
+        onError: () => toast.error("Could not save your progress — please try again."),
       },
     );
   };
@@ -106,6 +108,7 @@ function PaintingModePageInner({ assignmentId }: { assignmentId: number }) {
           setPaintingSessionOpen(false);
           state.goNext();
         },
+        onError: () => toast.error("Could not save your progress — please try again."),
       },
     );
   };

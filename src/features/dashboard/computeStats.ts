@@ -7,6 +7,7 @@
  * Pitfall 4 (05-RESEARCH.md): guard divide-by-zero (units.length > 0 ? pct : 0).
  */
 import type { Unit } from "@/types/unit";
+import type { DashboardUnit } from "@/db/queries/dashboard";
 import type { Faction } from "@/types/faction";
 
 export interface FactionStat {
@@ -33,7 +34,7 @@ export interface ComputedDashboardStats {
   units: Unit[];
 }
 
-export function computeStats(units: Unit[], factions: Faction[]): ComputedDashboardStats {
+export function computeStats(units: DashboardUnit[], factions: Faction[]): ComputedDashboardStats {
   if (units.length === 0) {
     return {
       totalModels: 0,
@@ -61,7 +62,7 @@ export function computeStats(units: Unit[], factions: Faction[]): ComputedDashbo
   const totalModels = units.length;
   const completedUnits = units.filter((u) => u.status_painting === "Completed");
   const fullyPainted = completedUnits.length;
-  const battleReadyPoints = completedUnits.reduce((sum, u) => sum + (u.points ?? 0), 0);
+  const battleReadyPoints = completedUnits.reduce((sum, u) => sum + (u.effective_points ?? 0), 0);
   const activeProjectsCount = units.filter((u) => u.is_active_project === 1).length;
 
   const paintingPct = Math.round(
@@ -95,8 +96,8 @@ export function computeStats(units: Unit[], factions: Faction[]): ComputedDashbo
         fUnits.length > 0
           ? Math.round((painted.length / fUnits.length) * 100)
           : 0,
-      pointsOwned: fUnits.reduce((s, u) => s + (u.points ?? 0), 0),
-      pointsPainted: painted.reduce((s, u) => s + (u.points ?? 0), 0),
+      pointsOwned: fUnits.reduce((s, u) => s + (u.effective_points ?? 0), 0),
+      pointsPainted: painted.reduce((s, u) => s + (u.effective_points ?? 0), 0),
     };
   });
 

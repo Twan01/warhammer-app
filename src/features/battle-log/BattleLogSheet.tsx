@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -142,9 +142,22 @@ export function BattleLogSheet({
     defaultValues: buildDefaultValues(log, prefill),
   });
 
+  // Reset the form ONLY when the sheet transitions into the open state or the edited log
+  // changes — NOT on every missionDefault change. missionDefault resolves async from
+  // useAppSettings (falsy on first render, then the loaded value); resetting on that flip
+  // would wipe input the user typed before settings finished loading.
+  const prevOpenRef = useRef(false);
+  const prevLogIdRef = useRef<number | null>(null);
   useEffect(() => {
-    form.reset(buildDefaultValues(log, { ...prefill, mission: missionDefault || prefill?.mission || "" }));
-  }, [form, log, prefill, missionDefault]);
+    const justOpened = open && !prevOpenRef.current;
+    const logChanged = open && (log?.id ?? null) !== prevLogIdRef.current;
+    prevOpenRef.current = open;
+    prevLogIdRef.current = log?.id ?? null;
+    if (!open) return;
+    if (justOpened || logChanged) {
+      form.reset(buildDefaultValues(log, { ...prefill, mission: missionDefault || prefill?.mission || "" }));
+    }
+  }, [form, open, log, prefill, missionDefault]);
 
   async function onSubmit(values: BattleLogFormValues) {
     try {
@@ -179,16 +192,22 @@ export function BattleLogSheet({
 
       if (!isEdit) {
         if (values.mvp_unit_id && values.mvp_notes) {
-          appendNotes.mutate({
-            unit_id: values.mvp_unit_id,
-            text: `[MVP ${values.battle_date}] ${values.mvp_notes}`,
-          });
+          appendNotes.mutate(
+            {
+              unit_id: values.mvp_unit_id,
+              text: `[MVP ${values.battle_date}] ${values.mvp_notes}`,
+            },
+            { onError: () => toast.warning("Game saved, but the MVP note could not be attached to the unit.") },
+          );
         }
         if (values.underperforming_unit_id && values.underperformer_notes) {
-          appendNotes.mutate({
-            unit_id: values.underperforming_unit_id,
-            text: `[Underperformed ${values.battle_date}] ${values.underperformer_notes}`,
-          });
+          appendNotes.mutate(
+            {
+              unit_id: values.underperforming_unit_id,
+              text: `[Underperformed ${values.battle_date}] ${values.underperformer_notes}`,
+            },
+            { onError: () => toast.warning("Game saved, but the underperformer note could not be attached to the unit.") },
+          );
         }
       }
 

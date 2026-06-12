@@ -190,18 +190,18 @@ export async function clearArmyListPointsLimit(id: number): Promise<void> {
  */
 export async function deleteArmyList(id: number): Promise<void> {
   const db = await getDb();
-  await db.execute("BEGIN TRANSACTION");
-  try {
-    await db.execute("DELETE FROM army_list_enhancements WHERE list_id = $1", [id]);
-    await db.execute("DELETE FROM army_list_snapshots WHERE list_id = $1", [id]);
-    await db.execute("UPDATE army_list_units SET leader_attached_to_id = NULL WHERE list_id = $1", [id]);
-    await db.execute("DELETE FROM army_list_units WHERE list_id = $1", [id]);
-    await db.execute("DELETE FROM army_lists WHERE id = $1", [id]);
-    await db.execute("COMMIT");
-  } catch (err) {
-    await db.execute("ROLLBACK");
-    throw err;
-  }
+  // NOTE: no explicit BEGIN/COMMIT. tauri-plugin-sql runs each db.execute() on a
+  // possibly-different pooled connection, so a logical transaction cannot span calls —
+  // a COMMIT/ROLLBACK could land on a connection with no open transaction. Statements
+  // are ordered so each auto-committed step satisfies FK constraints for the next
+  // (WAL makes each commit immediately visible). Trade-off: not atomic on a mid-way
+  // crash. Atomicity would require a single-connection Rust command. See
+  // .planning/debug/recipe-section-save-fails.md.
+  await db.execute("DELETE FROM army_list_enhancements WHERE list_id = $1", [id]);
+  await db.execute("DELETE FROM army_list_snapshots WHERE list_id = $1", [id]);
+  await db.execute("UPDATE army_list_units SET leader_attached_to_id = NULL WHERE list_id = $1", [id]);
+  await db.execute("DELETE FROM army_list_units WHERE list_id = $1", [id]);
+  await db.execute("DELETE FROM army_lists WHERE id = $1", [id]);
 }
 
 export async function addUnitToList(input: AddUnitToListInput): Promise<number> {
@@ -225,22 +225,17 @@ export async function addUnitToList(input: AddUnitToListInput): Promise<number> 
  */
 export async function removeUnitFromList(armyListUnitId: number): Promise<void> {
   const db = await getDb();
-  await db.execute("BEGIN TRANSACTION");
-  try {
-    await db.execute(
-      "UPDATE army_list_units SET leader_attached_to_id = NULL WHERE leader_attached_to_id = $1",
-      [armyListUnitId]
-    );
-    await db.execute(
-      "DELETE FROM army_list_enhancements WHERE army_list_unit_id = $1",
-      [armyListUnitId]
-    );
-    await db.execute("DELETE FROM army_list_units WHERE id = $1", [armyListUnitId]);
-    await db.execute("COMMIT");
-  } catch (err) {
-    await db.execute("ROLLBACK");
-    throw err;
-  }
+  // No explicit BEGIN/COMMIT — see deleteArmyList note (transactions can't span pooled
+  // connections). Order is chosen so each auto-committed step keeps FKs satisfied.
+  await db.execute(
+    "UPDATE army_list_units SET leader_attached_to_id = NULL WHERE leader_attached_to_id = $1",
+    [armyListUnitId]
+  );
+  await db.execute(
+    "DELETE FROM army_list_enhancements WHERE army_list_unit_id = $1",
+    [armyListUnitId]
+  );
+  await db.execute("DELETE FROM army_list_units WHERE id = $1", [armyListUnitId]);
 }
 
 /**
@@ -466,17 +461,13 @@ export async function reorderArmyListUnits(
   updates: { id: number; sort_order: number }[],
 ): Promise<void> {
   const db = await getDb();
-  await db.execute("BEGIN TRANSACTION");
-  try {
-    for (const { id, sort_order } of updates) {
-      await db.execute(
-        "UPDATE army_list_units SET sort_order = $1 WHERE id = $2",
-        [sort_order, id],
-      );
-    }
-    await db.execute("COMMIT");
-  } catch (err) {
-    await db.execute("ROLLBACK");
-    throw err;
+  // No explicit BEGIN/COMMIT — see deleteArmyList note. Each UPDATE auto-commits; a
+  // mid-way failure leaves a partially-reordered list (self-healing on next reorder),
+  // which is acceptable for sort_order and avoids the broken cross-connection transaction.
+  for (const { id, sort_order } of updates) {
+    await db.execute(
+      "UPDATE army_list_units SET sort_order = $1 WHERE id = $2",
+      [sort_order, id],
+    );
   }
 }

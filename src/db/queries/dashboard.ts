@@ -16,15 +16,35 @@ import { getDb } from "@/db/client";
 import type { Unit } from "@/types/unit";
 import type { Faction } from "@/types/faction";
 
+/** Unit row plus the SQL-resolved effective points used for all dashboard point totals. */
+export type DashboardUnit = Unit & { effective_points: number };
+
 export interface DashboardStats {
-  units: Unit[];
+  units: DashboardUnit[];
   factions: Faction[];
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
   const db = await getDb();
+  // effective_points uses the SAME COALESCE cascade as getArmyReadinessByFaction so the
+  // headline "Battle-Ready Points" and "By Faction" cards agree with the Army Readiness
+  // card on the same screen (units whose points are only known from the canonical udb
+  // tables were previously counted as 0 by the raw u.points column).
   const [units, factions] = await Promise.all([
-    db.select<Unit[]>("SELECT * FROM units"),
+    db.select<DashboardUnit[]>(
+      `SELECT u.*,
+         COALESCE(udb_tier.points, udb_base.points, uo.points, u.points, 0) AS effective_points
+       FROM units u
+       LEFT JOIN unit_overrides uo ON uo.unit_id = u.id
+       LEFT JOIN udb_unit_points udb_tier
+         ON udb_tier.unit_id = u.udb_unit_id
+         AND udb_tier.model_count = u.model_count
+       LEFT JOIN udb_unit_points udb_base
+         ON udb_base.unit_id = u.udb_unit_id
+         AND udb_base.model_count = (
+           SELECT MIN(model_count) FROM udb_unit_points WHERE unit_id = u.udb_unit_id
+         )`
+    ),
     db.select<Faction[]>("SELECT * FROM factions"),
   ]);
   return { units, factions };

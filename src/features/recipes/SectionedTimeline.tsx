@@ -20,8 +20,6 @@ export function SectionedTimeline({
   paintMap,
   stepPhotoUrls,
 }: SectionedTimelineProps) {
-  if (sections.length === 0) return null;
-
   // Group steps by section_id; orphan steps (null section_id) collected separately
   const { stepsBySection, orphanSteps } = useMemo(() => {
     const map = new Map<number, RecipeStep[]>();
@@ -54,6 +52,9 @@ export function SectionedTimeline({
     }
     return map;
   }, [steps, paintMap]);
+
+  // Guard AFTER hooks so hook order stays stable across empty<->non-empty transitions.
+  if (sections.length === 0) return null;
 
   return (
     <div className="flex flex-col gap-6" data-testid="sectioned-timeline">

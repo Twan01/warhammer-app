@@ -18,7 +18,7 @@ import {
 } from "@tanstack/react-router";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { ActiveFactionProvider } from "@/context/ActiveFactionContext";
-import type { Unit } from "@/types/unit";
+import type { DashboardUnit } from "@/db/queries/dashboard";
 import type { Faction } from "@/types/faction";
 
 // Mock the dashboard query module — DashboardPage indirectly consumes this
@@ -83,8 +83,9 @@ function f(over: Partial<Faction> = {}): Faction {
   };
 }
 
-function u(over: Partial<Unit> = {}): Unit {
+function u(over: Partial<DashboardUnit> = {}): DashboardUnit {
   return {
+    effective_points: over.effective_points ?? over.points ?? 100,
     id: 1,
     faction_id: 1,
     name: "Fire Warrior",

@@ -27,7 +27,10 @@ export const useDatabaseBrowserFilters = create<DatabaseBrowserFiltersState>(
     keywordFilter: "",
     pointMin: null,
     pointMax: null,
-    setSelectedFactionId: (id) => set({ selectedFactionId: id, subFactionFilter: null }),
+    // Reset all faction-scoped filters on faction change — a role/keyword/points
+    // filter from the previous faction would otherwise silently empty the list.
+    setSelectedFactionId: (id) =>
+      set({ selectedFactionId: id, subFactionFilter: null, roleFilter: null, keywordFilter: "", pointMin: null, pointMax: null }),
     setSearchText: (text) => set({ searchText: text }),
     setSubFactionFilter: (sf) => set({ subFactionFilter: sf }),
     setRoleFilter: (role) => set({ roleFilter: role }),

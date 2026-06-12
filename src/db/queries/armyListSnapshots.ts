@@ -171,14 +171,18 @@ export async function restoreSnapshot(input: RestoreSnapshotInput): Promise<void
     const ghostName = realUnitId === null ? unit.name : null;
 
     await db.execute(
-      `INSERT INTO army_list_units (list_id, unit_id, ghost_unit_name, is_warlord, points_override)
-       VALUES ($1, $2, $3, $4, $5)`,
+      `INSERT INTO army_list_units (list_id, unit_id, ghost_unit_name, is_warlord, points_override, selected_model_count)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
       [
         input.list_id,
         realUnitId,
         ghostName,
         unit.is_warlord ? 1 : 0,
         unit.points,
+        // Restore the saved model-count selection — it drives tier-based points
+        // resolution, so dropping it would make subsequent recomputes start from the
+        // wrong tier and the restored list would not match the saved state.
+        unit.selected_model_count,
       ],
     );
   }

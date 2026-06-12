@@ -8,10 +8,13 @@
  */
 import { describe, it, expect } from "vitest";
 import { computeStats } from "@/features/dashboard/computeStats";
-import type { Unit, PaintingStatus } from "@/types/unit";
+import type { DashboardUnit } from "@/db/queries/dashboard";
+import type { PaintingStatus } from "@/types/unit";
 import type { Faction } from "@/types/faction";
 
-function u(over: Partial<Unit>): Unit {
+function u(over: Partial<DashboardUnit>): DashboardUnit {
+  // effective_points defaults to mirror points (no udb cascade in unit tests), matching
+  // the SQL COALESCE(..., u.points, 0) so existing point-total assertions hold.
   return {
     id: 1, faction_id: 1, name: "X",
     category: null, unit_type: null,
@@ -25,6 +28,7 @@ function u(over: Partial<Unit>): Unit {
     lore_notes: null, undercoat: null, status_assembly_override: 0 as 0 | 1, status_basing_override: 0 as 0 | 1, status_varnished_override: 0 as 0 | 1,
     udb_unit_id: null,
     created_at: "2026-01-01 00:00:00", updated_at: "2026-01-01 00:00:00",
+    effective_points: over.effective_points ?? over.points ?? 0,
     ...over,
   };
 }

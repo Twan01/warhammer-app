@@ -40,10 +40,22 @@ export function DbHealthGate({ children }: { children: ReactNode }) {
     try {
       const db = await getDb();
       await db.select<Record<string, number>[]>("SELECT 1");
-      const rows = await db.select<Record<string, number>[]>(
-        "PRAGMA user_version"
-      );
-      const version = extractVersion(rows[0]);
+      // Source of truth is the migrator's own ledger (_sqlx_migrations), NOT
+      // PRAGMA user_version. user_version is only set by a couple of migrations
+      // (033, 039) and the Rust sync_user_version() early-returns on a fresh install
+      // (db file doesn't exist at preflight), so on first launch user_version lags at
+      // 39 and would fail this gate spuriously. MAX(version) from _sqlx_migrations is
+      // populated by the migrator before this runs and always reflects the real schema.
+      let version: number;
+      try {
+        const mrows = await db.select<Record<string, number>[]>(
+          "SELECT MAX(version) AS version FROM _sqlx_migrations"
+        );
+        version = extractVersion(mrows[0]);
+      } catch {
+        const rows = await db.select<Record<string, number>[]>("PRAGMA user_version");
+        version = extractVersion(rows[0]);
+      }
       if (version < EXPECTED_SCHEMA_VERSION) {
         throw new Error(
           `Schema version mismatch: found v${version}, expected v${EXPECTED_SCHEMA_VERSION}. ` +

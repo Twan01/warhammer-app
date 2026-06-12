@@ -68,6 +68,11 @@ export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, onRemove, o
   const [expanded, setExpanded] = useState(false);
   const [notesDraft, setNotesDraft] = useState(unit.notes ?? "");
   useEffect(() => { setNotesDraft(unit.notes ?? ""); }, [unit.notes]);
+  // Controlled draft so the field re-syncs when points_override changes from outside
+  // (snapshot restore, reorder refetch, loadout/tier change) — the row is memoized and
+  // keyed only by id, so an uncontrolled input would otherwise go stale.
+  const [pointsDraft, setPointsDraft] = useState(unit.points_override != null ? String(unit.points_override) : "");
+  useEffect(() => { setPointsDraft(unit.points_override != null ? String(unit.points_override) : ""); }, [unit.points_override]);
   const unitIdOrUndefined = unit.unit_id ?? undefined;
   const { data: loadouts } = useUnitLoadouts(unitIdOrUndefined);
 
@@ -317,7 +322,8 @@ export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, onRemove, o
                 min={0}
                 className="w-20 h-7 text-sm"
                 placeholder={unit.unit_points !== null ? String(unit.unit_points) : "--"}
-                defaultValue={unit.points_override ?? ""}
+                value={pointsDraft}
+                onChange={(e) => setPointsDraft(e.currentTarget.value)}
                 onBlur={(e) => handlePointsBlur(e.currentTarget.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") (e.currentTarget as HTMLInputElement).blur();

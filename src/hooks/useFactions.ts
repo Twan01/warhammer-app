@@ -53,6 +53,12 @@ export function useDeleteFaction() {
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
       qc.invalidateQueries({ queryKey: ["army-readiness"] });
       qc.invalidateQueries({ queryKey: ["spending-stats"] });
+      // Faction delete cascades/sets-null across these entities (FK in schema):
+      // painting_recipes.faction_id SET NULL, army_lists.faction_id SET NULL,
+      // wishlist.faction_id CASCADE — invalidate so their lists don't show stale rows.
+      qc.invalidateQueries({ queryKey: ["recipes"] });
+      qc.invalidateQueries({ queryKey: ["army-lists"] });
+      qc.invalidateQueries({ queryKey: ["wishlist-items"] });
     },
     // FK errors reject — handled by component try/catch with toast (Pattern 4)
   });

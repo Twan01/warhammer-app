@@ -26,6 +26,9 @@ beforeEach(() => {
 function setupHealthyDb(version = EXPECTED_SCHEMA_VERSION) {
   mockSelect.mockImplementation((sql: string) => {
     if (sql === "SELECT 1") return Promise.resolve([{ "1": 1 }]);
+    // Schema version now comes from the migrator ledger, not PRAGMA user_version.
+    if (sql.includes("_sqlx_migrations"))
+      return Promise.resolve([{ version }]);
     if (sql === "PRAGMA user_version")
       return Promise.resolve([{ user_version: version }]);
     return Promise.resolve([]);
@@ -55,7 +58,7 @@ describe("DbHealthGate — ERR-03", () => {
     expect(screen.queryByTestId("child")).toBeNull();
   });
 
-  it("renders DbDiagnosticScreen when user_version < expected", async () => {
+  it("renders DbDiagnosticScreen when schema version < expected", async () => {
     setupHealthyDb(20);
     render(
       <DbHealthGate>

@@ -15,9 +15,11 @@ interface ArmyListDeleteDialogProps {
   open: boolean;
   list: ArmyList | null;
   onClose: () => void;
+  /** Called only after the delete actually succeeds (e.g. to navigate away). */
+  onDeleted?: () => void;
 }
 
-export function ArmyListDeleteDialog({ open, list, onClose }: ArmyListDeleteDialogProps) {
+export function ArmyListDeleteDialog({ open, list, onClose, onDeleted }: ArmyListDeleteDialogProps) {
   const deleteArmyList = useDeleteArmyList();
 
   async function handleConfirm() {
@@ -26,6 +28,7 @@ export function ArmyListDeleteDialog({ open, list, onClose }: ArmyListDeleteDial
       await deleteArmyList.mutateAsync(list.id);
       toast.success("Army list deleted.");
       onClose();
+      onDeleted?.();
     } catch (err) {
       console.error("[ArmyListDeleteDialog] Failed to delete army list:", err);
       toast.error("Failed to delete army list. Please try again.");

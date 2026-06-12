@@ -1,16 +1,36 @@
-import { Download, RefreshCw, X } from "lucide-react";
+import { AlertTriangle, Download, RefreshCw, X } from "lucide-react";
 import { useState } from "react";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { Button } from "@/components/ui/button";
 import { useAppUpdate } from "@/hooks/useAppUpdate";
 
 export function UpdateBanner() {
-  const { status, version, progress, installUpdate } = useAppUpdate();
+  const { status, version, progress, error, installUpdate } = useAppUpdate();
   const [dismissed, setDismissed] = useState(false);
 
   if (dismissed || status === "idle" || status === "checking") return null;
 
-  if (status === "error") return null;
+  // Surface a failed update instead of silently disappearing — otherwise a failed
+  // install is indistinguishable from a dismissed success, with no path to retry.
+  if (status === "error") {
+    return (
+      <div className="flex items-center justify-between gap-3 border-b border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
+        <span className="flex items-center gap-2">
+          <AlertTriangle className="size-3.5 shrink-0" />
+          Update failed{error ? `: ${error}` : "."}
+        </span>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" className="h-7 gap-1.5" onClick={installUpdate}>
+            <RefreshCw className="size-3.5" />
+            Retry
+          </Button>
+          <button type="button" className="text-destructive/60 hover:text-destructive" onClick={() => setDismissed(true)}>
+            <X className="size-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (status === "installing") {
     return (

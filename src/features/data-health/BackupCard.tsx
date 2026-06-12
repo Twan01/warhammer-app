@@ -124,17 +124,28 @@ export function BackupCard() {
   async function handleConfirmRestore() {
     if (!selectedPath) return;
     setIsRestoring(true);
+    // Only the actual DB replacement counts as "restore failed". A relaunch failure
+    // after a successful restore must NOT show a failure toast — the DB is already replaced.
     try {
       await invoke("restore_from_backup", { path: selectedPath });
-      // Persist last restore date before relaunch
-      const existing = backupStatus ?? { date: "", path: "", success: true };
-      const updated: BackupStatus = { ...existing, last_restore_date: new Date().toISOString() };
-      localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(updated));
-      await relaunch();
     } catch (error) {
       toast.error(
         `Restore failed: ${error instanceof Error ? error.message : String(error)}`,
       );
+      setIsRestoring(false);
+      setPreviewOpen(false);
+      setManifest(null);
+      setSelectedPath(null);
+      return;
+    }
+    // Restore succeeded — persist last restore date, then attempt relaunch separately.
+    const existing = backupStatus ?? { date: "", path: "", success: true };
+    const updated: BackupStatus = { ...existing, last_restore_date: new Date().toISOString() };
+    localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(updated));
+    try {
+      await relaunch();
+    } catch {
+      toast.info("Restore complete — please restart the app to load the restored data.");
       setIsRestoring(false);
       setPreviewOpen(false);
       setManifest(null);

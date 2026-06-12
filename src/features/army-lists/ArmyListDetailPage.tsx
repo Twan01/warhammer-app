@@ -279,7 +279,10 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
     const [moved] = reordered.splice(oldIndex, 1);
     reordered.splice(newIndex, 0, moved);
     const updates = reordered.map((u, i) => ({ id: u.id, sort_order: i }));
-    reorderUnits.mutate({ listId, updates });
+    reorderUnits.mutate(
+      { listId, updates },
+      { onError: () => toast.error("Failed to reorder units. Please try again.") },
+    );
   }
 
   function toggleCategory(category: string) {
@@ -399,14 +402,14 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
     }
   }, [list, units, listEnhancements, faction]);
 
-  // Navigate back after successful delete
   const handleDeleteClose = useCallback(() => {
-    const wasDeleting = deletingList;
     dispatch({ type: "CLOSE_DELETE" });
-    if (wasDeleting && wasDeleting.id === listId) {
-      navigate({ to: "/army-lists" });
-    }
-  }, [deletingList, listId, navigate]);
+  }, []);
+
+  // Navigate back only after the delete actually succeeds (not on a failed delete).
+  const handleDeleted = useCallback(() => {
+    navigate({ to: "/army-lists" });
+  }, [navigate]);
 
   if (listLoading) {
     return (
@@ -697,6 +700,7 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
         open={deleteDialogOpen}
         list={deletingList}
         onClose={handleDeleteClose}
+        onDeleted={handleDeleted}
       />
       <UnitPickerDialog
         open={unitPickerOpen}

@@ -92,8 +92,10 @@ export function ChecklistDefaultsEditor({
 
   const initialItems = useMemo(() => {
     const raw = settings["default_checklist"];
+    // Stable unique ids — must not encode array position or text, which can collide
+    // after deletes (breaking React keys and dnd-kit's id-based target mapping).
     const toItems = (arr: Array<{ text: string }>) =>
-      arr.map((e, i) => ({ id: `checklist-${i}-${e.text}`, text: e.text }));
+      arr.map((e) => ({ id: crypto.randomUUID(), text: e.text }));
     if (!raw) return toItems(DEFAULT_CHECKLIST);
     try {
       return toItems(JSON.parse(raw) as Array<{ text: string }>);
@@ -146,7 +148,7 @@ export function ChecklistDefaultsEditor({
     if (!trimmed) return;
     const next = [
       ...items,
-      { id: `checklist-${items.length}-${trimmed}`, text: trimmed },
+      { id: crypto.randomUUID(), text: trimmed },
     ];
     saveItems(next);
     setNewItemText("");

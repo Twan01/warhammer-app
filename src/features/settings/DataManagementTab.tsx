@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getAppSettings, upsertAppSetting } from "@/db/queries/appSettings";
 import { APP_SETTINGS_KEY } from "@/hooks/useAppSettings";
+import { LOCALE_QUERY_KEYS } from "@/lib/localeQueryKeys";
 import { SUPPORTED_CURRENCIES } from "@/hooks/useCurrencyPreference";
 
 const ALLOWED_IMPORT_KEYS = new Set([
@@ -114,6 +115,7 @@ export function DataManagementTab() {
       const settings = (payload as { settings: Record<string, unknown> })
         .settings;
       let count = 0;
+      let localeImported = false;
       for (const [key, value] of Object.entries(settings)) {
         if (
           typeof value === "string" &&
@@ -121,10 +123,16 @@ export function DataManagementTab() {
           isValidImportValue(key, value)
         ) {
           await upsertAppSetting(key, value);
+          if (key === "locale") localeImported = true;
           count++;
         }
       }
       await qc.invalidateQueries({ queryKey: APP_SETTINGS_KEY });
+      // If the imported file changed the language, locale-dependent game data
+      // (unit/faction names) must be refetched — mirror LanguageSetting's invalidation.
+      if (localeImported) {
+        LOCALE_QUERY_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+      }
       toast.success(`Imported ${count} setting(s)`);
     } catch (err) {
       toast.error(

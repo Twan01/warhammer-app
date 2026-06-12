@@ -120,36 +120,33 @@ describe("armyLists queries â€” createArmyList / updateArmyList / deleteArm
     expect(sql).toMatch(/WHERE id = \$1/);
   });
 
-  it("deleteArmyList explicitly deletes children then parent in correct FK order", async () => {
-    // deleteArmyList now makes 5 execute calls in dependency order
+  it("deleteArmyList deletes children then parent in correct FK order (auto-commit, no explicit transaction)", async () => {
+    // No BEGIN/COMMIT — transactions can't span pooled connections, so deleteArmyList
+    // uses 5 ordered auto-committed statements (see deleteArmyList note).
     executeMock.mockResolvedValue(undefined);
     await deleteArmyList(5);
 
-    expect(executeMock).toHaveBeenCalledTimes(7);
-    // 0. BEGIN TRANSACTION
-    expect(executeMock.mock.calls[0]).toEqual(["BEGIN TRANSACTION"]);
-    // 1. Delete enhancements first (FK to army_list_units + army_lists)
-    expect(executeMock.mock.calls[1]).toEqual([
+    expect(executeMock).toHaveBeenCalledTimes(5);
+    // 0. Delete enhancements first (FK to army_list_units + army_lists)
+    expect(executeMock.mock.calls[0]).toEqual([
       "DELETE FROM army_list_enhancements WHERE list_id = $1", [5],
     ]);
-    // 2. Delete snapshots (FK to army_lists)
-    expect(executeMock.mock.calls[2]).toEqual([
+    // 1. Delete snapshots (FK to army_lists)
+    expect(executeMock.mock.calls[1]).toEqual([
       "DELETE FROM army_list_snapshots WHERE list_id = $1", [5],
     ]);
-    // 3. Clear self-referencing FK before deleting units
-    expect(executeMock.mock.calls[3]).toEqual([
+    // 2. Clear self-referencing FK before deleting units
+    expect(executeMock.mock.calls[2]).toEqual([
       "UPDATE army_list_units SET leader_attached_to_id = NULL WHERE list_id = $1", [5],
     ]);
-    // 4. Delete army list units
-    expect(executeMock.mock.calls[4]).toEqual([
+    // 3. Delete army list units
+    expect(executeMock.mock.calls[3]).toEqual([
       "DELETE FROM army_list_units WHERE list_id = $1", [5],
     ]);
-    // 5. Delete the army list itself (parent)
-    expect(executeMock.mock.calls[5]).toEqual([
+    // 4. Delete the army list itself (parent)
+    expect(executeMock.mock.calls[4]).toEqual([
       "DELETE FROM army_lists WHERE id = $1", [5],
     ]);
-    // 6. COMMIT
-    expect(executeMock.mock.calls[6]).toEqual(["COMMIT"]);
   });
 });
 

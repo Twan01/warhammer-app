@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import {
   Collapsible,
@@ -83,24 +83,46 @@ export function SectionNavigator({
     return step.section_id ?? GENERAL_SECTION_ID;
   }, [currentStepId, orderedSteps]);
 
+  // Controlled open state so the active section auto-expands when navigated into,
+  // while still allowing manual toggle of other sections (defaultOpen only applies on mount).
+  const [openSections, setOpenSections] = useState<Set<number>>(() =>
+    currentSectionId !== null ? new Set([currentSectionId]) : new Set(),
+  );
+  useEffect(() => {
+    if (currentSectionId === null) return;
+    setOpenSections((prev) =>
+      prev.has(currentSectionId) ? prev : new Set(prev).add(currentSectionId),
+    );
+  }, [currentSectionId]);
+
   return (
     <div className="w-[280px] border-r border-border bg-card overflow-y-auto p-4">
       <div className="flex flex-col gap-1">
         {sectionEntries.map((section) => {
           const isCurrentSection = section.id === currentSectionId;
           const progress = sectionProgressMap.get(section.id);
-          const progressText = progress
-            ? `${progress.completed}/${progress.total}`
-            : `0/${section.steps.length}`;
-          const isComplete =
-            progress != null &&
-            progress.total > 0 &&
-            progress.completed === progress.total;
+          // The General bucket (and any section missing from the map, e.g. null-section
+          // steps) isn't in sectionProgressMap — compute its progress from completedSet
+          // so it shows real counts and can reach the completion check.
+          const completedCount = progress
+            ? progress.completed
+            : section.steps.filter((s) => completedSet.has(s.id)).length;
+          const totalCount = progress ? progress.total : section.steps.length;
+          const progressText = `${completedCount}/${totalCount}`;
+          const isComplete = totalCount > 0 && completedCount === totalCount;
 
           return (
             <Collapsible
               key={section.id}
-              defaultOpen={isCurrentSection}
+              open={openSections.has(section.id)}
+              onOpenChange={(o) =>
+                setOpenSections((prev) => {
+                  const next = new Set(prev);
+                  if (o) next.add(section.id);
+                  else next.delete(section.id);
+                  return next;
+                })
+              }
             >
               <div
                 className={

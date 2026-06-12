@@ -1172,9 +1172,10 @@ pub struct SafetyBackupEntry {
 }
 
 /// Replace hobbyforge.db with the database from a validated backup zip.
-/// Sequence: (1) create safety backup, (2) delete sidecar files, (3) extract
-/// hobbyforge.db from the zip. If step 1 fails the restore is aborted with
-/// the original database intact.
+/// Sequence: (1) create safety backup, (2) extract + validate hobbyforge.db
+/// bytes from the zip into memory, (3) delete sidecar files, (4) write the new
+/// db. No destructive filesystem operation happens until the replacement bytes
+/// are in hand — a missing/corrupt zip leaves the live database untouched.
 #[tauri::command]
 async fn restore_from_backup(
     app: tauri::AppHandle,
@@ -1190,7 +1191,31 @@ async fn restore_from_backup(
         .app_data_dir()
         .map_err(|e| format!("app_data_dir: {e}"))?;
 
-    // 2. Delete sidecar files (WAL, SHM, journal) — tolerate NotFound
+    // 2. Extract hobbyforge.db from the backup zip into memory FIRST. If the zip is
+    //    missing/corrupt or lacks the entry, abort here — before deleting any sidecar
+    //    (the WAL may hold un-checkpointed committed transactions for the live DB).
+    let file = std::fs::File::open(&path)
+        .map_err(|e| format!("open zip: {e}"))?;
+    let mut archive = zip::ZipArchive::new(file)
+        .map_err(|e| format!("invalid zip archive: {e}"))?;
+
+    let mut db_bytes = Vec::new();
+    {
+        let mut db_entry = archive
+            .by_name("hobbyforge.db")
+            .map_err(|_| "backup missing hobbyforge.db".to_string())?;
+        db_entry
+            .read_to_end(&mut db_bytes)
+            .map_err(|e| format!("read hobbyforge.db from zip: {e}"))?;
+    }
+
+    // Cheap sanity check: a valid SQLite file starts with "SQLite format 3\0".
+    const SQLITE_MAGIC: &[u8] = b"SQLite format 3\0";
+    if db_bytes.len() < SQLITE_MAGIC.len() || &db_bytes[..SQLITE_MAGIC.len()] != SQLITE_MAGIC {
+        return Err("backup hobbyforge.db is not a valid SQLite database".to_string());
+    }
+
+    // 3. Now safe to delete sidecar files (WAL, SHM, journal) — tolerate NotFound
     for sidecar in ["-wal", "-shm", "-journal"] {
         let sidecar_path = app_data_dir.join(format!("hobbyforge.db{sidecar}"));
         if let Err(e) = std::fs::remove_file(&sidecar_path) {
@@ -1200,21 +1225,7 @@ async fn restore_from_backup(
         }
     }
 
-    // 3. Extract hobbyforge.db from backup zip
-    let file = std::fs::File::open(&path)
-        .map_err(|e| format!("open zip: {e}"))?;
-    let mut archive = zip::ZipArchive::new(file)
-        .map_err(|e| format!("invalid zip archive: {e}"))?;
-
-    let mut db_entry = archive
-        .by_name("hobbyforge.db")
-        .map_err(|_| "backup missing hobbyforge.db".to_string())?;
-
-    let mut db_bytes = Vec::new();
-    db_entry
-        .read_to_end(&mut db_bytes)
-        .map_err(|e| format!("read hobbyforge.db from zip: {e}"))?;
-
+    // 4. Write the validated replacement database
     std::fs::write(app_data_dir.join("hobbyforge.db"), &db_bytes)
         .map_err(|e| format!("write hobbyforge.db: {e}"))?;
 

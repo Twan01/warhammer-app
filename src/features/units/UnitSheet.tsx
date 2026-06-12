@@ -16,7 +16,7 @@ import { useCreateUnit, useUpdateUnit } from "@/hooks/useUnits";
 import { useUnitPointTiers } from "@/hooks/useUnitPointTiers";
 import { useFactions } from "@/hooks/useFactions";
 import type { Unit, EnrichedUnit } from "@/types/unit";
-import { unitSchema, type UnitFormValues } from "./unitSchema";
+import { unitSchema, PRIORITY_OPTIONS, type UnitFormValues } from "./unitSchema";
 import { UnitFormRequired } from "./UnitFormRequired";
 import { UnitFormOptional } from "./UnitFormOptional";
 
@@ -53,7 +53,7 @@ function buildDefaultValues(
       status_basing: !!unit.status_basing,
       status_varnished: !!unit.status_varnished,
       is_active_project: !!unit.is_active_project,
-      priority: unit.priority !== null ? String(unit.priority) : null,
+      priority: unit.priority != null ? (PRIORITY_OPTIONS[unit.priority - 1] ?? null) : null,
       target_completion_date: unit.target_completion_date ?? null,
       purchase_date: unit.purchase_date ?? null,
       purchase_price_pounds: penceToRoundedPounds(unit.purchase_price_pence),

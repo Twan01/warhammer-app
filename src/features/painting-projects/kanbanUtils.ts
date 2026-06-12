@@ -7,7 +7,12 @@ export function applyActiveFilter(units: Unit[]): Unit[] {
 export function groupByStatus(units: Unit[]): Record<PaintingStatus, Unit[]> {
   const acc = {} as Record<PaintingStatus, Unit[]>;
   for (const status of PAINTING_STATUS_ORDER) acc[status] = [];
-  for (const u of units) acc[u.status_painting].push(u);
+  for (const u of units) {
+    // status_painting is a free-form TEXT column (no DB CHECK), so a value that
+    // drifts out of the TS union (legacy/manual data) must not crash the board.
+    const bucket = acc[u.status_painting];
+    if (bucket) bucket.push(u);
+  }
   return acc;
 }
 

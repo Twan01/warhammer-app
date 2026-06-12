@@ -123,9 +123,11 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
       abilities !== (s?.abilities ?? "") || keywords !== (s?.keywords ?? "") || battlefieldRole !== (s?.battlefield_role ?? "") ||
       strengths !== (s?.strengths ?? "") || weaknesses !== (s?.weaknesses ?? "") || bestTargets !== (s?.best_targets ?? "") ||
       synergies !== (s?.synergies ?? "") || mistakesToAvoid !== (s?.mistakes_to_avoid ?? "") ||
-      rulesReferences !== (s?.rules_references ?? "") || notes !== (s?.notes ?? "");
+      rulesReferences !== (s?.rules_references ?? "") || notes !== (s?.notes ?? "") ||
+      pointsOverrideValue !== (overrideRow?.points != null ? String(overrideRow.points) : "");
   }, [move, toughness, saveStat, wounds, leadership, objectiveControl, abilities, keywords,
-      battlefieldRole, strengths, weaknesses, bestTargets, synergies, mistakesToAvoid, rulesReferences, notes]);
+      battlefieldRole, strengths, weaknesses, bestTargets, synergies, mistakesToAvoid, rulesReferences, notes,
+      pointsOverrideValue, overrideRow?.points]);
 
   // Stat helpers
   function statValue(key: StatKey): number | null {
@@ -199,9 +201,29 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
       if (datasheet) {
         const pts = pointsOverrideValue.trim() !== "" ? parseInt(pointsOverrideValue, 10) : null;
         const parsedPts = pts !== null && Number.isFinite(pts) ? pts : null;
-        const op: UpsertUnitOverrideInput = { unit_id: unitId, points: parsedPts, move, toughness, save: saveStat, wounds, leadership, objective_control: objectiveControl, keywords: keywords || null, abilities: abilities || null };
-        const hasStatOvr = STAT_KEYS.some((k) => { const imp = importedStatValue(k); const cur = statValue(k); return imp !== null && cur !== null && cur !== imp; });
-        if (hasStatOvr || parsedPts !== null || (keywords || null) !== null || (abilities || null) !== null) {
+        // Only persist a value as an override when it actually differs from the imported
+        // datasheet value. Convention (unitOverrides.ts): NULL = use imported, non-NULL =
+        // manual override. Writing imported values here would falsely flag every stat as
+        // manually overridden (showing the "manual override" pencil on untouched stats).
+        const statOverride = (k: StatKey): number | null => {
+          const imp = importedStatValue(k);
+          const cur = statValue(k);
+          return imp !== null && cur !== null && cur !== imp ? cur : null;
+        };
+        const importedKeywords = datasheet.keywords.length > 0 ? datasheet.keywords.map((k) => k.keyword).join(", ") : "";
+        const importedAbilities = datasheet.abilities.length > 0
+          ? datasheet.abilities.map((a) => `${a.name}${a.description ? ": " + a.description : ""}`).join("\n")
+          : "";
+        const keywordsOvr = keywords.trim() !== "" && keywords !== importedKeywords ? keywords : null;
+        const abilitiesOvr = abilities.trim() !== "" && abilities !== importedAbilities ? abilities : null;
+        const op: UpsertUnitOverrideInput = {
+          unit_id: unitId, points: parsedPts,
+          move: statOverride("M"), toughness: statOverride("T"), save: statOverride("Sv"),
+          wounds: statOverride("W"), leadership: statOverride("Ld"), objective_control: statOverride("OC"),
+          keywords: keywordsOvr, abilities: abilitiesOvr,
+        };
+        const hasStatOvr = STAT_KEYS.some((k) => statOverride(k) !== null);
+        if (hasStatOvr || parsedPts !== null || keywordsOvr !== null || abilitiesOvr !== null) {
           try { await upsertOverride.mutateAsync(op); } catch (overrideErr) { console.error("[PlaybookTab] override save failed:", overrideErr); }
         }
       }

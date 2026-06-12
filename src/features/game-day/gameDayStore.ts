@@ -100,7 +100,18 @@ export const useGameDayStore = create<GameDayStore>()(
       listStates: {},
 
       setStartingCp: (listId, cp) =>
-        set((s) => setListState(s, listId, { startingCp: cp, cp, cpHistory: [] })),
+        set((s) => {
+          const cur = getListState(s, listId);
+          // Once CP tracking has begun (a spend/gain happened, or cp diverged from the
+          // starting value), only adjust startingCp — don't wipe live cp/undo history.
+          // Before tracking begins, keep seeding cp from startingCp so the counter starts right.
+          const trackingStarted = cur.cpHistory.length > 0 || cur.cp !== cur.startingCp;
+          return setListState(
+            s,
+            listId,
+            trackingStarted ? { startingCp: cp } : { startingCp: cp, cp, cpHistory: [] },
+          );
+        }),
 
       spendCp: (listId, cost) =>
         set((s) => {

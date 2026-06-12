@@ -5,6 +5,7 @@
  * NOT invalidated by rules sync — notes live in hobbyforge.db.
  */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { getRulesNotes, upsertRulesNote } from "@/db/queries/rulesNotes";
 import type { UpsertRulesNoteInput } from "@/types/rulesNote";
 
@@ -21,6 +22,9 @@ export function useUpsertRulesNote() {
   const qc = useQueryClient();
   return useMutation<void, Error, UpsertRulesNoteInput>({
     mutationFn: upsertRulesNote,
+    onError: () => {
+      toast.error("Failed to save note. Please try again.");
+    },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: RULES_NOTES_KEY });
     },

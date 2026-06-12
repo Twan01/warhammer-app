@@ -184,12 +184,18 @@ export function SnapshotHistorySheet({
                 ? {
                     label: "Undo",
                     onClick: () => {
-                      createSnapshot.mutate({
-                        list_id: listId,
-                        label: snapshot.label,
-                        snapshot_data: savedData!,
-                        total_points: snapshot.total_points,
-                      });
+                      createSnapshot.mutate(
+                        {
+                          list_id: listId,
+                          label: snapshot.label,
+                          snapshot_data: savedData!,
+                          total_points: snapshot.total_points,
+                        },
+                        {
+                          onSuccess: () => toast.success("Snapshot restored."),
+                          onError: () => toast.error("Failed to undo — snapshot could not be restored."),
+                        },
+                      );
                     },
                   }
                 : undefined,

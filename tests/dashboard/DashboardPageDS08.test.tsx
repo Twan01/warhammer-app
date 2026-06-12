@@ -25,7 +25,7 @@ import {
   Outlet,
 } from "@tanstack/react-router";
 import { ActiveFactionProvider } from "@/context/ActiveFactionContext";
-import type { Unit } from "@/types/unit";
+import type { DashboardUnit } from "@/db/queries/dashboard";
 import type { Faction } from "@/types/faction";
 
 // ─── Mock dashboard query ─────────────────────────────────────────────────────
@@ -125,8 +125,9 @@ function f(over: Partial<Faction> = {}): Faction {
   };
 }
 
-function u(over: Partial<Unit> = {}): Unit {
+function u(over: Partial<DashboardUnit> = {}): DashboardUnit {
   return {
+    effective_points: over.effective_points ?? over.points ?? 100,
     id: 1,
     faction_id: 1,
     name: "Fire Warrior",
