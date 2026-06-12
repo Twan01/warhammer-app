@@ -122,13 +122,17 @@ describe("RuleNoteEditor", () => {
     vi.advanceTimersByTime(500);
 
     expect(mockMutate).toHaveBeenCalledTimes(1);
+    // mutate is called with the payload AND an options object whose onSuccess
+    // drives the "Saved" indicator (added in 128-02, FBK-05). toHaveBeenCalledWith
+    // matches the full argument list, so both args must be asserted.
     expect(mockMutate).toHaveBeenCalledWith(
       expect.objectContaining({
         rule_id: "strat-1",
         rule_type: "stratagem",
         rule_name: "Test Stratagem",
         note_text: "Hello",
-      })
+      }),
+      expect.objectContaining({ onSuccess: expect.any(Function) })
     );
   });
 });
