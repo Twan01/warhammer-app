@@ -103,21 +103,28 @@ export function UnitDetailSheet({ open, unit, onClose, onEdit, onDelete, onPhoto
                   <span className="text-muted-foreground">Unknown faction</span>
                 )}
               </SheetDescription>
-              {unit.udb_unit_id && (
+            </SheetHeader>
+
+            {unit.udb_unit_id && (
+              <div className="px-4">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="mt-1 h-auto px-0 text-xs text-muted-foreground hover:text-foreground"
+                  className="h-auto px-0 text-xs text-muted-foreground hover:text-foreground"
                   onClick={() => {
+                    const udbUnitId = unit.udb_unit_id!;
                     onClose();
-                    navigate({ to: "/unit-database" });
+                    navigate({
+                      to: "/unit-database",
+                      search: { udbUnitId },
+                    });
                   }}
                 >
                   <BookMarked className="mr-1 h-3 w-3" aria-hidden="true" />
                   View Datasheet
                 </Button>
-              )}
-            </SheetHeader>
+              </div>
+            )}
 
             <Tabs defaultValue="details" className="px-4">
               <TabsList className="mt-2">

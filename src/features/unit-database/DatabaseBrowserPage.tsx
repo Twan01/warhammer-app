@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import { Search, ArrowRight } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { unitDatabaseRoute } from "@/app/router";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -98,6 +99,22 @@ export function DatabaseBrowserPage() {
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const { data: unitOwnership } = useUdbUnitOwnership(selectedUnitId);
   const isSearching = searchText.trim().length > 0;
+
+  // Deep-link (WR-01): when navigated here with ?udbUnitId=…, auto-open that
+  // datasheet. UdbDatasheetSheet fetches by id independently of the selected
+  // faction, so no faction needs to be picked first. Consume the param once
+  // and strip it from the URL so it does not re-trigger on later renders.
+  const { udbUnitId } = unitDatabaseRoute.useSearch();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!udbUnitId) return;
+    setSelectedUnitId(udbUnitId);
+    navigate({
+      to: "/unit-database",
+      search: {},
+      replace: true,
+    });
+  }, [udbUnitId, navigate]);
 
   // UnitSheet state for the "Add to Collection" flow
   const [unitSheetOpen, setUnitSheetOpen] = useState(false);

@@ -204,9 +204,13 @@ const dataHealthRoute = createRoute({
   component: DataHealthPage,
 });
 
-const unitDatabaseRoute = createRoute({
+export const unitDatabaseRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/unit-database",
+  validateSearch: z.object({
+    // Deep-link target: open this canonical datasheet on load (WR-01).
+    udbUnitId: z.string().optional(),
+  }),
   component: UnitDatabasePageShell,
 });
 

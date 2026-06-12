@@ -12,7 +12,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import type { ReactNode } from "react";
+import type { ReactNode, ReactElement } from "react";
 
 // ---------------------------------------------------------------------------
 // Shared router mock — Link renders as <a> with href
@@ -20,6 +20,15 @@ import type { ReactNode } from "react";
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children, to, ...rest }: any) => <a href={to} {...rest}>{children}</a>,
   useNavigate: () => vi.fn(),
+}));
+
+// DatabaseBrowserPage reads ?udbUnitId via unitDatabaseRoute.useSearch (WR-01).
+// Mock the route so importing the real router tree (lazy imports, devtools) is
+// avoided in jsdom.
+vi.mock("@/app/router", () => ({
+  unitDatabaseRoute: {
+    useSearch: () => ({ udbUnitId: undefined }),
+  },
 }));
 
 // ---------------------------------------------------------------------------
@@ -138,7 +147,7 @@ vi.mock("@/features/units/UnitSheet", () => ({
 import { RulesHubPage } from "@/features/rules-hub/RulesHubPage";
 import { DatabaseBrowserPage } from "@/features/unit-database/DatabaseBrowserPage";
 
-function makeWrapper(): ({ children }: { children: ReactNode }) => JSX.Element {
+function makeWrapper(): ({ children }: { children: ReactNode }) => ReactElement {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return function Wrapper({ children }: { children: ReactNode }) {
     return (
