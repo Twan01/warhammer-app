@@ -3,7 +3,7 @@
  *
  * Behaviors:
  *   (a) Game Day nav entry is present in the sidebar (NAV-04)
- *   (b) when collapsed, 3 group dividers render (border-b border-border/40)
+ *   (b) when collapsed, 3 group dividers render (h-px bg-border filled line)
  *   (c) when expanded, dividers do NOT render
  *
  * Collapse state is driven by localStorage "sidebar:collapsed".
@@ -60,12 +60,11 @@ describe("AppSidebar — NAV-05: collapsed group dividers", () => {
     render(<RouterProvider router={makeRouter()} />);
     await screen.findByLabelText("Expand sidebar");
 
-    // Each collapsed group separator is a <div class="my-1 border-b border-border/40">
-    // querySelector with attribute-value containing "/" needs attribute selector
+    // Each collapsed group separator is a filled <div class="... h-px bg-border">
     const nav = document.querySelector("nav");
     const allDivs = nav ? nav.querySelectorAll("div") : document.querySelectorAll("nav div");
     const dividers = Array.from(allDivs).filter((el) =>
-      el.className.includes("border-b") && el.className.includes("border-border/40"),
+      el.className.includes("h-px") && el.className.includes("bg-border"),
     );
     // Three dividers: between Command/Workshop, Workshop/Play, Play/Management
     expect(dividers.length).toBeGreaterThanOrEqual(3);
@@ -76,11 +75,11 @@ describe("AppSidebar — NAV-05: collapsed group dividers", () => {
     render(<RouterProvider router={makeRouter()} />);
     await screen.findByText("Dashboard");
 
-    // No border-b border-border/40 divider <div>s should exist inside nav
+    // No h-px bg-border divider <div>s should exist inside nav
     const nav = document.querySelector("nav");
     const allDivs = nav ? nav.querySelectorAll("div") : document.querySelectorAll("nav div");
     const dividers = Array.from(allDivs).filter((el) =>
-      el.className.includes("border-b") && el.className.includes("border-border/40"),
+      el.className.includes("h-px") && el.className.includes("bg-border"),
     );
     expect(dividers.length).toBe(0);
   });

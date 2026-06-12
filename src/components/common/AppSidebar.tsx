@@ -168,7 +168,7 @@ export function AppSidebar() {
           ))}
         </ul>
 
-        {collapsed && <div className="my-1 border-b border-border/40" />}
+        {collapsed && <div className="mx-1 my-1.5 h-px bg-border" />}
         {!collapsed && (
           <p className="px-3 pt-4 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-widest">
             Workshop
@@ -186,7 +186,7 @@ export function AppSidebar() {
           ))}
         </ul>
 
-        {collapsed && <div className="my-1 border-b border-border/40" />}
+        {collapsed && <div className="mx-1 my-1.5 h-px bg-border" />}
         {!collapsed && (
           <p className="px-3 pt-4 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-widest">
             Play
@@ -204,7 +204,7 @@ export function AppSidebar() {
           ))}
         </ul>
 
-        {collapsed && <div className="my-1 border-b border-border/40" />}
+        {collapsed && <div className="mx-1 my-1.5 h-px bg-border" />}
         {!collapsed && (
           <p className="px-3 pt-4 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-widest">
             Management
