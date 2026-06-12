@@ -16,9 +16,11 @@ import userEvent from "@testing-library/user-event";
 
 const mockNavigate = vi.fn();
 
+// href includes the query string so the test also covers WR-02: returnTo must
+// preserve search params, not just the pathname.
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => mockNavigate,
-  useLocation: () => ({ pathname: "/" }),
+  useLocation: () => ({ pathname: "/collection", href: "/collection?status=Built" }),
 }));
 
 vi.mock("@/hooks/useRecipeAssignments", () => ({
@@ -68,7 +70,7 @@ describe("EP-03: AppliedRecipesTab Paint buttons", () => {
     expect(screen.getByTestId("paint-btn-100")).toHaveTextContent("Paint");
   });
 
-  it("clicking Paint navigates to painting mode route with assignmentId", async () => {
+  it("clicking Paint navigates to painting mode route with assignmentId and returnTo href (WR-02)", async () => {
     const user = userEvent.setup();
     render(<AppliedRecipesTab unitId={1} onApplyRecipe={vi.fn()} />);
 
@@ -77,7 +79,8 @@ describe("EP-03: AppliedRecipesTab Paint buttons", () => {
     expect(mockNavigate).toHaveBeenCalledWith({
       to: "/painting-mode/$assignmentId",
       params: { assignmentId: "100" },
-      search: { returnTo: "/" },
+      // returnTo captures the full href (incl. query string), not just pathname
+      search: { returnTo: "/collection?status=Built" },
     });
   });
 

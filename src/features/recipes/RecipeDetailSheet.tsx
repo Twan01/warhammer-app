@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ApplyToUnitsDialog } from "./ApplyToUnitsDialog";
-import { useNavigate, useLocation } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
+import { useStartPainting } from "@/hooks/useStartPainting";
 import {
   Sheet,
   SheetContent,
@@ -182,7 +183,7 @@ export function RecipeDetailSheet({
 
   const [applyToUnitsOpen, setApplyToUnitsOpen] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
+  const startPainting = useStartPainting();
 
   return (
     <>
@@ -312,13 +313,7 @@ export function RecipeDetailSheet({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() =>
-                            navigate({
-                              to: "/painting-mode/$assignmentId",
-                              params: { assignmentId: String(a.id) },
-                              search: { returnTo: location.pathname },
-                            })
-                          }
+                          onClick={() => startPainting(a.id)}
                           data-testid={`paint-unit-btn-${a.id}`}
                         >
                           Paint

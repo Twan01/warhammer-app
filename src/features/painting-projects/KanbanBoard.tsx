@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { useNavigate, useLocation } from "@tanstack/react-router";
 import {
   DndContext,
   DragOverlay,
@@ -21,6 +20,7 @@ import { useUnits, useUpdateUnit, UNITS_KEY } from "@/hooks/useUnits";
 import { useFactions } from "@/hooks/useFactions";
 import { useKanbanEnrichment } from "@/hooks/useKanbanEnrichment";
 import { useWorkflowPositions } from "@/hooks/useWorkflowPositions";
+import { useStartPainting } from "@/hooks/useStartPainting";
 import {
   applyActiveFilter,
   groupByStatus,
@@ -38,8 +38,7 @@ export interface KanbanBoardProps {
 }
 
 export function KanbanBoard({ onEditUnit, onAddProject, onLogSession }: KanbanBoardProps) {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const startPainting = useStartPainting();
   const { data: units = [], isLoading } = useUnits();
   const { data: factions = [] } = useFactions();
   const qc = useQueryClient();
@@ -89,11 +88,7 @@ export function KanbanBoard({ onEditUnit, onAddProject, onLogSession }: KanbanBo
   }
 
   function handlePaint(assignmentId: number) {
-    navigate({
-      to: "/painting-mode/$assignmentId",
-      params: { assignmentId: String(assignmentId) },
-      search: { returnTo: location.pathname },
-    });
+    startPainting(assignmentId);
   }
 
   function handleDragStart(event: DragStartEvent) {

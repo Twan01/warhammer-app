@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { useNavigate, useLocation } from "@tanstack/react-router";
 import { ClipboardList, Palette, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import {
 } from "@/hooks/useRecipeAssignments";
 import { useRecipes } from "@/hooks/useRecipes";
 import { AssignmentChecklist } from "@/features/recipes/AssignmentChecklist";
+import { useStartPainting } from "@/hooks/useStartPainting";
 import type { RecipeAssignment } from "@/types/recipeAssignment";
 
 interface AppliedRecipesTabProps {
@@ -23,8 +23,7 @@ interface AppliedRecipesTabProps {
  * and embedded AssignmentChecklist (gated on assignment.id).
  */
 export function AppliedRecipesTab({ unitId, onApplyRecipe }: AppliedRecipesTabProps) {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const startPainting = useStartPainting();
   const { data: assignments = [], isLoading } = useAssignmentsByUnit(unitId);
   const { data: recipes = [] } = useRecipes();
   const deleteAssignment = useDeleteAssignment();
@@ -75,13 +74,7 @@ export function AppliedRecipesTab({ unitId, onApplyRecipe }: AppliedRecipesTabPr
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() =>
-                  navigate({
-                    to: "/painting-mode/$assignmentId",
-                    params: { assignmentId: String(assignment.id) },
-                    search: { returnTo: location.pathname },
-                  })
-                }
+                onClick={() => startPainting(assignment.id)}
                 data-testid={`paint-btn-${assignment.id}`}
               >
                 <Palette size={14} className="mr-1.5" />
