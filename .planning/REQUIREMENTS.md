@@ -23,15 +23,15 @@ Requirements for UX Polish & Consistency milestone. Each maps to roadmap phases.
 
 ### Visual Consistency
 
-- [ ] **VIS-01**: Rules Hub and Unit Database use PageHeader with border-b separator and subtitle
-- [ ] **VIS-02**: Factions page PageHeader includes subtitle prop
-- [ ] **VIS-03**: Section heading hierarchy standardized (one pattern for h2 across Dashboard, Goals, Spending, Data Health)
-- [ ] **VIS-04**: Spending page uses standard p-6 gap-6 (not p-8 gap-12)
-- [ ] **VIS-05**: Paints filtered empty state uses icon-pill pattern (consistent with other empty states)
-- [ ] **VIS-06**: RecipeCard and SectionedTimeline status dots use theme tokens (not hardcoded hex)
-- [ ] **VIS-07**: Dashboard button icons use consistent h-4 w-4 + mr-2 pattern
-- [ ] **VIS-08**: FactionsEmptyState body text includes max-w-xs constraint
-- [ ] **VIS-09**: Data Health and Settings use flex flex-col gap-6 (not space-y-6) for consistency
+- [x] **VIS-01**: Rules Hub and Unit Database use PageHeader with border-b separator and subtitle
+- [x] **VIS-02**: Factions page PageHeader includes subtitle prop
+- [x] **VIS-03**: Section heading hierarchy standardized (one pattern for h2 across Dashboard, Goals, Spending, Data Health)
+- [x] **VIS-04**: Spending page uses standard p-6 gap-6 (not p-8 gap-12)
+- [x] **VIS-05**: Paints filtered empty state uses icon-pill pattern (consistent with other empty states)
+- [x] **VIS-06**: RecipeCard and SectionedTimeline status dots use theme tokens (not hardcoded hex)
+- [x] **VIS-07**: Dashboard button icons use consistent h-4 w-4 + mr-2 pattern
+- [x] **VIS-08**: FactionsEmptyState body text includes max-w-xs constraint
+- [x] **VIS-09**: Data Health and Settings use flex flex-col gap-6 (not space-y-6) for consistency
 
 ### Feedback & Form UX
 
@@ -48,17 +48,17 @@ Requirements for UX Polish & Consistency milestone. Each maps to roadmap phases.
 
 ### Navigation & Technical Polish
 
-- [ ] **NAV-01**: Painting Mode exit returns to originating page (returnTo param) not always Dashboard
-- [ ] **NAV-02**: Collection UnitDetailSheet has "View Datasheet" link to Unit Database
-- [ ] **NAV-03**: Rules Hub and Unit Database have cross-links to each other
-- [ ] **NAV-04**: Game Day page highlights correct sidebar item
-- [ ] **NAV-05**: Collapsed sidebar shows group dividers between Command/Workshop/Play/Management
-- [ ] **NAV-06**: Battle Log entries link to the army list used
-- [ ] **NAV-07**: ArmyListDetailSheet dead code deleted (~340 lines)
-- [ ] **NAV-08**: RecipeCard wrapped in React.memo to prevent O(N) re-renders on search
-- [ ] **NAV-09**: ArmyListDetailPage reducer extracted to separate file
-- [ ] **NAV-10**: Sidebar collapse has CSS transition (not instant snap)
-- [ ] **NAV-11**: Painting Mode Escape key hint visible in StepFocalView
+- [x] **NAV-01**: Painting Mode exit returns to originating page (returnTo param) not always Dashboard
+- [x] **NAV-02**: Collection UnitDetailSheet has "View Datasheet" link to Unit Database
+- [x] **NAV-03**: Rules Hub and Unit Database have cross-links to each other
+- [x] **NAV-04**: Game Day page highlights correct sidebar item
+- [x] **NAV-05**: Collapsed sidebar shows group dividers between Command/Workshop/Play/Management
+- [x] **NAV-06**: Battle Log entries link to the army list used
+- [x] **NAV-07**: ArmyListDetailSheet dead code deleted (~340 lines)
+- [x] **NAV-08**: RecipeCard wrapped in React.memo to prevent O(N) re-renders on search
+- [x] **NAV-09**: ArmyListDetailPage reducer extracted to separate file
+- [x] **NAV-10**: Sidebar collapse has CSS transition (not instant snap)
+- [x] **NAV-11**: Painting Mode Escape key hint visible in StepFocalView
 
 ## v2 Requirements
 
@@ -98,20 +98,20 @@ Deferred to future release. Tracked but not in current roadmap.
 | FIX-04 | Phase 126 | Complete |
 | FIX-05 | Phase 126 | Complete |
 | FIX-06 | Phase 126 | Complete |
-| FIX-07 | Phase 126 | Pending |
-| FIX-08 | Phase 126 | Pending |
-| FIX-09 | Phase 126 | Pending |
+| FIX-07 | Phase 126 | Complete |
+| FIX-08 | Phase 126 | Complete |
+| FIX-09 | Phase 126 | Complete |
 | FIX-10 | Phase 126 | Complete |
 | FIX-11 | Phase 126 | Complete |
-| VIS-01 | Phase 127 | Pending |
-| VIS-02 | Phase 127 | Pending |
-| VIS-03 | Phase 127 | Pending |
-| VIS-04 | Phase 127 | Pending |
-| VIS-05 | Phase 127 | Pending |
-| VIS-06 | Phase 127 | Pending |
-| VIS-07 | Phase 127 | Pending |
-| VIS-08 | Phase 127 | Pending |
-| VIS-09 | Phase 127 | Pending |
+| VIS-01 | Phase 127 | Complete |
+| VIS-02 | Phase 127 | Complete |
+| VIS-03 | Phase 127 | Complete |
+| VIS-04 | Phase 127 | Complete |
+| VIS-05 | Phase 127 | Complete |
+| VIS-06 | Phase 127 | Complete |
+| VIS-07 | Phase 127 | Complete |
+| VIS-08 | Phase 127 | Complete |
+| VIS-09 | Phase 127 | Complete |
 | FBK-01 | Phase 128 | Complete |
 | FBK-02 | Phase 128 | Complete |
 | FBK-03 | Phase 128 | Complete |
@@ -122,17 +122,17 @@ Deferred to future release. Tracked but not in current roadmap.
 | FBK-08 | Phase 128 | Complete |
 | FBK-09 | Phase 128 | Complete |
 | FBK-10 | Phase 128 | Complete |
-| NAV-01 | Phase 129 | Pending |
-| NAV-02 | Phase 129 | Pending |
-| NAV-03 | Phase 129 | Pending |
-| NAV-04 | Phase 129 | Pending |
-| NAV-05 | Phase 129 | Pending |
-| NAV-06 | Phase 129 | Pending |
-| NAV-07 | Phase 129 | Pending |
-| NAV-08 | Phase 129 | Pending |
-| NAV-09 | Phase 129 | Pending |
-| NAV-10 | Phase 129 | Pending |
-| NAV-11 | Phase 129 | Pending |
+| NAV-01 | Phase 129 | Complete |
+| NAV-02 | Phase 129 | Complete |
+| NAV-03 | Phase 129 | Complete |
+| NAV-04 | Phase 129 | Complete |
+| NAV-05 | Phase 129 | Complete |
+| NAV-06 | Phase 129 | Complete |
+| NAV-07 | Phase 129 | Complete |
+| NAV-08 | Phase 129 | Complete |
+| NAV-09 | Phase 129 | Complete |
+| NAV-10 | Phase 129 | Complete |
+| NAV-11 | Phase 129 | Complete |
 
 **Coverage:**
 - v0.5.2 requirements: 41 total
