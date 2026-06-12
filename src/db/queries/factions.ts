@@ -24,17 +24,19 @@ export async function createFaction(input: CreateFactionInput): Promise<number> 
 
 export async function updateFaction(input: UpdateFactionInput): Promise<void> {
   const db = await getDb();
-  // Guard NOT NULL columns against undefined from Partial<CreateFactionInput>.
+  // Guard every column against undefined from Partial<CreateFactionInput>.
   // COALESCE ensures undefined/null values fall back to existing column values,
-  // preventing NOT NULL constraint violations when only a subset of fields is provided.
+  // so a partial update (e.g. linking a faction with only { id, wahapedia_faction_id })
+  // does not wipe unrelated fields. The faction form clears fields via empty string,
+  // not null, so explicit clearing still works through COALESCE.
   await db.execute(
     `UPDATE factions
         SET name = COALESCE($2, name),
             game_system = COALESCE($3, game_system),
-            description = $4,
+            description = COALESCE($4, description),
             color_theme = COALESCE($5, color_theme),
-            icon_path = $6,
-            lore_notes = $7,
+            icon_path = COALESCE($6, icon_path),
+            lore_notes = COALESCE($7, lore_notes),
             wahapedia_faction_id = COALESCE($8, wahapedia_faction_id),
             updated_at = datetime('now')
       WHERE id = $1`,
