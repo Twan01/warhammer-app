@@ -37,6 +37,19 @@ Full-tree review run as a 30-unit multi-agent sweep (54 agents incl. verificatio
 | Info | 98 |
 | **Total** | **131** |
 
+## Fix status (applied 2026-06-12, commits on `master`)
+
+| Severity | Fixed | Verified false-positive | Deferred (documented) |
+|---|---|---|---|
+| Critical | 1 (CR-001) | 3 (CR-002/003/004 — sqlx defaults FK on pool-wide) | 0 |
+| Warning | 27 | 0 | 2 (WR-22 overstated; WR-25 recipe atomicity needs a Rust transaction command) |
+| Info | ~30 (correctness/error-handling/data-integrity + trivial) | — | ~68 (subjective accessibility, perf memoization, architectural dedup, intent-confirmation, and dead-but-tested code) |
+
+All fixes were type-checked (`tsc --noEmit`), Rust-compiled (`cargo check`), and the full
+Vitest suite (2695 tests) passes. Deferred items are intentionally left because they are
+overstated, require product/architecture decisions, are pure refactors/perf with no
+behavioral bug, or would delete tested-but-currently-unwired components.
+
 ### Headline (CORRECTED after human verification)
 
 The original headline claimed 3 of 4 Criticals shared a broken-FK-enforcement root cause. **This was wrong** — see below.
