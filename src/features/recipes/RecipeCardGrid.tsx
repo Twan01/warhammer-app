@@ -6,6 +6,11 @@ import type { AvailabilityStats } from "@/hooks/useRecipePaints";
 import { RecipeCard } from "./RecipeCard";
 import { RecipeEmptyState } from "./RecipeEmptyState";
 
+// Shared stable reference for the empty-swatches fallback. Using a fresh `[]`
+// literal per render defeats memo(RecipeCard) for any card lacking swatches
+// (IN-01); a module-level constant keeps the prop reference stable.
+const EMPTY_SWATCHES: { paint_id: number; hex_color: string | null }[] = [];
+
 export interface RecipeCardGridProps {
   data: PaintingRecipe[];
   factions: Faction[];
@@ -77,7 +82,7 @@ export function RecipeCardGrid({
           faction={recipe.faction_id !== null ? factionMap.get(recipe.faction_id) : undefined}
           stepCount={stepCountByRecipe.get(recipe.id) ?? 0}
           sectionCount={sectionCountByRecipe.get(recipe.id) ?? 0}
-          swatches={swatchColorsByRecipe.get(recipe.id) ?? []}
+          swatches={swatchColorsByRecipe.get(recipe.id) ?? EMPTY_SWATCHES}
           availability={availabilityByRecipe.get(recipe.id)}
           onClick={onCardClick}
           onEdit={onEdit}
