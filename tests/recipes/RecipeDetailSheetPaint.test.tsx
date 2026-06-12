@@ -20,9 +20,11 @@ import type { PaintingRecipe } from "@/types/recipe";
 
 const mockNavigate = vi.fn();
 
+// href includes the query string so the test also covers WR-02: returnTo must
+// preserve search params, not just the pathname.
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => mockNavigate,
-  useLocation: () => ({ pathname: "/" }),
+  useLocation: () => ({ pathname: "/recipes", href: "/recipes?paintId=3" }),
 }));
 
 vi.mock("@/hooks/useFactions", () => ({
@@ -204,7 +206,8 @@ describe("EP-05: RecipeDetailSheet Paint buttons for applied units", () => {
     expect(mockNavigate).toHaveBeenCalledWith({
       to: "/painting-mode/$assignmentId",
       params: { assignmentId: "50" },
-      search: { returnTo: "/" },
+      // returnTo captures the full href (incl. query string), not just pathname
+      search: { returnTo: "/recipes?paintId=3" },
     });
   });
 
