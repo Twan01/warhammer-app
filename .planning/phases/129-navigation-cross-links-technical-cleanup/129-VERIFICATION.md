@@ -1,8 +1,10 @@
 ---
 phase: 129-navigation-cross-links-technical-cleanup
 verified: 2026-06-12T00:00:00Z
-status: human_needed
-score: 11/11 must-haves verified
+status: passed
+human_verified: 2026-06-12T10:30:00Z
+human_verified_result: "7/7 passed in live app (pnpm tauri dev). NAV-05 collapsed dividers fixed during verification (border-border/40 → h-px bg-border)."
+score: 11/11 must-haves verified + 7/7 human-verified
 overrides_applied: 0
 human_verification:
   - test: "Painting Mode exit returns to origin — navigate from /collection, open unit, click paint, then exit Painting Mode"
@@ -202,9 +204,24 @@ No stub patterns detected. All new code renders real data or performs real navig
 
 ---
 
+### Human Verification Results — 2026-06-12 (live app, `pnpm tauri dev`)
+
+| # | Item | Result | Notes |
+|---|------|--------|-------|
+| 1 | Painting Mode exit returns to origin | ✅ PASS | Exit from Collection & Recipe both return to origin |
+| 2 | Escape + not-found "Go Back" return to origin | ✅ PASS | Includes FIX-02 fix: "Go Back" now routes through handleExit → resolveReturnTo |
+| 3 | Game Day sidebar highlight on index & detail | ✅ PASS | Both `/game-day` and `/game-day/:id` highlight Game Day; intermediate `/army-lists` correctly highlights Army Lists |
+| 4 | Collapsed sidebar dividers visible | ✅ PASS (after fix) | `border-b border-border/40` was invisible at 40% opacity; replaced with `h-px bg-border` solid line |
+| 5 | Sidebar collapse animation smooth | ✅ PASS | Smooth 200ms width transition, no text snap |
+| 6 | UnitDetailSheet "View Datasheet" conditional | ✅ PASS | Button present for linked units (subtle ghost button below faction badge) |
+| 7 | Battle Log → army list link (stopPropagation) | ✅ PASS | Navigates to detail without toggling row expand |
+
 ### Gaps Summary
 
-No gaps found. All 11 must-haves are VERIFIED in the codebase. The 7 human verification items above are runtime UI behaviors (navigation flow, active highlighting, CSS animation) that cannot be confirmed by static code analysis. The automated checks passed completely.
+No gaps. All 11 must-haves VERIFIED in code; all 7 runtime items HUMAN-VERIFIED PASS in the
+live app on 2026-06-12. One issue surfaced and fixed during verification: NAV-05 collapsed
+dividers were rendering but invisible (40%-opacity dark border on dark card) — fixed to a
+solid `h-px bg-border` line, committed, and re-confirmed visible.
 
 ---
 
