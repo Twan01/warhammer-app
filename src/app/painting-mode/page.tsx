@@ -9,6 +9,7 @@ import { useRecipeSections } from "@/hooks/useRecipeSections";
 import { useUnit } from "@/hooks/useUnits";
 import { useRecipe } from "@/hooks/useRecipes";
 import { todayISO } from "@/lib/dates";
+import { resolveReturnTo } from "@/lib/resolveReturnTo";
 
 import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -109,10 +110,13 @@ function PaintingModePageInner({ assignmentId }: { assignmentId: number }) {
     );
   };
 
-  // Exit handler (D-07) — safe navigation back
+  // Exit handler (D-07) — safe navigation back.
+  // resolveReturnTo() is the real backstop: it both rejects open-redirect
+  // values (//evil.com, http://…) AND degrades unmatched/stale internal paths
+  // to "/" so a since-deleted resource never surfaces the router not-found
+  // route (WR-03). The router error boundary remains the final safety net.
   const handleExit = () => {
-    const target = returnTo && returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : "/";
-    navigate({ to: target });
+    navigate({ to: resolveReturnTo(returnTo) });
   };
 
   // Keyboard shortcuts enabled only when assignment loaded and state ready

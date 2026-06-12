@@ -11,10 +11,8 @@
  * useNavigate. We mock all hooks and test the navigate({ to: target }) call value.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { render } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { ReactNode } from "react";
 
 // ---------------------------------------------------------------------------
 // Capture navigate mock — must be declared before vi.mock hoisting
@@ -99,24 +97,11 @@ function renderPage() {
 
 // ---------------------------------------------------------------------------
 // We test the handleExit logic by triggering the Escape hotkey registered via
-// useHotkeys. Since useHotkeys is mocked, we capture the handler and call it.
-// ---------------------------------------------------------------------------
-
-function captureEscapeHandler() {
-  const { useHotkeys } = require("@/../../node_modules/react-hotkeys-hook") as any;
-  // useHotkeys is a no-op mock — we need to intercept the escape registration.
-  // Instead, we re-implement the guard inline and test it directly.
-  // This avoids any coupling to the hook internals.
-  return null;
-}
-
-// ---------------------------------------------------------------------------
-// Guard logic extracted for unit-level assertion — mirrors page.tsx line 114:
-//   const target = returnTo && returnTo.startsWith("/") && !returnTo.startsWith("//")
-//                  ? returnTo : "/";
-// We test the observable navigate call after rendering the full page, which
-// registers the Escape hotkey via the mock. We call the escape handler by
-// inspecting what useHotkeys captured.
+// useHotkeys. The useHotkeys mock below stores each handler so the test can
+// invoke the escape handler directly and assert the resulting navigate call.
+// The exit target is resolved by the real resolveReturnTo() (src/lib), which
+// the page imports — so these tests exercise the open-redirect guard (WR-02
+// preservation) and the unmatched-route degradation (WR-03) end to end.
 // ---------------------------------------------------------------------------
 
 // Re-capture approach: override useHotkeys to store handlers
@@ -166,5 +151,31 @@ describe("NAV-01 — PaintingModePage handleExit returnTo logic", () => {
     expect(hotkeyHandlers["escape"]).toBeDefined();
     hotkeyHandlers["escape"]();
     expect(navigateMock).toHaveBeenCalledWith({ to: "/" });
+  });
+
+  it("(d) preserves search params for a known route (WR-02)", () => {
+    mockReturnTo = "/recipes?paintId=3";
+    renderPage();
+    expect(hotkeyHandlers["escape"]).toBeDefined();
+    hotkeyHandlers["escape"]();
+    expect(navigateMock).toHaveBeenCalledWith({ to: "/recipes?paintId=3" });
+  });
+
+  it("(e) degrades an unknown/stale internal route to '/' (WR-03)", () => {
+    mockReturnTo = "/not-a-real-route/123";
+    renderPage();
+    expect(hotkeyHandlers["escape"]).toBeDefined();
+    hotkeyHandlers["escape"]();
+    expect(navigateMock).toHaveBeenCalledWith({ to: "/" });
+  });
+
+  it("(e) allows a known dynamic route with a concrete id (WR-03)", () => {
+    mockReturnTo = "/army-lists/999";
+    renderPage();
+    expect(hotkeyHandlers["escape"]).toBeDefined();
+    hotkeyHandlers["escape"]();
+    // Parent segment is known; the destination page handles a stale id with
+    // its own empty state rather than the global router error boundary.
+    expect(navigateMock).toHaveBeenCalledWith({ to: "/army-lists/999" });
   });
 });
