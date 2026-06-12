@@ -2,35 +2,33 @@
 gsd_state_version: 1.0
 milestone: v0.5.2
 milestone_name: UX Polish & Consistency
-status: ready_to_plan
-stopped_at: Phase 128 complete (2/2) — ready to discuss Phase 129
-last_updated: 2026-06-11T14:36:52.894Z
-last_activity: 2026-06-11
+status: Awaiting next milestone
+stopped_at: Milestone v0.5.2 complete and archived
+last_updated: "2026-06-12T08:37:46.621Z"
+last_activity: 2026-06-12 — Milestone v0.5.2 completed and archived
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 13
-  completed_plans: 9
-  percent: 75
+  completed_plans: 13
+  percent: 100
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-11)
+See: .planning/PROJECT.md (updated 2026-06-12)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore
-**Current focus:** Phase 129 — navigation cross links technical cleanup
+**Current focus:** Planning next milestone (run `/gsd:new-milestone`)
 
 ## Current Position
 
-Phase: 129
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-06-11
-
-Progress: [██████░░░░] 62%
+Phase: Milestone v0.5.2 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-12 — Milestone v0.5.2 completed and archived
 
 ## Performance Metrics
 
@@ -86,3 +84,7 @@ Last session: 2026-06-11T14:23:29.344Z
 Stopped at: Phase 128 context gathered
 Resume file: None
 Resume: Run `/gsd:discuss-phase 128` to begin Feedback Hardening & Form UX.
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

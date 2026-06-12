@@ -827,6 +827,52 @@
 
 ---
 
+## Milestone: v0.5.2 — UX Polish & Consistency
+
+**Shipped:** 2026-06-12
+**Phases:** 4 (126–129) | **Plans:** 13 | **Timeline:** 1 day (2026-06-11 → 2026-06-12)
+
+### What Was Built
+
+- Phase 126: Critical fixes & dead-end elimination — Painting Mode completion-screen exit + Escape hint, returnTo-aware "assignment not found" recovery, Recipes distinct error state, Army List notes toast fires only on real mutation, deduplicated goal-delete toast, success/error toasts for enhancement/leader/favorites mutations, dark-only token light fallbacks, custom dark-zinc scrollbar (11 FIX requirements)
+- Phase 127: Visual consistency — PageHeader (text-3xl + border-b + subtitle) on Rules Hub & Unit Database and all pages, standardized section heading hierarchy across Dashboard/Goals/Spending/Data Health, normalized p-6/gap-6 spacing, icon-pill filtered empty states, theme-token status dots, consistent button icon sizing (9 VIS requirements)
+- Phase 128: Feedback hardening — "Deleting…" pending text on 4 delete dialogs, GameDayPage error state with retry, Sheet autoFocus, RuleNoteEditor "Saved" indicator, PlaybookTab disabled-save tooltip + error Retry, JournalTab/snapshot success toasts, gcTime alignment for staleTime:Infinity hooks (10 FBK requirements)
+- Phase 129: Navigation & cleanup — Painting Mode returnTo + resolveReturnTo across 5 entry points, Collection→Unit Database "View Datasheet" deep-link, bidirectional Rules Hub ⇄ Unit Database cross-links, Game Day sidebar highlight, Battle Log→army list link, collapsed sidebar dividers, sidebar collapse transition; ArmyListDetailSheet dead code removed (~340 lines), RecipeCard React.memo, ArmyListDetailPage reducer extracted (11 NAV requirements)
+
+### What Worked
+
+- **Audit-driven remediation loop:** The milestone audit started at `tech_debt` (FIX-02 returnTo inconsistency, missing phase-126 VERIFICATION.md, NAV-05 invisible dividers) and each item was closed inline — FIX-02 one-line fix, phase-126 re-validation via `/gsd:validate-phase`, NAV-05 divider fix surfaced during the live human-verification pass — ending at `passed` with 7/7 runtime checks green.
+- **Human-verification pass caught a real bug:** Running the live app (`pnpm tauri dev`) to confirm the 7 runtime-only NAV items revealed NAV-05 collapsed dividers were invisible (border-border/40 on a dark card). Static audit could not have caught this — the manual pass was load-bearing.
+- **Polish-only, zero-schema scope kept risk low:** 41 requirements delivered with no migrations and no new features. Build + 2,739 tests stayed green throughout.
+- **PageHeader as the single header primitive:** Adopting one component everywhere (zero stray `<h1>`) made VIS-01/FIX-04/FIX-05 a mechanical, low-risk sweep across all pages.
+
+### What Was Inefficient
+
+- **Missing phase-126 VERIFICATION.md:** Phase 126 shipped without a gsd-verifier report (all other phases had one). Coverage was reconstructed via VALIDATION.md Nyquist + an independent integration check, but the gap required an extra validate-phase run at audit time. Verification should be a standard executor step per phase.
+- **SUMMARY documentation inaccuracy:** 129-02 SUMMARY described "inline h1" headers while the committed code correctly uses PageHeader with the `actions` prop. Harmless (code is correct) but a reminder that SUMMARY prose can drift from the diff.
+- **Runtime-only requirements can't be statically verified:** 7 NAV checks (returnTo navigation, sidebar highlight, click behavior) needed a manual app pass. Expected for a UX milestone, but it means "audit passed" alone is insufficient — the human loop is mandatory for navigation/visual work.
+
+### Patterns Established
+
+- **`returnTo` + `resolveReturnTo()` for context-aware exit:** A whitelist-validated query param resolved through a single helper, consumed by every exit path and entry point. Reusable for any full-page mode (Painting Mode, Game Day) that should return the user to where they came from.
+- **gcTime must pair with staleTime:Infinity:** staleTime:Infinity alone still evicts cache after the default 10-minute gcTime. Read-heavy/write-rare game-data hooks set both to Infinity. Project-wide rule.
+- **Polish milestone as a discrete cycle:** A dedicated UX-consistency milestone (no features, no schema) after feature-heavy milestones is an effective way to pay down accumulated inconsistency in one focused pass.
+
+### Key Lessons
+
+1. **Human verification is mandatory for UX/navigation milestones.** The static audit passed but a live-app pass found an invisible-divider bug (NAV-05). Always run the runtime checklist for visual/navigation work before completing.
+2. **Per-phase VERIFICATION.md should be enforced.** Phase 126's missing report forced extra reconstruction work at audit time — the same lesson surfaced in v0.2.9 and v0.5.0.
+3. **One header primitive beats per-page headers.** Consolidating on PageHeader made consistency a mechanical sweep and eliminates future drift — invest in shared primitives for cross-cutting UI concerns.
+4. **Scoping a milestone as polish-only (no schema, no features) keeps a 41-requirement sweep low-risk.** Worth repeating periodically to absorb accumulated UX debt.
+
+### Cost Observations
+
+- Model: Claude Opus 4.x throughout
+- Sessions: multiple (4 parallel-ish phases, then audit + remediation + human verification + completion)
+- Notable: 4 phases with 13 plans and 41 requirements in 1 day — largest requirement count per day of any milestone; the no-schema/no-feature scope and parallel phase independence (127/128/129 after 126) drove the velocity
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -855,6 +901,7 @@
 | v0.4.5 | 4 | 7 | Build pipeline hardening, priority faction data audit, pipeline fixes, sub-faction filter fix |
 | v0.4.7 | 5 | 10 | Wahapedia-only pipeline, stratagems/enhancements/detachments import, BSData eliminated |
 | v0.5.0 | 5 | 9 | Settings page: key-value storage, preferences, hobby defaults, data management, about tab; parallel tab execution |
+| v0.5.2 | 4 | 13 | Polish-only milestone (no schema, no features): critical fixes, visual consistency, feedback hardening, navigation cross-links; audit-driven remediation + mandatory human-verification pass |
 
 ### Cumulative Quality
 
@@ -882,6 +929,7 @@
 | v0.4.5 | 2,290+ | All passing (24/24 requirements satisfied, Nyquist 3/4 compliant) |
 | v0.4.7 | 2,400+ | All passing (19/19 requirements satisfied, Nyquist 4/5 compliant) |
 | v0.5.0 | 2,400+ | All passing (17/17 requirements satisfied, Nyquist 5/5 compliant, no gap closure needed) |
+| v0.5.2 | 2,739 | All passing (41/41 requirements satisfied, Nyquist 4/4 compliant, audit-driven remediation + 7/7 human verification PASS) |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -903,3 +951,5 @@
 16. Rust commands are the escape hatch for tauri-plugin-sql limitations — VACUUM INTO, and potentially ATTACH DATABASE, need direct Rust access (learned in v0.2.13 Phase 77)
 17. Rust-first foundation phases work for backend-heavy milestones — all commands rock-solid by UI phase time, zero API changes needed (confirmed in v0.2.14)
 18. Backup/restore operations are inherently hard to test in jsdom — Nyquist gaps are structural when the feature requires Tauri runtime (file system, process restart)
+19. Human verification is mandatory for UX/navigation milestones — a passed static audit still missed an invisible-divider bug (NAV-05); the live-app runtime pass is load-bearing, not optional (learned in v0.5.2)
+20. Consolidate cross-cutting UI on a single shared primitive — adopting PageHeader everywhere turned visual consistency into a mechanical sweep and eliminates future header drift (v0.5.2)
