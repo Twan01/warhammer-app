@@ -15,9 +15,9 @@ export async function getFactionById(id: number): Promise<Faction | null> {
 export async function createFaction(input: CreateFactionInput): Promise<number> {
   const db = await getDb();
   const result = await db.execute(
-    `INSERT INTO factions (name, game_system, description, color_theme, icon_path, lore_notes)
-     VALUES ($1, $2, $3, $4, $5, $6)`,
-    [input.name, input.game_system, input.description ?? null, input.color_theme, input.icon_path ?? null, input.lore_notes ?? null]
+    `INSERT INTO factions (name, game_system, description, color_theme, icon_path, lore_notes, wahapedia_faction_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [input.name, input.game_system, input.description ?? null, input.color_theme, input.icon_path ?? null, input.lore_notes ?? null, input.wahapedia_faction_id ?? null]
   );
   return result.lastInsertId ?? 0;
 }

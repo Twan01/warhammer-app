@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,13 @@ interface CategoryComboboxProps {
 export function CategoryCombobox({ value, onChange }: CategoryComboboxProps) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState(value);
+
+  // Keep the in-popover search text in sync with the controlled value — the parent form
+  // reuses the component (form.reset, no remount key) when switching units, so without
+  // this the search box would show the previously-edited unit's category until re-typed.
+  useEffect(() => {
+    setInput(value);
+  }, [value]);
 
   function commit(next: string) {
     onChange(next);

@@ -30,18 +30,19 @@ export function useUpsertRulesFavorite() {
       await qc.cancelQueries({ queryKey: RULES_FAVORITES_KEY });
       const previous = qc.getQueryData<RulesFavorite[]>(RULES_FAVORITES_KEY);
       qc.setQueryData<RulesFavorite[]>(RULES_FAVORITES_KEY, (old) => {
-        if (!old) return old;
-        const idx = old.findIndex(
+        const list = old ?? [];
+        const idx = list.findIndex(
           (f) => f.rule_id === variables.rule_id && f.rule_type === variables.rule_type
         );
         if (idx >= 0) {
-          return old.map((f, i) =>
+          return list.map((f, i) =>
             i === idx ? { ...f, ...variables, updated_at: new Date().toISOString() } : f
           );
         }
-        // New entry — use placeholder id; onSettled will refetch real data
+        // New entry — use placeholder id; onSettled will refetch real data. Seed from an
+        // empty list too, so the optimistic insert is not dropped when the cache is empty.
         return [
-          ...old,
+          ...list,
           {
             ...variables,
             id: -1,

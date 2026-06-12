@@ -23,7 +23,11 @@ export interface PaintingRingProps {
 }
 
 export function PaintingRing({ percentage }: PaintingRingProps) {
-  const pct = percentage ?? 0;
+  // Normalize defensively: `?? 0` does not catch NaN/Infinity or out-of-range values,
+  // which would produce a NaN stroke offset and an invalid aria-label.
+  const pct = Number.isFinite(percentage)
+    ? Math.round(Math.min(100, Math.max(0, percentage)))
+    : 0;
   const offset = CIRCUMFERENCE * (1 - pct / 100);
 
   return (

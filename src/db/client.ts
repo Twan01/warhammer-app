@@ -39,7 +39,8 @@ export async function getDb(): Promise<Database> {
       return db;
     })().catch((err) => {
       _dbPromise = null;
-      throw err;
+      // Wrap with context so call-site toasts/logs are actionable.
+      throw new Error(`Failed to initialize hobbyforge.db: ${err instanceof Error ? err.message : String(err)}`);
     });
   }
   return _dbPromise;

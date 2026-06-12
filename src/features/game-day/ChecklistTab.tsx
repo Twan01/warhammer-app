@@ -42,9 +42,9 @@ export function ChecklistTab({ listId }: ChecklistTabProps) {
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             Reminders from last games
           </p>
-          {forgottenRules.map((rule, i) => (
+          {forgottenRules.map((rule) => (
             <div
-              key={i}
+              key={rule}
               className="flex items-center gap-3 rounded-md border px-3 py-2 bg-amber-500/10"
             >
               <BookOpen size={14} className="text-amber-500 shrink-0" />

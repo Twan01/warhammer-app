@@ -39,9 +39,9 @@ export function EnhancementsList({ factionId }: { factionId: string }) {
             {detachment}
           </h4>
           <div className="flex flex-wrap gap-2">
-            {items.map((item) => (
+            {items.map((item, i) => (
               <div
-                key={item.name}
+                key={`${item.name}-${i}`}
                 className="flex items-center gap-1.5"
               >
                 <span className="text-sm">{item.name}</span>

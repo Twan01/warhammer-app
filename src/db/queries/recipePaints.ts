@@ -159,7 +159,7 @@ export async function getRecipePaintAvailability(): Promise<RecipePaintAvailabil
     `SELECT
        rs.recipe_id,
        COUNT(CASE WHEN p.owned = 1 AND p.running_low = 0 THEN 1 END) AS owned,
-       COUNT(CASE WHEN p.owned != 1 THEN 1 END) AS missing,
+       COUNT(CASE WHEN COALESCE(p.owned, 0) != 1 THEN 1 END) AS missing,
        COUNT(CASE WHEN p.owned = 1 AND p.running_low = 1 THEN 1 END) AS running_low
      FROM recipe_steps rs
      JOIN paints p ON p.id = rs.paint_id

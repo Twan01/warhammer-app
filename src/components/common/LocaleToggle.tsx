@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -23,6 +24,7 @@ export function LocaleToggle({ collapsed }: { collapsed: boolean }) {
             queryClient.invalidateQueries({ queryKey: [k] }),
           );
         },
+        onError: () => toast.error("Could not change language. Please try again."),
       },
     );
   }

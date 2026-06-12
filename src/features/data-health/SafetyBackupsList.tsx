@@ -58,7 +58,9 @@ export function SafetyBackupsList() {
               >
                 <Shield className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                 <span className="text-sm text-foreground">
-                  {new Date(entry.timestamp).toLocaleString()}
+                  {Number.isNaN(new Date(entry.timestamp).getTime())
+                    ? entry.timestamp
+                    : new Date(entry.timestamp).toLocaleString()}
                 </span>
                 <span className="text-sm text-muted-foreground ml-auto">
                   {formatBytes(entry.size_bytes)}

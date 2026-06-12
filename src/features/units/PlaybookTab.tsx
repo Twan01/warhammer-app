@@ -224,7 +224,12 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
         };
         const hasStatOvr = STAT_KEYS.some((k) => statOverride(k) !== null);
         if (hasStatOvr || parsedPts !== null || keywordsOvr !== null || abilitiesOvr !== null) {
-          try { await upsertOverride.mutateAsync(op); } catch (overrideErr) { console.error("[PlaybookTab] override save failed:", overrideErr); }
+          try {
+            await upsertOverride.mutateAsync(op);
+          } catch (overrideErr) {
+            console.error("[PlaybookTab] override save failed:", overrideErr);
+            toast.warning("Playbook saved, but stat/points overrides could not be saved.");
+          }
         }
       }
       toast.success("Playbook saved");

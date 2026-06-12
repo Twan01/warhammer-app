@@ -76,18 +76,21 @@ export function UnitDeleteDialog({ open, unit, onClose }: UnitDeleteDialogProps)
       for (const id of photoIds) {
         try {
           await deleteUnitPhoto(id);
-        } catch {
-          // Silent — orphaned DB rows acceptable; blocking unit delete is not.
+        } catch (err) {
+          // Non-blocking — orphaned DB rows are acceptable; blocking unit delete is not.
+          // Logged so orphan accumulation is observable in diagnostics.
+          console.warn(`[UnitDeleteDialog] failed to delete image_assets row ${id}:`, err);
         }
       }
 
       // JOUR-06 step 5: silently remove each photo file from disk.
-      // Failures are swallowed — orphaned files are preferable to blocking the success path.
+      // Failures are non-blocking — orphaned files are preferable to blocking the success path.
       for (const filename of photoFilenames) {
         try {
           await remove(filename, { baseDir: BaseDirectory.AppData });
-        } catch {
-          // Silent — file may already be missing or locked.
+        } catch (err) {
+          // Non-blocking — file may already be missing or locked. Logged for observability.
+          console.warn(`[UnitDeleteDialog] failed to remove photo file ${filename}:`, err);
         }
       }
 

@@ -87,18 +87,7 @@ export function computeSnapshotDiff(
     }
   }
 
-  // For added: track how many of each name were paired as common from B's side
-  const consumedB = new Map<string, number>();
-  for (const unit of snapshotB.units) {
-    const countA = freqA.get(unit.name) ?? 0;
-    const used = consumedB.get(unit.name) ?? 0;
-    if (used < countA) {
-      consumedB.set(unit.name, used + 1);
-    } else {
-      // This unit in B has no matching pair in A
-    }
-  }
-
+  // For added: pair each B unit against A's frequency; unmatched B units are "added".
   const unitsAdded: ParsedSnapshotUnit[] = [];
   const addedConsumed = new Map<string, number>();
   for (const unit of snapshotB.units) {

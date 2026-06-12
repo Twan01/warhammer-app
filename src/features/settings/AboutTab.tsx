@@ -14,16 +14,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUdbMeta } from "@/hooks/useUdbMeta";
 
 function formatBuiltAt(iso: string): string {
-  try {
-    const d = new Date(iso);
-    return d.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  } catch {
-    return iso;
-  }
+  // new Date(invalid) does not throw — it yields an Invalid Date, so guard explicitly
+  // instead of relying on a catch that never fires (which would render "Invalid Date").
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso || "—";
+  return d.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 export function AboutTab() {

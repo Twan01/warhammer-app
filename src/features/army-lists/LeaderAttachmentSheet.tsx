@@ -115,8 +115,9 @@ export function LeaderAttachmentSheet({ open, unit, list, units, onClose }: Lead
                     className="h-7 text-xs"
                     disabled={clearLeaderAttachment.isPending}
                     onClick={() => {
+                      if (!list) return;
                       clearLeaderAttachment.mutate(
-                        { army_list_unit_id: unit.id, list_id: list!.id },
+                        { army_list_unit_id: unit.id, list_id: list.id },
                         {
                           onSuccess: () => toast.success("Leader detached."),
                           onError: () => toast.error("Failed to detach leader. Please try again."),
@@ -160,8 +161,9 @@ export function LeaderAttachmentSheet({ open, unit, list, units, onClose }: Lead
                               className="h-7 text-xs"
                               disabled={clearLeaderAttachment.isPending}
                               onClick={() => {
+                                if (!list) return;
                                 clearLeaderAttachment.mutate(
-                                  { army_list_unit_id: unit.id, list_id: list!.id },
+                                  { army_list_unit_id: unit.id, list_id: list.id },
                                   {
                                     onSuccess: () => toast.success("Leader detached."),
                                     onError: () => toast.error("Failed to detach leader. Please try again."),
@@ -197,8 +199,9 @@ export function LeaderAttachmentSheet({ open, unit, list, units, onClose }: Lead
                               className="h-7 text-xs"
                               disabled={setLeaderAttachment.isPending}
                               onClick={() => {
+                                if (!list) return;
                                 setLeaderAttachment.mutate(
-                                  { army_list_unit_id: unit.id, target_id: target.id, list_id: list!.id },
+                                  { army_list_unit_id: unit.id, target_id: target.id, list_id: list.id },
                                   {
                                     onSuccess: () => toast.success("Leader attached."),
                                     onError: () => toast.error("Failed to attach leader. Please try again."),

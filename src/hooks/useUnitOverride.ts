@@ -43,6 +43,9 @@ export function useUpsertUnitOverride() {
       // effective_points — any army list query showing this unit must refetch.
       qc.invalidateQueries({ queryKey: ["army-lists"], exact: false });
       qc.invalidateQueries({ queryKey: ["army-list-readiness"], exact: false });
+      // Override points also feed the dashboard's effective-points totals and faction readiness.
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      qc.invalidateQueries({ queryKey: ["army-readiness"] });
     },
   });
 }
@@ -55,6 +58,9 @@ export function useDeleteUnitOverride() {
       qc.invalidateQueries({ queryKey: UNIT_OVERRIDE_KEY(unitId) });
       qc.invalidateQueries({ queryKey: ["army-lists"], exact: false });
       qc.invalidateQueries({ queryKey: ["army-list-readiness"], exact: false });
+      // Override points also feed the dashboard's effective-points totals and faction readiness.
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      qc.invalidateQueries({ queryKey: ["army-readiness"] });
     },
   });
 }

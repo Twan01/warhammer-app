@@ -36,6 +36,7 @@ function getSchemaState(
 function formatRelativeDate(isoDate: string): string {
   const ms = Date.now() - new Date(isoDate).getTime();
   const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+  if (days < 0) return "just now"; // future-dated backup — don't show "-N days ago"
   if (days === 0) return "today";
   if (days === 1) return "yesterday";
   return `${days} days ago`;

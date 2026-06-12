@@ -63,6 +63,13 @@ export function useDeleteRecipe() {
       qc.invalidateQueries({ queryKey: RECIPES_KEY });
       qc.invalidateQueries({ queryKey: ["kanban-enrichment"] });
       qc.invalidateQueries({ queryKey: ["recipes", "by-unit"] });
+      // Cascade-related caches (mirror useDuplicateRecipe) — a deleted recipe's
+      // steps/swatches/sections must not linger in derived caches.
+      qc.invalidateQueries({ queryKey: RECIPE_SWATCH_KEY });
+      qc.invalidateQueries({ queryKey: STEP_COUNTS_KEY });
+      qc.invalidateQueries({ queryKey: RECIPE_AVAILABILITY_KEY });
+      qc.invalidateQueries({ queryKey: ["recipe-sections"] });
+      qc.invalidateQueries({ queryKey: SECTION_COUNTS_KEY });
     },
   });
 }

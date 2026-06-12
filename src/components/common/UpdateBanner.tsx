@@ -1,6 +1,7 @@
 import { AlertTriangle, Download, RefreshCw, X } from "lucide-react";
 import { useState } from "react";
 import { relaunch } from "@tauri-apps/plugin-process";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useAppUpdate } from "@/hooks/useAppUpdate";
 
@@ -36,7 +37,12 @@ export function UpdateBanner() {
     return (
       <div className="flex items-center justify-between gap-3 border-b border-green-500/30 bg-green-500/10 px-4 py-2 text-sm text-green-400">
         <span>Update installed. Restart the app to apply v{version}.</span>
-        <Button size="sm" variant="outline" className="h-7 gap-1.5" onClick={() => relaunch()}>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-7 gap-1.5"
+          onClick={() => { relaunch().catch(() => toast.error("Restart failed — please close and reopen the app.")); }}
+        >
           <RefreshCw className="size-3.5" />
           Restart now
         </Button>

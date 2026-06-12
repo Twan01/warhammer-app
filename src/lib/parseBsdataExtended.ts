@@ -225,6 +225,9 @@ function extractModelCounts(
 
     const key = `${unitName}:${factionId}`;
     if (seen.has(key)) continue;
+    // Mark seen immediately so a repeated key is skipped regardless of whether this
+    // entry yields a valid model-count range (avoids redundant reprocessing).
+    seen.add(key);
 
     const modelEntries = el.getElementsByTagName("selectionEntry");
     let globalMin = Infinity;
@@ -252,7 +255,6 @@ function extractModelCounts(
     if (globalMax === 0) globalMax = globalMin;
 
     if (globalMin > 0 && globalMax >= globalMin) {
-      seen.add(key);
       results.push({
         unit_name: unitName,
         faction_id: factionId,

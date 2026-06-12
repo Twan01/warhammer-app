@@ -56,7 +56,7 @@ export function QueryProvider({ children }: { children: ReactNode }) {
     const unlisten = listen("udb-import-complete", () => {
       queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey[0]).startsWith("udb-") });
     });
-    return () => { unlisten.then((fn) => fn()); };
+    return () => { unlisten.then((fn) => fn()).catch(() => {}); };
   }, [queryClient]);
 
   return (

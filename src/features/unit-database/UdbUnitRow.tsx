@@ -25,9 +25,8 @@ export function resolveWorstStatus(allStatuses: string): string {
     const idx = PAINTING_STATUS_ORDER.indexOf(
       status as (typeof PAINTING_STATUS_ORDER)[number],
     );
-    const effectiveIdx = idx === -1 ? -1 : idx;
-    if (effectiveIdx < worstIndex) {
-      worstIndex = effectiveIdx;
+    if (idx < worstIndex) {
+      worstIndex = idx;
       worstStatus = status;
     }
   }
@@ -42,6 +41,8 @@ export function resolveWorstStatus(allStatuses: string): string {
  * - bg-amber-500: anything else (in progress)
  */
 export function resolveReadinessDotClass(allStatuses: string): string {
+  // No owned copies / no status data → neutral, not "in progress".
+  if (!allStatuses) return "bg-muted-foreground/50";
   const statuses = allStatuses.split("|");
 
   const allDone = statuses.every((s) => DONE_STATUSES.has(s));
@@ -54,6 +55,7 @@ export function resolveReadinessDotClass(allStatuses: string): string {
 }
 
 function resolveReadinessLabel(allStatuses: string): string {
+  if (!allStatuses) return "Not started";
   const statuses = allStatuses.split("|");
   const allDone = statuses.every((s) => DONE_STATUSES.has(s));
   if (allDone) return "All copies painted";

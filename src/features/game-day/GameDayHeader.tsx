@@ -108,7 +108,7 @@ export function GameDayHeader({
             className="w-16 h-8 text-center"
             value={listState.startingCp}
             onChange={(e) =>
-              setStartingCp(listId, Math.max(0, parseInt(e.target.value) || 0))
+              setStartingCp(listId, Math.max(0, parseInt(e.target.value, 10) || 0))
             }
           />
         </div>

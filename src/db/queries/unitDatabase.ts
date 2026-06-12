@@ -337,7 +337,9 @@ export async function searchUdbUnits(
   if (trimmed.length < 2) return [];
 
   const sanitized = trimmed
-    .replace(/["'*^(){}:+\-]/g, "")
+    // Strip every FTS5 special character (incl. brackets, tilde, dot) that could
+    // otherwise produce a MATCH syntax error on otherwise-harmless user input.
+    .replace(/["'*^(){}:+\-\[\]~.]/g, "")
     .replace(/\b(AND|OR|NOT|NEAR)\b/gi, "")
     .replace(/\s+/g, " ")
     .trim();
@@ -345,13 +347,18 @@ export async function searchUdbUnits(
 
   const ftsQuery = sanitized + "*";
   const db = await getDb();
-  return db.select<UdbSearchResult[]>(
-    `SELECT unit_id, name, faction_name, keywords
-     FROM udb_search
-     WHERE udb_search MATCH $1
-     LIMIT 50`,
-    [ftsQuery],
-  );
+  try {
+    return await db.select<UdbSearchResult[]>(
+      `SELECT unit_id, name, faction_name, keywords
+       FROM udb_search
+       WHERE udb_search MATCH $1
+       LIMIT 50`,
+      [ftsQuery],
+    );
+  } catch {
+    // Malformed FTS input → no results rather than a thrown error state.
+    return [];
+  }
 }
 
 /**

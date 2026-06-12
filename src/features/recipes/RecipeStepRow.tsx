@@ -55,7 +55,8 @@ export function RecipeStepRow({
 
       onChange({ ...step, step_photo_path: filename });
       toast.success("Step photo added.");
-    } catch {
+    } catch (err) {
+      console.error("[RecipeStepRow] step photo upload failed:", err);
       toast.error("Failed to upload photo.");
     }
   }
@@ -145,12 +146,13 @@ export function RecipeStepRow({
             placeholder="Min"
             className="text-xs w-16"
             value={step.time_estimate_minutes ?? ""}
-            onChange={(e) =>
+            onChange={(e) => {
+              const n = Math.round(Number(e.target.value));
               onChange({
                 ...step,
-                time_estimate_minutes: e.target.value ? Math.round(Number(e.target.value)) : null,
-              })
-            }
+                time_estimate_minutes: e.target.value && Number.isFinite(n) && n >= 1 ? n : null,
+              });
+            }}
           />
           <div data-testid="alt-paint-combobox-container">
             <span className="text-[10px] text-muted-foreground">Alt paint</span>
