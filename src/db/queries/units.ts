@@ -19,7 +19,7 @@ export async function getUnitsWithPoints(): Promise<EnrichedUnit[]> {
   const db = await getDb();
   const rows = await db.select<Array<Unit & { udb_base_points: number | null }>>(
     `SELECT u.*,
-            COALESCE(udb_tier.points, udb_min.points) AS udb_base_points
+            COALESCE(udb_tier.points, udb_min.points, udb_flat.base_points) AS udb_base_points
      FROM units u
      LEFT JOIN udb_unit_points udb_tier
        ON udb_tier.unit_id = u.udb_unit_id
@@ -31,6 +31,8 @@ export async function getUnitsWithPoints(): Promise<EnrichedUnit[]> {
          FROM udb_unit_points
          WHERE unit_id = u.udb_unit_id
        )
+     LEFT JOIN udb_units udb_flat
+       ON udb_flat.id = u.udb_unit_id
      ORDER BY u.name ASC`,
   );
   return rows.map((row) => ({

@@ -129,10 +129,13 @@ export function DatabaseBrowserPage() {
   /** Open the UnitSheet pre-filled from a UDB unit + resolved collection faction */
   const openUnitSheet = useCallback(
     (unit: UdbUnitDetail, collectionFactionId: number) => {
+      // Tiered multi-model units price per model count (udb_unit_points). Everything
+      // else (characters, transports, single-price units) keeps a flat udb_units.base_points
+      // and has no tier rows — fall back to it so they don't import at 0 points.
       const basePoints =
         unit.points.length > 0
           ? Math.min(...unit.points.map((p) => p.points))
-          : null;
+          : unit.base_points;
       const minModels = unit.composition[0]?.min_models ?? 1;
 
       const prefill: Partial<UnitFormValues> = {

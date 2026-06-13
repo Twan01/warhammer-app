@@ -269,6 +269,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/044_app_settings.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 45,
+            description: "backfill_collection_points",
+            sql: include_str!("../migrations/045_backfill_collection_points.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
