@@ -54,12 +54,14 @@ export const HOBBYFORGE_MIGRATIONS = [
   "042_udb_detachments.sql",
   "043_udb_stratagems_enhancements.sql",
   "044_app_settings.sql",
+  "045_backfill_collection_points.sql",
+  "046_backfill_faction_udb_normalized.sql",
 ] as const;
 
 // Phase 107: rules.db eliminated — rules migrations removed
 export const RULES_MIGRATIONS = [] as const;
 
-export const HOBBYFORGE_MIGRATION_COUNT = HOBBYFORGE_MIGRATIONS.length; // 44
+export const HOBBYFORGE_MIGRATION_COUNT = HOBBYFORGE_MIGRATIONS.length; // 46
 export const RULES_MIGRATION_COUNT = RULES_MIGRATIONS.length; // 0
 
 /**

@@ -24,7 +24,6 @@ vi.mock("@/hooks/useFactions", () => ({
 }));
 
 vi.mock("@/hooks/useDatasheet", () => ({
-  useWahapediaFactionId: vi.fn(() => ({ data: "SM" })),
   useWahapediaFactions: vi.fn(() => ({ data: [] })),
   RULES_SYNC_META_KEY: ["rules-sync-meta"],
 }));

@@ -275,6 +275,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/045_backfill_collection_points.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 46,
+            description: "backfill_faction_udb_normalized",
+            sql: include_str!("../migrations/046_backfill_faction_udb_normalized.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

@@ -22,7 +22,6 @@ vi.mock("@/db/queries/strategyNotes", async () => ({
 
 vi.mock("@/hooks/useDatasheet", () => ({
   useDatasheet: vi.fn(() => ({ data: null })),
-  useWahapediaFactionId: vi.fn(() => ({ data: null })),
   DATASHEET_KEY: (id: number) => ["datasheet", id] as const,
 }));
 vi.mock("@/hooks/useUdbMeta", () => ({

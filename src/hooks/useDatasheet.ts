@@ -22,8 +22,6 @@ export const DATASHEET_KEY = (unitId: number) => ["datasheet", unitId] as const;
 export const DATASHEETS_BY_FACTION_KEY = (factionId: string) =>
   ["datasheets-by-faction", factionId] as const;
 export const WAHAPEDIA_FACTIONS_KEY = ["wahapedia-factions"] as const;
-export const WAHAPEDIA_FACTION_KEY = (name: string) =>
-  ["wahapedia-faction-id", name] as const;
 
 // ── Hooks ───────────────────────────────────────────────────────────────────
 
@@ -109,31 +107,3 @@ export function useWahapediaFactions() {
   });
 }
 
-/**
- * Resolves a HobbyForge faction name to a Wahapedia/udb faction ID.
- * Searches udb_factions by case-insensitive name match.
- *
- * Note: intentionally fetches factions without locale — faction IDs are
- * locale-independent, and English names are used for ID resolution.
- * The query key does not include locale because switching locale does not
- * change the mapping result (IDs are the same regardless of display name).
- */
-export function useWahapediaFactionId(localFactionName: string | undefined) {
-  return useQuery({
-    queryKey:
-      localFactionName !== undefined
-        ? WAHAPEDIA_FACTION_KEY(localFactionName)
-        : (["wahapedia-faction-id", "disabled"] as const),
-    queryFn: async () => {
-      if (localFactionName === undefined) return null;
-      const factions = await getUdbFactions();
-      const match = factions.find(
-        (f) => f.name.toLowerCase() === localFactionName.toLowerCase(),
-      );
-      return match?.id ?? null;
-    },
-    enabled: localFactionName !== undefined,
-    staleTime: Infinity,
-    gcTime: Infinity,
-  });
-}

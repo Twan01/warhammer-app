@@ -9,7 +9,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useStrategyNote, useUpsertStrategyNote } from "@/hooks/useStrategyNote";
-import { useDatasheet, useWahapediaFactionId, DATASHEET_KEY } from "@/hooks/useDatasheet";
+import { useDatasheet, DATASHEET_KEY } from "@/hooks/useDatasheet";
 import { useUdbMeta } from "@/hooks/useUdbMeta";
 import { useUnitOverride, useUpsertUnitOverride, useDeleteUnitOverride } from "@/hooks/useUnitOverride";
 import type { UpsertUnitOverrideInput } from "@/types/unitOverride";
@@ -58,7 +58,9 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
   const { data: units } = useUnits();
   const unit = useMemo(() => units?.find((u) => u.id === unitId) ?? null, [units, unitId]);
   const localFaction = useMemo(() => (unit && factions ? factions.find((f) => f.id === unit.faction_id) ?? null : null), [unit, factions]);
-  const { data: wahapediaFactionId } = useWahapediaFactionId(localFaction?.name);
+  // Use the faction's stored udb id, not a name-derived lookup — name matching
+  // breaks for sub-factions and punctuation variants (see migration 046).
+  const wahapediaFactionId = localFaction?.wahapedia_faction_id ?? null;
   const { data: udbMeta } = useUdbMeta();
   const { data: datasheet, error: datasheetError, refetch: refetchDatasheet } = useDatasheet(unitId);
   const { data: overrideRow } = useUnitOverride(unitId);

@@ -18,14 +18,18 @@ const mockMutate = vi.fn();
 
 vi.mock("@/hooks/useFactions", () => ({
   useFactions: () => ({
-    data: [{ id: 1, name: "Space Marines", created_at: "2025-01-01" }],
+    data: [
+      {
+        id: 1,
+        name: "Space Marines",
+        wahapedia_faction_id: "SM",
+        created_at: "2025-01-01",
+      },
+    ],
   }),
 }));
 
 vi.mock("@/hooks/useDatasheet", () => ({
-  useWahapediaFactionId: (name: string | undefined) => ({
-    data: name === "Space Marines" ? "SM" : undefined,
-  }),
   useDatasheetsByFactionWithPoints: (factionId: string | undefined) => ({
     data: factionId === "SM"
       ? [
@@ -112,7 +116,7 @@ describe("DatasheetBrowserDialog", () => {
 
   it("shows empty state when wahapediaFactionId is null", () => {
     // factionId=999 will not match any faction in useFactions mock,
-    // so useWahapediaFactionId receives undefined and returns undefined
+    // so faction is null and wahapedia_faction_id resolves to null
     renderDialog({ factionId: 999 });
 
     expect(

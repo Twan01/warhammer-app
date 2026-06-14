@@ -17,10 +17,7 @@ import {
 } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
 import { useFactions } from "@/hooks/useFactions";
-import {
-  useWahapediaFactionId,
-  useDatasheetsByFactionWithPoints,
-} from "@/hooks/useDatasheet";
+import { useDatasheetsByFactionWithPoints } from "@/hooks/useDatasheet";
 import { useAddGhostUnitToList } from "@/hooks/useArmyLists";
 import type { UdbUnitSummary } from "@/db/queries/unitDatabase";
 
@@ -41,7 +38,7 @@ interface DatasheetBrowserDialogProps {
  *   - Rendered as a SIBLING to ArmyListDetailPage portals at ArmyListsPage root.
  *     NEVER nest inside another Radix portal (Pitfall 1).
  *   - Stays OPEN after each add for multi-add UX (D-04).
- *   - Resolves Wahapedia faction via useFactions + useWahapediaFactionId (D-03).
+ *   - Resolves Wahapedia faction via the faction's stored wahapedia_faction_id (D-03).
  *   - Passes ds.name (NOT ds.id) as ghost_unit_name for COALESCE chain (D-10).
  */
 export function DatasheetBrowserDialog({
@@ -55,9 +52,10 @@ export function DatasheetBrowserDialog({
     factionId !== null
       ? (factions ?? []).find((f) => f.id === factionId) ?? null
       : null;
-  const { data: wahapediaFactionId } = useWahapediaFactionId(
-    faction?.name,
-  );
+  // Use the stored udb id rather than re-deriving it from the faction name —
+  // name matching breaks for sub-factions and punctuation variants (see
+  // ArmyListDetailPage / migration 046). Canonical pattern across the app.
+  const wahapediaFactionId = faction?.wahapedia_faction_id ?? null;
   const { data: datasheets = [] } = useDatasheetsByFactionWithPoints(
     wahapediaFactionId ?? undefined,
   );

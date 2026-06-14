@@ -41,7 +41,6 @@ import {
   useAddUnitToList,
 } from "@/hooks/useArmyLists";
 import { useUnits } from "@/hooks/useUnits";
-import { useWahapediaFactionId } from "@/hooks/useDatasheet";
 import { useUdbMeta } from "@/hooks/useUdbMeta";
 import { useLeaderTargets } from "@/hooks/useLeaderTargets";
 import { useFactions } from "@/hooks/useFactions";
@@ -165,7 +164,12 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
     [factions, list?.faction_id],
   );
 
-  const { data: wahapediaFactionId } = useWahapediaFactionId(faction?.name);
+  // Resolve the UDB faction id from the faction's stored wahapedia_faction_id
+  // column (the canonical mapping, e.g. Ultramarines -> "SM"). Do NOT re-derive
+  // it by name-matching against udb_factions: sub-factions like "Ultramarines"
+  // have no udb_factions row (only the parent "Space Marines"), and punctuation
+  // variants like "Tau Empire" vs "T'au Empire" would also fail to match.
+  const wahapediaFactionId = faction?.wahapedia_faction_id ?? null;
 
   const freshness = useMemo(
     () => getSyncFreshness(udbMeta?.built_at ?? null),

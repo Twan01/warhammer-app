@@ -41,7 +41,6 @@ import {
   useDatasheetsByFaction,
   useDatasheetsByFactionWithPoints,
   useWahapediaFactions,
-  useWahapediaFactionId,
   DATASHEET_KEY,
   DATASHEETS_BY_FACTION_KEY,
   WAHAPEDIA_FACTIONS_KEY,
@@ -157,44 +156,6 @@ describe("useWahapediaFactions", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual(mockFactions);
-  });
-});
-
-describe("useWahapediaFactionId", () => {
-  it("resolves faction name to id via case-insensitive match", async () => {
-    const mockFactions = [
-      { id: "SM", name: "Space Marines", short_name: "SM" },
-      { id: "NEC", name: "Necrons", short_name: "NEC" },
-    ];
-    mockGetUdbFactions.mockResolvedValueOnce(mockFactions);
-
-    const { result } = renderHook(() => useWahapediaFactionId("space marines"), {
-      wrapper: createWrapper(),
-    });
-
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data).toBe("SM");
-  });
-
-  it("returns null when faction name does not match", async () => {
-    const mockFactions = [
-      { id: "SM", name: "Space Marines", short_name: "SM" },
-    ];
-    mockGetUdbFactions.mockResolvedValueOnce(mockFactions);
-
-    const { result } = renderHook(() => useWahapediaFactionId("Unknown Faction"), {
-      wrapper: createWrapper(),
-    });
-
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data).toBeNull();
-  });
-
-  it("is disabled when name is undefined", () => {
-    const { result } = renderHook(() => useWahapediaFactionId(undefined), {
-      wrapper: createWrapper(),
-    });
-    expect(result.current.fetchStatus).toBe("idle");
   });
 });
 

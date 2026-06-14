@@ -46,10 +46,6 @@ vi.mock("@/hooks/useUnits", () => ({
   useUnits: () => ({ data: [] }),
 }));
 
-vi.mock("@/hooks/useDatasheet", () => ({
-  useWahapediaFactionId: () => ({ data: null }),
-}));
-
 vi.mock("@/hooks/useUdbMeta", () => ({
   useUdbMeta: () => ({ data: null }),
 }));

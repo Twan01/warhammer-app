@@ -88,7 +88,6 @@ vi.mock("@/hooks/useRulesFavorites", () => ({
 }));
 
 vi.mock("@/hooks/useDatasheet", () => ({
-  useWahapediaFactionId: () => ({ data: null }),
   useRulesSyncMeta: () => ({ data: null }),
 }));
 
