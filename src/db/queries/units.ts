@@ -78,52 +78,69 @@ export async function createUnit(input: CreateUnitInput): Promise<number> {
   return result.lastInsertId ?? 0;
 }
 
+/**
+ * Columns that updateUnit may set, in input-key order. `bool` columns are
+ * coerced to 0/1 when an explicit boolean/number is supplied.
+ *
+ * The SET clause is built dynamically: a column is only written when its key is
+ * explicitly present in the input. This honours the partial-update contract of
+ * UpdateUnitInput — callers that omit a field (e.g. the active-project toggle,
+ * which sends only { id, is_active_project }) leave every other column intact,
+ * instead of nulling it. Callers that DO want to clear a field (e.g. the edit
+ * form clearing the category) pass an explicit `null`, which is still applied.
+ */
+const UPDATABLE_UNIT_COLUMNS = [
+  { key: "faction_id", col: "faction_id", bool: false },
+  { key: "name", col: "name", bool: false },
+  { key: "category", col: "category", bool: false },
+  { key: "unit_type", col: "unit_type", bool: false },
+  { key: "model_count", col: "model_count", bool: false },
+  { key: "owned_count", col: "owned_count", bool: false },
+  { key: "points", col: "points", bool: false },
+  { key: "status_assembly", col: "status_assembly", bool: true },
+  { key: "status_painting", col: "status_painting", bool: false },
+  { key: "painting_percentage", col: "painting_percentage", bool: false },
+  { key: "status_basing", col: "status_basing", bool: true },
+  { key: "status_varnished", col: "status_varnished", bool: true },
+  { key: "is_active_project", col: "is_active_project", bool: true },
+  { key: "priority", col: "priority", bool: false },
+  { key: "target_completion_date", col: "target_completion_date", bool: false },
+  { key: "purchase_date", col: "purchase_date", bool: false },
+  { key: "purchase_price_pence", col: "purchase_price_pence", bool: false },
+  { key: "storage_location", col: "storage_location", bool: false },
+  { key: "main_image_path", col: "main_image_path", bool: false },
+  { key: "notes", col: "notes", bool: false },
+  { key: "lore_notes", col: "lore_notes", bool: false },
+  { key: "undercoat", col: "undercoat", bool: false },
+  { key: "status_assembly_override", col: "status_assembly_override", bool: true },
+  { key: "status_basing_override", col: "status_basing_override", bool: true },
+  { key: "status_varnished_override", col: "status_varnished_override", bool: true },
+  { key: "udb_unit_id", col: "udb_unit_id", bool: false },
+] as const;
+
 export async function updateUnit(input: UpdateUnitInput): Promise<void> {
   const db = await getDb();
+
+  const setClauses: string[] = [];
+  const params: unknown[] = [input.id];
+
+  for (const { key, col, bool } of UPDATABLE_UNIT_COLUMNS) {
+    if (!(key in input)) continue;
+    const value = (input as Record<string, unknown>)[key];
+    // Treat an explicit `undefined` the same as an omitted key — preserve column.
+    if (value === undefined) continue;
+    params.push(bool && value !== null ? (value ? 1 : 0) : value);
+    setClauses.push(`${col} = $${params.length}`);
+  }
+
+  // Nothing to update beyond the id — skip the write entirely.
+  if (setClauses.length === 0) return;
+
+  setClauses.push("updated_at = datetime('now')");
+
   await db.execute(
-    `UPDATE units
-        SET faction_id              = COALESCE($2, faction_id),
-            name                    = COALESCE($3, name),
-            category                = $4,
-            unit_type               = $5,
-            model_count             = $6,
-            owned_count             = $7,
-            points                  = $8,
-            status_assembly         = COALESCE($9, status_assembly),
-            status_painting         = COALESCE($10, status_painting),
-            painting_percentage     = COALESCE($11, painting_percentage),
-            status_basing           = COALESCE($12, status_basing),
-            status_varnished        = COALESCE($13, status_varnished),
-            is_active_project       = COALESCE($14, is_active_project),
-            priority                = $15,
-            target_completion_date  = $16,
-            purchase_date           = $17,
-            purchase_price_pence    = $18,
-            storage_location        = $19,
-            main_image_path         = $20,
-            notes                   = $21,
-            lore_notes              = $22,
-            undercoat               = $23,
-            status_assembly_override  = COALESCE($24, status_assembly_override),
-            status_basing_override    = COALESCE($25, status_basing_override),
-            status_varnished_override = COALESCE($26, status_varnished_override),
-            udb_unit_id             = COALESCE($27, udb_unit_id),
-            updated_at              = datetime('now')
-      WHERE id = $1`,
-    [
-      input.id,
-      input.faction_id ?? null, input.name ?? null,
-      input.category ?? null, input.unit_type ?? null,
-      input.model_count ?? null, input.owned_count ?? null, input.points ?? null,
-      input.status_assembly ?? null, input.status_painting ?? null, input.painting_percentage ?? null,
-      input.status_basing ?? null, input.status_varnished ?? null, input.is_active_project ?? null,
-      input.priority ?? null, input.target_completion_date ?? null,
-      input.purchase_date ?? null, input.purchase_price_pence ?? null,
-      input.storage_location ?? null, input.main_image_path ?? null, input.notes ?? null,
-      input.lore_notes ?? null, input.undercoat ?? null,
-      input.status_assembly_override ?? null, input.status_basing_override ?? null, input.status_varnished_override ?? null,
-      input.udb_unit_id ?? null,
-    ]
+    `UPDATE units SET ${setClauses.join(", ")} WHERE id = $1`,
+    params,
   );
 }
 
