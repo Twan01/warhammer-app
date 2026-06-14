@@ -146,8 +146,14 @@ export async function updateUnit(input: UpdateUnitInput): Promise<void> {
 
 export async function deleteUnit(id: number): Promise<void> {
   const db = await getDb();
+  // army_list_units.unit_id is ON DELETE RESTRICT (001_core_schema.sql / 031_army_list_v3.sql),
+  // NOT cascade. A bare DELETE on a unit that is in any army list is rejected by SQLite
+  // ("FOREIGN KEY constraint failed") with PRAGMA foreign_keys = ON. The intended behavior
+  // (UnitDeleteDialog: "Deleting it will also remove it from those lists") requires us to
+  // explicitly remove the referencing army_list_units rows first. Enhancements on those rows
+  // are ON DELETE CASCADE, so they clean up automatically. All other unit children CASCADE.
+  await db.execute("DELETE FROM army_list_units WHERE unit_id = $1", [id]);
   await db.execute("DELETE FROM units WHERE id = $1", [id]);
-  // FK violation throws — caller catches via error message
 }
 
 /**

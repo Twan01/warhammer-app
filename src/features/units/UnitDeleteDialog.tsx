@@ -32,8 +32,9 @@ interface UnitDeleteDialogProps {
  *   1. Normal (unit in 0 lists): existing single-step "Delete unit?" confirm.
  *      Preserved to keep CollectionPage working unchanged.
  *   2. Warning (unit in N lists): two-step flow. Title + body name the lists,
- *      destructive button labelled "Delete Anyway" — DB cascade handles
- *      army_list_units cleanup automatically (ON DELETE CASCADE in 001_core_schema.sql).
+ *      destructive button labelled "Delete Anyway". NOTE: army_list_units.unit_id is
+ *      ON DELETE RESTRICT (NOT cascade), so deleteUnit() explicitly removes the
+ *      referencing army_list_units rows before deleting the unit (see db/queries/units.ts).
  *
  * The membership query runs only when open && unit !== null (enabled flag).
  */
