@@ -63,7 +63,7 @@
   4. The release gate fails if any `src-tauri/migrations/*.sql` file contains a CR byte.
 **Plans**: 2 plans
 - [x] 130-01-PLAN.md — Disk-derive the data-layer migration list (REL-03) + assert the 047 wargear schema; turns the RED parity test green
-- [ ] 130-02-PLAN.md — Extend check-version.mjs into the single release gate (version + migration-count + CR-byte) and wire it via a prebuild hook (REL-04, REL-05)
+- [x] 130-02-PLAN.md — Extend check-version.mjs into the single release gate (version + migration-count + CR-byte) and wire it via a prebuild hook (REL-04, REL-05)
 
 ### Phase 131: CI Test Gate
 **Goal**: A failing test or build can never reach the updater; CI is the wall every change passes through.
@@ -169,7 +169,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 130. Migration Parity & Release Gate | 1/2 | In Progress|  |
+| 130. Migration Parity & Release Gate | 2/2 | Complete   | 2026-06-15 |
 | 131. CI Test Gate | 0/? | Not started | - |
 | 132. Update Trustworthiness | 0/? | Not started | - |
 | 133. Honest Data Provenance | 0/? | Not started | - |
