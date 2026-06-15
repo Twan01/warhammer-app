@@ -57,7 +57,9 @@ import {
   slugify,
   dateStamp,
 } from "@/lib/exportArmyList";
-import { generateArmyListPdf } from "@/lib/exportArmyListPdf";
+import { generateBattleRosterPdf } from "@/lib/exportArmyListPdf";
+import { assembleRoster } from "@/lib/exportRoster";
+import { useLocale } from "@/stores/localeStore";
 import { PageHeader } from "@/components/common/PageHeader";
 import { ArmyListSummaryBar } from "./ArmyListSummaryBar";
 import { ArmyListUnitRow } from "./ArmyListUnitRow";
@@ -152,6 +154,7 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
   const addUnitToList = useAddUnitToList();
   const clearDetachment = useClearArmyListDetachment();
   const { data: udbMeta } = useUdbMeta();
+  const locale = useLocale();
 
   const [state, dispatch] = useReducer(detailPortalReducer, initialDetailPortalState);
   const {
@@ -409,7 +412,14 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
       });
       if (!destination) return;
 
-      const buffer = await generateArmyListPdf(data, list.name, list.detachment_name, list.points_limit);
+      const roster = await assembleRoster({
+        list,
+        units: units ?? [],
+        enhancements: listEnhancements ?? [],
+        summary: data,
+        locale,
+      });
+      const buffer = await generateBattleRosterPdf(roster, list.name, list.points_limit);
       await invoke("write_bytes_to_path", {
         destination,
         bytes: Array.from(new Uint8Array(buffer)),
@@ -418,7 +428,7 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
     } catch {
       toast.error("Failed to generate PDF");
     }
-  }, [list, units, listEnhancements, faction, listWargear]);
+  }, [list, units, listEnhancements, faction, listWargear, locale]);
 
   const handleDeleteClose = useCallback(() => {
     dispatch({ type: "CLOSE_DELETE" });
