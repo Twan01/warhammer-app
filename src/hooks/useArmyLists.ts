@@ -24,10 +24,15 @@ import {
   removeEnhancement,
   getEnhancementsByList,
   reorderArmyListUnits,
+  getUnitWargear,
+  setUnitWargearQuantity,
+  clearUnitWargear,
 } from "@/db/queries/armyLists";
 import type {
   ArmyListEnhancement,
   AddEnhancementInput,
+  ArmyListUnitWargear,
+  SetUnitWargearInput,
   CreateArmyListInput,
   UpdateArmyListInput,
   AddUnitToListInput,
@@ -401,5 +406,50 @@ export function useEnhancementsByList(listId: number | undefined) {
     queryKey: listId !== undefined ? ["army-list-enhancements", listId] : ["army-list-enhancements", "disabled"],
     queryFn: () => getEnhancementsByList(listId!),
     enabled: listId !== undefined,
+  });
+}
+
+// ─── MVP wargear picker (migration 047) ─────────────────────────────────────
+
+/**
+ * Wargear selections for a single army_list_units row.
+ * Keyed per-unit so the LoadoutBuilderSheet picker invalidates narrowly.
+ * Wargear is free in 10th, so mutations do NOT touch points/readiness caches.
+ */
+export const ARMY_LIST_UNIT_WARGEAR_KEY = (armyListUnitId: number) =>
+  ["army-list-unit-wargear", armyListUnitId] as const;
+
+export function useUnitWargear(armyListUnitId: number | undefined) {
+  return useQuery<ArmyListUnitWargear[]>({
+    queryKey:
+      armyListUnitId !== undefined
+        ? ARMY_LIST_UNIT_WARGEAR_KEY(armyListUnitId)
+        : ["army-list-unit-wargear", "disabled"],
+    queryFn: () => getUnitWargear(armyListUnitId!),
+    enabled: armyListUnitId !== undefined,
+  });
+}
+
+export function useSetUnitWargearQuantity() {
+  const qc = useQueryClient();
+  return useMutation<void, Error, SetUnitWargearInput>({
+    mutationFn: setUnitWargearQuantity,
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({
+        queryKey: ARMY_LIST_UNIT_WARGEAR_KEY(variables.army_list_unit_id),
+      });
+    },
+  });
+}
+
+export function useClearUnitWargear() {
+  const qc = useQueryClient();
+  return useMutation<void, Error, number>({
+    mutationFn: clearUnitWargear,
+    onSuccess: (_, armyListUnitId) => {
+      qc.invalidateQueries({
+        queryKey: ARMY_LIST_UNIT_WARGEAR_KEY(armyListUnitId),
+      });
+    },
   });
 }

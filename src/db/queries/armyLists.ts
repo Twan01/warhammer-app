@@ -9,6 +9,8 @@ import type {
   UpdateArmyListUnitInput,
   AddGhostUnitToListInput,
   AddEnhancementInput,
+  ArmyListUnitWargear,
+  SetUnitWargearInput,
 } from "@/types/armyList";
 
 /**
@@ -376,6 +378,59 @@ export async function getEnhancementsByList(listId: number): Promise<ArmyListEnh
   return db.select<ArmyListEnhancement[]>(
     "SELECT * FROM army_list_enhancements WHERE list_id = $1 ORDER BY created_at ASC",
     [listId],
+  );
+}
+
+// ─── MVP wargear picker (migration 047) ─────────────────────────────────────
+
+/**
+ * Returns the wargear selections for a single army_list_units row,
+ * ordered alphabetically for stable display. Only positive quantities exist
+ * (deselect deletes the row), so callers never see quantity 0.
+ */
+export async function getUnitWargear(
+  armyListUnitId: number,
+): Promise<ArmyListUnitWargear[]> {
+  const db = await getDb();
+  return db.select<ArmyListUnitWargear[]>(
+    "SELECT * FROM army_list_unit_wargear WHERE army_list_unit_id = $1 ORDER BY weapon_name ASC",
+    [armyListUnitId],
+  );
+}
+
+/**
+ * Upserts a single weapon's quantity for a unit. quantity <= 0 deletes the row
+ * so the table only ever holds positive selections (clean deselect semantics).
+ * Uses ON CONFLICT against the UNIQUE(army_list_unit_id, weapon_name) index.
+ */
+export async function setUnitWargearQuantity(
+  input: SetUnitWargearInput,
+): Promise<void> {
+  const db = await getDb();
+  if (input.quantity <= 0) {
+    await db.execute(
+      "DELETE FROM army_list_unit_wargear WHERE army_list_unit_id = $1 AND weapon_name = $2",
+      [input.army_list_unit_id, input.weapon_name],
+    );
+    return;
+  }
+  await db.execute(
+    `INSERT INTO army_list_unit_wargear (army_list_unit_id, weapon_name, quantity)
+     VALUES ($1, $2, $3)
+     ON CONFLICT (army_list_unit_id, weapon_name)
+     DO UPDATE SET quantity = excluded.quantity`,
+    [input.army_list_unit_id, input.weapon_name, input.quantity],
+  );
+}
+
+/**
+ * Clears all wargear selections for a unit (reset loadout to empty).
+ */
+export async function clearUnitWargear(armyListUnitId: number): Promise<void> {
+  const db = await getDb();
+  await db.execute(
+    "DELETE FROM army_list_unit_wargear WHERE army_list_unit_id = $1",
+    [armyListUnitId],
   );
 }
 

@@ -137,6 +137,29 @@ export interface AddEnhancementInput {
  * Follows the PAINTING_STATUS_ORDER const-array pattern from src/types/unit.ts.
  */
 /**
+ * MVP wargear picker — a count-based loadout entry for one army_list_units row.
+ * Mirrors army_list_unit_wargear (migration 047). weapon_name is a denormalized
+ * copy of udb_unit_weapons.name (survives unit-database re-sync).
+ */
+export interface ArmyListUnitWargear {
+  id: number;
+  army_list_unit_id: number;
+  weapon_name: string;
+  quantity: number;
+  created_at: string;
+}
+
+/**
+ * Upsert payload for a single wargear selection. quantity <= 0 deletes the row
+ * (deselect), so the table only ever holds positive-quantity selections.
+ */
+export interface SetUnitWargearInput {
+  army_list_unit_id: number;
+  weapon_name: string;
+  quantity: number;
+}
+
+/**
  * Phase 95 — Version snapshot row (D-01).
  * Excludes snapshot_data from list queries (D-03 / Pitfall 2).
  * snapshot_data is fetched separately via getSnapshotData when needed.

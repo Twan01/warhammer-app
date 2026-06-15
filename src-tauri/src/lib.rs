@@ -281,6 +281,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/046_backfill_faction_udb_normalized.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 47,
+            description: "army_list_unit_wargear",
+            sql: include_str!("../migrations/047_army_list_unit_wargear.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

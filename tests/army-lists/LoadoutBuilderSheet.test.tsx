@@ -22,6 +22,17 @@ import type { UdbUnitDetail } from "@/db/queries/unitDatabase";
 
 const mockSetModelCount = vi.fn();
 const mockClearModelCount = vi.fn();
+const mockSetWargear = vi.fn();
+const mockClearWargear = vi.fn();
+
+// Per-unit wargear selections driving the picker. Mutated per test.
+let currentMockWargear: {
+  id: number;
+  army_list_unit_id: number;
+  weapon_name: string;
+  quantity: number;
+  created_at: string;
+}[] = [];
 
 vi.mock("@/hooks/useArmyLists", () => ({
   useSetSelectedModelCount: () => ({
@@ -32,6 +43,9 @@ vi.mock("@/hooks/useArmyLists", () => ({
     mutate: mockClearModelCount,
     isPending: false,
   }),
+  useUnitWargear: () => ({ data: currentMockWargear, isLoading: false }),
+  useSetUnitWargearQuantity: () => ({ mutate: mockSetWargear, isPending: false }),
+  useClearUnitWargear: () => ({ mutate: mockClearWargear, isPending: false }),
 }));
 
 const mockTiers = [
@@ -185,8 +199,11 @@ describe("LoadoutBuilderSheet", () => {
   beforeEach(() => {
     mockSetModelCount.mockClear();
     mockClearModelCount.mockClear();
+    mockSetWargear.mockClear();
+    mockClearWargear.mockClear();
     currentMockTiers = mockTiers;
     currentMockDatasheet = mockDatasheet;
+    currentMockWargear = [];
   });
 
   // DL-01: Tier selection
@@ -235,11 +252,15 @@ describe("LoadoutBuilderSheet", () => {
     });
   });
 
-  // DL-02: Datasheet (weapons + abilities) display from canonical UDB source
+  // DL-02: Datasheet (weapons + abilities) display from canonical UDB source.
+  // Each weapon now appears twice — once in the picker, once in the datasheet
+  // reference — so assert on at least one match.
   it("renders weapons from the canonical datasheet", () => {
     renderSheet(makeUnit());
-    expect(screen.getByText("Bolt rifle")).toBeInTheDocument();
-    expect(screen.getByText("Astartes chainsword")).toBeInTheDocument();
+    expect(screen.getAllByText("Bolt rifle").length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText("Astartes chainsword").length,
+    ).toBeGreaterThanOrEqual(1);
   });
 
   it("renders datasheet abilities", () => {
@@ -282,5 +303,66 @@ describe("LoadoutBuilderSheet", () => {
     expect(
       screen.getByText(/Points manually overridden/),
     ).toBeInTheDocument();
+  });
+
+  // ── Wargear picker (MVP, migration 047) ──────────────────────────────────
+
+  it("shows 'No weapons selected yet.' when no wargear is chosen", () => {
+    renderSheet(makeUnit());
+    expect(screen.getByText("No weapons selected yet.")).toBeInTheDocument();
+  });
+
+  it("increasing a weapon quantity calls useSetUnitWargearQuantity", async () => {
+    const user = userEvent.setup();
+    renderSheet(makeUnit());
+
+    await user.click(
+      screen.getByRole("button", { name: "Increase Bolt rifle" }),
+    );
+
+    expect(mockSetWargear).toHaveBeenCalledWith({
+      army_list_unit_id: 1,
+      weapon_name: "Bolt rifle",
+      quantity: 1,
+    });
+  });
+
+  it("renders a loadout summary from existing selections", () => {
+    currentMockWargear = [
+      {
+        id: 1,
+        army_list_unit_id: 1,
+        weapon_name: "Bolt rifle",
+        quantity: 3,
+        created_at: "2024-01-01",
+      },
+    ];
+    renderSheet(makeUnit());
+    expect(screen.getByText(/3× Bolt rifle/)).toBeInTheDocument();
+  });
+
+  it("Clear button calls useClearUnitWargear when selections exist", async () => {
+    const user = userEvent.setup();
+    currentMockWargear = [
+      {
+        id: 1,
+        army_list_unit_id: 1,
+        weapon_name: "Bolt rifle",
+        quantity: 2,
+        created_at: "2024-01-01",
+      },
+    ];
+    renderSheet(makeUnit());
+
+    await user.click(screen.getByRole("button", { name: "Clear" }));
+    expect(mockClearWargear).toHaveBeenCalledWith(1);
+  });
+
+  it("does not render the picker for unlinked ghost units", () => {
+    currentMockDatasheet = null;
+    renderSheet(
+      makeUnit({ unit_id: null, ghost_unit_name: "Hellblasters", udb_unit_id: null }),
+    );
+    expect(screen.queryByText("Loadout")).not.toBeInTheDocument();
   });
 });
