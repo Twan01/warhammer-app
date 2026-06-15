@@ -74,7 +74,7 @@
   2. The release workflow cannot publish a GitHub Release / `latest.json` unless the CI test job passed (`release.yml` `needs: test`).
   3. The release job pins the Rust toolchain rather than floating it, so CI-green is not undone by a compiler delta.
 **Plans**: 2 plans
-- [ ] 131-01-PLAN.md — Create rust-toolchain.toml pin + reusable ci.yml (pnpm test + cargo test + pnpm build on PR)
+- [x] 131-01-PLAN.md — Create rust-toolchain.toml pin + reusable ci.yml (pnpm test + cargo test + pnpm build on PR)
 - [ ] 131-02-PLAN.md — Restructure release.yml (needs: test + pinned toolchain) + document branch protection (manual checkpoint)
 
 ### Phase 132: Update Trustworthiness
@@ -172,7 +172,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 130. Migration Parity & Release Gate | 2/2 | Complete    | 2026-06-15 |
-| 131. CI Test Gate | 0/? | Not started | - |
+| 131. CI Test Gate | 1/2 | In Progress|  |
 | 132. Update Trustworthiness | 0/? | Not started | - |
 | 133. Honest Data Provenance | 0/? | Not started | - |
 | 134. No Dead Ends | 0/? | Not started | - |

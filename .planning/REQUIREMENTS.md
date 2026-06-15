@@ -9,8 +9,8 @@
 
 ### Theme A — Release & Reliability (REL)
 
-- [ ] **REL-01**: CI runs the full automated suite (`pnpm test` + `cargo test` + `pnpm build`) on every pull request and blocks merge on any failure.
-- [ ] **REL-02**: The release workflow cannot publish a GitHub Release / `latest.json` unless the CI test job has passed (`release.yml` `needs: test`); the release job pins the Rust toolchain rather than floating it.
+- [x] **REL-01**: CI runs the full automated suite (`pnpm test` + `cargo test` + `pnpm build`) on every pull request and blocks merge on any failure.
+- [x] **REL-02**: The release workflow cannot publish a GitHub Release / `latest.json` unless the CI test job has passed (`release.yml` `needs: test`); the release job pins the Rust toolchain rather than floating it.
 - [x] **REL-03**: The data-layer migration list is derived from disk (`readdirSync` of `src-tauri/migrations/`) so the migration-parity test passes and never drifts when a migration is added (fixes the currently-failing 046→047 gap and exercises the wargear schema).
 - [x] **REL-04**: A single parity check asserts, in CI and locally before build, that `package.json` version == `tauri.conf.json` version AND migration file count == lib.rs `Migration{}` count == data-layer migration-list length.
 - [x] **REL-05**: CI fails if any `src-tauri/migrations/*.sql` file contains a CR byte, preventing the line-ending checksum drift from ever recurring.
@@ -72,8 +72,8 @@
 | REL-03 | Phase 130 | Complete |
 | REL-04 | Phase 130 | Complete |
 | REL-05 | Phase 130 | Complete |
-| REL-01 | Phase 131 | Pending |
-| REL-02 | Phase 131 | Pending |
+| REL-01 | Phase 131 | Complete |
+| REL-02 | Phase 131 | Complete |
 | REL-06 | Phase 132 | Pending |
 | REL-07 | Phase 132 | Pending |
 | REL-08 | Phase 132 | Pending |
