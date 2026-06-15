@@ -3,6 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { UdbUnitDetail, UdbAbility } from "@/db/queries/unitDatabase";
 import { WeaponTable } from "@/features/units/WeaponTable";
+import { sanitizeRulesHtml } from "@/lib/sanitizeHtml";
 
 const SECTION_LABEL_CLASS =
   "text-xs font-semibold text-muted-foreground uppercase tracking-wide";
@@ -111,9 +112,10 @@ function AbilityEntry({ ability }: { ability: UdbAbility }) {
     <div className="flex flex-col gap-1 pl-2 border-l border-border">
       <span className="text-sm font-semibold text-foreground">{ability.name}</span>
       {ability.description && (
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          {ability.description}
-        </p>
+        <div
+          className="text-sm text-muted-foreground leading-relaxed [&_b]:font-semibold [&_.kwb]:text-foreground"
+          dangerouslySetInnerHTML={{ __html: sanitizeRulesHtml(ability.description) }}
+        />
       )}
     </div>
   );

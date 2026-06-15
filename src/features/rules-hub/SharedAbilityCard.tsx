@@ -6,6 +6,7 @@ import {
   CollapsibleContent,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { sanitizeRulesHtml } from "@/lib/sanitizeHtml";
 import type { RwAbility } from "@/types/datasheet";
 import type { RulesFavorite } from "@/types/rulesFavorite";
 import type { RulesNote } from "@/types/rulesNote";
@@ -78,7 +79,10 @@ export function SharedAbilityCard({ ability, favorite, note }: SharedAbilityCard
 
       <CollapsibleContent className="px-4 pb-4 pt-1 text-sm text-muted-foreground space-y-2">
         {ability.description ? (
-          <p>{ability.description}</p>
+          <div
+            className="[&_b]:font-semibold [&_.kwb]:text-foreground"
+            dangerouslySetInnerHTML={{ __html: sanitizeRulesHtml(ability.description) }}
+          />
         ) : ability.legend ? (
           <p className="italic">{ability.legend}</p>
         ) : (

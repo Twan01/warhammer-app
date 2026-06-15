@@ -14,6 +14,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { sanitizeRulesHtml } from "@/lib/sanitizeHtml";
 import { useUdbUnitDetail } from "@/hooks/useUnitDatabase";
 import type { UdbAbility, UdbUnitDetail } from "@/db/queries/unitDatabase";
 import { UdbStatBlock } from "./UdbStatBlock";
@@ -293,7 +294,10 @@ function AbilityGroup({
         >
           <span className="text-sm font-semibold">{a.name}</span>
           {a.description && (
-            <p className="text-sm text-muted-foreground">{a.description}</p>
+            <div
+              className="text-sm text-muted-foreground [&_b]:font-semibold [&_.kwb]:text-foreground"
+              dangerouslySetInnerHTML={{ __html: sanitizeRulesHtml(a.description) }}
+            />
           )}
         </div>
       ))}

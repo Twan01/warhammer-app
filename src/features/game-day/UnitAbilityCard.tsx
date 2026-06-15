@@ -9,6 +9,7 @@ import {
   CollapsibleContent,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { sanitizeRulesHtml } from "@/lib/sanitizeHtml";
 import { useDatasheet } from "@/hooks/useDatasheet";
 import { useStrategyNote } from "@/hooks/useStrategyNote";
 import { useGameDayStore, useGameDayListState } from "./gameDayStore";
@@ -103,9 +104,10 @@ export function UnitAbilityCard({ unit, listId }: UnitAbilityCardProps) {
                       <div className={cn("flex-1", isUsed && "opacity-50 line-through")}>
                         <div className="text-sm font-medium">{ability.name}</div>
                         {ability.description && (
-                          <div className="text-xs text-muted-foreground line-clamp-2">
-                            {ability.description}
-                          </div>
+                          <div
+                            className="text-xs text-muted-foreground line-clamp-2 [&_b]:font-semibold [&_.kwb]:text-foreground"
+                            dangerouslySetInnerHTML={{ __html: sanitizeRulesHtml(ability.description) }}
+                          />
                         )}
                       </div>
                       <Button
@@ -170,7 +172,10 @@ export function UnitAbilityCard({ unit, listId }: UnitAbilityCardProps) {
                       )}
                     </div>
                     {ability.description && (
-                      <div className="text-xs text-muted-foreground">{ability.description}</div>
+                      <div
+                        className="text-xs text-muted-foreground [&_b]:font-semibold [&_.kwb]:text-foreground"
+                        dangerouslySetInnerHTML={{ __html: sanitizeRulesHtml(ability.description) }}
+                      />
                     )}
                   </div>
                 ))}

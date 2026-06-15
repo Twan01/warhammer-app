@@ -23,6 +23,7 @@ import { useUnits } from "@/hooks/useUnits";
 import { useQueryClient } from "@tanstack/react-query";
 import type { StrategyNote, UpsertStrategyNoteInput } from "@/types/strategyNote";
 import { DatasheetPicker } from "@/features/units/DatasheetPicker";
+import { stripHtml } from "@/lib/stripHtml";
 import { TierManager } from "@/features/units/TierManager";
 import { LoadoutSection } from "@/features/units/LoadoutSection";
 import { PlaybookDetachmentAbilities } from "@/features/units/PlaybookDetachmentAbilities";
@@ -182,7 +183,7 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
       if (objectiveControl === null) setObjectiveControl(coerceStatToNumber(m0.OC));
     }
     if (!abilities.trim() && fresh.abilities.length > 0) {
-      const abText = fresh.abilities.map((a) => `${a.name}${a.description ? ": " + a.description : ""}`).join("\n");
+      const abText = fresh.abilities.map((a) => `${a.name}${a.description ? ": " + stripHtml(a.description) : ""}`).join("\n");
       setAbilities(abText);
     }
     if (!keywords.trim() && fresh.keywords.length > 0) {
@@ -214,7 +215,7 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
         };
         const importedKeywords = datasheet.keywords.length > 0 ? datasheet.keywords.map((k) => k.keyword).join(", ") : "";
         const importedAbilities = datasheet.abilities.length > 0
-          ? datasheet.abilities.map((a) => `${a.name}${a.description ? ": " + a.description : ""}`).join("\n")
+          ? datasheet.abilities.map((a) => `${a.name}${a.description ? ": " + stripHtml(a.description) : ""}`).join("\n")
           : "";
         const keywordsOvr = keywords.trim() !== "" && keywords !== importedKeywords ? keywords : null;
         const abilitiesOvr = abilities.trim() !== "" && abilities !== importedAbilities ? abilities : null;

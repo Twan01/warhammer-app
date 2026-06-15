@@ -14,6 +14,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { sanitizeRulesHtml } from "@/lib/sanitizeHtml";
 import { ChevronRight, Link, Swords } from "lucide-react";
 import { EnhancementsList } from "./EnhancementsList";
 
@@ -260,9 +261,10 @@ function DatasheetContent({
                 <div key={`${a.name}-${a.line_order}`} className="pl-2 border-l-2 border-primary/30">
                   <span className="text-sm font-medium">{a.name}</span>
                   {a.description && (
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {a.description}
-                    </p>
+                    <div
+                      className="text-xs text-muted-foreground leading-relaxed [&_b]:font-semibold [&_.kwb]:text-foreground"
+                      dangerouslySetInnerHTML={{ __html: sanitizeRulesHtml(a.description) }}
+                    />
                   )}
                 </div>
               ))}
