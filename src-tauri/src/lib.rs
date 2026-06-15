@@ -340,6 +340,28 @@ fn preflight_webview_heal() {
     }
 }
 
+/// Append a timestamped line to the preflight log file inside app_data_dir.
+///
+/// stderr/stdout are invisible in a packaged GUI release, so preflight repair
+/// outcomes must be persisted to disk to be diagnosable after a failed update.
+/// This is best-effort and infallible — logging must never be able to abort
+/// startup. It mirrors to stderr for dev runs.
+fn preflight_log(line: &str) {
+    eprintln!("[hobbyforge] {line}");
+    let Some(app_data_dir) = resolve_app_data_dir() else { return };
+    let _ = std::fs::create_dir_all(&app_data_dir);
+    let log_path = app_data_dir.join("preflight.log");
+    let stamped = format!("{}  {}\n", format_iso8601_now(), line);
+    use std::io::Write;
+    if let Ok(mut f) = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&log_path)
+    {
+        let _ = f.write_all(stamped.as_bytes());
+    }
+}
+
 fn resolve_app_data_dir() -> Option<std::path::PathBuf> {
     const IDENTIFIER: &str = "com.hobbyforge.app";
     #[cfg(target_os = "windows")]
@@ -372,9 +394,14 @@ async fn repair_migration_checksums(
     }
 
     let db_url = format!("sqlite:{}", db_path.display());
+    // busy_timeout: during an NSIS in-place update the previous process may still
+    // hold the DB briefly. Without a timeout the connect/queries fail instantly,
+    // the repair is silently skipped, and the SQL plugin then panics. A 10s
+    // timeout lets the lock clear so the repair runs deterministically.
     let opts = SqliteConnectOptions::from_str(&db_url)
         .map_err(|e| format!("repair opts: {e}"))?
-        .create_if_missing(false);
+        .create_if_missing(false)
+        .busy_timeout(std::time::Duration::from_secs(10));
     let mut conn = opts.connect().await.map_err(|e| format!("repair connect: {e}"))?;
 
     let table_exists: bool = sqlx::query_scalar(
@@ -409,21 +436,25 @@ async fn repair_migration_checksums(
         return Ok(false);
     }
 
-    println!(
-        "[hobbyforge] migration checksum mismatch on {} version(s): {:?} — repairing",
+    preflight_log(&format!(
+        "migration checksum mismatch on {} version(s): {:?} — repairing",
         mismatches.len(),
         mismatches.iter().map(|(v, _)| *v).collect::<Vec<_>>()
-    );
+    ));
 
-    // Safety backup before modifying the tracking table
-    let backup_dir = db_path.parent().unwrap().join("backups");
+    // Safety backup before modifying the tracking table.
+    // Use parent() defensively — never unwrap (must not panic during preflight).
+    let backup_dir = match db_path.parent() {
+        Some(p) => p.join("backups"),
+        None => return Err("db_path has no parent dir".to_string()),
+    };
     std::fs::create_dir_all(&backup_dir)
         .map_err(|e| format!("create backup dir: {e}"))?;
     let ts = format_filename_timestamp();
     let backup_path = backup_dir.join(format!("safety-premigrate-{ts}.db"));
     std::fs::copy(db_path, &backup_path)
         .map_err(|e| format!("safety copy: {e}"))?;
-    println!("[hobbyforge] safety backup created: {}", backup_path.display());
+    preflight_log(&format!("safety backup created: {}", backup_path.display()));
 
     for (version, checksum) in &mismatches {
         sqlx::query("UPDATE _sqlx_migrations SET checksum = $1 WHERE version = $2")
@@ -434,7 +465,21 @@ async fn repair_migration_checksums(
             .map_err(|e| format!("repair update v{version}: {e}"))?;
     }
 
-    println!("[hobbyforge] migration checksums repaired successfully");
+    // Persist the checksum UPDATEs into the main DB file BEFORE the SQL plugin
+    // opens it. If the DB is in WAL mode, the writes live in the -wal sidecar
+    // until checkpointed; the plugin opening a fresh connection would normally
+    // see them, but an explicit TRUNCATE checkpoint guarantees the main file is
+    // authoritative and removes any window where the old WAL could be replayed.
+    // Best-effort: a checkpoint failure must not abort — the row updates are
+    // already committed.
+    if let Err(e) = sqlx::query("PRAGMA wal_checkpoint(TRUNCATE)")
+        .execute(&mut conn)
+        .await
+    {
+        preflight_log(&format!("post-repair wal_checkpoint warning (non-fatal): {e}"));
+    }
+
+    preflight_log("migration checksums repaired successfully");
     Ok(true)
 }
 
@@ -452,7 +497,8 @@ async fn sync_user_version(
     let db_url = format!("sqlite:{}", db_path.display());
     let opts = SqliteConnectOptions::from_str(&db_url)
         .map_err(|e| format!("user_version opts: {e}"))?
-        .create_if_missing(false);
+        .create_if_missing(false)
+        .busy_timeout(std::time::Duration::from_secs(10));
     let mut conn = opts.connect().await.map_err(|e| format!("user_version connect: {e}"))?;
 
     let current: u32 = sqlx::query("PRAGMA user_version")
@@ -466,15 +512,30 @@ async fn sync_user_version(
             .execute(&mut conn)
             .await
             .map_err(|e| format!("set user_version: {e}"))?;
-        println!("[hobbyforge] user_version updated: {current} → {migration_count}");
+        preflight_log(&format!("user_version updated: {current} -> {migration_count}"));
     }
 
     Ok(())
 }
 
+/// AUTHORITATIVE pre-migration repair.
+///
+/// Runs BEFORE the SQL plugin (which runs the sqlx migrator at .build() — a
+/// checksum VersionMismatch there panics before any window is created). This
+/// realigns the installed DB's stored _sqlx_migrations checksums with the bytes
+/// the current build embeds, so the plugin's migrator validates cleanly.
+///
+/// Hardening guarantees:
+/// - NEVER panics: no unwrap/expect on any path; block_on body only logs errors.
+/// - busy_timeout on the repair connection so a transient lock during an in-place
+///   update does not cause the repair to be silently skipped.
+/// - WAL checkpoint after repair so the corrected checksums are persisted to the
+///   main DB file before the plugin opens it.
+/// - Outcomes logged to app_data_dir/preflight.log (stderr is invisible in a
+///   packaged GUI release).
 fn preflight_migration_repair() {
     let Some(app_data_dir) = resolve_app_data_dir() else {
-        eprintln!("[hobbyforge] could not resolve app data dir — skipping migration repair");
+        preflight_log("could not resolve app data dir — skipping migration repair");
         return;
     };
 
@@ -482,11 +543,15 @@ fn preflight_migration_repair() {
     let main_migrations = get_migrations();
 
     tauri::async_runtime::block_on(async {
-        if let Err(e) = repair_migration_checksums(&main_db, &main_migrations).await {
-            eprintln!("[hobbyforge] main db repair failed: {e}");
+        match repair_migration_checksums(&main_db, &main_migrations).await {
+            Ok(true) => {} // repair already logged its outcome
+            Ok(false) => preflight_log("migration checksums already consistent — no repair needed"),
+            Err(e) => preflight_log(&format!(
+                "main db repair FAILED: {e} — plugin migrator may panic; not aborting preflight"
+            )),
         }
         if let Err(e) = sync_user_version(&main_db, main_migrations.len() as u32).await {
-            eprintln!("[hobbyforge] user_version sync failed: {e}");
+            preflight_log(&format!("user_version sync failed: {e}"));
         }
     });
 }
@@ -1634,6 +1699,104 @@ mod tests {
         }
 
         // Clean up
+        let _ = std::fs::remove_dir_all(&temp_dir);
+    }
+
+    /// Simulated-corruption repair: a DB whose _sqlx_migrations holds CRLF-era
+    /// (wrong) checksums must be deterministically healed to the LF (current)
+    /// checksums by repair_migration_checksums — the exact failure mode that
+    /// caused the silent no-window-on-update bug.
+    #[test]
+    fn repair_heals_crlf_era_checksums() {
+        use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions};
+        use std::str::FromStr;
+
+        let temp_dir = std::env::temp_dir().join("hobbyforge_test_repair");
+        let _ = std::fs::create_dir_all(&temp_dir);
+        let db_path = temp_dir.join("corrupt.db");
+        let _ = std::fs::remove_file(&db_path);
+
+        let migrations = get_migrations();
+        // Pick the first three migrations to corrupt with CRLF-era checksums.
+        let sample: Vec<&Migration> = migrations.iter().take(3).collect();
+
+        let rt = tauri::async_runtime::block_on(async {
+            let db_url = format!("sqlite:{}", db_path.display());
+            let opts = SqliteConnectOptions::from_str(&db_url)
+                .unwrap()
+                .create_if_missing(true);
+            let mut conn = opts.connect().await.unwrap();
+
+            // Build a minimal _sqlx_migrations table matching sqlx's schema shape
+            // (only the columns the repair touches need to be correct).
+            sqlx::query(
+                "CREATE TABLE _sqlx_migrations (\
+                    version BIGINT PRIMARY KEY, \
+                    description TEXT NOT NULL, \
+                    installed_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, \
+                    success BOOLEAN NOT NULL, \
+                    checksum BLOB NOT NULL, \
+                    execution_time BIGINT NOT NULL)",
+            )
+            .execute(&mut conn)
+            .await
+            .unwrap();
+
+            // Insert each sample migration with a CRLF-era checksum (wrong vs LF bytes).
+            for m in &sample {
+                let crlf_sql = m.sql.replace('\n', "\r\n");
+                let crlf_checksum = Vec::from(Sha384::digest(crlf_sql.as_bytes()).as_slice());
+                let lf_checksum = Vec::from(Sha384::digest(m.sql.as_bytes()).as_slice());
+                // Pre-condition: CRLF checksum must differ from LF checksum, else the
+                // file has no newlines and the test would be vacuous.
+                assert_ne!(
+                    crlf_checksum, lf_checksum,
+                    "migration v{} has no newlines; pick a different sample",
+                    m.version
+                );
+                sqlx::query(
+                    "INSERT INTO _sqlx_migrations \
+                     (version, description, success, checksum, execution_time) \
+                     VALUES (?, ?, 1, ?, 0)",
+                )
+                .bind(m.version)
+                .bind(m.description)
+                .bind(crlf_checksum.as_slice())
+                .execute(&mut conn)
+                .await
+                .unwrap();
+            }
+
+            // Run the repair under test.
+            let repaired = repair_migration_checksums(&db_path, &migrations)
+                .await
+                .expect("repair returned Err");
+            assert!(repaired, "repair should report it made changes");
+
+            // Verify every stored checksum now matches the LF (embedded) bytes.
+            let rows: Vec<(i64, Vec<u8>)> = sqlx::query_as(
+                "SELECT version, checksum FROM _sqlx_migrations ORDER BY version",
+            )
+            .fetch_all(&mut conn)
+            .await
+            .unwrap();
+            for (version, checksum) in &rows {
+                let m = migrations.iter().find(|m| m.version == *version).unwrap();
+                let expected = Vec::from(Sha384::digest(m.sql.as_bytes()).as_slice());
+                assert_eq!(
+                    *checksum, expected,
+                    "v{version} checksum not healed to LF bytes"
+                );
+            }
+
+            // Idempotency: a second run finds nothing to repair.
+            let second = repair_migration_checksums(&db_path, &migrations)
+                .await
+                .expect("second repair returned Err");
+            assert!(!second, "second repair should be a no-op (Ok(false))");
+        });
+        let _ = rt;
+
         let _ = std::fs::remove_dir_all(&temp_dir);
     }
 }
