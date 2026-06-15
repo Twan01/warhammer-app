@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.5.2
-milestone_name: UX Polish & Consistency
-status: Awaiting next milestone
-stopped_at: Milestone v0.5.2 complete and archived
-last_updated: "2026-06-12T08:37:46.621Z"
-last_activity: 2026-06-12 — Milestone v0.5.2 completed and archived
+milestone: v0.6.0
+milestone_name: Bulletproof & Honest
+status: planning
+last_updated: "2026-06-15T11:26:38.177Z"
+last_activity: 2026-06-15
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 13
-  completed_plans: 13
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-12)
 
 ## Current Position
 
-Phase: Milestone v0.5.2 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-15 — Completed quick task 260615-h48: full battle-ready roster PDF
+Status: Defining requirements
+Last activity: 2026-06-15 — Milestone v0.6.0 started
 
 ## Performance Metrics
 

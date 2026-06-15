@@ -6,9 +6,18 @@ HobbyForge is a personal Windows desktop app for managing a Warhammer 40K hobby 
 
 Shipped through v0.5.0 (125 phases): full hobby command center with collection management, painting workflow (Kanban + structured step-by-step recipes with hierarchical section groupings, workflow metadata, paint availability, DnD reorder, non-destructive save preserving IDs, paintless steps, transactional graph save, recipe_step_id-keyed progress), a dedicated Painting Mode for focused step-by-step recipe execution (distraction-free full-page layout, keyboard shortcuts, section navigator, paint readiness warnings, atomic step completion with session logging, 6 entry points), army list builder with detachment selection, FK-based points resolution from canonical database, smart list builder (loadout builder, wargear/model count editor, enhancements with auto-resolved points from canonical DB, leader attachment with preventive validation, ghost/planned units, 4-format export, version snapshots with save/compare/restore, battle-readiness badges in unit picker, budget-aware filtering), battle log with after-action capture (forgotten rules, MVP/underperformer notes), spending tracker, hobby goals, photo journal, session-recipe linking with section-level cascading selectors and stable FK, premium CSS grid dashboard with workflow-aware CurrentFocusCard, KanbanCards, NextPaintingActionCard, ReadyToPlayCard, and DataHealthSummaryCard, canonical unit database browser (1,711 units across 25 factions with stat blocks, weapon tables, ability text, keywords, points tiers, FTS5 search, role/keyword/point filters, virtual scrolling), collection-to-database FK linking with ownership/readiness badges, user annotations (favorites, notes, reminders) on any rule, Game Day mode for focused in-game reference (CP tracker, phase-grouped real stratagems from canonical DB, unit ability cards, pre-game checklist, pre-game readiness panel, end-game after-action with forgotten-rules-to-reminders pipeline), Rules Hub with live stratagem/detachment data and search/filter, Data Health page with diagnostics, structured backup export (.zip with VACUUM INTO + metadata.json), full restore with preview/validation/atomic swap/restart, automatic safety backups before restore, progressive backup diagnostics with version mismatch detection, a data-layer test suite (14 tests via better-sqlite3 covering migration parity, recipe persistence, session FK), version parity enforcement, auto-update via GitHub Releases with in-app banner, single-database architecture (hobbyforge.db only, rules.db eliminated), Wahapedia-only build pipeline (auto-download CSVs, BOM-safe parsing, Legends dedup, 99.8% points coverage, 1,482 stratagems, 927 enhancements, 261 detachments with 284 abilities), internal robustness hardening (WAL mode, FK indexes, CHECK constraints, route error boundaries, DB health gate, lazy route loading, React.memo, batched INSERTs, query-layer isolation, component decomposition), smart automation (auto-derive assembly/basing/varnish statuses from recipe completion, auto-manage active projects, context-aware recipe pre-filling with faction grouping), and a comprehensive Settings page (tabbed Preferences/Data/About, persistent key-value settings, language/currency/faction/readiness defaults, customizable pipeline labels and checklist, factory reset, preference export/import, app version and data stats).
 
-## Current Milestone: Planning next milestone
+## Current Milestone: v0.6.0 Bulletproof & Honest
 
-v0.5.2 UX Polish & Consistency shipped 2026-06-12. No active milestone — run `/gsd:new-milestone` to define the next one.
+**Goal:** Make every update launch reliably and guard it with CI, stop the UI from showing untrue/dead state, then add the highest-value player-journey capabilities and broaden data quality — in that priority order.
+
+**Target features (4 themes, sequenced A→B→C→D):**
+
+- **A — Release Trust & Reliability** *(foundation; gates everything)*: CI test gate (`pnpm test` + `cargo test` + `pnpm build`); fix the failing migration-parity test (db-helpers 046→047) so the wargear schema is exercised; single version/migration-parity gate (migration count ↔ `EXPECTED_SCHEMA_VERSION` ↔ package/tauri versions); verify one real in-place NSIS update end-to-end + `preflight.log`; relaunch-after-update UX + persistent frontend diagnostics log.
+- **B — Honesty & De-cruft**: remove the fake sync/freshness UI (`StaleDataBanner`, dead dashboard branches); populate or remove the empty Shared Abilities tab; fix the dead-end "Link unit" button; merge the redundant Factions page into the canonical Unit Database; demote Data Health into Settings → Data; decompose `ArmyListDetailPage` (793 lines), dedupe `WeaponTable`, route the 7 hook-layer bypasses through hooks.
+- **C — Player-Journey Depth**: unit comparison view (side-by-side datasheets); full leader-attachment validation (attachment targets in canonical DB); Collection ⇆ Unit Database discovery loop; goals surfaced on the dashboard.
+- **D — Data Quality at Scale**: audit remaining factions; French ability/weapon translations; FK/orphan validation in the data pipeline.
+
+**Origin:** Defined from a full-codebase audit (4-dimension parallel review) on 2026-06-15. The existential driver is the recurring "update breaks launch" bug (root-caused to migration checksum drift from unstable line endings; fixed in code on `fix/update-breaks-app-launch`, but unverified in a real update and unguarded by CI).
 
 ## Current State
 
@@ -289,7 +298,7 @@ A single personal command center that always answers "what do I own, what's pain
 
 ### Active
 
-(No active requirements — planning next milestone)
+*v0.6.0 Bulletproof & Honest — requirements defined in `.planning/REQUIREMENTS.md`, mapped to phases in `.planning/ROADMAP.md`*
 
 ### Out of Scope
 
@@ -464,4 +473,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-12 after v0.5.2 milestone*
+*Last updated: 2026-06-15 — started v0.6.0 Bulletproof & Honest milestone (post-audit)*
