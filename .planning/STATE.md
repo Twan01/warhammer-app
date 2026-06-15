@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-12)
 Phase: Milestone v0.5.2 complete
 Plan: —
 Status: Awaiting next milestone
-Last activity: 2026-06-12 — Milestone v0.5.2 completed and archived
+Last activity: 2026-06-15 — Completed quick task 260615-g91: improve army-list PDF export
 
 ## Performance Metrics
 
@@ -83,6 +83,7 @@ None.
 | Date | Task | Commit |
 |------|------|--------|
 | 2026-06-15 | recipe-checklist-step-details — show full step detail (paint, technique, tool, dilution, time, notes) in the applied-recipe tick-off checklist via expandable rows | 90889d1a |
+| 2026-06-15 | print-army-list-pdf — verified existing PDF/Print export works (34 tests green) and enriched the PDF: category-grouped sections with subtotals, model counts, selected wargear/loadout per unit, richer header + "Page X of Y" | 6036ed9f |
 
 ## Session Continuity
 
