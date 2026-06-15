@@ -12,17 +12,27 @@ const migrationsDir = resolve(repoRoot, "src-tauri/migrations");
 // lib.rs / the .sql files. Sorted by 3-digit numeric prefix to match lib.rs
 // get_migrations() ordering (001..NNN). Adding a new migration .sql file
 // auto-updates this list and HOBBYFORGE_MIGRATION_COUNT — no manual edit needed.
+// Parse the leading numeric prefix; throw loudly rather than returning NaN so a
+// misnamed migration file fails the suite at startup instead of silently
+// sorting into an arbitrary (schema-corrupting) position.
+function migrationPrefix(file: string): number {
+  const n = Number.parseInt(file.slice(0, 3), 10);
+  if (Number.isNaN(n)) {
+    throw new Error(
+      `Migration file "${file}" does not start with a 3-digit numeric prefix`,
+    );
+  }
+  return n;
+}
+
 export const HOBBYFORGE_MIGRATIONS: readonly string[] = readdirSync(migrationsDir)
   .filter((f) => f.endsWith(".sql"))
-  .sort(
-    (a, b) =>
-      Number.parseInt(a.slice(0, 3), 10) - Number.parseInt(b.slice(0, 3), 10),
-  );
+  .sort((a, b) => migrationPrefix(a) - migrationPrefix(b));
 
 // Phase 107: rules.db eliminated — rules migrations removed
 export const RULES_MIGRATIONS = [] as const;
 
-export const HOBBYFORGE_MIGRATION_COUNT = HOBBYFORGE_MIGRATIONS.length; // 47 (disk-derived)
+export const HOBBYFORGE_MIGRATION_COUNT = HOBBYFORGE_MIGRATIONS.length; // disk-derived
 export const RULES_MIGRATION_COUNT = RULES_MIGRATIONS.length; // 0
 
 /**
