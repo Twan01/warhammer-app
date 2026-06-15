@@ -75,7 +75,7 @@
   3. The release job pins the Rust toolchain rather than floating it, so CI-green is not undone by a compiler delta.
 **Plans**: 2 plans
 - [x] 131-01-PLAN.md — Create rust-toolchain.toml pin + reusable ci.yml (pnpm test + cargo test + pnpm build on PR)
-- [ ] 131-02-PLAN.md — Restructure release.yml (needs: test + pinned toolchain) + document branch protection (manual checkpoint)
+- [x] 131-02-PLAN.md — Restructure release.yml (needs: test + pinned toolchain) + document branch protection (manual checkpoint)
 
 ### Phase 132: Update Trustworthiness
 **Goal**: Installing an update over an existing install launches into the new version with no manual step, and a broken launch is diagnosable without devtools. **Theme A merges to `master` at the end of this phase.**
@@ -172,7 +172,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 130. Migration Parity & Release Gate | 2/2 | Complete    | 2026-06-15 |
-| 131. CI Test Gate | 1/2 | In Progress|  |
+| 131. CI Test Gate | 2/2 | Complete   | 2026-06-15 |
 | 132. Update Trustworthiness | 0/? | Not started | - |
 | 133. Honest Data Provenance | 0/? | Not started | - |
 | 134. No Dead Ends | 0/? | Not started | - |
