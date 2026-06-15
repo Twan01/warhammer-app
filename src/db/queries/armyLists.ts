@@ -399,6 +399,26 @@ export async function getUnitWargear(
 }
 
 /**
+ * Batch wargear query: returns all army_list_unit_wargear rows for every unit
+ * in the given list in one query (batch sibling of getUnitWargear).
+ * Ordered by army_list_unit_id, weapon_name ASC for stable, predictable display.
+ * Use this to build a Map<army_list_unit_id, ArmyListUnitWargear[]> for export.
+ */
+export async function getListWargear(
+  listId: number,
+): Promise<ArmyListUnitWargear[]> {
+  const db = await getDb();
+  return db.select<ArmyListUnitWargear[]>(
+    `SELECT aluw.*
+     FROM army_list_unit_wargear aluw
+     JOIN army_list_units alu ON alu.id = aluw.army_list_unit_id
+     WHERE alu.list_id = $1
+     ORDER BY aluw.army_list_unit_id ASC, aluw.weapon_name ASC`,
+    [listId],
+  );
+}
+
+/**
  * Upserts a single weapon's quantity for a unit. quantity <= 0 deletes the row
  * so the table only ever holds positive selections (clean deselect semantics).
  * Uses ON CONFLICT against the UNIQUE(army_list_unit_id, weapon_name) index.

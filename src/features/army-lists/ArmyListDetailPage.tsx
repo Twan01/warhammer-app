@@ -39,6 +39,7 @@ import {
   useClearWarlord,
   useReorderArmyListUnits,
   useAddUnitToList,
+  useListWargear,
 } from "@/hooks/useArmyLists";
 import { useUnits } from "@/hooks/useUnits";
 import { useUdbMeta } from "@/hooks/useUdbMeta";
@@ -84,7 +85,7 @@ import {
 // Sortable row wrapper for dnd-kit
 // ---------------------------------------------------------------------------
 
-import type { ArmyListUnitRow as ArmyListUnitRowType } from "@/types/armyList";
+import type { ArmyListUnitRow as ArmyListUnitRowType, ArmyListUnitWargear } from "@/types/armyList";
 import type { SyncedLeaderTargetRow } from "@/db/queries/bsdataExtended";
 
 function SortableUnitRow({
@@ -140,6 +141,7 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
   const { data: list, isLoading: listLoading } = useArmyList(listId);
   const { data: units, isLoading } = useArmyListWithUnits(listId);
   const { data: listEnhancements } = useEnhancementsByList(listId);
+  const { data: listWargear } = useListWargear(list?.id);
   const { data: factions } = useFactions();
   const { data: collectionUnits = [] } = useUnits();
   const removeUnitFromList = useRemoveUnitFromList();
@@ -387,7 +389,19 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
   const handleSavePdf = useCallback(async () => {
     if (!list) return;
     try {
-      const data = formatArmyListForExport(list, units ?? [], listEnhancements ?? [], faction?.name ?? null);
+      // Build wargear map grouped by army_list_unit_id for the formatter
+      const wargearMap = new Map<number, ArmyListUnitWargear[]>();
+      for (const w of listWargear ?? []) {
+        if (!wargearMap.has(w.army_list_unit_id)) wargearMap.set(w.army_list_unit_id, []);
+        wargearMap.get(w.army_list_unit_id)!.push(w);
+      }
+      const data = formatArmyListForExport(
+        list,
+        units ?? [],
+        listEnhancements ?? [],
+        faction?.name ?? null,
+        wargearMap,
+      );
       const destination = await save({
         title: "Save Army List as PDF",
         defaultPath: `${slugify(list.name)}-${dateStamp()}.pdf`,
@@ -404,7 +418,7 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
     } catch {
       toast.error("Failed to generate PDF");
     }
-  }, [list, units, listEnhancements, faction]);
+  }, [list, units, listEnhancements, faction, listWargear]);
 
   const handleDeleteClose = useCallback(() => {
     dispatch({ type: "CLOSE_DELETE" });

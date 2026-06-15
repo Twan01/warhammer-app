@@ -25,6 +25,7 @@ import {
   getEnhancementsByList,
   reorderArmyListUnits,
   getUnitWargear,
+  getListWargear,
   setUnitWargearQuantity,
   clearUnitWargear,
 } from "@/db/queries/armyLists";
@@ -418,6 +419,30 @@ export function useEnhancementsByList(listId: number | undefined) {
  */
 export const ARMY_LIST_UNIT_WARGEAR_KEY = (armyListUnitId: number) =>
   ["army-list-unit-wargear", armyListUnitId] as const;
+
+/**
+ * Batch wargear key: all wargear for every unit in a list (used by PDF export).
+ * Separate from per-unit key so the export can fetch in one query without
+ * N+1 per-unit hook calls.
+ */
+export const LIST_WARGEAR_KEY = (listId: number) =>
+  ["army-list-wargear", listId] as const;
+
+/**
+ * Fetches all army_list_unit_wargear rows for the given list in one query.
+ * Mirrors useUnitWargear but operates at list scope for batch export use.
+ * Disabled when listId is undefined.
+ */
+export function useListWargear(listId: number | undefined) {
+  return useQuery<ArmyListUnitWargear[]>({
+    queryKey:
+      listId !== undefined
+        ? LIST_WARGEAR_KEY(listId)
+        : ["army-list-wargear", "disabled"],
+    queryFn: () => getListWargear(listId!),
+    enabled: listId !== undefined,
+  });
+}
 
 export function useUnitWargear(armyListUnitId: number | undefined) {
   return useQuery<ArmyListUnitWargear[]>({
