@@ -17,8 +17,10 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
-import { useUpdateArmyListUnit } from "@/hooks/useArmyLists";
+import { useUpdateArmyListUnit, useUnitWargear } from "@/hooks/useArmyLists";
 import { useUnitLoadouts } from "@/hooks/useUnitLoadouts";
+import { useUdbUnitDetail } from "@/hooks/useUnitDatabase";
+import { WeaponTable } from "@/features/units/WeaponTable";
 // Phase 107: useUnitRulesMapping removed (rules.db eliminated)
 import { computeUnitWarnings } from "@/lib/computeUnitWarnings";
 import { resolveUnitPoints } from "@/lib/resolveUnitPoints";
@@ -352,7 +354,7 @@ export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, onRemove, o
             size="icon"
             className="h-7 w-7"
             onClick={() => setExpanded((v) => !v)}
-            aria-label={expanded ? "Collapse notes" : "Expand notes"}
+            aria-label={expanded ? "Collapse details" : "Expand details"}
           >
             {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </Button>
@@ -375,6 +377,12 @@ export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, onRemove, o
       {expanded && (
         <TableRow>
           <TableCell colSpan={5} className="bg-muted/20">
+            {!isGhost && unit.udb_unit_id !== null && (
+              <UnitLoadoutSummary
+                armyListUnitId={unit.id}
+                udbUnitId={unit.udb_unit_id}
+              />
+            )}
             <div className="flex items-end gap-2 py-2">
               <textarea
                 className="flex min-h-[40px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
@@ -401,3 +409,128 @@ export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, onRemove, o
   );
 });
 ArmyListUnitRow.displayName = "ArmyListUnitRow";
+
+// ---------------------------------------------------------------------------
+// UnitLoadoutSummary — selected wargear (with stats) + unit data, shown in the
+// expanded row on the army list page (migration 047 picker companion).
+// ---------------------------------------------------------------------------
+//
+// Only mounts when the row is expanded (cheap — one detail query per open row).
+// Reuses WeaponTable for stat styling consistency with the datasheet. Shows
+// only the SELECTED weapons (quantity-prefixed), the unit's model profile(s),
+// and its ability names. Full ability text lives in the Configure sheet.
+
+function UnitLoadoutSummary({
+  armyListUnitId,
+  udbUnitId,
+}: {
+  armyListUnitId: number;
+  udbUnitId: string;
+}) {
+  const { data: selections } = useUnitWargear(armyListUnitId);
+  const { data: datasheet } = useUdbUnitDetail(udbUnitId);
+
+  const qtyByName = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const s of selections ?? []) if (s.quantity > 0) m.set(s.weapon_name, s.quantity);
+    return m;
+  }, [selections]);
+
+  // Selected weapon profiles, with the quantity prefixed onto the first profile
+  // of each weapon name (multi-profile weapons keep later rows un-prefixed).
+  const { ranged, melee } = useMemo(() => {
+    const used = new Set<string>();
+    const labelled = (datasheet?.weapons ?? [])
+      .filter((w) => qtyByName.has(w.name))
+      .map((w) => {
+        if (used.has(w.name)) return w;
+        used.add(w.name);
+        return { ...w, name: `${qtyByName.get(w.name)}× ${w.name}` };
+      });
+    return {
+      ranged: labelled.filter((w) => w.category === "Ranged"),
+      melee: labelled.filter(
+        (w) => w.category === "Melee" || (w.category !== "Ranged" && w.range === "Melee"),
+      ),
+    };
+  }, [datasheet, qtyByName]);
+
+  const models = datasheet?.models ?? [];
+  const abilities = datasheet?.abilities ?? [];
+  const hasSelection = qtyByName.size > 0;
+
+  return (
+    <div className="flex flex-col gap-3 py-2">
+      {/* Unit profile (model stats) */}
+      {models.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+            Unit Profile
+          </span>
+          <div className="flex flex-col rounded-md border">
+            <div className="grid grid-cols-[1fr_36px_28px_36px_28px_32px_28px] gap-x-1 border-b px-2 py-1">
+              {["Model", "M", "T", "Sv", "W", "Ld", "OC"].map((h) => (
+                <span
+                  key={h}
+                  className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide text-center first:text-left"
+                >
+                  {h}
+                </span>
+              ))}
+            </div>
+            {models.map((m) => (
+              <div
+                key={m.id}
+                className="grid grid-cols-[1fr_36px_28px_36px_28px_32px_28px] gap-x-1 border-b px-2 py-1.5 items-center last:border-0"
+              >
+                <span className="text-sm font-medium truncate">{m.name ?? "—"}</span>
+                <span className="text-xs text-center tabular-nums">{m.M ?? "—"}</span>
+                <span className="text-xs text-center tabular-nums">{m.T ?? "—"}</span>
+                <span className="text-xs text-center tabular-nums">
+                  {m.Sv ?? "—"}
+                  {m.inv_sv ? `/${m.inv_sv}` : ""}
+                </span>
+                <span className="text-xs text-center tabular-nums">{m.W ?? "—"}</span>
+                <span className="text-xs text-center tabular-nums">{m.Ld ?? "—"}</span>
+                <span className="text-xs text-center tabular-nums">{m.OC ?? "—"}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Selected wargear */}
+      <div className="flex flex-col gap-1">
+        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+          Selected Wargear
+        </span>
+        {!hasSelection ? (
+          <p className="text-xs text-muted-foreground">
+            No weapons selected — use Configure to choose this unit's loadout.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {ranged.length > 0 && <WeaponTable weapons={ranged} statLabel="BS" />}
+            {melee.length > 0 && <WeaponTable weapons={melee} statLabel="WS" />}
+          </div>
+        )}
+      </div>
+
+      {/* Unit abilities (names only — full text in Configure) */}
+      {abilities.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+            Abilities
+          </span>
+          <div className="flex flex-wrap gap-1">
+            {abilities.map((a, idx) => (
+              <Badge key={`${a.line_order}-${idx}`} variant="outline" className="text-xs">
+                {a.name}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

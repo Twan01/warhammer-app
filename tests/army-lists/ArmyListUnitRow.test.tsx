@@ -20,11 +20,25 @@ import type { ArmyListUnitRow as ArmyListUnitRowType } from "@/types/armyList";
 // ---------------------------------------------------------------------------
 
 const mockUpdateMutate = vi.fn();
+
+// Wargear selections + datasheet driving the expanded UnitLoadoutSummary.
+let currentMockWargear: { weapon_name: string; quantity: number }[] = [];
+let currentMockDatasheet: unknown = null;
+
 vi.mock("@/hooks/useArmyLists", () => ({
   useUpdateArmyListUnit: () => ({
     mutate: mockUpdateMutate,
     isPending: false,
   }),
+  useUnitWargear: () => ({ data: currentMockWargear, isLoading: false }),
+}));
+
+vi.mock("@/hooks/useUnitDatabase", () => ({
+  useUdbUnitDetail: () => ({ data: currentMockDatasheet, isLoading: false }),
+}));
+
+vi.mock("@/hooks/useUnitKeywords", () => ({
+  useUnitKeywords: () => ({ data: { isCharacter: false, isEpicHero: false }, isLoading: false }),
 }));
 
 vi.mock("@/hooks/useUnitLoadouts", () => ({
@@ -136,6 +150,8 @@ function renderRow(
 describe("ArmyListUnitRow â€” Configure button", () => {
   beforeEach(() => {
     mockUpdateMutate.mockClear();
+    currentMockWargear = [];
+    currentMockDatasheet = null;
   });
 
   it("renders a Configure button with 'Configure' text when no tier is selected", () => {
@@ -242,5 +258,72 @@ describe("ArmyListUnitRow â€” Ghost unit treatment", () => {
     // `army_list_units`. Ghost units (unit_id IS NULL) never appear in `units`.
     // Verified in migration 031_army_list_v3.sql.
     expect(true).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Expanded loadout + unit-data summary (migration 047 picker companion)
+// ---------------------------------------------------------------------------
+
+const summaryDatasheet = {
+  id: "000000123",
+  faction_id: "SM",
+  name: "Intercessor Squad",
+  role: "Battleline",
+  base_points: 80,
+  damaged_w: null,
+  damaged_desc: null,
+  models: [
+    { id: 1, unit_id: "000000123", line_order: 1, name: "Intercessor", M: "6\"", T: 4, Sv: "3+", inv_sv: null, W: 2, Ld: "6+", OC: 2 },
+  ],
+  weapons: [
+    { id: 1, unit_id: "000000123", weapon_group: 1, line_order: 1, name: "Bolt rifle", category: "Ranged", range: "24", attacks: "2", skill: "3", strength: "4", ap: "-1", damage: "1", keywords: null },
+    { id: 2, unit_id: "000000123", weapon_group: 2, line_order: 1, name: "Astartes chainsword", category: "Melee", range: "Melee", attacks: "4", skill: "3", strength: "4", ap: "-1", damage: "1", keywords: null },
+  ],
+  abilities: [
+    { id: 1, unit_id: "000000123", line_order: 1, name: "Oath of Moment", description: "desc", ability_type: "Faction" },
+  ],
+  keywords: [],
+  points: [],
+  composition: [],
+};
+
+describe("ArmyListUnitRow â€” expanded loadout summary", () => {
+  beforeEach(() => {
+    mockUpdateMutate.mockClear();
+    currentMockWargear = [];
+    currentMockDatasheet = summaryDatasheet;
+  });
+
+  it("shows selected weapons with quantity and unit abilities when expanded", async () => {
+    const user = userEvent.setup();
+    currentMockWargear = [{ weapon_name: "Bolt rifle", quantity: 3 }];
+    renderRow(makeUnit({ udb_unit_id: "000000123" }));
+
+    await user.click(screen.getByRole("button", { name: "Expand details" }));
+
+    expect(screen.getByText("Selected Wargear")).toBeInTheDocument();
+    expect(screen.getByText("3× Bolt rifle")).toBeInTheDocument();
+    // Unselected weapon is not listed
+    expect(screen.queryByText("Astartes chainsword")).not.toBeInTheDocument();
+    // Unit data: profile + ability name
+    expect(screen.getByText("Unit Profile")).toBeInTheDocument();
+    expect(screen.getByText("Oath of Moment")).toBeInTheDocument();
+  });
+
+  it("shows an empty-wargear hint when nothing is selected", async () => {
+    const user = userEvent.setup();
+    renderRow(makeUnit({ udb_unit_id: "000000123" }));
+
+    await user.click(screen.getByRole("button", { name: "Expand details" }));
+    expect(screen.getByText(/No weapons selected/)).toBeInTheDocument();
+  });
+
+  it("does not render the summary for ghost units", async () => {
+    const user = userEvent.setup();
+    renderRow(makeGhostUnit());
+
+    await user.click(screen.getByRole("button", { name: "Expand details" }));
+    expect(screen.queryByText("Selected Wargear")).not.toBeInTheDocument();
   });
 });
