@@ -38,11 +38,11 @@ created: 2026-06-15
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 130-01-xx | 01 | 1 | REL-03 | — | D-06 parity green (47===47); chain applies 047 | unit | `pnpm test -- tests/data-layer/migration-parity.test.ts` | ✅ (currently RED) | ⬜ pending |
-| 130-01-xx | 01 | 1 | REL-03 | — | `army_list_unit_wargear` schema exercised | unit | `pnpm test -- tests/data-layer/schema-shape.test.ts` | ✅ (assertion to add) | ⬜ pending |
-| 130-02-xx | 02 | 2 | REL-04 | T-130-01 | gate fails on version OR migration-count mismatch | smoke | `pnpm check:version` (exit 0 clean; exit 1 on desync) | ✅ (to extend) | ⬜ pending |
-| 130-02-xx | 02 | 2 | REL-05 | T-130-01 | gate fails on any CR byte in `migrations/*.sql` | smoke | `pnpm check:version` (exit 0 clean; exit 1 on injected CR) | ✅ (same script) | ⬜ pending |
-| 130-02-xx | 02 | 2 | REL-04 | — | `prebuild` runs gate before `pnpm build` | smoke | `pnpm build` runs gate first (observe gate output) | ✅ `package.json` (hook to add) | ⬜ pending |
+| 130-01-T1 | 01 | 1 | REL-03 | — | D-06 parity green (47===47); chain applies 047 | unit | `pnpm test -- tests/data-layer/migration-parity.test.ts` | ✅ | ✅ green |
+| 130-01-T2 | 01 | 1 | REL-03 | — | `army_list_unit_wargear` schema exercised | unit | `pnpm test -- tests/data-layer/schema-shape.test.ts` | ✅ | ✅ green |
+| 130-02-T1 | 02 | 2 | REL-04 | T-130-01 | gate exits 0 on clean tree (version + migration-count parity) | smoke | `pnpm check:version` (exit 0 clean) | ✅ | ✅ green |
+| 130-02-T1 | 02 | 2 | REL-05 | T-130-01 | gate exits 0 on clean tree (no CR byte in `migrations/*.sql`) | smoke | `pnpm check:version` (exit 0 clean) | ✅ | ✅ green |
+| 130-02-T2 | 02 | 2 | REL-04 | — | `prebuild` runs gate before `pnpm build` | smoke | `package.json` `scripts.prebuild === "node scripts/check-version.mjs"` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -74,3 +74,23 @@ created: 2026-06-15
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** approved 2026-06-15
+
+---
+
+## Validation Audit 2026-06-15
+
+Retroactive Nyquist audit (`/gsd:validate-phase 130`) against the live tree.
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+**Findings:**
+- All 5 Per-Task Map rows confirmed green against the live tree (statuses were stale `⬜ pending` from the pre-execution contract — updated to `✅ green`).
+- `npx vitest run tests/data-layer/migration-parity.test.ts tests/data-layer/schema-shape.test.ts` → 8 passed, 2 todo (rules.db legs removed in Phase 107). Includes D-06 parity (47===47) and the 047 `army_list_unit_wargear` column-shape assertion.
+- `node scripts/check-version.mjs` → exit 0 (all three legs: version 0.5.7, migration-count 47===47, no CR bytes).
+- The two negative-path gate behaviors (exit 1 on count desync / on injected CR byte) remain **Manual-Only** by necessity: automating them requires either mutating the real migration tree at runtime or refactoring `check-version.mjs` to accept an injectable path (an impl change out of scope for a validation audit). Both are documented with revert instructions above and were performed-and-reverted during execution (130-02-SUMMARY.md).
+
+**Verdict:** Nyquist-compliant. No test files generated — every requirement has an automated command (Vitest or `pnpm check:version`); negative paths are legitimately manual.
