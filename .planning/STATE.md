@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.6.0
 milestone_name: Bulletproof & Honest
-status: ready_to_plan
-stopped_at: Phase 130 complete (2/2) — ready to discuss Phase 131
-last_updated: 2026-06-15T13:06:04.532Z
+status: planning
+stopped_at: Phase 131 context gathered
+last_updated: "2026-06-15T13:14:53.899Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 10
@@ -96,9 +96,9 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-15T12:49:15.327Z
-Stopped at: Phase 130 context gathered
-Resume file: None
+Last session: 2026-06-15T13:14:53.888Z
+Stopped at: Phase 131 context gathered
+Resume file: .planning/phases/131-ci-test-gate/131-CONTEXT.md
 Resume: Run `/gsd:plan-phase 130` to begin Migration Parity & Release Gate.
 
 ## Operator Next Steps
