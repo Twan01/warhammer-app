@@ -1,0 +1,20 @@
+# Line-ending normalization for build-critical files.
+#
+# SQLite migration files are embedded into the Rust binary at compile time via
+# include_str! and their SHA-384 checksums are stored in _sqlx_migrations. If the
+# working-tree line endings of these files differ between checkouts/builds (which
+# happens under core.autocrlf=true with no attributes), each release can embed
+# different bytes for the same migration version. The installed DB then holds a
+# checksum that no longer matches the embedded bytes, and tauri-plugin-sql's sqlx
+# migrator panics with MigrateError::VersionMismatch at plugin init — before any
+# window is created, producing a silent no-launch on update.
+#
+# Forcing LF guarantees include_str! embeds identical bytes on every machine and
+# every build, permanently stopping per-release checksum drift.
+
+# All SQL files (migrations + any other embedded SQL) — normalize to LF.
+*.sql text eol=lf
+
+# Belt-and-suspenders: pin the migrations directory explicitly regardless of
+# extension, so any future non-.sql migration asset is covered too.
+src-tauri/migrations/** text eol=lf
