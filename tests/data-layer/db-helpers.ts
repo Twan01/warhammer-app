@@ -1,67 +1,28 @@
 // @vitest-environment node
 
 import Database from "better-sqlite3";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const migrationsDir = resolve(repoRoot, "src-tauri/migrations");
 
-// Authoritative migration order — must match lib.rs get_migrations()
-export const HOBBYFORGE_MIGRATIONS = [
-  "001_core_schema.sql",
-  "002_seed_factions.sql",
-  "003_seed_data.sql",
-  "004_unit_playbook_stats.sql",
-  "005_hobby_journal.sql",
-  "006_spend_pence.sql",
-  "007_datasheet_link.sql",
-  "008_enrichment.sql",
-  "009_wishlist.sql",
-  "010_hobby_goals.sql",
-  "011_point_tiers_loadouts.sql",
-  "012_recipe_steps.sql",
-  "013_step_photos_alt_paint.sql",
-  "014_session_recipe_link.sql",
-  "015_sync_errors.sql",
-  "016_rules_snapshot.sql",
-  "017_unit_overrides.sql",
-  "018_recipe_sections.sql",
-  "019_rules_favorites_notes.sql",
-  "020_workflow_metadata.sql",
-  "021_applied_recipe_assignments.sql",
-  "022_paintless_steps.sql",
-  "023_session_section_fk.sql",
-  "024_points_import_history.sql",
-  "025_tactical_role.sql",
-  "026_unit_rules_mapping.sql",
-  "027_battle_log_after_action.sql",
-  "028_step_progress_identity.sql",
-  "029_synced_point_tiers.sql",
-  "030_bsdata_extended.sql",
-  "031_army_list_v3.sql",
-  "032_army_list_snapshots.sql",
-  "033_database_hardening.sql",
-  "034_urm_datasheet_name.sql",
-  "035_army_list_unit_sort_order.sql",
-  "036_unit_form_simplification.sql",
-  "037_override_flags.sql",
-  "038_udb_schema.sql",
-  "039_collection_udb_link.sql",
-  "040_drop_synced_points.sql",
-  "041_udb_sub_faction_fr.sql",
-  "042_udb_detachments.sql",
-  "043_udb_stratagems_enhancements.sql",
-  "044_app_settings.sql",
-  "045_backfill_collection_points.sql",
-  "046_backfill_faction_udb_normalized.sql",
-] as const;
+// Authoritative migration order, derived from disk so it can never drift from
+// lib.rs / the .sql files. Sorted by 3-digit numeric prefix to match lib.rs
+// get_migrations() ordering (001..NNN). Adding a new migration .sql file
+// auto-updates this list and HOBBYFORGE_MIGRATION_COUNT — no manual edit needed.
+export const HOBBYFORGE_MIGRATIONS: readonly string[] = readdirSync(migrationsDir)
+  .filter((f) => f.endsWith(".sql"))
+  .sort(
+    (a, b) =>
+      Number.parseInt(a.slice(0, 3), 10) - Number.parseInt(b.slice(0, 3), 10),
+  );
 
 // Phase 107: rules.db eliminated — rules migrations removed
 export const RULES_MIGRATIONS = [] as const;
 
-export const HOBBYFORGE_MIGRATION_COUNT = HOBBYFORGE_MIGRATIONS.length; // 46
+export const HOBBYFORGE_MIGRATION_COUNT = HOBBYFORGE_MIGRATIONS.length; // 47 (disk-derived)
 export const RULES_MIGRATION_COUNT = RULES_MIGRATIONS.length; // 0
 
 /**
