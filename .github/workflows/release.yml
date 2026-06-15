@@ -6,7 +6,11 @@ on:
       - "v*"
 
 jobs:
+  test:
+    uses: ./.github/workflows/ci.yml
+
   release:
+    needs: test
     permissions:
       contents: write
     strategy:
@@ -29,8 +33,10 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - name: Install Rust stable
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.87.0
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
