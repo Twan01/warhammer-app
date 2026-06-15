@@ -96,6 +96,25 @@ describe("schema shape", () => {
     ).toBe(0);
   });
 
+  it("army_list_unit_wargear has expected columns (D-03 - migration 047)", () => {
+    const columns = db.pragma(
+      "table_info(army_list_unit_wargear)",
+    ) as ColumnInfo[];
+
+    const expectedColumns = [
+      "id",
+      "army_list_unit_id",
+      "weapon_name",
+      "quantity",
+      "created_at",
+    ];
+
+    for (const colName of expectedColumns) {
+      const col = columns.find((c) => c.name === colName);
+      expect(col, `column ${colName} should exist`).toBeDefined();
+    }
+  });
+
   // Phase 107: rules.db eliminated — rules DB table test removed
   it.todo("rules DB tables exist (D-12 for rules) — rules.db removed in Phase 107");
 });
