@@ -13,7 +13,9 @@ import { useStepProgress, useToggleStepProgress } from "@/hooks/useRecipeAssignm
 import { computeAssignmentProgress } from "@/lib/computeAssignmentProgress";
 import { useRecipePaints } from "@/hooks/useRecipePaints";
 import { useRecipeSections } from "@/hooks/useRecipeSections";
+import { usePaints } from "@/hooks/usePaints";
 import { useUnit, useUpdateUnit } from "@/hooks/useUnits";
+import { ChecklistStepRow } from "./ChecklistStepRow";
 import type { RecipeAssignment } from "@/types/recipeAssignment";
 import type { RecipeStep } from "@/types/recipePaint";
 
@@ -27,11 +29,18 @@ export function AssignmentChecklist({ assignment, recipeId, unitId }: Assignment
   const { data: steps = [] } = useRecipePaints(recipeId);
   const { data: sections = [] } = useRecipeSections(recipeId);
   const { data: stepProgressRows = [] } = useStepProgress(assignment.id);
+  const { data: paints = [] } = usePaints();
   const { data: unit } = useUnit(unitId);
   const updateUnit = useUpdateUnit();
   const toggleStep = useToggleStepProgress();
 
   const isAssembled = unit?.status_assembly === 1;
+
+  // Lookup for resolving a step's paint_id / alt_paint_id to swatch + name
+  const paintsById = useMemo(
+    () => new Map(paints.map((p) => [p.id, p])),
+    [paints],
+  );
 
   // Derived: set of completed recipe_step_id values (no local state)
   const completedSet = useMemo(
@@ -111,15 +120,14 @@ export function AssignmentChecklist({ assignment, recipeId, unitId }: Assignment
               </AccordionTrigger>
               <AccordionContent>
                 {orphanSteps.map((step) => (
-                  <div key={step.id} className="min-h-12 flex items-center gap-2">
-                    <Checkbox
-                      checked={completedSet.has(step.id)}
-                      onCheckedChange={(checked) => handleToggle(step.id, !!checked)}
-                    />
-                    <span className={completedSet.has(step.id) ? "line-through text-muted-foreground" : ""}>
-                      {step.step_name}
-                    </span>
-                  </div>
+                  <ChecklistStepRow
+                    key={step.id}
+                    step={step}
+                    completed={completedSet.has(step.id)}
+                    paint={step.paint_id !== null ? paintsById.get(step.paint_id) : undefined}
+                    altPaint={step.alt_paint_id !== null ? paintsById.get(step.alt_paint_id) : undefined}
+                    onToggle={(checked) => handleToggle(step.id, checked)}
+                  />
                 ))}
               </AccordionContent>
             </AccordionItem>
@@ -137,26 +145,14 @@ export function AssignmentChecklist({ assignment, recipeId, unitId }: Assignment
                 </AccordionTrigger>
                 <AccordionContent>
                   {sectionSteps.map((step) => (
-                    <div
+                    <ChecklistStepRow
                       key={step.id}
-                      className="min-h-12 flex items-center gap-2"
-                    >
-                      <Checkbox
-                        checked={completedSet.has(step.id)}
-                        onCheckedChange={(checked) =>
-                          handleToggle(step.id, !!checked)
-                        }
-                      />
-                      <span
-                        className={
-                          completedSet.has(step.id)
-                            ? "line-through text-muted-foreground"
-                            : ""
-                        }
-                      >
-                        {step.step_name}
-                      </span>
-                    </div>
+                      step={step}
+                      completed={completedSet.has(step.id)}
+                      paint={step.paint_id !== null ? paintsById.get(step.paint_id) : undefined}
+                      altPaint={step.alt_paint_id !== null ? paintsById.get(step.alt_paint_id) : undefined}
+                      onToggle={(checked) => handleToggle(step.id, checked)}
+                    />
                   ))}
                 </AccordionContent>
               </AccordionItem>
@@ -166,25 +162,14 @@ export function AssignmentChecklist({ assignment, recipeId, unitId }: Assignment
       ) : (
         <ul className="flex flex-col gap-2">
           {steps.map((step) => (
-            <li
-              key={step.id}
-              className="min-h-12 flex items-center gap-2"
-            >
-              <Checkbox
-                checked={completedSet.has(step.id)}
-                onCheckedChange={(checked) =>
-                  handleToggle(step.id, !!checked)
-                }
+            <li key={step.id}>
+              <ChecklistStepRow
+                step={step}
+                completed={completedSet.has(step.id)}
+                paint={step.paint_id !== null ? paintsById.get(step.paint_id) : undefined}
+                altPaint={step.alt_paint_id !== null ? paintsById.get(step.alt_paint_id) : undefined}
+                onToggle={(checked) => handleToggle(step.id, checked)}
               />
-              <span
-                className={
-                  completedSet.has(step.id)
-                    ? "line-through text-muted-foreground"
-                    : ""
-                }
-              >
-                {step.step_name}
-              </span>
             </li>
           ))}
         </ul>
