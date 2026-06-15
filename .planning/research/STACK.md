@@ -1,440 +1,262 @@
-# Technology Stack: v0.4.7 Wahapedia Pipeline & Full Data Import
+# Technology Stack: v0.6.0 Bulletproof & Honest
 
-**Project:** HobbyForge v0.4.7
-**Researched:** 2026-06-04
-**Scope:** New capabilities only — auto-download, new CSV schemas, SQLite schema additions
-**Overall confidence:** HIGH
+**Project:** HobbyForge v0.6.0
+**Researched:** 2026-06-15
+**Confidence:** HIGH
+**Scope:** Stack additions/changes only — CI hardening, auto-update verification, frontend logging, new-feature dependencies. Existing validated stack (Tauri 2, React 19, TanStack, Zustand, RHF+Zod, Vitest 4, better-sqlite3, jsPDF, react-hotkeys-hook) is NOT re-researched.
 
----
-
-## What Does NOT Change
-
-The existing stack (Tauri 2, React 19, TypeScript 5, Vite 6, TailwindCSS 4, SQLite,
-tauri-plugin-sql, React Query, Zustand, shadcn/ui) is unchanged. The canonical unit
-database architecture (hobbyforge.db, udb_* tables, Rust bulk import, Wahapedia CSV
-parsing via `parseWahapediaCsv()`) is already proven and reused as-is.
-
-The research below covers only the NET NEW capabilities required for v0.4.7.
+> **TL;DR** — v0.6.0 is overwhelmingly a *process/config* milestone, not a *dependency* milestone. The single most important change is **restructuring `.github/workflows/release.yml` into a test-gated pipeline** — that needs **zero new npm/cargo dependencies**. Everything required for the auto-update fix, the relaunch UX, and the frontend diagnostics log is **already installed** (`@tauri-apps/plugin-updater@2.10.1`, `@tauri-apps/plugin-process@2.3.1`, `@tauri-apps/plugin-fs@2.5.1`). The new feature work (unit comparison, FK/orphan validation) needs **no new libraries** either. The only *optional* new dependency considered is `tauri-plugin-log`, and the recommendation is **do NOT add it** for a single-user tool.
 
 ---
 
-## New Capability 1: Auto-Download Wahapedia CSVs
+## Recommended Stack
 
-**Requirement:** Download CSVs from `https://wahapedia.ru/wh40k10ed/*.csv` at
-`pnpm build:udb` time instead of requiring manual file placement.
+### Core Technologies (already in place — confirmed current, DO NOT change)
 
-**Recommendation: Use native `fetch` in Node.js — no new dependency.**
+| Technology | Installed | Latest | Purpose | Why it stays |
+|------------|-----------|--------|---------|--------------|
+| `@tauri-apps/plugin-updater` (JS) / `tauri-plugin-updater` (Rust) | 2.10.1 / 2.10.1 | 2.10.1 | In-app update check + `downloadAndInstall` | Current. Already wired in `useAppUpdate.ts` + `UpdateBanner.tsx`. No bump needed. |
+| `@tauri-apps/plugin-process` (JS) / `tauri-plugin-process` (Rust) | 2.3.1 / 2.3.1 | 2.3.1 | `relaunch()` after install | Current. **Already wired** — `UpdateBanner.tsx:3,44` calls `relaunch()` in the "installing" state. The "relaunch-after-update UX" milestone item is therefore *mostly done*; only verification + log remain. |
+| `@tauri-apps/plugin-fs` | 2.5.1 | 2.5.1 | Frontend disk I/O (the diagnostics log) | Current. Already used in 6+ files (`writeTextFile`, `writeFile`, `BaseDirectory.AppData`). The frontend log hand-rolls on this — no new dependency. |
+| GitHub Actions (`tauri-apps/tauri-action`) | `@v0` | `@v0`/`@v1` both live | Build + publish release artifacts | Stays. v0.6.0 wraps it in a test gate; see Development Tools. |
+| `vitest` + `@testing-library/react` | 4.1.5 / 16.3.2 | current | `pnpm test` — frontend half of the CI gate | 2,400+ tests already exist. CI just needs to *run* them. |
+| `better-sqlite3` (devDep) | 12.10.0 | current | Data-layer migration-parity + FK/orphan tests (cargo-free SQLite in Vitest node env) | Already the harness for `tests/data-layer/*`. Where the FK/orphan validation tests and the 047 fix live. |
+| `cargo test` (Rust) | toolchain `stable` | — | Backend half of the CI gate (the `repair_heals_crlf_era_checksums` test + 6 others, 7/7 passing) | Already exists in `src-tauri`. CI must run it. |
 
-Node.js 18+ ships `fetch` as a stable global. The project runs Node 24
-(confirmed: `node --version` → v24.13.0). Native fetch is sufficient for simple
-HTTPS GET requests to static CSV files. The response body is retrieved with `.text()`.
+### Supporting Libraries (new — recommendation is "add almost nothing")
 
-```typescript
-// No import needed — fetch is global in Node 18+
-const res = await fetch("https://wahapedia.ru/wh40k10ed/Stratagems.csv");
-if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.url}`);
-const raw = await res.text();
+| Library | Version | Purpose | Verdict |
+|---------|---------|---------|---------|
+| *(none required)* | — | Frontend diagnostics log | **Hand-roll on existing `@tauri-apps/plugin-fs`** — see Topic 3. ~40 lines, mirrors the Rust `preflight.log`. |
+| `tauri-plugin-log` / `@tauri-apps/plugin-log` | 2.8.0 / 2.8.0 | Structured multi-target logging (stdout + webview + rotating file) | **OPTIONAL, recommend NO.** See "What NOT to Use." Adds a Rust crate + JS package + capability permission for what one `writeTextFile` call covers in a single-user tool. |
+
+### Development Tools (the actual deliverable of Theme A)
+
+| Tool | Purpose | Notes |
+|------|---------|-------|
+| GitHub Actions — **new `ci.yml`** | Run `pnpm test` + `cargo test` + `pnpm build` (tsc) as a required check on PRs and pushes to `master` | The headline change. No new marketplace actions beyond ones already used. |
+| GitHub Actions — **gated `release.yml`** | Add a `test` job that the `release` job `needs:` so a red test blocks the tagged release | Same actions already used; just add a job + `needs:`. |
+| `pnpm/action-setup@v4` + `actions/setup-node@v4` (cache: pnpm) | pnpm install + Node cache | **Already in `release.yml`** — reuse verbatim in `ci.yml`. |
+| `dtolnay/rust-toolchain@stable` | Rust for `cargo test` + Tauri build | **Already in `release.yml`.** |
+| `Swatinem/rust-cache@v2` (`workspaces: src-tauri -> target`) | Cache Rust `target/` between CI runs | **Already in `release.yml`.** Critical — without it `cargo test` cold-compiles sqlx/tauri each run (~5–10 min). |
+| `scripts/check-version.mjs` + `scripts/check-migrations.mjs` | The "single version/migration-parity gate" the milestone requires | Already exist (`check-version.mjs` wired as `pnpm check:version`; `check-migrations.mjs` in the tree). Wire both into the CI `test` job as steps. |
+
+---
+
+## Installation
+
+```bash
+# Core stack additions: NONE.
+# Auto-update + relaunch + frontend FS logging all use already-installed packages.
+
+# IF (and only if) you decide to adopt structured logging instead of hand-rolling
+# (NOT recommended for this single-user tool — see What NOT to Use):
+pnpm add @tauri-apps/plugin-log          # JS side
+# + add `tauri-plugin-log = "2"` to src-tauri/Cargo.toml
+# + register in lib.rs and add a capability permission
 ```
 
-**Why not `node-fetch` or `axios`?** Both add devDependencies and version-pinning
-burden for what is a build-script-only use case. Native fetch is battle-tested in
-Node 18+ and has zero licensing concerns.
+The CI work is **YAML + existing scripts only** — no package-manager changes.
 
-**Cache strategy:** Download only if the file is absent, or when a `--refresh` flag
-is passed. This preserves the offline/air-gapped rebuild path (important: the build
-must still work when CSVs are already in `scripts/data/`). The download function
-wraps the existing `existsSync` check:
+---
 
-```typescript
-async function downloadCsvIfNeeded(
-  dataDir: string,
-  filename: string,
-  force = false,
-  baseUrl = "https://wahapedia.ru/wh40k10ed/"
-): Promise<void> {
-  const filepath = join(dataDir, filename);
-  if (!force && existsSync(filepath)) return; // local cache hit
-  console.log(`Downloading ${filename}...`);
-  const res = await fetch(baseUrl + filename);
-  if (!res.ok) throw new Error(`Download failed ${filename}: HTTP ${res.status}`);
-  writeFileSync(filepath, await res.text(), "utf-8");
+## Topic 1 — CI for Tauri
+
+### Recommendation: a two-file Actions setup, no new tooling. GitHub Actions is sufficient.
+
+**`ci.yml` (new) — runs on PRs + pushes to `master`.** Single `windows-latest` job. A matrix is unwarranted — the app is Windows-only by constraint, so a Linux/macOS matrix would test code paths you never ship and burn minutes:
+
+```yaml
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [master]
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with: { workspaces: src-tauri -> target }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check:version                    # version/migration-parity gate
+      - run: node scripts/check-migrations.mjs      # LF-checksum / migration-list parity
+      - run: pnpm test                              # vitest (frontend + data-layer)
+      - run: cargo test --manifest-path src-tauri/Cargo.toml   # Rust (incl. repair test)
+      - run: pnpm build                             # tsc + vite — catches type regressions
+```
+
+**`release.yml` (modify) — make the existing publish job depend on a test job** so a tagged release cannot ship if tests are red:
+
+```yaml
+jobs:
+  test:
+    runs-on: windows-latest
+    steps: [ ...same as ci.yml test job, minus the build... ]
+  release:
+    needs: test          # <-- the gate
+    permissions: { contents: write }
+    runs-on: windows-latest
+    steps: [ ...existing checkout/pnpm/node/rust/cache/tauri-action... ]
+```
+
+**Caching guidance (verified against tauri-action advanced-usage docs):**
+- pnpm: `actions/setup-node@v4` with `cache: pnpm` (already present).
+- Rust: `Swatinem/rust-cache@v2` with `workspaces: src-tauri -> target` (already present). The high-value cache — uncached `cargo test`/build cold-compiles `sqlx`, `tauri`, `zip`, `time`, etc.
+- Use `pnpm install --frozen-lockfile` in CI (not bare `pnpm install`) so a drifted lockfile fails loudly.
+
+**Is anything beyond GitHub Actions warranted? No.** For a single-maintainer, Windows-only, GitHub-Releases-distributed app, a self-hosted runner, Buildkite, or a cross-platform matrix are pure overhead. The hosted `windows-latest` runner already builds + signs + publishes today; the only gap is *it runs zero tests*. Closing that gap is a pipeline-shape change, not a tooling change.
+
+**Pre-existing bug the CI gate will immediately expose (must fix in this milestone):** `tests/data-layer/db-helpers.ts` `HOBBYFORGE_MIGRATIONS` stops at `046_backfill_faction_udb_normalized.sql` and is **missing `047_army_list_unit_wargear.sql`** (confirmed: `src-tauri/migrations/` has 47 files; the test list ends one short). This is exactly the failing migration-parity test the milestone calls out ("db-helpers 046→047"). Add `047` to that array so the wargear schema is exercised — otherwise the new CI gate goes red on its first run.
+
+**Confidence: HIGH** (tauri-action caching/testing verified via Context7 `/tauri-apps/tauri-action`; `release.yml` read directly; migration count verified on disk).
+
+---
+
+## Topic 2 — Tauri auto-update correctness
+
+### The pattern is already correct; the work is *verification* + one config-hygiene note
+
+**Current state is good, not broken:**
+- `tauri.conf.json` has `createUpdaterArtifacts: true`, a `pubkey`, and a single GitHub `latest.json` endpoint — correct per Tauri v2 updater docs.
+- `release.yml` sets `TAURI_SIGNING_PRIVATE_KEY` (signing half); the matching `pubkey` is embedded in config. Complete signing chain.
+- `useAppUpdate.ts` calls `downloadAndInstall` with progress events, and **`UpdateBanner.tsx` already calls `relaunch()`** (from `@tauri-apps/plugin-process`) in the "installing" state. The canonical Tauri sequence is `check() → downloadAndInstall() → relaunch()`; HobbyForge implements all three (relaunch is user-triggered via a "Restart now" button rather than automatic — a deliberate, good UX choice).
+
+**latest.json / signing essentials (verified via `/tauri-apps/tauri-docs` updater.mdx):**
+- `tauri-action` auto-generates `latest.json` from `createUpdaterArtifacts: true` and uploads it — no manual authoring.
+- The NSIS `.exe` plus its `.sig` (signed with `TAURI_SIGNING_PRIVATE_KEY`) must both be in the release; the embedded `pubkey` verifies the `.sig`. Already configured.
+- `latest.json` shape: `{ version, pub_date, platforms.{target}.{url,signature} }` — produced automatically.
+
+**The "Twan01/warhammer-app vs com.hobbyforge.app" question — investigated, NOT a functional bug:**
+- `git remote -v` confirms `origin` IS `https://github.com/Twan01/warhammer-app.git`. The updater endpoint `github.com/Twan01/warhammer-app/releases/latest/download/latest.json` therefore points at the **same repo** `release.yml` publishes to. The updater *will* find releases. ✓
+- The mismatch is purely **cosmetic naming drift**: bundle `identifier: com.hobbyforge.app` + `productName: HobbyForge` vs the GitHub repo slug `warhammer-app`. It does **not** affect updates (the endpoint is the repo URL, independent of app identifier). Flag as a documentation/hygiene note, not a fix.
+- **The genuinely load-bearing invariant for in-place NSIS updates:** the bundle `identifier` AND `productName` must stay **byte-identical across every release**. NSIS keys the in-place upgrade off the product name/install location; if either changes, the "update" installs *alongside* the old app instead of over it, and `%APPDATA%\com.hobbyforge.app` (the DB) would be re-resolved differently. Both have been stable — a "keep stable" guardrail, not a change.
+
+**How to VERIFY an in-place NSIS update locally (the milestone's open item) — no new tooling:**
+1. Build the *current* shipped version's installer (`pnpm tauri build`), run the NSIS `.exe`, launch once so `%APPDATA%\com.hobbyforge.app\hobbyforge.db` is created + migrated (records checksums).
+2. Bump `version` in `package.json` + `tauri.conf.json` (keep identifier/productName identical), `pnpm tauri build` again to produce a higher-version installer + `latest.json` + `.sig`.
+3. Either (a) serve the new `latest.json`/artifacts and let the in-app updater pull them, or (b) simpler, run the new NSIS `.exe` over the existing install to simulate the in-place upgrade.
+4. Launch the upgraded app and confirm: **a window appears** (the bug was a silent no-window sqlx panic), and `%APPDATA%\com.hobbyforge.app\preflight.log` records `repaired successfully` / `already consistent`. This is the end-to-end proof the `.gitattributes` LF fix + hardened `preflight_migration_repair` save a real upgrade.
+5. **In CI this is hard to fully automate** (NSIS in-place upgrade + GUI launch needs a Windows desktop session). Recommendation: keep this as a documented *manual* pre-release smoke step, not a CI job. CI guarantees migration files are LF-clean and parity tests pass; the human does the one in-place launch.
+
+**Confidence: HIGH** (updater config + relaunch pattern verified via Context7 tauri-docs; remote confirmed via `git remote -v`; in-place/identifier behavior is documented Tauri/NSIS behavior).
+
+---
+
+## Topic 3 — Frontend persistent logging
+
+### Recommendation: hand-roll on `@tauri-apps/plugin-fs`. Do NOT add `tauri-plugin-log`.
+
+The milestone wants a frontend diagnostics log on disk **mirroring the Rust `preflight.log`** (already at `app_data_dir/preflight.log`). The cleanest, lowest-risk path is a tiny utility on the **already-installed** FS plugin:
+
+```ts
+// src/lib/frontendLog.ts  (sketch — ~40 lines)
+import { writeTextFile, BaseDirectory, exists, readTextFile } from "@tauri-apps/plugin-fs";
+
+const LOG = "frontend.log";   // sits next to preflight.log in %APPDATA%\com.hobbyforge.app
+
+export async function logDiag(level: "info" | "warn" | "error", msg: string) {
+  try {
+    const line = `${new Date().toISOString()} [${level}] ${msg}\n`;
+    const prev = (await exists(LOG, { baseDir: BaseDirectory.AppData }))
+      ? await readTextFile(LOG, { baseDir: BaseDirectory.AppData }) : "";
+    await writeTextFile(LOG, prev + line, { baseDir: BaseDirectory.AppData });
+  } catch { /* never throw from the logger */ }
 }
 ```
 
-This function lives in `scripts/lib/download.ts` and is called from `build-unit-db.ts`
-before the CSV verification loop.
+**Why hand-roll over `tauri-plugin-log`:**
+- The codebase **already uses this exact FS API** — `writeTextFile` + `BaseDirectory.AppData` in `DataManagementTab.tsx`, `ArmyListDetailPage.tsx`; `writeFile`/`readFile` in `JournalTab.tsx`, `RecipeFormSheet.tsx`, `RecipeStepRow.tsx`; `remove` in `UnitDeleteDialog.tsx`. Zero new permissions, zero new packages, consistent with the established pattern.
+- It lands **next to `preflight.log`** in `%APPDATA%\com.hobbyforge.app`, so Data Health / Settings can surface both diagnostics files from one directory — exactly the "mirroring" the milestone asks for.
+- `tauri-plugin-log` (2.8.0) is excellent for multi-target, multi-platform, high-volume logging with rotation — none of which a single-user Windows tool with occasional diagnostic writes needs. Adding it means a new Rust crate, a new JS dependency, a capability permission entry, and `lib.rs` registration, for behavior one `writeTextFile` already delivers.
 
-**Note on `@tauri-apps/plugin-http`:** This package is already in `package.json`
-dependencies as a runtime plugin for the Tauri app. It is NOT usable from Node.js
-build scripts. Do not use it here. Node.js native fetch and the Tauri HTTP plugin are
-completely separate execution environments.
+**Refinements to fold into requirements (not new dependencies):**
+- Wrap writes in try/catch and **never throw from the logger** (a logging failure must not break the UI) — mirrors the Rust preflight's "never panic" discipline.
+- Cap the file (e.g., truncate when > ~256 KB) so read-then-append doesn't grow unbounded. Trivial in the same utility.
+- Wire it into the global error boundary + `useAppUpdate` error path so update failures (the milestone's pain point) are persisted, not just toasted.
 
-**Confidence:** HIGH — Node 24 confirmed, native fetch stable since Node 18.
-
----
-
-## New Capability 2: Points from Datasheets_models_cost.csv
-
-**CSV schema** (confirmed from live `https://wahapedia.ru/wh40k10ed/Datasheets_models_cost.csv`):
-
-```
-datasheet_id | line | description | cost
-```
-
-- `datasheet_id`: Wahapedia unit ID — matches `udb_units.id` directly (primary key)
-- `line`: 1-based tier index (integer)
-- `description`: free text like `"1 model"`, `"5 models"`, `"10 models"`
-- `cost`: integer points value
-
-**Multi-tier example from live data:**
-```
-000000016|1|10 models|80|
-000000016|2|20 models|170|
-000000024|1|2 models|65|
-000000024|2|3 models|95|
-000000024|3|5 models|160|
-000000024|4|6 models|190|
-```
-
-**Why this replaces BSData for points:** The `datasheet_id` is the exact Wahapedia
-string ID that `udb_units.id` already stores. This gives 100% theoretical match rate
-via primary key — no name normalization, no alias table, no 3-pass matching, no XML
-parsing. The entire `matchUnit()` / alias / normalization infrastructure was only
-needed because BSData uses different names than Wahapedia. That problem disappears.
-
-**Model count parsing:** The `description` field ("5 models", "1 model") contains the
-integer model count. Extract with a regex:
-
-```typescript
-function parseModelCount(description: string): number {
-  const match = description.match(/(\d+)\s+model/i);
-  return match ? parseInt(match[1], 10) : 1;
-}
-```
-
-The existing `UdbUnitPointsRow` type (`unit_id`, `model_count`, `points`) maps
-directly — no type changes required.
-
-**Single-tier units:** When a unit has exactly one line in `Datasheets_models_cost.csv`,
-set `base_points` on `udb_units` directly (same behavior as the BSData single-cost
-path). This preserves the existing query logic (`COALESCE(base_points, ...)`) unchanged.
-
-**Coverage expectation:** Some units may genuinely be absent from `Datasheets_models_cost.csv`
-(Legends/Forge World units that Wahapedia does not price). The existing
-`MIN_COVERAGE_PCT` threshold check (currently 58%) should be raised after this
-migration since direct-PK matching eliminates all name-mismatch gaps.
-
-**Confidence:** HIGH — schema confirmed from live file, direct PK match eliminates
-matching complexity.
+**Confidence: HIGH** (FS API usage confirmed across 6 existing source files; `preflight.log` location confirmed in the debug doc).
 
 ---
 
-## New Capability 3: New CSV Schemas (Stratagems, Enhancements, Detachment Abilities)
+## Topic 4 — New feature work (unit comparison, FK/orphan validation)
 
-All three schemas confirmed from live Wahapedia CSVs. All are pipe-delimited with a
-trailing pipe, consistent with the existing format parsed by `parseWahapediaCsv()`.
+### Recommendation: reuse everything. Zero new dependencies.
 
-### Stratagems.csv
+**Unit comparison view (side-by-side datasheets):**
+- A pure **read + layout** feature over the canonical `udb_*` tables. The data layer already exists — datasheet stats/weapons/abilities/keywords are queried for `PlaybookTab`, `UdbDatasheetSheet`, and the Unit Database browser. A comparison view is a new component that calls existing query/hook functions for 2–3 units and renders columns.
+- UI primitives already present: shadcn/ui tables, `@tanstack/react-table` (8.21.3), `@tanstack/react-virtual` (3.13.26). No new charting/grid library.
+- **Add nothing.** Build `UnitComparisonView.tsx` under `src/features/unit-database/`, reuse existing datasheet query hooks (fetch N units, optionally an `IN (...)` query variant).
 
-**URL:** `https://wahapedia.ru/wh40k10ed/Stratagems.csv`
+**FK/orphan data validation in the pipeline:**
+- The app **already has** a Data Health page with orphan/ambiguous-match diagnostics (DX-03), and `PRAGMA foreign_keys = ON` is set per connection. The new work is build-time/pipeline validation, which runs in the **Node/`better-sqlite3`** context the data-layer tests already use — not a new runtime dependency.
+- Implement as: (a) `better-sqlite3` assertions in `tests/data-layer/` (every `udb_units.faction_id` resolves, no orphaned `udb_points_tiers`, no dangling `units.udb_unit_id`), and/or (b) a `scripts/validate-udb.mjs` step run during `build:udb` and in CI. SQLite's own `PRAGMA foreign_key_check` and `PRAGMA integrity_check` are the right tools — no library needed.
+- **Add nothing.** Rides on `better-sqlite3` (already a devDependency) and the existing migration-parity harness.
 
-**Confirmed columns (11):**
-```
-faction_id | name | id | type | cp_cost | legend | turn | phase | detachment | detachment_id | description
-```
-
-Column notes:
-- `faction_id`: Wahapedia faction ID. Some rows have an empty `faction_id`
-  (e.g., generic Boarding Actions stratagems not tied to a faction — handle as NULL).
-- `id`: Wahapedia string ID, reuse as primary key.
-- `type`: category string e.g. `"Boarding Actions – Battle Tactic Stratagem"`,
-  `"Epic Deed Stratagem"`. Contains faction name prefix for faction-scoped stratagems.
-- `cp_cost`: integer (typically 1 or 2).
-- `detachment`: detachment name (empty string for non-detachment stratagems).
-- `detachment_id`: Wahapedia detachment ID (empty string when not applicable).
-- `description`: HTML-formatted rules text (same as existing ability descriptions).
-
-### Enhancements.csv
-
-**URL:** `https://wahapedia.ru/wh40k10ed/Enhancements.csv`
-
-**Confirmed columns (8):**
-```
-faction_id | id | name | cost | detachment | detachment_id | legend | description
-```
-
-Column notes:
-- `cost`: integer points cost (0–45 in observed data).
-- `detachment`/`detachment_id`: same pattern as stratagems.
-
-### Detachment_abilities.csv
-
-**URL:** `https://wahapedia.ru/wh40k10ed/Detachment_abilities.csv`
-
-**Confirmed columns (7, trailing pipe):**
-```
-id | faction_id | name | legend | description | detachment | detachment_id
-```
-
-Column notes:
-- Column order differs from Stratagems/Enhancements — `id` is first, `faction_id` is second.
-- `legend`: flavor text (same pattern as unit abilities).
-- `description`: rules text.
-
-**All three parsers** follow the same pattern and can reuse `parseWahapediaCsv()`
-unchanged. The field-name differences are handled by accessing the returned record
-by column name (e.g., `row["faction_id"]`, `row["cp_cost"]`), which is how all
-existing CSV parsing works in `build-unit-db.ts`.
-
-**Confidence:** HIGH — all three schemas confirmed from live CSV files.
+**Confidence: HIGH** (existing query/hook/test stack read directly; capabilities confirmed against PROJECT.md shipped requirements).
 
 ---
 
-## New Capability 4: New SQLite Tables
+## Alternatives Considered
 
-Three new migrations are required. All follow the established project pattern
-(one `.sql` file per migration, added to `src-tauri/migrations/`, numbered
-sequentially, registered in `src-tauri/src/lib.rs`).
-
-### Migration 042 — `udb_stratagems`
-
-```sql
-CREATE TABLE IF NOT EXISTS udb_stratagems (
-  id            TEXT PRIMARY KEY,
-  faction_id    TEXT REFERENCES udb_factions(id),  -- nullable: some stratagems are generic
-  name          TEXT NOT NULL,
-  type          TEXT,
-  cp_cost       INTEGER NOT NULL DEFAULT 1,
-  legend        TEXT,
-  turn          TEXT,
-  phase         TEXT,
-  detachment    TEXT,
-  detachment_id TEXT,
-  description   TEXT,
-  updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
-);
-CREATE INDEX IF NOT EXISTS idx_udb_stratagems_faction_id ON udb_stratagems(faction_id);
-CREATE INDEX IF NOT EXISTS idx_udb_stratagems_detachment_id ON udb_stratagems(detachment_id);
-```
-
-Key design decision: `faction_id` is nullable (REFERENCES but no NOT NULL) because
-live Stratagems.csv has rows with empty faction_id for generic stratagems. A NOT NULL
-FK would either silently drop these rows or require a synthetic faction ID.
-
-### Migration 043 — `udb_enhancements`
-
-```sql
-CREATE TABLE IF NOT EXISTS udb_enhancements (
-  id            TEXT PRIMARY KEY,
-  faction_id    TEXT REFERENCES udb_factions(id),
-  name          TEXT NOT NULL,
-  cost          INTEGER NOT NULL DEFAULT 0,
-  detachment    TEXT,
-  detachment_id TEXT,
-  legend        TEXT,
-  description   TEXT,
-  updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
-);
-CREATE INDEX IF NOT EXISTS idx_udb_enhancements_faction_id ON udb_enhancements(faction_id);
-CREATE INDEX IF NOT EXISTS idx_udb_enhancements_detachment_id ON udb_enhancements(detachment_id);
-```
-
-### Migration 044 — `udb_detachment_abilities`
-
-```sql
-CREATE TABLE IF NOT EXISTS udb_detachment_abilities (
-  id            TEXT PRIMARY KEY,
-  faction_id    TEXT REFERENCES udb_factions(id),
-  name          TEXT NOT NULL,
-  legend        TEXT,
-  description   TEXT,
-  detachment    TEXT,
-  detachment_id TEXT,
-  updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
-);
-CREATE INDEX IF NOT EXISTS idx_udb_detachment_abilities_faction_id ON udb_detachment_abilities(faction_id);
-CREATE INDEX IF NOT EXISTS idx_udb_detachment_abilities_detachment_id ON udb_detachment_abilities(detachment_id);
-```
-
-**Why `detachment_id` is TEXT (not FK to a detachment table):** There is no
-`udb_detachments` table in the schema (migrations 038–041). Adding one is out of
-scope per PROJECT.md (EXT-01..03 deferred to v2). Storing the raw Wahapedia string ID
-preserves the cross-reference for future use without requiring a parent table now.
-
-**Why separate migrations per table:** The established pattern is one concern per
-migration file. Combining all three into one file works technically but breaks the
-naming convention and makes rollback reasoning harder. Follow the existing pattern.
-
-**Confidence:** HIGH — same migration tooling used 41 times.
+| Recommended | Alternative | When the alternative would win |
+|-------------|-------------|--------------------------------|
+| Hand-rolled FS logger | `tauri-plugin-log` 2.8.0 | If multi-platform, needing log rotation/levels surfaced to a remote sink, or shipping to many users needing field diagnostics. Not this app. |
+| GitHub Actions only | Self-hosted runner / Buildkite | If builds exceeded hosted-runner minutes or needed special Windows hardware. A single maintainer's cadence won't. |
+| Single `windows-latest` job | OS matrix (win/mac/linux) | If macOS/Linux were ever in scope. Explicitly out of scope per PROJECT.md. |
+| `release.yml` `needs: test` gate | Branch protection + required check from `ci.yml` only | Both are good; doing **both** is ideal — `ci.yml` guards PRs, `needs:` guards the tag-triggered release even if someone tags without a PR. Recommend both. |
+| Reuse `@tanstack/react-table` for comparison | A dedicated diff/compare lib | Never — a 2–3 column datasheet table is trivial; a new lib is bloat. |
+| Manual in-place update smoke test | Automated NSIS-upgrade CI job | Only if updates broke frequently across many SKUs. For one app + one maintainer, a documented manual step is correct. |
 
 ---
 
-## New Capability 5: JSON Schema Extensions for unit_database.json
+## What NOT to Use (scope-creep guard for a single-user local-first tool)
 
-The build script assembles `src-tauri/data/unit_database.json`. The Rust import
-command bulk-INSERTs from this JSON. The JSON must include three new arrays.
-
-**New types to add to `scripts/lib/types.ts`:**
-
-```typescript
-export interface UdbStratagem {
-  id: string;
-  faction_id: string;   // empty string when not faction-scoped
-  name: string;
-  type: string;
-  cp_cost: number;
-  legend: string;
-  turn: string;
-  phase: string;
-  detachment: string;
-  detachment_id: string;
-  description: string;
-}
-
-export interface UdbEnhancement {
-  id: string;
-  faction_id: string;
-  name: string;
-  cost: number;
-  detachment: string;
-  detachment_id: string;
-  legend: string;
-  description: string;
-}
-
-export interface UdbDetachmentAbility {
-  id: string;
-  faction_id: string;
-  name: string;
-  legend: string;
-  description: string;
-  detachment: string;
-  detachment_id: string;
-}
-```
-
-**Extension to `UnitDatabaseJson`:**
-```typescript
-// Add these three fields to the existing interface
-stratagems: UdbStratagem[];
-enhancements: UdbEnhancement[];
-detachment_abilities: UdbDetachmentAbility[];
-```
-
-Use empty string (not null) for empty CSV fields in these types. The Rust serde
-deserializer already handles empty strings for optional fields (established in v0.4.2
-with `serde(default)`). Keeping nullable as empty string avoids an `Option<String>`
-proliferation in the Rust structs.
-
-**Confidence:** HIGH — direct mapping from confirmed CSV columns.
+| Avoid adding | Why | Use instead |
+|--------------|-----|-------------|
+| `tauri-plugin-log` / `@tauri-apps/plugin-log` | New Rust crate + JS pkg + capability permission + `lib.rs` registration, to replace one `writeTextFile` call. Multi-target/rotation features unused in a single-user Windows tool. | Hand-rolled `src/lib/frontendLog.ts` on existing `@tauri-apps/plugin-fs`. |
+| ESLint / Prettier | Project decision: strict `tsc` is the quality gate (CLAUDE.md: don't add a linter without discussing). CI's `pnpm build` = `tsc` already enforces `noUnusedLocals`/`noUnusedParameters`. | `pnpm build` (tsc) as the CI type/quality gate. |
+| Drizzle / Prisma / any ORM | Prisma is a confirmed dead-end in Tauri production; Drizzle is explicitly a v3-only escape hatch. FK/orphan validation needs no ORM. | Raw `tauri-plugin-sql` + `PRAGMA foreign_key_check` + `better-sqlite3` test assertions. |
+| An OS build matrix in CI | macOS/Linux are out of scope; testing unshipped platforms wastes minutes and can flag false failures. | Single `windows-latest` runner. |
+| A new diff/compare/grid component library | `@tanstack/react-table` + shadcn tables already render datasheets. | Existing table primitives. |
+| `node:sqlite` for new data-layer tests | Vitest 4 import-stripping bug (#7177) breaks it — a logged Key Decision. | `better-sqlite3` (already the harness). |
+| Telemetry / crash-reporting SaaS (Sentry, etc.) | Local-first, no-network, no-telemetry constraint. The disk log IS the diagnostics channel. | `preflight.log` + `frontend.log` in `%APPDATA%`. |
+| Bumping updater/process/fs plugins | All three already at current latest (2.10.1 / 2.3.1 / 2.5.1). | Leave as-is. |
 
 ---
 
-## Dependency Changes Summary
+## Version Compatibility
 
-| Dependency | Action | Reason |
-|------------|--------|--------|
-| `@xmldom/xmldom` (devDep) | **Remove** after BSData code deletion | XML parsing only needed for BSData .cat files; becomes dead code |
-| `better-sqlite3` (devDep) | **Keep** | Still used by data-layer tests (14 tests) |
-| Native `fetch` (Node 24 built-in) | **Use** | HTTP download — zero new packages |
-| `node:fs`, `node:path`, `node:url` | **Keep** | Already used throughout `scripts/` |
+| Package | Installed | Latest (2026-06-15) | Notes |
+|---------|-----------|---------------------|-------|
+| `@tauri-apps/plugin-updater` (JS) + `tauri-plugin-updater` (Rust) | 2.10.1 / 2.10.1 | 2.10.1 | Current. JS + Rust match — keep in lockstep on any future bump. |
+| `@tauri-apps/plugin-process` (JS) + `tauri-plugin-process` (Rust) | 2.3.1 / 2.3.1 | 2.3.1 | Current. `relaunch()` already used. |
+| `@tauri-apps/plugin-fs` (JS) | 2.5.1 | 2.5.1 | Current. `tauri-plugin-fs = "2"` in Cargo.toml resolves compatibly. |
+| `@tauri-apps/cli` | 2.0.0 (`^`) | 2.11.2 | Wide caret; resolves to current 2.11.x. tauri-action pins its own internally — no conflict. |
+| `tauri-action` | `@v0` | `@v0` and `@v1` both maintained | `@v0` works today; the test-gate restructure doesn't require moving to `@v1`. Optional future bump. |
+| `Swatinem/rust-cache` | `@v2` | `@v2` | Workspace path `src-tauri -> target` correct for this layout. |
+| `better-sqlite3` | 12.10.0 | current | Pinned in `pnpm.onlyBuiltDependencies` — native build handled in CI via `pnpm install`. |
+| `vitest` | 4.1.5 | current | Node env required for data-layer tests (`// @vitest-environment node`). Already configured. |
 
-**No `pnpm add` or `pnpm install` required for new capabilities.**
-The only `package.json` change is removing `@xmldom/xmldom` from devDependencies
-after the BSData code is fully deleted.
-
----
-
-## BSData Removal Scope
-
-After `Datasheets_models_cost.csv` replaces BSData as the points source, the
-following code becomes dead:
-
-| File | Action |
-|------|--------|
-| `scripts/lib/parseXml.ts` | Delete entirely |
-| `scripts/lib/bsdata.ts` | Delete (after extracting `readCsvFile` to `parseCsv.ts`) |
-| `scripts/lib/factionMap.ts` | Partial: `FACTION_MAP` + `CROSS_FACTION_MAP` delete; `SUB_FACTION_MAP` needs replacement strategy |
-| `scripts/lib/normalize.ts` | Keep — `normalizeName` still useful for defensive deduplication |
-| `scripts/data/bsdata/` directory | Not tracked in git (gitignored); no action |
-
-**`readCsvFile` extraction:** The `readCsvFile()` function in `bsdata.ts` (readFileSync
-+ parseWahapediaCsv wrapper) is used by `build-unit-db.ts`. Before deleting `bsdata.ts`,
-move `readCsvFile` into `scripts/lib/parseCsv.ts` so `build-unit-db.ts` imports it
-from there.
-
-**Sub-faction without BSData:** `SUB_FACTION_MAP` currently assigns `sub_faction` by
-matching BSData catalogue filenames (e.g., `"Space Marines - Black Templars"` →
-`"Black Templars"`). Without BSData, this data source disappears. Options:
-1. Derive sub-faction from the unit's relationship to stratagems/enhancements
-   (units whose detachment_id appears in a sub-faction stratagem are that sub-faction)
-2. Static JSON file `scripts/data/sub_faction_map.json` keyed by `unit_id` ranges
-3. Leave sub_faction populated from the last BSData-era build (no regression for
-   existing data, just no new sub-faction assignments going forward)
-
-This is a design decision for the roadmap, not a stack question.
-
-**Confidence for BSData removal:** HIGH for what can be deleted; MEDIUM for sub-faction
-re-sourcing (design decision needed).
-
----
-
-## Existing Code to Reuse Unchanged
-
-| Asset | How Reused |
-|-------|-----------|
-| `scripts/lib/parseCsv.ts` → `parseWahapediaCsv()` | Parses all three new CSV files — no changes |
-| `scripts/lib/normalize.ts` → `normalizeName()` | Optional deduplication for duplicate detection |
-| `scripts/lib/types.ts` | Extended with new interfaces above |
-| `src-tauri/migrations/038_udb_schema.sql` | Schema reference only — not modified |
-| Rust `bulk_sync_rules` command pattern | Reuse (or add a separate bulk command) for new tables |
-| `MIN_COVERAGE_PCT` threshold gate | Raise from 58% → 90%+ after this milestone |
-
----
-
-## Open Questions for Roadmap Phases
-
-1. **Empty faction_id in Stratagems.csv:** Generic stratagems (Boarding Actions, Core
-   stratagems) have empty `faction_id`. The `udb_stratagems` migration uses a nullable
-   FK (above). The parser must convert empty string → NULL when inserting. Confirm
-   this behavior in the Rust serde layer.
-
-2. **Sub-faction re-sourcing without BSData:** Design decision needed before Phase 1.
-   Recommendation: static `scripts/data/sub_faction_units.json` keyed by unit_id,
-   maintained manually alongside `aliases.json`. This follows the established manual-
-   data-file pattern and is the lowest-risk replacement.
-
-3. **Legends deduplication:** Wahapedia `Datasheets.csv` has a `legend` column
-   (currently parsed but not stored in `udb_units`). For deduplication, a boolean
-   `is_legend INTEGER NOT NULL DEFAULT 0` column should be added to `udb_units`
-   via a separate migration (045). This allows filtering Legends units out of the
-   DB browser and army list picker. This is a v0.4.7 feature concern, not a stack
-   concern — but the migration needs to be planned.
-
-4. **Coverage threshold after migration:** Once `Datasheets_models_cost.csv` drives
-   points, the `MIN_COVERAGE_PCT = 58` threshold should be raised immediately.
-   Based on live data, the new coverage should approach 95%+ (only genuine Legends/
-   no-cost units will remain unmatched). Raise to 90 initially, then audit.
-
-5. **`@tauri-apps/plugin-http` vs native fetch confusion risk:** The existing
-   `package.json` `dependencies` section includes `@tauri-apps/plugin-http ~2.5.9`.
-   This is the Tauri app runtime plugin. Any developer reading the package.json might
-   assume it covers the build script HTTP need. Add a comment in `download.ts` making
-   clear that native `fetch` is used here, not the Tauri plugin.
+**One stability invariant (not a version):** bundle `identifier` (`com.hobbyforge.app`) and `productName` (`HobbyForge`) must remain byte-identical across releases for NSIS in-place updates and `%APPDATA%` path stability. Treat any change to either as a breaking event requiring a migration plan.
 
 ---
 
 ## Sources
 
-- Direct code inspection: `scripts/build-unit-db.ts`, `scripts/lib/*.ts`, `package.json`,
-  `src-tauri/migrations/038_udb_schema.sql` — HIGH confidence
-- Live CSV inspection: `https://wahapedia.ru/wh40k10ed/Stratagems.csv` (11 cols confirmed)
-- Live CSV inspection: `https://wahapedia.ru/wh40k10ed/Enhancements.csv` (8 cols confirmed)
-- Live CSV inspection: `https://wahapedia.ru/wh40k10ed/Detachment_abilities.csv` (7 cols confirmed)
-- Live CSV inspection: `https://wahapedia.ru/wh40k10ed/Datasheets_models_cost.csv` (4 cols, multi-tier confirmed)
-- Node.js v24.13.0 confirmed via `node --version`
+- `/tauri-apps/tauri-action` (Context7) — draft-release testing, `uploadWorkflowArtifacts`, artifact caching (`Swatinem/rust-cache`, `setup-node` cache), `act` local testing — HIGH
+- `/tauri-apps/tauri-docs` (Context7, updater.mdx) — `check()→downloadAndInstall()→relaunch()` pattern, `tauri.conf.json` `pubkey`/`endpoints`, `latest.json` JSON shape, dynamic endpoints — HIGH
+- `npm view` (live registry, 2026-06-15) — confirmed latest: plugin-updater 2.10.1, plugin-process 2.3.1, plugin-fs 2.5.1, plugin-log 2.8.0, @tauri-apps/cli 2.11.2 — HIGH
+- Repo files read directly: `.github/workflows/release.yml`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, `package.json`, `src/hooks/useAppUpdate.ts`, `src/components/common/UpdateBanner.tsx`, `tests/data-layer/db-helpers.ts`, `src-tauri/migrations/` (47 files) — HIGH
+- `git remote -v` — confirmed `origin = Twan01/warhammer-app` (updater endpoint points at the actual release repo) — HIGH
+- `.planning/debug/update-breaks-app-launch.md` — root cause (CRLF/LF checksum drift), applied fix (`.gitattributes` + hardened `preflight_migration_repair` + `preflight.log`), and the flagged pre-existing 046→047 db-helpers gap — HIGH
 
 ---
-
-*Stack research for: v0.4.7 Wahapedia Pipeline & Full Data Import*
-*Researched: 2026-06-04*
+*Stack research for: HobbyForge v0.6.0 "Bulletproof & Honest" — reliability/CI hardening on a mature Tauri 2 desktop app*
+*Researched: 2026-06-15*

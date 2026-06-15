@@ -41,3 +41,6 @@ scripts/data/
 # User-local launcher overrides (optional - uncomment to ignore)
 # launch-local.bat
 # launch-dev-local.bat
+
+# Local Tauri signing key (never commit)
+/~/
