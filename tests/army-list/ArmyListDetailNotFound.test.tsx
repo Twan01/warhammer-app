@@ -34,6 +34,7 @@ vi.mock("@/hooks/useArmyLists", () => ({
   useClearWarlord: () => ({ mutate: vi.fn() }),
   useReorderArmyListUnits: () => ({ mutate: vi.fn() }),
   useAddUnitToList: () => ({ mutate: vi.fn() }),
+  useListWargear: () => ({ data: [] }),
 }));
 
 vi.mock("@/hooks/useUnits", () => ({

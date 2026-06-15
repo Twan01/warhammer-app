@@ -13,6 +13,7 @@ import type {
   ArmyList,
   ArmyListUnitRow,
   ArmyListEnhancement,
+  ArmyListUnitWargear,
 } from "@/types/armyList";
 
 // ---------------------------------------------------------------------------
@@ -28,6 +29,10 @@ export interface ExportUnit {
   leaderLabel: string | null;
   enhancementName: string | null;
   enhancementNames: string[];
+  /** Battlefield role category (e.g. "Character", "Battleline"). null for ghost units or uncategorized. */
+  unitCategory: string | null;
+  /** Selected wargear/loadout entries for this unit. Empty array when not provided. */
+  wargear: { weapon_name: string; quantity: number }[];
 }
 
 export interface ExportData {
@@ -54,6 +59,7 @@ export function formatArmyListForExport(
   units: ArmyListUnitRow[],
   enhancements: ArmyListEnhancement[],
   factionName: string | null,
+  wargearByUnitId?: Map<number, ArmyListUnitWargear[]>,
 ): ExportData {
   // Build enhancement lookup: army_list_unit_id -> enhancement_name(s)
   const enhMap = new Map<number, string[]>();
@@ -108,6 +114,11 @@ export function formatArmyListForExport(
       leaderLabel,
       enhancementName: enhMap.get(u.id)?.[0] ?? null,
       enhancementNames: enhMap.get(u.id) ?? [],
+      unitCategory: u.unit_id !== null ? (u.unit_category ?? null) : null,
+      wargear: (wargearByUnitId?.get(u.id) ?? []).map((w) => ({
+        weapon_name: w.weapon_name,
+        quantity: w.quantity,
+      })),
     };
   });
 

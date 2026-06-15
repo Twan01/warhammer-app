@@ -163,6 +163,60 @@ describe("formatArmyListForExport", () => {
     const exported = data.sortedUnits.find((u) => u.displayName === "Captain");
     expect(exported?.enhancementName).toBe("Storm of Fire");
   });
+
+  it("threads unitCategory from unit_category field", () => {
+    const battleline = makeUnit({ id: 1, unit_name: "Intercessors", unit_category: "Battleline" });
+    const character = makeUnit({ id: 2, unit_name: "Captain", unit_category: "Character" });
+    const noCategory = makeUnit({ id: 3, unit_name: "Mystery Unit", unit_category: null });
+    const data = formatArmyListForExport(makeList(), [battleline, character, noCategory], [], "SM");
+    const bl = data.sortedUnits.find((u) => u.displayName === "Intercessors");
+    const ch = data.sortedUnits.find((u) => u.displayName === "Captain");
+    const nc = data.sortedUnits.find((u) => u.displayName === "Mystery Unit");
+    expect(bl?.unitCategory).toBe("Battleline");
+    expect(ch?.unitCategory).toBe("Character");
+    expect(nc?.unitCategory).toBeNull();
+  });
+
+  it("ghost units always have unitCategory = null regardless of unit_category", () => {
+    const ghost = makeUnit({
+      id: 5,
+      unit_id: null,
+      ghost_unit_name: "Eradicators",
+      unit_name: "Eradicators",
+      effective_points: 95,
+      unit_category: "Infantry",
+    });
+    const data = formatArmyListForExport(makeList(), [ghost], [], "SM");
+    expect(data.sortedUnits[0].unitCategory).toBeNull();
+  });
+
+  it("wargear defaults to [] when no wargearByUnitId map is provided", () => {
+    const unit = makeUnit({ id: 1, unit_name: "Intercessors" });
+    const data = formatArmyListForExport(makeList(), [unit], [], "SM");
+    expect(data.sortedUnits[0].wargear).toEqual([]);
+  });
+
+  it("threads wargear entries from the wargearByUnitId map to matching units", () => {
+    const unit1 = makeUnit({ id: 10, unit_name: "Intercessors" });
+    const unit2 = makeUnit({ id: 20, unit_name: "Captain" });
+    const wargearMap = new Map<number, import("@/types/armyList").ArmyListUnitWargear[]>([
+      [
+        10,
+        [
+          { id: 1, army_list_unit_id: 10, weapon_name: "Bolt rifle", quantity: 5, created_at: "2026-01-01" },
+          { id: 2, army_list_unit_id: 10, weapon_name: "Power fist", quantity: 1, created_at: "2026-01-01" },
+        ],
+      ],
+    ]);
+    const data = formatArmyListForExport(makeList(), [unit1, unit2], [], "SM", wargearMap);
+    const u1 = data.sortedUnits.find((u) => u.displayName === "Intercessors");
+    const u2 = data.sortedUnits.find((u) => u.displayName === "Captain");
+    expect(u1?.wargear).toEqual([
+      { weapon_name: "Bolt rifle", quantity: 5 },
+      { weapon_name: "Power fist", quantity: 1 },
+    ]);
+    expect(u2?.wargear).toEqual([]);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -209,6 +263,8 @@ describe("buildClipboardText", () => {
             selectedModelCount: null,
             enhancementName: null,
             enhancementNames: [],
+            unitCategory: null,
+            wargear: [],
           },
         ],
       }),
@@ -229,6 +285,8 @@ describe("buildClipboardText", () => {
             selectedModelCount: null,
             enhancementName: null,
             enhancementNames: [],
+            unitCategory: "Infantry",
+            wargear: [],
           },
         ],
       }),
@@ -249,6 +307,8 @@ describe("buildClipboardText", () => {
             leaderLabel: null,
             enhancementName: null,
             enhancementNames: [],
+            unitCategory: null,
+            wargear: [],
           },
         ],
       }),
@@ -269,6 +329,8 @@ describe("buildClipboardText", () => {
             leaderLabel: null,
             enhancementName: null,
             enhancementNames: [],
+            unitCategory: "Character",
+            wargear: [],
           },
         ],
       }),
@@ -341,6 +403,8 @@ describe("buildJsonFormat", () => {
           leaderLabel: null,
           enhancementName: "Storm of Fire",
           enhancementNames: ["Storm of Fire"],
+          unitCategory: "Battleline",
+          wargear: [],
         },
       ],
       enhancements: [],
@@ -366,6 +430,8 @@ describe("buildJsonFormat", () => {
       leaderLabel: null,
       enhancementName: "Inspiring Leader",
       enhancementNames: ["Inspiring Leader"],
+      unitCategory: "Character",
+      wargear: [],
     };
     const enh = makeEnhancement({ army_list_unit_id: 10, enhancement_name: "Inspiring Leader", enhancement_points: 25 });
     const data: ExportData = {
