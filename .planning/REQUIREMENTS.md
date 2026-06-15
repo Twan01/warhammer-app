@@ -67,43 +67,41 @@
 
 ## Traceability
 
-Populated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REL-01 | TBD | Pending |
-| REL-02 | TBD | Pending |
-| REL-03 | TBD | Pending |
-| REL-04 | TBD | Pending |
-| REL-05 | TBD | Pending |
-| REL-06 | TBD | Pending |
-| REL-07 | TBD | Pending |
-| REL-08 | TBD | Pending |
-| HON-01 | TBD | Pending |
-| HON-02 | TBD | Pending |
-| HON-03 | TBD | Pending |
-| HON-04 | TBD | Pending |
-| HON-05 | TBD | Pending |
-| HON-06 | TBD | Pending |
-| HON-07 | TBD | Pending |
-| HON-08 | TBD | Pending |
-| HON-09 | TBD | Pending |
-| HON-10 | TBD | Pending |
-| HON-11 | TBD | Pending |
-| PLAY-01 | TBD | Pending |
-| PLAY-02 | TBD | Pending |
-| PLAY-03 | TBD | Pending |
-| PLAY-04 | TBD | Pending |
-| PLAY-05 | TBD | Pending |
-| DAT-01 | TBD | Pending |
-| DAT-02 | TBD | Pending |
-| DAT-03 | TBD | Pending |
+| REL-03 | Phase 130 | Pending |
+| REL-04 | Phase 130 | Pending |
+| REL-05 | Phase 130 | Pending |
+| REL-01 | Phase 131 | Pending |
+| REL-02 | Phase 131 | Pending |
+| REL-06 | Phase 132 | Pending |
+| REL-07 | Phase 132 | Pending |
+| REL-08 | Phase 132 | Pending |
+| HON-01 | Phase 133 | Pending |
+| HON-02 | Phase 133 | Pending |
+| HON-03 | Phase 134 | Pending |
+| HON-04 | Phase 134 | Pending |
+| HON-05 | Phase 135 | Pending |
+| HON-06 | Phase 135 | Pending |
+| HON-07 | Phase 135 | Pending |
+| HON-08 | Phase 136 | Pending |
+| HON-09 | Phase 136 | Pending |
+| HON-10 | Phase 136 | Pending |
+| HON-11 | Phase 136 | Pending |
+| PLAY-02 | Phase 137 | Pending |
+| PLAY-03 | Phase 137 | Pending |
+| PLAY-01 | Phase 138 | Pending |
+| PLAY-04 | Phase 138 | Pending |
+| PLAY-05 | Phase 138 | Pending |
+| DAT-01 | Phase 139 | Pending |
+| DAT-02 | Phase 139 | Pending |
+| DAT-03 | Phase 139 | Pending |
 
 **Coverage:**
 - v0.6.0 requirements: 27 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 27 ⚠️
+- Mapped to phases: 27 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-15*
-*Last updated: 2026-06-15 after initial definition (post-audit, post-research)*
+*Last updated: 2026-06-15 — roadmap created, all 27 requirements mapped to phases 130–139*

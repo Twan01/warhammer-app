@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v0.6.0
 milestone_name: Bulletproof & Honest
 status: planning
-last_updated: "2026-06-15T11:26:38.177Z"
+last_updated: "2026-06-15T12:00:00.000Z"
 last_activity: 2026-06-15
 progress:
-  total_phases: 0
+  total_phases: 10
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,23 +17,25 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-12)
+See: .planning/PROJECT.md (updated 2026-06-15)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore
-**Current focus:** Planning next milestone (run `/gsd:new-milestone`)
+**Current focus:** v0.6.0 roadmap created (phases 130–139). Next: plan Phase 130.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 130 — Migration Parity & Release Gate (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-15 — Milestone v0.6.0 started
+Status: Roadmap created, awaiting phase planning
+Last activity: 2026-06-15 — v0.6.0 roadmap created, 27/27 requirements mapped
+
+Progress: [          ] 0/10 phases
 
 ## Performance Metrics
 
 **Velocity (recent milestones):**
 
-- v0.5.2: 7 plans across 2 phases (1 day, in progress)
+- v0.5.2: 13 plans across 4 phases (1 day)
 - v0.5.0: 9 plans across 5 phases (2 days)
 - v0.4.7: 10 plans across 5 phases (6 days)
 - v0.4.5: 7 plans across 4 phases (2 days)
@@ -47,11 +49,22 @@ Last activity: 2026-06-15 — Milestone v0.6.0 started
 ### Key Decisions (carried forward)
 
 - Single-database architecture — all data in hobbyforge.db
-- Pre-built canonical unit database (not runtime sync)
+- Pre-built canonical unit database (not runtime sync); data bundled with app, no runtime sync surface
 - Settings page shipped: app_settings key-value storage, locale/currency/faction wired
 - Factory reset via Rust command with safety backup
-- No schema changes in v0.5.2 — polish-only milestone
-- Phase 127: all pages use PageHeader, section headings standardized, spacing normalized, status dots use Tailwind tokens
+- Schema version = migration count (integer); no hand-maintained EXPECTED_SCHEMA_VERSION constant
+- Overrides + favorites/notes live in hobbyforge.db keyed on stable Wahapedia IDs — survive re-import
+- CRLF/LF migration checksum drift was the "update breaks launch" root cause; fix on `fix/update-breaks-app-launch`
+
+### v0.6.0 Sequencing Law (CRITICAL)
+
+Theme A (phases 130–132) must land **and merge to `master`** — CI gate green + ONE verified real in-place NSIS update — **before** any Theme-B refactor (133+) begins. The reliability fix on `fix/update-breaks-app-launch` and the large refactors (HON-08, HON-09) must not coexist in-flight. Strict order A → B → C → D.
+
+Intra-milestone gates:
+- Phase 130 (parity test green) must precede Phase 131 (CI gate) or CI red-fails on first run.
+- HON-08 shared WeaponTable (Phase 136) GATES PLAY-01 comparison (Phase 138).
+- PLAY-02 migration 048 (Phase 137) GATES PLAY-03 leader validation; migration 048 re-triggers the Phase-130 parity gate (expected/good).
+- HON-05 faction consolidation (Phase 135) is a map-not-delete, zero-data-loss migration — its own careful step, not bundled with route removal in a data-risky way.
 
 ### Pending Todos
 
@@ -65,33 +78,26 @@ None.
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| v2 scope | EXT-01: Leader attachment targets | Deferred | v0.4.0 planning |
-| v2 scope | ADV-01..02: Unit comparison, faction overview | Deferred | v0.4.0 planning |
-| v2 scope | FR-EXT-01..02: French ability text, full UI translation | Deferred | v0.4.2 planning |
-| Future | EFA-01..03: Extended faction audits (22 factions) | Future milestone | v0.4.5 planning |
+| Future | PLAY-FUT-01: Faction overview page | Future milestone | v0.6.0 planning |
+| Future | PLAY-FUT-02: Auto-backup on schedule | Future milestone | v0.6.0 planning |
+| Future | HON-FUT-01: Theme customization / custom painting-status labels | Future milestone | v0.6.0 planning |
 | Future | French translations for stratagems/enhancements | Future milestone | v0.4.7 planning |
-| Future | PREF-05: Theme customization | Future milestone | v0.5.0 |
-| Future | HOB-04: Custom painting status labels | Future milestone | v0.5.0 |
-| Future | DAT-05: Auto-backup on schedule | Future milestone | v0.5.0 |
-| Future | DAT-06: Settings sync across devices | Future milestone | v0.5.0 |
-| v2 polish | FUT-01..FUT-10: Global Ctrl+K, crossfade transitions, dirty-state guards, etc. | Deferred | v0.5.2 planning |
-| Phase 128 P01 | 6min | 3 tasks | 24 files |
 
 ## Quick Tasks Completed
 
 | Date | Task | Commit |
 |------|------|--------|
-| 2026-06-15 | recipe-checklist-step-details — show full step detail (paint, technique, tool, dilution, time, notes) in the applied-recipe tick-off checklist via expandable rows | 90889d1a |
-| 2026-06-15 | print-army-list-pdf — verified existing PDF/Print export works (34 tests green) and enriched the PDF: category-grouped sections with subtotals, model counts, selected wargear/loadout per unit, richer header + "Page X of Y" | 6036ed9f |
-| 2026-06-15 | full-battle-roster-pdf — replaced lightweight "Save as PDF" with a multi-page battle roster: Roster Summary + deduped per-unit datasheets (stats, ranged/melee weapons, Core/Faction/Unit abilities) + detachment section (rule, stratagems, assigned enhancements). New rulesTextToPlain + exportRoster modules, generateBattleRosterPdf renderer; 27 new tests, existing 34 export+print tests unchanged | bc3a4469 |
+| 2026-06-15 | recipe-checklist-step-details — show full step detail in the applied-recipe tick-off checklist via expandable rows | 90889d1a |
+| 2026-06-15 | print-army-list-pdf — enriched PDF: category-grouped sections, model counts, wargear/loadout per unit | 6036ed9f |
+| 2026-06-15 | full-battle-roster-pdf — multi-page battle roster PDF (summary + per-unit datasheets + detachment section) | bc3a4469 |
 
 ## Session Continuity
 
-Last session: 2026-06-11T14:23:29.344Z
-Stopped at: Phase 128 context gathered
+Last session: 2026-06-15T12:00:00.000Z
+Stopped at: v0.6.0 roadmap created (phases 130–139)
 Resume file: None
-Resume: Run `/gsd:discuss-phase 128` to begin Feedback Hardening & Form UX.
+Resume: Run `/gsd:plan-phase 130` to begin Migration Parity & Release Gate.
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan the first phase with `/gsd:plan-phase 130`
