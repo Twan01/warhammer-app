@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-12)
 Phase: Milestone v0.5.2 complete
 Plan: —
 Status: Awaiting next milestone
-Last activity: 2026-06-15 — Completed quick task 260615-g91: improve army-list PDF export
+Last activity: 2026-06-15 — Completed quick task 260615-h48: full battle-ready roster PDF
 
 ## Performance Metrics
 
@@ -84,6 +84,7 @@ None.
 |------|------|--------|
 | 2026-06-15 | recipe-checklist-step-details — show full step detail (paint, technique, tool, dilution, time, notes) in the applied-recipe tick-off checklist via expandable rows | 90889d1a |
 | 2026-06-15 | print-army-list-pdf — verified existing PDF/Print export works (34 tests green) and enriched the PDF: category-grouped sections with subtotals, model counts, selected wargear/loadout per unit, richer header + "Page X of Y" | 6036ed9f |
+| 2026-06-15 | full-battle-roster-pdf — replaced lightweight "Save as PDF" with a multi-page battle roster: Roster Summary + deduped per-unit datasheets (stats, ranged/melee weapons, Core/Faction/Unit abilities) + detachment section (rule, stratagems, assigned enhancements). New rulesTextToPlain + exportRoster modules, generateBattleRosterPdf renderer; 27 new tests, existing 34 export+print tests unchanged | bc3a4469 |
 
 ## Session Continuity
 
