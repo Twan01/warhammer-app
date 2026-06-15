@@ -3,8 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.6.0
 milestone_name: Bulletproof & Honest
 status: planning
-last_updated: "2026-06-15T12:00:00.000Z"
-last_activity: 2026-06-15
+stopped_at: Phase 130 context gathered
+last_updated: "2026-06-15T12:16:21.247Z"
+last_activity: 2026-06-15 — v0.6.0 roadmap created, 27/27 requirements mapped
 progress:
   total_phases: 10
   completed_phases: 0
@@ -61,6 +62,7 @@ Progress: [          ] 0/10 phases
 Theme A (phases 130–132) must land **and merge to `master`** — CI gate green + ONE verified real in-place NSIS update — **before** any Theme-B refactor (133+) begins. The reliability fix on `fix/update-breaks-app-launch` and the large refactors (HON-08, HON-09) must not coexist in-flight. Strict order A → B → C → D.
 
 Intra-milestone gates:
+
 - Phase 130 (parity test green) must precede Phase 131 (CI gate) or CI red-fails on first run.
 - HON-08 shared WeaponTable (Phase 136) GATES PLAY-01 comparison (Phase 138).
 - PLAY-02 migration 048 (Phase 137) GATES PLAY-03 leader validation; migration 048 re-triggers the Phase-130 parity gate (expected/good).
@@ -93,9 +95,9 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-15T12:00:00.000Z
-Stopped at: v0.6.0 roadmap created (phases 130–139)
-Resume file: None
+Last session: 2026-06-15T12:16:21.240Z
+Stopped at: Phase 130 context gathered
+Resume file: .planning/phases/130-migration-parity-release-gate/130-CONTEXT.md
 Resume: Run `/gsd:plan-phase 130` to begin Migration Parity & Release Gate.
 
 ## Operator Next Steps
