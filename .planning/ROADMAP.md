@@ -39,7 +39,7 @@
 
 > **Sequencing law:** Theme A (Phases 130–132) must land **and merge to `master`** — CI gate green + ONE verified real in-place NSIS update — **before** any Theme-B refactor begins. The reliability fix on `fix/update-breaks-app-launch` and the large refactors (HON-09, HON-08) must not coexist in-flight.
 
-- [ ] **Phase 130: Migration Parity & Release Gate** (0/? plans) — Self-deriving migration list + single parity check that makes the red test green and guards against checksum drift
+- [ ] **Phase 130: Migration Parity & Release Gate** (0/2 plans) — Self-deriving migration list + single parity check that makes the red test green and guards against checksum drift
 - [ ] **Phase 131: CI Test Gate** (0/? plans) — PR-triggered CI runs the full suite and a tag can never publish on red
 - [ ] **Phase 132: Update Trustworthiness** (0/? plans) — A real in-place NSIS update launches, relaunches, and leaves a diagnosable log trail (Theme A merges to master here)
 - [ ] **Phase 133: Honest Data Provenance** (0/? plans) — Remove the fake "stale/sync" UI and replace it with a truthful build-version surface
@@ -61,7 +61,9 @@
   2. The data-layer migration list is derived from disk (`readdirSync` of `src-tauri/migrations/`), so adding a new migration never re-breaks the parity test.
   3. Running `pnpm check:version` fails when `package.json` version ≠ `tauri.conf.json` version, or when migration file count ≠ lib.rs `Migration{}` count ≠ data-layer migration-list length.
   4. The release gate fails if any `src-tauri/migrations/*.sql` file contains a CR byte.
-**Plans**: TBD
+**Plans**: 2 plans
+- [ ] 130-01-PLAN.md — Disk-derive the data-layer migration list (REL-03) + assert the 047 wargear schema; turns the RED parity test green
+- [ ] 130-02-PLAN.md — Extend check-version.mjs into the single release gate (version + migration-count + CR-byte) and wire it via a prebuild hook (REL-04, REL-05)
 
 ### Phase 131: CI Test Gate
 **Goal**: A failing test or build can never reach the updater; CI is the wall every change passes through.
