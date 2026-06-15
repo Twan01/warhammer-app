@@ -78,6 +78,12 @@ None.
 | v2 polish | FUT-01..FUT-10: Global Ctrl+K, crossfade transitions, dirty-state guards, etc. | Deferred | v0.5.2 planning |
 | Phase 128 P01 | 6min | 3 tasks | 24 files |
 
+## Quick Tasks Completed
+
+| Date | Task | Commit |
+|------|------|--------|
+| 2026-06-15 | recipe-checklist-step-details — show full step detail (paint, technique, tool, dilution, time, notes) in the applied-recipe tick-off checklist via expandable rows | 90889d1a |
+
 ## Session Continuity
 
 Last session: 2026-06-11T14:23:29.344Z
