@@ -11,7 +11,7 @@
 
 - [ ] **REL-01**: CI runs the full automated suite (`pnpm test` + `cargo test` + `pnpm build`) on every pull request and blocks merge on any failure.
 - [ ] **REL-02**: The release workflow cannot publish a GitHub Release / `latest.json` unless the CI test job has passed (`release.yml` `needs: test`); the release job pins the Rust toolchain rather than floating it.
-- [ ] **REL-03**: The data-layer migration list is derived from disk (`readdirSync` of `src-tauri/migrations/`) so the migration-parity test passes and never drifts when a migration is added (fixes the currently-failing 046→047 gap and exercises the wargear schema).
+- [x] **REL-03**: The data-layer migration list is derived from disk (`readdirSync` of `src-tauri/migrations/`) so the migration-parity test passes and never drifts when a migration is added (fixes the currently-failing 046→047 gap and exercises the wargear schema).
 - [ ] **REL-04**: A single parity check asserts, in CI and locally before build, that `package.json` version == `tauri.conf.json` version AND migration file count == lib.rs `Migration{}` count == data-layer migration-list length.
 - [ ] **REL-05**: CI fails if any `src-tauri/migrations/*.sql` file contains a CR byte, preventing the line-ending checksum drift from ever recurring.
 - [ ] **REL-06**: Installing an update over an existing install launches successfully — verified end-to-end with a real in-place NSIS update (two builds + local `latest.json`), with `preflight.log` recording the repair/consistency outcome.
@@ -69,7 +69,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REL-03 | Phase 130 | Pending |
+| REL-03 | Phase 130 | Complete |
 | REL-04 | Phase 130 | Pending |
 | REL-05 | Phase 130 | Pending |
 | REL-01 | Phase 131 | Pending |
