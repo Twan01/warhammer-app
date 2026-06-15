@@ -1,73 +1,66 @@
-# Research Summary: HobbyForge v0.4.2
+# Research Summary: HobbyForge v0.6.0 "Bulletproof & Honest"
 
-**Domain:** Tauri 2 desktop app — incremental feature additions to existing canonical unit database
-**Researched:** 2026-06-01
-**Confidence:** HIGH (architecture, pitfalls, build script, sub-factions); MEDIUM (French data availability)
+**Domain:** Tauri 2 desktop app — reliability hardening + honesty cleanup + player-journey depth + data quality, on a mature single-user local-first 40K hobby manager.
+**Researched:** 2026-06-15 (4 parallel researchers: Stack, Features, Architecture, Pitfalls)
+**Confidence:** HIGH (every claim grounded in direct repo reads + one live Wahapedia CSV fetch)
 
 ## Executive Summary
 
-v0.4.2 extends the shipped canonical unit database (1,711 units, 25 factions) with four capabilities: improving points coverage from 37% to 85%+, adding sub-faction chapter filtering, wiring bilingual infrastructure for French translation, and reviving PlaybookTab and Game Day enrichment from canonical data.
+v0.6.0 needs **~zero new dependencies.** The headline deliverable — a CI test gate — is a YAML/process change, not tooling. Auto-update relaunch, frontend logging, unit comparison, the discovery loop, and FK/orphan validation all reuse already-installed packages and the existing query→hook→UI stack.
 
-**Data quality first.** At 37% points coverage, army lists — the core product value — show 0 pts for most units. The build script needs diagnostic output, deterministic file ordering (`files.sort()`), name normalization, and a manual alias override file before any UI work depends on its output.
+The milestone's value is **trust**: the app breaks on every in-place update today, and `release.yml` runs zero tests on a tag push — a tag on a red commit builds, signs, and publishes a broken installer + `latest.json` straight to users. Theme A makes releases safe; Themes B/C/D are only safe to ship *on top of* a guarded pipeline.
 
-**Sub-factions and PlaybookTab revival are quick wins** once data is solid — both require only UI wiring to data already in the database. French translation requires new schema but contributes zero data until manual entry occurs; scaffold early, populate incrementally.
+**The single most important sequencing rule:** Theme A must land and merge to `master` (CI gate green + ONE verified real in-place NSIS update) **before** any Theme-B refactor begins. The 793-line `ArmyListDetailPage` decomposition and the migration files must not coexist as in-flight changes with the pending reliability fix on the dirty `fix/update-breaks-app-launch` branch.
 
-## Stack Additions
+## Stack: almost nothing new
 
-| Addition | Version | Why |
-|----------|---------|-----|
-| `i18next` | ^26.3.0 | Locale state machine (EN/FR toggle), offline-first, in-memory resources |
-| `react-i18next` | ^17.0.8 | React 19 compatible hooks for locale context |
+| Need | Resolution | Notes |
+|---|---|---|
+| CI test gate | GitHub Actions `ci.yml` (PR-trigger) + `release.yml` `needs: test` | `pnpm test` + `cargo test` + `pnpm build`; cache pnpm + cargo; **pin Rust toolchain** (don't float) |
+| Relaunch after update | Already wired — `UpdateBanner.tsx` calls `relaunch()` from `@tauri-apps/plugin-process` | But `useAppUpdate.installUpdate` itself never relaunches; confirm the live path |
+| Frontend diagnostics log | Hand-roll on `@tauri-apps/plugin-fs` (`writeTextFile` + `BaseDirectory.AppData`) → `frontend.log` beside `preflight.log` | **Do NOT add `tauri-plugin-log`** |
+| Comparison / validation | Existing `@tanstack/react-table` + react-virtual + `better-sqlite3` + `PRAGMA foreign_key_check` | No new libs |
 
-No other dependencies. `@xmldom/xmldom` stays — matching failures are algorithm problems, not parser problems.
+**Endpoint note:** updater points at `Twan01/warhammer-app` while identity is `com.hobbyforge.app`. `git remote -v` confirms `origin` IS that repo, so it's functionally correct — cosmetic naming drift only. The load-bearing invariant is keeping bundle `identifier` + `productName` byte-stable across releases.
 
-## Key Technical Decisions
+## Key Technical Decisions (for requirements/roadmap)
 
-- **Sub-factions:** Denormalized `sub_faction TEXT` column on `udb_units` (not a new table). New `udb_factions` rows would break FK backfill, army list joins, and FTS5.
-- **Bilingual:** `_fr` suffix columns with `COALESCE(col_fr, col)` at query layer. Two fixed locales makes a translation table over-engineered.
-- **FTS5:** Cannot ALTER — concatenate French names into existing `name` column with pipe separator, or DROP+CREATE with import trigger.
-- **French source:** No machine-readable FR data source exists. Manual `scripts/data/translations_fr.json` overlay is the only viable path.
-- **PlaybookTab:** 7-line null stub → rewrite using `useUdbRules.ts` hooks against udb_* tables. Data already exists.
+- **No `EXPECTED_SCHEMA_VERSION` source of truth exists** — schema version is computed at runtime as `get_migrations().len()`. The parity gate should **derive** the count from disk (`readdirSync` on `src-tauri/migrations/`) and assert all representations agree: migration file count ↔ lib.rs `Migration{}` block count ↔ db-helpers list length ↔ (and package.json == tauri.conf.json). Extend `check-version.mjs`; do not introduce a new hand-maintained constant. **Make the db-helpers list self-deriving so it never re-breaks on a new migration.**
+- **The migration-parity test is RED right now**: `tests/data-layer/db-helpers.ts` `HOBBYFORGE_MIGRATIONS` stops at `046`; tree + lib.rs have 47 (`047_army_list_unit_wargear.sql`). A CI gate blocks all releases until this is fixed — **fix it first, in the same phase as the gate.**
+- **`udb_leader_targets`** (migration 048): follow the canonical udb import pattern, NOT seed-in-migration. Schema: composite PK `(leader_unit_id, target_unit_id)`, both FK → `udb_units(id)` ON DELETE CASCADE. Populate by adding `Datasheets_leader.csv` (live-verified: header `leader_id|attached_id`, **1,918 pairs**, both columns are Wahapedia datasheet IDs = `udb_units` PKs) to the download list → emit into `unit_database.json` via `build-unit-db.ts` → INSERT in the Rust import. Repoint the **existing** Phase-92 UI (`LeaderAttachmentSheet`, `useLeaderTargets`, `synced_leader_targets`) from fragile name-matching to udb-id join. `getArmyListWithUnits` already exposes `u.udb_unit_id` per row — the join key is in hand.
+- **Factions "merge" is a product decision (FLAG):** the `/factions` *page* is redundant vs the canonical Unit Database, but the user `factions` *table* is FK-load-bearing — `units` (RESTRICT), `army_lists`/`painting_sessions` (SET NULL), `wishlist` (CASCADE = deletion wipes rows), plus theming via `app_settings.default_faction_id`. **Route-only relocation = zero data-loss. True table consolidation = data-loss trap requiring a map-not-delete migration.** Recommend route-only + relocate `FactionSheet` (Settings).
+- **The fake "sync" is a known stub, not a bug:** `syncFreshness.ts` hardcodes `'fresh'`/"Data bundled with app"; `StaleDataBanner` still renders; ~10–12 consumers depend on the freshness type. Theme B is a teardown → replace with an honest provenance/version surface (build already computes a content hash), drop "stale points" warnings, add **no** "refresh" button (would re-introduce the deliberately-removed network surface).
+- **Comparison + Collection⇆UDB loop need no schema change** — reuse the page-level `useMemo` Map batch-lookup pattern and the existing `units.udb_unit_id` FK; comparison should consume the **deduped** `WeaponTable`, so B3 (dedupe) gates C1 (comparison).
+- **Goals-on-dashboard prerequisite:** verify the v0.2.2 goal-progress derivation (from `painting_sessions`) still computes post-rules.db-elimination before building the visualization (likely fine — no rules.db dependency expected).
 
-## Critical Pitfalls
+## Watch Out For (top pitfalls, each mapped to a phase)
 
-1. **Boot-loop trap:** Migration 038 has documented incident. DDL only in migrations; all data through JSON payload + Rust import.
-2. **FTS5 columns immutable:** Cannot `ALTER TABLE ADD COLUMN` on virtual tables.
-3. **Non-deterministic build:** `readdirSync` without `.sort()` in both build scripts. One-line fix, must apply to both.
-4. **Sub-faction FK chain:** New `udb_factions` rows silently break migration 039 backfill, `getUdbOwnershipByFaction`, army list joins.
-5. **French data wiped on re-import:** `_fr` fields must travel in `unit_database.json` with `#[serde(default)]` in Rust.
-6. **Game Day OPG keys:** AUTOINCREMENT IDs reassigned on re-import. Use `unit_id:ability_name` composite.
+1. **A broken commit can publish.** `release.yml` triggers only on `v*` tag and runs no tests. → Theme A: PR-trigger `ci.yml`; release job `needs: test`.
+2. **The CRLF fix is incomplete against the NEXT migration.** A `048` authored on a dirty checkout can reintroduce the `VersionMismatch` no-window panic. → Theme A: a CI guard that fails on any `\r` in `src-tauri/migrations/*.sql`.
+3. **Parity test re-breaks on every migration** unless the list is `readdirSync`-derived. → Theme A.
+4. **Refactor + reliability fix coexisting on a dirty branch.** → Sequence: merge Theme A to master first; start B only after.
+5. **Factions merge data-loss.** → Route-only unless user explicitly wants consolidation (clarify in requirements).
+6. **Removing the freshness type leaves ~12 dangling imports/types.** → Enumerate all consumers before deletion; compile-gate.
+7. **Prior identical no-window bug shipped unremediated** (`app-wont-start.md`, `files_changed: []`). → This milestone closes the loop with a *verified* real update + a recorded `preflight.log`.
+8. **`relaunch()` never called after `downloadAndInstall`** in `useAppUpdate.ts` → user stuck on "installing". → Theme A.
 
-## Feature Priorities
+## Dependency-Ordered Build Sequence
 
-**P1 (Must have):**
-- Build script diagnostics + alias table + name normalization
-- Points coverage 85%+ (from 37%)
-- PlaybookTab revival (stats/weapons/abilities from udb_*)
-- Game Day canonical ability cards
+1. **A1 — Fix the red parity test + self-deriving migration list** (db-helpers 046→047; derive from disk). *Gates the CI gate.*
+2. **A2 — CI test gate**: PR-trigger `ci.yml` (`pnpm test` + `cargo test` + `pnpm build`, pinned toolchain, cached); `release.yml` `needs: test`; CRLF-in-migrations guard; wire `check-version.mjs` parity gate.
+3. **A3 — Update trustworthiness**: confirm/finish `relaunch()` path; frontend diagnostics `frontend.log`; **verify ONE real in-place NSIS update** (two builds + local `latest.json`), confirm window appears + `preflight.log` records repair. **→ merge Theme A to master.**
+4. **B — Honesty & de-cruft** (independent, lowest-cost/highest-trust): remove fake sync/freshness UI + StaleDataBanner; honest data-provenance surface; populate-or-remove Shared Abilities tab; fix dead-end "Link unit"; demote Data Health → Settings; route-only Factions merge; **dedupe WeaponTable (B3)**; decompose `ArmyListDetailPage`; route 7 hook-bypassing components through hooks.
+5. **C — Player depth**: C0 migration 048 `udb_leader_targets` + pipeline (re-triggers parity gate — proves its value); C1 leader-validation UI rewire; **unit comparison** (needs B3); Collection⇆UDB loop; goals on dashboard (verify derivation first).
+6. **D — Data quality**: FK/orphan validation in pipeline + data-layer tests; extended faction audits; French ability/weapon translations (incremental).
 
-**P2 (Should have):**
-- Sub-faction chapter filter (database browser + army list picker)
-- Coverage badge in Data Health
-- Army list composition enforcement (min/max models)
+## Open Questions for Requirements
 
-**P3 (Defer partial):**
-- French translation infrastructure (schema + locale toggle — ships empty)
-- French ability/weapon text (many weeks of manual data entry)
+1. **Factions merge:** route-only relocation (recommended, zero risk) vs true table consolidation (needs map-not-delete migration)?
+2. **Shared Abilities tab:** populate from canonical data, or remove the tab entirely?
+3. **Data Quality (Theme D) depth:** full 22-faction audit is L-sized — scope to FK/orphan validation + a couple of factions this milestone, or commit to the full sweep?
 
-## Suggested Build Order (4 phases)
+## Sources
 
-1. **Build Script Hardening + Schema Foundation** — deterministic build, coverage report, alias table, migrations 041–044, Rust import extended, points at 85%+
-2. **Sub-faction Filter UI** — chapter filter in browser/army list/collection using static keyword map
-3. **PlaybookTab + Game Day Revival** — revive null stubs, wire canonical data, weapon profiles in Game Day
-4. **Bilingual Infrastructure** — EN/FR locale toggle, `_fr` columns populated via build script, manual FR JSON overlay
-
-## Gaps to Address
-
-- French data: no automated source; manual curation is the only path
-- Stratagem CSV availability: verify `Detachments.csv` etc. exist in `scripts/data/` before Phase 1
-- `update-unit-database.ts` duplicates full BSData parsing logic — fixes must be applied to both scripts
-- `ability_type` values audit needed before Phase 3 PlaybookRules UI
-
----
-*Synthesized: 2026-06-01*
+- Wahapedia Data Export — `Datasheets_leader.csv` fetched live (header `leader_id|attached_id`, 1,918 rows)
+- tauri-apps/tauri-action + Tauri updater docs (via Context7)
+- Direct repo reads: `release.yml`, `tauri.conf.json`, `useAppUpdate.ts`, `syncFreshness.ts`, `check-version.mjs`, `build-unit-db.ts`, `db-helpers.ts`, `migration-parity.test.ts`, faction FK semantics, `.planning/debug/update-breaks-app-launch.md` + `app-wont-start.md`

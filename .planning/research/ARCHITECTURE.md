@@ -1,630 +1,269 @@
-# Architecture Patterns
+# Architecture Research — v0.6.0 "Bulletproof & Honest"
 
-**Domain:** Wahapedia-only pipeline & full data import — v0.4.7
-**Researched:** 2026-06-04
-**Confidence:** HIGH (all findings from direct source inspection)
+**Domain:** Tauri 2 + React 19 + SQLite desktop app (HobbyForge); integration architecture for a subsequent milestone
+**Researched:** 2026-06-15
+**Confidence:** HIGH (all findings grounded in the actual codebase: migrations on disk, lib.rs, query layer, and existing tests)
+
+This document answers "How do v0.6.0's changes integrate with the existing architecture, and what is the right build order?" It is grounded in direct reads of the repo, not training data.
 
 ---
 
-## System Overview (Current — v0.4.5)
+## Existing architecture (verified baseline)
 
 ```
-DEV-SIDE BUILD PIPELINE
-  Wahapedia CSVs (6 files)  +  BSData .cat XML (bsdata/)  +  aliases.json
-                                        ↓
-                         scripts/build-unit-db.ts
-                                        ↓
-                     src-tauri/data/unit_database.json
-                                        ↓
-RUNTIME IMPORT (Rust — lib.rs)
-  import_unit_database_inner()
-    → DELETE udb_* tables
-    → INSERT factions, units, models, weapons, abilities, keywords, points, composition
-    → Rebuild FTS5 udb_search
-                                        ↓
-APP RUNTIME (React)
-  UI → React Query hooks → src/db/queries/unitDatabase.ts → hobbyforge.db udb_* tables
+┌──────────────────────────────────────────────────────────────────────┐
+│  UI: src/features/**, src/app/** (18 lazy routes via TanStack Router)  │
+│   PageHeader everywhere · sibling Sheet/Dialog portals · useReducer    │
+│   for complex page state (ArmyListsPage, ArmyListDetailPage reducer)   │
+├──────────────────────────────────────────────────────────────────────┤
+│  Hooks: src/hooks/use*.ts (React Query; ENTITY_KEY + useEntity + muts) │
+│   staleTime 5m default; Infinity for read-heavy game data              │
+├──────────────────────────────────────────────────────────────────────┤
+│  Queries: src/db/queries/*.ts (parameterized $1,$2; no feature imports)│
+├──────────────────────────────────────────────────────────────────────┤
+│  DB client singleton: src/db/client.ts (PRAGMA foreign_keys = ON)      │
+├──────────────────────────────────────────────────────────────────────┤
+│  tauri-plugin-sql → SQLite hobbyforge.db (single DB, WAL, 47 migs)     │
+│  + Rust import: import_unit_database_inner reads bundled                │
+│    src-tauri/data/unit_database.json → DELETE-all + INSERT udb_* tables │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
+**Key facts confirmed by reading the repo:**
+
+| Fact | Evidence |
+|------|----------|
+| 47 migration files on disk; `lib.rs` has 47 `Migration{}` blocks | `ls migrations/` + `grep -c "Migration {"` lib.rs = 47 |
+| `tests/data-layer/db-helpers.ts` lists only **46** (missing `047_army_list_unit_wargear.sql`) | This IS the failing parity test (Theme A "046→047") |
+| No `EXPECTED_SCHEMA_VERSION` constant exists anywhere | grep returned nothing; schema version is computed at runtime as `get_migrations().len()` (lib.rs `get_schema_version`) |
+| `check-version.mjs` only compares package.json ↔ tauri.conf.json | 18 lines, no migration awareness |
+| CI (`release.yml`) runs on tag push only; no `pnpm test`/`cargo test`/`pnpm build` gate | Reads `pnpm install` → `tauri-action` directly |
+| udb import is version-guarded by content hash in `udb_meta`; DELETE-all+INSERT-per-table in one tx with FK OFF | lib.rs lines 659–713 |
+| `getArmyListWithUnits` already exposes `u.udb_unit_id` per row | armyLists.ts line 72 |
+| Leader validation matches by **name** via `synced_leader_targets` (empty table; `replaceSyncedLeaderTargets` never called post-BSData removal) | bsdataExtended.ts + LeaderAttachmentSheet.tsx lines 58–70 |
+| `Datasheets_leader.csv` is NOT in `scripts/data/` and NOT in `download-wahapedia.ts` CSV_FILES | confirmed by ls + grep |
+| `factions` table holds user data: `color_theme`, `lore_notes`, `description`, `wahapedia_faction_id`; `units.faction_id` FK → `factions.id` | migrations 001, 008, 039 |
+
 ---
 
-## What Changes in v0.4.7
+## Q1 — Version / migration-parity gate
 
-Three parallel changes that must integrate cleanly:
+### Where the source-of-truth check should live
 
-1. **Replace BSData with Wahapedia-only points** — `Datasheets_models_cost.csv` has complete coverage; BSData XML (~60%) is the structural bottleneck that caps coverage now
-2. **Add new entity types** — stratagems, enhancements, detachment abilities to canonical database
-3. **Auto-download CSVs** — dev-side fetch so no manual file placement
+**Extend `scripts/check-version.mjs` (broaden it into a "release gate") rather than create a new script.** It already runs as the `check:version` npm script and is the natural home. Keeping one script means CI and local both invoke one command.
+
+**Do NOT introduce a hand-maintained `EXPECTED_SCHEMA_VERSION` constant as the primary source of truth.** The repo's established truth is *migration file count* (PROJECT.md Key Decision: "Schema version = migration count (integer)"). A hardcoded constant is a *second* thing to forget to bump — it adds a failure mode rather than removing one. Instead, **derive** the expected count from the filesystem and assert that three independent representations agree.
+
+### Exact invariants to assert
+
+```
+Let N = count of *.sql files in src-tauri/migrations/ matching /^\d{3}_.*\.sql$/
+
+Invariant 1 (version parity):     package.json.version === tauri.conf.json.version
+Invariant 2 (lib.rs registration): count of "Migration {" blocks in src-tauri/src/lib.rs === N
+Invariant 3 (test helper parity):  HOBBYFORGE_MIGRATIONS.length in tests/data-layer/db-helpers.ts === N
+Invariant 4 (contiguous numbering): the 3-digit prefixes are 001..N with no gaps/dupes
+Invariant 5 (include_str! coverage): every migrations/NNN_*.sql appears in an include_str!("../migrations/NNN_*.sql") in lib.rs
+```
+
+Invariant 3 is exactly what the current failing test embodies (`db-helpers` stuck at 46). Promoting it to the build gate means the **build fails fast** the moment someone adds a migration without updating the helper list — the exact bug class ("update breaks launch" via checksum/registration drift) the milestone exists to kill.
+
+### How it wires into CI + local without false positives
+
+- **Local:** `pnpm check:version` (already wired) now runs all five invariants. `pnpm build` is `tsc && vite build`; add a `prebuild` hook or a `pnpm verify` that build depends on.
+- **CI:** add a new `.github/workflows/ci.yml` triggered on `push`/`pull_request` (NOT just tags) running `pnpm install` → `pnpm check:version` → `pnpm test` → `cargo test --manifest-path src-tauri/Cargo.toml` → `pnpm build`. The existing tag-triggered `release.yml` stays as-is (optionally calling the same gate first).
+- **False-positive avoidance:** parse with a regex anchored to the `001_` numeric-prefix convention so stray files (a README in migrations/, or the `~/` artifact currently in git status) are ignored. Count `Migration {` with the same brace pattern the passing test in `migration-parity.test.ts` already uses (`/Migration\s*\{/g`) to stay consistent.
+
+**Confidence: HIGH** — every input file and its current shape was read directly.
 
 ---
 
-## New Database Tables Required
+## Q2 — New migration: `udb_leader_targets`
 
-### Existing udb_* Tables (unchanged)
-`udb_factions`, `udb_units`, `udb_unit_models`, `udb_unit_weapons`, `udb_unit_abilities`, `udb_unit_keywords`, `udb_unit_points`, `udb_unit_composition`, `udb_meta`, `udb_search` (FTS5)
+### Why a new table (not repurposing `synced_leader_targets`)
 
-### New udb_* Tables
+`synced_leader_targets` keys by `leader_name`/`target_name` (TEXT) and `faction_id` (TEXT). It is fed by `replaceSyncedLeaderTargets`, a BSData-sync function that is **never called anymore** (BSData removed in v0.4.7) — so the table is empty and the UI is starved. Name matching is fragile (punctuation/sub-faction variants — exactly the bug migration 046 fixed for factions). The canonical Wahapedia `Datasheets_leader.csv` gives `leader_id|attached_id` pairs that are **both udb unit ids** — so join by id, mirroring how points already resolve through `udb_unit_id`.
 
-**udb_detachments** — one row per detachment rule card
+### Schema shape — new migration `048_udb_leader_targets.sql`
+
 ```sql
-CREATE TABLE IF NOT EXISTS udb_detachments (
-  id          TEXT PRIMARY KEY,        -- Wahapedia string ID (e.g., "000000456")
-  faction_id  TEXT NOT NULL REFERENCES udb_factions(id),
-  name        TEXT NOT NULL,
-  legend      TEXT,                    -- flavour text / detachment rule description
-  type        TEXT,                    -- "Detachment Rule" | NULL
-  name_fr     TEXT                     -- French locale overlay
+-- Migration 048: canonical leader-attachment targets (udb id-keyed).
+-- DDL only — no seed (data arrives via the Rust udb import, like all udb_* tables).
+CREATE TABLE IF NOT EXISTS udb_leader_targets (
+  leader_unit_id  TEXT NOT NULL REFERENCES udb_units(id) ON DELETE CASCADE,
+  target_unit_id  TEXT NOT NULL REFERENCES udb_units(id) ON DELETE CASCADE,
+  PRIMARY KEY (leader_unit_id, target_unit_id)
 );
-CREATE INDEX IF NOT EXISTS idx_udb_detachments_faction_id ON udb_detachments(faction_id);
+
+CREATE INDEX IF NOT EXISTS idx_udb_leader_targets_leader
+  ON udb_leader_targets(leader_unit_id);
+CREATE INDEX IF NOT EXISTS idx_udb_leader_targets_target
+  ON udb_leader_targets(target_unit_id);
 ```
 
-**udb_stratagems** — one row per stratagem
-```sql
-CREATE TABLE IF NOT EXISTS udb_stratagems (
-  id            TEXT PRIMARY KEY,      -- Wahapedia string ID
-  faction_id    TEXT NOT NULL REFERENCES udb_factions(id),
-  detachment_id TEXT REFERENCES udb_detachments(id),  -- NULL = universal
-  name          TEXT NOT NULL,
-  cp_cost       TEXT,                  -- "1", "2", "D3" — kept as TEXT (Wahapedia format)
-  type          TEXT,                  -- "Core" | "Faction" | "Epic Deed" etc.
-  turn          TEXT,                  -- "Either Turn" | "Your Turn" | "Opponent's Turn"
-  phase         TEXT,                  -- "Command" | "Movement" | "Shooting" | "Charge" | "Fight"
-  legend        TEXT,                  -- flavour text
-  description   TEXT,                  -- rules text
-  name_fr       TEXT,
-  description_fr TEXT
-);
-CREATE INDEX IF NOT EXISTS idx_udb_stratagems_faction_id ON udb_stratagems(faction_id);
-CREATE INDEX IF NOT EXISTS idx_udb_stratagems_detachment_id ON udb_stratagems(detachment_id);
-```
+**ON DELETE CASCADE on both sides** is correct and consistent with every other udb child table (`udb_unit_models`, `udb_unit_keywords`, etc., all `REFERENCES udb_units(id) ON DELETE CASCADE`). The Rust import does DELETE-all with `PRAGMA foreign_keys = OFF` anyway, so cascade never fires during re-import; it only matters as a correctness guarantee. PK is the composite pair (a leader leads many targets and vice versa) — no surrogate id, matching `udb_unit_keywords`.
 
-**udb_detachment_abilities** — abilities that belong to a specific detachment
-```sql
-CREATE TABLE IF NOT EXISTS udb_detachment_abilities (
-  id            TEXT PRIMARY KEY,      -- Wahapedia string ID
-  faction_id    TEXT NOT NULL REFERENCES udb_factions(id),
-  detachment_id TEXT REFERENCES udb_detachments(id),
-  name          TEXT NOT NULL,
-  legend        TEXT,
-  description   TEXT,
-  name_fr       TEXT,
-  description_fr TEXT
-);
-CREATE INDEX IF NOT EXISTS idx_udb_detachment_abilities_faction_id
-  ON udb_detachment_abilities(faction_id);
-CREATE INDEX IF NOT EXISTS idx_udb_detachment_abilities_detachment_id
-  ON udb_detachment_abilities(detachment_id);
-```
+### Where it's populated — Rust import via bundled JSON (the established pattern)
 
-**udb_enhancements** — one row per enhancement (warlord traits, relics, etc.)
-```sql
-CREATE TABLE IF NOT EXISTS udb_enhancements (
-  id            TEXT PRIMARY KEY,      -- Wahapedia string ID
-  faction_id    TEXT NOT NULL REFERENCES udb_factions(id),
-  detachment_id TEXT REFERENCES udb_detachments(id),
-  name          TEXT NOT NULL,
-  points        INTEGER NOT NULL DEFAULT 0,
-  legend        TEXT,
-  description   TEXT,
-  name_fr       TEXT,
-  description_fr TEXT
-);
-CREATE INDEX IF NOT EXISTS idx_udb_enhancements_faction_id ON udb_enhancements(faction_id);
-CREATE INDEX IF NOT EXISTS idx_udb_enhancements_detachment_id ON udb_enhancements(detachment_id);
-```
+Follow the udb import flow exactly. Three coordinated changes:
 
-### Migration Strategy
+1. **`scripts/download-wahapedia.ts`** — add `"Datasheets_leader.csv"` to `CSV_FILES` (currently 10 files).
+2. **`scripts/build-unit-db.ts`** — add a parse step (mirroring Step 7/keywords): read `Datasheets_leader.csv`; for each row take `leader_id` + `attached_id`; keep only pairs where **both** ids are in `validUnitIds` (drops Legends-filtered/unknown units — the same guard used everywhere); dedup; sort deterministically (`leader_unit_id` then `target_unit_id`); emit a new `leader_targets: UdbLeaderTargetRow[]` array into `UnitDatabaseJson`. **Add the array to the content-hash input** so the version bumps and the import is not skipped.
+3. **`src-tauri/src/lib.rs`** (`import_unit_database_inner`) — add `"udb_leader_targets"` to the DELETE list and an INSERT loop over `payload.leader_targets` (bind `leader_unit_id`, `target_unit_id`), plus the field on the `UnitDatabasePayload` serde struct and the count on `UdbImportResult`.
 
-**One migration file** (042_udb_game_rules.sql) creates all four tables. This is DDL-only — same pattern as migration 038. No seeding via migration (prevents the documented boot-loop incident).
+This keeps the migration DDL-only (seeding in migrations caused a documented boot-loop — see Key Decisions), and data ships with the app like all other canonical data. **Do not** seed via migration and **do not** keep the old JS `replace*` write path.
 
-The existing `synced_enhancements` table (migration 030, BSData-sourced) is NOT dropped by this migration — it stays for backward compatibility with `army_list_enhancements`. The `udb_enhancements` table is new and canonical; `synced_enhancements` can be deprecated later.
+### How the query layer repoints to it
 
-Similarly, `rules_favorites_notes` and `rules_notes` already use `rule_type IN ('stratagem', 'detachment_ability', 'shared_ability')` with TEXT `rule_id`. These survive unchanged — the annotation system works against any string rule_id. The new udb_* entity IDs are Wahapedia string IDs, same format as the old rw_* IDs, so existing user annotations carry over.
+- **New query** `src/db/queries/leaderTargets.ts` (replaces `getLeaderTargetsByFaction`): prefer a batch `getLeaderTargetsForList(listId)` that joins `army_list_units → units → udb_leader_targets` and returns valid `(leader army_list_unit id, target army_list_unit id)` pairs directly — matches the page-level Map pattern and avoids per-row hooks. (Alternatively a simple `getLeaderTargetIdsForLeader(leaderUdbUnitId)`.)
+- **New hook** `src/hooks/useLeaderTargets.ts` (rewrite): keyed by `udb_unit_id` (or listId for the batch query), `staleTime: Infinity` (canonical data).
+- **`LeaderAttachmentSheet.tsx`** — replace the name-matching `validTargetNames`/`validTargetUnits` memos (lines 58–70) with udb-id matching: the leader's `unit.udb_unit_id` (already on the row, armyLists.ts line 72) → valid `target_unit_id`s; filter `units` where `u.udb_unit_id ∈ validTargetIds`. Ghost units (no `udb_unit_id`) simply won't match — acceptable.
+- **`ArmyListDetailPage.tsx`** — drops `useLeaderTargets(factionIdStr)` (the TEXT-faction-id call, lines 184–185) and the `SyncedLeaderTargetRow` prop drilling into `SortableUnitRow`; replaced by the udb-id-based hook/data.
+- **Deletable after migration (genuine de-cruft, pairs with Theme B):** `synced_leader_targets` table (a drop migration mirroring `040_drop_synced_points.sql`), `replaceSyncedLeaderTargets` + `getLeaderTargetsByFaction` + `SyncedLeaderTargetRow` in bsdataExtended.ts, and `BsdataLeaderTarget` in parseBsdataExtended.ts.
+
+**Confidence: HIGH** for schema/import pattern (directly mirrors the verified udb_detachments path). **MEDIUM** for the exact CSV column names (`leader_id`/`attached_id`) — verify against the downloaded `Datasheets_leader.csv` header at build time (milestone context states 1,918 pairs, both ids being udb ids).
 
 ---
 
-## unit_database.json Schema Expansion
+## Q3 — Factions-page merge: data-migration risk
 
-### Current top-level structure (UnitDatabaseJson)
-```typescript
-{
-  version, built_at, game_system, unit_count, faction_count,
-  factions[], units[], models[], weapons[], abilities[], keywords[], points[], composition[]
-}
-```
+### The critical distinction: there are TWO faction concepts
 
-### New top-level arrays (additive — no existing keys removed)
-```typescript
-{
-  // ... all existing keys unchanged ...
-  detachment_count: number,   // new summary stat
-  stratagem_count: number,    // new summary stat
-  detachments: UdbDetachmentRow[],
-  stratagems: UdbStratagemRow[],
-  detachment_abilities: UdbDetachmentAbilityRow[],
-  enhancements: UdbEnhancementRow[],
-}
-```
+| Table | Purpose | Has user data? |
+|-------|---------|----------------|
+| `factions` (migration 001) | **User's army factions** — `color_theme` (theming), `lore_notes`, `description`, plus `wahapedia_faction_id` bridge to canonical | **YES** |
+| `udb_factions` (migration 038) | Canonical Wahapedia factions (id="SM" etc.) | No (rebuilt on import) |
 
-### New TypeScript interfaces (scripts/lib/types.ts additions)
-```typescript
-export interface UdbDetachmentRow {
-  id: string;
-  faction_id: string;
-  name: string;
-  legend: string | null;
-  type: string | null;
-  name_fr: string | null;
-}
+`units.faction_id` is a FK to `factions.id` (the user table). `factions` drives faction theming (ActiveFactionContext accent), the dashboard FactionSummaryCard, army-list faction selection, and collection grouping. **It is load-bearing and cannot be dropped.**
 
-export interface UdbStratagemRow {
-  id: string;
-  faction_id: string;
-  detachment_id: string | null;  // null = faction-universal (e.g., Oath of Moment)
-  name: string;
-  cp_cost: string | null;
-  type: string | null;
-  turn: string | null;
-  phase: string | null;
-  legend: string | null;
-  description: string | null;
-  name_fr: string | null;
-  description_fr: string | null;
-}
+### Therefore the "merge" is UI-only, NOT a data migration
 
-export interface UdbDetachmentAbilityRow {
-  id: string;
-  faction_id: string;
-  detachment_id: string | null;
-  name: string;
-  legend: string | null;
-  description: string | null;
-  name_fr: string | null;
-  description_fr: string | null;
-}
+The redundant *page* is `src/features/factions/FactionsPage.tsx` (route `/factions`) — a CRUD-on-`factions`-plus-grouped-units view that duplicates what the Unit Database browser does for canonical units. "Merging into the canonical Unit Database" means:
 
-export interface UdbEnhancementRow {
-  id: string;
-  faction_id: string;
-  detachment_id: string | null;
-  name: string;
-  points: number;
-  legend: string | null;
-  description: string | null;
-  name_fr: string | null;
-  description_fr: string | null;
-}
-```
+- **Remove the `/factions` route** (router.tsx lines 101–104, lazy import line 26) and its sidebar entry.
+- **Preserve faction CRUD reachability** — faction create/edit/theming (`FactionSheet`) and per-faction unit management must move to a surface that still exists. Recommendation: **fold faction management into Settings** (alongside the "demote Data Health into Settings → Data" move), since faction theming is a preference-like concern and Settings is the home for cross-cutting config.
+- **Zero schema change. Zero data migration. No data-loss risk** *provided* FactionSheet/FactionDeleteDialog stay wired from the new home. The only real risk is *orphaning the editing UI* (removing the page without relocating FactionSheet, leaving no way to set faction theme/lore) — a functional-loss risk, not a data-loss risk.
+
+**Build-order implication:** Theme B (de-cruft), safe and independent. Do it alongside the Data Health → Settings demotion since both touch routing + Settings.
+
+**Confidence: HIGH** — faction table contents and FK relationships read directly.
 
 ---
 
-## Build Pipeline Changes
+## Q4 — Unit comparison view + Collection ⇆ UDB discovery loop
 
-### Step 8 Replacement: Wahapedia Points Instead of BSData
+### Unit comparison view (Theme C)
 
-**Remove:** steps 8 (BSData .cat parsing), 8b (extractModelCounts), 8c (alias validation)
-**Add:** Parse `Datasheets_models_cost.csv` (new Wahapedia file)
+Slots into the Unit Database browser using established patterns:
 
-Wahapedia's `Datasheets_models_cost.csv` columns (confirmed from STATE.md and existing RwStratagem type knowledge):
-- `datasheet_id` — matches `udb_units.id` directly (same Wahapedia string ID)
-- `model_count` (or similar) — integer
-- `cost` — integer points
+- **Selection state:** reuse the `selectedUnitId` pattern (Key Decision: "store ID, derive unit from cache") but as a small array/Set of up to ~3 udb ids in Zustand (consistent with ephemeral filter state) or local page state.
+- **New component:** `src/features/unit-database/UnitCompareDialog.tsx`, or a full-page route `/unit-database/compare` if screen real estate matters (mirrors Painting Mode's full-route choice). Renders 2–3 `UdbDatasheetSheet`-style columns side by side.
+- **New query/hook:** batch `getUdbUnitsByIds(ids: string[])` + `useUdbUnitsByIds`, `staleTime: Infinity`. Reuses existing `udb_units`/`udb_unit_models`/`udb_unit_weapons`/`udb_unit_abilities` reads — a multi-id variant of the existing `useUdbDatasheet`. **No schema change.**
+- **WeaponTable dedupe (Theme B) is a companion prerequisite:** comparison renders weapon tables in N columns, so dedupe `units/WeaponTable.tsx` vs `unit-database/UdbWeaponsTable.tsx` first, then build comparison on the canonical component.
 
-This is a direct foreign-key join: no matching algorithm needed, no BSData, no aliases. `unit.base_points` and `udb_unit_points` rows populated purely from this CSV.
+### Collection ⇆ UDB discovery loop (Theme C)
 
-**Composition** (min/max models): Wahapedia's `Datasheets_models.csv` may provide this, or a separate `Datasheets_composition.csv` may exist. If not available from Wahapedia, composition rows can be derived from the cost CSV tiers (distinct model_count values → min is lowest tier, max is highest).
+The FK already exists: `units.udb_unit_id` (ON DELETE SET NULL). One direction (Collection → "View Datasheet") shipped in v0.5.2. The missing reverse is "this canonical unit is **owned ×N** in your collection":
 
-**Consequence for aliases.json and factionMap.ts:** Both become unused for points matching. They may still be useful for sub_faction mapping. The `allBsdataNames` accumulation and alias validation section (step 8c) is removed entirely.
+- **New query:** `getOwnedCountsByUdbUnitId(): Promise<Map<udb_unit_id, count>>` — a single `SELECT udb_unit_id, COUNT(*) FROM units WHERE udb_unit_id IS NOT NULL GROUP BY udb_unit_id`. This is the **page-level Map pattern** (Key Decision: "Page-level Map<compositeKey,T>… O(1) per-card lookup, single query") — load once on the Unit Database page, build a `useMemo` Map, pass to rows. **No N+1, no schema change.**
+- **New hook:** `useOwnedCountsByUdb` — invalidate when `units` change (cache-invalidation-symmetry rule).
+- **UI:** an "Owned ×N" badge on Unit Database rows / datasheet header (consistent with existing ownership/readiness badges) + a link into the filtered Collection. Virtual scrolling is already in place; the Map lookup is O(1) per visible row, so no scroll-perf regression.
 
-### New Steps After Wahapedia Points
-
-**Step 8.1: Parse Stratagems.csv**
-
-Wahapedia Stratagems.csv columns (derived from existing `RwStratagem` type, which was built from the old rules.db sync):
-- `id` — Wahapedia string ID
-- `faction_id` — matches `udb_factions.id`
-- `name`
-- `type`
-- `cp_cost`
-- `legend`
-- `turn`
-- `phase`
-- `detachment` — detachment name (text)
-- `detachment_id` — detachment Wahapedia ID (may be present in newer exports)
-- `description`
-
-Resolution: `detachment_id` on stratagems links to `udb_detachments.id`. If Wahapedia only provides `detachment` (text name), build a `Map<detachment_name, detachment_id>` from the detachments parse pass to resolve the FK at build time.
-
-**Step 8.2: Parse Detachments.csv** (prerequisite for step 8.1 FK resolution)
-
-Wahapedia Detachments.csv columns (derived from `RwDetachment` type):
-- `id` — Wahapedia string ID
-- `faction_id`
-- `name`
-- `legend`
-- `type`
-
-**Step 8.3: Parse Detachment_abilities.csv**
-
-Wahapedia Detachment_abilities.csv columns (derived from `RwDetachmentAbility` type):
-- `id`
-- `faction_id`
-- `name`
-- `legend`
-- `description`
-- `detachment` — detachment name (text)
-- `detachment_id` — may or may not be present
-
-**Step 8.4: Parse Enhancements.csv**
-
-Wahapedia Enhancements.csv columns (derived from `SyncedEnhancementRow` + `BsdataEnhancement` types):
-- `id` — may be absent in older exports; use `name + faction_id` composite if needed
-- `faction_id`
-- `name`
-- `points` (or `cost`)
-- `legend`
-- `description`
-- `detachment` — detachment name
-- `detachment_id`
-
-**IMPORTANT:** The old `synced_enhancements` table used BSData-derived data (name + faction_id + detachment_name, no Wahapedia ID). The new `udb_enhancements` table uses Wahapedia IDs. The `army_list_enhancements` table stores `enhancement_name TEXT NOT NULL` (TEXT copy, not FK) so it survives the source change without migration. The smart list builder reads enhancements by faction from `synced_enhancements` currently — that hook needs updating to read from `udb_enhancements` instead.
-
-### Ordering of New Parse Steps
-
-Detachments must be parsed before stratagems, detachment abilities, and enhancements, because all three reference `detachment_id`. Recommended order:
-
-```
-Step 1:  Verify required CSVs (add new CSVs to required list)
-Step 2:  Factions.csv → udb_factions
-Step 3:  Datasheets.csv → udb_units (dedup Legends vs current here)
-Step 4:  Datasheets_models.csv → udb_unit_models
-Step 5:  Datasheets_wargear.csv → udb_unit_weapons
-Step 6:  Datasheets_abilities.csv → udb_unit_abilities
-Step 7:  Datasheets_keywords.csv → udb_unit_keywords
-Step 8:  Datasheets_models_cost.csv → udb_unit_points (replaces BSData)
-Step 9:  Detachments.csv → udb_detachments (prerequisite for FK resolution)
-Step 10: Stratagems.csv → udb_stratagems (uses detachment_id from step 9)
-Step 11: Detachment_abilities.csv → udb_detachment_abilities (uses detachment_id)
-Step 12: Enhancements.csv → udb_enhancements (uses detachment_id)
-Step 13: Validation + coverage report
-Step 14: Apply French overlay (all arrays finalized before translation)
-Step 15: Content hash + write unit_database.json
-```
-
-### Unit Deduplication (New)
-
-Wahapedia exports both Legends (outdated) and current datasheets for some units. STATE.md confirms 9 SM duplicates found. Deduplication must happen at Step 3 (Datasheets.csv parsing), using a `is_legends` or `source_id` field in Datasheets.csv that identifies Legends entries. Keep current (non-Legends) unit; discard Legends duplicate. If the CSV doesn't have a clear flag, filter by `source_id` — Legends entries have a distinct source.
-
-### French Overlay Extension
-
-`translations_fr.json` gains new sections:
-```typescript
-export interface TranslationsFrOverlay {
-  factions?: Record<string, string>;
-  units?: Record<string, string>;
-  abilities?: Record<string, { name_fr?: string | null; description_fr?: string | null }>;
-  weapons?: Record<string, string>;
-  keywords?: Record<string, string>;
-  // NEW:
-  detachments?: Record<string, string>;  // detachment_id → name_fr
-  stratagems?: Record<string, { name_fr?: string | null; description_fr?: string | null }>;
-  detachment_abilities?: Record<string, { name_fr?: string | null; description_fr?: string | null }>;
-  enhancements?: Record<string, { name_fr?: string | null; description_fr?: string | null }>;
-}
-```
-
-The overlay is applied in step 14, same pattern as existing entities. Stratagems/enhancements use composite keys or entity IDs depending on what's stable in Wahapedia.
-
-### Auto-Download
-
-A new `scripts/download-wahapedia.ts` script fetches all CSVs from `https://wahapedia.ru/wh40k10ed/` to `scripts/data/`. This runs before the build pipeline. The required CSVs list in `build-unit-db.ts` stays as the authoritative list — `download-wahapedia.ts` fetches everything in that list.
-
-The download script uses Node.js `fetch` (available in Node 18+, same version the existing `--experimental-strip-types` flag implies). No new npm dependencies needed.
+**Confidence: HIGH** — FK, Map pattern, and virtual scrolling all verified in the codebase.
 
 ---
 
-## Rust Import Command Changes
+## Q5 — ArmyListDetailPage decomposition (793 lines, currently dirty on branch)
 
-### UnitDatabasePayload struct — add four new optional arrays
+The page already extracted its reducer (`armyListDetailReducer.ts`, v0.5.2) and delegates portals to sibling components. The remaining bulk: header/actions, summary bar, quick-add search, the categorized unit table + DnD, detachment/reminders/notes sections, and ~70 lines of export handlers (`handleCopyToClipboard`, `handleSaveJson`, `handleSavePdf`).
 
-```rust
-#[derive(serde::Deserialize)]
-pub struct UnitDatabasePayload {
-    // ... existing fields unchanged ...
-    #[serde(default)]
-    pub detachments: Vec<JsRow>,
-    #[serde(default)]
-    pub stratagems: Vec<JsRow>,
-    #[serde(default)]
-    pub detachment_abilities: Vec<JsRow>,
-    #[serde(default)]
-    pub enhancements: Vec<JsRow>,
-}
-```
+**Working-branch caveat:** the file is `M` (modified) on `fix/update-breaks-app-launch` — the diff already touches it (HTML-rendering fixes). **Decomposition must be additive/mechanical** (move blocks into new files, no behavior change) and should land *after* that branch's fix merges, or be coordinated to avoid a painful rebase. Sequence as Theme B so it does not conflict with the in-flight fix.
 
-Using `#[serde(default)]` on all four means old `unit_database.json` files without these arrays still parse successfully. This is the same pattern already used for all existing arrays.
+### Safe extraction boundaries (low-risk, no logic change)
 
-### UdbImportResult struct — add four new counters
+| New component | Extracts | Risk |
+|---------------|----------|------|
+| `ArmyListUnitTable.tsx` | `DndContext` + categorized `unitsByCategory` rendering + `SortableUnitRow` + `handleDragEnd` | LOW — self-contained; props = units, handlers, leaderTargets |
+| `useArmyListExport` hook (or `ArmyListExportActions.tsx`) | `handleCopyToClipboard`/`handleSaveJson`/`handleSavePdf` + `ExportDropdown` + snapshot button | LOW — pure handlers; a hook is cleaner since they need list/units/wargear |
+| `ArmyListQuickAdd.tsx` | quick-add input + `quickAddResults` memo + `handleQuickAdd` | LOW |
+| `ArmyListPortals.tsx` | the 8 sibling Sheet/Dialog portals + dispatch wiring | MEDIUM — must preserve the sibling (never-nested) portal rule and the reducer dispatch contract |
+| `ArmyListDetailHeader.tsx` | PageHeader + faction badge + Edit/Game Day/Delete actions | LOW |
 
-```rust
-#[derive(serde::Serialize, Debug)]
-pub struct UdbImportResult {
-    // ... existing fields ...
-    pub detachments: u64,
-    pub stratagems: u64,
-    pub detachment_abilities: u64,
-    pub enhancements: u64,
-}
-```
+The orchestrator keeps the reducer, data hooks, and the shared derived memos (`groupedUnits`/`unitsByCategory`/`leaderNameMap`). Target: orchestrator < ~250 lines, each child < ~200 — consistent with the PlaybookTab/UnitSheet decomposition precedent. **The leader-target repointing (Q2) should land before/with extraction** so `ArmyListUnitTable` is written once against the new udb-id data shape, not the doomed `SyncedLeaderTargetRow` shape.
 
-### import_unit_database_inner — extend DELETE + INSERT sections
-
-**DELETE section** — add four tables to the existing delete loop. ORDER matters: child tables first.
-```rust
-for table in [
-    "udb_unit_keywords",
-    "udb_unit_points",
-    "udb_unit_composition",
-    "udb_unit_abilities",
-    "udb_unit_weapons",
-    "udb_unit_models",
-    "udb_enhancements",          // NEW — references udb_detachments and udb_factions
-    "udb_detachment_abilities",  // NEW — references udb_detachments and udb_factions
-    "udb_stratagems",            // NEW — references udb_detachments and udb_factions
-    "udb_detachments",           // NEW — references udb_factions (parent of the three above)
-    "udb_units",
-    "udb_factions",
-    "udb_meta",
-] {
-```
-
-FK enforcement is already OFF during the delete pass (`PRAGMA foreign_keys = OFF`), so the order technically doesn't matter there, but listing child-first is correct defensive practice.
-
-**INSERT section** — add four new INSERT blocks after the existing ones (before the udb_meta insert):
-
-Detachments inserted first (before the three tables that reference them):
-```rust
-// INSERT detachments
-for row in &payload.detachments {
-    let id = str_val(row, "id").unwrap_or_default();
-    if id.is_empty() { continue; }
-    sqlx::query(
-        "INSERT INTO udb_detachments (id, faction_id, name, legend, type, name_fr) VALUES (?, ?, ?, ?, ?, ?)"
-    )
-    .bind(&id)
-    .bind(str_val(row, "faction_id").unwrap_or_default())
-    .bind(str_val(row, "name").unwrap_or_default())
-    .bind(str_val(row, "legend"))
-    .bind(str_val(row, "type"))
-    .bind(str_val(row, "name_fr"))
-    .execute(&mut *tx)
-    .await
-    .map_err(|e| format!("insert detachment {id}: {e}"))?;
-    counts.detachments += 1;
-}
-```
-
-Then stratagems, detachment_abilities, enhancements — each follows the same pattern with their respective column sets.
-
-### FTS5 udb_search rebuild — optionally extend
-
-The current FTS5 query indexes unit names, faction names, and keywords. Stratagems are searched separately (already work in RulesHubPage via text filter). No change to the FTS5 rebuild query required.
-
-If in-game search of stratagems by name is wanted from the DB browser, a separate FTS5 table (`udb_rules_search`) could be added later. Do not mix stratagems into `udb_search` — that table is unit-scoped and used by collection/army list pickers.
-
-### udb_meta — add new count fields
-
-The `udb_meta` table and `UnitDatabasePayload` should track the new entity counts:
-
-Migration 042 adds columns:
-```sql
-ALTER TABLE udb_meta ADD COLUMN detachment_count INTEGER;
-ALTER TABLE udb_meta ADD COLUMN stratagem_count INTEGER;
-```
-
-The Rust INSERT for udb_meta already handles `unit_count` and `faction_count`; extend with the new counts.
+**Confidence: HIGH** — full file read; extraction boundaries follow existing decomposition precedents.
 
 ---
 
-## Relationship Map: New Entities to Existing
+## Q6 — Build order (A gates everything → B → C → D)
 
 ```
-udb_factions (existing)
-    ├── udb_units (existing, FK: faction_id)
-    ├── udb_detachments (NEW, FK: faction_id)
-    │       ├── udb_stratagems (NEW, FK: detachment_id nullable)
-    │       ├── udb_detachment_abilities (NEW, FK: detachment_id nullable)
-    │       └── udb_enhancements (NEW, FK: detachment_id nullable)
-    ├── udb_stratagems (NEW, FK: faction_id — universal stratagems have no detachment)
-    ├── udb_detachment_abilities (NEW, FK: faction_id)
-    └── udb_enhancements (NEW, FK: faction_id)
+THEME A — Release Trust (must land first; nothing ships safely without it)
+  A1. Fix db-helpers parity (add 047) + promote the 3–5 invariants into
+      check-version.mjs as the release gate.                         ← unblocks A2
+  A2. Add CI workflow (ci.yml on push/PR): check:version, pnpm test,
+      cargo test, pnpm build.                                        ← the actual gate
+  A3. Verify real in-place NSIS update end-to-end + preflight.log.
+  A4. Persistent frontend diagnostics log + relaunch-after-update UX.
+        (A3/A4 are independent of each other; both depend on A1+A2 being green.)
 
-army_lists (existing)
-    ├── detachment_id TEXT (existing, NOT a FK — denormalized copy)
-    └── detachment_name TEXT (existing, denormalized copy)
+THEME B — Honesty & De-cruft (depends on A green; B precedes C)
+  B1. Remove fake sync/freshness UI: delete StaleDataBanner usage, simplify the
+      ~10–12 syncFreshness consumers (incl. ArmyListSummaryBar `freshness` prop,
+      ArmyListDetailPage `freshness` memo).                          ← independent
+  B2. Merge Factions page → relocate FactionSheet (likely Settings); remove
+      /factions route. Pair with Data Health → Settings → Data demotion.
+  B3. Dedupe WeaponTable (units/ vs unit-database/).                 ← prereq for C1
+  B4. Route the 7 hook-bypassing components through hooks.           ← independent
+  B5. Decompose ArmyListDetailPage — AFTER the fix/update branch lands; pair
+      with B1 (removes freshness) so the table extraction is done once.
 
-army_list_enhancements (existing, migration 031)
-    ├── enhancement_name TEXT (NOT a FK — denormalized copy, survives source migration)
-    └── enhancement_points INTEGER
+THEME C — Player Depth (depends on B; needs new migration + dedupe)
+  C0. Migration 048 udb_leader_targets + download/build-script/Rust import wiring
+      + drop synced_leader_targets.   ← SCHEMA CHANGE; do early in C, bumps
+                                        migration count → re-run the A1 gate.
+  C1. Unit comparison view (consumes deduped WeaponTable from B3).
+  C2. Leader-attachment full validation (consumes C0; repoints
+      LeaderAttachmentSheet + ArmyListDetailPage to udb-id matching; pairs with B5).
+  C3. Collection ⇆ UDB "owned ×N" loop (page-level Map; no schema change).
+  C4. Goals on dashboard — verify v0.2.2 progress-derivation still works
+      post-rules.db-elimination (audit-then-fix; likely small).
 
-rules_favorites_notes (existing, migration 019)
-    ├── rule_id TEXT (Wahapedia string ID — works for both old rw_* and new udb_* IDs)
-    └── rule_type TEXT CHECK IN ('stratagem', 'detachment_ability', 'shared_ability')
+THEME D — Data Quality at Scale (last; independent of C, can overlap)
+  D1. Audit remaining factions · D2. French translations · D3. FK/orphan
+      validation in build pipeline (extends build-unit-db.ts validation step).
 ```
 
-**Key insight:** The `army_lists.detachment_id` and `army_list_enhancements.enhancement_name` columns are TEXT denormalized copies — no FK constraint, intentional design (PRE: "Denormalized TEXT copy prevents data loss when source tables are wiped"). These survive unchanged when the source changes from `synced_enhancements` / `rw_detachments` to `udb_enhancements` / `udb_detachments`. No data migration needed for existing army lists.
+### Explicit cross-theme dependencies
 
-**Key insight:** `rules_favorites_notes.rule_id` stores Wahapedia string IDs. The new `udb_stratagems.id` and `udb_detachment_abilities.id` use the same Wahapedia string ID format. Existing user annotations survive the migration without any data transformation.
-
----
-
-## UI Integration Points
-
-### DetachmentPicker (army-lists)
-
-**Current state:** Returns empty array stub (`// Phase 107: detachments data source eliminated`). 
-
-**After v0.4.7:** Reads from `udb_detachments` via a new `getUdbDetachmentsByFaction(factionId)` query. The picker's data source switches from the stub to the canonical database. No prop changes required.
-
-### DetachmentRulesSection (army-lists)
-
-**Current state:** Likely reads from stubs or `synced_enhancements` for enhancement display.
-
-**After v0.4.7:** Reads from `udb_detachment_abilities` and `udb_enhancements` for the selected detachment. New queries: `getUdbDetachmentAbilities(detachmentId)`, `getUdbEnhancements(detachmentId, factionId)`.
-
-### StratagemCard + RulesHubPage (rules-hub)
-
-**Current state:** `RwStratagem` type consumed from old rules.db sync path. After rules.db was eliminated, this is likely a stub.
-
-**After v0.4.7:** New query `getUdbStratagemsByFaction(factionId)` and `getUdbStratagemsByDetachment(detachmentId)`. Component type changes from `RwStratagem` to `UdbStratagem` (new type in `src/db/queries/unitDatabase.ts`). Field names are identical by design (reuse existing RwStratagem field names in the new types).
-
-### GameDayPage
-
-**Current state:** Uses `phase`-grouped stratagems for in-game reference; reads from stubs.
-
-**After v0.4.7:** Reads from `udb_stratagems` filtered by faction + selected detachment. The `phase` field on `udb_stratagems` enables the existing phase-grouping logic unchanged.
-
-### LoadoutBuilderSheet / smart list builder (army-lists)
-
-**Current state:** Enhancement picker reads from `synced_enhancements` via `getEnhancementsByFaction()` in `bsdataExtended.ts`.
-
-**After v0.4.7:** Switch to `getUdbEnhancementsByFaction(factionId)` reading from `udb_enhancements`. The stored `army_list_enhancements` rows (TEXT-copy pattern) are unaffected. The `enhancement_points` written at selection time comes from `udb_enhancements.points`.
+- **C0 (new migration) re-triggers the A1 gate** — adding migration 048 means db-helpers.ts, lib.rs, and a version bump must all move together; the A gate exists precisely to catch a miss here. The milestone proving its own value.
+- **B3 (WeaponTable dedupe) → C1 (comparison)** — comparison renders multiple weapon tables; build on the single canonical component.
+- **B5 (decompose) ↔ C0/C2 (leader repoint)** — both touch ArmyListDetailPage's unit-table rendering and the leader-target data shape; do the repoint before/with extraction so the extracted table is written once.
+- **B5 vs the in-flight `fix/update-breaks-app-launch` branch** — ArmyListDetailPage is dirty there; sequence B5 after that merge.
+- **B1 (freshness removal) ↔ B5** — `freshness` is a prop on ArmyListSummaryBar and a memo in ArmyListDetailPage; removing it simplifies the extraction.
 
 ---
 
-## New vs Modified: Complete File Inventory
+## Anti-patterns to avoid (codebase-specific)
 
-### New Files
-
-| File | Purpose | Notes |
-|------|---------|-------|
-| `scripts/download-wahapedia.ts` | Auto-download all required CSVs from wahapedia.ru | Runs before build pipeline |
-| `src-tauri/migrations/042_udb_game_rules.sql` | Creates udb_detachments, udb_stratagems, udb_detachment_abilities, udb_enhancements | DDL-only; no INSERTs |
-
-### Modified Files
-
-| File | Change | Impact |
-|------|--------|--------|
-| `scripts/build-unit-db.ts` | Remove BSData steps 8/8b/8c; add steps 8–12 (Wahapedia-only); add new entity arrays to output | Major rewrite of steps 8+ |
-| `scripts/lib/types.ts` | Add `UdbDetachmentRow`, `UdbStratagemRow`, `UdbDetachmentAbilityRow`, `UdbEnhancementRow`; extend `UnitDatabaseJson`; extend `TranslationsFrOverlay` | Additive only |
-| `src-tauri/src/lib.rs` | Extend `UnitDatabasePayload`, `UdbImportResult`; add 4 new tables to DELETE loop; add 4 new INSERT blocks; update udb_meta insert | Additive; same pattern as existing |
-| `src/db/queries/unitDatabase.ts` | Add query functions for new entities: `getUdbDetachmentsByFaction()`, `getUdbStratagemsByFaction()`, `getUdbStratagemsByDetachment()`, `getUdbDetachmentAbilities()`, `getUdbEnhancements()` | Additive; new functions only |
-| `src/hooks/useUnitDatabase.ts` | Add React Query hooks wrapping new query functions | Additive |
-| `src/features/army-lists/DetachmentPicker.tsx` | Remove stub; wire to `useUdbDetachmentsByFaction()` | Remove inline stub hook |
-| `src/features/army-lists/DetachmentRulesSection.tsx` | Wire to udb_detachment_abilities and udb_enhancements | Data source change |
-| `src/features/rules-hub/StratagemCard.tsx` | Change prop type from `RwStratagem` to `UdbStratagem` (field names identical) | Minimal; type rename |
-| `src/features/rules-hub/DetachmentCard.tsx` | Change data source from stub to udb_detachments | Data source change |
-| `src/features/game-day/GameDayStratagemCard.tsx` | Change data source to udb_stratagems | Data source change |
-| `src/db/queries/bsdataExtended.ts` | Deprecate `getEnhancementsByFaction()` — keep table/query but mark deprecated; army list builder switches to udb_enhancements | Backward-compat kept |
-| `scripts/data/translations_fr.json` | Add new top-level sections for detachments/stratagems/enhancements | Additive |
-
-### Not Modified
-
-| File | Why Unchanged |
-|------|---------------|
-| `src-tauri/migrations/001–041_*.sql` | Existing migrations never edited; only add 042 |
-| `src/db/queries/armyLists.ts` | army_list_enhancements uses TEXT copy — no change needed |
-| `scripts/lib/factionMap.ts` | Sub-faction mapping still needed for sub_faction column derivation |
-| `scripts/data/aliases.json` | Kept (alias system may still help if sub-faction derivation needs it); BSData-specific logic removed from build-unit-db.ts but aliases file preserved |
-| `src/features/army-lists/UnitPickerDialog.tsx` | Sub-faction filter logic unchanged |
-| Collection/Kanban/Dashboard pages | No data contract changes for these features |
+| Anti-pattern | Why bad here | Instead |
+|--------------|--------------|---------|
+| Seeding data in a migration | Documented boot-loop incident; migrations are DDL-only | Ship data in unit_database.json, import via Rust |
+| Hardcoding `EXPECTED_SCHEMA_VERSION` as primary truth | A second thing to forget to bump | Derive from migration file count; assert representations agree |
+| Name-matching leaders (current) | Empty table + punctuation/sub-faction fragility (same class as the 046 fix) | Join by `udb_unit_id` (already on army-list rows) |
+| Dropping the `factions` table in the "merge" | Holds theming/lore + is the FK target for `units` | UI-only: relocate FactionSheet, remove the route |
+| Per-row hooks for owned-count or leader-targets | N+1 queries against virtual-scrolled lists | Page-level `useMemo` Map (established pattern) |
+| Decomposing ArmyListDetailPage with behavior changes | File is dirty on a fix branch; conflict + regression risk | Mechanical block-moves only, after the fix branch lands |
 
 ---
 
-## Build Order for v0.4.7
+## Open questions / verify-at-build-time
 
-Dependencies drive this sequence strictly:
-
-```
-Phase 1: Wahapedia Pipeline Core (no UI)
-  - download-wahapedia.ts script
-  - Remove BSData steps from build-unit-db.ts
-  - Parse Datasheets_models_cost.csv for points (100% coverage)
-  - Unit deduplication (Legends vs current)
-  - Rebuild + verify coverage (target: ~100%)
-  GATE: pnpm build:udb runs clean, coverage >= 95%
-
-Phase 2: New Entity Parsing + Schema (no UI)
-  - Migration 042_udb_game_rules.sql (4 new tables)
-  - Add UdbDetachmentRow/etc. types to scripts/lib/types.ts
-  - Parse Detachments.csv, Stratagems.csv, Detachment_abilities.csv, Enhancements.csv
-  - Extend UnitDatabaseJson + French overlay structure
-  - Extend Rust UnitDatabasePayload + UdbImportResult
-  - Extend DELETE/INSERT loops in import_unit_database_inner
-  GATE: pnpm build:udb generates JSON with detachments/stratagems/enhancements
-        App starts, migration 042 runs, import succeeds, udb_detachments populated
-
-Phase 3: Query Layer + Hooks (no UI)
-  - New query functions in unitDatabase.ts
-  - New React Query hooks in useUnitDatabase.ts
-  GATE: TypeScript compiles clean; unit tests pass
-
-Phase 4: UI Wiring
-  - DetachmentPicker: remove stub, wire to useUdbDetachmentsByFaction
-  - DetachmentRulesSection: wire to udb_detachment_abilities + udb_enhancements
-  - RulesHubPage stratagems tab: wire to udb_stratagems
-  - GameDayPage: wire to udb_stratagems for phase-grouped cards
-  - LoadoutBuilderSheet: switch enhancement source from synced_enhancements to udb_enhancements
-  GATE: All existing UI tests pass; manual smoke test of each surface
-
-Phase 5: Cleanup
-  - Remove BSData dependency from package.json scripts (keep @xmldom/xmldom if still needed for other things, otherwise remove)
-  - Mark synced_enhancements as deprecated in code comments
-  - Verify bsdataExtended.ts functions still compile (not deleted — backward compat)
-  GATE: pnpm build clean, all tests pass
-```
-
-Phase 1 is the critical path — it must complete before Phase 2, which must complete before Phase 3, which must complete before Phase 4. Phase 5 is independent after Phase 4.
-
-Phase 1 and Phase 2 can be developed in separate branches and merged in order, because Phase 2 only adds new arrays to the JSON that the current Rust importer ignores via `#[serde(default)]`.
-
----
-
-## Key Architectural Decisions
-
-| Decision | Rationale |
-|----------|-----------|
-| New `udb_detachments` table (not reusing army_lists.detachment_name) | army_lists stores a TEXT copy for display after detachment changes; the canonical table is needed for FK-based stratagem/ability/enhancement lookup |
-| `detachment_id` nullable on stratagems/abilities/enhancements | Some stratagems are faction-universal (no detachment restriction); nullable FK is correct |
-| Reuse Wahapedia string IDs for all new udb_* entities | Existing `rules_favorites_notes.rule_id` values carry over without migration; same pattern as udb_units |
-| Keep `synced_enhancements` table (not drop) | army_list_enhancements references enhancement data by TEXT name; dropping the table is safe but unnecessary risk during this milestone |
-| Do NOT add stratagems to udb_search FTS5 | udb_search is unit-scoped; mixing entity types would break army list picker semantics. Separate search handled at the UI layer (client-side filter in RulesHubPage already) |
-| `#[serde(default)]` on new Rust payload arrays | Backward compat: old JSON without these arrays produces zero rows, not a parse error |
-| DDL-only migration 042 | Consistent with migration 038; prevents boot-loop incident recurrence (documented anti-pattern) |
-
----
-
-## Pitfall Pre-Emptions
-
-**Pitfall: Wahapedia CSV may not always have a `detachment_id` column on stratagems/enhancements** — the older `RwStratagem` type has both `detachment` (text) and `detachment_id`. Build a `Map<name, id>` from the detachments parse pass and resolve by name if the ID column is absent.
-
-**Pitfall: Enhancement `id` field may not exist in all CSV exports** — if Enhancements.csv lacks an `id` column, generate a stable synthetic ID as `SHA256(faction_id + ":" + name)` truncated to 12 chars. Use a consistent derivation so re-builds produce the same ID.
-
-**Pitfall: Legends deduplication** — if `Datasheets.csv` doesn't have an explicit `is_legends` flag, filter by `source_id`: Legends entries have a specific Wahapedia source. Audit against current SM datasheets to confirm the correct filter predicate before generalizing across all factions.
-
-**Pitfall: `army_list_enhancements.enhancement_points` out of sync after udb migration** — existing army list rows carry a snapshot of points at selection time (TEXT copy pattern). These are not updated when the udb_enhancements source changes. This is intentional and acceptable (same as detachment_name snapshots). The UI already shows stale-data warnings via StaleDataBanner.
-
-**Pitfall: `rules_favorites_notes` rule_type CHECK constraint** — CHECK is `IN ('stratagem', 'detachment_ability', 'shared_ability')`. New entity types (detachment, enhancement) are NOT in this list. If annotations on detachments or enhancements are needed, the migration 042 must also ALTER the CHECK constraint. Evaluate whether annotations on these entity types are in scope before shipping.
-
----
+1. **`Datasheets_leader.csv` exact headers** — confirm `leader_id`/`attached_id` column names against the live download before finalizing the build-script parse (MEDIUM confidence on names).
+2. **Where FactionSheet relocates** — Settings sub-area vs Unit Database inline. A product call; both low-risk. (Recommend Settings.)
+3. **Dashboard goals derivation** — quick audit needed: did any goal-progress query reference rules.db before it was eliminated? Likely not (goals derive from painting_sessions), but verify before assuming C4 is trivial.
+4. **`~/` artifact in git root** — a stray path is present; ensure the migration-count regex ignores non-migration files (anchored to `^\d{3}_`, it will).
 
 ## Sources
 
-- `scripts/build-unit-db.ts` — full pipeline orchestrator (direct inspection)
-- `scripts/lib/types.ts` — all pipeline type definitions (direct inspection)
-- `scripts/lib/parseCsv.ts` — Wahapedia pipe-delimited CSV parser (direct inspection)
-- `src-tauri/src/lib.rs` — Rust import command, UnitDatabasePayload, UdbImportResult (direct inspection)
-- `src-tauri/migrations/038_udb_schema.sql` — existing udb_* table definitions (direct inspection)
-- `src-tauri/migrations/041_udb_sub_faction_fr.sql` — sub_faction + _fr column additions (direct inspection)
-- `src-tauri/migrations/030_bsdata_extended.sql` — synced_enhancements table (direct inspection)
-- `src-tauri/migrations/031_army_list_v3.sql` — army_list_enhancements TEXT-copy design (direct inspection)
-- `src-tauri/migrations/019_rules_favorites_notes.sql` — rule_type CHECK constraint (direct inspection)
-- `src/types/datasheet.ts` — RwStratagem, RwDetachment, RwDetachmentAbility field names (direct inspection)
-- `src/db/queries/unitDatabase.ts` — existing query layer patterns (direct inspection)
-- `src/db/queries/bsdataExtended.ts` — synced_enhancements query and data model (direct inspection)
-- `src/features/army-lists/DetachmentPicker.tsx` — existing stub pattern (direct inspection)
-- `.planning/STATE.md` — confirmed Wahapedia CSV availability, duplicate unit context (direct inspection)
-
----
-*Architecture research for: HobbyForge v0.4.7 Wahapedia Pipeline & Full Data Import*
-*Researched: 2026-06-04*
+- Direct reads (HIGH): `scripts/check-version.mjs`, `scripts/build-unit-db.ts`, `scripts/download-wahapedia.ts`, `src/lib/syncFreshness.ts`, `src/hooks/useLeaderTargets.ts`, `src/db/queries/bsdataExtended.ts`, `src/db/queries/armyLists.ts`, `src/features/army-lists/ArmyListDetailPage.tsx`, `src/features/army-lists/LeaderAttachmentSheet.tsx`, `src/features/factions/FactionsPage.tsx`, `src-tauri/src/lib.rs` (import command + migration registration), `src-tauri/migrations/038_udb_schema.sql`, `046_backfill_faction_udb_normalized.sql`, `tests/data-layer/migration-parity.test.ts`, `tests/data-layer/db-helpers.ts`, `.github/workflows/release.yml`, `.planning/PROJECT.md`.

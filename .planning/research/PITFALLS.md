@@ -1,291 +1,192 @@
-# Domain Pitfalls: v0.4.7 Wahapedia Pipeline Migration
+# Domain Pitfalls
 
-**Domain:** Dev-side build pipeline migration (BSData+Wahapedia to Wahapedia-only), new entity types (stratagems/enhancements/detachments), auto-download, FK preservation
-**Researched:** 2026-06-04
-**Based on:** Direct codebase analysis of `scripts/build-unit-db.ts`, `scripts/lib/*.ts`, `src-tauri/src/lib.rs`, `src-tauri/migrations/038-041`, and `scripts/data/` CSV samples
+**Domain:** Tauri 2 + React 19 + SQLite local-first desktop app — shipping v0.6.0 "Bulletproof & Honest"
+**Researched:** 2026-06-15
+**Confidence:** HIGH (codebase-grounded — root cause already diagnosed in `update-breaks-app-launch.md`, FK/config/CI state verified directly against the tree)
+
+> Scope note: these are pitfalls specific to ADDING the v0.6.0 work to THIS system, not generic Tauri advice. Each is mapped to a theme (A Release Trust / B Honesty & De-cruft / C Player Depth / D Data Quality) and the phase that must own it. Theme A gates everything: do not ship B/C/D over an unverified update path.
 
 ---
 
 ## Critical Pitfalls
 
-These mistakes cause silent data loss, FK breakage, or incorrect points for every user.
+Mistakes that cause rewrites, data loss, or the exact "update breaks launch" recurrence v0.6.0 exists to kill.
 
----
-
-### Pitfall C-1: Legends units silently win the deduplication race
-
-**What goes wrong:** `Datasheets.csv` contains both current-edition units and Legends units with the same name (e.g., "Land Raider Crusader" appears for SM current and SM Legends). The current pipeline builds `unitByNameFaction` as a `Map<name:faction_id, UdbUnitRow>`, so whichever row is parsed last wins. If Legends rows appear after current rows in the CSV (which they sometimes do — they share the same faction_id), Legends points/stats silently replace the current ones.
-
-**Why it happens:** The CSV `legend` column exists (visible in `Datasheets.csv` header: `id|name|faction_id|source_id|legend|...`) but the build pipeline ignores it entirely. It is never read, never filtered.
-
-**Consequences:**
-- Wrong points for affected units in army lists
-- Stale or removed abilities/keywords showing in PlaybookTab
-- Silent — no warning emitted, coverage % unchanged, content hash changes but nobody checks why
-
-**Prevention:** Filter out Legends rows at parse time in `build-unit-db.ts` step 3. The field is named `legend` and is a non-empty string (the legends lore text) for Legends units, versus empty for current units. Add a build-step log: "Filtered N Legends datasheets." Verify the exact sentinel before relying on it — inspect a known Legends unit row to confirm.
-
-**Detection warning signs:** Points for well-known units change between builds even when no GW update happened. Coverage % is stable but army list points diverge from official sources.
-
-**Phase:** Must be addressed in the deduplication phase (before points import phase).
-
----
-
-### Pitfall C-2: udb_unit_id FKs on collection units become NULL after re-import when Wahapedia reassigns IDs
-
-**What goes wrong:** The `Datasheets.csv` ID field (e.g., `000000882`) is a Wahapedia-internal integer. Wahapedia has historically reassigned these IDs when units are restructured (e.g., a datasheet split into two). If the ID for "Intercessor Squad" changes from `000000100` to `000000250`, the re-import inserts the new row under the new ID, the old row is DELETEd, and `units.udb_unit_id = '000000100'` becomes NULL (ON DELETE SET NULL fires). The user loses their collection-to-datasheet links silently.
-
-**Why it happens:** Migration 039 backfills by name match but subsequent pipeline runs (when the developer runs `build:udb` to update) DELETE and re-INSERT all udb_units. ON DELETE SET NULL fires for any ID that disappears, even if a unit with the same name is re-inserted under a new ID.
-
-**Consequences:**
-- Collection units lose their database link — FK-based points resolution stops working
-- Ownership/readiness badges disappear from database browser
-- No error shown to user; units simply show "no points" and "not linked"
-
-**Prevention:** The Rust import command (`import_unit_database_inner`) should run a re-link pass after DELETE+INSERT: `UPDATE units SET udb_unit_id = (SELECT id FROM udb_units WHERE LOWER(name) = LOWER(units.name) AND ...) WHERE udb_unit_id IS NULL`. This already exists as a one-time backfill in migration 039 — replicate that exact logic in the import transaction, inside the same BEGIN/COMMIT block. The build pipeline should also log units whose Wahapedia ID changed between builds.
-
-**Detection warning signs:** After running `build:udb` with refreshed CSV data, the Data Health page shows increased "unlinked collection units." Running `update-unit-database.ts` diff shows `removedUnits` count that matches `newUnits` count with the same names — that is the signature of ID reassignment.
-
-**Phase:** Must be addressed in the points import phase (same phase that removes BSData dependency), as this is the first time a Wahapedia-only re-import replaces production IDs.
-
----
-
-### Pitfall C-3: Datasheets_models_cost.csv does not yet exist in scripts/data/ — a truncated or missing download causes silent 0-coverage
-
-**What goes wrong:** The milestone relies on `Datasheets_models_cost.csv` for points. This file does not currently exist in `scripts/data/`. If the auto-download is partial (network interrupted, file truncated), the build script will either fail loudly (good) or parse a partial file and emit 0 points for many units. The `parseWahapediaCsv` function returns `[]` for any file with fewer than 2 lines — no error thrown.
-
-**Why it happens:** Auto-download scripts typically do not validate file integrity. A 0-byte or header-only CSV parses as 0 data rows with no exception.
-
-**Consequences:**
-- Coverage drops toward 0% if the cost CSV is malformed
-- The MIN_COVERAGE_PCT gate (currently 58%) would catch a total failure — but a partial file that parses 200 rows instead of 2000 rows would not trigger the gate
-
+### Pitfall 1: The CRLF/LF checksum drift recurs on the NEXT new migration
+**Theme/Phase:** A — version/migration-parity gate + CI line-ending guard
+**What goes wrong:** `udb_leader_targets` ships as `048_*.sql` (047 is already wargear). If it is authored/committed on a machine where `core.autocrlf=true` still bites, or via an editor that writes CRLF, that one file embeds CRLF bytes via `include_str!` while the others are LF. The installed base (DBs holding LF-era checksums from the fixed v0.6.0 release) then hits `MigrateError::VersionMismatch` on the new file → silent no-window panic — the *exact* bug just fixed, reintroduced by a single file.
+**Why it happens:** `.gitattributes` (`*.sql eol=lf`) is now in place, but it only governs files that pass through git's smudge filter cleanly. A file added on a dirty checkout, or pasted with CRLF, can still land with `\r`. Nothing fails the build today.
+**Consequences:** Every user's app fails to launch after the v0.6.0 update; manual reinstall required; the milestone's headline promise is broken on arrival.
 **Prevention:**
-1. After downloading each CSV, validate row count >= expected minimum (e.g., Datasheets_models_cost.csv should have >= 500 rows for 40k 10th edition).
-2. Make the download script atomic: download to a `.tmp` file, validate row count, then rename to final path. Never write a partial file to the canonical location.
-3. Do not lower the MIN_COVERAGE_PCT threshold during the migration — raise it. Wahapedia points should push coverage to 95%+.
+- CI step (PR-trigger, blocking): assert zero `\r` in `src-tauri/migrations/*.sql`. `scripts/check-migrations.mjs` already exists — extend it to a hard `grep -rl $'\r' src-tauri/migrations && exit 1`.
+- Keep the hardened `preflight_migration_repair` as the safety net for the existing corrupted base — but treat it as belt-and-suspenders, not the primary defense.
+- Add the new migration on a clean checkout; run `git ls-files --eol src-tauri/migrations/` and confirm `w/lf` for the new file before commit.
+**Detection:** `check-migrations.mjs` reports the new migration's stored checksum matches CRLF content but not LF (or vice versa) against a real `%APPDATA%` DB; `preflight.log` records "repairing N version(s)" where N jumps after a release.
 
-**Detection warning signs:** Coverage drops sharply between builds. Build output shows "0 points tier entries" for the new cost CSV source.
+### Pitfall 2: CI publishes a broken release because the tag-trigger has no test gate
+**Theme/Phase:** A — CI test gate, must precede everything
+**What goes wrong:** `.github/workflows/release.yml` triggers ONLY on `push: tags: v*` and runs `tauri-action` directly — no `pnpm test`, no `cargo test`, no version-parity check. A tag on a red commit builds, signs, and publishes a broken installer + `latest.json`. The updater then serves it to every install.
+**Why it happens:** The release workflow predates the milestone; it was written to ship, not to gate. There is currently NO PR-trigger CI at all (`.github/workflows/` contains only `release.yml`).
+**Consequences:** A broken build reaches the updater endpoint. Because the updater applies in-place over `%APPDATA%`, a bad migration/checksum bricks launch with no easy rollback (the signed artifact is already public).
+**Prevention:**
+- Add a separate `ci.yml` on `pull_request` + `push: branches` running `pnpm test`, `cargo test --manifest-path src-tauri/Cargo.toml`, `pnpm build`, `pnpm check:version`, and the migration-parity + CRLF checks. This is the gate.
+- In `release.yml`, run the same test/build/parity steps as a job that the `tauri-action` job `needs:` — so a tag on red code fails BEFORE any artifact is built or the GitHub Release is created. Order matters: gate job → build/publish job.
+- Pin the Rust toolchain (`dtolnay/rust-toolchain@stable` floats; pin to the version in your local `rustc --version` via a `toolchain:` input or `rust-toolchain.toml`) so CI green ≠ local red from a compiler delta.
+**Detection:** A release exists for a commit where `pnpm test` was never run; `git log` of the tagged SHA shows failing tests reproduced locally.
 
-**Phase:** Auto-download phase. Validation must be in place before the points import phase.
+### Pitfall 3: The migration-parity test is already broken and will re-break on every migration
+**Theme/Phase:** A — fix db-helpers 046→047/048, then make parity self-updating
+**What goes wrong:** `tests/data-layer/db-helpers.ts` `HOBBYFORGE_MIGRATIONS` array stops at `046` (comment still says "// 46"), but `src-tauri/migrations/` and `lib.rs` both have 47. The `migration-parity.test.ts` `D-06` test (`Migration {` count === `HOBBYFORGE_MIGRATION_COUNT`) is RED right now. Adding `udb_leader_targets` makes it 48 vs a hand-maintained 46 — the gap widens with every schema change.
+**Why it happens:** The migration list is duplicated in three places (filesystem, `lib.rs`, `db-helpers.ts`) and the test asserts they match but the helper is updated by hand. The wargear feature added `047` and nobody updated the helper.
+**Consequences:** The test suite is red, so a CI test gate (Pitfall 2) would block ALL releases until fixed — or worse, someone disables the test. The wargear schema (`047`) is never exercised by the data-layer suite, so a regression there ships silently.
+**Prevention:**
+- First A-phase task: add `047` (and the new `048 udb_leader_targets`) to `HOBBYFORGE_MIGRATIONS`, fix the `// 46` comment.
+- Then eliminate the hand-maintenance: have `db-helpers.ts` derive the list by `readdirSync(migrationsDir).filter(f => f.endsWith('.sql')).sort()` instead of a literal array, so it can never drift. Keep the explicit count assertion against `lib.rs` `Migration {` matches as the parity check.
+- Add an assertion that the directory count === `lib.rs` count === `EXPECTED_SCHEMA_VERSION` in ONE test, so all three move together.
+**Detection:** `pnpm test tests/data-layer/migration-parity.test.ts` fails with `expected 47 to be 46`; `migration-parity` failure already noted as "PRE-EXISTING" in `update-breaks-app-launch.md`.
 
----
+### Pitfall 4: Refactoring the 793-line ArmyListDetailPage on the dirty reliability branch
+**Theme/Phase:** B — decompose ArmyListDetailPage; sequencing relative to A
+**What goes wrong:** `fix/update-breaks-app-launch` already has `ArmyListDetailPage.tsx` modified (per git status), alongside the migration files and `lib.rs` reliability fix. Starting a large decomposition on top of these uncommitted/unmerged changes risks: (a) the reliability fix never landing cleanly because it is entangled with a 793→N-file refactor; (b) a merge conflict storm; (c) the comparison view (Theme C) and Factions merge (Theme B) all touching the same army-list surfaces simultaneously.
+**Why it happens:** The branch mixes a must-ship hotfix with speculative cleanup. `ArmyListDetailPage` is also a `freshness` consumer AND a `Factions`-referencing file AND a `WeaponTable` consumer — it sits at the intersection of three Theme-B cleanups.
+**Consequences:** The reliability fix (the milestone's reason to exist) is held hostage by refactor churn; a bad rebase silently drops the `lib.rs` hardening or the `.gitattributes` renormalize.
+**Prevention:**
+- LAND THEME A FIRST as its own merge: `.gitattributes` + `lib.rs` preflight + EXPECTED_SCHEMA_VERSION bump + CI gate, verified by a real NSIS update, merged to master BEFORE any decomposition begins.
+- Do the `ArmyListDetailPage` decomposition as a behavior-preserving refactor with the orchestrator + sub-component pattern already proven (PlaybookTab, UnitSheet decompositions in Key Decisions) — extract, don't rewrite.
+- Remove `freshness`, dedupe `WeaponTable`, and decompose in separate commits/PRs so each is independently revertable.
+**Detection:** `git status` shows migrations + `lib.rs` + `ArmyListDetailPage` + 7 weapon-table files all dirty at once; rebase conflicts in `lib.rs`.
 
-### Pitfall C-4: The FTS5 index udb_search is not updated when new entity tables are added
-
-**What goes wrong:** The Rust import command (`import_unit_database_inner`) currently rebuilds `udb_search` by joining `udb_units`, `udb_factions`, and `udb_unit_keywords`. When new tables (stratagems, enhancements, detachments) are added, their text content is NOT included in the FTS5 index unless the rebuild query is explicitly updated. Searches for stratagem names or enhancement names in the Rules Hub will return no results.
-
-**Why it happens:** The FTS5 rebuild query is hardcoded in `lib.rs` and only covers unit-side tables. The struct `UnitDatabasePayload` uses `#[serde(default)]` so unknown JSON fields are silently ignored — new entity arrays in the JSON won't cause a parse error, they will simply be no-ops if the INSERT loops are not added.
-
-**Consequences:**
-- New entity types are imported but not searchable
-- Rules Hub search returns incomplete results
-- No error — silent omission
-
-**Prevention:** When adding new entity types to the JSON and Rust structs, update the FTS5 rebuild query in the same PR. Consider a separate `udb_rules_search` FTS5 virtual table for stratagems/enhancements to avoid mixing unit and rule search results and to allow independent filtering.
-
-**Phase:** Schema expansion phase (when new tables are added). The FTS rebuild is in the same `lib.rs` file as the import command.
-
----
-
-### Pitfall C-5: rules_favorites_notes annotations use entity IDs — new entity IDs must match what existing annotations stored
-
-**What goes wrong:** Migration 019 creates `rules_favorites_notes(entity_id TEXT, entity_type TEXT)` where `entity_id` reuses Wahapedia string IDs. If stratagems/enhancements in the new canonical DB use different IDs from what the old rules.db sync pipeline stored in hobbyforge.db, existing user annotations (favorites, notes, Game Day reminders) are orphaned.
-
-**Why it happens:** The old rules.db stratagems had their own ID scheme from the CSV sync. The new canonical DB stratagems will use Wahapedia CSV IDs. If those IDs differ from what was previously stored in `rules_favorites_notes`, existing annotations will not join correctly.
-
-**Consequences:**
-- User loses all stratagem favorites and Game Day reminders accumulated before v0.4.7
-- No error — IDs simply do not match, JOIN returns NULL
-
-**Prevention:** Before locking the new entity IDs, query `rules_favorites_notes` for `entity_type IN ('stratagem', 'enhancement', 'detachment_ability')` and document what ID format those rows use. Then either use the same IDs, or write a one-time migration that maps old IDs to new ones. The Wahapedia CSV `id` field for Stratagems.csv should be inspected against any stored values before finalizing the schema.
-
-**Phase:** Schema expansion phase, before any UI wiring. Audit existing `rules_favorites_notes` data first.
+### Pitfall 5: Merging the Factions page loses user-owned faction data
+**Theme/Phase:** B — merge Factions into Unit Database
+**What goes wrong:** The user `factions` table is NOT just a label. It is referenced by: `units.faction_id` (`ON DELETE RESTRICT` — units BLOCK faction deletion), `army_lists.faction_id` and `painting_sessions.faction_id` (`ON DELETE SET NULL`), `wishlist.faction_id` (`ON DELETE CASCADE` — deleting a faction DELETES wishlist rows), plus theming via `app_settings.default_faction_id` and `ActiveFactionContext` (`--faction-accent` CSS var) and faction `lore_notes`. "Merge into the canonical Unit Database" must NOT delete the user-faction rows, because `udb_units` (canonical, 1,711 units) is a *separate* concept from user `factions` that own collection units and theming.
+**Why it happens:** The audit framed it as "redundant Factions page," but the *page* being redundant ≠ the *table* being redundant. Removing the route is safe; touching the table is data loss.
+**Consequences:** Cascade-deleting a faction wipes wishlist rows; RESTRICT means you can't delete a faction with units anyway (FK violation toast); clearing `default_faction_id` breaks theming cold-start.
+**Prevention:**
+- Scope the merge to the UI/route layer only: redirect `/factions` to the Unit Database faction picker, fold faction CRUD (rename, lore, accent color) into a section there. Do NOT drop the `factions` table or its FKs.
+- If consolidating canonical (`udb_units` faction) with user `factions`, write a migration that MAPS not DELETES, preserving `default_faction_id`, `lore_notes`, accent, and all three FK relationships. Treat as a zero-data-loss migration (precedent: `recipe_paints` RENAME, udb pivot reusing Wahapedia IDs).
+- Verify post-merge: every existing unit still resolves its faction; theming still loads; wishlist counts unchanged.
+**Detection:** Post-merge, collection units show "Unknown faction"; `default_faction_id` in `app_settings` points to a deleted row; wishlist count dropped.
 
 ---
 
 ## Moderate Pitfalls
 
----
+### Pitfall 6: Removing the freshness type leaves dangling imports across ~12 consumers
+**Theme/Phase:** B — remove fake sync/freshness UI
+**What goes wrong:** `getSyncFreshness` always returns `"fresh"` and `SyncFreshness`/`StaleDataBanner`/`FRESHNESS_DOT_CLASS` are imported by 12 files (verified: `ArmyListDetailPage`, `ArmyListSummaryBar`, `PointsFreshnessBadge`, `StaleDataBanner`, `DataHealthSummaryCard`, `ReadyToPlayCard`, `GameDayPage`, `GameDayReadinessPanel`, `computeUnitWarnings`, `diagnostics.ts`, `backupFreshness.ts`, `syncFreshness.ts`). Deleting `syncFreshness.ts` outright breaks 11 builds; deleting only the banner leaves dead "stale"/"aging" code paths that can never trigger.
+**Why it happens:** It was intentionally stubbed as backward-compat tech debt (logged in Key Decisions: "getSyncFreshness always returns 'fresh'; 12 consumers preserved").
+**Prevention:**
+- Remove top-down, leaf-first: delete the JSX that renders freshness dots/banners in each consumer, THEN delete the now-unused imports, THEN delete `syncFreshness.ts` last. Strict TS (`noUnusedLocals`) will flag every dangling import — lean on `pnpm build` after each file.
+- `computeUnitWarnings.ts` and `backupFreshness.ts` may compute warnings off freshness — verify removing the "stale" branch doesn't silently drop a *legitimate* warning. Backup staleness is REAL; sync staleness is FAKE. Do NOT conflate the two.
+**Detection:** `pnpm build` errors `'SyncFreshness' is declared but never used`; or a "stale" code branch with no reachable trigger.
 
-### Pitfall M-1: Auto-download embedded in the build command makes builds non-reproducible
+### Pitfall 7: The new udb_leader_targets table repoints a name-match UI that may not match by ID
+**Theme/Phase:** C — leader-attachment validation
+**What goes wrong:** Phase-92 leader attachment validation matches by unit *name* (string). The new `udb_leader_targets` (1,918 pairs from `Datasheets_leader.csv`) keys on Wahapedia datasheet IDs. Repointing the existing UI from name-match to ID-match requires that collection units have a populated `udb_unit_id` FK — but that FK is `ON DELETE SET NULL` and may be NULL for manually-added units. Leader validation will silently return "no valid targets" for any unit not linked to the canonical DB.
+**Why it happens:** Two identity systems (user unit name vs canonical Wahapedia ID) coexist; the join only works through `udb_unit_id`.
+**Prevention:**
+- Fall back to name-match when `udb_unit_id` is NULL, so manual units still validate.
+- Import `Datasheets_leader.csv` keyed on the SAME Wahapedia IDs already reused for `udb_units` (precedent: "Reuse Wahapedia string IDs for udb_units"). Confirm both `leader_id` and `attached_id` resolve to existing `udb_units` rows; log orphan pairs.
+- Verify the 1,918 pairs against the actual 1,711-unit set — Legends dedup may have removed units that still appear in the leader CSV (orphan FKs).
+**Detection:** Leader picker shows "no valid attachments" for a unit that historically validated; orphan-pair count > 0 in import log.
 
-**What goes wrong:** If auto-download runs inside `pnpm build:udb`, two developers building from the same commit on different days will produce different `unit_database.json` because Wahapedia updates CSVs when GW releases FAQs or balance dataslates. The content hash in `udb_meta.version` will differ, causing the Rust import to re-import every app launch for one developer while the other stays on old data.
+### Pitfall 8: Comparison view + dashboard goals trigger N+1 queries or hooks-in-loops
+**Theme/Phase:** C — unit comparison view, goals on dashboard
+**What goes wrong:** A side-by-side datasheet comparison naturally invites calling a per-unit hook inside a `.map()` (e.g. `units.map(u => useDatasheet(u.id))`) — a Rules-of-Hooks violation and an N+1 query pattern. Dashboard goals risk the same if each goal card fetches its own progress.
+**Why it happens:** The comparison UI iterates units; the intuitive code calls hooks per item.
+**Prevention:**
+- Use the established batch-enrichment pattern: one hook fetches all compared units' datasheets via a single `WHERE id IN (...)` query, returns a `Map<id, T>`, parent prop-drills to columns (precedent: `useKanbanEnrichment` CTE batch, `useLatestUnitPhotos` called once, "Page-level Map for annotations").
+- If a per-item hook is unavoidable, wrap each item in a sub-component (precedent: "Sub-component pattern for hooks-in-loop — DetachmentAbilityRow"). Never call hooks in a loop in the parent.
+- Dashboard goals: fetch all goal progress in one query at page level (precedent: dashboard photos fetched once, prop-drilled).
+**Detection:** React "rendered more/fewer hooks than expected" error when comparison column count changes; DB query log shows N selects for N compared units.
 
-**Why it happens:** External HTTP sources are not version-pinned. Build reproducibility (BPH-02) depends on committed CSVs in `scripts/data/`.
+### Pitfall 9: React Query stale cache shows wrong data in comparison/goals after a mutation
+**Theme/Phase:** C — comparison view, goals on dashboard
+**What goes wrong:** Game/canonical data hooks use `staleTime: Infinity` + `gcTime: Infinity` (Key Decisions). A comparison view or dashboard goal card reading from these caches won't refetch after a relevant mutation unless the mutation invalidates the exact key. New keys for comparison/goals can drift from the invalidation set.
+**Why it happens:** The cache-invalidation-symmetry rule ("if useCreate invalidates a key, useDelete must too") is enforced by convention, not tooling. A new comparison/goals key is easy to forget.
+**Prevention:**
+- Apply the symmetry rule: every new query key for comparison/goals must be invalidated by every mutation that can change its data. Goals are mutated by painting sessions (precedent: "delete→goal-progress, update→army-lists" symmetry from Phase 35).
+- For canonical-DB comparison (read-only, write-rare), `staleTime: Infinity` is correct — it won't change without a rebuild. The risk is only for goals (user-mutable). Keep canonical and goals on different cache policies.
+**Detection:** Completing a painting session doesn't move the dashboard goal bar until refresh; comparison shows pre-mutation points after an override edit.
 
-**Consequences:**
-- "Deterministic builds" invariant (BPH-02) is broken
-- Two developers see different coverage percentages for the same git SHA
-- CI may pass while local has stale data or vice versa
+### Pitfall 10: Relaunch-after-update never wired, so even a successful update needs a manual restart
+**Theme/Phase:** A — relaunch-after-update UX
+**What goes wrong:** `useAppUpdate.ts` calls `update.downloadAndInstall(...)` and sets status to `"installing"` but NEVER calls `relaunch()`. The NSIS installer replaces the binary, but the running (old) process stays up. The user sees "installing" forever, kills the app, and on next manual launch the new binary runs — which is exactly the "I have to redownload manually" friction the user reported. (Explicitly flagged NOT DONE in `update-breaks-app-launch.md`.)
+**Why it happens:** Left out to avoid scope creep during the hotfix. The `plugin-process` `relaunch()` is already permitted (used by restore-after-restart).
+**Prevention:**
+- After `downloadAndInstall` resolves, call `relaunch()` from `@tauri-apps/plugin-process` (precedent: restore flow already does this). Gate behind a user-confirmed "Restart now" button so an in-progress action isn't lost.
+- This is also the moment to ensure WAL/SHM sidecars are checkpointed before relaunch so the new process doesn't open a half-written DB (precedent: "WAL/SHM sidecar cleanup before swap").
+**Detection:** Update completes, status stuck on "installing"; new version only active after a manual kill + relaunch.
 
-**Prevention:** Auto-download must be a separate, explicitly-invoked script (`pnpm download:wahapedia`) that writes files to `scripts/data/` on demand. The build pipeline (`pnpm build:udb`) reads from committed CSV files and does not trigger a download. Developers run the download step deliberately when they want to refresh data. This preserves BPH-02 exactly as designed.
-
-**Phase:** Auto-download phase. Design the download as an opt-in separate command from the start.
-
----
-
-### Pitfall M-2: BSData alias table becomes invalid noise when BSData is removed
-
-**What goes wrong:** `aliases.json` maps BSData unit names to Wahapedia names (44 entries). When BSData is removed, `allBsdataNames` is empty and all 44 aliases report as "unused" every build. If the validation step ever has a hard-fail mode for unused aliases, it blocks the build.
-
-**Why it happens:** The alias system was designed as a BSData-to-Wahapedia bridge. With Wahapedia-only points, there is no other source to bridge from.
-
-**Consequences:**
-- Noisy build output (44 "unused" aliases)
-- `aliases.json` remains as dead code confusing future developers
-
-**Prevention:** When removing BSData from the pipeline, also remove the alias system from `build-unit-db.ts` in the same PR. Archive `aliases.json` as a historical reference or delete it. The `validateAliases` function and `allBsdataNames` accumulator should be removed. The coverage gate (MIN_COVERAGE_PCT) becomes the sole regression detector.
-
-**Phase:** BSData removal phase. Remove alias infrastructure in the same commit that removes BSData `.cat` parsing.
-
----
-
-### Pitfall M-3: New Wahapedia CSV files have a UTF-8 BOM that the current parser does not strip
-
-**What goes wrong:** Wahapedia CSVs are UTF-8 with BOM (`\xEF\xBB\xBF`). The current `parseCsv.ts` reads with `readFileSync(filepath, "utf-8")` and calls `.trim()` on headers, but `.trim()` does not strip the BOM. The very first header reads as `﻿id` instead of `id`.
-
-**Why it happens:** Node.js `fs.readFileSync` with `'utf-8'` preserves the BOM. JavaScript's `.trim()` strips ASCII whitespace but not the Unicode BOM character.
-
-**Consequences:**
-- For any new CSV where the first column is `id` (Stratagems.csv, Enhancements.csv, Datasheets_models_cost.csv), the ID field returns `undefined` for every row
-- All rows are silently skipped (the pipeline checks `if (!id) continue`)
-- Parses as 0 data rows with no error thrown
-
-**Prevention:** Add BOM stripping to `parseWahapediaCsv` at the top: `const cleaned = rawContent.replace(/^﻿/, "")`. This is a one-line fix. Add a unit test for a BOM-prefixed CSV string before adding any new CSV file types. The existing CSVs may have worked because the first column (`id`) is checked with `row["id"]?.trim()` and the BOM may be partially absorbed — but do not rely on this.
-
-**Detection warning signs:** New CSV parses to 0 rows. First header name starts with a non-printable character when logged.
-
-**Phase:** Must be fixed in `parseCsv.ts` before adding any new CSV file types. This is the first fix in the pipeline phase.
-
----
-
-### Pitfall M-4: Expanding UnitDatabasePayload in Rust requires changes in four places — missing any one is a silent no-op
-
-**What goes wrong:** `UdbImportResult` lists exactly the entity types currently imported: `factions, units, models, weapons, abilities, keywords, points, composition`. When `stratagems`, `enhancements`, and `detachments` are added, the Rust code must be expanded in four places: (1) `UnitDatabasePayload` deserialization struct, (2) `UdbImportResult` count reporting struct, (3) the DELETE list array in `import_unit_database_inner`, (4) the INSERT loop body. Missing any one silently no-ops that entity type.
-
-**Why it happens:** The Rust code is verbose by design. `#[serde(default)]` on `UnitDatabasePayload` means unknown fields are silently ignored — no compile error if the JSON has the array but Rust does not have the loop.
-
-**Consequences:**
-- Entity type silently imported as 0 rows
-- The count in `UdbImportResult` reports 0, which may be misread as "empty source data" rather than "bug"
-
-**Prevention:** Use a 4-point checklist when adding each entity type: (1) add field to `UnitDatabasePayload`, (2) add field to `UdbImportResult`, (3) add table to DELETE list, (4) add INSERT loop. Add a post-import assertion that counts are non-zero. All four changes must be in the same commit.
-
-**Phase:** Rust import expansion phase.
-
----
-
-### Pitfall M-5: New entity tables not added to the DELETE list cause duplicate rows on every re-import
-
-**What goes wrong:** The Rust import runs `DELETE FROM <table>` for each udb_* table with FK checks OFF. If a new table (e.g., `udb_stratagems`) is created in the migration but not added to the DELETE list, old rows from the previous import survive alongside the new rows. Since each import does DELETE-all + INSERT-all, omitting the DELETE step means rows accumulate.
-
-**Why it happens:** The DELETE list is a hardcoded array in `lib.rs`. It is not derived from the schema. New tables must be manually added.
-
-**Consequences:**
-- Duplicate stratagems/enhancements in the database after each re-import
-- PlaybookTab and Game Day show duplicates
-- Only detectable by checking row counts against expected CSV row counts
-
-**Prevention:** Add new entity tables to the DELETE list immediately when creating their schema migration. The DELETE list in `import_unit_database_inner` must be updated in the same PR as the new SQL migration. Consider adding a post-import row count assertion.
-
-**Phase:** Schema migration phase. The DELETE list update is in `lib.rs`, not in the migration file.
-
----
-
-### Pitfall M-6: Datasheets_models_cost.csv may store single-model units as model_count=1 rows, conflicting with the base_points column convention
-
-**What goes wrong:** The existing pipeline stores single-cost units as `base_points` on the `udb_units` row, and multi-tier units as rows in `udb_unit_points`. Wahapedia's cost CSV may store all units uniformly as `(datasheet_id, model_count, points)` — including single-model units with `model_count=1`. If both `base_points` and a `model_count=1` tier row exist, `resolveUnitPoints()` and the army list SQL COALESCE chain must be audited for which takes priority.
-
-**Why it happens:** BSData distinguished single-tier and multi-tier units structurally. The Wahapedia cost CSV likely does not make this distinction.
-
-**Consequences:**
-- If `base_points` takes priority and is stale from a previous BSData build, army lists show old points even after migration
-- If the cost CSV sets `model_count=1` but the code looks at `base_points` first, newly imported Wahapedia points are silently ignored
-
-**Prevention:** When switching to Wahapedia points, explicitly null out `base_points` for all units in the import transaction and rely exclusively on `udb_unit_points` rows. Audit the cost CSV column names before writing the parser — confirm the exact column name for datasheet_id and verify it matches the `id` field from `Datasheets.csv`.
-
-**Phase:** Points import phase. Audit the CSV structure first; then write the parser.
-
----
-
-### Pitfall M-7: army_lists.detachment_name denormalized copy survives — new canonical detachment IDs must be wired without breaking existing display
-
-**What goes wrong:** Migration 031 stores `detachment_name TEXT` as a denormalized copy on `army_lists` (because rules.db was wiped on sync). Now that detachments will be in the canonical DB, if a new `udb_detachment_id` FK is added to `army_lists`, it must use stable IDs. ID reassignment (same as C-2) would break the FK link, leaving the name display correct but the abilities JOIN empty.
-
-**Prevention:** Treat `udb_detachment_id` on `army_lists` the same as `udb_unit_id` on `units`: nullable FK with ON DELETE SET NULL + re-link pass in the import transaction, matching on `detachment_name = udb_detachments.name AND faction_id`. Do not remove the TEXT copy — it remains the display fallback.
-
-**Phase:** Schema expansion phase (when `udb_detachments` table is added).
+### Pitfall 11: Updater config drift silently disables in-place updates
+**Theme/Phase:** A — verify a real in-place NSIS update
+**What goes wrong:** In-place updates break (silently, no error) if any of: `productName`/`identifier` change (would change `%APPDATA%` path → "fresh install" loses data + can't match the installed version), the updater `pubkey` no longer matches `TAURI_SIGNING_PRIVATE_KEY` in CI secrets, the `endpoints` `latest.json` URL 404s, or `createUpdaterArtifacts` is dropped. Current config is correct (`com.hobbyforge.app`, pubkey present, endpoint set) — the pitfall is CHANGING it.
+**Why it happens:** A rename, a key rotation, or an endpoint typo during the CI work. The updater fails *open* (no update offered) — invisible.
+**Prevention:**
+- Treat `identifier`, `productName`, `pubkey`, and `endpoints` as frozen for v0.6.0. If the signing key must rotate, ship a transitional release that trusts both keys.
+- Verify the real path locally: build v0.6.0, build a v0.6.0+1 with one trivial change, host `latest.json` locally (or point at a draft release), install N, let it update to N+1 in-place, confirm launch + `%APPDATA%` data preserved + `preflight.log` shows "repaired successfully" or "already consistent". This is the milestone's must-do verification (still listed as REMAINING / user's step).
+**Detection:** Updater silently never offers an update; or update installs but app launches as a fresh install with empty data (identifier drift).
 
 ---
 
 ## Minor Pitfalls
 
----
+### Pitfall 12: WeaponTable dedup changes rendering across 7 surfaces at once
+**Theme/Phase:** B — dedupe WeaponTable
+**What goes wrong:** Weapon-table rendering is duplicated across 7 files (`ArmyListUnitRow`, `UnitAbilityCard`, `DatasheetPointsTab`, `UdbDatasheetSheet`, `UdbWeaponsTable`, `PlaybookDatasheet`, `WeaponTable`) — most currently dirty on the branch. A single shared component must handle every caller's column set and the bilingual EN/FR `_fr` COALESCE.
+**Prevention:** Extract the shared component with the union of needed props (optional columns); migrate callers one at a time with `pnpm build` between each; snapshot-test one weapon row in EN and FR.
+**Detection:** A weapon profile renders differently in Game Day vs Unit Database after the dedup.
 
-### Pitfall S-1: HTTP auto-download on Windows — use Node.js built-in fetch, not a package
+### Pitfall 13: Persistent frontend diagnostics log grows unbounded / writes on every render
+**Theme/Phase:** A — persistent frontend diagnostics log
+**What goes wrong:** A frontend log file written naively (append on every error/render, no rotation) bloats `%APPDATA%` and can itself become a startup cost. Mirrors the existing `preflight.log` pattern but from JS.
+**Prevention:** Append-only with a size cap / single-file rotation; write through a Rust command (precedent: VACUUM/factory-reset via Rust) or `plugin-fs` with an explicit max size; flush on error, not on render.
+**Detection:** `%APPDATA%\com.hobbyforge.app` log file in the tens of MB; UI jank correlated with logging.
 
-**What goes wrong:** If the download script uses a third-party HTTP library that bundles its own TLS certificate store, Windows certificate validation may behave differently from Linux CI. This is more complex to debug than a standard Node.js fetch call.
+### Pitfall 14: Hook-layer bypass fixes re-introduce N+1 or break cache invalidation
+**Theme/Phase:** B — route 7 hook-layer bypasses through hooks
+**What goes wrong:** The 7 components currently call query functions directly (violating "components only call hooks"). Wrapping them in hooks is correct, but a careless wrap can call the hook in a loop (Pitfall 8) or forget the invalidation key (Pitfall 9).
+**Prevention:** Each bypass → a named React Query hook with its `*_KEY`; ensure mutations elsewhere invalidate it; verify no hook lands inside a `.map()`.
+**Detection:** A bypassed component still shows stale data after a mutation it should react to.
 
-**Prevention:** Use Node.js built-in `fetch` (available in Node 22 which `node --experimental-strip-types` requires). Validate response status code and `Content-Type` before writing to disk.
-
-**Phase:** Auto-download phase.
-
----
-
-### Pitfall S-2: MIN_COVERAGE_PCT must only move up during this migration, never down
-
-**What goes wrong:** The temptation during migration is to lower the threshold temporarily to accommodate the transition period. If it is lowered to e.g. 30% "temporarily," future regressions go undetected and the threshold is never raised.
-
-**Prevention:** Keep MIN_COVERAGE_PCT at 58% while BSData is still present. After Wahapedia points are wired and coverage reaches 90%+, raise the threshold to 85% or 90%, then remove BSData. Never lower the threshold. Wahapedia provides points for all non-Legends current units — 95%+ coverage is achievable and should be the target.
-
-**Phase:** Points import phase.
-
----
-
-### Pitfall S-3: update-unit-database.ts duplicates pipeline logic and will silently miss new entity types
-
-**What goes wrong:** `update-unit-database.ts` contains its own copy of the full parsing pipeline inside `buildUnitDatabase()`. When new CSVs (stratagems, enhancements, detachments) are added to `build-unit-db.ts`, they must also be added to `update-unit-database.ts` — otherwise the diff script produces a "clean" diff even when new entities were added or changed.
-
-**Prevention:** Extract the shared pipeline into `scripts/lib/pipeline.ts` so both scripts call the same function. This refactor should happen before adding new entity types, not after. The `DiffReport` type must also be extended to cover new entity types.
-
-**Phase:** The first phase that adds a new CSV type to the pipeline. Refactor before adding new entity types.
-
----
-
-### Pitfall S-4: FTS5 schema for new entity search requires a design decision upfront
-
-**What goes wrong:** The current `udb_search` is an external-content FTS5 table covering units. If stratagems need to be searchable, the options are: (a) extend `udb_search` with new columns (breaks existing queries that assume the current column layout), or (b) create a separate `udb_rules_search` FTS5 table. Making the wrong choice requires a schema migration to undo.
-
-**Prevention:** Create a separate `udb_rules_search` FTS5 table for stratagems/enhancements/detachments. Keep unit and rule search indices separate to allow independent filtering in the UI and to avoid breaking existing `udb_search` consumers. Design this table in the schema expansion phase migration, not as an afterthought.
-
-**Phase:** Schema expansion phase.
+### Pitfall 15: Faction-audit / French-translation data work re-imports and clobbers user overrides
+**Theme/Phase:** D — audit factions, French translations, FK/orphan validation
+**What goes wrong:** Re-running the build pipeline / re-importing `udb_*` data can wipe manual per-unit overrides if they live in the canonical tables. They don't (Key Decisions: "Overrides in hobbyforge.db, not rules.db" / user data survives re-import via reused Wahapedia IDs) — the pitfall is regressing that during a schema change for translations.
+**Prevention:** Keep `_fr` columns and user overrides on rows keyed by stable Wahapedia IDs; the FK/orphan validation step should be idempotent (`CREATE TABLE IF NOT EXISTS`, guarded `WHERE ... IS NULL` UPDATEs — precedent: 045/046 backfills) so re-running it is safe.
+**Detection:** Manual point/keyword overrides or favorites/notes vanish after a data refresh; orphan-validation migration is non-idempotent (errors on second run).
 
 ---
 
 ## Phase-Specific Warnings
 
-| Phase Topic | Likely Pitfall | Mitigation |
+| Theme / Phase | Likely Pitfall | Mitigation |
 |---|---|---|
-| Auto-download CSVs | M-1 (non-reproducible builds), M-3 (BOM stripping), S-1 (TLS/fetch) | Separate download command; validate row counts; fix BOM in parseCsv.ts first |
-| Legends deduplication | C-1 (Legends win race) | Filter `legend != ""` at build step 3; log filtered count |
-| Points from Datasheets_models_cost.csv | C-3 (malformed file), M-6 (tier vs base_points mapping) | Validate row count post-download; audit CSV columns before coding |
-| Schema expansion (stratagems/enhancements/detachments) | C-4 (FTS5 not updated), C-5 (annotation ID mismatch), M-5 (DELETE list missing), S-4 (FTS5 design) | 4-point checklist per entity type; audit rules_favorites_notes IDs first |
-| BSData removal | M-2 (stale aliases), S-2 (threshold must rise) | Remove alias system in same PR; raise MIN_COVERAGE_PCT |
-| Rust import expansion | M-4 (struct expansion checklist), M-7 (detachment denormalization) | 4-point checklist; add re-link pass for detachment FKs |
-| FK preservation (udb_unit_id) | C-2 (ID reassignment causes NULL FKs) | Add re-link pass after DELETE+INSERT in import transaction |
-| update-unit-database.ts | S-3 (duplicated pipeline logic) | Refactor to shared `scripts/lib/pipeline.ts` before adding new CSV types |
-| Coverage gate | S-2 (threshold direction) | Only raise, never lower MIN_COVERAGE_PCT during migration |
+| **A** CI test gate | #2 broken release published (tag-only trigger, no gate) | PR-trigger `ci.yml` + `needs:`-gated release job; pin Rust toolchain |
+| **A** migration-parity fix | #3 db-helpers stuck at 046; re-breaks every migration | Derive list from `readdirSync`; assert dir==lib.rs==EXPECTED_SCHEMA_VERSION |
+| **A** verify NSIS update | #11 config drift; #1 CRLF recurrence; #10 no relaunch | Freeze identifier/pubkey/endpoint; CRLF CI guard; wire `relaunch()` |
+| **A** diagnostics log | #13 unbounded log / per-render writes | Size-capped append via Rust command |
+| **B** remove freshness | #6 dangling imports across 12 consumers | Leaf-first removal; lean on `noUnusedLocals`; keep real backup-staleness |
+| **B** merge Factions | #5 data loss (RESTRICT/SET NULL/CASCADE FKs + theming) | Route-only merge; map-not-delete migration; preserve default_faction_id |
+| **B** decompose ArmyListDetailPage | #4 refactor on dirty reliability branch | Land Theme A first; extract not rewrite; separate revertable commits |
+| **B** dedupe WeaponTable | #12 7-surface render drift, bilingual COALESCE | Union-prop component; migrate one caller at a time; EN/FR snapshot |
+| **B** hook-layer bypasses | #14 re-introduce N+1 / lost invalidation | Named hook + key per bypass; symmetry rule |
+| **C** leader-attachment validation | #7 ID-vs-name match; orphan pairs | Name-match fallback for NULL udb_unit_id; validate 1,918 pairs vs 1,711 units |
+| **C** comparison view | #8 hooks-in-loop / N+1; #9 stale cache | Batch `IN (...)` query → Map; sub-component if per-item hook needed |
+| **C** goals on dashboard | #8 N+1; #9 session→goal invalidation | One goal-progress query at page level; symmetry with painting-session mutations |
+| **D** faction audit / FR / FK validation | #15 re-import clobbers overrides; non-idempotent validation | Stable Wahapedia-ID keying; idempotent guarded migrations |
 
 ---
 
 ## Sources
 
-- Direct analysis of `scripts/build-unit-db.ts` (build steps 1-10, BSData matching, coverage gate logic)
-- `scripts/lib/parseCsv.ts` (BOM behavior: no stripping present, confirmed by code inspection)
-- `scripts/lib/bsdata.ts` (`matchUnit` 3-pass logic, alias system, FACTION_MAP)
-- `src-tauri/src/lib.rs` (`import_unit_database_inner`: DELETE list, INSERT loops, FTS5 rebuild, FK OFF pattern)
-- `src-tauri/migrations/038_udb_schema.sql` (table definitions, FK structure, FTS5 virtual table)
-- `src-tauri/migrations/039_collection_udb_link.sql` (ON DELETE SET NULL, re-link backfill pattern)
-- `scripts/data/Datasheets.csv` line 1 header inspection: `legend` column confirmed present
-- `.planning/PROJECT.md` Key Decisions table (ID reuse D-02/D-03/D-04, ON DELETE SET NULL pattern, denormalized TEXT copies pattern, BPH-02 deterministic builds)
+- `.planning/debug/update-breaks-app-launch.md` — root cause (CRLF/LF checksum drift → sqlx VersionMismatch panic), applied fix (3 commits), and REMAINING verification step. HIGH.
+- `.planning/debug/app-wont-start.md` — prior unremediated no-window diagnosis (block_on, WebView2 cache); confirms recurring failure mode. HIGH.
+- `tests/data-layer/db-helpers.ts` + `migration-parity.test.ts` — verified `HOBBYFORGE_MIGRATIONS` stops at 046 while tree/lib.rs have 47 (48 with leader table). HIGH.
+- `.github/workflows/release.yml` — verified tag-only trigger, no test/parity gate, floating Rust toolchain. HIGH.
+- `src-tauri/migrations/001_core_schema.sql` + `009_wishlist.sql` — verified faction FK semantics: units RESTRICT, army_lists/sessions SET NULL, wishlist CASCADE. HIGH.
+- `src/lib/syncFreshness.ts` + grep of 12 consumers — verified always-"fresh" stub and consumer list. HIGH.
+- `src/hooks/useAppUpdate.ts` — verified no `relaunch()` after `downloadAndInstall`. HIGH.
+- `src-tauri/tauri.conf.json` — verified `com.hobbyforge.app`, pubkey, endpoint, createUpdaterArtifacts. HIGH.
+- `src/context/ActiveFactionContext.tsx` — verified faction theming via `default_faction_id` + `--faction-accent`. HIGH.
+- `.planning/PROJECT.md` Key Decisions — established patterns (batch enrichment, sub-component hooks-in-loop, cache-invalidation symmetry, zero-data-loss migrations, WAL sidecar cleanup, overrides in hobbyforge.db). HIGH.
+</content>
