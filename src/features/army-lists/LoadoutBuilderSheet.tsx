@@ -3,10 +3,16 @@
  *
  * Dedicated configuration panel for a single army list unit:
  *   Section 1: Model count tier selector (DL-01)
- *   Section 2: Wargear options display (DL-02, read-only)
+ *   Section 2: Datasheet (weapons + abilities) display (DL-02, read-only)
  *
  * Opened as a sibling portal from ArmyListsPage (D-01, Pitfall 5).
  * Never nested inside ArmyListDetailPage portals.
+ *
+ * Wargear/datasheet data is sourced from the canonical unit database
+ * (udb_unit_weapons / udb_unit_abilities) via units.udb_unit_id — the same
+ * FK-based source the tier selector uses (Phase 106). The legacy
+ * synced_loadout_options table is stale (pre-Wahapedia) and was never matched
+ * by the current dataset, which left this section permanently empty.
  */
 import { useMemo } from "react";
 import {
@@ -29,14 +35,12 @@ import {
   useSetSelectedModelCount,
   useClearSelectedModelCount,
 } from "@/hooks/useArmyLists";
-import {
-  useLoadoutOptionsForUnit,
-  useTiersByUdbUnitId,
-} from "@/hooks/useLoadoutOptions";
+import { useTiersByUdbUnitId } from "@/hooks/useLoadoutOptions";
+import { useUdbUnitDetail } from "@/hooks/useUnitDatabase";
+import { PlaybookDatasheet } from "@/features/units/PlaybookDatasheet";
 import { resolveUnitPoints } from "@/lib/resolveUnitPoints";
 import { PointsSourceChip } from "./PointsSourceChip";
 import type { ArmyListUnitRow } from "@/types/armyList";
-import type { SyncedLoadoutOptionRow } from "@/db/queries/bsdataExtended";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -51,20 +55,6 @@ interface LoadoutBuilderSheetProps {
 }
 
 // ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function groupByGroupName(options: SyncedLoadoutOptionRow[]) {
-  const groups = new Map<string, SyncedLoadoutOptionRow[]>();
-  for (const opt of options) {
-    const group = groups.get(opt.group_name) ?? [];
-    group.push(opt);
-    groups.set(opt.group_name, group);
-  }
-  return groups;
-}
-
-// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -72,22 +62,16 @@ export function LoadoutBuilderSheet({
   open,
   unit,
   listId,
-  listFactionId,
   onClose,
 }: LoadoutBuilderSheetProps) {
-  const unitName = unit?.unit_name;
   const udbUnitId = unit?.udb_unit_id ?? undefined;
 
-  // Faction ID as string for BSData-sourced queries (loadout options)
-  const factionIdStr = unit?.faction_id !== null && unit?.faction_id !== undefined
-    ? String(unit.faction_id)
-    : listFactionId !== null && listFactionId !== undefined
-      ? String(listFactionId)
-      : null;
-
-  // Data hooks — tiers use FK-based lookup via udb_unit_id (Phase 106)
+  // Data hooks — both tiers and datasheet use FK-based lookup via udb_unit_id.
+  // Tiers: udb_unit_points (Phase 106). Datasheet/wargear: udb_unit_weapons +
+  // udb_unit_abilities via getUdbUnitDetail. Ghost/planned units (no
+  // udb_unit_id) resolve to no datasheet, handled below.
   const { data: tiers } = useTiersByUdbUnitId(udbUnitId);
-  const { data: wargearOptions } = useLoadoutOptionsForUnit(unitName, factionIdStr);
+  const { data: datasheet } = useUdbUnitDetail(unit?.udb_unit_id ?? null);
   const setModelCount = useSetSelectedModelCount();
   const clearModelCount = useClearSelectedModelCount();
 
@@ -103,11 +87,9 @@ export function LoadoutBuilderSheet({
     });
   }, [unit?.points_override, unit?.tier_points, unit?.udb_base_points, unit?.override_points, unit?.unit_points]);
 
-  // Wargear grouping
-  const wargearGroups = useMemo(
-    () => groupByGroupName(wargearOptions ?? []),
-    [wargearOptions],
-  );
+  const hasDatasheet =
+    (datasheet?.weapons.length ?? 0) > 0 ||
+    (datasheet?.abilities.length ?? 0) > 0;
 
   function handleTierChange(value: string) {
     if (!unit || !listId) return;
@@ -190,38 +172,21 @@ export function LoadoutBuilderSheet({
 
             <Separator />
 
-            {/* Section 2: Wargear Options (DL-02) */}
+            {/* Section 2: Wargear & Datasheet (DL-02) */}
             <div className="flex flex-col gap-3 px-4 py-3">
-              <span className="text-sm font-semibold">Wargear Options</span>
+              <span className="text-sm font-semibold">Wargear &amp; Abilities</span>
 
-              {wargearGroups.size === 0 ? (
+              {unit.udb_unit_id === null ? (
                 <p className="text-sm text-muted-foreground">
-                  No wargear data available
+                  This unit is not linked to the unit database, so no datasheet
+                  is available.
+                </p>
+              ) : !hasDatasheet ? (
+                <p className="text-sm text-muted-foreground">
+                  No datasheet data available for this unit.
                 </p>
               ) : (
-                Array.from(wargearGroups.entries()).map(([groupName, options]) => (
-                  <div key={groupName}>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-                      {groupName}
-                    </p>
-                    <ul className="space-y-1">
-                      {options.map((opt) => (
-                        <li
-                          key={`${opt.group_name}-${opt.option_name}`}
-                          className="flex items-center gap-2 text-sm"
-                        >
-                          {opt.option_name}
-                          {opt.is_default === 1 && (
-                            <Badge variant="secondary">Default</Badge>
-                          )}
-                          {opt.is_exclusive === 1 && (
-                            <Badge variant="outline">Exclusive</Badge>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))
+                <PlaybookDatasheet datasheet={datasheet} />
               )}
             </div>
           </>

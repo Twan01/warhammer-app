@@ -1,7 +1,11 @@
-﻿/**
- * Phase 90 â€” LoadoutBuilderSheet tests (DL-01, DL-02).
+/**
+ * Phase 90 — LoadoutBuilderSheet tests (DL-01, DL-02).
  *
- * Covers tier selection, wargear display, ghost unit badge, and points override warning.
+ * Covers tier selection, datasheet (weapons + abilities) display, ghost unit
+ * badge, points override warning, and the empty/unlinked datasheet states.
+ *
+ * Wargear is sourced from the canonical unit database (useUdbUnitDetail) and
+ * rendered via PlaybookDatasheet — NOT the legacy synced_loadout_options table.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -10,7 +14,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LoadoutBuilderSheet } from "@/features/army-lists/LoadoutBuilderSheet";
 import type { ArmyListUnitRow } from "@/types/armyList";
-import type { SyncedLoadoutOptionRow } from "@/db/queries/bsdataExtended";
+import type { UdbUnitDetail } from "@/db/queries/unitDatabase";
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -35,52 +39,83 @@ const mockTiers = [
   { model_count: 10, points: 180 },
 ];
 
-const mockWargearOptions: SyncedLoadoutOptionRow[] = [
-  {
-    unit_name: "Intercessors",
-    faction_id: "1",
-    group_name: "Ranged Weapons",
-    option_name: "Bolt Rifle",
-    is_default: 1,
-    is_exclusive: 0,
-  },
-  {
-    unit_name: "Intercessors",
-    faction_id: "1",
-    group_name: "Ranged Weapons",
-    option_name: "Stalker Bolt Rifle",
-    is_default: 0,
-    is_exclusive: 1,
-  },
-  {
-    unit_name: "Intercessors",
-    faction_id: "1",
-    group_name: "Melee Weapons",
-    option_name: "Astartes Chainsword",
-    is_default: 1,
-    is_exclusive: 0,
-  },
-];
-
 let currentMockTiers = mockTiers;
-let currentMockWargear: SyncedLoadoutOptionRow[] = mockWargearOptions;
 
 vi.mock("@/hooks/useLoadoutOptions", () => ({
   useTiersByUdbUnitId: () => ({
     data: currentMockTiers,
     isLoading: false,
   }),
-  useLoadoutOptionsForUnit: () => ({
-    data: currentMockWargear,
-    isLoading: false,
-  }),
-  LOADOUT_OPTIONS_KEY: (unitName: string, factionId: string | null) =>
-    ["loadout-options", unitName, factionId] as const,
-  UDB_TIERS_KEY: (udbUnitId: string) =>
-    ["udb-tiers", udbUnitId] as const,
+  UDB_TIERS_KEY: (udbUnitId: string) => ["udb-tiers", udbUnitId] as const,
 }));
 
-// PointsSourceChip uses Tooltip internally â€” mock resolveUnitPoints to keep it simple
+// Canonical datasheet source — drives the Wargear & Abilities section.
+const mockDatasheet: UdbUnitDetail = {
+  id: "000000123",
+  faction_id: "SM",
+  name: "Intercessor Squad",
+  role: "Battleline",
+  base_points: 80,
+  damaged_w: null,
+  damaged_desc: null,
+  models: [],
+  weapons: [
+    {
+      id: 1,
+      unit_id: "000000123",
+      weapon_group: 1,
+      line_order: 1,
+      name: "Bolt rifle",
+      category: "Ranged",
+      range: "24",
+      attacks: "2",
+      skill: "3",
+      strength: "4",
+      ap: "-1",
+      damage: "1",
+      keywords: null,
+    },
+    {
+      id: 2,
+      unit_id: "000000123",
+      weapon_group: 2,
+      line_order: 1,
+      name: "Astartes chainsword",
+      category: "Melee",
+      range: "Melee",
+      attacks: "4",
+      skill: "3",
+      strength: "4",
+      ap: "-1",
+      damage: "1",
+      keywords: null,
+    },
+  ],
+  abilities: [
+    {
+      id: 1,
+      unit_id: "000000123",
+      line_order: 1,
+      name: "Oath of Moment",
+      description: "Faction ability description.",
+      ability_type: "Faction",
+    },
+  ],
+  keywords: [],
+  points: [],
+  composition: [],
+};
+
+let currentMockDatasheet: UdbUnitDetail | null = mockDatasheet;
+
+vi.mock("@/hooks/useUnitDatabase", () => ({
+  useUdbUnitDetail: () => ({
+    data: currentMockDatasheet,
+    isLoading: false,
+  }),
+}));
+
+// PointsSourceChip uses Tooltip internally — mock resolveUnitPoints to keep it simple
 vi.mock("@/lib/resolveUnitPoints", () => ({
   resolveUnitPoints: () => ({ points: 100, source: "base" }),
 }));
@@ -104,7 +139,7 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
     created_at: "2024-01-01",
     unit_name: "Intercessors",
     unit_points: 100,
-    udb_unit_id: null,
+    udb_unit_id: "000000123",
     faction_id: 1,
     unit_category: null, unit_model_count: null,
     status_assembly: 1,
@@ -151,16 +186,15 @@ describe("LoadoutBuilderSheet", () => {
     mockSetModelCount.mockClear();
     mockClearModelCount.mockClear();
     currentMockTiers = mockTiers;
-    currentMockWargear = mockWargearOptions;
+    currentMockDatasheet = mockDatasheet;
   });
 
   // DL-01: Tier selection
   it("renders tier selector with available tiers from synced data", () => {
     renderSheet(makeUnit());
     expect(screen.getByText("Model Count")).toBeInTheDocument();
-    // The select trigger shows "Default" when no tier selected; wargear badges also say "Default"
-    const defaultTexts = screen.getAllByText("Default");
-    expect(defaultTexts.length).toBeGreaterThanOrEqual(1);
+    // The select trigger shows "Default" when no tier selected.
+    expect(screen.getAllByText("Default").length).toBeGreaterThanOrEqual(1);
   });
 
   it("selecting a tier calls useSetSelectedModelCount with correct args", async () => {
@@ -201,33 +235,32 @@ describe("LoadoutBuilderSheet", () => {
     });
   });
 
-  // DL-02: Wargear display
-  it("renders wargear options grouped by group_name", () => {
+  // DL-02: Datasheet (weapons + abilities) display from canonical UDB source
+  it("renders weapons from the canonical datasheet", () => {
     renderSheet(makeUnit());
-    expect(screen.getByText("Ranged Weapons")).toBeInTheDocument();
-    expect(screen.getByText("Melee Weapons")).toBeInTheDocument();
-    expect(screen.getByText("Bolt Rifle")).toBeInTheDocument();
-    expect(screen.getByText("Stalker Bolt Rifle")).toBeInTheDocument();
-    expect(screen.getByText("Astartes Chainsword")).toBeInTheDocument();
+    expect(screen.getByText("Bolt rifle")).toBeInTheDocument();
+    expect(screen.getByText("Astartes chainsword")).toBeInTheDocument();
   });
 
-  it("shows Default badge for is_default=1 options", () => {
+  it("renders datasheet abilities", () => {
     renderSheet(makeUnit());
-    // "Default" badges should appear (for Bolt Rifle and Astartes Chainsword)
-    const defaultBadges = screen.getAllByText("Default");
-    // At least 2 Default badges (one for Bolt Rifle, one for Chainsword) + 1 in Select
-    expect(defaultBadges.length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText("Oath of Moment")).toBeInTheDocument();
   });
 
-  it("shows Exclusive badge for is_exclusive=1 options", () => {
+  it("shows empty datasheet state when the unit has no weapons or abilities", () => {
+    currentMockDatasheet = { ...mockDatasheet, weapons: [], abilities: [] };
     renderSheet(makeUnit());
-    expect(screen.getByText("Exclusive")).toBeInTheDocument();
+    expect(
+      screen.getByText("No datasheet data available for this unit."),
+    ).toBeInTheDocument();
   });
 
-  it("shows empty state when no wargear options", () => {
-    currentMockWargear = [];
-    renderSheet(makeUnit());
-    expect(screen.getByText("No wargear data available")).toBeInTheDocument();
+  it("shows unlinked state when the unit has no udb_unit_id (ghost/planned)", () => {
+    currentMockDatasheet = null;
+    renderSheet(makeUnit({ unit_id: null, ghost_unit_name: "Hellblasters", udb_unit_id: null }));
+    expect(
+      screen.getByText(/not linked to the unit database/),
+    ).toBeInTheDocument();
   });
 
   // DL-10/DL-11: Ghost unit support
