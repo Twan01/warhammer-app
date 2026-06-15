@@ -21,7 +21,9 @@ Shipped through v0.5.0 (125 phases): full hobby command center with collection m
 
 ## Current State
 
-v0.5.2 shipped (2026-06-12). 129 phases complete across 27 milestones. ~300+ TypeScript source files. 44 SQLite migrations (hobbyforge.db). ~2,739 automated tests. 10 Tauri Rust commands.
+v0.5.2 shipped (2026-06-12). 129 phases complete across 27 milestones. ~300+ TypeScript source files. 47 SQLite migrations (hobbyforge.db). ~2,739 automated tests. 10 Tauri Rust commands.
+
+**v0.6.0 Theme A in progress:** Phase 130 (Migration Parity & Release Gate) complete — the data-layer migration list now self-derives from disk (`readdirSync`, fail-loud on misnamed files), closing the previously-RED migration-parity test, and `pnpm check:version` is a single three-leg release gate (package↔tauri version parity, migration file-count === lib.rs `Migration{}` count, and a CR-byte scan over `src-tauri/migrations/*.sql`) wired to run before every build via a `prebuild` hook. Validates REL-03, REL-04, REL-05.
 
 v0.5.2 was a polish-only milestone (no new features, no schema changes) across 4 phases delivering 41 UX requirements in four themes: every user action now has an exit path and every error surface a recovery option (Painting Mode exit/Escape, Recipes error state, returnTo-aware not-found recovery, toast discipline); every page shares one visual language (PageHeader with text-3xl + border-b + subtitle on all pages, standardized section heading hierarchy, normalized p-6/gap-6 spacing, icon-pill empty states, theme-token status dots, dark-zinc scrollbar); every significant action produces feedback ("Deleting…" pending text, Game Day error state, Sheet autoFocus, RuleNoteEditor "Saved" indicator, PlaybookTab tooltip + retry); and navigation between related pages is effortless (Painting Mode returnTo across 5 entry points, Collection→Unit Database "View Datasheet", Rules Hub ⇄ Unit Database cross-links, Game Day sidebar highlight, Battle Log→army list links). Technical cleanup removed ~340 lines of dead ArmyListDetailSheet code, memoized RecipeCard, and extracted the ArmyListDetailPage reducer.
 
@@ -473,4 +475,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-15 — started v0.6.0 Bulletproof & Honest milestone (post-audit)*
+*Last updated: 2026-06-15 — Phase 130 (Migration Parity & Release Gate) complete; REL-03/04/05 validated*
