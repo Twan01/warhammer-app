@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { ArmyList, ArmyListUnitRow, ArmyListEnhancement } from "@/types/armyList";
-import type { UdbUnitDetail, UdbAbility, UdbModel, UdbWeapon } from "@/db/queries/unitDatabase";
+import type { UdbUnitDetail } from "@/db/queries/unitDatabase";
 import type { UdbStratagem, UdbDetachmentAbility } from "@/types/gameData";
 import type { ExportData } from "@/lib/exportArmyList";
 import { assembleRoster } from "@/lib/exportRoster";
