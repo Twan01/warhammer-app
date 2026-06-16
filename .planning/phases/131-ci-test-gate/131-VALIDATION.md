@@ -1,10 +1,11 @@
 ---
 phase: 131
 slug: ci-test-gate
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-15
+validated: 2026-06-16
 ---
 
 # Phase 131 — Validation Strategy
@@ -39,10 +40,10 @@ created: 2026-06-15
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 131-01-* | 01 | 1 | REL-02 | — | Pinned toolchain — no floating compiler | file/structural | `test -f rust-toolchain.toml && grep -q 'channel' rust-toolchain.toml` | ❌ W0 | ⬜ pending |
-| 131-01-* | 01 | 1 | REL-01 | — | CI test job runs full suite on PR | structural (YAML) | `test -f .github/workflows/ci.yml` + parse `on:` includes `pull_request` & `workflow_call` | ❌ W0 | ⬜ pending |
-| 131-02-* | 02 | 2 | REL-02 | T-secrets | Release cannot publish on red; signing secret survives | structural (YAML) | grep release.yml for `needs: test` and `uses: ./.github/workflows/ci.yml` | ❌ W0 | ⬜ pending |
-| 131-02-* | 02 | 2 | REL-01 | — | Merge blocked on red (branch protection) | manual admin | GitHub UI: deliberate-red PR → merge button disabled | n/a | ⬜ pending |
+| 131-01-* | 01 | 1 | REL-02 | — | Pinned toolchain — no floating compiler | file/structural | `test -f rust-toolchain.toml && grep -q 'channel' rust-toolchain.toml` | ✅ | ✅ green |
+| 131-01-* | 01 | 1 | REL-01 | — | CI test job runs full suite on PR | structural (YAML) | `test -f .github/workflows/ci.yml` + parse `on:` includes `pull_request` & `workflow_call` | ✅ | ✅ green |
+| 131-02-* | 02 | 2 | REL-02 | T-secrets | Release cannot publish on red; signing secret survives | structural (YAML) | grep release.yml for `needs: test` and `uses: ./.github/workflows/ci.yml` | ✅ | ✅ green |
+| 131-02-* | 02 | 2 | REL-01 | — | Merge blocked on red (branch protection) | manual admin | GitHub UI: deliberate-red PR → merge button disabled | n/a | ✅ verified (PR #12) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -50,9 +51,9 @@ created: 2026-06-15
 
 ## Wave 0 Requirements
 
-- [ ] No new automated test files needed — this phase adds no application code.
-- [ ] Local YAML/TOML must parse: `ci.yml`, `release.yml` lint clean (GitHub Actions syntax); `rust-toolchain.toml` parses (`rustup show` reflects the pinned channel on the dev machine).
-- [ ] Deliberate-failure harness: temporarily add `expect(1).toBe(2)` to an existing file under `tests/` to prove the gate goes red, then revert.
+- [x] No new automated test files needed — this phase adds no application code.
+- [x] Local YAML/TOML must parse: `ci.yml`, `release.yml` lint clean (GitHub Actions syntax — confirmed via `yaml.safe_load`); `rust-toolchain.toml` parses (`channel = "1.87.0"`, `profile = "minimal"`).
+- [x] Deliberate-failure harness: PR #12 (`ci-gate-verify`) added a failing test; CI run `27593782748` went red (`Frontend tests` → failure, Rust tests + Build skipped fail-fast); branch reverted/closed, the failing test never reached `master`.
 
 *Existing infrastructure (Vitest + cargo test + pnpm build) covers the suite the gate runs — no framework install required.*
 
@@ -72,11 +73,23 @@ created: 2026-06-15
 
 ## Validation Sign-Off
 
-- [ ] All tasks have an `<automated>` structural check (grep/parse/file-exists) OR a documented manual GitHub-behavior verification
-- [ ] Sampling continuity: full suite (`pnpm test && cargo test && pnpm build`) runs at each wave — identical to what CI runs
-- [ ] Wave 0 covers YAML/TOML parse + deliberate-red harness
-- [ ] No watch-mode flags (`vitest run`, not `vitest`)
-- [ ] Feedback latency < 120s locally
-- [ ] `nyquist_compliant: true` set in frontmatter once the above hold
+- [x] All tasks have an `<automated>` structural check (grep/parse/file-exists) OR a documented manual GitHub-behavior verification
+- [x] Sampling continuity: full suite (`pnpm test && cargo test && pnpm build`) runs at each wave — identical to what CI runs
+- [x] Wave 0 covers YAML/TOML parse + deliberate-red harness
+- [x] No watch-mode flags (`vitest run`, not `vitest`)
+- [x] Feedback latency < 120s locally
+- [x] `nyquist_compliant: true` set in frontmatter once the above hold
 
-**Approval:** pending
+**Approval:** ✅ validated 2026-06-16 — all 4 structural checks green, manual merge-block verified live (PR #12, branch protection `required_status_checks.contexts = ["test"]`).
+
+---
+
+## Validation Audit 2026-06-16
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+**Audit notes:** State-A audit of a CI-infrastructure phase. All four per-task structural assertions re-run live and PASS (rust-toolchain.toml pin, ci.yml dual-trigger/pinned-toolchain/scoped-cargo-test/no-secrets, release.yml `needs: test` gate + retained signing secret, BRANCH_PROTECTION.md content). Both workflow YAMLs parse clean. The one manual-only behavior (REL-01 merge block via branch protection) is confirmed enforced on the remote — `gh api .../branches/master/protection` returns `contexts: ["test"]`, and deliberate-red PR #12 proved the merge button blocked on red. No automated tests were generated: this phase adds CI/build config only, and the deliberate-red protocol + live branch-protection check fully cover its requirements. Frontmatter and per-task statuses were stale (carried over from the pre-execution draft) and have been corrected to reflect the completed, verified state.
