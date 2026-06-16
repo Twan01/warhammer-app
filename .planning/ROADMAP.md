@@ -41,7 +41,7 @@
 
 - [ ] **Phase 130: Migration Parity & Release Gate** (0/2 plans) â Self-deriving migration list + single parity check that makes the red test green and guards against checksum drift
 - [ ] **Phase 131: CI Test Gate** (0/2 plans) — PR-triggered CI runs the full suite and a tag can never publish on red
-- [ ] **Phase 132: Update Trustworthiness** (0/? plans) â A real in-place NSIS update launches, relaunches, and leaves a diagnosable log trail (Theme A merges to master here)
+- [ ] **Phase 132: Update Trustworthiness** (0/4 plans) â A real in-place NSIS update launches, relaunches, and leaves a diagnosable log trail (Theme A merges to master here)
 - [ ] **Phase 133: Honest Data Provenance** (0/? plans) â Remove the fake "stale/sync" UI and replace it with a truthful build-version surface
 - [ ] **Phase 134: No Dead Ends** (0/? plans) â Shared Abilities tab shows real data; "Link unit" always leads somewhere
 - [ ] **Phase 135: Faction & Navigation Consolidation** (0/? plans) â Zero-data-loss faction consolidation, the redundant /factions page retired, Data Health folded into Settings
@@ -85,7 +85,11 @@
   1. A real two-build in-place NSIS update (local `latest.json`) is performed end-to-end: the updated app launches, existing `%APPDATA%` data is preserved, and `preflight.log` records the repair/consistency outcome.
   2. After an update downloads and installs, the app relaunches into the new version without a manual restart.
   3. Frontend errors and failed-launch conditions are written to a persistent, size-capped `frontend.log` alongside `preflight.log`.
-**Plans**: TBD
+**Plans**: 4 plans
+  - [ ] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
+  - [ ] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
+  - [ ] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
+  - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
 
 ### Phase 133: Honest Data Provenance
 **Goal**: No UI tells the user that bundled data is stale or that they should "sync" â the app states truthfully what data it carries.
@@ -95,7 +99,11 @@
   1. `StaleDataBanner` and the dead "stale points" dashboard branches are gone, replaced by an honest data-provenance/version surface based on the build's content hash.
   2. No UI offers a "sync" or "refresh data" action (the deliberate offline architecture is preserved).
   3. All former `syncFreshness` consumers compile cleanly (`pnpm build` green) with no dead branches, dangling imports, or unused exports â and any *real* backup-staleness warning is preserved, not conflated with the fake sync staleness.
-**Plans**: TBD
+**Plans**: 4 plans
+  - [ ] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
+  - [ ] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
+  - [ ] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
+  - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
 
 ### Phase 134: No Dead Ends
 **Goal**: Every datasheet surface the user reaches leads somewhere real â no empty stub tabs, no permanent dead-end buttons.
@@ -104,7 +112,11 @@
 **Success Criteria** (what must be TRUE):
   1. The Rules Hub "Shared Abilities" tab displays real faction shared/army-rule abilities from the canonical database (no empty stub).
   2. A unit's datasheet "Link unit" action always leads to a way to link/match the unit against the canonical Unit Database â it is never a permanent dead end.
-**Plans**: TBD
+**Plans**: 4 plans
+  - [ ] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
+  - [ ] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
+  - [ ] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
+  - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
 **UI hint**: yes
 
 ### Phase 135: Faction & Navigation Consolidation
@@ -115,7 +127,11 @@
   1. A **map-not-delete** migration consolidates user factions into the canonical faction model preserving every FK reference â units, army_lists, painting_sessions, wishlist, and `default_faction_id` theming â with zero data loss verified (every existing unit still resolves its faction, theming still loads cold, wishlist counts unchanged).
   2. The standalone `/factions` sidebar page is removed, and faction create/edit/theming remains reachable from its new home with no loss of capability.
   3. Data Health is moved out of the main sidebar into Settings â Data.
-**Plans**: TBD
+**Plans**: 4 plans
+  - [ ] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
+  - [ ] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
+  - [ ] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
+  - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
 **Notes**: HON-05 is the data-loss trap of the milestone (FK semantics: units RESTRICT, army_lists/sessions SET NULL, wishlist CASCADE). Treat the migration as its own careful, verified step â do NOT bundle the route removal (HON-06) in a way that risks data.
 **UI hint**: yes
 
@@ -128,7 +144,11 @@
   2. `ArmyListDetailPage` is decomposed into focused sub-components/hooks within the project's file-size conventions, with no behavior regression.
   3. The 7 components that call query functions directly are routed through React Query hooks, restoring cache and invalidation guarantees with no hook-in-loop or N+1 regressions.
   4. The vestigial `promoted_to_reminder` column is removed, or its retention is explicitly justified in the schema.
-**Plans**: TBD
+**Plans**: 4 plans
+  - [ ] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
+  - [ ] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
+  - [ ] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
+  - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
 **Notes**: HON-08 (shared WeaponTable) GATES PLAY-01 (comparison consumes it). Do the decomposition (HON-09) as mechanical block-moves only, after the reliability branch has merged (Theme A done).
 **UI hint**: yes
 
@@ -140,7 +160,11 @@
   1. A `udb_leader_targets` table (composite PK, both columns FK â `udb_units` ON DELETE CASCADE) is created and populated from Wahapedia `Datasheets_leader.csv` via the canonical build â bundled JSON â Rust import pipeline.
   2. Leader attachment in the builder permits only valid leaderâtarget pairs via the FK join (the Phase-92 UI repointed off name-matching), with a graceful fallback for units that have a NULL `udb_unit_id`.
   3. Adding migration 048 re-triggers the Phase-130 parity gate and it passes (proving the gate works on a real new migration).
-**Plans**: TBD
+**Plans**: 4 plans
+  - [ ] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
+  - [ ] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
+  - [ ] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
+  - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
 **Notes**: PLAY-02 (migration 048 + pipeline) GATES PLAY-03 (validation UI rewire). The new migration re-triggers the REL-04 parity gate â this is expected/good.
 **UI hint**: yes
 
@@ -152,7 +176,11 @@
   1. The user can compare 2â3 unit datasheets side-by-side (stats, weapons, abilities, keywords, points) with differences highlighted; comparison reuses the shared `WeaponTable` and fetches all units in one batched query (no hooks-in-loop / N+1).
   2. The Collection â Unit Database loop is bidirectional: from the Collection the user opens a canonical datasheet and adds units; from the Unit Database the user sees an "owned ÃN" count per unit (via a single page-level Map lookup).
   3. Hobby goal progress is surfaced on the dashboard with a progress visualization, after verifying the goal-progress derivation still computes correctly post-rules.db-elimination.
-**Plans**: TBD
+**Plans**: 4 plans
+  - [ ] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
+  - [ ] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
+  - [ ] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
+  - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
 **Notes**: PLAY-01 consumes the shared WeaponTable from HON-08 (Phase 136). Verify PLAY-05's goal-progress derivation before building the visualization.
 **UI hint**: yes
 
@@ -164,7 +192,11 @@
   1. The build/data pipeline validates referential integrity (FK/orphan checks â `PRAGMA foreign_key_check`, orphan `sub_faction`, orphan leader-target pairs) and **fails the build on violations**, covered by data-layer tests.
   2. All 25 factions' unit data (points, stats, weapons, abilities, keywords) is audited against Wahapedia and corrected (the 22 factions beyond the already-audited SM/NEC/DG).
   3. French ability and weapon descriptions are added for the audited factions, extending the existing `_fr` overlay (`COALESCE(col_fr, col)` query layer), with user overrides and favorites/notes preserved across the re-import.
-**Plans**: TBD
+**Plans**: 4 plans
+  - [ ] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
+  - [ ] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
+  - [ ] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
+  - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
 **Notes**: Heaviest phase of the milestone (DAT-02 + DAT-03 are L-sized). Expect multiple plans â likely one for FK/orphan validation, then incremental faction-audit + translation batches. Keep all data work keyed on stable Wahapedia IDs and migrations idempotent so re-runs never clobber overrides.
 
 ## Progress
