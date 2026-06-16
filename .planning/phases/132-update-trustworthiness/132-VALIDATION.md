@@ -1,8 +1,8 @@
 ---
 phase: 132
 slug: update-trustworthiness
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-06-16
 ---
@@ -38,8 +38,8 @@ created: 2026-06-16
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 132-XX-XX | XX | 1 | REL-07 | — | Auto-relaunch after install resolve; manual fallback on throw | unit | `pnpm test -- tests/common/UpdateBanner.test.tsx` | ❌ W0 | ⬜ pending |
-| 132-XX-XX | XX | 1 | REL-08 | — | Frontend errors written to frontend.log best-effort; boot-failure captured | unit | `pnpm test -- tests/lib/globalErrorHandlers.test.ts` | ❌ W0 | ⬜ pending |
+| 132-02-02 | 02 | 1 | REL-07 | — | Auto-relaunch after install resolve; manual fallback on throw | unit | `pnpm test -- tests/error-resilience/UpdateBanner.test.tsx` | ❌ W0 | ⬜ pending |
+| 132-01-03 | 01 | 1 | REL-08 | — | Frontend errors written to frontend.log best-effort; boot-failure captured | unit | `pnpm test -- tests/error-resilience/globalErrorHandlers.test.ts` | ❌ W0 | ⬜ pending |
 | 132-XX-XX | XX | 1 | REL-08 | — | append_frontend_log tail-trims at size cap | unit | `cargo test` (Rust, in `src-tauri`) | ❌ W0 | ⬜ pending |
 | 132-XX-XX | XX | 2 | REL-06 | — | Real two-build NSIS update launches into vN+1, data preserved, preflight.log repair line present | manual | see Manual-Only Verifications | n/a | ⬜ pending |
 
@@ -49,9 +49,9 @@ created: 2026-06-16
 
 ## Wave 0 Requirements
 
-- [ ] `tests/common/UpdateBanner.test.tsx` — assert auto-relaunch fires on install resolve + manual fallback on throw (REL-07); mock `@tauri-apps/plugin-process` `relaunch` (pattern: `tests/settings/DataManagementTab.test.tsx`).
-- [ ] `tests/lib/globalErrorHandlers.test.ts` — assert handlers invoke the frontend-log wrapper best-effort (REL-08); mock `@tauri-apps/api/core` `invoke`.
-- [ ] Rust unit test in `src-tauri/src/lib.rs` `#[cfg(test)]` — `append_frontend_log` tail-trim at ~512KB cap (REL-08).
+- [ ] `tests/error-resilience/UpdateBanner.test.tsx` (NET-NEW) — assert auto-relaunch fires on install resolve + manual fallback on throw (REL-07); mock `@tauri-apps/plugin-process` `relaunch` (pattern: `tests/settings/DataManagementTab.test.tsx:11-49`).
+- [ ] `tests/error-resilience/frontendLog.test.ts` (NET-NEW) + extend `tests/error-resilience/globalErrorHandlers.test.ts` & `tests/error-resilience/DbHealthGate.test.tsx` (EXISTING — extend, don't recreate) — assert handlers + boot-failure branch invoke the frontend-log wrapper best-effort (REL-08); mock `@tauri-apps/api/core` `invoke`.
+- [ ] Rust unit test in `src-tauri/src/lib.rs` `#[cfg(test)]` — `append_frontend_log` / `tail_trim_if_oversized` at ~512KB cap (REL-08).
 
 *REL-06 is a manual runbook verification — no Wave 0 automated stub (cannot run a real NSIS installer in jsdom/CI).*
 
