@@ -1,5 +1,4 @@
 {
-  "_comment": "LOCAL-TEST-ONLY — REL-06 local two-build verification override. NEVER ship this config. Used via: pnpm tauri build --config src-tauri/local-update.json (deep-merges over tauri.conf.json without editing it — D-03). See scripts/make-local-update.mjs and VERIFICATION.md for the full runbook.",
   "plugins": {
     "updater": {
       "endpoints": ["http://localhost:5183/latest.json"],
