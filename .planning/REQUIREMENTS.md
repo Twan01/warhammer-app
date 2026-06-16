@@ -14,7 +14,7 @@
 - [x] **REL-03**: The data-layer migration list is derived from disk (`readdirSync` of `src-tauri/migrations/`) so the migration-parity test passes and never drifts when a migration is added (fixes the currently-failing 046→047 gap and exercises the wargear schema).
 - [x] **REL-04**: A single parity check asserts, in CI and locally before build, that `package.json` version == `tauri.conf.json` version AND migration file count == lib.rs `Migration{}` count == data-layer migration-list length.
 - [x] **REL-05**: CI fails if any `src-tauri/migrations/*.sql` file contains a CR byte, preventing the line-ending checksum drift from ever recurring.
-- [ ] **REL-06**: Installing an update over an existing install launches successfully — verified end-to-end with a real in-place NSIS update (two builds + local `latest.json`), with `preflight.log` recording the repair/consistency outcome.
+- [x] **REL-06**: Installing an update over an existing install launches successfully — verified end-to-end with a real in-place NSIS update (two builds + local `latest.json`), with `preflight.log` recording the repair/consistency outcome.
 - [x] **REL-07**: After an update downloads and installs, the app relaunches into the new version without a manual restart.
 - [x] **REL-08**: Frontend errors and failed-launch conditions are written to a persistent on-disk diagnostics log (`frontend.log`) alongside the Rust `preflight.log`, so a broken launch is diagnosable without devtools.
 
@@ -74,7 +74,7 @@
 | REL-05 | Phase 130 | Complete |
 | REL-01 | Phase 131 | Complete |
 | REL-02 | Phase 131 | Complete |
-| REL-06 | Phase 132 | Pending |
+| REL-06 | Phase 132 | Complete |
 | REL-07 | Phase 132 | Complete |
 | REL-08 | Phase 132 | Complete |
 | HON-01 | Phase 133 | Pending |
