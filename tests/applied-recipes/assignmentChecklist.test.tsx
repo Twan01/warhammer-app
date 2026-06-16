@@ -45,6 +45,10 @@ vi.mock("@/hooks/useRecipePaints", () => ({
   useRecipePaints: () => ({ data: mockSteps }),
 }));
 
+vi.mock("@/hooks/usePaints", () => ({
+  usePaints: () => ({ data: [] }),
+}));
+
 vi.mock("@/hooks/useRecipeSections", () => ({
   useRecipeSections: () => ({ data: mockSections }),
 }));
