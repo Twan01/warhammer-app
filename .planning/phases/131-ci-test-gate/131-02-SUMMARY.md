@@ -98,9 +98,22 @@ No new threat flags beyond the plan's registered threats.
 
 None. This plan modifies CI YAML and creates a documentation file — no UI data flow.
 
-## Pending Checkpoint (Task 3 — Blocking)
+## Checkpoint Resolved (Task 3 — Blocking) ✓
 
-**Status:** Awaiting human action.
+**Status:** APPROVED 2026-06-16 — branch protection enabled and merge-block proven end-to-end.
+
+**Verification evidence (REL-01 "blocks merge"):**
+- `master` pushed to `origin` (Phase 130 + 131 now on GitHub, ci.yml live).
+- Branch protection on `master` requires the `test` status check (`gh api .../branches/master/protection`, `required_status_checks.contexts = ["test"]`, `enforce_admins: false` so the owner keeps an admin override).
+- Reported check name is exactly **`test`** — matches the rule (confirmed via PR Checks tab; resolves RESEARCH Open Question on check-name).
+- Deliberate-red PR #12: CI run `27593782748` — `Install Rust toolchain` ✓ (pinned 1.87.0 works in CI), `Install frontend dependencies` ✓, **`Frontend tests` (pnpm test) → failure**, `Rust tests` + `Build` → **skipped** (fail-fast). Check went red; PR `mergeStateStatus = BLOCKED`.
+- Cleanup: PR #12 closed, `ci-gate-verify` branch deleted (remote + local); the temporary failing test never reached `master`.
+
+---
+
+### Original checkpoint instructions (now satisfied)
+
+**Status:** ~~Awaiting human action.~~
 
 Task 3 is a `gate="blocking"` human-verify checkpoint. The repo-admin branch protection setting cannot be expressed in committed YAML — it requires a GitHub UI action that only a repository owner can perform.
 
