@@ -340,6 +340,59 @@ fn preflight_webview_heal() {
     }
 }
 
+/// Maximum byte size for frontend.log before tail-trimming (D-10).
+const FRONTEND_LOG_CAP_BYTES: u64 = 512 * 1024;
+
+/// Tail-trim a log file to keep only the most-recent bytes when it exceeds `cap`.
+///
+/// Retains roughly the most-recent half of `cap` bytes, aligning to the next
+/// newline so the first retained line is never a fragment. Uses an atomic-ish
+/// temp-write + rename (best-effort — swallows every error).
+fn tail_trim_if_oversized(path: &std::path::Path, cap: u64) {
+    let Ok(meta) = std::fs::metadata(path) else { return }; // file may not exist yet
+    if meta.len() <= cap { return; }
+    // Keep the most recent ~half-cap so we trim infrequently, not on every append.
+    let keep = (cap / 2) as usize;
+    let Ok(bytes) = std::fs::read(path) else { return };
+    let start = bytes.len().saturating_sub(keep);
+    // Align to the next line boundary so the first retained line isn't a fragment.
+    let aligned = bytes[start..]
+        .iter()
+        .position(|&b| b == b'\n')
+        .map(|i| start + i + 1)
+        .unwrap_or(start);
+    let tail = &bytes[aligned..];
+    // Atomic-ish replace: write to a temp then rename (best-effort).
+    let tmp = path.with_extension("log.tmp");
+    if std::fs::write(&tmp, tail).is_ok() {
+        let _ = std::fs::rename(&tmp, path);
+    }
+}
+
+/// Append a timestamped line to frontend.log inside app_data_dir.
+///
+/// This is a best-effort, infallible Tauri command — logging must never abort
+/// anything. Takes only `line: String` (no path param) and writes to a hard-coded
+/// path (V5 input-validation: no path traversal possible). Mirrors to stderr for
+/// dev runs alongside the existing preflight.log.
+#[tauri::command]
+fn append_frontend_log(line: String) {
+    eprintln!("[hobbyforge][frontend] {line}");
+    let Some(app_data_dir) = resolve_app_data_dir() else { return };
+    let _ = std::fs::create_dir_all(&app_data_dir);
+    let log_path = app_data_dir.join("frontend.log");
+    tail_trim_if_oversized(&log_path, FRONTEND_LOG_CAP_BYTES);
+    let stamped = format!("{}  {}\n", format_iso8601_now(), line);
+    use std::io::Write;
+    if let Ok(mut f) = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&log_path)
+    {
+        let _ = f.write_all(stamped.as_bytes());
+    }
+}
+
 /// Append a timestamped line to the preflight log file inside app_data_dir.
 ///
 /// stderr/stdout are invisible in a packaged GUI release, so preflight repair
@@ -1503,6 +1556,7 @@ pub fn run() {
             write_bytes_to_path,
             ack_successful_launch,
             factory_reset,
+            append_frontend_log, // REL-08: persistent frontend diagnostics log
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -1797,6 +1851,69 @@ mod tests {
         });
         let _ = rt;
 
+        let _ = std::fs::remove_dir_all(&temp_dir);
+    }
+
+    /// REL-08 / D-10: tail_trim_if_oversized keeps file length <= cap and retains
+    /// the NEWEST line, discarding the oldest.
+    #[test]
+    fn frontend_log_tail_trims_over_cap() {
+        let temp_dir = std::env::temp_dir().join("hobbyforge_test_frontend_log");
+        let _ = std::fs::create_dir_all(&temp_dir);
+        let log_path = temp_dir.join("frontend.log");
+        let _ = std::fs::remove_file(&log_path);
+
+        // Write well over the cap: enough old filler lines to exceed 512KB.
+        let cap: u64 = 512 * 1024;
+        let old_line = "old-line: this is filler content that will be trimmed away eventually\n";
+        let repeat_count = ((cap as usize) / old_line.len()) + 100; // exceeds cap
+        let mut content = String::with_capacity(repeat_count * old_line.len());
+        for _ in 0..repeat_count {
+            content.push_str(old_line);
+        }
+        // Add a uniquely identifiable newest line at the end.
+        let newest_line = "newest-line: SENTINEL_THAT_MUST_SURVIVE_TRIM\n";
+        content.push_str(newest_line);
+
+        std::fs::write(&log_path, &content).expect("failed to write test log");
+        assert!(
+            std::fs::metadata(&log_path).unwrap().len() > cap,
+            "pre-trim file must exceed cap"
+        );
+
+        // tail_trim_if_oversized on a non-existent path is a no-op.
+        let nonexistent = temp_dir.join("does_not_exist.log");
+        tail_trim_if_oversized(&nonexistent, cap); // must not panic
+
+        // Now trim the actual file.
+        tail_trim_if_oversized(&log_path, cap);
+
+        let trimmed = std::fs::read(&log_path).expect("trimmed file must exist");
+        assert!(
+            trimmed.len() as u64 <= cap,
+            "trimmed file length {} exceeds cap {}",
+            trimmed.len(),
+            cap
+        );
+
+        let trimmed_str = std::str::from_utf8(&trimmed).expect("trimmed content must be UTF-8");
+
+        // Newest line must survive.
+        assert!(
+            trimmed_str.contains("SENTINEL_THAT_MUST_SURVIVE_TRIM"),
+            "newest line must be retained after trim"
+        );
+
+        // The trimmed content must be much smaller than the original, confirming that
+        // a large chunk of oldest lines was dropped.
+        assert!(
+            trimmed_str.len() < content.len() / 2,
+            "trimmed content ({} bytes) should be much smaller than original ({} bytes)",
+            trimmed_str.len(),
+            content.len()
+        );
+
+        // Clean up.
         let _ = std::fs::remove_dir_all(&temp_dir);
     }
 }
