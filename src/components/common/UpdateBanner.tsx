@@ -1,5 +1,5 @@
 import { AlertTriangle, Download, RefreshCw, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,17 @@ import { useAppUpdate } from "@/hooks/useAppUpdate";
 export function UpdateBanner() {
   const { status, version, progress, error, installUpdate } = useAppUpdate();
   const [dismissed, setDismissed] = useState(false);
+
+  // Auto-relaunch once the install resolves (REL-07 / D-04).
+  // Fires only on "installing" (post-downloadAndInstall-resolve, D-06 — never mid-download).
+  // On Windows, the NSIS /R passive restart is the real mechanism; relaunch() here is the
+  // cross-platform path + safety net (often a no-op on Windows where the process already exited).
+  useEffect(() => {
+    if (status !== "installing") return;
+    relaunch().catch(() => {
+      toast.error("Restart failed — please close and reopen the app.");
+    });
+  }, [status]);
 
   if (dismissed || status === "idle" || status === "checking") return null;
 
@@ -36,7 +47,7 @@ export function UpdateBanner() {
   if (status === "installing") {
     return (
       <div className="flex items-center justify-between gap-3 border-b border-green-500/30 bg-green-500/10 px-4 py-2 text-sm text-green-400">
-        <span>Update installed. Restart the app to apply v{version}.</span>
+        <span>Update installed — restarting…</span>
         <Button
           size="sm"
           variant="outline"
