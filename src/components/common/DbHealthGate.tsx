@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getDb } from "@/db/client";
 import { DbDiagnosticScreen } from "@/components/common/DbDiagnosticScreen";
+import { logFrontend } from "@/lib/frontendLog";
 
 /**
  * Expected schema version for hobbyforge.db.
@@ -65,7 +66,10 @@ export function DbHealthGate({ children }: { children: ReactNode }) {
       setState("ok");
       invoke("ack_successful_launch").catch(() => {});
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      // D-09: capture boot failure to frontend.log BEFORE rendering the diagnostic screen.
+      const msg = err instanceof Error ? err.message : String(err);
+      logFrontend(`[boot-failure] DbHealthGate: ${msg}`);
+      setError(msg);
       setState("failed");
     }
   }, []);

@@ -1,14 +1,26 @@
 /**
  * ERR-04 / D-08 -- Global error handlers capture uncaught errors
- * and unhandled promise rejections to console.error with structured context.
+ * and unhandled promise rejections to console.error with structured context,
+ * and now also write to disk via logFrontend (REL-08).
  */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+const mockLogFrontend = vi.fn();
+
+vi.mock("@/lib/frontendLog", () => ({
+  logFrontend: (...a: unknown[]) => mockLogFrontend(...a),
+}));
+
 import {
   handleGlobalError,
   handleUnhandledRejection,
 } from "@/lib/globalErrorHandlers";
 
 describe("Global error handlers — D-08", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("handleGlobalError logs structured context with [GlobalError] prefix", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -87,6 +99,48 @@ describe("Global error handlers — D-08", () => {
         stack: undefined,
       })
     );
+
+    spy.mockRestore();
+  });
+
+  // REL-08: disk-write assertions alongside the existing console.error assertions.
+
+  it("handleGlobalError calls logFrontend with a line containing the message", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const testError = new Error("disk error test");
+
+    handleGlobalError("disk error test", "file.ts", 5, 3, testError);
+
+    // console.error still fires (D-08: keep console for dev).
+    expect(spy).toHaveBeenCalledWith(
+      "[GlobalError]",
+      expect.objectContaining({ message: "disk error test" })
+    );
+    // logFrontend also fires with the message in the line.
+    expect(mockLogFrontend).toHaveBeenCalledOnce();
+    const logLine: string = mockLogFrontend.mock.calls[0][0];
+    expect(logLine).toContain("[uncaught]");
+    expect(logLine).toContain("disk error test");
+
+    spy.mockRestore();
+  });
+
+  it("handleUnhandledRejection calls logFrontend with a line containing the reason", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const reason = new Error("rejection reason test");
+
+    handleUnhandledRejection({ reason } as PromiseRejectionEvent);
+
+    // console.error still fires.
+    expect(spy).toHaveBeenCalledWith(
+      "[UnhandledRejection]",
+      expect.objectContaining({ reason: "rejection reason test" })
+    );
+    // logFrontend also fires with the reason in the line.
+    expect(mockLogFrontend).toHaveBeenCalledOnce();
+    const logLine: string = mockLogFrontend.mock.calls[0][0];
+    expect(logLine).toContain("[unhandledRejection]");
+    expect(logLine).toContain("rejection reason test");
 
     spy.mockRestore();
   });
