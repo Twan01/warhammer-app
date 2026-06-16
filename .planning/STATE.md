@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.6.0
 milestone_name: Bulletproof & Honest
 status: executing
-stopped_at: Phase 132 context gathered
-last_updated: "2026-06-16T05:47:24.671Z"
+stopped_at: Phase 132 Wave 1 complete (REL-07/REL-08 shipped + green); paused at REL-06 human-verify checkpoint (real NSIS install required; blocked by rust-toolchain pin 1.87.0 vs lockfile 1.88.0)
+last_updated: "2026-06-16T05:48:59.232Z"
 last_activity: 2026-06-16
 progress:
   total_phases: 10
@@ -98,9 +98,9 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-16T05:47:24.663Z
-Stopped at: Phase 132 context gathered
-Resume file: None
+Last session: 2026-06-16T05:48:59.225Z
+Stopped at: Phase 132 Wave 1 complete (REL-07/REL-08 shipped + green); paused at REL-06 human-verify checkpoint (real NSIS install required; blocked by rust-toolchain pin 1.87.0 vs lockfile 1.88.0)
+Resume file: .planning/phases/132-update-trustworthiness/VERIFICATION.md
 Resume: Run `/gsd:plan-phase 130` to begin Migration Parity & Release Gate.
 
 ## Operator Next Steps
