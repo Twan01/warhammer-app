@@ -86,7 +86,7 @@
   2. After an update downloads and installs, the app relaunches into the new version without a manual restart.
   3. Frontend errors and failed-launch conditions are written to a persistent, size-capped `frontend.log` alongside `preflight.log`.
 **Plans**: 4 plans
-  - [ ] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
+  - [x] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
   - [ ] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
   - [ ] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
   - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
@@ -205,7 +205,7 @@
 |-------|----------------|--------|-----------|
 | 130. Migration Parity & Release Gate | 2/2 | Complete    | 2026-06-15 |
 | 131. CI Test Gate | 2/2 | Complete    | 2026-06-16 |
-| 132. Update Trustworthiness | 0/? | Not started | - |
+| 132. Update Trustworthiness | 1/4 | In Progress|  |
 | 133. Honest Data Provenance | 0/? | Not started | - |
 | 134. No Dead Ends | 0/? | Not started | - |
 | 135. Faction & Navigation Consolidation | 0/? | Not started | - |
