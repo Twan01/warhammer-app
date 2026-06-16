@@ -55,7 +55,10 @@
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDIxMUVDREQ5MDQ3NjEwMDMKUldRREVIWUUyYzBlSWZpRnhWVHBCZW5kcGFGZDBxTGpDUTBmUXJWN202SWVNWERqaDVXNlhqSW0K",
       "endpoints": [
         "https://github.com/Twan01/warhammer-app/releases/latest/download/latest.json"
-      ]
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
     }
   }
 }
