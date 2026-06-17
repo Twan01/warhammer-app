@@ -70,6 +70,7 @@ vi.mock("@/db/queries/armyLists", () => ({
 vi.mock("@/hooks/useGameData", () => ({
   useStratagemsByFaction: vi.fn(() => ({ data: [], isLoading: false })),
   useDetachmentsByFaction: vi.fn(() => ({ data: [], isLoading: false })),
+  useDetachmentAbilities: vi.fn(() => ({ data: [], isLoading: false })),
 }));
 
 vi.mock("@/features/rules-hub/rulesHubFilters", () => ({

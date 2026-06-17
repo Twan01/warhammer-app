@@ -10,7 +10,8 @@
  * Task 2 swaps the stub for useDetachmentAbilities in RulesHubPage.tsx.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import type { ReactNode } from "react";
@@ -115,6 +116,7 @@ beforeEach(() => {
 
 describe("RulesHubPage — HON-03: Shared Abilities tab renders real data", () => {
   it("renders a real ability name when useDetachmentAbilities returns data for the selected faction", async () => {
+    const user = userEvent.setup();
     const { useDetachmentAbilities } = await import("@/hooks/useGameData");
     vi.mocked(useDetachmentAbilities).mockReturnValue({
       data: smAbilities,
@@ -128,7 +130,7 @@ describe("RulesHubPage — HON-03: Shared Abilities tab renders real data", () =
 
     // Click the Shared Abilities tab
     const tab = screen.getByRole("tab", { name: /shared abilities/i });
-    fireEvent.click(tab);
+    await user.click(tab);
 
     // Real ability name must be present (proves real data, not stub)
     expect(screen.getByText("Oaths of Moment")).toBeInTheDocument();
@@ -137,6 +139,7 @@ describe("RulesHubPage — HON-03: Shared Abilities tab renders real data", () =
 
 describe("RulesHubPage — HON-03: Shared Abilities tab honest no-data empty state", () => {
   it("shows the no-data empty state when hook returns empty array and search is empty", async () => {
+    const user = userEvent.setup();
     const { useDetachmentAbilities } = await import("@/hooks/useGameData");
     vi.mocked(useDetachmentAbilities).mockReturnValue({
       data: [],
@@ -148,7 +151,7 @@ describe("RulesHubPage — HON-03: Shared Abilities tab honest no-data empty sta
     render(<RulesHubPage />, { wrapper: makeWrapper() });
 
     const tab = screen.getByRole("tab", { name: /shared abilities/i });
-    fireEvent.click(tab);
+    await user.click(tab);
 
     expect(
       screen.getByText("No shared abilities for this faction in the canonical database."),
@@ -158,6 +161,7 @@ describe("RulesHubPage — HON-03: Shared Abilities tab honest no-data empty sta
 
 describe("RulesHubPage — HON-03: Shared Abilities tab search-filtered empty state", () => {
   it("shows the search-filtered empty state when data is present but search matches nothing", async () => {
+    const user = userEvent.setup();
     const { useDetachmentAbilities } = await import("@/hooks/useGameData");
     vi.mocked(useDetachmentAbilities).mockReturnValue({
       data: smAbilities,
@@ -172,7 +176,7 @@ describe("RulesHubPage — HON-03: Shared Abilities tab search-filtered empty st
     render(<RulesHubPage />, { wrapper: makeWrapper() });
 
     const tab = screen.getByRole("tab", { name: /shared abilities/i });
-    fireEvent.click(tab);
+    await user.click(tab);
 
     expect(
       screen.getByText("No shared abilities match your search."),

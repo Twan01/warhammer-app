@@ -17,11 +17,9 @@ import { Link } from "@tanstack/react-router";
 import { useWahapediaFactions } from "@/hooks/useDatasheet";
 import { useUdbMeta } from "@/hooks/useUdbMeta";
 import { useRulesHubFilters } from "./rulesHubFilters";
-import { useStratagemsByFaction, useDetachmentsByFaction } from "@/hooks/useGameData";
-// useSharedAbilitiesByFaction: shared abilities are out of Phase 120 scope — stub retained
-function useSharedAbilitiesByFaction(_factionId: string | undefined) {
-  return { data: [] as { id: string; name: string; description: string | null; legend: string | null; faction_id: string | null }[], isLoading: false };
-}
+import { useStratagemsByFaction, useDetachmentsByFaction, useDetachmentAbilities } from "@/hooks/useGameData";
+import type { UdbDetachmentAbilityWithDetachment } from "@/types/gameData";
+import type { RwAbility } from "@/types/datasheet";
 import { applyStratagemFilters, STRATAGEM_PHASES } from "./applyRulesHubFilters";
 import { useRulesFavorites } from "@/hooks/useRulesFavorites";
 import { useRulesNotes } from "@/hooks/useRulesNotes";
@@ -31,6 +29,16 @@ import { SharedAbilityCard } from "./SharedAbilityCard";
 import { cn } from "@/lib/utils";
 import { DatasheetPointsTab } from "./DatasheetPointsTab";
 import { PageHeader } from "@/components/common/PageHeader";
+
+function toRwAbility(a: UdbDetachmentAbilityWithDetachment): RwAbility {
+  return {
+    id: a.id,
+    name: a.name,
+    description: a.description,
+    legend: a.detachment_name,
+    faction_id: a.faction_id,
+  };
+}
 
 const ALL_DETACHMENTS = "__all__";
 
@@ -55,7 +63,8 @@ export function RulesHubPage() {
   // Rules data for selected faction
   const { data: stratagems = [], isLoading: stratagemLoading } = useStratagemsByFaction(selectedFactionId ?? undefined);
   const { data: detachments = [], isLoading: detachmentLoading } = useDetachmentsByFaction(selectedFactionId ?? undefined);
-  const { data: sharedAbilities = [], isLoading: sharedAbilitiesLoading } = useSharedAbilitiesByFaction(selectedFactionId ?? undefined);
+  const { data: rawAbilities = [], isLoading: sharedAbilitiesLoading } = useDetachmentAbilities(selectedFactionId ?? null);
+  const sharedAbilities = rawAbilities.map(toRwAbility);
 
   const { data: favorites = [] } = useRulesFavorites();
   const { data: rulesNotes = [] } = useRulesNotes();
@@ -293,7 +302,9 @@ export function RulesHubPage() {
 
                     {filteredAbilities.length === 0 ? (
                       <p className="text-sm text-muted-foreground italic">
-                        No shared abilities match your search.
+                        {searchText
+                          ? "No shared abilities match your search."
+                          : "No shared abilities for this faction in the canonical database."}
                       </p>
                     ) : (
                       <div className="flex flex-col gap-2">
