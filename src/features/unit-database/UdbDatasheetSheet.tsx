@@ -18,7 +18,7 @@ import { sanitizeRulesHtml } from "@/lib/sanitizeHtml";
 import { useUdbUnitDetail } from "@/hooks/useUnitDatabase";
 import type { UdbAbility, UdbUnitDetail } from "@/db/queries/unitDatabase";
 import { UdbStatBlock } from "./UdbStatBlock";
-import { UdbWeaponsTable } from "./UdbWeaponsTable";
+import { WeaponTable } from "@/features/units/WeaponTable";
 
 const SECTION_LABEL =
   "text-xs font-semibold text-muted-foreground uppercase tracking-wide";
@@ -151,7 +151,7 @@ export function UdbDatasheetSheet({
               {/* Ranged Weapons */}
               {rangedWeapons.length > 0 && (
                 <CollapsibleSection title="Ranged Weapons">
-                  <UdbWeaponsTable
+                  <WeaponTable
                     weapons={rangedWeapons}
                     statLabel="BS"
                   />
@@ -161,7 +161,7 @@ export function UdbDatasheetSheet({
               {/* Melee Weapons */}
               {meleeWeapons.length > 0 && (
                 <CollapsibleSection title="Melee Weapons">
-                  <UdbWeaponsTable
+                  <WeaponTable
                     weapons={meleeWeapons}
                     statLabel="WS"
                   />
