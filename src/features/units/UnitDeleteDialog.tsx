@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -9,8 +8,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useDeleteUnit } from "@/hooks/useUnits";
-import { getArmyListsByUnitId } from "@/db/queries/armyLists";
+import { useDeleteUnit, useUnitArmyLists } from "@/hooks/useUnits";
 import {
   getPhotoFilenamesByUnit,
   getPhotosByUnit,
@@ -41,11 +39,10 @@ interface UnitDeleteDialogProps {
 export function UnitDeleteDialog({ open, unit, onClose }: UnitDeleteDialogProps) {
   const deleteUnit = useDeleteUnit();
 
-  const { data: memberLists = [] } = useQuery({
-    queryKey: ["unit-army-lists", unit?.id ?? "none"],
-    queryFn: () => (unit ? getArmyListsByUnitId(unit.id) : Promise.resolve([])),
-    enabled: open && unit !== null,
-  });
+  // HON-10: reads membership through named hook with KEY factory (D-07).
+  // Photo cleanup (getPhotoFilenamesByUnit/getPhotosByUnit/deleteUnitPhoto) in
+  // handleConfirm stays as direct imperative calls — D-09 justified exclusion.
+  const { data: memberLists = [] } = useUnitArmyLists(unit?.id ?? null, open);
 
   const isInLists = memberLists.length > 0;
 

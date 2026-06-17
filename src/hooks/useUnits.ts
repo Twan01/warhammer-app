@@ -7,6 +7,7 @@ import {
   updateUnit,
   deleteUnit,
 } from "@/db/queries/units";
+import { getArmyListsByUnitId } from "@/db/queries/armyLists";
 import type { CreateUnitInput, UpdateUnitInput } from "@/types/unit";
 
 export const UNITS_KEY = ["units"] as const;
@@ -93,5 +94,18 @@ export function useDeleteUnit() {
       qc.invalidateQueries({ queryKey: ["udb-ownership"] });
     },
     // FK errors (unit in army_list_units) reject — handled by component try/catch with toast
+  });
+}
+
+// HON-10: Named hook for army lists that contain a given unit.
+// Used by UnitDeleteDialog to show a membership warning before deleting.
+export const UNIT_ARMY_LISTS_KEY = (unitId: number | null) =>
+  ["unit-army-lists", unitId] as const;
+
+export function useUnitArmyLists(unitId: number | null, enabled: boolean) {
+  return useQuery({
+    queryKey: unitId !== null ? UNIT_ARMY_LISTS_KEY(unitId) : ["unit-army-lists", "disabled"],
+    queryFn: () => getArmyListsByUnitId(unitId!),
+    enabled: unitId !== null && enabled,
   });
 }

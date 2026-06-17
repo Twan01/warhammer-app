@@ -158,7 +158,10 @@ export function useAddUnitToList() {
   const qc = useQueryClient();
   return useMutation<number, Error, AddUnitToListInput>({
     mutationFn: addUnitToList,
-    onSuccess: (_insertedId, variables) => invalidateListWithReadiness(qc, variables.list_id),
+    onSuccess: (_insertedId, variables) => {
+      invalidateListWithReadiness(qc, variables.list_id);
+      qc.invalidateQueries({ queryKey: ["unit-army-lists"] }); // symmetry fix — HON-10
+    },
   });
 }
 
@@ -176,7 +179,10 @@ export function useRemoveUnitFromList() {
   const qc = useQueryClient();
   return useMutation<void, Error, RemoveUnitFromListInput>({
     mutationFn: ({ army_list_unit_id }) => removeUnitFromList(army_list_unit_id),
-    onSuccess: (_, variables) => invalidateListWithReadiness(qc, variables.list_id),
+    onSuccess: (_, variables) => {
+      invalidateListWithReadiness(qc, variables.list_id);
+      qc.invalidateQueries({ queryKey: ["unit-army-lists"] }); // symmetry fix — HON-10
+    },
   });
 }
 
