@@ -1,6 +1,10 @@
 /**
  * ARMY-05 — UnitDeleteDialog enhanced state tests.
  * Replaces the Wave 0 stub from plan 08-00.
+ *
+ * HON-10 (Task 3): UnitDeleteDialog now reads army list membership through
+ * useUnitArmyLists (src/hooks/useUnits.ts) — the mock on getArmyListsByUnitId
+ * remains valid because the hook routes through that same query function.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -17,6 +21,9 @@ vi.mock("@/db/queries/units", () => ({
   createUnit: vi.fn(),
   updateUnit: vi.fn(),
   deleteUnit: vi.fn().mockResolvedValue(undefined),
+  // HON-10: getArmyListsByUnitId is also exported from units queries (for useUnitArmyLists)
+  getArmyListsByUnitId: vi.fn(),
+  getUnitsWithPoints: vi.fn().mockResolvedValue([]),
 }));
 
 import { getArmyListsByUnitId } from "@/db/queries/armyLists";

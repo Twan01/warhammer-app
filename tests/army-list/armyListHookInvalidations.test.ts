@@ -41,6 +41,8 @@ import {
   ARMY_LISTS_KEY,
   ARMY_LIST_KEY,
   ARMY_LIST_UNITS_KEY,
+  useAddUnitToList,
+  useRemoveUnitFromList,
   useSetWarlord,
   useClearWarlord,
   useAddGhostUnitToList,
@@ -450,5 +452,33 @@ describe("useEnhancementsByList — query key (Phase 89)", () => {
 
     // Query should not be fetching when disabled
     expect(result.current.fetchStatus).toBe("idle");
+  });
+});
+
+// ─── HON-10 Symmetry: useAddUnitToList invalidates ["unit-army-lists"] ────────
+
+describe("useAddUnitToList — invalidates unit-army-lists (HON-10 symmetry fix)", () => {
+  const VARS = { list_id: 3, unit_id: 42 };
+  const UNIT_ARMY_LISTS_PREFIX = ["unit-army-lists"] as const;
+
+  it("invalidates ['unit-army-lists'] prefix so UnitDeleteDialog membership is never stale", async () => {
+    const { spy, wrapper } = makeWrapper();
+    const { result } = renderHook(() => useAddUnitToList(), { wrapper });
+    await waitFor(async () => { await result.current.mutateAsync(VARS); });
+    expect(invalidatedKeys(spy)).toContainEqual([...UNIT_ARMY_LISTS_PREFIX]);
+  });
+});
+
+// ─── HON-10 Symmetry: useRemoveUnitFromList invalidates ["unit-army-lists"] ──
+
+describe("useRemoveUnitFromList — invalidates unit-army-lists (HON-10 symmetry fix)", () => {
+  const VARS = { army_list_unit_id: 99, list_id: 3 };
+  const UNIT_ARMY_LISTS_PREFIX = ["unit-army-lists"] as const;
+
+  it("invalidates ['unit-army-lists'] prefix so UnitDeleteDialog membership is never stale", async () => {
+    const { spy, wrapper } = makeWrapper();
+    const { result } = renderHook(() => useRemoveUnitFromList(), { wrapper });
+    await waitFor(async () => { await result.current.mutateAsync(VARS); });
+    expect(invalidatedKeys(spy)).toContainEqual([...UNIT_ARMY_LISTS_PREFIX]);
   });
 });
