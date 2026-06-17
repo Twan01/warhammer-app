@@ -8,7 +8,6 @@
  */
 
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -27,7 +26,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getSnapshotData } from "@/db/queries/armyListSnapshots";
+import { useSnapshotData } from "@/hooks/useArmyListSnapshots";
 import {
   computeSnapshotDiff,
   type ParsedSnapshot,
@@ -72,17 +71,8 @@ export function SnapshotCompareDialog({
   const labelA = snapshotLabels?.[0] ?? "Snapshot A";
   const labelB = snapshotLabels?.[1] ?? "Snapshot B";
 
-  const { data: rawA, isLoading: loadingA } = useQuery({
-    queryKey: ["snapshot-data", idA],
-    queryFn: () => getSnapshotData(idA!),
-    enabled: idA !== null && open,
-  });
-
-  const { data: rawB, isLoading: loadingB } = useQuery({
-    queryKey: ["snapshot-data", idB],
-    queryFn: () => getSnapshotData(idB!),
-    enabled: idB !== null && open,
-  });
+  const { data: rawA, isLoading: loadingA } = useSnapshotData(idA, open);
+  const { data: rawB, isLoading: loadingB } = useSnapshotData(idB, open);
 
   const parsedA = useMemo(() => parseSnapshotBlob(rawA ?? null), [rawA]);
   const parsedB = useMemo(() => parseSnapshotBlob(rawB ?? null), [rawB]);

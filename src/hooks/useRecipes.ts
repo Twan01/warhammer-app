@@ -6,6 +6,7 @@ import {
   updateRecipe,
   deleteRecipe,
   duplicateRecipe,
+  getRecipeNamesByUnitIds,
 } from "@/db/queries/recipes";
 import type { CreateRecipeInput, UpdateRecipeInput } from "@/types/recipe";
 import {
@@ -27,6 +28,20 @@ export function useRecipe(id: number | undefined) {
     queryKey: id !== undefined ? RECIPE_KEY(id) : ["recipes", "disabled"],
     queryFn: () => (id !== undefined ? getRecipeById(id) : Promise.resolve(null)),
     enabled: id !== undefined,
+  });
+}
+
+// HON-10: Named hook for recipe names by unit IDs.
+// Invalidation symmetry confirmed: useCreateRecipe, useUpdateRecipe,
+// useDeleteRecipe, useDuplicateRecipe all invalidate ["recipes","by-unit"] prefix.
+export const RECIPE_NAMES_BY_UNIT_KEY = (ids: number[]) =>
+  ["recipes", "by-unit", ...ids] as const;
+
+export function useRecipeNamesByUnitIds(ids: number[]) {
+  return useQuery({
+    queryKey: ids.length > 0 ? RECIPE_NAMES_BY_UNIT_KEY(ids) : ["recipes", "by-unit", "disabled"],
+    queryFn: () => getRecipeNamesByUnitIds(ids),
+    enabled: ids.length > 0,
   });
 }
 

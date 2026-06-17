@@ -13,6 +13,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getSnapshotsByList,
+  getSnapshotData,
   createSnapshot,
   deleteSnapshot,
   restoreSnapshot,
@@ -44,6 +45,18 @@ export function useSnapshotsByList(listId: number | undefined) {
     queryKey: listId !== undefined ? SNAPSHOTS_KEY(listId) : ["army-list-snapshots", "disabled"],
     queryFn: () => getSnapshotsByList(listId!),
     enabled: listId !== undefined,
+  });
+}
+
+// HON-10: Named hook for snapshot raw data (for SnapshotCompareDialog).
+export const SNAPSHOT_DATA_KEY = (id: number | null) =>
+  ["snapshot-data", id] as const;
+
+export function useSnapshotData(id: number | null, enabled: boolean) {
+  return useQuery({
+    queryKey: SNAPSHOT_DATA_KEY(id),
+    queryFn: () => getSnapshotData(id!),
+    enabled: id !== null && enabled,
   });
 }
 

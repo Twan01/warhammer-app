@@ -25,11 +25,10 @@ import { useNavigate } from "@tanstack/react-router";
 import { Plus, Paintbrush } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useHobbyAnalytics } from "@/hooks/useHobbyAnalytics";
 import { useRecentActivity } from "@/hooks/useRecentActivity";
-import { getRecipeNamesByUnitIds, getRecipeById } from "@/db/queries/recipes";
+import { useRecipeNamesByUnitIds, useRecipe } from "@/hooks/useRecipes";
 import { useWorkflowPositions } from "@/hooks/useWorkflowPositions";
 import { useAssignmentsByUnit, useStepProgress } from "@/hooks/useRecipeAssignments";
 import { useRecipePaints } from "@/hooks/useRecipePaints";
@@ -90,11 +89,7 @@ export function DashboardPage() {
 
   // DATA-06 — recipe name for focus unit (called unconditionally per Rules of Hooks)
   const focusUnitId = stats?.activeProjects?.[0]?.id ?? null;
-  const { data: focusRecipes } = useQuery({
-    queryKey: ["recipes", "by-unit", focusUnitId ?? 0],
-    queryFn: () => getRecipeNamesByUnitIds([focusUnitId!]),
-    enabled: focusUnitId !== null,
-  });
+  const { data: focusRecipes } = useRecipeNamesByUnitIds(focusUnitId !== null ? [focusUnitId] : []);
   const { data: focusWorkflowPositions } = useWorkflowPositions(
     focusUnitId !== null ? [focusUnitId] : [],
   );
@@ -108,11 +103,7 @@ export function DashboardPage() {
     : undefined;
   const { data: focusStepProgress = [] } = useStepProgress(primaryAssignment?.id);
   const { data: focusRecipeSteps = [] } = useRecipePaints(primaryAssignment?.recipe_id);
-  const { data: primaryRecipe } = useQuery({
-    queryKey: ["recipes", primaryAssignment?.recipe_id],
-    queryFn: () => getRecipeById(primaryAssignment!.recipe_id),
-    enabled: primaryAssignment !== undefined,
-  });
+  const { data: primaryRecipe } = useRecipe(primaryAssignment?.recipe_id);
   const focusAppliedProgress = useMemo<AppliedRecipeProgress | null>(() => {
     if (!primaryAssignment || focusRecipeSteps.length === 0) return null;
     const progress = computeAssignmentProgress(focusRecipeSteps, focusStepProgress);
