@@ -55,7 +55,6 @@ const PLAY_NAV = [
 ] as const;
 
 const MANAGEMENT_NAV = [
-  { to: "/factions", label: "Factions", icon: Shield },
   { to: "/spending", label: "Spending", icon: Wallet },
   { to: "/wishlist", label: "Wishlist", icon: Heart },
   { to: "/data-health", label: "Data Health", icon: HeartPulse },

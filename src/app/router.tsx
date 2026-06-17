@@ -23,7 +23,6 @@ const PaintingProjectsPage = lazy(() => import("./painting-projects/page").then(
 const RecipesPage = lazy(() => import("./recipes/page").then(m => ({ default: m.RecipesPage })));
 const PaintsPage = lazy(() => import("./paints/page").then(m => ({ default: m.PaintsPage })));
 const SettingsPage = lazy(() => import("./settings/page").then(m => ({ default: m.SettingsPage })));
-const FactionsPage = lazy(() => import("./factions/page").then(m => ({ default: m.FactionsPage })));
 const ArmyListsPage = lazy(() => import("./army-lists/page").then(m => ({ default: m.ArmyListsPage })));
 const ArmyListDetailPageShell = lazy(() => import("./army-lists/detail/page").then(m => ({ default: m.ArmyListDetailPageShell })));
 const SpendingPage = lazy(() => import("./spending/page").then(m => ({ default: m.SpendingPage })));
@@ -96,12 +95,6 @@ const dashboardRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/",
   component: DashboardPage,
-});
-
-const factionsRoute = createRoute({
-  getParentRoute: () => layoutRoute,
-  path: "/factions",
-  component: FactionsPage,
 });
 
 const collectionRoute = createRoute({
@@ -232,7 +225,6 @@ export const paintingModeRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   layoutRoute.addChildren([
     dashboardRoute,
-    factionsRoute,
     collectionRoute,
     paintingProjectsRoute,
     goalsRoute,
