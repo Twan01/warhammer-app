@@ -73,6 +73,7 @@ const REQUIRED_CSVs = [
   "Detachment_abilities.csv",
   "Stratagems.csv",
   "Enhancements.csv",
+  "Datasheets_leader.csv",
 ] as const;
 
 // ---------------------------------------------------------------------------

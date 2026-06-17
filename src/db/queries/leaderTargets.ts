@@ -40,7 +40,7 @@ export async function getLeaderTargetsForList(
 ): Promise<CanonicalLeaderPairRow[]> {
   const db = await getDb();
   return db.select<CanonicalLeaderPairRow[]>(
-    `SELECT
+    `SELECT DISTINCT
        leader_alu.id AS leader_alu_id,
        target_alu.id AS target_alu_id
      FROM army_list_units leader_alu
