@@ -43,7 +43,7 @@
 - [ ] **Phase 131: CI Test Gate** (0/2 plans) — PR-triggered CI runs the full suite and a tag can never publish on red
 - [ ] **Phase 132: Update Trustworthiness** (0/4 plans) â A real in-place NSIS update launches, relaunches, and leaves a diagnosable log trail (Theme A merges to master here)
 - [ ] **Phase 133: Honest Data Provenance** (0/2 plans) â Remove the fake "stale/sync" UI and replace it with a truthful build-version surface
-- [ ] **Phase 134: No Dead Ends** (0/? plans) â Shared Abilities tab shows real data; "Link unit" always leads somewhere
+- [ ] **Phase 134: No Dead Ends** (0/2 plans) â Shared Abilities tab shows real data; "Link unit" always leads somewhere
 - [ ] **Phase 135: Faction & Navigation Consolidation** (0/? plans) â Zero-data-loss faction consolidation, the redundant /factions page retired, Data Health folded into Settings
 - [ ] **Phase 136: Code Honesty & Decomposition** (0/? plans) â One shared WeaponTable, a decomposed ArmyListDetailPage, hooks restored, the vestigial column resolved
 - [ ] **Phase 137: Canonical Leader Attachment** (0/? plans) â Leader-target data ships through the canonical pipeline and the builder validates real attachment pairs
@@ -110,11 +110,9 @@
 **Success Criteria** (what must be TRUE):
   1. The Rules Hub "Shared Abilities" tab displays real faction shared/army-rule abilities from the canonical database (no empty stub).
   2. A unit's datasheet "Link unit" action always leads to a way to link/match the unit against the canonical Unit Database â it is never a permanent dead end.
-**Plans**: 4 plans
-  - [x] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
-  - [x] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
-  - [x] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
-  - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
+**Plans**: 2 plans
+  - [ ] 134-01-PLAN.md — HON-03: swap the empty Shared Abilities stub for useDetachmentAbilities + adapter; honest empty states
+  - [ ] 134-02-PLAN.md — HON-04: remove the disabled Link-unit gate; CollectionFactionLinkDialog maps the faction; DatasheetPicker browse-all fallback
 **UI hint**: yes
 
 ### Phase 135: Faction & Navigation Consolidation
