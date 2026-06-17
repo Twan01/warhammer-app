@@ -3,7 +3,6 @@ import type {
   BsdataEnhancement,
   BsdataLoadoutOption,
   BsdataModelCount,
-  BsdataLeaderTarget,
 } from "@/lib/parseBsdataExtended";
 
 /**
@@ -90,31 +89,6 @@ export async function replaceSyncedModelCounts(
     const params = batch.flatMap(row => [row.unit_name, row.faction_id, row.min_models, row.max_models, syncedAt]);
     await db.execute(
       `INSERT INTO synced_model_counts (unit_name, faction_id, min_models, max_models, synced_at) VALUES ${placeholders}`,
-      params,
-    );
-  }
-}
-
-export async function replaceSyncedLeaderTargets(
-  rows: BsdataLeaderTarget[],
-  syncedAt: string,
-): Promise<void> {
-  const db = await getDb();
-  await db.execute("DELETE FROM synced_leader_targets", []);
-  if (rows.length === 0) {
-    return;
-  }
-  const BATCH_SIZE = 200;
-  const COL_COUNT = 4;
-  for (let offset = 0; offset < rows.length; offset += BATCH_SIZE) {
-    const batch = rows.slice(offset, offset + BATCH_SIZE);
-    const placeholders = batch.map((_, i) => {
-      const base = i * COL_COUNT;
-      return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4})`;
-    }).join(", ");
-    const params = batch.flatMap(row => [row.leader_name, row.faction_id, row.target_name, syncedAt]);
-    await db.execute(
-      `INSERT INTO synced_leader_targets (leader_name, faction_id, target_name, synced_at) VALUES ${placeholders}`,
       params,
     );
   }
