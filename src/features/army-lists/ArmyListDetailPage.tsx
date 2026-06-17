@@ -64,7 +64,6 @@ import { ArmyListSummaryBar } from "./ArmyListSummaryBar";
 import { ArmyListUnitRow } from "./ArmyListUnitRow";
 import { ExportDropdown } from "./ExportDropdown";
 import { DetachmentPicker } from "./DetachmentPicker";
-// Phase 107: StaleDataBanner removed
 import { DetachmentRulesSection } from "./DetachmentRulesSection";
 import { RemindersSection } from "./RemindersSection";
 import { ArmyListSheet } from "./ArmyListSheet";

@@ -6,12 +6,12 @@
  *
  * Two severity levels per D-02:
  * - Hard: points exceeded (list can't legally be played as-is)
- * - Soft: informational (unpainted, not assembled, override, unknown pts, stale)
+ * - Soft: informational (unpainted, not assembled, override, unknown pts)
  *
  * Phase 76 split (D-11/D-12):
  * - computeUnitWarnings: unit-level conditions only (not painted, not assembled,
  *   manual override, unknown points)
- * - computeListWarnings: list-level conditions only (points exceeded, stale data)
+ * - computeListWarnings: list-level conditions only (points exceeded)
  */
 import type { ArmyListUnitRow } from "@/types/armyList";
 
@@ -55,7 +55,7 @@ export interface ListHealthStats {
 /**
  * Classifies warnings for a single unit in an army list.
  * After Phase 76 split, contains ONLY unit-level conditions.
- * List-level conditions (points exceeded, stale data) are in computeListWarnings.
+ * List-level conditions (points exceeded) are in computeListWarnings.
  */
 export function computeUnitWarnings(
   unit: Pick<ArmyListUnitRow, "effective_points" | "points_override" | "status_painting" | "status_assembly">,
