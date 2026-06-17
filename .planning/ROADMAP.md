@@ -45,7 +45,7 @@
 - [ ] **Phase 133: Honest Data Provenance** (0/2 plans) â Remove the fake "stale/sync" UI and replace it with a truthful build-version surface
 - [ ] **Phase 134: No Dead Ends** (0/2 plans) â Shared Abilities tab shows real data; "Link unit" always leads somewhere
 - [ ] **Phase 135: Faction & Navigation Consolidation** (0/3 plans) â Zero-data-loss faction consolidation, the redundant /factions page retired, Data Health folded into Settings
-- [ ] **Phase 136: Code Honesty & Decomposition** (0/? plans) â One shared WeaponTable, a decomposed ArmyListDetailPage, hooks restored, the vestigial column resolved
+- [ ] **Phase 136: Code Honesty & Decomposition** (0/4 plans) â One shared WeaponTable, a decomposed ArmyListDetailPage, hooks restored, the vestigial column resolved
 - [ ] **Phase 137: Canonical Leader Attachment** (0/? plans) â Leader-target data ships through the canonical pipeline and the builder validates real attachment pairs
 - [ ] **Phase 138: Player-Journey Depth** (0/? plans) â Side-by-side unit comparison, the Collection â Unit Database loop, and goals surfaced on the dashboard
 - [ ] **Phase 139: Data Quality at Scale** (0/? plans) â Pipeline FK/orphan validation, all 25 factions audited, French translations extended
@@ -140,10 +140,10 @@
   3. The 7 components that call query functions directly are routed through React Query hooks, restoring cache and invalidation guarantees with no hook-in-loop or N+1 regressions.
   4. The vestigial `promoted_to_reminder` column is removed, or its retention is explicitly justified in the schema.
 **Plans**: 4 plans
-  - [x] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
-  - [ ] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
-  - [ ] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
-  - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
+  - [ ] 136-01-PLAN.md — HON-08: collapse 3 WeaponTable impls into the canonical units/WeaponTable; re-point DatasheetPointsTab + UdbDatasheetSheet; delete UdbWeaponsTable; render-contract test (wave 1)
+  - [ ] 136-02-PLAN.md — HON-09: decompose ArmyListDetailPage (786 lines) into Header/QuickAdd/UnitTable/Portals + useArmyListExport hook; orchestrator <250, children <200; mechanical block-moves (wave 1)
+  - [ ] 136-03-PLAN.md — HON-11: migration 049 DROP COLUMN promoted_to_reminder (LF) + lib.rs block 49 + battleLog.ts cleanup; parity gate green (wave 1)
+  - [ ] 136-04-PLAN.md — HON-10: route the 5 genuine bypasses through named hooks (useEnhancementsByFaction, useBsdataFaction x3, useSnapshotData, useRecipeNamesByUnitIds, useUnitArmyLists) + add/remove invalidation symmetry fix (wave 2, depends 136-01)
 **Notes**: HON-08 (shared WeaponTable) GATES PLAY-01 (comparison consumes it). Do the decomposition (HON-09) as mechanical block-moves only, after the reliability branch has merged (Theme A done).
 **UI hint**: yes
 
