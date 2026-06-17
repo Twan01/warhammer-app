@@ -115,7 +115,7 @@
 **Plans**: 4 plans
   - [x] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
   - [x] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
-  - [ ] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
+  - [x] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
   - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
 **UI hint**: yes
 
@@ -129,7 +129,7 @@
   3. Data Health is moved out of the main sidebar into Settings â Data.
 **Plans**: 4 plans
   - [x] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
-  - [ ] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
+  - [x] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
   - [ ] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
   - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
 **Notes**: HON-05 is the data-loss trap of the milestone (FK semantics: units RESTRICT, army_lists/sessions SET NULL, wishlist CASCADE). Treat the migration as its own careful, verified step â do NOT bundle the route removal (HON-06) in a way that risks data.
@@ -145,7 +145,7 @@
   3. The 7 components that call query functions directly are routed through React Query hooks, restoring cache and invalidation guarantees with no hook-in-loop or N+1 regressions.
   4. The vestigial `promoted_to_reminder` column is removed, or its retention is explicitly justified in the schema.
 **Plans**: 4 plans
-  - [ ] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
+  - [x] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
   - [ ] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
   - [ ] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
   - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
