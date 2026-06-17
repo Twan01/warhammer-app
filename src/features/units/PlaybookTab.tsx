@@ -18,8 +18,10 @@ import type { StatKey } from "@/features/units/PlaybookStats";
 import { PlaybookDatasheet } from "@/features/units/PlaybookDatasheet";
 import { PlaybookRules } from "@/features/units/PlaybookRules";
 import { PlaybookStrategy } from "@/features/units/PlaybookStrategy";
-import { useFactions } from "@/hooks/useFactions";
+import { useFactions, useUpdateFaction } from "@/hooks/useFactions";
 import { useUnits } from "@/hooks/useUnits";
+import { useWahapediaFactions } from "@/hooks/useDatasheet";
+import { CollectionFactionLinkDialog } from "@/features/units/CollectionFactionLinkDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import type { StrategyNote, UpsertStrategyNoteInput } from "@/types/strategyNote";
 import { DatasheetPicker } from "@/features/units/DatasheetPicker";
@@ -88,6 +90,9 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
   const [statsEditMode, setStatsEditMode] = useState(false);
   const [pointsOverrideValue, setPointsOverrideValue] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [factionLinkOpen, setFactionLinkOpen] = useState(false);
+  const updateFaction = useUpdateFaction();
+  const { data: udbFactions = [] } = useWahapediaFactions();
   const initialRef = useRef<StrategyNote | null | undefined>(undefined);
   const autoOpenedRef = useRef(false);
 
@@ -153,6 +158,29 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
     const raw = (() => { switch (key) { case "M": return model.M; case "T": return model.T; case "Sv": return model.Sv; case "W": return model.W; case "Ld": return model.Ld; case "OC": return model.OC; default: return null; } })();
     if (raw === null || raw === undefined || raw === "") return null;
     return Number.isFinite(Number(String(raw).replace(/["+]/g, ""))) ? Number(String(raw).replace(/["+]/g, "")) : null;
+  }
+
+  function handlePickerOpen() {
+    if (wahapediaFactionId) {
+      setPickerOpen(true);
+    } else {
+      setFactionLinkOpen(true);
+    }
+  }
+
+  async function handleFactionLinkConfirm(wahapediaFactionId: string) {
+    if (!localFaction) return;
+    try {
+      await updateFaction.mutateAsync({
+        id: localFaction.id,
+        wahapedia_faction_id: wahapediaFactionId,
+      });
+      setFactionLinkOpen(false);
+      setPickerOpen(true);
+      toast.success("Faction linked. Datasheets now available.");
+    } catch {
+      toast.error("Failed to link faction. Please try again.");
+    }
   }
 
   async function handlePickerSelect(datasheetId: string) {
@@ -264,7 +292,7 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
       <PlaybookStats unitId={unitId} syncMeta={udbMeta} overrideRow={overrideRow} hasDatasheetLink={hasDatasheetLink}
         hasMultipleProfiles={(datasheet?.models?.length ?? 0) > 1} statsEditMode={statsEditMode}
         onToggleStatsEditMode={() => setStatsEditMode((v) => !v)} wahapediaFactionId={wahapediaFactionId}
-        onPickerOpen={() => setPickerOpen(true)}
+        onPickerOpen={handlePickerOpen}
         onDeleteOverride={(id) => deleteOverride.mutate(id, { onSuccess: () => toast.success("Overrides cleared"), onError: () => toast.error("Failed to clear overrides") })}
         statValue={statValue} setStat={setStat} importedStatValue={importedStatValue} isStatOverridden={isStatOverridden}
         pointsOverrideValue={pointsOverrideValue} onPointsOverrideChange={setPointsOverrideValue}
@@ -303,6 +331,17 @@ export function PlaybookTab({ unitId }: PlaybookTabProps) {
       <DatasheetPicker open={pickerOpen} factionId={wahapediaFactionId ?? undefined}
         factionName={localFaction?.name ?? "this faction"}
         onSelect={(id) => { void handlePickerSelect(id); }} onClose={() => setPickerOpen(false)} />
+      <CollectionFactionLinkDialog
+        open={factionLinkOpen}
+        onOpenChange={(open) => {
+          setFactionLinkOpen(open);
+          if (!open) setPickerOpen(true);
+        }}
+        collectionFactionName={localFaction?.name ?? "this faction"}
+        udbFactions={udbFactions}
+        onConfirm={handleFactionLinkConfirm}
+        isPending={updateFaction.isPending}
+      />
     </div>
   );
 }

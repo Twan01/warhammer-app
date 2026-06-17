@@ -54,7 +54,7 @@ export function PlaybookStats({
   hasMultipleProfiles,
   statsEditMode,
   onToggleStatsEditMode,
-  wahapediaFactionId,
+  wahapediaFactionId: _wahapediaFactionId,
   onPickerOpen,
   onDeleteOverride,
   statValue,
@@ -82,9 +82,8 @@ export function PlaybookStats({
               variant="outline"
               size="sm"
               onClick={onPickerOpen}
-              disabled={!wahapediaFactionId}
             >
-              {hasDatasheetLink ? "Re-link" : "Link unit"}
+              {hasDatasheetLink ? "Re-link unit" : "Link unit"}
             </Button>
           )}
           {overrideRow && (

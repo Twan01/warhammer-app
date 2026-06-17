@@ -23,6 +23,7 @@ vi.mock("@/db/queries/strategyNotes", async () => ({
 vi.mock("@/hooks/useDatasheet", () => ({
   useDatasheet: vi.fn(() => ({ data: null })),
   DATASHEET_KEY: (id: number) => ["datasheet", id] as const,
+  useWahapediaFactions: vi.fn(() => ({ data: [] })),
 }));
 vi.mock("@/hooks/useUdbMeta", () => ({
   useUdbMeta: vi.fn(() => ({ data: null })),
@@ -30,6 +31,7 @@ vi.mock("@/hooks/useUdbMeta", () => ({
 }));
 vi.mock("@/hooks/useFactions", () => ({
   useFactions: vi.fn(() => ({ data: [{ id: 1, name: "Space Marines", color_theme: "#000", icon_path: null, game_system: "40k", description: null, created_at: "", updated_at: "" }] })),
+  useUpdateFaction: vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false })),
 }));
 vi.mock("@/hooks/useUnits", () => ({
   useUnits: vi.fn(() => ({ data: [{ id: 42, name: "Test Unit", faction_id: 1, category: null, painting_percentage: 0, status_painting: "Unpainted", status_assembly: 0, status_basing: 0, status_varnished: 0, is_active_project: 0, model_count: null, owned_count: null, points: null, priority: null, target_completion_date: null, purchase_date: null, purchase_price_pence: null, storage_location: null, notes: null, created_at: "", updated_at: "" }] })),
@@ -57,6 +59,9 @@ vi.mock("@/db/queries/unitDatabase", () => ({
 }));
 vi.mock("@/features/units/DatasheetPicker", () => ({
   DatasheetPicker: () => null, // render nothing  -- picker is tested separately
+}));
+vi.mock("@/features/units/CollectionFactionLinkDialog", () => ({
+  CollectionFactionLinkDialog: () => null, // render nothing -- dialog is tested separately
 }));
 
 vi.mock("@/hooks/useRulesFavorites", () => ({
