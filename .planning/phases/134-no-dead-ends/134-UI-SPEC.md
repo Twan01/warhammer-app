@@ -61,16 +61,19 @@ Source: Inferred from existing `RulesHubPage.tsx` (`gap-2`, `gap-6`, `px-4`, `py
 
 Matches existing sibling components exactly. No new type sizes introduced.
 
+This phase introduces no new typography. The `font-semibold` (600) used by some
+pre-existing components (e.g. `PlaybookStats` stat labels) is an inherited codebase
+constraint, not declared or introduced by this contract — new/edited markup in this
+phase uses only 400 and 500.
+
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px (`text-sm`) | 400 (regular) | 1.5 |
 | Label / count | 12px (`text-xs`) | 400 (regular) | 1.4 |
 | Card name | 14px (`text-sm`) | 500 (`font-medium`) | 1.4 |
-| Section header | 12px (`text-xs`) | 600 (`font-semibold`) | 1.4 |
 
 Source: `SharedAbilityCard.tsx` (`text-sm font-medium` for ability name),
-`RulesHubPage.tsx` (`text-xs text-muted-foreground` for counts),
-`PlaybookStats.tsx` (`text-xs font-semibold uppercase tracking-wide` for section label).
+`RulesHubPage.tsx` (`text-xs text-muted-foreground` for counts).
 
 ---
 
@@ -123,7 +126,7 @@ One new component. Three modified components.
 | Component | File | Role | Change |
 |-----------|------|------|--------|
 | `CollectionFactionLinkDialog` | `src/features/units/CollectionFactionLinkDialog.tsx` | NEW — ~50-line Dialog+Select for Collection→UDB faction mapping | **New file** |
-| `PlaybookStats` | `src/features/units/PlaybookStats.tsx` | "Link unit"/"Re-link" button — remove `disabled` gate | **1-line removal** |
+| `PlaybookStats` | `src/features/units/PlaybookStats.tsx` | "Link unit"/"Re-link unit" button — remove `disabled` gate | **1-line removal** |
 | `PlaybookTab` | `src/features/units/PlaybookTab.tsx` | Intercepts `onPickerOpen`, manages `factionLinkOpen` state, wires dialog and browse-all path | **State + handler additions** |
 | `DatasheetPicker` | `src/features/units/DatasheetPicker.tsx` | Adds browse-all path via `useUdbSearch` when `factionId` is `undefined` | **Branch addition** |
 
@@ -154,7 +157,7 @@ wrapped in `<div className="flex flex-col gap-2">`.
 #### Path A: Faction already mapped (`wahapediaFactionId !== null`)
 
 ```
-User clicks "Link unit" / "Re-link"
+User clicks "Link unit" / "Re-link unit"
   → PlaybookTab.handlePickerOpen(): wahapediaFactionId is not null
   → setPickerOpen(true) [existing path, unchanged]
   → DatasheetPicker opens scoped to faction
@@ -223,6 +226,16 @@ even when the user never searched.
 | Confirm button | `Link & open datasheets` | Parallel to FactionLinkDialog's "Link & Add"; disabled until selection made |
 | Confirm button — loading state | Disabled during mutation | Prevent double-submit |
 
+### HON-04 — Link unit button copy
+
+| State | Button label |
+|-------|-------------|
+| No datasheet link yet | `Link unit` |
+| Datasheet already linked | `Re-link unit` |
+
+Both labels are `variant="outline" size="sm"`. The label pair matches specificity:
+"Link unit" when unlinked, "Re-link unit" when already linked.
+
 ### HON-04 — DatasheetPicker browse-all mode
 
 | Element | Copy | Condition |
@@ -261,7 +274,7 @@ even when the user never searched.
 |-------|------------------|---------------------|
 | No UDB loaded (`!syncMeta`) | Button hidden — existing | Existing "Unit database not loaded" banner |
 | Faction mapped, no link | `"Link unit"` `variant="outline" size="sm"` — **enabled** | None |
-| Faction mapped, has link | `"Re-link"` `variant="outline" size="sm"` — **enabled** | None |
+| Faction mapped, has link | `"Re-link unit"` `variant="outline" size="sm"` — **enabled** | None |
 | Faction unmapped | `"Link unit"` `variant="outline" size="sm"` — **enabled** | None — clicking opens CollectionFactionLinkDialog |
 
 The `disabled` prop is removed entirely. No disabled state remains for this button.
@@ -310,6 +323,10 @@ keep the dialog lean at ~50 lines and avoid importing an icon purely for decorat
 
 Select reset: On dialog close (both Cancel and after confirm), `setSelectedId("")` is called
 to reset state — matching `FactionLinkDialog`'s `handleOpenChange` pattern.
+
+The dialog description uses `<span className="font-medium text-foreground">` for the
+faction name inline — weight 500, not 600. This is the only styled inline element in
+new markup for this phase.
 
 ---
 
