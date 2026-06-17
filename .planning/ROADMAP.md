@@ -44,7 +44,7 @@
 - [ ] **Phase 132: Update Trustworthiness** (0/4 plans) â A real in-place NSIS update launches, relaunches, and leaves a diagnosable log trail (Theme A merges to master here)
 - [ ] **Phase 133: Honest Data Provenance** (0/2 plans) â Remove the fake "stale/sync" UI and replace it with a truthful build-version surface
 - [ ] **Phase 134: No Dead Ends** (0/2 plans) â Shared Abilities tab shows real data; "Link unit" always leads somewhere
-- [ ] **Phase 135: Faction & Navigation Consolidation** (0/? plans) â Zero-data-loss faction consolidation, the redundant /factions page retired, Data Health folded into Settings
+- [ ] **Phase 135: Faction & Navigation Consolidation** (0/3 plans) â Zero-data-loss faction consolidation, the redundant /factions page retired, Data Health folded into Settings
 - [ ] **Phase 136: Code Honesty & Decomposition** (0/? plans) â One shared WeaponTable, a decomposed ArmyListDetailPage, hooks restored, the vestigial column resolved
 - [ ] **Phase 137: Canonical Leader Attachment** (0/? plans) â Leader-target data ships through the canonical pipeline and the builder validates real attachment pairs
 - [ ] **Phase 138: Player-Journey Depth** (0/? plans) â Side-by-side unit comparison, the Collection â Unit Database loop, and goals surfaced on the dashboard
@@ -123,12 +123,11 @@
   1. A **map-not-delete** migration consolidates user factions into the canonical faction model preserving every FK reference â units, army_lists, painting_sessions, wishlist, and `default_faction_id` theming â with zero data loss verified (every existing unit still resolves its faction, theming still loads cold, wishlist counts unchanged).
   2. The standalone `/factions` sidebar page is removed, and faction create/edit/theming remains reachable from its new home with no loss of capability.
   3. Data Health is moved out of the main sidebar into Settings â Data.
-**Plans**: 4 plans
-  - [x] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
-  - [x] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
-  - [ ] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
-  - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
-**Notes**: HON-05 is the data-loss trap of the milestone (FK semantics: units RESTRICT, army_lists/sessions SET NULL, wishlist CASCADE). Treat the migration as its own careful, verified step â do NOT bundle the route removal (HON-06) in a way that risks data.
+**Plans**: 3 plans
+  - [ ] 135-01-PLAN.md — HON-05: migration 048 map-not-delete faction consolidation + lib.rs entry (47→48) + zero-data-loss data-layer test + parity gates
+  - [ ] 135-02-PLAN.md — HON-06: Settings → Factions tab (rehome FactionsPage verbatim) + remove /factions route/sidebar entry + delete page wrapper
+  - [ ] 135-03-PLAN.md — HON-07: remove Data Health from sidebar MANAGEMENT_NAV + drop HeartPulse import (keep /data-health route + Settings card)
+**Notes**: HON-05 is the data-loss trap of the milestone (FK semantics: units RESTRICT, painting_recipes/army_lists SET NULL, wishlist CASCADE; default_faction_id is a TEXT app_settings value with no FK). The migration is its own verified step (Plan 01, Wave 1) and lands BEFORE the route/sidebar removals (Plans 02/03). Plans 02 and 03 both edit AppSidebar.tsx, so 03 is sequenced after 02 (Wave 3) to avoid a same-file conflict.
 **UI hint**: yes
 
 ### Phase 136: Code Honesty & Decomposition
@@ -204,7 +203,7 @@
 | 132. Update Trustworthiness | 3/4 | In Progress|  |
 | 133. Honest Data Provenance | 2/2 | Complete    | 2026-06-17 |
 | 134. No Dead Ends | 2/2 | Complete    | 2026-06-17 |
-| 135. Faction & Navigation Consolidation | 0/? | Not started | - |
+| 135. Faction & Navigation Consolidation | 0/3 | Not started | - |
 | 136. Code Honesty & Decomposition | 0/? | Not started | - |
 | 137. Canonical Leader Attachment | 0/? | Not started | - |
 | 138. Player-Journey Depth | 0/? | Not started | - |
