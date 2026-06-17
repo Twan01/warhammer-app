@@ -81,8 +81,7 @@ describe("CollectionFactionLinkDialog — confirm button state", () => {
     expect(confirmBtn).toBeDisabled();
   });
 
-  it("confirm button is disabled when isPending is true (even with selection)", async () => {
-    const user = userEvent.setup();
+  it("confirm button is disabled when isPending is true (even with selection)", () => {
     renderDialog({ isPending: true });
 
     // Even without selection, isPending keeps it disabled

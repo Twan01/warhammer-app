@@ -24,8 +24,10 @@ function wrapper({ children }: { children: ReactNode }) {
 
 const mockSyncMeta: UdbMeta = {
   version: "1.0",
+  built_at: "2026-06-17T00:00:00Z",
+  game_system: "wh40k",
   unit_count: 100,
-  last_synced_at: "2026-06-17T00:00:00Z",
+  faction_count: 26,
 };
 
 const baseProps = {

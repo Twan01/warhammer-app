@@ -10,6 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useDatasheetsByFaction } from "@/hooks/useDatasheet";
+import { useUdbSearch } from "@/hooks/useUnitDatabase";
 
 interface DatasheetPickerProps {
   open: boolean;
@@ -37,7 +38,13 @@ export function DatasheetPicker({
   onClose,
 }: DatasheetPickerProps) {
   const [search, setSearch] = useState("");
-  const { data: datasheets = [] } = useDatasheetsByFaction(factionId);
+  const isBrowseAll = factionId === undefined;
+  const { data: factionDatasheets = [] } = useDatasheetsByFaction(factionId);
+  const { data: searchResults = [] } = useUdbSearch(isBrowseAll ? search : "");
+
+  const datasheets = isBrowseAll
+    ? searchResults.map((r) => ({ id: r.unit_id, name: r.name, role: r.faction_name }))
+    : factionDatasheets;
 
   const filtered = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -51,7 +58,7 @@ export function DatasheetPicker({
         <DialogHeader>
           <DialogTitle>Select Datasheet</DialogTitle>
           <DialogDescription>
-            Searching {factionName} datasheets
+            {isBrowseAll ? "Search all datasheets" : `Searching ${factionName} datasheets`}
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-3">
@@ -78,7 +85,9 @@ export function DatasheetPicker({
             ))}
             {filtered.length === 0 && (
               <p className="px-3 py-4 text-sm text-muted-foreground text-center">
-                No datasheets found. Try a different search term.
+                {isBrowseAll && search.trim().length < 2
+                  ? "Type at least 2 characters to search all datasheets."
+                  : "No datasheets found. Try a different search term."}
               </p>
             )}
           </div>
