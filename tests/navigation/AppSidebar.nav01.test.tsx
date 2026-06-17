@@ -89,4 +89,17 @@ describe("AppSidebar NAV-01: Group Labels", () => {
     const dashboard = screen.getByText("Dashboard");
     expect(dashboard).toBeInTheDocument();
   });
+
+  // ---------------------------------------------------------------------------
+  // HON-07: Data Health absent from sidebar Management group (Phase 135)
+  // ---------------------------------------------------------------------------
+
+  it("HON-07: Management group shows only Spending and Wishlist — Data Health is not present", () => {
+    renderSidebar();
+    // Data Health must be absent from the sidebar (moved to Settings -> Data)
+    expect(screen.queryByText("Data Health")).not.toBeInTheDocument();
+    // Management group retains exactly Spending and Wishlist
+    expect(screen.getByText("Spending")).toBeInTheDocument();
+    expect(screen.getByText("Wishlist")).toBeInTheDocument();
+  });
 });

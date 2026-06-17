@@ -75,11 +75,27 @@ describe("SettingsPage", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Settings");
   });
 
-  it("renders three tab triggers", () => {
+  it("renders four tab triggers (Preferences, Factions, Data, About)", () => {
     renderWithQC(<SettingsPage />);
     expect(screen.getByRole("tab", { name: "Preferences" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Factions" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Data" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "About" })).toBeInTheDocument();
+    expect(screen.getAllByRole("tab")).toHaveLength(4);
+  });
+
+  // ---------------------------------------------------------------------------
+  // HON-06: Factions tab present in Settings (Phase 135)
+  // ---------------------------------------------------------------------------
+
+  it("HON-06: Settings exposes a Factions tab at the 2nd position rendering FactionsPage", () => {
+    renderWithQC(<SettingsPage />);
+    const factionsTab = screen.getByRole("tab", { name: "Factions" });
+    expect(factionsTab).toBeInTheDocument();
+
+    // Confirm 2nd position among all tab triggers
+    const allTabs = screen.getAllByRole("tab");
+    expect(allTabs[1]).toHaveTextContent("Factions");
   });
 
   it("Preferences tab is active by default", () => {
