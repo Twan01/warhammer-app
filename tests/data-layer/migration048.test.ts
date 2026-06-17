@@ -238,6 +238,133 @@ describe("migration 048 — faction consolidation (HON-05)", () => {
     db.close();
   });
 
+  it("merges 3+ duplicates to the MIN-id survivor with no dependent re-pointed at a deleted mid row (CR-01)", () => {
+    // Regression for REVIEW.md CR-01: with three rows sharing a key (ids a<b<c),
+    // a "any lower-id sibling" re-point could send a dependent under c to b, which
+    // the DELETE (every non-MIN row) then removes — dangling FK / RESTRICT abort.
+    // The migration must re-point EVERY duplicate's dependents to MIN(id).
+    const db = createDbUpToMigration(47);
+
+    db.prepare(
+      `INSERT OR IGNORE INTO udb_factions (id, name, updated_at) VALUES ('SM', 'Space Marines', datetime('now'))`,
+    ).run();
+
+    // Three rows sharing wahapedia_faction_id 'SM'. wahapedia_faction_id set
+    // explicitly so the Step 0 name backfill leaves them untouched.
+    const r1 = db
+      .prepare(
+        `INSERT INTO factions (name, game_system, color_theme, wahapedia_faction_id)
+         VALUES ('Space Marines A', 'Warhammer 40K', '#1B4FA8', 'SM')`,
+      )
+      .run();
+    const r2 = db
+      .prepare(
+        `INSERT INTO factions (name, game_system, color_theme, wahapedia_faction_id)
+         VALUES ('Space Marines B', 'Warhammer 40K', '#2255BB', 'SM')`,
+      )
+      .run();
+    const r3 = db
+      .prepare(
+        `INSERT INTO factions (name, game_system, color_theme, wahapedia_faction_id)
+         VALUES ('Space Marines C', 'Warhammer 40K', '#3366CC', 'SM')`,
+      )
+      .run();
+    const midId = Number(r2.lastInsertRowid);
+    const highId = Number(r3.lastInsertRowid);
+
+    // The deterministic survivor is the group MIN — resolve it dynamically so the
+    // assertion holds regardless of any seeded 'SM' faction.
+    const survivorId = (
+      db
+        .prepare(
+          `SELECT MIN(id) AS m FROM factions WHERE wahapedia_faction_id = 'SM'`,
+        )
+        .get() as { m: number }
+    ).m;
+    expect(survivorId).toBe(Number(r1.lastInsertRowid));
+
+    // Dependents under the MID duplicate (id b) — the row most at risk of CR-01.
+    db.prepare(
+      `INSERT INTO units (faction_id, name, status_painting) VALUES (?, 'Unit Under Mid', 'Not Started')`,
+    ).run(midId);
+    db.prepare(
+      `INSERT INTO painting_recipes (name, faction_id) VALUES ('Recipe Under Mid', ?)`,
+    ).run(midId);
+    db.prepare(
+      `INSERT INTO army_lists (name, faction_id) VALUES ('List Under Mid', ?)`,
+    ).run(midId);
+    db.prepare(
+      `INSERT INTO wishlist_items (name, faction_id, estimated_cost_pence) VALUES ('Item Under Mid', ?, 1000)`,
+    ).run(midId);
+
+    // Dependents under the HIGH duplicate (id c).
+    db.prepare(
+      `INSERT INTO units (faction_id, name, status_painting) VALUES (?, 'Unit Under High', 'Not Started')`,
+    ).run(highId);
+    db.prepare(
+      `INSERT INTO wishlist_items (name, faction_id, estimated_cost_pence) VALUES ('Item Under High', ?, 2000)`,
+    ).run(highId);
+
+    // default_faction_id points at the HIGH duplicate.
+    db.prepare(
+      `INSERT INTO app_settings (key, value, updated_at) VALUES ('default_faction_id', ?, datetime('now'))`,
+    ).run(String(highId));
+
+    const preUnits = (
+      db.prepare(`SELECT COUNT(*) as c FROM units`).get() as { c: number }
+    ).c;
+    const preWishlist = (
+      db.prepare(`SELECT COUNT(*) as c FROM wishlist_items`).get() as { c: number }
+    ).c;
+
+    db.exec(
+      readFileSync(resolve(migrationsDir, "048_consolidate_factions.sql"), "utf-8"),
+    );
+
+    // Both the mid and high duplicate rows are deleted; only the MIN survivor remains.
+    expect(db.prepare(`SELECT id FROM factions WHERE id = ?`).get(midId)).toBeUndefined();
+    expect(db.prepare(`SELECT id FROM factions WHERE id = ?`).get(highId)).toBeUndefined();
+    expect(
+      (db.prepare(`SELECT COUNT(*) as c FROM factions WHERE wahapedia_faction_id = 'SM'`).get() as { c: number }).c,
+    ).toBe(1);
+
+    // No dependent points at a deleted row (the CR-01 failure mode). Every
+    // dependent — from BOTH the mid and high duplicate — resolves to the survivor.
+    for (const name of ["Unit Under Mid", "Unit Under High"]) {
+      const u = db.prepare(`SELECT faction_id FROM units WHERE name = ?`).get(name) as { faction_id: number };
+      expect(u.faction_id).toBe(survivorId);
+    }
+    expect(
+      (db.prepare(`SELECT faction_id FROM painting_recipes WHERE name = 'Recipe Under Mid'`).get() as { faction_id: number }).faction_id,
+    ).toBe(survivorId);
+    expect(
+      (db.prepare(`SELECT faction_id FROM army_lists WHERE name = 'List Under Mid'`).get() as { faction_id: number }).faction_id,
+    ).toBe(survivorId);
+    for (const name of ["Item Under Mid", "Item Under High"]) {
+      const w = db.prepare(`SELECT faction_id FROM wishlist_items WHERE name = ?`).get(name) as { faction_id: number };
+      expect(w.faction_id).toBe(survivorId);
+    }
+
+    // No orphaned FKs anywhere (would indicate a dependent left pointing at a deleted row).
+    expect(
+      (db.prepare(`SELECT COUNT(*) as c FROM units WHERE faction_id NOT IN (SELECT id FROM factions)`).get() as { c: number }).c,
+    ).toBe(0);
+    expect(
+      (db.prepare(`SELECT COUNT(*) as c FROM wishlist_items WHERE faction_id NOT IN (SELECT id FROM factions)`).get() as { c: number }).c,
+    ).toBe(0);
+
+    // Row counts preserved (no CASCADE loss, no RESTRICT abort).
+    expect((db.prepare(`SELECT COUNT(*) as c FROM units`).get() as { c: number }).c).toBe(preUnits);
+    expect((db.prepare(`SELECT COUNT(*) as c FROM wishlist_items`).get() as { c: number }).c).toBe(preWishlist);
+
+    // default_faction_id (had pointed at the high duplicate) resolves to the live survivor.
+    const setting = db.prepare(`SELECT value FROM app_settings WHERE key = 'default_faction_id'`).get() as { value: string };
+    expect(setting.value).toBe(String(survivorId));
+    expect(db.prepare(`SELECT id FROM factions WHERE id = ?`).get(Number(setting.value))).toBeDefined();
+
+    db.close();
+  });
+
   it("leaves unmapped factions (wahapedia_faction_id IS NULL) intact", () => {
     const db = createDbUpToMigration(47);
 
