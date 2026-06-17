@@ -1,9 +1,9 @@
 /**
  * Phase 77 -- Diagnostics card (UI-SPEC Section 4).
  *
- * Combines database diagnostic flags (orphaned progress, ambiguous points)
- * with a stale-sync check computed client-side from syncFreshness. When all
- * diagnostics pass, shows a green dot + "All diagnostics passed".
+ * Combines database diagnostic flags (orphaned progress, ambiguous points).
+ * Data version is sourced from udb_meta (udb_meta.version contains the content hash).
+ * When all diagnostics pass, shows a green dot + "All diagnostics passed".
  */
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

@@ -5,7 +5,6 @@ import { getVersion } from "@tauri-apps/api/app";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUdbMeta } from "@/hooks/useUdbMeta";
 import { useDiagnosticFlags, useBackupStatus } from "@/hooks/useDiagnostics";
-import { getSyncFreshness, getSyncAgeLabel, FRESHNESS_DOT_CLASS } from "@/lib/syncFreshness";
 import { getBackupFreshness, getBackupAgeLabel, hasVersionMismatch, BACKUP_FRESHNESS_DOT_CLASS } from "@/lib/backupFreshness";
 
 export function DataHealthSummaryCard() {
@@ -17,9 +16,6 @@ export function DataHealthSummaryCard() {
   useEffect(() => {
     getVersion().then(setAppVersion).catch(() => setAppVersion("unknown"));
   }, []);
-
-  const freshness = getSyncFreshness(udbMeta?.built_at ?? null);
-  const syncLabel = getSyncAgeLabel(udbMeta?.built_at ?? null);
 
   const warningCount = flags
     ? flags.reduce((sum, f) => sum + f.count, 0)
@@ -36,10 +32,9 @@ export function DataHealthSummaryCard() {
           {syncLoading ? (
             <Skeleton className="h-4 w-28" />
           ) : (
-            <div className="flex items-center gap-1.5">
-              <span className={`inline-block h-2 w-2 rounded-full ${FRESHNESS_DOT_CLASS[freshness]}`} />
-              <span className="text-muted-foreground">{syncLabel}</span>
-            </div>
+            <span className="text-xs text-muted-foreground">
+              {udbMeta ? `Data ${udbMeta.version}` : "Data version unavailable"}
+            </span>
           )}
 
           {flagsLoading ? (

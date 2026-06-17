@@ -1,8 +1,6 @@
-import { Shield, Clock } from "lucide-react";
+import { Shield } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useArmyLists, useArmyListWithUnits } from "@/hooks/useArmyLists";
-import { useUdbMeta } from "@/hooks/useUdbMeta";
-import { getSyncFreshness, getSyncAgeLabel, FRESHNESS_DOT_CLASS } from "@/lib/syncFreshness";
 
 export function ReadyToPlayCard() {
   const { data: lists, isLoading: listsLoading } = useArmyLists();
@@ -32,10 +30,6 @@ export function ReadyToPlayCard() {
 
 function ReadyToPlayCardInner({ listId, listName }: { listId: number; listName: string }) {
   const { data: units } = useArmyListWithUnits(listId);
-  const { data: udbMeta } = useUdbMeta();
-
-  const freshness = getSyncFreshness(udbMeta?.built_at ?? null);
-  const syncLabel = getSyncAgeLabel(udbMeta?.built_at ?? null);
 
   const totalPoints = units?.reduce((sum, u) => sum + u.effective_points, 0) ?? 0;
   const unpaintedCount = units?.filter((u) => u.status_painting !== "Completed").length ?? 0;
@@ -60,16 +54,11 @@ function ReadyToPlayCardInner({ listId, listName }: { listId: number; listName: 
             <Shield size={12} />
             <span>{unpaintedCount} unpainted</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className={`inline-block h-2 w-2 rounded-full ${FRESHNESS_DOT_CLASS[freshness]}`} />
-            <Clock size={12} />
-            <span>{syncLabel}</span>
-          </div>
         </div>
 
-        {(unpaintedCount > 0 || freshness === "stale" || freshness === "aging") && (
+        {unpaintedCount > 0 && (
           <span className="inline-flex w-fit items-center rounded bg-amber-500/15 px-1.5 py-0.5 text-xs text-amber-600 dark:text-amber-400">
-            {unpaintedCount > 0 ? `${unpaintedCount} unpainted` : "Sync stale"}
+            {unpaintedCount} unpainted
           </span>
         )}
       </div>
