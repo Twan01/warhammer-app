@@ -25,7 +25,6 @@ import { WeaponTable } from "@/features/units/WeaponTable";
 import { computeUnitWarnings } from "@/lib/computeUnitWarnings";
 import { resolveUnitPoints } from "@/lib/resolveUnitPoints";
 import type { ArmyListUnitRow as ArmyListUnitRowType } from "@/types/armyList";
-import type { SyncedLeaderTargetRow } from "@/db/queries/bsdataExtended";
 import { TACTICAL_ROLES, TACTICAL_ROLES_DISPLAY } from "@/types/armyList";
 import { useUnitKeywords } from "@/hooks/useUnitKeywords";
 import { PointsSourceChip } from "./PointsSourceChip";
@@ -41,7 +40,8 @@ interface ArmyListUnitRowProps {
   enhancementName?: string;
   isIndentedLeader?: boolean;
   leaderName?: string;
-  leaderTargets?: SyncedLeaderTargetRow[];
+  /** Phase 137 (PLAY-03): canonical leader army_list_unit ids from udb_leader_targets. */
+  leaderAluIds?: Set<number>;
   dragHandleProps?: Record<string, unknown>;
 }
 
@@ -64,7 +64,7 @@ interface ArmyListUnitRowProps {
  * Configure trigger that opens the LoadoutBuilderSheet (D-02, D-04).
  * Tier selection now writes to army_list_units.selected_model_count (per-list).
  */
-export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, onRemove, onConfigure, onEnhance, onAttachLeader, onToggleWarlord, enhancementName, isIndentedLeader = false, leaderName, leaderTargets = [], dragHandleProps }: ArmyListUnitRowProps) {
+export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, onRemove, onConfigure, onEnhance, onAttachLeader, onToggleWarlord, enhancementName, isIndentedLeader = false, leaderName, leaderAluIds, dragHandleProps }: ArmyListUnitRowProps) {
   const isGhost = unit.unit_id === null;
   const updateArmyListUnit = useUpdateArmyListUnit();
   const [expanded, setExpanded] = useState(false);
@@ -89,10 +89,10 @@ export const ArmyListUnitRow = memo(function ArmyListUnitRow({ unit, onRemove, o
   const isEpicHero = keywords?.isEpicHero ?? false;
   const showEnhanceTrigger = isCharacter && !isEpicHero;
 
-  // Phase 92 — Leader eligibility: unit name matches a leader_name in synced targets
-  const isLeader = leaderTargets.some(
-    (lt) => lt.leader_name.toLowerCase() === unit.unit_name.toLowerCase(),
-  );
+  // Phase 137 (PLAY-03) — Leader eligibility: canonical check via Set<number>.
+  // leaderAluIds contains army_list_units.id values that appear as leaders in
+  // canonical udb_leader_targets pairs for this list.
+  const isLeader = leaderAluIds?.has(unit.id) ?? false;
 
   // Phase 76 — points source resolution
   const resolved = useMemo(

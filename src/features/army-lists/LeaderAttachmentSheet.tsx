@@ -28,46 +28,53 @@ interface LeaderAttachmentSheetProps {
 }
 
 /**
- * Phase 92 -- Leader Attachment Sheet (LDR-01, LDR-02).
+ * Phase 137 — Leader Attachment Sheet repoint (PLAY-03, D-08, D-09).
  *
  * Sibling-portal sheet for browsing and attaching/detaching leaders
  * to valid target units in an army list.
  *
- * Preventive validation (D-08): only valid pairings from synced_leader_targets
- * are offered as targets. Targets already led by another leader have their
- * Attach button disabled with tooltip (T-92-05).
+ * Canonical validation: uses id-keyed udb_leader_targets pairs (not name
+ * matching) to determine which units are valid targets. Called ONCE at
+ * sheet level — never per-row (D-07 / Pitfall 6).
+ *
+ * NULL fallback (D-09 / Pitfall 5): when the leader unit has a NULL
+ * udb_unit_id, validTargetIds is set to null (PERMISSIVE sentinel — shows
+ * ALL units as selectable). An empty Set would mean "canonically no valid
+ * targets". Never confuse null with an empty Set: ghost/manual units must
+ * keep the ability to attach.
  *
  * Architecture: follows the EnhancementPickerSheet sibling portal pattern.
  * State lives in ArmyListsPage; this Sheet is rendered as a sibling.
  */
 export function LeaderAttachmentSheet({ open, unit, list, units, onClose }: LeaderAttachmentSheetProps) {
-  // Pitfall 1: faction_id must be STRING for getLeaderTargetsByFaction (TEXT column)
-  const factionIdStr = unit?.faction_id != null
-    ? String(unit.faction_id)
-    : list?.faction_id != null
-      ? String(list.faction_id)
-      : null;
-
-  // Fetch all leader targets for this faction from synced rules data
-  const { data: leaderTargets = [] } = useLeaderTargets(factionIdStr);
+  // Batch pair data for entire list (replaces faction-based name-match).
+  // Called ONCE at sheet level — never per-row (D-07 / Pitfall 6).
+  const { data: leaderTargetPairs = [] } = useLeaderTargets(list?.id ?? null);
 
   const setLeaderAttachment = useSetLeaderAttachment();
   const clearLeaderAttachment = useClearLeaderAttachment();
 
-  // Compute valid target names for this leader (case-insensitive match)
-  const validTargetNames = useMemo(() => {
-    if (!unit) return [];
-    const leaderName = unit.unit_name.toLowerCase();
-    return leaderTargets
-      .filter((lt) => lt.leader_name.toLowerCase() === leaderName)
-      .map((lt) => lt.target_name);
-  }, [unit, leaderTargets]);
+  // Determine if this leader has canonical data (NULL udb_unit_id = permissive)
+  const leaderHasCanonicalData = unit?.udb_unit_id != null;
 
-  // Filter list units to valid targets (case-insensitive name match)
+  // Build valid-target Set for this leader.
+  // null = permissive sentinel (D-09 / Pitfall 5): show ALL units.
+  // empty Set = canonically no valid targets (different meaning!).
+  const validTargetIds = useMemo(() => {
+    if (!unit || !leaderHasCanonicalData) return null;
+    return new Set(
+      leaderTargetPairs
+        .filter((p) => p.leader_alu_id === unit.id)
+        .map((p) => p.target_alu_id),
+    );
+  }, [unit, leaderHasCanonicalData, leaderTargetPairs]);
+
+  // Filter list units to valid targets.
+  // null validTargetIds = permissive: return ALL units (D-09).
   const validTargetUnits = useMemo(() => {
-    const targetNamesLower = new Set(validTargetNames.map((n) => n.toLowerCase()));
-    return units.filter((u) => u.unit_name && targetNamesLower.has(u.unit_name.toLowerCase()));
-  }, [units, validTargetNames]);
+    if (validTargetIds === null) return units;
+    return units.filter((u) => validTargetIds.has(u.id));
+  }, [units, validTargetIds]);
 
   // Current attachment: check if this leader is already attached
   const currentTarget = useMemo(() => {
@@ -94,15 +101,15 @@ export function LeaderAttachmentSheet({ open, unit, list, units, onClose }: Lead
             </SheetHeader>
 
             <div className="flex flex-col gap-4 px-4 py-4">
-              {/* No faction guard */}
-              {!factionIdStr && (
+              {/* Advisory: no canonical data for this leader (D-09 permissive fallback) */}
+              {!leaderHasCanonicalData && (
                 <p className="text-sm text-muted-foreground">
-                  No faction selected for this list.
+                  No canonical attachment data — validation unavailable for this unit. All units in the list are shown as selectable targets.
                 </p>
               )}
 
-              {/* Current attachment banner (D-03) */}
-              {factionIdStr && currentTarget && (
+              {/* Current attachment banner */}
+              {currentTarget && (
                 <div className="flex items-center justify-between gap-2 rounded-md border bg-secondary p-3">
                   <div className="flex flex-col gap-1">
                     <span className="text-sm text-muted-foreground">Currently attached to</span>
@@ -131,7 +138,7 @@ export function LeaderAttachmentSheet({ open, unit, list, units, onClose }: Lead
               )}
 
               {/* Valid targets list */}
-              {factionIdStr && validTargetUnits.length > 0 && (
+              {validTargetUnits.length > 0 && (
                 <div className="flex flex-col gap-3">
                   {validTargetUnits.map((target) => {
                     // Check if this target already has a different leader attached
@@ -176,7 +183,7 @@ export function LeaderAttachmentSheet({ open, unit, list, units, onClose }: Lead
                           ) : existingLeader ? (
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                {/* Pitfall 2: wrap disabled button in span for tooltip */}
+                                {/* Wrap disabled button in span for tooltip */}
                                 <span className="inline-flex">
                                   <Button
                                     type="button"
@@ -219,15 +226,13 @@ export function LeaderAttachmentSheet({ open, unit, list, units, onClose }: Lead
                 </div>
               )}
 
-              {/* Empty state: has faction but no valid targets in list */}
-              {factionIdStr && validTargetUnits.length === 0 && (
+              {/* Empty state: canonical data found but no valid targets in this list */}
+              {leaderHasCanonicalData && validTargetUnits.length === 0 && (
                 <div className="flex flex-col gap-2 py-4 text-center">
                   <p className="text-sm font-medium">No valid targets in this list</p>
-                  {validTargetNames.length > 0 && (
-                    <p className="text-sm text-muted-foreground">
-                      Add one of the following units to attach this leader: {validTargetNames.join(", ")}
-                    </p>
-                  )}
+                  <p className="text-sm text-muted-foreground">
+                    Add a unit that this leader can be attached to.
+                  </p>
                 </div>
               )}
             </div>

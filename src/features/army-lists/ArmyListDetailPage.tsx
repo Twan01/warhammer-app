@@ -84,8 +84,9 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
   // variants like "Tau Empire" vs "T'au Empire" would also fail to match.
   const wahapediaFactionId = faction?.wahapedia_faction_id ?? null;
 
-  const factionIdStr = list?.faction_id != null ? String(list.faction_id) : null;
-  const { data: leaderTargets } = useLeaderTargets(factionIdStr);
+  // Phase 137 repoint (PLAY-03, D-08): keyed by list id, not faction id.
+  // Returns CanonicalLeaderPairRow[] — id-keyed pairs from udb_leader_targets.
+  const { data: leaderTargetPairs } = useLeaderTargets(list?.id != null ? list.id : null);
 
   const groupedUnits = useMemo(
     () => groupUnitsWithLeaders(units ?? []),
@@ -119,6 +120,13 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
     }
     return map;
   }, [units]);
+
+  // Phase 137 (PLAY-03, D-07): derive Set of leader army_list_unit ids from
+  // canonical pairs. Passed to ArmyListUnitTable for isLeader indicator.
+  // Built at page level — never per-row (D-07 / Pitfall 6).
+  const leaderAluIds = useMemo(() => {
+    return new Set((leaderTargetPairs ?? []).map((p) => p.leader_alu_id));
+  }, [leaderTargetPairs]);
 
   const totalPoints = useMemo(
     () => (units ?? []).reduce((sum, u) => sum + u.effective_points, 0),
@@ -357,7 +365,7 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
           collapsedCategories={collapsedCategories}
           onToggleCategory={toggleCategory}
           leaderNameMap={leaderNameMap}
-          leaderTargets={leaderTargets ?? []}
+          leaderAluIds={leaderAluIds}
           listEnhancements={listEnhancements ?? []}
           listId={listId}
           sensors={sensors}

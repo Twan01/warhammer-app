@@ -18,7 +18,6 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { ArmyListUnitRow } from "./ArmyListUnitRow";
 import type { ArmyListUnitRow as ArmyListUnitRowType, ArmyListEnhancement } from "@/types/armyList";
-import type { SyncedLeaderTargetRow } from "@/db/queries/bsdataExtended";
 
 // ---------------------------------------------------------------------------
 // Sortable row wrapper for dnd-kit
@@ -26,7 +25,7 @@ import type { SyncedLeaderTargetRow } from "@/db/queries/bsdataExtended";
 
 function SortableUnitRow({
   unit, onRemove, onConfigure, onEnhance, onAttachLeader, onToggleWarlord,
-  enhancementName, isIndentedLeader, leaderName, leaderTargets,
+  enhancementName, isIndentedLeader, leaderName, leaderAluIds,
 }: {
   unit: ArmyListUnitRowType;
   onRemove: () => void;
@@ -37,7 +36,7 @@ function SortableUnitRow({
   enhancementName?: string;
   isIndentedLeader: boolean;
   leaderName?: string;
-  leaderTargets: SyncedLeaderTargetRow[];
+  leaderAluIds: Set<number>;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: unit.id });
   const style = {
@@ -59,7 +58,7 @@ function SortableUnitRow({
             enhancementName={enhancementName}
             isIndentedLeader={isIndentedLeader}
             leaderName={leaderName}
-            leaderTargets={leaderTargets}
+            leaderAluIds={leaderAluIds}
             dragHandleProps={{ ...attributes, ...listeners }}
           />
         </tbody></table>
@@ -77,7 +76,8 @@ interface ArmyListUnitTableProps {
   collapsedCategories: Set<string>;
   onToggleCategory: (cat: string) => void;
   leaderNameMap: Map<number, string>;
-  leaderTargets: SyncedLeaderTargetRow[];
+  /** Phase 137 (PLAY-03): canonical leader army_list_unit ids derived from udb_leader_targets pairs */
+  leaderAluIds: Set<number>;
   listEnhancements: ArmyListEnhancement[];
   listId: number;
   sensors: ReturnType<typeof useSensors>;
@@ -94,7 +94,7 @@ export function ArmyListUnitTable({
   collapsedCategories,
   onToggleCategory,
   leaderNameMap,
-  leaderTargets,
+  leaderAluIds,
   listEnhancements,
   sensors,
   onDragEnd,
@@ -172,7 +172,7 @@ export function ArmyListUnitTable({
                         enhancementName={listEnhancements.find((le) => le.army_list_unit_id === alu.id)?.enhancement_name}
                         isIndentedLeader={isIndentedLeader}
                         leaderName={leaderNameMap.get(alu.id)}
-                        leaderTargets={leaderTargets}
+                        leaderAluIds={leaderAluIds}
                       />
                     ))}
                   </SortableContext>
