@@ -112,12 +112,18 @@ try {
   process.exit(1);
 }
 
-const setupExe = files.find((f) => f.endsWith('-setup.exe'));
-const sigFile = files.find((f) => f.endsWith('-setup.exe.sig'));
+// Match the installer for THIS version specifically — the bundle dir often
+// holds many stale *-setup.exe files (0.1.0, 0.2.x, ...). A bare endsWith()
+// returns the alphabetically-first (wrong) installer, publishing a signature
+// that does not match the served version. Anchor on `_<version>_`.
+const versionTag = `_${version}_`;
+const setupExe = files.find((f) => f.includes(versionTag) && f.endsWith('-setup.exe'));
+const sigFile = files.find((f) => f.includes(versionTag) && f.endsWith('-setup.exe.sig'));
 
 if (!setupExe) {
   console.error(
-    `[make-local-update] ERROR: No *-setup.exe found in ${nsisDir}\n` +
+    `[make-local-update] ERROR: No *-setup.exe for version ${version} found in ${nsisDir}\n` +
+    `  Expected a file like HobbyForge_${version}_x64-setup.exe.\n` +
     `  Run: pnpm tauri build --config src-tauri/local-update.json`
   );
   process.exit(1);
@@ -125,7 +131,7 @@ if (!setupExe) {
 
 if (!sigFile) {
   console.error(
-    `[make-local-update] ERROR: No *-setup.exe.sig found in ${nsisDir}\n` +
+    `[make-local-update] ERROR: No *-setup.exe.sig for version ${version} found in ${nsisDir}\n` +
     `  Ensure TAURI_SIGNING_PRIVATE_KEY is set when building, and\n` +
     `  createUpdaterArtifacts:true is in tauri.conf.json (it is).`
   );
