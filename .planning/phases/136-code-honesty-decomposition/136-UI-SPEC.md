@@ -1,10 +1,11 @@
 ---
 phase: 136
 slug: code-honesty-decomposition
-status: draft
+status: approved
 shadcn_initialized: true
 preset: "new-york / zinc / CSS variables"
 created: 2026-06-17
+reviewed_at: 2026-06-17
 ---
 
 # Phase 136 — UI Design Contract
