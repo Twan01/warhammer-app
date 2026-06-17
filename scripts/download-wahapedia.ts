@@ -38,6 +38,7 @@ const CSV_FILES = [
   "Stratagems.csv",
   "Enhancements.csv",
   "Detachment_abilities.csv",
+  "Datasheets_leader.csv",
 ];
 
 const force = process.argv.includes("--force");

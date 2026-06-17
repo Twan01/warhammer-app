@@ -121,6 +121,11 @@ export interface UdbEnhancementRow {
   description: string;            // Raw HTML — kept as-is
 }
 
+export interface UdbLeaderTargetRow {
+  leader_unit_id: string;
+  target_unit_id: string;
+}
+
 // ---------------------------------------------------------------------------
 // Coverage report types
 // ---------------------------------------------------------------------------
@@ -174,4 +179,5 @@ export interface UnitDatabaseJson {
   detachment_abilities: UdbDetachmentAbilityRow[];
   stratagems: UdbStratagemRow[];
   enhancements: UdbEnhancementRow[];
+  leader_targets: UdbLeaderTargetRow[];
 }

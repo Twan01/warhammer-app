@@ -34,6 +34,7 @@ import type {
   UdbDetachmentAbilityRow,
   UdbStratagemRow,
   UdbEnhancementRow,
+  UdbLeaderTargetRow,
   UnitDatabaseJson,
   CoverageReport,
   FactionCoverage,
@@ -329,6 +330,44 @@ async function main() {
     keywords.push({ unit_id: unitId, keyword, is_faction: isFaction, keyword_fr: null });
   }
   console.log("  Parsed " + keywords.length + " keywords");
+
+  // 7b. Parse Datasheets_leader.csv -> udb_leader_targets rows
+  console.log("Step 7b: Parsing Datasheets_leader.csv...");
+  const leaderRaw = readCsvFile(DATA_DIR, "Datasheets_leader.csv");
+  const leaderTargets: UdbLeaderTargetRow[] = [];
+  const seenPairs = new Set<string>();
+  let leaderOrphanSkipped = 0;
+
+  for (const row of leaderRaw) {
+    const leaderId = row["leader_id"]?.trim();    // ASSUMED column name per A1 — confirmed at build time
+    const attachedId = row["attached_id"]?.trim(); // ASSUMED column name per A1
+    if (!leaderId || !attachedId) continue;
+    if (!validUnitIds.has(leaderId)) { leaderOrphanSkipped++; continue; }
+    if (!validUnitIds.has(attachedId)) { leaderOrphanSkipped++; continue; }
+    const pairKey = leaderId + "|" + attachedId;
+    if (seenPairs.has(pairKey)) continue;
+    seenPairs.add(pairKey);
+    leaderTargets.push({ leader_unit_id: leaderId, target_unit_id: attachedId });
+  }
+
+  // A1: warn if rows present but zero pairs emitted (missing/wrong column names)
+  if (leaderRaw.length > 0 && leaderTargets.length === 0) {
+    const firstRowKeys = Object.keys(leaderRaw[0]);
+    console.warn(
+      `  WARNING: Parsed 0 leader attachment pairs from ${leaderRaw.length} rows. ` +
+      `Actual header columns: [${firstRowKeys.join(", ")}]. ` +
+      `Expected 'leader_id' and 'attached_id'. Orphan-skipped: ${leaderOrphanSkipped}.`
+    );
+  }
+
+  if (leaderOrphanSkipped > 0)
+    console.warn(`  WARNING: Skipped ${leaderOrphanSkipped} leader pairs with unknown unit IDs`);
+
+  leaderTargets.sort((a, b) => {
+    const c = a.leader_unit_id.localeCompare(b.leader_unit_id);
+    return c !== 0 ? c : a.target_unit_id.localeCompare(b.target_unit_id);
+  });
+  console.log(`  Parsed ${leaderTargets.length} leader attachment pairs`);
 
   // 8. Parse Datasheets_models_cost.csv for points and composition (D-01, D-02, D-03)
   console.log("Step 8: Parsing Datasheets_models_cost.csv...");
@@ -824,7 +863,7 @@ async function main() {
   // ---------------------------------------------------------------------------
   // Derive version from content hash so re-imports detect any data change
   const { createHash } = await import("node:crypto");
-  const hash = createHash("sha256").update(JSON.stringify({ factions, units, models, weapons, points, abilities, keywords, composition, detachments, detachmentAbilities, stratagems, enhancements })).digest("hex").slice(0, 8);
+  const hash = createHash("sha256").update(JSON.stringify({ factions, units, models, weapons, points, abilities, keywords, composition, detachments, detachmentAbilities, stratagems, enhancements, leaderTargets })).digest("hex").slice(0, 8);
   const buildVersion = `1.0.0+${hash}`;
 
   const output: UnitDatabaseJson = {
@@ -845,6 +884,7 @@ async function main() {
     detachment_abilities: detachmentAbilities,
     stratagems,
     enhancements,
+    leader_targets: leaderTargets,
   };
 
   if (!existsSync(OUTPUT_DIR)) {
