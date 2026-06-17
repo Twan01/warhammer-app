@@ -1,33 +1,23 @@
-import { useEffect, useMemo, useState, useCallback, useReducer, Fragment } from "react";
+import { useEffect, useMemo, useState, useCallback, useReducer } from "react";
 import { useNavigate, Link } from "@tanstack/react-router";
-import { ArrowLeft, ChevronDown, ChevronRight, History } from "lucide-react";
+import { ArrowLeft, History } from "lucide-react";
 import { toast } from "sonner";
 import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
   PointerSensor,
+  KeyboardSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import {
-  Table, TableHeader, TableRow, TableHead, TableBody, TableCell,
-} from "@/components/ui/table";
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { ArmyListDetailHeader } from "./ArmyListDetailHeader";
 import { ArmyListQuickAdd } from "./ArmyListQuickAdd";
 import { useArmyListExport } from "./useArmyListExport";
+import { ArmyListUnitTable } from "./ArmyListUnitTable";
+import { ArmyListPortals } from "./ArmyListPortals";
 import {
   useArmyListWithUnits,
   useArmyList,
@@ -48,76 +38,14 @@ import { useFactions } from "@/hooks/useFactions";
 import { groupUnitsWithLeaders } from "@/lib/groupUnitsWithLeaders";
 import { useLocale } from "@/stores/localeStore";
 import { ArmyListSummaryBar } from "./ArmyListSummaryBar";
-import { ArmyListUnitRow } from "./ArmyListUnitRow";
 import { ExportDropdown } from "./ExportDropdown";
 import { DetachmentPicker } from "./DetachmentPicker";
 import { DetachmentRulesSection } from "./DetachmentRulesSection";
 import { RemindersSection } from "./RemindersSection";
-import { ArmyListSheet } from "./ArmyListSheet";
-import { ArmyListDeleteDialog } from "./ArmyListDeleteDialog";
-import { UnitPickerDialog } from "./UnitPickerDialog";
-import { LoadoutBuilderSheet } from "./LoadoutBuilderSheet";
-import { EnhancementPickerSheet } from "./EnhancementPickerSheet";
-import { LeaderAttachmentSheet } from "./LeaderAttachmentSheet";
-import { DatasheetBrowserDialog } from "./DatasheetBrowserDialog";
-import { PrintPreviewDialog } from "./PrintPreviewDialog";
-import { SnapshotHistorySheet } from "./SnapshotHistorySheet";
-import { SnapshotCompareDialog } from "./SnapshotCompareDialog";
 import {
   detailPortalReducer,
   initialDetailPortalState,
 } from "./armyListDetailReducer";
-
-// ---------------------------------------------------------------------------
-// Sortable row wrapper for dnd-kit
-// ---------------------------------------------------------------------------
-
-import type { ArmyListUnitRow as ArmyListUnitRowType } from "@/types/armyList";
-import type { SyncedLeaderTargetRow } from "@/db/queries/bsdataExtended";
-
-function SortableUnitRow({
-  unit, onRemove, onConfigure, onEnhance, onAttachLeader, onToggleWarlord,
-  enhancementName, isIndentedLeader, leaderName, leaderTargets,
-}: {
-  unit: ArmyListUnitRowType;
-  onRemove: () => void;
-  onConfigure: () => void;
-  onEnhance: () => void;
-  onAttachLeader: () => void;
-  onToggleWarlord: () => void;
-  enhancementName?: string;
-  isIndentedLeader: boolean;
-  leaderName?: string;
-  leaderTargets: SyncedLeaderTargetRow[];
-}) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: unit.id });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-  return (
-    <tr ref={setNodeRef} style={style}>
-      <td colSpan={5} className="p-0">
-        <table className="w-full"><tbody>
-          <ArmyListUnitRow
-            unit={unit}
-            onRemove={onRemove}
-            onConfigure={onConfigure}
-            onEnhance={onEnhance}
-            onAttachLeader={onAttachLeader}
-            onToggleWarlord={onToggleWarlord}
-            enhancementName={enhancementName}
-            isIndentedLeader={isIndentedLeader}
-            leaderName={leaderName}
-            leaderTargets={leaderTargets}
-            dragHandleProps={{ ...attributes, ...listeners }}
-          />
-        </tbody></table>
-      </td>
-    </tr>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Component
@@ -142,12 +70,7 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
   const locale = useLocale();
 
   const [state, dispatch] = useReducer(detailPortalReducer, initialDetailPortalState);
-  const {
-    sheetOpen, editingList, deleteDialogOpen, deletingList,
-    unitPickerOpen, loadoutUnitId, enhancementUnitId, leaderUnitId,
-    datasheetBrowserOpen, printPreviewOpen,
-    snapshotHistoryOpen, compareSnapshotIds, compareSnapshotLabels,
-  } = state;
+  const { loadoutUnitId, enhancementUnitId, leaderUnitId } = state;
 
   const faction = useMemo(
     () => (list?.faction_id ? (factions ?? []).find((f) => f.id === list.faction_id) ?? null : null),
@@ -429,84 +352,22 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
       )}
 
       {!isLoading && (units?.length ?? 0) > 0 && (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Unit Name</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Points</TableHead>
-                <TableHead>Notes</TableHead>
-                <TableHead className="text-right">Remove</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {unitsByCategory.map(([category, catUnits]) => {
-                const catTotal = catUnits.reduce((s, e) => s + e.unit.effective_points, 0);
-                const ownedCount = catUnits.filter((e) => e.unit.unit_id !== null).length;
-                const readyCount = catUnits.filter((e) => e.unit.status_painting === "Completed").length;
-                const readyPct = catUnits.length > 0 ? Math.round((readyCount / catUnits.length) * 100) : 0;
-                const isCollapsed = collapsedCategories.has(category);
-                return (
-                  <Fragment key={category}>
-                    <TableRow
-                      className="bg-muted/40 hover:bg-muted/50 cursor-pointer"
-                      onClick={() => toggleCategory(category)}
-                    >
-                      <TableCell colSpan={2} className="py-2">
-                        <div className="flex items-center gap-2">
-                          {isCollapsed
-                            ? <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                            : <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                          }
-                          <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                            {category}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            ({catUnits.length})
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            · {ownedCount} owned · {readyCount} ready
-                          </span>
-                        </div>
-                        {!isCollapsed && (
-                          <div className="mt-1 w-32">
-                            <Progress value={readyPct} className="h-1" />
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell className="py-2">
-                        <span className="text-xs font-semibold text-muted-foreground">
-                          {catTotal}pts
-                        </span>
-                      </TableCell>
-                      <TableCell colSpan={2} className="py-2" />
-                    </TableRow>
-                    {!isCollapsed && (
-                      <SortableContext items={catUnits.map((e) => e.unit.id)} strategy={verticalListSortingStrategy}>
-                        {catUnits.map(({ unit: alu, isIndentedLeader }) => (
-                          <SortableUnitRow
-                            key={alu.id}
-                            unit={alu}
-                            onRemove={() => handleRemoveUnit(alu.id)}
-                            onConfigure={() => dispatch({ type: "OPEN_LOADOUT", unitId: alu.id })}
-                            onEnhance={() => dispatch({ type: "OPEN_ENHANCEMENT", unitId: alu.id })}
-                            onAttachLeader={() => dispatch({ type: "OPEN_LEADER_ATTACH", unitId: alu.id })}
-                            onToggleWarlord={() => handleToggleWarlord(alu.id)}
-                            enhancementName={(listEnhancements ?? []).find((le) => le.army_list_unit_id === alu.id)?.enhancement_name}
-                            isIndentedLeader={isIndentedLeader}
-                            leaderName={leaderNameMap.get(alu.id)}
-                            leaderTargets={leaderTargets ?? []}
-                          />
-                        ))}
-                      </SortableContext>
-                    )}
-                  </Fragment>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </DndContext>
+        <ArmyListUnitTable
+          unitsByCategory={unitsByCategory}
+          collapsedCategories={collapsedCategories}
+          onToggleCategory={toggleCategory}
+          leaderNameMap={leaderNameMap}
+          leaderTargets={leaderTargets ?? []}
+          listEnhancements={listEnhancements ?? []}
+          listId={listId}
+          sensors={sensors}
+          onDragEnd={handleDragEnd}
+          onRemove={handleRemoveUnit}
+          onConfigure={(id) => dispatch({ type: "OPEN_LOADOUT", unitId: id })}
+          onEnhance={(id) => dispatch({ type: "OPEN_ENHANCEMENT", unitId: id })}
+          onAttachLeader={(id) => dispatch({ type: "OPEN_LEADER_ATTACH", unitId: id })}
+          onToggleWarlord={handleToggleWarlord}
+        />
       )}
 
       <Separator />
@@ -565,77 +426,20 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
         </div>
       </div>
 
-      {/* Sibling portals — Pitfall 1 (never nested) */}
-      <ArmyListSheet
-        key={editingList?.id ?? "new-edit"}
-        open={sheetOpen}
-        list={editingList}
-        onClose={() => dispatch({ type: "CLOSE_SHEET" })}
-      />
-      <ArmyListDeleteDialog
-        key={deletingList?.id ?? "none-delete"}
-        open={deleteDialogOpen}
-        list={deletingList}
-        onClose={handleDeleteClose}
-        onDeleted={handleDeleted}
-      />
-      <UnitPickerDialog
-        open={unitPickerOpen}
-        listId={listId}
-        factionId={list.faction_id ?? null}
-        remaining={list.points_limit != null ? list.points_limit - totalPoints : null}
-        pointsLimit={list.points_limit ?? null}
-        onClose={() => dispatch({ type: "CLOSE_UNIT_PICKER" })}
-      />
-      <LoadoutBuilderSheet
-        open={loadoutUnitId !== null}
-        unit={loadoutUnit}
-        listId={listId}
-        listFactionId={list.faction_id ?? null}
-        onClose={() => dispatch({ type: "CLOSE_LOADOUT" })}
-      />
-      <EnhancementPickerSheet
-        open={enhancementUnitId !== null}
-        unit={enhancementUnit}
+      <ArmyListPortals
+        state={state}
+        dispatch={dispatch}
         list={list}
-        onClose={() => dispatch({ type: "CLOSE_ENHANCEMENT" })}
-      />
-      <LeaderAttachmentSheet
-        open={leaderUnitId !== null}
-        unit={leaderUnit}
-        list={list}
+        listId={listId}
+        totalPoints={totalPoints}
         units={units ?? []}
-        onClose={() => dispatch({ type: "CLOSE_LEADER_ATTACH" })}
-      />
-      <DatasheetBrowserDialog
-        open={datasheetBrowserOpen}
-        listId={listId}
-        factionId={list.faction_id ?? null}
-        onClose={() => dispatch({ type: "CLOSE_DATASHEET_BROWSER" })}
-      />
-      <PrintPreviewDialog
-        open={printPreviewOpen}
-        list={list}
-        units={units ?? []}
-        enhancements={listEnhancements ?? []}
+        listEnhancements={listEnhancements ?? []}
         factionName={factionName}
-        onClose={() => dispatch({ type: "CLOSE_PRINT_PREVIEW" })}
-      />
-      <SnapshotHistorySheet
-        open={snapshotHistoryOpen}
-        listId={listId}
-        list={list}
-        units={units ?? []}
-        enhancements={listEnhancements ?? []}
-        factionName={factionName}
-        onClose={() => dispatch({ type: "CLOSE_SNAPSHOT_HISTORY" })}
-        onCompare={(ids, labels) => dispatch({ type: "OPEN_SNAPSHOT_COMPARE", ids, labels })}
-      />
-      <SnapshotCompareDialog
-        open={compareSnapshotIds !== null}
-        snapshotIds={compareSnapshotIds}
-        snapshotLabels={compareSnapshotLabels}
-        onClose={() => dispatch({ type: "CLOSE_SNAPSHOT_COMPARE" })}
+        loadoutUnit={loadoutUnit}
+        enhancementUnit={enhancementUnit}
+        leaderUnit={leaderUnit}
+        handleDeleteClose={handleDeleteClose}
+        handleDeleted={handleDeleted}
       />
     </div>
   );
