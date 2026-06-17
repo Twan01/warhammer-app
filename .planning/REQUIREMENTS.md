@@ -20,7 +20,7 @@
 
 ### Theme B — Honesty, De-cruft & Consolidation (HON)
 
-- [ ] **HON-01**: No UI tells the user that bundled data is stale or that they should "sync" — `StaleDataBanner` and the dead "stale points" dashboard branches are removed; an honest data-provenance/version surface (using the build's content hash) replaces them.
+- [x] **HON-01**: No UI tells the user that bundled data is stale or that they should "sync" — `StaleDataBanner` and the dead "stale points" dashboard branches are removed; an honest data-provenance/version surface (using the build's content hash) replaces them.
 - [x] **HON-02**: All former consumers of the `syncFreshness` type compile cleanly with no dead branches, dangling imports, or unused exports.
 - [ ] **HON-03**: The Rules Hub "Shared Abilities" tab displays real faction shared/army-rule abilities sourced from the canonical database (no empty stub).
 - [ ] **HON-04**: A unit's datasheet "Link unit" action is never a permanent dead end — a unit can always be linked to or matched against the canonical Unit Database from the UI.
@@ -77,7 +77,7 @@
 | REL-06 | Phase 132 | Complete |
 | REL-07 | Phase 132 | Complete |
 | REL-08 | Phase 132 | Complete |
-| HON-01 | Phase 133 | Pending |
+| HON-01 | Phase 133 | Complete |
 | HON-02 | Phase 133 | Complete |
 | HON-03 | Phase 134 | Pending |
 | HON-04 | Phase 134 | Pending |
