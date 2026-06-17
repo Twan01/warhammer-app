@@ -46,7 +46,7 @@
 - [ ] **Phase 134: No Dead Ends** (0/2 plans) â Shared Abilities tab shows real data; "Link unit" always leads somewhere
 - [ ] **Phase 135: Faction & Navigation Consolidation** (0/3 plans) â Zero-data-loss faction consolidation, the redundant /factions page retired, Data Health folded into Settings
 - [ ] **Phase 136: Code Honesty & Decomposition** (0/4 plans) â One shared WeaponTable, a decomposed ArmyListDetailPage, hooks restored, the vestigial column resolved
-- [ ] **Phase 137: Canonical Leader Attachment** (0/? plans) â Leader-target data ships through the canonical pipeline and the builder validates real attachment pairs
+- [ ] **Phase 137: Canonical Leader Attachment** (0/4 plans) â Leader-target data ships through the canonical pipeline and the builder validates real attachment pairs
 - [ ] **Phase 138: Player-Journey Depth** (0/? plans) â Side-by-side unit comparison, the Collection â Unit Database loop, and goals surfaced on the dashboard
 - [ ] **Phase 139: Data Quality at Scale** (0/? plans) â Pipeline FK/orphan validation, all 25 factions audited, French translations extended
 
@@ -154,13 +154,13 @@
 **Success Criteria** (what must be TRUE):
   1. A `udb_leader_targets` table (composite PK, both columns FK â `udb_units` ON DELETE CASCADE) is created and populated from Wahapedia `Datasheets_leader.csv` via the canonical build â bundled JSON â Rust import pipeline.
   2. Leader attachment in the builder permits only valid leaderâtarget pairs via the FK join (the Phase-92 UI repointed off name-matching), with a graceful fallback for units that have a NULL `udb_unit_id`.
-  3. Adding migration 048 re-triggers the Phase-130 parity gate and it passes (proving the gate works on a real new migration).
+  3. Adding migration 050 re-triggers the Phase-130 parity gate and it passes (proving the gate works on a real new migration).
 **Plans**: 4 plans
-  - [ ] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
-  - [ ] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
-  - [ ] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
-  - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
-**Notes**: PLAY-02 (migration 048 + pipeline) GATES PLAY-03 (validation UI rewire). The new migration re-triggers the REL-04 parity gate â this is expected/good.
+  - [ ] 137-01-PLAN.md — migration 050 udb_leader_targets DDL (LF) + lib.rs version 50 + data-layer schema test (PLAY-02)
+  - [ ] 137-02-PLAN.md — pipeline: CSV + build parse step + content-hash + Rust importer + rebuild bundled JSON (PLAY-02)
+  - [ ] 137-03-PLAN.md — getLeaderTargetsForList query + useLeaderTargets(listId) rewrite + LeaderAttachmentSheet repoint + NULL permissive fallback + component test (PLAY-03)
+  - [ ] 137-04-PLAN.md — remove dead replaceSyncedLeaderTargets writer + full-suite/parity regression gate (PLAY-03)
+**Notes**: PLAY-02 (migration 050 + pipeline) GATES PLAY-03 (validation UI rewire). The new migration re-triggers the REL-04 parity gate â this is expected/good.
 **UI hint**: yes
 
 ### Phase 138: Player-Journey Depth
@@ -172,10 +172,7 @@
   2. The Collection â Unit Database loop is bidirectional: from the Collection the user opens a canonical datasheet and adds units; from the Unit Database the user sees an "owned ÃN" count per unit (via a single page-level Map lookup).
   3. Hobby goal progress is surfaced on the dashboard with a progress visualization, after verifying the goal-progress derivation still computes correctly post-rules.db-elimination.
 **Plans**: 4 plans
-  - [ ] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
-  - [ ] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
-  - [ ] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
-  - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
+  - [ ] Plans to be defined when Phase 138 is planned (PLAY-01, PLAY-04, PLAY-05)
 **Notes**: PLAY-01 consumes the shared WeaponTable from HON-08 (Phase 136). Verify PLAY-05's goal-progress derivation before building the visualization.
 **UI hint**: yes
 
@@ -188,10 +185,7 @@
   2. All 25 factions' unit data (points, stats, weapons, abilities, keywords) is audited against Wahapedia and corrected (the 22 factions beyond the already-audited SM/NEC/DG).
   3. French ability and weapon descriptions are added for the audited factions, extending the existing `_fr` overlay (`COALESCE(col_fr, col)` query layer), with user overrides and favorites/notes preserved across the re-import.
 **Plans**: 4 plans
-  - [ ] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
-  - [ ] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
-  - [ ] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
-  - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
+  - [ ] Plans to be defined when Phase 139 is planned (DAT-01, DAT-02, DAT-03)
 **Notes**: Heaviest phase of the milestone (DAT-02 + DAT-03 are L-sized). Expect multiple plans â likely one for FK/orphan validation, then incremental faction-audit + translation batches. Keep all data work keyed on stable Wahapedia IDs and migrations idempotent so re-runs never clobber overrides.
 
 ## Progress
@@ -205,7 +199,7 @@
 | 134. No Dead Ends | 2/2 | Complete    | 2026-06-17 |
 | 135. Faction & Navigation Consolidation | 3/3 | Complete    | 2026-06-17 |
 | 136. Code Honesty & Decomposition | 4/4 | Complete    | 2026-06-17 |
-| 137. Canonical Leader Attachment | 0/? | Not started | - |
+| 137. Canonical Leader Attachment | 0/4 | Not started | - |
 | 138. Player-Journey Depth | 0/? | Not started | - |
 | 139. Data Quality at Scale | 0/? | Not started | - |
 
