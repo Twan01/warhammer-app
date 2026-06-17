@@ -6,6 +6,7 @@ import { DataManagementTab } from "@/features/settings/DataManagementTab";
 import { GeneralPreferencesSection } from "@/features/settings/GeneralPreferencesSection";
 import { HobbyDefaultsSection } from "@/features/settings/HobbyDefaultsSection";
 import { PageHeader } from "@/components/common/PageHeader";
+import { FactionsPage } from "@/features/factions/FactionsPage";
 
 export function SettingsPage() {
   const { isLoading, isError } = useAppSettings();
@@ -16,6 +17,7 @@ export function SettingsPage() {
       <Tabs defaultValue="preferences">
         <TabsList>
           <TabsTrigger value="preferences">Preferences</TabsTrigger>
+          <TabsTrigger value="factions">Factions</TabsTrigger>
           <TabsTrigger value="data">Data</TabsTrigger>
           <TabsTrigger value="about">About</TabsTrigger>
         </TabsList>
@@ -32,6 +34,9 @@ export function SettingsPage() {
               <HobbyDefaultsSection />
             </>
           )}
+        </TabsContent>
+        <TabsContent value="factions" className="mt-4">
+          <FactionsPage />
         </TabsContent>
         <TabsContent value="data" className="mt-4">
           <DataManagementTab />
