@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.6.0
 milestone_name: Bulletproof & Honest
-status: executing
-stopped_at: Phase 137 context gathered
-last_updated: "2026-06-17T21:45:11.915Z"
+status: complete
+stopped_at: Phase 137 plan 04 complete — phase done
+last_updated: "2026-06-17T23:58:00Z"
 last_activity: 2026-06-17
 progress:
   total_phases: 10
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 23
-  completed_plans: 22
-  percent: 70
+  completed_plans: 23
+  percent: 80
 ---
 
 # Project State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-06-15)
 
 ## Current Position
 
-Phase: 137 (canonical-leader-attachment) — EXECUTING
-Plan: 4 of 4
-Status: Ready to execute
+Phase: 137 (canonical-leader-attachment) — COMPLETE
+Plan: 4 of 4 (all plans done)
+Status: Phase complete
 Last activity: 2026-06-17
 
 Progress: [██████████] 96%
@@ -57,6 +57,7 @@ Progress: [██████████] 96%
 - Overrides + favorites/notes live in hobbyforge.db keyed on stable Wahapedia IDs — survive re-import
 - CRLF/LF migration checksum drift was the "update breaks launch" root cause; fix on `fix/update-breaks-app-launch`
 - Map-not-delete faction consolidation (migration 048): correlated subqueries re-point 4 FK surfaces (units RESTRICT, painting_recipes SET NULL, army_lists SET NULL, wishlist_items CASCADE) + app_settings TEXT value before DELETE; CAST required for INTEGER<->TEXT; parity gate at 48
+- D-10 (Phase 137): replaceSyncedLeaderTargets removed (zero callers post-repoint); getLeaderTargetsByFaction+SyncedLeaderTargetRow KEPT (rules-hub still consumes); synced_leader_targets table left in place (no drop migration this phase)
 
 ### v0.6.0 Sequencing Law (CRITICAL)
 
@@ -107,8 +108,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-17T21:45:11.908Z
-Stopped at: Phase 137 context gathered
+Last session: 2026-06-17T23:58:00Z
+Stopped at: Phase 137 plan 04 complete — phase ready for /gsd:verify-work
 Resume file: None
 
 ## Operator Next Steps

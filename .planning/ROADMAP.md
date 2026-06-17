@@ -46,7 +46,7 @@
 - [ ] **Phase 134: No Dead Ends** (0/2 plans) â Shared Abilities tab shows real data; "Link unit" always leads somewhere
 - [ ] **Phase 135: Faction & Navigation Consolidation** (0/3 plans) â Zero-data-loss faction consolidation, the redundant /factions page retired, Data Health folded into Settings
 - [ ] **Phase 136: Code Honesty & Decomposition** (0/4 plans) â One shared WeaponTable, a decomposed ArmyListDetailPage, hooks restored, the vestigial column resolved
-- [ ] **Phase 137: Canonical Leader Attachment** (0/4 plans) â Leader-target data ships through the canonical pipeline and the builder validates real attachment pairs
+- [x] **Phase 137: Canonical Leader Attachment** (4/4 plans) â Leader-target data ships through the canonical pipeline and the builder validates real attachment pairs
 - [ ] **Phase 138: Player-Journey Depth** (0/? plans) â Side-by-side unit comparison, the Collection â Unit Database loop, and goals surfaced on the dashboard
 - [ ] **Phase 139: Data Quality at Scale** (0/? plans) â Pipeline FK/orphan validation, all 25 factions audited, French translations extended
 
@@ -159,7 +159,7 @@
   - [x] 137-01-PLAN.md — migration 050 udb_leader_targets DDL (LF) + lib.rs version 50 + data-layer schema test (PLAY-02)
   - [x] 137-02-PLAN.md — pipeline: CSV + build parse step + content-hash + Rust importer + rebuild bundled JSON (PLAY-02)
   - [x] 137-03-PLAN.md — getLeaderTargetsForList query + useLeaderTargets(listId) rewrite + LeaderAttachmentSheet repoint + NULL permissive fallback + component test (PLAY-03)
-  - [ ] 137-04-PLAN.md — remove dead replaceSyncedLeaderTargets writer + full-suite/parity regression gate (PLAY-03)
+  - [x] 137-04-PLAN.md — remove dead replaceSyncedLeaderTargets writer + full-suite/parity regression gate (PLAY-03)
 **Notes**: PLAY-02 (migration 050 + pipeline) GATES PLAY-03 (validation UI rewire). The new migration re-triggers the REL-04 parity gate â this is expected/good.
 **UI hint**: yes
 
