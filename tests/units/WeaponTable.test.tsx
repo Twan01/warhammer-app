@@ -7,6 +7,16 @@
  * - Supports both "BS" and "WS" statLabel prop
  * - Renders keywords sub-row when weapon has keywords
  * - Formats range (appends ") and skill (appends +) correctly
+ *
+ * Phase 136 (HON-08) -- WeaponTable render contract regression lock:
+ * - Range integer suffix guard (24 -> 24")
+ * - Raw non-numeric range (Melee -> Melee)
+ * - Null fallbacks -> —
+ * - Skill + guard including already-suffixed (3 -> 3+, 3+ -> 3+)
+ * - Header label is "Rng" NOT "Range"
+ * - statLabel column (BS / WS)
+ * - Keywords row has class leading-relaxed and NOT italic
+ * - EN/FR parity: component is locale-agnostic; DOM structure is identical
  */
 
 import { describe, it, expect } from "vitest";
@@ -38,7 +48,7 @@ function makeWeapon(overrides: Partial<UdbWeapon> = {}): UdbWeapon {
 }
 
 // ---------------------------------------------------------------------------
-// Tests
+// Tests — original Phase 110 coverage
 // ---------------------------------------------------------------------------
 
 describe("WeaponTable", () => {
@@ -147,5 +157,114 @@ describe("WeaponTable", () => {
 
     expect(screen.getByText("Bolt Rifle")).toBeInTheDocument();
     expect(screen.getByText("Astartes Grenade Launcher")).toBeInTheDocument();
+  });
+
+  // -------------------------------------------------------------------------
+  // Phase 136 HON-08 render contract regression lock
+  // -------------------------------------------------------------------------
+
+  describe("HON-08 render contract (regression lock)", () => {
+    it("appends inch suffix to plain integer range values", () => {
+      const weapon = makeWeapon({ range: "24" });
+      render(<WeaponTable weapons={[weapon]} statLabel="BS" />);
+      expect(screen.getByText('24"')).toBeInTheDocument();
+    });
+
+    it("renders non-numeric range values raw without modification", () => {
+      const weapon = makeWeapon({ range: "Melee" });
+      render(<WeaponTable weapons={[weapon]} statLabel="WS" />);
+      expect(screen.getByText("Melee")).toBeInTheDocument();
+      // Must NOT append inch suffix to non-numeric
+      expect(screen.queryByText('Melee"')).toBeNull();
+    });
+
+    it("renders null range as em-dash", () => {
+      const weapon = makeWeapon({ range: null });
+      render(<WeaponTable weapons={[weapon]} statLabel="BS" />);
+      // At least one em-dash for range
+      expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("appends + to skill values that do not already end in +", () => {
+      const weapon = makeWeapon({ skill: "3" });
+      render(<WeaponTable weapons={[weapon]} statLabel="BS" />);
+      expect(screen.getByText("3+")).toBeInTheDocument();
+    });
+
+    it("does not double-append + when skill already ends in +", () => {
+      const weapon = makeWeapon({ skill: "3+" });
+      render(<WeaponTable weapons={[weapon]} statLabel="BS" />);
+      expect(screen.getByText("3+")).toBeInTheDocument();
+      expect(screen.queryByText("3++")).toBeNull();
+    });
+
+    it("renders null skill as em-dash", () => {
+      const weapon = makeWeapon({ skill: null });
+      render(<WeaponTable weapons={[weapon]} statLabel="BS" />);
+      expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("renders header label Rng (not Range)", () => {
+      render(<WeaponTable weapons={[]} statLabel="BS" />);
+      expect(screen.getByText("Rng")).toBeInTheDocument();
+      expect(screen.queryByText("Range")).toBeNull();
+    });
+
+    it("renders statLabel column as BS", () => {
+      render(<WeaponTable weapons={[]} statLabel="BS" />);
+      expect(screen.getByText("BS")).toBeInTheDocument();
+    });
+
+    it("renders statLabel column as WS", () => {
+      render(<WeaponTable weapons={[]} statLabel="WS" />);
+      expect(screen.getByText("WS")).toBeInTheDocument();
+    });
+
+    it("keywords row has leading-relaxed class and is not italic", () => {
+      const weapon = makeWeapon({ keywords: "Rapid Fire 1, Assault" });
+      const { container } = render(
+        <WeaponTable weapons={[weapon]} statLabel="BS" />,
+      );
+
+      const keywordsEl = container.querySelector("p");
+      expect(keywordsEl).not.toBeNull();
+      // Must have leading-relaxed
+      expect(keywordsEl!.className).toContain("leading-relaxed");
+      // Must NOT be italic
+      expect(keywordsEl!.className).not.toContain("italic");
+    });
+
+    it("EN/FR parity: identical DOM structure regardless of passed weapon name strings", () => {
+      const enWeapon = makeWeapon({
+        name: "Bolt Rifle",
+        keywords: "Rapid Fire 1",
+      });
+      const frWeapon = makeWeapon({
+        name: "Fusil Bolter",
+        keywords: "Tir rapide 1",
+      });
+
+      const { container: enContainer } = render(
+        <WeaponTable weapons={[enWeapon]} statLabel="BS" />,
+      );
+      const { container: frContainer } = render(
+        <WeaponTable weapons={[frWeapon]} statLabel="BS" />,
+      );
+
+      // Collect tag names + class names (structural identity, ignoring text content)
+      function structuralSnapshot(root: Element): string {
+        const parts: string[] = [];
+        function walk(el: Element) {
+          parts.push(`${el.tagName}:${el.className}`);
+          for (const child of el.children) walk(child);
+        }
+        walk(root);
+        return parts.join("|");
+      }
+
+      const enStructure = structuralSnapshot(enContainer.firstElementChild!);
+      const frStructure = structuralSnapshot(frContainer.firstElementChild!);
+      expect(enStructure).toBe(frStructure);
+    });
   });
 });
