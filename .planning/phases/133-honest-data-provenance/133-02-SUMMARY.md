@@ -46,9 +46,16 @@ decisions:
 metrics:
   duration: "20 minutes"
   completed: "2026-06-17T09:43:00Z"
-  tasks_completed: 2
+  tasks_completed: 3
   files_modified: 9
   files_deleted: 3
+checkpoint:
+  task: 3
+  type: human-verify
+  gate: blocking
+  result: approved
+  approved_at: "2026-06-17T10:00:00Z"
+  note: "User confirmed honest provenance UI on all touched surfaces (dashboard ReadyToPlayCard/DataHealthSummaryCard, army-list points badge, Game Day); no sync/refresh/stale copy remains; the real backup-staleness warning (BACKUP_FRESHNESS_DOT_CLASS dot + '(outdated)' block) renders intact."
 ---
 
 # Phase 133 Plan 02: Make display files honest + delete dead stubs Summary
@@ -61,6 +68,21 @@ Replaced the always-green fake sync-freshness UI with honest data-version text a
 |------|------|--------|-----------|
 | 1 | Make PointsFreshnessBadge, DataHealthSummaryCard, ReadyToPlayCard, DiagnosticsCard honest | 0e659ddd | 4 src files |
 | 2 | Delete syncFreshness.ts + StaleDataBanner.tsx and finish test suite | b2f61e07 | 3 deleted, 5 test files updated |
+| 3 | Human-verify honest provenance UI + preserved backup warning (blocking checkpoint) | — (approval, no commit) | live-app verification |
+
+## Checkpoint Resolution
+
+**Task 3 — `checkpoint:human-verify` (gate=blocking): APPROVED.**
+
+The user ran the app and confirmed all five verification points:
+
+1. Dashboard ReadyToPlayCard — no Clock/dot sync row, no "Sync stale" badge; the "{N} unpainted" amber badge appears only when unpainted units exist.
+2. Dashboard DataHealthSummaryCard — the sync line reads honest "Data {version}" text with no traffic-light dot; the BACKUP row below it still shows its colored dot, backup age, and "(outdated)" badge on version mismatch.
+3. Army-list detail / Game Day — the points badge shows "v{version}" as plain muted text with the "Data version {version} (built {built_at})" tooltip and no colored dot.
+4. No label/button/tooltip says "sync", "refresh data", "stale", "out of date", or "30 days old" about bundled unit data anywhere on the touched surfaces.
+5. The real backup-staleness warning (BACKUP_FRESHNESS_DOT_CLASS dot + "(outdated)" block) is preserved and renders correctly.
+
+Resume signal received: **"approved"**. No surface needed fixes. Plan 133-02 is fully complete (3/3 tasks).
 
 ## What Was Built
 
@@ -121,3 +143,4 @@ None — no new network endpoints, auth paths, file access patterns, or schema c
 - tests/army-list/StaleDataBanner.test.tsx: deleted (confirmed)
 - Commit 0e659ddd: exists (Task 1)
 - Commit b2f61e07: exists (Task 2)
+- Task 3 (human-verify, blocking): APPROVED by user — verified live, no commit (verification-only checkpoint)
