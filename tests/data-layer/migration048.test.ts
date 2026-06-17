@@ -76,7 +76,7 @@ describe("migration 048 — faction consolidation (HON-05)", () => {
     // FK surface 1: units.faction_id (ON DELETE RESTRICT)
     db.prepare(
       `INSERT INTO units (faction_id, name, status_painting)
-       VALUES (?, 'Intercessors', 'Not Started')`,
+       VALUES (?, 'Test Intercessors Duplicate', 'Not Started')`,
     ).run(duplicateId);
 
     // FK surface 2: painting_recipes.faction_id (ON DELETE SET NULL)
@@ -168,11 +168,20 @@ describe("migration 048 — faction consolidation (HON-05)", () => {
 
     // ── Step 10: Assert all dependents re-pointed to survivor ─────────────────
 
-    // units: all faction_id values must be survivorId
-    const units = db
-      .prepare(`SELECT faction_id FROM units`)
-      .all() as { faction_id: number }[];
-    expect(units.every((u) => u.faction_id === survivorId)).toBe(true);
+    // units: the seeded unit that was under the duplicate must now point to survivor
+    const seededUnit = db
+      .prepare(
+        `SELECT faction_id FROM units WHERE name = 'Test Intercessors Duplicate'`,
+      )
+      .get() as { faction_id: number } | undefined;
+    expect(seededUnit).toBeDefined();
+    expect(seededUnit!.faction_id).toBe(survivorId);
+
+    // No unit should reference the now-deleted duplicate faction
+    const unitsUnderDuplicate = db
+      .prepare(`SELECT COUNT(*) as c FROM units WHERE faction_id = ?`)
+      .get(duplicateId) as { c: number };
+    expect(unitsUnderDuplicate.c).toBe(0);
 
     // painting_recipes: named recipe must not be NULL (no SET NULL silent loss)
     const nullRecipe = db
