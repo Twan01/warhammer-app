@@ -44,32 +44,32 @@ function makeUnit(pts: number): ArmyListUnitRow {
 describe("computeListHealthStats â€” enhancement total (ENH-03)", () => {
   it("includes enhancementTotal in totalPoints", () => {
     const units = [makeUnit(850)];
-    const stats = computeListHealthStats(units, 1000, "fresh", 60);
+    const stats = computeListHealthStats(units, 1000, 60);
     expect(stats.totalPoints).toBe(910);
   });
 
   it("triggers pointsExceeded when combined total exceeds limit", () => {
     const units = [makeUnit(950)];
-    const stats = computeListHealthStats(units, 1000, "fresh", 60);
+    const stats = computeListHealthStats(units, 1000, 60);
     expect(stats.pointsExceeded).toBe(true);
   });
 
   it("does NOT trigger pointsExceeded when combined is at limit", () => {
     const units = [makeUnit(940)];
-    const stats = computeListHealthStats(units, 1000, "fresh", 60);
+    const stats = computeListHealthStats(units, 1000, 60);
     expect(stats.pointsExceeded).toBe(false);
   });
 
   it("backward compat: 3-arg call returns unit points only", () => {
     const units = [makeUnit(500)];
-    const stats = computeListHealthStats(units, 1000, "fresh");
+    const stats = computeListHealthStats(units, 1000);
     expect(stats.totalPoints).toBe(500);
     expect(stats.pointsExceeded).toBe(false);
   });
 
   it("enhancementTotal = 0 is same as omit", () => {
     const units = [makeUnit(500)];
-    const stats = computeListHealthStats(units, 1000, "fresh", 0);
+    const stats = computeListHealthStats(units, 1000, 0);
     expect(stats.totalPoints).toBe(500);
     expect(stats.pointsExceeded).toBe(false);
   });

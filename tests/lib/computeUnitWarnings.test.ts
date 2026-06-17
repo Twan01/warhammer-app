@@ -46,7 +46,6 @@ function makeContext(overrides: Partial<WarningContext> = {}): WarningContext {
   return {
     totalPoints: 1500,
     pointsLimit: 2000,
-    freshness: "fresh",
     ...overrides,
   };
 }
@@ -207,26 +206,26 @@ describe("computeListWarnings", () => {
     expect(result.hard).not.toContain("Points exceeded");
   });
 
-  it("does NOT return 'Stale points data' even when freshness is 'stale' (removed in Phase 107)", () => {
-    const ctx = makeContext({ freshness: "stale" });
+  it("does NOT return 'Stale points data' (removed in Phase 107 — data is bundled with app)", () => {
+    const ctx = makeContext();
     const result = computeListWarnings(ctx, []);
     expect(result.soft).not.toContain("Stale points data");
   });
 
-  it("does NOT return 'Stale points data' when freshness is 'fresh'", () => {
-    const ctx = makeContext({ freshness: "fresh" });
+  it("does NOT return 'Stale points data' for a fresh context", () => {
+    const ctx = makeContext();
     const result = computeListWarnings(ctx, []);
     expect(result.soft).not.toContain("Stale points data");
   });
 
-  it("does NOT return 'Stale points data' when freshness is 'aging'", () => {
-    const ctx = makeContext({ freshness: "aging" });
+  it("does NOT return 'Stale points data' for any context", () => {
+    const ctx = makeContext({ totalPoints: 500, pointsLimit: 2000 });
     const result = computeListWarnings(ctx, []);
     expect(result.soft).not.toContain("Stale points data");
   });
 
   it("returns empty hard and soft for a healthy list", () => {
-    const ctx = makeContext({ totalPoints: 1500, pointsLimit: 2000, freshness: "fresh" });
+    const ctx = makeContext({ totalPoints: 1500, pointsLimit: 2000 });
     const units = [
       { udb_role: "Battleline", unit_id: 1, udb_unit_id: null, udb_keywords: null },
       { udb_role: "Battleline", unit_id: 2, udb_unit_id: null, udb_keywords: null },
@@ -440,13 +439,13 @@ describe("computeListHealthStats", () => {
       makeUnit({ effective_points: 200 }),
       makeUnit({ effective_points: 50 }),
     ];
-    const stats = computeListHealthStats(units, 2000, "fresh");
+    const stats = computeListHealthStats(units, 2000);
     expect(stats.totalPoints).toBe(350);
   });
 
   it("ownershipPct is always 100", () => {
     const units = [makeUnit(), makeUnit()];
-    const stats = computeListHealthStats(units, 2000, "fresh");
+    const stats = computeListHealthStats(units, 2000);
     expect(stats.ownershipPct).toBe(100);
   });
 
@@ -455,7 +454,7 @@ describe("computeListHealthStats", () => {
       makeUnit({ effective_points: 100, status_painting: "Completed" }),
       makeUnit({ effective_points: 100, status_painting: "Primed" }),
     ];
-    const stats = computeListHealthStats(units, 2000, "fresh");
+    const stats = computeListHealthStats(units, 2000);
     expect(stats.battleReadyPct).toBe(50);
   });
 
@@ -463,37 +462,37 @@ describe("computeListHealthStats", () => {
     const units = [
       makeUnit({ effective_points: 0, status_painting: "Completed" }),
     ];
-    const stats = computeListHealthStats(units, 2000, "fresh");
+    const stats = computeListHealthStats(units, 2000);
     expect(stats.battleReadyPct).toBe(0);
   });
 
   it("battleReadyPct is 0 for empty list", () => {
-    const stats = computeListHealthStats([], 2000, "fresh");
+    const stats = computeListHealthStats([], 2000);
     expect(stats.battleReadyPct).toBe(0);
   });
 
   it("pointsExceeded is true when totalPoints > pointsLimit", () => {
     const units = [makeUnit({ effective_points: 2500 })];
-    const stats = computeListHealthStats(units, 2000, "fresh");
+    const stats = computeListHealthStats(units, 2000);
     expect(stats.pointsExceeded).toBe(true);
   });
 
   it("pointsExceeded is false when totalPoints <= pointsLimit", () => {
     const units = [makeUnit({ effective_points: 2000 })];
-    const stats = computeListHealthStats(units, 2000, "fresh");
+    const stats = computeListHealthStats(units, 2000);
     expect(stats.pointsExceeded).toBe(false);
   });
 
   it("pointsExceeded is false when pointsLimit is null", () => {
     const units = [makeUnit({ effective_points: 9999 })];
-    const stats = computeListHealthStats(units, null, "fresh");
+    const stats = computeListHealthStats(units, null);
     expect(stats.pointsExceeded).toBe(false);
   });
 
   it("counts hardWarnings -- points exceeded counted once at list level", () => {
     const units = [makeUnit(), makeUnit()];
     // Points exceeded is list-level, counted once (not per-unit)
-    const stats = computeListHealthStats(units, 100, "fresh");
+    const stats = computeListHealthStats(units, 100);
     // totalPoints = 200 > 100, list-level hard warning counted once
     expect(stats.hardWarningCount).toBe(1);
   });
@@ -504,7 +503,7 @@ describe("computeListHealthStats", () => {
       makeUnit({ status_assembly: 0, udb_role: "Battleline" }), // 1 soft (unit)
       makeUnit({ udb_role: "Battleline" }), // healthy unit for battleline threshold
     ];
-    const stats = computeListHealthStats(units, 2000, "fresh");
+    const stats = computeListHealthStats(units, 2000);
     // 2 unit-level + 0 list-level (3 Battleline meets 2000pt threshold, fresh)
     expect(stats.softWarningCount).toBe(2);
   });
@@ -515,18 +514,18 @@ describe("computeListHealthStats", () => {
       makeUnit({ udb_role: "Battleline" }),
       makeUnit({ udb_role: "Battleline" }),
     ];
-    const stats = computeListHealthStats(units, 2000, "fresh");
+    const stats = computeListHealthStats(units, 2000);
     // 1 unit-level (Not painted) + 0 list-level (3 Battleline meets threshold, no stale)
     expect(stats.softWarningCount).toBe(1);
   });
 
   it("preserves pointsLimit in stats", () => {
-    const stats = computeListHealthStats([makeUnit()], 1500, "fresh");
+    const stats = computeListHealthStats([makeUnit()], 1500);
     expect(stats.pointsLimit).toBe(1500);
   });
 
   it("preserves null pointsLimit in stats", () => {
-    const stats = computeListHealthStats([makeUnit()], null, "fresh");
+    const stats = computeListHealthStats([makeUnit()], null);
     expect(stats.pointsLimit).toBeNull();
   });
 });

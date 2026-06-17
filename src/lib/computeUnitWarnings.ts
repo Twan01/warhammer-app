@@ -13,7 +13,6 @@
  *   manual override, unknown points)
  * - computeListWarnings: list-level conditions only (points exceeded, stale data)
  */
-import type { SyncFreshness } from "@/lib/syncFreshness";
 import type { ArmyListUnitRow } from "@/types/armyList";
 
 // ---------------------------------------------------------------------------
@@ -37,7 +36,6 @@ export interface UnitWarnings {
 export interface WarningContext {
   totalPoints: number;
   pointsLimit: number | null;
-  freshness: SyncFreshness;
 }
 
 export interface ListHealthStats {
@@ -99,7 +97,7 @@ export function computeListWarnings(
     hard.push("Points exceeded");
   }
 
-  // Data is bundled with the app — freshness is always "fresh".
+  // Data is bundled with the app — always up to date.
   // Stale warning removed (was unreachable since Phase 107).
 
   // Soft: BATTLELINE count check (Phase 106, D-08)
@@ -172,7 +170,6 @@ export function computeListWarnings(
 export function computeListHealthStats(
   units: ArmyListUnitRow[],
   pointsLimit: number | null,
-  freshness: SyncFreshness,
   enhancementTotal = 0,
 ): ListHealthStats {
   const unitPoints = units.reduce((sum, u) => sum + u.effective_points, 0);
@@ -188,7 +185,7 @@ export function computeListHealthStats(
   const pointsExceeded =
     pointsLimit !== null && totalPoints > pointsLimit;
 
-  const context: WarningContext = { totalPoints, pointsLimit, freshness };
+  const context: WarningContext = { totalPoints, pointsLimit };
 
   // List-level warnings (counted once) — pass units for BATTLELINE count (Phase 106)
   const listWarnings = computeListWarnings(context, units);
