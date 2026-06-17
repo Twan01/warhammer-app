@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.6.0
 milestone_name: Bulletproof & Honest
-status: verifying
-stopped_at: Completed 136-03 HON-11 migration 049
-last_updated: "2026-06-17T20:01:08.967Z"
+status: ready_to_plan
+stopped_at: Phase 136 complete (4/4) — ready to discuss Phase 137
+last_updated: 2026-06-17T20:17:22.542Z
 last_activity: 2026-06-17
 progress:
   total_phases: 10
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-15)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore
-**Current focus:** Phase 136 — Code Honesty & Decomposition
+**Current focus:** Phase 137 — canonical leader attachment
 
 ## Current Position
 
-Phase: 136 (Code Honesty & Decomposition) — EXECUTING
-Plan: 4 of 4
-Status: Phase complete — ready for verification
+Phase: 137
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-06-17
 
 Progress: [██████████] 100%
