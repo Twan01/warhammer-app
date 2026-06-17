@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.6.0
 milestone_name: Bulletproof & Honest
 status: executing
-stopped_at: Phase 132 Wave 1 complete (REL-07/REL-08 shipped + green); paused at REL-06 human-verify checkpoint (real NSIS install required; blocked by rust-toolchain pin 1.87.0 vs lockfile 1.88.0)
-last_updated: "2026-06-16T05:48:59.232Z"
+stopped_at: "Phase 132: REL-06/07/08 verified live (real NSIS update 0.5.8->0.5.9; REL-07 loop bug found+fixed 6a1043f7). Local gate green (build+cargo+2749 tests). Plan 04 awaiting: push 24 commits -> CI green -> Theme A complete."
+last_updated: "2026-06-17T06:20:00.373Z"
 last_activity: 2026-06-16
 progress:
   total_phases: 10
@@ -98,8 +98,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-16T05:48:59.225Z
-Stopped at: Phase 132 Wave 1 complete (REL-07/REL-08 shipped + green); paused at REL-06 human-verify checkpoint (real NSIS install required; blocked by rust-toolchain pin 1.87.0 vs lockfile 1.88.0)
+Last session: 2026-06-17T06:20:00.365Z
+Stopped at: Phase 132: REL-06/07/08 verified live (real NSIS update 0.5.8->0.5.9; REL-07 loop bug found+fixed 6a1043f7). Local gate green (build+cargo+2749 tests). Plan 04 awaiting: push 24 commits -> CI green -> Theme A complete.
 Resume file: .planning/phases/132-update-trustworthiness/VERIFICATION.md
 Resume: Run `/gsd:plan-phase 130` to begin Migration Parity & Release Gate.
 
