@@ -42,7 +42,7 @@
 - [ ] **Phase 130: Migration Parity & Release Gate** (0/2 plans) â Self-deriving migration list + single parity check that makes the red test green and guards against checksum drift
 - [ ] **Phase 131: CI Test Gate** (0/2 plans) — PR-triggered CI runs the full suite and a tag can never publish on red
 - [ ] **Phase 132: Update Trustworthiness** (0/4 plans) â A real in-place NSIS update launches, relaunches, and leaves a diagnosable log trail (Theme A merges to master here)
-- [ ] **Phase 133: Honest Data Provenance** (0/? plans) â Remove the fake "stale/sync" UI and replace it with a truthful build-version surface
+- [ ] **Phase 133: Honest Data Provenance** (0/2 plans) â Remove the fake "stale/sync" UI and replace it with a truthful build-version surface
 - [ ] **Phase 134: No Dead Ends** (0/? plans) â Shared Abilities tab shows real data; "Link unit" always leads somewhere
 - [ ] **Phase 135: Faction & Navigation Consolidation** (0/? plans) â Zero-data-loss faction consolidation, the redundant /factions page retired, Data Health folded into Settings
 - [ ] **Phase 136: Code Honesty & Decomposition** (0/? plans) â One shared WeaponTable, a decomposed ArmyListDetailPage, hooks restored, the vestigial column resolved
@@ -99,11 +99,9 @@
   1. `StaleDataBanner` and the dead "stale points" dashboard branches are gone, replaced by an honest data-provenance/version surface based on the build's content hash.
   2. No UI offers a "sync" or "refresh data" action (the deliberate offline architecture is preserved).
   3. All former `syncFreshness` consumers compile cleanly (`pnpm build` green) with no dead branches, dangling imports, or unused exports â and any *real* backup-staleness warning is preserved, not conflated with the fake sync staleness.
-**Plans**: 4 plans
-  - [x] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
-  - [x] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
-  - [x] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
-  - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
+**Plans**: 2 plans
+  - [ ] 133-01-PLAN.md — warnings-layer signature cut: remove threaded freshness from computeUnitWarnings + 4 components/tests (HON-02)
+  - [ ] 133-02-PLAN.md — honest provenance UI + delete syncFreshness.ts/StaleDataBanner + finish tests; preserve backup warning (HON-01)
 
 ### Phase 134: No Dead Ends
 **Goal**: Every datasheet surface the user reaches leads somewhere real â no empty stub tabs, no permanent dead-end buttons.
