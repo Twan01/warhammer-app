@@ -1,10 +1,11 @@
 ---
 phase: 136
 slug: code-honesty-decomposition
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-17
+audited: 2026-06-17
 ---
 
 # Phase 136 — Validation Strategy
@@ -43,13 +44,13 @@ created: 2026-06-17
 
 | Task ID | Plan | Wave | Requirement | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------------|-----------|-------------------|-------------|--------|
-| 136-*-* | HON-08 | — | HON-08 | N/A (no behavior change) | smoke | `grep -rn "function WeaponTable" src/` → exactly 1 | ✅ | ⬜ pending |
-| 136-*-* | HON-08 | — | HON-08 | N/A | smoke | `grep -rn "UdbWeaponsTable" src/` → 0 | ✅ | ⬜ pending |
-| 136-*-* | HON-08 | — | HON-08 | EN/FR identical render | component | `pnpm test -- tests/units/WeaponTable.test.tsx` | ✅ | ⬜ pending |
-| 136-*-* | HON-09 | — | HON-09 | no behavior regression | line-count | `wc -l ArmyListDetailPage.tsx` < 250; each child < 200 | ✅ | ⬜ pending |
-| 136-*-* | HON-09 | — | HON-09 | portals/sections preserved | integration | `pnpm test -- tests/army-list/...` | ❌ W0 | ⬜ pending |
-| 136-*-* | HON-10 | — | HON-10 | cache+invalidation restored | unit | new hook tests + symmetry test | ❌ W0 | ⬜ pending |
-| 136-*-* | HON-11 | — | HON-11 | column gone, parity green | data-layer | `pnpm test -- tests/data-layer/` + `pnpm check:version` | ✅ | ⬜ pending |
+| 136-01-1 | HON-08 | — | HON-08 | N/A (no behavior change) | smoke | `grep -rn "function WeaponTable" src/` → exactly 1 | ✅ | ✅ green |
+| 136-01-3 | HON-08 | — | HON-08 | N/A | smoke | `grep -rn "UdbWeaponsTable" src/` → 0 | ✅ | ✅ green |
+| 136-01-1 | HON-08 | — | HON-08 | EN/FR identical render | component | `pnpm test -- tests/units/WeaponTable.test.tsx` (19 tests) | ✅ | ✅ green |
+| 136-02-3 | HON-09 | — | HON-09 | each child < 200 (orchestrator <250 overridden — see VERIFICATION) | line-count | `wc -l` children < 200; orchestrator 446 (D-06 accepted override) | ✅ | ✅ green |
+| 136-02-1 | HON-09 | 0 | HON-09 | portals/sections preserved | integration | `pnpm test -- tests/army-list/ArmyListDetailPage.decomposition.test.tsx` (24 tests) | ✅ | ✅ green |
+| 136-04-3 | HON-10 | 0 | HON-10 | cache+invalidation restored | unit | `pnpm test -- tests/army-list/armyListHookInvalidations.test.ts tests/army-list/UnitDeleteDialog.test.tsx` | ✅ | ✅ green |
+| 136-03-2 | HON-11 | — | HON-11 | column gone, parity green | data-layer | `pnpm test -- tests/data-layer/migration-parity.test.ts` + `pnpm check:version` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -57,9 +58,9 @@ created: 2026-06-17
 
 ## Wave 0 Requirements
 
-- [ ] `tests/army-list/ArmyListDetailPage.*.test.tsx` — render-with-mocked-hooks integration test asserting Header / QuickAdd / UnitTable / export actions / portals all present (behavior-preservation guard before decomposition)
-- [ ] Hook-symmetry test stub — removing a unit from an army list reflects in `UnitDeleteDialog` membership count (no stale cache) for the new `useUnitArmyLists` hook
-- [ ] EN/FR parity assertion in `tests/units/WeaponTable.test.tsx` for the merged component
+- [x] `tests/army-list/ArmyListDetailPage.decomposition.test.tsx` — render-with-mocked-hooks integration test asserting Header / QuickAdd / UnitTable / export actions / portals all present (24-test behavior-preservation guard, written Wave-0 pre-extraction, green throughout — commit `112fae2c`)
+- [x] Hook-symmetry test — `tests/army-list/armyListHookInvalidations.test.ts` asserts `useAddUnitToList`/`useRemoveUnitFromList` invalidate `["unit-army-lists"]`; `tests/army-list/UnitDeleteDialog.test.tsx` covers membership render via `useUnitArmyLists` (commits `9b0624c2` RED → `23c5aa93` GREEN)
+- [x] EN/FR parity assertion in `tests/units/WeaponTable.test.tsx` for the merged component (11 HON-08 lock tests added)
 
 *Existing infrastructure (Vitest + RTL + migration-parity test) covers the remainder.*
 
@@ -78,11 +79,27 @@ created: 2026-06-17
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 60s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 60s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** validated 2026-06-17 (audit confirmed all 4 requirements COVERED)
+
+---
+
+## Validation Audit 2026-06-17
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+**Method:** State-A audit. Re-ran all 5 phase test files (`WeaponTable`, `ArmyListDetailPage.decomposition`, `armyListHookInvalidations`, `UnitDeleteDialog`, `migration-parity`) → **95 passed, 1 todo** (the todo is a pre-existing Phase-107 rules.db placeholder, out of scope). `pnpm check:version` → green (49/49 migrations, no CR bytes).
+
+**Result:** All four requirements (HON-08, HON-09, HON-10, HON-11) are COVERED by automated tests that run green. All three Wave-0 requirements were satisfied during execution. No tests needed to be generated. Phase is **Nyquist-compliant**.
+
+> Note: the orchestrator `<250` line-count criterion (HON-09) is an accepted override in `136-VERIFICATION.md` (446 lines, D-06 mechanical-only). The behavior-preservation guard (24 tests) — the validation-relevant artifact — is green; the line target is a design metric, not a verification gap.
