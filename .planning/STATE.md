@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.6.0
 milestone_name: Bulletproof & Honest
-status: ready_to_plan
-stopped_at: Phase 135 complete (3/3) — ready to discuss Phase 136
-last_updated: 2026-06-17T17:57:52.267Z
+status: planning
+stopped_at: Phase 136 context gathered
+last_updated: "2026-06-17T18:07:56.899Z"
 last_activity: 2026-06-17
 progress:
   total_phases: 10
@@ -104,9 +104,9 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-17T10:33:22.986Z
-Stopped at: Completed 135-01-PLAN.md — migration 048 faction consolidation green
-Resume file: None
+Last session: 2026-06-17T18:07:56.891Z
+Stopped at: Phase 136 context gathered
+Resume file: .planning/phases/136-code-honesty-decomposition/136-CONTEXT.md
 
 ## Operator Next Steps
 
