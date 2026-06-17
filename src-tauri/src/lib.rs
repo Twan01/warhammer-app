@@ -299,6 +299,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/049_drop_promoted_to_reminder.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 50,
+            description: "udb_leader_targets",
+            sql: include_str!("../migrations/050_udb_leader_targets.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
