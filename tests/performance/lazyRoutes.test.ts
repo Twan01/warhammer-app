@@ -20,10 +20,12 @@ describe("lazyRoutes", () => {
     expect(routerSource).toMatch(/import\s*\{[^}]*Suspense[^}]*\}\s*from\s*["']react["']/);
   });
 
-  it("router.tsx contains exactly 18 React.lazy dynamic imports (one per page)", () => {
+  it("router.tsx contains exactly 17 React.lazy dynamic imports (one per page)", () => {
+    // 17 after Phase 135 (HON-06) removed the standalone /factions route — faction
+    // management now lives in the Settings → Factions tab, not a top-level lazy route.
     const lazyMatches = routerSource.match(/=\s*lazy\(\s*\(\)/g);
     expect(lazyMatches).not.toBeNull();
-    expect(lazyMatches!.length).toBe(18);
+    expect(lazyMatches!.length).toBe(17);
   });
 
   it("router.tsx has zero static page imports from route modules", () => {
@@ -34,7 +36,6 @@ describe("lazyRoutes", () => {
       'from "./recipes/page"',
       'from "./paints/page"',
       'from "./settings/page"',
-      'from "./factions/page"',
       'from "./army-lists/page"',
       'from "./spending/page"',
       'from "./battle-log/page"',
@@ -87,6 +88,6 @@ describe("lazyRoutes", () => {
     const lazyDeclarationLines = routerSource
       .split("\n")
       .filter((line) => line.includes("= lazy(") && line.includes(".then(m => ({ default: m."));
-    expect(lazyDeclarationLines.length).toBe(18);
+    expect(lazyDeclarationLines.length).toBe(17);
   });
 });

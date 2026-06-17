@@ -74,13 +74,14 @@ describe("AppSidebar NAV-01: Group Labels", () => {
     expect(screen.queryByText("Tracking")).not.toBeInTheDocument();
   });
 
-  it("Factions link appears in Management group (after Play group)", () => {
+  it("Management group no longer contains a Factions link (Phase 135 / HON-06)", () => {
     renderSidebar();
-    const factions = screen.getByText("Factions");
-    const spending = screen.getByText("Spending");
-    // Both should exist and be in the same group
-    expect(factions).toBeInTheDocument();
-    expect(spending).toBeInTheDocument();
+    // HON-06 removed the standalone /factions sidebar destination — faction
+    // management now lives in the Settings → Factions tab. The Management group
+    // retains only Spending and Wishlist.
+    expect(screen.queryByText("Factions")).not.toBeInTheDocument();
+    expect(screen.getByText("Spending")).toBeInTheDocument();
+    expect(screen.getByText("Wishlist")).toBeInTheDocument();
   });
 
   it("Dashboard link appears in Command group", () => {
