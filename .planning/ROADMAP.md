@@ -126,7 +126,7 @@
 **Plans**: 3 plans
   - [x] 135-01-PLAN.md — HON-05: migration 048 map-not-delete faction consolidation + lib.rs entry (47→48) + zero-data-loss data-layer test + parity gates
   - [x] 135-02-PLAN.md — HON-06: Settings → Factions tab (rehome FactionsPage verbatim) + remove /factions route/sidebar entry + delete page wrapper
-  - [ ] 135-03-PLAN.md — HON-07: remove Data Health from sidebar MANAGEMENT_NAV + drop HeartPulse import (keep /data-health route + Settings card)
+  - [x] 135-03-PLAN.md — HON-07: remove Data Health from sidebar MANAGEMENT_NAV + drop HeartPulse import (keep /data-health route + Settings card)
 **Notes**: HON-05 is the data-loss trap of the milestone (FK semantics: units RESTRICT, painting_recipes/army_lists SET NULL, wishlist CASCADE; default_faction_id is a TEXT app_settings value with no FK). The migration is its own verified step (Plan 01, Wave 1) and lands BEFORE the route/sidebar removals (Plans 02/03). Plans 02 and 03 both edit AppSidebar.tsx, so 03 is sequenced after 02 (Wave 3) to avoid a same-file conflict.
 **UI hint**: yes
 
@@ -203,7 +203,7 @@
 | 132. Update Trustworthiness | 3/4 | In Progress|  |
 | 133. Honest Data Provenance | 2/2 | Complete    | 2026-06-17 |
 | 134. No Dead Ends | 2/2 | Complete    | 2026-06-17 |
-| 135. Faction & Navigation Consolidation | 2/3 | In Progress|  |
+| 135. Faction & Navigation Consolidation | 3/3 | Complete   | 2026-06-17 |
 | 136. Code Honesty & Decomposition | 0/? | Not started | - |
 | 137. Canonical Leader Attachment | 0/? | Not started | - |
 | 138. Player-Journey Depth | 0/? | Not started | - |
