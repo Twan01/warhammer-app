@@ -24,7 +24,7 @@
 - [x] **HON-02**: All former consumers of the `syncFreshness` type compile cleanly with no dead branches, dangling imports, or unused exports.
 - [x] **HON-03**: The Rules Hub "Shared Abilities" tab displays real faction shared/army-rule abilities sourced from the canonical database (no empty stub).
 - [x] **HON-04**: A unit's datasheet "Link unit" action is never a permanent dead end — a unit can always be linked to or matched against the canonical Unit Database from the UI.
-- [ ] **HON-05**: User factions are consolidated into the canonical Unit Database faction model via a map-not-delete migration that preserves every existing FK reference (units, army_lists, painting_sessions, wishlist, `default_faction_id` theming) with zero data loss.
+- [x] **HON-05**: User factions are consolidated into the canonical Unit Database faction model via a map-not-delete migration that preserves every existing FK reference (units, army_lists, painting_sessions, wishlist, `default_faction_id` theming) with zero data loss.
 - [ ] **HON-06**: The standalone `/factions` sidebar page is removed; faction management remains reachable from its new home with no loss of capability.
 - [ ] **HON-07**: Data Health is moved out of the main sidebar into Settings → Data.
 - [ ] **HON-08**: `WeaponTable` is a single shared component (the duplicate `UdbWeaponsTable` is eliminated) consumed by all datasheet/weapon surfaces.
@@ -81,7 +81,7 @@
 | HON-02 | Phase 133 | Complete |
 | HON-03 | Phase 134 | Complete |
 | HON-04 | Phase 134 | Complete |
-| HON-05 | Phase 135 | Pending |
+| HON-05 | Phase 135 | Complete |
 | HON-06 | Phase 135 | Pending |
 | HON-07 | Phase 135 | Pending |
 | HON-08 | Phase 136 | Pending |

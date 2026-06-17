@@ -4,13 +4,13 @@ milestone: v0.6.0
 milestone_name: Bulletproof & Honest
 status: executing
 stopped_at: Phase 135 context gathered
-last_updated: "2026-06-17T10:08:25.466Z"
-last_activity: 2026-06-17 -- Phase 135 planning complete
+last_updated: "2026-06-17T10:23:38.979Z"
+last_activity: 2026-06-17
 progress:
   total_phases: 10
   completed_phases: 5
   total_plans: 15
-  completed_plans: 12
+  completed_plans: 13
   percent: 50
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-15)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore
-**Current focus:** Phase 135 — faction & navigation consolidation
+**Current focus:** Phase 135 — faction-navigation-consolidation
 
 ## Current Position
 
-Phase: 135
-Plan: Not started
+Phase: 135 (faction-navigation-consolidation) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-17 -- Phase 135 planning complete
+Last activity: 2026-06-17
 
-Progress: [██████████] 100%
+Progress: [█████████░] 87%
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Progress: [██████████] 100%
 - Schema version = migration count (integer); no hand-maintained EXPECTED_SCHEMA_VERSION constant
 - Overrides + favorites/notes live in hobbyforge.db keyed on stable Wahapedia IDs — survive re-import
 - CRLF/LF migration checksum drift was the "update breaks launch" root cause; fix on `fix/update-breaks-app-launch`
+- Map-not-delete faction consolidation (migration 048): correlated subqueries re-point 4 FK surfaces (units RESTRICT, painting_recipes SET NULL, army_lists SET NULL, wishlist_items CASCADE) + app_settings TEXT value before DELETE; CAST required for INTEGER<->TEXT; parity gate at 48
 
 ### v0.6.0 Sequencing Law (CRITICAL)
 
@@ -89,6 +90,7 @@ None.
 | Phase 132-update-trustworthiness P01 | 35m | 3 tasks | 7 files |
 | Phase 134-no-dead-ends P01 | 20min | 2 tasks | 3 files |
 | Phase 134-no-dead-ends P02 | 30min | 3 tasks | 8 files |
+| Phase 135 P01 | 10min | 3 tasks | 3 files |
 
 ## Quick Tasks Completed
 
@@ -100,10 +102,9 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-17T09:40:24.031Z
-Stopped at: Phase 135 context gathered
-Resume file: .planning/phases/135-faction-navigation-consolidation/135-CONTEXT.md
-Resume: Run `/gsd:plan-phase 130` to begin Migration Parity & Release Gate.
+Last session: 2026-06-17T10:21:00Z
+Stopped at: Completed 135-01-PLAN.md — migration 048 faction consolidation green
+Resume file: None
 
 ## Operator Next Steps
 
