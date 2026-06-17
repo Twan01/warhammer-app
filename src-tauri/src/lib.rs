@@ -676,6 +676,8 @@ pub struct UnitDatabasePayload {
     stratagems: Vec<JsRow>,
     #[serde(default)]
     enhancements: Vec<JsRow>,
+    #[serde(default)]
+    leader_targets: Vec<JsRow>,
 }
 
 #[derive(serde::Serialize, Debug)]
@@ -692,6 +694,7 @@ pub struct UdbImportResult {
     pub detachment_abilities: u64,
     pub stratagems: u64,
     pub enhancements: u64,
+    pub leader_targets: u64,
 }
 
 /// Core import logic for unit_database.json into udb_* tables.
@@ -742,6 +745,7 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
                 abilities: 0, keywords: 0, points: 0, composition: 0,
                 detachments: 0, detachment_abilities: 0,
                 stratagems: 0, enhancements: 0,
+                leader_targets: 0,
             });
         }
     }
@@ -759,6 +763,7 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
         abilities: 0, keywords: 0, points: 0, composition: 0,
         detachments: 0, detachment_abilities: 0,
         stratagems: 0, enhancements: 0,
+        leader_targets: 0,
     };
 
     // D-09/D-08: DELETE all udb_* tables (FK OFF so order doesn't matter)
@@ -769,6 +774,7 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
         "udb_unit_abilities",
         "udb_unit_weapons",
         "udb_unit_models",
+        "udb_leader_targets",
         "udb_units",
         "udb_stratagems",
         "udb_enhancements",
@@ -1020,6 +1026,22 @@ async fn import_unit_database_inner(app: &tauri::AppHandle) -> Result<UdbImportR
         .await
         .map_err(|e| format!("insert enhancement {id}: {e}"))?;
         counts.enhancements += res.rows_affected();
+    }
+
+    // INSERT leader_targets
+    for row in &payload.leader_targets {
+        let leader_unit_id = str_val(row, "leader_unit_id").unwrap_or_default();
+        let target_unit_id = str_val(row, "target_unit_id").unwrap_or_default();
+        if leader_unit_id.is_empty() || target_unit_id.is_empty() { continue; }
+        let res = sqlx::query(
+            "INSERT OR IGNORE INTO udb_leader_targets (leader_unit_id, target_unit_id) VALUES (?, ?)",
+        )
+        .bind(&leader_unit_id)
+        .bind(&target_unit_id)
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("insert leader_target {leader_unit_id}→{target_unit_id}: {e}"))?;
+        counts.leader_targets += res.rows_affected();
     }
 
     // INSERT udb_meta (single row, id=1)
