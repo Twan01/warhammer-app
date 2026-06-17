@@ -32,5 +32,6 @@ export function useLeaderTargets(listId: number | null) {
     queryFn: () => getLeaderTargetsForList(listId!),
     enabled: listId != null,
     staleTime: Infinity, // canonical data — immutable between imports
+    gcTime: Infinity,    // keep in cache as long as staleTime holds (FBK-10 alignment)
   });
 }
