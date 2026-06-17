@@ -27,7 +27,7 @@
 - [x] **HON-05**: User factions are consolidated into the canonical Unit Database faction model via a map-not-delete migration that preserves every existing FK reference (units, army_lists, painting_sessions, wishlist, `default_faction_id` theming) with zero data loss.
 - [x] **HON-06**: The standalone `/factions` sidebar page is removed; faction management remains reachable from its new home with no loss of capability.
 - [x] **HON-07**: Data Health is moved out of the main sidebar into Settings → Data.
-- [ ] **HON-08**: `WeaponTable` is a single shared component (the duplicate `UdbWeaponsTable` is eliminated) consumed by all datasheet/weapon surfaces.
+- [x] **HON-08**: `WeaponTable` is a single shared component (the duplicate `UdbWeaponsTable` is eliminated) consumed by all datasheet/weapon surfaces.
 - [ ] **HON-09**: `ArmyListDetailPage` is decomposed into focused sub-components/hooks, each within the project's file-size conventions, with no behavior regression.
 - [ ] **HON-10**: The 7 components that call query functions directly are routed through React Query hooks, restoring cache and invalidation guarantees.
 - [ ] **HON-11**: The vestigial `promoted_to_reminder` column is removed (or its retention is explicitly justified in the schema).
@@ -84,7 +84,7 @@
 | HON-05 | Phase 135 | Complete |
 | HON-06 | Phase 135 | Complete |
 | HON-07 | Phase 135 | Complete |
-| HON-08 | Phase 136 | Pending |
+| HON-08 | Phase 136 | Complete |
 | HON-09 | Phase 136 | Pending |
 | HON-10 | Phase 136 | Pending |
 | HON-11 | Phase 136 | Pending |

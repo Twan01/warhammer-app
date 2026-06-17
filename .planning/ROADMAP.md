@@ -140,7 +140,7 @@
   3. The 7 components that call query functions directly are routed through React Query hooks, restoring cache and invalidation guarantees with no hook-in-loop or N+1 regressions.
   4. The vestigial `promoted_to_reminder` column is removed, or its retention is explicitly justified in the schema.
 **Plans**: 4 plans
-  - [ ] 136-01-PLAN.md — HON-08: collapse 3 WeaponTable impls into the canonical units/WeaponTable; re-point DatasheetPointsTab + UdbDatasheetSheet; delete UdbWeaponsTable; render-contract test (wave 1)
+  - [x] 136-01-PLAN.md — HON-08: collapse 3 WeaponTable impls into the canonical units/WeaponTable; re-point DatasheetPointsTab + UdbDatasheetSheet; delete UdbWeaponsTable; render-contract test (wave 1)
   - [ ] 136-02-PLAN.md — HON-09: decompose ArmyListDetailPage (786 lines) into Header/QuickAdd/UnitTable/Portals + useArmyListExport hook; orchestrator <250, children <200; mechanical block-moves (wave 1)
   - [ ] 136-03-PLAN.md — HON-11: migration 049 DROP COLUMN promoted_to_reminder (LF) + lib.rs block 49 + battleLog.ts cleanup; parity gate green (wave 1)
   - [ ] 136-04-PLAN.md — HON-10: route the 5 genuine bypasses through named hooks (useEnhancementsByFaction, useBsdataFaction x3, useSnapshotData, useRecipeNamesByUnitIds, useUnitArmyLists) + add/remove invalidation symmetry fix (wave 2, depends 136-01)
@@ -204,7 +204,7 @@
 | 133. Honest Data Provenance | 2/2 | Complete    | 2026-06-17 |
 | 134. No Dead Ends | 2/2 | Complete    | 2026-06-17 |
 | 135. Faction & Navigation Consolidation | 3/3 | Complete    | 2026-06-17 |
-| 136. Code Honesty & Decomposition | 0/? | Not started | - |
+| 136. Code Honesty & Decomposition | 1/4 | In Progress|  |
 | 137. Canonical Leader Attachment | 0/? | Not started | - |
 | 138. Player-Journey Depth | 0/? | Not started | - |
 | 139. Data Quality at Scale | 0/? | Not started | - |
