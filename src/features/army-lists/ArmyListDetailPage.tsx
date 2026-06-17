@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback, useReducer, Fragment } from "react";
 import { useNavigate, Link } from "@tanstack/react-router";
-import { ArrowLeft, BookOpen, ChevronDown, ChevronRight, History, Plus, Search, Swords } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronRight, History } from "lucide-react";
 import { toast } from "sonner";
 import {
   DndContext,
@@ -22,11 +22,12 @@ import {
   Table, TableHeader, TableRow, TableHead, TableBody, TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
+import { ArmyListDetailHeader } from "./ArmyListDetailHeader";
+import { ArmyListQuickAdd } from "./ArmyListQuickAdd";
+import { useArmyListExport } from "./useArmyListExport";
 import {
   useArmyListWithUnits,
   useArmyList,
@@ -45,21 +46,7 @@ import { useUdbMeta } from "@/hooks/useUdbMeta";
 import { useLeaderTargets } from "@/hooks/useLeaderTargets";
 import { useFactions } from "@/hooks/useFactions";
 import { groupUnitsWithLeaders } from "@/lib/groupUnitsWithLeaders";
-import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { save } from "@tauri-apps/plugin-dialog";
-import { writeTextFile } from "@tauri-apps/plugin-fs";
-import { invoke } from "@tauri-apps/api/core";
-import {
-  formatArmyListForExport,
-  buildClipboardText,
-  buildJsonFormat,
-  slugify,
-  dateStamp,
-} from "@/lib/exportArmyList";
-import { generateBattleRosterPdf } from "@/lib/exportArmyListPdf";
-import { assembleRoster } from "@/lib/exportRoster";
 import { useLocale } from "@/stores/localeStore";
-import { PageHeader } from "@/components/common/PageHeader";
 import { ArmyListSummaryBar } from "./ArmyListSummaryBar";
 import { ArmyListUnitRow } from "./ArmyListUnitRow";
 import { ExportDropdown } from "./ExportDropdown";
@@ -85,7 +72,7 @@ import {
 // Sortable row wrapper for dnd-kit
 // ---------------------------------------------------------------------------
 
-import type { ArmyListUnitRow as ArmyListUnitRowType, ArmyListUnitWargear } from "@/types/armyList";
+import type { ArmyListUnitRow as ArmyListUnitRowType } from "@/types/armyList";
 import type { SyncedLeaderTargetRow } from "@/db/queries/bsdataExtended";
 
 function SortableUnitRow({
@@ -352,76 +339,14 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
     });
   }
 
-  const handleCopyToClipboard = useCallback(async () => {
-    if (!list) return;
-    try {
-      const data = formatArmyListForExport(list, units ?? [], listEnhancements ?? [], faction?.name ?? null);
-      const text = buildClipboardText(data);
-      await writeText(text);
-      toast.success("List copied to clipboard");
-    } catch {
-      toast.error("Failed to copy — check clipboard permissions");
-    }
-  }, [list, units, listEnhancements, faction]);
-
-  const handleSaveJson = useCallback(async () => {
-    if (!list) return;
-    try {
-      const data = formatArmyListForExport(list, units ?? [], listEnhancements ?? [], faction?.name ?? null);
-      const jsonString = buildJsonFormat(data);
-      const destination = await save({
-        title: "Save Army List as JSON",
-        defaultPath: `${slugify(list.name)}-${dateStamp()}.json`,
-        filters: [{ name: "JSON", extensions: ["json"] }],
-      });
-      if (!destination) return;
-      await writeTextFile(destination, jsonString);
-      toast.success("List saved as JSON");
-    } catch {
-      toast.error("Failed to save JSON — check file permissions");
-    }
-  }, [list, units, listEnhancements, faction]);
-
-  const handleSavePdf = useCallback(async () => {
-    if (!list) return;
-    try {
-      // Build wargear map grouped by army_list_unit_id for the formatter
-      const wargearMap = new Map<number, ArmyListUnitWargear[]>();
-      for (const w of listWargear ?? []) {
-        if (!wargearMap.has(w.army_list_unit_id)) wargearMap.set(w.army_list_unit_id, []);
-        wargearMap.get(w.army_list_unit_id)!.push(w);
-      }
-      const data = formatArmyListForExport(
-        list,
-        units ?? [],
-        listEnhancements ?? [],
-        faction?.name ?? null,
-        wargearMap,
-      );
-      const destination = await save({
-        title: "Save Army List as PDF",
-        defaultPath: `${slugify(list.name)}-${dateStamp()}.pdf`,
-        filters: [{ name: "PDF", extensions: ["pdf"] }],
-      });
-      if (!destination) return;
-
-      const roster = await assembleRoster({
-        list,
-        units: units ?? [],
-        enhancements: listEnhancements ?? [],
-        summary: data,
-        locale,
-      });
-      const buffer = await generateBattleRosterPdf(roster, list.name, list.points_limit);
-      await invoke("write_bytes_to_path", {
-        destination,
-        bytes: Array.from(new Uint8Array(buffer)),
-      });
-      toast.success("List saved as PDF");
-    } catch {
-      toast.error("Failed to generate PDF");
-    }
-  }, [list, units, listEnhancements, faction, listWargear, locale]);
+  const { handleCopyToClipboard, handleSaveJson, handleSavePdf } = useArmyListExport({
+    list,
+    units: units ?? [],
+    listEnhancements: listEnhancements ?? [],
+    faction,
+    listWargear: listWargear ?? [],
+    locale,
+  });
 
   const handleDeleteClose = useCallback(() => {
     dispatch({ type: "CLOSE_DELETE" });
@@ -470,93 +395,24 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" asChild>
-          <Link to="/army-lists">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Army Lists
-          </Link>
-        </Button>
-      </div>
-
-      <PageHeader
-        title={list.name}
-        subtitle={faction ? undefined : "No faction"}
-        actions={
-          <div className="flex items-center gap-2">
-            {faction && (
-              <Badge
-                style={faction.color_theme ? { backgroundColor: faction.color_theme } : undefined}
-                className={faction.color_theme ? "border-transparent text-white" : ""}
-              >
-                {faction.name}
-              </Badge>
-            )}
-            <Button variant="outline" size="sm" onClick={() => dispatch({ type: "OPEN_EDIT", list })}>
-              Edit List
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate({ to: "/game-day/$listId", params: { listId: String(list.id) } })}
-            >
-              <Swords className="mr-2 h-4 w-4" />
-              Game Day
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-destructive hover:text-destructive"
-              onClick={() => dispatch({ type: "OPEN_DELETE", list })}
-            >
-              Delete List
-            </Button>
-          </div>
-        }
+      <ArmyListDetailHeader
+        list={list}
+        faction={faction}
+        onEdit={() => dispatch({ type: "OPEN_EDIT", list })}
+        onGameDay={() => navigate({ to: "/game-day/$listId", params: { listId: String(list.id) } })}
+        onDelete={() => dispatch({ type: "OPEN_DELETE", list })}
       />
 
       <ArmyListSummaryBar units={units ?? []} pointsLimit={list.points_limit} enhancements={listEnhancements ?? []} />
 
-      {/* Inline quick-add search */}
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold">Units</span>
-        <div className="flex items-center gap-2">
-          <Button type="button" variant="outline" size="sm" onClick={() => dispatch({ type: "OPEN_UNIT_PICKER" })}>
-            <Plus className="mr-2 h-4 w-4" /> Add Unit
-          </Button>
-          <Button type="button" variant="outline" size="sm" onClick={() => dispatch({ type: "OPEN_DATASHEET_BROWSER" })}>
-            <BookOpen className="mr-2 h-4 w-4" /> Browse Datasheets
-          </Button>
-        </div>
-      </div>
-
-      <div className="relative">
-        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Quick add — search units by name..."
-          value={quickAddSearch}
-          onChange={(e) => setQuickAddSearch(e.target.value)}
-          className="pl-9"
-        />
-        {quickAddResults.length > 0 && (
-          <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg">
-            {quickAddResults.map((r) => (
-              <button
-                key={r.id}
-                type="button"
-                className="flex w-full items-center justify-between px-3 py-2 text-sm hover:bg-accent text-left"
-                onClick={() => handleQuickAdd(r.id)}
-              >
-                <span>{r.name}</span>
-                <span className="flex items-center gap-2 text-muted-foreground">
-                  {r.category && <Badge variant="secondary" className="text-xs">{r.category}</Badge>}
-                  {r.points != null && <span>{r.points}pts</span>}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      <ArmyListQuickAdd
+        quickAddSearch={quickAddSearch}
+        setQuickAddSearch={setQuickAddSearch}
+        quickAddResults={quickAddResults}
+        onAdd={handleQuickAdd}
+        onOpenUnitPicker={() => dispatch({ type: "OPEN_UNIT_PICKER" })}
+        onOpenDatasheetBrowser={() => dispatch({ type: "OPEN_DATASHEET_BROWSER" })}
+      />
 
       {isLoading && (
         <div className="flex flex-col gap-2">
