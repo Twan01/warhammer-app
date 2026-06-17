@@ -404,7 +404,9 @@ All three assumptions are marked VERIFIED — the files were read directly durin
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> Both questions are answered in the plans: the `DiagnosticsCard.tsx` comment is updated in 133-02 Task 1, and the unused `Clock` import is removed alongside the sync row in 133-02 Task 1.
 
 1. **`DiagnosticsCard.tsx` comment**
    - What we know: Contains the comment "with a stale-sync check computed client-side from syncFreshness" but no import.
