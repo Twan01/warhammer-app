@@ -81,10 +81,6 @@ vi.mock("@/lib/exportArmyListPdf", () => ({
   generateArmyListPdf: vi.fn(),
 }));
 
-vi.mock("@/lib/syncFreshness", () => ({
-  getSyncFreshness: () => "fresh",
-}));
-
 vi.mock("@/lib/groupUnitsWithLeaders", () => ({
   groupUnitsWithLeaders: () => [],
 }));

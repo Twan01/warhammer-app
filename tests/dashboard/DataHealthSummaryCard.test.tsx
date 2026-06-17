@@ -53,26 +53,24 @@ beforeEach(() => {
   mockBackup = null;
 });
 
-describe("DataHealthSummaryCard — sync dot and label", () => {
-  it("renders sync label 'Data bundled with app' when no sync meta (Phase 107: always fresh)", () => {
+describe("DataHealthSummaryCard — honest data version row (Phase 133)", () => {
+  it("renders 'Data version unavailable' when no sync meta", () => {
     mockSyncMeta = null;
     render(<DataHealthSummaryCard />);
-    expect(screen.getByText("Data bundled with app")).toBeInTheDocument();
+    expect(screen.getByText("Data version unavailable")).toBeInTheDocument();
   });
 
-  it("renders sync label 'Data bundled with app' when syncMeta has a date (Phase 107: always fresh)", () => {
-    const today = new Date().toISOString();
-    mockSyncMeta = { built_at: today };
+  it("renders 'Data {version}' when syncMeta is present", () => {
+    mockSyncMeta = { built_at: new Date().toISOString(), version: "1.0.0+a3f7bc21" } as unknown as { built_at: string | null };
     render(<DataHealthSummaryCard />);
-    expect(screen.getByText("Data bundled with app")).toBeInTheDocument();
+    expect(screen.getByText("Data 1.0.0+a3f7bc21")).toBeInTheDocument();
   });
 
-  it("renders a colored dot element for sync freshness", () => {
-    mockSyncMeta = { built_at: new Date().toISOString() };
+  it("does not render a sync freshness dot (Phase 133: sync dot removed)", () => {
+    mockSyncMeta = { built_at: new Date().toISOString() } as unknown as { built_at: string | null };
     render(<DataHealthSummaryCard />);
-    // fresh → bg-green-500 dot
-    const dots = document.querySelectorAll(".bg-green-500");
-    expect(dots.length).toBeGreaterThan(0);
+    // The sync dot (bg-green-500) is gone — only the backup dot remains, which uses bg-muted-foreground when no backup
+    expect(screen.queryByText("Data bundled with app")).not.toBeInTheDocument();
   });
 
   it("renders sync loading skeleton when syncLoading is true", () => {

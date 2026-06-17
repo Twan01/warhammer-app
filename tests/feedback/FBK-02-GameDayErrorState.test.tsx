@@ -34,10 +34,6 @@ vi.mock("@/hooks/useUdbMeta", () => ({
   useUdbMeta: () => ({ data: null }),
 }));
 
-vi.mock("@/lib/syncFreshness", () => ({
-  getSyncFreshness: () => null,
-}));
-
 // Mock sub-components to avoid deep dependency chains
 vi.mock("@/features/game-day/GameDayHeader", () => ({
   GameDayHeader: () => null,
