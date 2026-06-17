@@ -13,7 +13,6 @@ import { render, screen } from "@testing-library/react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ArmyListSummaryBar } from "@/features/army-lists/ArmyListSummaryBar";
 import type { ArmyListUnitRow } from "@/types/armyList";
-import type { SyncFreshness } from "@/lib/syncFreshness";
 
 // PointsFreshnessBadge calls hooks internally -- mock it
 vi.mock("@/features/army-lists/PointsFreshnessBadge", () => ({
@@ -56,14 +55,10 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
   };
 }
 
-function renderBar(
-  units: ArmyListUnitRow[],
-  pointsLimit: number | null,
-  freshness: SyncFreshness,
-) {
+function renderBar(units: ArmyListUnitRow[], pointsLimit: number | null) {
   return render(
     <TooltipProvider>
-      <ArmyListSummaryBar units={units} pointsLimit={pointsLimit} freshness={freshness} enhancements={[]} />
+      <ArmyListSummaryBar units={units} pointsLimit={pointsLimit} enhancements={[]} />
     </TooltipProvider>,
   );
 }
@@ -79,7 +74,7 @@ describe("ArmyListSummaryBar -- list-level warning badges (PV-06)", () => {
 
   it("renders 'Points exceeded' badge when total points exceeds pointsLimit", () => {
     const units = [makeUnit({ effective_points: 2100 })];
-    renderBar(units, 2000, "fresh");
+    renderBar(units, 2000);
 
     // The badge should be in the document
     expect(screen.getByText("Points exceeded")).toBeInTheDocument();
@@ -87,7 +82,7 @@ describe("ArmyListSummaryBar -- list-level warning badges (PV-06)", () => {
 
   it("'Points exceeded' badge is rendered inside an element with destructive styling", () => {
     const units = [makeUnit({ effective_points: 2100 })];
-    renderBar(units, 2000, "fresh");
+    renderBar(units, 2000);
 
     const badge = screen.getByText("Points exceeded");
     // Badge variant="destructive" renders with bg-destructive or destructive class
@@ -98,14 +93,14 @@ describe("ArmyListSummaryBar -- list-level warning badges (PV-06)", () => {
 
   it("does NOT render 'Points exceeded' badge when total is within pointsLimit", () => {
     const units = [makeUnit({ effective_points: 1500 })];
-    renderBar(units, 2000, "fresh");
+    renderBar(units, 2000);
 
     expect(screen.queryByText("Points exceeded")).not.toBeInTheDocument();
   });
 
   it("does NOT render 'Points exceeded' badge when pointsLimit is null", () => {
     const units = [makeUnit({ effective_points: 99999 })];
-    renderBar(units, null, "fresh");
+    renderBar(units, null);
 
     expect(screen.queryByText("Points exceeded")).not.toBeInTheDocument();
   });
@@ -117,14 +112,14 @@ describe("ArmyListSummaryBar -- list-level warning badges (PV-06)", () => {
   it("renders Battleline count warning when under minimum", () => {
     // pointsLimit >= 2000 requires 3 Battleline; 0 provided
     const units = [makeUnit({ effective_points: 1000 })];
-    renderBar(units, 2000, "fresh");
+    renderBar(units, 2000);
 
     expect(screen.getByText(/Needs 3 Battleline/)).toBeInTheDocument();
   });
 
   it("does NOT render Battleline warning when pointsLimit is null", () => {
     const units = [makeUnit({ effective_points: 500 })];
-    renderBar(units, null, "fresh");
+    renderBar(units, null);
 
     expect(screen.queryByText(/Battleline/)).not.toBeInTheDocument();
   });
@@ -135,7 +130,7 @@ describe("ArmyListSummaryBar -- list-level warning badges (PV-06)", () => {
 
   it("renders both hard and soft warning badges when points exceeded AND Battleline short", () => {
     const units = [makeUnit({ effective_points: 2200 })];
-    renderBar(units, 2000, "fresh");
+    renderBar(units, 2000);
 
     expect(screen.getByText("Points exceeded")).toBeInTheDocument();
     expect(screen.getByText(/Needs 3 Battleline/)).toBeInTheDocument();
@@ -143,7 +138,7 @@ describe("ArmyListSummaryBar -- list-level warning badges (PV-06)", () => {
 
   it("both badges are within the same role=status container", () => {
     const units = [makeUnit({ effective_points: 2200 })];
-    renderBar(units, 2000, "fresh");
+    renderBar(units, 2000);
 
     const exceededBadge = screen.getByText("Points exceeded");
     const battlelineBadge = screen.getByText(/Needs 3 Battleline/);
@@ -163,7 +158,7 @@ describe("ArmyListSummaryBar -- list-level warning badges (PV-06)", () => {
   it("does not render the role=status badge container when no list warnings", () => {
     // No pointsLimit = no points-exceeded check and no Battleline check
     const units = [makeUnit({ effective_points: 500 })];
-    renderBar(units, null, "fresh");
+    renderBar(units, null);
 
     // No warnings at all -> the badge section (role=status) should not be in DOM
     expect(document.querySelector("[role=’status’]")).toBeNull();
@@ -181,7 +176,7 @@ describe("ArmyListSummaryBar -- INT-04 canonical role distribution", () => {
       makeUnit({ id: 1, udb_role: "Battleline", effective_points: 100 }),
       makeUnit({ id: 2, udb_role: "Character", effective_points: 80 }),
     ];
-    renderBar(units, null, "fresh");
+    renderBar(units, null);
     expect(screen.getByText(/^Roles:/)).toBeInTheDocument();
   });
 
@@ -191,7 +186,7 @@ describe("ArmyListSummaryBar -- INT-04 canonical role distribution", () => {
       makeUnit({ id: 2, udb_role: "Battleline", effective_points: 100 }),
       makeUnit({ id: 3, udb_role: "Character", effective_points: 80 }),
     ];
-    renderBar(units, null, "fresh");
+    renderBar(units, null);
     const rolesText = screen.getByText(/^Roles:/).textContent!;
     expect(rolesText).toContain("2 Battleline");
     expect(rolesText).toContain("1 Character");
@@ -202,7 +197,7 @@ describe("ArmyListSummaryBar -- INT-04 canonical role distribution", () => {
       makeUnit({ id: 1, udb_role: null, effective_points: 100 }),
       makeUnit({ id: 2, udb_role: null, effective_points: 100 }),
     ];
-    renderBar(units, null, "fresh");
+    renderBar(units, null);
     expect(screen.queryByText(/^Roles:/)).not.toBeInTheDocument();
   });
 
@@ -214,7 +209,7 @@ describe("ArmyListSummaryBar -- INT-04 canonical role distribution", () => {
       makeUnit({ id: 4, udb_role: "Battleline", effective_points: 100 }),
       makeUnit({ id: 5, udb_role: "Dedicated Transport", effective_points: 70 }),
     ];
-    renderBar(units, null, "fresh");
+    renderBar(units, null);
     const rolesText = screen.getByText(/^Roles:/).textContent!;
     // "3 Battleline" should come before "1 Character" and "1 Dedicated Transport"
     const battlelineIdx = rolesText.indexOf("3 Battleline");
@@ -231,7 +226,7 @@ describe("ArmyListSummaryBar -- list-level warning badges (PV-06) continued", ()
     const units = [
       makeUnit({ effective_points: 2100, status_painting: "Primed" }),
     ];
-    renderBar(units, 2000, "fresh");
+    renderBar(units, 2000);
 
     // The combined warning count label must be present
     expect(screen.getByText(/Warnings: 3/)).toBeInTheDocument();

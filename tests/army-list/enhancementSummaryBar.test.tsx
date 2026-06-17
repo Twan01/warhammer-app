@@ -75,7 +75,6 @@ function renderBar(
       <ArmyListSummaryBar
         units={units}
         pointsLimit={pointsLimit}
-        freshness="fresh"
         enhancements={enhancements}
       />
     </TooltipProvider>,

@@ -31,26 +31,23 @@ import {
   TACTICAL_ROLES_DISPLAY,
 } from "@/types/armyList";
 import type { TacticalRole } from "@/types/armyList";
-import type { SyncFreshness } from "@/lib/syncFreshness";
 import type { PaintingStatus } from "@/types/unit";
 import { AlertCircle, AlertTriangle, ChevronDown } from "lucide-react";
 
 interface GameDayReadinessPanelProps {
   units: ArmyListUnitRow[];
   pointsLimit: number | null;
-  freshness: SyncFreshness;
 }
 
 export function GameDayReadinessPanel({
   units,
   pointsLimit,
-  freshness,
 }: GameDayReadinessPanelProps) {
   const [open, setOpen] = useState(false);
 
   const stats = useMemo(
-    () => computeListHealthStats(units, pointsLimit, freshness),
-    [units, pointsLimit, freshness],
+    () => computeListHealthStats(units, pointsLimit),
+    [units, pointsLimit],
   );
 
   const totalWarnings = stats.hardWarningCount + stats.softWarningCount;

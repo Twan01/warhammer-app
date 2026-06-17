@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useArmyList, useArmyListWithUnits } from "@/hooks/useArmyLists";
 import { useFactions } from "@/hooks/useFactions";
-import { useUdbMeta } from "@/hooks/useUdbMeta";
-import { getSyncFreshness } from "@/lib/syncFreshness";
 import { GameDayHeader } from "./GameDayHeader";
 import { GameDayReadinessPanel } from "./GameDayReadinessPanel";
 import { StrategemsTab } from "./StrategemsTab";
@@ -27,9 +25,6 @@ export function GameDayPage({ listId }: GameDayPageProps) {
   const { data: list, isLoading: listLoading, isError: listError, refetch: refetchList } = useArmyList(listId);
   const { data: units } = useArmyListWithUnits(listId);
   const { data: factions } = useFactions();
-  const { data: udbMeta } = useUdbMeta();
-  const freshness = getSyncFreshness(udbMeta?.built_at ?? null);
-
   useEffect(() => {
     const existing = useGameDayStore.getState().listStates[String(listId)];
     if (existing) return;
@@ -108,7 +103,6 @@ export function GameDayPage({ listId }: GameDayPageProps) {
       <GameDayReadinessPanel
         units={units ?? []}
         pointsLimit={list.points_limit}
-        freshness={freshness}
       />
 
       <Tabs defaultValue="stratagems" className="flex-1 px-4 py-3">

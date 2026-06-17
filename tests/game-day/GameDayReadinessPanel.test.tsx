@@ -52,11 +52,8 @@ function makeUnit(overrides: Partial<ArmyListUnitRow> = {}): ArmyListUnitRow {
   };
 }
 
-import type { SyncFreshness } from "@/lib/syncFreshness";
-
 const defaultProps = {
   pointsLimit: null as number | null,
-  freshness: "fresh" as SyncFreshness,
 };
 
 function renderPanel(
@@ -105,12 +102,12 @@ describe("GameDayReadinessPanel", () => {
   });
 
   it("renders warning count with hard+soft split tooltip text", () => {
-    // stale freshness triggers soft warnings
+    // points exceeded triggers hard warning; not painted triggers soft warning
     renderPanel(
       [makeUnit({ status_painting: "Primed", effective_points: 2100 })],
-      { pointsLimit: 2000, freshness: "stale" },
+      { pointsLimit: 2000 },
     );
-    // hard: points exceeded; soft: not painted + stale points
+    // hard: points exceeded; soft: not painted
     expect(screen.getByText(/Warnings: \d+/)).toBeInTheDocument();
   });
 
@@ -126,7 +123,6 @@ describe("GameDayReadinessPanel", () => {
   it("warning count text has text-amber-500 class when only soft warnings present", () => {
     renderPanel(
       [makeUnit({ status_painting: "Primed" })],
-      { freshness: "fresh" },
     );
     const warningText = screen.getByText(/Warnings:/);
     expect(warningText.className).toContain("text-amber-500");
@@ -136,7 +132,6 @@ describe("GameDayReadinessPanel", () => {
     const user = userEvent.setup();
     renderPanel(
       [makeUnit({ id: 1, unit_name: "Terminators", status_painting: "Primed" })],
-      { freshness: "fresh" },
     );
     // Click the warnings trigger to expand
     const trigger = screen.getByText(/Warnings:/);

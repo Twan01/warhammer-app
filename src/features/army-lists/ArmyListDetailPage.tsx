@@ -18,7 +18,6 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { getSyncFreshness } from "@/lib/syncFreshness";
 import {
   Table, TableHeader, TableRow, TableHead, TableBody, TableCell,
 } from "@/components/ui/table";
@@ -175,11 +174,6 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
   // have no udb_factions row (only the parent "Space Marines"), and punctuation
   // variants like "Tau Empire" vs "T'au Empire" would also fail to match.
   const wahapediaFactionId = faction?.wahapedia_faction_id ?? null;
-
-  const freshness = useMemo(
-    () => getSyncFreshness(udbMeta?.built_at ?? null),
-    [udbMeta?.built_at],
-  );
 
   const factionIdStr = list?.faction_id != null ? String(list.faction_id) : null;
   const { data: leaderTargets } = useLeaderTargets(factionIdStr);
@@ -522,7 +516,7 @@ export function ArmyListDetailPage({ listId }: { listId: number }) {
         }
       />
 
-      <ArmyListSummaryBar units={units ?? []} pointsLimit={list.points_limit} freshness={freshness} enhancements={listEnhancements ?? []} />
+      <ArmyListSummaryBar units={units ?? []} pointsLimit={list.points_limit} enhancements={listEnhancements ?? []} />
 
       {/* Inline quick-add search */}
       <div className="flex items-center justify-between">

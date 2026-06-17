@@ -13,12 +13,9 @@ import {
   TACTICAL_ROLES_DISPLAY,
 } from "@/types/armyList";
 import type { TacticalRole } from "@/types/armyList";
-import type { SyncFreshness } from "@/lib/syncFreshness";
-
 interface ArmyListSummaryBarProps {
   units: ArmyListUnitRow[];
   pointsLimit: number | null;
-  freshness: SyncFreshness;
   enhancements: ArmyListEnhancement[];
 }
 
@@ -32,20 +29,20 @@ interface ArmyListSummaryBarProps {
  * Category points breakdown: groups units by unit_category and shows
  * the point total for each category (e.g. "HQ: 200pts, Battleline: 300pts").
  */
-export function ArmyListSummaryBar({ units, pointsLimit, freshness, enhancements }: ArmyListSummaryBarProps) {
+export function ArmyListSummaryBar({ units, pointsLimit, enhancements }: ArmyListSummaryBarProps) {
   const enhancementTotal = useMemo(
     () => enhancements.reduce((s, e) => s + e.enhancement_points, 0),
     [enhancements],
   );
 
   const stats = useMemo(
-    () => computeListHealthStats(units, pointsLimit, freshness, enhancementTotal),
-    [units, pointsLimit, freshness, enhancementTotal],
+    () => computeListHealthStats(units, pointsLimit, enhancementTotal),
+    [units, pointsLimit, enhancementTotal],
   );
 
   const listWarnings = useMemo(
-    () => computeListWarnings({ totalPoints: stats.totalPoints, pointsLimit, freshness }, units),
-    [stats.totalPoints, pointsLimit, freshness, units],
+    () => computeListWarnings({ totalPoints: stats.totalPoints, pointsLimit }, units),
+    [stats.totalPoints, pointsLimit, units],
   );
 
   const listWarningCount = listWarnings.hard.length + listWarnings.soft.length;
