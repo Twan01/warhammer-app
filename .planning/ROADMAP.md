@@ -100,7 +100,7 @@
   2. No UI offers a "sync" or "refresh data" action (the deliberate offline architecture is preserved).
   3. All former `syncFreshness` consumers compile cleanly (`pnpm build` green) with no dead branches, dangling imports, or unused exports â and any *real* backup-staleness warning is preserved, not conflated with the fake sync staleness.
 **Plans**: 2 plans
-  - [ ] 133-01-PLAN.md — warnings-layer signature cut: remove threaded freshness from computeUnitWarnings + 4 components/tests (HON-02)
+  - [x] 133-01-PLAN.md — warnings-layer signature cut: remove threaded freshness from computeUnitWarnings + 4 components/tests (HON-02)
   - [ ] 133-02-PLAN.md — honest provenance UI + delete syncFreshness.ts/StaleDataBanner + finish tests; preserve backup warning (HON-01)
 
 ### Phase 134: No Dead Ends
@@ -204,7 +204,7 @@
 | 130. Migration Parity & Release Gate | 2/2 | Complete    | 2026-06-15 |
 | 131. CI Test Gate | 2/2 | Complete    | 2026-06-16 |
 | 132. Update Trustworthiness | 3/4 | In Progress|  |
-| 133. Honest Data Provenance | 0/? | Not started | - |
+| 133. Honest Data Provenance | 1/2 | In Progress|  |
 | 134. No Dead Ends | 0/? | Not started | - |
 | 135. Faction & Navigation Consolidation | 0/? | Not started | - |
 | 136. Code Honesty & Decomposition | 0/? | Not started | - |
