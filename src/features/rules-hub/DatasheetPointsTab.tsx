@@ -1,13 +1,15 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useDatasheetsByFactionWithPoints } from "@/hooks/useDatasheet";
+import {
+  useModelCountsByFaction,
+  useLoadoutOptionsByFaction,
+  useLeaderTargetsByFaction,
+} from "@/hooks/useBsdataFaction";
 import { getDb } from "@/db/client";
 import { getUdbUnitDetail } from "@/db/queries/unitDatabase";
 import type { UdbUnitDetail } from "@/db/queries/unitDatabase";
 import {
-  getLoadoutOptionsByFaction,
-  getModelCountsByFaction,
-  getLeaderTargetsByFaction,
   type SyncedLoadoutOptionRow,
   type SyncedLeaderTargetRow,
 } from "@/db/queries/bsdataExtended";
@@ -355,24 +357,9 @@ export function DatasheetPointsTab({ factionId }: { factionId: string }) {
   const { data: datasheets = [], isLoading } =
     useDatasheetsByFactionWithPoints(factionId);
   const { data: tierRows = [] } = usePointTiers(factionId);
-  const { data: modelCountRows = [] } = useQuery({
-    queryKey: ["model-counts-by-faction", factionId] as const,
-    queryFn: () => getModelCountsByFaction(factionId),
-    staleTime: Infinity,
-    gcTime: Infinity,
-  });
-  const { data: loadoutOptions = [] } = useQuery({
-    queryKey: ["loadout-options-by-faction", factionId] as const,
-    queryFn: () => getLoadoutOptionsByFaction(factionId),
-    staleTime: Infinity,
-    gcTime: Infinity,
-  });
-  const { data: leaderTargets = [] } = useQuery({
-    queryKey: ["leader-targets-by-faction", factionId] as const,
-    queryFn: () => getLeaderTargetsByFaction(factionId),
-    staleTime: Infinity,
-    gcTime: Infinity,
-  });
+  const { data: modelCountRows = [] } = useModelCountsByFaction(factionId);
+  const { data: loadoutOptions = [] } = useLoadoutOptionsByFaction(factionId);
+  const { data: leaderTargets = [] } = useLeaderTargetsByFaction(factionId);
 
   const modelCountsMap = useMemo(() => {
     const m = new Map<string, { min: number; max: number }>();

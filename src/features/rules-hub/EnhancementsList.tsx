@@ -1,16 +1,10 @@
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { getEnhancementsByFaction } from "@/db/queries/bsdataExtended";
+import { useEnhancementsByFaction } from "@/hooks/useEnhancements";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function EnhancementsList({ factionId }: { factionId: string }) {
-  const { data: enhancements = [], isLoading } = useQuery({
-    queryKey: ["enhancements-by-faction", factionId] as const,
-    queryFn: () => getEnhancementsByFaction(factionId),
-    staleTime: Infinity,
-    gcTime: Infinity,
-  });
+  const { data: enhancements = [], isLoading } = useEnhancementsByFaction(factionId);
 
   const grouped = useMemo(() => {
     const m = new Map<string, Array<{ name: string; points: number }>>();
