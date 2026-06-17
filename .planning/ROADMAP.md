@@ -111,7 +111,7 @@
   1. The Rules Hub "Shared Abilities" tab displays real faction shared/army-rule abilities from the canonical database (no empty stub).
   2. A unit's datasheet "Link unit" action always leads to a way to link/match the unit against the canonical Unit Database â it is never a permanent dead end.
 **Plans**: 2 plans
-  - [ ] 134-01-PLAN.md — HON-03: swap the empty Shared Abilities stub for useDetachmentAbilities + adapter; honest empty states
+  - [x] 134-01-PLAN.md — HON-03: swap the empty Shared Abilities stub for useDetachmentAbilities + adapter; honest empty states
   - [ ] 134-02-PLAN.md — HON-04: remove the disabled Link-unit gate; CollectionFactionLinkDialog maps the faction; DatasheetPicker browse-all fallback
 **UI hint**: yes
 
@@ -203,7 +203,7 @@
 | 131. CI Test Gate | 2/2 | Complete    | 2026-06-16 |
 | 132. Update Trustworthiness | 3/4 | In Progress|  |
 | 133. Honest Data Provenance | 2/2 | Complete    | 2026-06-17 |
-| 134. No Dead Ends | 0/? | Not started | - |
+| 134. No Dead Ends | 1/2 | In Progress|  |
 | 135. Faction & Navigation Consolidation | 0/? | Not started | - |
 | 136. Code Honesty & Decomposition | 0/? | Not started | - |
 | 137. Canonical Leader Attachment | 0/? | Not started | - |
