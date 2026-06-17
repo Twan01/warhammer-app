@@ -157,7 +157,7 @@
   3. Adding migration 050 re-triggers the Phase-130 parity gate and it passes (proving the gate works on a real new migration).
 **Plans**: 4 plans
   - [x] 137-01-PLAN.md — migration 050 udb_leader_targets DDL (LF) + lib.rs version 50 + data-layer schema test (PLAY-02)
-  - [ ] 137-02-PLAN.md — pipeline: CSV + build parse step + content-hash + Rust importer + rebuild bundled JSON (PLAY-02)
+  - [x] 137-02-PLAN.md — pipeline: CSV + build parse step + content-hash + Rust importer + rebuild bundled JSON (PLAY-02)
   - [ ] 137-03-PLAN.md — getLeaderTargetsForList query + useLeaderTargets(listId) rewrite + LeaderAttachmentSheet repoint + NULL permissive fallback + component test (PLAY-03)
   - [ ] 137-04-PLAN.md — remove dead replaceSyncedLeaderTargets writer + full-suite/parity regression gate (PLAY-03)
 **Notes**: PLAY-02 (migration 050 + pipeline) GATES PLAY-03 (validation UI rewire). The new migration re-triggers the REL-04 parity gate â this is expected/good.
@@ -199,7 +199,7 @@
 | 134. No Dead Ends | 2/2 | Complete    | 2026-06-17 |
 | 135. Faction & Navigation Consolidation | 3/3 | Complete    | 2026-06-17 |
 | 136. Code Honesty & Decomposition | 4/4 | Complete    | 2026-06-17 |
-| 137. Canonical Leader Attachment | 1/4 | In Progress|  |
+| 137. Canonical Leader Attachment | 2/4 | In Progress|  |
 | 138. Player-Journey Depth | 0/? | Not started | - |
 | 139. Data Quality at Scale | 0/? | Not started | - |
 
