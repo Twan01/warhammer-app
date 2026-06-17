@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.6.0
 milestone_name: Bulletproof & Honest
-status: verifying
-stopped_at: Completed 135-01-PLAN.md — migration 048 faction consolidation green
-last_updated: "2026-06-17T10:33:36.168Z"
+status: ready_to_plan
+stopped_at: Phase 135 complete (3/3) — ready to discuss Phase 136
+last_updated: 2026-06-17T17:57:52.267Z
 last_activity: 2026-06-17
 progress:
   total_phases: 10
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-15)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore
-**Current focus:** Phase 135 — faction-navigation-consolidation
+**Current focus:** Phase 136 — code honesty & decomposition
 
 ## Current Position
 
-Phase: 135 (faction-navigation-consolidation) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
+Phase: 136
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-06-17
 
 Progress: [██████████] 100%
