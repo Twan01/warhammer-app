@@ -102,7 +102,7 @@
 **Plans**: 4 plans
   - [x] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
   - [x] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
-  - [ ] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
+  - [x] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
   - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
 
 ### Phase 134: No Dead Ends
@@ -114,7 +114,7 @@
   2. A unit's datasheet "Link unit" action always leads to a way to link/match the unit against the canonical Unit Database â it is never a permanent dead end.
 **Plans**: 4 plans
   - [x] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
-  - [ ] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
+  - [x] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
   - [ ] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
   - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
 **UI hint**: yes
@@ -128,7 +128,7 @@
   2. The standalone `/factions` sidebar page is removed, and faction create/edit/theming remains reachable from its new home with no loss of capability.
   3. Data Health is moved out of the main sidebar into Settings â Data.
 **Plans**: 4 plans
-  - [ ] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
+  - [x] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
   - [ ] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
   - [ ] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
   - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
