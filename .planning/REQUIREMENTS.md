@@ -30,7 +30,7 @@
 - [x] **HON-08**: `WeaponTable` is a single shared component (the duplicate `UdbWeaponsTable` is eliminated) consumed by all datasheet/weapon surfaces.
 - [x] **HON-09**: `ArmyListDetailPage` is decomposed into focused sub-components/hooks, each within the project's file-size conventions, with no behavior regression.
 - [ ] **HON-10**: The 7 components that call query functions directly are routed through React Query hooks, restoring cache and invalidation guarantees.
-- [ ] **HON-11**: The vestigial `promoted_to_reminder` column is removed (or its retention is explicitly justified in the schema).
+- [x] **HON-11**: The vestigial `promoted_to_reminder` column is removed (or its retention is explicitly justified in the schema).
 
 ### Theme C — Player-Journey Depth (PLAY)
 
@@ -87,7 +87,7 @@
 | HON-08 | Phase 136 | Complete |
 | HON-09 | Phase 136 | Complete |
 | HON-10 | Phase 136 | Pending |
-| HON-11 | Phase 136 | Pending |
+| HON-11 | Phase 136 | Complete |
 | PLAY-02 | Phase 137 | Pending |
 | PLAY-03 | Phase 137 | Pending |
 | PLAY-01 | Phase 138 | Pending |
