@@ -7,7 +7,6 @@ import {
   ClipboardList,
   Droplets,
   Heart,
-  HeartPulse,
   LayoutDashboard,
   Library,
   Package,
@@ -57,7 +56,6 @@ const PLAY_NAV = [
 const MANAGEMENT_NAV = [
   { to: "/spending", label: "Spending", icon: Wallet },
   { to: "/wishlist", label: "Wishlist", icon: Heart },
-  { to: "/data-health", label: "Data Health", icon: HeartPulse },
 ] as const;
 
 export function AppSidebar() {
