@@ -36,4 +36,12 @@ describe("migration parity", () => {
     expect(result[0].foreign_keys).toBe(1);
     db.close();
   });
+
+  it("battle_logs.promoted_to_reminder column is absent after migration 049 (HON-11)", () => {
+    const db = createHobbyforgeDb();
+    const columns = db.pragma("table_info(battle_logs)") as Array<{ name: string }>;
+    const names = columns.map((c) => c.name);
+    expect(names).not.toContain("promoted_to_reminder");
+    db.close();
+  });
 });
