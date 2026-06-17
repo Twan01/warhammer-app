@@ -1,0 +1,15 @@
+-- Migration 049: Remove vestigial promoted_to_reminder column (HON-11).
+--
+-- The "surface forgotten rules as reminders" feature was never built.
+-- Zero reads or writes of this column exist in src/ or src-tauri/ —
+-- only the type field (src/types/battleLog.ts line 34) and its
+-- CreateBattleLogInput Omit referenced it.
+--
+-- SQLite ALTER TABLE DROP COLUMN requires SQLite >= 3.35.0.
+-- Tauri's bundled SQLite is well above 3.35 (D-11 in CONTEXT.md).
+-- The column is INTEGER NOT NULL DEFAULT 0 with no FK references —
+-- a straightforward drop with no cascade surface.
+--
+-- No explicit BEGIN/COMMIT: the Tauri plugin-sql runner wraps each
+-- migration in its own transaction (documented in migration 033).
+ALTER TABLE battle_logs DROP COLUMN promoted_to_reminder;

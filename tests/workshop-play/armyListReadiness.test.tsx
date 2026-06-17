@@ -190,7 +190,7 @@ function makeLog(overrides: Partial<BattleLog> = {}): BattleLog {
     mvp_unit_id: null, underperforming_unit_id: null,
     lessons_learned: null, changes_next_time: null, notes: null,
     forgotten_rules: null, mvp_notes: null, underperformer_notes: null,
-    promoted_to_reminder: 0, created_at: "2024-05-01",
+    created_at: "2024-05-01",
     ...overrides,
   };
 }

@@ -293,6 +293,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/048_consolidate_factions.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 49,
+            description: "drop_promoted_to_reminder",
+            sql: include_str!("../migrations/049_drop_promoted_to_reminder.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

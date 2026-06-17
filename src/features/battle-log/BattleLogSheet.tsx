@@ -179,7 +179,6 @@ export function BattleLogSheet({
         forgotten_rules: serializeForgottenRules(values.forgotten_rules ?? null),
         mvp_notes: values.mvp_notes ?? null,
         underperformer_notes: values.underperformer_notes ?? null,
-        promoted_to_reminder: 0,
       };
 
       if (isEdit && log) {

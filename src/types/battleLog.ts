@@ -31,10 +31,9 @@ export interface BattleLog {
   forgotten_rules: string | null;
   mvp_notes: string | null;
   underperformer_notes: string | null;
-  promoted_to_reminder: number;
   created_at: string;
   // NO updated_at — schema does not have one
 }
 
-export type CreateBattleLogInput = Omit<BattleLog, "id" | "created_at" | "promoted_to_reminder">;
+export type CreateBattleLogInput = Omit<BattleLog, "id" | "created_at">;
 export type UpdateBattleLogInput = CreateBattleLogInput & { id: number };
