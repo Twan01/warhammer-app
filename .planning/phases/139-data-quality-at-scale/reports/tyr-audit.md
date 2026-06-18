@@ -1,6 +1,6 @@
 # Tyranids (TYR) Data Audit Report
 
-**Audited:** 2026-06-18T10:41:50.021Z
+**Audited:** 2026-06-18T11:11:02.126Z
 **Matched units:** 57
 **Unmatched units:** 0
 **Per-unit errors:** 0
@@ -22,6 +22,6 @@ No unmatched units.
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 57 |
-| Weapons (name_fr) | 143 |
-| Abilities (name_fr) | 89 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 142 |
+| Abilities (name_fr) | 82 |

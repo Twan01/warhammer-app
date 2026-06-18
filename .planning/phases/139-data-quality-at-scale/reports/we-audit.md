@@ -1,6 +1,6 @@
 # World Eaters (WE) Data Audit Report
 
-**Audited:** 2026-06-18T10:41:50.105Z
+**Audited:** 2026-06-18T11:11:02.208Z
 **Matched units:** 58
 **Unmatched units:** 0
 **Per-unit errors:** 0
@@ -22,6 +22,6 @@ No unmatched units.
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 58 |
-| Weapons (name_fr) | 332 |
-| Abilities (name_fr) | 100 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 169 |
+| Abilities (name_fr) | 71 |

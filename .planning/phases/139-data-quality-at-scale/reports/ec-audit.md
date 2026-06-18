@@ -1,6 +1,6 @@
 # Emperor's Children (EC) Data Audit Report
 
-**Audited:** 2026-06-18T10:41:49.531Z
+**Audited:** 2026-06-18T11:11:01.640Z
 **Matched units:** 23
 **Unmatched units:** 0
 **Per-unit errors:** 0
@@ -22,6 +22,6 @@ No unmatched units.
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 23 |
-| Weapons (name_fr) | 104 |
-| Abilities (name_fr) | 47 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 70 |
+| Abilities (name_fr) | 38 |

@@ -1,6 +1,6 @@
 # Thousand Sons (TS) Data Audit Report
 
-**Audited:** 2026-06-18T10:41:49.980Z
+**Audited:** 2026-06-18T11:11:02.084Z
 **Matched units:** 60
 **Unmatched units:** 0
 **Per-unit errors:** 0
@@ -22,6 +22,6 @@ No unmatched units.
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 60 |
-| Weapons (name_fr) | 361 |
-| Abilities (name_fr) | 102 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 214 |
+| Abilities (name_fr) | 75 |

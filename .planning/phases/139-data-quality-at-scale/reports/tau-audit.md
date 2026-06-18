@@ -1,6 +1,6 @@
 # T'au Empire (TAU) Data Audit Report
 
-**Audited:** 2026-06-18T10:41:49.897Z
+**Audited:** 2026-06-18T11:11:02.004Z
 **Matched units:** 63
 **Unmatched units:** 0
 **Per-unit errors:** 0
@@ -22,6 +22,6 @@ No unmatched units.
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 63 |
-| Weapons (name_fr) | 300 |
-| Abilities (name_fr) | 152 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 198 |
+| Abilities (name_fr) | 101 |

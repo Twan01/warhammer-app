@@ -1,14 +1,14 @@
 {
   "faction_id": "TAU",
   "faction_name": "T'au Empire",
-  "audited_at": "2026-06-18T10:41:49.897Z",
+  "audited_at": "2026-06-18T11:11:02.004Z",
   "systematic_issues": [],
   "unit_errors": [],
   "unmatched_classifications": [],
   "translation_gaps": {
-    "units_missing": 63,
-    "weapons_missing": 300,
-    "abilities_missing": 152
+    "units_missing": 0,
+    "weapons_missing": 198,
+    "abilities_missing": 101
   },
   "summary": {
     "total_matched": 63,

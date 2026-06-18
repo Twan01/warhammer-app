@@ -1,14 +1,14 @@
 {
   "faction_id": "GC",
   "faction_name": "Genestealer Cults",
-  "audited_at": "2026-06-18T10:41:49.573Z",
+  "audited_at": "2026-06-18T11:11:01.682Z",
   "systematic_issues": [],
   "unit_errors": [],
   "unmatched_classifications": [],
   "translation_gaps": {
-    "units_missing": 138,
-    "weapons_missing": 824,
-    "abilities_missing": 284
+    "units_missing": 100,
+    "weapons_missing": 294,
+    "abilities_missing": 213
   },
   "summary": {
     "total_matched": 138,

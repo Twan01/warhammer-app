@@ -1,14 +1,14 @@
 {
   "faction_id": "TYR",
   "faction_name": "Tyranids",
-  "audited_at": "2026-06-18T10:41:50.021Z",
+  "audited_at": "2026-06-18T11:11:02.126Z",
   "systematic_issues": [],
   "unit_errors": [],
   "unmatched_classifications": [],
   "translation_gaps": {
-    "units_missing": 57,
-    "weapons_missing": 143,
-    "abilities_missing": 89
+    "units_missing": 0,
+    "weapons_missing": 142,
+    "abilities_missing": 82
   },
   "summary": {
     "total_matched": 57,

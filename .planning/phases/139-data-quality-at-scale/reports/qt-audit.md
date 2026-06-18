@@ -1,6 +1,6 @@
 # Chaos Knights (QT) Data Audit Report
 
-**Audited:** 2026-06-18T10:41:49.816Z
+**Audited:** 2026-06-18T11:11:01.922Z
 **Matched units:** 37
 **Unmatched units:** 0
 **Per-unit errors:** 0
@@ -22,6 +22,6 @@ No unmatched units.
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 37 |
-| Weapons (name_fr) | 191 |
-| Abilities (name_fr) | 61 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 145 |
+| Abilities (name_fr) | 48 |

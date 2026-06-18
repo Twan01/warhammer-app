@@ -1,14 +1,14 @@
 {
   "faction_id": "QT",
   "faction_name": "Chaos Knights",
-  "audited_at": "2026-06-18T10:41:49.816Z",
+  "audited_at": "2026-06-18T11:11:01.922Z",
   "systematic_issues": [],
   "unit_errors": [],
   "unmatched_classifications": [],
   "translation_gaps": {
-    "units_missing": 37,
-    "weapons_missing": 191,
-    "abilities_missing": 61
+    "units_missing": 0,
+    "weapons_missing": 145,
+    "abilities_missing": 48
   },
   "summary": {
     "total_matched": 37,

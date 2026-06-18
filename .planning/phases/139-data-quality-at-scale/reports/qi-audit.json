@@ -1,7 +1,7 @@
 {
   "faction_id": "QI",
   "faction_name": "Imperial Knights",
-  "audited_at": "2026-06-18T10:41:49.774Z",
+  "audited_at": "2026-06-18T11:11:01.880Z",
   "systematic_issues": [],
   "unit_errors": [],
   "unmatched_classifications": [
@@ -13,9 +13,9 @@
     }
   ],
   "translation_gaps": {
-    "units_missing": 28,
-    "weapons_missing": 179,
-    "abilities_missing": 56
+    "units_missing": 0,
+    "weapons_missing": 132,
+    "abilities_missing": 50
   },
   "summary": {
     "total_matched": 28,

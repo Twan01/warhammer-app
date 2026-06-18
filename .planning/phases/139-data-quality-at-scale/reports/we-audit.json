@@ -1,14 +1,14 @@
 {
   "faction_id": "WE",
   "faction_name": "World Eaters",
-  "audited_at": "2026-06-18T10:41:50.105Z",
+  "audited_at": "2026-06-18T11:11:02.208Z",
   "systematic_issues": [],
   "unit_errors": [],
   "unmatched_classifications": [],
   "translation_gaps": {
-    "units_missing": 58,
-    "weapons_missing": 332,
-    "abilities_missing": 100
+    "units_missing": 0,
+    "weapons_missing": 169,
+    "abilities_missing": 71
   },
   "summary": {
     "total_matched": 58,

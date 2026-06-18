@@ -1,6 +1,6 @@
 # Drukhari (DRU) Data Audit Report
 
-**Audited:** 2026-06-18T10:41:49.488Z
+**Audited:** 2026-06-18T11:11:01.598Z
 **Matched units:** 47
 **Unmatched units:** 0
 **Per-unit errors:** 0
@@ -22,6 +22,6 @@ No unmatched units.
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 47 |
-| Weapons (name_fr) | 251 |
-| Abilities (name_fr) | 124 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 153 |
+| Abilities (name_fr) | 112 |

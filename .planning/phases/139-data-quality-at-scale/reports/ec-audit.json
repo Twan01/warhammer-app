@@ -1,14 +1,14 @@
 {
   "faction_id": "EC",
   "faction_name": "Emperor's Children",
-  "audited_at": "2026-06-18T10:41:49.531Z",
+  "audited_at": "2026-06-18T11:11:01.640Z",
   "systematic_issues": [],
   "unit_errors": [],
   "unmatched_classifications": [],
   "translation_gaps": {
-    "units_missing": 23,
-    "weapons_missing": 104,
-    "abilities_missing": 47
+    "units_missing": 0,
+    "weapons_missing": 70,
+    "abilities_missing": 38
   },
   "summary": {
     "total_matched": 23,

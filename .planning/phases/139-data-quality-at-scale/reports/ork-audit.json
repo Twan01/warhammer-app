@@ -1,14 +1,14 @@
 {
   "faction_id": "ORK",
   "faction_name": "Orks",
-  "audited_at": "2026-06-18T10:41:49.734Z",
+  "audited_at": "2026-06-18T11:11:01.842Z",
   "systematic_issues": [],
   "unit_errors": [],
   "unmatched_classifications": [],
   "translation_gaps": {
-    "units_missing": 87,
-    "weapons_missing": 384,
-    "abilities_missing": 166
+    "units_missing": 0,
+    "weapons_missing": 243,
+    "abilities_missing": 150
   },
   "summary": {
     "total_matched": 87,

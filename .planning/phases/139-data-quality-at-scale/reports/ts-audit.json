@@ -1,14 +1,14 @@
 {
   "faction_id": "TS",
   "faction_name": "Thousand Sons",
-  "audited_at": "2026-06-18T10:41:49.980Z",
+  "audited_at": "2026-06-18T11:11:02.084Z",
   "systematic_issues": [],
   "unit_errors": [],
   "unmatched_classifications": [],
   "translation_gaps": {
-    "units_missing": 60,
-    "weapons_missing": 361,
-    "abilities_missing": 102
+    "units_missing": 0,
+    "weapons_missing": 214,
+    "abilities_missing": 75
   },
   "summary": {
     "total_matched": 60,

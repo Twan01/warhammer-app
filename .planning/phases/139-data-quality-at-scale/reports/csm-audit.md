@@ -1,6 +1,6 @@
 # Chaos Space Marines (CSM) Data Audit Report
 
-**Audited:** 2026-06-18T10:41:49.408Z
+**Audited:** 2026-06-18T11:11:01.515Z
 **Matched units:** 112
 **Unmatched units:** 0
 **Per-unit errors:** 0
@@ -22,6 +22,6 @@ No unmatched units.
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 112 |
-| Weapons (name_fr) | 723 |
-| Abilities (name_fr) | 209 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 330 |
+| Abilities (name_fr) | 157 |

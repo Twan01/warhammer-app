@@ -1,6 +1,6 @@
 # Chaos Daemons (CD) Data Audit Report
 
-**Audited:** 2026-06-18T10:41:49.368Z
+**Audited:** 2026-06-18T11:11:01.474Z
 **Matched units:** 105
 **Unmatched units:** 0
 **Per-unit errors:** 0
@@ -22,6 +22,6 @@ No unmatched units.
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 105 |
-| Weapons (name_fr) | 437 |
-| Abilities (name_fr) | 239 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 268 |
+| Abilities (name_fr) | 191 |

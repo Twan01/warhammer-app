@@ -1,6 +1,6 @@
 # Orks (ORK) Data Audit Report
 
-**Audited:** 2026-06-18T10:41:49.734Z
+**Audited:** 2026-06-18T11:11:01.842Z
 **Matched units:** 87
 **Unmatched units:** 0
 **Per-unit errors:** 0
@@ -22,6 +22,6 @@ No unmatched units.
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 87 |
-| Weapons (name_fr) | 384 |
-| Abilities (name_fr) | 166 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 243 |
+| Abilities (name_fr) | 150 |

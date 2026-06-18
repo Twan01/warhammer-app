@@ -1,6 +1,6 @@
 # Genestealer Cults (GC) Data Audit Report
 
-**Audited:** 2026-06-18T10:41:49.573Z
+**Audited:** 2026-06-18T11:11:01.682Z
 **Matched units:** 138
 **Unmatched units:** 0
 **Per-unit errors:** 0
@@ -22,6 +22,6 @@ No unmatched units.
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 138 |
-| Weapons (name_fr) | 824 |
-| Abilities (name_fr) | 284 |
+| Units (name_fr) | 100 |
+| Weapons (name_fr) | 294 |
+| Abilities (name_fr) | 213 |

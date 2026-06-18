@@ -1,14 +1,14 @@
 {
   "faction_id": "CSM",
   "faction_name": "Chaos Space Marines",
-  "audited_at": "2026-06-18T10:41:49.408Z",
+  "audited_at": "2026-06-18T11:11:01.515Z",
   "systematic_issues": [],
   "unit_errors": [],
   "unmatched_classifications": [],
   "translation_gaps": {
-    "units_missing": 112,
-    "weapons_missing": 723,
-    "abilities_missing": 209
+    "units_missing": 0,
+    "weapons_missing": 330,
+    "abilities_missing": 157
   },
   "summary": {
     "total_matched": 112,
