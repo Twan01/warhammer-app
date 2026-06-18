@@ -21,6 +21,7 @@ import {
   getUdbFactions,
   getUdbUnitsByFaction,
   getUdbUnitDetail,
+  getUdbUnitsByIds,
   searchUdbUnits,
 } from "@/db/queries/unitDatabase";
 
@@ -121,6 +122,92 @@ describe("getUdbUnitsByFaction", () => {
       expect.stringContaining("WHERE u.faction_id = $1"),
       ["SM"],
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getUdbUnitDetail
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// getUdbUnitsByIds
+// ---------------------------------------------------------------------------
+
+describe("getUdbUnitsByIds", () => {
+  it("returns empty array without hitting DB when ids is empty", async () => {
+    const result = await getUdbUnitsByIds([]);
+    expect(result).toEqual([]);
+    expect(mockSelect).not.toHaveBeenCalled();
+  });
+
+  it("returns one UdbUnitDetail per id (batch of 2)", async () => {
+    // First call: base unit rows (both units returned by IN query)
+    mockSelect
+      .mockResolvedValueOnce([
+        { id: "u1", faction_id: "SM", name: "Captain", role: "Character", base_points: 80, damaged_w: null, damaged_desc: null },
+        { id: "u2", faction_id: "SM", name: "Intercessors", role: "Battleline", base_points: 75, damaged_w: null, damaged_desc: null },
+      ])
+      // Sub-queries for u1 (models, weapons, abilities, keywords, points, composition)
+      .mockResolvedValueOnce([{ id: 1, unit_id: "u1", line_order: 0, name: null, M: "6\"", T: 4, Sv: "3+", inv_sv: null, W: 5, Ld: "6+", OC: 1 }])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      // Sub-queries for u2 (models, weapons, abilities, keywords, points, composition)
+      .mockResolvedValueOnce([{ id: 2, unit_id: "u2", line_order: 0, name: null, M: "6\"", T: 4, Sv: "3+", inv_sv: null, W: 2, Ld: "6+", OC: 2 }])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([]);
+
+    const result = await getUdbUnitsByIds(["u1", "u2"]);
+    expect(result).toHaveLength(2);
+    expect(result[0].id).toBe("u1");
+    expect(result[0].name).toBe("Captain");
+    expect(result[0].models).toHaveLength(1);
+    expect(result[1].id).toBe("u2");
+    expect(result[1].name).toBe("Intercessors");
+  });
+
+  it("uses positional placeholders in the IN clause for the ids", async () => {
+    // Return one unit then its sub-queries
+    mockSelect
+      .mockResolvedValueOnce([
+        { id: "u1", faction_id: "SM", name: "Captain", role: "Character", base_points: 80, damaged_w: null, damaged_desc: null },
+      ])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([]);
+
+    await getUdbUnitsByIds(["u1", "u2", "u3"]);
+
+    // The base query should contain WHERE id IN ($1, $2, $3) bound with the ids array
+    const firstCall = mockSelect.mock.calls[0];
+    expect(firstCall[0]).toContain("WHERE id IN ($1, $2, $3)");
+    expect(firstCall[1]).toEqual(["u1", "u2", "u3"]);
+  });
+
+  it("tolerates a missing id — returns only the rows that exist (no throw)", async () => {
+    // DB only returns 1 row even though 2 ids were requested
+    mockSelect
+      .mockResolvedValueOnce([
+        { id: "u1", faction_id: "SM", name: "Captain", role: "Character", base_points: 80, damaged_w: null, damaged_desc: null },
+      ])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([]);
+
+    const result = await getUdbUnitsByIds(["u1", "nonexistent"]);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe("u1");
   });
 });
 
