@@ -46,6 +46,8 @@ export function CollectionPage() {
   const activeOnly = useCollectionFilters((s) => s.activeOnly);
   const battleReady = useCollectionFilters((s) => s.battleReady);
   const subFactionFilter = useCollectionFilters((s) => s.subFactionFilter);
+  // Phase 138-03 D-06: UDB → Collection deep-link filter
+  const udbUnitIdFilter = useCollectionFilters((s) => s.udbUnitIdFilter);
   const clearAll = useCollectionFilters((s) => s.clearAll);
 
   // Sub-faction filtering: only when exactly 1 faction selected
@@ -74,9 +76,9 @@ export function CollectionPage() {
   const preFilteredUnits = useMemo(
     () =>
       applyUnitFilters(units ?? [], {
-        search, factions: factionsSel, statuses: statusesSel, categories: categoriesSel, activeOnly, battleReady,
+        search, factions: factionsSel, statuses: statusesSel, categories: categoriesSel, activeOnly, battleReady, udbUnitIdFilter,
       }),
-    [units, search, factionsSel, statusesSel, categoriesSel, activeOnly, battleReady]
+    [units, search, factionsSel, statusesSel, categoriesSel, activeOnly, battleReady, udbUnitIdFilter]
   );
 
   const filteredUnits = useMemo(

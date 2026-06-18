@@ -7,11 +7,15 @@ export interface UnitFiltersInput {
   categories: string[];
   activeOnly: boolean;
   battleReady: boolean;
+  /** Phase 138-03 D-06: When set, keep only units whose udb_unit_id matches */
+  udbUnitIdFilter?: string | null;
 }
 
 export function applyUnitFilters<T extends Unit>(units: T[], filters: UnitFiltersInput): T[] {
   const search = filters.search.trim().toLowerCase();
   return units.filter((unit) => {
+    // D-06: UDB deep-link filter — first clause so it's a quick exit
+    if (filters.udbUnitIdFilter && unit.udb_unit_id !== filters.udbUnitIdFilter) return false;
     if (filters.battleReady && !(unit.status_assembly === 1 && unit.status_painting === "Completed")) return false;
     if (filters.activeOnly && unit.is_active_project !== 1) return false;
     if (filters.factions.length > 0 && !filters.factions.includes(unit.faction_id)) return false;
