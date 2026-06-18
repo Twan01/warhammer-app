@@ -1,12 +1,14 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useDatasheetsByFactionWithPoints } from "@/hooks/useDatasheet";
+import {
+  useDatasheetsByFactionWithPoints,
+  usePointTiers,
+} from "@/hooks/useDatasheet";
 import {
   useModelCountsByFaction,
   useLoadoutOptionsByFaction,
 } from "@/hooks/useBsdataFaction";
 import { useLeaderTargetsByFactionCanonical } from "@/hooks/useLeaderTargets";
-import { getDb } from "@/db/client";
 import { getUdbUnitDetail } from "@/db/queries/unitDatabase";
 import type { UdbUnitDetail } from "@/db/queries/unitDatabase";
 import {
@@ -20,40 +22,6 @@ import { sanitizeRulesHtml } from "@/lib/sanitizeHtml";
 import { ChevronRight, Link, Swords } from "lucide-react";
 import { EnhancementsList } from "./EnhancementsList";
 import { WeaponTable } from "@/features/units/WeaponTable";
-
-/**
- * Phase 106 -- Fetch point tiers from canonical unit database (udb_unit_points)
- * filtered by faction via udb_units.faction_id FK join.
- */
-async function getUdbPointsByFaction(
-  factionId: string,
-): Promise<Array<{ unit_name: string; faction_id: string | null; model_count: number; points: number }>> {
-  const db = await getDb();
-  return db.select(
-    `SELECT u.name AS unit_name, u.faction_id, up.model_count, up.points
-     FROM udb_units u
-     JOIN udb_unit_points up ON up.unit_id = u.id
-     WHERE u.faction_id = $1
-     ORDER BY u.name, up.model_count`,
-    [factionId],
-  );
-}
-
-function usePointTiers(factionId: string | undefined) {
-  return useQuery({
-    queryKey:
-      factionId !== undefined
-        ? (["point-tiers", factionId] as const)
-        : (["point-tiers"] as const),
-    queryFn: () =>
-      factionId !== undefined
-        ? getUdbPointsByFaction(factionId)
-        : Promise.resolve([]),
-    enabled: factionId !== undefined,
-    staleTime: Infinity,
-    gcTime: Infinity,
-  });
-}
 
 const ROLE_ORDER: Record<string, number> = {
   Character: 0,

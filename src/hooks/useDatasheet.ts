@@ -13,6 +13,8 @@ import {
   getUdbUnitDetail,
   getUdbUnitsByFaction,
   getUdbFactions,
+  getUdbPointsByFaction,
+  type UdbPointsByFactionRow,
 } from "@/db/queries/unitDatabase";
 import { useLocale } from "@/stores/localeStore";
 
@@ -22,6 +24,8 @@ export const DATASHEET_KEY = (unitId: number) => ["datasheet", unitId] as const;
 export const DATASHEETS_BY_FACTION_KEY = (factionId: string) =>
   ["datasheets-by-faction", factionId] as const;
 export const WAHAPEDIA_FACTIONS_KEY = ["wahapedia-factions"] as const;
+export const POINT_TIERS_KEY = (factionId: string) =>
+  ["point-tiers", factionId] as const;
 
 // ── Hooks ───────────────────────────────────────────────────────────────────
 
@@ -88,6 +92,25 @@ export function useDatasheetsByFactionWithPoints(factionId: string | undefined) 
       factionId !== undefined
         ? getUdbUnitsByFaction(factionId, locale)
         : Promise.resolve([]),
+    enabled: factionId !== undefined,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
+}
+
+/**
+ * Phase 140 (WR-03) — Faction-scoped canonical point tiers for the Rules Hub
+ * DatasheetPointsTab. Relocated out of the component into the queries/hooks
+ * layers to match CLAUDE.md data-access discipline. The queryFn uses the clean
+ * `factionId!` form (IN-03) — the query never runs while disabled.
+ */
+export function usePointTiers(factionId: string | undefined) {
+  return useQuery<UdbPointsByFactionRow[]>({
+    queryKey:
+      factionId !== undefined
+        ? POINT_TIERS_KEY(factionId)
+        : (["point-tiers", "disabled"] as const),
+    queryFn: () => getUdbPointsByFaction(factionId!),
     enabled: factionId !== undefined,
     staleTime: Infinity,
     gcTime: Infinity,

@@ -509,3 +509,34 @@ export async function getUdbUnitIdsBySubFaction(
   );
   return rows.map((r) => r.id);
 }
+
+/**
+ * Phase 140 (WR-03) — Faction-scoped point tiers from the canonical unit database.
+ *
+ * Returns one row per (unit, model-count) cost bracket for a faction, joining
+ * udb_unit_points through udb_units.faction_id. Relocated out of the Rules Hub
+ * DatasheetPointsTab component into the queries layer to match CLAUDE.md's
+ * data-access discipline (surfaced via usePointTiers + POINT_TIERS_KEY).
+ *
+ * Security: factionId bound via $1 positional param — no string interpolation.
+ */
+export interface UdbPointsByFactionRow {
+  unit_name: string;
+  faction_id: string | null;
+  model_count: number;
+  points: number;
+}
+
+export async function getUdbPointsByFaction(
+  factionId: string,
+): Promise<UdbPointsByFactionRow[]> {
+  const db = await getDb();
+  return db.select<UdbPointsByFactionRow[]>(
+    `SELECT u.name AS unit_name, u.faction_id, up.model_count, up.points
+     FROM udb_units u
+     JOIN udb_unit_points up ON up.unit_id = u.id
+     WHERE u.faction_id = $1
+     ORDER BY u.name, up.model_count`,
+    [factionId],
+  );
+}
