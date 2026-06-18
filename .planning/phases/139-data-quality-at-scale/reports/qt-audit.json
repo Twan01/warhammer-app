@@ -1,55 +1,9 @@
 {
   "faction_id": "QT",
   "faction_name": "Chaos Knights",
-  "audited_at": "2026-06-18T10:24:43.616Z",
+  "audited_at": "2026-06-18T10:41:49.816Z",
   "systematic_issues": [],
-  "unit_errors": [
-    {
-      "unit_id": "000003852",
-      "unit_name": "Fellgor Beastmen",
-      "field": "weapon.category",
-      "expected": "Melee",
-      "actual": "Ranged",
-      "source": "wahapedia_csv",
-      "severity": "error"
-    },
-    {
-      "unit_id": "000003852",
-      "unit_name": "Fellgor Beastmen",
-      "field": "weapon.attacks",
-      "expected": "2",
-      "actual": "D3",
-      "source": "wahapedia_csv",
-      "severity": "error"
-    },
-    {
-      "unit_id": "000003852",
-      "unit_name": "Fellgor Beastmen",
-      "field": "weapon.strength",
-      "expected": "4",
-      "actual": "5",
-      "source": "wahapedia_csv",
-      "severity": "error"
-    },
-    {
-      "unit_id": "000003852",
-      "unit_name": "Fellgor Beastmen",
-      "field": "weapon.damage",
-      "expected": "D3",
-      "actual": "1",
-      "source": "wahapedia_csv",
-      "severity": "error"
-    },
-    {
-      "unit_id": "000003852",
-      "unit_name": "Fellgor Beastmen",
-      "field": "weapon.range",
-      "expected": "Melee",
-      "actual": "18",
-      "source": "wahapedia_csv",
-      "severity": "error"
-    }
-  ],
+  "unit_errors": [],
   "unmatched_classifications": [],
   "translation_gaps": {
     "units_missing": 37,
@@ -59,16 +13,8 @@
   "summary": {
     "total_matched": 37,
     "total_unmatched": 0,
-    "total_errors": 5,
-    "errors_by_field": {
-      "weapon.category": 1,
-      "weapon.attacks": 1,
-      "weapon.strength": 1,
-      "weapon.damage": 1,
-      "weapon.range": 1
-    },
-    "errors_by_severity": {
-      "error": 5
-    }
+    "total_errors": 0,
+    "errors_by_field": {},
+    "errors_by_severity": {}
   }
 }

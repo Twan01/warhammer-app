@@ -381,11 +381,23 @@ function auditFaction(
     const csvUnitWargear = csvWargearByUnit.get(unit.id) ?? [];
 
     for (const dbWeapon of dbWeapons) {
-      // Match by line + line_in_wargear or fallback to name
+      // Match by (line + line_in_wargear + name) to avoid false positives when
+      // a "line=N" option-group weapon collides by position with a DB weapon
+      // that has a different name (e.g. Fellblade crew Combi-weapon vs vehicle
+      // main weapons, or Bolt pistol option-group vs always-available weapons).
+      // Position match requires name agreement; only then fall back to:
+      //   (a) name + category match (handles duplicate names like "Corrupted stave"
+      //       with both Melee and Ranged versions — picks the correct one by type),
+      //   (b) name-only match (legacy fallback for unique weapon names).
       const csvWeapon = csvUnitWargear.find(
         (r) =>
           parseInt(r["line"]?.trim() ?? "0", 10) === dbWeapon.weapon_group &&
-          parseInt(r["line_in_wargear"]?.trim() ?? "0", 10) === dbWeapon.line_order
+          parseInt(r["line_in_wargear"]?.trim() ?? "0", 10) === dbWeapon.line_order &&
+          (r["name"]?.trim() ?? "").toLowerCase() === dbWeapon.name.toLowerCase()
+      ) ?? csvUnitWargear.find(
+        (r) =>
+          (r["name"]?.trim() ?? "").toLowerCase() === dbWeapon.name.toLowerCase() &&
+          (r["type"]?.trim() ?? "").toLowerCase() === dbWeapon.category.toLowerCase()
       ) ?? csvUnitWargear.find(
         (r) => (r["name"]?.trim() ?? "").toLowerCase() === dbWeapon.name.toLowerCase()
       );

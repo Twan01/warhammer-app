@@ -1,6 +1,6 @@
 # Aeldari (AE) Data Audit Report
 
-**Audited:** 2026-06-18T10:24:42.978Z
+**Audited:** 2026-06-18T10:41:49.176Z
 **Matched units:** 97
 **Unmatched units:** 0
 **Per-unit errors:** 0
