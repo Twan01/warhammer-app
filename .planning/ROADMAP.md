@@ -221,7 +221,7 @@
 | 137. Canonical Leader Attachment | 4/4 | Complete    | 2026-06-18 |
 | 138. Player-Journey Depth | 4/4 | Complete    | 2026-06-18 |
 | 139. Data Quality at Scale | 4/4 | Complete    | 2026-06-18 |
-| 140. Close PLAY-02/03 Tail (Rules Hub leader display) | 1/1 | Complete   | 2026-06-18 |
+| 140. Close PLAY-02/03 Tail (Rules Hub leader display) | 1/1 | Complete    | 2026-06-18 |
 
 <details>
 <summary>â v0.5.2 UX Polish & Consistency (Phases 126-129) â SHIPPED 2026-06-12</summary>
