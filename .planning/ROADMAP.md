@@ -49,6 +49,7 @@
 - [x] **Phase 137: Canonical Leader Attachment** (4/4 plans) â Leader-target data ships through the canonical pipeline and the builder validates real attachment pairs
 - [x] **Phase 138: Player-Journey Depth** (4/4 plans) â Side-by-side unit comparison, the Collection â Unit Database loop, and goals surfaced on the dashboard
 - [ ] **Phase 139: Data Quality at Scale** (0/? plans) â Pipeline FK/orphan validation, all 25 factions audited, French translations extended
+- [ ] **Phase 140: Close PLAY-02/03 Tail** (0/1 plans) — Repoint Rules Hub DatasheetPointsTab leader display from the dead `synced_leader_targets` table to canonical `udb_leader_targets` (v0.6.0 audit gap closure)
 
 ## Phase Details
 
@@ -194,6 +195,18 @@
   - [x] 139-04-PLAN.md — DAT-02/03 batch 2 (Imperium+rest: AM,GK,AC,AS,AdM,AoI,LoV,TL,UN): corrections + FR overlay + full-suite close
 **Notes**: Heaviest phase of the milestone (DAT-02 + DAT-03 are L-sized). Expect multiple plans â likely one for FK/orphan validation, then incremental faction-audit + translation batches. Keep all data work keyed on stable Wahapedia IDs and migrations idempotent so re-runs never clobber overrides.
 
+### Phase 140: Close PLAY-02/03 Tail — Rules Hub Leader Display (audit gap closure)
+**Goal**: The Rules Hub datasheet "Leader — Can attach to" section surfaces real canonical attachment targets instead of silently rendering empty off a dead table.
+**Depends on**: Phase 139 (closes a v0.6.0 milestone-audit gap; Phase 137's canonical pipeline already in place)
+**Requirements**: PLAY-02, PLAY-03 (completion — secondary surface)
+**Success Criteria** (what must be TRUE):
+  1. `DatasheetPointsTab`'s "Leader — Can attach to" section reads from the canonical `udb_leader_targets` table (faction-scoped join through `udb_units`), not the dead `synced_leader_targets` table.
+  2. `useLeaderTargetsByFaction` / `bsdataExtended` reads against `synced_leader_targets` are removed or repointed; no UI surface depends on the unwritten bsdata table.
+  3. For a faction with canonical leader pairs, the section renders real leader→target rows; the empty state shows only when a faction genuinely has none.
+**Notes**: This is the unfinished tail of Phase 136's deferred CR-01 — Phase 137 repointed the army-list builder (`LeaderAttachmentSheet`) but not the Rules Hub display. Identified by the v0.6.0 milestone audit (`.planning/v0.6.0-MILESTONE-AUDIT.md`). Likely a single small plan: new faction-scoped query + hook swap + component test.
+**Plans**: 1 plan
+- [ ] 140-01-PLAN.md — Faction-scoped canonical leader-targets query + hook, repoint DatasheetPointsTab off the dead synced table, retire dead readers, data-layer test (PLAY-02/03)
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -208,6 +221,7 @@
 | 137. Canonical Leader Attachment | 4/4 | Complete    | 2026-06-18 |
 | 138. Player-Journey Depth | 4/4 | Complete    | 2026-06-18 |
 | 139. Data Quality at Scale | 4/4 | Complete    | 2026-06-18 |
+| 140. Close PLAY-02/03 Tail (Rules Hub leader display) | 0/1 | Not Started |  |
 
 <details>
 <summary>â v0.5.2 UX Polish & Consistency (Phases 126-129) â SHIPPED 2026-06-12</summary>
