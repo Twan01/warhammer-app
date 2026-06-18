@@ -1,10 +1,11 @@
 ---
 phase: 138
 slug: player-journey-depth
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-18
+validated: 2026-06-18
 ---
 
 # Phase 138 — Validation Strategy
@@ -36,26 +37,35 @@ created: 2026-06-18
 
 ## Per-Task Verification Map
 
-| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 138-01-xx | 01 | 1 | PLAY-01 | — | N/A (read-only canonical query) | unit | `pnpm test -- tests/db/queries/unitDatabase.test.ts` | ❌ W0 | ⬜ pending |
-| 138-02-xx | 02 | 2 | PLAY-01 | — | N/A | component | `pnpm test -- tests/features/unit-database/UnitCompare.test.tsx` | ❌ W0 | ⬜ pending |
-| 138-03-xx | 03 | 2 | PLAY-04 | — | N/A | unit+component | `pnpm test -- tests/db/queries/udbOwnership.test.ts` | ❌ W0 | ⬜ pending |
-| 138-04-xx | 04 | 2 | PLAY-05 | — | N/A | component | `pnpm test -- tests/features/dashboard/GoalProgressCard.test.tsx` | ❌ W0 | ⬜ pending |
+> Reconciled 2026-06-18: actual test files (written via TDD during execution) live under
+> `tests/unit-database/`, `tests/collection/`, and `tests/dashboard/` — not the predicted
+> `tests/db/queries/` / `tests/features/` paths in the original draft. All green (60 tests).
+
+| Task | Plan | Wave | Requirement | Test Type | Test File | Automated Command | File Exists | Status |
+|------|------|------|-------------|-----------|-----------|-------------------|-------------|--------|
+| Batch query `getUdbUnitsByIds` (positional params, missing-id tolerance) | 01 | 1 | PLAY-01 | unit | `tests/unit-database/unitDatabase.queries.test.ts` | `pnpm test -- tests/unit-database/unitDatabase.queries.test.ts` | ✅ | ✅ green (4) |
+| Compare store cap-3 (`addToCompare`/`removeFromCompare`/`clearCompare`) | 01 | 1 | PLAY-01 | unit | `tests/unit-database/compareFilters.test.ts` | `pnpm test -- tests/unit-database/compareFilters.test.ts` | ✅ | ✅ green (9) |
+| Compare page render + diff-highlight + empty state + row toggle | 02 | 2 | PLAY-01 | component | `tests/unit-database/UnitCompare.test.tsx` | `pnpm test -- tests/unit-database/UnitCompare.test.tsx` | ✅ | ✅ green (12) |
+| `UdbUnitRow` render (name, points, role badge, onOpen) | 02 | 2 | PLAY-01 | component | `tests/unit-database/UdbUnitRow.test.tsx` | `pnpm test -- tests/unit-database/UdbUnitRow.test.tsx` | ✅ | ✅ green (5) |
+| `getOwnedCountsByUdbUnitId` faction-agnostic (GROUP BY, no JOIN, no params) | 03 | 2 | PLAY-04 | unit | `tests/unit-database/udbOwnership.test.ts` | `pnpm test -- tests/unit-database/udbOwnership.test.ts` | ✅ | ✅ green (5) |
+| Search owned badges from `ownershipAllMap` + Link to /collection | 03 | 2 | PLAY-04 | component | `tests/unit-database/UdbSearchResults.test.tsx` | `pnpm test -- tests/unit-database/UdbSearchResults.test.tsx` | ✅ | ✅ green (6) |
+| `udbUnitIdFilter` clause (null no-op, match, compose) | 03 | 2 | PLAY-04 | unit | `tests/collection/applyUnitFilters.test.ts` | `pnpm test -- tests/collection/applyUnitFilters.test.ts` | ✅ | ✅ green (6) |
+| `GoalProgressCard` render (active goals + empty-state link) | 04 | 2 | PLAY-05 | component | `tests/dashboard/GoalProgressCard.test.tsx` | `pnpm test -- tests/dashboard/GoalProgressCard.test.tsx` | ✅ | ✅ green (2) |
+| Session→goal-progress invalidation symmetry lock | 04 | 2 | PLAY-05 | unit | `tests/dashboard/goalProgressInvalidation.test.ts` | `pnpm test -- tests/dashboard/goalProgressInvalidation.test.ts` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
 ---
 
-## Wave 0 Requirements
+## Wave 0 Requirements — COMPLETE
 
-- [ ] `tests/db/queries/unitDatabase.test.ts` — extend for `getUdbUnitsByIds` (multi-id batch, IN-clause, missing-id tolerance) — PLAY-01
-- [ ] `tests/features/unit-database/UnitCompare.test.tsx` — comparison render + diff-highlight + 3-unit cap — PLAY-01
-- [ ] `tests/db/queries/udbOwnership.test.ts` — `getOwnedCountsByUdbUnitId` faction-agnostic GROUP BY — PLAY-04
-- [ ] `tests/features/dashboard/GoalProgressCard.test.tsx` — active-goals render + empty-state link — PLAY-05
-- [ ] Invalidation-symmetry assertion: `useCreatePaintingSession`/session mutations invalidate `GOAL_PROGRESS_KEY` (PLAY-05 open question — Wave 0 grep + test)
+- [x] `getUdbUnitsByIds` (multi-id batch, positional placeholders, missing-id tolerance) — PLAY-01 → `tests/unit-database/unitDatabase.queries.test.ts`
+- [x] Comparison render + diff-highlight + 3-unit cap — PLAY-01 → `tests/unit-database/UnitCompare.test.tsx` + `tests/unit-database/compareFilters.test.ts`
+- [x] `getOwnedCountsByUdbUnitId` faction-agnostic GROUP BY — PLAY-04 → `tests/unit-database/udbOwnership.test.ts`
+- [x] Active-goals render + empty-state link — PLAY-05 → `tests/dashboard/GoalProgressCard.test.tsx`
+- [x] Invalidation-symmetry assertion: session mutations invalidate `["goal-progress"]` — PLAY-05 → `tests/dashboard/goalProgressInvalidation.test.ts`
 
-*Final test file names/IDs to be pinned by the planner against PLAN.md task breakdown.*
+*Resolved during execution: actual paths differ from the draft predictions (see Per-Task Map note).*
 
 ---
 
@@ -72,11 +82,29 @@ created: 2026-06-18
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 90s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 90s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** validated 2026-06-18 — all 9 automated requirement tests green (60 tests).
+
+---
+
+## Validation Audit 2026-06-18
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+**Outcome:** NYQUIST-COMPLIANT. Every requirement (PLAY-01, PLAY-04, PLAY-05) has automated
+verification that runs green. No auditor spawn required — all tests were authored via TDD
+during execution (commits c8750f16, f29c0d8f, addee424, 974aaaae). This audit only
+reconciled the pre-execution draft's predicted test paths with the actual files on disk
+and flipped the status/frontmatter to reflect green coverage. The 5 visual/interactive
+items remain Manual-Only (jsdom cannot assert pixel-level diff highlight, cross-route
+navigation render, or progress-bar fill) — these are tracked in `138-HUMAN-UAT.md`.
