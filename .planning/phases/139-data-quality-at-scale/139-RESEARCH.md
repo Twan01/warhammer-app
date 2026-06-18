@@ -511,22 +511,25 @@ No new external packages are installed in this phase. All required libraries (`b
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Are the weapon.range and weapon.keywords systematic bugs already fixed?**
    - What we know: Both were identified in Phase 113 (June 2026) SM/NEC/DG audits.
    - What's unclear: Subsequent pipeline work (Phases 114–138) may have fixed them.
    - Recommendation: Run `pnpm build:udb && node --experimental-strip-types scripts/audit-faction.ts SM` and check if systematic_issues is empty before declaring them resolved.
+   - **RESOLVED:** Planning assumes these were already fixed in the Phase 114 pipeline rebuild; this is **verified at execution** in Plan 139-02 Task 2, which re-runs the SM audit and inspects `systematic_issues` before sizing per-faction correction work. No plan depends on them being unfixed — if residual systematic bugs surface, they are fixed in `scripts/lib/` per D-04 (one fix corrects many units), which the batch plans (03/04) already accommodate.
 
 2. **Is there a Wahapedia French locale data source?**
    - What we know: `download-wahapedia.ts` fetches EN CSVs. `translations_fr.json` appears hand-authored.
    - What's unclear: Whether a Wahapedia FR mirror (wahapedia.fr) has downloadable CSVs, or if a `download-wahapedia.ts --locale fr` option exists/can be added.
    - Recommendation: Check `scripts/download-wahapedia.ts` for locale support. If none, FR text authoring is manual per faction — plan tasks accordingly as data authoring work.
+   - **RESOLVED:** No automated FR locale source is assumed. Per locked decision D-06 (no machine-translation runtime dependency), FR content is **curated per faction** and added to `translations_fr.json` keyed on composite Wahapedia keys. Plans 03/04 size the FR work as manual data authoring. If a `--locale fr` download option is later found to be trivial, it is an optional accelerator only — it does not change the overlay mechanism or plan structure.
 
 3. **Exact size of the 22-faction audit effort**
    - What we know: SM had 298 matched units (298 is large — SM is the biggest faction). Other factions are likely smaller.
    - What's unclear: How many per-unit errors remain after systematic bug fixes.
    - Recommendation: Run `pnpm audit:all` (after implementing batch mode) and use the generated reports to re-estimate batch sizing before committing to plan structure.
+   - **RESOLVED:** The effort is decomposed into two batch plans — 139-03 (batch 1: ~13 Xenos/Chaos factions) and 139-04 (batch 2: ~9 Imperium/remaining factions) — each auditing + translating its faction group end-to-end. Plan 139-02 produces all 25 audit reports first (via `pnpm audit:all`), so the executor re-confirms batch sizing from real report data before the correction batches run; the two-batch split is robust to that re-estimate (factions can shift between batches without changing plan count).
 
 ---
 
