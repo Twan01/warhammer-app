@@ -63,7 +63,6 @@ vi.mock("@/db/queries/datasheets", () => ({
 }));
 vi.mock("@/db/queries/bsdataExtended", () => ({
   getEnhancementsByFaction: vi.fn().mockResolvedValue([]),
-  getLeaderTargetsByFaction: vi.fn().mockResolvedValue([]),
 }));
 vi.mock("@/db/queries/rulesExtended", () => ({
   getDetachmentsByFaction: vi.fn().mockResolvedValue([]),

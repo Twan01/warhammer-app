@@ -9,9 +9,7 @@ import {
 /**
  * Phase 137 — Leader target data hook rewrite (PLAY-03, D-08).
  *
- * Replaces the Phase-92 faction-keyed hook (getLeaderTargetsByFaction /
- * SyncedLeaderTargetRow) with a list-keyed canonical hook backed by the
- * udb_leader_targets FK join.
+ * List-keyed canonical hook backed by the udb_leader_targets FK join.
  *
  * Key properties:
  * - Keyed by listId (not factionId) — one query per list, not per faction.
@@ -42,7 +40,7 @@ export function useLeaderTargets(listId: number | null) {
  * Phase 140 — Faction-scoped canonical leader-target hook (PLAY-02/03 secondary surface).
  *
  * Used by DatasheetPointsTab "Leader — Can attach to" section. Replaces the dead
- * useLeaderTargetsByFaction backed by synced_leader_targets (zero writers post-Phase 137).
+ * bsdataExtended faction hook (zero writers in the Wahapedia-only pipeline post-Phase 137).
  *
  * Key namespace is "leader-targets-by-faction-canonical" (distinct from the retired
  * "leader-targets-by-faction" key in useBsdataFaction.ts) to avoid cache collision (Pitfall 3).

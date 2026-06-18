@@ -4,7 +4,7 @@ import { getDb } from "@/db/client";
  * Phase 140 — Canonical faction-scoped leader-target query (PLAY-02/03 secondary surface).
  *
  * Returned for the Rules Hub DatasheetPointsTab "Leader — Can attach to" section.
- * Shape is identical to the retired SyncedLeaderTargetRow (D-04) so the JSX
+ * Shape is identical to the retired synced-table row type (D-04) so the JSX
  * filter/badge body in DatasheetContent needs no changes.
  */
 export interface CanonicalLeaderTargetRow {
