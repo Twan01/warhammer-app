@@ -47,7 +47,7 @@
 - [ ] **Phase 135: Faction & Navigation Consolidation** (0/3 plans) â Zero-data-loss faction consolidation, the redundant /factions page retired, Data Health folded into Settings
 - [ ] **Phase 136: Code Honesty & Decomposition** (0/4 plans) â One shared WeaponTable, a decomposed ArmyListDetailPage, hooks restored, the vestigial column resolved
 - [x] **Phase 137: Canonical Leader Attachment** (4/4 plans) â Leader-target data ships through the canonical pipeline and the builder validates real attachment pairs
-- [ ] **Phase 138: Player-Journey Depth** (0/? plans) â Side-by-side unit comparison, the Collection â Unit Database loop, and goals surfaced on the dashboard
+- [ ] **Phase 138: Player-Journey Depth** (0/4 plans) â Side-by-side unit comparison, the Collection â Unit Database loop, and goals surfaced on the dashboard
 - [ ] **Phase 139: Data Quality at Scale** (0/? plans) â Pipeline FK/orphan validation, all 25 factions audited, French translations extended
 
 ## Phase Details
@@ -172,7 +172,10 @@
   2. The Collection â Unit Database loop is bidirectional: from the Collection the user opens a canonical datasheet and adds units; from the Unit Database the user sees an "owned ÃN" count per unit (via a single page-level Map lookup).
   3. Hobby goal progress is surfaced on the dashboard with a progress visualization, after verifying the goal-progress derivation still computes correctly post-rules.db-elimination.
 **Plans**: 4 plans
-  - [ ] Plans to be defined when Phase 138 is planned (PLAY-01, PLAY-04, PLAY-05)
+  - [ ] 138-01-PLAN.md — Batch query getUdbUnitsByIds + useUdbUnitsByIds + compareIds store (cap 3) + /unit-database/compare route (PLAY-01)
+  - [ ] 138-02-PLAN.md — Compare UI: UnitComparePage/Column/ActionBar, per-cell diff highlight, add-to-compare affordance (PLAY-01)
+  - [ ] 138-03-PLAN.md — PLAY-04 audit-and-close: owned-badge deep link + cross-faction search ownership + invalidation symmetry (PLAY-04)
+  - [ ] 138-04-PLAN.md — Dashboard GoalProgressCard widget reusing useGoals/useGoalProgress + session invalidation lock (PLAY-05)
 **Notes**: PLAY-01 consumes the shared WeaponTable from HON-08 (Phase 136). Verify PLAY-05's goal-progress derivation before building the visualization.
 **UI hint**: yes
 
@@ -200,7 +203,7 @@
 | 135. Faction & Navigation Consolidation | 3/3 | Complete    | 2026-06-17 |
 | 136. Code Honesty & Decomposition | 4/4 | Complete    | 2026-06-17 |
 | 137. Canonical Leader Attachment | 4/4 | Complete    | 2026-06-18 |
-| 138. Player-Journey Depth | 0/? | Not started | - |
+| 138. Player-Journey Depth | 0/4 | Not started | - |
 | 139. Data Quality at Scale | 0/? | Not started | - |
 
 <details>
