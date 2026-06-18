@@ -15,10 +15,18 @@
  *     its table name.
  *  3. Both leader_unit_id and target_unit_id of every leaderTargets pair are
  *     in the unit-id set.
- *  4. Orphan sub_faction: any non-null units.sub_faction value that does not
- *     appear in the known sub_faction value set for that faction's units is
- *     flagged. (sub_faction is a free TEXT column, not an FK — this must be a
+ *  4. Orphan sub_faction: any non-null units.sub_faction value that is not in
+ *     the global legal set derived from KEYWORD_SUB_FACTION_MAP / SUB_FACTION_MAP
+ *     is flagged. (sub_faction is a free TEXT column, not an FK — this must be a
  *     JS-level check.)
+ *  5. Detachment FK graph (migrations 042/043):
+ *     - Every detachment.faction_id resolves to a known faction (NOT NULL).
+ *     - Every detachment_ability.detachment_id resolves to a known detachment (NOT NULL).
+ *     - Every detachment_ability.faction_id resolves to a known faction (NOT NULL).
+ *     - Every non-null stratagem.faction_id resolves to a known faction (nullable).
+ *     - Every non-null stratagem.detachment_id resolves to a known detachment (nullable).
+ *     - Every enhancement.faction_id resolves to a known faction (NOT NULL).
+ *     - Every non-null enhancement.detachment_id resolves to a known detachment (nullable).
  *
  * Style: named export, pure function, no console output, no process.exit.
  * Follows the scripts/lib/ helper pattern (weaponMapping.ts, parseCsv.ts).
@@ -34,7 +42,12 @@ import type {
   UdbUnitPointsRow,
   UdbUnitCompositionRow,
   UdbLeaderTargetRow,
+  UdbDetachmentRow,
+  UdbDetachmentAbilityRow,
+  UdbStratagemRow,
+  UdbEnhancementRow,
 } from "./types.ts";
+import { KEYWORD_SUB_FACTION_MAP, SUB_FACTION_MAP } from "./factionMap.ts";
 
 export interface ValidateRefsInput {
   factions: UdbFactionRow[];
@@ -46,6 +59,10 @@ export interface ValidateRefsInput {
   points: UdbUnitPointsRow[];
   composition: UdbUnitCompositionRow[];
   leaderTargets: UdbLeaderTargetRow[];
+  detachments: UdbDetachmentRow[];
+  detachmentAbilities: UdbDetachmentAbilityRow[];
+  stratagems: UdbStratagemRow[];
+  enhancements: UdbEnhancementRow[];
 }
 
 /**
@@ -69,6 +86,10 @@ export function validateReferentialIntegrity(
     points,
     composition,
     leaderTargets,
+    detachments,
+    detachmentAbilities,
+    stratagems,
+    enhancements,
   } = data;
 
   const violations: string[] = [];
@@ -121,43 +142,77 @@ export function validateReferentialIntegrity(
 
   // ── Check 4: orphan sub_faction ─────────────────────────────────────────────
   // sub_faction is a free TEXT column — no FK constraint exists.
-  // A value is "orphan" if it appears on a unit but does not appear as any
-  // other unit's sub_faction value within the same faction.  In other words,
-  // a singleton sub_faction that no other unit shares is still valid as long as
-  // it is self-consistent.  The real concern is a sub_faction value that
-  // references a label not present in the *known set of sub_faction values for
-  // that faction's entire unit set* — which by construction is every value
-  // assigned by the pipeline's own SUB_FACTION_MAP / KEYWORD_SUB_FACTION_MAP
-  // assignment step.
-  //
-  // Implementation: build, per faction, the full set of sub_faction values
-  // assigned to that faction's units.  A unit's sub_faction is "orphan" if
-  // its value is non-null AND is NOT in the set for its own faction.
-  // (Because each unit contributes to that set, a value is always in the set
-  // for the faction that uses it — this check is therefore a no-op for
-  // well-formed data and would only fire if a unit's faction_id itself were
-  // also wrong, or if a sub_faction value somehow ended up on a unit whose
-  // faction has no units with that sub_faction — e.g. from a copy-paste error.)
-  //
-  // Practical usage: catches cross-faction sub_faction pollution (e.g. a SM
-  // sub_faction string accidentally assigned to a NEC unit).
-  const subFactionsByFaction = new Map<string, Set<string>>();
+  // Validate each non-null sub_faction value against the authoritative global
+  // allow-list produced by KEYWORD_SUB_FACTION_MAP and SUB_FACTION_MAP.
+  // Any value not in this set was never assigned by the pipeline and indicates
+  // a data corruption or cross-faction pollution bug.
+  const legalSubFactions = new Set<string>([
+    ...Object.values(KEYWORD_SUB_FACTION_MAP),
+    ...Object.values(SUB_FACTION_MAP),
+  ]);
+
   for (const u of units) {
-    if (u.sub_faction !== null) {
-      const set = subFactionsByFaction.get(u.faction_id) ?? new Set<string>();
-      set.add(u.sub_faction);
-      subFactionsByFaction.set(u.faction_id, set);
+    if (u.sub_faction !== null && !legalSubFactions.has(u.sub_faction)) {
+      violations.push(
+        `unit ${u.id} (faction ${u.faction_id}) has unrecognized sub_faction "${u.sub_faction}"`,
+      );
     }
   }
 
-  for (const u of units) {
-    if (u.sub_faction !== null) {
-      const knownForFaction = subFactionsByFaction.get(u.faction_id);
-      if (!knownForFaction || !knownForFaction.has(u.sub_faction)) {
-        violations.push(
-          `unit ${u.id} (faction ${u.faction_id}) has orphan sub_faction "${u.sub_faction}"`,
-        );
-      }
+  // ── Check 5: detachment FK graph (migrations 042/043) ───────────────────────
+  const detachmentIds = new Set(detachments.map((d) => d.id));
+
+  // udb_detachments.faction_id → udb_factions (NOT NULL)
+  for (const d of detachments) {
+    if (!factionIds.has(d.faction_id)) {
+      violations.push(
+        `udb_detachments ${d.id}: faction_id "${d.faction_id}" not in factions`,
+      );
+    }
+  }
+
+  // udb_detachment_abilities.detachment_id → udb_detachments (NOT NULL)
+  // udb_detachment_abilities.faction_id → udb_factions (NOT NULL)
+  for (const da of detachmentAbilities) {
+    if (!detachmentIds.has(da.detachment_id)) {
+      violations.push(
+        `udb_detachment_abilities ${da.id}: detachment_id "${da.detachment_id}" not in detachments`,
+      );
+    }
+    if (!factionIds.has(da.faction_id)) {
+      violations.push(
+        `udb_detachment_abilities ${da.id}: faction_id "${da.faction_id}" not in factions`,
+      );
+    }
+  }
+
+  // udb_stratagems.faction_id → udb_factions (nullable — null is allowed)
+  // udb_stratagems.detachment_id → udb_detachments (nullable — null is allowed)
+  for (const s of stratagems) {
+    if (s.faction_id !== null && !factionIds.has(s.faction_id)) {
+      violations.push(
+        `udb_stratagems ${s.id}: faction_id "${s.faction_id}" not in factions`,
+      );
+    }
+    if (s.detachment_id !== null && !detachmentIds.has(s.detachment_id)) {
+      violations.push(
+        `udb_stratagems ${s.id}: detachment_id "${s.detachment_id}" not in detachments`,
+      );
+    }
+  }
+
+  // udb_enhancements.faction_id → udb_factions (NOT NULL)
+  // udb_enhancements.detachment_id → udb_detachments (nullable — null is allowed)
+  for (const e of enhancements) {
+    if (!factionIds.has(e.faction_id)) {
+      violations.push(
+        `udb_enhancements ${e.id}: faction_id "${e.faction_id}" not in factions`,
+      );
+    }
+    if (e.detachment_id !== null && !detachmentIds.has(e.detachment_id)) {
+      violations.push(
+        `udb_enhancements ${e.id}: detachment_id "${e.detachment_id}" not in detachments`,
+      );
     }
   }
 

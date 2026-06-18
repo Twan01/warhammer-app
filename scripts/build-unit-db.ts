@@ -612,29 +612,6 @@ async function main() {
     process.exit(1);
   }
 
-  // DAT-01a: JSON-level referential integrity checks
-  // Runs over the in-memory row arrays before writing unit_database.json.
-  // Any violation → console.error + process.exit(1), failing pnpm build:udb.
-  {
-    const refViolations = validateReferentialIntegrity({
-      factions,
-      units,
-      weapons,
-      abilities,
-      keywords,
-      models,
-      points,
-      composition,
-      leaderTargets,
-    });
-    if (refViolations.length > 0) {
-      console.error(`\nERROR: ${refViolations.length} referential integrity violation(s):`);
-      for (const e of refViolations) console.error("  " + e);
-      process.exit(1);
-    }
-    console.log("  Referential integrity: OK");
-  }
-
   // Sub-faction stats
   const unitsWithSubFaction = units.filter((u) => u.sub_faction !== null).length;
   const unitsWithoutSubFaction = units.length - unitsWithSubFaction;
@@ -829,6 +806,34 @@ async function main() {
     });
   }
   console.log(`  Parsed ${enhancements.length} enhancements (${enhancementLegendsSkipped} Legends excluded)`);
+
+  // DAT-01a: JSON-level referential integrity checks
+  // Runs over ALL in-memory row arrays (including detachments/stratagems/enhancements
+  // built in steps 11-13) before writing unit_database.json.
+  // Any violation → console.error + process.exit(1), failing pnpm build:udb.
+  {
+    const refViolations = validateReferentialIntegrity({
+      factions,
+      units,
+      weapons,
+      abilities,
+      keywords,
+      models,
+      points,
+      composition,
+      leaderTargets,
+      detachments,
+      detachmentAbilities,
+      stratagems,
+      enhancements,
+    });
+    if (refViolations.length > 0) {
+      console.error(`\nERROR: ${refViolations.length} referential integrity violation(s):`);
+      for (const e of refViolations) console.error("  " + e);
+      process.exit(1);
+    }
+    console.log("  Referential integrity: OK");
+  }
 
   // ---------------------------------------------------------------------------
   // Summary
