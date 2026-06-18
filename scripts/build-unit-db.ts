@@ -21,6 +21,7 @@ import { fileURLToPath } from "node:url";
 import { SUB_FACTION_MAP, KEYWORD_SUB_FACTION_MAP } from "./lib/factionMap.ts";
 import { readCsvFile, extractModelCount } from "./lib/parseCsv.ts";
 import { mapWeaponRow } from "./lib/weaponMapping.ts";
+import { validateReferentialIntegrity } from "./lib/validateRefs.ts";
 import type {
   UdbFactionRow,
   UdbUnitRow,
@@ -609,6 +610,29 @@ async function main() {
     );
     console.error("This indicates a regression. Check Wahapedia CSV freshness.");
     process.exit(1);
+  }
+
+  // DAT-01a: JSON-level referential integrity checks
+  // Runs over the in-memory row arrays before writing unit_database.json.
+  // Any violation → console.error + process.exit(1), failing pnpm build:udb.
+  {
+    const refViolations = validateReferentialIntegrity({
+      factions,
+      units,
+      weapons,
+      abilities,
+      keywords,
+      models,
+      points,
+      composition,
+      leaderTargets,
+    });
+    if (refViolations.length > 0) {
+      console.error(`\nERROR: ${refViolations.length} referential integrity violation(s):`);
+      for (const e of refViolations) console.error("  " + e);
+      process.exit(1);
+    }
+    console.log("  Referential integrity: OK");
   }
 
   // Sub-faction stats
