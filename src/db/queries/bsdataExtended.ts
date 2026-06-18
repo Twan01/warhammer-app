@@ -156,25 +156,6 @@ export async function getModelCountsByFaction(
   );
 }
 
-export interface SyncedLeaderTargetRow {
-  leader_name: string;
-  faction_id: string | null;
-  target_name: string;
-}
-
-export async function getLeaderTargetsByFaction(
-  factionId: string,
-): Promise<SyncedLeaderTargetRow[]> {
-  const db = await getDb();
-  return db.select<SyncedLeaderTargetRow[]>(
-    `SELECT leader_name, faction_id, target_name
-     FROM synced_leader_targets
-     WHERE faction_id = $1
-     ORDER BY leader_name, target_name`,
-    [factionId],
-  );
-}
-
 /**
  * Phase 90 — Get loadout options for a specific unit by name and faction.
  * Used by LoadoutBuilderSheet to display wargear options (DL-02).

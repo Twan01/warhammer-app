@@ -4,15 +4,15 @@ import { useDatasheetsByFactionWithPoints } from "@/hooks/useDatasheet";
 import {
   useModelCountsByFaction,
   useLoadoutOptionsByFaction,
-  useLeaderTargetsByFaction,
 } from "@/hooks/useBsdataFaction";
+import { useLeaderTargetsByFactionCanonical } from "@/hooks/useLeaderTargets";
 import { getDb } from "@/db/client";
 import { getUdbUnitDetail } from "@/db/queries/unitDatabase";
 import type { UdbUnitDetail } from "@/db/queries/unitDatabase";
 import {
   type SyncedLoadoutOptionRow,
-  type SyncedLeaderTargetRow,
 } from "@/db/queries/bsdataExtended";
+import { type CanonicalLeaderTargetRow } from "@/db/queries/leaderTargets";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -76,7 +76,7 @@ function DatasheetDetail({
   datasheetId: string;
   unitName: string;
   loadoutOptions: SyncedLoadoutOptionRow[];
-  leaderTargets: SyncedLeaderTargetRow[];
+  leaderTargets: CanonicalLeaderTargetRow[];
 }) {
   const { data, isLoading } = useQuery({
     queryKey: ["datasheet-detail", datasheetId] as const,
@@ -117,7 +117,7 @@ function DatasheetContent({
 }: {
   ds: UdbUnitDetail;
   loadoutOptions: SyncedLoadoutOptionRow[];
-  leaderTargets: SyncedLeaderTargetRow[];
+  leaderTargets: CanonicalLeaderTargetRow[];
 }) {
   const rangedWeapons = ds.weapons.filter((w) => w.category === "Ranged");
   const meleeWeapons = ds.weapons.filter(
@@ -359,7 +359,7 @@ export function DatasheetPointsTab({ factionId }: { factionId: string }) {
   const { data: tierRows = [] } = usePointTiers(factionId);
   const { data: modelCountRows = [] } = useModelCountsByFaction(factionId);
   const { data: loadoutOptions = [] } = useLoadoutOptionsByFaction(factionId);
-  const { data: leaderTargets = [] } = useLeaderTargetsByFaction(factionId);
+  const { data: leaderTargets = [] } = useLeaderTargetsByFactionCanonical(factionId);
 
   const modelCountsMap = useMemo(() => {
     const m = new Map<string, { min: number; max: number }>();
