@@ -1,0 +1,20 @@
+{
+  "faction_id": "NEC",
+  "faction_name": "Necrons",
+  "audited_at": "2026-06-18T10:24:43.495Z",
+  "systematic_issues": [],
+  "unit_errors": [],
+  "unmatched_classifications": [],
+  "translation_gaps": {
+    "units_missing": 0,
+    "weapons_missing": 0,
+    "abilities_missing": 38
+  },
+  "summary": {
+    "total_matched": 64,
+    "total_unmatched": 0,
+    "total_errors": 0,
+    "errors_by_field": {},
+    "errors_by_severity": {}
+  }
+}

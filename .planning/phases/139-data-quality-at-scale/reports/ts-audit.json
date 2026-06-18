@@ -1,0 +1,879 @@
+{
+  "faction_id": "TS",
+  "faction_name": "Thousand Sons",
+  "audited_at": "2026-06-18T10:24:43.780Z",
+  "systematic_issues": [],
+  "unit_errors": [
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.attacks",
+      "expected": "1",
+      "actual": "2",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.skill",
+      "expected": "4",
+      "actual": "3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.keywords",
+      "expected": "anti-infantry 4+, devastating wounds, rapid fire 1",
+      "actual": "rapid fire 2",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.attacks",
+      "expected": "1",
+      "actual": "6",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.skill",
+      "expected": "4",
+      "actual": "3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.strength",
+      "expected": "4",
+      "actual": "5",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.ap",
+      "expected": "0",
+      "actual": "-1",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.damage",
+      "expected": "1",
+      "actual": "2",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.range",
+      "expected": "24",
+      "actual": "36",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.keywords",
+      "expected": "anti-infantry 4+, devastating wounds, rapid fire 1",
+      "actual": "sustained hits 1, twin-linked",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.attacks",
+      "expected": "1",
+      "actual": "2",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.skill",
+      "expected": "4",
+      "actual": "3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.strength",
+      "expected": "4",
+      "actual": "9",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.ap",
+      "expected": "0",
+      "actual": "-4",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.damage",
+      "expected": "1",
+      "actual": "D6",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.range",
+      "expected": "24",
+      "actual": "18",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.keywords",
+      "expected": "anti-infantry 4+, devastating wounds, rapid fire 1",
+      "actual": "melta 2",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.attacks",
+      "expected": "1",
+      "actual": "3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.skill",
+      "expected": "4",
+      "actual": "3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.strength",
+      "expected": "4",
+      "actual": "14",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.ap",
+      "expected": "0",
+      "actual": "-4",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.damage",
+      "expected": "1",
+      "actual": "D6+1",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.range",
+      "expected": "24",
+      "actual": "36",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.keywords",
+      "expected": "anti-infantry 4+, devastating wounds, rapid fire 1",
+      "actual": "heavy",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.attacks",
+      "expected": "1",
+      "actual": "D6",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.skill",
+      "expected": "4",
+      "actual": "N/A",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.strength",
+      "expected": "4",
+      "actual": "5",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.ap",
+      "expected": "0",
+      "actual": "-1",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.range",
+      "expected": "24",
+      "actual": "12",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.keywords",
+      "expected": "anti-infantry 4+, devastating wounds, rapid fire 1",
+      "actual": "ignores cover, torrent",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.attacks",
+      "expected": "1",
+      "actual": "2",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.skill",
+      "expected": "4",
+      "actual": "3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.strength",
+      "expected": "4",
+      "actual": "14",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.ap",
+      "expected": "0",
+      "actual": "-3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.damage",
+      "expected": "1",
+      "actual": "6",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.range",
+      "expected": "24",
+      "actual": "72",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.keywords",
+      "expected": "anti-infantry 4+, devastating wounds, rapid fire 1",
+      "actual": "",
+      "source": "wahapedia_csv",
+      "severity": "missing"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.attacks",
+      "expected": "1",
+      "actual": "3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.skill",
+      "expected": "4",
+      "actual": "3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.strength",
+      "expected": "4",
+      "actual": "5",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.ap",
+      "expected": "0",
+      "actual": "-1",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.damage",
+      "expected": "1",
+      "actual": "2",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.range",
+      "expected": "24",
+      "actual": "36",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.keywords",
+      "expected": "anti-infantry 4+, devastating wounds, rapid fire 1",
+      "actual": "sustained hits 1",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.attacks",
+      "expected": "1",
+      "actual": "D6",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.skill",
+      "expected": "4",
+      "actual": "3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.strength",
+      "expected": "4",
+      "actual": "5",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.range",
+      "expected": "24",
+      "actual": "48",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.keywords",
+      "expected": "anti-infantry 4+, devastating wounds, rapid fire 1",
+      "actual": "blast",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.attacks",
+      "expected": "1",
+      "actual": "2D6",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.skill",
+      "expected": "4",
+      "actual": "3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.strength",
+      "expected": "4",
+      "actual": "8",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.ap",
+      "expected": "0",
+      "actual": "-1",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.damage",
+      "expected": "1",
+      "actual": "2",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.range",
+      "expected": "24",
+      "actual": "72",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.keywords",
+      "expected": "anti-infantry 4+, devastating wounds, rapid fire 1",
+      "actual": "blast",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.attacks",
+      "expected": "1",
+      "actual": "D6+3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.skill",
+      "expected": "4",
+      "actual": "3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.strength",
+      "expected": "4",
+      "actual": "14",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.ap",
+      "expected": "0",
+      "actual": "-3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.damage",
+      "expected": "1",
+      "actual": "D6",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.keywords",
+      "expected": "anti-infantry 4+, devastating wounds, rapid fire 1",
+      "actual": "blast",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.category",
+      "expected": "Ranged",
+      "actual": "",
+      "source": "wahapedia_csv",
+      "severity": "missing"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.attacks",
+      "expected": "1",
+      "actual": "0",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.skill",
+      "expected": "4",
+      "actual": "3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.strength",
+      "expected": "4",
+      "actual": "-",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.damage",
+      "expected": "1",
+      "actual": "-",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.range",
+      "expected": "24",
+      "actual": "",
+      "source": "wahapedia_csv",
+      "severity": "missing"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.keywords",
+      "expected": "anti-infantry 4+, devastating wounds, rapid fire 1",
+      "actual": "",
+      "source": "wahapedia_csv",
+      "severity": "missing"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.category",
+      "expected": "Ranged",
+      "actual": "Melee",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.attacks",
+      "expected": "1",
+      "actual": "6",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.strength",
+      "expected": "4",
+      "actual": "8",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.range",
+      "expected": "24",
+      "actual": "Melee",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.keywords",
+      "expected": "anti-infantry 4+, devastating wounds, rapid fire 1",
+      "actual": "",
+      "source": "wahapedia_csv",
+      "severity": "missing"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.attacks",
+      "expected": "1",
+      "actual": "D6",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.skill",
+      "expected": "4",
+      "actual": "N/A",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.strength",
+      "expected": "4",
+      "actual": "5",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.ap",
+      "expected": "0",
+      "actual": "-1",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.range",
+      "expected": "24",
+      "actual": "12",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.keywords",
+      "expected": "anti-infantry 4+, devastating wounds, rapid fire 1",
+      "actual": "ignores cover, torrent, twin-linked",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.attacks",
+      "expected": "1",
+      "actual": "3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.skill",
+      "expected": "4",
+      "actual": "3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.strength",
+      "expected": "4",
+      "actual": "5",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.ap",
+      "expected": "0",
+      "actual": "-1",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.damage",
+      "expected": "1",
+      "actual": "2",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.range",
+      "expected": "24",
+      "actual": "36",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.keywords",
+      "expected": "anti-infantry 4+, devastating wounds, rapid fire 1",
+      "actual": "sustained hits 1, twin-linked",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.attacks",
+      "expected": "1",
+      "actual": "4",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.skill",
+      "expected": "4",
+      "actual": "3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.strength",
+      "expected": "4",
+      "actual": "12",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.ap",
+      "expected": "0",
+      "actual": "-3",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.damage",
+      "expected": "1",
+      "actual": "D6+1",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.range",
+      "expected": "24",
+      "actual": "48",
+      "source": "wahapedia_csv",
+      "severity": "error"
+    },
+    {
+      "unit_id": "000003651",
+      "unit_name": "Fellblade",
+      "field": "weapon.keywords",
+      "expected": "anti-infantry 4+, devastating wounds, rapid fire 1",
+      "actual": "",
+      "source": "wahapedia_csv",
+      "severity": "missing"
+    }
+  ],
+  "unmatched_classifications": [],
+  "translation_gaps": {
+    "units_missing": 60,
+    "weapons_missing": 361,
+    "abilities_missing": 102
+  },
+  "summary": {
+    "total_matched": 60,
+    "total_unmatched": 0,
+    "total_errors": 94,
+    "errors_by_field": {
+      "weapon.attacks": 15,
+      "weapon.skill": 14,
+      "weapon.keywords": 15,
+      "weapon.strength": 14,
+      "weapon.ap": 11,
+      "weapon.damage": 10,
+      "weapon.range": 13,
+      "weapon.category": 2
+    },
+    "errors_by_severity": {
+      "error": 88,
+      "missing": 6
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "faction_id": "TL",
+  "faction_name": "The Legion of the Damned",
+  "audited_at": "2026-06-18T10:24:43.740Z",
+  "systematic_issues": [],
+  "unit_errors": [],
+  "unmatched_classifications": [],
+  "translation_gaps": {
+    "units_missing": 4,
+    "weapons_missing": 36,
+    "abilities_missing": 8
+  },
+  "summary": {
+    "total_matched": 4,
+    "total_unmatched": 0,
+    "total_errors": 0,
+    "errors_by_field": {},
+    "errors_by_severity": {}
+  }
+}

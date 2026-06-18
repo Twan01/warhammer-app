@@ -1,0 +1,20 @@
+{
+  "faction_id": "AC",
+  "faction_name": "Adeptus Custodes",
+  "audited_at": "2026-06-18T10:24:42.888Z",
+  "systematic_issues": [],
+  "unit_errors": [],
+  "unmatched_classifications": [],
+  "translation_gaps": {
+    "units_missing": 28,
+    "weapons_missing": 109,
+    "abilities_missing": 69
+  },
+  "summary": {
+    "total_matched": 31,
+    "total_unmatched": 0,
+    "total_errors": 0,
+    "errors_by_field": {},
+    "errors_by_severity": {}
+  }
+}
