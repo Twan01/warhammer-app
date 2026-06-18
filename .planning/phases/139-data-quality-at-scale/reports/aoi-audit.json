@@ -1,14 +1,14 @@
 {
   "faction_id": "AoI",
   "faction_name": "Agents of the Imperium",
-  "audited_at": "2026-06-18T11:11:01.386Z",
+  "audited_at": "2026-06-18T11:23:21.363Z",
   "systematic_issues": [],
   "unit_errors": [],
   "unmatched_classifications": [],
   "translation_gaps": {
-    "units_missing": 46,
-    "weapons_missing": 308,
-    "abilities_missing": 142
+    "units_missing": 0,
+    "weapons_missing": 163,
+    "abilities_missing": 120
   },
   "summary": {
     "total_matched": 46,

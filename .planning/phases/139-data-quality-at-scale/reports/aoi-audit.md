@@ -1,6 +1,6 @@
 # Agents of the Imperium (AoI) Data Audit Report
 
-**Audited:** 2026-06-18T11:11:01.386Z
+**Audited:** 2026-06-18T11:23:21.363Z
 **Matched units:** 46
 **Unmatched units:** 0
 **Per-unit errors:** 0
@@ -22,6 +22,6 @@ No unmatched units.
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 46 |
-| Weapons (name_fr) | 308 |
-| Abilities (name_fr) | 142 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 163 |
+| Abilities (name_fr) | 120 |

@@ -1,14 +1,14 @@
 {
   "faction_id": "AS",
   "faction_name": "Adepta Sororitas",
-  "audited_at": "2026-06-18T11:11:01.429Z",
+  "audited_at": "2026-06-18T11:23:21.406Z",
   "systematic_issues": [],
   "unit_errors": [],
   "unmatched_classifications": [],
   "translation_gaps": {
-    "units_missing": 38,
-    "weapons_missing": 198,
-    "abilities_missing": 93
+    "units_missing": 0,
+    "weapons_missing": 86,
+    "abilities_missing": 88
   },
   "summary": {
     "total_matched": 38,

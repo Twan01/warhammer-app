@@ -1,6 +1,6 @@
 # Chaos Space Marines (CSM) Data Audit Report
 
-**Audited:** 2026-06-18T11:11:01.515Z
+**Audited:** 2026-06-18T11:23:21.494Z
 **Matched units:** 112
 **Unmatched units:** 0
 **Per-unit errors:** 0

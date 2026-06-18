@@ -1,6 +1,6 @@
 # Unaligned (UN) Data Audit Report
 
-**Audited:** 2026-06-18T11:11:02.167Z
+**Audited:** 2026-06-18T11:23:22.150Z
 **Matched units:** 20
 **Unmatched units:** 2
 **Per-unit errors:** 0
@@ -33,6 +33,6 @@ No per-unit errors found (excluding systematic issues).
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 20 |
-| Weapons (name_fr) | 62 |
-| Abilities (name_fr) | 69 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 41 |
+| Abilities (name_fr) | 68 |

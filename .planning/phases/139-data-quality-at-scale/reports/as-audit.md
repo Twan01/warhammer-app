@@ -1,6 +1,6 @@
 # Adepta Sororitas (AS) Data Audit Report
 
-**Audited:** 2026-06-18T11:11:01.429Z
+**Audited:** 2026-06-18T11:23:21.406Z
 **Matched units:** 38
 **Unmatched units:** 0
 **Per-unit errors:** 0
@@ -22,6 +22,6 @@ No unmatched units.
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 38 |
-| Weapons (name_fr) | 198 |
-| Abilities (name_fr) | 93 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 86 |
+| Abilities (name_fr) | 88 |

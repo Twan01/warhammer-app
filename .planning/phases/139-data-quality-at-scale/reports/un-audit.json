@@ -1,7 +1,7 @@
 {
   "faction_id": "UN",
   "faction_name": "Unaligned",
-  "audited_at": "2026-06-18T11:11:02.167Z",
+  "audited_at": "2026-06-18T11:23:22.150Z",
   "systematic_issues": [],
   "unit_errors": [],
   "unmatched_classifications": [
@@ -19,9 +19,9 @@
     }
   ],
   "translation_gaps": {
-    "units_missing": 20,
-    "weapons_missing": 62,
-    "abilities_missing": 69
+    "units_missing": 0,
+    "weapons_missing": 41,
+    "abilities_missing": 68
   },
   "summary": {
     "total_matched": 20,

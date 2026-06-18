@@ -1,6 +1,6 @@
 # Adeptus Custodes (AC) Data Audit Report
 
-**Audited:** 2026-06-18T11:11:01.193Z
+**Audited:** 2026-06-18T11:23:21.179Z
 **Matched units:** 31
 **Unmatched units:** 0
 **Per-unit errors:** 0
@@ -22,6 +22,6 @@ No unmatched units.
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 28 |
-| Weapons (name_fr) | 109 |
-| Abilities (name_fr) | 69 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 69 |
+| Abilities (name_fr) | 63 |

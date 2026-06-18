@@ -1,14 +1,14 @@
 {
   "faction_id": "AdM",
   "faction_name": "Adeptus Mechanicus",
-  "audited_at": "2026-06-18T11:11:01.239Z",
+  "audited_at": "2026-06-18T11:23:21.225Z",
   "systematic_issues": [],
   "unit_errors": [],
   "unmatched_classifications": [],
   "translation_gaps": {
-    "units_missing": 39,
-    "weapons_missing": 160,
-    "abilities_missing": 92
+    "units_missing": 0,
+    "weapons_missing": 108,
+    "abilities_missing": 86
   },
   "summary": {
     "total_matched": 39,

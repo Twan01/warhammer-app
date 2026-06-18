@@ -1,14 +1,14 @@
 {
   "faction_id": "AM",
   "faction_name": "Astra Militarum",
-  "audited_at": "2026-06-18T11:11:01.341Z",
+  "audited_at": "2026-06-18T11:23:21.318Z",
   "systematic_issues": [],
   "unit_errors": [],
   "unmatched_classifications": [],
   "translation_gaps": {
-    "units_missing": 134,
-    "weapons_missing": 855,
-    "abilities_missing": 291
+    "units_missing": 0,
+    "weapons_missing": 248,
+    "abilities_missing": 267
   },
   "summary": {
     "total_matched": 134,

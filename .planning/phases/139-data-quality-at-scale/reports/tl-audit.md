@@ -1,6 +1,6 @@
 # The Legion of the Damned (TL) Data Audit Report
 
-**Audited:** 2026-06-18T11:11:02.045Z
+**Audited:** 2026-06-18T11:23:22.028Z
 **Matched units:** 4
 **Unmatched units:** 0
 **Per-unit errors:** 0
@@ -22,6 +22,6 @@ No unmatched units.
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 4 |
-| Weapons (name_fr) | 36 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 31 |
 | Abilities (name_fr) | 8 |

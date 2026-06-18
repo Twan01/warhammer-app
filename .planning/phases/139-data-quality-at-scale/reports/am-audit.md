@@ -1,6 +1,6 @@
 # Astra Militarum (AM) Data Audit Report
 
-**Audited:** 2026-06-18T11:11:01.341Z
+**Audited:** 2026-06-18T11:23:21.318Z
 **Matched units:** 134
 **Unmatched units:** 0
 **Per-unit errors:** 0
@@ -22,6 +22,6 @@ No unmatched units.
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 134 |
-| Weapons (name_fr) | 855 |
-| Abilities (name_fr) | 291 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 248 |
+| Abilities (name_fr) | 267 |

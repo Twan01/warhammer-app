@@ -1,6 +1,6 @@
 # Leagues of Votann (LoV) Data Audit Report
 
-**Audited:** 2026-06-18T11:11:01.763Z
+**Audited:** 2026-06-18T11:23:21.738Z
 **Matched units:** 22
 **Unmatched units:** 0
 **Per-unit errors:** 0
@@ -22,6 +22,6 @@ No unmatched units.
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 22 |
-| Weapons (name_fr) | 105 |
-| Abilities (name_fr) | 55 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 83 |
+| Abilities (name_fr) | 54 |

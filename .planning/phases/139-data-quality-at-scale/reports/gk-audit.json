@@ -1,14 +1,14 @@
 {
   "faction_id": "GK",
   "faction_name": "Grey Knights",
-  "audited_at": "2026-06-18T11:11:01.723Z",
+  "audited_at": "2026-06-18T11:23:21.698Z",
   "systematic_issues": [],
   "unit_errors": [],
   "unmatched_classifications": [],
   "translation_gaps": {
-    "units_missing": 31,
-    "weapons_missing": 179,
-    "abilities_missing": 57
+    "units_missing": 0,
+    "weapons_missing": 85,
+    "abilities_missing": 48
   },
   "summary": {
     "total_matched": 31,

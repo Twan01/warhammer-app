@@ -1,6 +1,6 @@
 # Grey Knights (GK) Data Audit Report
 
-**Audited:** 2026-06-18T11:11:01.723Z
+**Audited:** 2026-06-18T11:23:21.698Z
 **Matched units:** 31
 **Unmatched units:** 0
 **Per-unit errors:** 0
@@ -22,6 +22,6 @@ No unmatched units.
 
 | Entity Type | Missing Count |
 |-------------|---------------|
-| Units (name_fr) | 31 |
-| Weapons (name_fr) | 179 |
-| Abilities (name_fr) | 57 |
+| Units (name_fr) | 0 |
+| Weapons (name_fr) | 85 |
+| Abilities (name_fr) | 48 |
