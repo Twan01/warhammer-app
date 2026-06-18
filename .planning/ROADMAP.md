@@ -47,7 +47,7 @@
 - [ ] **Phase 135: Faction & Navigation Consolidation** (0/3 plans) â Zero-data-loss faction consolidation, the redundant /factions page retired, Data Health folded into Settings
 - [ ] **Phase 136: Code Honesty & Decomposition** (0/4 plans) â One shared WeaponTable, a decomposed ArmyListDetailPage, hooks restored, the vestigial column resolved
 - [x] **Phase 137: Canonical Leader Attachment** (4/4 plans) â Leader-target data ships through the canonical pipeline and the builder validates real attachment pairs
-- [ ] **Phase 138: Player-Journey Depth** (0/4 plans) â Side-by-side unit comparison, the Collection â Unit Database loop, and goals surfaced on the dashboard
+- [x] **Phase 138: Player-Journey Depth** (4/4 plans) â Side-by-side unit comparison, the Collection â Unit Database loop, and goals surfaced on the dashboard
 - [ ] **Phase 139: Data Quality at Scale** (0/? plans) â Pipeline FK/orphan validation, all 25 factions audited, French translations extended
 
 ## Phase Details
