@@ -1,10 +1,11 @@
 ---
 phase: 140
 slug: close-play-02-03-tail-repoint-rules-hub-datasheetpointstab-f
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-18
+validated: 2026-06-18
 ---
 
 # Phase 140 — Validation Strategy
@@ -38,9 +39,9 @@ created: 2026-06-18
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 140-01-01 | 01 | 1 | PLAY-02/03 | — | Parameterized `$1` read-only query — no string interpolation (ASVS V5) | data-layer | `pnpm test -- tests/data-layer/leaderTargetsByFaction.test.ts` | ❌ W0 | ⬜ pending |
-| 140-01-02 | 01 | 1 | PLAY-02/03 | — | N/A (hook + component repoint) | build/type | `pnpm build` | ✅ | ⬜ pending |
-| 140-01-03 | 01 | 1 | PLAY-02/03 | — | N/A (dead-symbol removal) | build/type | `pnpm build` (strict noUnusedLocals) | ✅ | ⬜ pending |
+| 140-01-01 | 01 | 1 | PLAY-02/03 | — | Parameterized `$1` read-only query — no string interpolation (ASVS V5) | data-layer | `pnpm test -- tests/data-layer/leaderTargetsByFaction.test.ts` | ✅ | ✅ green |
+| 140-01-02 | 01 | 1 | PLAY-02/03 | — | N/A (hook + component repoint) | build/type | `pnpm build` | ✅ | ✅ green |
+| 140-01-03 | 01 | 1 | PLAY-02/03 | — | N/A (dead-symbol removal) | build/type | `pnpm build` (strict noUnusedLocals) | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -48,7 +49,7 @@ created: 2026-06-18
 
 ## Wave 0 Requirements
 
-- [ ] `tests/data-layer/leaderTargetsByFaction.test.ts` — new file covering the faction-scoped `udb_leader_targets` query. Mirror `tests/data-layer/leader-targets.test.ts` harness (`createFullDb()`, full migration chain, PRAGMA FK ON/OFF for seed).
+- [x] `tests/data-layer/leaderTargetsByFaction.test.ts` — new file covering the faction-scoped `udb_leader_targets` query. Mirror `tests/data-layer/leader-targets.test.ts` harness (`createFullDb()`, full migration chain, PRAGMA FK ON/OFF for seed). **Created (168 lines, commit 64f18fe7), all 3 cases green.**
 
 **Seed:** 2 `udb_factions` (FA, FB) + 5 `udb_units` (LA, TA1, TA2 in FA; LB, TB1 in FB) + 3 `udb_leader_targets` rows (LA→TA1, LA→TA2, LB→TB1).
 
@@ -71,11 +72,27 @@ created: 2026-06-18
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references (`leaderTargetsByFaction.test.ts`)
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (`leaderTargetsByFaction.test.ts`)
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** validated 2026-06-18 — all 3 tasks automated-green; 1 manual-only (Tauri visual render) tracked.
+
+---
+
+## Validation Audit 2026-06-18
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+All three task requirements were already covered by automated verification at validation time:
+- 140-01-01 → `tests/data-layer/leaderTargetsByFaction.test.ts` (3 cases) — re-ran green (full suite: 2896 passed, 0 failed).
+- 140-01-02 / 140-01-03 → `pnpm build` strict type-check (per SUMMARY exit 0).
+
+No new test files generated. The single manual-only item (Rules Hub leader-badge visual render via `pnpm tauri dev`) remains correctly classified as manual — it requires a live desktop window and imported `udb_leader_targets` data, which cannot be asserted by grep or static analysis.
