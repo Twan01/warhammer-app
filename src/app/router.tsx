@@ -34,6 +34,9 @@ const GameDayPageShell = lazy(() => import("./game-day/page").then(m => ({ defau
 const DataHealthPage = lazy(() => import("./data-health/page").then(m => ({ default: m.DataHealthPage })));
 const PaintingModePage = lazy(() => import("./painting-mode/page").then(m => ({ default: m.PaintingModePage })));
 const UnitDatabasePageShell = lazy(() => import("./unit-database/page").then(m => ({ default: m.UnitDatabasePageShell })));
+const UnitComparePage = lazy(() =>
+  import("../features/unit-database/UnitComparePage").then(m => ({ default: m.UnitComparePage }))
+);
 
 // ---------------------------------------------------------------------------
 // Root route — thin shell: only renders Outlet + devtools
@@ -207,6 +210,15 @@ export const unitDatabaseRoute = createRoute({
   component: UnitDatabasePageShell,
 });
 
+// Phase 138-01 PLAY-01 D-01/D-03: Compare page — flat sibling under layoutRoute
+// (not a nested child) to avoid Outlet refactor on unitDatabaseRoute. Reads
+// compareIds selection from Zustand; no validateSearch needed.
+const unitDatabaseCompareRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: "/unit-database/compare",
+  component: UnitComparePage,
+});
+
 // ---------------------------------------------------------------------------
 // Painting mode route (child of bareLayoutRoute — no sidebar)
 // ---------------------------------------------------------------------------
@@ -241,6 +253,7 @@ const routeTree = rootRoute.addChildren([
     gameDayRoute,
     dataHealthRoute,
     unitDatabaseRoute,
+    unitDatabaseCompareRoute,
   ]),
   bareLayoutRoute.addChildren([paintingModeRoute]),
 ]);

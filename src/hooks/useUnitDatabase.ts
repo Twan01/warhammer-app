@@ -15,6 +15,7 @@ import {
   getUdbFactions,
   getUdbUnitsByFaction,
   getUdbUnitDetail,
+  getUdbUnitsByIds,
   searchUdbUnits,
   getUdbOwnershipByFaction,
   getUdbOwnershipForUnit,
@@ -80,6 +81,28 @@ export function useUdbUnitDetail(unitId: string | null) {
     queryFn: () =>
       unitId !== null ? getUdbUnitDetail(unitId, locale) : Promise.resolve(null),
     enabled: !!unitId,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
+}
+
+/**
+ * Phase 138-01 PLAY-01 D-02: Batched multi-id hook.
+ *
+ * Fetches all selected units in a single WHERE id IN (...) query.
+ * Key uses a SORTED array so the cache key is stable regardless of insertion order
+ * (a Set is not JSON-serializable — RESEARCH Pitfall #2).
+ * staleTime: Infinity — canonical unit data, same as useUdbUnitDetail.
+ */
+export const UDB_UNITS_BY_IDS_KEY = (ids: string[], locale: Locale) =>
+  ["udb-units-by-ids", [...ids].sort(), locale] as const;
+
+export function useUdbUnitsByIds(ids: string[]) {
+  const locale = useLocale();
+  return useQuery({
+    queryKey: UDB_UNITS_BY_IDS_KEY(ids, locale),
+    queryFn: () => getUdbUnitsByIds(ids, locale),
+    enabled: ids.length > 0,
     staleTime: Infinity,
     gcTime: Infinity,
   });
