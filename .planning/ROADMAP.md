@@ -173,7 +173,7 @@
   3. Hobby goal progress is surfaced on the dashboard with a progress visualization, after verifying the goal-progress derivation still computes correctly post-rules.db-elimination.
 **Plans**: 4 plans
   - [x] 138-01-PLAN.md — Batch query getUdbUnitsByIds + useUdbUnitsByIds + compareIds store (cap 3) + /unit-database/compare route (PLAY-01)
-  - [ ] 138-02-PLAN.md — Compare UI: UnitComparePage/Column/ActionBar, per-cell diff highlight, add-to-compare affordance (PLAY-01)
+  - [x] 138-02-PLAN.md — Compare UI: UnitComparePage/Column/ActionBar, per-cell diff highlight, add-to-compare affordance (PLAY-01)
   - [ ] 138-03-PLAN.md — PLAY-04 audit-and-close: owned-badge deep link + cross-faction search ownership + invalidation symmetry (PLAY-04)
   - [x] 138-04-PLAN.md — Dashboard GoalProgressCard widget reusing useGoals/useGoalProgress + session invalidation lock (PLAY-05)
 **Notes**: PLAY-01 consumes the shared WeaponTable from HON-08 (Phase 136). Verify PLAY-05's goal-progress derivation before building the visualization.
@@ -203,7 +203,7 @@
 | 135. Faction & Navigation Consolidation | 3/3 | Complete    | 2026-06-17 |
 | 136. Code Honesty & Decomposition | 4/4 | Complete    | 2026-06-17 |
 | 137. Canonical Leader Attachment | 4/4 | Complete    | 2026-06-18 |
-| 138. Player-Journey Depth | 2/4 | In Progress|  |
+| 138. Player-Journey Depth | 3/4 | In Progress|  |
 | 139. Data Quality at Scale | 0/? | Not started | - |
 
 <details>
