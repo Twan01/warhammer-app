@@ -264,6 +264,91 @@ export async function getUdbUnitDetail(
   };
 }
 
+/**
+ * Phase 138-01 PLAY-01 D-02: Batched multi-id query — returns one UdbUnitDetail
+ * per id found in a single WHERE id IN ($1, $2, ...) query.
+ *
+ * Guards: returns [] immediately for an empty ids array (no DB round-trip).
+ * Missing ids are silently omitted (returns only rows that exist — no throw).
+ * Positional placeholders are built programmatically — ids are NEVER
+ * string-interpolated into the SQL (T-138-01 mitigation).
+ */
+export async function getUdbUnitsByIds(
+  ids: string[],
+  locale?: "en" | "fr",
+): Promise<UdbUnitDetail[]> {
+  if (ids.length === 0) return [];
+  const db = await getDb();
+  const fr = locale === "fr";
+
+  // Build positional params: $1, $2, $3, ... (one per id)
+  const placeholders = ids.map((_, i) => `$${i + 1}`).join(", ");
+
+  const unitRows = await db.select<
+    {
+      id: string;
+      faction_id: string;
+      name: string;
+      role: string | null;
+      base_points: number | null;
+      damaged_w: string | null;
+      damaged_desc: string | null;
+    }[]
+  >(
+    fr
+      ? `SELECT id, faction_id, COALESCE(name_fr, name) AS name, role, base_points, damaged_w, damaged_desc FROM udb_units WHERE id IN (${placeholders})`
+      : `SELECT id, faction_id, name, role, base_points, damaged_w, damaged_desc FROM udb_units WHERE id IN (${placeholders})`,
+    ids,
+  );
+
+  // For each returned unit, fetch all sub-tables in parallel (same as getUdbUnitDetail)
+  return Promise.all(
+    unitRows.map(async (unit) => {
+      const [models, weapons, abilities, keywords, points, composition] =
+        await Promise.all([
+          db.select<UdbModel[]>(
+            "SELECT * FROM udb_unit_models WHERE unit_id = $1 ORDER BY line_order",
+            [unit.id],
+          ),
+          db.select<UdbWeapon[]>(
+            fr
+              ? "SELECT id, unit_id, weapon_group, line_order, COALESCE(name_fr, name) AS name, category, range, attacks, skill, strength, ap, damage, keywords FROM udb_unit_weapons WHERE unit_id = $1 ORDER BY weapon_group, line_order"
+              : "SELECT id, unit_id, weapon_group, line_order, name, category, range, attacks, skill, strength, ap, damage, keywords FROM udb_unit_weapons WHERE unit_id = $1 ORDER BY weapon_group, line_order",
+            [unit.id],
+          ),
+          db.select<UdbAbility[]>(
+            fr
+              ? "SELECT id, unit_id, line_order, COALESCE(name_fr, name) AS name, COALESCE(description_fr, description) AS description, ability_type FROM udb_unit_abilities WHERE unit_id = $1 ORDER BY line_order"
+              : "SELECT id, unit_id, line_order, name, description, ability_type FROM udb_unit_abilities WHERE unit_id = $1 ORDER BY line_order",
+            [unit.id],
+          ),
+          db.select<UdbKeyword[]>(
+            "SELECT * FROM udb_unit_keywords WHERE unit_id = $1 ORDER BY is_faction DESC, keyword",
+            [unit.id],
+          ),
+          db.select<UdbPointsTier[]>(
+            "SELECT * FROM udb_unit_points WHERE unit_id = $1 ORDER BY model_count",
+            [unit.id],
+          ),
+          db.select<UdbComposition[]>(
+            "SELECT * FROM udb_unit_composition WHERE unit_id = $1",
+            [unit.id],
+          ),
+        ]);
+
+      return {
+        ...unit,
+        models,
+        weapons,
+        abilities,
+        keywords,
+        points,
+        composition,
+      };
+    }),
+  );
+}
+
 export async function getUdbOwnershipForUnit(
   udbUnitId: string,
 ): Promise<UdbOwnershipEntry | null> {
