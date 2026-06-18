@@ -37,11 +37,20 @@ interface LeaderAttachmentSheetProps {
  * matching) to determine which units are valid targets. Called ONCE at
  * sheet level — never per-row (D-07 / Pitfall 6).
  *
- * NULL fallback (D-09 / Pitfall 5): when the leader unit has a NULL
- * udb_unit_id, validTargetIds is set to null (PERMISSIVE sentinel — shows
- * ALL units as selectable). An empty Set would mean "canonically no valid
- * targets". Never confuse null with an empty Set: ghost/manual units must
- * keep the ability to attach.
+ * NULL fallback (D-09 / Pitfall 5): if a leader unit reaches this sheet with a
+ * NULL udb_unit_id, validTargetIds is set to null (PERMISSIVE sentinel — shows
+ * ALL units as selectable) rather than an empty Set ("canonically no valid
+ * targets"). Never confuse the two: null = "no canonical data, don't restrict",
+ * empty Set = "canonically zero valid targets".
+ *
+ * Scope (accepted UAT decision, Phase 137 item 3): leader attachment is
+ * canonical-only by design. The "Attach Leader" affordance (isLeader in
+ * ArmyListUnitRow) is derived from canonical udb_leader_targets pairs, so a
+ * ghost/manual unit with no udb_unit_id does not surface an Attach button and
+ * does not reach this sheet — both the leader and its target must be linked to
+ * the canonical database. The permissive sentinel above is a defensive guard
+ * for the rare case a canonical leader row carries a NULL udb_unit_id, not a
+ * path for ghost leaders.
  *
  * Architecture: follows the EnhancementPickerSheet sibling portal pattern.
  * State lives in ArmyListsPage; this Sheet is rendered as a sibling.
