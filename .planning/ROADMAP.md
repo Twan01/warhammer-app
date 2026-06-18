@@ -203,7 +203,7 @@
 | 135. Faction & Navigation Consolidation | 3/3 | Complete    | 2026-06-17 |
 | 136. Code Honesty & Decomposition | 4/4 | Complete    | 2026-06-17 |
 | 137. Canonical Leader Attachment | 4/4 | Complete    | 2026-06-18 |
-| 138. Player-Journey Depth | 4/4 | Complete   | 2026-06-18 |
+| 138. Player-Journey Depth | 4/4 | Complete    | 2026-06-18 |
 | 139. Data Quality at Scale | 0/? | Not started | - |
 
 <details>
