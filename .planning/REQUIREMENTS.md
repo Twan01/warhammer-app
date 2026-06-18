@@ -34,7 +34,7 @@
 
 ### Theme C — Player-Journey Depth (PLAY)
 
-- [ ] **PLAY-01**: The user can compare 2–3 unit datasheets side-by-side (stats, weapons, abilities, keywords, points) with differences highlighted; comparison reuses the shared `WeaponTable`.
+- [x] **PLAY-01**: The user can compare 2–3 unit datasheets side-by-side (stats, weapons, abilities, keywords, points) with differences highlighted; comparison reuses the shared `WeaponTable`.
 - [x] **PLAY-02**: A `udb_leader_targets` table (composite PK, both columns FK → `udb_units` ON DELETE CASCADE) is populated from Wahapedia `Datasheets_leader.csv` via the canonical build → bundled JSON → Rust import pipeline.
 - [x] **PLAY-03**: Leader attachment in the army-list builder validates against canonical attachment targets (only valid leader→target pairs permitted), replacing the fragile name-match guidance; the existing Phase-92 UI is repointed to the FK join.
 - [ ] **PLAY-04**: The Collection ⇆ Unit Database loop is bidirectional — from the Collection the user can open a unit's canonical datasheet and add units from the database; from the Unit Database the user sees how many of each unit they own ("owned N").
@@ -90,7 +90,7 @@
 | HON-11 | Phase 136 | Complete |
 | PLAY-02 | Phase 137 | Complete |
 | PLAY-03 | Phase 137 | Complete |
-| PLAY-01 | Phase 138 | Pending |
+| PLAY-01 | Phase 138 | Complete |
 | PLAY-04 | Phase 138 | Pending |
 | PLAY-05 | Phase 138 | Pending |
 | DAT-01 | Phase 139 | Pending |
