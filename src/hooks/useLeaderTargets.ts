@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getLeaderTargetsForList,
   type CanonicalLeaderPairRow,
+  getLeaderTargetsByFactionCanonical,
+  type CanonicalLeaderTargetRow,
 } from "@/db/queries/leaderTargets";
 
 /**
@@ -33,5 +35,32 @@ export function useLeaderTargets(listId: number | null) {
     enabled: listId != null,
     staleTime: Infinity, // canonical data — immutable between imports
     gcTime: Infinity,    // keep in cache as long as staleTime holds (FBK-10 alignment)
+  });
+}
+
+/**
+ * Phase 140 — Faction-scoped canonical leader-target hook (PLAY-02/03 secondary surface).
+ *
+ * Used by DatasheetPointsTab "Leader — Can attach to" section. Replaces the dead
+ * useLeaderTargetsByFaction backed by synced_leader_targets (zero writers post-Phase 137).
+ *
+ * Key namespace is "leader-targets-by-faction-canonical" (distinct from the retired
+ * "leader-targets-by-faction" key in useBsdataFaction.ts) to avoid cache collision (Pitfall 3).
+ *
+ * staleTime/gcTime: Infinity — canonical unit-database data is immutable between imports.
+ * enabled: false when factionId is undefined (disabled-state uses sentinel key).
+ */
+export const LEADER_TARGETS_BY_FACTION_KEY = (factionId: string) =>
+  ["leader-targets-by-faction-canonical", factionId] as const;
+
+export function useLeaderTargetsByFactionCanonical(factionId: string | undefined) {
+  return useQuery<CanonicalLeaderTargetRow[]>({
+    queryKey: factionId !== undefined
+      ? LEADER_TARGETS_BY_FACTION_KEY(factionId)
+      : (["leader-targets-by-faction-canonical", "disabled"] as const),
+    queryFn: () => getLeaderTargetsByFactionCanonical(factionId!),
+    enabled: factionId !== undefined,
+    staleTime: Infinity,
+    gcTime: Infinity,
   });
 }

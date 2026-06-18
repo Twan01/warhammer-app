@@ -1,6 +1,49 @@
 import { getDb } from "@/db/client";
 
 /**
+ * Phase 140 — Canonical faction-scoped leader-target query (PLAY-02/03 secondary surface).
+ *
+ * Returned for the Rules Hub DatasheetPointsTab "Leader — Can attach to" section.
+ * Shape is identical to the retired SyncedLeaderTargetRow (D-04) so the JSX
+ * filter/badge body in DatasheetContent needs no changes.
+ */
+export interface CanonicalLeaderTargetRow {
+  leader_name: string;
+  faction_id: string | null;
+  target_name: string;
+}
+
+/**
+ * Returns all canonical leader-target pairs for a given faction, derived from
+ * udb_leader_targets joined through udb_units (D-01, D-02).
+ *
+ * Join path:
+ *   udb_leader_targets lt
+ *   → udb_units leader_u ON leader_u.id = lt.leader_unit_id
+ *   → udb_units target_u ON target_u.id = lt.target_unit_id
+ *   WHERE leader_u.faction_id = $1
+ *
+ * NO DISTINCT: composite PK on (leader_unit_id, target_unit_id) + 1:1 name joins
+ * guarantee no duplicates (RESEARCH-verified).
+ *
+ * Security: factionId bound via $1 positional param — no string interpolation (T-140-01).
+ */
+export async function getLeaderTargetsByFactionCanonical(
+  factionId: string,
+): Promise<CanonicalLeaderTargetRow[]> {
+  const db = await getDb();
+  return db.select<CanonicalLeaderTargetRow[]>(
+    `SELECT leader_u.name AS leader_name, leader_u.faction_id, target_u.name AS target_name
+     FROM udb_leader_targets lt
+     JOIN udb_units leader_u ON leader_u.id = lt.leader_unit_id
+     JOIN udb_units target_u ON target_u.id = lt.target_unit_id
+     WHERE leader_u.faction_id = $1
+     ORDER BY leader_name, target_name`,
+    [factionId],
+  );
+}
+
+/**
  * Phase 137 — Canonical leader-attachment query module (PLAY-03).
  *
  * getLeaderTargetsForList joins army_list_units through the canonical
