@@ -188,7 +188,10 @@
   2. All 25 factions' unit data (points, stats, weapons, abilities, keywords) is audited against Wahapedia and corrected (the 22 factions beyond the already-audited SM/NEC/DG).
   3. French ability and weapon descriptions are added for the audited factions, extending the existing `_fr` overlay (`COALESCE(col_fr, col)` query layer), with user overrides and favorites/notes preserved across the re-import.
 **Plans**: 4 plans
-  - [ ] Plans to be defined when Phase 139 is planned (DAT-01, DAT-02, DAT-03)
+  - [ ] 139-01-PLAN.md — DAT-01 referential-integrity gate: validateRefs helper + build-script check + fk-integrity.test.ts (PRAGMA foreign_key_check)
+  - [ ] 139-02-PLAN.md — DAT-02/03 tooling: audit-faction.ts --all batch mode + pnpm audit:all (25 reports) + reimport-preservation.test.ts
+  - [ ] 139-03-PLAN.md — DAT-02/03 batch 1 (Xenos+Chaos: TYR,ORK,TAU,AE,DRU,CD,WE,EC,CSM,TS,GC,QI,QT): pipeline corrections + FR overlay
+  - [ ] 139-04-PLAN.md — DAT-02/03 batch 2 (Imperium+rest: AM,GK,AC,AS,AdM,AoI,LoV,TL,UN): corrections + FR overlay + full-suite close
 **Notes**: Heaviest phase of the milestone (DAT-02 + DAT-03 are L-sized). Expect multiple plans â likely one for FK/orphan validation, then incremental faction-audit + translation batches. Keep all data work keyed on stable Wahapedia IDs and migrations idempotent so re-runs never clobber overrides.
 
 ## Progress
