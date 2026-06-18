@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.6.0
 milestone_name: Bulletproof & Honest
-status: milestone_complete
-stopped_at: Milestone complete (Phase 139 was final phase)
-last_updated: 2026-06-18T12:00:14.888Z
+status: Not started
+stopped_at: Phase 140 context gathered
+last_updated: "2026-06-18T13:40:55.414Z"
 last_activity: 2026-06-18
 progress:
-  total_phases: 10
+  total_phases: 11
   completed_phases: 10
   total_plans: 31
   completed_plans: 31
-  percent: 100
+  percent: 91
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-15)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore
-**Current focus:** Milestone complete
+**Current focus:** Phase 140 — close PLAY-02/03 Rules Hub tail (v0.6.0 audit gap)
 
 ## Current Position
 
-Phase: 139
+Phase: 140
 Plan: Not started
-Status: Milestone complete
+Status: Not started
 Last activity: 2026-06-18
 
 Progress: [██████████] 100%
@@ -46,6 +46,10 @@ Progress: [██████████] 100%
 *Updated after each plan completion*
 
 ## Accumulated Context
+
+### Roadmap Evolution
+
+- Phase 140 added: Close PLAY-02/03 tail: repoint Rules Hub DatasheetPointsTab from dead synced_leader_targets to canonical udb_leader_targets (from v0.6.0 milestone audit gap)
 
 ### Key Decisions (carried forward)
 
@@ -115,9 +119,9 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-18T11:25:25.289Z
-Stopped at: Phase 139 context gathered
-Resume file: None
+Last session: 2026-06-18T13:40:55.407Z
+Stopped at: Phase 140 context gathered
+Resume file: .planning/phases/140-close-play-02-03-tail-repoint-rules-hub-datasheetpointstab-f/140-CONTEXT.md
 
 ## Operator Next Steps
 
