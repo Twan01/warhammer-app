@@ -30,6 +30,7 @@ vi.mock("@/hooks/useDatasheet", () => ({
     data: [{ id: "SM", name: "Space Marines" }],
   })),
   useDatasheetsByFactionWithPoints: vi.fn(() => ({ data: [], isLoading: false })),
+  usePointTiers: vi.fn(() => ({ data: [] })),
   RULES_SYNC_META_KEY: ["rules-sync-meta"],
 }));
 
