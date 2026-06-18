@@ -1,15 +1,15 @@
 /**
  * Faction data audit script: compares unit_database.json against Wahapedia CSV
- * source data for a single faction, producing a structured error report.
+ * source data for a single faction (or all 25), producing a structured error report.
  *
  * Usage:
  *   node --experimental-strip-types scripts/audit-faction.ts SM
- *   node --experimental-strip-types scripts/audit-faction.ts NEC
- *   node --experimental-strip-types scripts/audit-faction.ts DG
+ *   node --experimental-strip-types scripts/audit-faction.ts --all
+ *   node --experimental-strip-types scripts/audit-faction.ts SM --output-dir=/path/to/reports
  *
  * Output:
- *   .planning/phases/113-priority-faction-data-audit/reports/{faction}-audit.json
- *   .planning/phases/113-priority-faction-data-audit/reports/{faction}-audit.md
+ *   .planning/phases/139-data-quality-at-scale/reports/{faction}-audit.json
+ *   .planning/phases/139-data-quality-at-scale/reports/{faction}-audit.md
  */
 
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
@@ -186,39 +186,50 @@ const SHARED_CHAOS_VEHICLES = new Set([
 ]);
 
 // ---------------------------------------------------------------------------
-// FACTION_NAMES for human-readable reports
+// FACTION_NAMES for human-readable reports (all 25 factions)
 // ---------------------------------------------------------------------------
 
 const FACTION_NAMES: Record<string, string> = {
   SM: "Space Marines",
   NEC: "Necrons",
   DG: "Death Guard",
+  AC: "Adeptus Custodes",
+  AdM: "Adeptus Mechanicus",
+  AE: "Aeldari",
+  AM: "Astra Militarum",
+  AoI: "Agents of the Imperium",
+  AS: "Adepta Sororitas",
+  CD: "Chaos Daemons",
+  CSM: "Chaos Space Marines",
+  DRU: "Drukhari",
+  EC: "Emperor's Children",
+  GC: "Genestealer Cults",
+  GK: "Grey Knights",
+  LoV: "Leagues of Votann",
+  ORK: "Orks",
+  QI: "Imperial Knights",
+  QT: "Chaos Knights",
+  TAU: "T'au Empire",
+  TL: "The Legion of the Damned",
+  TS: "Thousand Sons",
+  TYR: "Tyranids",
+  UN: "Unaligned",
+  WE: "World Eaters",
 };
 
 // ---------------------------------------------------------------------------
-// Main
+// Per-faction audit logic
 // ---------------------------------------------------------------------------
 
-function main() {
-  const factionId = process.argv[2]?.toUpperCase();
-  if (!factionId || !["SM", "NEC", "DG"].includes(factionId)) {
-    console.error("Usage: node --experimental-strip-types scripts/audit-faction.ts <SM|NEC|DG>");
-    process.exit(1);
-  }
-
+function auditFaction(
+  factionId: string,
+  udb: UnitDatabaseJson,
+  coverage: CoverageReport,
+  DATA_DIR: string,
+  REPORTS_DIR: string,
+): void {
   const factionName = FACTION_NAMES[factionId] ?? factionId;
   console.log(`\n=== Auditing ${factionName} (${factionId}) ===\n`);
-
-  // Load data
-  const DATA_DIR = join(__dirname, "data");
-  const UDB_PATH = join(REPO_ROOT, "src-tauri", "data", "unit_database.json");
-  const COVERAGE_PATH = join(DATA_DIR, "coverage-report.json");
-  const REPORTS_DIR = join(REPO_ROOT, ".planning", "phases", "113-priority-faction-data-audit", "reports");
-
-  mkdirSync(REPORTS_DIR, { recursive: true });
-
-  const udb: UnitDatabaseJson = JSON.parse(readFileSync(UDB_PATH, "utf-8"));
-  const coverage: CoverageReport = JSON.parse(readFileSync(COVERAGE_PATH, "utf-8"));
 
   // Load CSV data
   const datasheets = readCsvFile(DATA_DIR, "Datasheets.csv");
@@ -772,6 +783,49 @@ function generateMarkdown(report: FactionAuditReport): string {
 function truncate(s: string, maxLen: number): string {
   if (s.length <= maxLen) return s.replace(/\|/g, "\\|").replace(/\n/g, " ");
   return s.slice(0, maxLen - 3).replace(/\|/g, "\\|").replace(/\n/g, " ") + "...";
+}
+
+// ---------------------------------------------------------------------------
+// Entry point
+// ---------------------------------------------------------------------------
+
+function main() {
+  const DATA_DIR = join(__dirname, "data");
+  const UDB_PATH = join(REPO_ROOT, "src-tauri", "data", "unit_database.json");
+  const COVERAGE_PATH = join(DATA_DIR, "coverage-report.json");
+
+  // Resolve output directory: --output-dir=<path> flag overrides default Phase 139 dir
+  const outputDirArg = process.argv.find((a) => a.startsWith("--output-dir="))?.split("=")[1];
+  const REPORTS_DIR = outputDirArg
+    ? outputDirArg
+    : join(REPO_ROOT, ".planning", "phases", "139-data-quality-at-scale", "reports");
+
+  mkdirSync(REPORTS_DIR, { recursive: true });
+
+  const udb: UnitDatabaseJson = JSON.parse(readFileSync(UDB_PATH, "utf-8"));
+  const coverage: CoverageReport = JSON.parse(readFileSync(COVERAGE_PATH, "utf-8"));
+
+  const arg = process.argv[2]?.toUpperCase();
+
+  if (arg === "--ALL") {
+    const factionIds = udb.factions.map((f) => f.id);
+    console.log(`\nBatch audit: ${factionIds.length} factions`);
+    for (const id of factionIds) {
+      auditFaction(id, udb, coverage, DATA_DIR, REPORTS_DIR);
+    }
+    console.log(`\n=== Batch audit complete: ${factionIds.length} factions ===`);
+    return;
+  }
+
+  // Single faction mode
+  const knownFactionIds = new Set(udb.factions.map((f) => f.id));
+  if (!arg || !knownFactionIds.has(arg)) {
+    console.error(`Usage: node --experimental-strip-types scripts/audit-faction.ts <FACTION_ID|--all>`);
+    console.error(`Known faction IDs: ${[...knownFactionIds].sort().join(", ")}`);
+    process.exit(1);
+  }
+
+  auditFaction(arg, udb, coverage, DATA_DIR, REPORTS_DIR);
 }
 
 // Run

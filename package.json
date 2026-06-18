@@ -13,7 +13,8 @@
     "tauri": "tauri",
     "check:version": "node scripts/check-version.mjs",
     "build:udb": "node --experimental-strip-types scripts/build-unit-db.ts",
-    "download:wahapedia": "node --experimental-strip-types scripts/download-wahapedia.ts"
+    "download:wahapedia": "node --experimental-strip-types scripts/download-wahapedia.ts",
+    "audit:all": "node --experimental-strip-types scripts/audit-faction.ts --all"
   },
   "dependencies": {
     "@dnd-kit/core": "6.3.1",
