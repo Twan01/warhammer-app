@@ -43,8 +43,8 @@
 ### Theme D — Data Quality at Scale (DAT)
 
 - [x] **DAT-01**: The build/data pipeline validates referential integrity (FK/orphan checks — e.g. `PRAGMA foreign_key_check`, orphan `sub_faction`, orphan leader-target pairs) and fails the build on violations; covered by data-layer tests.
-- [ ] **DAT-02**: All 25 factions' unit data (points, stats, weapons, abilities, keywords) is audited against Wahapedia and corrected (the 22 factions beyond the already-audited SM/NEC/DG).
-- [ ] **DAT-03**: French ability and weapon descriptions are added for the audited factions, extending the existing `_fr` overlay (`COALESCE(col_fr, col)` query layer).
+- [x] **DAT-02**: All 25 factions' unit data (points, stats, weapons, abilities, keywords) is audited against Wahapedia and corrected (the 22 factions beyond the already-audited SM/NEC/DG).
+- [x] **DAT-03**: French ability and weapon descriptions are added for the audited factions, extending the existing `_fr` overlay (`COALESCE(col_fr, col)` query layer).
 
 ## Future Requirements (deferred)
 
@@ -94,8 +94,8 @@
 | PLAY-04 | Phase 138 | Complete |
 | PLAY-05 | Phase 138 | Complete |
 | DAT-01 | Phase 139 | Complete |
-| DAT-02 | Phase 139 | Pending |
-| DAT-03 | Phase 139 | Pending |
+| DAT-02 | Phase 139 | Complete |
+| DAT-03 | Phase 139 | Complete |
 
 **Coverage:**
 - v0.6.0 requirements: 27 total
