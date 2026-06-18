@@ -38,16 +38,16 @@ created: 2026-06-17
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 137-01-T1 | 01 | 1 | PLAY-02 | T-137-01 | LF discipline + CR-byte scan (checksum-drift guard) | build-gate | `git ls-files --eol src-tauri/migrations/050_udb_leader_targets.sql \| grep -q "w/lf" && pnpm check:version` | ✅ existing (check-version.mjs) | ⬜ pending |
-| 137-01-T2 | 01 | 1 | PLAY-02 | T-137-02 | Composite PK + FK CASCADE schema asserted | data-layer | `pnpm test -- tests/data-layer/leader-targets.test.ts && pnpm test -- tests/data-layer/migration-parity.test.ts` | ❌ W0 → created by this task | ⬜ pending |
-| 137-02-T1 | 02 | 2 | PLAY-02 | T-137-05 | console.warn on missing columns / zero pairs (V5 input validation) | type-check | `npx tsc --noEmit 2>&1 \| tail -10` | ✅ existing (tsc) | ⬜ pending |
-| 137-02-T2 | 02 | 2 | PLAY-02 | T-137-03 | sqlx positional binds (no SQL interpolation) | rust-compile | `cargo check 2>&1 \| tail -15` | ✅ existing (cargo) | ⬜ pending |
-| 137-02-T3 | 02 | 2 | PLAY-02 | T-137-04 | validUnitIds guard bounds dataset; live header confirmed | artifact-check | `node -e "const j=require('./src-tauri/data/unit_database.json'); if(!Array.isArray(j.leader_targets)\|\|j.leader_targets.length===0){process.exit(1)}"` | ✅ existing (node) | ⬜ pending |
-| 137-03-T1 | 03 | 3 | PLAY-03 | T-137-06 | `$1` positional bind for listId (no interpolation) | build-gate | `pnpm build 2>&1 \| tail -5` | ✅ existing (build) | ⬜ pending |
-| 137-03-T2 | 03 | 3 | PLAY-03 | T-137-07, T-137-08 | permissive NULL fallback (no regression); single page-level hook (no N+1) | build-gate | `pnpm build 2>&1 \| tail -8` | ✅ existing (build) | ⬜ pending |
-| 137-03-T3 | 03 | 3 | PLAY-03 | T-137-07 | permissive NULL fallback regression guard (Pitfall 5) | component | `pnpm test -- tests/features/army-lists/LeaderAttachmentSheet.test.tsx` | ❌ W0 → created by this task | ⬜ pending |
-| 137-04-T1 | 04 | 4 | PLAY-03 | T-137-09, T-137-10 | explicit KEEP of rules-hub read path; grep gate asserts zero remaining writers | build-gate + grep | `if grep -rn "replaceSyncedLeaderTargets\|INSERT INTO synced_leader_targets\|DELETE FROM synced_leader_targets" src/; then exit 1; fi; pnpm build 2>&1 \| tail -5` | ✅ existing (build + grep) | ⬜ pending |
-| 137-04-T2 | 04 | 4 | PLAY-03 | T-137-09 | full-suite + parity regression gate after cleanup | full-suite | `pnpm check:version && pnpm test` | ✅ existing (full suite) | ⬜ pending |
+| 137-01-T1 | 01 | 1 | PLAY-02 | T-137-01 | LF discipline + CR-byte scan (checksum-drift guard) | build-gate | `git ls-files --eol src-tauri/migrations/050_udb_leader_targets.sql \| grep -q "w/lf" && pnpm check:version` | ✅ existing (check-version.mjs) | ✅ green |
+| 137-01-T2 | 01 | 1 | PLAY-02 | T-137-02 | Composite PK + FK CASCADE schema asserted | data-layer | `pnpm test -- tests/data-layer/leader-targets.test.ts && pnpm test -- tests/data-layer/migration-parity.test.ts` | ✅ created (tests/data-layer/leader-targets.test.ts) | ✅ green |
+| 137-02-T1 | 02 | 2 | PLAY-02 | T-137-05 | console.warn on missing columns / zero pairs (V5 input validation) | type-check | `npx tsc --noEmit 2>&1 \| tail -10` | ✅ existing (tsc) | ✅ green |
+| 137-02-T2 | 02 | 2 | PLAY-02 | T-137-03 | sqlx positional binds (no SQL interpolation) | rust-compile | `cargo check 2>&1 \| tail -15` | ✅ existing (cargo) | ✅ green |
+| 137-02-T3 | 02 | 2 | PLAY-02 | T-137-04 | validUnitIds guard bounds dataset; live header confirmed | artifact-check | `node -e "const j=require('./src-tauri/data/unit_database.json'); if(!Array.isArray(j.leader_targets)\|\|j.leader_targets.length===0){process.exit(1)}"` | ✅ existing (node) | ✅ green |
+| 137-03-T1 | 03 | 3 | PLAY-03 | T-137-06 | `$1` positional bind for listId (no interpolation) | build-gate | `pnpm build 2>&1 \| tail -5` | ✅ existing (build) | ✅ green |
+| 137-03-T2 | 03 | 3 | PLAY-03 | T-137-07, T-137-08 | permissive NULL fallback (no regression); single page-level hook (no N+1) | build-gate | `pnpm build 2>&1 \| tail -8` | ✅ existing (build) | ✅ green |
+| 137-03-T3 | 03 | 3 | PLAY-03 | T-137-07 | permissive NULL fallback regression guard (Pitfall 5) | component | `pnpm test -- tests/army-lists/LeaderAttachmentSheet.test.tsx` | ✅ created (tests/army-lists/LeaderAttachmentSheet.test.tsx) | ✅ green |
+| 137-04-T1 | 04 | 4 | PLAY-03 | T-137-09, T-137-10 | explicit KEEP of rules-hub read path; grep gate asserts zero remaining writers | build-gate + grep | `if grep -rn "replaceSyncedLeaderTargets\|INSERT INTO synced_leader_targets\|DELETE FROM synced_leader_targets" src/; then exit 1; fi; pnpm build 2>&1 \| tail -5` | ✅ existing (build + grep) | ✅ green |
+| 137-04-T2 | 04 | 4 | PLAY-03 | T-137-09 | full-suite + parity regression gate after cleanup | full-suite | `pnpm check:version && pnpm test` | ✅ existing (full suite) | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -57,7 +57,7 @@ created: 2026-06-17
 
 - [x] Data-layer test exercising the new `udb_leader_targets` migration (050) — schema + composite PK + FK CASCADE. **Satisfied by 137-01-T2** (creates `tests/data-layer/leader-targets.test.ts`).
 - [x] Migration-parity coverage: `pnpm test -- tests/data-layer/migration-parity.test.ts` green after 050 lands (disk-derived count auto-updates; `lib.rs` Migration{} block must be added). **Satisfied by 137-01-T1** (registers `Migration { version: 50 }`) + asserted green in **137-01-T2**.
-- [x] Component test for the leader-attachment UI — canonical path + permissive NULL fallback. **Satisfied by 137-03-T3** (creates `tests/features/army-lists/LeaderAttachmentSheet.test.tsx`).
+- [x] Component test for the leader-attachment UI — canonical path + permissive NULL fallback. **Satisfied by 137-03-T3** (creates `tests/army-lists/LeaderAttachmentSheet.test.tsx`).
 
 *If none: "Existing infrastructure covers all phase requirements."*
 
@@ -84,4 +84,21 @@ created: 2026-06-17
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** ready
+
+---
+
+## Validation Audit 2026-06-18
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+**Findings:**
+- All 9 per-task verifications classified **COVERED** — every referenced test exists and the full suite runs green (`2831 passed, 0 failed`).
+- Wave 0 deliverables confirmed on disk: `tests/data-layer/leader-targets.test.ts`, `tests/army-lists/LeaderAttachmentSheet.test.tsx`; migration-parity asserts migration 050 in chain.
+- **Corrected** row 137-03-T3 command path: `tests/features/army-lists/...` → `tests/army-lists/...` (test was created at the latter path per Plan 03 summary; original contract path did not exist).
+- No tests generated — no MISSING/PARTIAL gaps. `nyquist_compliant: true` confirmed.
+- Manual-only items (runtime import + Tauri UI behavior) remain manual by design.
 </content>
