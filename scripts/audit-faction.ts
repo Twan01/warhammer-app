@@ -387,21 +387,31 @@ function auditFaction(
       // main weapons, or Bolt pistol option-group vs always-available weapons).
       // Position match requires name agreement; only then fall back to:
       //   (a) name + category match (handles duplicate names like "Corrupted stave"
-      //       with both Melee and Ranged versions — picks the correct one by type),
-      //   (b) name-only match (legacy fallback for unique weapon names).
-      const csvWeapon = csvUnitWargear.find(
+      //       with both Melee and Ranged versions — picks the correct one by type).
+      //       NOTE: dbWeapon.category is sourced as `wargear_role ?? type`
+      //       (weaponMapping.ts), so we compare against BOTH possible CSV sources
+      //       to avoid a systematic miss when wargear_role is populated.
+      //   (b) name-only match — ONLY when there is exactly one CSV row with that
+      //       name; if multiple rows share the name (e.g. two "Corrupted stave"
+      //       profiles) and tiers 1+2 both miss, we skip rather than guessing at
+      //       the wrong profile, which would mask real discrepancies.
+      const nameMatches = csvUnitWargear.filter(
+        (r) => (r["name"]?.trim() ?? "").toLowerCase() === dbWeapon.name.toLowerCase(),
+      );
+      const tier1 = csvUnitWargear.find(
         (r) =>
           parseInt(r["line"]?.trim() ?? "0", 10) === dbWeapon.weapon_group &&
           parseInt(r["line_in_wargear"]?.trim() ?? "0", 10) === dbWeapon.line_order &&
           (r["name"]?.trim() ?? "").toLowerCase() === dbWeapon.name.toLowerCase()
-      ) ?? csvUnitWargear.find(
-        (r) =>
-          (r["name"]?.trim() ?? "").toLowerCase() === dbWeapon.name.toLowerCase() &&
-          (r["type"]?.trim() ?? "").toLowerCase() === dbWeapon.category.toLowerCase()
-      ) ?? csvUnitWargear.find(
-        (r) => (r["name"]?.trim() ?? "").toLowerCase() === dbWeapon.name.toLowerCase()
       );
-      if (!csvWeapon) continue;
+      const tier2 = tier1 === undefined ? nameMatches.find(
+        (r) =>
+          // dbWeapon.category = wargear_role ?? type; compare against both sources
+          (r["wargear_role"]?.trim() ?? r["type"]?.trim() ?? "").toLowerCase() === dbWeapon.category.toLowerCase() ||
+          (r["type"]?.trim() ?? "").toLowerCase() === dbWeapon.category.toLowerCase()
+      ) : undefined;
+      const csvWeapon = tier1 ?? tier2 ?? (nameMatches.length === 1 ? nameMatches[0] : undefined);
+      if (!csvWeapon) continue; // ambiguous (multiple same-name profiles) or absent — do not guess
 
       const weaponFields: Array<{ field: string; csvCol: string; dbVal: string }> = [
         { field: "weapon.category", csvCol: "type", dbVal: dbWeapon.category },
