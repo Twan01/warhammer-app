@@ -1,4 +1,5 @@
 import { GitCompare } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +11,7 @@ import {
 import type { UdbUnitSummary } from "@/db/queries/unitDatabase";
 import { PAINTING_STATUS_ORDER } from "@/types/unit";
 import { useDatabaseBrowserFilters } from "./databaseBrowserFilters";
+import { useCollectionFilters } from "@/features/units/collectionFilters";
 
 interface UdbUnitRowProps {
   unit: UdbUnitSummary;
@@ -79,6 +81,8 @@ function resolveReadinessLabel(allStatuses: string): string {
 export function UdbUnitRow({ unit, onOpen, ownershipData }: UdbUnitRowProps) {
   const isOwned = ownershipData != null && ownershipData.owned_count > 0;
   const { compareIds, addToCompare, removeFromCompare } = useDatabaseBrowserFilters();
+  // Phase 138-03 D-06: deep-link into the Collection filtered to this unit
+  const setUdbUnitIdFilter = useCollectionFilters((s) => s.setUdbUnitIdFilter);
   const isInCompare = compareIds.has(unit.id);
   // Cap: disabled when 3 are already selected AND this unit is not one of them
   const compareDisabled = compareIds.size >= 3 && !isInCompare;
@@ -107,9 +111,18 @@ export function UdbUnitRow({ unit, onOpen, ownershipData }: UdbUnitRowProps) {
         </Badge>
       )}
       {isOwned && (
-        <Badge variant="outline" className="text-xs shrink-0">
-          Owned x{ownershipData.owned_count}
-        </Badge>
+        <Link
+          to="/collection"
+          onClick={(e) => {
+            e.stopPropagation();
+            setUdbUnitIdFilter(unit.id);
+          }}
+          aria-label={`View ${ownershipData.owned_count} owned ${unit.name} in Collection`}
+        >
+          <Badge variant="outline" className="text-xs shrink-0 hover:bg-secondary cursor-pointer">
+            Owned x{ownershipData.owned_count}
+          </Badge>
+        </Link>
       )}
       {isOwned && (
         <span

@@ -94,6 +94,8 @@ vi.mock("@/hooks/useUnitDatabase", () => ({
   useUdbUnits: vi.fn(() => ({ data: [], isLoading: false })),
   useUdbOwnership: vi.fn(() => ({ data: [] })),
   useUdbUnitOwnership: vi.fn(() => ({ data: undefined })),
+  // Phase 138-03 D-07: faction-agnostic ownership hook — must be present in any mock of this module
+  useUdbOwnershipAll: vi.fn(() => ({ data: [] })),
   useUdbKeywords: vi.fn(() => ({ data: undefined })),
   useUdbSubFactions: vi.fn(() => ({ data: [] })),
 }));

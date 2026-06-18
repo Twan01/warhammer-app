@@ -10,6 +10,7 @@ import {
   useUdbUnits,
   useUdbOwnership,
   useUdbUnitOwnership,
+  useUdbOwnershipAll,
   useUdbKeywords,
   useUdbSubFactions,
 } from "@/hooks/useUnitDatabase";
@@ -96,6 +97,19 @@ export function DatabaseBrowserPage() {
     }
     return map;
   }, [ownershipEntries]);
+
+  // Phase 138-03 D-07: faction-agnostic ownership map for cross-faction search results
+  const { data: ownershipAllEntries = [] } = useUdbOwnershipAll();
+  const ownershipAllMap = useMemo(() => {
+    const map = new Map<string, { owned_count: number; all_statuses: string }>();
+    for (const entry of ownershipAllEntries) {
+      map.set(entry.udb_unit_id, {
+        owned_count: entry.owned_count,
+        all_statuses: entry.all_statuses,
+      });
+    }
+    return map;
+  }, [ownershipAllEntries]);
 
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const { data: unitOwnership } = useUdbUnitOwnership(selectedUnitId);
@@ -240,6 +254,7 @@ export function DatabaseBrowserPage() {
         <UdbSearchResults
           query={searchText}
           onSelectResult={(unitId) => setSelectedUnitId(unitId)}
+          ownershipAllMap={ownershipAllMap}
         />
       ) : (
         <div className="flex gap-0 min-h-0 flex-1">

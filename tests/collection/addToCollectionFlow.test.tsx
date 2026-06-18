@@ -51,6 +51,20 @@ vi.mock("@/components/ui/collapsible", () => ({
   CollapsibleTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
+// Mock Link — UdbDatasheetSheet now uses Link for the owned-badge deep link (138-03 D-06)
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children, to, onClick }: { children: React.ReactNode; to: string; onClick?: () => void }) => (
+    <a href={to} onClick={onClick}>{children}</a>
+  ),
+  useNavigate: () => vi.fn(),
+}));
+
+// Mock collectionFilters — UdbDatasheetSheet now calls useCollectionFilters (138-03 D-06)
+vi.mock("@/features/units/collectionFilters", () => ({
+  useCollectionFilters: (selector: (s: { setUdbUnitIdFilter: ReturnType<typeof vi.fn> }) => unknown) =>
+    selector({ setUdbUnitIdFilter: vi.fn() }),
+}));
+
 import { UdbDatasheetSheet } from "@/features/unit-database/UdbDatasheetSheet";
 
 function renderSheet(

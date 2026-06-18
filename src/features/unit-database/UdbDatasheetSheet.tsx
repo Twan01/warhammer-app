@@ -1,4 +1,5 @@
 import { ChevronDown, Plus } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import {
   Sheet,
   SheetContent,
@@ -19,6 +20,7 @@ import { useUdbUnitDetail } from "@/hooks/useUnitDatabase";
 import type { UdbAbility, UdbUnitDetail } from "@/db/queries/unitDatabase";
 import { UdbStatBlock } from "./UdbStatBlock";
 import { WeaponTable } from "@/features/units/WeaponTable";
+import { useCollectionFilters } from "@/features/units/collectionFilters";
 
 const SECTION_LABEL =
   "text-xs font-semibold text-muted-foreground uppercase tracking-wide";
@@ -39,6 +41,8 @@ export function UdbDatasheetSheet({
   ownershipData,
 }: UdbDatasheetSheetProps) {
   const { data: unit, isLoading } = useUdbUnitDetail(unitId);
+  // Phase 138-03 D-06: deep-link into the Collection filtered to this unit
+  const setUdbUnitIdFilter = useCollectionFilters((s) => s.setUdbUnitIdFilter);
 
   const rangedWeapons = (unit?.weapons ?? []).filter(
     (w) => w.category?.toLowerCase() === "ranged",
@@ -110,6 +114,21 @@ export function UdbDatasheetSheet({
                     ? "Add Another to Collection"
                     : "Add to Collection"}
                 </Button>
+              </div>
+            )}
+
+            {/* Phase 138-03 D-06: Owned badge deep-links to filtered Collection */}
+            {ownershipData && ownershipData.owned_count > 0 && (
+              <div className="px-4 pt-1 pb-0">
+                <Link
+                  to="/collection"
+                  onClick={() => setUdbUnitIdFilter(unit.id)}
+                  aria-label={`View ${ownershipData.owned_count} owned ${unit.name} in Collection`}
+                >
+                  <Badge variant="outline" className="text-xs hover:bg-secondary cursor-pointer">
+                    Owned x{ownershipData.owned_count}
+                  </Badge>
+                </Link>
               </div>
             )}
 
