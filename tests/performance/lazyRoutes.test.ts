@@ -20,12 +20,12 @@ describe("lazyRoutes", () => {
     expect(routerSource).toMatch(/import\s*\{[^}]*Suspense[^}]*\}\s*from\s*["']react["']/);
   });
 
-  it("router.tsx contains exactly 17 React.lazy dynamic imports (one per page)", () => {
-    // 17 after Phase 135 (HON-06) removed the standalone /factions route — faction
-    // management now lives in the Settings → Factions tab, not a top-level lazy route.
+  it("router.tsx contains exactly 18 React.lazy dynamic imports (one per page)", () => {
+    // 18 after Phase 138-01 added the /unit-database/compare route.
+    // 17 was the count after Phase 135 (HON-06) removed the standalone /factions route.
     const lazyMatches = routerSource.match(/=\s*lazy\(\s*\(\)/g);
     expect(lazyMatches).not.toBeNull();
-    expect(lazyMatches!.length).toBe(17);
+    expect(lazyMatches!.length).toBe(18);
   });
 
   it("router.tsx has zero static page imports from route modules", () => {
@@ -88,6 +88,8 @@ describe("lazyRoutes", () => {
     const lazyDeclarationLines = routerSource
       .split("\n")
       .filter((line) => line.includes("= lazy(") && line.includes(".then(m => ({ default: m."));
+    // 17 single-line lazy declarations; UnitComparePage uses a multi-line format
+    // (counts as 1 lazy import but spans 3 lines, so only 17 match this single-line filter)
     expect(lazyDeclarationLines.length).toBe(17);
   });
 });

@@ -22,6 +22,7 @@
  */
 import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { GoalProgressCard } from "./GoalProgressCard";
 import { Plus, Paintbrush } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -431,6 +432,14 @@ export function DashboardPage() {
                 />
               ))}
             </div>
+          </section>
+
+          {/* Hobby Goals section (PLAY-05) — active goal progress widget */}
+          <section className="flex flex-col gap-4">
+            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+              Hobby Goals
+            </p>
+            <GoalProgressCard />
           </section>
         </div>
 
