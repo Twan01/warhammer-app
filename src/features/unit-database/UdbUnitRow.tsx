@@ -36,7 +36,10 @@ export function resolveWorstStatus(allStatuses: string): string {
     const idx = PAINTING_STATUS_ORDER.indexOf(
       status as (typeof PAINTING_STATUS_ORDER)[number],
     );
-    if (idx < worstIndex) {
+    // Skip unrecognized statuses (idx === -1) — e.g. an empty GROUP_CONCAT
+    // segment from a NULL status_painting — so they cannot falsely lock the
+    // "worst" status ahead of recognized ones (CR-01).
+    if (idx !== -1 && idx < worstIndex) {
       worstIndex = idx;
       worstStatus = status;
     }

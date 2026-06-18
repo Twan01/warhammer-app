@@ -71,7 +71,8 @@ export function CollectionPage() {
     categoriesSel.length > 0 ||
     activeOnly ||
     battleReady ||
-    subFactionFilter !== null;
+    subFactionFilter !== null ||
+    udbUnitIdFilter !== null;
 
   const preFilteredUnits = useMemo(
     () =>

@@ -113,6 +113,14 @@ describe("resolveWorstStatus (Plan 02 Task 1 — RED until then)", () => {
   it("handles all same statuses", () => {
     expect(resolveWorstStatus("Primed|Primed")).toBe("Primed");
   });
+
+  // CR-01 regression: an unrecognized segment (e.g. an empty string from a
+  // NULL status_painting in GROUP_CONCAT) must NOT lock the "worst" status —
+  // recognized statuses must still win.
+  it("ignores unrecognized/empty segments and returns a recognized worst", () => {
+    expect(resolveWorstStatus("|Built|Primed")).toBe("Built");
+    expect(resolveWorstStatus("Varnished|unknown_status|Built")).toBe("Built");
+  });
 });
 
 // ---------------------------------------------------------------------------
