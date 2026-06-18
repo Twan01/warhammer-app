@@ -14,7 +14,7 @@ updated: 2026-06-17T22:06:50Z
 
 ### 1. Canonical leader attachment in live app
 expected: In `pnpm tauri dev`, opening an army list and clicking "Attach Leader" on a canonical leader (e.g. a Captain) offers only the units the canonical `udb_leader_targets` table (1,901 rows) marks as valid targets for that leader — no fragile name-matching. Invalid targets are not offered.
-result: [pending]
+result: PASSED (2026-06-18). Verified live: in an Ultramarines list, "Captain in Gravis Armour" offered only Aggressors and "Captain" (plain) offered only Assault Intercessors — two leaders, two correct per-leader target subsets, confirming the FK-join validation. NOTE: surfaced + fixed a stale-cache bug during this test (commit 52ec9635) — leader-targets cache was not invalidated on unit add/remove, so a leader added after first page load showed no Attach button until reload.
 
 ### 2. Ghost target unit selectable for a canonical leader
 expected: A ghost/manual unit (NULL `udb_unit_id`) present in the same list still appears as a selectable target under the permissive fallback when attaching a canonical leader — targets with NULL udb_unit_id are never hard-blocked.
@@ -27,9 +27,9 @@ result: [pending]
 ## Summary
 
 total: 3
-passed: 0
+passed: 1
 issues: 0
-pending: 3
+pending: 2
 skipped: 0
 blocked: 0
 
