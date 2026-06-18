@@ -1,6 +1,6 @@
 # Emperor's Children (EC) Data Audit Report
 
-**Audited:** 2026-06-18T11:23:21.613Z
+**Audited:** 2026-06-18T11:48:30.520Z
 **Matched units:** 23
 **Unmatched units:** 0
 **Per-unit errors:** 0

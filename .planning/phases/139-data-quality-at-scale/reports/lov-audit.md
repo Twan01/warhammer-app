@@ -1,6 +1,6 @@
 # Leagues of Votann (LoV) Data Audit Report
 
-**Audited:** 2026-06-18T11:23:21.738Z
+**Audited:** 2026-06-18T11:48:30.643Z
 **Matched units:** 22
 **Unmatched units:** 0
 **Per-unit errors:** 0
