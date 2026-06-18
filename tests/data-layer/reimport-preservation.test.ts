@@ -12,11 +12,9 @@
  * resolves to a non-null udb_units row after re-import, because the udb_units row
  * is re-inserted with the same Wahapedia ID.
  *
- * The re-import simulation mirrors the DELETE order in src-tauri/src/lib.rs lines 769-790:
- *   udb_leader_targets, udb_unit_keywords, udb_unit_points, udb_unit_composition,
- *   udb_unit_abilities, udb_unit_weapons, udb_unit_models, udb_units, udb_factions
- *   (+ stratagems/enhancements/detachment tables — omitted from seed since we are
- *   not seeding those, but DELETE order is preserved)
+ * The re-import simulation deletes all udb_* tables under FK-OFF; the order is
+ * functionally irrelevant because FK enforcement is disabled during the delete pass.
+ * (The real lib.rs import also runs all deletes under FK-OFF for the same reason.)
  *
  * Uses createHobbyforgeDb() from db-helpers (all 50+ migrations, PRAGMA FK = ON).
  * Each test gets a fresh in-memory DB via beforeEach/afterEach — no state leaks.
@@ -57,7 +55,8 @@ function simulateReimport(
 ): void {
   db.pragma("foreign_keys = OFF");
 
-  // DELETE in lib.rs order (lines 769-790)
+  // DELETE all udb_* tables under FK-OFF — order is irrelevant because FK
+  // enforcement is disabled during the delete pass (same as lib.rs behavior)
   db.prepare(`DELETE FROM udb_leader_targets`).run();
   db.prepare(`DELETE FROM udb_unit_keywords`).run();
   db.prepare(`DELETE FROM udb_unit_points`).run();
