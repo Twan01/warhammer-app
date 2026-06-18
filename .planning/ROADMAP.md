@@ -205,7 +205,7 @@
   3. For a faction with canonical leader pairs, the section renders real leader→target rows; the empty state shows only when a faction genuinely has none.
 **Notes**: This is the unfinished tail of Phase 136's deferred CR-01 — Phase 137 repointed the army-list builder (`LeaderAttachmentSheet`) but not the Rules Hub display. Identified by the v0.6.0 milestone audit (`.planning/v0.6.0-MILESTONE-AUDIT.md`). Likely a single small plan: new faction-scoped query + hook swap + component test.
 **Plans**: 1 plan
-- [ ] 140-01-PLAN.md — Faction-scoped canonical leader-targets query + hook, repoint DatasheetPointsTab off the dead synced table, retire dead readers, data-layer test (PLAY-02/03)
+- [x] 140-01-PLAN.md — Faction-scoped canonical leader-targets query + hook, repoint DatasheetPointsTab off the dead synced table, retire dead readers, data-layer test (PLAY-02/03)
 
 ## Progress
 
@@ -221,7 +221,7 @@
 | 137. Canonical Leader Attachment | 4/4 | Complete    | 2026-06-18 |
 | 138. Player-Journey Depth | 4/4 | Complete    | 2026-06-18 |
 | 139. Data Quality at Scale | 4/4 | Complete    | 2026-06-18 |
-| 140. Close PLAY-02/03 Tail (Rules Hub leader display) | 0/1 | Not Started |  |
+| 140. Close PLAY-02/03 Tail (Rules Hub leader display) | 1/1 | Complete   | 2026-06-18 |
 
 <details>
 <summary>â v0.5.2 UX Polish & Consistency (Phases 126-129) â SHIPPED 2026-06-12</summary>

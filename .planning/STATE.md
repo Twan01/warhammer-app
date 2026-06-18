@@ -4,8 +4,8 @@ milestone: v0.6.0
 milestone_name: Bulletproof & Honest
 status: executing
 stopped_at: Phase 140 context gathered
-last_updated: "2026-06-18T14:04:31.903Z"
-last_activity: 2026-06-18 -- Phase 140 planning complete
+last_updated: "2026-06-18T14:05:58.871Z"
+last_activity: 2026-06-18 -- Phase 140 execution started
 progress:
   total_phases: 11
   completed_phases: 10
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-15)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore
-**Current focus:** Phase 140 — close PLAY-02/03 Rules Hub tail (v0.6.0 audit gap)
+**Current focus:** Phase 140 — close-play-02-03-tail-repoint-rules-hub-datasheetpointstab-f
 
 ## Current Position
 
-Phase: 140
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-18 -- Phase 140 planning complete
+Phase: 140 (close-play-02-03-tail-repoint-rules-hub-datasheetpointstab-f) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 140
+Last activity: 2026-06-18 -- Phase 140 execution started
 
 Progress: [██████████] 100%
 
