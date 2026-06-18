@@ -1,6 +1,15 @@
+import { GitCompare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { UdbUnitSummary } from "@/db/queries/unitDatabase";
 import { PAINTING_STATUS_ORDER } from "@/types/unit";
+import { useDatabaseBrowserFilters } from "./databaseBrowserFilters";
 
 interface UdbUnitRowProps {
   unit: UdbUnitSummary;
@@ -69,6 +78,14 @@ function resolveReadinessLabel(allStatuses: string): string {
 
 export function UdbUnitRow({ unit, onOpen, ownershipData }: UdbUnitRowProps) {
   const isOwned = ownershipData != null && ownershipData.owned_count > 0;
+  const { compareIds, addToCompare, removeFromCompare } = useDatabaseBrowserFilters();
+  const isInCompare = compareIds.has(unit.id);
+  // Cap: disabled when 3 are already selected AND this unit is not one of them
+  const compareDisabled = compareIds.size >= 3 && !isInCompare;
+
+  const compareAriaLabel = isInCompare
+    ? `Remove ${unit.name} from comparison`
+    : `Add ${unit.name} to comparison`;
 
   return (
     <div
@@ -100,6 +117,41 @@ export function UdbUnitRow({ unit, onOpen, ownershipData }: UdbUnitRowProps) {
           title={resolveReadinessLabel(ownershipData.all_statuses)}
         />
       )}
+
+      {/* Compare toggle — icon-only button with tooltip (UI-SPEC FLAG) */}
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={[
+                "h-6 w-6 shrink-0",
+                isInCompare ? "text-faction-accent bg-faction-accent/10" : "",
+                compareDisabled ? "opacity-50 cursor-not-allowed" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              disabled={compareDisabled}
+              aria-label={compareAriaLabel}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (isInCompare) {
+                  removeFromCompare(unit.id);
+                } else {
+                  addToCompare(unit.id);
+                }
+              }}
+            >
+              <GitCompare size={16} aria-hidden="true" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{compareAriaLabel}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
       <span className="text-xs text-muted-foreground tabular-nums w-20 text-right shrink-0">
         {unit.base_points !== null ? `from ${unit.base_points} pts` : "—"}
       </span>

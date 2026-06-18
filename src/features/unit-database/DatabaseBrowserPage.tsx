@@ -26,6 +26,7 @@ import { UnitSheet } from "@/features/units/UnitSheet";
 import type { UdbUnitDetail } from "@/db/queries/unitDatabase";
 import type { UnitFormValues } from "@/features/units/unitSchema";
 import { PageHeader } from "@/components/common/PageHeader";
+import { UnitCompareActionBar } from "./UnitCompareActionBar";
 
 export function DatabaseBrowserPage() {
   const { data: factions = [], isLoading: factionsLoading } = useUdbFactions();
@@ -301,6 +302,9 @@ export function DatabaseBrowserPage() {
         udbFactionName={pendingUdbFactionName}
         onConfirm={handleFactionLinkConfirm}
       />
+
+      {/* Sticky compare action bar — appears when >=1 unit is selected */}
+      <UnitCompareActionBar />
     </div>
   );
 }

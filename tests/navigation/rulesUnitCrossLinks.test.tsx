@@ -99,17 +99,26 @@ vi.mock("@/hooks/useUnitDatabase", () => ({
 }));
 
 vi.mock("@/features/unit-database/databaseBrowserFilters", () => ({
-  useDatabaseBrowserFilters: () => ({
-    selectedFactionId: null,
-    searchText: "",
-    subFactionFilter: null,
-    roleFilter: null,
-    keywordFilter: null,
-    pointMin: null,
-    pointMax: null,
-    setSelectedFactionId: vi.fn(),
-    setSearchText: vi.fn(),
-  }),
+  useDatabaseBrowserFilters: (selector?: (s: unknown) => unknown) => {
+    const state = {
+      selectedFactionId: null,
+      searchText: "",
+      subFactionFilter: null,
+      roleFilter: null,
+      keywordFilter: null,
+      pointMin: null,
+      pointMax: null,
+      // Phase 138-02: compareIds needed by UnitCompareActionBar + UdbUnitRow
+      compareIds: new Set<string>(),
+      clearCompare: vi.fn(),
+      addToCompare: vi.fn(),
+      removeFromCompare: vi.fn(),
+      setSelectedFactionId: vi.fn(),
+      setSearchText: vi.fn(),
+    };
+    if (typeof selector === "function") return selector(state);
+    return state;
+  },
 }));
 
 vi.mock("@/features/unit-database/applyUdbFilters", () => ({
