@@ -199,7 +199,7 @@
 | 134. No Dead Ends | 2/2 | Complete    | 2026-06-17 |
 | 135. Faction & Navigation Consolidation | 3/3 | Complete    | 2026-06-17 |
 | 136. Code Honesty & Decomposition | 4/4 | Complete    | 2026-06-17 |
-| 137. Canonical Leader Attachment | 3/4 | In Progress|  |
+| 137. Canonical Leader Attachment | 4/4 | Complete    | 2026-06-18 |
 | 138. Player-Journey Depth | 0/? | Not started | - |
 | 139. Data Quality at Scale | 0/? | Not started | - |
 
