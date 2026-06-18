@@ -475,4 +475,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-17 — Phase 136 (Code Honesty & Decomposition) complete; HON-08..HON-11 validated (1 accepted override on orchestrator line count). Theme B Phases 133–136 done; next Phase 137 (Canonical Leader Attachment).*
+*Last updated: 2026-06-18 — Phase 137 (Canonical Leader Attachment) complete; PLAY-02/PLAY-03 validated. New `udb_leader_targets` table (migration 050, 1,901 pairs) shipped through the canonical pipeline with content-hash version bump; army-list builder repointed off name-matching onto the FK join, plus a leader-targets cache-invalidation fix found during UAT. Leader attachment is canonical-only by accepted decision (ghost units excluded). Theme C (Player-Journey Depth) underway; next Phase 138 (unit comparison, Collection ⇆ Unit Database loop, dashboard goals).*
