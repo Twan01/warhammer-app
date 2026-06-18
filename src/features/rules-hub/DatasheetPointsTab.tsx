@@ -97,9 +97,10 @@ function DatasheetDetail({
   if (!data) return null;
 
   const unitLoadouts = loadoutOptions.filter((l) => l.unit_name === unitName);
-  const unitLeaderTargets = leaderTargets.filter(
-    (l) => l.leader_name === unitName,
-  );
+  // Match on the expanded datasheet's stable id against leader_id — udb_units.name
+  // has no UNIQUE constraint, so leader_name === unitName would conflate same-named
+  // leaders' targets (WR-01). data.id is the udb_units PK fetched by getUdbUnitDetail.
+  const unitLeaderTargets = leaderTargets.filter((l) => l.leader_id === data.id);
 
   return (
     <DatasheetContent
@@ -222,7 +223,7 @@ function DatasheetContent({
           <div className="flex flex-wrap gap-1.5">
             {leaderTargets.map((t) => (
               <Badge
-                key={t.target_name}
+                key={t.target_id}
                 variant="outline"
                 className="text-xs"
               >

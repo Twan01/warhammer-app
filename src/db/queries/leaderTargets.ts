@@ -4,13 +4,17 @@ import { getDb } from "@/db/client";
  * Phase 140 — Canonical faction-scoped leader-target query (PLAY-02/03 secondary surface).
  *
  * Returned for the Rules Hub DatasheetPointsTab "Leader — Can attach to" section.
- * Shape is identical to the retired synced-table row type (D-04) so the JSX
- * filter/badge body in DatasheetContent needs no changes.
+ * Carries stable leader_id/target_id (udb_units PK) alongside the display names so
+ * DatasheetContent can key badges on target_id and filter on leader_id — udb_units.name
+ * has no UNIQUE constraint, so name-keying/name-filtering risks React duplicate-key
+ * warnings and target conflation across same-named units (WR-01).
  */
 export interface CanonicalLeaderTargetRow {
   leader_name: string;
+  leader_id: string;
   faction_id: string | null;
   target_name: string;
+  target_id: string;
 }
 
 /**
@@ -33,7 +37,8 @@ export async function getLeaderTargetsByFactionCanonical(
 ): Promise<CanonicalLeaderTargetRow[]> {
   const db = await getDb();
   return db.select<CanonicalLeaderTargetRow[]>(
-    `SELECT leader_u.name AS leader_name, leader_u.faction_id, target_u.name AS target_name
+    `SELECT leader_u.name AS leader_name, leader_u.id AS leader_id,
+            leader_u.faction_id, target_u.name AS target_name, target_u.id AS target_id
      FROM udb_leader_targets lt
      JOIN udb_units leader_u ON leader_u.id = lt.leader_unit_id
      JOIN udb_units target_u ON target_u.id = lt.target_unit_id
