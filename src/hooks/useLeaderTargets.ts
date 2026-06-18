@@ -52,12 +52,16 @@ export const LEADER_TARGETS_BY_FACTION_KEY = (factionId: string) =>
   ["leader-targets-by-faction-canonical", factionId] as const;
 
 export function useLeaderTargetsByFactionCanonical(factionId: string | undefined) {
+  // Treat empty-string factionId as disabled: "" is not undefined, so the bare
+  // `!== undefined` guard would fire a wasted DB round-trip and pollute the cache
+  // with a ["...","" ] key. Route the disabled case to the sentinel key (WR-02).
+  const enabled = factionId !== undefined && factionId !== "";
   return useQuery<CanonicalLeaderTargetRow[]>({
-    queryKey: factionId !== undefined
-      ? LEADER_TARGETS_BY_FACTION_KEY(factionId)
+    queryKey: enabled
+      ? LEADER_TARGETS_BY_FACTION_KEY(factionId!)
       : (["leader-targets-by-faction-canonical", "disabled"] as const),
     queryFn: () => getLeaderTargetsByFactionCanonical(factionId!),
-    enabled: factionId !== undefined,
+    enabled,
     staleTime: Infinity,
     gcTime: Infinity,
   });
