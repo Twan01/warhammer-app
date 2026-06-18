@@ -391,6 +391,27 @@ export async function getUdbOwnershipByFaction(
   );
 }
 
+/**
+ * Phase 138-03 PLAY-04 D-07: Returns aggregated ownership data per udb_unit_id
+ * across ALL factions (faction-agnostic superset of getUdbOwnershipByFaction).
+ *
+ * No parameters — static aggregate over the local units table. No user-supplied
+ * input → no injection surface (T-138-05).
+ *
+ * Reuses the existing UdbOwnershipEntry type (same shape as faction-scoped query).
+ */
+export async function getOwnedCountsByUdbUnitId(): Promise<UdbOwnershipEntry[]> {
+  const db = await getDb();
+  return db.select<UdbOwnershipEntry[]>(
+    `SELECT u.udb_unit_id,
+            COUNT(*) AS owned_count,
+            GROUP_CONCAT(u.status_painting, '|') AS all_statuses
+     FROM units u
+     WHERE u.udb_unit_id IS NOT NULL
+     GROUP BY u.udb_unit_id`,
+  );
+}
+
 export async function getUdbKeywordsByFaction(
   factionId: string,
 ): Promise<Map<string, string>> {

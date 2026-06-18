@@ -19,6 +19,7 @@ import {
   searchUdbUnits,
   getUdbOwnershipByFaction,
   getUdbOwnershipForUnit,
+  getOwnedCountsByUdbUnitId,
   getUdbKeywordsByFaction,
   getDistinctSubFactions,
   getUdbUnitIdsBySubFaction,
@@ -175,6 +176,30 @@ export function useUdbUnitOwnership(unitId: string | null) {
     queryKey: unitId ? ["udb-ownership-unit", unitId] as const : ["udb-ownership-unit", "disabled"] as const,
     queryFn: () => unitId ? getUdbOwnershipForUnit(unitId) : Promise.resolve(null),
     enabled: !!unitId,
+    staleTime: 0,
+  });
+}
+
+/**
+ * Phase 138-03 PLAY-04 D-07: Faction-agnostic ownership hook.
+ *
+ * Returns owned counts across ALL factions. Used by cross-faction search results
+ * (UdbSearchResults) which operates outside the faction picker context where the
+ * faction-scoped useUdbOwnership hook would have no selected faction.
+ *
+ * staleTime: 0 (ownership is dynamic — changes whenever a unit is added/removed).
+ * Must be invalidated by all units mutations (D-08) — see useUnits.ts.
+ *
+ * Key is distinct from ["udb-ownership", factionId] — NOT covered by the
+ * existing prefix invalidation of ["udb-ownership"] in useUnits.ts. Explicit
+ * invalidation of ["udb-ownership-all"] is required in each mutation (PITFALL #9).
+ */
+export const UDB_OWNERSHIP_ALL_KEY = ["udb-ownership-all"] as const;
+
+export function useUdbOwnershipAll() {
+  return useQuery({
+    queryKey: UDB_OWNERSHIP_ALL_KEY,
+    queryFn: getOwnedCountsByUdbUnitId,
     staleTime: 0,
   });
 }

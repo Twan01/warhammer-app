@@ -45,8 +45,10 @@ export function useCreateUnit() {
       qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
       // Phase 32: army readiness depends on unit points + painting status
       qc.invalidateQueries({ queryKey: ["army-readiness"] });
-      // Phase 105 COL-04: refresh ownership badges
+      // Phase 105 COL-04: refresh ownership badges (faction-scoped)
       qc.invalidateQueries({ queryKey: ["udb-ownership"] });
+      // Phase 138-03 D-08: refresh faction-agnostic ownership (distinct key — NOT covered by prefix above)
+      qc.invalidateQueries({ queryKey: ["udb-ownership-all"] });
     },
   });
 }
@@ -70,8 +72,10 @@ export function useUpdateUnit() {
       qc.invalidateQueries({ queryKey: ["army-lists"] });
       // Phase 32: army readiness depends on unit points + painting status
       qc.invalidateQueries({ queryKey: ["army-readiness"] });
-      // Phase 105 COL-04: refresh ownership badges
+      // Phase 105 COL-04: refresh ownership badges (faction-scoped)
       qc.invalidateQueries({ queryKey: ["udb-ownership"] });
+      // Phase 138-03 D-08: refresh faction-agnostic ownership (distinct key — NOT covered by prefix above)
+      qc.invalidateQueries({ queryKey: ["udb-ownership-all"] });
     },
   });
 }
@@ -90,8 +94,10 @@ export function useDeleteUnit() {
       qc.invalidateQueries({ queryKey: ["hobby-analytics"] });
       // Phase 32: army readiness depends on unit points + painting status
       qc.invalidateQueries({ queryKey: ["army-readiness"] });
-      // Phase 105 COL-04: refresh ownership badges
+      // Phase 105 COL-04: refresh ownership badges (faction-scoped)
       qc.invalidateQueries({ queryKey: ["udb-ownership"] });
+      // Phase 138-03 D-08: refresh faction-agnostic ownership (distinct key — NOT covered by prefix above)
+      qc.invalidateQueries({ queryKey: ["udb-ownership-all"] });
     },
     // FK errors (unit in army_list_units) reject — handled by component try/catch with toast
   });
