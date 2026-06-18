@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useQuery, useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
+import { LEADER_TARGETS_KEY } from "@/hooks/useLeaderTargets";
 import {
   getArmyLists,
   getArmyListById,
@@ -71,6 +72,12 @@ function invalidateListDetail(qc: QueryClient, id: number) {
   qc.invalidateQueries({ queryKey: ARMY_LIST_KEY(id) });
   qc.invalidateQueries({ queryKey: ARMY_LIST_UNITS_KEY(id) });
   qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+  // Phase 137 (PLAY-03): the canonical leader-target pairs are filtered to
+  // units currently IN the list, so adding/removing a unit can change which
+  // leaders have a valid target (and thus show the Attach Leader button).
+  // useLeaderTargets caches with staleTime: Infinity, so it MUST be invalidated
+  // here or a leader added after first load never gets re-evaluated.
+  qc.invalidateQueries({ queryKey: LEADER_TARGETS_KEY(id) });
 }
 
 function invalidateListWithReadiness(qc: QueryClient, id: number) {

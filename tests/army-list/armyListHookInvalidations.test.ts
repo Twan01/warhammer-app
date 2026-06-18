@@ -37,6 +37,7 @@ vi.mock("@/db/queries/armyLists", () => ({
   getEnhancementsByList: vi.fn().mockResolvedValue([]),
 }));
 
+import { LEADER_TARGETS_KEY } from "@/hooks/useLeaderTargets";
 import {
   ARMY_LISTS_KEY,
   ARMY_LIST_KEY,
@@ -480,5 +481,33 @@ describe("useRemoveUnitFromList — invalidates unit-army-lists (HON-10 symmetry
     const { result } = renderHook(() => useRemoveUnitFromList(), { wrapper });
     await waitFor(async () => { await result.current.mutateAsync(VARS); });
     expect(invalidatedKeys(spy)).toContainEqual([...UNIT_ARMY_LISTS_PREFIX]);
+  });
+});
+
+// ─── Phase 137 (PLAY-03): list-composition changes invalidate leader-targets ──
+// getLeaderTargetsForList is filtered to units IN the list, and useLeaderTargets
+// caches with staleTime: Infinity. Adding/removing a unit MUST invalidate the
+// leader-targets cache or a leader added after first load never shows the Attach
+// Leader button. Regression guard for the Captain-not-attachable bug.
+
+describe("useAddUnitToList — invalidates leader-targets (Phase 137 PLAY-03)", () => {
+  const VARS = { list_id: 3, unit_id: 42 };
+
+  it("invalidates LEADER_TARGETS_KEY(list_id) so a newly-added leader is re-evaluated", async () => {
+    const { spy, wrapper } = makeWrapper();
+    const { result } = renderHook(() => useAddUnitToList(), { wrapper });
+    await waitFor(async () => { await result.current.mutateAsync(VARS); });
+    expect(invalidatedKeys(spy)).toContainEqual(LEADER_TARGETS_KEY(3));
+  });
+});
+
+describe("useRemoveUnitFromList — invalidates leader-targets (Phase 137 PLAY-03)", () => {
+  const VARS = { army_list_unit_id: 99, list_id: 3 };
+
+  it("invalidates LEADER_TARGETS_KEY(list_id) so removing a target re-evaluates leaders", async () => {
+    const { spy, wrapper } = makeWrapper();
+    const { result } = renderHook(() => useRemoveUnitFromList(), { wrapper });
+    await waitFor(async () => { await result.current.mutateAsync(VARS); });
+    expect(invalidatedKeys(spy)).toContainEqual(LEADER_TARGETS_KEY(3));
   });
 });
