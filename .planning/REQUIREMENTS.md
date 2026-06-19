@@ -11,7 +11,7 @@
 
 **Top engineering risk (carried from research):** progress is keyed by `recipe_step_id` (protected by three prior migrations + the whole v0.2.13 milestone). Live-linked technique steps can be added/removed/reordered, so technique-step progress MUST have a stable identity (`technique_step_id`, materialized or composite-keyed) or the v0.2.13 "completed step jumps" class of bug returns. This is requirement **FND-03**, the gate for everything else.
 
-**Open implementation decision to lock in Phase 1 (not a scope question):** materialize technique steps as concrete `recipe_steps` rows carrying a `technique_step_id` FK (Architecture researcher; recommended default) **vs.** keep them virtual and resolve at read-time with a composite-key progress table (Pitfalls/Features researchers). Both preserve the FND-03 invariant. See `.planning/research/SUMMARY.md` "#1 Open Design Decision". Captured as **FND-02**.
+**Open implementation decision to lock in Phase 1 (not a scope question):** materialize technique steps as concrete `recipe_steps` rows carrying a `technique_step_id` FK column pointing back to its source `technique_steps` row (Architecture researcher; recommended default) **vs.** keep them virtual and resolve at read-time with a composite-key progress table (Pitfalls/Features researchers). Both preserve the FND-03 invariant. See `.planning/research/SUMMARY.md` "#1 Open Design Decision". Captured as **FND-02**.
 
 ---
 
@@ -123,50 +123,50 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FND-01 | TBD | Pending |
-| FND-02 | TBD | Pending |
-| FND-03 | TBD | Pending |
-| FND-04 | TBD | Pending |
-| FND-05 | TBD | Pending |
-| TECH-01 | TBD | Pending |
-| TECH-02 | TBD | Pending |
-| TECH-03 | TBD | Pending |
-| TECH-04 | TBD | Pending |
-| TECH-05 | TBD | Pending |
-| SLOT-01 | TBD | Pending |
-| SLOT-02 | TBD | Pending |
-| SLOT-03 | TBD | Pending |
-| SLOT-04 | TBD | Pending |
-| SLOT-05 | TBD | Pending |
-| SLOT-06 | TBD | Pending |
-| LIB-01 | TBD | Pending |
-| LIB-02 | TBD | Pending |
-| LIB-03 | TBD | Pending |
-| LIB-04 | TBD | Pending |
-| APPLY-01 | TBD | Pending |
-| APPLY-02 | TBD | Pending |
-| APPLY-03 | TBD | Pending |
-| APPLY-04 | TBD | Pending |
-| APPLY-05 | TBD | Pending |
-| LINK-01 | TBD | Pending |
-| LINK-02 | TBD | Pending |
-| LINK-03 | TBD | Pending |
-| SAFE-01 | TBD | Pending |
-| SAFE-02 | TBD | Pending |
-| SAFE-03 | TBD | Pending |
-| INTG-01 | TBD | Pending |
-| INTG-02 | TBD | Pending |
-| INTG-03 | TBD | Pending |
-| INTG-04 | TBD | Pending |
-| INTG-05 | TBD | Pending |
-| INTG-06 | TBD | Pending |
-| INTG-07 | TBD | Pending |
+| FND-01 | Phase 141 | Pending |
+| FND-02 | Phase 141 | Pending |
+| FND-03 | Phase 141 | Pending |
+| FND-04 | Phase 141 | Pending |
+| FND-05 | Phase 141 | Pending |
+| TECH-01 | Phase 142 | Pending |
+| TECH-02 | Phase 142 | Pending |
+| TECH-03 | Phase 142 | Pending |
+| TECH-04 | Phase 142 | Pending |
+| TECH-05 | Phase 142 | Pending |
+| SLOT-01 | Phase 142 | Pending |
+| SLOT-02 | Phase 142 | Pending |
+| SLOT-03 | Phase 143 | Pending |
+| SLOT-04 | Phase 143 | Pending |
+| SLOT-05 | Phase 143 | Pending |
+| SLOT-06 | Phase 143 | Pending |
+| LIB-01 | Phase 142 | Pending |
+| LIB-02 | Phase 142 | Pending |
+| LIB-03 | Phase 142 | Pending |
+| LIB-04 | Phase 142 | Pending |
+| APPLY-01 | Phase 143 | Pending |
+| APPLY-02 | Phase 143 | Pending |
+| APPLY-03 | Phase 143 | Pending |
+| APPLY-04 | Phase 143 | Pending |
+| APPLY-05 | Phase 143 | Pending |
+| LINK-01 | Phase 144 | Pending |
+| LINK-02 | Phase 144 | Pending |
+| LINK-03 | Phase 144 | Pending |
+| SAFE-01 | Phase 146 | Pending |
+| SAFE-02 | Phase 146 | Pending |
+| SAFE-03 | Phase 146 | Pending |
+| INTG-01 | Phase 145 | Pending |
+| INTG-02 | Phase 145 | Pending |
+| INTG-03 | Phase 145 | Pending |
+| INTG-04 | Phase 145 | Pending |
+| INTG-05 | Phase 145 | Pending |
+| INTG-06 | Phase 145 | Pending |
+| INTG-07 | Phase 145 | Pending |
 
 **Coverage:**
-- v1 requirements: 37 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 37 ⚠️ (resolved by roadmapper)
+- v1 requirements: 38 total (5 FND + 5 TECH + 6 SLOT + 4 LIB + 5 APPLY + 3 LINK + 3 SAFE + 7 INTG)
+- Mapped to phases: 38/38
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-19*
-*Last updated: 2026-06-19 after initial definition*
+*Last updated: 2026-06-19 — traceability filled by roadmapper*
