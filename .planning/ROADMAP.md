@@ -27,201 +27,30 @@
 - â **v0.4.7 Wahapedia Pipeline & Full Data Import** â Phases 116-120 (shipped 2026-06-09)
 - â **v0.5.0 Settings & Preferences** â Phases 121-125 (shipped 2026-06-11)
 - â **v0.5.2 UX Polish & Consistency** â Phases 126-129 (shipped 2026-06-12)
-- ð¨ **v0.6.0 Bulletproof & Honest** â Phases 130-139 (in progress)
+- â **v0.6.0 Bulletproof & Honest** — Phases 130-140 (shipped 2026-06-19)
 
 ## Phases
 
-### v0.6.0 Bulletproof & Honest (Phases 130-139) â IN PROGRESS
+<details>
+<summary>â v0.6.0 Bulletproof & Honest (Phases 130-140) — SHIPPED 2026-06-19</summary>
 
-**Milestone Goal:** Make every update launch reliably and guard it with CI, stop the UI from showing untrue/dead state, then add the highest-value player-journey capabilities and broaden data quality â in that priority order (Theme A â B â C â D).
+**Milestone Goal:** Make every update launch reliably and guard it with CI, stop the UI from showing untrue/dead state, then add the highest-value player-journey capabilities and broaden data quality — in that priority order (Theme A → B → C → D).
 
-**Granularity:** standard Â· **Coverage:** 27/27 requirements mapped
+- [x] Phase 130: Migration Parity & Release Gate (2/2 plans) — completed 2026-06-15
+- [x] Phase 131: CI Test Gate (2/2 plans) — completed 2026-06-16
+- [x] Phase 132: Update Trustworthiness (4/4 plans) — completed 2026-06-17 (Theme A merged to master)
+- [x] Phase 133: Honest Data Provenance (2/2 plans) — completed 2026-06-17
+- [x] Phase 134: No Dead Ends (2/2 plans) — completed 2026-06-17
+- [x] Phase 135: Faction & Navigation Consolidation (3/3 plans) — completed 2026-06-17
+- [x] Phase 136: Code Honesty & Decomposition (4/4 plans) — completed 2026-06-17
+- [x] Phase 137: Canonical Leader Attachment (4/4 plans) — completed 2026-06-18
+- [x] Phase 138: Player-Journey Depth (4/4 plans) — completed 2026-06-18
+- [x] Phase 139: Data Quality at Scale (4/4 plans) — completed 2026-06-18
+- [x] Phase 140: Close PLAY-02/03 Tail / Rules Hub Leader Display (1/1 plan) — completed 2026-06-18
 
-> **Sequencing law:** Theme A (Phases 130â132) must land **and merge to `master`** â CI gate green + ONE verified real in-place NSIS update â **before** any Theme-B refactor begins. The reliability fix on `fix/update-breaks-app-launch` and the large refactors (HON-09, HON-08) must not coexist in-flight.
+Full details: `.planning/milestones/v0.6.0-ROADMAP.md`
 
-- [ ] **Phase 130: Migration Parity & Release Gate** (0/2 plans) â Self-deriving migration list + single parity check that makes the red test green and guards against checksum drift
-- [ ] **Phase 131: CI Test Gate** (0/2 plans) — PR-triggered CI runs the full suite and a tag can never publish on red
-- [ ] **Phase 132: Update Trustworthiness** (0/4 plans) â A real in-place NSIS update launches, relaunches, and leaves a diagnosable log trail (Theme A merges to master here)
-- [ ] **Phase 133: Honest Data Provenance** (0/2 plans) â Remove the fake "stale/sync" UI and replace it with a truthful build-version surface
-- [ ] **Phase 134: No Dead Ends** (0/2 plans) â Shared Abilities tab shows real data; "Link unit" always leads somewhere
-- [ ] **Phase 135: Faction & Navigation Consolidation** (0/3 plans) â Zero-data-loss faction consolidation, the redundant /factions page retired, Data Health folded into Settings
-- [ ] **Phase 136: Code Honesty & Decomposition** (0/4 plans) â One shared WeaponTable, a decomposed ArmyListDetailPage, hooks restored, the vestigial column resolved
-- [x] **Phase 137: Canonical Leader Attachment** (4/4 plans) â Leader-target data ships through the canonical pipeline and the builder validates real attachment pairs
-- [x] **Phase 138: Player-Journey Depth** (4/4 plans) â Side-by-side unit comparison, the Collection â Unit Database loop, and goals surfaced on the dashboard
-- [ ] **Phase 139: Data Quality at Scale** (0/? plans) â Pipeline FK/orphan validation, all 25 factions audited, French translations extended
-- [ ] **Phase 140: Close PLAY-02/03 Tail** (0/1 plans) — Repoint Rules Hub DatasheetPointsTab leader display from the dead `synced_leader_targets` table to canonical `udb_leader_targets` (v0.6.0 audit gap closure)
-
-## Phase Details
-
-### Phase 130: Migration Parity & Release Gate
-**Goal**: The build refuses to proceed unless every representation of the schema version agrees, and the migration list can never drift again.
-**Depends on**: Nothing (first phase; foundation of Theme A)
-**Requirements**: REL-03, REL-04, REL-05
-**Success Criteria** (what must be TRUE):
-  1. `pnpm test tests/data-layer/migration-parity.test.ts` passes (the currently-RED 046â047 gap is closed) and the wargear schema (047) is exercised by the data-layer suite.
-  2. The data-layer migration list is derived from disk (`readdirSync` of `src-tauri/migrations/`), so adding a new migration never re-breaks the parity test.
-  3. Running `pnpm check:version` fails when `package.json` version â  `tauri.conf.json` version, or when migration file count â  lib.rs `Migration{}` count â  data-layer migration-list length.
-  4. The release gate fails if any `src-tauri/migrations/*.sql` file contains a CR byte.
-**Plans**: 2 plans
-- [x] 130-01-PLAN.md â Disk-derive the data-layer migration list (REL-03) + assert the 047 wargear schema; turns the RED parity test green
-- [x] 130-02-PLAN.md â Extend check-version.mjs into the single release gate (version + migration-count + CR-byte) and wire it via a prebuild hook (REL-04, REL-05)
-
-### Phase 131: CI Test Gate
-**Goal**: A failing test or build can never reach the updater; CI is the wall every change passes through.
-**Depends on**: Phase 130 (the suite must be green before a blocking gate is switched on, or CI red-fails on first run)
-**Requirements**: REL-01, REL-02
-**Success Criteria** (what must be TRUE):
-  1. Opening a pull request runs `pnpm test` + `cargo test` + `pnpm build` and blocks merge on any failure.
-  2. The release workflow cannot publish a GitHub Release / `latest.json` unless the CI test job passed (`release.yml` `needs: test`).
-  3. The release job pins the Rust toolchain rather than floating it, so CI-green is not undone by a compiler delta.
-**Plans**: 2 plans
-- [x] 131-01-PLAN.md — Create rust-toolchain.toml pin + reusable ci.yml (pnpm test + cargo test + pnpm build on PR)
-- [x] 131-02-PLAN.md — Restructure release.yml (needs: test + pinned toolchain) + document branch protection (manual checkpoint)
-
-### Phase 132: Update Trustworthiness
-**Goal**: Installing an update over an existing install launches into the new version with no manual step, and a broken launch is diagnosable without devtools. **Theme A merges to `master` at the end of this phase.**
-**Depends on**: Phase 131 (verification only matters once the gate is green)
-**Requirements**: REL-06, REL-07, REL-08
-**Success Criteria** (what must be TRUE):
-  1. A real two-build in-place NSIS update (local `latest.json`) is performed end-to-end: the updated app launches, existing `%APPDATA%` data is preserved, and `preflight.log` records the repair/consistency outcome.
-  2. After an update downloads and installs, the app relaunches into the new version without a manual restart.
-  3. Frontend errors and failed-launch conditions are written to a persistent, size-capped `frontend.log` alongside `preflight.log`.
-**Plans**: 4 plans
-  - [x] 132-01-PLAN.md — frontend.log diagnostics: append_frontend_log command + size-cap + wire error/boot-failure handlers (REL-08)
-  - [x] 132-02-PLAN.md — auto-relaunch after install + explicit installMode passive + manual fallback (REL-07)
-  - [x] 132-03-PLAN.md — local two-build update tooling + manual REL-06 NSIS verification runbook (REL-06)
-  - [ ] 132-04-PLAN.md — full gate (test/cargo/build + CI green) + gated Theme A → master merge (D-11)
-
-### Phase 133: Honest Data Provenance
-**Goal**: No UI tells the user that bundled data is stale or that they should "sync" â the app states truthfully what data it carries.
-**Depends on**: Phase 132 (Theme A merged to master)
-**Requirements**: HON-01, HON-02
-**Success Criteria** (what must be TRUE):
-  1. `StaleDataBanner` and the dead "stale points" dashboard branches are gone, replaced by an honest data-provenance/version surface based on the build's content hash.
-  2. No UI offers a "sync" or "refresh data" action (the deliberate offline architecture is preserved).
-  3. All former `syncFreshness` consumers compile cleanly (`pnpm build` green) with no dead branches, dangling imports, or unused exports â and any *real* backup-staleness warning is preserved, not conflated with the fake sync staleness.
-**Plans**: 2 plans
-  - [x] 133-01-PLAN.md — warnings-layer signature cut: remove threaded freshness from computeUnitWarnings + 4 components/tests (HON-02)
-  - [x] 133-02-PLAN.md — honest provenance UI + delete syncFreshness.ts/StaleDataBanner + finish tests; preserve backup warning (HON-01)
-
-### Phase 134: No Dead Ends
-**Goal**: Every datasheet surface the user reaches leads somewhere real â no empty stub tabs, no permanent dead-end buttons.
-**Depends on**: Phase 133
-**Requirements**: HON-03, HON-04
-**Success Criteria** (what must be TRUE):
-  1. The Rules Hub "Shared Abilities" tab displays real faction shared/army-rule abilities from the canonical database (no empty stub).
-  2. A unit's datasheet "Link unit" action always leads to a way to link/match the unit against the canonical Unit Database â it is never a permanent dead end.
-**Plans**: 2 plans
-  - [x] 134-01-PLAN.md — HON-03: swap the empty Shared Abilities stub for useDetachmentAbilities + adapter; honest empty states
-  - [x] 134-02-PLAN.md — HON-04: remove the disabled Link-unit gate; CollectionFactionLinkDialog maps the faction; DatasheetPicker browse-all fallback
-**UI hint**: yes
-
-### Phase 135: Faction & Navigation Consolidation
-**Goal**: Faction management lives in one coherent home with zero data loss, and the sidebar stops carrying redundant destinations.
-**Depends on**: Phase 134
-**Requirements**: HON-05, HON-06, HON-07
-**Success Criteria** (what must be TRUE):
-  1. A **map-not-delete** migration consolidates user factions into the canonical faction model preserving every FK reference â units, army_lists, painting_sessions, wishlist, and `default_faction_id` theming â with zero data loss verified (every existing unit still resolves its faction, theming still loads cold, wishlist counts unchanged).
-  2. The standalone `/factions` sidebar page is removed, and faction create/edit/theming remains reachable from its new home with no loss of capability.
-  3. Data Health is moved out of the main sidebar into Settings â Data.
-**Plans**: 3 plans
-  - [x] 135-01-PLAN.md — HON-05: migration 048 map-not-delete faction consolidation + lib.rs entry (47→48) + zero-data-loss data-layer test + parity gates
-  - [x] 135-02-PLAN.md — HON-06: Settings → Factions tab (rehome FactionsPage verbatim) + remove /factions route/sidebar entry + delete page wrapper
-  - [x] 135-03-PLAN.md — HON-07: remove Data Health from sidebar MANAGEMENT_NAV + drop HeartPulse import (keep /data-health route + Settings card)
-**Notes**: HON-05 is the data-loss trap of the milestone (FK semantics: units RESTRICT, painting_recipes/army_lists SET NULL, wishlist CASCADE; default_faction_id is a TEXT app_settings value with no FK). The migration is its own verified step (Plan 01, Wave 1) and lands BEFORE the route/sidebar removals (Plans 02/03). Plans 02 and 03 both edit AppSidebar.tsx, so 03 is sequenced after 02 (Wave 3) to avoid a same-file conflict.
-**UI hint**: yes
-
-### Phase 136: Code Honesty & Decomposition
-**Goal**: The army-list and datasheet code is honest about its architecture â one shared weapon table, focused files, and every component going through hooks.
-**Depends on**: Phase 135 (Theme A merged; freshness removed in 133 simplifies the ArmyListDetailPage extraction)
-**Requirements**: HON-08, HON-09, HON-10, HON-11
-**Success Criteria** (what must be TRUE):
-  1. `WeaponTable` is a single shared component (duplicate `UdbWeaponsTable` eliminated) consumed by all datasheet/weapon surfaces, rendering identically (EN and FR) everywhere.
-  2. `ArmyListDetailPage` is decomposed into focused sub-components/hooks within the project's file-size conventions, with no behavior regression.
-  3. The 7 components that call query functions directly are routed through React Query hooks, restoring cache and invalidation guarantees with no hook-in-loop or N+1 regressions.
-  4. The vestigial `promoted_to_reminder` column is removed, or its retention is explicitly justified in the schema.
-**Plans**: 4 plans
-  - [x] 136-01-PLAN.md — HON-08: collapse 3 WeaponTable impls into the canonical units/WeaponTable; re-point DatasheetPointsTab + UdbDatasheetSheet; delete UdbWeaponsTable; render-contract test (wave 1)
-  - [x] 136-02-PLAN.md — HON-09: decompose ArmyListDetailPage (786 lines) into Header/QuickAdd/UnitTable/Portals + useArmyListExport hook; orchestrator <250, children <200; mechanical block-moves (wave 1)
-  - [x] 136-03-PLAN.md — HON-11: migration 049 DROP COLUMN promoted_to_reminder (LF) + lib.rs block 49 + battleLog.ts cleanup; parity gate green (wave 1)
-  - [x] 136-04-PLAN.md — HON-10: route the 5 genuine bypasses through named hooks (useEnhancementsByFaction, useBsdataFaction x3, useSnapshotData, useRecipeNamesByUnitIds, useUnitArmyLists) + add/remove invalidation symmetry fix (wave 2, depends 136-01)
-**Notes**: HON-08 (shared WeaponTable) GATES PLAY-01 (comparison consumes it). Do the decomposition (HON-09) as mechanical block-moves only, after the reliability branch has merged (Theme A done).
-**UI hint**: yes
-
-### Phase 137: Canonical Leader Attachment
-**Goal**: Leader attachment in the army-list builder validates against real canonical attachment pairs instead of fragile name matching.
-**Depends on**: Phase 136 (army-list table extraction lands first so the leader-target shape is written once)
-**Requirements**: PLAY-02, PLAY-03
-**Success Criteria** (what must be TRUE):
-  1. A `udb_leader_targets` table (composite PK, both columns FK â `udb_units` ON DELETE CASCADE) is created and populated from Wahapedia `Datasheets_leader.csv` via the canonical build â bundled JSON â Rust import pipeline.
-  2. Leader attachment in the builder permits only valid leaderâtarget pairs via the FK join (the Phase-92 UI repointed off name-matching), with a graceful fallback for units that have a NULL `udb_unit_id`.
-  3. Adding migration 050 re-triggers the Phase-130 parity gate and it passes (proving the gate works on a real new migration).
-**Plans**: 4 plans
-  - [x] 137-01-PLAN.md — migration 050 udb_leader_targets DDL (LF) + lib.rs version 50 + data-layer schema test (PLAY-02)
-  - [x] 137-02-PLAN.md — pipeline: CSV + build parse step + content-hash + Rust importer + rebuild bundled JSON (PLAY-02)
-  - [x] 137-03-PLAN.md — getLeaderTargetsForList query + useLeaderTargets(listId) rewrite + LeaderAttachmentSheet repoint + NULL permissive fallback + component test (PLAY-03)
-  - [x] 137-04-PLAN.md — remove dead replaceSyncedLeaderTargets writer + full-suite/parity regression gate (PLAY-03)
-**Notes**: PLAY-02 (migration 050 + pipeline) GATES PLAY-03 (validation UI rewire). The new migration re-triggers the REL-04 parity gate â this is expected/good.
-**UI hint**: yes
-
-### Phase 138: Player-Journey Depth
-**Goal**: The user can compare units side by side, see what they own straight from the database, and watch goal progress on the dashboard.
-**Depends on**: Phase 137 (comparison reuses the deduped WeaponTable from Phase 136; this phase groups the remaining player-journey features)
-**Requirements**: PLAY-01, PLAY-04, PLAY-05
-**Success Criteria** (what must be TRUE):
-  1. The user can compare 2â3 unit datasheets side-by-side (stats, weapons, abilities, keywords, points) with differences highlighted; comparison reuses the shared `WeaponTable` and fetches all units in one batched query (no hooks-in-loop / N+1).
-  2. The Collection â Unit Database loop is bidirectional: from the Collection the user opens a canonical datasheet and adds units; from the Unit Database the user sees an "owned ÃN" count per unit (via a single page-level Map lookup).
-  3. Hobby goal progress is surfaced on the dashboard with a progress visualization, after verifying the goal-progress derivation still computes correctly post-rules.db-elimination.
-**Plans**: 4 plans
-  - [x] 138-01-PLAN.md — Batch query getUdbUnitsByIds + useUdbUnitsByIds + compareIds store (cap 3) + /unit-database/compare route (PLAY-01)
-  - [x] 138-02-PLAN.md — Compare UI: UnitComparePage/Column/ActionBar, per-cell diff highlight, add-to-compare affordance (PLAY-01)
-  - [x] 138-03-PLAN.md — PLAY-04 audit-and-close: owned-badge deep link + cross-faction search ownership + invalidation symmetry (PLAY-04)
-  - [x] 138-04-PLAN.md — Dashboard GoalProgressCard widget reusing useGoals/useGoalProgress + session invalidation lock (PLAY-05)
-**Notes**: PLAY-01 consumes the shared WeaponTable from HON-08 (Phase 136). Verify PLAY-05's goal-progress derivation before building the visualization.
-**UI hint**: yes
-
-### Phase 139: Data Quality at Scale
-**Goal**: The canonical data is verifiably correct, broadly accurate across all factions, and the pipeline refuses to ship referential garbage.
-**Depends on**: Phase 138 (independent of Theme C; sequenced last as the heaviest body of work)
-**Requirements**: DAT-01, DAT-02, DAT-03
-**Success Criteria** (what must be TRUE):
-  1. The build/data pipeline validates referential integrity (FK/orphan checks â `PRAGMA foreign_key_check`, orphan `sub_faction`, orphan leader-target pairs) and **fails the build on violations**, covered by data-layer tests.
-  2. All 25 factions' unit data (points, stats, weapons, abilities, keywords) is audited against Wahapedia and corrected (the 22 factions beyond the already-audited SM/NEC/DG).
-  3. French ability and weapon descriptions are added for the audited factions, extending the existing `_fr` overlay (`COALESCE(col_fr, col)` query layer), with user overrides and favorites/notes preserved across the re-import.
-**Plans**: 4 plans
-  - [x] 139-01-PLAN.md — DAT-01 referential-integrity gate: validateRefs helper + build-script check + fk-integrity.test.ts (PRAGMA foreign_key_check)
-  - [x] 139-02-PLAN.md — DAT-02/03 tooling: audit-faction.ts --all batch mode + pnpm audit:all (25 reports) + reimport-preservation.test.ts
-  - [x] 139-03-PLAN.md — DAT-02/03 batch 1 (Xenos+Chaos: TYR,ORK,TAU,AE,DRU,CD,WE,EC,CSM,TS,GC,QI,QT): pipeline corrections + FR overlay
-  - [x] 139-04-PLAN.md — DAT-02/03 batch 2 (Imperium+rest: AM,GK,AC,AS,AdM,AoI,LoV,TL,UN): corrections + FR overlay + full-suite close
-**Notes**: Heaviest phase of the milestone (DAT-02 + DAT-03 are L-sized). Expect multiple plans â likely one for FK/orphan validation, then incremental faction-audit + translation batches. Keep all data work keyed on stable Wahapedia IDs and migrations idempotent so re-runs never clobber overrides.
-
-### Phase 140: Close PLAY-02/03 Tail — Rules Hub Leader Display (audit gap closure)
-**Goal**: The Rules Hub datasheet "Leader — Can attach to" section surfaces real canonical attachment targets instead of silently rendering empty off a dead table.
-**Depends on**: Phase 139 (closes a v0.6.0 milestone-audit gap; Phase 137's canonical pipeline already in place)
-**Requirements**: PLAY-02, PLAY-03 (completion — secondary surface)
-**Success Criteria** (what must be TRUE):
-  1. `DatasheetPointsTab`'s "Leader — Can attach to" section reads from the canonical `udb_leader_targets` table (faction-scoped join through `udb_units`), not the dead `synced_leader_targets` table.
-  2. `useLeaderTargetsByFaction` / `bsdataExtended` reads against `synced_leader_targets` are removed or repointed; no UI surface depends on the unwritten bsdata table.
-  3. For a faction with canonical leader pairs, the section renders real leader→target rows; the empty state shows only when a faction genuinely has none.
-**Notes**: This is the unfinished tail of Phase 136's deferred CR-01 — Phase 137 repointed the army-list builder (`LeaderAttachmentSheet`) but not the Rules Hub display. Identified by the v0.6.0 milestone audit (`.planning/v0.6.0-MILESTONE-AUDIT.md`). Likely a single small plan: new faction-scoped query + hook swap + component test.
-**Plans**: 1 plan
-- [x] 140-01-PLAN.md — Faction-scoped canonical leader-targets query + hook, repoint DatasheetPointsTab off the dead synced table, retire dead readers, data-layer test (PLAY-02/03)
-
-## Progress
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 130. Migration Parity & Release Gate | 2/2 | Complete    | 2026-06-15 |
-| 131. CI Test Gate | 2/2 | Complete    | 2026-06-16 |
-| 132. Update Trustworthiness | 3/4 | In Progress|  |
-| 133. Honest Data Provenance | 2/2 | Complete    | 2026-06-17 |
-| 134. No Dead Ends | 2/2 | Complete    | 2026-06-17 |
-| 135. Faction & Navigation Consolidation | 3/3 | Complete    | 2026-06-17 |
-| 136. Code Honesty & Decomposition | 4/4 | Complete    | 2026-06-17 |
-| 137. Canonical Leader Attachment | 4/4 | Complete    | 2026-06-18 |
-| 138. Player-Journey Depth | 4/4 | Complete    | 2026-06-18 |
-| 139. Data Quality at Scale | 4/4 | Complete    | 2026-06-18 |
-| 140. Close PLAY-02/03 Tail (Rules Hub leader display) | 1/1 | Complete    | 2026-06-18 |
+</details>
 
 <details>
 <summary>â v0.5.2 UX Polish & Consistency (Phases 126-129) â SHIPPED 2026-06-12</summary>

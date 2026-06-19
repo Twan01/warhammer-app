@@ -873,6 +873,54 @@
 
 ---
 
+## Milestone: v0.6.0 — Bulletproof & Honest
+
+**Shipped:** 2026-06-19
+**Phases:** 11 (130–140) | **Plans:** 32 | **Timeline:** 4 days (2026-06-15 → 2026-06-18)
+**Stats:** 260 commits, 341 files, +60,548 / −6,221 lines, 27/27 requirements, Nyquist 11/11, 2,896 tests green
+
+### What Was Built
+
+- **Theme A — Release & Reliability (130–132):** Disk-derived migration list closing the RED parity test; single three-leg `check:version` release gate (version + migration-count + CR-byte) via prebuild hook; PR-triggered CI (`pnpm test` + `cargo test` + `pnpm build`, pinned Rust toolchain) blocking merge on red and `release.yml needs: test` blocking publish on red; a real in-place NSIS update verified end-to-end with auto-relaunch + persistent `frontend.log`/`preflight.log`. Theme A merged to `master` before any Theme-B work.
+- **Theme B — Honesty & Consolidation (133–136):** Fake sync/`StaleDataBanner` UI deleted for an honest build-version surface; real Shared Abilities tab; no dead-end "Link unit"; map-not-delete faction consolidation (migration 048, zero data loss); `/factions`→Settings, Data Health→Settings; single shared `WeaponTable`; `ArmyListDetailPage` decomposed; hook-layer bypasses routed through hooks; `promoted_to_reminder` dropped (migration 049).
+- **Theme C — Player-Journey Depth (137, 138, 140):** Side-by-side 2–3 unit comparison (batched query, shared `WeaponTable`, diff highlight, cap-3); canonical `udb_leader_targets` (migration 050) driving FK-validated leader attachment in builder and Rules Hub; bidirectional Collection ⇆ Unit Database loop; dashboard goal progress.
+- **Theme D — Data Quality at Scale (139):** Referential-integrity build gate (`validateRefs.ts` + `fk-integrity.test.ts` `PRAGMA foreign_key_check`); all 25 factions audited at 0 errors; French ability/weapon overlay across all 25 factions with re-import preservation test.
+
+### What Worked
+
+- **Sequencing law (A → master before B):** Keeping the reliability fix and the large refactors from coexisting in-flight was the single most important call. Theme A landed, was verified via a real update, and merged before the HON-08/HON-09 refactors began — no "fix tangled with refactor" debugging.
+- **Self-correcting gates over hand-maintained constants:** Disk-derived migration list + `check:version` parity gate structurally eliminate the CRLF checksum-drift class of "update breaks launch" bug. The gate proved itself when migrations 048/049/050 each re-triggered it and passed.
+- **Live red-PR proof of the CI gate:** Phase 131 was validated by a deliberate-red PR #12 that was actually BLOCKED from merging — the gate was proven by adversarial test, not assumed.
+- **Audit-then-tail-closure:** The milestone audit flagged exactly one non-blocking integration warning (Rules Hub leader display reading a dead table); Phase 140 was inserted to close it before archive rather than carrying it as debt.
+
+### What Was Inefficient
+
+- **Four phases carried `human_needed` UAT to the finish line:** 134/135/138/140 were code-complete and test-covered but their live-app visual confirmations stayed unrecorded until milestone close, where they surfaced as 14 pending checks. Recording UAT at phase close (as 137 did) avoids a backlog at the gate.
+- **Accomplishment auto-extraction produced noise:** `milestone.complete` pulled "One-liner:" fragments and code-review bullets instead of clean summaries — the MILESTONES.md entry had to be hand-curated. SUMMARY one-liner frontmatter wasn't consistently parseable.
+- **An accepted line-count override (HON-09):** The <250-line orchestrator target collided with the locked "mechanical block-moves only" decision and landed at 446. Reasonable outcome, but the target and the method were in tension from the start — sizing targets should account for the chosen refactor method.
+
+### Patterns Established
+
+- **Three-leg release gate as a prebuild hook:** version parity + migration-count parity + CR-byte scan run before every build. Reusable template for any Tauri+SQLite app where migration checksum drift can brick updates.
+- **Map-not-delete consolidation migration:** correlated subqueries re-point every FK surface (RESTRICT/SET NULL/CASCADE per relationship) plus TEXT app_settings before deleting duplicates — proven zero-data-loss by a better-sqlite3 data-layer test.
+- **Referential-integrity build gate:** a pure `validateRefs` helper invoked from the data build (`process.exit` on violation) plus a `PRAGMA foreign_key_check` data-layer test on CI — the pipeline can never ship orphan FK edges.
+- **Honesty over fake affordances:** when data is bundled offline, delete the "stale/sync" UI entirely rather than stubbing it green; surface the build's content-hash version instead.
+
+### Key Lessons
+
+1. **Order reliability before refactor, and merge it first.** The sequencing law prevented the milestone's biggest risk. When a fix and a large refactor both touch the same surface, land and verify the fix on its own branch first.
+2. **Record UAT at phase close, not milestone close.** Phase 137 recorded its human UAT inline and sailed through; 134/135/138/140 deferred it and created a 14-check backlog at the gate. Make the live-app pass a per-phase step for visual/navigation work.
+3. **Prove gates adversarially.** A CI gate is only trustworthy once a deliberately-red PR is observed being blocked. Build the negative test, don't assume the positive.
+4. **Curate milestone accomplishments by hand.** Auto-extraction from SUMMARY frontmatter is noisy; budget a pass to write the MILESTONES entry from the actual themes.
+
+### Cost Observations
+
+- Model: Claude Opus 4.x throughout
+- Sessions: many (11 phases across 4 days, plus audit + Phase 140 tail-closure + completion)
+- Notable: the largest milestone to date by phase count (11) and LOC (+60.5k) — driven by the 25-faction data audit (Theme D) and the decomposition/consolidation refactors (Theme B); strict A→B→C→D sequencing kept the large surface area from compounding risk
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -902,6 +950,7 @@
 | v0.4.7 | 5 | 10 | Wahapedia-only pipeline, stratagems/enhancements/detachments import, BSData eliminated |
 | v0.5.0 | 5 | 9 | Settings page: key-value storage, preferences, hobby defaults, data management, about tab; parallel tab execution |
 | v0.5.2 | 4 | 13 | Polish-only milestone (no schema, no features): critical fixes, visual consistency, feedback hardening, navigation cross-links; audit-driven remediation + mandatory human-verification pass |
+| v0.6.0 | 11 | 32 | Largest milestone to date; strict Theme A→B→C→D sequencing law (reliability merged to master before refactors); self-correcting release/CI gates proven by deliberate-red PR; map-not-delete consolidation + referential-integrity build gate; audit-flagged tail closed by an inserted Phase 140 |
 
 ### Cumulative Quality
 
@@ -930,6 +979,7 @@
 | v0.4.7 | 2,400+ | All passing (19/19 requirements satisfied, Nyquist 4/5 compliant) |
 | v0.5.0 | 2,400+ | All passing (17/17 requirements satisfied, Nyquist 5/5 compliant, no gap closure needed) |
 | v0.5.2 | 2,739 | All passing (41/41 requirements satisfied, Nyquist 4/4 compliant, audit-driven remediation + 7/7 human verification PASS) |
+| v0.6.0 | 2,896 | All passing (27/27 requirements satisfied, Nyquist 11/11 compliant, integration 7/7 wired, 14/14 human-verification UAT approved) |
 
 ### Top Lessons (Verified Across Milestones)
 

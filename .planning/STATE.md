@@ -2,40 +2,39 @@
 gsd_state_version: 1.0
 milestone: v0.6.0
 milestone_name: Bulletproof & Honest
-status: milestone_complete
-stopped_at: Milestone complete (Phase 140 was final phase)
-last_updated: 2026-06-18T14:30:01.579Z
-last_activity: 2026-06-18 -- Phase 140 execution started
+status: Awaiting next milestone
+stopped_at: Phase 140 context gathered
+last_updated: "2026-06-19T07:06:06.881Z"
+last_activity: 2026-06-19 — Milestone v0.6.0 completed and archived
 progress:
   total_phases: 11
-  completed_phases: 10
+  completed_phases: 11
   total_plans: 32
   completed_plans: 32
-  percent: 91
+  percent: 100
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-15)
+See: .planning/PROJECT.md (updated 2026-06-19)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore
-**Current focus:** Milestone complete
+**Current focus:** Planning next milestone (v0.6.0 shipped 2026-06-19)
 
 ## Current Position
 
-Phase: 140
-Plan: Not started
-Status: Milestone complete
-Last activity: 2026-06-18
-
-Progress: [██████████] 100%
+Phase: Milestone v0.6.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-19 — Milestone v0.6.0 completed and archived
 
 ## Performance Metrics
 
 **Velocity (recent milestones):**
 
+- v0.6.0: 32 plans across 11 phases (4 days)
 - v0.5.2: 13 plans across 4 phases (1 day)
 - v0.5.0: 9 plans across 5 phases (2 days)
 - v0.4.7: 10 plans across 5 phases (6 days)
@@ -84,30 +83,30 @@ None.
 
 ## Deferred Items
 
+**Future requirements (next milestone candidates):**
+
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
 | Future | PLAY-FUT-01: Faction overview page | Future milestone | v0.6.0 planning |
 | Future | PLAY-FUT-02: Auto-backup on schedule | Future milestone | v0.6.0 planning |
 | Future | HON-FUT-01: Theme customization / custom painting-status labels | Future milestone | v0.6.0 planning |
 | Future | French translations for stratagems/enhancements | Future milestone | v0.4.7 planning |
-| Phase 130-migration-parity-release-gate P01 | 15min | 2 tasks | 2 files |
-| Phase 131-ci-test-gate P02 | 8min | 2 tasks | 2 files |
-| Phase 132-update-trustworthiness P01 | 35m | 3 tasks | 7 files |
-| Phase 134-no-dead-ends P01 | 20min | 2 tasks | 3 files |
-| Phase 134-no-dead-ends P02 | 30min | 3 tasks | 8 files |
-| Phase 135 P01 | 10min | 3 tasks | 3 files |
-| Phase 135 P02 | 7m | 2 tasks | 4 files |
-| Phase 135 P03 | 5min | 1 tasks | 1 files |
-| Phase 136-code-honesty-decomposition P02 | 1584s | 3 tasks | 7 files |
-| Phase 136-code-honesty-decomposition P03 | 12m | 2 tasks | 8 files |
-| Phase 137 P02 | 12 | 3 tasks | 5 files |
-| Phase 138 P01 | 562 | 3 tasks | 6 files |
-| Phase 138-player-journey-depth P04 | 14m | 2 tasks | 5 files |
-| Phase 138 P02 | 1080 | 4 tasks | 8 files |
-| Phase 138-player-journey-depth P03 | 1200 | 5 tasks | 12 files |
-| Phase 139 P01 | 12m | 2 tasks | 3 files |
-| Phase 139 P02 | 437s | 3 tasks | 54 files |
-| Phase 139 P03 | 35m | 2 tasks | 4 files |
+
+**Acknowledged at v0.6.0 close (2026-06-19) — stale / non-milestone artifacts, proceeded with close:**
+
+| Category | Item | Status |
+|----------|------|--------|
+| debug | app-wont-start | investigating (pre-v0.6.0) |
+| debug | collection-qty-points-rules | root_cause_found (pre-v0.6.0) |
+| debug | collection-unit-delete-freeze | awaiting_human_verify (2026-06-11) |
+| debug | knowledge-base | unknown (stale) |
+| debug | subfaction-filtering-wrong-units | root_cause_found (pre-v0.6.0) |
+| debug | subfaction-filtering-wrong-units-resolved | closed (stale marker) |
+| debug | unit-ability-html-not-rendered-resolved | closed (stale marker) |
+| quick_task | 260503-...-get-something-to-launch | shipped, no SUMMARY recorded |
+| quick_task | 260504-...-shortcut-isn-t-working | shipped, no SUMMARY recorded |
+| quick_task | 260615-...-print-the-army-list | shipped (commit 6036ed9f) |
+| quick_task | 260615-...-full-battle-ready-roster | shipped (commit bc3a4469) |
 
 ## Quick Tasks Completed
 
@@ -125,4 +124,4 @@ Resume file: .planning/phases/140-close-play-02-03-tail-repoint-rules-hub-datash
 
 ## Operator Next Steps
 
-- Plan the first phase with `/gsd:plan-phase 130`
+- Start the next milestone with /gsd-new-milestone

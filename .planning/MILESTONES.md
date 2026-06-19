@@ -1,5 +1,42 @@
 # Milestones
 
+## v0.6.0 Bulletproof & Honest (Shipped: 2026-06-19)
+
+**Phases completed:** 11 phases (130-140), 32 plans, 26 tasks
+**Timeline:** 2026-06-15 → 2026-06-18 (4 days)
+**Stats:** 260 commits, 341 files changed, +60,548 / -6,221 lines, 27/27 requirements satisfied, Nyquist 11/11 compliant
+**Milestone goal:** Make every update launch reliably and guard it with CI, stop the UI from showing untrue/dead state, then deepen the player journey and broaden data quality — sequenced Theme A → B → C → D.
+
+**Key accomplishments:**
+
+- **Theme A — Release & Reliability (REL-01..08):** Disk-derived `HOBBYFORGE_MIGRATIONS` (readdirSync + numeric sort) turned the RED migration-parity test GREEN and made it drift-proof; `pnpm check:version` became a single three-leg release gate (package↔tauri version parity, migration file-count === lib.rs `Migration{}` count, CR-byte scan) wired via a `prebuild` hook; PR-triggered CI (`pnpm test` + `cargo test` + `pnpm build`, pinned Rust toolchain) blocks merge on red and `release.yml needs: test` blocks publish on red (live-proven via deliberate-red PR #12); one real two-build in-place NSIS update verified end-to-end with auto-relaunch and a persistent size-capped `frontend.log` + `preflight.log`. **Theme A merged to `master`.**
+- **Theme B — Honesty & Consolidation (HON-01..11):** Deleted the fake sync/"freshness" UI (`syncFreshness.ts`, `StaleDataBanner.tsx`, threaded `freshness` field, dead "stale points" branches) and replaced it with an honest build-version surface; the Shared Abilities stub now renders real `udb_detachment_abilities`; the dead-end "Link unit" button always leads somewhere; a map-not-delete migration (048) consolidated user factions into the canonical model preserving every FK (units RESTRICT, recipes/army_lists SET NULL, wishlist CASCADE, `default_faction_id`) with zero data loss; `/factions` retired into Settings → Factions and Data Health into Settings → Data; three weapon-table impls collapsed into one shared `WeaponTable`; the 786-line `ArmyListDetailPage` decomposed into 5 focused children + `useArmyListExport`; 5 render-path query bypasses routed through named hooks; vestigial `promoted_to_reminder` dropped (migration 049).
+- **Theme C — Player-Journey Depth (PLAY-01..05):** Side-by-side comparison of 2–3 unit datasheets on `/unit-database/compare` (single batched query, no N+1, shared `WeaponTable`, per-cell diff highlight, cap-3); a new canonical `udb_leader_targets` table (migration 050, shipped through download→build→Rust-import with content-hash bump) drives FK-validated leader attachment in the builder, replacing fragile name-matching; the Collection ⇆ Unit Database loop closed both ways (owned-badge deep-links + cross-faction "Owned ×N"); hobby goal progress surfaced on the dashboard.
+- **Theme D — Data Quality at Scale (DAT-01..03):** A pure `validateReferentialIntegrity` helper (`scripts/lib/validateRefs.ts`) checks every udb_* FK edge incl. the detachment/stratagem/enhancement subgraph and sub_faction allow-list, wired into `build-unit-db.ts` to fail the build on violations, with a `fk-integrity.test.ts` `PRAGMA foreign_key_check` on the CI gate; all 25 factions audited via `pnpm audit:all` at 0 errors (audit-matching false positives fixed honestly, no fabricated data); French ability/weapon overlay extended to all 25 factions with a re-import preservation test.
+- **Audit tail closure (Phase 140):** Repointed the Rules Hub `DatasheetPointsTab` "Leader — Can attach to" display from the dead `synced_leader_targets` table to canonical `udb_leader_targets`, retiring the dead readers — closing the one integration warning from the v0.6.0 milestone audit. Full suite green at 2896 tests.
+
+**Live-app UAT:** 14/14 visual scenarios across phases 134/135/138/140 approved by user 2026-06-19; phase 137 already resolved. All VERIFICATION statuses `passed`.
+
+**Tech debt carried forward (non-blocking):**
+
+- HON-09: `ArmyListDetailPage` orchestrator landed at 446 lines vs the <250 target (accepted override — the locked "mechanical block-moves only" decision made <250 arithmetically impossible; all 5 children <200; 43% reduction; 24-test guard green)
+- WR-03 (136): `ArmyListUnitTable` declares an unused `listId` interface field
+- WR-02 (137): `useLeaderTargets` uses `staleTime: Infinity` — narrow first-launch race window, documented per D-08
+- WR-02 (140): same-name leader collision across factions — client-side `leader_name === unitName` filter could conflate identically-named leaders (carried forward by design, name-based correlation D-04)
+- WR-03 (135): survivor faction `updated_at` not bumped after migration 048 (cosmetic cache recency)
+- Two stale "freshness badge" doc comments (133) — informational only
+- `synced_leader_targets` table DROP deferred (no callers remain after Phase 140)
+
+**Known deferred items at close:** 11 stale/non-milestone artifacts acknowledged (7 pre-v0.6.0 debug sessions, 4 already-shipped quick tasks) — see STATE.md Deferred Items.
+
+**Archived:**
+
+- Roadmap: `.planning/milestones/v0.6.0-ROADMAP.md`
+- Requirements: `.planning/milestones/v0.6.0-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v0.6.0-MILESTONE-AUDIT.md`
+
+---
+
 ## v0.5.2 UX Polish & Consistency (Shipped: 2026-06-12)
 
 **Phases completed:** 4 phases (126-129), 13 plans
