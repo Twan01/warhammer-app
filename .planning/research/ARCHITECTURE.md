@@ -1,269 +1,759 @@
-# Architecture Research — v0.6.0 "Bulletproof & Honest"
+# Architecture Research — v0.7.0 Technique Library
 
-**Domain:** Tauri 2 + React 19 + SQLite desktop app (HobbyForge); integration architecture for a subsequent milestone
-**Researched:** 2026-06-15
-**Confidence:** HIGH (all findings grounded in the actual codebase: migrations on disk, lib.rs, query layer, and existing tests)
-
-This document answers "How do v0.6.0's changes integrate with the existing architecture, and what is the right build order?" It is grounded in direct reads of the repo, not training data.
+**Domain:** Parameterized, live-linked technique system extending the HobbyForge recipe model
+**Researched:** 2026-06-19
+**Confidence:** HIGH (based on direct source-code inspection of the full existing system)
 
 ---
 
-## Existing architecture (verified baseline)
+## Standard Architecture
+
+### System Overview
+
+The technique library is a second-order extension of the existing recipe graph. It adds a
+canonical template layer above the recipe layer. The four-layer stack is unchanged; new tables,
+queries, hooks, and feature components slot in following established patterns.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│  UI: src/features/**, src/app/** (18 lazy routes via TanStack Router)  │
-│   PageHeader everywhere · sibling Sheet/Dialog portals · useReducer    │
-│   for complex page state (ArmyListsPage, ArmyListDetailPage reducer)   │
+│  UI — src/features/techniques/**, src/features/recipes/**            │
+│  TechniqueLibraryPage  TechniqueSheet  RecipeFormSheet (extended)    │
+│  SlotFillDialog  TechniqueInstanceBadge  TechniqueDropZone           │
 ├──────────────────────────────────────────────────────────────────────┤
-│  Hooks: src/hooks/use*.ts (React Query; ENTITY_KEY + useEntity + muts) │
-│   staleTime 5m default; Infinity for read-heavy game data              │
+│  React Query hooks — src/hooks/useTechniques.ts                      │
+│  useTechniques  useTechnique  useCreateTechnique  useUpdateTechnique │
+│  useDeleteTechnique  useTechniqueSlots  useRecipeTechniqueInstances  │
+│  useSlotFills  useUpsertSlotFill  useResyncTechniqueInstance         │
+│  useDetachTechniqueInstance                                          │
 ├──────────────────────────────────────────────────────────────────────┤
-│  Queries: src/db/queries/*.ts (parameterized $1,$2; no feature imports)│
+│  Query modules — src/db/queries/techniques.ts                        │
+│  getTechniques  getTechniqueGraph  saveTechniqueGraph                │
+│  createRecipeTechniqueInstance  resyncTechniqueInstance              │
+│  detachTechniqueInstance  upsertSlotFill  resolveStepsForRecipe      │
 ├──────────────────────────────────────────────────────────────────────┤
-│  DB client singleton: src/db/client.ts (PRAGMA foreign_keys = ON)      │
-├──────────────────────────────────────────────────────────────────────┤
-│  tauri-plugin-sql → SQLite hobbyforge.db (single DB, WAL, 47 migs)     │
-│  + Rust import: import_unit_database_inner reads bundled                │
-│    src-tauri/data/unit_database.json → DELETE-all + INSERT udb_* tables │
+│  DB client singleton — src/db/client.ts → tauri-plugin-sql → SQLite │
+│  hobbyforge.db (migration 051+)                                      │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-**Key facts confirmed by reading the repo:**
-
-| Fact | Evidence |
-|------|----------|
-| 47 migration files on disk; `lib.rs` has 47 `Migration{}` blocks | `ls migrations/` + `grep -c "Migration {"` lib.rs = 47 |
-| `tests/data-layer/db-helpers.ts` lists only **46** (missing `047_army_list_unit_wargear.sql`) | This IS the failing parity test (Theme A "046→047") |
-| No `EXPECTED_SCHEMA_VERSION` constant exists anywhere | grep returned nothing; schema version is computed at runtime as `get_migrations().len()` (lib.rs `get_schema_version`) |
-| `check-version.mjs` only compares package.json ↔ tauri.conf.json | 18 lines, no migration awareness |
-| CI (`release.yml`) runs on tag push only; no `pnpm test`/`cargo test`/`pnpm build` gate | Reads `pnpm install` → `tauri-action` directly |
-| udb import is version-guarded by content hash in `udb_meta`; DELETE-all+INSERT-per-table in one tx with FK OFF | lib.rs lines 659–713 |
-| `getArmyListWithUnits` already exposes `u.udb_unit_id` per row | armyLists.ts line 72 |
-| Leader validation matches by **name** via `synced_leader_targets` (empty table; `replaceSyncedLeaderTargets` never called post-BSData removal) | bsdataExtended.ts + LeaderAttachmentSheet.tsx lines 58–70 |
-| `Datasheets_leader.csv` is NOT in `scripts/data/` and NOT in `download-wahapedia.ts` CSV_FILES | confirmed by ls + grep |
-| `factions` table holds user data: `color_theme`, `lore_notes`, `description`, `wahapedia_faction_id`; `units.faction_id` FK → `factions.id` | migrations 001, 008, 039 |
-
 ---
 
-## Q1 — Version / migration-parity gate
+## Schema Design
 
-### Where the source-of-truth check should live
-
-**Extend `scripts/check-version.mjs` (broaden it into a "release gate") rather than create a new script.** It already runs as the `check:version` npm script and is the natural home. Keeping one script means CI and local both invoke one command.
-
-**Do NOT introduce a hand-maintained `EXPECTED_SCHEMA_VERSION` constant as the primary source of truth.** The repo's established truth is *migration file count* (PROJECT.md Key Decision: "Schema version = migration count (integer)"). A hardcoded constant is a *second* thing to forget to bump — it adds a failure mode rather than removing one. Instead, **derive** the expected count from the filesystem and assert that three independent representations agree.
-
-### Exact invariants to assert
-
-```
-Let N = count of *.sql files in src-tauri/migrations/ matching /^\d{3}_.*\.sql$/
-
-Invariant 1 (version parity):     package.json.version === tauri.conf.json.version
-Invariant 2 (lib.rs registration): count of "Migration {" blocks in src-tauri/src/lib.rs === N
-Invariant 3 (test helper parity):  HOBBYFORGE_MIGRATIONS.length in tests/data-layer/db-helpers.ts === N
-Invariant 4 (contiguous numbering): the 3-digit prefixes are 001..N with no gaps/dupes
-Invariant 5 (include_str! coverage): every migrations/NNN_*.sql appears in an include_str!("../migrations/NNN_*.sql") in lib.rs
-```
-
-Invariant 3 is exactly what the current failing test embodies (`db-helpers` stuck at 46). Promoting it to the build gate means the **build fails fast** the moment someone adds a migration without updating the helper list — the exact bug class ("update breaks launch" via checksum/registration drift) the milestone exists to kill.
-
-### How it wires into CI + local without false positives
-
-- **Local:** `pnpm check:version` (already wired) now runs all five invariants. `pnpm build` is `tsc && vite build`; add a `prebuild` hook or a `pnpm verify` that build depends on.
-- **CI:** add a new `.github/workflows/ci.yml` triggered on `push`/`pull_request` (NOT just tags) running `pnpm install` → `pnpm check:version` → `pnpm test` → `cargo test --manifest-path src-tauri/Cargo.toml` → `pnpm build`. The existing tag-triggered `release.yml` stays as-is (optionally calling the same gate first).
-- **False-positive avoidance:** parse with a regex anchored to the `001_` numeric-prefix convention so stray files (a README in migrations/, or the `~/` artifact currently in git status) are ignored. Count `Migration {` with the same brace pattern the passing test in `migration-parity.test.ts` already uses (`/Migration\s*\{/g`) to stay consistent.
-
-**Confidence: HIGH** — every input file and its current shape was read directly.
-
----
-
-## Q2 — New migration: `udb_leader_targets`
-
-### Why a new table (not repurposing `synced_leader_targets`)
-
-`synced_leader_targets` keys by `leader_name`/`target_name` (TEXT) and `faction_id` (TEXT). It is fed by `replaceSyncedLeaderTargets`, a BSData-sync function that is **never called anymore** (BSData removed in v0.4.7) — so the table is empty and the UI is starved. Name matching is fragile (punctuation/sub-faction variants — exactly the bug migration 046 fixed for factions). The canonical Wahapedia `Datasheets_leader.csv` gives `leader_id|attached_id` pairs that are **both udb unit ids** — so join by id, mirroring how points already resolve through `udb_unit_id`.
-
-### Schema shape — new migration `048_udb_leader_targets.sql`
+### New Tables (migration 051)
 
 ```sql
--- Migration 048: canonical leader-attachment targets (udb id-keyed).
--- DDL only — no seed (data arrives via the Rust udb import, like all udb_* tables).
-CREATE TABLE IF NOT EXISTS udb_leader_targets (
-  leader_unit_id  TEXT NOT NULL REFERENCES udb_units(id) ON DELETE CASCADE,
-  target_unit_id  TEXT NOT NULL REFERENCES udb_units(id) ON DELETE CASCADE,
-  PRIMARY KEY (leader_unit_id, target_unit_id)
+-- 051_technique_library.sql
+
+-- Core technique header
+CREATE TABLE IF NOT EXISTS techniques (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    name          TEXT NOT NULL,
+    description   TEXT,
+    difficulty    TEXT,           -- reuse RECIPE_DIFFICULTIES const
+    style         TEXT,           -- e.g. "OSL", "NMM", "Wet Blend"
+    created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE INDEX IF NOT EXISTS idx_udb_leader_targets_leader
-  ON udb_leader_targets(leader_unit_id);
-CREATE INDEX IF NOT EXISTS idx_udb_leader_targets_target
-  ON udb_leader_targets(target_unit_id);
+-- A technique can have one or more sections (mirrors recipe_sections structure)
+CREATE TABLE IF NOT EXISTS technique_sections (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    technique_id  INTEGER NOT NULL REFERENCES techniques(id) ON DELETE CASCADE,
+    name          TEXT NOT NULL,
+    surface       TEXT,
+    optional      INTEGER NOT NULL DEFAULT 0,   -- 0 | 1 boolean
+    order_index   INTEGER NOT NULL DEFAULT 0,
+    notes         TEXT,
+    section_type  TEXT,           -- reuse SECTION_TYPES const
+    execution_mode TEXT,          -- reuse EXECUTION_MODES const
+    applies_to    TEXT,
+    created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Named colour roles/slots for a technique
+-- e.g. technique "OSL" -> slots: Glow Core, Glow Mid, Glow Edge, Surface Tint
+-- MUST be declared before technique_steps (FK reference)
+CREATE TABLE IF NOT EXISTS technique_slots (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    technique_id  INTEGER NOT NULL REFERENCES techniques(id) ON DELETE CASCADE,
+    name          TEXT NOT NULL,      -- e.g. "Glow Core"
+    hint          TEXT,               -- optional guidance, e.g. "bright saturated colour"
+    order_index   INTEGER NOT NULL DEFAULT 0,
+    created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_technique_slots_technique ON technique_slots(technique_id);
+
+-- Steps within a technique section.
+-- paint_id is ABSENT by design -- colour is always resolved through a slot.
+-- slot_id is NULLABLE so paintless steps (tools-only) are supported.
+CREATE TABLE IF NOT EXISTS technique_steps (
+    id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+    technique_section_id   INTEGER NOT NULL REFERENCES technique_sections(id) ON DELETE CASCADE,
+    technique_id           INTEGER NOT NULL REFERENCES techniques(id) ON DELETE CASCADE,
+    step_name              TEXT NOT NULL,
+    slot_id                INTEGER REFERENCES technique_slots(id) ON DELETE SET NULL,
+    notes                  TEXT,
+    painting_phase         TEXT,
+    tool                   TEXT,
+    dilution               TEXT,
+    time_estimate_minutes  INTEGER,
+    order_index            INTEGER NOT NULL DEFAULT 0,
+    created_at             TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_technique_steps_slot ON technique_steps(slot_id);
+CREATE INDEX IF NOT EXISTS idx_technique_steps_section ON technique_steps(technique_section_id);
+CREATE INDEX IF NOT EXISTS idx_technique_steps_technique ON technique_steps(technique_id);
 ```
 
-**ON DELETE CASCADE on both sides** is correct and consistent with every other udb child table (`udb_unit_models`, `udb_unit_keywords`, etc., all `REFERENCES udb_units(id) ON DELETE CASCADE`). The Rust import does DELETE-all with `PRAGMA foreign_keys = OFF` anyway, so cascade never fires during re-import; it only matters as a correctness guarantee. PK is the composite pair (a leader leads many targets and vice versa) — no surrogate id, matching `udb_unit_keywords`.
+### New Tables (migration 052)
 
-### Where it's populated — Rust import via bundled JSON (the established pattern)
+```sql
+-- 052_recipe_technique_instances.sql
 
-Follow the udb import flow exactly. Three coordinated changes:
+-- Instance table declared first so recipe_sections can FK to it
+CREATE TABLE IF NOT EXISTS recipe_technique_instances (
+    id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+    recipe_id          INTEGER NOT NULL REFERENCES painting_recipes(id) ON DELETE CASCADE,
+    technique_id       INTEGER NOT NULL REFERENCES techniques(id) ON DELETE RESTRICT,
+    recipe_section_id  INTEGER REFERENCES recipe_sections(id) ON DELETE CASCADE,
+    detached           INTEGER NOT NULL DEFAULT 0,   -- 0 | 1 boolean
+    created_at         TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at         TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_rti_recipe ON recipe_technique_instances(recipe_id);
+CREATE INDEX IF NOT EXISTS idx_rti_technique ON recipe_technique_instances(technique_id);
 
-1. **`scripts/download-wahapedia.ts`** — add `"Datasheets_leader.csv"` to `CSV_FILES` (currently 10 files).
-2. **`scripts/build-unit-db.ts`** — add a parse step (mirroring Step 7/keywords): read `Datasheets_leader.csv`; for each row take `leader_id` + `attached_id`; keep only pairs where **both** ids are in `validUnitIds` (drops Legends-filtered/unknown units — the same guard used everywhere); dedup; sort deterministically (`leader_unit_id` then `target_unit_id`); emit a new `leader_targets: UdbLeaderTargetRow[]` array into `UnitDatabaseJson`. **Add the array to the content-hash input** so the version bumps and the import is not skipped.
-3. **`src-tauri/src/lib.rs`** (`import_unit_database_inner`) — add `"udb_leader_targets"` to the DELETE list and an INSERT loop over `payload.leader_targets` (bind `leader_unit_id`, `target_unit_id`), plus the field on the `UnitDatabasePayload` serde struct and the count on `UdbImportResult`.
+-- Per-instance slot->paint colour mapping.
+-- Each recipe keeps its own colour choices independently of other recipes.
+CREATE TABLE IF NOT EXISTS recipe_slot_fills (
+    id                           INTEGER PRIMARY KEY AUTOINCREMENT,
+    recipe_technique_instance_id INTEGER NOT NULL
+        REFERENCES recipe_technique_instances(id) ON DELETE CASCADE,
+    technique_slot_id            INTEGER NOT NULL REFERENCES technique_slots(id) ON DELETE CASCADE,
+    paint_id                     INTEGER REFERENCES paints(id) ON DELETE SET NULL,
+    UNIQUE(recipe_technique_instance_id, technique_slot_id)
+);
+CREATE INDEX IF NOT EXISTS idx_rsf_instance ON recipe_slot_fills(recipe_technique_instance_id);
 
-This keeps the migration DDL-only (seeding in migrations caused a documented boot-loop — see Key Decisions), and data ships with the app like all other canonical data. **Do not** seed via migration and **do not** keep the old JS `replace*` write path.
+-- Add technique_instance_id to recipe_sections
+-- NULL for all non-technique sections; set when a section is live-linked
+ALTER TABLE recipe_sections ADD COLUMN technique_instance_id INTEGER
+    REFERENCES recipe_technique_instances(id) ON DELETE SET NULL;
 
-### How the query layer repoints to it
-
-- **New query** `src/db/queries/leaderTargets.ts` (replaces `getLeaderTargetsByFaction`): prefer a batch `getLeaderTargetsForList(listId)` that joins `army_list_units → units → udb_leader_targets` and returns valid `(leader army_list_unit id, target army_list_unit id)` pairs directly — matches the page-level Map pattern and avoids per-row hooks. (Alternatively a simple `getLeaderTargetIdsForLeader(leaderUdbUnitId)`.)
-- **New hook** `src/hooks/useLeaderTargets.ts` (rewrite): keyed by `udb_unit_id` (or listId for the batch query), `staleTime: Infinity` (canonical data).
-- **`LeaderAttachmentSheet.tsx`** — replace the name-matching `validTargetNames`/`validTargetUnits` memos (lines 58–70) with udb-id matching: the leader's `unit.udb_unit_id` (already on the row, armyLists.ts line 72) → valid `target_unit_id`s; filter `units` where `u.udb_unit_id ∈ validTargetIds`. Ghost units (no `udb_unit_id`) simply won't match — acceptable.
-- **`ArmyListDetailPage.tsx`** — drops `useLeaderTargets(factionIdStr)` (the TEXT-faction-id call, lines 184–185) and the `SyncedLeaderTargetRow` prop drilling into `SortableUnitRow`; replaced by the udb-id-based hook/data.
-- **Deletable after migration (genuine de-cruft, pairs with Theme B):** `synced_leader_targets` table (a drop migration mirroring `040_drop_synced_points.sql`), `replaceSyncedLeaderTargets` + `getLeaderTargetsByFaction` + `SyncedLeaderTargetRow` in bsdataExtended.ts, and `BsdataLeaderTarget` in parseBsdataExtended.ts.
-
-**Confidence: HIGH** for schema/import pattern (directly mirrors the verified udb_detachments path). **MEDIUM** for the exact CSV column names (`leader_id`/`attached_id`) — verify against the downloaded `Datasheets_leader.csv` header at build time (milestone context states 1,918 pairs, both ids being udb ids).
-
----
-
-## Q3 — Factions-page merge: data-migration risk
-
-### The critical distinction: there are TWO faction concepts
-
-| Table | Purpose | Has user data? |
-|-------|---------|----------------|
-| `factions` (migration 001) | **User's army factions** — `color_theme` (theming), `lore_notes`, `description`, plus `wahapedia_faction_id` bridge to canonical | **YES** |
-| `udb_factions` (migration 038) | Canonical Wahapedia factions (id="SM" etc.) | No (rebuilt on import) |
-
-`units.faction_id` is a FK to `factions.id` (the user table). `factions` drives faction theming (ActiveFactionContext accent), the dashboard FactionSummaryCard, army-list faction selection, and collection grouping. **It is load-bearing and cannot be dropped.**
-
-### Therefore the "merge" is UI-only, NOT a data migration
-
-The redundant *page* is `src/features/factions/FactionsPage.tsx` (route `/factions`) — a CRUD-on-`factions`-plus-grouped-units view that duplicates what the Unit Database browser does for canonical units. "Merging into the canonical Unit Database" means:
-
-- **Remove the `/factions` route** (router.tsx lines 101–104, lazy import line 26) and its sidebar entry.
-- **Preserve faction CRUD reachability** — faction create/edit/theming (`FactionSheet`) and per-faction unit management must move to a surface that still exists. Recommendation: **fold faction management into Settings** (alongside the "demote Data Health into Settings → Data" move), since faction theming is a preference-like concern and Settings is the home for cross-cutting config.
-- **Zero schema change. Zero data migration. No data-loss risk** *provided* FactionSheet/FactionDeleteDialog stay wired from the new home. The only real risk is *orphaning the editing UI* (removing the page without relocating FactionSheet, leaving no way to set faction theme/lore) — a functional-loss risk, not a data-loss risk.
-
-**Build-order implication:** Theme B (de-cruft), safe and independent. Do it alongside the Data Health → Settings demotion since both touch routing + Settings.
-
-**Confidence: HIGH** — faction table contents and FK relationships read directly.
-
----
-
-## Q4 — Unit comparison view + Collection ⇆ UDB discovery loop
-
-### Unit comparison view (Theme C)
-
-Slots into the Unit Database browser using established patterns:
-
-- **Selection state:** reuse the `selectedUnitId` pattern (Key Decision: "store ID, derive unit from cache") but as a small array/Set of up to ~3 udb ids in Zustand (consistent with ephemeral filter state) or local page state.
-- **New component:** `src/features/unit-database/UnitCompareDialog.tsx`, or a full-page route `/unit-database/compare` if screen real estate matters (mirrors Painting Mode's full-route choice). Renders 2–3 `UdbDatasheetSheet`-style columns side by side.
-- **New query/hook:** batch `getUdbUnitsByIds(ids: string[])` + `useUdbUnitsByIds`, `staleTime: Infinity`. Reuses existing `udb_units`/`udb_unit_models`/`udb_unit_weapons`/`udb_unit_abilities` reads — a multi-id variant of the existing `useUdbDatasheet`. **No schema change.**
-- **WeaponTable dedupe (Theme B) is a companion prerequisite:** comparison renders weapon tables in N columns, so dedupe `units/WeaponTable.tsx` vs `unit-database/UdbWeaponsTable.tsx` first, then build comparison on the canonical component.
-
-### Collection ⇆ UDB discovery loop (Theme C)
-
-The FK already exists: `units.udb_unit_id` (ON DELETE SET NULL). One direction (Collection → "View Datasheet") shipped in v0.5.2. The missing reverse is "this canonical unit is **owned ×N** in your collection":
-
-- **New query:** `getOwnedCountsByUdbUnitId(): Promise<Map<udb_unit_id, count>>` — a single `SELECT udb_unit_id, COUNT(*) FROM units WHERE udb_unit_id IS NOT NULL GROUP BY udb_unit_id`. This is the **page-level Map pattern** (Key Decision: "Page-level Map<compositeKey,T>… O(1) per-card lookup, single query") — load once on the Unit Database page, build a `useMemo` Map, pass to rows. **No N+1, no schema change.**
-- **New hook:** `useOwnedCountsByUdb` — invalidate when `units` change (cache-invalidation-symmetry rule).
-- **UI:** an "Owned ×N" badge on Unit Database rows / datasheet header (consistent with existing ownership/readiness badges) + a link into the filtered Collection. Virtual scrolling is already in place; the Map lookup is O(1) per visible row, so no scroll-perf regression.
-
-**Confidence: HIGH** — FK, Map pattern, and virtual scrolling all verified in the codebase.
-
----
-
-## Q5 — ArmyListDetailPage decomposition (793 lines, currently dirty on branch)
-
-The page already extracted its reducer (`armyListDetailReducer.ts`, v0.5.2) and delegates portals to sibling components. The remaining bulk: header/actions, summary bar, quick-add search, the categorized unit table + DnD, detachment/reminders/notes sections, and ~70 lines of export handlers (`handleCopyToClipboard`, `handleSaveJson`, `handleSavePdf`).
-
-**Working-branch caveat:** the file is `M` (modified) on `fix/update-breaks-app-launch` — the diff already touches it (HTML-rendering fixes). **Decomposition must be additive/mechanical** (move blocks into new files, no behavior change) and should land *after* that branch's fix merges, or be coordinated to avoid a painful rebase. Sequence as Theme B so it does not conflict with the in-flight fix.
-
-### Safe extraction boundaries (low-risk, no logic change)
-
-| New component | Extracts | Risk |
-|---------------|----------|------|
-| `ArmyListUnitTable.tsx` | `DndContext` + categorized `unitsByCategory` rendering + `SortableUnitRow` + `handleDragEnd` | LOW — self-contained; props = units, handlers, leaderTargets |
-| `useArmyListExport` hook (or `ArmyListExportActions.tsx`) | `handleCopyToClipboard`/`handleSaveJson`/`handleSavePdf` + `ExportDropdown` + snapshot button | LOW — pure handlers; a hook is cleaner since they need list/units/wargear |
-| `ArmyListQuickAdd.tsx` | quick-add input + `quickAddResults` memo + `handleQuickAdd` | LOW |
-| `ArmyListPortals.tsx` | the 8 sibling Sheet/Dialog portals + dispatch wiring | MEDIUM — must preserve the sibling (never-nested) portal rule and the reducer dispatch contract |
-| `ArmyListDetailHeader.tsx` | PageHeader + faction badge + Edit/Game Day/Delete actions | LOW |
-
-The orchestrator keeps the reducer, data hooks, and the shared derived memos (`groupedUnits`/`unitsByCategory`/`leaderNameMap`). Target: orchestrator < ~250 lines, each child < ~200 — consistent with the PlaybookTab/UnitSheet decomposition precedent. **The leader-target repointing (Q2) should land before/with extraction** so `ArmyListUnitTable` is written once against the new udb-id data shape, not the doomed `SyncedLeaderTargetRow` shape.
-
-**Confidence: HIGH** — full file read; extraction boundaries follow existing decomposition precedents.
-
----
-
-## Q6 — Build order (A gates everything → B → C → D)
-
-```
-THEME A — Release Trust (must land first; nothing ships safely without it)
-  A1. Fix db-helpers parity (add 047) + promote the 3–5 invariants into
-      check-version.mjs as the release gate.                         ← unblocks A2
-  A2. Add CI workflow (ci.yml on push/PR): check:version, pnpm test,
-      cargo test, pnpm build.                                        ← the actual gate
-  A3. Verify real in-place NSIS update end-to-end + preflight.log.
-  A4. Persistent frontend diagnostics log + relaunch-after-update UX.
-        (A3/A4 are independent of each other; both depend on A1+A2 being green.)
-
-THEME B — Honesty & De-cruft (depends on A green; B precedes C)
-  B1. Remove fake sync/freshness UI: delete StaleDataBanner usage, simplify the
-      ~10–12 syncFreshness consumers (incl. ArmyListSummaryBar `freshness` prop,
-      ArmyListDetailPage `freshness` memo).                          ← independent
-  B2. Merge Factions page → relocate FactionSheet (likely Settings); remove
-      /factions route. Pair with Data Health → Settings → Data demotion.
-  B3. Dedupe WeaponTable (units/ vs unit-database/).                 ← prereq for C1
-  B4. Route the 7 hook-bypassing components through hooks.           ← independent
-  B5. Decompose ArmyListDetailPage — AFTER the fix/update branch lands; pair
-      with B1 (removes freshness) so the table extraction is done once.
-
-THEME C — Player Depth (depends on B; needs new migration + dedupe)
-  C0. Migration 048 udb_leader_targets + download/build-script/Rust import wiring
-      + drop synced_leader_targets.   ← SCHEMA CHANGE; do early in C, bumps
-                                        migration count → re-run the A1 gate.
-  C1. Unit comparison view (consumes deduped WeaponTable from B3).
-  C2. Leader-attachment full validation (consumes C0; repoints
-      LeaderAttachmentSheet + ArmyListDetailPage to udb-id matching; pairs with B5).
-  C3. Collection ⇆ UDB "owned ×N" loop (page-level Map; no schema change).
-  C4. Goals on dashboard — verify v0.2.2 progress-derivation still works
-      post-rules.db-elimination (audit-then-fix; likely small).
-
-THEME D — Data Quality at Scale (last; independent of C, can overlap)
-  D1. Audit remaining factions · D2. French translations · D3. FK/orphan
-      validation in build pipeline (extends build-unit-db.ts validation step).
+-- Add technique_step_id to recipe_steps
+-- NULL for regular steps; set to the source technique_steps.id for live-linked steps
+ALTER TABLE recipe_steps ADD COLUMN technique_step_id INTEGER
+    REFERENCES technique_steps(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_recipe_steps_technique_step ON recipe_steps(technique_step_id);
 ```
 
-### Explicit cross-theme dependencies
+### Complete Table Inventory
 
-- **C0 (new migration) re-triggers the A1 gate** — adding migration 048 means db-helpers.ts, lib.rs, and a version bump must all move together; the A gate exists precisely to catch a miss here. The milestone proving its own value.
-- **B3 (WeaponTable dedupe) → C1 (comparison)** — comparison renders multiple weapon tables; build on the single canonical component.
-- **B5 (decompose) ↔ C0/C2 (leader repoint)** — both touch ArmyListDetailPage's unit-table rendering and the leader-target data shape; do the repoint before/with extraction so the extracted table is written once.
-- **B5 vs the in-flight `fix/update-breaks-app-launch` branch** — ArmyListDetailPage is dirty there; sequence B5 after that merge.
-- **B1 (freshness removal) ↔ B5** — `freshness` is a prop on ArmyListSummaryBar and a memo in ArmyListDetailPage; removing it simplifies the extraction.
-
----
-
-## Anti-patterns to avoid (codebase-specific)
-
-| Anti-pattern | Why bad here | Instead |
-|--------------|--------------|---------|
-| Seeding data in a migration | Documented boot-loop incident; migrations are DDL-only | Ship data in unit_database.json, import via Rust |
-| Hardcoding `EXPECTED_SCHEMA_VERSION` as primary truth | A second thing to forget to bump | Derive from migration file count; assert representations agree |
-| Name-matching leaders (current) | Empty table + punctuation/sub-faction fragility (same class as the 046 fix) | Join by `udb_unit_id` (already on army-list rows) |
-| Dropping the `factions` table in the "merge" | Holds theming/lore + is the FK target for `units` | UI-only: relocate FactionSheet, remove the route |
-| Per-row hooks for owned-count or leader-targets | N+1 queries against virtual-scrolled lists | Page-level `useMemo` Map (established pattern) |
-| Decomposing ArmyListDetailPage with behavior changes | File is dirty on a fix branch; conflict + regression risk | Mechanical block-moves only, after the fix branch lands |
+| Table | Status | Key Columns |
+|-------|--------|-------------|
+| `techniques` | NEW | id, name, description, difficulty, style |
+| `technique_sections` | NEW | id, technique_id FK CASCADE, name, order_index, section_type |
+| `technique_slots` | NEW | id, technique_id FK CASCADE, name, hint, order_index |
+| `technique_steps` | NEW | id, technique_section_id FK CASCADE, technique_id FK CASCADE, slot_id FK SET NULL, step_name, order_index |
+| `recipe_technique_instances` | NEW | id, recipe_id FK CASCADE, technique_id FK RESTRICT, recipe_section_id FK CASCADE, detached 0\|1 |
+| `recipe_slot_fills` | NEW | id, recipe_technique_instance_id FK CASCADE, technique_slot_id FK CASCADE, paint_id FK SET NULL |
+| `recipe_sections` | MODIFIED | + technique_instance_id FK SET NULL (nullable) |
+| `recipe_steps` | MODIFIED | + technique_step_id FK SET NULL (nullable) |
 
 ---
 
-## Open questions / verify-at-build-time
+## Live-Link Resolution Strategy
 
-1. **`Datasheets_leader.csv` exact headers** — confirm `leader_id`/`attached_id` column names against the live download before finalizing the build-script parse (MEDIUM confidence on names).
-2. **Where FactionSheet relocates** — Settings sub-area vs Unit Database inline. A product call; both low-risk. (Recommend Settings.)
-3. **Dashboard goals derivation** — quick audit needed: did any goal-progress query reference rules.db before it was eliminated? Likely not (goals derive from painting_sessions), but verify before assuming C4 is trivial.
-4. **`~/` artifact in git root** — a stray path is present; ensure the migration-count regex ignores non-migration files (anchored to `^\d{3}_`, it will).
+### Chosen Approach: Materialized Rows with Stable technique_step_id Source Linkage
+
+**Rejected alternative — read-time virtual steps:** Resolving technique steps at query time
+(joining technique_steps into the recipe step list without storing rows in recipe_steps) would
+make every step-reading query complex, break Painting Mode's existing query structure, require
+changes to `unit_recipe_step_progress` foreign keys, and make progress tracking impossible
+without changing the progress key from `recipe_step_id` (a concrete row PK) to a composite.
+
+**Chosen approach:** When a technique is dropped into a recipe, materialize concrete
+`recipe_steps` rows that are FK-linked back to their source `technique_step_id`. The
+`recipe_step_id` progress system requires no changes. Re-sync updates those materialized rows
+in-place (using the `technique_step_id` linkage to match them), which preserves the
+`recipe_step_id` of each row across any technique edit.
+
+**Why this solves the progress stability requirement:**
+
+The existing system keys progress to `recipe_step_id` (a concrete PK in `recipe_steps`,
+established by migration 028). When a technique adds/removes/reorders its own steps:
+
+- A step that SURVIVES a technique edit retains the same `technique_step_id`. The re-sync
+  algorithm finds the corresponding `recipe_steps` row via the `technique_step_id` FK column
+  and UPDATEs its content in place. The `recipe_step_id` (PK) of that row is unchanged.
+  Progress keyed to it is undisturbed.
+- A step that is REMOVED from the technique: the re-sync DELETEs the corresponding
+  `recipe_steps` row. The `recipe_step_id` FK in `unit_recipe_step_progress` carries
+  `ON DELETE CASCADE`, so progress for removed steps is cleaned up automatically and honestly
+  (the step no longer exists; its completion record should not survive either).
+- A step that is ADDED to the technique: the re-sync INSERTs a new `recipe_steps` row with
+  the new `technique_step_id`. A new PK is allocated. Progress starts at zero, which is correct.
+
+`technique_step_id` is the stable identity for technique-owned steps, and `recipe_step_id`
+remains the stable identity for progress. The two are bound permanently by the FK column on
+`recipe_steps.technique_step_id`. No change to the progress system is needed.
+
+### Re-sync Algorithm (resyncTechniqueInstance)
+
+Called after any technique edit that changes structure. Operates on all non-detached instances
+of the changed technique. For each affected `recipe_section_id`, using a single `db` handle
+(no nested helper calls that would create new pool connections):
+
+```
+1. Load all technique_steps for the technique ordered by
+   (technique_section.order_index, technique_step.order_index)
+
+2. Load all recipe_steps WHERE technique_step_id IS NOT NULL
+   AND section_id = recipeSectionId
+
+3. Build Map<technique_step_id, recipe_steps.id> from existing materialized rows
+
+4. For each technique_step in canonical order:
+     If technique_step.id exists in Map:
+       UPDATE recipe_steps SET
+         step_name = $name,
+         notes = $notes,
+         painting_phase = $phase,
+         tool = $tool,
+         dilution = $dilution,
+         time_estimate_minutes = $time,
+         order_index = $newIndex
+       WHERE id = Map[technique_step.id]
+       -- recipe_step_id PK and paint_id=NULL untouched
+     Else:
+       INSERT INTO recipe_steps
+         (recipe_id, section_id, technique_step_id, step_name, notes,
+          painting_phase, tool, dilution, time_estimate_minutes, order_index,
+          paint_id)   -- paint_id always NULL for technique-owned steps
+       VALUES ($...)
+
+5. DELETE FROM recipe_steps
+   WHERE section_id = recipeSectionId
+     AND technique_step_id NOT IN (<current technique step ids>)
+   -- ON DELETE CASCADE cleans unit_recipe_step_progress automatically
+```
+
+paint_id for technique-owned steps is always NULL in the `recipe_steps` row. The
+effective paint is resolved at read time via a LEFT JOIN through `recipe_slot_fills`.
+This keeps a single source of truth.
+
+### Enriched Step Read Query
+
+The read query for all recipe consumers (timeline, Painting Mode, apply-to-units count)
+adds three LEFT JOINs to the existing step query:
+
+```sql
+SELECT
+  rs.*,
+  COALESCE(rsf.paint_id, NULL) AS resolved_paint_id,
+  ts.slot_id               AS technique_slot_id,
+  tsl.name                 AS slot_name,
+  rti.id                   AS technique_instance_id_from_section
+FROM recipe_steps rs
+LEFT JOIN recipe_sections sec ON sec.id = rs.section_id
+LEFT JOIN recipe_technique_instances rti
+  ON rti.id = sec.technique_instance_id
+LEFT JOIN technique_steps ts ON ts.id = rs.technique_step_id
+LEFT JOIN recipe_slot_fills rsf
+  ON rsf.recipe_technique_instance_id = rti.id
+  AND rsf.technique_slot_id = ts.slot_id
+LEFT JOIN technique_slots tsl ON tsl.id = ts.slot_id
+WHERE rs.recipe_id = $1
+ORDER BY COALESCE(sec.order_index, 999999) ASC, rs.order_index ASC
+```
+
+For regular (non-technique) steps: `resolved_paint_id` falls back to `rs.paint_id` via
+COALESCE in the TypeScript layer (or SQL: `COALESCE(rsf.paint_id, rs.paint_id)`).
+All three new columns are NULL for regular steps, which is safe for consumers.
+
+---
+
+## Step Progress Identity: Complete Specification
+
+### The Invariant
+
+`unit_recipe_step_progress.recipe_step_id` is ALWAYS a PK of a concrete `recipe_steps` row.
+This invariant must never be broken by the technique feature.
+
+### How It Holds Under Every Edit Case
+
+| Event | Effect on recipe_steps | Effect on progress |
+|-------|------------------------|-------------------|
+| Edit technique step (rename/phase/tool) | UPDATE recipe_steps row in-place (same PK) | Unchanged — same recipe_step_id |
+| Reorder technique steps | UPDATE order_index on recipe_steps rows | Unchanged — keyed to PK not order_index |
+| Add step to technique | INSERT new recipe_steps row (new PK) | New row starts incomplete; existing untouched |
+| Remove step from technique | DELETE recipe_steps row | CASCADE removes progress row — correct, step gone |
+| Add slot to technique | No recipe_steps change; new slot row only | No effect on progress |
+| Remove slot from technique | technique_steps.slot_id SET NULL; recipe_steps unchanged | resolved_paint_id becomes NULL (unfilled state) |
+| Rename slot | No structural change | Slot name visible in UI updates immediately |
+| Detach instance | Clear technique_step_id on all steps in section | Progress rows survive; steps now owned by recipe |
+
+### ON DELETE CASCADE on recipe_steps (existing, migration 028)
+
+`unit_recipe_step_progress.recipe_step_id` references `recipe_steps(id)` with
+`ON DELETE CASCADE`. When `resyncTechniqueInstance` deletes a `recipe_steps` row for a
+removed technique step, the cascade fires and removes the associated progress row across
+all unit assignments. This is honest: a completed step that was removed from the technique
+no longer exists; its completion should not survive.
+
+Side effect: removing a step from a widely-used technique will decrease `painting_percentage`
+for all units using a recipe linked to that technique. The `syncPaintingPercentage` trigger
+runs on the next assignment write. If the percentage was 100% (Completed), removing a step
+re-opens it — which is the correct representation. The UI should warn the technique author
+that removing steps affects all linked recipes and their unit progress.
+
+---
+
+## Component Boundaries
+
+### New Feature Module: src/features/techniques/
+
+| File | Responsibility |
+|------|---------------|
+| `techniqueSchema.ts` | Zod schema for technique header + slot form values |
+| `TechniqueLibraryPage.tsx` | Page listing all techniques with search/filter/sort |
+| `TechniqueSheet.tsx` | Create/edit technique: metadata + sections + steps + slots |
+| `TechniqueCard.tsx` | Card in library grid (name, style, step count, slot badges) |
+| `TechniqueInstanceBadge.tsx` | Badge on linked recipe sections showing technique name + detach action |
+| `SlotFillDialog.tsx` | Dialog to fill slots when dropping a technique into a recipe |
+| `SlotFillRow.tsx` | One row per slot: name + paint picker dropdown |
+| `applyTechniqueFilters.ts` | Pure filter function for library search/filter |
+| `techniqueFilters.ts` | Zustand filter store for library page |
+
+### Modified Feature Files
+
+| File | Change |
+|------|--------|
+| `src/features/recipes/recipeSection.ts` | `makeDraftSection` gains `technique_instance_id: null`; `buildDraftSections` reads `technique_instance_id` from DB row |
+| `src/types/recipe.ts` | `DraftSection` + `technique_instance_id: number \| null`; `DraftStep` + `technique_step_id: number \| null` and `resolved_paint_id: number \| null` (read-side only) |
+| `src/types/recipeSection.ts` | `RecipeSection` + `technique_instance_id: number \| null` |
+| `src/types/recipePaint.ts` | `RecipeStep` + `technique_step_id: number \| null` |
+| `src/db/queries/recipes.ts` | `saveRecipeGraph` five-phase diff must skip live-linked steps (technique_step_id != null); they are managed by resync, not the recipe editor |
+| `src/db/queries/recipePaints.ts` | `getStepsForRecipe` enriched with slot resolution LEFT JOINs producing `resolved_paint_id`, `slot_name` |
+| `src/app/router.tsx` | Add `/techniques` route, lazy-load TechniqueLibraryPage |
+| `src/components/common/AppSidebar.tsx` | Workshop group gains "Techniques" nav item |
+
+### New Query Module: src/db/queries/techniques.ts
+
+- `getTechniques()` — list all technique headers for library page
+- `getTechniqueGraph(id)` — header + sections + steps + slots in one function (sequential SELECTs, single db handle)
+- `saveTechniqueGraph(id | null, formValues, draftSections)` — five-phase diff for technique_sections + technique_steps; mirrors saveRecipeGraph exactly
+- `deleteTechnique(id)` — COUNT check for non-detached instances; throw typed error if found; DELETE otherwise
+- `createRecipeTechniqueInstance(recipeId, techniqueId, recipeSectionId)` — INSERT instance, INSERT slot_fill placeholders, materialize recipe_steps from technique_steps
+- `resyncTechniqueInstance(db, instanceId)` — takes existing db handle, in-place UPDATE/INSERT/DELETE on materialized recipe_steps
+- `resyncAllInstancesForTechnique(techniqueId)` — top-level: single db = getDb(), loop over non-detached instances calling resyncTechniqueInstance(db, ...)
+- `detachTechniqueInstance(instanceId)` — clear technique_step_id on steps, clear technique_instance_id on section, set detached=1
+- `upsertSlotFill(instanceId, slotId, paintId)` — INSERT OR REPLACE into recipe_slot_fills
+
+### New Hook File: src/hooks/useTechniques.ts
+
+```typescript
+export const TECHNIQUES_KEY = ["techniques"] as const;
+export const TECHNIQUE_KEY = (id: number) => ["techniques", id] as const;
+export const TECHNIQUE_INSTANCES_KEY = (recipeId: number) =>
+  ["recipe-technique-instances", recipeId] as const;
+
+// List
+export function useTechniques() { ... }
+
+// Single graph (header + sections + steps + slots)
+export function useTechniqueGraph(id: number) { ... }
+
+// Mutations — all invalidate relevant keys
+export function useCreateTechnique() { /* invalidates TECHNIQUES_KEY */ }
+export function useUpdateTechniqueGraph() {
+  /* invalidates TECHNIQUE_KEY(id) + TECHNIQUES_KEY
+     + ["recipe-steps", affectedRecipeId] for all live-linked recipes */
+}
+export function useDeleteTechnique() { /* invalidates TECHNIQUES_KEY */ }
+export function useResyncTechniqueInstance() {
+  /* invalidates TECHNIQUE_INSTANCES_KEY(recipeId) + ["recipe-steps", recipeId] */
+}
+export function useDetachTechniqueInstance() { /* same invalidation as resync */ }
+export function useUpsertSlotFill() { /* invalidates ["recipe-steps", recipeId] */ }
+```
+
+---
+
+## Data Flow
+
+### Drop Technique into Recipe Section
+
+```
+User clicks "Use Technique" on section toolbar in RecipeFormSheet
+    |
+    v
+Technique picker (filtered list from useTechniques)
+    |
+    v
+SlotFillDialog opens: shows all technique_slots for chosen technique
+User fills each slot with a paint (or leaves some empty/defers)
+    |
+    v
+createRecipeTechniqueInstance(recipeId, techniqueId, recipeSectionId)
+  [single db handle, auto-commit per statement -- no nesting]
+  INSERT recipe_technique_instances -> instanceId
+  INSERT recipe_slot_fills for all filled slots
+  For each technique_step:
+    INSERT recipe_steps (technique_step_id=step.id, paint_id=NULL,
+                         section_id=recipeSectionId, recipe_id=recipeId)
+  UPDATE recipe_sections SET technique_instance_id = instanceId
+    |
+    v
+Invalidate: RECIPE_KEY(recipeId), RECIPE_STEPS_KEY(recipeId),
+            TECHNIQUE_INSTANCES_KEY(recipeId)
+UI re-renders: section shows TechniqueInstanceBadge; steps show with resolved_paint_id
+```
+
+### Edit Technique Structure
+
+```
+User saves technique in TechniqueSheet
+    |
+    v
+saveTechniqueGraph(techniqueId, formValues, draftSections)
+  Five-phase diff on technique_sections / technique_steps
+    |
+    v
+resyncAllInstancesForTechnique(techniqueId)
+  db = getDb()   <-- single connection handle for entire resync pass
+  SELECT all non-detached recipe_technique_instances WHERE technique_id = $1
+  For each instance:
+    resyncTechniqueInstance(db, instanceId)
+      diff technique_steps vs materialized recipe_steps (WHERE technique_step_id IS NOT NULL)
+      UPDATE / INSERT / DELETE recipe_steps in-place
+      ON DELETE CASCADE cleans unit_recipe_step_progress automatically
+    |
+    v
+Invalidate: TECHNIQUE_KEY(id), TECHNIQUES_KEY
+  + for each affected recipe: RECIPE_KEY(recipeId), ["recipe-steps", recipeId]
+```
+
+### Painting Mode Step Execution (no change required)
+
+```
+useRecipeSteps(recipeId)  ->  getStepsForRecipe (enriched query)
+  Returns RecipeStep rows with resolved_paint_id, slot_name, technique_step_id
+    |
+    v
+PaintingMode component:
+  Displays step_name (from recipe_steps -- updated by resync from technique_steps)
+  Displays resolved_paint_id as paint swatch  [was: paint_id]
+  resolved_paint_id = NULL && slot_id IS NOT NULL  -> amber "unfilled slot" warning
+  resolved_paint_id = NULL && slot_id IS NULL      -> paintless step (no warning)
+    |
+    v
+Mark step done -> upsertStepProgress(assignmentId, recipe_step_id, true)
+  recipe_step_id is the PK of the recipe_steps row  [unchanged by resync]
+  Progress is preserved across all technique edits
+```
+
+### Detach Instance
+
+```
+User clicks "Detach" on TechniqueInstanceBadge (with confirmation)
+    |
+    v
+detachTechniqueInstance(instanceId)
+  db = getDb()
+  SELECT recipe_section_id FROM recipe_technique_instances WHERE id = $1
+  UPDATE recipe_steps
+    SET technique_step_id = NULL
+    WHERE section_id = recipeSectionId AND technique_step_id IS NOT NULL
+  UPDATE recipe_sections
+    SET technique_instance_id = NULL WHERE id = recipeSectionId
+  UPDATE recipe_technique_instances
+    SET detached = 1, updated_at = datetime('now') WHERE id = $1
+    |
+    v
+Steps become standard recipe_steps (technique_step_id = NULL)
+Section shows no badge; steps become editable directly in recipe editor
+Progress records survive -- recipe_step_id PKs are unchanged
+Slot fills preserved in recipe_slot_fills (detached=1 instance, harmless)
+```
+
+---
+
+## Integration Points
+
+### Painting Mode
+
+No structural change to progress system. Change needed in the step display component:
+
+- Replace `step.paint_id` with `step.resolved_paint_id` for paint swatch display
+- Paint readiness warning logic must distinguish:
+  - `resolved_paint_id = NULL AND slot_id IS NULL` → genuine paintless step, no warning
+  - `resolved_paint_id = NULL AND slot_id IS NOT NULL` → unfilled slot, show amber warning with `slot_name`
+- All existing keyboard shortcut and navigation logic is unaffected
+
+### Recipe Timeline (SectionedTimeline)
+
+- Sections with `technique_instance_id != null` render `TechniqueInstanceBadge`
+- Steps with `slot_id IS NOT NULL` show `slot_name` alongside the paint swatch area
+- Unfilled slots (`resolved_paint_id = NULL`, `slot_id IS NOT NULL`) display slot name in
+  amber with "fill slot" affordance linking to `SlotFillDialog`
+- Per-section paint availability counts: use `resolved_paint_id` instead of `paint_id`
+
+### Paint Availability Calculation
+
+The existing availability query joins `recipe_steps` to `paints` on `paint_id`. For
+technique-owned steps, `recipe_steps.paint_id` is always NULL. The query must be updated
+to use `resolved_paint_id` (computed via the slot fill LEFT JOINs). The section join is
+already present; the additional JOINs through `recipe_sections.technique_instance_id` →
+`recipe_slot_fills` → `paints` are the change. Unfilled slots count as missing paints.
+
+### Apply-to-Units
+
+No change required. `createAssignment` and `upsertStepProgress` reference `recipe_step_id`
+(the PK of `recipe_steps` rows, which are materialized for technique-owned steps).
+`syncPaintingPercentage` counts `recipe_steps` rows joined through `unit_recipe_assignments`;
+technique-owned materialized rows are included automatically.
+
+The `getMostRecentAssignmentWithIncompleteStep` query used by Dashboard / CurrentFocusCard
+already JOINs `recipe_steps` -- it will correctly include technique-owned steps and show
+their `step_name` (which is kept current by resync).
+
+### saveRecipeGraph Five-Phase Diff
+
+The diff algorithm in `src/lib/recipeDiff.ts` (computeStepDiff) must exclude live-linked
+steps from the DELETE and UPDATE passes. The guard is:
+
+```typescript
+// In computeStepDiff or before passing existingSteps:
+const manualExistingSteps = existingSteps.filter(
+  (st) => st.technique_step_id === null
+);
+```
+
+The recipe editor UI should render technique-linked sections as read-only: their steps
+are displayed but not editable. The only recipe-level customization in a linked section
+is slot fills. If the user deletes an entire linked section (e.g., removes the section card),
+the CASCADE on `recipe_sections` → `recipe_steps` cleans up materialized steps, and
+CASCADE on `recipe_sections.id` referenced by `recipe_technique_instances.recipe_section_id`
+cleans the instance row as well.
+
+### Recipe Duplication (duplicateRecipe)
+
+The existing `duplicateRecipe` function copies sections and steps. When a section has
+`technique_instance_id`, the duplication must:
+
+1. Copy the `recipe_technique_instances` row to the new recipe (new instance ID)
+2. Copy `recipe_slot_fills` rows for the new instance ID (same colour choices)
+3. Materialize technique steps into the duplicate sections (via the same
+   `createRecipeTechniqueInstance` logic)
+
+The duplicate starts live-linked to the same technique with the same colour choices.
+It can be detached independently. The `sectionIdMap` pattern from the existing
+`duplicateRecipe` extends naturally to carry `technique_instance_id` through.
+
+---
+
+## Propagation Edge Cases
+
+### Add step to technique
+
+Re-sync inserts a new `recipe_steps` row per affected instance with a new PK and the
+new `technique_step_id`. Progress for existing units starts at zero for the new step.
+Existing progress is untouched. No user-visible disruption except the new step appears
+in the timeline and Painting Mode.
+
+### Remove step from technique
+
+Re-sync deletes the `recipe_steps` row. `ON DELETE CASCADE` on
+`unit_recipe_step_progress.recipe_step_id` removes all progress records for this step
+across all units. `painting_percentage` is recomputed on next syncPaintingPercentage
+call. Units that had completed this step will see their completion percentage decrease.
+This is honest behavior and matches how a recipe owner deleting a regular step works.
+
+UI recommendation: the technique editor should surface "removing this step will affect
+N recipes and M units with existing progress" before deletion.
+
+### Reorder steps within technique
+
+Re-sync UPDATEs `order_index` on the corresponding `recipe_steps` rows. PKs unchanged.
+Progress unchanged. Timeline re-renders in new order.
+
+### Add slot to technique
+
+New `technique_slots` row inserted. Technique steps that are updated to use the new slot
+get re-synced. Steps that previously had no slot now reference the new slot; their
+`resolved_paint_id` becomes NULL (unfilled) for all recipe instances until each recipe
+owner fills the slot via `SlotFillDialog`. The recipe timeline shows an amber unfilled
+slot indicator. Paint availability degrades (more missing paints). No progress impact.
+
+### Remove slot from technique
+
+`ON DELETE SET NULL` on `technique_steps.slot_id` fires: affected steps have
+`slot_id = NULL`. `ON DELETE CASCADE` on `recipe_slot_fills.technique_slot_id` removes
+all fills that referenced that slot. On re-sync, affected `recipe_steps` rows resolve
+`resolved_paint_id = NULL` and `slot_id = NULL` (making them effectively paintless steps).
+This is a destructive action; the technique editor must require confirmation and surface
+which recipes are affected.
+
+### Rename slot
+
+`UPDATE technique_slots SET name = ...`. All references via `technique_slot_id` FK remain
+valid. `slot_name` in the enriched step read query picks up the new name immediately.
+Zero structural impact. No re-sync needed.
+
+### Delete technique (safety guard)
+
+Recommended application-layer guard in `deleteTechnique`:
+
+```typescript
+const instances = await db.select(
+  `SELECT COUNT(*) AS cnt FROM recipe_technique_instances
+   WHERE technique_id = $1 AND detached = 0`, [techniqueId]
+);
+if (instances[0].cnt > 0) {
+  throw new TechniqueInUseError(instances[0].cnt);
+}
+await db.execute("DELETE FROM techniques WHERE id = $1", [techniqueId]);
+// CASCADE handles technique_sections, technique_steps, technique_slots
+```
+
+The UI shows: "X recipe(s) are still using this technique. Detach from all recipes before
+deleting." The `ON DELETE RESTRICT` FK on `recipe_technique_instances.technique_id` acts
+as a DB-level guard; the application guard provides a helpful error message.
+
+### Unfilled slot state
+
+Steps with `slot_id IS NOT NULL AND resolved_paint_id IS NULL`:
+- Recipe Timeline: show slot name in amber with a "Fill" button
+- Painting Mode: show slot name in amber as an "unfilled slot" warning (distinct from the
+  green paintless-step rendering); block "Mark Done" is not blocked but a warning banner
+  appears at mode entry
+- Paint availability: count unfilled slots as "missing" paints for the section
+
+---
+
+## Architectural Patterns
+
+### Pattern 1: Materialized Template Rows
+
+**What:** Technique steps are materialized as `recipe_steps` rows (FK-linked via
+`technique_step_id`) rather than resolved virtually at query time. Re-sync keeps these
+rows current.
+**When to use:** Whenever a template drives concrete entity rows that need stable identity
+for progress tracking or FK references.
+**Trade-offs:** Slightly more storage; requires explicit re-sync on template edit. Upside:
+zero changes to progress system, Painting Mode, apply-to-units, or any downstream consumer.
+
+### Pattern 2: Single db Handle for Resync
+
+**What:** `resyncAllInstancesForTechnique` calls `getDb()` ONCE at the top and passes the
+`db` handle down to `resyncTechniqueInstance`. No helper function calls `getDb()` independently.
+**When to use:** Always when a sequence of SQL statements must act on consistent data.
+tauri-plugin-sql uses a connection pool; calling `getDb()` multiple times may yield
+different pool members. Inline all SQL on the single handle.
+**Trade-offs:** Less composable than calling helper functions; acceptable for the technique
+domain which has dedicated query functions.
+
+### Pattern 3: Slot Resolution at Read Time
+
+**What:** `recipe_steps.paint_id` is always NULL for technique-owned steps. The effective
+paint (`resolved_paint_id`) is computed at read time via LEFT JOIN through
+`recipe_slot_fills` and `technique_slots`.
+**When to use:** Any case where the same structural row must show different data values per
+consuming context (here: different colour fills per recipe).
+**Trade-offs:** One extra JOIN on every step read query. Benefit: slot fills are a single
+source of truth; changing a fill does not require updating the materialized `recipe_steps` row.
+
+---
+
+## Anti-Patterns to Avoid
+
+### Anti-Pattern 1: Storing resolved_paint_id in recipe_steps
+
+**What people do:** Write the resolved `paint_id` into `recipe_steps.paint_id` whenever a
+slot fill is created or updated.
+**Why it's wrong:** Creates two sources of truth. On slot fill change, every `recipe_steps`
+row for every step using that slot across every instance must be updated. The JOIN approach
+keeps a single source of truth.
+**Do this instead:** Enrich at read time via LEFT JOIN in `getStepsForRecipe`.
+
+### Anti-Pattern 2: Nesting transaction helpers in resync
+
+**What people do:** Call `saveRecipeGraph` or `createRecipeSection` from inside
+`resyncTechniqueInstance`, letting each helper call `getDb()` independently.
+**Why it's wrong:** tauri-plugin-sql uses a connection pool. Explicit `BEGIN/COMMIT`
+does not span pool members. Each independent `getDb()` call may return a different
+connection. There is no transactional atomicity across helper calls.
+**Do this instead:** All SQL in `resyncTechniqueInstance` uses the SAME `db` handle
+obtained once at the top of `resyncAllInstancesForTechnique`.
+
+### Anti-Pattern 3: Keying resync identity to order_index
+
+**What people do:** Identify which materialized `recipe_steps` row corresponds to which
+`technique_steps` row by matching `order_index` rather than by `technique_step_id` FK.
+**Why it's wrong:** This is the same bug migration 028 fixed for regular recipe steps.
+Reordering technique steps would silently swap progress between steps.
+**Do this instead:** The `technique_step_id` FK column on `recipe_steps` is the immutable
+identity link for every resync operation.
+
+### Anti-Pattern 4: Making technique-owned steps editable in the recipe form
+
+**What people do:** Allow the recipe owner to edit step_name, phase, etc. directly on a
+live-linked step via the recipe editor.
+**Why it's wrong:** The next technique re-sync will silently overwrite those edits with the
+technique's canonical values. The user's changes are lost without warning.
+**Do this instead:** Render technique-owned sections/steps as read-only in the recipe editor.
+Provide a "Detach" escape hatch for users who need to customize further.
+
+### Anti-Pattern 5: Cascade-deleting technique without user confirmation
+
+**What people do:** DELETE FROM techniques with ON DELETE CASCADE, silently removing all
+instances and their materialized steps and progress.
+**Why it's wrong:** A painter who completed steps in an OSL technique across multiple models
+loses all progress silently.
+**Do this instead:** Application-layer COUNT check for non-detached instances; surface count
+to user; require explicit detach-all or confirmation before delete.
+
+---
+
+## Recommended Build Order
+
+Dependencies cascade top-to-bottom. Each step must be verified before the next begins.
+
+| Step | Scope | Key Risk |
+|------|-------|----------|
+| 1. Schema (migrations 051–052) | New tables + column additions | FK declaration order (slots before steps) |
+| 2. Technique CRUD + graph save | getTechniques, saveTechniqueGraph, hooks, TechniqueLibraryPage, TechniqueSheet (metadata only) | Five-phase diff correctness |
+| 3. Slot system | Slot CRUD in TechniqueSheet, technique_slots table | Slot ordering UX |
+| 4. Technique step authoring | Section/step editor in TechniqueSheet with slot picker | Step-slot reference integrity |
+| 5. Apply flow (instance + slot-fill) | createRecipeTechniqueInstance, SlotFillDialog, SlotFillRow, upsertSlotFill | Materialization correctness; section_id assignment |
+| 6. Enriched step read + resolved paint | getStepsForRecipe JOIN extensions, TypeScript type updates, saveRecipeGraph skip live-linked steps | JOIN correctness; paint availability update |
+| 7. Live-link re-sync propagation | resyncTechniqueInstance, resyncAllInstancesForTechnique, data-layer tests | Progress stability under add/remove/reorder |
+| 8. Integrations: timeline, Painting Mode, availability | Component updates to consume resolved_paint_id; unfilled slot states | Unfilled-slot vs paintless-step distinction |
+| 9. Detach + delete safety | detachTechniqueInstance, deleteTechnique guard, confirmation dialogs | Progress survival through detach |
+| 10. Recipe duplication update | duplicateRecipe extended to copy instances + slot fills | sectionIdMap extension; instance ID remapping |
+
+---
 
 ## Sources
 
-- Direct reads (HIGH): `scripts/check-version.mjs`, `scripts/build-unit-db.ts`, `scripts/download-wahapedia.ts`, `src/lib/syncFreshness.ts`, `src/hooks/useLeaderTargets.ts`, `src/db/queries/bsdataExtended.ts`, `src/db/queries/armyLists.ts`, `src/features/army-lists/ArmyListDetailPage.tsx`, `src/features/army-lists/LeaderAttachmentSheet.tsx`, `src/features/factions/FactionsPage.tsx`, `src-tauri/src/lib.rs` (import command + migration registration), `src-tauri/migrations/038_udb_schema.sql`, `046_backfill_faction_udb_normalized.sql`, `tests/data-layer/migration-parity.test.ts`, `tests/data-layer/db-helpers.ts`, `.github/workflows/release.yml`, `.planning/PROJECT.md`.
+- Direct source inspection:
+  - `src/db/queries/recipes.ts` (saveRecipeGraph, duplicateRecipe, syncDerivedStatuses)
+  - `src/db/queries/recipeAssignments.ts` (upsertStepProgress, completeStepWithSession, getKanbanProgressByUnitIds)
+  - `src/db/queries/recipeSections.ts` (createRecipeSection, updateRecipeSection)
+  - `src/lib/recipeDiff.ts` (computeSectionDiff, computeStepDiff, buildSectionIdMap)
+  - `src/types/recipe.ts`, `src/types/recipeSection.ts`, `src/types/recipePaint.ts`, `src/types/recipeAssignment.ts`
+  - `src/features/recipes/recipeSection.ts` (DraftSection/DraftStep model)
+  - `src/features/recipes/recipeSchema.ts` (RECIPE_EFFECTS, PAINTING_PHASES, RECIPE_SURFACES)
+- Migration history: `021_applied_recipe_assignments.sql`, `028_step_progress_identity.sql`,
+  full migration list `001–050` confirming current schema at migration 050
+- `.planning/PROJECT.md` Key Decisions (recipe_step_id as progress key; flat inline SQL
+  for transactions; five-phase diff for non-destructive save; ON DELETE CASCADE for
+  recipe_steps.section_id; DELETE-all + re-INSERT vs diff patterns)
+
+---
+
+*Architecture research for: v0.7.0 Technique Library — parameterized live-linked painting techniques*
+*Researched: 2026-06-19*

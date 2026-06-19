@@ -1,116 +1,389 @@
 # Feature Research
 
-**Domain:** Warhammer 40K 10th-edition hobby-management desktop app (single-user, local-first) — v0.6.0 Themes C (Player-Journey Depth) & B (Honesty & De-cruft)
-**Researched:** 2026-06-15
-**Confidence:** HIGH (leader-attachment data structure verified against live Wahapedia CSV; existing-feature behavior verified by reading source; comparison/discovery patterns MEDIUM from ecosystem survey)
-
-> Supersedes the prior v0.4.7-era FEATURES.md (rules-data import landscape), which is no longer the active research scope.
+**Domain:** Reusable parameterized painting technique library for a single-user hobby management desktop app (HobbyForge v0.7.0)
+**Researched:** 2026-06-19
+**Confidence:** HIGH — grounded in existing codebase (recipe schema, section/step data model, five-phase diff save, recipe_step_id-keyed progress), real 40K technique knowledge, and analogous patterns from Figma's component/override model and Adobe's template systems.
 
 ---
 
-## Critical Pre-Findings (verified against codebase + live data)
+## Context: What Already Exists
 
-Three findings reshape the scope estimates below. Read these first.
+The recipe model already has:
+- `painting_recipes` -> `recipe_sections` -> `recipe_steps` (sections have `section_type`, `technique`, `execution_mode`, `applies_to`; steps have `painting_phase`, `tool`, `technique`, `dilution`, `time_estimate_minutes`, `paint_id`, `alt_paint_id`, `step_photo_path`)
+- `RECIPE_EFFECTS` const: `OSL | NMM | TMM | Zenithal | Wet Blend | Contrast | Dry Brush | Other` — today a cosmetic label on the recipe, not structural
+- Progress keyed by `recipe_step_id` (not order_index) — the load-bearing identity invariant from v0.2.13
+- Five-phase diff save that preserves section/step IDs across edits
+- Painting Mode: full-page step-by-step execution with keyboard shortcuts, keyed to `recipe_step_id`
+- Paint availability calculation (owned/missing per step via `paint_id` join)
+- Apply-to-units flow with per-unit step progress keyed by `recipe_step_id`
 
-1. **Leader-attachment data ALREADY exists, structured, in Wahapedia.** Wahapedia ships a dedicated `Datasheets_leader.csv` with the schema `leader_id|attached_id` — **1,918 canonical leader→target pairs** (verified live, 2026-06-15). This is NOT prose to be parsed out of ability text; it is a clean join table. Because `udb_units` reuse Wahapedia string datasheet IDs (Key Decision: "Reuse Wahapedia string IDs for udb_units"), both columns map directly to `udb_units.id`. This collapses "full leader-attachment validation" from a HIGH-complexity NLP problem to a MEDIUM data-pipeline + join task.
-
-2. **A leader-target data layer already exists but is fed by the removed BSData source.** `src/hooks/useLeaderTargets.ts`, `getLeaderTargetsByFaction()` in `src/db/queries/bsdataExtended.ts`, the `synced_leader_targets` table, and `LeaderAttachmentSheet.tsx` were all built in Phase 92. They match leaders to targets by **name string** (`leader_name`/`target_name`, case-insensitive). Since BSData was eliminated (v0.4.7), `synced_leader_targets` is almost certainly **empty** — the current "validation" silently degrades to "no valid targets," which is why the milestone calls the existing approach "guidance-only." The work is: repoint this layer at the canonical UDB (FK-based, by `udb_unit_id`, not by name).
-
-3. **The "fake sync" surface is already a known stub.** `src/lib/syncFreshness.ts` hardcodes `getSyncFreshness() → "fresh"` and `getSyncAgeLabel() → "Data bundled with app"` with a comment that 12 consumers depend on the type. `StaleDataBanner.tsx` still renders. Theme B's honesty work is removing/replacing these, not building new freshness logic.
+The v0.7.0 feature promotes the today-cosmetic `effect` label and the section `technique` text field into real, reusable, colour-parameterised structures.
 
 ---
 
 ## Feature Landscape
 
-### Table Stakes (Users Expect These)
+### Category A — Technique Authoring
+
+Features for creating and editing a technique in the technique library.
+
+#### Table Stakes
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| **Leader-attachment validation against canonical targets** | 10th-ed core rule: a Leader can only attach to the specific Bodyguard units listed on its datasheet. A list builder that lets you attach a Captain to a Land Raider is wrong. | MEDIUM | Add `Datasheets_leader.csv` to the download list + build pipeline; emit a `udb_leader_targets(leader_unit_id, attached_unit_id)` table; migrate `useLeaderTargets`/`LeaderAttachmentSheet` from name-match on `synced_leader_targets` to FK-join on `udb_unit_id`. Data already verified (1,918 pairs). |
-| **Honest data-status surface (no fake "sync")** | A "Last synced 3 days ago / Stale" banner on data that ships with the app and never syncs is a lie that erodes trust. Users expect status to reflect reality. | LOW | Replace `StaleDataBanner` + the freshness stubs with a static, truthful "Game data version X (bundled with app v0.6.0)" indicator. See Theme-B section below. |
-| **"You own N of this" on the canonical catalog** | Any catalog backed by an inventory shows ownership inline. Browsing the Unit Database without seeing what you already own forces context-switching. | LOW–MEDIUM | Reverse of the existing `units.udb_unit_id` FK. Count owned `units` rows grouped by `udb_unit_id`; surface a badge on `UdbDatasheetSheet` / unit-database rows. Collection→DB link already exists (v0.5.2 "View Datasheet"); this is the missing return leg. |
-| **Add-from-catalog into collection** | Already partially built (v0.4.0 COL-01 "Add from Database"). Expected to be reachable from the catalog itself, not only from the collection page. | LOW | Surface the existing add-flow as an action on the datasheet view (catalog → collection direction of the loop). |
-| **Goal progress visible where the user already looks (dashboard)** | Goals invisible unless you visit `/goals` get forgotten. Habit/hobby trackers universally surface progress on the home screen. | LOW–MEDIUM | A dashboard card existed historically (v0.2.2 "dashboard goal card") but PROJECT notes goals now have "no dashboard surfacing, no progress viz." Re-surface active goals with a progress bar + due-date awareness on the command-center grid. |
+| Create a named technique with full section+step structure | If you can't build OSL once and reuse it, the library is useless | HIGH | Same DraftSection/DraftStep model as RecipeFormSheet; reuse existing form components |
+| Define named colour slots on a technique | The entire parameterisation premise: "Glow Core / Glow Mid / Glow Edge" for OSL rather than hard-coded paints | MEDIUM | New entity: `technique_colour_slots` table; a slot has `id`, `technique_id`, `name`, `role_hint` (e.g. "darkest shadow"), `order_index` |
+| Reference a colour slot from a step instead of a fixed `paint_id` | Steps need to say "apply Glow Core here" not "apply Abaddon Black" | MEDIUM | Steps get a nullable `technique_slot_id` FK; existing `paint_id` stays for non-slot steps |
+| Edit technique structure (add/remove/reorder sections and steps) | Authors need to iterate; OSL might need a new "Ambient Bleed" step after "Glow Edge" | HIGH | Reuse five-phase diff save pattern; must produce stable `technique_step_id` for all existing instances |
+| Delete a technique with safety check | Prevent orphaned slot mappings; warn if technique is used by N recipes | LOW | Count-based confirm dialog (same pattern as recipe delete) |
+| Technique metadata: name, description, effect category, difficulty, estimated time | Library browsability requires at minimum a name and difficulty label | LOW | Mirror recipe metadata shape; `effect` maps to existing `RECIPE_EFFECTS` const |
 
-### Differentiators (Competitive Advantage)
+#### Differentiators
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| **Side-by-side unit comparison (2–3 datasheets)** | "Which of these two HQs should I run / paint next?" answered without tab-switching. For a painter→collector, comparison is about *informed choice and learning the roster*, not mathhammer. | MEDIUM | New `/unit-database` sub-view or modal. Align rows: stats line (M/T/Sv/W/Ld/OC), weapon profiles, abilities, keywords, points-by-model-count. All data already in `udb_*` tables. Pick units from the existing browser (multi-select). 2–3 is the right cap for a desktop column layout; competitive tools go to 4 but add clutter. |
-| **Comparison that highlights deltas** | Showing *what differs* (e.g. T5 vs T4, +1 OC) is far more useful than two static blocks side-by-side. | MEDIUM | Diff-highlight numeric stats and list-difference keywords/abilities. This is the "makes it useful for list-building decisions" piece. Pure presentation layer over existing data. |
-| **Closed-loop Collection ⇆ Unit Database discovery** | The bidirectional loop (own→catalog→own) turns the catalog from a reference into a *planning surface* tied to real ownership. | MEDIUM (sum of the two LOW table-stakes legs + polish) | Catalog row: "Owned ×2 · View in Collection" / "Not owned · Add to Collection". Collection row: "View Datasheet" (exists). The differentiation is making it feel like one connected space, not two lists. |
-| **Goal progress derived from real hobby data** | Goals tied to painting sessions/readiness auto-advance — no manual check-off. A dashboard card showing "Paint 1000 pts of Necrons: 640/1000 ✓ on track" is uniquely satisfying for this app's loop. | MEDIUM | Progress derivation likely already partially exists (v0.2.2 "track progress via painting sessions"). Verify it still computes post-rules.db-elimination; add visualization (progress ring/bar, due-date pacing). |
+| Role hint per colour slot | "Shadow / Midtone / Highlight / Accent" hints help the user pick the right paint when filling slots — especially for OSL where Glow Edge should always be brighter than Glow Mid | LOW | Free-text or enum on the slot; displayed in the slot-fill dialog |
+| Step-level notes on technique steps | "Hold brush perpendicular to edge; 2:1 Lahmian Medium dilution" — technique-specific advice every instance inherits | LOW | `notes` column already on `recipe_steps`; technique steps carry same column |
+| Reference photo / result photo on a technique | Show what finished NMM gold looks like before the user commits to applying it | LOW | `result_photo_path` already on `painting_recipes`; same column on `techniques` |
+| Duplicate a technique | Start "NMM Gold v2" from an existing "NMM Gold" | LOW | Same duplicateRecipe pattern; also duplicates slots and steps |
 
-### Anti-Features (Commonly Requested, Often Problematic)
+#### Anti-Features
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| **Mathhammer / damage-efficiency comparison (Dmg-per-100pts, win-probability)** | Competitive 40K tools (Tactical Cogitator, UnitCrunch) lead with it; tempting to match. | Directly contradicts the stated journey ("painter/collector → ready-to-play, NOT competitive optimization") and Out-of-Scope ("Competitive list optimization"). Requires a combat simulation engine — huge, perpetually-maintained, off-mission. | Comparison shows *facts* (stats, weapons, abilities, points), not *simulated outcomes*. Let the user draw conclusions. |
-| **Full rules-legality army validation (FOC slots, detachment limits, enhancement caps, max-units-per-datasheet)** | "Validate my list" sounds like a natural extension of leader validation. | Out-of-Scope ("rules validation explicitly not the goal"). 10th-ed composition rules are intricate and change with every Munitorum/dataslate; a half-correct validator is worse than none (false confidence). | Keep validation scoped to leader-attachment *targeting* (a stable, datasheet-level fact) plus the existing soft warnings (points over budget, ownership, readiness). Don't expand into list-legality. |
-| **Comparing 4+ units / arbitrary multi-select grid** | "Why not let me compare my whole faction?" | Desktop columns become unreadable past 3; comparison stops being a decision aid and becomes a worse version of the database table that already exists. | Cap at 2–3. The full-roster view is the existing Unit Database browser with filters. |
-| **Auto-sync / "check for data updates" button next to the data-status surface** | Once you show a data version, users expect a refresh button. | Out-of-Scope ("Runtime auto-sync of unit data — offline-first; updates via app releases"). Adds a network surface the architecture deliberately removed (rules.db elimination). | The honest status says data ships with the app; updates arrive via app releases (auto-update already exists). No runtime fetch. |
-| **Goal types beyond hobby progress (tournament placement, win-rate goals)** | Goals feature could absorb competitive metrics. | Off-mission; pulls the app toward competitive tracking. | Keep goals tied to the painting/collecting loop (points painted, units finished, projects completed). |
-| **Editable/override leader-target pairs in the UI** | "Wahapedia is missing X" or homebrew. | Maintenance burden + correctness risk for a single-user tool; the manual-override system exists for points/stats but leader targeting is rarely wrong in the source. | Trust the canonical data. If a gap is found, fix it in the pipeline (Theme D territory), not via per-user UI overrides. |
+| Import / export technique files | Share OSL recipe with a friend via file | For a single-user local tool this adds significant surface area (serialisation, versioning, import validation) for zero in-app value | Defer; the backup/restore feature already handles full data portability |
+| Community technique library / cloud sync | Download popular NMM recipes | Explicitly out of scope: local-first, no network, no accounts per PROJECT.md | Defer to a hypothetical v2 |
+| Version history on techniques | See what NMM Gold looked like before the last edit | Overkill for a personal tool; snapshot complexity rivals recipe save complexity | Duplication ("NMM Gold v2") is sufficient; users can keep old copies |
+| AI-generated technique steps | "Generate OSL technique for me" | Out of scope per PROJECT.md | Defer |
+
+---
+
+### Category B — Colour Slot System
+
+The parameterisation layer: how slots are defined, named, and filled per recipe instance.
+
+#### Table Stakes
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Named colour slots on a technique | Foundation of the entire feature | MEDIUM | See Category A |
+| Per-recipe slot mapping: slot -> actual paint | OSL in "Ultramarine" recipe uses blue Glow Core; OSL in "Death Guard" recipe uses green | MEDIUM | New table: `recipe_technique_slot_maps` with `(recipe_technique_instance_id, slot_id, paint_id)`; each instance carries its own mapping |
+| Multiple instances of the same technique in one recipe | A recipe might have two OSL sections: torch glow on weapon AND eye lens glow, with different colours | MEDIUM | Each application of a technique to a recipe is a distinct `recipe_technique_instances` row; slot maps are per instance |
+| "No paint assigned" state on a slot is valid (not an error) | Users work incrementally; Painting Mode already handles paint-free steps | LOW | Null `paint_id` in slot map = unassigned; treat same as paintless step for availability calc |
+| Slot map resolves to `paint_id` for all downstream consumers | Paint availability calculation, Painting Mode paint swatch, wishlist bulk-add must all read the resolved paint, not the slot | HIGH | Resolution layer: `effectivePaintId(step) = step.paint_id ?? slotMap[step.technique_slot_id]`; centralise as a pure function in `src/lib/` |
+
+#### Differentiators
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Slot fill UI shows role hints and existing paint swatch | When filling "Glow Mid" for OSL, the user sees "(midtone between Core and Edge)" and a swatch of the currently assigned paint | LOW | Enhances the apply dialog; role_hint column drives tooltip |
+| Slot fill suggests recently used paints for this slot | Speeds up filling the same slot across multiple recipe applications | LOW | Query `recipe_technique_slot_maps` for paint_ids used for this slot_id across other instances |
+| Bulk slot reassignment within a recipe instance | "Reassign all slots using Contrast Medium to Lahmian Medium" | MEDIUM | Bulk UPDATE on a single recipe_technique_instance_id |
+
+#### Anti-Features
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Global "default colours" baked into the technique | So the user doesn't have to fill every slot | Breaks the parameterisation promise: the whole point is each recipe fills its own colours. A suggestion tooltip is sufficient | Use role hints + recent-usage suggestions instead |
+| Hierarchical / nested slot inheritance | Slot inherits from parent technique's slot unless overridden | Too complex; YAGNI for a personal tool | Flat slots per instance is sufficient |
+
+---
+
+### Category C — Technique Library Browse
+
+A dedicated page/section to browse, search, and manage saved techniques.
+
+#### Table Stakes
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Technique list page with name, effect category, difficulty, usage count | Users need to browse before applying; "how many recipes use my OSL technique" is immediately useful | LOW | Standard EntityPage pattern; mirror RecipesPage layout |
+| Filter by effect category | With OSL / NMM / Zenithal / Wet Blend all in the library, filtering by type is primary navigation | LOW | Zustand filter store; same pattern as recipe filters |
+| Search by name | Immediately locate "NMM Gold v2" in a library of 20 techniques | LOW | Standard text filter |
+| Usage count badge on each technique card | Shows "used in 4 recipes" — helps user decide whether editing this technique affects many recipes | LOW | JOIN count on recipe_technique_instances |
+| Technique detail view: full section/step tree + all defined slots | User needs to see the full structure before applying | MEDIUM | Read-only timeline view mirroring SectionedTimeline; slots listed in a sidebar or header panel |
+
+#### Differentiators
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| "Recipes using this" list in technique detail | Clicking NMM Gold shows the 4 recipes currently live-linked to it — makes propagation visible | LOW | JOIN through recipe_technique_instances to painting_recipes |
+| Effect badge uses existing RECIPE_EFFECTS colours/styling | Visual consistency: OSL badge in technique library matches OSL badge in Recipes page | LOW | Reuse existing Badge styling from RecipeCard |
+
+#### Anti-Features
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Separate "Techniques" top-level sidebar nav entry | Give the library its own nav item | Adds sidebar noise for a feature most naturally accessed from the recipe editor. The library browse page belongs under Workshop | Access via sub-route of Recipes (/recipes/techniques) or a tab; do not inflate the sidebar |
+
+---
+
+### Category D — Apply / Slot-Fill UX
+
+The flow for dropping a technique into a recipe and filling its colour slots.
+
+#### Table Stakes
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| "Add Technique" action in the recipe section editor | Primary entry point: while editing a recipe, user clicks "Add technique section" and picks from the library | MEDIUM | Button in RecipeSectionCard or RecipeFormSheet toolbar; opens a technique picker dialog |
+| Technique picker dialog: browse/search the library, preview slots | User needs to see OSL has 4 slots before committing | MEDIUM | Compact list + expandable slot preview; shadcn Dialog |
+| Slot-fill dialog: one slot per row, paint combobox per row | After picking a technique, fill "Glow Core -> Abaddon Black", "Glow Mid -> Kantor Blue", etc. | MEDIUM | Reuse PaintCombobox; one combobox per slot; can leave slots empty and fill later |
+| Applied technique appears as a named section with "from technique X" badge | Users must always know which sections are live-linked vs handcrafted | LOW | Badge/label on RecipeSectionCard; same section card component, new visual state |
+| Slot-fill accessible from the recipe detail view (not just editor) | User may want to see/change colours without opening the full edit form | MEDIUM | "Edit colours" action on the technique section badge; opens slot-fill dialog in view mode |
+| Applying a technique inserts its sections+steps at the chosen position | The structural result of "apply" must be visible immediately in section order | HIGH | On apply: create recipe_technique_instances row + slot_maps rows; technique steps materialise as virtual/joined rows in the recipe view, not copied rows |
+
+#### Differentiators
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Inline slot fill in Painting Mode | During execution, user sees "Slot: Glow Core -> [paint]" and can tap the swatch to reassign on the fly | MEDIUM | Painting Mode already shows paint_id swatch; extend to show slot name + resolved paint; tap opens slot-fill mini-dialog |
+| Position picker when applying technique | "Insert OSL section after Base Colours section" | LOW | Position dropdown in the technique picker dialog; defaults to end |
+| Preview of resolved steps before applying | See the full step list with slot names before committing | LOW | Expandable preview in the technique picker dialog |
+
+#### Anti-Features
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Applying a technique copies steps as plain recipe steps (snapshot mode) | Simpler implementation; avoids live-link complexity | Completely defeats the purpose of the feature: the user would have to update 4 recipes separately when fixing a step. The user explicitly chose live link over snapshot (PROJECT.md) | Live link is the confirmed design decision |
+| Apply technique to all recipes at once | One-click application across the whole library | Dangerous bulk operation; slot colours would be undefined across all of them | Not needed; apply is intentional per-recipe |
+
+---
+
+### Category E — Live Link and Structural Propagation
+
+How edits to a technique's structure flow through to every recipe using it.
+
+#### Table Stakes
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Editing a technique's step structure propagates to all recipe instances | The "edit once, update everywhere" promise | HIGH | Recipe views JOIN through recipe_technique_instances to technique_sections + technique_steps rather than copying rows. No materialised step rows per recipe for technique-sourced steps |
+| `technique_step_id` is the stable identity for progress keying | If progress is keyed to recipe_step_id and a technique adds a step, the mapping breaks: same class of bug as v0.2.13 regression. Fix: technique-sourced step progress keys to `(recipe_technique_instance_id, technique_step_id)` | HIGH | **Critical.** New composite key for progress rows from technique steps. Existing non-technique steps keep recipe_step_id. Progress resolution checks step source before looking up progress |
+| Adding a step to a technique adds it to all recipes | User adds "Thin with Lahmian Medium" step to OSL; all recipes gain the step | HIGH | Falls out naturally from JOIN approach if resolution layer is correct |
+| Removing a step from a technique removes it from all recipes; progress on that step is nullified | The step is gone. Progress entry becomes an orphan and is cleaned up | MEDIUM | ON DELETE CASCADE on technique_step_id in the progress composite-key table, or explicit cleanup in the technique save transaction |
+| Reordering steps within a technique reorders them in all recipes | Cosmetic but required for correctness | LOW | ORDER BY technique_step.order_index in the JOIN |
+| "X recipes will be affected" warning before saving a structural change | Prevents accidental propagation; mirrors recipe delete warning pattern | LOW | Count query on recipe_technique_instances before save; toast/dialog confirmation if count > 0 |
+
+#### Differentiators
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Change summary shown in technique edit confirmation | "This will add 1 step and remove 1 step across 3 recipes" — not just a count | MEDIUM | Diff the draft against the saved technique; summarise additions/deletions |
+| Per-instance "last synced" timestamp | Shows when a recipe last received a structural update from its technique | LOW | `updated_at` on recipe_technique_instances; shown in the "from technique X" badge tooltip |
+
+#### Anti-Features
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Opt-in per-recipe propagation ("sync this recipe now") | Give the user control over when they receive technique changes | Adds significant complexity (dirty/clean tracking per recipe) for a personal tool where the user IS the technique author. The "X recipes affected" warning before save is the right control point | Warn before save, not after; opt-out (detach) is the escape hatch |
+| Propagation history / undo | "Undo the last technique change across all recipes" | Far too complex; beyond the scope of a personal tool | Duplication before major edits is the escape hatch ("NMM Gold v2") |
+
+---
+
+### Category F — Safety Rails: Detach and Override
+
+Escape hatches when the live link is unwanted.
+
+#### Table Stakes
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| "From technique X" badge visible on every technique-sourced section | User must always know which sections are live-linked vs handcrafted | LOW | Visual badge on RecipeSectionCard; same section card, new visual state |
+| Detach action on a technique instance in a recipe | Converts live-linked sections+steps into plain recipe sections+steps that can be edited freely | MEDIUM | On detach: materialise technique_sections/steps as recipe_sections/steps (copy rows into the recipe graph), then DELETE the recipe_technique_instances row. Progress must be remapped from (instance_id, technique_step_id) to the new recipe_step_ids |
+| Confirm before detach: "this will break the live link permanently" | Non-reversible destructive action | LOW | Confirm dialog; mirror the recipe delete dialog pattern |
+| After detach, the section is a plain section with no special state | The detached copy is fully editable; no half-linked state | MEDIUM | Clean materialisation in detach transaction |
+
+#### Differentiators
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Duplicate technique then edit (soft override) | Instead of detaching, user duplicates the technique to "NMM Gold (modified)" and points the recipe at that | LOW | Combine existing duplicate-technique + reassign-instance actions; a workflow to document/surface in the UI |
+| "Edit just this recipe's slot colours" clearly distinguished from "edit the technique" | Slot colours are already per-instance; just needs clear UI copy | LOW | Clarifying copy in the slot-fill dialog: "Changing colours here only affects this recipe" |
+
+#### Anti-Features
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Per-step override within a live-linked section | Override a single step's dilution without detaching the whole section | Complex mixed-state: some steps live-linked, others overridden. Hard to communicate to the user and hard to maintain | Detach the whole section and edit freely, or edit the technique and accept propagation |
+| "Lock technique" to freeze propagation without detaching | Prevent a technique from propagating to a specific recipe | Same mixed-state complexity | Detach is the clean answer |
+
+---
+
+### Category G — Integration with Existing Recipe Surfaces
+
+How technique-sourced steps integrate with existing Painting Mode, availability calc, apply-to-units, and timeline.
+
+#### Table Stakes
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Painting Mode works for technique-sourced steps | The primary execution surface must understand slot-resolved paints | HIGH | PaintingMode uses recipe_step_id as progress key; technique steps use (instance_id, technique_step_id). The step data loading query must JOIN through instance -> technique_steps and resolve paint from slot map. Keyboard shortcuts (Space/Arrow/Escape) unaffected |
+| Paint availability calculation includes slot-resolved paints | The "owned/missing" badge on a recipe card must count technique-step paints correctly | HIGH | `effectivePaintId()` resolution function must be called in the availability query, not just in the UI layer |
+| Apply-to-units progress tracking works for technique-sourced steps | Per-unit step completion must handle technique steps | HIGH | Technique steps need (instance_id, technique_step_id) composite key in the progress table. Alternative: a view presenting technique steps as virtual recipe_step rows with synthetic stable IDs |
+| Session-recipe linking cascade selectors include technique sections | LogSessionSheet section selector must show technique-sourced section names | LOW | JOIN approach means sections appear in the recipe's section list automatically; names come from technique_sections.name |
+| Recipe duplication preserves live links (not copies steps) | Duplicating a recipe that uses OSL should also live-link OSL (with a fresh slot-fill) | MEDIUM | duplicateRecipe: for each recipe_technique_instances row, create a new instance row for the new recipe_id, then copy slot_maps |
+| SectionedTimeline correctly displays technique-sourced sections with badge | Existing timeline must distinguish technique sections from recipe sections | MEDIUM | Extend the section data type with `source: "technique" | "recipe"` and `technique_name`; badge renders conditionally |
+
+#### Differentiators
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| "Missing slots" warning in paint availability | "2 colour slots unfilled in OSL section" surfaced alongside the existing owned/missing paint warning | LOW | Check slot maps for NULL paint_ids; add to the paint readiness summary |
+| Technique name shown in Painting Mode section navigator | Section navigator header shows "OSL (from technique)" so the user knows they're executing a reusable technique | LOW | Pass technique_name through to the section navigator component |
+
+#### Anti-Features
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Technique analytics (most-used technique, average slot fill rate) | Useful metrics | Dashboard is already well-developed; per-technique analytics premature for a personal tool | Defer; usage count in the library browse is sufficient |
+| Bulk "apply this technique to all recipes in faction X" | One-click application | Slot colours would be undefined; dangerous bulk operation | Not needed; apply is intentional per-recipe |
 
 ---
 
 ## Feature Dependencies
 
 ```
-Theme B (Honesty) — independent, no data deps
-  └── Remove StaleDataBanner + freshness stubs ──> replace with bundled-data version surface
-  └── (other B items: Shared Abilities tab, Link-unit dead end, Factions merge, decomposition)
+[Technique data model]
+  (techniques, technique_sections, technique_steps, technique_colour_slots)
+    |
+    +--required by--> [Technique authoring UI]
+    +--required by--> [Colour slot definition]
+    +--required by--> [Technique library browse]
+    |
+    +--required by--> [recipe_technique_instances + recipe_technique_slot_maps]
+                            |
+                            +--required by--> [Slot-fill apply flow]
+                            +--required by--> [Live link / propagation on technique edit]
+                            +--required by--> [Detach action]
+                            +--required by--> [Painting Mode technique-step support]
+                            +--required by--> [Apply-to-units technique-step support]
+                            +--required by--> [Paint availability resolution]
 
-Theme C (Player-Journey Depth)
-  Unit comparison view
-      └──requires──> existing udb_* tables (DONE) + Unit Database browser multi-select (new)
+[effectivePaintId() pure function in src/lib/]
+  (technique_slot_id -> paint_id via slot map, falls back to step.paint_id)
+    |
+    +--required by--> [Painting Mode paint swatch]
+    +--required by--> [Paint availability calculation]
+    +--required by--> [Wishlist bulk-add from technique steps]
+    +--required by--> [Apply-to-units progress tracking]
 
-  Leader-attachment validation (canonical)
-      └──requires──> Datasheets_leader.csv in download + build pipeline (new)
-                         └──produces──> udb_leader_targets table (new migration)
-      └──requires──> repoint useLeaderTargets / LeaderAttachmentSheet from
-                     synced_leader_targets (name-match, BSData-fed, empty)
-                     to udb_leader_targets (FK by udb_unit_id)
-      └──enhances──> existing army-list builder leader attachment (Phase 92 UI reused)
+[Technique-step progress key: (recipe_technique_instance_id, technique_step_id)]
+    |
+    +--required by--> [Painting Mode progress marking]
+    +--required by--> [Apply-to-units step completion]
+    +--blocks if wrong--> [Stable progress across technique edits: v0.2.13 class of bug]
 
-  Collection ⇆ Unit Database discovery loop
-      └──requires──> units.udb_unit_id FK (DONE, v0.4.0)
-      └──requires──> reverse count query "owned N by udb_unit_id" (new)
-      └──enhances──> existing Collection→Datasheet link (DONE, v0.5.2)
-
-  Goals on dashboard
-      └──requires──> goal progress derivation from sessions (likely DONE, v0.2.2 — VERIFY)
-      └──requires──> dashboard grid slot (DONE, CSS grid command center)
+[Detach action]
+    +--requires--> [Progress key remapping: composite key -> new recipe_step_ids]
+    +--requires--> [Full live-link being working first]
 ```
 
 ### Dependency Notes
 
-- **Leader validation requires the pipeline change first.** `Datasheets_leader.csv` must be added to `scripts/download-wahapedia.ts` (`CSV_FILES`) and `scripts/build-unit-db.ts`, producing a new bundled table. The UI rewire (name-match → FK-join) depends on that data existing. Clean two-step: pipeline → query/UI.
-- **The comparison view and discovery loop share the Unit Database surface** but are otherwise independent and can ship in either order.
-- **Goals-on-dashboard depends on verifying progress derivation still works** post-rules.db-elimination. If derivation broke, that's a prerequisite fix before visualization.
-- **Theme B is fully independent of Theme C** and (per the A→B→C→D sequencing) should land first. None of the honesty/de-cruft items block the depth features.
+- **Technique data model is the foundation.** Nothing else can be built before the schema (techniques, technique_sections, technique_steps, technique_colour_slots, recipe_technique_instances, recipe_technique_slot_maps) is correct. This must be Phase 1.
+
+- **effectivePaintId() must be a pure function in `src/lib/`.** Same pattern as `resolveUnitPoints()`. Multiple consumers (Painting Mode, availability calc, wishlist) must all use the same resolution function. If any consumer resolves paint differently, the "owned/missing" count will diverge from what Painting Mode shows.
+
+- **The progress key decision is the highest-risk design decision.** Keying technique-step progress to `(recipe_technique_instance_id, technique_step_id)` instead of a plain `recipe_step_id` is a structural break from the existing `recipe_unit_progress` table. Two options: (a) new separate `technique_step_progress` table with the composite key — cleaner but requires all progress consumers to be updated; (b) a view that presents technique steps as virtual recipe steps with deterministic synthetic IDs — preserves existing consumers but adds view complexity. Whichever is chosen must be consistent across Painting Mode, apply-to-units, and session logging.
+
+- **Detach is the last feature to implement.** It depends on the full live-link being working and requires understanding the final progress key schema to do the remapping correctly.
+
+---
+
+## Concrete Colour Slot Examples (Real 40K Techniques)
+
+### OSL (Object Source Lighting) — plasma coil, power weapon, eye lens
+Technique structure: 3-4 steps, section_type="highlight", targeting Energy/Glow surface
+
+Slots:
+- **Glow Core** (role_hint: "hottest point — pure white or near-white") -> e.g. White Scar
+- **Glow Mid** (role_hint: "midtone glow — thinned, wet-blended outward from core") -> e.g. Kantor Blue
+- **Glow Edge** (role_hint: "cooldown fringe — very thinned glaze at edge of illuminated area") -> e.g. Macragge Blue
+- **Surface Tint** (role_hint: "ambient light on surrounding surfaces — extremely thin glaze") -> e.g. Caledor Sky + Contrast Medium
+
+Instance 1 (Ultramarine plasma gun): Glow Core=White Scar, Glow Mid=Kantor Blue, Glow Edge=Macragge Blue, Surface Tint=Caledor Sky
+Instance 2 (Death Guard eye lens): Glow Core=White Scar, Glow Mid=Warboss Green, Glow Edge=Deathworld Forest, Surface Tint=Militarum Green
+
+Step structure example:
+1. [shade] Basecoat light source with Glow Core; pure concentration at hottest point
+2. [glaze] Glaze outward with Glow Mid; 2:1 Lahmian Medium, wide soft brush
+3. [glaze] Feather edge with Glow Edge; very diluted, extend 2-3x further than Glow Mid
+4. [glaze] Final pass with Surface Tint on all surfaces in the "cone of light"
+
+### NMM Silver (Non-Metallic Metal, silver)
+Technique structure: 6-7 steps, section_type="highlight", targeting Metal surface
+
+Slots:
+- **Deep Shadow** (role_hint: "darkest recesses — black or very dark grey") -> e.g. Abaddon Black
+- **Shadow** (role_hint: "shaded areas — dark grey") -> e.g. Mechanicus Standard Grey
+- **Midtone** (role_hint: "base tone — mid grey") -> e.g. Administratum Grey
+- **Light** (role_hint: "lit surfaces — light grey") -> e.g. Ulthuan Grey
+- **Highlight** (role_hint: "hottest highlight — pure white") -> e.g. White Scar
+- **Blackline** (role_hint: "panel line accent for crisp metal separation") -> e.g. Abaddon Black
+
+Instance 1 (Space Marine pauldron rim): Shadow=Mechanicus Standard Grey, Midtone=Administratum Grey, Highlight=White Scar
+Instance 2 (Chaos warrior sword): Shadow=Eshin Grey, Midtone=Dawnstone, adds an optional blue glaze tint
+
+### NMM Gold
+Slots:
+- **Deep Shadow** -> e.g. Rhinox Hide
+- **Shadow** -> e.g. Mournfang Brown
+- **Midtone** -> e.g. Zamesi Desert / Skrag Brown
+- **Bright Highlight** -> e.g. Yriel Yellow / Flash Gitz Yellow
+- **Specular** -> e.g. White Scar (tiny dot at absolute hottest point)
+
+### Zenithal Undercoat
+Technique structure: 3 steps, section_type="primer", targeting "all surfaces"
+
+Slots:
+- **Base Shadow** (role_hint: "sprayed from below — darkest tone") -> e.g. Chaos Black Spray
+- **Mid Coat** (role_hint: "sprayed from 45 degrees — midtone") -> e.g. Grey Seer Spray
+- **Zenith Highlight** (role_hint: "sprayed from directly above — lightest tone") -> e.g. Corax White Spray
+
+Note: Zenithal is the one technique where slot variation is low — most users always use black/grey/white. Slots still allow "warm zenithal" (ochre mid-coat) vs "cool zenithal" (blue-grey mid-coat) variation.
+
+### Edge Highlight
+Technique structure: 2-3 steps, section_type="highlight", targeting Armor/Weapon/Other
+
+Slots:
+- **Base Colour** (role_hint: "the flat surface colour receiving the highlight") -> e.g. Macragge Blue
+- **First Edge** (role_hint: "first highlight pass — base colour lightened by ~20%") -> e.g. Calgar Blue
+- **Sharp Edge** (role_hint: "finest edge — near-white or bright highlight for extreme edges") -> e.g. Fenrisian Grey
+
+Instance 1 (Ultramarine pauldron): Base=Macragge Blue, First=Calgar Blue, Sharp=Fenrisian Grey
+Instance 2 (Death Guard trim): Base=Zandri Dust, First=Ushabti Bone, Sharp=Screaming Skull
+Instance 3 (Necron black armour): Base=Abaddon Black, First=Dark Reaper, Sharp=Thunderhawk Blue
 
 ---
 
 ## MVP Definition
 
-### Launch With (v0.6.0 core — Themes B & C as scoped)
+### Launch With (v0.7.0 — this milestone)
 
-- [ ] **Honest data-status surface** — remove `StaleDataBanner` + freshness stubs, replace with truthful bundled-version indicator. *Highest trust value, lowest cost.*
-- [ ] **Leader-attachment validation against canonical `Datasheets_leader.csv`** — pipeline + `udb_leader_targets` + rewire existing Phase-92 UI from name-match to FK. *Core 10th-ed correctness; data already verified to exist.*
-- [ ] **Collection ⇆ Unit Database loop** — "Owned ×N" badge + "View in Collection" on catalog; "Add to Collection" reachable from datasheet. *Completes a half-built loop.*
-- [ ] **Side-by-side unit comparison (2–3 units, facts-only)** — multi-select in browser, aligned rows, delta highlighting. *The flagship Theme-C differentiator.*
-- [ ] **Goals on the dashboard** — active goals with progress bar + due-date awareness on the command-center grid. *Re-surfaces an existing-but-buried feature.*
+- [x] Schema foundation: `techniques`, `technique_sections`, `technique_steps`, `technique_colour_slots`, `recipe_technique_instances`, `recipe_technique_slot_maps` tables with stable IDs
+- [x] Technique authoring form: create/edit named technique with sections + steps + slots (reuse DraftSection/DraftStep pattern and RecipeFormSheet components)
+- [x] Technique library browse page: list, filter by effect, usage count badge, technique detail view
+- [x] Apply technique to recipe: picker dialog, position selection, slot-fill dialog, "from technique X" badge on the section
+- [x] Slot resolution layer: `effectivePaintId()` pure function wired into paint availability calc and Painting Mode
+- [x] Progress key for technique steps: stable `(instance_id, technique_step_id)` composite key; Painting Mode and apply-to-units must respect it
+- [x] Propagation on technique edit: "X recipes affected" warning + structural changes automatically visible in all recipe consumers
+- [x] Detach action: materialise and unlink; progress key remapping
+- [x] "From technique X" badge: visible in SectionedTimeline and recipe editor
+- [x] Recipe duplication preserves live links: duplicate recipe creates a new instance, not copied steps
 
-### Add After Validation (v0.6.x)
+### Add After Validation (Post v0.7.0)
 
-- [ ] **Comparison "what's different" summary line** (one-line text diff above the columns) — add if column-level delta highlighting proves insufficient.
-- [ ] **Comparison from army-list context** ("compare these two units I'm deciding between in this list") — trigger comparison from the list builder, not just the database.
+- [ ] Inline slot fill in Painting Mode: edit colours during execution; useful but not blocking
+- [ ] "Missing slots" paint warning: surface unfilled slot count alongside owned/missing warning
+- [ ] Change summary on technique save: "adds 1 step, removes 1 step across 3 recipes"
+- [ ] Technique duplication: "NMM Gold v2" from existing technique
 
-### Future Consideration (later milestones)
+### Future Consideration (v0.8+)
 
-- [ ] **Goal templates / suggested goals** ("paint a 1000-pt army") — defer until base goal-on-dashboard usage is observed.
-- [ ] **Leader-attachment auto-suggest in the list builder** ("you have an unattached Captain and an eligible Intercessor squad") — defer; current explicit attach flow is sufficient.
+- [ ] Technique export/import: sharing techniques via file; requires serialisation/versioning
+- [ ] Technique analytics: most-used technique, completion rates
+- [ ] Community/cloud technique library: explicitly out of scope per PROJECT.md
 
 ---
 
@@ -118,65 +391,54 @@ Theme C (Player-Journey Depth)
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Honest data-status surface (remove fake sync) | HIGH (trust) | LOW | P1 |
-| Leader-attachment validation (canonical) | HIGH | MEDIUM | P1 |
-| Collection ⇆ Unit Database loop | HIGH | LOW–MEDIUM | P1 |
-| Side-by-side unit comparison (facts-only, 2–3) | MEDIUM–HIGH | MEDIUM | P1 |
-| Goals on dashboard | MEDIUM | LOW–MEDIUM | P1/P2 |
-| Comparison delta-highlighting | MEDIUM | LOW (over comparison base) | P2 |
-| Comparison "what differs" summary | LOW–MEDIUM | LOW | P3 |
-| Mathhammer comparison | — | HIGH | ANTI (do not build) |
-| Full rules-legality validation | — | HIGH | ANTI (do not build) |
+| Schema: techniques + slots + instances + slot_maps | HIGH | MEDIUM | P1 |
+| Progress key: (instance_id, technique_step_id) | HIGH — correctness | HIGH | P1 |
+| effectivePaintId() resolution function | HIGH | LOW | P1 |
+| Technique authoring form | HIGH | HIGH | P1 |
+| Apply technique + slot-fill dialog | HIGH | MEDIUM | P1 |
+| Live link propagation on technique edit | HIGH | HIGH (falls from JOIN model) | P1 |
+| "From technique X" badge + detach | HIGH | MEDIUM | P1 |
+| Technique library browse page | MEDIUM | LOW | P1 |
+| Painting Mode technique-step support | HIGH | MEDIUM | P1 |
+| Paint availability resolution | HIGH | LOW | P1 |
+| Recipe duplication with live-link preservation | MEDIUM | LOW | P1 |
+| SectionedTimeline technique section badge | MEDIUM | LOW | P1 |
+| Inline slot fill in Painting Mode | MEDIUM | MEDIUM | P2 |
+| Missing slots warning | MEDIUM | LOW | P2 |
+| Change summary on technique save | LOW | MEDIUM | P2 |
+| Technique duplication | LOW | LOW | P2 |
+| Position picker in apply dialog | LOW | LOW | P2 |
 
 ---
 
-## Competitor / Ecosystem Feature Analysis
+## Competitor Feature Analysis
 
-| Feature | Tactical Cogitator / UnitCrunch | Warhammer Oracle | New Recruit / BattleScribe | HobbyForge Approach |
-|---------|-------------------------------|------------------|----------------------------|---------------------|
-| Unit comparison | "Comparison Matrix" sorted by Dmg/100pts (competitive efficiency) | Side-by-side 2–4 units: full stats, weapons, abilities, keywords (informational) | List-level, not unit-comparison | **Follow Warhammer Oracle's facts-only model, capped at 2–3, with delta highlighting. Reject Cogitator's mathhammer framing** (off-mission). |
-| Leader attachment | Implicit in list legality | N/A | Enforces attach legality at list-build time | **Validate targeting against canonical `Datasheets_leader.csv`; stop at targeting (not full FOC legality).** |
-| Catalog ⇆ ownership | No ownership concept (calculators) | No ownership | No collection/ownership concept | **Unique to HobbyForge: ties canonical catalog to a real owned-inventory via `udb_unit_id` FK — the bidirectional loop is the differentiator.** |
-| Data freshness | Live BSData import | Live | Live data packs | **Honest "bundled with app" status; no runtime sync (deliberate local-first stance).** |
+No direct competitors offer this exact feature (single-user local desktop app with live-linked parameterised painting technique templates). The closest analogies:
 
-**Takeaway:** the comparison and validation features have ecosystem precedent, but every mainstream 40K tool is *competitive-first*. HobbyForge's differentiation is keeping these features **informational and ownership-aware** for the painter/collector journey — exactly the boundary the Anti-Features section enforces.
+| Feature | Figma (components + overrides) | Paint Pad (recipe sharing) | HobbyForge v0.7.0 approach |
+|---------|-------------------------------|---------------------------|----------------------------|
+| Parameterised structure | Component properties (text, bool, instance swap, fill colour) | None — recipes are narrative, not parameterised | Named colour slots (Glow Core / Glow Mid) referencing real paint inventory |
+| Live link | Main component -> instances; edits propagate to all instances | None | technique -> recipe_technique_instances; JOIN-based, not copy-based |
+| Per-instance override | Instance-level property overrides preserve on main-component edit | N/A | Per-recipe slot mapping (colours) + detach for structural freedom |
+| Detach | "Detach instance" -> editable copy, breaks link permanently | N/A | Detach -> materialise technique steps as recipe steps, remap progress |
+| Scale | Design system scale (100s of instances, teams) | Community scale (public sharing) | Personal tool scale (10-30 techniques, <100 recipes) — simpler is correct |
 
----
-
-## Theme B — Honest Offline-Data Status (deep dive)
-
-**The problem:** `getSyncFreshness()` is hardcoded to `"fresh"`; `getSyncAgeLabel()` returns `"Data bundled with app"`; `StaleDataBanner.tsx` still renders a freshness-themed banner. PointsFreshnessBadge, ReadyToPlayCard, GameDayReadinessPanel, computeUnitWarnings, ArmyListSummaryBar, and DataHealthSummaryCard all consume the freshness type. The UI implies a sync mechanism that no longer exists.
-
-**What a data-status surface SHOULD show (best practice for bundled offline data):**
-
-1. **A truthful provenance statement, not a freshness clock.** Replace "Last synced / Stale" with "Game data: Wahapedia export, bundled with HobbyForge v0.6.0." Provenance + version is honest; an age timer is not (the data's age is the *app release's* age).
-2. **A content version/identifier, not a timestamp.** The build already computes a content hash (`build-unit-db.ts` ~line 827: `createHash('sha256')...slice(0,8)`). Surface that hash or a human "data revision" so the user can tell *which* data they have. This is the honest analog of a sync date.
-3. **An update path that matches reality.** "Newer game data ships in app updates" + link to the existing auto-update flow. No "Refresh" button (would imply runtime sync — Out-of-Scope).
-4. **Remove freshness from per-unit/list warnings.** `computeUnitWarnings` / `PointsFreshnessBadge` should drop the "stale points" warning entirely — points can never be stale relative to a sync that doesn't happen. They can only be "newer in a future app release."
-
-**Recommended teardown order:** delete `StaleDataBanner` + dead dashboard freshness branches → simplify the 12 consumers to drop freshness UI → replace `syncFreshness.ts` with a tiny `getDataProvenance()` returning `{ version, dataRevision }` → expose it in Settings → Data (where Data Health is being demoted per Theme B) and the About tab. Surgical: remove the lie rather than dress it up.
-
----
-
-## Implementation Notes for Downstream (Requirements/Roadmap)
-
-- **Reuse, don't rebuild, the leader UI.** `LeaderAttachmentSheet.tsx`, `groupUnitsWithLeaders.ts`, `useSetLeaderAttachment`/`useClearLeaderAttachment`, and the `leader_attached_to_id` column are all in place and work. The only change is the *source of truth* for valid targets: swap name-match-on-`synced_leader_targets` for FK-join-on-`udb_leader_targets`. Match on `udb_unit_id` (army-list units already carry it) instead of `unit_name` strings — eliminates the case-insensitive-name fragility flagged in Phase-92 pitfalls.
-- **Pipeline change is small and verified.** Add `"Datasheets_leader.csv"` to `CSV_FILES` in `download-wahapedia.ts` and parse it in `build-unit-db.ts` into a `udb_leader_targets` array (both columns are Wahapedia datasheet IDs = `udb_units.id`). 1,918 rows confirmed live. Header is exactly `leader_id|attached_id`.
-- **Comparison view has zero new data needs** — `udb_units`, `udb_models`, `udb_weapons`, `udb_unit_abilities`, `udb_keywords`, `udb_points_tiers` already hold everything. It is a pure presentation feature over the existing browser. Bilingual (EN/FR) display should reuse the existing COALESCE locale layer.
-- **Verify goal progress derivation before building visualization.** PROJECT history shows goals tracked "via painting sessions" (v0.2.2) but current state says "no progress viz." Confirm the derivation query survives the rules.db elimination + recipe-progress changes; if not, that's a prerequisite.
-- **The discovery-loop reverse query** ("owned N by udb_unit_id") is one `GROUP BY units.udb_unit_id` count — surface as a Map at the unit-database page level (the established "load once, Map via useMemo, no N+1" pattern from the codebase).
+Key lesson from Figma: "detach is permanent" is the right UX principle. Half-linked states (some steps live, some overridden) create confusion at any scale. The correct model: override what you can within the component model (slot colours), or detach entirely. This maps cleanly to HobbyForge: slot colours are per-instance, structure is shared, detach gives full freedom.
 
 ---
 
 ## Sources
 
-- **Live Wahapedia export** — `https://wahapedia.ru/wh40k10ed/Datasheets_leader.csv` (header `leader_id|attached_id`, 1,918 rows; verified 2026-06-15 via direct fetch). HIGH confidence.
-- **Wahapedia Data Export** — https://wahapedia.ru/wh40k10ed/the-rules/data-export/ (CSV export model; full spec in `Export Data Specs.xlsx`). HIGH.
-- **10th-ed Leader/Bodyguard rule** — Bell of Lost Souls 10th-ed datasheet explainer; confirms Leaders attach only to datasheet-listed Bodyguard units: https://www.belloflostsouls.net/2023/04/warhammer-40000-10th-edition-datasheet-explainer.html — MEDIUM.
-- **Comparison-view ecosystem** — Tactical Cogitator (Unit Comparison Matrix, Dmg/100pts): https://tactical-cogitator.com/ ; UnitCrunch (mathhammer): https://www.unitcrunch.com/ ; Warhammer Oracle (side-by-side 2–4 units, facts): https://glama.ai/mcp/servers/gregario/warhammer-oracle/inspect — MEDIUM.
-- **Codebase verification (HIGH)** — `src/lib/syncFreshness.ts`, `src/features/army-lists/LeaderAttachmentSheet.tsx`, `src/hooks/useLeaderTargets.ts`, `src/db/queries/bsdataExtended.ts`, `src/lib/groupUnitsWithLeaders.ts`, `scripts/download-wahapedia.ts`, `scripts/build-unit-db.ts`, `.planning/PROJECT.md`.
+- HobbyForge codebase: `src/features/recipes/recipeSchema.ts`, `src/types/recipe.ts`, `src/types/recipePaint.ts`, `src/features/recipes/recipeSection.ts` — HIGH confidence (direct inspection)
+- PROJECT.md Current Milestone v0.7.0 section and Key Decisions — HIGH confidence (authoritative project spec)
+- OSL technique steps: The Army Painter blog, Tangible Day, Creative Twilight — MEDIUM confidence (multiple sources agree on 3-4 colour progression)
+- NMM Silver/Gold: Warhammer Guild, Goonhammer, The Army Painter — MEDIUM confidence (7-step silver and warm-tone gold palettes are industry consensus)
+- Zenithal 3-stage priming: Army Painter, Tangible Day, Warhammer Guild — HIGH confidence (universally documented as black/grey/white 3-spray pattern)
+- Edge highlight: universally documented in 40K community; base + 1-2 progressively lighter passes — HIGH confidence
+- Figma component/override/detach pattern: Figma Help Center articles — MEDIUM confidence (used as UX analogy for the live-link model, not a direct port)
+- Paint Pad recipes platform (paintpad.app): MEDIUM confidence (narrative-style only, no parameterisation features found)
 
 ---
-*Feature research for: Warhammer 40K hobby-management desktop app (v0.6.0 Themes C & B)*
-*Researched: 2026-06-15*
-</content>
+
+*Feature research for: HobbyForge v0.7.0 Technique Library*
+*Researched: 2026-06-19*

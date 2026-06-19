@@ -1,262 +1,159 @@
-# Technology Stack: v0.6.0 Bulletproof & Honest
+# Technology Stack: v0.7.0 Technique Library
 
-**Project:** HobbyForge v0.6.0
-**Researched:** 2026-06-15
+**Project:** HobbyForge v0.7.0
+**Researched:** 2026-06-19
 **Confidence:** HIGH
-**Scope:** Stack additions/changes only — CI hardening, auto-update verification, frontend logging, new-feature dependencies. Existing validated stack (Tauri 2, React 19, TanStack, Zustand, RHF+Zod, Vitest 4, better-sqlite3, jsPDF, react-hotkeys-hook) is NOT re-researched.
+**Scope:** Stack additions/changes for the new "Technique Library" feature only. The fully validated existing stack (Tauri 2, React 19, TypeScript 5, Vite 6, TailwindCSS 4, shadcn/ui, tauri-plugin-sql, React Query, Zustand, RHF+Zod, @dnd-kit, react-hotkeys-hook, Vitest 4, better-sqlite3) is NOT re-researched and NOT changed.
 
-> **TL;DR** — v0.6.0 is overwhelmingly a *process/config* milestone, not a *dependency* milestone. The single most important change is **restructuring `.github/workflows/release.yml` into a test-gated pipeline** — that needs **zero new npm/cargo dependencies**. Everything required for the auto-update fix, the relaunch UX, and the frontend diagnostics log is **already installed** (`@tauri-apps/plugin-updater@2.10.1`, `@tauri-apps/plugin-process@2.3.1`, `@tauri-apps/plugin-fs@2.5.1`). The new feature work (unit comparison, FK/orphan validation) needs **no new libraries** either. The only *optional* new dependency considered is `tauri-plugin-log`, and the recommendation is **do NOT add it** for a single-user tool.
+> **Verdict: zero new runtime dependencies.** Every capability the Technique Library requires — new SQLite tables, CRUD forms with DnD section/step reorder, slot-fill dialogs, live-linked JOIN resolution, badge components, progress keying, and data-layer tests — is already present in the installed stack. This is a schema + React Query + RHF + @dnd-kit feature, identical in pattern to the existing recipe-sections subsystem it extends.
 
 ---
 
 ## Recommended Stack
 
-### Core Technologies (already in place — confirmed current, DO NOT change)
+### New Runtime Dependencies
 
-| Technology | Installed | Latest | Purpose | Why it stays |
-|------------|-----------|--------|---------|--------------|
-| `@tauri-apps/plugin-updater` (JS) / `tauri-plugin-updater` (Rust) | 2.10.1 / 2.10.1 | 2.10.1 | In-app update check + `downloadAndInstall` | Current. Already wired in `useAppUpdate.ts` + `UpdateBanner.tsx`. No bump needed. |
-| `@tauri-apps/plugin-process` (JS) / `tauri-plugin-process` (Rust) | 2.3.1 / 2.3.1 | 2.3.1 | `relaunch()` after install | Current. **Already wired** — `UpdateBanner.tsx:3,44` calls `relaunch()` in the "installing" state. The "relaunch-after-update UX" milestone item is therefore *mostly done*; only verification + log remain. |
-| `@tauri-apps/plugin-fs` | 2.5.1 | 2.5.1 | Frontend disk I/O (the diagnostics log) | Current. Already used in 6+ files (`writeTextFile`, `writeFile`, `BaseDirectory.AppData`). The frontend log hand-rolls on this — no new dependency. |
-| GitHub Actions (`tauri-apps/tauri-action`) | `@v0` | `@v0`/`@v1` both live | Build + publish release artifacts | Stays. v0.6.0 wraps it in a test gate; see Development Tools. |
-| `vitest` + `@testing-library/react` | 4.1.5 / 16.3.2 | current | `pnpm test` — frontend half of the CI gate | 2,400+ tests already exist. CI just needs to *run* them. |
-| `better-sqlite3` (devDep) | 12.10.0 | current | Data-layer migration-parity + FK/orphan tests (cargo-free SQLite in Vitest node env) | Already the harness for `tests/data-layer/*`. Where the FK/orphan validation tests and the 047 fix live. |
-| `cargo test` (Rust) | toolchain `stable` | — | Backend half of the CI gate (the `repair_heals_crlf_era_checksums` test + 6 others, 7/7 passing) | Already exists in `src-tauri`. CI must run it. |
+**None.**
 
-### Supporting Libraries (new — recommendation is "add almost nothing")
+### New Dev Dependencies
 
-| Library | Version | Purpose | Verdict |
-|---------|---------|---------|---------|
-| *(none required)* | — | Frontend diagnostics log | **Hand-roll on existing `@tauri-apps/plugin-fs`** — see Topic 3. ~40 lines, mirrors the Rust `preflight.log`. |
-| `tauri-plugin-log` / `@tauri-apps/plugin-log` | 2.8.0 / 2.8.0 | Structured multi-target logging (stdout + webview + rotating file) | **OPTIONAL, recommend NO.** See "What NOT to Use." Adds a Rust crate + JS package + capability permission for what one `writeTextFile` call covers in a single-user tool. |
-
-### Development Tools (the actual deliverable of Theme A)
-
-| Tool | Purpose | Notes |
-|------|---------|-------|
-| GitHub Actions — **new `ci.yml`** | Run `pnpm test` + `cargo test` + `pnpm build` (tsc) as a required check on PRs and pushes to `master` | The headline change. No new marketplace actions beyond ones already used. |
-| GitHub Actions — **gated `release.yml`** | Add a `test` job that the `release` job `needs:` so a red test blocks the tagged release | Same actions already used; just add a job + `needs:`. |
-| `pnpm/action-setup@v4` + `actions/setup-node@v4` (cache: pnpm) | pnpm install + Node cache | **Already in `release.yml`** — reuse verbatim in `ci.yml`. |
-| `dtolnay/rust-toolchain@stable` | Rust for `cargo test` + Tauri build | **Already in `release.yml`.** |
-| `Swatinem/rust-cache@v2` (`workspaces: src-tauri -> target`) | Cache Rust `target/` between CI runs | **Already in `release.yml`.** Critical — without it `cargo test` cold-compiles sqlx/tauri each run (~5–10 min). |
-| `scripts/check-version.mjs` + `scripts/check-migrations.mjs` | The "single version/migration-parity gate" the milestone requires | Already exist (`check-version.mjs` wired as `pnpm check:version`; `check-migrations.mjs` in the tree). Wire both into the CI `test` job as steps. |
+**None.**
 
 ---
 
-## Installation
+## Why the Existing Stack Is Sufficient
 
-```bash
-# Core stack additions: NONE.
-# Auto-update + relaunch + frontend FS logging all use already-installed packages.
+The Technique Library has five technical challenges. Each maps cleanly to an existing, proven pattern in the codebase.
 
-# IF (and only if) you decide to adopt structured logging instead of hand-rolling
-# (NOT recommended for this single-user tool — see What NOT to Use):
-pnpm add @tauri-apps/plugin-log          # JS side
-# + add `tauri-plugin-log = "2"` to src-tauri/Cargo.toml
-# + register in lib.rs and add a capability permission
-```
+### 1. Technique data model (new SQLite tables)
 
-The CI work is **YAML + existing scripts only** — no package-manager changes.
+**What is needed:** Tables for `techniques`, `technique_sections`, `technique_steps`, `technique_colour_slots`, and `recipe_technique_instances` (the per-recipe slot→paint mapping). Foreign keys, CASCADE rules, and a join path that resolves colour slots to real paints at read time.
 
----
+**How it is covered:** `tauri-plugin-sql` directly with `$1, $2` positional-syntax parameterized queries — the same pattern used for `recipe_sections`, `recipe_steps`, `applied_recipe_progress`, and every other table added since v0.2.5. The FK enforcement, transaction pattern (`BEGIN`/`COMMIT` inlined, never nested), and `PRAGMA foreign_keys = ON` boot setup are already in place.
 
-## Topic 1 — CI for Tauri
+**Pattern precedent:** `saveRecipeGraph` (transactional five-phase diff for sections + steps) is functionally identical to what the technique save needs. The colour-slot resolution (`JOIN recipe_technique_instances ON slot_name = ...`) is standard SQL, no library required.
 
-### Recommendation: a two-file Actions setup, no new tooling. GitHub Actions is sufficient.
+### 2. Technique library UI (CRUD with DnD section/step reorder)
 
-**`ci.yml` (new) — runs on PRs + pushes to `master`.** Single `windows-latest` job. A matrix is unwarranted — the app is Windows-only by constraint, so a Linux/macOS matrix would test code paths you never ship and burn minutes:
+**What is needed:** A technique library page listing all techniques, a detail/edit Sheet with multiple sections and steps that can be reordered, and a form for creating/editing the colour slots a technique declares.
 
-```yaml
-name: CI
-on:
-  pull_request:
-  push:
-    branches: [master]
-jobs:
-  test:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: { version: 10 }
-      - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: pnpm }
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-        with: { workspaces: src-tauri -> target }
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm check:version                    # version/migration-parity gate
-      - run: node scripts/check-migrations.mjs      # LF-checksum / migration-list parity
-      - run: pnpm test                              # vitest (frontend + data-layer)
-      - run: cargo test --manifest-path src-tauri/Cargo.toml   # Rust (incl. repair test)
-      - run: pnpm build                             # tsc + vite — catches type regressions
-```
+**How it is covered:** This is structurally the same as `RecipeFormSheet.tsx` with its two-DndContext nested approach (outer for section reorder, inner per section for step reorder), which already ships in the codebase. `@dnd-kit/core` (6.3.1), `@dnd-kit/sortable` (10.0.0), and `@dnd-kit/utilities` (3.2.2) are installed and in active use. The manual array + `useMemo` pattern (not `useFieldArray`) to avoid the documented RHF + @dnd-kit ID collision bug (RHF #10607) is already established and documented as a Key Decision.
 
-**`release.yml` (modify) — make the existing publish job depend on a test job** so a tagged release cannot ship if tests are red:
+**shadcn/ui primitives** (Sheet, Badge, Button, Input, Select, Separator, Tabs) are all present. No new component library is needed.
 
-```yaml
-jobs:
-  test:
-    runs-on: windows-latest
-    steps: [ ...same as ci.yml test job, minus the build... ]
-  release:
-    needs: test          # <-- the gate
-    permissions: { contents: write }
-    runs-on: windows-latest
-    steps: [ ...existing checkout/pnpm/node/rust/cache/tauri-action... ]
-```
+### 3. Slot-fill apply flow (dropping a technique into a recipe)
 
-**Caching guidance (verified against tauri-action advanced-usage docs):**
-- pnpm: `actions/setup-node@v4` with `cache: pnpm` (already present).
-- Rust: `Swatinem/rust-cache@v2` with `workspaces: src-tauri -> target` (already present). The high-value cache — uncached `cargo test`/build cold-compiles `sqlx`, `tauri`, `zip`, `time`, etc.
-- Use `pnpm install --frozen-lockfile` in CI (not bare `pnpm install`) so a drifted lockfile fails loudly.
+**What is needed:** A dialog or Sheet that lists a technique's named colour slots and lets the user pick a real paint for each slot, then saves a `recipe_technique_instances` row per slot per recipe.
 
-**Is anything beyond GitHub Actions warranted? No.** For a single-maintainer, Windows-only, GitHub-Releases-distributed app, a self-hosted runner, Buildkite, or a cross-platform matrix are pure overhead. The hosted `windows-latest` runner already builds + signs + publishes today; the only gap is *it runs zero tests*. Closing that gap is a pipeline-shape change, not a tooling change.
+**How it is covered:** Standard `react-hook-form` (7.74.0) + Zod form with a controlled `<Select>` per slot, populated from `usePaints()` (already exists). The apply dialog follows the existing `ApplyRecipeDialog` pattern — a `Dialog` component with a form inside, mutations that write to the DB via a new query function, and `useQueryClient().invalidateQueries(...)` for cache synchronisation. No new library.
 
-**Pre-existing bug the CI gate will immediately expose (must fix in this milestone):** `tests/data-layer/db-helpers.ts` `HOBBYFORGE_MIGRATIONS` stops at `046_backfill_faction_udb_normalized.sql` and is **missing `047_army_list_unit_wargear.sql`** (confirmed: `src-tauri/migrations/` has 47 files; the test list ends one short). This is exactly the failing migration-parity test the milestone calls out ("db-helpers 046→047"). Add `047` to that array so the wargear schema is exercised — otherwise the new CI gate goes red on its first run.
+### 4. Live-link propagation (technique structure edits reach all recipe consumers)
 
-**Confidence: HIGH** (tauri-action caching/testing verified via Context7 `/tauri-apps/tauri-action`; `release.yml` read directly; migration count verified on disk).
+**What is needed:** When a technique's sections or steps are edited, every recipe that has applied that technique must reflect the updated structure. Each recipe retains its own slot→paint colour mapping.
+
+**How it is covered:** The implementation is a **JOIN at read time**, not a materialised copy. The query that fetches a recipe's effective step list JOINs through `recipe_technique_instances` to `technique_steps`, rather than copying rows at apply time. This is pure SQL — no live-sync library, no event bus, no reactive graph engine. React Query's `invalidateQueries` on the `["techniques", id]` and `["recipes", "by-id", recipeId]` keys handles UI refresh after a technique edit, exactly as it does for any other mutation.
+
+This is the same principle as the existing `COALESCE`-in-SQL points resolution: computation stays in the database layer, not duplicated in JS.
+
+**No new library is needed.** The existing tauri-plugin-sql bridge, typed query functions, and React Query cache invalidation cover this entirely.
+
+### 5. Progress identity across live-link edits
+
+**What is needed:** Step-completion progress must survive technique structure edits (add/remove/reorder steps). The `recipe_step_id`-keyed progress system (established in v0.2.13, DI-01/DI-02) cannot be used directly for technique-driven steps because those rows are virtual — they resolve from `technique_steps`, not from materialised `recipe_steps` rows.
+
+**How it is covered:** The solution is a schema decision, not a new library. Applied technique steps are keyed by `technique_step_id` (the stable PK of the source technique step) in a new progress table (e.g., `applied_technique_progress`), paralleling the existing `applied_recipe_progress` table. Reordering or renaming a technique step leaves the `technique_step_id` stable. Adding a new step produces a new ID with no existing progress entry (uncompleted by default). Removing a step orphans its progress rows, which are cleaned up by CASCADE on the FK.
+
+This is identical in structure to the `recipe_step_id` → `applied_recipe_progress` pattern already proven in v0.2.13. No library required — it is a schema + migration decision.
 
 ---
 
-## Topic 2 — Tauri auto-update correctness
+## Patterns to Reuse (no new dependencies, just apply existing patterns)
 
-### The pattern is already correct; the work is *verification* + one config-hygiene note
-
-**Current state is good, not broken:**
-- `tauri.conf.json` has `createUpdaterArtifacts: true`, a `pubkey`, and a single GitHub `latest.json` endpoint — correct per Tauri v2 updater docs.
-- `release.yml` sets `TAURI_SIGNING_PRIVATE_KEY` (signing half); the matching `pubkey` is embedded in config. Complete signing chain.
-- `useAppUpdate.ts` calls `downloadAndInstall` with progress events, and **`UpdateBanner.tsx` already calls `relaunch()`** (from `@tauri-apps/plugin-process`) in the "installing" state. The canonical Tauri sequence is `check() → downloadAndInstall() → relaunch()`; HobbyForge implements all three (relaunch is user-triggered via a "Restart now" button rather than automatic — a deliberate, good UX choice).
-
-**latest.json / signing essentials (verified via `/tauri-apps/tauri-docs` updater.mdx):**
-- `tauri-action` auto-generates `latest.json` from `createUpdaterArtifacts: true` and uploads it — no manual authoring.
-- The NSIS `.exe` plus its `.sig` (signed with `TAURI_SIGNING_PRIVATE_KEY`) must both be in the release; the embedded `pubkey` verifies the `.sig`. Already configured.
-- `latest.json` shape: `{ version, pub_date, platforms.{target}.{url,signature} }` — produced automatically.
-
-**The "Twan01/warhammer-app vs com.hobbyforge.app" question — investigated, NOT a functional bug:**
-- `git remote -v` confirms `origin` IS `https://github.com/Twan01/warhammer-app.git`. The updater endpoint `github.com/Twan01/warhammer-app/releases/latest/download/latest.json` therefore points at the **same repo** `release.yml` publishes to. The updater *will* find releases. ✓
-- The mismatch is purely **cosmetic naming drift**: bundle `identifier: com.hobbyforge.app` + `productName: HobbyForge` vs the GitHub repo slug `warhammer-app`. It does **not** affect updates (the endpoint is the repo URL, independent of app identifier). Flag as a documentation/hygiene note, not a fix.
-- **The genuinely load-bearing invariant for in-place NSIS updates:** the bundle `identifier` AND `productName` must stay **byte-identical across every release**. NSIS keys the in-place upgrade off the product name/install location; if either changes, the "update" installs *alongside* the old app instead of over it, and `%APPDATA%\com.hobbyforge.app` (the DB) would be re-resolved differently. Both have been stable — a "keep stable" guardrail, not a change.
-
-**How to VERIFY an in-place NSIS update locally (the milestone's open item) — no new tooling:**
-1. Build the *current* shipped version's installer (`pnpm tauri build`), run the NSIS `.exe`, launch once so `%APPDATA%\com.hobbyforge.app\hobbyforge.db` is created + migrated (records checksums).
-2. Bump `version` in `package.json` + `tauri.conf.json` (keep identifier/productName identical), `pnpm tauri build` again to produce a higher-version installer + `latest.json` + `.sig`.
-3. Either (a) serve the new `latest.json`/artifacts and let the in-app updater pull them, or (b) simpler, run the new NSIS `.exe` over the existing install to simulate the in-place upgrade.
-4. Launch the upgraded app and confirm: **a window appears** (the bug was a silent no-window sqlx panic), and `%APPDATA%\com.hobbyforge.app\preflight.log` records `repaired successfully` / `already consistent`. This is the end-to-end proof the `.gitattributes` LF fix + hardened `preflight_migration_repair` save a real upgrade.
-5. **In CI this is hard to fully automate** (NSIS in-place upgrade + GUI launch needs a Windows desktop session). Recommendation: keep this as a documented *manual* pre-release smoke step, not a CI job. CI guarantees migration files are LF-clean and parity tests pass; the human does the one in-place launch.
-
-**Confidence: HIGH** (updater config + relaunch pattern verified via Context7 tauri-docs; remote confirmed via `git remote -v`; in-place/identifier behavior is documented Tauri/NSIS behavior).
+| Pattern | Where it lives now | How v0.7.0 uses it |
+|---------|-------------------|-------------------|
+| Two-DndContext nested section/step reorder | `RecipeFormSheet.tsx` | `TechniqueFormSheet.tsx` — identical structure |
+| Five-phase diff for non-destructive save | `saveRecipeGraph` in queries | `saveTechniqueGraph` — same algorithm |
+| `technique_step_id`-keyed progress | `applied_recipe_progress` pattern | `applied_technique_progress` table, same FK/CASCADE structure |
+| Slot-fill controlled form | `ApplyRecipeDialog` + existing paint Select | New `ApplyTechniqueDialog` with per-slot paint selects |
+| JOIN-at-read-time for effective values | `COALESCE` points resolution | Recipe step list JOIN through `recipe_technique_instances` |
+| Badge on linked content | shadcn/ui `Badge` (already used throughout) | "From technique X" badge on linked recipe sections |
+| Detach/override escape hatch | Existing mutation + toast pattern | `detachTechniqueFromRecipeSection` mutation |
+| `useQueryClient().invalidateQueries` symmetry rule | All existing mutations | Invalidate both `["techniques", id]` and `["recipes", ...]` on technique edits |
+| Page-level `Map<key, T>` for O(1) lookup | `useAnnotations`, `useWorkflowPositions` | Technique-to-recipe index for "used in N recipes" badge |
+| `staleTime: Infinity + gcTime: Infinity` | Game data hooks | Technique list hooks (read-heavy, write-rare, session-stable) |
 
 ---
 
-## Topic 3 — Frontend persistent logging
+## What NOT to Add (scope-creep guard)
 
-### Recommendation: hand-roll on `@tauri-apps/plugin-fs`. Do NOT add `tauri-plugin-log`.
-
-The milestone wants a frontend diagnostics log on disk **mirroring the Rust `preflight.log`** (already at `app_data_dir/preflight.log`). The cleanest, lowest-risk path is a tiny utility on the **already-installed** FS plugin:
-
-```ts
-// src/lib/frontendLog.ts  (sketch — ~40 lines)
-import { writeTextFile, BaseDirectory, exists, readTextFile } from "@tauri-apps/plugin-fs";
-
-const LOG = "frontend.log";   // sits next to preflight.log in %APPDATA%\com.hobbyforge.app
-
-export async function logDiag(level: "info" | "warn" | "error", msg: string) {
-  try {
-    const line = `${new Date().toISOString()} [${level}] ${msg}\n`;
-    const prev = (await exists(LOG, { baseDir: BaseDirectory.AppData }))
-      ? await readTextFile(LOG, { baseDir: BaseDirectory.AppData }) : "";
-    await writeTextFile(LOG, prev + line, { baseDir: BaseDirectory.AppData });
-  } catch { /* never throw from the logger */ }
-}
-```
-
-**Why hand-roll over `tauri-plugin-log`:**
-- The codebase **already uses this exact FS API** — `writeTextFile` + `BaseDirectory.AppData` in `DataManagementTab.tsx`, `ArmyListDetailPage.tsx`; `writeFile`/`readFile` in `JournalTab.tsx`, `RecipeFormSheet.tsx`, `RecipeStepRow.tsx`; `remove` in `UnitDeleteDialog.tsx`. Zero new permissions, zero new packages, consistent with the established pattern.
-- It lands **next to `preflight.log`** in `%APPDATA%\com.hobbyforge.app`, so Data Health / Settings can surface both diagnostics files from one directory — exactly the "mirroring" the milestone asks for.
-- `tauri-plugin-log` (2.8.0) is excellent for multi-target, multi-platform, high-volume logging with rotation — none of which a single-user Windows tool with occasional diagnostic writes needs. Adding it means a new Rust crate, a new JS dependency, a capability permission entry, and `lib.rs` registration, for behavior one `writeTextFile` already delivers.
-
-**Refinements to fold into requirements (not new dependencies):**
-- Wrap writes in try/catch and **never throw from the logger** (a logging failure must not break the UI) — mirrors the Rust preflight's "never panic" discipline.
-- Cap the file (e.g., truncate when > ~256 KB) so read-then-append doesn't grow unbounded. Trivial in the same utility.
-- Wire it into the global error boundary + `useAppUpdate` error path so update failures (the milestone's pain point) are persisted, not just toasted.
-
-**Confidence: HIGH** (FS API usage confirmed across 6 existing source files; `preflight.log` location confirmed in the debug doc).
+| Temptation | Why it would be wrong | What to use instead |
+|------------|----------------------|---------------------|
+| A graph database or reactive DAG library | Techniques have at most two levels (sections → steps); the "live link" is a SQL JOIN, not a dependency graph. Graph tooling is massive overkill. | Plain SQL JOIN in the recipe step query |
+| An ORM (Drizzle, Prisma) | Prisma is a confirmed Tauri production dead-end (Key Decision, locked). Drizzle is explicitly a v3-only escape hatch. Neither adds capability the typed query functions + `better-sqlite3` tests don't already provide. | Raw `tauri-plugin-sql` queries with `$N` syntax |
+| A diff/patch library for live-link change detection | The five-phase diff algorithm (delete removed → update existing → insert new) already lives in TypeScript in the recipe save path. Technique structure changes propagate at read time via JOIN; no diff library is needed to sync consumers. | Existing `saveRecipeGraph` pattern applied to `saveTechniqueGraph` |
+| A rich-text / markdown editor | Technique step descriptions are plain text (same as recipe steps). The existing `<Input>`/`<Textarea>` from shadcn/ui is correct. | `shadcn/ui` `Input` and `Textarea` |
+| A colour-picker library | Colour slots are *named roles* (e.g. "Glow Core"), not hex values. The user maps slot → paint from their inventory, using the existing paint `<Select>`. No colour picker. | Existing `usePaints()` + shadcn/ui `Select` |
+| A conflict-resolution library for live-link edits | Single-user, local-first, no concurrent writes. There is never a conflict to resolve. | N/A — constraint makes this a non-problem |
+| `node:sqlite` for new data-layer tests | Vitest 4 import-stripping bug (#7177) breaks it — logged Key Decision. | `better-sqlite3` (already the data-layer test harness) |
 
 ---
 
-## Topic 4 — New feature work (unit comparison, FK/orphan validation)
+## Schema Migration Estimate
 
-### Recommendation: reuse everything. Zero new dependencies.
+The feature needs approximately 5–7 new SQL migration files (no existing migrations are modified):
 
-**Unit comparison view (side-by-side datasheets):**
-- A pure **read + layout** feature over the canonical `udb_*` tables. The data layer already exists — datasheet stats/weapons/abilities/keywords are queried for `PlaybookTab`, `UdbDatasheetSheet`, and the Unit Database browser. A comparison view is a new component that calls existing query/hook functions for 2–3 units and renders columns.
-- UI primitives already present: shadcn/ui tables, `@tanstack/react-table` (8.21.3), `@tanstack/react-virtual` (3.13.26). No new charting/grid library.
-- **Add nothing.** Build `UnitComparisonView.tsx` under `src/features/unit-database/`, reuse existing datasheet query hooks (fetch N units, optionally an `IN (...)` query variant).
+| Migration | Tables / changes |
+|-----------|-----------------|
+| 051 | `techniques` (id, name, description, effect, created_at, updated_at) |
+| 052 | `technique_sections` (id, technique_id FK CASCADE, name, position, section_type, technique, execution_mode) |
+| 053 | `technique_steps` (id, technique_section_id FK CASCADE, technique_id FK CASCADE, position, instruction, painting_phase, tool, dilution, time_minutes, notes) |
+| 054 | `technique_colour_slots` (id, technique_id FK CASCADE, slot_name, description, position) — slots referenced by `technique_steps.slot_name` |
+| 055 | `recipe_technique_instances` (id, recipe_id FK CASCADE, technique_id FK RESTRICT, applied_at) + `recipe_technique_slot_fills` (id, instance_id FK CASCADE, slot_name, paint_id FK SET NULL) |
+| 056 | `applied_technique_progress` (id, instance_id FK CASCADE, technique_step_id FK CASCADE, completed_at, UNIQUE(instance_id, technique_step_id)) |
+| 057 | Indexes on all FK columns per the v0.3.0 hardening pattern |
 
-**FK/orphan data validation in the pipeline:**
-- The app **already has** a Data Health page with orphan/ambiguous-match diagnostics (DX-03), and `PRAGMA foreign_keys = ON` is set per connection. The new work is build-time/pipeline validation, which runs in the **Node/`better-sqlite3`** context the data-layer tests already use — not a new runtime dependency.
-- Implement as: (a) `better-sqlite3` assertions in `tests/data-layer/` (every `udb_units.faction_id` resolves, no orphaned `udb_points_tiers`, no dangling `units.udb_unit_id`), and/or (b) a `scripts/validate-udb.mjs` step run during `build:udb` and in CI. SQLite's own `PRAGMA foreign_key_check` and `PRAGMA integrity_check` are the right tools — no library needed.
-- **Add nothing.** Rides on `better-sqlite3` (already a devDependency) and the existing migration-parity harness.
-
-**Confidence: HIGH** (existing query/hook/test stack read directly; capabilities confirmed against PROJECT.md shipped requirements).
-
----
-
-## Alternatives Considered
-
-| Recommended | Alternative | When the alternative would win |
-|-------------|-------------|--------------------------------|
-| Hand-rolled FS logger | `tauri-plugin-log` 2.8.0 | If multi-platform, needing log rotation/levels surfaced to a remote sink, or shipping to many users needing field diagnostics. Not this app. |
-| GitHub Actions only | Self-hosted runner / Buildkite | If builds exceeded hosted-runner minutes or needed special Windows hardware. A single maintainer's cadence won't. |
-| Single `windows-latest` job | OS matrix (win/mac/linux) | If macOS/Linux were ever in scope. Explicitly out of scope per PROJECT.md. |
-| `release.yml` `needs: test` gate | Branch protection + required check from `ci.yml` only | Both are good; doing **both** is ideal — `ci.yml` guards PRs, `needs:` guards the tag-triggered release even if someone tags without a PR. Recommend both. |
-| Reuse `@tanstack/react-table` for comparison | A dedicated diff/compare lib | Never — a 2–3 column datasheet table is trivial; a new lib is bloat. |
-| Manual in-place update smoke test | Automated NSIS-upgrade CI job | Only if updates broke frequently across many SKUs. For one app + one maintainer, a documented manual step is correct. |
+All migrations use the established patterns: `PRAGMA foreign_keys = ON` at connection time, `0|1` booleans, positional `$N` parameters, no editing of existing files.
 
 ---
 
-## What NOT to Use (scope-creep guard for a single-user local-first tool)
+## Data-Layer Tests
 
-| Avoid adding | Why | Use instead |
-|--------------|-----|-------------|
-| `tauri-plugin-log` / `@tauri-apps/plugin-log` | New Rust crate + JS pkg + capability permission + `lib.rs` registration, to replace one `writeTextFile` call. Multi-target/rotation features unused in a single-user Windows tool. | Hand-rolled `src/lib/frontendLog.ts` on existing `@tauri-apps/plugin-fs`. |
-| ESLint / Prettier | Project decision: strict `tsc` is the quality gate (CLAUDE.md: don't add a linter without discussing). CI's `pnpm build` = `tsc` already enforces `noUnusedLocals`/`noUnusedParameters`. | `pnpm build` (tsc) as the CI type/quality gate. |
-| Drizzle / Prisma / any ORM | Prisma is a confirmed dead-end in Tauri production; Drizzle is explicitly a v3-only escape hatch. FK/orphan validation needs no ORM. | Raw `tauri-plugin-sql` + `PRAGMA foreign_key_check` + `better-sqlite3` test assertions. |
-| An OS build matrix in CI | macOS/Linux are out of scope; testing unshipped platforms wastes minutes and can flag false failures. | Single `windows-latest` runner. |
-| A new diff/compare/grid component library | `@tanstack/react-table` + shadcn tables already render datasheets. | Existing table primitives. |
-| `node:sqlite` for new data-layer tests | Vitest 4 import-stripping bug (#7177) breaks it — a logged Key Decision. | `better-sqlite3` (already the harness). |
-| Telemetry / crash-reporting SaaS (Sentry, etc.) | Local-first, no-network, no-telemetry constraint. The disk log IS the diagnostics channel. | `preflight.log` + `frontend.log` in `%APPDATA%`. |
-| Bumping updater/process/fs plugins | All three already at current latest (2.10.1 / 2.3.1 / 2.5.1). | Leave as-is. |
+New `tests/data-layer/techniques.test.ts` using `better-sqlite3` (already installed, already the data-layer harness) should cover:
+
+- Migration parity: all technique tables present after migrations 051–057
+- `technique_step_id`-keyed progress survives step reorder (the load-bearing invariant)
+- Slot fill: `recipe_technique_slot_fills` rows survive a `saveTechniqueGraph` structural edit
+- CASCADE correctness: deleting a technique cascades to sections, steps, slots, instances, slot fills, and progress rows
+- FK enforcement: `recipe_technique_instances.technique_id` RESTRICT blocks delete of an in-use technique (or, if the design chooses CASCADE, this test asserts that instead)
 
 ---
 
-## Version Compatibility
+## Version Compatibility Confirmation
 
-| Package | Installed | Latest (2026-06-15) | Notes |
-|---------|-----------|---------------------|-------|
-| `@tauri-apps/plugin-updater` (JS) + `tauri-plugin-updater` (Rust) | 2.10.1 / 2.10.1 | 2.10.1 | Current. JS + Rust match — keep in lockstep on any future bump. |
-| `@tauri-apps/plugin-process` (JS) + `tauri-plugin-process` (Rust) | 2.3.1 / 2.3.1 | 2.3.1 | Current. `relaunch()` already used. |
-| `@tauri-apps/plugin-fs` (JS) | 2.5.1 | 2.5.1 | Current. `tauri-plugin-fs = "2"` in Cargo.toml resolves compatibly. |
-| `@tauri-apps/cli` | 2.0.0 (`^`) | 2.11.2 | Wide caret; resolves to current 2.11.x. tauri-action pins its own internally — no conflict. |
-| `tauri-action` | `@v0` | `@v0` and `@v1` both maintained | `@v0` works today; the test-gate restructure doesn't require moving to `@v1`. Optional future bump. |
-| `Swatinem/rust-cache` | `@v2` | `@v2` | Workspace path `src-tauri -> target` correct for this layout. |
-| `better-sqlite3` | 12.10.0 | current | Pinned in `pnpm.onlyBuiltDependencies` — native build handled in CI via `pnpm install`. |
-| `vitest` | 4.1.5 | current | Node env required for data-layer tests (`// @vitest-environment node`). Already configured. |
+No version changes required. All in-use packages are current as of v0.6.0:
 
-**One stability invariant (not a version):** bundle `identifier` (`com.hobbyforge.app`) and `productName` (`HobbyForge`) must remain byte-identical across releases for NSIS in-place updates and `%APPDATA%` path stability. Treat any change to either as a breaking event requiring a migration plan.
+| Package | Installed | Status |
+|---------|-----------|--------|
+| `@tauri-apps/plugin-sql` | 2.4.0 | Current — no new SQL capabilities needed |
+| `@dnd-kit/core` | 6.3.1 | Current — two-DndContext pattern fully supported |
+| `@dnd-kit/sortable` | 10.0.0 | Current |
+| `react-hook-form` | 7.74.0 | Current — manual array pattern (not useFieldArray) already established |
+| `zod` | 4.4.1 | Current |
+| `@tanstack/react-query` | 5.100.6 | Current |
+| `better-sqlite3` | 12.10.0 | Current — data-layer test harness |
+| `vitest` | 4.1.5 | Current |
 
 ---
 
 ## Sources
 
-- `/tauri-apps/tauri-action` (Context7) — draft-release testing, `uploadWorkflowArtifacts`, artifact caching (`Swatinem/rust-cache`, `setup-node` cache), `act` local testing — HIGH
-- `/tauri-apps/tauri-docs` (Context7, updater.mdx) — `check()→downloadAndInstall()→relaunch()` pattern, `tauri.conf.json` `pubkey`/`endpoints`, `latest.json` JSON shape, dynamic endpoints — HIGH
-- `npm view` (live registry, 2026-06-15) — confirmed latest: plugin-updater 2.10.1, plugin-process 2.3.1, plugin-fs 2.5.1, plugin-log 2.8.0, @tauri-apps/cli 2.11.2 — HIGH
-- Repo files read directly: `.github/workflows/release.yml`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, `package.json`, `src/hooks/useAppUpdate.ts`, `src/components/common/UpdateBanner.tsx`, `tests/data-layer/db-helpers.ts`, `src-tauri/migrations/` (47 files) — HIGH
-- `git remote -v` — confirmed `origin = Twan01/warhammer-app` (updater endpoint points at the actual release repo) — HIGH
-- `.planning/debug/update-breaks-app-launch.md` — root cause (CRLF/LF checksum drift), applied fix (`.gitattributes` + hardened `preflight_migration_repair` + `preflight.log`), and the flagged pre-existing 046→047 db-helpers gap — HIGH
+- `package.json` (read directly, 2026-06-19) — all installed dependency versions confirmed — HIGH
+- `.planning/PROJECT.md` (read directly, 2026-06-19) — v0.7.0 milestone spec, Key Decisions table (RHF+dnd-kit ID collision, five-phase diff, recipe_step_id progress keying, tauri-plugin-sql no-ORM, flat inline transactions, saveRecipeGraph pattern) — HIGH
+- `CLAUDE.md` (read directly, 2026-06-19) — stack, DB patterns, code conventions — HIGH
+- PROJECT.md Key Decisions — `useFieldArray NOT used for step forms` (RHF #10607, confirmed); `Five-phase diff for non-destructive save` (confirmed); `recipe_step_id as progress key` (DI-01, confirmed); `tauri-plugin-sql directly, no ORM` (Prisma dead-end, Drizzle escape-hatch only) — HIGH
+- PROJECT.md shipped requirements — v0.2.7 (section data layer: recipe_sections, section_id FK, batch step counts, section CRUD hooks), v0.2.13 (DI-01/DI-02: recipe_step_id-keyed progress, five-phase diff), v0.2.15 (Painting Mode on top of same data layer) confirm that the exact patterns v0.7.0 needs are in production and working — HIGH
 
 ---
-*Stack research for: HobbyForge v0.6.0 "Bulletproof & Honest" — reliability/CI hardening on a mature Tauri 2 desktop app*
-*Researched: 2026-06-15*
+
+*Stack research for: HobbyForge v0.7.0 "Technique Library" — parameterized, live-linked, reusable painting techniques on a mature Tauri 2 desktop app*
+*Researched: 2026-06-19*
