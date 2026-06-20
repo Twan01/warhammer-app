@@ -1,9 +1,9 @@
 ---
 phase: 141
 slug: schema-foundation-progress-identity-lock
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-20
 ---
 
@@ -43,7 +43,7 @@ version parity + CR-byte scan). Must exit 0.
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
 | 141-01-* | 01 | 1 | FND-01, FND-02 | — | Schema-only; no external input surface (local SQLite migration) | data-layer + gate | `pnpm check:version` & `pnpm test -- tests/data-layer/migration-parity.test.ts` | ✅ existing harness | ⬜ pending |
-| 141-02-* | 02 | 1 | FND-04 | — | Pure function, no I/O | unit | `pnpm test -- tests/lib/effectivePaintId.test.ts` | ❌ W0 (new test file) | ⬜ pending |
+| 141-02-* | 02 | 2 | FND-04 | — | Pure function, no I/O | unit | `pnpm test -- tests/lib/effectivePaintId.test.ts` | ❌ W0 (new test file) | ⬜ pending |
 | 141-03-* | 03 | 2 | FND-03, FND-05 | — | CASCADE integrity; PK-stable progress | data-layer | `pnpm test -- tests/data-layer/technique-progress-identity.test.ts` | ❌ W0 (new test file) | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
@@ -80,11 +80,11 @@ new tables + the two ALTER columns is recommended in Plan 01.
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 60s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies — each plan task carries an `<automated>` command; the two new test files are created within their own tasks (Plan 02 Task 1 TDD; Plan 03 Tasks 1–2 build the invariant test), so no external Wave 0 task is required.
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references — both new test files (`technique-progress-identity.test.ts`, `effectivePaintId.test.ts`) are authored by the plans that consume them.
+- [x] No watch-mode flags
+- [x] Feedback latency < 60s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-06-20
