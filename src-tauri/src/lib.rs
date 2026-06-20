@@ -305,6 +305,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/050_udb_leader_targets.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 51,
+            description: "technique_library_foundation",
+            sql: include_str!("../migrations/051_technique_library_foundation.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
