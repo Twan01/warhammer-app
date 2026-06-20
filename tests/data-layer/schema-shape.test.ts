@@ -115,6 +115,88 @@ describe("schema shape", () => {
     }
   });
 
+  // Phase 141: technique library foundation tables
+  it("six technique tables exist after migration 051", () => {
+    const tables = db
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE '_sqlx%' ORDER BY name",
+      )
+      .all() as { name: string }[];
+    const tableNames = tables.map((t) => t.name);
+
+    const techniqueTables = [
+      "techniques",
+      "technique_sections",
+      "technique_steps",
+      "technique_colour_slots",
+      "recipe_technique_instances",
+      "recipe_technique_slot_maps",
+    ];
+
+    for (const table of techniqueTables) {
+      expect(tableNames, `table ${table} should exist`).toContain(table);
+    }
+  });
+
+  it("recipe_sections.technique_instance_id exists and is nullable (migration 051 Option A)", () => {
+    const columns = db.pragma("table_info(recipe_sections)") as ColumnInfo[];
+    const col = columns.find((c) => c.name === "technique_instance_id");
+    expect(col, "technique_instance_id column should exist on recipe_sections").toBeDefined();
+    expect(col!.notnull, "technique_instance_id should be nullable").toBe(0);
+  });
+
+  it("recipe_steps.technique_step_id exists and is nullable (migration 051 Option A)", () => {
+    const columns = db.pragma("table_info(recipe_steps)") as ColumnInfo[];
+    const col = columns.find((c) => c.name === "technique_step_id");
+    expect(col, "technique_step_id column should exist on recipe_steps").toBeDefined();
+    expect(col!.notnull, "technique_step_id should be nullable").toBe(0);
+  });
+
+  it("recipe_technique_slot_maps has UNIQUE(instance_id, slot_id) constraint", () => {
+    const createSql = (
+      db
+        .prepare(
+          "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'recipe_technique_slot_maps'",
+        )
+        .get() as { sql: string } | undefined
+    )?.sql ?? "";
+    expect(createSql).toContain("UNIQUE(instance_id, slot_id)");
+  });
+
+  it("technique_sections.technique_id FK has ON DELETE CASCADE", () => {
+    interface FkInfo {
+      id: number;
+      seq: number;
+      table: string;
+      from: string;
+      to: string;
+      on_update: string;
+      on_delete: string;
+      match: string;
+    }
+    const fks = db.pragma("foreign_key_list('technique_sections')") as FkInfo[];
+    const techniqueIdFk = fks.find((fk) => fk.from === "technique_id" && fk.table === "techniques");
+    expect(techniqueIdFk, "technique_sections.technique_id FK should exist").toBeDefined();
+    expect(techniqueIdFk!.on_delete).toBe("CASCADE");
+  });
+
+  it("recipe_steps.technique_step_id FK has ON DELETE SET NULL", () => {
+    interface FkInfo {
+      id: number;
+      seq: number;
+      table: string;
+      from: string;
+      to: string;
+      on_update: string;
+      on_delete: string;
+      match: string;
+    }
+    const fks = db.pragma("foreign_key_list('recipe_steps')") as FkInfo[];
+    const techniqueStepIdFk = fks.find((fk) => fk.from === "technique_step_id" && fk.table === "technique_steps");
+    expect(techniqueStepIdFk, "recipe_steps.technique_step_id FK should exist").toBeDefined();
+    expect(techniqueStepIdFk!.on_delete).toBe("SET NULL");
+  });
+
   // Phase 107: rules.db eliminated — rules DB table test removed
   it.todo("rules DB tables exist (D-12 for rules) — rules.db removed in Phase 107");
 });
