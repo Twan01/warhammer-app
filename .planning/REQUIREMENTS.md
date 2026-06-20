@@ -21,8 +21,8 @@ Requirements for the v0.7.0 release. Each maps to a roadmap phase.
 
 ### Foundation (Schema, Identity & Resolution Spine)
 
-- [ ] **FND-01**: Schema for techniques exists — `techniques`, `technique_sections`, `technique_steps`, `technique_colour_slots`, `recipe_technique_instances`, `recipe_technique_slot_maps` — with stable IDs, a full ON DELETE CASCADE hierarchy (technique → sections → steps; technique → slots; instance → slot maps), slot declared before steps, and slot-fill orphan prevention baked into the foundation migration (not patched later).
-- [ ] **FND-02**: The materialize-vs-read-time-resolve strategy is decided and encoded in the foundation migration before any technique UI is built, with the rationale recorded (default: materialize with `technique_step_id` linkage).
+- [x] **FND-01**: Schema for techniques exists — `techniques`, `technique_sections`, `technique_steps`, `technique_colour_slots`, `recipe_technique_instances`, `recipe_technique_slot_maps` — with stable IDs, a full ON DELETE CASCADE hierarchy (technique → sections → steps; technique → slots; instance → slot maps), slot declared before steps, and slot-fill orphan prevention baked into the foundation migration (not patched later).
+- [x] **FND-02**: The materialize-vs-read-time-resolve strategy is decided and encoded in the foundation migration before any technique UI is built, with the rationale recorded (default: materialize with `technique_step_id` linkage).
 - [ ] **FND-03**: Technique-step completion progress is stable across technique edits — adding, removing, or reordering a technique step never silently moves or orphans an existing completion marker (no v0.2.13-class regression), verified by a data-layer test written before UI.
 - [ ] **FND-04**: A single pure `effectivePaintId()` resolution function in `src/lib/` resolves a step's paint from its slot map (falling back to `step.paint_id`), and is the one source every paint consumer reads from.
 - [ ] **FND-05**: All technique-structure propagation is expressed as flat, single-db-handle SQL (no nested `BEGIN`/transactions), consistent with the `saveRecipeGraph` pattern.
@@ -123,8 +123,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FND-01 | Phase 141 | Pending |
-| FND-02 | Phase 141 | Pending |
+| FND-01 | Phase 141 | Complete |
+| FND-02 | Phase 141 | Complete |
 | FND-03 | Phase 141 | Pending |
 | FND-04 | Phase 141 | Pending |
 | FND-05 | Phase 141 | Pending |

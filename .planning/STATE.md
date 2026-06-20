@@ -4,13 +4,13 @@ milestone: v0.7.0
 milestone_name: Technique Library
 status: executing
 stopped_at: Phase 141 context gathered
-last_updated: "2026-06-20T06:57:04.903Z"
-last_activity: 2026-06-20 -- Phase 141 planning complete
+last_updated: "2026-06-20T07:08:37.770Z"
+last_activity: 2026-06-20
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 3
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-19)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore
-**Current focus:** v0.7.0 Technique Library — Phase 141 ready to plan
+**Current focus:** Phase 141 — Schema Foundation & Progress-Identity Lock
 
 ## Current Position
 
-Phase: 141 of 146 (Schema Foundation & Progress-Identity Lock)
-Plan: — (not started)
+Phase: 141 (Schema Foundation & Progress-Identity Lock) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-20 -- Phase 141 planning complete
+Last activity: 2026-06-20
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███░░░░░░░] 33%
 
 ## Performance Metrics
 
@@ -51,7 +51,7 @@ Progress: [░░░░░░░░░░] 0%
 - Current migration count: 050 (new technique migrations start at 051)
 - Schema version = migration count; `pnpm check:version` three-leg gate enforced via prebuild hook
 - Progress keyed by `recipe_step_id` (v0.2.13 invariant); technique-step identity must be equally stable — FND-03 is the top engineering risk
-- **v0.7.0 PENDING DECISION (Phase 141):** Option A (materialise technique steps as concrete recipe_steps rows with technique_step_id FK) vs Option B (virtual JOIN resolution + dual-column progress table). Recommendation: Option A. Must be locked before any migration is committed.
+- **v0.7.0 LOCKED (Phase 141-01):** Option A selected — technique steps materialised as concrete recipe_steps rows with technique_step_id FK. unit_recipe_step_progress unchanged. Encoded in migration 051 header + PROJECT.md Key Decisions.
 - Flat inline SQL only — tauri-plugin-sql cannot nest transactions; resync must use single db handle
 - No new runtime or dev dependencies — every v0.7.0 pattern maps to an existing codebase pattern
 - No new top-level sidebar entry — technique library lives under Workshop/Recipes
@@ -85,6 +85,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-19T11:58:45.234Z
+Last session: 2026-06-20T07:08:28.749Z
 Stopped at: Phase 141 context gathered
-Resume file: .planning/phases/141-schema-foundation-progress-identity-lock/141-CONTEXT.md
+Resume file: None
