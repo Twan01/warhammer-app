@@ -129,7 +129,7 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 141. Schema Foundation & Progress-Identity Lock | v0.7.0 | 3/3 | Complete   | 2026-06-21 |
+| 141. Schema Foundation & Progress-Identity Lock | v0.7.0 | 3/3 | Complete    | 2026-06-21 |
 | 142. Technique Authoring & Library Browse | v0.7.0 | 0/TBD | Not started | - |
 | 143. Apply Flow & Slot-Fill System | v0.7.0 | 0/TBD | Not started | - |
 | 144. Live-Link Re-Sync | v0.7.0 | 0/TBD | Not started | - |
