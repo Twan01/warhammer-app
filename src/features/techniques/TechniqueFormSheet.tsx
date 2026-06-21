@@ -357,6 +357,21 @@ export function TechniqueFormSheet({ open, technique, onClose }: TechniqueFormSh
             />
 
             {/* ----------------------------------------------------------------
+                Autocomplete datalists — rendered once here so all TechniqueStepRow
+                inputs across all sections share a single set of DOM ids (WR-01).
+                ---------------------------------------------------------------- */}
+            <datalist id="tool-suggestions">
+              {["Size 0 brush", "Size 1 brush", "Size 2 brush", "Dry brush", "Airbrush", "Sponge", "Palette knife"].map((t) => (
+                <option key={t} value={t} />
+              ))}
+            </datalist>
+            <datalist id="technique-suggestions">
+              {["Thin layers", "Stipple", "Wet blend", "Dry brush", "Wash", "Glaze", "Edge highlight", "Feathering"].map((t) => (
+                <option key={t} value={t} />
+              ))}
+            </datalist>
+
+            {/* ----------------------------------------------------------------
                 Colour Slots section — separate DndContext from the section list
                 ---------------------------------------------------------------- */}
             <div className="flex flex-col gap-2">
