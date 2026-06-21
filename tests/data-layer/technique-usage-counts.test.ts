@@ -15,9 +15,13 @@
  * implemented in plan 02.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type Database from "better-sqlite3";
-import { createHobbyforgeDb, createTestRecipe } from "./db-helpers";
+import { createHobbyforgeDb, createTestRecipe, createDbBridge } from "./db-helpers";
+
+// Mock the Tauri DB client so the query functions use our better-sqlite3 instance
+vi.mock("@/db/client", () => ({ getDb: vi.fn() }));
+import { getDb } from "@/db/client";
 
 // Import functions under test — RED until plan 02 implements them
 import {
@@ -31,6 +35,8 @@ let techniqueId: number;
 describe("technique usage counts and step count via JOIN (TECH-03, TECH-05, LIB-01, LIB-02)", () => {
   beforeEach(() => {
     db = createHobbyforgeDb();
+    // Wire the getDb mock to use our better-sqlite3 instance via the bridge
+    vi.mocked(getDb).mockResolvedValue(createDbBridge(db) as never);
 
     // Create a technique with two sections and 3 steps across them
     const techResult = db

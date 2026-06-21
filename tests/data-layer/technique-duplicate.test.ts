@@ -10,9 +10,13 @@
  * Wave 0 — RED until duplicateTechnique is implemented in plan 02.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type Database from "better-sqlite3";
-import { createHobbyforgeDb } from "./db-helpers";
+import { createHobbyforgeDb, createDbBridge } from "./db-helpers";
+
+// Mock the Tauri DB client so the query functions use our better-sqlite3 instance
+vi.mock("@/db/client", () => ({ getDb: vi.fn() }));
+import { getDb } from "@/db/client";
 
 // Import the function under test — RED until plan 02 implements it
 import { duplicateTechnique } from "@/db/queries/techniques";
@@ -24,6 +28,8 @@ let originalTechniqueId: number;
 describe("technique duplicate — fresh IDs (TECH-04)", () => {
   beforeEach(() => {
     db = createHobbyforgeDb();
+    // Wire the getDb mock to use our better-sqlite3 instance via the bridge
+    vi.mocked(getDb).mockResolvedValue(createDbBridge(db) as never);
 
     // Seed a technique with sections, steps, and slots
     const techResult = db

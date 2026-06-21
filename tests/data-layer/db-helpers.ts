@@ -98,6 +98,50 @@ export function createTestRecipe(db: Database.Database): number {
   return Number(result.lastInsertRowid);
 }
 
+// ---------------------------------------------------------------------------
+// Tauri-compatible DB bridge (for data-layer tests that call query functions)
+// ---------------------------------------------------------------------------
+
+/**
+ * Wraps a better-sqlite3 Database instance with a Tauri plugin-sql compatible
+ * interface (async select/execute with $1,$2 positional params).
+ *
+ * Converts $1, $2, ... positional params to ? placeholders for better-sqlite3.
+ * Returns a bridge object that can be used to mock getDb() in tests.
+ *
+ * Usage:
+ *   vi.mock("@/db/client", () => ({ getDb: vi.fn() }));
+ *   import { getDb } from "@/db/client";
+ *   const bridge = createDbBridge(db);
+ *   vi.mocked(getDb).mockResolvedValue(bridge as never);
+ */
+export function createDbBridge(db: Database.Database) {
+  /** Convert $1, $2, ... placeholders to ? for better-sqlite3 */
+  function convertParams(sql: string): string {
+    // Replace $N positional params with ? — better-sqlite3 uses ? or @name
+    return sql.replace(/\$\d+/g, "?");
+  }
+
+  return {
+    async select<T>(sql: string, params: unknown[] = []): Promise<T> {
+      const converted = convertParams(sql);
+      const rows = db.prepare(converted).all(...params);
+      return rows as T;
+    },
+    async execute(
+      sql: string,
+      params: unknown[] = [],
+    ): Promise<{ lastInsertId: number | null; rowsAffected: number }> {
+      const converted = convertParams(sql);
+      const result = db.prepare(converted).run(...params);
+      return {
+        lastInsertId: Number(result.lastInsertRowid) || null,
+        rowsAffected: result.changes,
+      };
+    },
+  };
+}
+
 /**
  * Inserts a test recipe section and returns its id.
  */
