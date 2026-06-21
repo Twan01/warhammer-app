@@ -72,7 +72,11 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
   3. User can delete a technique and receives a usage-count warning if N recipes depend on it
   4. User can duplicate a technique, producing an independent copy with new IDs across all sections, steps, and slots
   5. The technique library page (under Workshop/Recipes, no new top-level sidebar entry) lists techniques with name, effect category, difficulty, usage count, supports filter by effect and name search, and a detail view shows the full section/step tree plus a "used by N recipes" list
-**Plans**: TBD
+**Plans**: 4 plans
+- [ ] 142-01-PLAN.md — Technique types + Zod schema + draft-section helpers + 5 Nyquist test stubs (Wave 0)
+- [ ] 142-02-PLAN.md — Data layer: slot diff + non-destructive saveTechniqueGraph + duplicate/delete + usage queries + hooks
+- [ ] 142-03-PLAN.md — Authoring form: slot row, slot-picker step row, section/step editor, TechniqueFormSheet
+- [ ] 142-04-PLAN.md — Library browse: card/grid/detail/delete + filters + Recipes-page Tabs integration + RTL tests
 **UI hint**: yes
 
 ### Phase 143: Apply Flow & Slot-Fill System
