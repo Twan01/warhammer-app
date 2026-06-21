@@ -39,7 +39,7 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
 ## Phases
 
 - [x] **Phase 141: Schema Foundation & Progress-Identity Lock** — Migrations 051+, materialise-vs-resolve decision encoded, data-layer tests written before any UI (completed 2026-06-21)
-- [ ] **Phase 142: Technique Authoring & Library Browse** — Full technique CRUD with section/step/slot authoring, library page, detail view, usage count
+- [x] **Phase 142: Technique Authoring & Library Browse** — Full technique CRUD with section/step/slot authoring, library page, detail view, usage count (completed 2026-06-21)
 - [ ] **Phase 143: Apply Flow & Slot-Fill System** — Technique picker, slot-fill dialog, recipe_technique_instances rows, effectivePaintId() spine wired to all consumers
 - [ ] **Phase 144: Live-Link Re-Sync** — resyncAllInstancesForTechnique (Option A) or virtual-JOIN propagation (Option B), "X recipes affected" warning, data-layer tests gate
 - [ ] **Phase 145: Integration Pass** — Painting Mode, paint availability, apply-to-units, SectionedTimeline, recipe duplication, unfilled-slot warning across all surfaces
@@ -76,7 +76,7 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
 - [x] 142-01-PLAN.md — Technique types + Zod schema + draft-section helpers + 5 Nyquist test stubs (Wave 0)
 - [x] 142-02-PLAN.md — Data layer: slot diff + non-destructive saveTechniqueGraph + duplicate/delete + usage queries + hooks
 - [x] 142-03-PLAN.md — Authoring form: slot row, slot-picker step row, section/step editor, TechniqueFormSheet
-- [ ] 142-04-PLAN.md — Library browse: card/grid/detail/delete + filters + Recipes-page Tabs integration + RTL tests
+- [x] 142-04-PLAN.md — Library browse: card/grid/detail/delete + filters + Recipes-page Tabs integration + RTL tests
 **UI hint**: yes
 
 ### Phase 143: Apply Flow & Slot-Fill System
@@ -134,7 +134,7 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 141. Schema Foundation & Progress-Identity Lock | v0.7.0 | 3/3 | Complete    | 2026-06-21 |
-| 142. Technique Authoring & Library Browse | v0.7.0 | 3/4 | In Progress|  |
+| 142. Technique Authoring & Library Browse | v0.7.0 | 4/4 | Complete   | 2026-06-21 |
 | 143. Apply Flow & Slot-Fill System | v0.7.0 | 0/TBD | Not started | - |
 | 144. Live-Link Re-Sync | v0.7.0 | 0/TBD | Not started | - |
 | 145. Integration Pass | v0.7.0 | 0/TBD | Not started | - |

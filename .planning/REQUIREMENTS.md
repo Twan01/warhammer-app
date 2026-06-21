@@ -46,10 +46,10 @@ Requirements for the v0.7.0 release. Each maps to a roadmap phase.
 
 ### Technique Library Browse (C)
 
-- [ ] **LIB-01**: A technique library page lists saved techniques with name, effect category, difficulty, and usage count, accessed from within Workshop/Recipes (no new top-level sidebar entry).
+- [x] **LIB-01**: A technique library page lists saved techniques with name, effect category, difficulty, and usage count, accessed from within Workshop/Recipes (no new top-level sidebar entry).
 - [x] **LIB-02**: User can filter the library by effect category and search by name.
 - [x] **LIB-03**: A technique detail view shows the full section/step tree and all defined colour slots.
-- [ ] **LIB-04**: The technique detail view lists the recipes currently live-linked to that technique ("used by"), making propagation blast-radius visible.
+- [x] **LIB-04**: The technique detail view lists the recipes currently live-linked to that technique ("used by"), making propagation blast-radius visible.
 
 ### Apply / Slot-Fill (D)
 
@@ -139,10 +139,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 | SLOT-04 | Phase 143 | Pending |
 | SLOT-05 | Phase 143 | Pending |
 | SLOT-06 | Phase 143 | Pending |
-| LIB-01 | Phase 142 | Pending |
+| LIB-01 | Phase 142 | Complete |
 | LIB-02 | Phase 142 | Complete |
 | LIB-03 | Phase 142 | Complete |
-| LIB-04 | Phase 142 | Pending |
+| LIB-04 | Phase 142 | Complete |
 | APPLY-01 | Phase 143 | Pending |
 | APPLY-02 | Phase 143 | Pending |
 | APPLY-03 | Phase 143 | Pending |
