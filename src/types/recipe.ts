@@ -51,6 +51,8 @@ export interface DraftStep {
   time_estimate_minutes: number | null;
   step_photo_path: string | null;
   alt_paint_id: number | null;
+  // v0.7.0 technique materialisation (Phase 141, migration 051)
+  technique_step_id?: number | null;
 }
 
 export interface DraftSection {

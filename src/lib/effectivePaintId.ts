@@ -20,7 +20,8 @@
 /** Minimal data the function needs from a step row (structural/partial-row safe). */
 export interface PaintResolvableStep {
   paint_id: number | null;
-  technique_step_id: number | null;
+  /** undefined = field absent (pre-051 row or plain step); null = explicitly unlinked */
+  technique_step_id?: number | null;
 }
 
 /**

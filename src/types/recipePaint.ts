@@ -20,6 +20,8 @@ export interface RecipeStep {
   alt_paint_id: number | null;
   // v0.2.7 section grouping (Phase 48)
   section_id: number | null;
+  // v0.7.0 technique materialisation (Phase 141, migration 051)
+  technique_step_id?: number | null;
   created_at: string;
 }
 
