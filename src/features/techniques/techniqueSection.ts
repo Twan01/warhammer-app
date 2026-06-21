@@ -55,6 +55,29 @@ export function buildDraftTechniqueSlots(
 }
 
 // ---------------------------------------------------------------------------
+// makeDraftTechniqueStep — factory for a new empty step
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns a new empty technique step draft with a fresh localId.
+ * No paint_id, alt_paint_id, or step_photo_path — technique_steps has none of these.
+ */
+export function makeDraftTechniqueStep(): DraftTechniqueStep {
+  return {
+    localId: crypto.randomUUID(),
+    dbId: null,
+    step_name: "",
+    colour_slot_id: null,
+    notes: null,
+    painting_phase: null,
+    tool: null,
+    technique: null,
+    dilution: null,
+    time_estimate_minutes: null,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // makeDraftTechniqueSection — factory for a new empty section
 // ---------------------------------------------------------------------------
 
