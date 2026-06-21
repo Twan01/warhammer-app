@@ -59,7 +59,7 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
   5. Migration parity (`pnpm check:version`) passes with the new migration file(s) counted
 **Plans**: 3 plans
 - [x] 141-01-PLAN.md — Migration 051 (six tables + CASCADE + UNIQUE + two ALTER cols) + lib.rs registration + PROJECT.md Option A decision + schema-shape assertions (FND-01, FND-02)
-- [ ] 141-02-PLAN.md — effectivePaintId() pure resolver + nullable technique_step_id on RecipeStep/DraftStep + unit test (FND-04)
+- [x] 141-02-PLAN.md — effectivePaintId() pure resolver + nullable technique_step_id on RecipeStep/DraftStep + unit test (FND-04)
 - [ ] 141-03-PLAN.md — FND-03 progress-identity data-layer test (reorder/add/remove-step/remove-slot + teeth-proving counter-case) via flat single-handle SQL (FND-03, FND-05)
 
 ### Phase 142: Technique Authoring & Library Browse
@@ -129,7 +129,7 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 141. Schema Foundation & Progress-Identity Lock | v0.7.0 | 1/3 | In Progress|  |
+| 141. Schema Foundation & Progress-Identity Lock | v0.7.0 | 2/3 | In Progress|  |
 | 142. Technique Authoring & Library Browse | v0.7.0 | 0/TBD | Not started | - |
 | 143. Apply Flow & Slot-Fill System | v0.7.0 | 0/TBD | Not started | - |
 | 144. Live-Link Re-Sync | v0.7.0 | 0/TBD | Not started | - |
