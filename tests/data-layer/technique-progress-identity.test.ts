@@ -46,7 +46,6 @@ let sectionId: number; // recipe_sections id (with technique_instance_id = insta
 // Materialised recipe_steps PKs
 let s1RecipeStepId: number;
 let s2RecipeStepId: number; // S2's progress is recorded against this PK
-let s3RecipeStepId: number;
 
 // Assignment + progress
 let assignmentId: number;
@@ -138,12 +137,14 @@ describe("technique progress identity (FND-03)", () => {
       .run(recipeId, sectionId, "Glow Layer", 1, s2Id);
     s2RecipeStepId = Number(rs2Result.lastInsertRowid);
 
-    const rs3Result = db
+    // S3's materialised recipe_step is inserted for the fixture; its PK is not
+    // asserted directly (only S1/S2 progress identity is checked), so we do not
+    // capture it.
+    db
       .prepare(
         "INSERT INTO recipe_steps (recipe_id, section_id, paint_id, step_name, order_index, technique_step_id) VALUES (?, ?, NULL, ?, ?, ?)",
       )
       .run(recipeId, sectionId, "Highlight Edge", 2, s3Id);
-    s3RecipeStepId = Number(rs3Result.lastInsertRowid);
 
     // ── Step 4: unit + assignment + progress marker on S2 ───────────────────
 
