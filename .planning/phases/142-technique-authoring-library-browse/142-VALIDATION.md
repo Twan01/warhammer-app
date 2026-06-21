@@ -43,8 +43,8 @@ created: 2026-06-21
 | Slot diff + slotIdMap | SLOT-01, SLOT-02 | step `colour_slot_id` resolves localId→PK; removed slot nulls referencing steps | data-layer | `pnpm test -- tests/data-layer/technique-graph-save.test.ts` | ❌ W0 | ⬜ pending |
 | Duplicate technique | TECH-04 | deep copy yields fresh IDs across sections/steps/slots; no shared PKs | data-layer | `pnpm test -- tests/data-layer/technique-duplicate.test.ts` | ❌ W0 | ⬜ pending |
 | Usage-count query | TECH-03, TECH-05, LIB-01 | `getTechniquesWithCounts` JOINs through technique_sections for step count; usage = recipe_technique_instances per technique (0 this phase) | data-layer | `pnpm test -- tests/data-layer/technique-usage-counts.test.ts` | ❌ W0 | ⬜ pending |
-| Technique form schema | TECH-01, SLOT-01 | Zod requires name + ≥1 step; slots optional | unit | `pnpm test -- tests/features/techniques/techniqueSchema.test.ts` | ❌ W0 | ⬜ pending |
-| Library browse/filter | LIB-02, LIB-03, LIB-04 | name search + effect filter pure function | unit | `pnpm test -- tests/features/techniques/applyTechniqueFilters.test.ts` | ❌ W0 | ⬜ pending |
+| Technique form schema | TECH-01, SLOT-01 | Zod requires name + ≥1 step; slots optional | unit | `pnpm test -- tests/techniques/techniqueSchema.test.ts` | ❌ W0 | ⬜ pending |
+| Library browse/filter | LIB-02, LIB-03, LIB-04 | name search + effect filter pure function | unit | `pnpm test -- tests/techniques/applyTechniqueFilters.test.ts` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -55,8 +55,8 @@ created: 2026-06-21
 - [ ] `tests/data-layer/technique-graph-save.test.ts` — non-destructive save invariant (the FND-03 invariant applied to authoring): add/remove/reorder a technique step never changes a surviving `technique_step_id`; teeth via a DELETE+INSERT counter-case
 - [ ] `tests/data-layer/technique-duplicate.test.ts` — duplicate yields fully-fresh IDs
 - [ ] `tests/data-layer/technique-usage-counts.test.ts` — step-count JOIN correctness + usage count
-- [ ] `tests/features/techniques/techniqueSchema.test.ts` — Zod validity (name + ≥1 step)
-- [ ] `tests/features/techniques/applyTechniqueFilters.test.ts` — pure filter function
+- [ ] `tests/techniques/techniqueSchema.test.ts` — Zod validity (name + ≥1 step)
+- [ ] `tests/techniques/applyTechniqueFilters.test.ts` — pure filter function
 
 *Existing better-sqlite3 data-layer harness (tests/data-layer/) and Vitest+RTL feature-test infra cover the framework needs — no new framework install.*
 

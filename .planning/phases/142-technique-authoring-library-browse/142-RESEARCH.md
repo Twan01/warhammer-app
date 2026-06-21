@@ -834,22 +834,16 @@ Note: A3 is actually VERIFIED from the migration file read — `technique_sectio
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does `src/components/ui/tabs.tsx` already exist?**
-   - What we know: shadcn Tabs is used in the Settings page (tabbed Preferences/Data/About — Phase 121). It was likely added then.
-   - What's unclear: the file was not directly verified in this research session.
-   - Recommendation: Wave 0 task should verify and add if absent (`npx shadcn@latest add tabs`).
+   - **RESOLVED:** Yes — `src/components/ui/tabs.tsx` was confirmed present (verified during plan-phase). No `npx shadcn add tabs` needed. Plans reference it as CONFIRMED present.
 
 2. **Should `saveTechniqueGraph` live in `techniques.ts` or should `techniqueDiff.ts` export the shared save logic?**
-   - What we know: `saveRecipeGraph` lives in `recipes.ts` and imports from `src/lib/recipeDiff.ts`.
-   - What's unclear: whether it's cleaner to reuse `computeSectionDiff`/`computeStepDiff` directly from `recipeDiff.ts` (they are generic enough) or to create technique-typed variants.
-   - Recommendation: Import the diff functions directly from `recipeDiff.ts` — their TypeScript signatures use structural typing that is compatible with technique draft types. Only add `computeSlotDiff` to a new `techniqueDiff.ts` (the slot diff is new). This keeps the diff library small and avoids duplication.
+   - **RESOLVED:** `saveTechniqueGraph` lives in `src/db/queries/techniques.ts` (mirroring `saveRecipeGraph` in `recipes.ts`). `techniqueDiff.ts` adds only the new `computeSlotDiff` + `buildSlotIdMap` and re-exports `computeSectionDiff`/`computeStepDiff`/`buildSectionIdMap` from `recipeDiff.ts` (structural typing is compatible). Encoded in Plan 142-02.
 
 3. **Step photo upload on technique steps?**
-   - What we know: Migration 051 has no `step_photo_path` column on `technique_steps`. The UI-SPEC omits the photo button.
-   - What's unclear: Whether to add it later.
-   - Recommendation: Omit entirely in Phase 142. If needed, it requires a new migration column.
+   - **RESOLVED:** Omitted entirely in Phase 142 — migration 051 has no `step_photo_path` on `technique_steps` and the UI-SPEC omits the photo button. Plan 142-03 explicitly excludes step photo upload. Would require a new migration column if ever added.
 
 ---
 
