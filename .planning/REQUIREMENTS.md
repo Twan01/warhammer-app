@@ -29,16 +29,16 @@ Requirements for the v0.7.0 release. Each maps to a roadmap phase.
 
 ### Technique Authoring (A)
 
-- [ ] **TECH-01**: User can create a named technique with a full section + step structure (same draft section/step authoring model as the recipe form).
-- [ ] **TECH-02**: User can set technique metadata — name, description, effect category (reusing `RECIPE_EFFECTS`), difficulty, estimated time, and a result/reference photo.
-- [ ] **TECH-03**: User can edit a technique's structure (add / remove / reorder sections and steps) via a non-destructive graph save that keeps `technique_step_id` stable for existing instances.
-- [ ] **TECH-04**: User can delete a technique, with a usage-count safety check that warns when N recipes depend on it.
-- [ ] **TECH-05**: User can duplicate a technique, copying its sections, steps, and colour slots into an independent copy (e.g. "NMM Gold v2").
+- [x] **TECH-01**: User can create a named technique with a full section + step structure (same draft section/step authoring model as the recipe form).
+- [x] **TECH-02**: User can set technique metadata — name, description, effect category (reusing `RECIPE_EFFECTS`), difficulty, estimated time, and a result/reference photo.
+- [x] **TECH-03**: User can edit a technique's structure (add / remove / reorder sections and steps) via a non-destructive graph save that keeps `technique_step_id` stable for existing instances.
+- [x] **TECH-04**: User can delete a technique, with a usage-count safety check that warns when N recipes depend on it.
+- [x] **TECH-05**: User can duplicate a technique, copying its sections, steps, and colour slots into an independent copy (e.g. "NMM Gold v2").
 
 ### Colour Slot System (B)
 
-- [ ] **SLOT-01**: User can define named colour slots on a technique, each with a name, an optional role hint (e.g. "hottest point — near white"), and an order.
-- [ ] **SLOT-02**: A technique step can reference a colour slot instead of a fixed paint.
+- [x] **SLOT-01**: User can define named colour slots on a technique, each with a name, an optional role hint (e.g. "hottest point — near white"), and an order.
+- [x] **SLOT-02**: A technique step can reference a colour slot instead of a fixed paint.
 - [ ] **SLOT-03**: Each recipe application of a technique carries its own slot→paint mapping, so the same technique can use different colours in different recipes.
 - [ ] **SLOT-04**: A single recipe can contain multiple instances of the same technique, each with an independent slot mapping.
 - [ ] **SLOT-05**: An unassigned (empty) slot is a valid state, not an error — treated like a paintless step in availability and Painting Mode.
@@ -47,8 +47,8 @@ Requirements for the v0.7.0 release. Each maps to a roadmap phase.
 ### Technique Library Browse (C)
 
 - [ ] **LIB-01**: A technique library page lists saved techniques with name, effect category, difficulty, and usage count, accessed from within Workshop/Recipes (no new top-level sidebar entry).
-- [ ] **LIB-02**: User can filter the library by effect category and search by name.
-- [ ] **LIB-03**: A technique detail view shows the full section/step tree and all defined colour slots.
+- [x] **LIB-02**: User can filter the library by effect category and search by name.
+- [x] **LIB-03**: A technique detail view shows the full section/step tree and all defined colour slots.
 - [ ] **LIB-04**: The technique detail view lists the recipes currently live-linked to that technique ("used by"), making propagation blast-radius visible.
 
 ### Apply / Slot-Fill (D)
@@ -128,20 +128,20 @@ Which phases cover which requirements. Populated during roadmap creation.
 | FND-03 | Phase 141 | Complete |
 | FND-04 | Phase 141 | Complete |
 | FND-05 | Phase 141 | Complete |
-| TECH-01 | Phase 142 | Pending |
-| TECH-02 | Phase 142 | Pending |
-| TECH-03 | Phase 142 | Pending |
-| TECH-04 | Phase 142 | Pending |
-| TECH-05 | Phase 142 | Pending |
-| SLOT-01 | Phase 142 | Pending |
-| SLOT-02 | Phase 142 | Pending |
+| TECH-01 | Phase 142 | Complete |
+| TECH-02 | Phase 142 | Complete |
+| TECH-03 | Phase 142 | Complete |
+| TECH-04 | Phase 142 | Complete |
+| TECH-05 | Phase 142 | Complete |
+| SLOT-01 | Phase 142 | Complete |
+| SLOT-02 | Phase 142 | Complete |
 | SLOT-03 | Phase 143 | Pending |
 | SLOT-04 | Phase 143 | Pending |
 | SLOT-05 | Phase 143 | Pending |
 | SLOT-06 | Phase 143 | Pending |
 | LIB-01 | Phase 142 | Pending |
-| LIB-02 | Phase 142 | Pending |
-| LIB-03 | Phase 142 | Pending |
+| LIB-02 | Phase 142 | Complete |
+| LIB-03 | Phase 142 | Complete |
 | LIB-04 | Phase 142 | Pending |
 | APPLY-01 | Phase 143 | Pending |
 | APPLY-02 | Phase 143 | Pending |
