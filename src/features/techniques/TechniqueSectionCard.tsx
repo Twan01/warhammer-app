@@ -141,17 +141,15 @@ export function TechniqueSectionCard({
 
         <CollapsibleContent>
           <div className="px-3 pb-3">
-            {/* Notes input */}
-            {section.notes !== undefined && (
-              <div className="mb-2">
-                <Input
-                  className="h-7 text-xs"
-                  placeholder="Section notes…"
-                  value={section.notes ?? ""}
-                  onChange={(e) => onChange({ ...section, notes: e.target.value || null })}
-                />
-              </div>
-            )}
+            {/* Notes input — always rendered; notes is string | null, never undefined */}
+            <div className="mb-2">
+              <Input
+                className="h-7 text-xs"
+                placeholder="Section notes…"
+                value={section.notes ?? ""}
+                onChange={(e) => onChange({ ...section, notes: e.target.value || null })}
+              />
+            </div>
 
             <TechniqueStepList
               steps={section.steps}
