@@ -2,9 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { open as openDialog } from "@tauri-apps/plugin-dialog";
-import { readFile, writeFile, BaseDirectory } from "@tauri-apps/plugin-fs";
-import { ImageIcon, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
   DndContext,
   PointerSensor,
@@ -71,11 +69,8 @@ export interface TechniqueFormSheetProps {
 
 const DEFAULT_VALUES: TechniqueFormValues = {
   name: "",
-  description: null,
   effect: null,
   difficulty: null,
-  estimated_minutes: null,
-  result_photo_path: null,
   notes: null,
 };
 
@@ -83,11 +78,8 @@ function buildDefaults(technique: Technique | null): TechniqueFormValues {
   if (!technique) return DEFAULT_VALUES;
   return {
     name: technique.name,
-    description: null, // Technique DB row doesn't store description; form-only field
     effect: technique.effect,
     difficulty: technique.difficulty,
-    estimated_minutes: null,
-    result_photo_path: null,
     notes: technique.notes,
   };
 }
@@ -129,13 +121,11 @@ export function TechniqueFormSheet({ open, technique, onClose }: TechniqueFormSh
     [sections],
   );
 
-  // Re-initialize when technique prop changes
-  const existingSectionsLen = existingSections.length;
-  const existingStepsLen = existingSteps.length;
-  const existingSlotsLen = existingSlots.length;
+  // Re-initialize when technique prop changes or when React Query data arrays arrive.
+  // Deps use the actual arrays (not .length) so a same-length data change still triggers.
   useEffect(() => {
     form.reset(buildDefaults(technique));
-    if (technique && (existingSlotsLen > 0 || existingSectionsLen > 0)) {
+    if (technique && (existingSlots.length > 0 || existingSections.length > 0)) {
       const draftSlots = buildDraftTechniqueSlots(existingSlots);
       setSlots(draftSlots);
       setSections(buildDraftTechniqueSections(existingSections, existingSteps, draftSlots));
@@ -144,7 +134,7 @@ export function TechniqueFormSheet({ open, technique, onClose }: TechniqueFormSh
       setSections([makeDraftTechniqueSection("Steps")]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [technique?.id, existingSectionsLen, existingStepsLen, existingSlotsLen]);
+  }, [technique?.id, existingSlots, existingSections, existingSteps]);
 
   // Slot drag sensors (separate DndContext from section list)
   const slotSensors = useSensors(
@@ -198,27 +188,6 @@ export function TechniqueFormSheet({ open, technique, onClose }: TechniqueFormSh
     setSections((prev) => [...prev, makeDraftTechniqueSection()]);
   }
 
-  async function handleResultPhotoUpload() {
-    try {
-      const result = (await openDialog({
-        multiple: false,
-        directory: false,
-        filters: [{ name: "Images", extensions: ["png", "jpg", "jpeg", "webp", "gif"] }],
-      })) as string | null;
-      if (result === null) return;
-
-      const ext = result.split(".").pop()?.toLowerCase() ?? "jpg";
-      const data = await readFile(result);
-      const filename = `${crypto.randomUUID()}.${ext}`;
-      await writeFile(filename, data, { baseDir: BaseDirectory.AppData });
-
-      form.setValue("result_photo_path", filename);
-      toast.success("Result photo added.");
-    } catch {
-      toast.error("Failed to upload photo.");
-    }
-  }
-
   async function onSubmit(values: TechniqueFormValues) {
     // Validation: name non-empty (Zod handles this)
     const allSteps = sections.flatMap((s) => s.steps);
@@ -268,8 +237,7 @@ export function TechniqueFormSheet({ open, technique, onClose }: TechniqueFormSh
         toast.success("Technique created.");
       }
       onClose();
-    } catch (err) {
-      console.error("[TechniqueFormSheet] save failed:", err);
+    } catch {
       toast.error("Failed to save technique. Changes were not saved.");
     }
   }
@@ -304,27 +272,6 @@ export function TechniqueFormSheet({ open, technique, onClose }: TechniqueFormSh
                       autoFocus
                       placeholder="e.g. OSL Object Source Lighting"
                       {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Description */}
-            <FormField
-              name="description"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description (optional)</FormLabel>
-                  <FormControl>
-                    <textarea
-                      className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      placeholder="Optional description…"
-                      {...field}
-                      value={field.value ?? ""}
-                      onChange={(e) => field.onChange(e.target.value || null)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -387,43 +334,6 @@ export function TechniqueFormSheet({ open, technique, onClose }: TechniqueFormSh
                 </FormItem>
               )}
             />
-
-            {/* Estimated time */}
-            <FormField
-              name="estimated_minutes"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Estimated time (minutes, optional)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="e.g. 45"
-                      min={1}
-                      value={field.value ?? ""}
-                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Result photo */}
-            <FormItem>
-              <FormLabel>Result photo (optional)</FormLabel>
-              <div className="flex items-center gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={handleResultPhotoUpload}>
-                  <ImageIcon className="mr-2 h-4 w-4" />
-                  {form.watch("result_photo_path") ? "Change photo" : "Upload photo"}
-                </Button>
-                {form.watch("result_photo_path") && (
-                  <span className="text-xs text-muted-foreground truncate max-w-[200px]">
-                    {form.watch("result_photo_path")}
-                  </span>
-                )}
-              </div>
-            </FormItem>
 
             {/* Notes */}
             <FormField

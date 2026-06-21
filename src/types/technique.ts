@@ -130,14 +130,15 @@ export interface DraftTechniqueSection {
  * Defined here (not re-exported from the feature schema) so the query layer
  * can reference it without a transitive feature dependency — same rationale
  * as RecipeFormValues in src/types/recipe.ts.
+ *
+ * Only fields backed by migration 051 columns are present: name, effect,
+ * difficulty, notes. Do NOT add description/estimated_minutes/result_photo_path
+ * until the corresponding DB columns exist — they would be silently discarded.
  */
 export interface TechniqueFormValues {
   name: string;
-  description: string | null;
   effect: string | null;
   difficulty: string | null;
-  estimated_minutes: number | null;
-  result_photo_path: string | null;
   notes: string | null;
 }
 
