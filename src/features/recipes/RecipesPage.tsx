@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Plus, AlertCircle } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { TechniqueLibraryTab } from "@/features/techniques/TechniqueLibraryTab";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -34,6 +36,7 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { applyRecipeFilters } from "./applyRecipeFilters";
 
 export function RecipesPage() {
+  const [activeTab, setActiveTab] = useState<"recipes" | "techniques">("recipes");
   const { data: recipes = [], isLoading, isError, refetch } = useRecipes();
   const { data: factions = [] } = useFactions();
   const { data: units = [] } = useUnits();
@@ -165,113 +168,128 @@ export function RecipesPage() {
         title="Recipes"
         subtitle="Documented paint schemes for your models"
         actions={
-          <Button onClick={onAddRecipe}>
-            <Plus className="mr-2 h-4 w-4" /> Add Recipe
-          </Button>
+          activeTab === "recipes" ? (
+            <Button onClick={onAddRecipe}>
+              <Plus className="mr-2 h-4 w-4" /> Add Recipe
+            </Button>
+          ) : undefined
         }
       />
 
-      {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-2">
-        <FactionFilter
-          factions={factions}
-          value={factionFilter}
-          onChange={setFactionFilter}
-        />
-        <UnitFilter units={units} value={unitFilter} onChange={setUnitFilter} />
-        <Input
-          placeholder="Filter by area..."
-          value={areaFilter}
-          onChange={(e) => setAreaFilter(e.target.value)}
-          className="w-48"
-        />
-        <StringFilter
-          label={surfaceFilter ?? "Surface"}
-          placeholder="Filter surface..."
-          items={RECIPE_SURFACES as unknown as string[]}
-          value={surfaceFilter}
-          onChange={setSurfaceFilter}
-        />
-        <StringFilter
-          label={styleFilter ?? "Style"}
-          placeholder="Filter style..."
-          items={RECIPE_STYLES as unknown as string[]}
-          value={styleFilter}
-          onChange={setStyleFilter}
-        />
-        <StringFilter
-          label={difficultyFilter ?? "Difficulty"}
-          placeholder="Filter difficulty..."
-          items={RECIPE_DIFFICULTIES as unknown as string[]}
-          value={difficultyFilter}
-          onChange={setDifficultyFilter}
-        />
-        <Button
-          variant={hasMissingFilter ? "default" : "outline"}
-          size="sm"
-          onClick={() => setHasMissingFilter((v) => !v)}
-        >
-          Missing paints
-        </Button>
-        {hasActiveFilters && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setFactionFilter([]);
-              setUnitFilter(null);
-              setAreaFilter("");
-              setPaintFilter(null);
-              setSurfaceFilter(null);
-              setStyleFilter(null);
-              setDifficultyFilter(null);
-              setHasMissingFilter(false);
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "recipes" | "techniques")}>
+        <TabsList>
+          <TabsTrigger value="recipes">Recipes</TabsTrigger>
+          <TabsTrigger value="techniques">Techniques</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="recipes">
+          {/* Filter bar */}
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            <FactionFilter
+              factions={factions}
+              value={factionFilter}
+              onChange={setFactionFilter}
+            />
+            <UnitFilter units={units} value={unitFilter} onChange={setUnitFilter} />
+            <Input
+              placeholder="Filter by area..."
+              value={areaFilter}
+              onChange={(e) => setAreaFilter(e.target.value)}
+              className="w-48"
+            />
+            <StringFilter
+              label={surfaceFilter ?? "Surface"}
+              placeholder="Filter surface..."
+              items={RECIPE_SURFACES as unknown as string[]}
+              value={surfaceFilter}
+              onChange={setSurfaceFilter}
+            />
+            <StringFilter
+              label={styleFilter ?? "Style"}
+              placeholder="Filter style..."
+              items={RECIPE_STYLES as unknown as string[]}
+              value={styleFilter}
+              onChange={setStyleFilter}
+            />
+            <StringFilter
+              label={difficultyFilter ?? "Difficulty"}
+              placeholder="Filter difficulty..."
+              items={RECIPE_DIFFICULTIES as unknown as string[]}
+              value={difficultyFilter}
+              onChange={setDifficultyFilter}
+            />
+            <Button
+              variant={hasMissingFilter ? "default" : "outline"}
+              size="sm"
+              onClick={() => setHasMissingFilter((v) => !v)}
+            >
+              Missing paints
+            </Button>
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setFactionFilter([]);
+                  setUnitFilter(null);
+                  setAreaFilter("");
+                  setPaintFilter(null);
+                  setSurfaceFilter(null);
+                  setStyleFilter(null);
+                  setDifficultyFilter(null);
+                  setHasMissingFilter(false);
+                }}
+              >
+                Clear filters
+              </Button>
+            )}
+          </div>
+
+          <RecipeCardGrid
+            data={filtered}
+            factions={factions}
+            stepCountByRecipe={stepCountByRecipe}
+            sectionCountByRecipe={sectionCountByRecipe}
+            swatchColorsByRecipe={swatchColorsByRecipe}
+            availabilityByRecipe={availabilityByRecipe}
+            isLoading={isLoading}
+            onCardClick={openDetail}
+            onAdd={onAddRecipe}
+            onEdit={onEditRecipe}
+            onDelete={openDelete}
+          />
+
+          <RecipeDetailSheet
+            open={detailOpen}
+            recipe={selectedRecipe}
+            onClose={closeDetail}
+            onEdit={onEditRecipe}
+            onDelete={openDelete}
+            onDuplicate={() => {
+              closeDetail();
+              toast.success("Recipe duplicated successfully.");
             }}
-          >
-            Clear filters
-          </Button>
-        )}
-      </div>
+          />
 
-      <RecipeCardGrid
-        data={filtered}
-        factions={factions}
-        stepCountByRecipe={stepCountByRecipe}
-        sectionCountByRecipe={sectionCountByRecipe}
-        swatchColorsByRecipe={swatchColorsByRecipe}
-        availabilityByRecipe={availabilityByRecipe}
-        isLoading={isLoading}
-        onCardClick={openDetail}
-        onAdd={onAddRecipe}
-        onEdit={onEditRecipe}
-        onDelete={openDelete}
-      />
+          <RecipeDeleteDialog
+            key={deleting?.id ?? "none"}
+            open={deleteOpen}
+            recipe={deleting}
+            onClose={closeDelete}
+          />
 
-      <RecipeDetailSheet
-        open={detailOpen}
-        recipe={selectedRecipe}
-        onClose={closeDetail}
-        onEdit={onEditRecipe}
-        onDelete={openDelete}
-        onDuplicate={() => {
-          closeDetail();
-          toast.success("Recipe duplicated successfully.");
-        }}
-      />
+          <RecipeFormSheet
+            key={editing?.id ?? "new"}
+            open={formOpen}
+            recipe={editing}
+            onClose={closeForm}
+          />
+        </TabsContent>
 
-      <RecipeDeleteDialog
-        key={deleting?.id ?? "none"}
-        open={deleteOpen}
-        recipe={deleting}
-        onClose={closeDelete}
-      />
-
-      <RecipeFormSheet
-        key={editing?.id ?? "new"}
-        open={formOpen}
-        recipe={editing}
-        onClose={closeForm}
-      />
+        <TabsContent value="techniques">
+          <TechniqueLibraryTab />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
