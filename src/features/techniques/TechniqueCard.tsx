@@ -1,4 +1,4 @@
-import { Copy, Layers, Pencil, Trash2 } from "lucide-react";
+import { Copy, Layers, ListChecks, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -63,7 +63,7 @@ export function TechniqueCard({
             {slot_count} {slot_count === 1 ? "slot" : "slots"}
           </span>
           <span className="flex items-center gap-1">
-            <Layers className="h-3 w-3" />
+            <ListChecks className="h-3 w-3" />
             {step_count} {step_count === 1 ? "step" : "steps"}
           </span>
         </div>
