@@ -62,7 +62,8 @@ export async function applyTechnique(
      VALUES ($1, $2)`,
     [recipeId, techniqueId],
   );
-  const instanceId = instanceResult.lastInsertId ?? 0;
+  const instanceId = instanceResult.lastInsertId;
+  if (!instanceId) throw new Error("applyTechnique: INSERT recipe_technique_instances did not return lastInsertId");
 
   // 2. SELECT technique_sections ordered by order_index ASC
   const sections = await db.select<TechniqueSection[]>(
@@ -89,7 +90,8 @@ export async function applyTechnique(
         instanceId,
       ],
     );
-    const newSectionId = sectionResult.lastInsertId ?? 0;
+    const newSectionId = sectionResult.lastInsertId;
+    if (!newSectionId) throw new Error("applyTechnique: INSERT recipe_sections did not return lastInsertId");
 
     // 3b. SELECT technique_steps for this section
     const steps = await db.select<TechniqueStep[]>(
