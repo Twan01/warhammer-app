@@ -57,7 +57,7 @@ Requirements for the v0.7.0 release. Each maps to a roadmap phase.
 - [x] **APPLY-02**: A technique picker dialog lets the user browse/search the library, preview the technique's slots and steps, and choose the insertion position.
 - [x] **APPLY-03**: A slot-fill dialog lets the user assign a real paint to each slot (one slot per row, via the existing paint combobox), with empty slots allowed and fillable later.
 - [x] **APPLY-04**: An applied technique appears in the recipe as a section (at the chosen position) carrying a "from technique X" badge.
-- [ ] **APPLY-05**: The user can view/change a technique instance's slot colours from the recipe detail view, not only from the full edit form.
+- [x] **APPLY-05**: The user can view/change a technique instance's slot colours from the recipe detail view, not only from the full edit form.
 
 ### Live Link & Propagation (E)
 
@@ -147,7 +147,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | APPLY-02 | Phase 143 | Complete |
 | APPLY-03 | Phase 143 | Complete |
 | APPLY-04 | Phase 143 | Complete |
-| APPLY-05 | Phase 143 | Pending |
+| APPLY-05 | Phase 143 | Complete |
 | LINK-01 | Phase 144 | Pending |
 | LINK-02 | Phase 144 | Pending |
 | LINK-03 | Phase 144 | Pending |
