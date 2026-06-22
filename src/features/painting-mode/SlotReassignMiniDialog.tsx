@@ -100,12 +100,16 @@ export function SlotReassignMiniDialog({
         </DialogHeader>
 
         <div className="flex flex-col gap-2 py-2">
-          {slot && (
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading slot…</p>
+          ) : slot ? (
             <SlotFillRow
               slot={slot}
               paintId={slotFill}
               onChange={(paintId) => setSlotFill(paintId)}
             />
+          ) : (
+            <p className="text-sm text-muted-foreground">Slot not found.</p>
           )}
         </div>
 
