@@ -3,14 +3,28 @@ import type { Paint } from "@/types/paint";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Paintbrush, Droplets } from "lucide-react";
 import { isPaintMissing } from "@/lib/recipeSteps";
+import { effectivePaintId, type SlotResolutionMap } from "@/lib/effectivePaintId";
 
 export interface RecipeStepTimelineProps {
   steps: RecipeStep[];
   paintMap: Map<number, Paint>;
   stepPhotoUrls?: Map<number, string>; // step.id -> asset:// URL
+  /**
+   * Slot resolution map for technique-owned step swatch resolution.
+   * When provided, technique steps resolve through effectivePaintId.
+   * Plain recipes omit this — effectivePaintId falls back to step.paint_id.
+   */
+  slotMap?: SlotResolutionMap;
+  /**
+   * When true, all steps are rendered read-only (no paint edit controls).
+   * Used in RecipeDetailSheet for technique-owned sections.
+   */
+  readOnly?: boolean;
 }
 
-export function RecipeStepTimeline({ steps, paintMap, stepPhotoUrls }: RecipeStepTimelineProps) {
+export function RecipeStepTimeline({ steps, paintMap, stepPhotoUrls, slotMap, readOnly: _readOnly }: RecipeStepTimelineProps) {
+  const resolvedSlotMap: SlotResolutionMap = slotMap ?? new Map();
+
   if (steps.length === 0) {
     return <span className="text-sm text-muted-foreground">No steps added yet.</span>;
   }
@@ -18,7 +32,8 @@ export function RecipeStepTimeline({ steps, paintMap, stepPhotoUrls }: RecipeSte
   return (
     <div className="flex flex-col" data-testid="step-timeline">
       {steps.map((step, i) => {
-        const paint = step.paint_id != null ? paintMap.get(step.paint_id) : undefined;
+        const resolvedId = effectivePaintId(step, resolvedSlotMap);
+        const paint = resolvedId != null ? paintMap.get(resolvedId) : undefined;
         const missing = isPaintMissing(paint);
         const isLast = i === steps.length - 1;
 

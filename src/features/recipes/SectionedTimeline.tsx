@@ -6,12 +6,20 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, Layers } from "lucide-react";
 import { RecipeStepTimeline } from "./RecipeStepTimeline";
 import { isPaintMissing } from "@/lib/recipeSteps";
+import { effectivePaintId, type SlotResolutionMap } from "@/lib/effectivePaintId";
 
 export interface SectionedTimelineProps {
   sections: RecipeSection[];
   steps: RecipeStep[];
   paintMap: Map<number, Paint>;
   stepPhotoUrls?: Map<number, string>;
+  /**
+   * Slot resolution map from useSlotResolutionMap(recipeId).
+   * Passed by RecipeDetailSheet for technique-owned step swatch resolution.
+   * Plain recipes (no techniques) omit this prop — effectivePaintId falls back
+   * to step.paint_id for non-technique steps (FND-04 fallback).
+   */
+  slotMap?: SlotResolutionMap;
 }
 
 export function SectionedTimeline({
@@ -19,7 +27,10 @@ export function SectionedTimeline({
   steps,
   paintMap,
   stepPhotoUrls,
+  slotMap,
 }: SectionedTimelineProps) {
+  // Resolved slot map — empty Map when not provided (plain recipe fallback).
+  const resolvedSlotMap: SlotResolutionMap = slotMap ?? new Map();
   // Group steps by section_id; orphan steps (null section_id) collected separately
   const { stepsBySection, orphanSteps } = useMemo(() => {
     const map = new Map<number, RecipeStep[]>();
@@ -36,12 +47,15 @@ export function SectionedTimeline({
     return { stepsBySection: map, orphanSteps: orphans };
   }, [steps]);
 
-  // Compute per-section availability (owned vs missing)
+  // Compute per-section availability (owned vs missing).
+  // Technique-owned steps resolve via effectivePaintId so filled slots show the correct paint.
   const sectionAvailability = useMemo(() => {
     const map = new Map<number, { owned: number; missing: number }>();
     for (const step of steps) {
-      if (step.section_id === null || step.paint_id === null || step.paint_id === 0) continue;
-      const paint = paintMap.get(step.paint_id);
+      if (step.section_id === null) continue;
+      const resolvedId = effectivePaintId(step, resolvedSlotMap);
+      if (resolvedId === null || resolvedId === 0) continue;
+      const paint = paintMap.get(resolvedId);
       const current = map.get(step.section_id) ?? { owned: 0, missing: 0 };
       if (isPaintMissing(paint)) {
         current.missing += 1;
@@ -51,7 +65,7 @@ export function SectionedTimeline({
       map.set(step.section_id, current);
     }
     return map;
-  }, [steps, paintMap]);
+  }, [steps, paintMap, resolvedSlotMap]);
 
   // Guard AFTER hooks so hook order stays stable across empty<->non-empty transitions.
   if (sections.length === 0) return null;
@@ -61,7 +75,7 @@ export function SectionedTimeline({
       {orphanSteps.length > 0 && (
         <div className="flex flex-col gap-2">
           <span className="text-sm font-semibold text-muted-foreground">General</span>
-          <RecipeStepTimeline steps={orphanSteps} paintMap={paintMap} stepPhotoUrls={stepPhotoUrls} />
+          <RecipeStepTimeline steps={orphanSteps} paintMap={paintMap} stepPhotoUrls={stepPhotoUrls} slotMap={resolvedSlotMap} />
         </div>
       )}
       {sections.map((section) => {
@@ -145,6 +159,7 @@ export function SectionedTimeline({
               steps={sectionSteps}
               paintMap={paintMap}
               stepPhotoUrls={stepPhotoUrls}
+              slotMap={resolvedSlotMap}
             />
           </div>
         );
