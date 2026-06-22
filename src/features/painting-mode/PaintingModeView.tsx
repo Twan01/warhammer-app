@@ -4,7 +4,12 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 
 import { usePaints } from "@/hooks/usePaints";
 import { useRecipeSections } from "@/hooks/useRecipeSections";
-import { useSlotResolutionMap, useUnfilledSlotCount } from "@/hooks/useSlotResolutionMap";
+import {
+  useSlotResolutionMap,
+  useUnfilledSlotCount,
+  useStepSlotIdMap,
+} from "@/hooks/useSlotResolutionMap";
+import { useInstancesForRecipe } from "@/hooks/useTechniqueInstances";
 import { effectivePaintId } from "@/lib/effectivePaintId";
 import { isPaintMissing } from "@/lib/recipeSteps";
 
@@ -12,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SectionNavigator } from "./SectionNavigator";
 import { StepFocalView } from "./StepFocalView";
 import { PaintReadinessBanner } from "./PaintReadinessBanner";
+import { SlotReassignMiniDialog } from "./SlotReassignMiniDialog";
 
 import type { Paint } from "@/types/paint";
 import type { usePaintingModeState } from "@/hooks/usePaintingModeState";
@@ -37,6 +43,8 @@ export function PaintingModeView({
   const { data: sections = [] } = useRecipeSections(recipeId);
   const { data: slotMap = new Map() } = useSlotResolutionMap(recipeId);
   const { data: unfilledSlotCount = 0 } = useUnfilledSlotCount(recipeId);
+  const { data: stepSlotIdMap = new Map() } = useStepSlotIdMap(recipeId);
+  const { data: instances = [] } = useInstancesForRecipe(recipeId);
 
   // Build paintMap: Map<number, Paint>
   const paintMap = useMemo(() => {
@@ -44,6 +52,12 @@ export function PaintingModeView({
     for (const p of paints) m.set(p.id, p);
     return m;
   }, [paints]);
+
+  // Build instanceTechniqueId: Map<instanceId, techniqueId>
+  const instanceTechniqueId = useMemo(
+    () => new Map(instances.map((i) => [i.id, i.technique_id])),
+    [instances],
+  );
 
   // Derive missing paints for the banner — resolves via effectivePaintId to count technique steps
   const missingPaints = useMemo(() => {
@@ -112,6 +126,26 @@ export function PaintingModeView({
   const sectionName = currentStep?.section_id
     ? (sections.find((s) => s.id === currentStep.section_id)?.name ?? null)
     : null;
+
+  // Reassign state for the inline slot mini-dialog (INTG-07)
+  const [reassignOpen, setReassignOpen] = useState(false);
+  const [reassignTarget, setReassignTarget] = useState<{
+    instanceId: number;
+    slotId: number;
+    techniqueId: number;
+  } | null>(null);
+
+  function handleReassignSlot() {
+    if (!currentStep) return;
+    const slotId = stepSlotIdMap.get(currentStep.id) ?? null;
+    const section = sections.find((s) => s.id === currentStep.section_id);
+    const instanceId = section?.technique_instance_id ?? null;
+    if (slotId === null || instanceId === null) return;
+    const techniqueId = instanceTechniqueId.get(instanceId) ?? null;
+    if (techniqueId === null) return;
+    setReassignTarget({ instanceId, slotId, techniqueId });
+    setReassignOpen(true);
+  }
 
   // Banner dismiss state
   const [bannerDismissed, setBannerDismissed] = useState(false);
@@ -187,8 +221,22 @@ export function PaintingModeView({
           isMutating={isMutating}
           onExit={onExit}
           isUnfilledSlot={isUnfilledSlot}
+          onReassignSlot={handleReassignSlot}
         />
       </div>
+      {reassignTarget && (
+        <SlotReassignMiniDialog
+          open={reassignOpen}
+          instanceId={reassignTarget.instanceId}
+          slotId={reassignTarget.slotId}
+          techniqueId={reassignTarget.techniqueId}
+          recipeId={recipeId}
+          onClose={() => {
+            setReassignOpen(false);
+            setReassignTarget(null);
+          }}
+        />
+      )}
     </div>
   );
 }
