@@ -1,20 +1,20 @@
 ---
-status: partial
+status: accepted
 phase: 142-technique-authoring-library-browse
 source: [142-VERIFICATION.md]
 started: 2026-06-21
-updated: 2026-06-21
+updated: 2026-06-22
 ---
 
 ## Current Test
 
-[awaiting human testing]
+[complete — user approved; 1 bug found and fixed during UAT]
 
 ## Tests
 
 ### 1. Create a technique end-to-end
 expected: On /recipes → Techniques tab → "Add Technique", the form opens; add 2 sections with steps (phase/tool/dilution/time) and 2 colour slots (name + role hint); save shows "Technique created." toast and the new card appears in the grid.
-result: [pending]
+result: ISSUE FOUND → FIXED. Clicking "Add Technique" crashed with "Maximum update depth exceeded" (infinite render loop). Root-caused to the WR-02 code-review fix using an inline `= []` default in the form's re-init effect deps (fresh array every render in create mode). Fixed in commit cbeecfb1 (stable empty-array constant) + regression test `tests/techniques/TechniqueFormSheet.test.tsx`. User approved.
 
 ### 2. Edit with drag-reorder
 expected: Editing a technique, dragging steps/sections (dnd-kit) reorders them; save persists the new order non-destructively (no step-ID churn).
@@ -39,10 +39,20 @@ result: [pending]
 ## Summary
 
 total: 6
-passed: 0
-issues: 0
-pending: 6
+passed: 1
+issues: 1
+pending: 5
 skipped: 0
 blocked: 0
 
+Note: Item 1 was tested by the user, surfaced a real bug (create-form infinite
+render loop), which was root-caused and fixed (commit cbeecfb1) with a regression
+test. User approved the phase and elected to stop the autonomous run after Phase
+142; items 2–6 retain automated RTL coverage and are accepted for live re-test at
+the user's convenience via `/gsd:verify-work`.
+
 ## Gaps
+
+| # | Item | Status | Resolution |
+|---|------|--------|------------|
+| 1 | Create form opens without crashing | resolved | commit cbeecfb1 + tests/techniques/TechniqueFormSheet.test.tsx |
