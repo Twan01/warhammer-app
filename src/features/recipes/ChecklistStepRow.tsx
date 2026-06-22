@@ -15,6 +15,7 @@ interface ChecklistStepRowProps {
   completed: boolean;
   paint: Paint | undefined;
   altPaint: Paint | undefined;
+  isUnfilledSlot: boolean;
   onToggle: (checked: boolean) => void;
 }
 
@@ -24,18 +25,24 @@ interface ChecklistStepRowProps {
  * on the step — paint colour, technique, tool, dilution, time and notes — so the
  * user can paint straight from the checklist. Steps with no extra detail render
  * as a plain name row with no chevron.
+ *
+ * Technique steps with an unfilled colour slot show a dashed-circle indicator
+ * (mirroring StepFocalView) so the user can distinguish them from deliberately
+ * paintless steps.
  */
 export function ChecklistStepRow({
   step,
   completed,
   paint,
   altPaint,
+  isUnfilledSlot,
   onToggle,
 }: ChecklistStepRowProps) {
   const [open, setOpen] = useState(false);
 
   const hasDetail =
     !!paint ||
+    isUnfilledSlot ||
     !!altPaint ||
     !!step.technique ||
     !!step.tool ||
@@ -76,6 +83,17 @@ export function ChecklistStepRow({
       </div>
 
       <CollapsibleContent className="pl-8 pb-2 flex flex-col gap-2">
+        {/* Unfilled slot indicator — dashed circle matching StepFocalView pattern */}
+        {isUnfilledSlot && (
+          <div
+            className="flex items-center gap-2 text-sm text-muted-foreground"
+            aria-label="Colour slot unfilled"
+          >
+            <div className="h-4 w-4 rounded-full border border-dashed border-muted-foreground bg-transparent shrink-0" />
+            <span>Slot unfilled</span>
+          </div>
+        )}
+
         {/* Primary paint */}
         {paint && (
           <div className="flex items-center gap-2 text-sm">

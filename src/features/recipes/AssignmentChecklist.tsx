@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { Hammer } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
@@ -47,10 +47,21 @@ export function AssignmentChecklist({ assignment, recipeId, unitId }: Assignment
 
   // Resolve the effective paint for a step — technique steps route through slotMap,
   // plain steps use their own paint_id directly (FND-04 fallback).
-  function resolvedPaint(step: RecipeStep) {
-    const id = effectivePaintId(step, slotMap);
-    return id !== null ? paintsById.get(id) : undefined;
-  }
+  const resolvedPaint = useCallback(
+    (step: RecipeStep) => {
+      const id = effectivePaintId(step, slotMap);
+      return id !== null ? paintsById.get(id) : undefined;
+    },
+    [slotMap, paintsById],
+  );
+
+  // Determine whether a step is a technique step with an unfilled colour slot.
+  const isStepUnfilledSlot = useCallback(
+    (step: RecipeStep) =>
+      (step.technique_step_id ?? null) !== null &&
+      effectivePaintId(step, slotMap) === null,
+    [slotMap],
+  );
 
   // Derived: set of completed recipe_step_id values (no local state)
   const completedSet = useMemo(
@@ -136,6 +147,7 @@ export function AssignmentChecklist({ assignment, recipeId, unitId }: Assignment
                     completed={completedSet.has(step.id)}
                     paint={resolvedPaint(step)}
                     altPaint={step.alt_paint_id !== null ? paintsById.get(step.alt_paint_id) : undefined}
+                    isUnfilledSlot={isStepUnfilledSlot(step)}
                     onToggle={(checked) => handleToggle(step.id, checked)}
                   />
                 ))}
@@ -161,6 +173,7 @@ export function AssignmentChecklist({ assignment, recipeId, unitId }: Assignment
                       completed={completedSet.has(step.id)}
                       paint={resolvedPaint(step)}
                       altPaint={step.alt_paint_id !== null ? paintsById.get(step.alt_paint_id) : undefined}
+                      isUnfilledSlot={isStepUnfilledSlot(step)}
                       onToggle={(checked) => handleToggle(step.id, checked)}
                     />
                   ))}
@@ -178,6 +191,7 @@ export function AssignmentChecklist({ assignment, recipeId, unitId }: Assignment
                 completed={completedSet.has(step.id)}
                 paint={resolvedPaint(step)}
                 altPaint={step.alt_paint_id !== null ? paintsById.get(step.alt_paint_id) : undefined}
+                isUnfilledSlot={isStepUnfilledSlot(step)}
                 onToggle={(checked) => handleToggle(step.id, checked)}
               />
             </li>

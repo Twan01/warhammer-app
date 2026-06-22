@@ -249,4 +249,41 @@ describe("AssignmentChecklist — INTG-03 (technique step resolution)", () => {
     await user.click(triggerText);
     expect(screen.getByText(/Macragge Blue/)).toBeInTheDocument();
   });
+
+  it("CR-02: technique step with unfilled slot shows dashed-circle indicator (not a plain row)", async () => {
+    // Override: slot map has null value (unfilled slot)
+    mockSlotMap = new Map([[TECHNIQUE_RECIPE_STEP_ID, null]]);
+    const user = userEvent.setup();
+    render(
+      <AssignmentChecklist
+        assignment={mockAssignment}
+        recipeId={1}
+        unitId={1}
+      />
+    );
+    // Step name must be visible
+    expect(screen.getByText("OSL Glow Layer")).toBeInTheDocument();
+    // Row must be collapsible (has chevron) — expand it
+    const triggerText = screen.getByText("OSL Glow Layer");
+    await user.click(triggerText);
+    // The unfilled-slot indicator text must appear inside the expanded content
+    expect(screen.getByText("Slot unfilled")).toBeInTheDocument();
+    // No resolved paint name
+    expect(screen.queryByText(/Hexos Palesun/)).not.toBeInTheDocument();
+  });
+
+  it("CR-02: technique step with unfilled slot has distinct indicator accessible via aria-label", async () => {
+    mockSlotMap = new Map([[TECHNIQUE_RECIPE_STEP_ID, null]]);
+    const user = userEvent.setup();
+    render(
+      <AssignmentChecklist
+        assignment={mockAssignment}
+        recipeId={1}
+        unitId={1}
+      />
+    );
+    await user.click(screen.getByText("OSL Glow Layer"));
+    // The indicator wrapper must be in the DOM with aria-label
+    expect(screen.getByLabelText("Colour slot unfilled")).toBeInTheDocument();
+  });
 });
