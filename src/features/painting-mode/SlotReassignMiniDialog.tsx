@@ -89,7 +89,7 @@ export function SlotReassignMiniDialog({
         if (!o) onClose();
       }}
     >
-      <DialogContent className="sm:max-w-xs" showCloseButton={false}>
+      <DialogContent className="sm:max-w-xs">
         <DialogHeader>
           <DialogTitle className="text-base font-semibold">
             Reassign slot colour
