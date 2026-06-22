@@ -11,6 +11,7 @@ import type {
   DraftTechniqueSection,
 } from "@/types/technique";
 import { computeSlotDiff, buildSlotIdMap } from "@/lib/techniqueDiff";
+import { resyncTechniqueInstances } from "@/db/queries/recipeTechniqueResync";
 
 // ---------------------------------------------------------------------------
 // Internal flat step type for technique step diff (mirrors FlatDraftStep but
@@ -635,6 +636,11 @@ export async function saveTechniqueGraph(
         ],
       );
     }
+
+    // RESYNC: propagate the saved technique structure to all linked recipe instances.
+    // Called with the SAME db handle (SC#4 — no second getDb() call, no BEGIN).
+    // Only runs in the edit branch — on create there are no instances yet.
+    await resyncTechniqueInstances(db, finalId);
   }
 
   return finalId;

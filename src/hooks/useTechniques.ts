@@ -17,6 +17,11 @@ import type {
   TechniqueStep,
   TechniqueFormValues,
 } from "@/types/technique";
+import {
+  RECIPE_AVAILABILITY_KEY,
+  RECIPE_SWATCH_KEY,
+  STEP_COUNTS_KEY,
+} from "@/hooks/useRecipePaints";
 
 // ---------------------------------------------------------------------------
 // Query key factories
@@ -123,6 +128,16 @@ export function useUpdateTechnique() {
     onSuccess: (_, variables) => {
       invalidateTechniqueKeys(qc);
       qc.invalidateQueries({ queryKey: TECHNIQUE_KEY(variables.techniqueId) });
+      // resyncTechniqueInstances may have written to many recipes — broadcast prefix
+      // invalidations so every affected recipe's UI refreshes (LINK-01 / T-144-06).
+      // Prefix invalidation (no recipeId arg) clears ALL per-recipe entries in the cache.
+      // Mirrors invalidateAfterApply in useTechniqueInstances.ts.
+      qc.invalidateQueries({ queryKey: ["recipe-sections"] });
+      qc.invalidateQueries({ queryKey: ["recipe-paints"] });
+      qc.invalidateQueries({ queryKey: ["slot-resolution-map"] });
+      qc.invalidateQueries({ queryKey: STEP_COUNTS_KEY });
+      qc.invalidateQueries({ queryKey: RECIPE_SWATCH_KEY });
+      qc.invalidateQueries({ queryKey: RECIPE_AVAILABILITY_KEY });
     },
   });
 }
