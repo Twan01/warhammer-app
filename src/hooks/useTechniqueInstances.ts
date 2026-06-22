@@ -10,7 +10,7 @@ import {
   RECIPE_SWATCH_KEY,
   STEP_COUNTS_KEY,
 } from "@/hooks/useRecipePaints";
-import { SLOT_RESOLUTION_MAP_KEY, SLOT_MAP_BY_INSTANCE_KEY } from "@/hooks/useSlotResolutionMap";
+import { SLOT_RESOLUTION_MAP_KEY, SLOT_MAP_BY_INSTANCE_KEY, UNFILLED_SLOT_COUNT_KEY } from "@/hooks/useSlotResolutionMap";
 import type { QueryClient } from "@tanstack/react-query";
 
 // ---------------------------------------------------------------------------
@@ -125,6 +125,7 @@ export function useUpdateSlotMap() {
       qc.invalidateQueries({ queryKey: RECIPE_PAINTS_KEY(variables.recipeId) });
       qc.invalidateQueries({ queryKey: RECIPE_SWATCH_KEY });
       qc.invalidateQueries({ queryKey: RECIPE_AVAILABILITY_KEY });
+      qc.invalidateQueries({ queryKey: UNFILLED_SLOT_COUNT_KEY(variables.recipeId) });
     },
   });
 }
