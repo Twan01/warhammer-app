@@ -550,4 +550,60 @@ describe("resyncTechniqueInstances (LINK-01)", () => {
     // avoids this by preserving the recipe_step_id. This counter-case proves those
     // assertions cannot pass trivially under the forbidden strategy.
   });
+  // ── Case 8: SECTION RENAME PROPAGATES (CR-01) ────────────────────────────
+
+  it("CR-01: section rename on technique propagates to linked recipe_sections", async () => {
+    // Rename the technique section
+    db.prepare("UPDATE technique_sections SET name = ? WHERE id = ?")
+      .run("Renamed Section", techniqueSectionId);
+
+    await resyncTechniqueInstances(bridge as never, techniqueId);
+
+    // The recipe_sections row for this instance must now have the new name
+    const recipeSection = db
+      .prepare("SELECT name FROM recipe_sections WHERE id = ?")
+      .get(sectionId) as { name: string } | undefined;
+    expect(recipeSection).toBeDefined();
+    expect(recipeSection!.name).toBe("Renamed Section");
+  });
+
+  // ── Case 9: MANUAL STEP SURVIVES RESYNC (CR-02) ──────────────────────────
+
+  it("CR-02: user-added manual step (paint_id set, technique_step_id NULL) inside a technique section survives resync", async () => {
+    // Insert a real paint so the FK on recipe_steps.paint_id is satisfied
+    const paintId = Number(
+      db
+        .prepare("INSERT INTO paints (brand, name, paint_type, owned) VALUES (?, ?, ?, ?)")
+        .run("Test Brand", "Manual Paint", "Base", 1).lastInsertRowid,
+    );
+
+    // Insert a manual step directly into the technique-owned section
+    // (paint_id IS NOT NULL + technique_step_id NULL = user-added step)
+    const manualStepId = Number(
+      db
+        .prepare(
+          "INSERT INTO recipe_steps (recipe_id, section_id, paint_id, step_name, order_index, technique_step_id) VALUES (?, ?, ?, ?, ?, NULL)",
+        )
+        .run(recipeId, sectionId, paintId, "My Manual Step", 99).lastInsertRowid,
+    );
+
+    // Delete S1 from the technique to trigger the resync's step-4d cleanup path
+    db.prepare("DELETE FROM technique_steps WHERE id = ?").run(s1Id);
+
+    await resyncTechniqueInstances(bridge as never, techniqueId);
+
+    // The manual step must still be present (paint_id IS NOT NULL protects it)
+    const manualRow = db
+      .prepare("SELECT id, paint_id FROM recipe_steps WHERE id = ?")
+      .get(manualStepId) as { id: number; paint_id: number } | undefined;
+    expect(manualRow).toBeDefined();
+    expect(manualRow!.paint_id).toBe(paintId);
+
+    // S1's recipe_steps row must be gone (it was technique-owned: paint_id NULL)
+    const s1Row = db
+      .prepare("SELECT id FROM recipe_steps WHERE id = ?")
+      .get(s1RecipeStepId);
+    expect(s1Row).toBeUndefined();
+  });
+
 });

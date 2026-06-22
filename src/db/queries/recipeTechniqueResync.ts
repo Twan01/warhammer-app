@@ -70,6 +70,7 @@ interface RecipeSection {
 interface RecipeStepInfo {
   id: number;
   technique_step_id: number | null;
+  paint_id: number | null;  // CR-02: discriminate technique-owned vs user-added manual steps
   section_id: number;
   order_index: number;
 }
@@ -145,14 +146,13 @@ export async function resyncTechniqueInstances(
   // ── 4. Per-instance sync ───────────────────────────────────────────────────
 
   for (const instance of instances) {
-    await syncInstance(db, instance, techniqueId, techniqueSections, currentTechSectionIds, stepsByTechSection, currentTechStepIds);
+    await syncInstance(db, instance, techniqueSections, currentTechSectionIds, stepsByTechSection, currentTechStepIds);
   }
 }
 
 async function syncInstance(
   db: DbHandle,
   instance: RecipeTechniqueInstance,
-  _techniqueId: number,
   techniqueSections: TechniqueSection[],
   currentTechSectionIds: Set<number>,
   stepsByTechSection: Map<number, TechniqueStep[]>,
@@ -189,7 +189,16 @@ async function syncInstance(
     }
   }
 
-  // INSERT new recipe_sections for added technique_sections
+  // INSERT new recipe_sections for added technique_sections.
+  // WR-02: base new section order_index on the recipe's current max order_index
+  // (not the technique-local `si`), so two technique instances in the same recipe
+  // do not produce colliding order_index values.
+  const maxSectionRows = await db.select<{ maxIdx: number | null }[]>(
+    `SELECT MAX(order_index) AS maxIdx FROM recipe_sections WHERE recipe_id = $1`,
+    [instance.recipe_id],
+  );
+  let nextSectionOrderIndex = (maxSectionRows[0]?.maxIdx ?? -1) + 1;
+
   for (let si = 0; si < techniqueSections.length; si++) {
     const techSec = techniqueSections[si];
     if (!recipeSectionByTechSectionId.has(techSec.id)) {
@@ -202,7 +211,7 @@ async function syncInstance(
           techSec.name,
           techSec.surface ?? null,
           techSec.optional,
-          si,
+          nextSectionOrderIndex++,
           techSec.notes ?? null,
           instance.id,
           techSec.id,
@@ -212,11 +221,25 @@ async function syncInstance(
         recipeSectionByTechSectionId.set(techSec.id, sectionResult.lastInsertId);
       }
     } else {
-      // UPDATE order_index for surviving sections
+      // UPDATE order_index + content fields for surviving sections (CR-01: live-link
+      // must propagate name/surface/optional/notes, not just structural order_index)
       const recipeSectionId = recipeSectionByTechSectionId.get(techSec.id)!;
       await db.execute(
-        `UPDATE recipe_sections SET order_index = $2 WHERE id = $1`,
-        [recipeSectionId, si],
+        `UPDATE recipe_sections
+         SET order_index = $2,
+             name        = $3,
+             surface     = $4,
+             optional    = $5,
+             notes       = $6
+         WHERE id = $1`,
+        [
+          recipeSectionId,
+          si,
+          techSec.name,
+          techSec.surface ?? null,
+          techSec.optional,
+          techSec.notes ?? null,
+        ],
       );
     }
   }
@@ -228,7 +251,7 @@ async function syncInstance(
   // UPDATEd (section_id + order_index) rather than DELETE+INSERTed.
 
   const allInstanceSteps = await db.select<RecipeStepInfo[]>(
-    `SELECT rs.id, rs.technique_step_id, rs.section_id, rs.order_index
+    `SELECT rs.id, rs.technique_step_id, rs.paint_id, rs.section_id, rs.order_index
      FROM recipe_steps rs
      INNER JOIN recipe_sections sec ON rs.section_id = sec.id
      WHERE sec.technique_instance_id = $1`,
@@ -259,7 +282,7 @@ async function syncInstance(
   // but live in sections without technique_instance_id, so they are not affected.)
 
   for (const rs of allInstanceSteps) {
-    if (rs.technique_step_id === null) {
+    if (rs.technique_step_id === null && rs.paint_id === null) {
       // Orphaned technique-owned step — clean up
       await db.execute(
         `DELETE FROM recipe_steps WHERE id = $1`,
