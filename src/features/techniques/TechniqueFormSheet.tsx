@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -26,6 +26,14 @@ import {
   SheetDescription,
   SheetFooter,
 } from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormField,
@@ -60,6 +68,9 @@ import { TechniqueSlotRow } from "./TechniqueSlotRow";
 import { useCreateTechnique, useUpdateTechnique } from "@/hooks/useTechniques";
 import { useTechniqueSections, useTechniqueSteps } from "@/hooks/useTechniqueSections";
 import { useTechniqueColourSlots } from "@/hooks/useTechniqueColourSlots";
+import { previewTechniqueResyncDiff } from "@/lib/techniquePreviewDiff";
+import type { TechniqueResyncPreview } from "@/lib/techniquePreviewDiff";
+import { getNonDetachedInstanceCount } from "@/db/queries/recipeTechniqueResync";
 
 export interface TechniqueFormSheetProps {
   open: boolean;
@@ -111,6 +122,18 @@ export function TechniqueFormSheet({ open, technique, onClose }: TechniqueFormSh
     makeDraftTechniqueSection("Steps"),
   ]);
   const [slots, setSlots] = useState<DraftTechniqueSlot[]>([]);
+
+  // Confirmation dialog state for structural edits on used techniques (LINK-02/03)
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    preview: TechniqueResyncPreview;
+    count: number;
+  } | null>(null);
+  const pendingSubmitRef = useRef<{
+    values: TechniqueFormValues;
+    orderedSlots: DraftTechniqueSlot[];
+    orderedSections: DraftTechniqueSection[];
+  } | null>(null);
 
   // Load existing data for edit mode
   const { data: existingSections = EMPTY } = useTechniqueSections(technique?.id);
@@ -195,31 +218,16 @@ export function TechniqueFormSheet({ open, technique, onClose }: TechniqueFormSh
     setSections((prev) => [...prev, makeDraftTechniqueSection()]);
   }
 
-  async function onSubmit(values: TechniqueFormValues) {
-    // Validation: name non-empty (Zod handles this)
-    const allSteps = sections.flatMap((s) => s.steps);
-
-    // Validation: at least one step
-    if (allSteps.length === 0) {
-      toast.warning("A technique must have at least one step.");
-      return;
-    }
-
-    // Validation: all steps must have a name
-    const unnamedSteps = allSteps.filter((s) => !s.step_name.trim());
-    if (unnamedSteps.length > 0) {
-      toast.warning("All steps must have a name.");
-      return;
-    }
-
-    // Recompute order_index from array positions
-    const orderedSlots = slots.map((slot, i) => ({ ...slot, order_index: i }));
-    const orderedSections = sections.map((section, si) => ({
-      ...section,
-      order_index: si,
-      steps: section.steps.map((step, ti) => ({ ...step, order_index: ti })),
-    }));
-
+  /**
+   * Extracted save logic (create/update mutateAsync + toast + onClose).
+   * Called directly for: create path, metadata-only edits, zero-instance techniques.
+   * Called via confirm dialog for: structural edits on used techniques.
+   */
+  async function executeSave(
+    values: TechniqueFormValues,
+    orderedSlots: DraftTechniqueSlot[],
+    orderedSections: DraftTechniqueSection[],
+  ) {
     try {
       if (isEdit && technique) {
         await updateTechnique.mutateAsync({
@@ -249,9 +257,54 @@ export function TechniqueFormSheet({ open, technique, onClose }: TechniqueFormSh
     }
   }
 
+  async function onSubmit(values: TechniqueFormValues) {
+    // Validation: name non-empty (Zod handles this)
+    const allSteps = sections.flatMap((s) => s.steps);
+
+    // Validation: at least one step
+    if (allSteps.length === 0) {
+      toast.warning("A technique must have at least one step.");
+      return;
+    }
+
+    // Validation: all steps must have a name
+    const unnamedSteps = allSteps.filter((s) => !s.step_name.trim());
+    if (unnamedSteps.length > 0) {
+      toast.warning("All steps must have a name.");
+      return;
+    }
+
+    // Recompute order_index from array positions
+    const orderedSlots = slots.map((slot, i) => ({ ...slot, order_index: i }));
+    const orderedSections = sections.map((section, si) => ({
+      ...section,
+      order_index: si,
+      steps: section.steps.map((step, ti) => ({ ...step, order_index: ti })),
+    }));
+
+    // Structural-edit intercept: if editing a used technique with structural changes,
+    // show a confirmation dialog before any DB write (LINK-02/03, T-144-08/09).
+    if (isEdit && technique) {
+      const preview = previewTechniqueResyncDiff(orderedSections, existingSections, existingSteps);
+      if (preview.isStructural) {
+        const count = await getNonDetachedInstanceCount(technique.id);
+        if (count > 0) {
+          // Suspend before any write — store pending values for the confirm button
+          pendingSubmitRef.current = { values, orderedSlots, orderedSections };
+          setConfirmDialog({ open: true, preview, count });
+          return;
+        }
+      }
+    }
+
+    // Create path, metadata-only edits, or zero-instance techniques → save directly
+    await executeSave(values, orderedSlots, orderedSections);
+  }
+
   const isSubmitting = form.formState.isSubmitting;
 
   return (
+    <>
     <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <SheetContent
         key={technique?.id ?? "new"}
@@ -461,5 +514,51 @@ export function TechniqueFormSheet({ open, technique, onClose }: TechniqueFormSh
         </Form>
       </SheetContent>
     </Sheet>
+
+    {/* Structural-edit confirmation dialog (LINK-02/03) */}
+    {confirmDialog && (
+      <Dialog open={confirmDialog.open} onOpenChange={(o) => { if (!o) setConfirmDialog(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Update {confirmDialog.count} recipe{confirmDialog.count === 1 ? "" : "s"}?
+            </DialogTitle>
+            <DialogDescription>
+              This technique is used by {confirmDialog.count} recipe{confirmDialog.count === 1 ? "" : "s"}.{" "}
+              Saving will{" "}
+              {[
+                confirmDialog.preview.stepAdds > 0 &&
+                  `add ${confirmDialog.preview.stepAdds} step${confirmDialog.preview.stepAdds === 1 ? "" : "s"}`,
+                confirmDialog.preview.stepRemoves > 0 &&
+                  `remove ${confirmDialog.preview.stepRemoves} step${confirmDialog.preview.stepRemoves === 1 ? "" : "s"}`,
+                confirmDialog.preview.stepReorders > 0 &&
+                  `reorder ${confirmDialog.preview.stepReorders} step${confirmDialog.preview.stepReorders === 1 ? "" : "s"}`,
+              ]
+                .filter(Boolean)
+                .join(", ")}.{" "}
+              Step completion progress is preserved.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setConfirmDialog(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                setConfirmDialog(null);
+                if (pendingSubmitRef.current) {
+                  const { values, orderedSlots, orderedSections } = pendingSubmitRef.current;
+                  pendingSubmitRef.current = null;
+                  await executeSave(values, orderedSlots, orderedSections);
+                }
+              }}
+            >
+              Update Recipes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    )}
+    </>
   );
 }
