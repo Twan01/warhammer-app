@@ -23,7 +23,7 @@ export const STEP_SLOT_ID_MAP_KEY = (recipeId: number) =>
   ["step-slot-id-map", recipeId] as const;
 
 // ---------------------------------------------------------------------------
-// useSlotResolutionMap — Map<technique_step_id, paint_id|null> for a recipe
+// useSlotResolutionMap — Map<recipe_step_id, paint_id|null> for a recipe
 // ---------------------------------------------------------------------------
 
 /**
