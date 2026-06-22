@@ -39,8 +39,10 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
 ## Phases
 
 - [x] **Phase 141: Schema Foundation & Progress-Identity Lock** — Migrations 051+, materialise-vs-resolve decision encoded, data-layer tests written before any UI (completed 2026-06-21)
-- [x] **Phase 142: Technique Authoring & Library Browse** — Full technique CRUD with section/step/slot authoring, library page, detail view, usage count (completed 2026-06-21)
-- [x] **Phase 143: Apply Flow & Slot-Fill System** — Technique picker, slot-fill dialog, recipe_technique_instances rows, effectivePaintId() spine wired to all consumers (completed 2026-06-22)
+- [x] **Phase 142: Technique Authoring & Library Browse** — Full technique CRUD with section/step/slot authoring, library page, detail view, usage count
+ (completed 2026-06-21)
+- [x] **Phase 143: Apply Flow & Slot-Fill System** — Technique picker, slot-fill dialog, recipe_technique_instances rows, effectivePaintId() spine wired to all consumers
+ (completed 2026-06-22)
 - [ ] **Phase 144: Live-Link Re-Sync** — resyncAllInstancesForTechnique (Option A) or virtual-JOIN propagation (Option B), "X recipes affected" warning, data-layer tests gate
 - [ ] **Phase 145: Integration Pass** — Painting Mode, paint availability, apply-to-units, SectionedTimeline, recipe duplication, unfilled-slot warning across all surfaces
 - [ ] **Phase 146: Detach & Safety Rails** — detachTechniqueInstance with progress remapping, confirm dialog, "from technique X" badge with detach affordance, deleteTechnique guard
@@ -105,7 +107,11 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
   2. Before saving a structural technique change the user sees "X recipes will be affected" with a change summary (e.g. "adds 1 step, removes 1 step") — not just a raw count
   3. Data-layer tests (better-sqlite3) cover all four edit cases: reorder steps (progress unmoved), add step (new uncompleted row), remove step (progress row gone), add/remove slot (orphan prevention via CASCADE)
   4. The resync function uses a single db handle throughout — no nested `getDb()` calls, no nested `BEGIN` (flat inline SQL constraint respected)
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 144-01-PLAN.md — Wave 0/1: migration 052 (technique_section_id + resync index) + data-layer resync test (RED) + resyncTechniqueInstances/getNonDetachedInstanceCount (GREEN) (LINK-01)
+- [ ] 144-02-PLAN.md — Pure previewTechniqueResyncDiff + unit test + wire resync into saveTechniqueGraph edit path + recipe-scoped invalidation (LINK-01, LINK-03)
+- [ ] 144-03-PLAN.md — Affected-recipes confirmation dialog intercept in TechniqueFormSheet + human-verify checkpoint (LINK-02, LINK-03)
+**UI hint**: yes
 
 ### Phase 145: Integration Pass
 **Goal**: Technique-sourced steps work correctly across Painting Mode, paint availability, apply-to-units, SectionedTimeline, Log Session, and recipe duplication — with no silent undercounting or missing swatches
@@ -140,6 +146,6 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
 | 141. Schema Foundation & Progress-Identity Lock | v0.7.0 | 3/3 | Complete    | 2026-06-21 |
 | 142. Technique Authoring & Library Browse | v0.7.0 | 4/4 | Complete   | 2026-06-21 |
 | 143. Apply Flow & Slot-Fill System | v0.7.0 | 4/4 | Complete   | 2026-06-22 |
-| 144. Live-Link Re-Sync | v0.7.0 | 0/TBD | Not started | - |
+| 144. Live-Link Re-Sync | v0.7.0 | 0/3 | Not started | - |
 | 145. Integration Pass | v0.7.0 | 0/TBD | Not started | - |
 | 146. Detach & Safety Rails | v0.7.0 | 0/TBD | Not started | - |
