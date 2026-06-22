@@ -61,7 +61,7 @@ Requirements for the v0.7.0 release. Each maps to a roadmap phase.
 
 ### Live Link & Propagation (E)
 
-- [ ] **LINK-01**: Editing a technique's step structure (add / remove / reorder) propagates to every recipe instance using it, while each recipe keeps its own slot colours.
+- [x] **LINK-01**: Editing a technique's step structure (add / remove / reorder) propagates to every recipe instance using it, while each recipe keeps its own slot colours.
 - [ ] **LINK-02**: Before saving a structural technique change, the user sees an "X recipes will be affected" warning.
 - [ ] **LINK-03**: That confirmation shows a change summary (e.g. "adds 1 step, removes 1 step across 3 recipes"), not just a count.
 
@@ -148,7 +148,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | APPLY-03 | Phase 143 | Complete |
 | APPLY-04 | Phase 143 | Complete |
 | APPLY-05 | Phase 143 | Complete |
-| LINK-01 | Phase 144 | Pending |
+| LINK-01 | Phase 144 | Complete |
 | LINK-02 | Phase 144 | Pending |
 | LINK-03 | Phase 144 | Pending |
 | SAFE-01 | Phase 146 | Pending |
