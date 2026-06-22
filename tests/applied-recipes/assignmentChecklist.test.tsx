@@ -63,6 +63,10 @@ vi.mock("@/hooks/useUnits", () => ({
   useUpdateUnit: () => ({ mutate: mockUpdateUnitMutate }),
 }));
 
+vi.mock("@/hooks/useSlotResolutionMap", () => ({
+  useSlotResolutionMap: () => ({ data: new Map<number, number | null>() }),
+}));
+
 vi.mock("@tauri-apps/api/path", () => ({
   appDataDir: vi.fn().mockResolvedValue("/mock/app/data"),
   join: vi.fn().mockImplementation((...parts: string[]) => parts.join("/")),
