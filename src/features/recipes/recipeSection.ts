@@ -54,7 +54,9 @@ export function buildDraftSections(
 ): DraftSection[] {
   return sections.map((s) => {
     const sectionSteps = steps
-      .filter((st) => st.section_id === s.id)
+      // T-143-02: exclude technique-owned steps from editor draft so they cannot
+      // be silently mutated through the form (Pitfall 2 / buildDraftSections guard).
+      .filter((st) => st.section_id === s.id && st.technique_step_id == null)
       .sort((a, b) => a.order_index - b.order_index)
       .map(
         (st): DraftStep => ({
@@ -70,6 +72,9 @@ export function buildDraftSections(
           time_estimate_minutes: st.time_estimate_minutes ?? null,
           step_photo_path: st.step_photo_path ?? null,
           alt_paint_id: st.alt_paint_id ?? null,
+          // SC#5 GUARD: forward technique_step_id so the UPDATE guard in saveRecipeGraph
+          // can fire correctly for any technique step that reaches the draft via other paths.
+          technique_step_id: st.technique_step_id ?? null,
         }),
       );
 

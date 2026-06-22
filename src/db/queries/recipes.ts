@@ -437,6 +437,12 @@ export async function saveRecipeGraph(
 
     // DELETE removed steps
     for (const id of stepsToDelete) {
+      // SC#5 GUARD: skip live-linked technique step — never DELETE a recipe_steps row
+      // with technique_step_id IS NOT NULL. The lookup reads existingSteps (DB rows) because
+      // technique-owned steps are excluded from the draft (buildDraftSections filter), so
+      // they appear in toDelete even though they must be preserved.
+      const existing = existingSteps.find((s) => s.id === id);
+      if (existing?.technique_step_id != null) continue;
       await db.execute("DELETE FROM recipe_steps WHERE id = $1", [id]);
     }
 
@@ -446,6 +452,10 @@ export async function saveRecipeGraph(
       for (const s of indexedSteps) {
         const resolvedSectionId = sectionIdMap.get(sec.localId) ?? null;
         if (s.dbId !== null) {
+          // SC#5 GUARD: skip live-linked technique step — never UPDATE a recipe_steps row
+          // with technique_step_id IS NOT NULL. Relies on buildDraftSections forwarding
+          // technique_step_id onto the DraftStep so this check can fire correctly.
+          if (s.technique_step_id != null) continue;
           // UPDATE existing step
           await db.execute(
             `UPDATE recipe_steps

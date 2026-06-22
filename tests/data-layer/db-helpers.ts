@@ -116,24 +116,47 @@ export function createTestRecipe(db: Database.Database): number {
  *   vi.mocked(getDb).mockResolvedValue(bridge as never);
  */
 export function createDbBridge(db: Database.Database) {
-  /** Convert $1, $2, ... placeholders to ? for better-sqlite3 */
-  function convertParams(sql: string): string {
-    // Replace $N positional params with ? — better-sqlite3 uses ? or @name
-    return sql.replace(/\$\d+/g, "?");
+  /**
+   * Convert Tauri plugin-sql $N positional params to better-sqlite3 ? placeholders.
+   *
+   * Tauri uses $1, $2, ... where the index identifies which param from the array to bind —
+   * the same $N can appear multiple times, and they need not be in ascending order in the SQL
+   * (e.g. UPDATE SET x=$2, y=$3 WHERE id=$1 is common).
+   *
+   * better-sqlite3 uses ? placeholders bound left-to-right by position in the params array.
+   * So we must reorder the params array to match the order $N tokens appear in the SQL,
+   * then replace each $N with ?.
+   *
+   * Steps:
+   *   1. Extract all $N indices from the SQL in the order they appear.
+   *   2. Build a reordered params array: for each $N (in SQL appearance order), push params[N-1].
+   *   3. Replace every $N token with ? in the SQL.
+   */
+  function convertParamsAndReorder(
+    sql: string,
+    params: unknown[],
+  ): { convertedSql: string; reorderedParams: unknown[] } {
+    const indices: number[] = [];
+    const convertedSql = sql.replace(/\$(\d+)/g, (_match, n: string) => {
+      indices.push(Number(n) - 1); // 0-based index into params
+      return "?";
+    });
+    const reorderedParams = indices.map((i) => params[i]);
+    return { convertedSql, reorderedParams };
   }
 
   return {
     async select<T>(sql: string, params: unknown[] = []): Promise<T> {
-      const converted = convertParams(sql);
-      const rows = db.prepare(converted).all(...params);
+      const { convertedSql, reorderedParams } = convertParamsAndReorder(sql, params);
+      const rows = db.prepare(convertedSql).all(...reorderedParams);
       return rows as T;
     },
     async execute(
       sql: string,
       params: unknown[] = [],
     ): Promise<{ lastInsertId: number | null; rowsAffected: number }> {
-      const converted = convertParams(sql);
-      const result = db.prepare(converted).run(...params);
+      const { convertedSql, reorderedParams } = convertParamsAndReorder(sql, params);
+      const result = db.prepare(convertedSql).run(...reorderedParams);
       return {
         lastInsertId: Number(result.lastInsertRowid) || null,
         rowsAffected: result.changes,
