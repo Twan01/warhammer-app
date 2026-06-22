@@ -208,7 +208,7 @@ DialogContent max-w-md
 
 ```
 div flex items-center gap-3 rounded-md border p-2
-  div flex flex-col gap-0.5 w-36 shrink-0
+  div flex flex-col gap-1 w-36 shrink-0
     span text-sm font-medium  {slot.name}
     span text-xs text-muted-foreground  {slot.role_hint ?? "No hint"}
   SwatchCircle h-4 w-4 rounded-full  (filled or dashed)
