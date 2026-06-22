@@ -1,10 +1,11 @@
 ---
 phase: 142
 slug: technique-authoring-library-browse
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-21
+audited: 2026-06-22
 ---
 
 # Phase 142 — Validation Strategy
@@ -39,24 +40,30 @@ created: 2026-06-21
 
 | Task | Requirement | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |------|-------------|-----------------|-----------|-------------------|-------------|--------|
-| Technique graph save (non-destructive) | TECH-01, TECH-02 | UPDATE-not-replace; surviving `technique_step_id` PKs untouched across add/remove/reorder | data-layer | `pnpm test -- tests/data-layer/technique-graph-save.test.ts` | ❌ W0 | ⬜ pending |
-| Slot diff + slotIdMap | SLOT-01, SLOT-02 | step `colour_slot_id` resolves localId→PK; removed slot nulls referencing steps | data-layer | `pnpm test -- tests/data-layer/technique-graph-save.test.ts` | ❌ W0 | ⬜ pending |
-| Duplicate technique | TECH-04 | deep copy yields fresh IDs across sections/steps/slots; no shared PKs | data-layer | `pnpm test -- tests/data-layer/technique-duplicate.test.ts` | ❌ W0 | ⬜ pending |
-| Usage-count query | TECH-03, TECH-05, LIB-01 | `getTechniquesWithCounts` JOINs through technique_sections for step count; usage = recipe_technique_instances per technique (0 this phase) | data-layer | `pnpm test -- tests/data-layer/technique-usage-counts.test.ts` | ❌ W0 | ⬜ pending |
-| Technique form schema | TECH-01, SLOT-01 | Zod requires name + ≥1 step; slots optional | unit | `pnpm test -- tests/techniques/techniqueSchema.test.ts` | ❌ W0 | ⬜ pending |
-| Library browse/filter | LIB-02, LIB-03, LIB-04 | name search + effect filter pure function | unit | `pnpm test -- tests/techniques/applyTechniqueFilters.test.ts` | ❌ W0 | ⬜ pending |
+| Technique graph save (non-destructive) | TECH-01, TECH-02 | UPDATE-not-replace; surviving `technique_step_id` PKs untouched across add/remove/reorder | data-layer | `pnpm test -- tests/data-layer/technique-graph-save.test.ts` | ✅ | ✅ green |
+| Slot diff + slotIdMap | SLOT-01, SLOT-02 | step `colour_slot_id` resolves localId→PK; removed slot nulls referencing steps | data-layer | `pnpm test -- tests/data-layer/technique-graph-save.test.ts` | ✅ | ✅ green |
+| Duplicate technique | TECH-04 | deep copy yields fresh IDs across sections/steps/slots; no shared PKs | data-layer | `pnpm test -- tests/data-layer/technique-duplicate.test.ts` | ✅ | ✅ green |
+| Usage-count query | TECH-03, TECH-05, LIB-01 | `getTechniquesWithCounts` JOINs through technique_sections for step count; usage = recipe_technique_instances per technique (0 this phase) | data-layer | `pnpm test -- tests/data-layer/technique-usage-counts.test.ts` | ✅ | ✅ green |
+| Technique form schema | TECH-01, SLOT-01 | Zod requires name + ≥1 step; slots optional | unit | `pnpm test -- tests/techniques/techniqueSchema.test.ts` | ✅ | ✅ green |
+| Library browse/filter | LIB-02, LIB-03, LIB-04 | name search + effect filter pure function | unit | `pnpm test -- tests/techniques/applyTechniqueFilters.test.ts` | ✅ | ✅ green |
+| Library card (counts/usage/actions) | LIB-02 | counts, usage line, effect/difficulty badges, action row render | feature (RTL) | `pnpm test -- tests/techniques/TechniqueCard.test.tsx` | ✅ | ✅ green |
+| Detail sheet (step tree, used-by) | TECH-05, LIB-04 | sectioned step tree renders; "Not used by any recipes yet." when empty | feature (RTL) | `pnpm test -- tests/techniques/TechniqueDetailSheet.test.tsx` | ✅ | ✅ green |
+| Delete dialog (usage-count warning) | TECH-03 | usage-count-aware description; cascade note when N>0 | feature (RTL) | `pnpm test -- tests/techniques/TechniqueDeleteDialog.test.tsx` | ✅ | ✅ green |
+| Library tab (renders, name filter) | LIB-01, LIB-03 | tab renders; case-insensitive name filter, clear, filtered-empty | feature (RTL) | `pnpm test -- tests/techniques/TechniqueLibraryTab.test.tsx` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+
+> Audit 2026-06-22: all rows confirmed GREEN against the live tree (full suite: 330 files / 2982 passed, 0 failures). Plan 04 added four RTL feature tests (Card/DetailSheet/DeleteDialog/LibraryTab) beyond the original six Wave-0 stubs — appended above.
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `tests/data-layer/technique-graph-save.test.ts` — non-destructive save invariant (the FND-03 invariant applied to authoring): add/remove/reorder a technique step never changes a surviving `technique_step_id`; teeth via a DELETE+INSERT counter-case
-- [ ] `tests/data-layer/technique-duplicate.test.ts` — duplicate yields fully-fresh IDs
-- [ ] `tests/data-layer/technique-usage-counts.test.ts` — step-count JOIN correctness + usage count
-- [ ] `tests/techniques/techniqueSchema.test.ts` — Zod validity (name + ≥1 step)
-- [ ] `tests/techniques/applyTechniqueFilters.test.ts` — pure filter function
+- [x] `tests/data-layer/technique-graph-save.test.ts` — non-destructive save invariant (the FND-03 invariant applied to authoring): add/remove/reorder a technique step never changes a surviving `technique_step_id`; teeth via a DELETE+INSERT counter-case
+- [x] `tests/data-layer/technique-duplicate.test.ts` — duplicate yields fully-fresh IDs
+- [x] `tests/data-layer/technique-usage-counts.test.ts` — step-count JOIN correctness + usage count
+- [x] `tests/techniques/techniqueSchema.test.ts` — Zod validity (name + ≥1 step)
+- [x] `tests/techniques/applyTechniqueFilters.test.ts` — pure filter function
 
 *Existing better-sqlite3 data-layer harness (tests/data-layer/) and Vitest+RTL feature-test infra cover the framework needs — no new framework install.*
 
@@ -75,11 +82,28 @@ created: 2026-06-21
 
 ## Validation Sign-Off
 
-- [ ] All tasks have automated verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 90s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have automated verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 90s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** validated 2026-06-22 — all requirements have automated verification, full suite green.
+
+---
+
+## Validation Audit 2026-06-22
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Phase 142 was executed before this audit ran. All six original Wave-0 stub tests were
+created during plan 01 and turned GREEN across plans 02/04; plan 04 added four RTL
+feature tests. The VALIDATION.md draft (status `draft`, `nyquist_compliant: false`) was
+never reconciled post-execution — this audit verified every requirement against the live
+tree (all test files present, full suite 330 files / 2982 passed / 0 failures) and
+promoted the contract to `validated` / `nyquist_compliant: true`. No new tests required.
