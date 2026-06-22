@@ -61,20 +61,22 @@ export function previewTechniqueResyncDiff(
     computeStepDiff(draftSections as never, existingSteps as never);
 
   // ── Reorder detection ────────────────────────────────────────────────────────
-  // For each surviving step (in toUpdate), compute its flat draft position
-  // and compare against its existing order_index.  If they differ, it's a reorder.
+  // WR-01: compare per-section position, not a flat global index.
+  // technique_steps.order_index is per-section (resets to 0 at each section
+  // boundary). Using a flat global `pos` counter caused every step after the
+  // first section to appear reordered on multi-section techniques.
   const stepReorders = stepsToUpdate.filter((draftStep) => {
     const existing = existingSteps.find((s) => s.id === draftStep.dbId);
     if (!existing) return false;
 
-    // Walk the flat draft step list to find this step's position
-    let pos = 0;
+    // Walk sections; within each section track per-section position only
     for (const sec of draftSections) {
+      let secPos = 0;
       for (const st of sec.steps) {
         if (st.dbId === draftStep.dbId) {
-          return existing.order_index !== pos;
+          return existing.order_index !== secPos;
         }
-        pos++;
+        secPos++;
       }
     }
     return false;

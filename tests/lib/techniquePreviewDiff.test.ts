@@ -255,4 +255,36 @@ describe("previewTechniqueResyncDiff (LINK-03)", () => {
     expect(typeof result.isStructural).toBe("boolean");
   });
 
+  it("WR-01: multi-section no-op — steps in same per-section position → stepReorders===0", () => {
+    // Two sections: [A1(order 0), A2(order 1)] and [B1(order 0), B2(order 1)]
+    // No structural change — draft mirrors persisted exactly.
+    // Before WR-01 fix, flat pos for B1 was 2, compared against order_index 0 → false positive.
+    const existingSections = [
+      makeExistingSection(10, 0),
+      makeExistingSection(11, 1),
+    ];
+    const existingSteps = [
+      makeExistingStep(100, 10, 0), // A1 — section 10, pos 0
+      makeExistingStep(101, 10, 1), // A2 — section 10, pos 1
+      makeExistingStep(102, 11, 0), // B1 — section 11, pos 0
+      makeExistingStep(103, 11, 1), // B2 — section 11, pos 1
+    ];
+    const draftSections = [
+      makeDraftSection(10, "s1", [
+        { dbId: 100, localId: "a1" },
+        { dbId: 101, localId: "a2" },
+      ]),
+      makeDraftSection(11, "s2", [
+        { dbId: 102, localId: "b1" },
+        { dbId: 103, localId: "b2" },
+      ]),
+    ];
+
+    const result = previewTechniqueResyncDiff(draftSections, existingSections, existingSteps);
+
+    expect(result.stepReorders).toBe(0);
+    expect(result.isStructural).toBe(false);
+  });
+
+
 });
