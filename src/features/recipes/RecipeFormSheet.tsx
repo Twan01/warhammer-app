@@ -596,6 +596,7 @@ export function RecipeFormSheet({ open, recipe, onClose, defaultFactionId, defau
                     sections={sections}
                     onChange={setSections}
                     onCreateNewPaint={(stepLocalId) => openInlinePaintCreate(stepLocalId)}
+                    recipeId={recipe?.id}
                   />
                 )}
                 <Button type="button" variant="outline" size="sm" onClick={addSection} className="self-start">

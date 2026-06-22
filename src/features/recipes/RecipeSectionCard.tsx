@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { RECIPE_SURFACES } from "./recipeSchema";
 import { type DraftSection } from "./recipeSection";
 import { RecipeStepList } from "./RecipeStepList";
+import { TechniqueSectionBadge } from "./TechniqueSectionBadge";
 import { SECTION_TYPES, TECHNIQUES, EXECUTION_MODES } from "@/types/recipeSection";
 
 interface RecipeSectionCardProps {
@@ -34,6 +35,11 @@ interface RecipeSectionCardProps {
   onRemove: () => void;
   onCreateNewPaint: (stepLocalId: string) => void;
   sectionsCount: number;
+  /**
+   * When set, the section was created by a technique apply — it is locked.
+   * Locks: no drag handle, no delete, disabled name input, badge shown.
+   */
+  techniqueName?: string;
 }
 
 function hasAnyWorkflowMetadata(section: DraftSection): boolean {
@@ -48,7 +54,9 @@ export function RecipeSectionCard({
   onRemove,
   onCreateNewPaint,
   sectionsCount,
+  techniqueName,
 }: RecipeSectionCardProps) {
+  const isTechniqueOwned = techniqueName !== undefined;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: section.localId,
   });
@@ -77,23 +85,32 @@ export function RecipeSectionCard({
     <div ref={setNodeRef} style={style} className="rounded-lg border bg-card">
       <Collapsible open={open} onOpenChange={setOpen}>
         <div className="flex items-center gap-2 p-3">
-          {/* Drag handle */}
-          <button
-            type="button"
-            className="cursor-grab text-muted-foreground"
-            {...attributes}
-            {...listeners}
-            aria-label="Drag section"
-          >
-            <GripVertical className="h-4 w-4" />
-          </button>
+          {/* Drag handle — hidden for technique-owned sections */}
+          {!isTechniqueOwned && (
+            <button
+              type="button"
+              className="cursor-grab text-muted-foreground"
+              {...attributes}
+              {...listeners}
+              aria-label="Drag section"
+            >
+              <GripVertical className="h-4 w-4" />
+            </button>
+          )}
 
-          {/* Section name input */}
+          {/* Section name input — disabled for technique-owned sections */}
           <Input
             className="h-7 flex-1 text-sm font-medium"
             value={section.name}
             onChange={(e) => onChange({ ...section, name: e.target.value })}
+            disabled={isTechniqueOwned}
+            aria-label={isTechniqueOwned ? `Technique section: ${section.name}` : undefined}
           />
+
+          {/* Technique badge — shown only for technique-owned sections (display-only in editor) */}
+          {isTechniqueOwned && techniqueName && (
+            <TechniqueSectionBadge techniqueName={techniqueName} />
+          )}
 
           {/* Surface select */}
           <Select
@@ -139,16 +156,18 @@ export function RecipeSectionCard({
             </Button>
           </CollapsibleTrigger>
 
-          {/* Delete button */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-destructive"
-            onClick={handleDelete}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          {/* Delete button — hidden for technique-owned sections */}
+          {!isTechniqueOwned && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-destructive"
+              onClick={handleDelete}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </div>
 
         <CollapsibleContent>
@@ -250,6 +269,7 @@ export function RecipeSectionCard({
               steps={section.steps}
               onChange={(next) => onChange({ ...section, steps: next })}
               onCreateNewPaint={onCreateNewPaint}
+              isLocked={isTechniqueOwned}
             />
           </div>
         </CollapsibleContent>

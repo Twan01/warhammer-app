@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { applyTechnique, getInstancesForRecipe } from "@/db/queries/recipeTechniqueInstances";
 import { updateSlotMap } from "@/db/queries/recipeTechniqueSlotMaps";
 import {
@@ -61,6 +61,23 @@ interface UpdateSlotMapInput {
   instanceId: number;
   recipeId: number;
   slotFills: Map<number, number | null>;
+}
+
+// ---------------------------------------------------------------------------
+// useInstancesForRecipe — read hook for technique instances in a recipe
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns all technique instances applied to a recipe (enabled-by-id pattern).
+ * Used by RecipeSectionList to resolve instance_id → technique_name for badges.
+ */
+export function useInstancesForRecipe(recipeId: number | undefined) {
+  return useQuery({
+    queryKey: recipeId !== undefined ? TECHNIQUE_INSTANCES_KEY(recipeId) : ["technique-instances"],
+    queryFn: () =>
+      recipeId !== undefined ? getInstancesForRecipe(recipeId) : Promise.resolve([]),
+    enabled: recipeId !== undefined,
+  });
 }
 
 // ---------------------------------------------------------------------------

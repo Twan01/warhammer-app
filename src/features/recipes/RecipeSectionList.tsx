@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { BookOpen } from "lucide-react";
 import {
   DndContext,
   PointerSensor,
@@ -13,20 +15,141 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { Button } from "@/components/ui/button";
 import { type DraftSection } from "./recipeSection";
 import { RecipeSectionCard } from "./RecipeSectionCard";
+import { TechniquePickerDialog } from "./TechniquePickerDialog";
+import { SlotFillDialog } from "./SlotFillDialog";
+import type { TechniqueWithCounts } from "@/types/technique";
 
 export interface RecipeSectionListProps {
   sections: DraftSection[];
   onChange: (next: DraftSection[]) => void;
   onCreateNewPaint: (stepLocalId: string) => void;
+  /** Recipe id used for the apply-technique dialogs and instance resolution. */
+  recipeId?: number;
 }
 
-export function RecipeSectionList({ sections, onChange, onCreateNewPaint }: RecipeSectionListProps) {
+// ---------------------------------------------------------------------------
+// TechniqueControls — hook-bearing sub-component (only mounted when recipeId
+// is defined, which avoids breaking tests that render RecipeSectionList without
+// a QueryClient provider).
+// ---------------------------------------------------------------------------
+
+interface TechniqueControlsProps {
+  sections: DraftSection[];
+  recipeId: number;
+  instanceTechniqueNameMap: Map<number, string>;
+  pickerOpen: boolean;
+  setPickerOpen: (open: boolean) => void;
+  pendingTechnique: TechniqueWithCounts | null;
+  setPendingTechnique: (t: TechniqueWithCounts | null) => void;
+}
+
+/**
+ * Inner component that owns the React Query hooks and dialog state for the
+ * "Add technique" flow. Mounted only when recipeId is defined.
+ *
+ * Architecture:
+ *   - TechniquePickerDialog and SlotFillDialog render via Radix Dialog portals
+ *     (document.body level) — the P6 pitfall (nesting inside SheetContent) is
+ *     avoided because Dialog.Content uses DialogPortal regardless of mount point.
+ */
+function TechniqueControls({
+  sections,
+  recipeId,
+  instanceTechniqueNameMap: _instanceTechniqueNameMap,
+  pickerOpen,
+  setPickerOpen,
+  pendingTechnique,
+  setPendingTechnique,
+}: TechniqueControlsProps) {
+  return (
+    <>
+      {/*
+       * Both dialogs mount here via Radix Portals — they render at document.body
+       * level regardless of position in the React tree (P6 pitfall avoided).
+       */}
+      <TechniquePickerDialog
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onPicked={(technique) => {
+          setPendingTechnique(technique);
+          setPickerOpen(false);
+        }}
+      />
+
+      <SlotFillDialog
+        open={pendingTechnique !== null}
+        technique={pendingTechnique}
+        recipeId={recipeId}
+        insertAfterSectionIndex={sections.length}
+        onBack={() => {
+          setPickerOpen(true);
+          setPendingTechnique(null);
+        }}
+        onClose={() => setPendingTechnique(null)}
+      />
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// TechniqueNameResolver — loads instances + techniques for name resolution.
+// Separated so hooks are only called when recipeId is defined.
+// ---------------------------------------------------------------------------
+
+import { useInstancesForRecipe } from "@/hooks/useTechniqueInstances";
+import { useTechniquesWithCounts } from "@/hooks/useTechniques";
+
+interface TechniqueNameResolverProps {
+  recipeId: number;
+  sections: DraftSection[];
+  children: (nameMap: Map<number, string>) => React.ReactNode;
+}
+
+function TechniqueNameResolver({ recipeId, sections: _sections, children }: TechniqueNameResolverProps) {
+  const { data: instances = [] } = useInstancesForRecipe(recipeId);
+  const { data: techniquesWithCounts = [] } = useTechniquesWithCounts();
+
+  const instanceTechniqueNameMap = new Map<number, string>();
+  for (const inst of instances) {
+    const technique = techniquesWithCounts.find((t) => t.id === inst.technique_id);
+    if (technique) {
+      instanceTechniqueNameMap.set(inst.id, technique.name);
+    }
+  }
+
+  return <>{children(instanceTechniqueNameMap)}</>;
+}
+
+// ---------------------------------------------------------------------------
+// RecipeSectionList — public component (hook-free outer shell)
+// ---------------------------------------------------------------------------
+
+/**
+ * RecipeSectionList — DnD-sortable list of recipe sections with an "Add technique" toolbar.
+ *
+ * Architecture:
+ *   - The outer component is hook-free so it can be rendered in tests without QueryClient.
+ *   - When recipeId is provided, TechniqueNameResolver + TechniqueControls sub-components
+ *     are mounted; they carry the React Query hooks and dialog portal state.
+ *   - insertAfterSectionIndex defaults to end-of-recipe (sections.length).
+ */
+export function RecipeSectionList({
+  sections,
+  onChange,
+  onCreateNewPaint,
+  recipeId,
+}: RecipeSectionListProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
+
+  // Technique picker / slot-fill dialog state (lifted here so "Back to picker" works)
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pendingTechnique, setPendingTechnique] = useState<TechniqueWithCounts | null>(null);
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -45,7 +168,7 @@ export function RecipeSectionList({ sections, onChange, onCreateNewPaint }: Reci
     onChange(sections.filter((s) => s.localId !== localId));
   }
 
-  return (
+  const renderCards = (nameMap: Map<number, string>) => (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext items={sections.map((s) => s.localId)} strategy={verticalListSortingStrategy}>
         <div className="flex flex-col gap-3">
@@ -57,10 +180,57 @@ export function RecipeSectionList({ sections, onChange, onCreateNewPaint }: Reci
               onRemove={() => removeSection(section.localId)}
               onCreateNewPaint={onCreateNewPaint}
               sectionsCount={sections.length}
+              techniqueName={
+                section.technique_instance_id != null
+                  ? (nameMap.get(section.technique_instance_id) ?? "technique")
+                  : undefined
+              }
             />
           ))}
         </div>
       </SortableContext>
     </DndContext>
+  );
+
+  return (
+    <>
+      {/* Toolbar: "Add technique" button — only when recipeId is available */}
+      {recipeId !== undefined && (
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-7 gap-1 text-xs text-muted-foreground"
+            onClick={() => setPickerOpen(true)}
+          >
+            <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
+            Add technique
+          </Button>
+        </div>
+      )}
+
+      {/* Section cards — with or without technique name resolution */}
+      {recipeId !== undefined ? (
+        <TechniqueNameResolver recipeId={recipeId} sections={sections}>
+          {(nameMap) => (
+            <>
+              {renderCards(nameMap)}
+              <TechniqueControls
+                sections={sections}
+                recipeId={recipeId}
+                instanceTechniqueNameMap={nameMap}
+                pickerOpen={pickerOpen}
+                setPickerOpen={setPickerOpen}
+                pendingTechnique={pendingTechnique}
+                setPendingTechnique={setPendingTechnique}
+              />
+            </>
+          )}
+        </TechniqueNameResolver>
+      ) : (
+        renderCards(new Map())
+      )}
+    </>
   );
 }

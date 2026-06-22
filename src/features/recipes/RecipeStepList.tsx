@@ -23,9 +23,14 @@ export interface RecipeStepListProps {
   steps: DraftStep[];
   onChange: (next: DraftStep[]) => void;
   onCreateNewPaint: (stepLocalId: string) => void;
+  /**
+   * When true, renders all steps as read-only (pointer-events-none opacity-60)
+   * and hides the "Add step" button. Used for technique-owned sections.
+   */
+  isLocked?: boolean;
 }
 
-export function RecipeStepList({ steps, onChange, onCreateNewPaint }: RecipeStepListProps) {
+export function RecipeStepList({ steps, onChange, onCreateNewPaint, isLocked }: RecipeStepListProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -53,7 +58,7 @@ export function RecipeStepList({ steps, onChange, onCreateNewPaint }: RecipeStep
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className={`flex flex-col gap-2${isLocked ? " pointer-events-none opacity-60" : ""}`} aria-disabled={isLocked}>
       <datalist id="tool-suggestions">
         {["Size 0 brush", "Size 1 brush", "Size 2 brush", "Dry brush", "Airbrush", "Sponge", "Palette knife"].map((t) => (
           <option key={t} value={t} />
@@ -80,9 +85,11 @@ export function RecipeStepList({ steps, onChange, onCreateNewPaint }: RecipeStep
           ))}
         </SortableContext>
       </DndContext>
-      <Button type="button" variant="outline" size="sm" onClick={addStep} className="self-start">
-        <Plus className="mr-2 h-4 w-4" /> Add step
-      </Button>
+      {!isLocked && (
+        <Button type="button" variant="outline" size="sm" onClick={addStep} className="self-start">
+          <Plus className="mr-2 h-4 w-4" /> Add step
+        </Button>
+      )}
     </div>
   );
 }
