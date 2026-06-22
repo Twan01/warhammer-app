@@ -42,9 +42,9 @@ version parity + CR-byte scan). Must exit 0.
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 141-01-* | 01 | 1 | FND-01, FND-02 | — | Schema-only; no external input surface (local SQLite migration) | data-layer + gate | `pnpm check:version` & `pnpm test -- tests/data-layer/migration-parity.test.ts` | ✅ existing harness | ⬜ pending |
-| 141-02-* | 02 | 2 | FND-04 | — | Pure function, no I/O | unit | `pnpm test -- tests/lib/effectivePaintId.test.ts` | ❌ W0 (new test file) | ⬜ pending |
-| 141-03-* | 03 | 2 | FND-03, FND-05 | — | CASCADE integrity; PK-stable progress | data-layer | `pnpm test -- tests/data-layer/technique-progress-identity.test.ts` | ❌ W0 (new test file) | ⬜ pending |
+| 141-01-* | 01 | 1 | FND-01, FND-02 | — | Schema-only; no external input surface (local SQLite migration) | data-layer + gate | `pnpm check:version` & `pnpm test -- tests/data-layer/migration-parity.test.ts` | ✅ existing harness | ✅ green |
+| 141-02-* | 02 | 2 | FND-04 | — | Pure function, no I/O | unit | `pnpm test -- tests/lib/effectivePaintId.test.ts` | ✅ created | ✅ green |
+| 141-03-* | 03 | 2 | FND-03, FND-05 | — | CASCADE integrity; PK-stable progress | data-layer | `pnpm test -- tests/data-layer/technique-progress-identity.test.ts` | ✅ created | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -57,12 +57,12 @@ new tables + the two ALTER columns is recommended in Plan 01.
 
 ## Wave 0 Requirements
 
-- [ ] `tests/data-layer/technique-progress-identity.test.ts` — FND-03 invariant test
-      (reorder / add / remove step / remove slot + a teeth-proving DELETE+INSERT counter-case)
-- [ ] `tests/lib/effectivePaintId.test.ts` — FND-04 pure-function unit test
-      (filled slot / unfilled slot → null / plain step → paint_id / null paint → null)
-- [ ] (optional) extend `tests/data-layer/schema-shape.test.ts` with the six new tables +
-      `recipe_sections.technique_instance_id` + `recipe_steps.technique_step_id`
+- [x] `tests/data-layer/technique-progress-identity.test.ts` — FND-03 invariant test
+      (reorder / add / remove step / remove slot + a teeth-proving DELETE+INSERT counter-case) — 6 tests green
+- [x] `tests/lib/effectivePaintId.test.ts` — FND-04 pure-function unit test
+      (filled slot / unfilled slot → null / plain step → paint_id / null paint → null) — 5 tests green
+- [x] (optional) extend `tests/data-layer/schema-shape.test.ts` with the six new tables +
+      `recipe_sections.technique_instance_id` + `recipe_steps.technique_step_id` — 5 it() blocks green
 
 *Framework already installed (Vitest + better-sqlite3 harness in `tests/data-layer/db-helpers.ts`).*
 
@@ -88,3 +88,25 @@ new tables + the two ALTER columns is recommended in Plan 01.
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** approved 2026-06-20
+
+---
+
+## Validation Audit 2026-06-22
+
+Retroactive coverage audit (State A). Ran all three requirement test commands + the
+release gate against the shipped implementation.
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+**Evidence:**
+- `pnpm test -- tests/lib/effectivePaintId.test.ts tests/data-layer/technique-progress-identity.test.ts tests/data-layer/schema-shape.test.ts tests/data-layer/migration-parity.test.ts` → **26 passed, 2 todo** (todos = rules.db removed in Phase 107, pre-existing).
+- `pnpm check:version` → exit 0 (0.6.0; 51 .sql === 51 Migration{}; no CR bytes).
+
+All three Per-Task Map rows moved ⬜ pending → ✅ green. No MISSING/PARTIAL gaps; the two
+new test files (`effectivePaintId.test.ts`, `technique-progress-identity.test.ts`) authored
+by Plans 02/03 exist and run green. `nyquist_compliant: true` confirmed. No auditor spawn
+required.
