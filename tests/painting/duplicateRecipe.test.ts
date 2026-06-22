@@ -1,10 +1,10 @@
 ﻿/**
- * STUDIO-03 â€” duplicateRecipe SQL coverage.
- * INTG-01 â€” section copy pass with Map<oldSectionId, newSectionId> remapping.
+ * STUDIO-03 â€" duplicateRecipe SQL coverage.
+ * INTG-01 â€" section copy pass with Map<oldSectionId, newSectionId> remapping.
  * Mocks getDb() to capture SQL strings and params.
  *
  * NOTE: duplicateRecipe uses auto-commit mode (no explicit BEGIN/COMMIT)
- * because tauri-plugin-sql uses sqlx::Pool<Sqlite> â€” each db.execute() may
+ * because tauri-plugin-sql uses sqlx::Pool<Sqlite> â€" each db.execute() may
  * run on a different connection from the pool.
  */
 import { vi, describe, it, expect, beforeEach } from "vitest";
@@ -113,7 +113,7 @@ const STEP_FIXTURES: RecipeStep[] = [
     time_estimate_minutes: null,
     step_photo_path: null,
     alt_paint_id: null,
-    section_id: null, // not assigned to a section â€” defensive path
+    section_id: null, // not assigned to a section â€" defensive path
     created_at: "2026-01-01T00:00:00Z",
   },
 ];
@@ -121,11 +121,14 @@ const STEP_FIXTURES: RecipeStep[] = [
 beforeEach(() => {
   selectMock.mockReset();
   executeMock.mockReset();
-  // calls[0]: recipe; calls[1]: sections; calls[2]: steps
+  // CR-02 update: duplicateRecipe now queries technique instances + slot maps.
+  // These fixtures have no techniques, so recipe_technique_instances returns [].
+  // calls[0]: recipe; calls[1]: technique instances (empty); calls[2]: sections; calls[3]: steps
   selectMock
     .mockResolvedValueOnce([RECIPE_FIXTURE])  // calls[0]: recipe
-    .mockResolvedValueOnce(SECTION_FIXTURES)  // calls[1]: sections
-    .mockResolvedValueOnce(STEP_FIXTURES);    // calls[2]: steps
+    .mockResolvedValueOnce([])                // calls[1]: recipe_technique_instances (none)
+    .mockResolvedValueOnce(SECTION_FIXTURES)  // calls[2]: sections
+    .mockResolvedValueOnce(STEP_FIXTURES);    // calls[3]: steps
   // calls[0]: recipe INSERT (id 100); calls[1]: section 1 INSERT (id 200);
   // calls[2]: section 2 INSERT (id 201); calls[3+]: step INSERTs
   // (no BEGIN/COMMIT in auto-commit mode)
@@ -136,7 +139,7 @@ beforeEach(() => {
     .mockResolvedValue({ lastInsertId: 300 });     // step INSERTs
 });
 
-describe("duplicateRecipe â€” SQL coverage (STUDIO-03 + INTG-01)", () => {
+describe("duplicateRecipe -- SQL coverage (STUDIO-03 + INTG-01)", () => {
   it("reads original recipe via SELECT with $1 = originalId", async () => {
     await duplicateRecipe(1, "Copy of Space Marine Blue");
     const [sql, params] = selectMock.mock.calls[0];
@@ -155,14 +158,16 @@ describe("duplicateRecipe â€” SQL coverage (STUDIO-03 + INTG-01)", () => {
 
   it("reads original sections via SELECT after recipe INSERT", async () => {
     await duplicateRecipe(1, "Copy of Space Marine Blue");
-    const [sql, params] = selectMock.mock.calls[1];
+    // calls[2] is sections (calls[1] is now recipe_technique_instances per CR-02)
+    const [sql, params] = selectMock.mock.calls[2];
     expect(sql).toContain("recipe_sections");
     expect(sql).toContain("recipe_id = $1");
     expect(params[0]).toBe(1);
   });
 
-  it("inserts section copies with new recipe_id and all 10 columns including workflow metadata", async () => {
+  it("inserts section copies with new recipe_id and all 11 columns including technique_instance_id", async () => {
     await duplicateRecipe(1, "Copy of Space Marine Blue");
+    // CR-02: section INSERT now has 11 columns (added technique_instance_id as $11)
     // executeMock.calls[1] = section 1 INSERT; calls[2] = section 2 INSERT (no BEGIN offset)
     const [sql1, params1] = executeMock.mock.calls[1];
     expect(sql1).toContain("INSERT INTO recipe_sections");
@@ -170,15 +175,19 @@ describe("duplicateRecipe â€” SQL coverage (STUDIO-03 + INTG-01)", () => {
     expect(sql1).toContain("technique");
     expect(sql1).toContain("execution_mode");
     expect(sql1).toContain("applies_to");
-    expect(params1).toEqual([100, "Armour", "smooth", 0, 0, null, null, null, null, null]);
+    expect(sql1).toContain("technique_instance_id");
+    // 11 params: recipe_id, name, surface, optional, order_index, notes,
+    //            section_type, technique, execution_mode, applies_to, technique_instance_id(null)
+    expect(params1).toEqual([100, "Armour", "smooth", 0, 0, null, null, null, null, null, null]);
 
     const [, params2] = executeMock.mock.calls[2];
-    expect(params2).toEqual([100, "Cloth", null, 1, 1, "optional block", null, null, null, null]);
+    expect(params2).toEqual([100, "Cloth", null, 1, 1, "optional block", null, null, null, null, null]);
   });
 
   it("reads original steps with section-aware ordering via LEFT JOIN", async () => {
     await duplicateRecipe(1, "Copy of Space Marine Blue");
-    const [sql, params] = selectMock.mock.calls[2];
+    // calls[3] is steps (shifted by new instances select at calls[1])
+    const [sql, params] = selectMock.mock.calls[3];
     expect(sql).toContain("recipe_steps");
     expect(sql).toContain("LEFT JOIN recipe_sections s ON s.id = rs.section_id");
     expect(sql).toContain("COALESCE(s.order_index, 999999)");
@@ -186,21 +195,24 @@ describe("duplicateRecipe â€” SQL coverage (STUDIO-03 + INTG-01)", () => {
     expect(params[0]).toBe(1);
   });
 
-  it("inserts step copies with newRecipeId as $1 and all 13 columns including section_id", async () => {
+  it("inserts step copies with newRecipeId as $1 and all 14 columns including technique_step_id", async () => {
     await duplicateRecipe(1, "Copy of Space Marine Blue");
+    // CR-02: step INSERT now has 14 columns (added technique_step_id as $14)
     // executeMock.calls[3] = first step INSERT (after recipe + 2 section INSERTs, no BEGIN)
     const [sql, params] = executeMock.mock.calls[3];
     expect(sql).toContain("INSERT INTO recipe_steps");
     expect(sql).toContain("step_photo_path");
     expect(sql).toContain("alt_paint_id");
     expect(sql).toContain("section_id");
-    expect(sql).toContain("$13");
+    expect(sql).toContain("technique_step_id");
+    expect(sql).toContain("$14");
     expect(params[0]).toBe(100); // newRecipeId from lastInsertId
   });
 
-  it("remaps step section_id using sectionIdMap â€” old id 20 becomes new id 200", async () => {
+  it("remaps step section_id using sectionIdMap -- old id 20 becomes new id 200", async () => {
     await duplicateRecipe(1, "Copy of Space Marine Blue");
     // calls[3] = first step (had section_id 20 -> remapped to 200)
+    // params[12] = $13 section_id (0-indexed)
     const [, params1] = executeMock.mock.calls[3];
     expect(params1[12]).toBe(200); // $13 section_id remapped
 
