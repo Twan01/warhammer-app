@@ -39,7 +39,6 @@ export interface RecipeSectionListProps {
 interface TechniqueControlsProps {
   sections: DraftSection[];
   recipeId: number;
-  instanceTechniqueNameMap: Map<number, string>;
   pickerOpen: boolean;
   setPickerOpen: (open: boolean) => void;
   pendingTechnique: TechniqueWithCounts | null;
@@ -58,7 +57,6 @@ interface TechniqueControlsProps {
 function TechniqueControls({
   sections,
   recipeId,
-  instanceTechniqueNameMap: _instanceTechniqueNameMap,
   pickerOpen,
   setPickerOpen,
   pendingTechnique,
@@ -104,11 +102,10 @@ import { useTechniquesWithCounts } from "@/hooks/useTechniques";
 
 interface TechniqueNameResolverProps {
   recipeId: number;
-  sections: DraftSection[];
   children: (nameMap: Map<number, string>) => React.ReactNode;
 }
 
-function TechniqueNameResolver({ recipeId, sections: _sections, children }: TechniqueNameResolverProps) {
+function TechniqueNameResolver({ recipeId, children }: TechniqueNameResolverProps) {
   const { data: instances = [] } = useInstancesForRecipe(recipeId);
   const { data: techniquesWithCounts = [] } = useTechniquesWithCounts();
 
@@ -212,14 +209,13 @@ export function RecipeSectionList({
 
       {/* Section cards — with or without technique name resolution */}
       {recipeId !== undefined ? (
-        <TechniqueNameResolver recipeId={recipeId} sections={sections}>
+        <TechniqueNameResolver recipeId={recipeId}>
           {(nameMap) => (
             <>
               {renderCards(nameMap)}
               <TechniqueControls
                 sections={sections}
                 recipeId={recipeId}
-                instanceTechniqueNameMap={nameMap}
                 pickerOpen={pickerOpen}
                 setPickerOpen={setPickerOpen}
                 pendingTechnique={pendingTechnique}

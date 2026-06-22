@@ -211,7 +211,6 @@ export function SectionedTimeline({
                 paintMap={paintMap}
                 stepPhotoUrls={stepPhotoUrls}
                 slotMap={resolvedSlotMap}
-                readOnly={isTechniqueSection}
               />
             </div>
           </div>

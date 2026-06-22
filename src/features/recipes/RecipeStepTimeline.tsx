@@ -15,14 +15,9 @@ export interface RecipeStepTimelineProps {
    * Plain recipes omit this — effectivePaintId falls back to step.paint_id.
    */
   slotMap?: SlotResolutionMap;
-  /**
-   * When true, all steps are rendered read-only (no paint edit controls).
-   * Used in RecipeDetailSheet for technique-owned sections.
-   */
-  readOnly?: boolean;
 }
 
-export function RecipeStepTimeline({ steps, paintMap, stepPhotoUrls, slotMap, readOnly: _readOnly }: RecipeStepTimelineProps) {
+export function RecipeStepTimeline({ steps, paintMap, stepPhotoUrls, slotMap }: RecipeStepTimelineProps) {
   const resolvedSlotMap: SlotResolutionMap = slotMap ?? new Map();
 
   if (steps.length === 0) {
