@@ -24,9 +24,13 @@ import { useWishlistItems, useCreateWishlistItem } from "@/hooks/useWishlistItem
 import { useSessionsByRecipe } from "@/hooks/useJournalSessions";
 import { useAssignmentsByRecipe } from "@/hooks/useRecipeAssignments";
 import { useRecipeSections } from "@/hooks/useRecipeSections";
+import { useSlotResolutionMap } from "@/hooks/useSlotResolutionMap";
+import { useInstancesForRecipe } from "@/hooks/useTechniqueInstances";
+import { useTechniques } from "@/hooks/useTechniques";
 import type { PaintingRecipe } from "@/types/recipe";
 import { RecipeStepTimeline } from "./RecipeStepTimeline";
-import { SectionedTimeline } from "./SectionedTimeline";
+import { SectionedTimeline, type TechniqueSectionInfo } from "./SectionedTimeline";
+import { EditColoursDialog } from "./EditColoursDialog";
 import { isPaintMissing } from "@/lib/recipeSteps";
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { convertFileSrc } from "@tauri-apps/api/core";
@@ -45,6 +49,12 @@ export interface RecipeDetailSheetProps {
   onEdit: (recipe: PaintingRecipe) => void;
   onDelete: (recipe: PaintingRecipe) => void;
   onDuplicate: (newRecipeId: number) => void;
+  /**
+   * Called when the user clicks the "from technique X" badge on a technique-sourced
+   * section. Navigates to the Technique Library tab on the Recipes page.
+   * Optional: if not provided, badge renders display-only.
+   */
+  onNavigateToTechniques?: () => void;
 }
 
 export function RecipeDetailSheet({
@@ -54,6 +64,7 @@ export function RecipeDetailSheet({
   onEdit,
   onDelete,
   onDuplicate,
+  onNavigateToTechniques,
 }: RecipeDetailSheetProps) {
   const { data: factions } = useFactions();
   const { data: units } = useUnits();
@@ -80,6 +91,44 @@ export function RecipeDetailSheet({
     for (const p of paints) m.set(p.id, p);
     return m;
   }, [paints]);
+
+  // Slot resolution — provides effectivePaintId map for technique-owned steps (SLOT-06, APPLY-05)
+  const { data: slotMap } = useSlotResolutionMap(recipe?.id);
+  // Technique instances for this recipe — used to build section → technique name map
+  const { data: techniqueInstances = [] } = useInstancesForRecipe(recipe?.id);
+  // All techniques — for id → name lookup
+  const { data: techniques = [] } = useTechniques();
+
+  // Build Map<section.id, TechniqueSectionInfo> for technique-sourced sections.
+  const techniqueMap = useMemo(() => {
+    const m = new Map<number, { id: number; name: string }>();
+    for (const t of techniques) m.set(t.id, t);
+    return m;
+  }, [techniques]);
+
+  const instanceMap = useMemo(() => {
+    const m = new Map<number, (typeof techniqueInstances)[number]>();
+    for (const inst of techniqueInstances) m.set(inst.id, inst);
+    return m;
+  }, [techniqueInstances]);
+
+  const techniqueSectionInfoMap = useMemo(() => {
+    const m = new Map<number, TechniqueSectionInfo>();
+    for (const section of sections) {
+      const instanceId = section.technique_instance_id;
+      if (instanceId == null) continue;
+      const instance = instanceMap.get(instanceId);
+      if (!instance) continue;
+      const technique = techniqueMap.get(instance.technique_id);
+      if (!technique) continue;
+      m.set(section.id, {
+        techniqueId: instance.technique_id,
+        instanceId,
+        techniqueName: technique.name,
+      });
+    }
+    return m;
+  }, [sections, instanceMap, techniqueMap]);
 
   const { data: sessions = [] } = useSessionsByRecipe(recipe?.id);
   const { data: assignments = [] } = useAssignmentsByRecipe(recipe?.id);
@@ -182,6 +231,14 @@ export function RecipeDetailSheet({
   }, [stepsKey, steps]);
 
   const [applyToUnitsOpen, setApplyToUnitsOpen] = useState(false);
+  const [editColoursOpen, setEditColoursOpen] = useState(false);
+  const [editColoursTarget, setEditColoursTarget] = useState<TechniqueSectionInfo | null>(null);
+
+  function handleEditColours(info: TechniqueSectionInfo) {
+    setEditColoursTarget(info);
+    setEditColoursOpen(true);
+  }
+
   const navigate = useNavigate();
   const startPainting = useStartPainting();
 
@@ -283,9 +340,16 @@ export function RecipeDetailSheet({
                     steps={steps}
                     paintMap={paintMap}
                     stepPhotoUrls={stepPhotoUrls}
+                    slotMap={slotMap}
+                    techniqueSectionInfoMap={techniqueSectionInfoMap}
+                    onEditColours={handleEditColours}
+                    onNavigateToTechniques={onNavigateToTechniques ? () => {
+                      onClose();
+                      onNavigateToTechniques();
+                    } : undefined}
                   />
                 ) : (
-                  <RecipeStepTimeline steps={steps} paintMap={paintMap} stepPhotoUrls={stepPhotoUrls} />
+                  <RecipeStepTimeline steps={steps} paintMap={paintMap} stepPhotoUrls={stepPhotoUrls} slotMap={slotMap} />
                 )}
               </Field>
 
@@ -378,6 +442,19 @@ export function RecipeDetailSheet({
         open={applyToUnitsOpen}
         recipe={recipe}
         onClose={() => setApplyToUnitsOpen(false)}
+      />
+    )}
+    {recipe && editColoursTarget && (
+      <EditColoursDialog
+        open={editColoursOpen}
+        techniqueId={editColoursTarget.techniqueId}
+        techniqueName={editColoursTarget.techniqueName}
+        instanceId={editColoursTarget.instanceId}
+        recipeId={recipe.id}
+        onClose={() => {
+          setEditColoursOpen(false);
+          setEditColoursTarget(null);
+        }}
       />
     )}
     </>

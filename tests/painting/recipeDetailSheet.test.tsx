@@ -94,6 +94,23 @@ vi.mock("@/hooks/useRecipeAssignments", () => ({
   useBulkCreateAssignments: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 
+// New Phase 143 hooks — return empty data; tests do not exercise technique features
+vi.mock("@/hooks/useSlotResolutionMap", () => ({
+  useSlotResolutionMap: () => ({ data: undefined }),
+  useSlotMapByInstance: () => ({ data: undefined, isLoading: false }),
+}));
+vi.mock("@/hooks/useTechniqueInstances", () => ({
+  useInstancesForRecipe: () => ({ data: [] }),
+  useUpdateSlotMap: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  getInstancesForRecipe: vi.fn(),
+}));
+vi.mock("@/hooks/useTechniques", () => ({
+  useTechniques: () => ({ data: [] }),
+}));
+vi.mock("@/hooks/useTechniqueColourSlots", () => ({
+  useTechniqueColourSlots: () => ({ data: [], isLoading: false }),
+}));
+
 // ---------------------------------------------------------------------------
 // Test fixtures
 // ---------------------------------------------------------------------------

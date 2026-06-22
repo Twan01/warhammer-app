@@ -269,6 +269,7 @@ export function RecipesPage() {
               closeDetail();
               toast.success("Recipe duplicated successfully.");
             }}
+            onNavigateToTechniques={() => setActiveTab("techniques")}
           />
 
           <RecipeDeleteDialog

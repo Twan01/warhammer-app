@@ -3,10 +3,19 @@ import type { RecipeSection } from "@/types/recipeSection";
 import type { RecipeStep } from "@/types/recipePaint";
 import type { Paint } from "@/types/paint";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Clock, Layers } from "lucide-react";
 import { RecipeStepTimeline } from "./RecipeStepTimeline";
+import { TechniqueSectionBadge } from "./TechniqueSectionBadge";
 import { isPaintMissing } from "@/lib/recipeSteps";
 import { effectivePaintId, type SlotResolutionMap } from "@/lib/effectivePaintId";
+
+/** Per-section technique metadata for the detail view (APPLY-05). */
+export interface TechniqueSectionInfo {
+  techniqueId: number;
+  instanceId: number;
+  techniqueName: string;
+}
 
 export interface SectionedTimelineProps {
   sections: RecipeSection[];
@@ -20,6 +29,18 @@ export interface SectionedTimelineProps {
    * to step.paint_id for non-technique steps (FND-04 fallback).
    */
   slotMap?: SlotResolutionMap;
+  /**
+   * Map of section.id → TechniqueSectionInfo, populated only in the detail view
+   * (RecipeDetailSheet). When present, technique sections render:
+   *   - an interactive TechniqueSectionBadge (onNavigate → library tab)
+   *   - an "Edit colours" button that calls onEditColours
+   * Plain recipe editor passes nothing.
+   */
+  techniqueSectionInfoMap?: Map<number, TechniqueSectionInfo>;
+  /** Called with section info when user clicks "Edit colours" on a technique section. */
+  onEditColours?: (info: TechniqueSectionInfo) => void;
+  /** Called when user clicks the technique badge; navigates to the library tab. */
+  onNavigateToTechniques?: () => void;
 }
 
 export function SectionedTimeline({
@@ -28,6 +49,9 @@ export function SectionedTimeline({
   paintMap,
   stepPhotoUrls,
   slotMap,
+  techniqueSectionInfoMap,
+  onEditColours,
+  onNavigateToTechniques,
 }: SectionedTimelineProps) {
   // Resolved slot map — empty Map when not provided (plain recipe fallback).
   const resolvedSlotMap: SlotResolutionMap = slotMap ?? new Map();
@@ -91,6 +115,9 @@ export function SectionedTimeline({
 
         const workflowParts = [section.technique, section.execution_mode, section.applies_to].filter(Boolean) as string[];
 
+        const techniqueInfo = techniqueSectionInfoMap?.get(section.id);
+        const isTechniqueSection = techniqueInfo !== undefined;
+
         return (
           <div key={section.id} className="flex flex-col gap-2">
             {/* Section header */}
@@ -117,8 +144,28 @@ export function SectionedTimeline({
                 </span>
               )}
 
+              {/* Technique badge (detail view only) — interactive link to library */}
+              {isTechniqueSection && (
+                <TechniqueSectionBadge
+                  techniqueName={techniqueInfo.techniqueName}
+                  onNavigate={onNavigateToTechniques}
+                />
+              )}
+
               {/* Right-side metadata */}
               <span className="text-xs text-muted-foreground ml-auto flex items-center gap-3">
+                {/* "Edit colours" button for technique sections */}
+                {isTechniqueSection && onEditColours && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto px-2 py-0.5 text-xs"
+                    onClick={() => onEditColours(techniqueInfo)}
+                  >
+                    Edit colours
+                  </Button>
+                )}
+
                 {/* Step count */}
                 <span className="flex items-center gap-0.5">
                   <Layers className="h-3 w-3" />
@@ -154,13 +201,19 @@ export function SectionedTimeline({
               </span>
             </div>
 
-            {/* Steps grouped under this section */}
-            <RecipeStepTimeline
-              steps={sectionSteps}
-              paintMap={paintMap}
-              stepPhotoUrls={stepPhotoUrls}
-              slotMap={resolvedSlotMap}
-            />
+            {/* Steps grouped under this section — read-only for technique sections */}
+            <div
+              className={isTechniqueSection ? "pointer-events-none opacity-80" : undefined}
+              title={isTechniqueSection ? "This step is part of a live-linked technique. Edit via 'Edit colours'." : undefined}
+            >
+              <RecipeStepTimeline
+                steps={sectionSteps}
+                paintMap={paintMap}
+                stepPhotoUrls={stepPhotoUrls}
+                slotMap={resolvedSlotMap}
+                readOnly={isTechniqueSection}
+              />
+            </div>
           </div>
         );
       })}
