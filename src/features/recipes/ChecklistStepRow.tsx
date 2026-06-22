@@ -35,7 +35,7 @@ export function ChecklistStepRow({
   const [open, setOpen] = useState(false);
 
   const hasDetail =
-    (step.paint_id !== null && !!paint) ||
+    !!paint ||
     !!altPaint ||
     !!step.technique ||
     !!step.tool ||
@@ -77,7 +77,7 @@ export function ChecklistStepRow({
 
       <CollapsibleContent className="pl-8 pb-2 flex flex-col gap-2">
         {/* Primary paint */}
-        {step.paint_id !== null && paint && (
+        {paint && (
           <div className="flex items-center gap-2 text-sm">
             <div
               className="h-5 w-5 rounded-full border border-border shrink-0"

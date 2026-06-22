@@ -15,6 +15,8 @@ import { useRecipePaints } from "@/hooks/useRecipePaints";
 import { useRecipeSections } from "@/hooks/useRecipeSections";
 import { usePaints } from "@/hooks/usePaints";
 import { useUnit, useUpdateUnit } from "@/hooks/useUnits";
+import { useSlotResolutionMap } from "@/hooks/useSlotResolutionMap";
+import { effectivePaintId } from "@/lib/effectivePaintId";
 import { ChecklistStepRow } from "./ChecklistStepRow";
 import type { RecipeAssignment } from "@/types/recipeAssignment";
 import type { RecipeStep } from "@/types/recipePaint";
@@ -33,6 +35,7 @@ export function AssignmentChecklist({ assignment, recipeId, unitId }: Assignment
   const { data: unit } = useUnit(unitId);
   const updateUnit = useUpdateUnit();
   const toggleStep = useToggleStepProgress();
+  const { data: slotMap = new Map() } = useSlotResolutionMap(recipeId);
 
   const isAssembled = unit?.status_assembly === 1;
 
@@ -41,6 +44,13 @@ export function AssignmentChecklist({ assignment, recipeId, unitId }: Assignment
     () => new Map(paints.map((p) => [p.id, p])),
     [paints],
   );
+
+  // Resolve the effective paint for a step — technique steps route through slotMap,
+  // plain steps use their own paint_id directly (FND-04 fallback).
+  function resolvedPaint(step: RecipeStep) {
+    const id = effectivePaintId(step, slotMap);
+    return id !== null ? paintsById.get(id) : undefined;
+  }
 
   // Derived: set of completed recipe_step_id values (no local state)
   const completedSet = useMemo(
@@ -124,7 +134,7 @@ export function AssignmentChecklist({ assignment, recipeId, unitId }: Assignment
                     key={step.id}
                     step={step}
                     completed={completedSet.has(step.id)}
-                    paint={step.paint_id !== null ? paintsById.get(step.paint_id) : undefined}
+                    paint={resolvedPaint(step)}
                     altPaint={step.alt_paint_id !== null ? paintsById.get(step.alt_paint_id) : undefined}
                     onToggle={(checked) => handleToggle(step.id, checked)}
                   />
@@ -149,7 +159,7 @@ export function AssignmentChecklist({ assignment, recipeId, unitId }: Assignment
                       key={step.id}
                       step={step}
                       completed={completedSet.has(step.id)}
-                      paint={step.paint_id !== null ? paintsById.get(step.paint_id) : undefined}
+                      paint={resolvedPaint(step)}
                       altPaint={step.alt_paint_id !== null ? paintsById.get(step.alt_paint_id) : undefined}
                       onToggle={(checked) => handleToggle(step.id, checked)}
                     />
@@ -166,7 +176,7 @@ export function AssignmentChecklist({ assignment, recipeId, unitId }: Assignment
               <ChecklistStepRow
                 step={step}
                 completed={completedSet.has(step.id)}
-                paint={step.paint_id !== null ? paintsById.get(step.paint_id) : undefined}
+                paint={resolvedPaint(step)}
                 altPaint={step.alt_paint_id !== null ? paintsById.get(step.alt_paint_id) : undefined}
                 onToggle={(checked) => handleToggle(step.id, checked)}
               />
