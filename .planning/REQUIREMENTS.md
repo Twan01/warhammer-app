@@ -73,7 +73,7 @@ Requirements for the v0.7.0 release. Each maps to a roadmap phase.
 
 ### Integration with Existing Surfaces (G)
 
-- [ ] **INTG-01**: Painting Mode executes technique-sourced steps correctly — showing the slot-resolved paint swatch, marking progress against the stable technique-step identity, with keyboard shortcuts unaffected.
+- [x] **INTG-01**: Painting Mode executes technique-sourced steps correctly — showing the slot-resolved paint swatch, marking progress against the stable technique-step identity, with keyboard shortcuts unaffected.
 - [x] **INTG-02**: Paint availability ("owned/missing") counts slot-resolved paints via `effectivePaintId()`, matching what Painting Mode shows.
 - [ ] **INTG-03**: Apply-to-units per-unit step progress works for technique-sourced steps.
 - [ ] **INTG-04**: The SectionedTimeline displays technique-sourced sections (with badge), and Log Session's cascade selectors include technique-sourced section names.
@@ -154,7 +154,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | SAFE-01 | Phase 146 | Pending |
 | SAFE-02 | Phase 146 | Pending |
 | SAFE-03 | Phase 146 | Pending |
-| INTG-01 | Phase 145 | Pending |
+| INTG-01 | Phase 145 | Complete |
 | INTG-02 | Phase 145 | Complete |
 | INTG-03 | Phase 145 | Pending |
 | INTG-04 | Phase 145 | Pending |
