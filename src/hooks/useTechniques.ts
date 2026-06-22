@@ -133,6 +133,7 @@ export function useUpdateTechnique() {
       // Prefix invalidation (no recipeId arg) clears ALL per-recipe entries in the cache.
       // Mirrors invalidateAfterApply in useTechniqueInstances.ts.
       qc.invalidateQueries({ queryKey: ["recipe-sections"] });
+      qc.invalidateQueries({ queryKey: ["recipe-steps"] }); // WR-04: guard future step-list consumers
       qc.invalidateQueries({ queryKey: ["recipe-paints"] });
       qc.invalidateQueries({ queryKey: ["slot-resolution-map"] });
       qc.invalidateQueries({ queryKey: STEP_COUNTS_KEY });
