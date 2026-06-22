@@ -74,6 +74,13 @@ const DEFAULT_VALUES: TechniqueFormValues = {
   notes: null,
 };
 
+// Stable empty-array references for the disabled-query (create mode) case.
+// Using a module-level constant instead of an inline `= []` default keeps the
+// reference identical across renders, so the re-init effect's dependency array
+// does not change every render (which previously caused an infinite setState
+// loop — "Maximum update depth exceeded" — when opening the create form).
+const EMPTY: never[] = [];
+
 function buildDefaults(technique: Technique | null): TechniqueFormValues {
   if (!technique) return DEFAULT_VALUES;
   return {
@@ -106,9 +113,9 @@ export function TechniqueFormSheet({ open, technique, onClose }: TechniqueFormSh
   const [slots, setSlots] = useState<DraftTechniqueSlot[]>([]);
 
   // Load existing data for edit mode
-  const { data: existingSections = [] } = useTechniqueSections(technique?.id);
-  const { data: existingSteps = [] } = useTechniqueSteps(technique?.id);
-  const { data: existingSlots = [] } = useTechniqueColourSlots(technique?.id);
+  const { data: existingSections = EMPTY } = useTechniqueSections(technique?.id);
+  const { data: existingSteps = EMPTY } = useTechniqueSteps(technique?.id);
+  const { data: existingSlots = EMPTY } = useTechniqueColourSlots(technique?.id);
 
   const createTechnique = useCreateTechnique();
   const updateTechnique = useUpdateTechnique();
