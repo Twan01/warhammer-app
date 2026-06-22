@@ -146,7 +146,7 @@ Reused without modification:
 | State | Visual |
 |-------|--------|
 | Loading slot definitions | `<Skeleton>` rows, h-10 each, one per slot |
-| No slots defined on technique | Body copy: "This technique has no colour slots — it will be applied with fixed paints." CTA changes to "Apply" (not "Next: Fill slots") |
+| No slots defined on technique | Body copy: "This technique has no colour slots — it will be applied with fixed paints." CTA changes to "Apply technique" (not "Next: Fill slots") |
 | Slot unassigned | Dashed swatch + muted combobox placeholder "Assign paint (optional)" |
 | Slot assigned | Filled swatch + paint name in combobox |
 | All slots unassigned | No warning, no error — allowed per SLOT-05 |
@@ -185,7 +185,7 @@ DialogContent max-w-lg
     Right column (w-52) — hidden when nothing selected
       Preview: slots list + section/step tree (read-only, compact)
   DialogFooter
-    Button variant="outline" "Cancel"
+    Button variant="outline" "Close picker"
     Button variant="default" disabled={!selected} "Next: Fill slots →"
 ```
 
@@ -200,7 +200,7 @@ DialogContent max-w-md
     ScrollArea (if >6 slots, else plain div)
       List of SlotFillRow (one per colour slot)
   DialogFooter
-    Button variant="outline" "Back"
+    Button variant="outline" "Back to picker"
     Button variant="default" "Apply technique"
 ```
 
@@ -227,13 +227,14 @@ div flex items-center gap-3 rounded-md border p-2
 | Technique picker dialog description | "Pick a technique from your library to insert into this recipe." |
 | Picker CTA (nothing selected) | "Next: Fill slots" (disabled) |
 | Picker CTA (technique selected) | "Next: Fill slots" (enabled) |
+| Picker dismiss button | "Close picker" |
 | Slot-fill dialog title | "Fill colour slots — {technique.name}" |
 | Slot-fill dialog description | "Assign a paint to each slot. You can leave slots empty and fill them later." |
 | Slot-fill CTA | "Apply technique" |
-| Slot-fill back button | "Back" |
+| Slot-fill back button | "Back to picker" |
 | Paint combobox placeholder (slot, unassigned) | "Assign paint (optional)" |
 | No-slots-on-technique body | "This technique has no colour slots — it will be applied with fixed paints." |
-| No-slots CTA | "Apply" |
+| No-slots CTA | "Apply technique" |
 | Picker empty library heading | "No techniques yet" |
 | Picker empty library body | "Create a technique in the Technique Library tab first." |
 | Picker empty search results | "No techniques match your search." |
