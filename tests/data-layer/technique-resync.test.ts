@@ -194,7 +194,7 @@ describe("resyncTechniqueInstances (LINK-01)", () => {
     db.prepare("UPDATE technique_steps SET order_index = ? WHERE id = ?").run(2, s1Id);
     db.prepare("UPDATE technique_steps SET order_index = ? WHERE id = ?").run(0, s3Id);
 
-    await resyncTechniqueInstances(bridge, techniqueId);
+    await resyncTechniqueInstances(bridge as never, techniqueId);
 
     // S1's recipe_steps row must have updated order_index, but same PK
     const s1Row = db
@@ -240,7 +240,7 @@ describe("resyncTechniqueInstances (LINK-01)", () => {
     ).n;
     expect(beforeCount).toBe(3);
 
-    await resyncTechniqueInstances(bridge, techniqueId);
+    await resyncTechniqueInstances(bridge as never, techniqueId);
 
     // One new row for S4
     const afterCount = (
@@ -293,7 +293,7 @@ describe("resyncTechniqueInstances (LINK-01)", () => {
     ).n;
     expect(beforeCount).toBe(3);
 
-    await resyncTechniqueInstances(bridge, techniqueId);
+    await resyncTechniqueInstances(bridge as never, techniqueId);
 
     // S1's recipe_steps row must be gone
     const s1Row = db
@@ -425,7 +425,7 @@ describe("resyncTechniqueInstances (LINK-01)", () => {
     db.prepare("UPDATE technique_steps SET order_index = ? WHERE id = ?").run(2, s1Id);
     db.prepare("UPDATE technique_steps SET order_index = ? WHERE id = ?").run(0, s3Id);
 
-    await resyncTechniqueInstances(bridge, techniqueId);
+    await resyncTechniqueInstances(bridge as never, techniqueId);
 
     // Recipe 1 (non-detached): S1 order_index updated
     const s1r1 = db
@@ -483,7 +483,7 @@ describe("resyncTechniqueInstances (LINK-01)", () => {
       .get(s3RecipeStepId) as { section_id: number } | undefined;
     expect(s3BeforeRow!.section_id).toBe(sectionId); // still old section
 
-    await resyncTechniqueInstances(bridge, techniqueId);
+    await resyncTechniqueInstances(bridge as never, techniqueId);
 
     // S3's recipe_steps.id must be unchanged (UPDATE-by-PK, not DELETE+INSERT)
     const s3AfterRow = db
