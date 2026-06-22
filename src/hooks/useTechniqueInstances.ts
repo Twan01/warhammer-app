@@ -10,7 +10,7 @@ import {
   RECIPE_SWATCH_KEY,
   STEP_COUNTS_KEY,
 } from "@/hooks/useRecipePaints";
-import { SLOT_RESOLUTION_MAP_KEY } from "@/hooks/useSlotResolutionMap";
+import { SLOT_RESOLUTION_MAP_KEY, SLOT_MAP_BY_INSTANCE_KEY } from "@/hooks/useSlotResolutionMap";
 import type { QueryClient } from "@tanstack/react-query";
 
 // ---------------------------------------------------------------------------
@@ -108,8 +108,12 @@ export function useApplyTechnique() {
  * Mutation hook that updates slot fills for an existing technique instance.
  *
  * Accepts recipeId so the resolved-paint keys can be invalidated.
- * Invalidates: SLOT_RESOLUTION_MAP_KEY + RECIPE_PAINTS_KEY + RECIPE_SWATCH_KEY
- *   + RECIPE_AVAILABILITY_KEY (the resolved-paint-dependent keys).
+ * Invalidates: SLOT_RESOLUTION_MAP_KEY + SLOT_MAP_BY_INSTANCE_KEY +
+ *   RECIPE_PAINTS_KEY + RECIPE_SWATCH_KEY + RECIPE_AVAILABILITY_KEY.
+ *
+ * WR-01 fix: SLOT_MAP_BY_INSTANCE_KEY was not invalidated, causing the
+ * EditColoursDialog prefill to show stale values when reopened within the
+ * 5-minute staleTime window after a successful save.
  */
 export function useUpdateSlotMap() {
   const qc = useQueryClient();
@@ -117,6 +121,7 @@ export function useUpdateSlotMap() {
     mutationFn: ({ instanceId, slotFills }) => updateSlotMap(instanceId, slotFills),
     onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: SLOT_RESOLUTION_MAP_KEY(variables.recipeId) });
+      qc.invalidateQueries({ queryKey: SLOT_MAP_BY_INSTANCE_KEY(variables.instanceId) }); // WR-01
       qc.invalidateQueries({ queryKey: RECIPE_PAINTS_KEY(variables.recipeId) });
       qc.invalidateQueries({ queryKey: RECIPE_SWATCH_KEY });
       qc.invalidateQueries({ queryKey: RECIPE_AVAILABILITY_KEY });
