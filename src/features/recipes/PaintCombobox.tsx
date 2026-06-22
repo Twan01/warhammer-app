@@ -17,9 +17,13 @@ export interface PaintComboboxProps {
   value: number | null;
   onChange: (paintId: number | null) => void;
   onCreateNew?: () => void;
+  /** Optional aria-label for the trigger button (accessibility for slot-fill rows). */
+  "aria-label"?: string;
+  /** Override the placeholder shown when no paint is selected. */
+  placeholder?: string;
 }
 
-export function PaintCombobox({ value, onChange, onCreateNew }: PaintComboboxProps) {
+export function PaintCombobox({ value, onChange, onCreateNew, "aria-label": ariaLabel, placeholder }: PaintComboboxProps) {
   const [open, setOpen] = useState(false);
   const { data: paints = [] } = usePaints();
   const selected = value !== null ? paints.find((p) => p.id === value) ?? null : null;
@@ -32,12 +36,13 @@ export function PaintCombobox({ value, onChange, onCreateNew }: PaintComboboxPro
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          aria-label={ariaLabel}
           className={cn(
             "w-full justify-between font-normal",
             !selected && "text-muted-foreground",
           )}
         >
-          {selected ? `${selected.brand} ${selected.name}` : "Search paints..."}
+          {selected ? `${selected.brand} ${selected.name}` : (placeholder ?? "Search paints...")}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
