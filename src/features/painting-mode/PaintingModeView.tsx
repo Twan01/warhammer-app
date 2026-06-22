@@ -4,6 +4,8 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 
 import { usePaints } from "@/hooks/usePaints";
 import { useRecipeSections } from "@/hooks/useRecipeSections";
+import { useSlotResolutionMap, useUnfilledSlotCount } from "@/hooks/useSlotResolutionMap";
+import { effectivePaintId } from "@/lib/effectivePaintId";
 import { isPaintMissing } from "@/lib/recipeSteps";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,6 +35,8 @@ export function PaintingModeView({
 }: PaintingModeViewProps) {
   const { data: paints = [] } = usePaints();
   const { data: sections = [] } = useRecipeSections(recipeId);
+  const { data: slotMap = new Map() } = useSlotResolutionMap(recipeId);
+  const { data: unfilledSlotCount = 0 } = useUnfilledSlotCount(recipeId);
 
   // Build paintMap: Map<number, Paint>
   const paintMap = useMemo(() => {
@@ -41,20 +45,21 @@ export function PaintingModeView({
     return m;
   }, [paints]);
 
-  // Derive missing paints for the banner
+  // Derive missing paints for the banner — resolves via effectivePaintId to count technique steps
   const missingPaints = useMemo(() => {
     const seen = new Set<number>();
     const result: Array<{ id: number; name: string; brand: string }> = [];
     for (const step of state.orderedSteps) {
-      if (step.paint_id == null) continue;
-      const paint = paintMap.get(step.paint_id);
+      const resolvedId = effectivePaintId(step, slotMap);
+      if (resolvedId == null) continue;
+      const paint = paintMap.get(resolvedId);
       if (!paint || !isPaintMissing(paint)) continue;
       if (seen.has(paint.id)) continue;
       seen.add(paint.id);
       result.push({ id: paint.id, name: paint.name, brand: paint.brand });
     }
     return result;
-  }, [state.orderedSteps, paintMap]);
+  }, [state.orderedSteps, paintMap, slotMap]);
 
   // Resolve step photo URLs
   const [stepPhotoUrls, setStepPhotoUrls] = useState<Map<number, string>>(
@@ -94,21 +99,24 @@ export function PaintingModeView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stepsKey]);
 
-  // Derive current step, paint, and section name
+  // Derive current step, paint, unfilled-slot state, and section name
   const currentStep = state.orderedSteps.find(
     (s) => s.id === state.currentStepId,
   );
+  const resolvedPaintId =
+    currentStep !== undefined ? effectivePaintId(currentStep, slotMap) : null;
   const currentPaint =
-    currentStep?.paint_id != null
-      ? paintMap.get(currentStep.paint_id)
-      : undefined;
+    resolvedPaintId !== null ? paintMap.get(resolvedPaintId) : undefined;
+  const isUnfilledSlot =
+    (currentStep?.technique_step_id ?? null) !== null && resolvedPaintId === null;
   const sectionName = currentStep?.section_id
     ? (sections.find((s) => s.id === currentStep.section_id)?.name ?? null)
     : null;
 
   // Banner dismiss state
   const [bannerDismissed, setBannerDismissed] = useState(false);
-  const showBanner = !bannerDismissed && missingPaints.length > 0;
+  const showBanner =
+    !bannerDismissed && (missingPaints.length > 0 || unfilledSlotCount > 0);
 
   // Detect all-complete
   const isAllComplete =
@@ -145,6 +153,7 @@ export function PaintingModeView({
         <PaintReadinessBanner
           missingPaints={missingPaints}
           onDismiss={() => setBannerDismissed(true)}
+          unfilledSlotCount={unfilledSlotCount}
         />
       )}
       <div className="flex flex-1 overflow-hidden">
@@ -177,6 +186,7 @@ export function PaintingModeView({
           isAllComplete={isAllComplete}
           isMutating={isMutating}
           onExit={onExit}
+          isUnfilledSlot={isUnfilledSlot}
         />
       </div>
     </div>
