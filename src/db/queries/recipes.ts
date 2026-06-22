@@ -3,6 +3,7 @@ import type { PaintingRecipe, CreateRecipeInput, UpdateRecipeInput } from "@/typ
 import type { RecipeStep } from "@/types/recipePaint";
 import type { RecipeSection } from "@/types/recipeSection";
 import type { DraftSection, RecipeFormValues } from "@/types/recipe";
+import type { RecipeTechniqueInstance } from "@/db/queries/recipeTechniqueInstances";
 import { computeSectionDiff, computeStepDiff, buildSectionIdMap } from "@/lib/recipeDiff";
 import { computeOrderIndex } from "@/lib/recipeSteps";
 
@@ -109,13 +110,31 @@ export async function getRecipeNamesByUnitIds(
 }
 
 /**
- * STUDIO-03 — duplicate a recipe with all its steps and sections.
+ * STUDIO-03 — duplicate a recipe with all its steps, sections, and technique materialisation.
  *
  * Copies all 21 metadata fields from the original recipe (using newName for the
- * name field), then copies all sections (INTG-01 section copy pass) building a
- * Map<oldSectionId, newSectionId> for ID remapping, then copies all steps with
- * all 13 columns including section_id (remapped via sectionIdMap).
+ * name field), then:
+ *   1. Copies recipe_technique_instances rows (one per original instance) building
+ *      a Map<oldInstanceId, newInstanceId> for FK remapping.
+ *   2. Copies recipe_technique_slot_maps rows (remapping instance_id to new IDs).
+ *   3. Copies recipe_sections including technique_instance_id (remapped via instanceIdMap).
+ *   4. Copies recipe_steps including technique_step_id (no remapping — points at the
+ *      same source technique_steps rows).
  * Returns the new recipe's ID.
+ *
+ * CR-02 fix: previously omitted technique_instance_id from section INSERT and
+ * technique_step_id from step INSERT, causing silent data loss for technique-owned
+ * sections/steps after duplication.
+ *
+ * AUDIT: When a migration adds columns to recipe_sections, add them to the section
+ * INSERT below. When a migration adds columns to recipe_steps, add them to the step
+ * INSERT below. Current columns (migration 051 baseline):
+ *   recipe_sections: id, recipe_id, name, surface, optional, order_index, notes,
+ *     section_type, technique, execution_mode, applies_to, technique_instance_id,
+ *     created_at, updated_at
+ *   recipe_steps: id, recipe_id, paint_id, step_name, order_index, notes,
+ *     painting_phase, tool, technique, dilution, time_estimate_minutes,
+ *     step_photo_path, alt_paint_id, section_id, technique_step_id, created_at
  *
  * NOTE: tauri-plugin-sql uses sqlx::Pool<Sqlite> (connection pool). Each
  * db.execute() may run on a DIFFERENT connection, so explicit BEGIN/COMMIT
@@ -156,27 +175,68 @@ export async function duplicateRecipe(originalId: number, newName: string): Prom
       original.estimated_minutes, original.result_photo_path,
     ]
   );
-  const newRecipeId = result.lastInsertId ?? 0;
+  const newRecipeId = result.lastInsertId;
+  if (!newRecipeId) throw new Error("duplicateRecipe: INSERT painting_recipes did not return lastInsertId");
 
-  // 3. Read original sections (INTG-01 section copy pass)
+  // 3a. Copy recipe_technique_instances and build old→new instance ID map
+  const origInstances = await db.select<RecipeTechniqueInstance[]>(
+    "SELECT * FROM recipe_technique_instances WHERE recipe_id = $1 ORDER BY id ASC",
+    [originalId]
+  );
+  const instanceIdMap = new Map<number, number>(); // old instance id → new instance id
+  for (const inst of origInstances) {
+    const instResult = await db.execute(
+      "INSERT INTO recipe_technique_instances (recipe_id, technique_id) VALUES ($1, $2)",
+      [newRecipeId, inst.technique_id]
+    );
+    const newInstanceId = instResult.lastInsertId;
+    if (!newInstanceId) throw new Error("duplicateRecipe: INSERT recipe_technique_instances did not return lastInsertId");
+    instanceIdMap.set(inst.id, newInstanceId);
+  }
+
+  // 3b. Copy recipe_technique_slot_maps for each new instance
+  for (const [oldInstanceId, newInstanceId] of instanceIdMap) {
+    const slotRows = await db.select<Array<{ slot_id: number; paint_id: number | null }>>(
+      "SELECT slot_id, paint_id FROM recipe_technique_slot_maps WHERE instance_id = $1",
+      [oldInstanceId]
+    );
+    for (const slot of slotRows) {
+      await db.execute(
+        "INSERT OR REPLACE INTO recipe_technique_slot_maps (instance_id, slot_id, paint_id) VALUES ($1, $2, $3)",
+        [newInstanceId, slot.slot_id, slot.paint_id ?? null]
+      );
+    }
+  }
+
+  // 4. Read original sections (INTG-01 section copy pass)
   const sections = await db.select<RecipeSection[]>(
     "SELECT * FROM recipe_sections WHERE recipe_id = $1 ORDER BY order_index ASC",
     [originalId]
   );
 
-  // 4. Copy sections and build old->new ID map
+  // 5. Copy sections and build old->new section ID map
+  //    technique_instance_id remapped via instanceIdMap (null for plain sections).
+  //    AUDIT: add new recipe_sections columns here when migration adds them.
   const sectionIdMap = new Map<number, number>();
   for (const section of sections) {
+    const newInstanceId = section.technique_instance_id != null
+      ? (instanceIdMap.get(section.technique_instance_id) ?? null)
+      : null;
     const sectionResult = await db.execute(
-      `INSERT INTO recipe_sections (recipe_id, name, surface, optional, order_index, notes, section_type, technique, execution_mode, applies_to)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-      [newRecipeId, section.name, section.surface, section.optional, section.order_index, section.notes ?? null,
-       section.section_type ?? null, section.technique ?? null, section.execution_mode ?? null, section.applies_to ?? null]
+      `INSERT INTO recipe_sections
+         (recipe_id, name, surface, optional, order_index, notes,
+          section_type, technique, execution_mode, applies_to, technique_instance_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      [newRecipeId, section.name, section.surface, section.optional, section.order_index,
+       section.notes ?? null, section.section_type ?? null, section.technique ?? null,
+       section.execution_mode ?? null, section.applies_to ?? null, newInstanceId]
     );
-    sectionIdMap.set(section.id, sectionResult.lastInsertId ?? 0);
+    const newSectionId = sectionResult.lastInsertId;
+    if (!newSectionId) throw new Error("duplicateRecipe: INSERT recipe_sections did not return lastInsertId");
+    sectionIdMap.set(section.id, newSectionId);
   }
 
-  // 5. Read original steps
+  // 6. Read original steps
   const steps = await db.select<RecipeStep[]>(
     `SELECT rs.* FROM recipe_steps rs
      LEFT JOIN recipe_sections s ON s.id = rs.section_id
@@ -185,21 +245,24 @@ export async function duplicateRecipe(originalId: number, newName: string): Prom
     [originalId]
   );
 
-  // 6. Copy each step to the new recipe (all 13 columns including section_id remapped via sectionIdMap)
+  // 7. Copy each step to the new recipe.
+  //    technique_step_id carries forward unchanged (points at the same technique_steps rows).
+  //    section_id remapped via sectionIdMap.
+  //    AUDIT: add new recipe_steps columns here when migration adds them.
   for (const step of steps) {
     const remappedSectionId = step.section_id !== null ? (sectionIdMap.get(step.section_id) ?? null) : null;
     await db.execute(
       `INSERT INTO recipe_steps
        (recipe_id, paint_id, step_name, order_index, notes,
         painting_phase, tool, technique, dilution, time_estimate_minutes,
-        step_photo_path, alt_paint_id, section_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+        step_photo_path, alt_paint_id, section_id, technique_step_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
       [
         newRecipeId, step.paint_id, step.step_name, step.order_index,
         step.notes, step.painting_phase, step.tool, step.technique,
         step.dilution, step.time_estimate_minutes,
         step.step_photo_path ?? null, step.alt_paint_id ?? null,
-        remappedSectionId,
+        remappedSectionId, step.technique_step_id ?? null,
       ]
     );
   }
