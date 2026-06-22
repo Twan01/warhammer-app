@@ -149,6 +149,11 @@ export function PaintingModeView({
 
   // Banner dismiss state
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  // Reset dismiss state when recipe changes so a dismiss on one recipe
+  // does not suppress the banner for another (WR-03).
+  useEffect(() => {
+    setBannerDismissed(false);
+  }, [recipeId]);
   const showBanner =
     !bannerDismissed && (missingPaints.length > 0 || unfilledSlotCount > 0);
 
