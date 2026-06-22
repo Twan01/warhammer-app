@@ -42,7 +42,7 @@ Requirements for the v0.7.0 release. Each maps to a roadmap phase.
 - [x] **SLOT-03**: Each recipe application of a technique carries its own slot→paint mapping, so the same technique can use different colours in different recipes.
 - [x] **SLOT-04**: A single recipe can contain multiple instances of the same technique, each with an independent slot mapping.
 - [x] **SLOT-05**: An unassigned (empty) slot is a valid state, not an error — treated like a paintless step in availability and Painting Mode.
-- [ ] **SLOT-06**: The slot-fill UI shows each slot's role hint and the currently assigned paint swatch.
+- [x] **SLOT-06**: The slot-fill UI shows each slot's role hint and the currently assigned paint swatch.
 
 ### Technique Library Browse (C)
 
@@ -54,8 +54,8 @@ Requirements for the v0.7.0 release. Each maps to a roadmap phase.
 ### Apply / Slot-Fill (D)
 
 - [x] **APPLY-01**: While editing a recipe, the user can add a technique to it from the recipe section editor.
-- [ ] **APPLY-02**: A technique picker dialog lets the user browse/search the library, preview the technique's slots and steps, and choose the insertion position.
-- [ ] **APPLY-03**: A slot-fill dialog lets the user assign a real paint to each slot (one slot per row, via the existing paint combobox), with empty slots allowed and fillable later.
+- [x] **APPLY-02**: A technique picker dialog lets the user browse/search the library, preview the technique's slots and steps, and choose the insertion position.
+- [x] **APPLY-03**: A slot-fill dialog lets the user assign a real paint to each slot (one slot per row, via the existing paint combobox), with empty slots allowed and fillable later.
 - [x] **APPLY-04**: An applied technique appears in the recipe as a section (at the chosen position) carrying a "from technique X" badge.
 - [ ] **APPLY-05**: The user can view/change a technique instance's slot colours from the recipe detail view, not only from the full edit form.
 
@@ -138,14 +138,14 @@ Which phases cover which requirements. Populated during roadmap creation.
 | SLOT-03 | Phase 143 | Complete |
 | SLOT-04 | Phase 143 | Complete |
 | SLOT-05 | Phase 143 | Complete |
-| SLOT-06 | Phase 143 | Pending |
+| SLOT-06 | Phase 143 | Complete |
 | LIB-01 | Phase 142 | Complete |
 | LIB-02 | Phase 142 | Complete |
 | LIB-03 | Phase 142 | Complete |
 | LIB-04 | Phase 142 | Complete |
 | APPLY-01 | Phase 143 | Complete |
-| APPLY-02 | Phase 143 | Pending |
-| APPLY-03 | Phase 143 | Pending |
+| APPLY-02 | Phase 143 | Complete |
+| APPLY-03 | Phase 143 | Complete |
 | APPLY-04 | Phase 143 | Complete |
 | APPLY-05 | Phase 143 | Pending |
 | LINK-01 | Phase 144 | Pending |
