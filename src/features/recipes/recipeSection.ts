@@ -89,6 +89,8 @@ export function buildDraftSections(
       technique: s.technique ?? null,
       execution_mode: s.execution_mode ?? null,
       applies_to: s.applies_to ?? null,
+      // v0.7.0: forward technique_instance_id so RecipeSectionCard can lock technique sections
+      technique_instance_id: s.technique_instance_id ?? null,
       steps: sectionSteps,
     };
   });

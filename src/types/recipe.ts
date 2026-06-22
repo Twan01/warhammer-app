@@ -69,6 +69,8 @@ export interface DraftSection {
   technique: string | null;
   execution_mode: string | null;
   applies_to: string | null;
+  // v0.7.0 technique materialisation (Phase 141, migration 051)
+  technique_instance_id?: number | null;
   steps: DraftStep[];
 }
 
