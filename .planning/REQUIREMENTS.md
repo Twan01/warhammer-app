@@ -41,7 +41,7 @@ Requirements for the v0.7.0 release. Each maps to a roadmap phase.
 - [x] **SLOT-02**: A technique step can reference a colour slot instead of a fixed paint.
 - [ ] **SLOT-03**: Each recipe application of a technique carries its own slot→paint mapping, so the same technique can use different colours in different recipes.
 - [ ] **SLOT-04**: A single recipe can contain multiple instances of the same technique, each with an independent slot mapping.
-- [ ] **SLOT-05**: An unassigned (empty) slot is a valid state, not an error — treated like a paintless step in availability and Painting Mode.
+- [x] **SLOT-05**: An unassigned (empty) slot is a valid state, not an error — treated like a paintless step in availability and Painting Mode.
 - [ ] **SLOT-06**: The slot-fill UI shows each slot's role hint and the currently assigned paint swatch.
 
 ### Technique Library Browse (C)
@@ -137,7 +137,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | SLOT-02 | Phase 142 | Complete |
 | SLOT-03 | Phase 143 | Pending |
 | SLOT-04 | Phase 143 | Pending |
-| SLOT-05 | Phase 143 | Pending |
+| SLOT-05 | Phase 143 | Complete |
 | SLOT-06 | Phase 143 | Pending |
 | LIB-01 | Phase 142 | Complete |
 | LIB-02 | Phase 142 | Complete |

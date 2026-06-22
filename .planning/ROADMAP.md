@@ -90,7 +90,7 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
   4. User can view and change slot colours from the recipe detail view — not only from the full edit form
   5. `saveRecipeGraph` is guarded to skip steps with `technique_step_id IS NOT NULL`, so the recipe editor cannot accidentally overwrite live-linked steps
 **Plans**: 4 plans
-- [ ] 143-01-PLAN.md — Wave 0: data-layer tests (guard/apply/effectivePaintId) + saveRecipeGraph guard + buildDraftSections forward/filter (SC#5)
+- [x] 143-01-PLAN.md — Wave 0: data-layer tests (guard/apply/effectivePaintId) + saveRecipeGraph guard + buildDraftSections forward/filter (SC#5)
 - [ ] 143-02-PLAN.md — Data layer: applyTechnique mutation + slot-map query module (resolution/instance maps) + hooks with CASCADE invalidation
 - [ ] 143-03-PLAN.md — Apply flow UI: technique picker Dialog + slot-fill Dialog + editor wiring + badged/locked technique sections
 - [ ] 143-04-PLAN.md — Detail view: effectivePaintId() spine wiring + interactive badge + read-only steps + "Edit colours" pre-populated edit (APPLY-05)
@@ -139,7 +139,7 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
 |-------|-----------|----------------|--------|-----------|
 | 141. Schema Foundation & Progress-Identity Lock | v0.7.0 | 3/3 | Complete    | 2026-06-21 |
 | 142. Technique Authoring & Library Browse | v0.7.0 | 4/4 | Complete   | 2026-06-21 |
-| 143. Apply Flow & Slot-Fill System | v0.7.0 | 0/4 | Planned | - |
+| 143. Apply Flow & Slot-Fill System | v0.7.0 | 1/4 | In Progress|  |
 | 144. Live-Link Re-Sync | v0.7.0 | 0/TBD | Not started | - |
 | 145. Integration Pass | v0.7.0 | 0/TBD | Not started | - |
 | 146. Detach & Safety Rails | v0.7.0 | 0/TBD | Not started | - |
