@@ -276,10 +276,14 @@ async function syncInstance(
   //
   // After saveTechniqueGraph deletes a technique_step, the ON DELETE SET NULL on
   // recipe_steps.technique_step_id fires, making the column NULL. The resync must
-  // clean up these orphaned rows. We delete recipe_steps in this instance's sections
-  // that have technique_step_id IS NULL — those are orphaned technique-owned steps.
-  // (User-added manual steps in non-technique sections have technique_step_id = NULL
-  // but live in sections without technique_instance_id, so they are not affected.)
+  // clean up these orphaned technique-owned rows.
+  //
+  // The actual discriminator is `paint_id IS NULL`: technique-materialised steps
+  // always carry paint_id = NULL (their paint resolves via the slot map), whereas a
+  // user-added MANUAL step carries paint_id != NULL. A manual step can live in ANY
+  // section — including one owned by a technique instance — so section membership is
+  // NOT a reliable guard. Deleting only rows where technique_step_id IS NULL AND
+  // paint_id IS NULL removes orphaned technique steps while preserving manual steps.
 
   for (const rs of allInstanceSteps) {
     if (rs.technique_step_id === null && rs.paint_id === null) {
