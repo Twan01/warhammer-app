@@ -44,7 +44,7 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
 - [x] **Phase 143: Apply Flow & Slot-Fill System** — Technique picker, slot-fill dialog, recipe_technique_instances rows, effectivePaintId() spine wired to all consumers
  (completed 2026-06-22)
 - [x] **Phase 144: Live-Link Re-Sync** — resyncAllInstancesForTechnique (Option A) or virtual-JOIN propagation (Option B), "X recipes affected" warning, data-layer tests gate (completed 2026-06-22)
-- [ ] **Phase 145: Integration Pass** — Painting Mode, paint availability, apply-to-units, SectionedTimeline, recipe duplication, unfilled-slot warning across all surfaces
+- [x] **Phase 145: Integration Pass** — Painting Mode, paint availability, apply-to-units, SectionedTimeline, recipe duplication, unfilled-slot warning across all surfaces (completed 2026-06-22)
 - [ ] **Phase 146: Detach & Safety Rails** — detachTechniqueInstance with progress remapping, confirm dialog, "from technique X" badge with detach affordance, deleteTechnique guard
 
 ## Phase Details
@@ -128,7 +128,7 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
 - [x] 145-01-PLAN.md — Wave 0 data layer: getUnfilledSlotCount + getStepSlotIdMap + hooks/invalidation + 3 data-layer tests (duplication live-link, unfilled-count, availability no-undercounting) (INTG-02, INTG-05, INTG-06)
 - [x] 145-02-PLAN.md — Painting Mode core: effectivePaintId wiring + distinct unfilled-slot indicator + "N colour slots unfilled" banner (INTG-01, INTG-02, INTG-06)
 - [x] 145-03-PLAN.md — Apply-to-units checklist resolution + SectionedTimeline badge / Log Session coverage (INTG-03, INTG-04)
-- [ ] 145-04-PLAN.md — Inline SlotReassignMiniDialog + Painting Mode swatch-tap wiring (INTG-07)
+- [x] 145-04-PLAN.md — Inline SlotReassignMiniDialog + Painting Mode swatch-tap wiring (INTG-07)
 **UI hint**: yes
 
 ### Phase 146: Detach & Safety Rails
@@ -151,5 +151,5 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
 | 142. Technique Authoring & Library Browse | v0.7.0 | 4/4 | Complete   | 2026-06-21 |
 | 143. Apply Flow & Slot-Fill System | v0.7.0 | 4/4 | Complete   | 2026-06-22 |
 | 144. Live-Link Re-Sync | v0.7.0 | 3/3 | Complete   | 2026-06-22 |
-| 145. Integration Pass | v0.7.0 | 3/4 | In Progress|  |
+| 145. Integration Pass | v0.7.0 | 4/4 | Complete   | 2026-06-22 |
 | 146. Detach & Safety Rails | v0.7.0 | 0/TBD | Not started | - |

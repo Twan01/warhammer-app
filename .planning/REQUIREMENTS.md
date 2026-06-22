@@ -79,7 +79,7 @@ Requirements for the v0.7.0 release. Each maps to a roadmap phase.
 - [x] **INTG-04**: The SectionedTimeline displays technique-sourced sections (with badge), and Log Session's cascade selectors include technique-sourced section names.
 - [x] **INTG-05**: Duplicating a recipe preserves its live links — creating new technique instances + slot maps for the copy, not copying technique steps into the recipe graph.
 - [x] **INTG-06**: Paint readiness surfaces an "N colour slots unfilled" warning alongside the existing owned/missing warning.
-- [ ] **INTG-07**: User can reassign a slot's paint inline during Painting Mode (tap the swatch to open a slot-fill mini-dialog).
+- [x] **INTG-07**: User can reassign a slot's paint inline during Painting Mode (tap the swatch to open a slot-fill mini-dialog).
 
 ---
 
@@ -160,7 +160,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | INTG-04 | Phase 145 | Complete |
 | INTG-05 | Phase 145 | Complete |
 | INTG-06 | Phase 145 | Complete |
-| INTG-07 | Phase 145 | Pending |
+| INTG-07 | Phase 145 | Complete |
 
 **Coverage:**
 - v1 requirements: 38 total (5 FND + 5 TECH + 6 SLOT + 4 LIB + 5 APPLY + 3 LINK + 3 SAFE + 7 INTG)
