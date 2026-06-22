@@ -21,6 +21,8 @@ export interface StepFocalViewProps {
   isAllComplete: boolean;
   isMutating?: boolean;
   onExit?: () => void;
+  isUnfilledSlot?: boolean;
+  onReassignSlot?: () => void;
 }
 
 export function StepFocalView({
@@ -40,6 +42,8 @@ export function StepFocalView({
   isAllComplete,
   isMutating,
   onExit,
+  isUnfilledSlot,
+  onReassignSlot,
 }: StepFocalViewProps) {
   if (isAllComplete) {
     return (
@@ -58,7 +62,7 @@ export function StepFocalView({
 
   if (!currentStep) return null;
 
-  const hasPaint = currentStep.paint_id !== null && paint;
+  const hasPaint = !!paint;
 
   return (
     <div className="flex-1 overflow-y-auto p-6 flex flex-col">
@@ -67,7 +71,7 @@ export function StepFocalView({
         {currentStep.step_name}
       </h2>
 
-      {/* 2. Paint info block */}
+      {/* 2. Paint info block — three states: resolved swatch / unfilled-slot indicator / (no paint) */}
       <div className="mt-4">
         {hasPaint ? (
           <div className="flex items-center gap-3">
@@ -92,6 +96,19 @@ export function StepFocalView({
               </div>
             </div>
           </div>
+        ) : isUnfilledSlot ? (
+          <button
+            type="button"
+            onClick={onReassignSlot}
+            aria-label="Colour slot unfilled. Tap to assign a paint."
+            className="flex flex-col items-start gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+          >
+            <div
+              className="h-10 w-10 rounded-full border-2 border-dashed border-muted-foreground bg-transparent"
+              aria-hidden="true"
+            />
+            <p className="text-xs text-muted-foreground">Slot unfilled — tap to assign</p>
+          </button>
         ) : (
           <p className="text-sm text-muted-foreground">(no paint)</p>
         )}

@@ -183,6 +183,56 @@ describe("StepFocalView", () => {
     expect(screen.queryByTestId("paint-swatch")).not.toBeInTheDocument();
   });
 
+  // ---------------------------------------------------------------------------
+  // INTG-01: Three-state paint block — unfilled-slot indicator
+  // ---------------------------------------------------------------------------
+
+  it("INTG-01: renders dashed unfilled-slot indicator when isUnfilledSlot is true and paint is undefined", () => {
+    renderFocalView({
+      currentStep: makeStep({ paint_id: null }),
+      paint: undefined,
+      isUnfilledSlot: true,
+    });
+    expect(
+      screen.getByRole("button", {
+        name: "Colour slot unfilled. Tap to assign a paint.",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("(no paint)")).not.toBeInTheDocument();
+  });
+
+  it("INTG-01: unfilled-slot button fires onReassignSlot when clicked", async () => {
+    const user = userEvent.setup();
+    const onReassignSlot = vi.fn();
+    renderFocalView({
+      currentStep: makeStep({ paint_id: null }),
+      paint: undefined,
+      isUnfilledSlot: true,
+      onReassignSlot,
+    });
+    await user.click(
+      screen.getByRole("button", {
+        name: "Colour slot unfilled. Tap to assign a paint.",
+      }),
+    );
+    expect(onReassignSlot).toHaveBeenCalledOnce();
+  });
+
+  it("INTG-01: resolved paint still shows swatch (hasPaint = !!paint — isUnfilledSlot ignored)", () => {
+    renderFocalView({
+      currentStep: makeStep(),
+      paint: makePaint(),
+      isUnfilledSlot: true,
+    });
+    expect(screen.getByTestId("paint-swatch")).toBeInTheDocument();
+    expect(screen.queryByText("(no paint)")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", {
+        name: "Colour slot unfilled. Tap to assign a paint.",
+      }),
+    ).not.toBeInTheDocument();
+  });
+
   it("D-10: renders kbd badges for keyboard shortcuts", () => {
     renderFocalView();
 
