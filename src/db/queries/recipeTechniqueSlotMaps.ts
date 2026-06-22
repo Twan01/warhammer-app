@@ -105,6 +105,82 @@ export async function getSlotMapByInstance(
 }
 
 // ---------------------------------------------------------------------------
+// getUnfilledSlotCount — count of unfilled colour slots across non-detached instances
+// ---------------------------------------------------------------------------
+
+/**
+ * Count the number of unfilled colour slots for a recipe.
+ *
+ * A slot is considered unfilled when:
+ *   - There is no recipe_technique_slot_maps row for it (sm.instance_id IS NULL), OR
+ *   - There is a row but paint_id is NULL (explicitly unfilled).
+ *
+ * Detached instances (rti.detached = 1) are excluded — their slot fills are stale
+ * and should not count toward the recipe's readiness banner.
+ *
+ * CRITICAL: Uses LEFT JOIN on recipe_technique_slot_maps. An INNER JOIN would
+ * silently omit slots with no map row, undercounting unfilled slots (T-145-01).
+ *
+ * @param recipeId  The recipe to count unfilled slots for.
+ */
+export async function getUnfilledSlotCount(recipeId: number): Promise<number> {
+  const db = await getDb();
+
+  const rows = await db.select<{ unfilled_count: number }[]>(
+    `SELECT COUNT(*) AS unfilled_count
+     FROM recipe_technique_instances rti
+     JOIN technique_colour_slots tcs ON tcs.technique_id = rti.technique_id
+     LEFT JOIN recipe_technique_slot_maps sm
+       ON sm.instance_id = rti.id AND sm.slot_id = tcs.id
+     WHERE rti.recipe_id = $1
+       AND rti.detached = 0
+       AND (sm.instance_id IS NULL OR sm.paint_id IS NULL)`,
+    [recipeId],
+  );
+
+  return rows[0]?.unfilled_count ?? 0;
+}
+
+// ---------------------------------------------------------------------------
+// getStepSlotIdMap — Map<recipe_step_id, colour_slot_id|null> for mini-dialog targeting
+// ---------------------------------------------------------------------------
+
+/**
+ * Build a map from recipe_step.id to the colour_slot_id of the technique step.
+ *
+ * Reuses the same JOIN chain as getSlotResolutionMap but returns the slot id
+ * (not the resolved paint id). Used by PaintingModeView to know which slot a
+ * tapped technique step maps to, enabling the SlotReassignMiniDialog to target
+ * exactly the right slot.
+ *
+ * Only technique steps (technique_step_id IS NOT NULL) are included.
+ * Plain recipe steps are omitted — they have no colour slot.
+ *
+ * @param recipeId  The recipe to build the map for.
+ */
+export async function getStepSlotIdMap(
+  recipeId: number,
+): Promise<Map<number, number | null>> {
+  const db = await getDb();
+
+  const rows = await db.select<{ recipe_step_id: number; slot_id: number | null }[]>(
+    `SELECT rs.id AS recipe_step_id, ts.colour_slot_id AS slot_id
+     FROM recipe_steps rs
+     JOIN recipe_sections rsec ON rsec.id = rs.section_id
+     JOIN recipe_technique_instances rti ON rti.id = rsec.technique_instance_id
+     JOIN technique_steps ts ON ts.id = rs.technique_step_id
+     WHERE rs.recipe_id = $1 AND rs.technique_step_id IS NOT NULL`,
+    [recipeId],
+  );
+
+  const map = new Map<number, number | null>();
+  for (const row of rows) {
+    map.set(row.recipe_step_id, row.slot_id ?? null);
+  }
+  return map;
+}
+
+// ---------------------------------------------------------------------------
 // updateSlotMap — INSERT OR REPLACE slot fills for an instance
 // ---------------------------------------------------------------------------
 
