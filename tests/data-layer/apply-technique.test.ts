@@ -69,6 +69,14 @@ describe("applyTechnique (SLOT-03, SLOT-04) — CONTRACT for Plan 02", () => {
     // ── Recipe ───────────────────────────────────────────────────────────────
     recipeId = createTestRecipe(db);
 
+    // ── Seed paints used by slotFill tests (FK ON RESTRICT requires real rows) ─
+    // Tests use paint ids 10, 20, 77 — insert them so FK constraint passes.
+    for (const id of [10, 20, 77]) {
+      db.prepare(
+        "INSERT OR IGNORE INTO paints (id, brand, name, paint_type) VALUES (?, 'Test', 'TestPaint', 'Base')",
+      ).run(id);
+    }
+
     // Wire getDb() to our in-memory DB
     vi.mocked(getDb).mockResolvedValue(createDbBridge(db) as never);
   });
