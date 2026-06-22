@@ -3,9 +3,13 @@
  *
  * Provides three query functions for the slot-fill system:
  *
- *   getSlotResolutionMap — builds Map<technique_step_id, paint_id|null> for the
- *     entire recipe; keyed on technique_step_id (NOT recipe_step.id) so callers
- *     can pass it directly to effectivePaintId().
+ *   getSlotResolutionMap — builds Map<recipe_step_id, paint_id|null> for the
+ *     entire recipe; keyed on recipe_steps.id (the materialised step PK) so
+ *     two applications of the same technique get distinct map entries.
+ *     SLOT-04 fix (CR-01): previously keyed on technique_step_id which caused
+ *     a collision when the same technique was applied twice — the second
+ *     application's row overwrote the first in the JS Map, causing the first
+ *     application's steps to resolve to the wrong paint.
  *
  *   getSlotMapByInstance — builds Map<slot_id, paint_id|null> for a specific
  *     instance; used to pre-populate Edit-colours forms.
@@ -18,24 +22,31 @@
  *   recipe_steps → recipe_sections → recipe_technique_instances →
  *   technique_steps (for colour_slot_id) → LEFT JOIN recipe_technique_slot_maps
  *
- * Pitfall 3: key on rs.technique_step_id, NOT rs.id.
+ * Key: rs.id (recipe_step PK), NOT rs.technique_step_id (only unique per-technique,
+ * not per-recipe-application — two applications of the same technique share
+ * technique_step_id values but have distinct recipe_step ids).
  */
 
 import { getDb } from "@/db/client";
 
 // ---------------------------------------------------------------------------
-// getSlotResolutionMap — Map<technique_step_id, paint_id|null> for a recipe
+// getSlotResolutionMap — Map<recipe_step_id, paint_id|null> for a recipe
 // ---------------------------------------------------------------------------
 
 /**
  * Build the slot resolution map for a recipe.
  *
- * The map is keyed on technique_step_id (the FK linking a materialised
- * recipe_step back to its source technique_steps row). effectivePaintId() looks
- * up this key when resolving paint for technique-owned steps.
+ * The map is keyed on recipe_steps.id (the materialised step PK). This ensures
+ * that when the same technique is applied twice (SLOT-04), each application's
+ * steps resolve independently to their own instance's slot fills.
+ *
+ * effectivePaintId() looks up step.id in this map (not technique_step_id).
  *
  * Unfilled slots (no slot_map row, or slot_map.paint_id = NULL) → null.
  * Plain recipe_steps (technique_step_id IS NULL) are excluded by WHERE clause.
+ * Steps in technique sections where colour_slot_id IS NULL (slotless steps) yield
+ * null paint by design — they have no colour slot, so sm.paint_id is always NULL
+ * via the LEFT JOIN (NULL = NULL evaluates to UNKNOWN in SQL, never TRUE).
  *
  * @param recipeId  The recipe to load the map for.
  */
@@ -44,21 +55,22 @@ export async function getSlotResolutionMap(
 ): Promise<Map<number, number | null>> {
   const db = await getDb();
 
-  const rows = await db.select<{ technique_step_id: number; paint_id: number | null }[]>(
-    `SELECT rs.technique_step_id, sm.paint_id
+  const rows = await db.select<{ recipe_step_id: number; paint_id: number | null }[]>(
+    `SELECT rs.id AS recipe_step_id, sm.paint_id
      FROM recipe_steps rs
      JOIN recipe_sections rsec ON rsec.id = rs.section_id
      JOIN recipe_technique_instances rti ON rti.id = rsec.technique_instance_id
      JOIN technique_steps ts ON ts.id = rs.technique_step_id
      LEFT JOIN recipe_technique_slot_maps sm
        ON sm.instance_id = rti.id AND sm.slot_id = ts.colour_slot_id
-     WHERE rs.recipe_id = $1 AND rs.technique_step_id IS NOT NULL`,
+     WHERE rs.recipe_id = $1 AND rs.technique_step_id IS NOT NULL
+     -- (ts.colour_slot_id IS NULL means no slot; sm.paint_id will be NULL via LEFT JOIN)`,
     [recipeId],
   );
 
   const map = new Map<number, number | null>();
   for (const row of rows) {
-    map.set(row.technique_step_id, row.paint_id ?? null);
+    map.set(row.recipe_step_id, row.paint_id ?? null);
   }
   return map;
 }

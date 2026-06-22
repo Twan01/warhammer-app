@@ -25,6 +25,9 @@ import { getDb } from "@/db/client";
 // Import applyTechnique — RED until Plan 02 creates recipeTechniqueInstances.ts
 import { applyTechnique } from "@/db/queries/recipeTechniqueInstances";
 
+// Import getSlotResolutionMap — for SLOT-04 resolution correctness test (CR-01)
+import { getSlotResolutionMap } from "@/db/queries/recipeTechniqueSlotMaps";
+
 // ── Module-scoped vars assigned in beforeEach ────────────────────────────────
 
 let db: Database.Database;
@@ -213,5 +216,49 @@ describe("applyTechnique (SLOT-03, SLOT-04) — CONTRACT for Plan 02", () => {
     // Instance B has its own independent fill
     expect(slotMapB).toBeDefined();
     expect(slotMapB!.paint_id).toBe(paintB);
+  });
+
+  // ── Case 4: SLOT-04 — getSlotResolutionMap returns distinct paints per instance ─
+  //
+  // CR-01 fix verification: the resolution map is keyed on recipe_steps.id (not
+  // technique_step_id), so two applications of the same technique in one recipe
+  // each resolve to their own independently-filled slot. If this test was run
+  // against the pre-fix code (keyed on technique_step_id), the second application's
+  // paint would overwrite the first in the JS Map, and both steps would resolve to
+  // the same (wrong) paint.
+
+  it("SLOT-04 (CR-01): getSlotResolutionMap returns distinct paints for two instances of the same technique", async () => {
+    const paintA = 10;
+    const paintB = 20;
+
+    await applyTechnique(recipeId, techniqueId, 0, new Map([[colourSlotId, paintA]]));
+    await applyTechnique(recipeId, techniqueId, 1, new Map([[colourSlotId, paintB]]));
+
+    // Load the resolution map — keyed on recipe_steps.id after CR-01 fix
+    const resolutionMap = await getSlotResolutionMap(recipeId);
+
+    // We expect two distinct recipe_step entries (one per application)
+    expect(resolutionMap.size).toBe(2);
+
+    // Retrieve the two recipe_steps rows to know which id belongs to which instance
+    const recipeSteps = db
+      .prepare(
+        `SELECT rs.id, rsec.technique_instance_id
+         FROM recipe_steps rs
+         JOIN recipe_sections rsec ON rsec.id = rs.section_id
+         WHERE rs.recipe_id = ? AND rs.technique_step_id IS NOT NULL
+         ORDER BY rs.id ASC`,
+      )
+      .all(recipeId) as Array<{ id: number; technique_instance_id: number }>;
+
+    expect(recipeSteps.length).toBe(2);
+
+    // Each recipe_step resolves to its own instance's paint
+    const [stepA, stepB] = recipeSteps;
+    expect(resolutionMap.get(stepA.id)).toBe(paintA);
+    expect(resolutionMap.get(stepB.id)).toBe(paintB);
+
+    // Confirm the two steps belong to different instances
+    expect(stepA.technique_instance_id).not.toBe(stepB.technique_instance_id);
   });
 });
