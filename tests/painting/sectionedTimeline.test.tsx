@@ -10,6 +10,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { SectionedTimeline } from "@/features/recipes/SectionedTimeline";
+import type { TechniqueSectionInfo } from "@/features/recipes/SectionedTimeline";
 import type { RecipeSection } from "@/types/recipeSection";
 import type { RecipeStep } from "@/types/recipePaint";
 import type { Paint } from "@/types/paint";
@@ -442,5 +443,72 @@ describe("SectionedTimeline â€” VIEW-04 (empty sections guard)", () => {
       <SectionedTimeline sections={[]} steps={[]} paintMap={new Map()} />
     );
     expect(container).toBeEmptyDOMElement();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// INTG-04 -- TechniqueSectionBadge renders for technique-sourced sections
+//
+// Phase 143 wired TechniqueSectionBadge into SectionedTimeline already.
+// These tests prove the badge renders when techniqueSectionInfoMap is provided
+// and is absent on the plain-recipe path.
+//
+// Log Session (INTG-04): No code change needed -- technique sections are real
+// recipe_sections surfaced by useRecipeSections (RESEARCH A1), so they appear
+// in PaintingSessionSheet's section selector automatically. The scalar-prop
+// coverage in tests/painting/logSessionSheet.test.tsx covers that path.
+// ---------------------------------------------------------------------------
+
+describe("SectionedTimeline -- INTG-04 (TechniqueSectionBadge for technique sections)", () => {
+  it("renders 'from {techniqueName}' badge when techniqueSectionInfoMap entry is provided", () => {
+    const section = makeSection({ id: 42, name: "NMM Gold Section" });
+    const techniqueInfo: TechniqueSectionInfo = {
+      techniqueId: 7,
+      instanceId: 3,
+      techniqueName: "NMM Gold",
+    };
+    const techniqueMap = new Map([[42, techniqueInfo]]);
+
+    render(
+      <SectionedTimeline
+        sections={[section]}
+        steps={[]}
+        paintMap={new Map()}
+        techniqueSectionInfoMap={techniqueMap}
+      />
+    );
+
+    // The badge renders "from {techniqueName}"
+    expect(screen.getByText(/from NMM Gold/i)).toBeInTheDocument();
+  });
+
+  it("does NOT render a technique badge when techniqueSectionInfoMap is absent (plain recipe path)", () => {
+    const section = makeSection({ id: 42, name: "Armour Section" });
+
+    render(
+      <SectionedTimeline
+        sections={[section]}
+        steps={[]}
+        paintMap={new Map()}
+      />
+    );
+
+    expect(screen.queryByText(/^from /i)).not.toBeInTheDocument();
+  });
+
+  it("does NOT render a technique badge for a section not in techniqueSectionInfoMap", () => {
+    const section = makeSection({ id: 99, name: "Plain Section" });
+    const techniqueMap = new Map([[1, { techniqueId: 1, instanceId: 1, techniqueName: "Drybrush" }]]);
+
+    render(
+      <SectionedTimeline
+        sections={[section]}
+        steps={[]}
+        paintMap={new Map()}
+        techniqueSectionInfoMap={techniqueMap}
+      />
+    );
+
+    expect(screen.queryByText(/^from /i)).not.toBeInTheDocument();
   });
 });
