@@ -46,7 +46,7 @@ export function PaintReadinessBanner({
                   className="h-4 w-4 text-muted-foreground shrink-0"
                   aria-hidden="true"
                 />
-                <p className="text-sm text-muted-foreground">
+                <p className="text-base text-muted-foreground">
                   {unfilledSlotCount === 1
                     ? "1 colour slot unfilled"
                     : `${unfilledSlotCount} colour slots unfilled`}

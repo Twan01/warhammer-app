@@ -20,7 +20,7 @@ export function SlotFillRow({ slot, paintId, onChange }: SlotFillRowProps) {
     <div className="flex items-center gap-3 rounded-md border p-2">
       {/* Name + role hint column */}
       <div className="flex w-36 shrink-0 flex-col gap-1">
-        <span className="text-sm font-medium">{slot.name}</span>
+        <span className="text-sm font-semibold">{slot.name}</span>
         <span className="text-xs text-muted-foreground">
           {slot.role_hint ?? "No hint"}
         </span>

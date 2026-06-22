@@ -119,7 +119,7 @@ export function SlotReassignMiniDialog({
           </Button>
           <Button
             onClick={handleSave}
-            disabled={updateSlotMap.isPending || isLoading}
+            disabled={updateSlotMap.isPending || isLoading || !slot}
           >
             {updateSlotMap.isPending && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
