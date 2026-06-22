@@ -540,7 +540,10 @@ export function TechniqueFormSheet({ open, technique, onClose }: TechniqueFormSh
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-2">
-            <Button variant="outline" onClick={() => setConfirmDialog(null)}>
+            <Button variant="outline" onClick={() => {
+              setConfirmDialog(null);
+              pendingSubmitRef.current = null; // WR-03: clear stale pending payload on cancel
+            }}>
               Cancel
             </Button>
             <Button
