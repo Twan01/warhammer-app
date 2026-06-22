@@ -32,6 +32,7 @@ import { RecipeStepTimeline } from "./RecipeStepTimeline";
 import { SectionedTimeline, type TechniqueSectionInfo } from "./SectionedTimeline";
 import { EditColoursDialog } from "./EditColoursDialog";
 import { isPaintMissing } from "@/lib/recipeSteps";
+import { effectivePaintId } from "@/lib/effectivePaintId";
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { convertFileSrc } from "@tauri-apps/api/core";
 
@@ -144,11 +145,18 @@ export function RecipeDetailSheet({
   const createWishlistItem = useCreateWishlistItem();
 
   const missingPaints = useMemo(() => {
+    // CR-03 fix: resolve technique-owned steps via effectivePaintId so their
+    // slot-filled paints are included in the missing-paint wishlist calculation.
+    // Previously used step.paint_id directly which is always null for technique
+    // steps, silently excluding all technique-owned missing paints.
+    const resolvedMap = slotMap ?? new Map();
     return steps
-      .filter((s): s is typeof s & { paint_id: number } => s.paint_id != null && s.paint_id !== 0)
-      .map((s) => paintMap.get(s.paint_id))
+      .map((s) => {
+        const resolvedId = effectivePaintId(s, resolvedMap);
+        return resolvedId != null && resolvedId !== 0 ? paintMap.get(resolvedId) : undefined;
+      })
       .filter((p): p is NonNullable<typeof p> => p !== undefined && isPaintMissing(p));
-  }, [steps, paintMap]);
+  }, [steps, paintMap, slotMap]);
 
   const uniqueMissingPaints = useMemo(() => {
     const seen = new Set<number>();
