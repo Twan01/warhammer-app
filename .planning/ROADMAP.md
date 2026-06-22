@@ -125,7 +125,7 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
   5. Duplicating a recipe creates new technique instances and copies slot fills for the copy — it does not copy technique steps into the recipe graph (the live link is preserved in the duplicate)
   6. In Painting Mode, tapping the paint swatch on a technique-sourced step opens a slot-fill mini-dialog so the user can reassign that slot's paint inline without leaving the mode
 **Plans**: 4 plans
-- [ ] 145-01-PLAN.md — Wave 0 data layer: getUnfilledSlotCount + getStepSlotIdMap + hooks/invalidation + 3 data-layer tests (duplication live-link, unfilled-count, availability no-undercounting) (INTG-02, INTG-05, INTG-06)
+- [x] 145-01-PLAN.md — Wave 0 data layer: getUnfilledSlotCount + getStepSlotIdMap + hooks/invalidation + 3 data-layer tests (duplication live-link, unfilled-count, availability no-undercounting) (INTG-02, INTG-05, INTG-06)
 - [ ] 145-02-PLAN.md — Painting Mode core: effectivePaintId wiring + distinct unfilled-slot indicator + "N colour slots unfilled" banner (INTG-01, INTG-02, INTG-06)
 - [ ] 145-03-PLAN.md — Apply-to-units checklist resolution + SectionedTimeline badge / Log Session coverage (INTG-03, INTG-04)
 - [ ] 145-04-PLAN.md — Inline SlotReassignMiniDialog + Painting Mode swatch-tap wiring (INTG-07)
@@ -151,5 +151,5 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
 | 142. Technique Authoring & Library Browse | v0.7.0 | 4/4 | Complete   | 2026-06-21 |
 | 143. Apply Flow & Slot-Fill System | v0.7.0 | 4/4 | Complete   | 2026-06-22 |
 | 144. Live-Link Re-Sync | v0.7.0 | 3/3 | Complete   | 2026-06-22 |
-| 145. Integration Pass | v0.7.0 | 0/4 | Not started | - |
+| 145. Integration Pass | v0.7.0 | 1/4 | In Progress|  |
 | 146. Detach & Safety Rails | v0.7.0 | 0/TBD | Not started | - |

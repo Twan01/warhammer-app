@@ -74,11 +74,11 @@ Requirements for the v0.7.0 release. Each maps to a roadmap phase.
 ### Integration with Existing Surfaces (G)
 
 - [ ] **INTG-01**: Painting Mode executes technique-sourced steps correctly — showing the slot-resolved paint swatch, marking progress against the stable technique-step identity, with keyboard shortcuts unaffected.
-- [ ] **INTG-02**: Paint availability ("owned/missing") counts slot-resolved paints via `effectivePaintId()`, matching what Painting Mode shows.
+- [x] **INTG-02**: Paint availability ("owned/missing") counts slot-resolved paints via `effectivePaintId()`, matching what Painting Mode shows.
 - [ ] **INTG-03**: Apply-to-units per-unit step progress works for technique-sourced steps.
 - [ ] **INTG-04**: The SectionedTimeline displays technique-sourced sections (with badge), and Log Session's cascade selectors include technique-sourced section names.
-- [ ] **INTG-05**: Duplicating a recipe preserves its live links — creating new technique instances + slot maps for the copy, not copying technique steps into the recipe graph.
-- [ ] **INTG-06**: Paint readiness surfaces an "N colour slots unfilled" warning alongside the existing owned/missing warning.
+- [x] **INTG-05**: Duplicating a recipe preserves its live links — creating new technique instances + slot maps for the copy, not copying technique steps into the recipe graph.
+- [x] **INTG-06**: Paint readiness surfaces an "N colour slots unfilled" warning alongside the existing owned/missing warning.
 - [ ] **INTG-07**: User can reassign a slot's paint inline during Painting Mode (tap the swatch to open a slot-fill mini-dialog).
 
 ---
@@ -155,11 +155,11 @@ Which phases cover which requirements. Populated during roadmap creation.
 | SAFE-02 | Phase 146 | Pending |
 | SAFE-03 | Phase 146 | Pending |
 | INTG-01 | Phase 145 | Pending |
-| INTG-02 | Phase 145 | Pending |
+| INTG-02 | Phase 145 | Complete |
 | INTG-03 | Phase 145 | Pending |
 | INTG-04 | Phase 145 | Pending |
-| INTG-05 | Phase 145 | Pending |
-| INTG-06 | Phase 145 | Pending |
+| INTG-05 | Phase 145 | Complete |
+| INTG-06 | Phase 145 | Complete |
 | INTG-07 | Phase 145 | Pending |
 
 **Coverage:**
