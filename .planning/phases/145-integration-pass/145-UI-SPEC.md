@@ -78,7 +78,7 @@ Phase 145 specific rules:
 - Unfilled-slot label beneath the dashed swatch in StepFocalView: `text-xs
   text-muted-foreground` (12px weight 400).
 - Mini-dialog title: `text-base font-semibold` — matches SlotFillDialog title.
-- Mini-dialog slot name: `text-sm font-medium`.
+- Mini-dialog slot name: `text-sm font-semibold` (key row identifier; keeps the scale at exactly 2 weights — 400/600).
 - Mini-dialog role hint: `text-xs text-muted-foreground`.
 
 ---
