@@ -63,7 +63,9 @@ export async function getSlotResolutionMap(
      JOIN technique_steps ts ON ts.id = rs.technique_step_id
      LEFT JOIN recipe_technique_slot_maps sm
        ON sm.instance_id = rti.id AND sm.slot_id = ts.colour_slot_id
-     WHERE rs.recipe_id = $1 AND rs.technique_step_id IS NOT NULL
+     WHERE rs.recipe_id = $1
+       AND rs.technique_step_id IS NOT NULL
+       AND rti.detached = 0
      -- (ts.colour_slot_id IS NULL means no slot; sm.paint_id will be NULL via LEFT JOIN)`,
     [recipeId],
   );
@@ -169,7 +171,9 @@ export async function getStepSlotIdMap(
      JOIN recipe_sections rsec ON rsec.id = rs.section_id
      JOIN recipe_technique_instances rti ON rti.id = rsec.technique_instance_id
      JOIN technique_steps ts ON ts.id = rs.technique_step_id
-     WHERE rs.recipe_id = $1 AND rs.technique_step_id IS NOT NULL`,
+     WHERE rs.recipe_id = $1
+       AND rs.technique_step_id IS NOT NULL
+       AND rti.detached = 0`,
     [recipeId],
   );
 
