@@ -63,7 +63,7 @@ Requirements for the v0.7.0 release. Each maps to a roadmap phase.
 
 - [x] **LINK-01**: Editing a technique's step structure (add / remove / reorder) propagates to every recipe instance using it, while each recipe keeps its own slot colours.
 - [ ] **LINK-02**: Before saving a structural technique change, the user sees an "X recipes will be affected" warning.
-- [ ] **LINK-03**: That confirmation shows a change summary (e.g. "adds 1 step, removes 1 step across 3 recipes"), not just a count.
+- [x] **LINK-03**: That confirmation shows a change summary (e.g. "adds 1 step, removes 1 step across 3 recipes"), not just a count.
 
 ### Detach & Safety (F)
 
@@ -150,7 +150,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | APPLY-05 | Phase 143 | Complete |
 | LINK-01 | Phase 144 | Complete |
 | LINK-02 | Phase 144 | Pending |
-| LINK-03 | Phase 144 | Pending |
+| LINK-03 | Phase 144 | Complete |
 | SAFE-01 | Phase 146 | Pending |
 | SAFE-02 | Phase 146 | Pending |
 | SAFE-03 | Phase 146 | Pending |
