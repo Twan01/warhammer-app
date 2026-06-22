@@ -317,6 +317,12 @@ fn get_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/052_technique_resync.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 53,
+            description: "technique_section_idx",
+            sql: include_str!("../migrations/053_technique_section_idx.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
