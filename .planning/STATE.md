@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.7.0
 milestone_name: Technique Library
-status: milestone_complete
-stopped_at: Milestone complete (Phase 146 was final phase)
-last_updated: 2026-06-23T08:13:07.881Z
+status: completed
+stopped_at: Phase 146.1-01 gap-closure complete (LINK-01/INTG-05 closed)
+last_updated: "2026-06-23T08:43:22.340Z"
 last_activity: 2026-06-23
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 21
-  completed_plans: 21
+  total_phases: 7
+  completed_phases: 7
+  total_plans: 22
+  completed_plans: 22
   percent: 100
 ---
 
@@ -56,6 +56,7 @@ Progress: [██████████] 100%
 - No new runtime or dev dependencies — every v0.7.0 pattern maps to an existing codebase pattern
 - No new top-level sidebar entry — technique library lives under Workshop/Recipes
 - effectivePaintId() must be the single resolution spine for ALL paint consumers — direct step.paint_id reads on technique-owned steps always return NULL
+- **v0.7.0 gap-closure (Phase 146.1-01):** technique_section_id must be written by applyTechnique (section.id) and copied by duplicateRecipe — required so resyncTechniqueInstances UPDATEs rather than INSERTs duplicate sections. LINK-01 + INTG-05 closed.
 
 ### Phase 141 Critical Gate
 
@@ -71,7 +72,7 @@ None.
 
 ### Open Blockers
 
-None.
+None. (LINK-01 and INTG-05 closed by Phase 146.1-01 gap-closure plan)
 
 ## Deferred Items
 
@@ -95,6 +96,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-23T05:26:15.422Z
+Last session: 2026-06-23T08:43:22.331Z
 Stopped at: Phase 146 UI-SPEC approved
 Resume file: None
