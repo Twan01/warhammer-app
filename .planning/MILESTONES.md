@@ -1,5 +1,36 @@
 # Milestones
 
+## v0.7.0 Technique Library (Shipped: 2026-06-23)
+
+**Phases completed:** 7 phases, 22 plans, 8 tasks
+
+**Key accomplishments:**
+
+- One-liner:
+- One-liner:
+- One-liner:
+- `src/types/technique.ts`
+- `src/lib/techniqueDiff.ts`
+- `TechniqueSlotRow.tsx`
+- `applyTechniqueFilters.ts`
+- saveRecipeGraph guard (T-143-01 / T-143-02)
+- applyTechnique() (SLOT-03, SLOT-04, APPLY-01, APPLY-04)
+- TechniquePickerCard (APPLY-01)
+- Task 1: effectivePaintId() in SectionedTimeline + RecipeStepTimeline (SLOT-06, Pitfall 6 closed)
+- One-liner:
+- One-liner:
+- One-liner:
+- One-liner:
+- One-liner:
+- 1. [Rule 1 - Bug] Existing assignmentChecklist test broken by new useSlotResolutionMap hook call
+- SlotReassignMiniDialog
+- 1. [Rule 1 - Bug] Fixed wrong FK column in progress fixture
+- Task 1:
+- 1. [Rule 3 - Blocking] Moved nonDetachedCountQuery below state declarations
+- 1. [Rule 1 - Bug] Updated duplicateRecipe.test.ts param count 11→12
+
+---
+
 ## v0.6.0 Bulletproof & Honest (Shipped: 2026-06-19)
 
 **Phases completed:** 11 phases (130-140), 32 plans, 26 tasks
