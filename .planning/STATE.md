@@ -82,6 +82,8 @@ None.
 | Future | HON-FUT-01: Theme customization / custom painting-status labels | Future milestone | v0.6.0 planning |
 | Future | French translations for stratagems/enhancements | Future milestone | v0.4.7 planning |
 | v0.7.0 v2 | TQOL-01..04: Technique QoL (per-instance timestamp, slot suggestions, bulk reassign, soft-override flow) | v0.7.0 v2 | v0.7.0 scoping |
+| v0.7.0 v2 | TECH-UX-01: Technique step's colour-slot dropdown shows only "-- no slot --" with no guidance when zero slots exist; should hint "Add a colour slot first" / point to the Colour Slots section (discoverability gap found during 146 UAT) | v0.7.0 v2 | 146 UAT |
+| v0.7.0 v2 | TECH-UX-02: Recipe slot-fill PaintCombobox can't create a paint inline (onCreateNew omitted) + a slot-less technique applies silently with no slots to fill; add inline create-paint and/or empty-inventory guidance (found during 146 UAT) | v0.7.0 v2 | 146 UAT |
 | Phase 142 P01 | 15 | 3 tasks | 8 files |
 | Phase 144-live-link-re-sync P01 | 21 | 3 tasks | 4 files |
 | Phase 144-live-link-re-sync P02 | 18 | 2 tasks | 4 files |
