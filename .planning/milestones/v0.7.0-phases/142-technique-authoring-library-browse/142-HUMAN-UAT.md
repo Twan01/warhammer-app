@@ -1,9 +1,9 @@
 ---
-status: accepted
+status: passed
 phase: 142-technique-authoring-library-browse
 source: [142-VERIFICATION.md]
 started: 2026-06-21
-updated: 2026-06-22
+updated: 2026-06-23T13:00:00Z
 ---
 
 ## Current Test
@@ -18,30 +18,30 @@ result: ISSUE FOUND → FIXED. Clicking "Add Technique" crashed with "Maximum up
 
 ### 2. Edit with drag-reorder
 expected: Editing a technique, dragging steps/sections (dnd-kit) reorders them; save persists the new order non-destructively (no step-ID churn).
-result: [pending]
+result: pass — user-approved 2026-06-23 (in-app validation)
 
 ### 3. Slot removal clears step references
 expected: In the form, removing a colour slot that a step references clears that step's slot picker (no dangling slot) before/after save.
-result: [pending]
+result: pass — user-approved 2026-06-23 (in-app validation)
 
 ### 4. Duplicate produces an independent copy
 expected: "Duplicate Technique" creates a "Copy of {name}" card; editing the copy does not affect the original (independent IDs across sections/steps/slots).
-result: [pending]
+result: pass — user-approved 2026-06-23 (in-app validation)
 
 ### 5. Delete with usage warning
 expected: Deleting a technique shows a confirm dialog ("used by N recipes" / permanent-remove copy when N=0) with a "Keep Technique" cancel; confirming removes the card. Usage count reads 0 this phase (apply flow lands in Phase 143).
-result: [pending]
+result: pass — user-approved 2026-06-23 (in-app validation)
 
 ### 6. Detail sheet with real data
 expected: Opening a technique's detail Sheet shows the full colour-slot list, the sectioned step tree, and a "used by N recipes" list ("Not used by any recipes yet." when 0).
-result: [pending]
+result: pass — user-approved 2026-06-23 (in-app validation)
 
 ## Summary
 
 total: 6
-passed: 1
+passed: 6
 issues: 1
-pending: 5
+pending: 0
 skipped: 0
 blocked: 0
 
