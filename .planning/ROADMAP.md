@@ -143,7 +143,7 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
   4. Attempting to delete a technique that still has live recipe instances surfaces the affected-recipe count and requires explicit confirmation
 **Plans**: 3 plans
 - [x] 146-01-PLAN.md — Detach data-layer engine: guard-first test + detachTechniqueInstance (bake-before-delete) + detachAllAndDeleteTechnique (SAFE-02, SAFE-03)
-- [ ] 146-02-PLAN.md — Detach UI: useDetachTechniqueInstance hook + DetachConfirmDialog + editor Unlink affordance (SAFE-01, SAFE-02, SAFE-03)
+- [x] 146-02-PLAN.md — Detach UI: useDetachTechniqueInstance hook + DetachConfirmDialog + editor Unlink affordance (SAFE-01, SAFE-02, SAFE-03)
 - [ ] 146-03-PLAN.md — Delete safety rail: auto-detach-then-delete useDeleteTechnique + two-case TechniqueDeleteDialog + live non-detached count (SAFE-03)
 **UI hint**: yes
 
@@ -156,4 +156,4 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
 | 143. Apply Flow & Slot-Fill System | v0.7.0 | 4/4 | Complete   | 2026-06-22 |
 | 144. Live-Link Re-Sync | v0.7.0 | 3/3 | Complete   | 2026-06-22 |
 | 145. Integration Pass | v0.7.0 | 4/4 | Complete   | 2026-06-22 |
-| 146. Detach & Safety Rails | v0.7.0 | 1/3 | In Progress|  |
+| 146. Detach & Safety Rails | v0.7.0 | 2/3 | In Progress|  |
