@@ -46,7 +46,7 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
 - [x] **Phase 144: Live-Link Re-Sync** — resyncAllInstancesForTechnique (Option A) or virtual-JOIN propagation (Option B), "X recipes affected" warning, data-layer tests gate (completed 2026-06-22)
 - [x] **Phase 145: Integration Pass** — Painting Mode, paint availability, apply-to-units, SectionedTimeline, recipe duplication, unfilled-slot warning across all surfaces
  (completed 2026-06-22)
-- [ ] **Phase 146: Detach & Safety Rails** — detachTechniqueInstance with progress remapping, confirm dialog, "from technique X" badge with detach affordance, deleteTechnique guard
+- [x] **Phase 146: Detach & Safety Rails** — detachTechniqueInstance with progress remapping, confirm dialog, "from technique X" badge with detach affordance, deleteTechnique guard (completed 2026-06-23)
 
 ## Phase Details
 
@@ -144,7 +144,7 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
 **Plans**: 3 plans
 - [x] 146-01-PLAN.md — Detach data-layer engine: guard-first test + detachTechniqueInstance (bake-before-delete) + detachAllAndDeleteTechnique (SAFE-02, SAFE-03)
 - [x] 146-02-PLAN.md — Detach UI: useDetachTechniqueInstance hook + DetachConfirmDialog + editor Unlink affordance (SAFE-01, SAFE-02, SAFE-03)
-- [ ] 146-03-PLAN.md — Delete safety rail: auto-detach-then-delete useDeleteTechnique + two-case TechniqueDeleteDialog + live non-detached count (SAFE-03)
+- [x] 146-03-PLAN.md — Delete safety rail: auto-detach-then-delete useDeleteTechnique + two-case TechniqueDeleteDialog + live non-detached count (SAFE-03)
 **UI hint**: yes
 
 ## Progress
@@ -156,4 +156,4 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
 | 143. Apply Flow & Slot-Fill System | v0.7.0 | 4/4 | Complete   | 2026-06-22 |
 | 144. Live-Link Re-Sync | v0.7.0 | 3/3 | Complete   | 2026-06-22 |
 | 145. Integration Pass | v0.7.0 | 4/4 | Complete   | 2026-06-22 |
-| 146. Detach & Safety Rails | v0.7.0 | 2/3 | In Progress|  |
+| 146. Detach & Safety Rails | v0.7.0 | 3/3 | Complete   | 2026-06-23 |
