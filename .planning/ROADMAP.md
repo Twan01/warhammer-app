@@ -157,3 +157,13 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
 | 144. Live-Link Re-Sync | v0.7.0 | 3/3 | Complete   | 2026-06-22 |
 | 145. Integration Pass | v0.7.0 | 4/4 | Complete   | 2026-06-22 |
 | 146. Detach & Safety Rails | v0.7.0 | 3/3 | Complete    | 2026-06-23 |
+
+### Phase 146.1: Resync Section-Identity Fix — populate technique_section_id in applyTechnique and duplicateRecipe so live-link resync matches sections instead of duplicating them (closes LINK-01/INTG-05 audit blockers) (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 146
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 146.1 to break down)
