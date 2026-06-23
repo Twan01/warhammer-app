@@ -38,7 +38,6 @@ let db: Database.Database;
 let recipeId: number;
 let techniqueId: number;
 let colourSlotId: number;
-let techniqueStepId: number;
 let paintId: number;
 let instanceId: number;
 let stepId: number; // the materialised recipe_steps.id (technique-owned step)
@@ -69,12 +68,9 @@ describe("detachTechniqueInstance (SAFE-02, SC#3)", () => {
       .run(techniqueId, "Glow Core", 0);
     colourSlotId = Number(slotResult.lastInsertRowid);
 
-    const tStepResult = db
-      .prepare(
-        "INSERT INTO technique_steps (technique_section_id, colour_slot_id, step_name, order_index) VALUES (?, ?, ?, ?)",
-      )
-      .run(tSectionId, colourSlotId, "Apply Glow", 0);
-    techniqueStepId = Number(tStepResult.lastInsertRowid);
+    db.prepare(
+      "INSERT INTO technique_steps (technique_section_id, colour_slot_id, step_name, order_index) VALUES (?, ?, ?, ?)",
+    ).run(tSectionId, colourSlotId, "Apply Glow", 0);
 
     // ── Paint (FK target for slot fill) ───────────────────────────────────
     paintId = 42;
@@ -106,7 +102,7 @@ describe("detachTechniqueInstance (SAFE-02, SC#3)", () => {
     stepId = stepRow!.id;
 
     // ── Insert unit_recipe_step_progress to prove SC#3 (FND-03 invariant) ─
-    // Need a faction + unit + assignment for the FK chain
+    // Requires: faction → unit → unit_recipe_assignments → unit_recipe_step_progress
     const factionId = Number(
       db
         .prepare("INSERT INTO factions (name, game_system) VALUES (?, ?)")
@@ -119,9 +115,16 @@ describe("detachTechniqueInstance (SAFE-02, SC#3)", () => {
         )
         .run(factionId, "Test Marine", "Not Started").lastInsertRowid,
     );
+    const assignmentId = Number(
+      db
+        .prepare(
+          "INSERT INTO unit_recipe_assignments (unit_id, recipe_id) VALUES (?, ?)",
+        )
+        .run(unitId, recipeId).lastInsertRowid,
+    );
     db.prepare(
-      "INSERT INTO unit_recipe_step_progress (unit_id, recipe_step_id, completed) VALUES (?, ?, 1)",
-    ).run(unitId, stepId);
+      "INSERT INTO unit_recipe_step_progress (assignment_id, recipe_step_id, completed) VALUES (?, ?, 1)",
+    ).run(assignmentId, stepId);
   });
 
   afterEach(() => {
@@ -336,12 +339,9 @@ describe("detachAllAndDeleteTechnique (SAFE-03)", () => {
       .run(techniqueId, "Gold Base", 0);
     colourSlotId = Number(slotResult.lastInsertRowid);
 
-    const tStepResult = db
-      .prepare(
-        "INSERT INTO technique_steps (technique_section_id, colour_slot_id, step_name, order_index) VALUES (?, ?, ?, ?)",
-      )
-      .run(tSectionId, colourSlotId, "Basecoat Gold", 0);
-    techniqueStepId = Number(tStepResult.lastInsertRowid);
+    db.prepare(
+      "INSERT INTO technique_steps (technique_section_id, colour_slot_id, step_name, order_index) VALUES (?, ?, ?, ?)",
+    ).run(tSectionId, colourSlotId, "Basecoat Gold", 0);
 
     // ── Paint ─────────────────────────────────────────────────────────────
     paintId = 55;
@@ -373,6 +373,7 @@ describe("detachAllAndDeleteTechnique (SAFE-03)", () => {
     stepId = stepRow!.id;
 
     // ── Insert progress ───────────────────────────────────────────────────
+    // Requires: faction → unit → unit_recipe_assignments → unit_recipe_step_progress
     const factionId = Number(
       db
         .prepare("INSERT INTO factions (name, game_system) VALUES (?, ?)")
@@ -385,9 +386,16 @@ describe("detachAllAndDeleteTechnique (SAFE-03)", () => {
         )
         .run(factionId, "Gold Marine", "Not Started").lastInsertRowid,
     );
+    const assignmentId = Number(
+      db
+        .prepare(
+          "INSERT INTO unit_recipe_assignments (unit_id, recipe_id) VALUES (?, ?)",
+        )
+        .run(unitId, recipeId).lastInsertRowid,
+    );
     db.prepare(
-      "INSERT INTO unit_recipe_step_progress (unit_id, recipe_step_id, completed) VALUES (?, ?, 1)",
-    ).run(unitId, stepId);
+      "INSERT INTO unit_recipe_step_progress (assignment_id, recipe_step_id, completed) VALUES (?, ?, 1)",
+    ).run(assignmentId, stepId);
   });
 
   afterEach(() => {
