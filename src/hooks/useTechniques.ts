@@ -157,6 +157,8 @@ export function useDeleteTechnique() {
       qc.invalidateQueries({ queryKey: ["recipe-paints"] });
       qc.invalidateQueries({ queryKey: ["slot-resolution-map"] });
       qc.invalidateQueries({ queryKey: ["technique-instances"] });
+      qc.invalidateQueries({ queryKey: ["slot-map-by-instance"] });   // CR-01: clears all instance slot-fill caches
+      qc.invalidateQueries({ queryKey: ["unfilled-slot-count"] });    // CR-01: clears all unfilled-slot badges
       qc.invalidateQueries({ queryKey: STEP_COUNTS_KEY });
       qc.invalidateQueries({ queryKey: RECIPE_SWATCH_KEY });
       qc.invalidateQueries({ queryKey: RECIPE_AVAILABILITY_KEY });
