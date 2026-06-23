@@ -50,11 +50,12 @@ type DbHandle = Awaited<ReturnType<typeof getDb>>;
  * NO BEGIN/COMMIT (tauri-plugin-sql auto-commit per statement in WAL mode).
  *
  * SQL ordering (critical):
- *   Step 1 — build slot map         BEFORE any DELETE
- *   Step 2 — bake paint_id          BEFORE Step 5
- *   Step 3 — NULL technique_step_id
- *   Step 4 — NULL section FK columns
- *   Step 5 — DELETE instance row    (CASCADE deletes slot_maps automatically)
+ *   Step 1   — build slot map          BEFORE any DELETE
+ *   Step 2   — bake paint_id           BEFORE Step 5
+ *   Step 2.5 — SET detached = 1        crash-safety sentinel (CR-02)
+ *   Step 3   — NULL technique_step_id
+ *   Step 4   — NULL section FK columns
+ *   Step 5   — DELETE instance row     (CASCADE deletes slot_maps automatically)
  *
  * @param db         - The db handle from the caller (never call getDb() here)
  * @param instanceId - recipe_technique_instances.id to detach
@@ -115,6 +116,14 @@ export async function detachTechniqueInstance(
     `UPDATE recipe_sections
      SET technique_instance_id = NULL, technique_section_id = NULL
      WHERE technique_instance_id = $1`,
+    [instanceId],
+  );
+
+  // ── Step 2.5: Mark instance as detached (crash-safety sentinel) ─────────
+  // If the process crashes after this point, resync will skip this instance
+  // on restart and the baked paint_id values remain safe (CR-02).
+  await db.execute(
+    `UPDATE recipe_technique_instances SET detached = 1 WHERE id = $1`,
     [instanceId],
   );
 
