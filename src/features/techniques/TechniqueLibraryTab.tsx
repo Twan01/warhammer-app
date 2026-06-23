@@ -43,6 +43,7 @@ export function TechniqueLibraryTab() {
     queryKey: ["technique-nondetached-count", deleting?.id],
     queryFn: () => getNonDetachedInstanceCount(deleting!.id),
     enabled: deleting != null,
+    staleTime: 0, // WR-03: always re-fetch so the delete dialog shows the live count
   });
 
   const filtered = useMemo(
