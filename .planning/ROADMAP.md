@@ -156,4 +156,4 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
 | 143. Apply Flow & Slot-Fill System | v0.7.0 | 4/4 | Complete   | 2026-06-22 |
 | 144. Live-Link Re-Sync | v0.7.0 | 3/3 | Complete   | 2026-06-22 |
 | 145. Integration Pass | v0.7.0 | 4/4 | Complete   | 2026-06-22 |
-| 146. Detach & Safety Rails | v0.7.0 | 3/3 | Complete   | 2026-06-23 |
+| 146. Detach & Safety Rails | v0.7.0 | 3/3 | Complete    | 2026-06-23 |
