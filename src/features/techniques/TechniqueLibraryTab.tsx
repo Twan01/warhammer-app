@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useTechniquesWithCounts, useDuplicateTechnique } from "@/hooks/useTechniques";
+import { getNonDetachedInstanceCount } from "@/db/queries/recipeTechniqueDetach";
 import type { Technique, TechniqueWithCounts } from "@/types/technique";
 import { RECIPE_EFFECTS } from "@/features/techniques/techniqueSchema";
 import { applyTechniqueFilters } from "./applyTechniqueFilters";
@@ -34,6 +36,14 @@ export function TechniqueLibraryTab() {
   const [formOpen, setFormOpen] = useState(false);
   const [deleting, setDeleting] = useState<TechniqueWithCounts | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
+
+  // Live non-detached instance count — refreshes when delete dialog opens.
+  // NOT the legacy usage_count (which counts detached instances too — Pitfall 5).
+  const nonDetachedCountQuery = useQuery({
+    queryKey: ["technique-nondetached-count", deleting?.id],
+    queryFn: () => getNonDetachedInstanceCount(deleting!.id),
+    enabled: deleting != null,
+  });
 
   const filtered = useMemo(
     () => applyTechniqueFilters(techniques, { nameFilter, effectFilter }),
@@ -177,7 +187,7 @@ export function TechniqueLibraryTab() {
       <TechniqueDeleteDialog
         open={deleteOpen}
         technique={deleting}
-        usageCount={deleting?.usage_count ?? 0}
+        liveInstanceCount={nonDetachedCountQuery.data ?? 0}
         onClose={closeDelete}
       />
     </div>

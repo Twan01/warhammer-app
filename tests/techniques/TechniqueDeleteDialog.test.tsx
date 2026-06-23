@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 
 /**
- * Nyquist test: TechniqueDeleteDialog component (TECH-03).
+ * Nyquist test: TechniqueDeleteDialog component (TECH-03, SAFE-03).
  *
- * - TECH-03: Delete dialog description varies by usage count:
- *   - 0 recipes: permanent-remove copy
- *   - N recipes: usage warning with count
+ * - TECH-03 / SAFE-03: Delete dialog description varies by liveInstanceCount:
+ *   - Case A (0 live instances): permanent-remove copy + "Delete" button
+ *   - Case B (N > 0 live instances): live-linked copy + consequence-labelled button
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -52,25 +52,27 @@ const noop = vi.fn();
 // Tests
 // ---------------------------------------------------------------------------
 
-describe("TechniqueDeleteDialog (TECH-03)", () => {
+describe("TechniqueDeleteDialog (TECH-03, SAFE-03)", () => {
   it("renders dialog title", () => {
     render(
       <TechniqueDeleteDialog
         open={true}
         technique={stubTechnique}
-        usageCount={0}
+        liveInstanceCount={0}
         onClose={noop}
       />,
     );
     expect(screen.getByText("Delete technique?")).toBeInTheDocument();
   });
 
-  it("shows permanent-remove copy when usageCount is 0 (TECH-03)", () => {
+  // ── Case A: no live instances ──────────────────────────────────────────────
+
+  it("Case A: shows permanent-remove copy when liveInstanceCount is 0 (TECH-03)", () => {
     render(
       <TechniqueDeleteDialog
         open={true}
         technique={stubTechnique}
-        usageCount={0}
+        liveInstanceCount={0}
         onClose={noop}
       />,
     );
@@ -80,60 +82,19 @@ describe("TechniqueDeleteDialog (TECH-03)", () => {
     expect(screen.getByText(/This cannot be undone/)).toBeInTheDocument();
   });
 
-  it("shows usage warning when usageCount is 2 (TECH-03)", () => {
+  it("Case A: renders 'Delete' confirm button (TECH-03)", () => {
     render(
       <TechniqueDeleteDialog
         open={true}
         technique={stubTechnique}
-        usageCount={2}
-        onClose={noop}
-      />,
-    );
-    expect(
-      screen.getByText(/"OSL Glow" is used by 2 recipes/),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Deleting it will remove all applied instances/),
-    ).toBeInTheDocument();
-  });
-
-  it("shows singular 'recipe' when usageCount is 1", () => {
-    render(
-      <TechniqueDeleteDialog
-        open={true}
-        technique={stubTechnique}
-        usageCount={1}
-        onClose={noop}
-      />,
-    );
-    expect(screen.getByText(/"OSL Glow" is used by 1 recipe\./)).toBeInTheDocument();
-  });
-
-  it("renders 'Keep Technique' cancel button", () => {
-    render(
-      <TechniqueDeleteDialog
-        open={true}
-        technique={stubTechnique}
-        usageCount={0}
-        onClose={noop}
-      />,
-    );
-    expect(screen.getByRole("button", { name: "Keep Technique" })).toBeInTheDocument();
-  });
-
-  it("renders 'Delete' destructive button", () => {
-    render(
-      <TechniqueDeleteDialog
-        open={true}
-        technique={stubTechnique}
-        usageCount={0}
+        liveInstanceCount={0}
         onClose={noop}
       />,
     );
     expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
   });
 
-  it("shows 'Deleting…' when isPending is true", () => {
+  it("Case A: shows 'Deleting…' when isPending is true", () => {
     vi.mocked(useDeleteTechnique).mockReturnValue({
       mutateAsync: mockMutateAsync,
       isPending: true,
@@ -142,10 +103,89 @@ describe("TechniqueDeleteDialog (TECH-03)", () => {
       <TechniqueDeleteDialog
         open={true}
         technique={stubTechnique}
-        usageCount={0}
+        liveInstanceCount={0}
         onClose={noop}
       />,
     );
     expect(screen.getByRole("button", { name: "Deleting…" })).toBeInTheDocument();
+  });
+
+  // ── Case B: live instances present ────────────────────────────────────────
+
+  it("Case B: shows live-linked copy when liveInstanceCount is 2 (SAFE-03)", () => {
+    render(
+      <TechniqueDeleteDialog
+        open={true}
+        technique={stubTechnique}
+        liveInstanceCount={2}
+        onClose={noop}
+      />,
+    );
+    expect(
+      screen.getByText(/"OSL Glow" is live-linked to 2 recipes/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/No recipe content will be lost/),
+    ).toBeInTheDocument();
+  });
+
+  it("Case B: confirm button is pluralised 'Detach 2 recipes & delete' (SAFE-03)", () => {
+    render(
+      <TechniqueDeleteDialog
+        open={true}
+        technique={stubTechnique}
+        liveInstanceCount={2}
+        onClose={noop}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "Detach 2 recipes & delete" }),
+    ).toBeInTheDocument();
+  });
+
+  it("Case B: confirm button is singular 'Detach 1 recipe & delete' when liveInstanceCount is 1 (SAFE-03)", () => {
+    render(
+      <TechniqueDeleteDialog
+        open={true}
+        technique={stubTechnique}
+        liveInstanceCount={1}
+        onClose={noop}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "Detach 1 recipe & delete" }),
+    ).toBeInTheDocument();
+  });
+
+  it("Case B: shows 'Detaching & deleting…' when isPending is true (SAFE-03)", () => {
+    vi.mocked(useDeleteTechnique).mockReturnValue({
+      mutateAsync: mockMutateAsync,
+      isPending: true,
+    } as never);
+    render(
+      <TechniqueDeleteDialog
+        open={true}
+        technique={stubTechnique}
+        liveInstanceCount={2}
+        onClose={noop}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "Detaching & deleting…" }),
+    ).toBeInTheDocument();
+  });
+
+  // ── Cancel button (both cases) ────────────────────────────────────────────
+
+  it("renders 'Keep Technique' cancel button (both cases)", () => {
+    render(
+      <TechniqueDeleteDialog
+        open={true}
+        technique={stubTechnique}
+        liveInstanceCount={0}
+        onClose={noop}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Keep Technique" })).toBeInTheDocument();
   });
 });

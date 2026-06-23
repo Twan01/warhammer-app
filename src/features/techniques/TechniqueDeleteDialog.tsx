@@ -14,14 +14,14 @@ import type { Technique } from "@/types/technique";
 export interface TechniqueDeleteDialogProps {
   open: boolean;
   technique: Technique | null;
-  usageCount: number;
+  liveInstanceCount: number;
   onClose: () => void;
 }
 
 export function TechniqueDeleteDialog({
   open,
   technique,
-  usageCount,
+  liveInstanceCount,
   onClose,
 }: TechniqueDeleteDialogProps) {
   const deleteTechnique = useDeleteTechnique();
@@ -30,7 +30,11 @@ export function TechniqueDeleteDialog({
     if (!technique) return;
     try {
       await deleteTechnique.mutateAsync(technique.id);
-      toast.success("Technique deleted.");
+      toast.success(
+        liveInstanceCount > 0
+          ? `Technique detached from ${liveInstanceCount} recipe${liveInstanceCount === 1 ? "" : "s"} and deleted.`
+          : "Technique deleted.",
+      );
       onClose();
     } catch {
       toast.error("Failed to delete technique. Please try again.");
@@ -44,8 +48,8 @@ export function TechniqueDeleteDialog({
         <DialogHeader>
           <DialogTitle>Delete technique?</DialogTitle>
           <DialogDescription>
-            {technique && usageCount > 0
-              ? `"${technique.name}" is used by ${usageCount} recipe${usageCount === 1 ? "" : "s"}. Deleting it will remove all applied instances. This cannot be undone.`
+            {technique && liveInstanceCount > 0
+              ? `"${technique.name}" is live-linked to ${liveInstanceCount} recipe${liveInstanceCount === 1 ? "" : "s"}. Detaching will bake the current colours into those recipes before removing the technique. No recipe content will be lost.`
               : technique
               ? `This will permanently remove "${technique.name}" and all its steps. This cannot be undone.`
               : "This will permanently remove the selected technique."}
@@ -60,7 +64,11 @@ export function TechniqueDeleteDialog({
             onClick={handleConfirm}
             disabled={deleteTechnique.isPending}
           >
-            {deleteTechnique.isPending ? "Deleting…" : "Delete"}
+            {deleteTechnique.isPending
+              ? (liveInstanceCount > 0 ? "Detaching & deleting…" : "Deleting…")
+              : (liveInstanceCount > 0
+                  ? `Detach ${liveInstanceCount} recipe${liveInstanceCount === 1 ? "" : "s"} & delete`
+                  : "Delete")}
           </Button>
         </DialogFooter>
       </DialogContent>
