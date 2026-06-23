@@ -45,8 +45,12 @@ interface RecipeSectionCardProps {
    * Callback fired when user confirms detach. Passed by RecipeSectionList only
    * for technique-owned sections with a non-null technique_instance_id; omitted
    * on plain sections and in read-only hosts (SectionedTimeline).
+   *
+   * Accepts an onSuccess callback so the caller (RecipeSectionList) can close
+   * the dialog only after the mutation resolves successfully — mirroring the
+   * WR-02 retry pattern in TechniqueDeleteDialog.
    */
-  onDetach?: () => void;
+  onDetach?: (onSuccess: () => void) => void;
   /** True while the detach mutation is in flight — disables confirm button. */
   isPendingDetach?: boolean;
 }
@@ -325,8 +329,7 @@ export function RecipeSectionCard({
         isPending={isPendingDetach ?? false}
         onCancel={() => setDetachOpen(false)}
         onConfirm={() => {
-          setDetachOpen(false);
-          onDetach?.();
+          onDetach?.(() => setDetachOpen(false));
         }}
       />
     </div>

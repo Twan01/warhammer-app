@@ -204,15 +204,17 @@ export function RecipeSectionList({
               recipeId !== undefined && section.technique_instance_id != null;
             const onDetach =
               isTechniqueOwned && detach
-                ? () => {
+                ? (onSuccess: () => void) => {
                     const instanceId = section.technique_instance_id as number;
                     detach
                       .mutateAsync({ instanceId, recipeId: recipeId as number })
                       .then(() => {
                         toast.success("Technique detached — now plain recipe content");
+                        onSuccess();
                       })
                       .catch(() => {
                         toast.error("Failed to detach technique. Please try again.");
+                        // dialog stays open for retry — no onSuccess call
                       });
                   }
                 : undefined;
