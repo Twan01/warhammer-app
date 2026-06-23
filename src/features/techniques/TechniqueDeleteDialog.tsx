@@ -38,7 +38,7 @@ export function TechniqueDeleteDialog({
       onClose();
     } catch {
       toast.error("Failed to delete technique. Please try again.");
-      onClose();
+      // Do NOT call onClose() — keep dialog open so the user can retry or cancel (WR-02).
     }
   }
 
