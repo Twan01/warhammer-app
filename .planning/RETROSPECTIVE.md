@@ -921,6 +921,37 @@
 
 ---
 
+## Milestone: v0.7.0 — Technique Library
+
+**Shipped:** 2026-06-23
+**Phases:** 7 (141–146 + 146.1 gap closure) | **Plans:** 22
+
+### What Was Built
+Reusable, slot-parameterized, live-linked painting techniques. A technique is authored once (sections + steps + named colour slots) in a library under Workshop/Recipes, applied to any recipe by filling its slots with real paints, and stays live-linked: editing the technique's structure re-syncs to every recipe while each keeps its own colours and step-completion progress. All paint resolution flows through one pure `effectivePaintId()` spine. Detach bakes the resolved colour into the step and breaks the link; deleting a technique auto-detaches its live instances first so no recipe content is lost.
+
+### What Worked
+- **Guard-first / FND-03 discipline.** Identifying progress-identity (`recipe_step_id` stability) as the top risk up front and writing the better-sqlite3 invariant test *before* any UI meant apply→resync→detach all preserved completion markers by construction (never DELETE+INSERT).
+- **A single resolution spine.** Forcing every paint consumer through `effectivePaintId()` kept Painting Mode, availability, timeline, and detach-baking consistent — no per-surface drift.
+- **The milestone audit earned its keep.** The integration checker caught a real cross-phase blocker (LINK-01/INTG-05) that every per-phase test suite had passed. Without the audit, a broken headline feature would have shipped.
+
+### What Was Inefficient
+- **A test fixture masked a production bug for three phases.** `technique-resync.test.ts` set `technique_section_id` via a manual UPDATE instead of driving the real `applyTechnique` path, so the resync looked correct while production never populated the column. The bug (sections duplicating on the 2nd technique edit) survived 143→145 and was only caught at milestone audit.
+- **Cross-phase column ownership gap.** Phase 144 added `technique_section_id` (migration 052) and its consumer (resync) but never updated Phase 143's `applyTechnique`/`duplicateRecipe` writers — a classic "new column, old writer" miss.
+
+### Patterns Established
+- **Gap-closure decimal phase (146.1)** for an audit blocker: insert → tightly-scoped CONTEXT+PLAN authored directly (no full research machinery) → guard-first regression → re-audit → complete. Right-sized for a one-root-cause fix.
+- **Regression tests must drive the production path**, not a hand-seeded fixture, when the bug class is "writer didn't populate what the reader needs."
+
+### Key Lessons
+- When a migration adds a column for a new consumer, audit **every existing writer** of that table in the same phase — the reader passing its tests proves nothing about the writers.
+- Deferred human-UAT is a real risk surface: the LINK-01 break would have been caught by Phase 144's human-UAT had it been run. Deferring is fine, but the milestone audit's integration check is what actually backstops it.
+
+### Cost Observations
+- Model mix: orchestration on Opus; subagents (research/plan/execute/review/verify/integration) on Sonnet.
+- Notable: the most valuable single agent this milestone was the integration checker — one finding prevented shipping a corrupting bug. Code-review `--auto` (3 iterations) converged on dialog-edge-case hardening with diminishing returns by iteration 3.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
