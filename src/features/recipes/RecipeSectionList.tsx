@@ -109,13 +109,15 @@ interface DetachHandler {
 
 interface TechniqueNameResolverProps {
   recipeId: number;
-  children: (nameMap: Map<number, string>, detach: DetachHandler) => React.ReactNode;
+  children: (nameMap: Map<number, string>, detach: DetachHandler, pendingInstanceId: number | null) => React.ReactNode;
 }
 
 function TechniqueNameResolver({ recipeId, children }: TechniqueNameResolverProps) {
   const { data: instances = [] } = useInstancesForRecipe(recipeId);
   const { data: techniquesWithCounts = [] } = useTechniquesWithCounts();
   const detach = useDetachTechniqueInstance();
+  // WR-01: track which instance is pending to avoid disabling all sections
+  const [pendingInstanceId, setPendingInstanceId] = useState<number | null>(null);
 
   const instanceTechniqueNameMap = new Map<number, string>();
   for (const inst of instances) {
@@ -125,7 +127,23 @@ function TechniqueNameResolver({ recipeId, children }: TechniqueNameResolverProp
     }
   }
 
-  return <>{children(instanceTechniqueNameMap, detach)}</>;
+  // Wrap the detach handler so isPending is scoped per instance
+  const detachWithPendingTracking: DetachHandler = {
+    mutateAsync: async (input) => {
+      setPendingInstanceId(input.instanceId);
+      try {
+        return await detach.mutateAsync(input);
+      } finally {
+        setPendingInstanceId(null);
+      }
+    },
+    // isPending is intentionally left as the global flag here so callers that
+    // need the global state (e.g., disabling the dialog confirm button) still
+    // work; per-section gating uses pendingInstanceId via a separate prop below.
+    isPending: detach.isPending,
+  };
+
+  return <>{children(instanceTechniqueNameMap, detachWithPendingTracking, pendingInstanceId)}</>;
 }
 
 // ---------------------------------------------------------------------------
@@ -173,7 +191,11 @@ export function RecipeSectionList({
     onChange(sections.filter((s) => s.localId !== localId));
   }
 
-  const renderCards = (nameMap: Map<number, string>, detach?: DetachHandler) => (
+  const renderCards = (
+    nameMap: Map<number, string>,
+    detach?: DetachHandler,
+    pendingInstanceId?: number | null,
+  ) => (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext items={sections.map((s) => s.localId)} strategy={verticalListSortingStrategy}>
         <div className="flex flex-col gap-3">
@@ -195,6 +217,12 @@ export function RecipeSectionList({
                   }
                 : undefined;
 
+            // WR-01: scope isPending to this instance so only the in-flight
+            // section's Unlink button is disabled, not every section's button.
+            const isThisInstancePending =
+              pendingInstanceId != null &&
+              section.technique_instance_id === pendingInstanceId;
+
             return (
               <RecipeSectionCard
                 key={section.localId}
@@ -209,7 +237,7 @@ export function RecipeSectionList({
                     : undefined
                 }
                 onDetach={onDetach}
-                isPendingDetach={detach?.isPending}
+                isPendingDetach={isThisInstancePending}
               />
             );
           })}
@@ -239,9 +267,9 @@ export function RecipeSectionList({
       {/* Section cards — with or without technique name resolution */}
       {recipeId !== undefined ? (
         <TechniqueNameResolver recipeId={recipeId}>
-          {(nameMap, detach) => (
+          {(nameMap, detach, pendingInstanceId) => (
             <>
-              {renderCards(nameMap, detach)}
+              {renderCards(nameMap, detach, pendingInstanceId)}
               <TechniqueControls
                 sections={sections}
                 recipeId={recipeId}
