@@ -1,7 +1,7 @@
 ---
 phase: 146-detach-safety-rails
 verified: 2026-06-23T08:35:00Z
-status: human_needed
+status: passed
 score: 10/10 must-haves verified
 overrides_applied: 0
 human_verification:
@@ -161,3 +161,7 @@ Note on SAFE-01 REQUIREMENTS.md checkbox: The `[ ]` checkbox and "Pending" trace
 
 _Verified: 2026-06-23T08:35:00Z_
 _Verifier: Claude (gsd-verifier)_
+
+---
+
+**Human verification resolved 2026-06-23:** all human-UAT items accepted by the user after in-app testing of the end-to-end technique flow. See 146-HUMAN-UAT.md (status: passed).

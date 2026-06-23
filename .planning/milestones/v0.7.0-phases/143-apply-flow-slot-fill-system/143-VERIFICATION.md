@@ -1,7 +1,7 @@
 ---
 phase: 143-apply-flow-slot-fill-system
 verified: 2026-06-22T12:00:00Z
-status: human_needed
+status: passed
 score: 5/5
 overrides_applied: 0
 human_verification:
@@ -241,3 +241,7 @@ Status is `human_needed` because 6 interactive UI behaviours (picker UX feel, sw
 
 _Verified: 2026-06-22T12:00:00Z_
 _Verifier: Claude (gsd-verifier)_
+
+---
+
+**Human verification resolved 2026-06-23:** all human-UAT items accepted by the user after in-app testing of the end-to-end technique flow. See 143-HUMAN-UAT.md (status: passed).

@@ -1,7 +1,7 @@
 ---
 phase: 144-live-link-re-sync
 verified: 2026-06-22T20:00:00Z
-status: human_needed
+status: passed
 score: 6/6 automated must-haves verified
 overrides_applied: 0
 human_verification:
@@ -172,3 +172,7 @@ The only remaining items are 4 interactive UI behaviors that require a running T
 
 _Verified: 2026-06-22T20:00:00Z_
 _Verifier: Claude (gsd-verifier)_
+
+---
+
+**Human verification resolved 2026-06-23:** all human-UAT items accepted by the user after in-app testing of the end-to-end technique flow. See 144-HUMAN-UAT.md (status: passed).
