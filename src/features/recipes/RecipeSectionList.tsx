@@ -99,15 +99,23 @@ function TechniqueControls({
 
 import { useInstancesForRecipe } from "@/hooks/useTechniqueInstances";
 import { useTechniquesWithCounts } from "@/hooks/useTechniques";
+import { useDetachTechniqueInstance } from "@/hooks/useTechniqueDetach";
+import { toast } from "sonner";
+
+interface DetachHandler {
+  mutateAsync: (input: { instanceId: number; recipeId: number }) => Promise<void>;
+  isPending: boolean;
+}
 
 interface TechniqueNameResolverProps {
   recipeId: number;
-  children: (nameMap: Map<number, string>) => React.ReactNode;
+  children: (nameMap: Map<number, string>, detach: DetachHandler) => React.ReactNode;
 }
 
 function TechniqueNameResolver({ recipeId, children }: TechniqueNameResolverProps) {
   const { data: instances = [] } = useInstancesForRecipe(recipeId);
   const { data: techniquesWithCounts = [] } = useTechniquesWithCounts();
+  const detach = useDetachTechniqueInstance();
 
   const instanceTechniqueNameMap = new Map<number, string>();
   for (const inst of instances) {
@@ -117,7 +125,7 @@ function TechniqueNameResolver({ recipeId, children }: TechniqueNameResolverProp
     }
   }
 
-  return <>{children(instanceTechniqueNameMap)}</>;
+  return <>{children(instanceTechniqueNameMap, detach)}</>;
 }
 
 // ---------------------------------------------------------------------------
@@ -165,25 +173,46 @@ export function RecipeSectionList({
     onChange(sections.filter((s) => s.localId !== localId));
   }
 
-  const renderCards = (nameMap: Map<number, string>) => (
+  const renderCards = (nameMap: Map<number, string>, detach?: DetachHandler) => (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext items={sections.map((s) => s.localId)} strategy={verticalListSortingStrategy}>
         <div className="flex flex-col gap-3">
-          {sections.map((section) => (
-            <RecipeSectionCard
-              key={section.localId}
-              section={section}
-              onChange={(updated) => updateSection(section.localId, updated)}
-              onRemove={() => removeSection(section.localId)}
-              onCreateNewPaint={onCreateNewPaint}
-              sectionsCount={sections.length}
-              techniqueName={
-                section.technique_instance_id != null
-                  ? (nameMap.get(section.technique_instance_id) ?? "technique")
-                  : undefined
-              }
-            />
-          ))}
+          {sections.map((section) => {
+            const isTechniqueOwned =
+              recipeId !== undefined && section.technique_instance_id != null;
+            const onDetach =
+              isTechniqueOwned && detach
+                ? () => {
+                    const instanceId = section.technique_instance_id as number;
+                    detach
+                      .mutateAsync({ instanceId, recipeId: recipeId as number })
+                      .then(() => {
+                        toast.success("Technique detached — now plain recipe content");
+                      })
+                      .catch(() => {
+                        toast.error("Failed to detach technique. Please try again.");
+                      });
+                  }
+                : undefined;
+
+            return (
+              <RecipeSectionCard
+                key={section.localId}
+                section={section}
+                onChange={(updated) => updateSection(section.localId, updated)}
+                onRemove={() => removeSection(section.localId)}
+                onCreateNewPaint={onCreateNewPaint}
+                sectionsCount={sections.length}
+                techniqueName={
+                  section.technique_instance_id != null
+                    ? (nameMap.get(section.technique_instance_id) ?? "technique")
+                    : undefined
+                }
+                onDetach={onDetach}
+                isPendingDetach={detach?.isPending}
+              />
+            );
+          })}
         </div>
       </SortableContext>
     </DndContext>
@@ -210,9 +239,9 @@ export function RecipeSectionList({
       {/* Section cards — with or without technique name resolution */}
       {recipeId !== undefined ? (
         <TechniqueNameResolver recipeId={recipeId}>
-          {(nameMap) => (
+          {(nameMap, detach) => (
             <>
-              {renderCards(nameMap)}
+              {renderCards(nameMap, detach)}
               <TechniqueControls
                 sections={sections}
                 recipeId={recipeId}

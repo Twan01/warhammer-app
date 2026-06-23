@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { GripVertical, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import { GripVertical, Trash2, ChevronDown, ChevronRight, Unlink } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
@@ -27,6 +27,7 @@ import { RECIPE_SURFACES } from "./recipeSchema";
 import { type DraftSection } from "./recipeSection";
 import { RecipeStepList } from "./RecipeStepList";
 import { TechniqueSectionBadge } from "./TechniqueSectionBadge";
+import { DetachConfirmDialog } from "./DetachConfirmDialog";
 import { SECTION_TYPES, TECHNIQUES, EXECUTION_MODES } from "@/types/recipeSection";
 
 interface RecipeSectionCardProps {
@@ -40,6 +41,14 @@ interface RecipeSectionCardProps {
    * Locks: no drag handle, no delete, disabled name input, badge shown.
    */
   techniqueName?: string;
+  /**
+   * Callback fired when user confirms detach. Passed by RecipeSectionList only
+   * for technique-owned sections with a non-null technique_instance_id; omitted
+   * on plain sections and in read-only hosts (SectionedTimeline).
+   */
+  onDetach?: () => void;
+  /** True while the detach mutation is in flight — disables confirm button. */
+  isPendingDetach?: boolean;
 }
 
 function hasAnyWorkflowMetadata(section: DraftSection): boolean {
@@ -55,6 +64,8 @@ export function RecipeSectionCard({
   onCreateNewPaint,
   sectionsCount,
   techniqueName,
+  onDetach,
+  isPendingDetach,
 }: RecipeSectionCardProps) {
   const isTechniqueOwned = techniqueName !== undefined;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -63,6 +74,7 @@ export function RecipeSectionCard({
 
   const [open, setOpen] = useState(true);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [detachOpen, setDetachOpen] = useState(false);
   const [workflowOpen, setWorkflowOpen] = useState(false);
 
   const style = {
@@ -110,6 +122,20 @@ export function RecipeSectionCard({
           {/* Technique badge — shown only for technique-owned sections (display-only in editor) */}
           {isTechniqueOwned && techniqueName && (
             <TechniqueSectionBadge techniqueName={techniqueName} />
+          )}
+
+          {/* Unlink button — editor-only, only when onDetach is provided (technique-owned section) */}
+          {isTechniqueOwned && techniqueName && onDetach && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+              aria-label="Detach technique from this section"
+              onClick={() => setDetachOpen(true)}
+            >
+              <Unlink className="h-4 w-4" />
+            </Button>
           )}
 
           {/* Surface select */}
@@ -291,6 +317,18 @@ export function RecipeSectionCard({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Detach confirmation dialog — rendered only when the Unlink button is present */}
+      <DetachConfirmDialog
+        open={detachOpen}
+        techniqueName={techniqueName ?? ""}
+        isPending={isPendingDetach ?? false}
+        onCancel={() => setDetachOpen(false)}
+        onConfirm={() => {
+          setDetachOpen(false);
+          onDetach?.();
+        }}
+      />
     </div>
   );
 }
