@@ -225,11 +225,12 @@ export async function duplicateRecipe(originalId: number, newName: string): Prom
     const sectionResult = await db.execute(
       `INSERT INTO recipe_sections
          (recipe_id, name, surface, optional, order_index, notes,
-          section_type, technique, execution_mode, applies_to, technique_instance_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+          section_type, technique, execution_mode, applies_to, technique_instance_id, technique_section_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
       [newRecipeId, section.name, section.surface, section.optional, section.order_index,
        section.notes ?? null, section.section_type ?? null, section.technique ?? null,
-       section.execution_mode ?? null, section.applies_to ?? null, newInstanceId]
+       section.execution_mode ?? null, section.applies_to ?? null, newInstanceId,
+       section.technique_section_id ?? null]  // AUDIT: carry resync identity (migration 052)
     );
     const newSectionId = sectionResult.lastInsertId;
     if (!newSectionId) throw new Error("duplicateRecipe: INSERT recipe_sections did not return lastInsertId");

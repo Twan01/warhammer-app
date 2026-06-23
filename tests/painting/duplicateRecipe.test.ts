@@ -165,9 +165,9 @@ describe("duplicateRecipe -- SQL coverage (STUDIO-03 + INTG-01)", () => {
     expect(params[0]).toBe(1);
   });
 
-  it("inserts section copies with new recipe_id and all 11 columns including technique_instance_id", async () => {
+  it("inserts section copies with new recipe_id and all 12 columns including technique_instance_id and technique_section_id", async () => {
     await duplicateRecipe(1, "Copy of Space Marine Blue");
-    // CR-02: section INSERT now has 11 columns (added technique_instance_id as $11)
+    // 146.1-01: section INSERT now has 12 columns (added technique_section_id as $12)
     // executeMock.calls[1] = section 1 INSERT; calls[2] = section 2 INSERT (no BEGIN offset)
     const [sql1, params1] = executeMock.mock.calls[1];
     expect(sql1).toContain("INSERT INTO recipe_sections");
@@ -176,12 +176,14 @@ describe("duplicateRecipe -- SQL coverage (STUDIO-03 + INTG-01)", () => {
     expect(sql1).toContain("execution_mode");
     expect(sql1).toContain("applies_to");
     expect(sql1).toContain("technique_instance_id");
-    // 11 params: recipe_id, name, surface, optional, order_index, notes,
-    //            section_type, technique, execution_mode, applies_to, technique_instance_id(null)
-    expect(params1).toEqual([100, "Armour", "smooth", 0, 0, null, null, null, null, null, null]);
+    expect(sql1).toContain("technique_section_id");
+    // 12 params: recipe_id, name, surface, optional, order_index, notes,
+    //            section_type, technique, execution_mode, applies_to,
+    //            technique_instance_id(null), technique_section_id(null)
+    expect(params1).toEqual([100, "Armour", "smooth", 0, 0, null, null, null, null, null, null, null]);
 
     const [, params2] = executeMock.mock.calls[2];
-    expect(params2).toEqual([100, "Cloth", null, 1, 1, "optional block", null, null, null, null, null]);
+    expect(params2).toEqual([100, "Cloth", null, 1, 1, "optional block", null, null, null, null, null, null]);
   });
 
   it("reads original steps with section-aware ordering via LEFT JOIN", async () => {

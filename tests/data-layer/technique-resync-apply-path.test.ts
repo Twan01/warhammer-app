@@ -252,6 +252,7 @@ describe("LINK-01 / INTG-05 regression — applyTechnique path (real, no manual 
         dbId: colourSlotId,
         name: slotRow.name,
         role_hint: slotRow.role_hint ?? null,
+        order_index: 0,
       };
 
       const existingSlots: TechniqueColourSlot[] = [slotRow];
@@ -340,6 +341,7 @@ describe("LINK-01 / INTG-05 regression — applyTechnique path (real, no manual 
         dbId: colourSlotId,
         name: slotRow.name,
         role_hint: slotRow.role_hint ?? null,
+        order_index: 0,
       };
 
       const tSectionRow = db
@@ -454,6 +456,7 @@ describe("LINK-01 / INTG-05 regression — applyTechnique path (real, no manual 
         dbId: colourSlotId,
         name: slotRow.name,
         role_hint: slotRow.role_hint ?? null,
+        order_index: 0,
       };
 
       const tSectionRow = db

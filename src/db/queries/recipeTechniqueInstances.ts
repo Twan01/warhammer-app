@@ -75,11 +75,11 @@ export async function applyTechnique(
   for (let si = 0; si < sections.length; si++) {
     const section = sections[si];
 
-    // 3a. INSERT recipe_sections with technique_instance_id set
+    // 3a. INSERT recipe_sections with technique_instance_id and technique_section_id set
     const sectionResult = await db.execute(
       `INSERT INTO recipe_sections
-       (recipe_id, name, surface, optional, order_index, notes, technique_instance_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+       (recipe_id, name, surface, optional, order_index, notes, technique_instance_id, technique_section_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [
         recipeId,
         section.name,
@@ -88,6 +88,7 @@ export async function applyTechnique(
         insertAfterSectionIndex + si,
         section.notes ?? null,
         instanceId,
+        section.id,   // technique_section_id — stable identity for resync (migration 052)
       ],
     );
     const newSectionId = sectionResult.lastInsertId;

@@ -39,6 +39,8 @@ export interface RecipeSection {
   applies_to: string | null;
   // v0.7.0 technique materialisation (Phase 141, migration 051)
   technique_instance_id?: number | null;
+  // v0.7.0 resync section identity (Phase 144, migration 052) — FK to technique_sections.id
+  technique_section_id?: number | null;
   created_at: string;
   updated_at: string;
 }
