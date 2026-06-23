@@ -6,13 +6,15 @@ export interface SlotFillRowProps {
   slot: TechniqueColourSlot;
   paintId: number | null;
   onChange: (paintId: number | null) => void;
+  /** Open the inline "create a new paint" flow for this slot (TECH-UX-02). */
+  onCreateNew?: () => void;
 }
 
 /**
  * One row in the slot-fill dialog: slot name + role hint + swatch + PaintCombobox.
  * Unassigned is valid (SLOT-05) — dashed swatch, never an error state.
  */
-export function SlotFillRow({ slot, paintId, onChange }: SlotFillRowProps) {
+export function SlotFillRow({ slot, paintId, onChange, onCreateNew }: SlotFillRowProps) {
   const { data: paints = [] } = usePaints();
   const paint = paintId !== null ? (paints.find((p) => p.id === paintId) ?? null) : null;
 
@@ -45,9 +47,9 @@ export function SlotFillRow({ slot, paintId, onChange }: SlotFillRowProps) {
         <PaintCombobox
           value={paintId}
           onChange={onChange}
+          onCreateNew={onCreateNew}
           aria-label={`Paint for slot: ${slot.name}`}
           placeholder="Assign paint (optional)"
-          // onCreateNew intentionally omitted (slot context, no create-new)
         />
       </div>
     </div>

@@ -85,11 +85,17 @@ export function TechniqueStepRow({ step, slots, onChange, onRemove }: TechniqueS
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__none__">-- no slot --</SelectItem>
-                {slots.map((s) => (
-                  <SelectItem key={s.localId} value={s.localId}>
-                    {s.name || <span className="text-muted-foreground italic">Unnamed slot</span>}
-                  </SelectItem>
-                ))}
+                {slots.length === 0 ? (
+                  <p className="px-2 py-1.5 text-xs text-muted-foreground">
+                    No colour slots yet — add one in “Colour Slots” above.
+                  </p>
+                ) : (
+                  slots.map((s) => (
+                    <SelectItem key={s.localId} value={s.localId}>
+                      {s.name || <span className="text-muted-foreground italic">Unnamed slot</span>}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>

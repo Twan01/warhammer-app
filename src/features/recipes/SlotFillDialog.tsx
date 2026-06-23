@@ -22,6 +22,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTechniqueColourSlots } from "@/hooks/useTechniqueColourSlots";
 import { useApplyTechnique } from "@/hooks/useTechniqueInstances";
+import { usePaints } from "@/hooks/usePaints";
+import { PaintSheet } from "@/features/paints/PaintSheet";
 import { SlotFillRow } from "./SlotFillRow";
 import type { TechniqueWithCounts } from "@/types/technique";
 
@@ -43,10 +45,34 @@ export function SlotFillDialog({
   onBack,
 }: SlotFillDialogProps) {
   const { data: slots = [], isLoading: slotsLoading } = useTechniqueColourSlots(technique?.id);
+  const { data: paints = [] } = usePaints();
   const applyTechnique = useApplyTechnique();
 
   // Map from slot id to selected paint id (null = unassigned, valid per SLOT-05)
   const [slotFills, setSlotFills] = useState<Map<number, number | null>>(new Map());
+
+  // Inline "create a new paint" flow (TECH-UX-02) — mirrors RecipeFormSheet PAINT-03.
+  const [paintSheetOpen, setPaintSheetOpen] = useState(false);
+  const [paintsBeforeCreate, setPaintsBeforeCreate] = useState<number[]>([]);
+  const [pendingSlotId, setPendingSlotId] = useState<number | null>(null);
+
+  function openInlinePaintCreate(slotId: number) {
+    setPaintsBeforeCreate(paints.map((p) => p.id));
+    setPendingSlotId(slotId);
+    setPaintSheetOpen(true);
+  }
+
+  // After the PaintSheet closes, assign the newly-created paint to the slot that triggered it.
+  useEffect(() => {
+    if (paintSheetOpen) return;
+    if (pendingSlotId === null) return;
+    const newPaint = paints.find((p) => !paintsBeforeCreate.includes(p.id));
+    if (newPaint) {
+      handleSlotChange(pendingSlotId, newPaint.id);
+    }
+    setPendingSlotId(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paintSheetOpen, paints.length]);
 
   // Reset slot fills when dialog opens or slots change
   useEffect(() => {
@@ -91,6 +117,7 @@ export function SlotFillDialog({
   const SCROLL_THRESHOLD = 6;
 
   return (
+    <>
     <Dialog
       open={open}
       onOpenChange={(o) => {
@@ -114,7 +141,8 @@ export function SlotFillDialog({
             </>
           ) : !hasSlots ? (
             <p className="py-2 text-sm text-muted-foreground">
-              This technique has no colour slots &mdash; it will be applied with fixed paints.
+              This technique has no colour slots &mdash; it will be applied as-is. To map
+              paints per recipe, add colour slots when editing the technique.
             </p>
           ) : slots.length > SCROLL_THRESHOLD ? (
             <ScrollArea className="max-h-80">
@@ -125,6 +153,7 @@ export function SlotFillDialog({
                     slot={slot}
                     paintId={slotFills.get(slot.id) ?? null}
                     onChange={(paintId) => handleSlotChange(slot.id, paintId)}
+                    onCreateNew={() => openInlinePaintCreate(slot.id)}
                   />
                 ))}
               </div>
@@ -159,5 +188,13 @@ export function SlotFillDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+      {/* Stacked PaintSheet for inline create (TECH-UX-02) */}
+      <PaintSheet
+        open={paintSheetOpen}
+        paint={null}
+        onClose={() => setPaintSheetOpen(false)}
+      />
+    </>
   );
 }
