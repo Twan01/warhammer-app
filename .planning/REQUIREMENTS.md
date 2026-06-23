@@ -68,8 +68,8 @@ Requirements for the v0.7.0 release. Each maps to a roadmap phase.
 ### Detach & Safety (F)
 
 - [ ] **SAFE-01**: Every technique-sourced section shows a "from technique X" badge in both the recipe editor and the SectionedTimeline.
-- [ ] **SAFE-02**: User can detach a technique instance in a recipe — materializing its sections/steps into plain editable recipe sections/steps, remapping progress correctly, and removing the live link.
-- [ ] **SAFE-03**: Detach requires confirmation ("this breaks the live link permanently"), and the result is a fully editable plain section with no half-linked state.
+- [x] **SAFE-02**: User can detach a technique instance in a recipe — materializing its sections/steps into plain editable recipe sections/steps, remapping progress correctly, and removing the live link.
+- [x] **SAFE-03**: Detach requires confirmation ("this breaks the live link permanently"), and the result is a fully editable plain section with no half-linked state.
 
 ### Integration with Existing Surfaces (G)
 
@@ -152,8 +152,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 | LINK-02 | Phase 144 | Complete |
 | LINK-03 | Phase 144 | Complete |
 | SAFE-01 | Phase 146 | Pending |
-| SAFE-02 | Phase 146 | Pending |
-| SAFE-03 | Phase 146 | Pending |
+| SAFE-02 | Phase 146 | Complete |
+| SAFE-03 | Phase 146 | Complete |
 | INTG-01 | Phase 145 | Complete |
 | INTG-02 | Phase 145 | Complete |
 | INTG-03 | Phase 145 | Complete |

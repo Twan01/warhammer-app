@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.7.0
 milestone_name: Technique Library
-status: verifying
-stopped_at: Phase 144 complete (3/3 plans; verification 6/6 must-haves, human UAT deferred; 8 code-review findings fixed; migrations 052+053)
-last_updated: "2026-06-22T19:58:15.608Z"
-last_activity: 2026-06-22
+status: executing
+stopped_at: Phase 146 UI-SPEC approved
+last_updated: "2026-06-23T05:09:57.677Z"
+last_activity: 2026-06-23
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 18
-  completed_plans: 18
+  total_plans: 21
+  completed_plans: 19
   percent: 83
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-19)
 
 **Core value:** A single personal command center that always answers "what do I own, what's painted, and what's ready to play" — with accurate canonical data and reliable backup/restore
-**Current focus:** Phase 145 — Integration Pass
+**Current focus:** Phase 146 — detach-safety-rails
 
 ## Current Position
 
-Phase: 145 (Integration Pass) — EXECUTING
-Plan: 4 of 4
-Status: Phase complete — ready for verification
-Last activity: 2026-06-22
+Phase: 146 (detach-safety-rails) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-06-23
 
-Progress: [██████████] 100%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -92,6 +92,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-22T19:58:07.742Z
-Stopped at: Phase 144 complete (3/3 plans; verification 6/6 must-haves, human UAT deferred; 8 code-review findings fixed; migrations 052+053)
+Last session: 2026-06-23T05:09:57.670Z
+Stopped at: Phase 146 UI-SPEC approved
 Resume file: None
