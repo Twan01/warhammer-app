@@ -47,7 +47,7 @@ export function DetachConfirmDialog({
     <AlertDialog
       open={open}
       onOpenChange={(o) => {
-        if (!o) onCancel();
+        if (!o && !isPending) onCancel();
       }}
     >
       <AlertDialogContent>
@@ -64,7 +64,7 @@ export function DetachConfirmDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={onCancel}>Keep link</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>Keep link</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isPending}
