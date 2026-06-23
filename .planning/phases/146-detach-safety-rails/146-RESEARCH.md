@@ -568,18 +568,21 @@ Option 2 (callback) keeps RecipeSectionCard from holding a mutation hook — con
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Module placement of `detachTechniqueInstance`**
    - What we know: CONTEXT.md leaves this to Claude's discretion.
    - Recommendation: New file `recipeTechniqueDetach.ts` — keeps apply/resync/detach as distinct peer files, matching the SRP each file already demonstrates. The alternative (extending `recipeTechniqueInstances.ts`) risks making that file too large and mixing materialisation with teardown semantics.
+   - RESOLVED: Plan 146-01 creates `src/db/queries/recipeTechniqueDetach.ts`.
 
 2. **`useDeleteTechnique` mutation function replacement**
    - What we know: current `mutationFn: deleteTechnique` calls `getDb()` internally and issues a bare DELETE. Phase 146 needs a new function with the detach loop.
    - Recommendation: Add `detachAllAndDeleteTechnique(techniqueId)` to `recipeTechniqueDetach.ts` and replace `mutationFn` in `useDeleteTechnique`. Keep `deleteTechnique` in `techniques.ts` as an internal helper (no callers outside `detachAllAndDeleteTechnique` after this change).
+   - RESOLVED: Plan 146-01 adds `detachAllAndDeleteTechnique`; Plan 146-03 Task 1 rewires `useDeleteTechnique.mutationFn`.
 
 3. **RecipeSectionCard prop vs callback for detach**
    - Recommendation: `onDetach?: () => void` callback (passed from `RecipeSectionList`) keeps the card mutation-free. The mutation + `instanceId` resolution stays in `RecipeSectionList`/`TechniqueNameResolver` context.
+   - RESOLVED: Plan 146-02 Task 2 wires the `onDetach?: () => void` callback from `RecipeSectionList` into `RecipeSectionCard`.
 
 ---
 
