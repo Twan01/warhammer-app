@@ -6,9 +6,9 @@ import {
   getTechniqueUsageCounts,
   getTechniqueUsedByRecipes,
   saveTechniqueGraph,
-  deleteTechnique,
   duplicateTechnique,
 } from "@/db/queries/techniques";
+import { detachAllAndDeleteTechnique } from "@/db/queries/recipeTechniqueDetach";
 import type {
   DraftTechniqueSlot,
   DraftTechniqueSection,
@@ -143,13 +143,23 @@ export function useUpdateTechnique() {
   });
 }
 
-/** Delete a technique (CASCADE removes sections, steps, and slots). */
+/** Delete a technique — auto-detaches live instances first (SAFE-03) then removes the technique row. */
 export function useDeleteTechnique() {
   const qc = useQueryClient();
   return useMutation<void, Error, number>({
-    mutationFn: deleteTechnique,
+    mutationFn: detachAllAndDeleteTechnique,
     onSuccess: () => {
       invalidateTechniqueKeys(qc);
+      // Prefix invalidations — N recipes affected, no recipeId known.
+      // Mirrors useUpdateTechnique lines 135–142.
+      qc.invalidateQueries({ queryKey: ["recipe-sections"] });
+      qc.invalidateQueries({ queryKey: ["recipe-steps"] });
+      qc.invalidateQueries({ queryKey: ["recipe-paints"] });
+      qc.invalidateQueries({ queryKey: ["slot-resolution-map"] });
+      qc.invalidateQueries({ queryKey: ["technique-instances"] });
+      qc.invalidateQueries({ queryKey: STEP_COUNTS_KEY });
+      qc.invalidateQueries({ queryKey: RECIPE_SWATCH_KEY });
+      qc.invalidateQueries({ queryKey: RECIPE_AVAILABILITY_KEY });
     },
   });
 }
