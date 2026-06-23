@@ -44,7 +44,8 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
 - [x] **Phase 143: Apply Flow & Slot-Fill System** — Technique picker, slot-fill dialog, recipe_technique_instances rows, effectivePaintId() spine wired to all consumers
  (completed 2026-06-22)
 - [x] **Phase 144: Live-Link Re-Sync** — resyncAllInstancesForTechnique (Option A) or virtual-JOIN propagation (Option B), "X recipes affected" warning, data-layer tests gate (completed 2026-06-22)
-- [x] **Phase 145: Integration Pass** — Painting Mode, paint availability, apply-to-units, SectionedTimeline, recipe duplication, unfilled-slot warning across all surfaces (completed 2026-06-22)
+- [x] **Phase 145: Integration Pass** — Painting Mode, paint availability, apply-to-units, SectionedTimeline, recipe duplication, unfilled-slot warning across all surfaces
+ (completed 2026-06-22)
 - [ ] **Phase 146: Detach & Safety Rails** — detachTechniqueInstance with progress remapping, confirm dialog, "from technique X" badge with detach affordance, deleteTechnique guard
 
 ## Phase Details
@@ -140,7 +141,10 @@ Phases 1–140 covered v0.1.1 through v0.6.0 (shipped 2026-06-19). This mileston
   2. User can trigger Detach from the badge; a confirmation dialog warns "this breaks the live link permanently" before proceeding
   3. After detach, the section is fully editable plain recipe content — no half-linked state, FK columns cleared, and existing step-completion progress is correctly remapped to the now-plain recipe_step_id rows
   4. Attempting to delete a technique that still has live recipe instances surfaces the affected-recipe count and requires explicit confirmation
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 146-01-PLAN.md — Detach data-layer engine: guard-first test + detachTechniqueInstance (bake-before-delete) + detachAllAndDeleteTechnique (SAFE-02, SAFE-03)
+- [ ] 146-02-PLAN.md — Detach UI: useDetachTechniqueInstance hook + DetachConfirmDialog + editor Unlink affordance (SAFE-01, SAFE-02, SAFE-03)
+- [ ] 146-03-PLAN.md — Delete safety rail: auto-detach-then-delete useDeleteTechnique + two-case TechniqueDeleteDialog + live non-detached count (SAFE-03)
 **UI hint**: yes
 
 ## Progress
