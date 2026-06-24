@@ -207,6 +207,30 @@ enforces quality. Do not add a linter/formatter without discussing first.
 
 ---
 
+## ⚠ Dev builds share the PRODUCTION database (data-loss gotcha)
+
+`pnpm tauri dev` uses the same app identifier (`com.hobbyforge.app`) as the
+installed/release app, so it reads and writes the **same** files:
+`%APPDATA%\com.hobbyforge.app\hobbyforge.db` (+ backups, photos, logs).
+
+**Consequence:** running a dev build whose migration count is HIGHER than your
+installed app will migrate that shared DB forward. The next time the installed
+(older) app launches, its `sqlx` migrator sees applied migrations it doesn't
+ship and **crashes on startup** (`.launch-sentinel` stuck at `launching`,
+`preflight.log` shows `user_version updated: <new> -> <old>`). This bit a real
+v0.7.0 release: dev testing advanced the prod DB to schema 53, then the still-
+installed 0.6.0 app couldn't start. Fix was to install the new version directly.
+
+**Until dev/prod data-dir isolation lands (v0.7.0-v2 task):** before dev-testing
+schema changes, back up `%APPDATA%\com.hobbyforge.app\hobbyforge.db`, or point the
+dev build at a throwaway data dir. Don't assume dev and the installed app can
+coexist across a migration bump. The DB filename `hobbyforge.db` and identifier
+`com.hobbyforge.app` are hardcoded across the preflight (`resolve_app_data_dir`,
+lib.rs:454) AND the whole backup/restore/export/factory-reset subsystem — the
+isolation change must thread all of them and be release-build-verified.
+
+---
+
 ## Testing
 
 - Framework: Vitest 4 + React Testing Library 16 (jsdom environment)

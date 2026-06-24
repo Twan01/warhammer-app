@@ -83,6 +83,8 @@ None. (LINK-01 and INTG-05 closed by Phase 146.1-01 gap-closure plan)
 | v0.7.0 v2 | TQOL-01..04: Technique QoL (per-instance timestamp, slot suggestions, bulk reassign, soft-override flow) | v0.7.0 v2 | v0.7.0 scoping |
 | v0.7.0 v2 | TECH-UX-01: Technique step colour-slot dropdown discoverability — RESOLVED 2026-06-23 (commit 9e9cf36c): empty dropdown now shows "add one in Colour Slots above" hint | RESOLVED | 146 UAT |
 | v0.7.0 v2 | TECH-UX-02: Slot-fill inline paint create — RESOLVED 2026-06-23 (commit 9e9cf36c): PaintCombobox now offers "Add new paint" (stacked PaintSheet + new-paint detection); clearer slot-less copy | RESOLVED | 146 UAT |
+| v0.7.0 v2 | DEVENV-01: Dev/prod data-dir isolation — `pnpm tauri dev` shares the prod DB (`com.hobbyforge.app/hobbyforge.db`); dev migrations broke an installed older app (v0.7.0 release incident, 2026-06-24). Thread a dev/debug-gated data dir/identifier through preflight `resolve_app_data_dir` (lib.rs:454) AND the whole backup/restore/export/factory-reset subsystem (~15 sites); release-build-verify prod path unchanged. Gotcha documented in CLAUDE.md. | v0.7.0 v2 | 0.7.0 release incident |
+| v0.7.0 v2 | TECHDEBT-01: `invalidateAfterApply` (useTechniqueInstances.ts) omits `UNFILLED_SLOT_COUNT_KEY` — readiness banner stale until staleTime after applying a technique with unfilled slots | v0.7.0 v2 | 145 integration audit |
 | Phase 142 P01 | 15 | 3 tasks | 8 files |
 | Phase 144-live-link-re-sync P01 | 21 | 3 tasks | 4 files |
 | Phase 144-live-link-re-sync P02 | 18 | 2 tasks | 4 files |
