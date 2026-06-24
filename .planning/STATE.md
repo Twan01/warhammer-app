@@ -5,7 +5,7 @@ milestone_name: Technique Library
 status: Awaiting next milestone
 stopped_at: Phase 146 UI-SPEC approved
 last_updated: "2026-06-23T08:48:47.155Z"
-last_activity: 2026-06-23 — Milestone v0.7.0 completed and archived
+last_activity: 2026-06-24 — Completed quick task 260624-erb: Remove dead '+ add project' trigger button below the sidebar
 progress:
   total_phases: 7
   completed_phases: 7
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-19)
 Phase: Milestone v0.7.0 complete
 Plan: —
 Status: Awaiting next milestone
-Last activity: 2026-06-23 — Milestone v0.7.0 completed and archived
+Last activity: 2026-06-24 — Completed quick task 260624-erb: Remove dead '+ add project' trigger button below the sidebar
 
 ## Performance Metrics
 
@@ -71,6 +71,12 @@ None.
 ### Open Blockers
 
 None. (LINK-01 and INTG-05 closed by Phase 146.1-01 gap-closure plan)
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260624-erb | Remove dead '+ add project' trigger button below the sidebar (global AddProjectPicker) | 2026-06-24 | 7ca8bf67 | [260624-erb-remove-dead-add-project-trigger-button-b](./quick/260624-erb-remove-dead-add-project-trigger-button-b/) |
 
 ## Deferred Items
 
