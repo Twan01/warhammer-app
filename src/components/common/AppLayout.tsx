@@ -50,6 +50,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         onClose={closeQuickAdd}
       />
       <AddProjectPicker
+        hideTrigger
         open={activeSheet === "create-project"}
         onOpenChange={(o) => { if (!o) closeQuickAdd(); }}
       />

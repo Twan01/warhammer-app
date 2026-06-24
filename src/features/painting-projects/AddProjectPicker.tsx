@@ -3,7 +3,7 @@ import { Plus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -18,9 +18,17 @@ import type { Unit } from "@/types/unit";
 export function AddProjectPicker({
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
+  hideTrigger = false,
 }: {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /**
+   * When true, render no visible trigger button — only an invisible anchor.
+   * Used by the global Quick Add instance (AppLayout), which is opened
+   * programmatically via the sidebar "Create Project" item. Without this, the
+   * trigger button renders as a dead, non-functional button at the bottom-left.
+   */
+  hideTrigger?: boolean;
 } = {}) {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
@@ -49,13 +57,17 @@ export function AddProjectPicker({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="default" size="sm">
-          <Plus className="mr-2 h-4 w-4" />
-          Add project
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-72 p-0" align="end">
+      {hideTrigger ? (
+        <PopoverAnchor className="pointer-events-none fixed left-1/2 top-4 -translate-x-1/2" />
+      ) : (
+        <PopoverTrigger asChild>
+          <Button variant="default" size="sm">
+            <Plus className="mr-2 h-4 w-4" />
+            Add project
+          </Button>
+        </PopoverTrigger>
+      )}
+      <PopoverContent className="w-72 p-0" align={hideTrigger ? "center" : "end"}>
         <Command shouldFilter>
           <CommandInput placeholder="Search units..." />
           <CommandList>
